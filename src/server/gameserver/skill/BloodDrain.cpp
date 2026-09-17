@@ -275,11 +275,7 @@ void BloodDrain::execute(Monster* pMonster, Creature* pEnemy)
         }
 
         // 마스터 : 광역 흡혈 - -;
-        if (pMonster->isMaster()
-#ifdef __UNDERWORLD__
-            || pMonster->isUnderworld() || pMonster->getMonsterType() == 599
-#endif
-        ) {
+        if (pMonster->isMaster()) {
             //			cout << pMonster->getName() << "가 광역흡혈함" << endl;
             int x = pMonster->getX();
             int y = pMonster->getY();
@@ -329,11 +325,7 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    bool isMaster = pMonster->isMaster()
-#ifdef __UNDERWORLD__
-                    || pMonster->isUnderworld() || pMonster->getMonsterType() == 599
-#endif
-        ;
+    bool isMaster = pMonster->isMaster();
 
     // 죽었으면 흡혈 못하고..
     // 마스터는 아무나 다 빤다 - -;
@@ -459,12 +451,7 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
             DelayTurn.tv_usec = 500000;
             pEnemyMonster->addAccuDelay(DelayTurn);
 
-            if ((pMonster->isMaster()
-#ifdef __UNDERWORLD__
-                 || pMonster->isUnderworld() || pMonster->getMonsterType() == 599
-#endif
-                 ) &&
-                pMonster->getClanType() == pEnemyMonster->getClanType()) {
+            if ((pMonster->isMaster()) && pMonster->getClanType() == pEnemyMonster->getClanType()) {
                 // 같은 clan의 마스터이면 피 상납이라고 볼 수 있을까 -_-;
             } else {
                 pEnemyMonster->addEnemy(pMonster);

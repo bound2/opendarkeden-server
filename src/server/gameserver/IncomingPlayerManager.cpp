@@ -1291,24 +1291,6 @@ void IncomingPlayerManager::heartbeat()
             pGamePlayer->setEncryptCode();
 #endif
 
-#if defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-            // 빌링
-            // 유료존 --> 무료존으로 갈 경우 30레벨 이하의 종량제는 지불 끝이다.
-            if ((pGamePlayer->isPayPlaying() || pGamePlayer->isPremiumPlay()) &&
-                pGamePlayer->getPayType() == PAY_TYPE_TIME) {
-                Assert(pCreature->isPC());
-                PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-                Assert(pPC != NULL);
-
-                if (pPC->canPlayFree() && !pZone->isPayPlay() && !pZone->isPremiumZone()) {
-                    // cout << "LogoutPayPlay:[" << (int)pZone->getZoneID() << "] "
-                    //		<< (int)pZone->isPayPlay() << " , "
-                    //		<< (int)pZone->isPremiumZone() << endl;
-                    pGamePlayer->logoutPayPlay(pGamePlayer->getID());
-                }
-            }
-#endif
-
             // System Availabilities 정보를 보내준다.
             SEND_SYSTEM_AVAILABILITIES(pGamePlayer);
 

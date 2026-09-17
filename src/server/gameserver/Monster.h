@@ -384,15 +384,6 @@ public:
         return m_pQuestItem;
     }
 
-#ifdef __UNDERWORLD__
-    bool isUnderworld() {
-        return m_bUnderWorld;
-    }
-    void setUnderworld(bool bUnderworld = true) {
-        m_bUnderWorld = bUnderworld;
-    }
-#endif
-
     void setLastKiller(ObjectID_t id) {
         m_LastKiller = id;
     }
@@ -482,10 +473,6 @@ private:
     bool m_bMaster;
     bool m_bTreasure;
     int m_MonsterSummonStep; // 소환 단계
-
-#ifdef __UNDERWORLD__
-    bool m_bUnderWorld;
-#endif
 
     // AttackOrder
     AttackOrder m_AttackOrder;

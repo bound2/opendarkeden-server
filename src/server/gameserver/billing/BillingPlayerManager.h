@@ -7,7 +7,7 @@
 #ifndef __BILLING_PLAYER_MANANGER_H__
 #define __BILLING_PLAYER_MANANGER_H__
 
-#include "BillingInfo.h" // for #define __CONNECT_BILLING_SYSTEM__
+#include "BillingInfo.h"
 #include "Exception.h"
 #include "ManagedThread.h"
 #include "Mutex.h"

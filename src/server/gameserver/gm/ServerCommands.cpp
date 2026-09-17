@@ -1319,11 +1319,7 @@ void opworld(GamePlayer* pGamePlayer, string msg, int i, bool bSameWorldOnly) {
     __END_DEBUG_EX __END_CATCH
 }
 
-void opbillingdisconnect() {
-#ifdef __CONNECT_BILLING_SYSTEM__
-    g_pBillingPlayerManager->setForceDisconnect();
-#endif
-}
+void opbillingdisconnect() {}
 
 void opbugreport(Creature* pCreature, GamePlayer* pGamePlayer, string msg, int i) {
     size_t j = msg.find_first_of(' ', i + 1);

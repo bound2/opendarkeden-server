@@ -6,11 +6,6 @@ using namespace std;
 
 #include "types/ServerType.h"
 
-// Nothing defines __CONNECT_BILLING_SYSTEM__, so the external billing
-// blocks behind it are not compiled.
-
-// #define __COUT_BILLING_SYSTEM__
-
 #ifdef __GAME_SERVER__
 #define LOGFILE_BILLING_PLAYER "billingPlayerGame.txt"
 #define LOGFILE_BILLING_PACKET "billingPacketGame.txt"

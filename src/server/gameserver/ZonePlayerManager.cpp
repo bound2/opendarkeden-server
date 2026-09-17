@@ -561,29 +561,17 @@ void ZonePlayerManager::processCommands() {
                     // tile에서 지우고.. zone이동이 되므로.. 이걸로 문제가 생길 수 있다고 본다.
                     // by sigi. 2002.12.10
                     else if (pTempPlayer->getPlayerStatus() == GPS_NORMAL) {
-#ifdef __CONNECT_BILLING_SYSTEM__
-                        // 아직 빌링 시스템에서 검증되지 않았다면..
-                        if (!pTempPlayer->isBillingLoginVerified()) {
-                            if (!pTempPlayer->isMetroFreePlayer())
-                                pTempPlayer->sendBillingLogin();
-                        }
-                        // 빌링 시스템 검증이 된 경우이고..
-                        // 빌링 플레이가 불가능한 경우라면..
-                        // 제한적인 무료 플레이가 가능한지 체크해본다.	// by sigi. 2002.12.5
-                        else if (pTempPlayer->isBillingLoginVerified() && !pTempPlayer->isBillingPlayAvaiable())
-#endif
+                        // 패밀리 요금제 적용이 끝난 경우. 유료존에 있는 무료 파티원들을 무료존으로 옮겨야한다.
+                        if (pTempPlayer->isFamilyFreePassEnd()) {
+                            Creature* pCreature = pTempPlayer->getCreature();
+                            Zone* pZone = pCreature->getZone();
+                            Assert(pZone != NULL);
 
-                            // 패밀리 요금제 적용이 끝난 경우. 유료존에 있는 무료 파티원들을 무료존으로 옮겨야한다.
-                            if (pTempPlayer->isFamilyFreePassEnd()) {
-                                Creature* pCreature = pTempPlayer->getCreature();
-                                Zone* pZone = pCreature->getZone();
-                                Assert(pZone != NULL);
-
-                                if (pZone->isPayPlay()) {
-                                    // 무료 사용자일 경우 아래 if 문에서 유료 체크를 하고 무료존으로 옮겨간다.
-                                    pTempPlayer->setPremiumPlay();
-                                }
+                            if (pZone->isPayPlay()) {
+                                // 무료 사용자일 경우 아래 if 문에서 유료 체크를 하고 무료존으로 옮겨간다.
+                                pTempPlayer->setPremiumPlay();
                             }
+                        }
 
                         // 유료 사용자인 경우는 시간을 줄인다.
                         // 패밀리 요금 사용자인 경우 시간이 다되었는지 확인한다. 유무료존에 상관없이
@@ -617,85 +605,6 @@ void ZonePlayerManager::processCommands() {
 
                             // by sigi. 2002.12.30
                             IsPayPlayEnd = true;
-
-// Zone단위 유료인 경우는.. 무료존으로 옮긴다.
-#if defined(__PAY_SYSTEM_ZONE__)
-
-                            // 유료 서비스 사용 불가인 경우
-                            //
-                            // slayer : 에슬남동에서 부활하는 곳으로 간다.
-                            // vampire : 림보남동에서 부활하는 곳으로 간다.
-                            if (pZone->isPayPlay()) {
-                                ZONE_COORD zoneCoord;
-
-                                Assert(pCreature->isPC());
-                                PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-                                Assert(pPC != NULL);
-
-                                // 클라이언트에 유료 사용이 끝났다는 메시지를 출력하도록한다.
-                                // 일단 무료존으로 이동하게 되므로 지금 보내줘서는 소용이 없다.
-                                // 새로운 존에 들어가서 메시지를 받도록 한다.
-                                uint strID = STRID_END_PAY_PLAY;
-
-                                // The message for a move to a free zone because a family plan ended.
-                                if (pTempPlayer->isFamilyFreePassEnd())
-                                    strID = STRID_FAMILY_FREE_PLAY_END;
-
-                                defaultMessageRepository().insertMessage(pPC->getName(), g_pStringPool->c_str(strID));
-
-                                if (pCreature->isFlag(Effect::EFFECT_CLASS_LOGIN_GUILD_MESSAGE))
-                                    pCreature->removeFlag(Effect::EFFECT_CLASS_LOGIN_GUILD_MESSAGE);
-
-                                // 무료존으로 옮긴다.
-                                if (g_pResurrectLocationManager->getRaceDefaultPosition(pPC->getRace(), zoneCoord)) {
-                                    transportCreature(pCreature, zoneCoord.id, zoneCoord.x, zoneCoord.y, true);
-                                } else {
-                                    // 아, 비상이닷...
-                                    throw Error("Critical Error : ResurrectInfo is not established!1");
-                                }
-                            }
-#elif defined(__PAY_SYSTEM_FREE_LIMIT__) || defined(__PAY_SYSTEM_LOGIN__)
-                            // cout << "Pay timeout" << endl;
-                            // throw DisconnectException();
-
-                            PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-                            Assert(pPC != NULL);
-
-                            if (pPC->isPayPlayAvaiable()) {
-                                // 유료존일 경우 무료존으로 옮긴다.
-                                if (pZone->isPayPlay()) {
-                                    ZONE_COORD zoneCoord;
-
-                                    Assert(pCreature->isPC());
-                                    PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-                                    Assert(pPC != NULL);
-
-                                    if (g_pResurrectLocationManager->getRaceDefaultPosition(pPC->getRace(),
-                                                                                            zoneCoord)) {
-                                        transportCreature(pCreature, zoneCoord.id, zoneCoord.x, zoneCoord.y, true);
-                                    } else {
-                                        // 아, 비상이닷...
-                                        throw Error("Critical Error : ResurrectInfo is not established!1");
-                                    }
-                                } else {
-                                    GCSystemMessage gcSystemMessage;
-                                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_EXPIRE_PREMIUM_SERVICE));
-                                    pTempPlayer->sendPacket(&gcSystemMessage);
-                                }
-                            } else {
-                                pTempPlayer->kickPlayer(30, KICK_MESSAGE_PAY_TIMEOUT);
-                                /*								EventKick* pEventKick = new EventKick(pTempPlayer);
-                                                                pEventKick->setDeadline(30*10);
-                                                                pTempPlayer->addEvent(pEventKick);
-
-                                                                // 몇 초후에 짤린다..고 보내준다.
-                                                                GCKickMessage gcKickMessage;
-                                                                gcKickMessage.setType( KICK_MESSAGE_PAY_TIMEOUT );
-                                                                gcKickMessage.setSeconds( 30 );
-                                                                pTempPlayer->sendPacket( &gcKickMessage ); */
-                            }
-
-#endif
                         }
 
                         // 패밀리 요금제 적용이 끝났다면, 다시 체크하지 않게 하기위에 타입을 바꿔준다.

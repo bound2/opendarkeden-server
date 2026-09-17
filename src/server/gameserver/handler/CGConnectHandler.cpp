@@ -287,24 +287,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         string connectIP = pGamePlayer->getSocket()->getHost();
 
         // ºô¸µ by sigi. 2002.5.31
-#if defined(__CONNECT_BILLING_SYSTEM__)
-        if (payType == PAY_TYPE_FREE) {
-            pGamePlayer->setMetroFreePlayer();
-        }
-#elif defined(__PAY_SYSTEM_LOGIN__)
-        if (pGamePlayer->loginPayPlay(payType, payPlayDate, payPlayHours, payPlayFlag, connectIP, playerID)) {
-            sendPayInfo(pGamePlayer);
-        } else {
-            throw ProtocolException("no pay account");
-        }
-// by sigi. 2002.11.18. Á¦ÇÑÀû ¹«·á »ç¿ëÀÚ. - -; ÀÏ´Ü login
-#elif defined(__PAY_SYSTEM_FREE_LIMIT__)
-        if (pGamePlayer->loginPayPlay(payType, payPlayDate, payPlayHours, payPlayFlag, connectIP, playerID)) {
-            sendPayInfo(pGamePlayer);
-        }
-#else // defined(__PAY_SYSTEM_ZONE__)
         pGamePlayer->setPayPlayValue(payType, payPlayDate, payPlayHours, payPlayFlag, familyPayPlayDate);
-#endif
 
         // NOTE: nothing in this try can raise a SQLQueryException. Each
         // repository call converts its own inside END_DB and rethrows a
@@ -604,118 +587,9 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-#if defined(__PAY_SYSTEM_FREE_LIMIT__)
-    try {
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pZone->getZoneID());
-        Assert(pZoneInfo != NULL);
-
-        Assert(pCreature->isPC());
-        PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-        Assert(pPC != NULL);
-
-        // À¯·á Á¸ÀÌ³ª ÇÁ¸®¹Ì¾ö Á¸ÀÌ ¾Æ´Ò °æ¿ì 30 ·¹º§ ÀÌÇÏÀÇ Á¾·®Á¦ »ç¿ëÀÚ¿¡°Ô´Â °ú±ÝÇÏÁö ¾Ê´Â´Ù.
-        if ((pGamePlayer->isPayPlaying() || pGamePlayer->isPremiumPlay()) &&
-            pGamePlayer->getPayType() == PAY_TYPE_TIME && pPC->canPlayFree() &&
-            !(pZoneInfo->isPayPlay() || pZone->isPremiumZone())) {
-            pGamePlayer->logoutPayPlay(pGamePlayer->getID(), false, false);
-        }
-
-        // À¯·áÈ­ Á¸ÀÌ°í À¯·á»ç¿ëÁßÀÌ ¾Æ´Ï¸é..
-        // ¤Ì.¤Ð 2003.03.16 ÀÏ¹Ý ÇÊµåµµ ÇÁ¸®¹Ì¾öÁ¸ÀÌ´Ù. ¹«·á»ç¿ëÀÚµµ ÇÊµå·Î´Â ·Î±×ÀÎ µÇ¾î¾ß ÇÑ´Ù.
-        if ((pZoneInfo->isPayPlay()) //|| pZoneInfo->isPremiumZone())
-            && !pGamePlayer->isPayPlaying()) {
-            // À¯·á ¼­ºñ½º »ç¿ë ºÒ°¡ÀÎ °æ¿ì
-            // ½½·¹ÀÌ¾î´Â ¿¡½½³²µ¿¿¡¼­ ºÎÈ°ÇÏ´Â °÷À¸·Î °£´Ù.
-            // ¹ìÆÄÀÌ¾î´Â ¸²º¸³²µ¿¿¡¼­ ºÎÈ°ÇÏ´Â °÷À¸·Î °£´Ù.
-            ZONE_COORD zoneCoord;
-
-            if (g_pResurrectLocationManager->getRaceDefaultPosition(pPC->getRace(), zoneCoord)) {
-                pCreature->setZoneID(zoneCoord.id);
-                pCreature->setXY(zoneCoord.x, zoneCoord.y);
-            }
-        }
-    } catch (NoSuchElementException&) {
-        throw Error("ZoneInfo has no such zoneID.");
-    }
-#elif defined(__CONNECT_BILLING_SYSTEM__)
-    if (pGamePlayer->isMetroFreePlayer()) {
-        pGamePlayer->setBillingUserStatus("MT");
-        pGamePlayer->setPremiumPlay();
-    } else {
-        try {
-            ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pZone->getZoneID());
-            Assert(pZoneInfo != NULL);
-
-            Assert(pCreature->isPC());
-            PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-            Assert(pPC != NULL);
-
-            // ¾ÆÁ÷ ºô¸µ ¼­¹ö¿¡¼­ À¯·á »ç¿ëÀÚÀÎÁö ÀÎÁõ È®ÀÎÀ» ¹ÞÁö ¾Ê¾Ò´Ù.
-            // À¯·áÈ­ Á¸ÀÌ¶ó¸é ÀÏ´Ü À¯·á »ç¿ëÀÚ¶ó·Î »ý°¢ÇÑ´Ù.
-            // premium À» ÄÑ ³õ¾Æ¾ßÁö ¹«·á »ç¿ëÀÏ¶§ ZonePlayerManager ¿¡¼­ ¹«·áÁ¸À¸·Î ¿Å°ÜÁØ´Ù.
-            if (pZoneInfo->isPayPlay()) {
-                pGamePlayer->setPremiumPlay();
-            }
-
-        } catch (NoSuchElementException&) {
-            throw Error("ZoneInfo has no such zoneID.");
-        }
-
-        // session °ªÀ» Á¤ÇØµÐ´Ù. by sigi. 2002.11.18
-        pGamePlayer->setBillingSession();
-
-        // ºô¸µ¼­¹ö¿¡ °ÔÀÓ ½ÃÀÛÀ» ¾Ë¸°´Ù.
-        pGamePlayer->sendBillingLogin();
-    }
-
-#elif defined(__PAY_SYSTEM_ZONE__)
-    try {
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pZone->getZoneID());
-
-        // À¯·áÈ­ Á¸ÀÌ°í À¯·á»ç¿ëÁßÀÌ ¾Æ´Ï¸é..
-        if (pZoneInfo != NULL && (pZoneInfo->isPayPlay() || pZoneInfo->isPremiumZone()) &&
-            !pGamePlayer->isPayPlaying()) {
-            bool bEnterZone = true;
-
-            string connectIP = pGamePlayer->getSocket()->getHost();
-
-            // À¯·á ¼­ºñ½º »ç¿ëÀÌ °¡´ÉÇÑ°¡?
-            // À¯·á ¼­ºñ½º »ç¿ëÀÌ ¾ÈµÇ°í À¯·á Á¸ÀÌ¶ó¸é µé¾î°¥ ¼ö ¾ø´Ù.
-            if (!pGamePlayer->loginPayPlay(connectIP, pGamePlayer->getID()) && pZoneInfo->isPayPlay()) {
-                bEnterZone = false;
-            }
-
-            if (!pGamePlayer->loginPayPlay(connectIP, pGamePlayer->getID()) &&
-                (pZone->getZoneID() == 1131 || pZone->getZoneID() == 1132 || pZone->getZoneID() == 1133 ||
-                 pZone->getZoneID() == 1134)) {
-                bEnterZone = false;
-            }
-
-            Assert(pCreature->isPC());
-            PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-            Assert(pPC != NULL);
-
-            if (!bEnterZone) {
-                // À¯·á ¼­ºñ½º »ç¿ë ºÒ°¡ÀÎ °æ¿ì
-                // ½½·¹ÀÌ¾î´Â ¿¡½½³²µ¿¿¡¼­ ºÎÈ°ÇÏ´Â °÷À¸·Î °£´Ù.
-                // ¹ìÆÄÀÌ¾î´Â ¸²º¸³²µ¿¿¡¼­ ºÎÈ°ÇÏ´Â °÷À¸·Î °£´Ù.
-                ZONE_COORD zoneCoord;
-                //				bool bFindPos = false;
-
-                if (g_pResurrectLocationManager->getRaceDefaultPosition(pPC->getRace(), zoneCoord)) {
-                    pCreature->setZoneID(zoneCoord.id);
-                    pCreature->setXY(zoneCoord.x, zoneCoord.y);
-                }
-            }
-        }
-    } catch (NoSuchElementException&) {
-        throw Error("ZoneInfo has no such zoneID.");
-    }
-#else
     // ¾Æ¹«°Íµµ ¼³Á¤µÇ¾î ÀÖÁö ¾ÊÀ¸¸é
     // °Á À¯·á »ç¿ëÀÚ¶ó°í ÇØ¹ö¸®ÀÚ
     pGamePlayer->setPremiumPlay();
-#endif
 
     // test code
     /*

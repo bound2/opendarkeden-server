@@ -145,11 +145,7 @@ void AttackMelee::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
 
                 // 이 부분은 새로 만들어진 부분을 생각해서 고쳐져야 하는데...
                 // 마스터는 딜레이없다.
-                if (!pMonster->isMaster()
-#ifdef __UNDERWORLD__
-                    && !pMonster->isUnderworld() && pMonster->getMonsterType() != 599
-#endif
-                ) {
+                if (!pMonster->isMaster()) {
                     Timeval NextTurn = pMonster->getNextTurn();
                     Timeval DelayTurn;
                     DelayTurn.tv_sec = 0;

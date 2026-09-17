@@ -31,6 +31,4 @@
 #define __XMAS_EVENT_CODE__
 #endif
 
-// #define __UNDERWORLD__
-
 #endif

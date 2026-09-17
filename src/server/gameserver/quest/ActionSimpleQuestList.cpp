@@ -40,36 +40,6 @@ void ActionSimpleQuestList::execute(Creature* pCreature1, Creature* pCreature2)
 
     {__BEGIN_TRY
 
-         /*#ifdef __ACTIVE_QUEST__
-              Assert(pCreature1 != NULL);
-              Assert(pCreature2 != NULL);
-              Assert(pCreature1->isNPC());
-              Assert(pCreature2->isPC());
-
-              NPC* pNPC = dynamic_cast<NPC*>(pCreature1);
-
-              // m_ScriptID와 관련된 정보를 PublicScriptManager에 생성
-              Script* pScript = context().publicScripts().getScript(m_ScriptID);
-
-              pNPC->setSimpleQuestListScript( pScript );
-
-              // 패킷 보냄
-              GCNPCAskDynamic gcNPCAskDynamic;
-              gcNPCAskDynamic.setObjectID(pCreature1->getObjectID());
-              gcNPCAskDynamic.setScriptID(m_ScriptID);
-              gcNPCAskDynamic.setSubject(pScript->getSubject(0));
-
-              for (uint c=0; c<pScript->getContentCount(); c++)
-              {
-                  gcNPCAskDynamic.addContent(pScript->getContent(c));
-              }
-
-              Player* pPlayer = pCreature2->getPlayer();
-              pPlayer->sendPacket(&gcNPCAskDynamic);
-
-
-          #endif*/
-
          __END_CATCH}
 
 

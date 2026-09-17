@@ -274,18 +274,6 @@ void LoginPlayerManager::processCommands() {
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         if (m_pPlayers[i] != NULL && i != m_ServerFD) {
             try {
-#ifdef __CONNECT_BILLING_SYSTEM__
-
-                // LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(m_pPlayers[i]);
-
-                // 아직 빌링 시스템에서 검증되지 않았다면..
-                // 한번만 보내고 게기는 걸로 수정. 애드빌(박정수) 요청. by bezz. 2003.04.21
-                // if (!pLoginPlayer->isBillingLoginVerified())
-                //{
-                // pLoginPlayer->sendBillingLogin();
-                //}
-#endif
-
                 m_pPlayers[i]->processCommand();
             } catch (ProtocolException& pe) {
                 //--------------------------------------------------

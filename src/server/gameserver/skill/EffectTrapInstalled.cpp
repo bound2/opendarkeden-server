@@ -92,11 +92,7 @@ void EffectTrapInstalled::affect(Creature* pCreature)
 
     if (pCreature->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pCreature);
-        if (pMonster->isMaster()
-#ifdef __UNDERWORLD__
-            || pMonster->isUnderworld() || pMonster->getMonsterType() == 599
-#endif
-        )
+        if (pMonster->isMaster())
             return;
     }
 

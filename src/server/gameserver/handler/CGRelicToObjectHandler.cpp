@@ -565,18 +565,12 @@ void CGRelicToObjectHandler::executeCastleSymbol(CGRelicToObject* pPacket, Playe
         return;
     }
 
-#ifndef __OLD_GUILD_WAR__
     //	if (pZone->getZoneID() == 1500 )
     //	{
     cout << "siegeManager Call" << endl;
     SiegeManager::Instance().putItem(pPlayerCreature, pCorpse, pItem);
     return;
-//	}
-#else
-    if (g_pCastleShrineInfoManager->putCastleSymbol(pPlayerCreature, pItem, pCorpse)) {
-        // putCastleSymbol 안에서 처리한다.
-    }
-#endif
+    //	}
 
 #endif
 

@@ -31,7 +31,6 @@
 #include "PlayerMailbox.h"
 #include "Properties.h"
 #include "RelicUtil.h"
-#include "ServiceDeadline.h"
 #include "SharedServerManager.h"
 #include "Slayer.h"
 #include "StringPool.h"
@@ -185,14 +184,6 @@ GamePlayer::~GamePlayer() noexcept {
                 de::abandonPlayerMailbox(*this);
             } catch (...) {
             }
-
-#ifdef __CONNECT_BILLING_SYSTEM__
-            // Tell Pay the session is ending. by sigi. 2002.11.18
-            if (isBillingPlayAvaiable() && !m_bMetroFreePlayer) // by sigi. 2002.11.23
-            {
-                g_pBillingPlayerManager->sendPayLogout(this);
-            }
-#endif
 
 
             // Remove from the guild list of currently connected members.
@@ -712,13 +703,6 @@ void GamePlayer::disconnect(bool bDisconnected) {
     if (m_ID != "") {
         // Only a session still in GAME flips to LOGOFF. by sigi. 2002.5.15
         defaultSessionRepository().markPlayerLoggedOff(m_ID);
-
-        // Billing. by sigi. 2002.5.31
-#if defined(__PAY_SYSTEM_LOGIN__) || defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-        if (isPayPlaying() || isPremiumPlay()) {
-            logoutPayPlay(m_ID);
-        }
-#endif
 
         // Delete the IP record.
         defaultSessionRepository().deleteUserIP(CreatureName);
@@ -1336,14 +1320,6 @@ void GamePlayer::setEncryptCode() {
     // uchar code = (uchar)( ( ( zoneID >> 8 ) ^ zoneID ) ^ ( ( serverID + 1 ) << 4 ) );
     uchar code = m_pCreature->getZone()->getEncryptCode();
 
-#ifdef __ACTIVE_SERVICE_DEADLINE__
-    // Code that disables the server
-    VSDate date = VSDate::currentDate();
-    // For 2003 January or later: 2003, 0
-    if (date.year() >= DEADLINE_YEAR && date.month() > DEADLINE_MONTH)
-        code += (date.year() + date.month()) / 11;
-#endif
-
     SocketEncryptOutputStream* pEOS = dynamic_cast<SocketEncryptOutputStream*>(m_pOutputStream);
     Assert(pEOS != NULL);
 
@@ -1384,64 +1360,41 @@ void GamePlayer::kickPlayer(uint nSeconds, uint KickMessageType) {
 bool GamePlayer::loginPayPlay(PayType payType, const string& PayPlayDate, int PayPlayHours, uint payPlayFlag,
                               const string& ip, const string& playerID) {
     __BEGIN_TRY
-#ifdef __CONNECT_BILLING_SYSTEM__
-    return BillingPlayerInfo::isBillingPlayAvaiable();
-#else
     return PaySystem::loginPayPlay(payType, PayPlayDate, PayPlayHours, payPlayFlag, ip, playerID);
-#endif
     __END_CATCH
 }
 
 bool GamePlayer::loginPayPlay(const string& ip, const string& playerID) {
     __BEGIN_TRY
-#ifdef __CONNECT_BILLING_SYSTEM__
-    return BillingPlayerInfo::isBillingPlayAvaiable();
-#else
     bool bRet = PaySystem::loginPayPlay(ip, playerID);
 
     if (bRet)
         setPCRoomLottoStartTime();
 
     return bRet;
-#endif
     __END_CATCH
 }
 
 bool GamePlayer::updatePayPlayTime(const string& playerID, const VSDateTime& currentDateTime,
                                    const Timeval& currentTime) {
     __BEGIN_TRY
-#ifdef __CONNECT_BILLING_SYSTEM__
-    return BillingPlayerInfo::isBillingPlayAvaiable();
-#else
     checkPCRoomLotto(currentTime);
 
     return PaySystem::updatePayPlayTime(playerID, currentDateTime, currentTime);
-#endif
     __END_CATCH
 }
 
 void GamePlayer::logoutPayPlay(const string& playerID, bool bClear, bool bDecreaseTime) {
     __BEGIN_TRY
-#ifdef __CONNECT_BILLING_SYSTEM__
-    if (!BillingPlayerInfo::isBillingPlayAvaiable())
-        setPremiumPlay(false);
-#else
     savePCRoomLottoTime();
 
     PaySystem::logoutPayPlay(playerID, bClear, bDecreaseTime);
-#endif
     __END_CATCH
 }
 
 bool GamePlayer::isPayPlaying() const {
-#ifdef __CONNECT_BILLING_SYSTEM__
-    return BillingPlayerInfo::isBillingPlayAvaiable();
-#elif !defined(__PAY_SYSTEM_ZONE__) && !defined(__PAY_SYSTEM_LOGIN__) && !defined(__PAY_SYSTEM_FREE_LIMIT__)
-    // if there is no Pay defines, all users are pay player
+    // Every player counts as a paying player: there is no billing backend.
     return true;
-#else
-    return PaySystem::isPayPlaying();
-#endif
 }
 
 void GamePlayer::setPCRoomLottoStartTime() {

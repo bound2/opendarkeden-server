@@ -1785,12 +1785,6 @@ bool checkTimingMasterBloodDrain(Monster* pMonster, Creature* pEnemy) {
 
     Assert(pMonster != NULL);
 
-    /*	if ((!pMonster->isMaster()
-    #ifdef __UNDERWORLD__
-            && pMonster->getMonsterType() != 599
-    #endif
-            )
-            || pEnemy == NULL)*/
     if (pEnemy == NULL) {
         return false;
     }

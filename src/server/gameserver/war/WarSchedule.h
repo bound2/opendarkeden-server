@@ -22,9 +22,7 @@ public:
 public:
     void create();
     void tinysave(const string& query);
-#ifndef __OLD_GUILD_WAR__
     void save();
-#endif
     const War* getWar() const {
         return dynamic_cast<const War*>(getWork());
     }

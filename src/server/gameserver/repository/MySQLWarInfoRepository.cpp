@@ -420,13 +420,9 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
-#ifndef __OLD_GUILD_WAR__
                 "SELECT WarID, WarType, AttackerCount, AttackGuildID, AttackGuildID2, AttackGuildID3, AttackGuildID4, "
                 "AttackGuildID5, "
                 "WarFee, StartTime FROM WarScheduleInfo "
-#else
-                "SELECT WarID, WarType, AttackGuildID, WarFee, StartTime FROM WarScheduleInfo "
-#endif
                 "WHERE ServerID = %u AND ZoneID = %u AND ( Status = 'WAIT' OR Status = 'START' ) "
                 "ORDER BY StartTime",
                 serverID, zoneID);
@@ -437,15 +433,11 @@ public:
 
                 row.warID = pResult->getInt(++i);
                 row.warType = pResult->getString(++i);
-#ifndef __OLD_GUILD_WAR__
                 row.attackerCount = pResult->getInt(++i);
 
                 for (int j = 0; j < 5; ++j) {
                     row.attackGuildID[j] = pResult->getInt(++i);
                 }
-#else
-                row.attackGuildID = pResult->getInt(++i);
-#endif
                 row.warFee = pResult->getInt(++i);
                 row.startTime = pResult->getString(++i);
 

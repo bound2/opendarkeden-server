@@ -81,20 +81,13 @@ struct CastleStateRecord {
     int taxBalance;
 };
 
-// WarScheduler::load's row, in SELECT order — ten columns in the live
-// arm, five under __OLD_GUILD_WAR__. The macro mirrors
-// war/WarScheduler.cpp, whose loop reads these columns positionally: the
-// live build leaves __OLD_GUILD_WAR__ undefined (it is commented out in
-// Core/Types.h), so the ten-column form is the one that compiles.
+// WarScheduler::load's row, in SELECT order. war/WarScheduler.cpp's loop
+// reads these ten columns positionally.
 struct WarScheduleRow {
     int warID;
     std::string warType;
-#ifndef __OLD_GUILD_WAR__
     int attackerCount;
     int attackGuildID[5];
-#else
-    int attackGuildID;
-#endif
     int warFee;
     std::string startTime;
 };

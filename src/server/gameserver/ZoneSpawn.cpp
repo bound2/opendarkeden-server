@@ -429,51 +429,6 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
             m_pLocalPartyManager->addPartyMember(PartyID, pCreature);
         }
 
-        // 요금 정보를 보여준다.
-#if !defined(__CONNECT_BILLING_SYSTEM__) && (defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__))
-        if (pCreature->isPC()) {
-            GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pCreature->getPlayer());
-
-            // 게임방인 경우에
-            // 유료 사용중이면
-            // 시간이 얼마 남지 않았을 경우에 요금 정보를 표시해준다.
-            if ((pGamePlayer->isPayPlaying() || pGamePlayer->isPremiumPlay()) &&
-                pGamePlayer->getPayType() == PAY_TYPE_TIME) {
-                Timeval currentTime;
-                getCurrentTime(currentTime);
-                Timeval payTime = pGamePlayer->getPayPlayTime(currentTime);
-
-                int usedMin = payTime.tv_sec / 60;
-                int remainMin = pGamePlayer->getPayPlayAvailableHours() - usedMin;
-
-                // PC방은 남은 시간이 5시간(300분) 이하일 때 출력
-                if (pGamePlayer->getPayPlayType() == PAY_PLAY_TYPE_PCROOM) {
-                    // cout << "PC방 사용시간 : " << usedMin << "/" << pGamePlayer->getPayPlayAvailableHours() << endl;
-
-                    if (remainMin <= 300) {
-                        char str[80];
-                        sprintf(str, g_pStringPool->c_str(STRID_PCROOM_REMAIN_PLAY_TIME), remainMin);
-                        // sprintf(str, "[PC방] 사용시간이 %d분 남았습니다.", remainMin);
-                        GCSystemMessage gcSystemMessage;
-                        gcSystemMessage.setMessage(str);
-                        pGamePlayer->sendPacket(&gcSystemMessage);
-                    }
-                }
-                // 개인은 남은 시간이 1시간(60분) 이하일 때 출력
-                else if (pGamePlayer->getPayPlayType() == PAY_PLAY_TYPE_PERSON) {
-                    if (remainMin <= 60) {
-                        char str[80];
-                        sprintf(str, g_pStringPool->c_str(STRID_PERSONAL_REMAIN_PLAY_TIME), remainMin);
-                        // sprintf(str, "[개인] 사용시간이 %d분 남았습니다.", remainMin);
-                        GCSystemMessage gcSystemMessage;
-                        gcSystemMessage.setMessage(str);
-                        pGamePlayer->sendPacket(&gcSystemMessage);
-                    }
-                }
-            }
-        }
-#endif
-
         // 불기둥
         if (isMasterLair() && m_pMasterLairManager != NULL) {
             MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(getZoneID());

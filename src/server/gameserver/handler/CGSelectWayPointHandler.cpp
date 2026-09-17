@@ -96,36 +96,6 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
             if (!canEnterBeginnerZone(pCreature))
                 return;
 
-                // 초보존이 유료존일수도 있을라나...?
-#if defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-            ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pos.id);
-
-            // 유료존인데 유료사용자가 아니면...
-            if (pZoneInfo == NULL || ((pZoneInfo->isPayPlay() || pZoneInfo->isPremiumZone()) &&
-                                      (!pGamePlayer->isPayPlaying() && !pGamePlayer->isFamilyFreePass()))) {
-                // Statement* pStmt = NULL;
-                string connectIP = pGamePlayer->getSocket()->getHost();
-
-                // 유료 서비스 사용이 가능한가?
-                if (pGamePlayer->loginPayPlay(connectIP, pGamePlayer->getID())) {
-                    sendPayInfo(pGamePlayer);
-                } else if (pZoneInfo->isPayPlay()) {
-                    // 유료 서비스 사용 불가인 경우
-                    GCSystemMessage gcSystemMessage;
-
-                    if (g_pConfig->getPropertyInt("IsNetMarble") == 0) {
-                        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER));
-                    } else {
-                        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER));
-                    }
-
-                    pGamePlayer->sendPacket(&gcSystemMessage);
-
-                    return;
-                }
-            }
-#endif
-
             pPC->getGQuestManager()->illegalWarp();
             transportCreature(pCreature, pos.id, pos.x, pos.y, false);
             return;
@@ -173,23 +143,6 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
                 pos.y = 111;
             }
 
-#if defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-            Zone* pZone = getZoneByZoneID(pos.id);
-            Assert(pZone != NULL);
-
-            LevelWarManager* pLevelWarManager = pZone->getLevelWarManager();
-            Assert(pLevelWarManager != NULL);
-
-            if (!pLevelWarManager->hasWar() && !g_pVariableManager->canEnterLevelWarZoneFree() &&
-                !pGamePlayer->isPayPlaying() && pGamePlayer->isFamilyFreePass() &&
-                !pLevelWarManager->canEnterFreeUser()) {
-                GCSystemMessage gcSystemMessage;
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER_LEVEL_WAR_ZONE));
-                pGamePlayer->sendPacket(&gcSystemMessage);
-                return;
-            }
-#endif
-
             pPC->getGQuestManager()->illegalWarp();
             transportCreature(pCreature, pos.id, pos.x, pos.y, false);
             return;
@@ -233,42 +186,6 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
                 pos.x = 67;
                 pos.y = 165;
             }
-            /*#if defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-                        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pos.id);
-
-                        // 유료존인데 유료사용자가 아니면...
-                        if (pZoneInfo==NULL
-                            || (pZoneInfo->isPayPlay() || pZoneInfo->isPremiumZone())
-                                && (!pGamePlayer->isPayPlaying() && !pGamePlayer->isFamilyFreePass() ))
-                        {
-                            //Statement* pStmt = NULL;
-                            string connectIP = pGamePlayer->getSocket()->getHost();
-
-                            // 유료 서비스 사용이 가능한가?
-                            if (pGamePlayer->loginPayPlay(connectIP, pGamePlayer->getID()))
-                            {
-                                sendPayInfo(pGamePlayer);
-                            }
-                            else if (pZoneInfo->isPayPlay())
-                            {
-                                // 유료 서비스 사용 불가인 경우
-                                GCSystemMessage gcSystemMessage;
-
-                                if (g_pConfig->getPropertyInt("IsNetMarble")==0)
-                                {
-                                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER ));
-                                }
-                                else
-                                {
-                                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER ));
-                                }
-
-                                pGamePlayer->sendPacket (&gcSystemMessage);
-
-                                return;
-                            }
-                        }
-            #endif*/
             if (!g_pVariableManager->isActiveRaceWarLimiter() ||
                 pCreature->isFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET)) {
                 pPC->getGQuestManager()->illegalWarp();
@@ -328,35 +245,6 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
 
                 try {
                     if (!bCancel) {
-#if defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-                        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(id);
-
-                        // 유료존인데 유료사용자가 아니면...
-                        if (pZoneInfo == NULL || ((pZoneInfo->isPayPlay() || pZoneInfo->isPremiumZone()) &&
-                                                  (!pGamePlayer->isPayPlaying() && !pGamePlayer->isFamilyFreePass()))) {
-                            // Statement* pStmt = NULL;
-                            string connectIP = pGamePlayer->getSocket()->getHost();
-
-                            // 유료 서비스 사용이 가능한가?
-                            if (pGamePlayer->loginPayPlay(connectIP, pGamePlayer->getID())) {
-                                sendPayInfo(pGamePlayer);
-                            } else if (pZoneInfo->isPayPlay()) {
-                                // 유료 서비스 사용 불가인 경우
-                                GCSystemMessage gcSystemMessage;
-
-                                if (g_pConfig->getPropertyInt("IsNetMarble") == 0) {
-                                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER));
-                                } else {
-                                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER));
-                                }
-
-                                pGamePlayer->sendPacket(&gcSystemMessage);
-
-                                bCancel = true;
-                            }
-                        }
-#endif
-
                         if (!bCancel) {
                             // 이동시키기 전에 이펙트를 삭제한다.
                             if (pCreature->isSlayer())

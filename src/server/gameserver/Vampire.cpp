@@ -1864,14 +1864,6 @@ void Vampire::heartbeat(const Timeval& currentTime)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    /*#ifdef __ACTIVE_QUEST__
-        // by sigi. 2002.12.3
-        if (m_pQuestManager!=NULL)
-        {
-            m_pQuestManager->heartbeat();
-        }
-    #endif*/
-
     PlayerCreature::heartbeat(currentTime);
 
     // 주기적으로 HP를 회복시켜준다.

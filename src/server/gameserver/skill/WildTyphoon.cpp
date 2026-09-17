@@ -90,11 +90,7 @@ void WildTyphoon::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
                 Monster* pMonster = dynamic_cast<Monster*>(pCreature);
 
                 // delay설정 ( + 2초 )
-                if (!pMonster->isMaster()
-#ifdef __UNDERWORLD__
-                    && !pMonster->isUnderworld() && pMonster->getMonsterType() != 599
-#endif
-                ) {
+                if (!pMonster->isMaster()) {
                     Timeval delay;
                     delay.tv_sec = 2;
                     delay.tv_usec = 0; // 500000;

@@ -269,10 +269,6 @@ void BillingPlayer::sendPayInit() {
     filelog(LOGFILE_BILLING_PLAYER, "-------------------- send BillingInit --------------------");
     filelog(LOGFILE_BILLING_PLAYER, "%s", cbPacket.toString().c_str());
 
-#ifdef __COUT_BILLING_SYSTEM__
-    cout << "[send] BillingPlayer::sendPayInit" << endl;
-#endif
-
     __END_CATCH
 }
 
@@ -281,10 +277,6 @@ void BillingPlayer::sendPayInit() {
 //////////////////////////////////////////////////////////////////////
 void BillingPlayer::sendPayCheck(CommonBillingPacket* pPacket) {
     __BEGIN_TRY
-
-#ifdef __COUT_BILLING_SYSTEM__
-    cout << "BillingPlayer::sendPayCheck" << endl;
-#endif
 
     string PlayerID = pPacket->User_ID;
 
@@ -361,15 +353,8 @@ void BillingPlayer::sendPayLogin(Player* pPlayer) {
 
         sendPacket(&cbPacket);
 
-#ifdef __COUT_BILLING_SYSTEM__
-        cout << "[send] BillingPlayer::sendPayLogin (" << pPlayer->getID().c_str() << ") trying[" << requestCount << "]"
-             << endl;
-#endif
     } else {
         filelog(LOGFILE_BILLING_PLAYER, "ERROR Not GamePlayer(%s)", pPlayer->getID().c_str());
-#ifdef __COUT_BILLING_SYSTEM__
-        cout << "[ERROR] BillingPlayer::Not GamePlayer (" << pPlayer->getID().c_str() << ")" << endl;
-#endif
     }
 
 
@@ -402,15 +387,8 @@ void BillingPlayer::sendPayLogin(Player* pPlayer) {
 
         sendPacket(&cbPacket);
 
-#ifdef __COUT_BILLING_SYSTEM__
-        cout << "[send] BillingPlayer::sendPayLoginCheck (" << pPlayer->getID().c_str() << ") trying[" << requestCount
-             << "]" << endl;
-#endif
     } else {
         filelog(LOGFILE_BILLING_PLAYER, "ERROR Not GamePlayer(%s)", pPlayer->getID().c_str());
-#ifdef __COUT_BILLING_SYSTEM__
-        cout << "[ERROR] BillingPlayer::Not GamePlayer (" << pPlayer->getID().c_str() << ")" << endl;
-#endif
     }
 
 #endif
@@ -444,14 +422,8 @@ void BillingPlayer::sendPayLogout(Player* pPlayer) {
         filelog(LOGFILE_BILLING_PLAYER, "SEND PayLogout(%s)", pPlayer->getID().c_str());
         sendPacket(&cbPacket);
 
-#ifdef __COUT_BILLING_SYSTEM__
-        cout << "[send] BillingPlayer::sendPayLogout (" << pPlayer->getID().c_str() << ")" << endl;
-#endif
     } else {
         filelog(LOGFILE_BILLING_PLAYER, "ERROR Not GamePlayer(%s)", pPlayer->getID().c_str());
-#ifdef __COUT_BILLING_SYSTEM__
-        cout << "[ERROR] BillingPlayer::Not GamePlayer (" << pPlayer->getID().c_str() << ")" << endl;
-#endif
     }
 
 #endif

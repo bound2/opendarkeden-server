@@ -354,10 +354,6 @@ Monster::Monster(MonsterType_t monsterType) : m_MonsterType(monsterType) {
 
     m_pQuestItem = NULL;
 
-#ifdef __UNDERWORLD__
-    m_bUnderWorld = false;
-#endif
-
     m_LastKiller = 0;
     getCurrentTime(m_NextRegenTime);
 

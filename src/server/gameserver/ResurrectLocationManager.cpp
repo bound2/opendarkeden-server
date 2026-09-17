@@ -296,28 +296,6 @@ bool ResurrectLocationManager::getPosition(PlayerCreature* pPC, ZONE_COORD& zone
             }
         }
 
-#if defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-        // 유료존 체크
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(zoneCoord.id);
-        GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPC->getPlayer());
-        Assert(pGamePlayer != NULL);
-
-        // 유료화 존이고 유료사용자가 아니면..
-        if (pZoneInfo != NULL && (pZoneInfo->isPayPlay() || pZoneInfo->isPremiumZone()) &&
-            !pGamePlayer->isPayPlaying()) {
-            string connectIP = pGamePlayer->getSocket()->getHost();
-
-            // 유료 서비스 사용이 가능한가?
-            if (pGamePlayer->loginPayPlay(connectIP, pGamePlayer->getID())) {
-                sendPayInfo(pGamePlayer);
-            } else if (pZoneInfo->isPayPlay() && !pGamePlayer->isFamilyFreePass()) {
-                // 유료 서비스 사용 불가인 경우
-                // 각 종족의 default 존으로 설정한다.
-                if (!getRaceDefaultPosition(pPC->getRace(), zoneCoord))
-                    throw Error("Critical Error : ResurrectInfo is not established!2");
-            }
-        }
-#endif
     } catch (Error& e) {
         filelog("ResurrectLocationError.txt", "%s", e.toString().c_str());
         return false;
