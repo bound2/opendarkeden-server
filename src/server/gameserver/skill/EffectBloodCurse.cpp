@@ -258,5 +258,3 @@ string EffectBloodCurse::toString() const {
 
     __END_CATCH
 }
-
-EffectBloodCurseLoader* g_pEffectBloodCurseLoader = NULL;

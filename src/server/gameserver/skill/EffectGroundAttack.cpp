@@ -221,5 +221,3 @@ string EffectGroundAttack::toString() const {
 
     __END_CATCH
 }
-
-EffectGroundAttackLoader* g_pEffectGroundAttackLoader = NULL;

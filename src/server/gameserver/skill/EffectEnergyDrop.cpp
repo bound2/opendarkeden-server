@@ -172,5 +172,3 @@ string EffectEnergyDrop::toString() const {
 
     __END_CATCH
 }
-
-EffectEnergyDropLoader* g_pEffectEnergyDropLoader = NULL;

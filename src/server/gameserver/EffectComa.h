@@ -68,6 +68,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectComaLoader* g_pEffectComaLoader;
-
 #endif // __EFFECT_COMA__

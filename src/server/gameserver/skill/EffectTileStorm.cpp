@@ -229,5 +229,3 @@ string EffectTileStorm::toString() const {
 
     __END_CATCH
 }
-
-EffectTileStormLoader* g_pEffectTileStormLoader = NULL;

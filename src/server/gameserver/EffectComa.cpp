@@ -167,5 +167,3 @@ string EffectComa::toString() const {
 void EffectComaLoader::load(Creature* pCreature)
 
     {__BEGIN_TRY __END_CATCH}
-
-EffectComaLoader* g_pEffectComaLoader = NULL;

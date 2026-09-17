@@ -85,6 +85,4 @@ public:
     virtual void load(Zone* pZone) {}
 };
 
-extern EffectAcidStormLoader* g_pEffectAcidStormLoader;
-
 #endif

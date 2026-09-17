@@ -158,6 +158,3 @@ string EffectHellFire::toString() const {
 
     __END_CATCH
 }
-
-
-EffectHellFireLoader* g_pEffectHellFireLoader = NULL;

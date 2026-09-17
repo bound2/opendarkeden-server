@@ -225,5 +225,3 @@ string EffectPoisonStorm::toString() const {
 
     __END_CATCH
 }
-
-EffectPoisonStormLoader* g_pEffectPoisonStormLoader = NULL;

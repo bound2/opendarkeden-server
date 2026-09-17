@@ -242,5 +242,3 @@ string EffectBloodyWallBlocked::toString() const {
 
     __END_CATCH
 }
-
-EffectBloodyWallBlockedLoader* g_pEffectBloodyWallBlockedLoader = NULL;

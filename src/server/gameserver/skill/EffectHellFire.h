@@ -96,7 +96,5 @@ public:
     virtual void load(Creature* pCreature) {}
 };
 
-extern EffectHellFireLoader* g_pEffectHellFireLoader;
-
 
 #endif // __EFFECT_HELLFIRE__

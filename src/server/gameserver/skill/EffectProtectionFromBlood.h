@@ -64,6 +64,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectProtectionFromBloodLoader* g_pEffectProtectionFromBloodLoader;
-
 #endif // __EFFECT_PROTECTION_FROM_BLOOD__

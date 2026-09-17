@@ -172,5 +172,3 @@ string EffectVigorDrop::toString() const {
 
     __END_CATCH
 }
-
-EffectVigorDropLoader* g_pEffectVigorDropLoader = NULL;

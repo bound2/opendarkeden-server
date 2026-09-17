@@ -101,6 +101,4 @@ public:
     virtual void load(Creature* pCreature) {}
 };
 
-extern EffectVigorDropLoader* g_pEffectVigorDropLoader;
-
 #endif

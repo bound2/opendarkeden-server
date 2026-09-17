@@ -81,6 +81,4 @@ public:
     virtual void load(Creature* pCreature) {}
 };
 
-extern EffectGroundAttackLoader* g_pEffectGroundAttackLoader;
-
 #endif // __EFFECT_GROUND_ATTACK__

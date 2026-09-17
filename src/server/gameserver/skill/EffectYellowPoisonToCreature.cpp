@@ -251,5 +251,3 @@ void EffectYellowPoisonToCreatureLoader::load(Creature* pCreature)
 
     __END_CATCH
 }
-
-EffectYellowPoisonToCreatureLoader* g_pEffectYellowPoisonToCreatureLoader = NULL;

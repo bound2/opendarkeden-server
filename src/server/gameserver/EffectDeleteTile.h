@@ -49,6 +49,4 @@ public:
     virtual void load(Creature* pCreature) {}
 };
 
-extern EffectDeleteTileLoader* g_pEffectDeleteTileLoader;
-
 #endif // __EFFECT_DELETE_TILE__

@@ -54,6 +54,4 @@ public:
     virtual void load(Creature* pCreature) {}
 };
 
-extern EffectCrossCounterLoader* g_pEffectCrossCounterLoader;
-
 #endif // __EFFECT_CROSS_COUNTER__

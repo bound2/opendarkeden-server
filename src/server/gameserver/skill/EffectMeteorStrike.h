@@ -86,6 +86,4 @@ public:
     virtual void load(Creature* pCreature) {}
 };
 
-extern EffectMeteorStrikeLoader* g_pEffectMeteorStrikeLoader;
-
 #endif // __EFFECT_METEOR_STRIKE__

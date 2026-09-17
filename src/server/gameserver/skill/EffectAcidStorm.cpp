@@ -227,5 +227,3 @@ string EffectAcidStorm::toString() const {
 
     __END_CATCH
 }
-
-EffectAcidStormLoader* g_pEffectAcidStormLoader = NULL;

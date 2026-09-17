@@ -313,5 +313,3 @@ string EffectBloodySnake::toString() const {
 
     __END_CATCH
 }
-
-EffectBloodySnakeLoader* g_pEffectBloodySnakeLoader = NULL;

@@ -226,5 +226,3 @@ string EffectBloodyStorm::toString() const {
 
     __END_CATCH
 }
-
-EffectBloodyStormLoader* g_pEffectBloodyStormLoader = NULL;

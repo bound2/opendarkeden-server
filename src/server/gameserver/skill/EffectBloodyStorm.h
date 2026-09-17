@@ -84,6 +84,4 @@ public:
     virtual void load(Creature* pCreature) {}
 };
 
-extern EffectBloodyStormLoader* g_pEffectBloodyStormLoader;
-
 #endif
