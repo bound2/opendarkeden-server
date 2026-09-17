@@ -64,6 +64,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectProtectionFromCurseLoader* g_pEffectProtectionFromCurseLoader;
-
 #endif // __EFFECT_PROTECTION_FROM_CURSE__

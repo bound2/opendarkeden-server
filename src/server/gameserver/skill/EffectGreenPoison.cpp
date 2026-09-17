@@ -180,5 +180,3 @@ void EffectGreenPoisonLoader::load(Zone* pZone)
 
     __END_CATCH
 }
-
-EffectGreenPoisonLoader* g_pEffectGreenPoisonLoader = NULL;

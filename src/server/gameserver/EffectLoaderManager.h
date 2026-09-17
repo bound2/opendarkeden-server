@@ -36,7 +36,10 @@ public:
     string toString() const;
 
 private:
-    EffectLoader* m_pEffectLoaders[Effect::EFFECT_CLASS_MAX];
+    // The loaders this manager creates and owns, one slot per effect class.
+    // init() fills the slots whose effects are loaded from the database and
+    // leaves the rest null.
+    EffectLoader* m_pEffectLoaders[Effect::EFFECT_CLASS_MAX] = {};
 };
 
 extern EffectLoaderManager* g_pEffectLoaderManager;

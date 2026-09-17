@@ -17,8 +17,11 @@
 
 class ActionFactoryManager;
 class ConditionFactoryManager;
+class DynamicZoneFactoryManager;
+class MonsterNameManager;
 class ScriptManager;
 class ShopTemplateManager;
+class WeatherInfoManager;
 
 class ObjectManager {
 public:
@@ -31,13 +34,16 @@ public:
     void save();
 
 private:
-    // The quest scripting managers. They are reached through
-    // de::GameContext, which this class registers them on, rather than
-    // through a global.
+    // Managers this class creates and deletes, reached through
+    // de::GameContext, which it registers them on, rather than through a
+    // global.
     ActionFactoryManager* m_pActionFactoryManager = nullptr;
     ConditionFactoryManager* m_pConditionFactoryManager = nullptr;
+    DynamicZoneFactoryManager* m_pDynamicZoneFactoryManager = nullptr;
+    MonsterNameManager* m_pMonsterNameManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
+    WeatherInfoManager* m_pWeatherInfoManager = nullptr;
 };
 
 // global variable declaration

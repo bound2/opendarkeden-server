@@ -106,5 +106,3 @@ string EffectProtectionFromPoison::toString() const {
 void EffectProtectionFromPoisonLoader::load(Creature* pCreature)
 
     {__BEGIN_TRY __END_CATCH}
-
-EffectProtectionFromPoisonLoader* g_pEffectProtectionFromPoisonLoader = NULL;

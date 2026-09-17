@@ -101,6 +101,4 @@ public:
     virtual void load(Creature* pCreature) {}
 };
 
-extern EffectEnergyDropLoader* g_pEffectEnergyDropLoader;
-
 #endif

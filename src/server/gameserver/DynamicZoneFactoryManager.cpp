@@ -150,6 +150,3 @@ string DynamicZoneFactoryManager::toString() const {
 
     return msg.toString();
 }
-
-// global variable declaration
-DynamicZoneFactoryManager* g_pDynamicZoneFactoryManager = NULL;

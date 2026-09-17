@@ -262,5 +262,3 @@ void EffectFlareLoader::load(Creature* pCreature)
 
     __END_CATCH
 }
-
-EffectFlareLoader* g_pEffectFlareLoader = NULL;

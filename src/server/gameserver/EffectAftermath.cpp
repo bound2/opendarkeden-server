@@ -201,5 +201,3 @@ void EffectAftermathLoader::load(Creature* pCreature)
 
     __END_CATCH
 }
-
-EffectAftermathLoader* g_pEffectAftermathLoader = NULL;

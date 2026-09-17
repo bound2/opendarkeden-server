@@ -33,9 +33,19 @@ DatabaseManager& GameContext::databases() const {
     return *m_pDatabaseManager;
 }
 
+DynamicZoneFactoryManager& GameContext::dynamicZoneFactories() const {
+    Assert(m_pDynamicZoneFactoryManager != nullptr);
+    return *m_pDynamicZoneFactoryManager;
+}
+
 ItemFactoryManager& GameContext::itemFactories() const {
     Assert(m_pItemFactoryManager != nullptr);
     return *m_pItemFactoryManager;
+}
+
+MonsterNameManager& GameContext::monsterNames() const {
+    Assert(m_pMonsterNameManager != nullptr);
+    return *m_pMonsterNameManager;
 }
 
 PCFinder& GameContext::playerCreatures() const {
@@ -61,6 +71,11 @@ StringPool& GameContext::strings() const {
 VariableManager& GameContext::variables() const {
     Assert(m_pVariableManager != nullptr);
     return *m_pVariableManager;
+}
+
+WeatherInfoManager& GameContext::weatherInfos() const {
+    Assert(m_pWeatherInfoManager != nullptr);
+    return *m_pWeatherInfoManager;
 }
 
 ZoneGroupManager& GameContext::zoneGroups() const {

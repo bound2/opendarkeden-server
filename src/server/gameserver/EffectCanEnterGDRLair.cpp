@@ -160,5 +160,3 @@ void EffectCanEnterGDRLairLoader::load(Creature* pCreature)
 
     __END_CATCH
 }
-
-EffectCanEnterGDRLairLoader* g_pEffectCanEnterGDRLairLoader = NULL;

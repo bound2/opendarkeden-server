@@ -101,6 +101,4 @@ public:
     virtual void load(Creature* pCreature) {}
 };
 
-extern EffectTileStormLoader* g_pEffectTileStormLoader;
-
 #endif // __EFFECT_TILE_STORM__

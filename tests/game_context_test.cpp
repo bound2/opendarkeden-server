@@ -24,7 +24,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[12];
+char g_managerStorage[15];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -82,6 +82,22 @@ TEST(GameContextTest, QuestScriptingManagersAreReadBack) {
     EXPECT_EQ(&context.shopTemplates(), pShopTemplateManager);
 }
 
+TEST(GameContextTest, WorldTableManagersAreReadBack) {
+    de::GameContext context;
+
+    DynamicZoneFactoryManager* pDynamicZoneFactoryManager = standIn<DynamicZoneFactoryManager>(12);
+    MonsterNameManager* pMonsterNameManager = standIn<MonsterNameManager>(13);
+    WeatherInfoManager* pWeatherInfoManager = standIn<WeatherInfoManager>(14);
+
+    context.setDynamicZoneFactoryManager(pDynamicZoneFactoryManager);
+    context.setMonsterNameManager(pMonsterNameManager);
+    context.setWeatherInfoManager(pWeatherInfoManager);
+
+    EXPECT_EQ(&context.dynamicZoneFactories(), pDynamicZoneFactoryManager);
+    EXPECT_EQ(&context.monsterNames(), pMonsterNameManager);
+    EXPECT_EQ(&context.weatherInfos(), pWeatherInfoManager);
+}
+
 TEST(GameContextTest, ReregisteringReplacesTheManager) {
     de::GameContext context;
 
@@ -101,12 +117,15 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.conditionFactories(), AssertionError);
     EXPECT_THROW(context.config(), AssertionError);
     EXPECT_THROW(context.databases(), AssertionError);
+    EXPECT_THROW(context.dynamicZoneFactories(), AssertionError);
     EXPECT_THROW(context.itemFactories(), AssertionError);
+    EXPECT_THROW(context.monsterNames(), AssertionError);
     EXPECT_THROW(context.playerCreatures(), AssertionError);
     EXPECT_THROW(context.publicScripts(), AssertionError);
     EXPECT_THROW(context.shopTemplates(), AssertionError);
     EXPECT_THROW(context.strings(), AssertionError);
     EXPECT_THROW(context.variables(), AssertionError);
+    EXPECT_THROW(context.weatherInfos(), AssertionError);
     EXPECT_THROW(context.zoneGroups(), AssertionError);
     EXPECT_THROW(context.zoneInfos(), AssertionError);
 }

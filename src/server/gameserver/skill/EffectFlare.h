@@ -75,6 +75,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectFlareLoader* g_pEffectFlareLoader;
-
 #endif // __EFFECT_YELLOW_POISON_TO_CREATURE__

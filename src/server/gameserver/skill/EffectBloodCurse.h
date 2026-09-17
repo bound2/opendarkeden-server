@@ -86,6 +86,4 @@ public:
     virtual void load(Creature* pCreature) {}
 };
 
-extern EffectBloodCurseLoader* g_pEffectBloodCurseLoader;
-
 #endif // __EFFECT_BLOOD_CURSE__

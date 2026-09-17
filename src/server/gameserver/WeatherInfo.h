@@ -73,7 +73,4 @@ private:
     WeatherInfo m_WeatherInfos[12];
 };
 
-// global variable declaration
-extern WeatherInfoManager* g_pWeatherInfoManager;
-
 #endif

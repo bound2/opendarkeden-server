@@ -64,6 +64,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectProtectionFromAcidLoader* g_pEffectProtectionFromAcidLoader;
-
 #endif // __EFFECT_PROTECTION_FROM_ACID__

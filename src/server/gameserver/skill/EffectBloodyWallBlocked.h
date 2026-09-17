@@ -95,6 +95,4 @@ public:
     virtual void load(Creature* pCreature) {}
 };
 
-extern EffectBloodyWallBlockedLoader* g_pEffectBloodyWallBlockedLoader;
-
 #endif // __EFFECT_BLOODY_WALL_BLOCKED__

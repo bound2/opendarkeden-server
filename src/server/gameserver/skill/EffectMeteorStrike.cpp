@@ -258,5 +258,3 @@ string EffectMeteorStrike::toString() const {
 
     __END_CATCH
 }
-
-EffectMeteorStrikeLoader* g_pEffectMeteorStrikeLoader = NULL;

@@ -142,5 +142,3 @@ void EffectContinualBloodyWallLoader::load(Zone* pZone)
 
     __END_CATCH
 }
-
-EffectContinualBloodyWallLoader* g_pEffectContinualBloodyWallLoader = NULL;

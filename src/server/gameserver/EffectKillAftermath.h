@@ -58,6 +58,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectKillAftermathLoader* g_pEffectKillAftermathLoader;
-
 #endif // __EFFECT_KILL_AFTERMATH__

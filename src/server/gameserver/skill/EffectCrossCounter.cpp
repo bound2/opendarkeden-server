@@ -105,5 +105,3 @@ string EffectCrossCounter::toString() const {
 
     __END_CATCH
 }
-
-EffectCrossCounterLoader* g_pEffectCrossCounterLoader = NULL;

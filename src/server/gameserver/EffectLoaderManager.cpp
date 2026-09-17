@@ -36,24 +36,24 @@ EffectLoaderManager::~EffectLoaderManager()
 {
     __BEGIN_TRY
 
-    SAFE_DELETE(g_pEffectBloodDrainLoader);
-    SAFE_DELETE(g_pEffectLightLoader);
-    SAFE_DELETE(g_pEffectAftermathLoader);
-    SAFE_DELETE(g_pEffectEnemyEraseLoader);
-    SAFE_DELETE(g_pEffectRestoreLoader);
-    SAFE_DELETE(g_pEffectKillAftermathLoader);
-    SAFE_DELETE(g_pEffectMuteLoader);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_BLOOD_DRAIN]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_LIGHT]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_AFTERMATH]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_ENEMY_ERASE]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_RESTORE]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_KILL_AFTERMATH]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_MUTE]);
 
-    SAFE_DELETE(g_pEffectGreenPoisonLoader);
-    SAFE_DELETE(g_pEffectYellowPoisonLoader);
-    SAFE_DELETE(g_pEffectDarknessLoader);
-    SAFE_DELETE(g_pEffectAcidSwampLoader);
-    SAFE_DELETE(g_pEffectContinualBloodyWallLoader);
-    SAFE_DELETE(g_pEffectIceFieldLoader);
-    SAFE_DELETE(g_pEffectProminenceLoader);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_GREEN_POISON]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_YELLOW_POISON]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_DARKNESS]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_ACID_SWAMP]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_CONTINUAL_BLOODY_WALL]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_ICE_FIELD]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_PROMINENCE]);
 
-    SAFE_DELETE(g_pEffectOnBridgeLoader);
-    SAFE_DELETE(g_pEffectCanEnterGDRLairLoader);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_ON_BRIDGE]);
+    SAFE_DELETE(m_pEffectLoaders[Effect::EFFECT_CLASS_CAN_ENTER_GDR_LAIR]);
 
     __END_CATCH_NO_RETHROW
 }
@@ -63,27 +63,24 @@ void EffectLoaderManager::init()
 {
     __BEGIN_TRY
 
-    m_pEffectLoaders[Effect::EFFECT_CLASS_BLOOD_DRAIN] = g_pEffectBloodDrainLoader = new EffectBloodDrainLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_LIGHT] = g_pEffectLightLoader = new EffectLightLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_AFTERMATH] = g_pEffectAftermathLoader = new EffectAftermathLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_ENEMY_ERASE] = g_pEffectEnemyEraseLoader = new EffectEnemyEraseLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_RESTORE] = g_pEffectRestoreLoader = new EffectRestoreLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_KILL_AFTERMATH] = g_pEffectKillAftermathLoader =
-        new EffectKillAftermathLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_MUTE] = g_pEffectMuteLoader = new EffectMuteLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_BLOOD_DRAIN] = new EffectBloodDrainLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_LIGHT] = new EffectLightLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_AFTERMATH] = new EffectAftermathLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_ENEMY_ERASE] = new EffectEnemyEraseLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_RESTORE] = new EffectRestoreLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_KILL_AFTERMATH] = new EffectKillAftermathLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_MUTE] = new EffectMuteLoader();
 
-    m_pEffectLoaders[Effect::EFFECT_CLASS_GREEN_POISON] = g_pEffectGreenPoisonLoader = new EffectGreenPoisonLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_YELLOW_POISON] = g_pEffectYellowPoisonLoader = new EffectYellowPoisonLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_DARKNESS] = g_pEffectDarknessLoader = new EffectDarknessLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_ACID_SWAMP] = g_pEffectAcidSwampLoader = new EffectAcidSwampLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_CONTINUAL_BLOODY_WALL] = g_pEffectContinualBloodyWallLoader =
-        new EffectContinualBloodyWallLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_ICE_FIELD] = g_pEffectIceFieldLoader = new EffectIceFieldLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_PROMINENCE] = g_pEffectProminenceLoader = new EffectProminenceLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_GREEN_POISON] = new EffectGreenPoisonLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_YELLOW_POISON] = new EffectYellowPoisonLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_DARKNESS] = new EffectDarknessLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_ACID_SWAMP] = new EffectAcidSwampLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_CONTINUAL_BLOODY_WALL] = new EffectContinualBloodyWallLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_ICE_FIELD] = new EffectIceFieldLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_PROMINENCE] = new EffectProminenceLoader();
 
-    m_pEffectLoaders[Effect::EFFECT_CLASS_ON_BRIDGE] = g_pEffectOnBridgeLoader = new EffectOnBridgeLoader();
-    m_pEffectLoaders[Effect::EFFECT_CLASS_CAN_ENTER_GDR_LAIR] = g_pEffectCanEnterGDRLairLoader =
-        new EffectCanEnterGDRLairLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_ON_BRIDGE] = new EffectOnBridgeLoader();
+    m_pEffectLoaders[Effect::EFFECT_CLASS_CAN_ENTER_GDR_LAIR] = new EffectCanEnterGDRLairLoader();
 
     __END_CATCH
 }
@@ -93,14 +90,14 @@ void EffectLoaderManager::load(Slayer* pSlayer)
 {
     __BEGIN_TRY
 
-    g_pEffectBloodDrainLoader->load(pSlayer);
-    g_pEffectLightLoader->load(pSlayer);
-    g_pEffectAftermathLoader->load(pSlayer);
-    g_pEffectEnemyEraseLoader->load(pSlayer);
-    g_pEffectRestoreLoader->load(pSlayer);
-    g_pEffectKillAftermathLoader->load(pSlayer);
-    g_pEffectMuteLoader->load(pSlayer);
-    g_pEffectCanEnterGDRLairLoader->load(pSlayer);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_BLOOD_DRAIN]->load(pSlayer);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_LIGHT]->load(pSlayer);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_AFTERMATH]->load(pSlayer);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_ENEMY_ERASE]->load(pSlayer);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_RESTORE]->load(pSlayer);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_KILL_AFTERMATH]->load(pSlayer);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_MUTE]->load(pSlayer);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_CAN_ENTER_GDR_LAIR]->load(pSlayer);
 
     __END_CATCH
 }
@@ -110,14 +107,14 @@ void EffectLoaderManager::load(Vampire* pVampire)
 {
     __BEGIN_TRY
 
-    g_pEffectBloodDrainLoader->load(pVampire);
-    g_pEffectLightLoader->load(pVampire);
-    g_pEffectAftermathLoader->load(pVampire);
-    g_pEffectEnemyEraseLoader->load(pVampire);
-    g_pEffectRestoreLoader->load(pVampire);
-    g_pEffectKillAftermathLoader->load(pVampire);
-    g_pEffectMuteLoader->load(pVampire);
-    g_pEffectCanEnterGDRLairLoader->load(pVampire);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_BLOOD_DRAIN]->load(pVampire);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_LIGHT]->load(pVampire);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_AFTERMATH]->load(pVampire);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_ENEMY_ERASE]->load(pVampire);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_RESTORE]->load(pVampire);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_KILL_AFTERMATH]->load(pVampire);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_MUTE]->load(pVampire);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_CAN_ENTER_GDR_LAIR]->load(pVampire);
 
     __END_CATCH
 }
@@ -127,11 +124,11 @@ void EffectLoaderManager::load(Ousters* pOusters)
 {
     __BEGIN_TRY
 
-    g_pEffectBloodDrainLoader->load(pOusters);
-    g_pEffectAftermathLoader->load(pOusters);
-    g_pEffectKillAftermathLoader->load(pOusters);
-    g_pEffectMuteLoader->load(pOusters);
-    g_pEffectCanEnterGDRLairLoader->load(pOusters);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_BLOOD_DRAIN]->load(pOusters);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_AFTERMATH]->load(pOusters);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_KILL_AFTERMATH]->load(pOusters);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_MUTE]->load(pOusters);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_CAN_ENTER_GDR_LAIR]->load(pOusters);
 
     __END_CATCH
 }
@@ -141,14 +138,14 @@ void EffectLoaderManager::load(Zone* pZone)
 {
     __BEGIN_TRY
 
-    g_pEffectGreenPoisonLoader->load(pZone);
-    g_pEffectYellowPoisonLoader->load(pZone);
-    g_pEffectDarknessLoader->load(pZone);
-    g_pEffectAcidSwampLoader->load(pZone);
-    g_pEffectContinualBloodyWallLoader->load(pZone);
-    g_pEffectIceFieldLoader->load(pZone);
-    g_pEffectProminenceLoader->load(pZone);
-    g_pEffectOnBridgeLoader->load(pZone);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_GREEN_POISON]->load(pZone);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_YELLOW_POISON]->load(pZone);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_DARKNESS]->load(pZone);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_ACID_SWAMP]->load(pZone);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_CONTINUAL_BLOODY_WALL]->load(pZone);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_ICE_FIELD]->load(pZone);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_PROMINENCE]->load(pZone);
+    m_pEffectLoaders[Effect::EFFECT_CLASS_ON_BRIDGE]->load(pZone);
 
     __END_CATCH
 }

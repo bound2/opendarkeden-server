@@ -114,5 +114,3 @@ void EffectOnBridgeLoader::load(Zone* pZone)
 
     __END_CATCH
 }
-
-EffectOnBridgeLoader* g_pEffectOnBridgeLoader = NULL;

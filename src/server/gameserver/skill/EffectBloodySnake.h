@@ -119,6 +119,4 @@ public:
     virtual void load(Creature* pCreature) {}
 };
 
-extern EffectBloodySnakeLoader* g_pEffectBloodySnakeLoader;
-
 #endif // __EFFECT_BLOODY_SNAKE__

@@ -64,6 +64,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectProtectionFromPoisonLoader* g_pEffectProtectionFromPoisonLoader;
-
 #endif // __EFFECT_PROTECTION_FROM_POISON__

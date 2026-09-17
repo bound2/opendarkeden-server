@@ -108,5 +108,3 @@ string EffectProtectionFromBlood::toString() const {
 void EffectProtectionFromBloodLoader::load(Creature* pCreature)
 
     {__BEGIN_TRY __END_CATCH}
-
-EffectProtectionFromBloodLoader* g_pEffectProtectionFromBloodLoader = NULL;

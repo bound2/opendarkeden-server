@@ -108,5 +108,3 @@ string EffectProtectionFromAcid::toString() const {
 void EffectProtectionFromAcidLoader::load(Creature* pCreature)
 
     {__BEGIN_TRY __END_CATCH}
-
-EffectProtectionFromAcidLoader* g_pEffectProtectionFromAcidLoader = NULL;

@@ -96,5 +96,3 @@ string EffectDeleteTile::toString() const {
 
     __END_CATCH
 }
-
-EffectDeleteTileLoader* g_pEffectDeleteTileLoader = NULL;

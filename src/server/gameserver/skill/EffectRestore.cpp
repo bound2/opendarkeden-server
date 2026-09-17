@@ -189,5 +189,3 @@ void EffectRestoreLoader::load(Creature* pCreature)
 
     __END_CATCH
 }
-
-EffectRestoreLoader* g_pEffectRestoreLoader = NULL;

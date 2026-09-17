@@ -67,6 +67,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectBloodDrainLoader* g_pEffectBloodDrainLoader;
-
 #endif // __EFFECT_BLOOD_DRAIN__

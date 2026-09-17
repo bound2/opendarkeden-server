@@ -230,5 +230,3 @@ void EffectProminenceLoader::load(Zone* pZone)
 
     __END_CATCH
 }
-
-EffectProminenceLoader* g_pEffectProminenceLoader = NULL;

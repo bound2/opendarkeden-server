@@ -120,6 +120,4 @@ public:
     virtual void load(Zone* pZone);
 };
 
-extern EffectAcidSwampLoader* g_pEffectAcidSwampLoader;
-
 #endif // __EFFECT_ACID_SWAMP__

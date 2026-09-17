@@ -235,5 +235,3 @@ void EffectYellowPoisonLoader::load(Zone* pZone)
 
     __END_CATCH
 }
-
-EffectYellowPoisonLoader* g_pEffectYellowPoisonLoader = NULL;

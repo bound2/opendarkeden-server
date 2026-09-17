@@ -33,6 +33,4 @@ private:
     ushort m_Size;
 };
 
-extern DynamicZoneFactoryManager* g_pDynamicZoneFactoryManager;
-
 #endif

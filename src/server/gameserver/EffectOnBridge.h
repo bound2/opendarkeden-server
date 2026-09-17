@@ -48,6 +48,4 @@ public:
     virtual void load(Zone* pZone);
 };
 
-extern EffectOnBridgeLoader* g_pEffectOnBridgeLoader;
-
 #endif // __EFFECT_ON_BRIDGE__

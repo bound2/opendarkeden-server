@@ -25,13 +25,16 @@
 class ActionFactoryManager;
 class ConditionFactoryManager;
 class DatabaseManager;
+class DynamicZoneFactoryManager;
 class ItemFactoryManager;
+class MonsterNameManager;
 class PCFinder;
 class Properties;
 class ScriptManager;
 class ShopTemplateManager;
 class StringPool;
 class VariableManager;
+class WeatherInfoManager;
 class ZoneGroupManager;
 class ZoneInfoManager;
 
@@ -56,8 +59,14 @@ public:
     void setDatabaseManager(DatabaseManager* pDatabaseManager) {
         m_pDatabaseManager = pDatabaseManager;
     }
+    void setDynamicZoneFactoryManager(DynamicZoneFactoryManager* pDynamicZoneFactoryManager) {
+        m_pDynamicZoneFactoryManager = pDynamicZoneFactoryManager;
+    }
     void setItemFactoryManager(ItemFactoryManager* pItemFactoryManager) {
         m_pItemFactoryManager = pItemFactoryManager;
+    }
+    void setMonsterNameManager(MonsterNameManager* pMonsterNameManager) {
+        m_pMonsterNameManager = pMonsterNameManager;
     }
     void setPCFinder(PCFinder* pPCFinder) {
         m_pPCFinder = pPCFinder;
@@ -74,6 +83,9 @@ public:
     void setVariableManager(VariableManager* pVariableManager) {
         m_pVariableManager = pVariableManager;
     }
+    void setWeatherInfoManager(WeatherInfoManager* pWeatherInfoManager) {
+        m_pWeatherInfoManager = pWeatherInfoManager;
+    }
     void setZoneGroupManager(ZoneGroupManager* pZoneGroupManager) {
         m_pZoneGroupManager = pZoneGroupManager;
     }
@@ -85,12 +97,15 @@ public:
     ConditionFactoryManager& conditionFactories() const;
     Properties& config() const;
     DatabaseManager& databases() const;
+    DynamicZoneFactoryManager& dynamicZoneFactories() const;
     ItemFactoryManager& itemFactories() const;
+    MonsterNameManager& monsterNames() const;
     PCFinder& playerCreatures() const;
     ScriptManager& publicScripts() const;
     ShopTemplateManager& shopTemplates() const;
     StringPool& strings() const;
     VariableManager& variables() const;
+    WeatherInfoManager& weatherInfos() const;
     ZoneGroupManager& zoneGroups() const;
     ZoneInfoManager& zoneInfos() const;
 
@@ -99,12 +114,15 @@ private:
     ConditionFactoryManager* m_pConditionFactoryManager = nullptr;
     Properties* m_pConfig = nullptr;
     DatabaseManager* m_pDatabaseManager = nullptr;
+    DynamicZoneFactoryManager* m_pDynamicZoneFactoryManager = nullptr;
     ItemFactoryManager* m_pItemFactoryManager = nullptr;
+    MonsterNameManager* m_pMonsterNameManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
     StringPool* m_pStringPool = nullptr;
     VariableManager* m_pVariableManager = nullptr;
+    WeatherInfoManager* m_pWeatherInfoManager = nullptr;
     ZoneGroupManager* m_pZoneGroupManager = nullptr;
     ZoneInfoManager* m_pZoneInfoManager = nullptr;
 };

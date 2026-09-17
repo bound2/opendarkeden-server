@@ -108,5 +108,3 @@ string EffectProtectionFromCurse::toString() const {
 void EffectProtectionFromCurseLoader::load(Creature* pCreature)
 
     {__BEGIN_TRY __END_CATCH}
-
-EffectProtectionFromCurseLoader* g_pEffectProtectionFromCurseLoader = NULL;
