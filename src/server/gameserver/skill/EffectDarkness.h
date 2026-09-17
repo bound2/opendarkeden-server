@@ -90,6 +90,4 @@ public:
     virtual void load(Zone* pZone);
 };
 
-extern EffectDarknessLoader* g_pEffectDarknessLoader;
-
 #endif // __EFFECT_DARKNESS__

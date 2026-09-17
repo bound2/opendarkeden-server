@@ -250,5 +250,3 @@ void EffectBloodDrainLoader::load(Creature* pCreature)
 
     __END_CATCH
 }
-
-EffectBloodDrainLoader* g_pEffectBloodDrainLoader = NULL;

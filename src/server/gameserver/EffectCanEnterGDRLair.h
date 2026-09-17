@@ -56,6 +56,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectCanEnterGDRLairLoader* g_pEffectCanEnterGDRLairLoader;
-
 #endif // __EFFECT_CAN_ENTER_GDR_LAIR__

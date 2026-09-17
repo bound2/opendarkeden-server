@@ -90,7 +90,5 @@ public:
     virtual void load(Zone* pZone);
 };
 
-extern EffectIceFieldLoader* g_pEffectIceFieldLoader;
-
 
 #endif // __EFFECT_ICE_FIELD__

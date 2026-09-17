@@ -94,6 +94,4 @@ public:
     virtual void load(Zone* pZone);
 };
 
-extern EffectProminenceLoader* g_pEffectProminenceLoader;
-
 #endif // __EFFECT_PROMINENCE__

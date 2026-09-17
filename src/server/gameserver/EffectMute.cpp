@@ -193,5 +193,3 @@ void EffectMuteLoader::load(Creature* pCreature)
 
     __END_CATCH
 }
-
-EffectMuteLoader* g_pEffectMuteLoader = NULL;

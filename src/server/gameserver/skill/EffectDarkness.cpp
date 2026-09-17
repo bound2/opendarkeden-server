@@ -176,5 +176,3 @@ void EffectDarknessLoader::load(Zone* pZone)
 
     __END_CATCH
 }
-
-EffectDarknessLoader* g_pEffectDarknessLoader = NULL;

@@ -88,6 +88,4 @@ public:
     virtual void load(Zone* pZone);
 };
 
-extern EffectYellowPoisonLoader* g_pEffectYellowPoisonLoader;
-
 #endif // __EFFECT_YELLOW_POISON__

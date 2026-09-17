@@ -189,5 +189,3 @@ void EffectEnemyEraseLoader::load(Creature* pCreature)
 
     __END_CATCH
 }
-
-EffectEnemyEraseLoader* g_pEffectEnemyEraseLoader = NULL;

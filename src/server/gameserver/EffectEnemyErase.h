@@ -64,6 +64,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectEnemyEraseLoader* g_pEffectEnemyEraseLoader;
-
 #endif // __EFFECT_ENEMY_ERASE__

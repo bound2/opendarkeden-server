@@ -87,6 +87,4 @@ public:
     virtual void load(Zone* pZone);
 };
 
-extern EffectGreenPoisonLoader* g_pEffectGreenPoisonLoader;
-
 #endif // __EFFECT_GREEN_POISON__

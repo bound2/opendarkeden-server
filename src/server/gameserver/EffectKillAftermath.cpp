@@ -259,5 +259,3 @@ void EffectKillAftermathLoader::load(Creature* pCreature)
 
     __END_CATCH
 }
-
-EffectKillAftermathLoader* g_pEffectKillAftermathLoader = NULL;

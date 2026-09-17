@@ -98,6 +98,4 @@ public:
     virtual void load(Zone* pZone);
 };
 
-extern EffectContinualBloodyWallLoader* g_pEffectContinualBloodyWallLoader;
-
 #endif

@@ -203,5 +203,3 @@ void EffectIceFieldLoader::load(Zone* pZone)
 
     __END_CATCH
 }
-
-EffectIceFieldLoader* g_pEffectIceFieldLoader = NULL;

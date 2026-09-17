@@ -265,5 +265,3 @@ void EffectAcidSwampLoader::load(Zone* pZone)
 
     __END_CATCH
 }
-
-EffectAcidSwampLoader* g_pEffectAcidSwampLoader = NULL;

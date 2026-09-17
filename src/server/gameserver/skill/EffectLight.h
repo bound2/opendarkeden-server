@@ -67,6 +67,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectLightLoader* g_pEffectLightLoader;
-
 #endif // __EFFECT_LIGHT__

@@ -56,6 +56,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectRestoreLoader* g_pEffectRestoreLoader;
-
 #endif // __EFFECT_RESTORE__

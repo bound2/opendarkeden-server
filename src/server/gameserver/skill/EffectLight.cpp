@@ -201,5 +201,3 @@ void EffectLightLoader::load(Creature* pCreature)
 
     __END_CATCH
 }
-
-EffectLightLoader* g_pEffectLightLoader = NULL;

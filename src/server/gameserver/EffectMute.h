@@ -54,6 +54,4 @@ public:
     virtual void load(Creature* pCreature);
 };
 
-extern EffectMuteLoader* g_pEffectMuteLoader;
-
 #endif // __EFFECT_MUTE__
