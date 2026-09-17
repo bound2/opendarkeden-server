@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5675 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5673 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -82,11 +82,11 @@ check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5675 "$R5"
 # SkillFormula.cpp computeOutput extraction (the doc's 08-29 numbers
 # predate the clang-format-18 pass and are superseded).
 R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
-check_ratchet R6a "SkillUtil.cpp lines" 6739 "$R6a"
+check_ratchet R6a "SkillUtil.cpp lines" 6722 "$R6a"
 R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
-check_ratchet R6b "InitAllStat.cpp lines" 4803 "$R6b"
+check_ratchet R6b "InitAllStat.cpp lines" 4799 "$R6b"
 R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)
-check_ratchet R6c "HitRoll.cpp lines" 774 "$R6c"
+check_ratchet R6c "HitRoll.cpp lines" 736 "$R6c"
 R6d=$(wc -l < src/server/gameserver/skill/SkillFormula.cpp 2>/dev/null || echo missing)
 check_ratchet R6d "SkillFormula.cpp lines" 820 "$R6d"
 # R6e added with the 4.1 GM-command extraction: the 33 command bodies and
@@ -114,7 +114,7 @@ check_ratchet R6g "Zone.cpp lines" 1474 "$R6g"
 # enum, a skill slot class or a persistence record type that is per-race, so
 # they shrink again only when one of those types is reconciled.
 R6h=$(wc -l < src/server/gameserver/Slayer.cpp 2>/dev/null || echo missing)
-check_ratchet R6h "Slayer.cpp lines" 3626 "$R6h"
+check_ratchet R6h "Slayer.cpp lines" 3605 "$R6h"
 R6i=$(wc -l < src/server/gameserver/Vampire.cpp 2>/dev/null || echo missing)
 check_ratchet R6i "Vampire.cpp lines" 2324 "$R6i"
 R6j=$(wc -l < src/server/gameserver/Ousters.cpp 2>/dev/null || echo missing)
@@ -238,6 +238,22 @@ else
     fi
 fi
 rm -f "$guards"
+# --- R14: never-defined region macros --------------------------------------
+# __THAILAND_SERVER__ and __CHINA_SERVER__ selected a Thailand or a China
+# build. Nothing defines them -- not cmake/, a CMakeLists.txt, a Makefile, a
+# Dockerfile or a workflow -- so a block behind one never reached the
+# compiler and the #ifndef/#else branch beside it was the only code the
+# servers ran. A translation-unit-local #define arms them again, and one did:
+# it gave that one TU a SystemAvailabilitiesManager with an extra member and
+# a layout no other TU shared. Counted with the two: the misspellings
+# __CHAINA_SERVER__ and __THIALAND_SERVER__, which appeared inside the same
+# conditions, and __INTERNATIONAL_SERVER__, a dead #elif in the same
+# Encrypter.h chain. Comments count too -- a comment describing one of these
+# branches describes code that is not there, so it states what the code does
+# instead.
+R14=$(LC_ALL=C grep -rhE '__(THAILAND|THIALAND|CHINA|CHAINA|INTERNATIONAL)_SERVER__' \
+    src --include='*.h' --include='*.cpp' | wc -l)
+check_ratchet R14 "never-defined region-macro mentions" 0 "$R14"
 
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).

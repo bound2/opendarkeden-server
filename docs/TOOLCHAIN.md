@@ -580,12 +580,9 @@ default constructor takes the enclosing function from a defaulted
 with no argument at the throw site, so all ~90 of them are spelled the same
 way. The `const string&` constructor still serves the sites that pass their own
 text. The same defaulted parameter carries the direct `addStack()` call in
-`GamePlayer.cpp`, the two `Party.cpp` debug prints and the `SYSTEM_ASSERT` /
-`SYSTEM_RETURN_IF_NOT` message macros in
-`SystemAvailabilitiesManager.h` (compiled only under `__CHINA_SERVER__` /
-`__THAILAND_SERVER__`, which no build defines). Every one of those messages is
-the text the macro yields at the same point, so logs and stack traces are
-unchanged.
+`GamePlayer.cpp` and the two `Party.cpp` debug prints. Every one of those
+messages is the text the macro yields at the same point, so logs and stack
+traces are unchanged.
 
 ### Explicit coordination and bounded work
 

@@ -6828,9 +6828,7 @@ TEST_F(SessionMySQL, TheSessionHandshakeReadsTheAccountThenClaimsItExactlyOnce) 
 
     // The columns are read positionally, and every value above is
     // distinct, so a projection that drifted out of step with the reads
-    // shows up here. Only the ten-column arm is covered: the
-    // __THAILAND_SERVER__ arm selects an eleventh column, Birthday,
-    // which this schema does not have, so no tier can reach it.
+    // shows up here. birthday is never selected, so it stays empty.
 
     // Claiming the session is the double-login guard: the UPDATE only
     // matches a row still in LOGOFF, so the SECOND caller gets false and
