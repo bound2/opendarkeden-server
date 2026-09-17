@@ -34,7 +34,7 @@ check_ratchet() {
 
 # --- R1: g_p* global-singleton extern declarations -------------------------
 R1=$(grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R1 "global singleton externs" 325 "$R1"
+check_ratchet R1 "global singleton externs" 316 "$R1"
 
 # --- R2: files with inline SQL in the gameserver root ----------------------
 R2=$(grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h 2>/dev/null | wc -l)
@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5673 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5483 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -254,6 +254,85 @@ rm -f "$guards"
 R14=$(LC_ALL=C grep -rhE '__(THAILAND|THIALAND|CHINA|CHAINA|INTERNATIONAL)_SERVER__' \
     src --include='*.h' --include='*.cpp' | wc -l)
 check_ratchet R14 "never-defined region-macro mentions" 0 "$R14"
+
+# --- R15: src/**/*.cpp that no target compiles -----------------------------
+# A source no target names is never compiled, so nothing it says is true of a
+# running server: it drifts out of sync with the headers it includes while
+# still reading as live code. 39 were removed at once, among them a second
+# PlayerManager.cpp whose body predated the encoding migration and a
+# gameserver SocketImpl.h/.cpp pair that the Core one shadows.
+#
+# A source counts as built when a CMakeLists.txt names it, when
+# tests/arch/kernel_files.txt lists it (src/Core/CMakeLists.txt feeds that
+# file straight into de-kernel), or when another source #includes it. A
+# CMake reference is relative to its own CMakeLists.txt, so the awk resolves
+# each against the directory of FILENAME: a basename match would call
+# src/server/gameserver/SocketImpl.cpp built because the kernel list carries
+# src/Core/SocketImpl.cpp. Comments are stripped first -- two quest sources
+# sat behind a '#' in a source list and were dead.
+#
+# Scoped to src plus the top-level CMakeLists.txt rather than a bare `find
+# .`: the container configures its build tree inside the source root, and
+# CMake's own compiler probes put a CMakeLists.txt and GLOB-using .cmake
+# modules there. The name-based check is only sound while no target globs,
+# so a file(GLOB ...) in the build files fails loudly instead of quietly
+# weakening it, and the built-name list is materialised first for R13's
+# reason: a broken find would otherwise read as zero dead sources.
+if grep -n 'file([[:space:]]*GLOB' CMakeLists.txt \
+    $(find src cmake -name CMakeLists.txt -o -name '*.cmake') 2>/dev/null; then
+    echo "[FAIL] R15 unbuilt sources: a target globs its sources, so naming one proves nothing"
+    fail=1
+else
+    r15_built=$(mktemp)
+    r15_dead=$(mktemp)
+    # The source-reference class spells its braces "}{": find rejects an
+    # -exec ... {} + whose command text holds a second "{}", and a class
+    # written "${}" would be that second one.
+    find src -name CMakeLists.txt -exec awk '
+        {
+            dir = FILENAME
+            sub(/\/?CMakeLists\.txt$/, "", dir)
+            line = $0
+            sub(/\r$/, "", line)
+            sub(/#.*$/, "", line)
+            while (match(line, /[A-Za-z0-9_$}{\/.+-]+\.cpp/)) {
+                ref = substr(line, RSTART, RLENGTH)
+                line = substr(line, RSTART + RLENGTH)
+                sub(/^\$\{CMAKE_SOURCE_DIR\}\//, "", ref)
+                sub(/^\$\{CMAKE_CURRENT_SOURCE_DIR\}\//, "", ref)
+                if (ref ~ /\$\{/) continue
+                if (ref !~ /^(src|tests|third_party)\// && dir != "") ref = dir "/" ref
+                print ref
+            }
+        }' {} + > "$r15_built"
+    grep -E '^src/.*\.cpp$' tests/arch/kernel_files.txt >> "$r15_built"
+    LC_ALL=C grep -rhoE '#[[:space:]]*include[[:space:]]*"[^"]*\.cpp"' src \
+        --include='*.cpp' --include='*.h' | sed 's/.*"\(.*\)"/\1/' >> "$r15_built"
+    sort -u -o "$r15_built" "$r15_built"
+    if [ "$(wc -l < "$r15_built")" -lt 1500 ]; then
+        echo "[FAIL] R15 unbuilt sources: only $(wc -l < "$r15_built") built source names found (find or awk broken?)"
+        fail=1
+    else
+        # An #include of a .cpp spells the path the way the including file
+        # reaches it, so a built name may match the real path by suffix.
+        find src -name '*.cpp' | sort | awk -v builtfile="$r15_built" '
+            BEGIN { while ((getline b < builtfile) > 0) if (b != "") built[++n] = b }
+            {
+                for (i = 1; i <= n; i++) {
+                    if ($0 == built[i]) next
+                    if (length($0) > length(built[i]) &&
+                        substr($0, length($0) - length(built[i])) == "/" built[i]) next
+                }
+                print
+            }' > "$r15_dead"
+        R15=$(wc -l < "$r15_dead")
+        check_ratchet R15 "src sources no target compiles" 0 "$R15"
+        if [ "$R15" -gt 0 ]; then
+            sed 's/^/         /' < "$r15_dead"
+        fi
+    fi
+    rm -f "$r15_built" "$r15_dead"
+fi
 
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
