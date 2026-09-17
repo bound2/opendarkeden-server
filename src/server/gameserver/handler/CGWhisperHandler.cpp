@@ -77,7 +77,6 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
                         gcWhisper.setMessage(pPacket->getMessage());
                         gcWhisper.setRace(pCreature->getRace());
                         pTargetPlayer->sendPacket(&gcWhisper);
-
                     } else {
                         GCWhisperFailed gcWhisperFailed;
                         pGamePlayer->sendPacket(&gcWhisperFailed);
@@ -157,7 +156,6 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
 
         __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
         GCWhisperFailed gcWhisperFailed;
         pGamePlayer->sendPacket(&gcWhisperFailed);
     }

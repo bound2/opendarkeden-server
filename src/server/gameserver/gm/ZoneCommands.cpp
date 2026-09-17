@@ -30,7 +30,6 @@
 #include "gm/GMCommands.h"
 
 namespace de::gm {
-
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 void opzone(string msg, int i) {
@@ -39,35 +38,6 @@ void opzone(string msg, int i) {
     //////////////
     // Zone Info
     //////////////
-    /*	ZoneInfo* pZoneInfo = new ZoneInfo();
-        pZoneInfo->setZoneID( 10001 );
-        pZoneInfo->setZoneGroupID( 6 );
-        pZoneInfo->setZoneType( "NORMAL_FIELD" );
-        pZoneInfo->setZoneLevel( 0 );
-        pZoneInfo->setZoneAccessMode( "PUBLIC" );
-        pZoneInfo->setZoneOwnerID( "" );
-        pZoneInfo->setPayPlay( "" );
-
-        pZoneInfo->setSMPFilename( "team_hdqrs.smp" );
-        pZoneInfo->setSSIFilename( "team_hdqrs.ssi" );
-        pZoneInfo->setFullName( "team" );
-        pZoneInfo->setShortName( "team" );
-
-        g_pZoneInfoManager->addZoneInfo( pZoneInfo );
-
-        /////////
-        // Zone
-        /////////
-        Zone* pZone = new Zone( 10001 );
-        Assert( pZone != NULL );
-
-        ZoneGroup* pZoneGroup = g_pZoneGroupManager->getZoneGroup(6);
-        Assert( pZoneGroup != NULL );
-
-        pZone->setZoneGroup( pZoneGroup );
-        pZoneGroup->addZone( pZone );
-        pZone->init();
-    */
     __END_CATCH
 }
 
@@ -148,14 +118,6 @@ void oprecall(GamePlayer* pGamePlayer, string msg, int i) {
     }
 
 
-    // Zone* pCallZone = pCreature->getZone();
-
-    /*
-    uint j = msg.find_first_of(' ' , i+1);
-
-    string Name = msg.substr(j+1, msg.size()-j-1).c_str();
-    */
-
     Creature* pTCreature = NULL;
 
     size_t j = msg.find_first_of(' ', i + 1);
@@ -167,7 +129,6 @@ void oprecall(GamePlayer* pGamePlayer, string msg, int i) {
 
         Name = msg.substr(j + 1, i - j - 1).c_str();
 
-        // cout << "Name : (" <<  Name << ")" << endl;
 
         // NoSuch removed.
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
@@ -178,7 +139,6 @@ void oprecall(GamePlayer* pGamePlayer, string msg, int i) {
             return;
         }
 
-        // if (pTCreature != NULL)
         {
             // Careful: the Creature found through the PCFinder is const.
             Zone* pTargetZone = pTCreature->getZone();
@@ -187,13 +147,8 @@ void oprecall(GamePlayer* pGamePlayer, string msg, int i) {
 
             Creature* pTargetCreature = NULL;
             // try
-            //{
             //  NoSuch removed.
             pTargetCreature = pTargetZone->getCreature(pTCreature->getObjectID());
-            //}
-            // catch (NoSuchElementException)
-            //{
-            //}
 
             if (pTargetCreature != NULL) {
                 // A creature that is currently dead cannot be moved.
@@ -289,7 +244,6 @@ void opsummon(GamePlayer* pGamePlayer, string msg, int i) {
 
     string MonsterName = msg.substr(j + 1, k - j - 1);
 
-    //	cout << MonsterName << endl;
 
     // When a MonsterType is given instead of a SpriteType
     if (o != string::npos && p != string::npos) {
@@ -377,5 +331,4 @@ void opclosepaymap(GamePlayer* pGamePlayer, string msg, int i) {
     gcSystemMessage1.setMessage("�շѵ�ͼ�Ѿ��ر�");
     pGamePlayer->sendPacket(&gcSystemMessage1);
 }
-
 } // namespace de::gm

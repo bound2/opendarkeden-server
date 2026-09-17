@@ -17,19 +17,6 @@ GCQuestStatus* GatherItemQuestStatus::makeStatusPacket() const {
     return pPacket;
 }
 
-/*bool GatherItemQuestStatus::got( Item* pItem )
-{
-    __BEGIN_TRY
-
-    bool ret = false;
-    if ( m_TargetNum > m_CurrentNum && isTarget( pItem ) ){ ++m_CurrentNum; ret = true; }
-    if ( m_TargetNum <= m_CurrentNum && m_State == QUEST_STARTED ){ setSuccess(); ret = true; }
-
-    return ret;
-
-    __END_CATCH
-}
-*/
 bool GatherItemQuestStatus::isTarget(Item* pItem) const {
     __BEGIN_TRY
 

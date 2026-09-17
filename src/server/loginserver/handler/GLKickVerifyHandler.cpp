@@ -32,13 +32,10 @@ void GLKickVerifyHandler::execute(GLKickVerify* pPacket)
     __BEGIN_TRY __BEGIN_DEBUG_EX __BEGIN_DEBUG
 #ifdef __LOGIN_SERVER__
 
-        // cout << pPacket->toString().c_str() << endl;
 
         try {
-
         g_pLoginPlayerManager->lock();
 
-        // LoginPlayer* pLoginPlayer = g_pLoginPlayerManager->getPlayer_NOLOCKED(pPacket->getPCName());
         Player* pPlayer = ((PlayerManager*)g_pLoginPlayerManager)->getPlayer(pPacket->getID());
         LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
@@ -49,19 +46,13 @@ void GLKickVerifyHandler::execute(GLKickVerify* pPacket)
             const string& name2 = pPacket->getPCName();
 
             if (name1.size() != 0 && name2.size() != 0 && name1 == name2) {
-                //				if (pLoginPlayer->isMultiLogin() )
-                //				{
-                //					pLoginPlayer->setMultiLogin(false);
                 pLoginPlayer->sendLCLoginOK();
-                //				}
-                //				cout << "-_-" << endl;
             } else {
                 // A different person. Nothing to worry about.
             }
         }
 
         g_pLoginPlayerManager->unlock();
-
     } catch (Throwable&) { // (NoSuchException&) { // would be pointless.
         g_pLoginPlayerManager->unlock();
     }

@@ -10,14 +10,10 @@
 
 Schedule::Schedule(Work* pWork, const VSDateTime& Time, ScheduleType type)
 
-    : m_ScheduleType(type), m_pWork(pWork),
-      m_ScheduledTime(Time){__BEGIN_TRY
+    : m_ScheduleType(type), m_pWork(pWork), m_ScheduledTime(Time){__BEGIN_TRY
 
-                                // m_LimitCheckDateTime 	= VSDateTime::currentDateTime().addDays(1);
-                                // m_LimitCheckTime	 	= VSTime::currentTime().addSecs(60);
-                                //	m_WrongCount 			= 0;
 
-                                __END_CATCH}
+                                                                      __END_CATCH}
 
       Schedule::~Schedule() noexcept {
     try {

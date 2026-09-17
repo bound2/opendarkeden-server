@@ -117,7 +117,6 @@ void FlagWar::executeStart() {
     m_FlagManager.getAllowMap().clear();
 
     addFlags();
-    //	addFlagsRandom( 1122, 20 );
 
     // Pick a zone at random and create 100 flags.
     // Let it run for 2 hours
@@ -175,34 +174,6 @@ void FlagWar::executeEnd() {
     // Until next time
     m_FlagManager.addSchedule(new Schedule(this, getNextFlagWarTime()));
 
-    /*	ZoneCoord_t	ZoneX, ZoneY;
-
-        switch ( m_FlagManager.getWinnerRace() )
-        {
-            case RACE_SLAYER:
-                ZoneX = 90;
-                ZoneY = 50;
-                break;
-
-            case RACE_VAMPIRE:
-                ZoneX = 24;
-                ZoneY = 52;
-                break;
-
-            case RACE_OUSTERS:
-                ZoneX = 30;
-                ZoneY = 86;
-                break;
-
-            default:
-                return;
-        }
-
-        SUMMON_INFO summonInfo;
-        summonInfo.canScanEnemy = false;
-        summonInfo.clanType = SUMMON_INFO::CLAN_TYPE_DEFAULT;
-
-        addMonstersToZone(getZoneByZoneID(1122), ZoneX, ZoneY, 0, 599, 1, summonInfo);*/
 
     __END_CATCH
 }
@@ -229,7 +200,6 @@ VSDateTime FlagWar::getNextFlagWarTime() {
         }
 
         if (anotherDay) {
-            // nextWarDateTime = nextWarDateTime.addDays( NextWarDay[warType][dt.addDays(1).date().dayOfWeek()] );
             nextWarDateTime = nextWarDateTime.addDays(1);
             nextWarDateTime = nextWarDateTime.addDays(NextFlagWarDay[nextWarDateTime.date().dayOfWeek()]);
 
@@ -240,7 +210,6 @@ VSDateTime FlagWar::getNextFlagWarTime() {
         }
     }
 
-    // cout << nextWarDateTime.toString() << " the flag war starts" << endl;
     filelog("FlagWar.log", "%s에 깃발 뺏기 이벤트 시작", nextWarDateTime.toString().c_str());
 
     return nextWarDateTime;

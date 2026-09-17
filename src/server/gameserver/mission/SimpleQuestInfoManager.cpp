@@ -26,14 +26,10 @@ void SimpleQuestInfoManager::load(const string& name) {
         bool isChief = (rows[r].isChief == 0) ? false : true;
         int killCount = (int)rows[r].goal;
 
-        //			RewardClass* pRC = g_pRewardClassInfoManager->getRewardClass( rewardClass );
-        //			Assert( pRC != NULL );
 
         MonsterKillQuestInfo* pMonsterKillQI = new MonsterKillQuestInfo(qID, race, MaxGrade, MinGrade, timeLimit,
                                                                         rewardClass, monsterSType, isChief, killCount);
         addQuestInfo(pMonsterKillQI);
-
-        // cout << "Loading Quest Info : " << pMonsterKillQI->toString() << endl;
     }
 
     __END_CATCH

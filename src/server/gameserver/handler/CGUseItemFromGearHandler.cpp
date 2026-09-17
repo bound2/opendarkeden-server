@@ -43,7 +43,6 @@ void CGUseItemFromGearHandler::execute(CGUseItemFromGear* pPacket, Player* pPlay
 
 #ifdef __GAME_SERVER__
 
-        // cout << "CGUseItemFromGearHandler " << endl;
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
@@ -95,7 +94,6 @@ void CGUseItemFromGearHandler::execute(CGUseItemFromGear* pPacket, Player* pPlay
     }
 
     // Branch to the handling function by item kind.
-    // cout << pItem->getItemClass() << endl;
 
     switch (pItem->getItemClass()) {
     case Item::ITEM_CLASS_COUPLE_RING:
@@ -123,7 +121,6 @@ void CGUseItemFromGearHandler::executeCoupleRing(CGUseItemFromGear* pPacket, Gam
 
 #ifdef __GAME_SERVER__
 
-        // cout << pPacket->toString().c_str() << endl;
 
         Assert(pPacket != NULL);
     Assert(pGamePlayer != NULL);

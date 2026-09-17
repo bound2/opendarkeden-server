@@ -56,7 +56,6 @@ void CGStashRequestBuyHandler::execute(CGStashRequestBuy* pPacket, Player* pPlay
     pPlayerCreature->setStashNumEx(curStashNum + 1);
 
     // Take the money.
-    // pPlayerCreature->setGoldEx(pPlayerCreature->getGold() - price);
 
     // by sigi. 2002.9.4
     pPlayerCreature->decreaseGoldEx(price);

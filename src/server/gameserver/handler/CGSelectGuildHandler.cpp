@@ -37,10 +37,6 @@ void CGSelectGuildHandler::execute(CGSelectGuild* pPacket, Player* pPlayer)
     // Get the selected guild.
     Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
 
-    // try { Assert( pGuild != NULL ); } catch ( Throwable& t ) {
-    // cout << "GuildID:" << (int)(pPacket->getGuildID()) << endl;
-    //}
-    // cout << "GuildCount:" << (int)(g_pGuildManager->getGuilds().size()) << endl;
 
     if (pGuild == NULL) {
         return;
@@ -57,8 +53,6 @@ void CGSelectGuildHandler::execute(CGSelectGuild* pPacket, Player* pPlayer)
         gcShowGuildInfo.setJoinFee(0);
 
         pPlayer->sendPacket(&gcShowGuildInfo);
-
-        // cout << gcShowGuildInfo.toString() << endl;
     } else if (pGuild->getState() == Guild::GUILD_STATE_WAIT) {
         GCShowWaitGuildInfo gcShowWaitGuildInfo;
         gcShowWaitGuildInfo.setGuildID(pGuild->getID());
@@ -82,8 +76,6 @@ void CGSelectGuildHandler::execute(CGSelectGuild* pPacket, Player* pPlayer)
             gcShowWaitGuildInfo.addMember(names[i]);
 
         pPlayer->sendPacket(&gcShowWaitGuildInfo);
-
-        // cout << gcShowWaitGuildInfo.toString() << endl;
     }
 
 #endif // __GAME_SERVER__

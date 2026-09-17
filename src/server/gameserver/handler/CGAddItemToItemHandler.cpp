@@ -83,7 +83,6 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
-    // cout << pPacket->toString().c_str() << endl;
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
 
@@ -116,8 +115,6 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
         // No item, or
         // a wrong objectID
         if (pMouseItem == NULL || pItem == NULL || pMouseItem->getObjectID() != objectID || pMouseItem->getNum() != 1) {
-            // cout << "Wrong Item" << endl;
-
             GCAddItemToItemVerify gcAddItemToItemVerify;
             gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ERROR);
             pGamePlayer->sendPacket(&gcAddItemToItemVerify);
@@ -173,9 +170,7 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
         } break;
 
         case Item::ITEM_CLASS_PET_ENCHANT_ITEM: {
-            // cout << "Trying Pet Enchant... " << endl;
             if (pItem->getItemClass() != Item::ITEM_CLASS_PET_ITEM) {
-                // cout << "It was not done on a pet item." << endl;
                 GCAddItemToItemVerify gcAddItemToItemVerify;
                 gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ERROR);
                 pGamePlayer->sendPacket(&gcAddItemToItemVerify);
@@ -189,7 +184,6 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
             PetItem* pPetItem = dynamic_cast<PetItem*>(pItem);
             PetInfo* pPetInfo = NULL;
             if (pPetItem == NULL || (pPetInfo = pPetItem->getPetInfo()) == NULL) {
-                // cout << "Not a pet item, or the pet item carries no pet state." << endl;
                 GCAddItemToItemVerify gcAddItemToItemVerify;
                 gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ERROR);
                 pGamePlayer->sendPacket(&gcAddItemToItemVerify);
@@ -205,19 +199,16 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
             switch (pItemInfo->getFunction()) {
             case PetEnchantItemInfo::ENCHANT_FUNCTION: {
                 if (pPetInfo->getPetAttr() != 0xff) {
-                    // cout << "The item is already enchanted." << endl;
                     GCAddItemToItemVerify gcAddItemToItemVerify;
                     gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ERROR);
                     pGamePlayer->sendPacket(&gcAddItemToItemVerify);
                     return;
                 }
-                // cout << "A standard enchant is in progress." << endl;
                 pPC->deleteItemFromExtraInventorySlot();
                 pMouseItem->destroy();
                 SAFE_DELETE(pMouseItem);
 
                 if (PetAttrInfoManager::Instance().enchantRandomAttr(pPetInfo, pItemInfo->getFunctionGrade())) {
-                    // cout << "Enchant succeeded." << endl;
                     pPetItem->savePetInfo();
 
                     GCAddItemToItemVerify gcAddItemToItemVerify;
@@ -228,13 +219,11 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
                     pGamePlayer->sendPacket(&gcAddItemToItemVerify);
 
                     if (pPC->getPetInfo() == pPetInfo) {
-                        // cout << "Already summoned, so the packet is being sent." << endl;
                         sendPetInfo(pGamePlayer, true);
                         pPC->initAllStatAndSend();
                     }
                     return;
                 } else {
-                    // cout << "Enchant failed" << endl;
                     GCAddItemToItemVerify gcAddItemToItemVerify;
                     gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ENCHANT_FAIL);
                     pGamePlayer->sendPacket(&gcAddItemToItemVerify);
@@ -243,7 +232,6 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
             } break;
             case PetEnchantItemInfo::SPEC_OPTION_FUNCTION: {
                 if (pPetInfo->getPetAttr() != 0xff) {
-                    // cout << "The item is already enchanted." << endl;
                     GCAddItemToItemVerify gcAddItemToItemVerify;
                     gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ERROR);
                     pGamePlayer->sendPacket(&gcAddItemToItemVerify);
@@ -260,7 +248,6 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
                     gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ENCHANT_OK);
                     gcAddItemToItemVerify.setParameter(((uint)pPetInfo->getPetAttr()) << 16 |
                                                        (uint)pPetInfo->getPetAttrLevel());
-                    //							gcAddItemToItemVerify.setParameter( pPetInfo->getPetAttr() );
 
                     pGamePlayer->sendPacket(&gcAddItemToItemVerify);
 
@@ -277,9 +264,7 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
                 }
             } break;
             case PetEnchantItemInfo::RARE_FUNCTION: {
-                // cout << "A pet rare enchant is in progress." << endl;
                 if (pPetInfo->getPetLevel() != 49) {
-                    // cout << "Do not enchant one that is not at level" << endl;
                     GCAddItemToItemVerify gcAddItemToItemVerify;
                     gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ERROR);
                     pGamePlayer->sendPacket(&gcAddItemToItemVerify);
@@ -290,10 +275,6 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
                 pMouseItem->destroy();
                 SAFE_DELETE(pMouseItem);
 
-                /*
-                OptionType_t targetOption = rand()%87;
-                targetOption++;
-                */
 
                 OptionType_t targetOption = 0;
                 int ratio = rand() % 100000;
@@ -322,9 +303,7 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
                 pItem->tinysave(query);
             } break;
             case PetEnchantItemInfo::REVIVAL_FUNCTION: {
-                // cout << "A revive is being attempted."  << endl;
                 if (pPetInfo->getPetHP() != 0) {
-                    // cout << "Do not revive one that is not dead" << endl;
                     GCAddItemToItemVerify gcAddItemToItemVerify;
                     gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ERROR);
                     pGamePlayer->sendPacket(&gcAddItemToItemVerify);
@@ -384,7 +363,6 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
 
                 pPetItem->tinysave("ItemType=2");
 
-                //						if ( pPC->getPetInfo() == pPetInfo ) sendPetInfo( pGamePlayer );
                 if (summonPet) {
                     pPC->setPetInfo(NULL);
                     sendPetInfo(pGamePlayer);
@@ -424,7 +402,6 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
 
         case Item::ITEM_CLASS_MIXING_ITEM: {
             if (pItem->getItemClass() != Item::ITEM_CLASS_PET_ITEM) {
-                // cout << "It was not done on a pet item." << endl;
                 GCAddItemToItemVerify gcAddItemToItemVerify;
                 gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ERROR);
                 pGamePlayer->sendPacket(&gcAddItemToItemVerify);
@@ -436,7 +413,6 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
             Assert(pItemInfo != NULL);
 
             if (pItemInfo->getType() != MixingItemInfo::TYPE_DETACH) {
-                // cout << "It was not done on a pet item." << endl;
                 GCAddItemToItemVerify gcAddItemToItemVerify;
                 gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ERROR);
                 pGamePlayer->sendPacket(&gcAddItemToItemVerify);
@@ -446,7 +422,6 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
             PetItem* pPetItem = dynamic_cast<PetItem*>(pItem);
             PetInfo* pPetInfo = NULL;
             if (pPetItem == NULL || (pPetInfo = pPetItem->getPetInfo()) == NULL || pPetInfo->getPetOption() == 0) {
-                // cout << "Not a pet item, or the pet item carries no pet state." << endl;
                 GCAddItemToItemVerify gcAddItemToItemVerify;
                 gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ERROR);
                 pGamePlayer->sendPacket(&gcAddItemToItemVerify);
@@ -467,7 +442,6 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
             pGamePlayer->sendPacket(&gcAddItemToItemVerify);
 
             if (pPC->getPetInfo() == pPetInfo) {
-                // cout << "Already summoned, so the packet is being sent." << endl;
                 sendPetInfo(pGamePlayer, true);
                 pPC->initAllStatAndSend();
             }
@@ -475,8 +449,6 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
         } break;
 
         default: {
-            // cout << "upgrade error" << endl;
-
             GCAddItemToItemVerify gcAddItemToItemVerify;
             gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ERROR);
             pGamePlayer->sendPacket(&gcAddItemToItemVerify);
@@ -532,7 +504,6 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
 
     Creature* pCreature = pGamePlayer->getCreature();
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-    //		Inventory* 		pInventory  = pPC->getInventory();
 
     // The failure chance is decided by itemType.
     const ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
@@ -541,7 +512,6 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
     // is a unique item,
     // or two or more stars are held for the enchant
     if (pItem->getOptionTypeSize() != 3 || pItemInfo->isUnique() || pMouseItem->getNum() != 1) {
-        // cout << "no Option " << endl;
         sendEnchantImpossible(pGamePlayer);
         return;
     }
@@ -563,18 +533,10 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
     itr--;
     itr--;
 
-    /*
-    OptionType_t thirdOption  = *itr++;
-    OptionType_t secondOption = *itr;
-    OptionType_t firstOption  = *itr++;
-    */
 
     OptionInfo* pFirstOptionInfo = getOptionInfo(firstOption);
     OptionInfo* pSecondOptionInfo = getOptionInfo(secondOption);
     OptionInfo* pThirdOptionInfo = getOptionInfo(thirdOption);
-    //		cout << "firstOption : " << pFirstOptionInfo->getName() <<  endl;
-    //		cout << "secondOption : " << pSecondOptionInfo->getName() <<  endl;
-    //		cout << "thirdOption : " << pThirdOptionInfo->getName() <<  endl;
     // Check the item options for the upgrade
     if (pFirstOptionInfo == NULL || pSecondOptionInfo == NULL || pThirdOptionInfo == NULL) {
         sendEnchantImpossible(pGamePlayer);
@@ -589,21 +551,15 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
         sendEnchantImpossible(pGamePlayer);
         return;
     }
-    // if ((rand() %6000) > diceValue)
-    // diceValue*=2;
     if (bFirstUpgradePossible) {
         // The first option's enchant chance follows the Blue Drop 2 chance.
         int succeedRatio = pFirstOptionInfo->getUpgradeSecondRatio() * (pItemInfo->getUpgradeRatio() + (rand() % 50));
-        // int dice = rand()%10000;
         int dice = rand() % diceValue;
         cout << "dice : " << (int)dice << endl;
         cout << "diceValue : " << (int)diceValue << endl;
 
-        // cout << "First option: " << pFirstOptionInfo->getHName() << " enchant chance " << succeedRatio << endl;
-        // dice =succeedRatio-1;
         if (dice < succeedRatio) // on success, upgrade the equipment
         {
-            // cout << "Enchant succeeded" << endl;
             processUpgradeOptionType(pItem, firstOption, pFirstOptionInfo);
 
             OptionType_t upgradeOptionType = pFirstOptionInfo->getUpgradeType();
@@ -639,13 +595,9 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
         int succeedRatio = g_pOptionInfoManager->getRareUpgradeRatio(secondOption, bFirstSucceed) *
                            (pItemInfo->getUpgradeRatio() + (rand() % 50));
 
-        // int dice = rand() %10000;
         int dice = rand() % diceValue;
 
-        // cout << "Second option: " << pSecondOptionInfo->getHName() << " enchant chance " << succeedRatio << endl;
-        // dice =succeedRatio-1;
         if (dice < succeedRatio) {
-            // cout << "Enchant succeeded" << endl;
             processUpgradeOptionType(pItem, secondOption, pSecondOptionInfo);
 
             OptionType_t upgradeOptionType = pSecondOptionInfo->getUpgradeType();
@@ -678,13 +630,9 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
         // The second option's enchant chance depends on whether the first option succeeded.
         int succeedRatio = g_pOptionInfoManager->getRareUpgradeRatio(thirdOption, bFirstSucceed) *
                            (pItemInfo->getUpgradeRatio() + (rand() % 50));
-        // int dice = rand() %10000;
 
         int dice = rand() % diceValue;
-        // cout << "Second option: " << pSecondOptionInfo->getHName() << " enchant chance " << succeedRatio << endl;
-        // dice =succeedRatio-1;
         if (dice < succeedRatio) {
-            // cout << "Enchant succeeded" << endl;
             processUpgradeOptionType(pItem, thirdOption, pThirdOptionInfo);
 
             OptionType_t upgradeOptionType = pThirdOptionInfo->getUpgradeType();
@@ -712,7 +660,6 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
         }
     }
 EnOK:
-    //{
     // Delete the held star
     pPC->deleteItemFromExtraInventorySlot();
 
@@ -726,7 +673,6 @@ EnOK:
     cout << "optionChange : " << optionChange << endl;
     sendEnchantOK(pGamePlayer, optionChange, optionChange2);
 
-    //}
 
     __END_CATCH
 }
@@ -736,7 +682,6 @@ void executeEnchantRareOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* p
 
     Creature* pCreature = pGamePlayer->getCreature();
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-    //		Inventory* 		pInventory  = pPC->getInventory();
 
     // The failure chance is decided by itemType.
     const ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
@@ -744,14 +689,6 @@ void executeEnchantRareOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* p
     // The item to enchant does not have exactly two options,
     // is a unique item,
     // or two or more stars are held for the enchant
-    /*		// Decide whether the item has three options; if so, call the new three-option routine
-            if (pItem->getOptionTypeSize() ==3);
-            {
-                //Three-option enchant
-                executeEnchantRareThreeOption(pGamePlayer, pMouseItem, pItem, invenX, invenY);
-                return;
-            }
-            // end */
     if (pItem->getOptionTypeSize() != 2 || pItemInfo->isUnique() || pMouseItem->getNum() != 1) {
         cout << "no Option 1" << endl;
         sendEnchantImpossible(pGamePlayer);
@@ -791,10 +728,8 @@ void executeEnchantRareOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* p
         int succeedRatio = pFirstOptionInfo->getUpgradeSecondRatio() * pItemInfo->getUpgradeRatio();
         int dice = rand() % 10000;
 
-        // cout << "First option: " << pFirstOptionInfo->getHName() << " enchant chance " << succeedRatio << endl;
 
         if (dice < succeedRatio) {
-            // cout << "Enchant succeeded" << endl;
             processUpgradeOptionType(pItem, firstOption, pFirstOptionInfo);
 
             OptionType_t upgradeOptionType = pFirstOptionInfo->getUpgradeType();
@@ -806,7 +741,6 @@ void executeEnchantRareOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* p
             int downgradeRatio = pItemInfo->getDowngradeRatio();
             dice = rand() % 100;
 
-            // cout << "Enchant item: " << pItemInfo->getName() << " option drop chance " << downgradeRatio << endl;
 
             if (dice < noChangeRatio) {
                 // No change
@@ -840,8 +774,6 @@ void executeEnchantRareOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* p
             int downgradeRatio = pItemInfo->getDowngradeRatio();
             int dice = rand() % 100;
 
-            // cout << "First option: " << pFirstOptionInfo->getHName() << " option drop chance: " << downgradeRatio <<
-            // endl;
 
             if (dice < noChangeRatio) {
                 // No change
@@ -875,10 +807,8 @@ void executeEnchantRareOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* p
             g_pOptionInfoManager->getRareUpgradeRatio(secondOption, bFirstSucceed) * pItemInfo->getUpgradeRatio();
         int dice = rand() % 10000;
 
-        // cout << "Second option: " << pSecondOptionInfo->getHName() << " enchant chance " << succeedRatio << endl;
 
         if (dice < succeedRatio) {
-            // cout << "Enchant succeeded" << endl;
             processUpgradeOptionType(pItem, secondOption, pSecondOptionInfo);
 
             OptionType_t upgradeOptionType = pSecondOptionInfo->getUpgradeType();
@@ -890,7 +820,6 @@ void executeEnchantRareOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* p
             int downgradeRatio = pItemInfo->getDowngradeRatio();
             dice = rand() % 100;
 
-            // cout << "Enchant item: " << pItemInfo->getName() << " option drop chance " << downgradeRatio << endl;
 
             if (dice < noChangeRatio) {
                 // No change
@@ -923,8 +852,6 @@ void executeEnchantRareOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* p
             int downgradeRatio = pItemInfo->getDowngradeRatio();
             int dice = rand() % 100;
 
-            // cout << "Second option: " << pSecondOptionInfo->getHName() << " option drop chance: " << downgradeRatio <<
-            // endl;
 
             if (dice < noChangeRatio) {
                 // No change
@@ -950,113 +877,6 @@ void executeEnchantRareOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* p
         }
     }
 
-    /*		// Having several options is not taken to be impossible..
-            // check that the held item is the right one, and
-            // when the option can be upgraded...
-
-
-            //const list<OptionType_t>& optionList = pItem->getOptionTypeList();
-            // Copy it and work on the copy..
-            list<OptionType_t>::const_iterator itr = optionList.begin();
-
-            for (; itr!=optionList.end(); itr++)
-            {
-                OptionType_t currentOptionType = *itr;
-
-                OptionInfo* pOptionInfo = getOptionInfo( currentOptionType );
-
-                if (pOptionInfo==NULL)
-                {
-                    sendEnchantImpossible( pGamePlayer );
-                    return;
-                }
-
-                bool bUpgradePossible = pOptionInfo->isUpgradePossible();
-
-                if (bUpgradePossible)
-                {
-                    //---------------------------------------------------------
-                    // Only an item count of 1 is allowed.
-                    // To allow several at once,
-                    // the item count would have to be reduced.. the client would need changing too.
-                    // Will the upgrade succeed?
-                    //---------------------------------------------------------
-                    // option chance * type chance / 10000
-                    //---------------------------------------------------------
-                    // First option
-                    //---------------------------------------------------------
-
-                    // If the first option succeeds, compute with the second option chance.
-                    int upgradeRatio = (bFirstSucceed? pOptionInfo->getUpgradeSecondRatio()
-                                                    : pOptionInfo->getUpgradeRatio());
-
-
-                    int succeedRatio = upgradeRatio * pItemInfo->getUpgradeRatio();
-
-                    int dice = rand()%10000;
-                    bool bSucceed = (dice < succeedRatio);
-
-                    //cout << "EnchantCheck = "
-                    //	<< pOptionInfo->getUpgradeRatio() << " * "
-                    //	<< pItemInfo->getUpgradeRatio() << " = "
-                    //	<< succeedRatio << ", dice = " << dice << " , succeed=" << (int)bSucceed << endl;
-
-                    //cout << "Before = " << getOptionTypeToString( pItem->getOptionTypeList() ) << endl;
-                    //cout << "CurrentOptionType = " << (int)currentOptionType << endl;
-
-
-                    if (pMouseItem->getNum()==1
-                        && bSucceed)
-                    {
-                        processUpgradeOptionType( pItem, currentOptionType, pOptionInfo );
-
-                        OptionType_t upgradeOptionType = pOptionInfo->getUpgradeType();
-                        optionChange = (currentOptionType << (shiftValue+8)) | (upgradeOptionType << shiftValue);
-
-                        bFirstSucceed = true;
-                        //cout << gcAddItemToItemVerify.toString().c_str() << endl;
-                    }
-                    //---------------------------------------------------------
-                    // upgrade failed
-                    //---------------------------------------------------------
-                    else
-                    {
-                        //cout << "Failed!" << endl;
-                        bool bCrashItem = pItemInfo->isUpgradeCrash();
-
-                        if ( bCrashItem )
-                        {
-                            // Leave an ItemTrace log before breaking the item
-                            if ( pItem != NULL && pItem->isTraceItem() )
-                            {
-                                remainTraceLog( pItem, pCreature->getName(), "GOD", ITEM_LOG_DELETE, DETAIL_ENCHANT);
-                            }
-                            crashItem(pItem, pInventory, invenX, invenY);
-
-                            GCAddItemToItemVerify gcAddItemToItemVerify;
-                            gcAddItemToItemVerify.setCode( ADD_ITEM_TO_ITEM_VERIFY_ENCHANT_FAIL_CRASH );
-                            pGamePlayer->sendPacket( &gcAddItemToItemVerify );
-
-                            return;
-                        }
-                        else
-                        {
-                            // Taking the list by reference above lets an option be removed here, so
-                            // the list iterator can go stale.
-                            downgradeOptionType( pItem, currentOptionType, pOptionInfo );
-
-                            OptionType_t previousOptionType = pOptionInfo->getPreviousType();
-                            optionChange = (currentOptionType << (shiftValue+8)) | (previousOptionType << shiftValue);
-                        }
-                    }
-                }
-                else
-                {
-                    impossibleCount ++;
-                }
-
-                shiftValue -= 16;
-            }*/
 
     {
         // Delete the held star
@@ -1096,7 +916,6 @@ void executeEnchantOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* pItem
     // is a rare item,
     // is a unique item,
     if (optionSize != 1 || pItemInfo->isUnique()) {
-        // cout << "no Option " << endl;
         sendEnchantImpossible(pGamePlayer);
         return;
     }
@@ -1132,40 +951,26 @@ void executeEnchantOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* pItem
             succeedRatio = pOptionInfo->getUpgradeRatio() * pItemInfo->getUpgradeRatio();
         }
 
-        //			cout << "Option " << pOptionInfo->getHName() << " enchant chance : " << succeedRatio << endl;
 
         int dice = rand() % 10000;
         bool bSucceed = (dice < succeedRatio);
 
-        /*
-        cout << "EnchantCheck = "
-            << pOptionInfo->getUpgradeRatio() << " * "
-            << pItemInfo->getUpgradeRatio() << " = "
-            << succeedRatio << ", dice = " << dice << " , succeed=" << (int)bSucceed << endl;
-        */
-
-        // cout << "Before = " << getOptionTypeToString( pItem->getOptionTypeList() ) << endl;
-        // cout << "CurrentOptionType = " << (int)currentOptionType << endl;
 
         // With several options attached, a chosen option that cannot be upgraded counts as a failure.
         // The if above checked optionSize>1, so when bUpgradePossible does not hold,
         // optionSize>1 can be assumed.
         if (bUpgradePossible && pMouseItem->getNum() == 1 && bSucceed) {
-            //				cout << "Enchant succeeded" << endl;
             processUpgradeOptionType(pItem, currentOptionType, pOptionInfo);
 
             OptionType_t upgradeOptionType = pOptionInfo->getUpgradeType();
             uint optionChange = (currentOptionType << 24) | (upgradeOptionType << 16);
 
             sendEnchantOK(pGamePlayer, optionChange);
-
-            // cout << gcAddItemToItemVerify.toString().c_str() << endl;
         }
         //---------------------------------------------------------
         // upgrade failed
         //---------------------------------------------------------
         else {
-            // cout << "Failed!" << endl;
             bool bCrashItem = pItemInfo->isUpgradeCrash();
 
             // fail packet: decide whether the item breaks
@@ -1180,14 +985,11 @@ void executeEnchantOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* pItem
                 crashItem(pItem, pInventory, invenX, invenY);
 
                 gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ENCHANT_FAIL_CRASH);
-
-                // cout << "Broken" << endl;
             } else {
                 int noChangeRatio = 33;
                 int downgradeRatio = pItemInfo->getDowngradeRatio();
                 int dice = rand() % 100;
 
-                // cout << "Enchant item: " << pItemInfo->getName() << " option drop chance " << downgradeRatio << endl;
 
                 if (dice < noChangeRatio) {
                     // No change
@@ -1204,8 +1006,6 @@ void executeEnchantOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* pItem
             }
 
             pGamePlayer->sendPacket(&gcAddItemToItemVerify);
-
-            // cout << "Upgrade Failed " << (bCrashItem? ": Crash!":" ") << endl;
         }
 
         // Delete the held star
@@ -1218,7 +1018,6 @@ void executeEnchantOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* pItem
         SAFE_DELETE(pMouseItem);
     } else {
         sendEnchantImpossible(pGamePlayer);
-        // cout << "upgrade impossible" << endl;
     }
 
     __END_CATCH
@@ -1232,16 +1031,6 @@ void executeAddOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* pItem, Op
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
 
     // Not allowed outside the premium service..
-    /*		if (!pGamePlayer->isPayPlaying()
-                && !pGamePlayer->isPremiumPlay())
-            {
-                //cout << "no Option " << endl;
-                GCAddItemToItemVerify gcAddItemToItemVerify;
-                gcAddItemToItemVerify.setCode( ADD_ITEM_TO_ITEM_VERIFY_ENCHANT_IMPOSSIBLE_NO_PREMIUM );
-                pGamePlayer->sendPacket( &gcAddItemToItemVerify );
-                return;
-            }
-    */
 
     // The option class can attach to this class,
     // there is no option,
@@ -1273,18 +1062,12 @@ void executeAddOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* pItem, Op
         gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ENCHANT_OK);
         gcAddItemToItemVerify.setParameter(optionChange);
         pGamePlayer->sendPacket(&gcAddItemToItemVerify);
-
-        // cout << gcAddItemToItemVerify.toString().c_str() << endl;
     } else {
-        // cout << "Enchant Impossible" << endl;
-        // cout << "impossibleOption : " << (int)currentOptionType << endl;
         //  This option cannot be upgraded.
         //  impossible packet
         GCAddItemToItemVerify gcAddItemToItemVerify;
         gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ENCHANT_IMPOSSIBLE);
         pGamePlayer->sendPacket(&gcAddItemToItemVerify);
-
-        // cout << "upgrade impossible" << endl;
     }
 
     __END_CATCH
@@ -1350,21 +1133,16 @@ OptionInfo* getOptionInfo(OptionType_t optionType) {
 void processUpgradeOptionType(Item* pItem, OptionType_t currentOptionType, OptionInfo* pOptionInfo) {
     __BEGIN_TRY
 
-    // cout << "Succeed!" << endl;
     //  option that will be upgraded
     OptionType_t upgradeOptionType = pOptionInfo->getUpgradeType();
 
     // Option change
     pItem->changeOptionType(currentOptionType, upgradeOptionType);
 
-    // cout << "Succeed = " << getOptionTypeToString( pItem->getOptionTypeList() );
 
     string optionField;
     setOptionTypeToField(pItem->getOptionTypeList(), optionField);
 
-    // list<OptionType_t> op;
-    // setOptionTypeFromField( op, optionField );
-    // cout << "Check = " << getOptionTypeToString( op ) << endl;
 
     // DB change
     char pField[80];
@@ -1395,23 +1173,19 @@ void downgradeOptionType(Item* pItem, OptionType_t currentOptionType, OptionInfo
     // Drop the item's option by one step.
     OptionType_t previousOptionType = pOptionInfo->getPreviousType();
 
-    // cout << "FailBefore : " << getOptionTypeToString(pItem->getOptionTypeList()) << endl;
 
     // Option change
     // If there is no previous option, remove the option entirely.
     if (previousOptionType == 0) {
         pItem->removeOptionType(currentOptionType);
-        // cout << "Remove = " << getOptionTypeToString( pItem->getOptionTypeList() ) << endl;
     } else {
         pItem->changeOptionType(currentOptionType, previousOptionType);
-        // cout << "Down = " << getOptionTypeToString( pItem->getOptionTypeList() ) << endl;
     }
 
     // DB change
     string optionField;
     setOptionTypeToField(pItem->getOptionTypeList(), optionField);
 
-    // cout << "FailAfter : " << getOptionTypeToString(pItem->getOptionTypeList()) << endl;
 
     char pField[80];
     sprintf(pField, "OptionType='%s'", optionField.c_str());

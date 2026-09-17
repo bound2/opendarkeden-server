@@ -257,7 +257,6 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                     Assert(pKey != NULL);
 
                     targetID = pKey->setNewMotorcycle(pSlayer);
-
                 } else {
                     // Once a motorcycle and a key are linked, someone keeps deleting the motorcycle.
                     // Check that the motorcycle linked to the key really is in the DB, and if not make a new one.
@@ -294,9 +293,6 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                             pMotorcycleBox->setTransport();
 
                             // Move the motorcycle to the slayer's zone.
-                            /*							pMotorZone->transportItem( motorX, motorY, pMotorcycle,
-                                                                                    pZone, pSlayer->getX(),
-                               pSlayer->getY() );*/
                             EffectRecallMotorcycle* pEffectRecallMotorcycle =
                                 new EffectRecallMotorcycle(pMotorZone, motorX, motorY, pZone, pSlayer->getX(),
                                                            pSlayer->getY(), pMotorcycle, pSlayer->getObjectID(), 0);
@@ -305,10 +301,6 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                             // This stands in for Use OK.
                             // A Use would probably make the item disappear.
-                            /*
-                            GCCannotUse _GCCannotUse;
-                            _GCCannotUse.setObjectID(pPacket->getObjectID());
-                            */
 
                             // A delay should be applied for a while..
                         }
@@ -950,266 +942,8 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 _GCCannotUse.setObjectID(pPacket->getObjectID());
                 pGamePlayer->sendPacket(&_GCCannotUse);
             }
-            /*			if ( pOustersArmsbandItem->getItemClass() == Item::ITEM_CLASS_PUPA )
-                        {
-                            HP_t  MaxHP     = pOusters->getHP(ATTR_MAX);
-                            HP_t  CurrentHP = pOusters->getHP(ATTR_CURRENT);
-                            Pupa* pPupa     = dynamic_cast<Pupa*>(pOustersArmsbandItem);
-
-                            // the amount recovered per turn
-                            int		HPQuantity = pPupa->getHPQuantity();
-
-                            // how many seconds one turn is.
-                            int		HPDelayProvider = pPupa->getHPDelay();
-
-                            HP_t    PupaHPAmount = 0;
-
-                            PupaHPAmount = pPupa->getHPAmount();
-
-                            int     HPAmount     = min(MaxHP - CurrentHP , (int)PupaHPAmount);
-                            bool    notRecoverHP = false;
-
-
-                            // If there is an HP recovery amount...
-                            if (HPAmount != 0 && HPQuantity != 0)
-                            {
-                                if (CurrentHP < MaxHP)
-                                {
-                                    EffectManager* pEffectManager = pOusters->getEffectManager();
-
-                                    double temp     = (double)((double)HPAmount/(double)HPQuantity);
-                                    uint   Period   = (uint)ceil(temp);
-                                    Turn_t Deadline = Period* HPDelayProvider;
-
-                                    if (pOusters->isFlag(Effect::EFFECT_CLASS_HP_RECOVERY))
-                                    {
-                                        Effect* pEffect = pEffectManager->findEffect(Effect::EFFECT_CLASS_HP_RECOVERY);
-                                        EffectHPRecovery* pEffectHPRecoveryEffect =
-               dynamic_cast<EffectHPRecovery*>(pEffect);
-
-                                        // Compute the HP the existing unit amount and count would fill.
-                                        // Add that to the current recovery amount.
-                                        int PrevHPAmount = pEffectHPRecoveryEffect->getHPQuantity()*
-               pEffectHPRecoveryEffect->getPeriod(); HPAmount = min((int)(HPAmount + PrevHPAmount), MaxHP - CurrentHP);
-
-                                        // Take the larger unit recovery amount and the smaller delay of the two.
-                                        HPQuantity      = max(HPQuantity,
-               (int)(pEffectHPRecoveryEffect->getHPQuantity())); HPDelayProvider = min(HPDelayProvider,
-               (int)(pEffectHPRecoveryEffect->getDelay()));
-
-                                        // From the current recovery amount, decide how much is recovered how many times.
-                                        temp     = (double)((double)HPAmount/(double)HPQuantity);
-                                        Period   = (uint)ceil(temp);
-                                        Deadline = Period* HPDelayProvider;
-
-                                        // Refresh the HP Recovery effect.
-                                        pEffectHPRecoveryEffect->setDeadline(Deadline);
-                                        pEffectHPRecoveryEffect->setDelay(HPDelayProvider);
-                                        pEffectHPRecoveryEffect->setHPQuantity(HPQuantity);
-                                        pEffectHPRecoveryEffect->setPeriod(Period);
-
-                                        // Send the packet that starts the recovery to oneself.
-                                        GCHPRecoveryStartToSelf gcHPRecoveryStartToSelf;
-                                        gcHPRecoveryStartToSelf.setPeriod(pEffectHPRecoveryEffect->getPeriod());
-                                        gcHPRecoveryStartToSelf.setDelay(pEffectHPRecoveryEffect->getDelay());
-                                        gcHPRecoveryStartToSelf.setQuantity(pEffectHPRecoveryEffect->getHPQuantity());
-
-                                        pGamePlayer->sendPacket(&gcHPRecoveryStartToSelf);
-
-                                        // Send the packet that starts the recovery to the others.
-                                        // The recovery refresh packet is the same packet as the start one.
-                                        GCHPRecoveryStartToOthers gcHPRecoveryStartToOthers;
-                                        gcHPRecoveryStartToOthers.setObjectID(pOusters->getObjectID());
-                                        gcHPRecoveryStartToOthers.setPeriod(pEffectHPRecoveryEffect->getPeriod());
-                                        gcHPRecoveryStartToOthers.setDelay(pEffectHPRecoveryEffect->getDelay());
-                                        gcHPRecoveryStartToOthers.setQuantity(pEffectHPRecoveryEffect->getHPQuantity());
-
-                                        pZone->broadcastPacket(pOusters->getX(), pOusters->getY(),
-               &gcHPRecoveryStartToOthers, pOusters); GCUseOK _GCUseOK; pGamePlayer->sendPacket(&_GCUseOK);
-                                    }
-                                    else
-                                    {
-                                        EffectHPRecovery* pEffectHPRecovery = new EffectHPRecovery();
-
-                                        pEffectHPRecovery->setTarget(pOusters);
-                                        pEffectHPRecovery->setDeadline(Deadline);
-                                        pEffectHPRecovery->setDelay(HPDelayProvider);
-                                        pEffectHPRecovery->setNextTime(0);
-                                        pEffectHPRecovery->setHPQuantity(HPQuantity);
-                                        pEffectHPRecovery->setPeriod(Period);
-
-                                        pEffectManager->addEffect(pEffectHPRecovery);
-
-                                        // Send the packet that starts the recovery to oneself.
-                                        GCHPRecoveryStartToSelf gcHPRecoveryStartToSelf;
-                                        gcHPRecoveryStartToSelf.setPeriod(Period);
-                                        gcHPRecoveryStartToSelf.setDelay(HPDelayProvider);
-                                        gcHPRecoveryStartToSelf.setQuantity(HPQuantity);
-
-                                        pGamePlayer->sendPacket(&gcHPRecoveryStartToSelf);
-
-                                        // Send the packet that starts the recovery to those who can see.
-                                        GCHPRecoveryStartToOthers gcHPRecoveryStartToOthers;
-                                        gcHPRecoveryStartToOthers.setObjectID(pOusters->getObjectID());
-                                        gcHPRecoveryStartToOthers.setPeriod(Period);
-                                        gcHPRecoveryStartToOthers.setDelay(HPDelayProvider);
-                                        gcHPRecoveryStartToOthers.setQuantity(HPQuantity);
-
-                                        pZone->broadcastPacket(pOusters->getX(), pOusters->getY(),
-               &gcHPRecoveryStartToOthers, pOusters); GCUseOK _GCUseOK; pGamePlayer->sendPacket(&_GCUseOK);
-                                    }
-                                }
-                                else
-                                {
-                                    GCCannotUse _GCCannotUse;
-                                    _GCCannotUse.setObjectID(pPacket->getObjectID());
-                                    pGamePlayer->sendPacket(&_GCCannotUse);
-                                    return;
-                                }
-                            }
-                            else
-                            {
-                                notRecoverHP = true;
-                            }
-
-                            if (notRecoverHP)
-                            {
-                                GCCannotUse _GCCannotUse;
-                                _GCCannotUse.setObjectID(pPacket->getObjectID());
-                                pGamePlayer->sendPacket(&_GCCannotUse);
-                                return;
-                            }
-                            else
-                            {
-                                decreaseItemNum(pOustersArmsbandItem, pOustersArmsbandInventory, pOusters->getName(),
-               STORAGE_BELT, pOustersArmsband->getItemID(), SlotID, 0);
-                            }
-                        }
-                        else if ( pOustersArmsbandItem->getItemClass() == Item::ITEM_CLASS_COMPOS_MEI )
-                        {
-                            MP_t    MaxMP        = pOusters->getMP(ATTR_MAX);
-                            MP_t    CurrentMP    = pOusters->getMP(ATTR_CURRENT);
-                            ComposMei* pComposMei      = dynamic_cast<ComposMei*>(pOustersArmsbandItem);
-
-                            // the amount recovered per turn
-                            int		MPQuantity = pComposMei->getMPQuantity();
-
-                            // how many seconds one turn is.
-                            int		MPDelayProvider = pComposMei->getMPDelay();
-
-                            Attr_t INT = pOusters->getINT();
-
-                            MP_t    ComposMeiMPAmount = 0;
-
-                            ComposMeiMPAmount = pComposMei->getMPAmount();
-
-                            int     MPAmount     = min(MaxMP - CurrentMP , (int)(pComposMei->getMPAmount()* (1 +
-               (double)((double)INT / 300.0)))); bool    notRecoverMP = false;
-
-                            // If there is an MP recovery amount...
-                            if (MPAmount != 0 && MPQuantity != 0 )
-                            {
-                                // How much, how many times, every how many seconds.
-                                if (CurrentMP < MaxMP)
-                                {
-                                    EffectManager* pEffectManager = pOusters->getEffectManager();
-
-                                    double temp     = (double)((double)MPAmount/(double)MPQuantity);
-                                    uint   Period   = (uint)ceil(temp);
-                                    Turn_t Deadline = Period* MPDelayProvider;
-
-                                    if (pOusters->isFlag(Effect::EFFECT_CLASS_MP_RECOVERY))
-                                    {
-                                        Effect* pEffect = pEffectManager->findEffect(Effect::EFFECT_CLASS_MP_RECOVERY);
-                                        EffectMPRecovery* pEffectMPRecoveryEffect =
-               dynamic_cast<EffectMPRecovery*>(pEffect);
-
-                                        // Compute the MP the existing unit amount and count would fill.
-                                        // Add that to the current recovery amount.
-                                        int PrevMPAmount = pEffectMPRecoveryEffect->getMPQuantity()*
-               pEffectMPRecoveryEffect->getPeriod(); MPAmount = min((int)(MPAmount + PrevMPAmount), MaxMP - CurrentMP);
-
-                                        // Take the larger unit recovery amount and the smaller delay of the two.
-                                        MPQuantity      = max(MPQuantity,
-               (int)(pEffectMPRecoveryEffect->getMPQuantity())); MPDelayProvider = min(MPDelayProvider,
-               (int)(pEffectMPRecoveryEffect->getDelay()));
-
-                                        // From the current recovery amount, decide how much is recovered how many times.
-                                        temp     = (double)((double)MPAmount/(double)MPQuantity);
-                                        Period   = (uint)ceil(temp);
-                                        Deadline = Period* MPDelayProvider;
-
-                                        // Refresh the MP Recovery effect.
-                                        pEffectMPRecoveryEffect->setDeadline(Deadline);
-                                        pEffectMPRecoveryEffect->setDelay(MPDelayProvider);
-                                        pEffectMPRecoveryEffect->setMPQuantity(MPQuantity);
-                                        pEffectMPRecoveryEffect->setPeriod(Period);
-
-                                        // Send the packet that starts the recovery to oneself.
-                                        GCMPRecoveryStart gcMPRecoveryStart;
-                                        gcMPRecoveryStart.setPeriod(pEffectMPRecoveryEffect->getPeriod());
-                                        gcMPRecoveryStart.setDelay(pEffectMPRecoveryEffect->getDelay());
-                                        gcMPRecoveryStart.setQuantity(pEffectMPRecoveryEffect->getMPQuantity());
-
-                                        pGamePlayer->sendPacket(&gcMPRecoveryStart);
-
-                                        GCUseOK _GCUseOK;
-                                        pGamePlayer->sendPacket(&_GCUseOK);
-                                    }
-                                    else
-                                    {
-                                        EffectMPRecovery* pEffectMPRecovery = new EffectMPRecovery();
-
-                                        pEffectMPRecovery->setTarget(pOusters);
-                                        pEffectMPRecovery->setDeadline(Deadline);
-                                        pEffectMPRecovery->setDelay(MPDelayProvider);
-                                        pEffectMPRecovery->setNextTime(0);
-                                        pEffectMPRecovery->setMPQuantity(MPQuantity);
-                                        pEffectMPRecovery->setPeriod(Period);
-
-                                        pEffectManager->addEffect(pEffectMPRecovery);
-
-                                        // Send the packet that starts the recovery to oneself.
-                                        GCMPRecoveryStart gcMPRecoveryStart;
-                                        gcMPRecoveryStart.setPeriod(Period);
-                                        gcMPRecoveryStart.setDelay(MPDelayProvider);
-                                        gcMPRecoveryStart.setQuantity(MPQuantity);
-
-                                        pGamePlayer->sendPacket(&gcMPRecoveryStart);
-
-                                        GCUseOK _GCUseOK;
-                                        pGamePlayer->sendPacket(&_GCUseOK);
-                                    }
-                                }
-                                else
-                                {
-                                    GCCannotUse _GCCannotUse;
-                                    _GCCannotUse.setObjectID(pPacket->getObjectID());
-                                    pGamePlayer->sendPacket(&_GCCannotUse);
-                                    return;
-                                }
-                            }
-                            else
-                            {
-                                notRecoverMP = true;
-                            }
-
-                            if (notRecoverMP)
-                            {
-                                GCCannotUse _GCCannotUse;
-                                _GCCannotUse.setObjectID(pPacket->getObjectID());
-                                pGamePlayer->sendPacket(&_GCCannotUse);
-                                return;
-                            }
-                            else
-                            {
-                                decreaseItemNum(pOustersArmsbandItem, pOustersArmsbandInventory, pOusters->getName(),
-               STORAGE_BELT, pOustersArmsband->getItemID(), SlotID, 0);
-                            }
-                        }*/
         }
     } catch (Throwable& t) {
-        // cout << t.toString();
     }
 
 #endif // __GAME_SERVER__

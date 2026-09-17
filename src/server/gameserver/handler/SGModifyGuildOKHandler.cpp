@@ -48,54 +48,6 @@ void SGModifyGuildOKHandler::execute(SGModifyGuildOK* pPacket)
         /////////////////////////////////////////////////////////////
         // Add the zone
         /////////////////////////////////////////////////////////////
-        /*		if (pGuild->getServerGroupID() == g_pConfig->getPropertyInt("ServerID" ) )
-                {
-                    // Build the guild hideout on this game server.
-
-                    //////////////
-                    // Zone Info
-                    //////////////
-                    ZoneInfo* pZoneInfo = new ZoneInfo();
-                    pZoneInfo->setZoneID(pGuild->getZoneID());
-                    pZoneInfo->setZoneGroupID(2);
-                    pZoneInfo->setZoneType("NPC_SHOP");
-                    pZoneInfo->setZoneLevel(0);
-                    pZoneInfo->setZoneAccessMode("PUBLIC");
-                    pZoneInfo->setZoneOwnerID("");
-                    pZoneInfo->setPayPlay("");
-                    if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER )
-                    {
-                        pZoneInfo->setSMPFilename("team_hdqrs.smp");
-                        pZoneInfo->setSSIFilename("team_hdqrs.ssi");
-                        string Name = "team - " + pGuild->getName();
-                        pZoneInfo->setFullName(Name);
-                        pZoneInfo->setShortName(Name);
-                    }
-                    else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE )
-                    {
-                        pZoneInfo->setSMPFilename("clan_hdqrs.smp");
-                        pZoneInfo->setSSIFilename("clan_hdqrs.ssi");
-                        string Name = "clan - " + pGuild->getName();
-                        pZoneInfo->setFullName(Name);
-                        pZoneInfo->setShortName(Name);
-                    }
-
-                    g_pZoneInfoManager->addZoneInfo(pZoneInfo);
-
-                    /////////
-                    // Zone
-                    /////////
-                    Zone* pZone = new Zone(pGuild->getZoneID());
-                    Assert(pZone != NULL);
-
-                    ZoneGroup* pZoneGroup = g_pZoneGroupManager->getZoneGroup(2);
-                    Assert(pZoneGroup != NULL);
-
-                    pZone->setZoneGroup(pZoneGroup);
-                    pZoneGroup->addZone(pZone);
-                    pZone->init();
-                }
-        */
 
         // Change it into a regular guild
         pGuild->setState(Guild::GUILD_STATE_ACTIVE);

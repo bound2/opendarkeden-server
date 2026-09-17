@@ -79,16 +79,12 @@ void CGAcceptUnionHandler::execute(CGAcceptUnion* pPacket, Player* pPlayer)
 
     ////////////////////
     if (result == GuildUnionOfferManager::OK) {
-        // cout << "pPacket->getGuildID() : " << endl;
-
         Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
 
         if (pGuild == NULL) {
             return;
         }
         string TargetGuildMaster = pGuild->getMaster();
-
-        // cout << "The join was accepted. The user to notify is: " << TargetGuildMaster.c_str() << endl;
 
 
         defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED, TargetGuildMaster, g_pStringPool->c_str(373));

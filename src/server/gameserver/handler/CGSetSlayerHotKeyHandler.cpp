@@ -22,24 +22,6 @@ void CGSetSlayerHotKeyHandler::execute(CGSetSlayerHotKey* pPacket, Player* pPlay
 
 #ifdef __GAME_SERVER__
 
-    /*	Assert(pPacket != NULL);
-        Assert(pPlayer != NULL);
-
-        GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
-
-    //	if (pGamePlayer->getPlayerStatus() == GPS_NORMAL) {
-
-            // In this state the creature must have loaded correctly, so it must not be NULL.
-            // PLAYER_INGAME itself means the creature loading succeeded.
-            Creature* pCreature = pGamePlayer->getCreature();
-            Assert(pCreature != NULL);
-            if (pCreature->isSlayer()) {
-                Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-                for(int i = 0; i < 4; i++) {
-                    pSlayer->setHotKey(i, pPacket->getHotKey(i));
-                }
-            }
-    //	}*/
 
 #endif
 

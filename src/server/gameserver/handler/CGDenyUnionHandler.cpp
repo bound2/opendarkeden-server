@@ -84,9 +84,6 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
         string TargetGuildMaster = pGuild->getMaster();
 
 
-        // cout << "The join was refused. The user to notify is: " << TargetGuildMaster.c_str() << endl;
-
-
         GuildRepository& guilds = defaultGuildRepository();
 
         defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, TargetGuildMaster,
@@ -94,7 +91,6 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
 
         // What if I am the only one left after refusing?
         if (guilds.countUnionMembersSpelled(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
-            // cout << "The join was refused.. I must not stay union master.. so it is deleted" << endl;
             guilds.deleteUnionInfoOnly(UNION_SQL_QUOTED, pUnion->getUnionID());
 
             GuildUnionManager::Instance().reload();

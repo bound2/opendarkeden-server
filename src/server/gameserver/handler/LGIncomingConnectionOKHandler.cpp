@@ -35,14 +35,11 @@ void LGIncomingConnectionOKHandler::execute(LGIncomingConnectionOK* pPacket) {
 #ifdef __GAME_SERVER__
 
         try {
-
         // Reach the player object by player id.
-        //		__ENTER_CRITICAL_SECTION((*g_pIncomingPlayerManager))
         GamePlayer* pGamePlayer = NULL;
 
         try {
             pGamePlayer = g_pIncomingPlayerManager->getPlayer(pPacket->getPlayerID());
-
         } catch (NoSuchElementException) {
             pGamePlayer = g_pIncomingPlayerManager->getReadyPlayer(pPacket->getPlayerID());
         }
@@ -57,19 +54,6 @@ void LGIncomingConnectionOKHandler::execute(LGIncomingConnectionOK* pPacket) {
             FILELOG_INCOMING_CONNECTION("incomingDisconnect.log", "OK FD : %d, %s", fd,
                                         (pSocket == NULL ? "NULL" : pSocket->getHost().c_str()));
 
-            /*
-            // Tell the client to reconnect to the game server.
-            GCReconnectLogin gcReconnectLogin;
-            gcReconnectLogin.setLoginServerIP(pPacket->getHost());
-            gcReconnectLogin.setLoginServerPort(pPacket->getTCPPort());
-            gcReconnectLogin.setKey(pPacket->getKey());
-
-            // Send the LCReconnectLogin packet.
-            pGamePlayer->sendPacket(&gcReconnectLogin);
-
-            cout << "LGIncomingConnectionOKHandler Send Packet to Client Required Reconnect ServerIP : " <<
-            pPacket->getHost() << endl;
-            */
 
             // Originally the packet was simply sent at this moment..
             // but the disconnect did not go through properly because of timing while the client was
@@ -84,16 +68,10 @@ void LGIncomingConnectionOKHandler::execute(LGIncomingConnectionOK* pPacket) {
             if (pGamePlayer != NULL) {
                 pGamePlayer->setReconnectPacket(gcReconnectLogin);
             }
-
-            // cout << "LGIncomingConnectionOKHandler Store Packet : " << gcReconnectLogin->toString().c_str() << endl;
-            // cout << "LGIncomingConnectionOKHandler Store Packet" << endl;
         } else {
             FILELOG_INCOMING_CONNECTION("incomingDisconnect.log", "Invalid FD : %d, %s, ps=%d", fd,
                                         (pSocket == NULL ? "NULL" : pSocket->getHost().c_str()),
                                         (int)pGamePlayer->getPlayerStatus());
-
-            // cout << "Invalid Player Status(" << (int)pGamePlayer->getPlayerStatus() << ") must be
-            // AFTER_SENDING_LG_INCOMING_CONNECTION" << endl;
         }
 
 
@@ -102,19 +80,7 @@ void LGIncomingConnectionOKHandler::execute(LGIncomingConnectionOK* pPacket) {
         // the next turn's IncomingPlayer->processCommands() cuts it off.
         pGamePlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
         pGamePlayer->setItemRatioBonusPoint(3);
-
-        // Close the connection.
-        // pGamePlayer->disconnect(UNDISCONNECTED);
-
-        // Delete it from the LPM.
-        // g_pIncomingPlayerManager->deletePlayer_NOBLOCKED(pGamePlayer->getSocket()->getSOCKET());
-
-        // Delete the GamePlayer object.
-        // SAFE_DELETE(pGamePlayer);
-
-        //__LEAVE_CRITICAL_SECTION((*g_pIncomingPlayerManager))
     } catch (NoSuchElementException& nsee) {
-        // cout << "Player not exist or already disconnected" << endl;
     }
 
 #endif

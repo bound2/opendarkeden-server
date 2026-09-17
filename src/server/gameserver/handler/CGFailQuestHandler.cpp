@@ -42,10 +42,7 @@ void CGFailQuestHandler::execute(CGFailQuest* pPacket, Player* pPlayer)
 
     if (code == CANCEL_SUCCESS) {
         pPC->sendCurrentQuestInfo();
-
-        // cout << "Quest cancelled " << pPC->getName() << " " << pPacket->getQuestID() << endl;
     } else {
-        // cout << "Quest cancel failed " << pPC->getName() << " " << (int)code << endl;
     }
 
 #endif // __GAME_SERVER__

@@ -42,7 +42,6 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
 
 #ifdef __GAME_SERVER__
 
-        // cout << "SGModifyGuildMember received" << endl;
 
         Assert(pPacket != NULL);
 
@@ -124,8 +123,6 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
 
-            //			StringStream msg;
-            //			msg << pGuildMember->getName() << "'s guild join was approved.";
 
             char msg[100];
             if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)
@@ -199,9 +196,6 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
 
-            //			StringStream msg;
-            //			msg << pGuild->getName() << "'s master was changed from " << sMaster << " to "
-            //				<< pGuildMember->getName() << ".";
 
             char msg[200];
             sprintf(msg, g_pStringPool->c_str(STRID_MODIFY_GUILD_MASTER), pGuild->getName().c_str(), sMaster.c_str(),
@@ -244,8 +238,6 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
 
-            //			StringStream msg;
-            //			msg << pGuildMember->getName() << "'s guild rights were changed.";
 
             char msg[100];
             if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)

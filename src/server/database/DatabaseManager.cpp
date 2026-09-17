@@ -83,13 +83,6 @@ void DatabaseManager::init() {
         m_pUserInfoConnection = new Connection(uihost, uidb, uiuser, uipassword, uiport);
         Assert(m_pUserInfoConnection != NULL);
 
-        // string disthost     = g_pConfig->getProperty("DIST_DB_HOST");
-        ////string distdb       = g_pConfig->getProperty("DIST_DB_DB");
-        // string distuser     = g_pConfig->getProperty("DIST_DB_USER");
-        // string distpassword = g_pConfig->getProperty("DIST_DB_PASSWORD");
-
-        // m_pDistConnection = new Connection(disthost, distdb, distuser, distpassword);
-        // Assert(m_pDistConnection!=NULL);
 
         Statement* pStmt = NULL;
         pStmt = m_pDefaultConnection->createStatement();
@@ -154,34 +147,8 @@ void DatabaseManager::init() {
 #endif
         }
 
-        /*
-        #ifdef __LOGIN_SERVER__
-            pResult = pStmt->executeQuery(
-            "SELECT ID, Host, DB, User, Password FROM PCRoomDBInfo");
-
-            if ( pResult->next() ) {
-                WorldID_t ID = pResult->getInt(1);
-                string phost = pResult->getString(2);
-                string pdb = pResult->getString(3);
-                string puser = pResult->getString(4);
-                string ppassword = pResult->getString(5);
-
-                cout << "Connectiong: "
-                    << "ID=" << (int)ID
-                    << ", HOST=" << phost.c_str()
-                    << ", DB=" << pdb.c_str()
-                    << ", User=" << puser.c_str() << endl;
-
-                m_pPCRoomConnection = new Connection(phost, pdb, puser, ppassword);
-            }
-
-            Assert(m_pPCRoomConnection!=NULL);
-
-        #endif
-        */
 
         SAFE_DELETE(pStmt);
-
     } catch (SQLConnectException& sce) {
         throw Error(sce.toString());
     }
@@ -238,36 +205,6 @@ void DatabaseManager::addDistConnection(int TID, Connection* pConnection) {
     __END_CATCH
 }
 
-/*
-////////////////////////////////////////////////////////////////////////////////
-// Connection section for PC rooms
-////////////////////////////////////////////////////////////////////////////////
-void DatabaseManager::addPCRoomConnection ( int TID,  Connection * pConnection )
-
-{
-    __BEGIN_TRY
-
-    cout << "Adding TID connection BEGIN" << endl;
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    unordered_map< int , Connection * >::iterator itr = m_PCRoomConnections.find( TID );
-
-    if ( itr != m_Connections.end() )
-    {
-        cout << "duplicated connection info id" << endl;
-        throw DuplicatedException("duplicated connection info id");
-    }
-
-    m_PCRoomConnections[ TID ] = pConnection;
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    cout << "Adding TID connection END" << endl;
-
-    __END_CATCH
-}
-*/
 
 Connection* DatabaseManager::getDistConnection(const string& connName)
 
@@ -279,7 +216,6 @@ Connection* DatabaseManager::getDistConnection(const string& connName)
     unordered_map<int, Connection*>::iterator itr = m_DistConnections.find((int)(long)Thread::self());
 
     if (itr == m_DistConnections.end()) {
-        // pTempConnection = m_pDistConnection;
 #ifdef __LOGIN_SERVER__
         pTempConnection = m_pDefaultConnection;
 #else
@@ -304,91 +240,19 @@ Connection* DatabaseManager::getConnection(const string& connName)
 
     unordered_map<int, Connection*>::iterator itr;
 
-    // Route to a different DB Server depending on connName.
-    // if(connName == "DIST_DARKEDEN")
-    //{
-    //	itr = m_DistConnections.find(Thread::self());
 
-    //	if(itr == m_DistConnections.end())
-    //		pTempConnection = m_pDistConnection;
-    //	else
-    //		pTempConnection = itr->second;
-    //}
-    // else
-    //{
     itr = m_Connections.find((int)(long)Thread::self());
 
     if (itr == m_Connections.end())
         pTempConnection = m_pDefaultConnection;
     else
         pTempConnection = itr->second;
-    //}
 
-    // Assert(pTempConnection!=NULL);
     return pTempConnection;
 
     __END_CATCH
 }
 
-/*
-////////////////////////////////////////////////////////////////////////////
-// Getting the Connection for PC room integration
-////////////////////////////////////////////////////////////////////////////
-Connection * DatabaseManager::getPCRoomConnection ( const string& connName )
-
-{
-    __BEGIN_TRY
-
-    Connection * pTempConnection = NULL;
-
-    unordered_map<int, Connection*>::iterator itr;
-
-    itr = m_PCRoomConnections.find(Thread::self());
-
-    #ifdef __LOGIN_SERVER__
-
-        return m_pPCRoomConnection;
-
-    #else
-
-        Assert( itr != m_PCRoomConnections.end() );
-
-        pTempConnection = itr->second;
-
-        return pTempConnection;
-
-    #endif
-
-    __END_CATCH
-}
-*/
-/*
-void DatabaseManager::addConnection ( WorldID_t WorldID,  Connection * pConnection )
-
-{
-    __BEGIN_TRY
-
-    cout << "Adding World connection BEGIN" << endl;
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    unordered_map< WorldID_t , Connection * >::iterator itr = m_WorldConnections.find( WorldID );
-
-    if ( itr != m_WorldConnections.end() )
-    {
-        cout << "duplicated connection info id" << endl;
-        throw DuplicatedException("duplicated connection info id");
-    }
-
-    m_WorldConnections[ WorldID ] = pConnection;
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    cout << "Adding World connection END" << endl;
-
-    __END_CATCH
-}
-*/
 
 Connection* DatabaseManager::getConnection(int TID)
 

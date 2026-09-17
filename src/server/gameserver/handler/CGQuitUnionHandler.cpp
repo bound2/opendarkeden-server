@@ -71,12 +71,9 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
         gcGuildResponse.setCode(GuildUnionOfferManager::SOURCE_IS_NOT_MASTER);
         pPlayer->sendPacket(&gcGuildResponse);
 
-        // cout << " out 2 " << endl;
         return;
     }
 
-    // cout << "CGQuitUnion - Guild : " << pPacket->getGuildID() << ", Method : " << (int)pPacket->getQuitMethod() <<
-    // endl;
 
     // Apply normally
     if (pPacket->getQuitMethod() == CGQuitUnion::QUIT_NORMAL) {
@@ -84,7 +81,6 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
 
         gcGuildResponse.setCode(result);
         pPlayer->sendPacket(&gcGuildResponse);
-        // cout << "normal send quit result : " << result << endl;
     }
     // Withdraw by force
     else if (pPacket->getQuitMethod() == CGQuitUnion::QUIT_QUICK) {
@@ -108,8 +104,6 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
 
             // See whether the union has members.. and if not?
             if (guilds.countUnionMembersSpelled(UNION_SQL_PLAIN, tempUnionID) == 0) {
-                // cout << "Forced withdrawal.. with no member left in the union the union is deleted : unionid " <<
-                // (int)tempUnionID << endl;
                 guilds.deleteUnionInfoOnly(UNION_SQL_PLAIN, tempUnionID);
                 messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(379));
                 GuildUnionManager::Instance().reload();
@@ -150,15 +144,9 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             GuildUnionManager::Instance().sendModifyUnionInfo(
                 dynamic_cast<PlayerCreature*>(pTargetCreature)->getGuildID());
             GuildUnionManager::Instance().sendModifyUnionInfo(dynamic_cast<PlayerCreature*>(pCreature)->getGuildID());
-
-
-            // cout << "quick send quit result : OK" << endl;
-
         } else {
             gcGuildResponse.setCode(GuildUnionOfferManager::NOT_YOUR_UNION);
             pPlayer->sendPacket(&gcGuildResponse);
-
-            // cout << "quick quit failed " << endl;
         }
     }
 

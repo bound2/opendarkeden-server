@@ -30,13 +30,11 @@
 const int DELAY_PAY_TIME_UPDATE = 3600; // 1 hour = 60 minutes
 // const int DELAY_PAY_TIME_UPDATE = 10;	// every 10 seconds - for testing
 const int MINUTE_PAY_TIME_DECREASE = DELAY_PAY_TIME_UPDATE / 60;
-// const int MINUTE_PAY_TIME_DECREASE = 60;
 
 //---------------------------------------------------------------------------
 // For period billing: when we say "usable until HH:MM",
 // we allow a small grace window.
 //---------------------------------------------------------------------------
-// const int PLUS_DEADLINE_MIN 	= 10;
 const int PLUS_DEADLINE_SECOND = 59;
 
 //---------------------------------------------------------------------------
@@ -87,7 +85,6 @@ void PaySystem::setPayPlayAvailableDateTime(const string& pat) {
         int day = atoi(pat.substr(8, 2).c_str());
         int hour = atoi(pat.substr(11, 2).c_str());
         int min = atoi(pat.substr(14, 2).c_str());
-        // int sec   = atoi( pat.substr(10,2).c_str() );
 
         // Set the latest playable datetime.
         m_PayPlayAvailableDateTime.setDate(VSDate(year, month, day));
@@ -115,7 +112,6 @@ void PaySystem::setFamilyPayPlayAvailableDateTime(const string& pat) {
         int day = atoi(pat.substr(8, 2).c_str());
         int hour = atoi(pat.substr(11, 2).c_str());
         int min = atoi(pat.substr(14, 2).c_str());
-        // int sec   = atoi( pat.substr(10,2).c_str() );
 
         // Set the latest playable datetime for family billing.
         m_FamilyPayPlayAvailableDateTime.setDate(VSDate(year, month, day));
@@ -144,7 +140,6 @@ void PaySystem::setPayStartAvailableDateTime(const string& pat) {
         int day = atoi(pat.substr(8, 2).c_str());
         int hour = atoi(pat.substr(11, 2).c_str());
         int min = atoi(pat.substr(14, 2).c_str());
-        // int sec   = atoi( pat.substr(10,2).c_str() );
 
         // Set the earliest playable datetime for PC rooms.
         m_PayStartAvailableDateTime.setDate(VSDate(year, month, day));
@@ -176,8 +171,6 @@ bool PaySystem::checkPayPlayAvailable() {
         bool bAvailable = (m_PayPlayType != PAY_PLAY_TYPE_PCROOM || currentDateTime >= m_PayStartAvailableDateTime) &&
                           currentDateTime <= m_PayPlayAvailableDateTime;
 
-        // cout << "checkPayPlay: " << currentDateTime.toString() << " <= " << m_PayPlayAvailableDateTime.toString() <<
-        // endl;
 
         // Period billing
         if (bAvailable) {
@@ -201,23 +194,6 @@ bool PaySystem::checkPayPlayAvailable() {
             return false;
     }
 
-    /*
-    switch (m_PayType)
-    {
-        case PAY_TYPE_PERIOD :
-        {
-            VSDateTime currentDateTime(VSDate::currentDate(), VSTime::currentTime());
-            return currentDateTime <= m_PayPlayAvailableDateTime;
-        }
-
-        case PAY_TYPE_TIME :
-        {
-            return m_PayPlayAvailableHours > 0;
-        }
-
-        default : break;
-    }
-    */
 
     return true;
 }
@@ -253,9 +229,6 @@ bool PaySystem::updatePayPlayTime(const string& playerID, const VSDateTime& curr
         if (currentTime.tv_sec >= m_PayPlayStartTime.tv_sec + DELAY_PAY_TIME_UPDATE) {
             m_PayPlayStartTime.tv_sec = currentTime.tv_sec;
 
-            // cout << "[PAY_TYPE_PERIOD] " << endl;
-            // cout << "CurrentDateTime = " << currentDateTime.toString().c_str() << endl;
-            // cout << "PayPlayAvaiable = " << m_PayPlayAvailableDateTime.toString().c_str() << endl << endl;
 
             // If expired, cut off.
             if (currentDateTime > m_PayPlayAvailableDateTime) {
@@ -450,19 +423,6 @@ bool PaySystem::loginPayPlay(PayType payType, const string& payPlayDate, int pay
 
     m_PayPlayStartTime.tv_sec = 0;
 
-    /*
-    cout << "[PaySystem::loginPayPlay] "
-        << "PlayerID = " << playerID.c_str() << ", "
-        << "PayType = " << (int)payType << endl
-        << "payPlayDate = " << payPlayDate.c_str() << endl
-        << "payPlayHours = " << (int)payPlayHours << endl
-        << "payPlayFlag = " << (int)payPlayFlag << endl;
-    */
-
-    //	if ( g_pConfig->getPropertyInt( "IsNetMarble" ) )
-    //	{
-    //		payType = PAY_TYPE_FREE;
-    //	}
 
     // Billing (sigi, 2002-05-31): FREE, PERIOD, TIME, PART
     setPayType(payType);
@@ -564,19 +524,6 @@ bool PaySystem::loginPayPlay(const string& ip, const string& playerID) {
         setFamilyPayPlayAvailableDateTime(account.familyPayPlayDate);
     }
 
-    /*
-    cout << "[PaySystem::loginPayPlay] "
-        << "PlayerID = " << playerID.c_str() << ", "
-        << "PayType = " << (int)m_PayType << endl
-        << "payPlayDate = " << m_PayPlayAvailableDateTime.toString() << endl
-        << "payPlayHours = " << (int)m_PayPlayAvailableHours << endl
-        << "payPlayFlag = " << (int)m_PayPlayFlag << endl;
-    */
-
-    //	if ( g_pConfig->getPropertyInt( "IsNetMarble" ) )
-    //	{
-    //		setPayType( PAY_TYPE_FREE );
-    //	}
 
     // Billing (sigi, 2002-05-31): FREE, PERIOD, TIME, PART
 
@@ -605,8 +552,6 @@ bool PaySystem::loginPayPlay(const string& ip, const string& playerID) {
 
                 // Personal billing check
                 if (!checkPayPlayAvailable()) {
-                    // cout << "No PayPlay" << endl;
-
                     return false;
                 }
             } else {
@@ -629,8 +574,6 @@ bool PaySystem::loginPayPlay(const string& ip, const string& playerID) {
 
     m_bPremiumPlay = true;
 
-    // cout << "PayPlay Available : " << m_PayPlayAvailableDateTime.toString() << ", " << (int)m_PayPlayAvailableHours
-    // << endl;
 
     return true;
 }
@@ -644,8 +587,6 @@ void PaySystem::logoutPayPlay(const string& playerID, bool bClear, bool bDecreas
 
     // When kicked for time-out, m_PayPlayStartTime.tv_sec is set to 0.
 
-    // if (m_PayPlayStartTime.tv_sec == 0)
-    //	return;
 
     if (m_PayPlayType == PAY_PLAY_TYPE_PCROOM) {
         logoutPayPlayPCRoom(playerID);
@@ -655,7 +596,6 @@ void PaySystem::logoutPayPlay(const string& playerID, bool bClear, bool bDecreas
 
         if (bDecreaseTime && m_PayType == PAY_TYPE_TIME) {
             int usedMin = (currentTime.tv_sec - m_PayPlayStartTime.tv_sec) / 60;
-            // usedMin = max(1, usedMin);
 
             if (usedMin > 0) {
                 decreasePayPlayTimePCRoom(usedMin);
@@ -676,7 +616,6 @@ void PaySystem::logoutPayPlay(const string& playerID, bool bClear, bool bDecreas
             getCurrentTime(currentTime);
 
             int usedMin = (currentTime.tv_sec - m_PayPlayStartTime.tv_sec) / 60;
-            // usedMin = max(1, usedMin);
 
             if (usedMin > 0) {
                 decreasePayPlayTime(playerID, usedMin);

@@ -75,9 +75,6 @@ void CGStashToMouseHandler::execute(CGStashToMouse* pPacket, Player* pPlayer)
     // Remove the item from the stash, hang it on the mouse, then save to the DB.
     pStash->remove(rack, index);
     pPC->addItemToExtraInventorySlot(pStashItem);
-    //	pStashItem->whenPCTake(pPC);
-    // pStashItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-    // Item save optimization.
     char pField[80];
     sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
     pStashItem->tinysave(pField);

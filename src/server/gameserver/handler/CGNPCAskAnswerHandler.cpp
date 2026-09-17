@@ -46,18 +46,6 @@ void CGNPCAskAnswerHandler::execute(CGNPCAskAnswer* pPacket, Player* pPlayer)
     if (pZone == NULL)
         return;
 
-    /*
-    try
-    {
-        pCreature = pZone->getCreature(pPacket->getObjectID());
-    }
-    catch (NoSuchElementException)
-    {
-        //cout << "No NPC here" << endl;
-        pCreature = NULL;
-    }
-    */
-    // cout << pPacket->toString().c_str() << endl;
 
     // NoSuch removed.
     pCreature = pZone->getCreature(pPacket->getObjectID());
@@ -66,7 +54,6 @@ void CGNPCAskAnswerHandler::execute(CGNPCAskAnswer* pPacket, Player* pPlayer)
         GCNPCResponse okpkt;
         pPlayer->sendPacket(&okpkt);
 
-        // cout << okpkt.toString().c_str() << endl;
 
         return;
     }
@@ -86,7 +73,6 @@ void CGNPCAskAnswerHandler::execute(CGNPCAskAnswer* pPacket, Player* pPlayer)
         for (list<Trigger*>::const_iterator itr = triggers.begin(); itr != triggers.end(); itr++) {
             Trigger* pTrigger = *itr;
             if (pTrigger == NULL) {
-                // cout << "*** shit trigger is NULL ***";
                 return;
             }
 

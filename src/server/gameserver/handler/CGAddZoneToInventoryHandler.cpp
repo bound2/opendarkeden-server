@@ -149,14 +149,6 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
             }
         }
 
-        /*
-        #ifdef __XMAS_EVENT_CODE__
-                // If the inventory already contains the gift box, do not allow another.
-                if (pItem->getItemClass() == Item::ITEM_CLASS_EVENT_GIFT_BOX &&
-                    pItem->getItemType() == 0 &&
-                    pInventory->hasGreenGiftBox()) goto ERROR;
-        #endif
-        */
 
         // Stacking logic: if an existing item can absorb this one, move it.
         // Otherwise drop the original and regenerate a new item on the ground.
@@ -165,7 +157,6 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
         // Prefer stacking with an existing item when possible; otherwise create
         // a new inventory slot entry.
         Item::ItemClass itemclass = pItem->getItemClass();
-        // ItemType_t itemtype = pItem->getItemType();
 
         TPOINT pt;
         pt.x = 99;
@@ -177,7 +168,6 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
             if (canStack(pItem, pPrevItem)) {
                 // add by sonic 2006.10.30  Prevent stacking time-limited items together
                 if (pItem->isTimeLimitItem() || pPrevItem->isTimeLimitItem()) {
-                    // cout << "cannot add" << endl;
                     GCCannotAdd _GCCannotAdd;
                     _GCCannotAdd.setObjectID(pPacket->getObjectID());
                     pPlayer->sendPacket(&_GCCannotAdd);
@@ -193,33 +183,24 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
                         // If stacking would exceed the cap, fill the existing stack and
                         // leave the remainder in the temp slot. TODO: find a better
                         // target slot instead of splitting here.
-                        // pInventory->increaseNum(pItem->getNum());
-                        // pInventory->increaseWeight(pItem->getWeight()* pItem->getNum());
 
                         pPrevItem->setNum(MaxStack);
                         pItem->setNum(AddNum + CurrentNum - MaxStack);
 
-                        // pPrevItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-                        //  Use tinysave for a lightweight update.
                         char pField[80];
                         sprintf(pField, "OwnerID='%s', Num=%d, Storage=%d, X=%d, Y=%d", pPC->getName().c_str(),
                                 MaxStack, STORAGE_INVENTORY, InvenX, InvenY);
                         pPrevItem->tinysave(pField);
 
-                        // pItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                        //  Use tinysave for a lightweight update.
                         sprintf(pField, "OwnerID='%s', Num=%d, Storage=%d", pPC->getName().c_str(), pItem->getNum(),
                                 STORAGE_EXTRASLOT);
                         pItem->tinysave(pField);
-
                     } else {
                         pPrevItem->setNum(pPrevItem->getNum() + pItem->getNum());
 
                         pInventory->increaseNum(pItem->getNum());
                         pInventory->increaseWeight(pItem->getWeight() * pItem->getNum());
 
-                        // pPrevItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-                        //  Use tinysave for a lightweight update.
                         char pField[80];
                         sprintf(pField, "OwnerID='%s', Num=%d, Storage=%d, X=%d, Y=%d", pPC->getName().c_str(),
                                 pPrevItem->getNum(), STORAGE_INVENTORY, InvenX, InvenY);
@@ -270,8 +251,6 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
             }
         } else {
             pInventory->addItem(InvenX, InvenY, pItem);
-            // pItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-            //  Use tinysave for a lightweight update.
             char pField[80];
             sprintf(pField, "OwnerID='%s', Storage=%d, X=%d, Y=%d", pPC->getName().c_str(), STORAGE_INVENTORY, InvenX,
                     InvenY);
@@ -325,8 +304,6 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
             pPlayer->sendPacket(&_GCDeleteandPickUpOK);
             // Notify nearby players that the ground item vanished.
             _GCDeleteObject.setObjectID(pItem->getObjectID());
-            //			pZone->broadcastPacket(pPC->getX(), pPC->getY(), &_GCDeleteObject , pPC);
-            //			pZone->broadcastPacket(ZoneX , ZoneY, &_GCDeleteObject , pPC);
             pZone->broadcastPacket(ZoneX, ZoneY, &_GCDeleteObject);
 
             log(LOG_PICKUP_ITEM, pPC->getName(), "", pItem->toString());
@@ -351,8 +328,6 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
 
                 pPC->setFlag(pEffect->getEffectClass());
                 pPC->addEffect(pEffect);
-                //	addSimpleCreatureEffect( pPC, (Effect::EffectClass)(Effect::EFFECT_CLASS_HAS_SWEEPER +
-                // pItem->getItemType()) );
 
                 GCAddEffect gcAddEffect;
                 gcAddEffect.setObjectID(pPC->getObjectID());
@@ -392,33 +367,6 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
                 pPC->initAllStatAndSend();
             }
 
-            /*			else if (itemclass == Item::ITEM_CLASS_EVENT_TREE)
-                        {
-                        // If this is a small event tree piece
-                            if ( itemtype <= 11 )
-                            {
-                                TPOINT pt = checkEventTree( pPC, InvenX, InvenY );
-                            // If a large event tree can be completed, assemble it.
-                                if ( pt.x != -1 && pt.y != -1 )
-                                {
-                                // Remove the small tree pieces that were combined.
-                                    deleteInventoryItem( pInventory, pt.x, pt.y, pt.x + 2, pt.y + 3 );
-                                    pItem = NULL;	// consumed
-
-                                // Create the completed tree.
-                                    list<OptionType_t> optionType;
-                                    Item* pTreeItem = g_pItemFactoryManager->createItem( Item::ITEM_CLASS_EVENT_TREE,
-               12, optionType ); pZone->getObjectRegistry().registerObject( pTreeItem ); pInventory->addItem( pt.x,
-               pt.y, pTreeItem ); pTreeItem->create( pPC->getName(), STORAGE_INVENTORY, 0, pt.x, pt.y );
-
-                                // Inform the client that the completed tree has appeared.
-                                    GCCreateItem gcCreateItem;
-                                    makeGCCreateItem( &gcCreateItem, pTreeItem, pt.x, pt.y );
-                                    pGamePlayer->sendPacket(&gcCreateItem);
-                                }
-                            }
-                        }
-            */
             if (Merge) {
                 // Delete the redundant item instance when stacking merged it.
                 SAFE_DELETE(pItem);
@@ -433,7 +381,6 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
             remainTraceLog(pItem, zoneName, pCreature->getName(), ITEM_LOG_MOVE, DETAIL_PICKUP);
         }
     } catch (Throwable& t) {
-        // cerr << t.toString() << endl;
     }
 
 ERROR:

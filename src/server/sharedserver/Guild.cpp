@@ -29,7 +29,6 @@
 
 GuildMember::GuildMember() noexcept {
     m_bLogOn = false;
-    //	m_ServerID = 255;
 }
 
 void GuildMember::create() noexcept(false) {
@@ -387,9 +386,6 @@ void Guild::tinysave(const char* field) const noexcept(false) {
 
 void Guild::saveCount() const noexcept(false){__BEGIN_TRY
 
-                                                  //	char buffer[200];
-                                                  //	sprintf(buffer, "MemberCount=%u", m_ActiveMemberCount);
-                                                  //	tinysave(buffer);
 
                                                   __END_CATCH}
 #endif
@@ -406,8 +402,6 @@ GuildMember* Guild::getMember(const string& name) const noexcept(false) {
     itr = m_Members.find(name);
 
     if (itr == m_Members.end()) {
-        // cout << "Guild::getMember() : NoSuchMember" << endl;
-
         return NULL;
     }
 
@@ -430,8 +424,6 @@ GuildMember* Guild::getMember_NOLOCKED(const string& name) const noexcept(false)
     itr = m_Members.find(name);
 
     if (itr == m_Members.end()) {
-        // cerr << "Guild::getMember() : NoSuchMember" << endl;
-
         return NULL;
     }
 
@@ -711,7 +703,6 @@ void Guild::makeMemberInfo(GCGuildMemberList& gcGuildMemberList) noexcept(false)
         pGuildMemberInfo->setName(pGuildMember->getName());
         pGuildMemberInfo->setRank(pGuildMember->getRank());
         pGuildMemberInfo->setLogOn(pGuildMember->getLogOn());
-        //		pGuildMemberInfo->setServerID( pGuildMember->getServerID() );
 
         gcGuildMemberList.addGuildMemberInfo(pGuildMemberInfo);
     }

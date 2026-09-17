@@ -134,7 +134,6 @@ void War::sendWarStartMessage() const
 
     GCSystemMessage gcSystemMessage;
     char str[80];
-    // sprintf(str, "%s has started.", getWarName().c_str());
     sprintf(str, g_pStringPool->c_str(STRID_WAR_START), getWarName().c_str());
 
     gcSystemMessage.setMessage(str);
@@ -155,7 +154,6 @@ void War::sendWarEndMessage() const
 
     GCSystemMessage gcSystemMessage;
     char str[80];
-    //	sprintf(str, "%s has ended.", getWarName().c_str());
     sprintf(str, g_pStringPool->c_str(STRID_WAR_END), getWarName().c_str());
 
     gcSystemMessage.setMessage(str);

@@ -43,13 +43,6 @@ Result::~Result() {
         // some nasty debugging issues.
         // [Note: man malloc has some interesting information to track
         // the problem like system varibles such as MALLOC_CHCK_]
-        /*
-        if (m_RowCount > 0)
-        {
-            mysql_free_result(m_pResult);
-            m_pResult = NULL;
-        }
-        */
 
         mysql_free_result(m_pResult);
         m_pResult = NULL;
@@ -116,8 +109,6 @@ const char* Result::getString(uint index) {
 
     return pField;
 
-    // if (getField(index) == NULL) return "";
-    // return getField(index);
 
     __END_CATCH
 }

@@ -53,7 +53,6 @@ void CGReloadFromInventoryHandler::execute(CGReloadFromInventory* pPacket, Playe
                 y = pPacket->getY();
                 pItem = pInventory->getItem(x, y);
 
-                // Assert(pItem != NULL);
                 if (pItem == NULL) {
                     GCCannotUse _GCCannotUse;
                     _GCCannotUse.setObjectID(pPacket->getObjectID());
@@ -103,9 +102,7 @@ void CGReloadFromInventoryHandler::execute(CGReloadFromInventory* pPacket, Playe
             _GCCannotUse.setObjectID(pPacket->getObjectID());
             pPlayer->sendPacket(&_GCCannotUse);
         }
-
     } catch (Throwable& t) {
-        // cout << t.toString();
     }
 
 #endif // __GAME_SERVER__

@@ -23,7 +23,6 @@ void SimpleQuestRewardManager::load(const string& name) {
 
         if (m_RewardClasses[rClass] == NULL) {
             m_RewardClasses[rClass] = new RandomRewardClass(rClass);
-            // cout << "NPC : " << name << ", RewardClass : " << (uint)rClass << endl;
         }
 
         ItemRewardInfo* pItemRI = new ItemRewardInfo(rID, rClass, iClass, iType, option, time);
@@ -42,7 +41,6 @@ void SimpleQuestRewardManager::load(const string& name) {
 
         if (m_RewardClasses[rClass] == NULL) {
             m_RewardClasses[rClass] = new SlayerWeaponRewardClass(rClass);
-            // cout << "NPC : " << name << ", RewardClass : " << (uint)rClass << endl;
         }
 
         ItemRewardInfo* pItemRI = new ItemRewardInfo(rID, rClass, iClass, iType, option, time);

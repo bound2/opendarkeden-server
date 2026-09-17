@@ -78,8 +78,6 @@ void CGQuitUnionDenyHandler::execute(CGQuitUnionDeny* pPacket, Player* pPlayer)
     }
     string TargetGuildMaster = pGuild->getMaster();
 
-    // cout << "The withdrawal was refused. The user to notify is: " << TargetGuildMaster.c_str() << endl;
-
 
     defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(376));
 

@@ -25,7 +25,6 @@
 
 #ifdef __LOGIN_SERVER__
 namespace {
-
 // ReconnectSession over the LoginPlayer the reconnect is running for.
 class ReconnectPlayerSession : public ReconnectSession {
 public:
@@ -55,7 +54,6 @@ public:
 private:
     LoginPlayer* m_pLoginPlayer;
 };
-
 } // namespace
 #endif
 
@@ -82,11 +80,9 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
-    // cout << "CLReconnectLogin : STARTING HANDLING PROCESS" << endl;
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
     pLoginPlayer->setWorldID(pPacket->isWebLogin());
-    // pLoginPlayer->setWebLogin(g_pConfig->getPropertyInt("WebLogin") != 0);
 
     string PlayerID;
 
@@ -117,7 +113,6 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
 
         // Verified, so the ReconnectLoginInfo is spent.
         g_pReconnectLoginInfoManager->deleteReconnectLoginInfo(pReconnectLoginInfo->getClientIP());
-
     } catch (NoSuchElementException& nsee) // no ReconnectLoginInfo for that address
     {
         // A client that takes too long between connecting and sending
@@ -194,7 +189,6 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
         throw DisconnectException("CLReconnectLoginHandler : " + error.message());
     }
 
-    // cout << "CLReconnectLogin : ReconnectLoginInfo verified" << endl;
 
     pLoginPlayer->setServerGroupID(CurrentServerGroupID);
 

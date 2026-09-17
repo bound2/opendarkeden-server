@@ -37,33 +37,13 @@ void CGPortCheckHandler::execute(CGPortCheck* pPacket)
     DWORD IP = inet_addr(host.c_str());
     uint port = pPacket->getPort();
 
-    // cout << "CGPortCheck: [" << IP << "] " << host.c_str() << ":" << port << endl;
 
     try {
         // INSERT IGNORE and, when that changed no row, the UPDATE.
         defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port, g_pConfig->getPropertyInt("ServerID"));
-
-        // log(LOG_CGCONNECT, pPacket->getPCName(), "", host);
-
     } catch (const DatabaseError&) {
         // A SQL failure arrives as END_DB's DatabaseError, already logged
         // to DBError.log; swallowed.
-        /*
-        try {
-            // Try once more
-            // (an older retry that re-ran the UPDATE alone; the UPDATE is
-            // the second half of recordUserIP)
-            defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port,
-                                                   g_pConfig->getPropertyInt("ServerID"));
-
-            //log(LOG_CGCONNECT, pPacket->getPCName(), "", host);
-
-        } catch (const DatabaseError&) {
-
-            // Ignore it.
-            //throw ProtocolException("Duplicated IPInfo");
-        }
-        */
     }
 #else
             cout

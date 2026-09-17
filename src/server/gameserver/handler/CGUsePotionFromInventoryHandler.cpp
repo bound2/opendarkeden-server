@@ -666,7 +666,6 @@ void CGUsePotionFromInventoryHandler::execute(CGUsePotionFromInventory* pPacket,
 
                 regenHP = true;
             }
-            //			decreaseItemNum(pItem, pInventory, pOusters->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
         }
 
         MP_t MaxMP = 0;
@@ -780,7 +779,6 @@ void CGUsePotionFromInventoryHandler::execute(CGUsePotionFromInventory* pPacket,
 
                 regenMP = true;
             }
-            //			decreaseItemNum(pItem, pInventory, pOusters->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
         }
 
         if (regenMP || regenHP) {

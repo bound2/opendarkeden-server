@@ -353,7 +353,6 @@ void CGAddMouseToGearHandler::execute(CGAddMouseToGear* pPacket, Player* pPlayer
             pPlayer->sendPacket(&_GCCannotAdd);
         }
     } catch (Throwable& t) {
-        // cout << t.toString();
     }
 
 #endif // __GAME_SERVER__

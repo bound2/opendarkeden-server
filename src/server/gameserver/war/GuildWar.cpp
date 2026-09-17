@@ -65,13 +65,6 @@ void GuildWar::executeStart()
     Zone* pZone = getZoneByZoneID(guardShrineZoneID);
     Assert(pZone != NULL);
 
-    /*
-    // Delete every NPC.
-    pZone->deleteNPCs( RACE_SLAYER );
-    pZone->deleteNPCs( RACE_VAMPIRE );
-
-    pZone->releaseSafeZone();
-    */
 
     // This part would be better moved into CastleInfo later.
     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
@@ -171,20 +164,6 @@ void GuildWar::executeEnd()
     Zone* pZone = getZoneByZoneID(guardShrineZoneID);
     Assert(pZone != NULL);
 
-    /*
-    CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo( m_CastleZoneID );
-    Assert(pCastleInfo!=NULL);
-
-    __ENTER_CRITICAL_SECTION( (*pZone) )
-
-    pZone->resetSafeZone();
-
-    pZone->loadNPCs( pCastleInfo->getRace() );
-
-    g_pShrineInfoManager->addShrineShield_LOCKED( pZone );
-
-    __LEAVE_CRITICAL_SECTION( (*pZone) )
-    */
 
     de::gameContext().castleShrines().addShrineShield(pZone);
 
@@ -235,7 +214,6 @@ string GuildWar::getWarName() const
 
         if (pGuild == NULL || pZoneInfo == NULL)
             return "길드 전쟁";
-
     } catch (Throwable& t) {
         return "길드 전쟁";
     }

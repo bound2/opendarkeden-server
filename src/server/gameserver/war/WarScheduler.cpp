@@ -98,24 +98,6 @@ Work* WarScheduler::heartbeat()
 
 
     // For a race war the schedule for a week later goes back in.
-    /*
-    if (pWork != NULL)
-    {
-        War* pWar = dynamic_cast<War*>(pWork);
-        Assert(pWar!=NULL);
-
-        if (pWar->getWarType()==WAR_RACE
-            && getWarTypeCount( WAR_RACE )==0)
-        {
-            War* pNewWar = new War( m_pZone->getZoneID(), WAR_RACE, 0, War::WAR_STATE_WAIT );
-
-            addWar( pNewWar );
-
-            filelog("WarLog.txt", "[%d][WarID=%d] the race war started, so the next race war is added.",
-                                (int)m_pZone->getZoneID(), (int)pWar->getWarID());
-        }
-    }
-    */
 
     return pWork;
 
@@ -131,7 +113,6 @@ void WarScheduler::load()
 
     clear();
 
-    // int numRaceWar = 0;
 
     VSDateTime currentDateTime(VSDateTime::currentDateTime());
 
@@ -191,29 +172,11 @@ void WarScheduler::load()
             WarSchedule* pWarSchedule = new WarSchedule(pWar, warStartTime, Schedule::SCHEDULE_TYPE_ONCE);
             addSchedule(pWarSchedule);
 
-            // cout << "WarScheduler: loading [" << pWarSchedule->toString().c_str() << "]" << endl;
             filelog("WarLog.txt", "[LOAD] %s", pWar->toString().c_str());
-
-            // if (warType==WAR_RACE) numRaceWar++;
         }
     }
 
     // If no race war is set, set one.
-    /*
-    if (numRaceWar==0)
-    {
-        VSDateTime warStartTime = getNextWarDateTime( WAR_RACE );
-
-        War* pRaceWar = new War( m_pZone->getZoneID(), WAR_RACE, 0, War::WAR_STATE_WAIT );
-        WarSchedule* pWarSchedule = new WarSchedule( pRaceWar, warStartTime, Schedule::SCHEDULE_TYPE_PERIODIC );
-        addSchedule( pWarSchedule );
-
-        filelog("WarLog.txt", "[%d][WarID=%d] there is no race war, so a race war is added.",
-                                (int)m_pZone->getZoneID(), (int)pRaceWar->getWarID());
-
-        pWarSchedule->create();
-    }
-    */
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -324,7 +287,6 @@ VSDateTime WarScheduler::getNextWarDateTime(WarType_t warType, const VSDateTime&
         nextWarDateTime.setTime(nextWarTime);
 
         if (nextWarDateTime < VSDateTime::currentDateTime()) {
-            // nextWarDateTime = nextWarDateTime.addDays( NextWarDay[warType][dt.addDays(1).date().dayOfWeek()] );
             nextWarDateTime = nextWarDateTime.addDays(1);
             nextWarDateTime = nextWarDateTime.addDays(NextWarDay[warType][nextWarDateTime.date().dayOfWeek()]);
         }

@@ -38,7 +38,6 @@ void CGRequestIPHandler::execute(CGRequestIP* pPacket, Player* pPlayer)
             } else {
                 IP_t IP = ip;
                 uint Port = port;
-                // cout << "Requested IP : " << IP	<< endl;
 
                 GCRequestedIP gcRequestedIP;
                 gcRequestedIP.setIP(IP);
@@ -47,9 +46,7 @@ void CGRequestIPHandler::execute(CGRequestIP* pPacket, Player* pPlayer)
                 pPlayer->sendPacket(&gcRequestedIP);
             }
         }
-    }
-    // catch (NoSuchElementException & nsee)
-    catch (Throwable& t) {
+    } catch (Throwable& t) {
         // When there is no such one..
         GCRequestFailed gcRequestFailed;
         gcRequestFailed.setCode(REQUEST_FAILED_IP);

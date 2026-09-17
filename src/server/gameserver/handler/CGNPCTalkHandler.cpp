@@ -60,17 +60,6 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
 
         Creature* pNPCBase = NULL;
 
-        /*
-        try
-        {
-            pNPCBase = pZone->getCreature(pPacket->getObjectID());
-        }
-        catch (NoSuchElementException)
-        {
-            // Return when there is no such NPC.
-            return;
-        }
-        */
 
         // NoSuch removed.
         pNPCBase = pZone->getCreature(pPacket->getObjectID());
@@ -218,21 +207,6 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
         // For now there are only two clans...
         // .....
         // There is only one clan
-        /*		if (pPC->isVampire() && pNPC->getRace() == NPC_RACE_VAMPIRE)
-                {
-                    if (pPC->getClanType() != pNPC->getClanType())
-                    {
-                        GCNPCResponse gcNPCAskAnswer;
-                        pPlayer->sendPacket(&gcNPCAskAnswer);
-
-                        GCNPCSayDynamic saypkt;
-                        saypkt.setObjectID(pNPC->getObjectID());
-                        saypkt.setMessage(DiffClanSpeech[rand()%3]);
-                        pPlayer->sendPacket(&saypkt);
-                        return;
-                    }
-                }
-        */
         // If there is an action that reacts to the player talking...
         const TriggerManager& triggerManager = pNPC->getTriggerManager();
         if (triggerManager.hasCondition(Condition::CONDITION_TALKED_BY)) {
@@ -259,8 +233,6 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
             pPlayer->sendPacket(&gcNPCResponse);
         }
     } catch (Throwable& t) {
-        // cerr << "Someone is sending an odd NPC object id?" << endl;
-        // cerr << t.toString() << endl;
     }
 
 #endif

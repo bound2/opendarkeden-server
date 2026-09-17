@@ -60,11 +60,9 @@ void RaceWar::executeStart()
 
     sendWarStartMessage();
 
-    // In a race war the bonus is turned off.
-    //	g_pHolyLandRaceBonus->clear();
-
-    // NPCs disappear during a war.
-    // g_pCastleInfoManager->deleteAllNPCs();
+    // Broadcasting the blood bible positions and sending out the players who
+    // are not taking part belong to WarSystem::addWar(): hasActiveRaceWar()
+    // is not set yet while this runs.
 
     // During a war, fighting inside the castle is free
     g_pCastleInfoManager->releaseAllSafeZone();
@@ -72,10 +70,6 @@ void RaceWar::executeStart()
     // Every guardian shrine shield disappears.
     g_pShrineInfoManager->removeAllShrineShield();
 
-    // Broadcast the blood bible positions across Adam's holy land.
-    // This is now called inside WarSystem::addWar.
-    // g_pShrineInfoManager->broadcastBloodBibleStatus();
-    //	g_pHolyLandManager->sendBloodBibleStatus();
 
     // Fix the time across Adam's holy land.
     g_pHolyLandManager->fixTimeband(g_pVariableManager->getVariable(RACE_WAR_TIMEBAND));
@@ -88,10 +82,6 @@ void RaceWar::executeStart()
     // Put the dragon eye items at their initial positions.
     de::gameContext().dragonEyes().addAllDragonEyesToZone();
 
-    // Because of the timing at which hasActiveRaceWar() is set..
-    // it runs in WarSystem::addWar().
-    // Send out everyone not taking part in the race war.
-    // g_pHolyLandManager->remainRaceWarPlayers();
 
     // Record in the RaceWarHistory Table
     recordRaceWarStart();
@@ -163,12 +153,6 @@ void RaceWar::executeEnd()
     //----------------------------------------------------------------------------
     sendWarEndMessage();
 
-    //----------------------------------------------------------------------------
-    // Handling for a race war
-    //----------------------------------------------------------------------------
-    // What about the piled-up war application fee? Ignored
-    // In a race war the bonus that was turned off is turned back on.
-    //	g_pHolyLandRaceBonus->refresh();
 
     //----------------------------------------------------------------------------
     // Give the blood bible fragments back.
@@ -181,10 +165,8 @@ void RaceWar::executeEnd()
 
     g_pCastleInfoManager->transportAllOtherRace();
 
-    // g_pCastleInfoManager->loadAllNPCs();
 
     // Broadcast the blood bible positions across Adam's holy land.
-    // g_pHolyLandManager->sendBloodBibleStatus();
     g_pShrineInfoManager->broadcastBloodBibleStatus();
 
     // Let the time that was fixed across Adam's holy land run again.
@@ -285,8 +267,6 @@ void RaceWar::makeWarScheduleInfo(WarScheduleInfo* pWSI) const
     __BEGIN_TRY
 
     pWSI->warType = getWarType();
-    //    pWSI->challengerGuildID		= 0;
-    //   pWSI->challengerGuildName	= "";
 
     __END_CATCH
 }

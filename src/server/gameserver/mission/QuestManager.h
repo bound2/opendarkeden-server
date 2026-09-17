@@ -71,7 +71,6 @@ public:
 
 public:
     bool killedMonster(Monster* pMonster);
-    //	bool				gotItem( Item* pItem ) ;
     bool metNPC(NPC* pNPC);
     bool isTargetNPC(NPC* pNPC);
     bool submitMiniGameScore(int GameType, uint GameScore);

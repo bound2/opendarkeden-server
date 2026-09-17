@@ -61,7 +61,6 @@ void CGSelectPortalHandler::execute(CGSelectPortal* pPacket, Player* pPlayer)
             }
         }
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
 #endif // __GAME_SERVER__

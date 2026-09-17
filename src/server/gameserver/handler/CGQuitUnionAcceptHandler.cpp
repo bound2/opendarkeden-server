@@ -84,8 +84,6 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
         }
         string TargetGuildMaster = pGuild->getMaster();
 
-        // cout << "The union withdrawal was accepted. The user to notify is: " << TargetGuildMaster.c_str() << endl;
-
 
         GuildRepository& guilds = defaultGuildRepository();
 
@@ -93,7 +91,6 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
 
         // What if I am the only one left after accepting the withdrawal?
         if (guilds.countUnionMembersSpelled(UNION_SQL_PLAIN, pUnion->getUnionID()) == 0) {
-            // cout << "After the withdrawal is accepted, with no member left there must be no union master, so it is deleted" << endl;
             guilds.deleteUnionInfoOnly(UNION_SQL_PLAIN, pUnion->getUnionID());
             GuildUnionManager::Instance().reload();
         }

@@ -102,7 +102,6 @@ void CGTameMonsterHandler::execute(CGTameMonster* pPacket, Player* pPlayer)
     PetTypeInfo* pPetTypeInfo = PetTypeInfoManager::getInstance()->getPetTypeInfo(petType);
     if (pPetTypeInfo == NULL || pPetTypeInfo->getOriginalMonsterType() != pMonster->getMonsterType() ||
         ratio >= pPetFoodInfo->getTameRatio()) {
-        // cout << "Taming failed : " << ratio << endl;
         SAFE_DELETE(pPetItem);
         pMonster->addEnemy(pPC);
         return;
@@ -147,7 +146,6 @@ void CGTameMonsterHandler::execute(CGTameMonster* pPacket, Player* pPlayer)
 
     pGamePlayer->sendPacket(&gcCreateItem);
 
-    // pPetItem->whenPCTake(pPC);
 
     pPC->getGQuestManager()->tamePet(pPetInfo);
     addOlympicStat(pPC, 9);

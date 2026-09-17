@@ -51,8 +51,6 @@ void CGStashWithdrawHandler::execute(CGStashWithdraw* pPacket, Player* pPlayer)
 
         if (pSlayer->getGold() + amount > MAX_MONEY) {
             Gold_t margin = MAX_MONEY - pSlayer->getGold();
-            // pSlayer->setStashGoldEx(pSlayer->getStashGold() - margin);
-            // pSlayer->setGoldEx(pSlayer->getGold() + margin);
 
             // by sigi. 2002.9.4
             pSlayer->decreaseStashGoldEx(margin);
@@ -60,9 +58,6 @@ void CGStashWithdrawHandler::execute(CGStashWithdraw* pPacket, Player* pPlayer)
 
             log(LOG_STASH_REMOVE_MONEY, pSlayer->getName(), "", itos(margin));
         } else {
-            // pSlayer->setStashGoldEx(pSlayer->getStashGold() - amount);
-            // pSlayer->setGoldEx(pSlayer->getGold() + amount);
-
             // by sigi. 2002.9.4
             pSlayer->decreaseStashGoldEx(amount);
             pSlayer->increaseGoldEx(amount);
@@ -77,8 +72,6 @@ void CGStashWithdrawHandler::execute(CGStashWithdraw* pPacket, Player* pPlayer)
 
         if (pVampire->getGold() + amount > MAX_MONEY) {
             Gold_t margin = MAX_MONEY - pVampire->getGold();
-            // pVampire->setStashGoldEx(pVampire->getStashGold() - margin);
-            // pVampire->setGoldEx(pVampire->getGold() + margin);
 
             // by sigi. 2002.9.18
             pVampire->decreaseStashGoldEx(margin);
@@ -86,9 +79,6 @@ void CGStashWithdrawHandler::execute(CGStashWithdraw* pPacket, Player* pPlayer)
 
             log(LOG_STASH_REMOVE_MONEY, pVampire->getName(), "", itos(margin));
         } else {
-            // pVampire->setStashGoldEx(pVampire->getStashGold() - amount);
-            // pVampire->setGoldEx(pVampire->getGold() + amount);
-
             // by sigi. 2002.9.18
             pVampire->decreaseStashGoldEx(amount);
             pVampire->increaseGoldEx(amount);
@@ -103,8 +93,6 @@ void CGStashWithdrawHandler::execute(CGStashWithdraw* pPacket, Player* pPlayer)
 
         if (pOusters->getGold() + amount > MAX_MONEY) {
             Gold_t margin = MAX_MONEY - pOusters->getGold();
-            // pOusters->setStashGoldEx(pOusters->getStashGold() - margin);
-            // pOusters->setGoldEx(pOusters->getGold() + margin);
 
             // by sigi. 2002.9.18
             pOusters->decreaseStashGoldEx(margin);
@@ -112,9 +100,6 @@ void CGStashWithdrawHandler::execute(CGStashWithdraw* pPacket, Player* pPlayer)
 
             log(LOG_STASH_REMOVE_MONEY, pOusters->getName(), "", itos(margin));
         } else {
-            // pOusters->setStashGoldEx(pOusters->getStashGold() - amount);
-            // pOusters->setGoldEx(pOusters->getGold() + amount);
-
             // by sigi. 2002.9.18
             pOusters->decreaseStashGoldEx(amount);
             pOusters->increaseGoldEx(amount);

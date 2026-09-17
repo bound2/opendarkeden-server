@@ -39,7 +39,6 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
-    // cout << "AddMouseToInventory execute start" << endl;
 
     try {
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
@@ -62,21 +61,17 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
         bool Success = false;
 
         if (pItem == NULL) {
-            // cout << "pItem NULL" << endl;
             GCCannotAdd _GCCannotAdd;
             _GCCannotAdd.setObjectID(pPacket->getObjectID());
             pPlayer->sendPacket(&_GCCannotAdd);
             return;
         }
 
-        // Item::ItemClass itemClass = pItem->getItemClass();
-        // ItemType_t	itemType	 = pItem->getItemType();
         ObjectID_t itemObjectID = pItem->getObjectID();
         CoordInven_t InvenX = pPacket->getInvenX();
         CoordInven_t InvenY = pPacket->getInvenY();
 
         if (InvenX >= 10 || InvenY >= 6) {
-            // cout << "inventory over" << endl;
             GCCannotAdd _GCCannotAdd;
             _GCCannotAdd.setObjectID(pPacket->getObjectID());
             pPlayer->sendPacket(&_GCCannotAdd);
@@ -85,7 +80,6 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
 
         // Check that the item's ObjectID matches.
         if (itemObjectID != pPacket->getObjectID()) {
-            // cout << "wrong objectID" << endl;
             GCCannotAdd _GCCannotAdd;
             _GCCannotAdd.setObjectID(pPacket->getObjectID());
             pPlayer->sendPacket(&_GCCannotAdd);
@@ -94,7 +88,6 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
 
         // Check whether it can go into the inventory.
         if (!pInventory->canAdding(InvenX, InvenY, pItem)) {
-            // cout << "cannot add" << endl;
             GCCannotAdd _GCCannotAdd;
             _GCCannotAdd.setObjectID(pPacket->getObjectID());
             pPlayer->sendPacket(&_GCCannotAdd);
@@ -105,20 +98,17 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
         pt.x = 99;
         pt.y = 99;
 
-        // cout << "chk relic1" << endl;
 
         // Get the Item of the target Inventory Slot.
         Item* pPrevItem = pInventory->searchItem(InvenX, InvenY, pItem, pt);
 
         // If there is an item in that place
         if (pPrevItem != NULL) {
-            // cout << "prevItem!=0" << endl;
             bool bisSame = true;
             // When the item class is the same, raise the count and remove the one on the mouse.
             if (canStack(pItem, pPrevItem)) {
                 // Keep time-limited items from being put together
                 if (pItem->isTimeLimitItem() | pPrevItem->isTimeLimitItem()) {
-                    // cout << "cannot add" << endl;
                     GCCannotAdd _GCCannotAdd;
                     _GCCannotAdd.setObjectID(pPacket->getObjectID());
                     pPlayer->sendPacket(&_GCCannotAdd);
@@ -160,14 +150,10 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                         pItem->setNum(NewNum);
                         pInventory->increaseNum(MaxStack - CurrentNum);
                         pInventory->increaseWeight(pItem->getWeight() * (MaxStack - CurrentNum));
-                        // pPrevItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-                        //  Item save optimization.
                         char pField[80];
                         sprintf(pField, "Num=%d, Storage=%d, X=%d, Y=%d", MaxStack, STORAGE_INVENTORY, InvenX, InvenY);
                         pPrevItem->tinysave(pField);
 
-                        // pItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                        //  Item save optimization.
                         sprintf(pField, "Num=%d, Storage=%d", NewNum, STORAGE_EXTRASLOT);
                         pItem->tinysave(pField);
 
@@ -177,8 +163,6 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                         pPrevItem->setNum(pPrevItem->getNum() + pItem->getNum());
                         pInventory->increaseNum(pItem->getNum());
                         pInventory->increaseWeight(pItem->getWeight() * pItem->getNum());
-                        // pPrevItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-                        //  Item save optimization.
                         char pField[80];
                         sprintf(pField, "Num=%d, Storage=%d, X=%d, Y=%d", pPrevItem->getNum(), STORAGE_INVENTORY,
                                 InvenX, InvenY);
@@ -225,7 +209,6 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                             pGamePlayer->sendPacket(&gcCI);
                         }
                     }
-
                 } else {
                     pInventory->deleteItem(pPrevItem->getObjectID());
 
@@ -235,21 +218,16 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
 
                     pInventory->addItem(InvenX, InvenY, pItem);
 
-                    // pPrevItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                    //  Item save optimization.
                     char pField[80];
                     sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
                     pPrevItem->tinysave(pField);
 
-                    // pItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-                    //  Item save optimization.
                     sprintf(pField, "Storage=%d, X=%d, Y=%d", STORAGE_INVENTORY, InvenX, InvenY);
                     pItem->tinysave(pField);
 
 
                     Success = true;
                 }
-
             } else // If the item class differs, or the item does not stack.
             {
                 pInventory->deleteItem(pPrevItem->getObjectID());
@@ -260,14 +238,10 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
 
                 pInventory->addItem(InvenX, InvenY, pItem);
 
-                // pPrevItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                //  Item save optimization.
                 char pField[80];
                 sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
                 pPrevItem->tinysave(pField);
 
-                // pItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-                //  Item save optimization.
                 sprintf(pField, "Storage=%d, X=%d, Y=%d", STORAGE_INVENTORY, InvenX, InvenY);
                 pItem->tinysave(pField);
 
@@ -276,16 +250,12 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
             }
         } else // If there is no item in that place.
         {
-            // cout << "prevItem is NULL" << endl;
-
             // Put a given item into the Inventory.
             pInventory->addItem(InvenX, InvenY, pItem);
 
             // On a successful add, remove the item hanging on the mouse.
             pPC->deleteItemFromExtraInventorySlot();
 
-            // pItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-            //  Item save optimization.
             char pField[80];
             sprintf(pField, "Storage=%d, X=%d, Y=%d", STORAGE_INVENTORY, InvenX, InvenY);
             pItem->tinysave(pField);
@@ -296,8 +266,6 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
 
 
         if (Success) {
-            // cout << "success" << endl;
-
             TradeManager* pTradeManager = pZone->getTradeManager();
             TradeInfo* pInfo = pTradeManager->getTradeInfo(pCreature->getName());
             if (pInfo != NULL && pInfo->getStatus() == TRADE_FINISH) {
@@ -380,16 +348,13 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                 }
             }
         } else {
-            // cout << "cannot add" << endl;
             GCCannotAdd _GCCannotAdd;
             _GCCannotAdd.setObjectID(pPacket->getObjectID());
             pPlayer->sendPacket(&_GCCannotAdd);
         }
     } catch (Throwable& t) {
-        // cout << t.toString();
     }
 
-    // cout << "AddMouseToInventory execute OK" << endl;
 
 #endif // __GAME_SERVER__
 

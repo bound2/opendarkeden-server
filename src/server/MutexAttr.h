@@ -76,23 +76,6 @@ public:
         return &m_Attr;
     }
 
-    /*
-    bool isFastMutex () const  { return getMutexKind() == PTHREAD_MUTEX_FAST_NP; }
-    bool isRecursiveMutex () const  { return getMutexKind() == PTHREAD_MUTEX_RECURSIVE_NP; }
-    bool isErrorCheckMutex () const  { return getMutexKind() == PTHREAD_MUTEX_ERRORCHECK_NP;
-    }
-
-    void setFastMutex ()  { setMutexKind( PTHREAD_MUTEX_FAST_NP ); }
-    void setRecursiveMutex ()  { setMutexKind( PTHREAD_MUTEX_RECURSIVE_NP ); }
-    void setErrorCheckMutex ()  { setMutexKind( PTHREAD_MUTEX_ERRORCHECK_NP ); }
-
-    // get mutex kind
-    int getMutexKind () const ;
-
-    // set mutex kind
-    void setMutexKind ( int Kind ) ;
-    */
-
 
     //////////////////////////////////////////////////
     // attributes

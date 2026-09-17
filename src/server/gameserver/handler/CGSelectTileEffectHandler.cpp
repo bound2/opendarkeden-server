@@ -63,8 +63,6 @@ void CGSelectTileEffectHandler::execute(CGSelectTileEffect* pPacket, Player* pPl
         pEffect = pVampirePortalManager->findEffect(pPacket->getEffectObjectID());
 
         if (pEffect != NULL) {
-            // cout << "CGSelectTileEffectHandler::execute() : Effect Exist" << endl;
-
             switch (pEffect->getEffectClass()) {
             case Effect::EFFECT_CLASS_VAMPIRE_PORTAL:
                 executeVampirePortal(pPacket, pPlayer, pEffect);
@@ -133,7 +131,6 @@ void CGSelectTileEffectHandler::executeVampirePortal(CGSelectTileEffect* pPacket
 
         try {
             ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(zonecoord.id);
-
         } catch (NoSuchElementException&) {
             return;
         }
@@ -158,7 +155,6 @@ void CGSelectTileEffectHandler::executeVampirePortal(CGSelectTileEffect* pPacket
 
             // After the move, lower the count; when the count reaches 0 the effect disappears.
             pEffectVampirePortal->setCount(pEffectVampirePortal->getCount() - 1);
-            // if (pEffectVampirePortal->getCount() == 0) pEffectVampirePortal->setDeadline(0);
         }
     } catch (Throwable& t) {
         cerr << t.toString() << endl;

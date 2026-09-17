@@ -32,7 +32,6 @@ void CGMixItemHandler::execute(CGMixItem* pPacket, Player* pPlayer)
 
 #ifdef __GAME_SERVER__
 
-        ////cout << "CGMixItemHandler " << endl;
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
@@ -55,7 +54,6 @@ void CGMixItemHandler::execute(CGMixItem* pPacket, Player* pPlayer)
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
 
-    // cout << "Packet arrived: " << pPacket->toString() << endl;
 
     // An area beyond the inventory coordinates is not allowed.
     if (InvenX >= pInventory->getWidth() || InvenY >= pInventory->getHeight()) {
@@ -65,23 +63,13 @@ void CGMixItemHandler::execute(CGMixItem* pPacket, Player* pPlayer)
 
     Item* pItem = pPC->findItemOID(pPacket->getObjectID());
 
-    //	// It is an error when the inventory holds no such item.
-    //	Item* pItem = pInventory->getItem(InvenX, InvenY);
     if (pItem == NULL) {
         sendCannotUse(pPacket, pPlayer);
         return;
     }
 
     // Get the Object of the item in the inventory.
-    //	ObjectID_t ItemObjectID = pItem->getObjectID();
 
-    // A mismatched OID, or an item that cannot be used, is an error.
-    //	if (ItemObjectID != pPacket->getObjectID())
-    //	{
-    //		//cout << "Item cannot be used. Object id does not match..." << endl;
-    //		sendCannotUse( pPacket, pPlayer );
-    //		return;
-    //	}
 
     // It has to be a mixing forge
     if (pItem->getItemClass() != Item::ITEM_CLASS_MIXING_ITEM) {
@@ -272,7 +260,6 @@ void CGMixItemHandler::executeMix(CGMixItem* pPacket, Player* pPlayer, Item* pIt
 
     if (g_pOptionInfoManager->getOptionClassInfo(pOptionInfo1->getClass())->getOptionGroup() ==
         g_pOptionInfoManager->getOptionClassInfo(pOptionInfo2->getClass())->getOptionGroup()) {
-        //		sendCannotUse(pPacket, pPlayer);
         gcVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_MIXING_FAILED_SAME_OPTION_GROUP);
         pPlayer->sendPacket(&gcVerify);
         return;
@@ -435,9 +422,7 @@ void CGMixItemHandler::executeDetach(CGMixItem* pPacket, Player* pPlayer, Item* 
             }
         } else if (isOustersAccessory(pTargetItem->getItemClass())) {
             if (pTargetItem->getItemClass() != Item::ITEM_CLASS_OUSTERS_STONE &&
-                pTargetItem->getItemType() > pInfo->getOustersLevel())
-            //					if ( pTargetItem->getItemType() > pInfo->getOustersLevel() )
-            {
+                pTargetItem->getItemType() > pInfo->getOustersLevel()) {
                 sendCannotUse(pPacket, pPlayer);
                 return;
             }
@@ -471,7 +456,6 @@ void CGMixItemHandler::executeDetach(CGMixItem* pPacket, Player* pPlayer, Item* 
 
     pTargetItem->setTraceItem(bTraceLog(pTargetItem));
 
-    //	pInventory->deleteItem( pItem->getObjectID() );
     Assert(pItem == pPC->getExtraInventorySlotItem());
     // The item the option is taken off is on the mouse. If not, never mind
     pPC->deleteItemFromExtraInventorySlot();
@@ -489,8 +473,6 @@ void CGMixItemHandler::executeDetach(CGMixItem* pPacket, Player* pPlayer, Item* 
 
     pPlayer->sendPacket(&gcVerify);
 
-    //	GCUseOK gcUseOK;
-    //	pPlayer->sendPacket(&gcUseOK);
 
     __END_CATCH
 }
@@ -588,7 +570,6 @@ void CGMixItemHandler::executeClearOption(CGMixItem* pPacket, Player* pPlayer, I
 
     pTargetItem->setTraceItem(bTraceLog(pTargetItem));
 
-    //	pInventory->deleteItem( pItem->getObjectID() );
     Assert(pItem == pPC->getExtraInventorySlotItem());
     // The item the option is taken off is on the mouse. If not, never mind
     pPC->deleteItemFromExtraInventorySlot();

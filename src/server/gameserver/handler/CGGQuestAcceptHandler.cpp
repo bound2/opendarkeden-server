@@ -30,7 +30,6 @@ void CGGQuestAcceptHandler::execute(CGGQuestAccept* pPacket, Player* pPlayer)
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pGamePlayer->getCreature());
     Assert(pPC != NULL);
 
-    // cout << pPC->getName() << " Accept : " << pPacket->getQuestID() << endl;
 
     GQuestManager* pQM = pPC->getGQuestManager();
     pQM->accept(pPacket->getQuestID());

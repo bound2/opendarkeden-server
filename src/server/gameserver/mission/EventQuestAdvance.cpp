@@ -58,11 +58,6 @@ bool EventQuestAdvanceManager::success(int questLevel) {
 bool EventQuestAdvanceManager::rewarded(int questLevel) {
     Assert(questLevel >= 0);
     Assert(questLevel < EVENT_QUEST_LEVEL_MAX);
-    /*	if ( m_Advances[questLevel] != NULL )
-        {
-            for ( int i=0; i<=questLevel; ++i ) m_Advances[i]->reset();
-            return true;
-        }*/
 
     for (int i = 0; i < EVENT_QUEST_LEVEL_MAX; ++i) {
         if (m_Advances[i] != NULL)

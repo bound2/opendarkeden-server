@@ -158,7 +158,6 @@ void LoginPlayerManager::select() {
     try {
         // Now call select() with m_XXXFDs[1].
         SocketAPI::select_ex(m_MaxFD + 1, &m_ReadFDs[1], &m_WriteFDs[1], &m_ExceptFDs[1], &m_Timeout[1]);
-
     } catch (TimeoutException) {
         // do nothing
     } catch (InterruptedException& ie) {
@@ -217,7 +216,6 @@ void LoginPlayerManager::processInputs() {
             if (i == m_ServerFD) {
                 // The server socket means a new connection came in.
                 acceptNewConnection();
-
             } else {
                 Assert(m_pPlayers[i] != NULL);
 
@@ -234,7 +232,6 @@ void LoginPlayerManager::processInputs() {
                     } else {
                         m_pPlayers[i]->processInput();
                     }
-
                 } catch (ConnectException& ce) {
                     // The socket is blocking, so no exception other than ConnectException and Error can occur.
 
@@ -332,7 +329,6 @@ void LoginPlayerManager::processOutputs() {
 
             try {
                 m_pPlayers[i]->processOutput();
-
             } catch (ConnectException& ce) {
                 cout << ce.toString() << endl;
                 log(LOG_LOGINSERVER_ERROR, "", "", ce.toString());
@@ -345,7 +341,6 @@ void LoginPlayerManager::processOutputs() {
 
                 // Remove the player from the player manager.
                 deletePlayer_NOLOCKED(i);
-
             } catch (ProtocolException& pe) {
                 cout << pe.toString() << endl;
                 log(LOG_LOGINSERVER_ERROR, "", "", pe.toString());
@@ -419,14 +414,6 @@ void LoginPlayerManager::acceptNewConnection() {
     //--------------------------------------------------
     // Query the BAN DB to check whether the current IP is allowed.
     //--------------------------------------------------
-    /*
-    if ( g_pBanManager->isBanned( client->getHost() ) ) {
-        client->send("You are banned. Bye~\n",23);
-        client->close();
-        delete client;
-    }
-
-    */
 
     // set socket option ( !NonBlocking, NoLinger )
     client->setLinger(0);
@@ -517,7 +504,6 @@ void LoginPlayerManager::deletePlayer_NOLOCKED(SOCKET fd) {
         // Set both to -1 then.
         if (i > m_MaxFD)
             m_MinFD = m_MaxFD = -1;
-
     } else if (fd == m_MaxFD) {
         // Find the largest fd from the back.
         // Watch out for ServerFD! ( for ServerFD the Player pointer is NULL. )
@@ -567,17 +553,11 @@ LoginPlayer* LoginPlayerManager::getPlayer_NOLOCKED(const string& id) const {
 
     LoginPlayer* pLoginPlayer = NULL;
 
-    // cout << "m_MinFD : " << m_MinFD << endl;
-    // cout << "m_MaxFD : " << m_MaxFD << endl;
 
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         if (m_pPlayers[i] != NULL) {
-            // cout << "[" << i << "] : " << m_pPlayers[i]->toString() << endl;
-            // cout << "[" << i << "] : " << m_pPlayers[i]->getID().c_str() << endl;
-
             if (m_pPlayers[i]->getID() == id) {
                 pLoginPlayer = dynamic_cast<LoginPlayer*>(m_pPlayers[i]);
-                // cout << "Found OK" << endl;
                 break;
             }
         }
@@ -631,7 +611,6 @@ void LoginPlayerManager::sendPacket(const string& id, Packet* pPacket) {
 
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         if (m_pPlayers[i] != NULL) {
-            // cout << "[" << i << "] ID : " << m_pPlayers[i]->getID() << endl;
             if (m_pPlayers[i]->getID() == id) {
                 m_pPlayers[i]->sendPacket(pPacket);
                 break;

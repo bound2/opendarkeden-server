@@ -129,7 +129,6 @@ bool EventQuestLootingManager::killed(PlayerCreature* pPC, Monster* pMonster) {
     if (pInfo == NULL)
         return false;
 
-    //	cout << "Affecting ratio : " << g_ratio[pInfo->m_QuestLevel] << endl;
     if ((rand() % 100) < g_ratio[pInfo->m_QuestLevel]) {
         Item* pItem = pInfo->getLootingItem();
         if (pItem == NULL)
@@ -167,8 +166,6 @@ void EventQuestLootingManager::load() {
             m_ZoneLootingInfo[pInfo->m_LootingZoneID].push_back(pInfo);
         else if (pInfo->m_Type != EventQuestLootingInfo::LOOTING_NONE)
             m_MonsterLootingInfo[pInfo->m_LootingMonsterType].push_back(pInfo);
-
-        //	cout << "Loading : " << pInfo->toString() <<endl;
     }
 
     __END_CATCH

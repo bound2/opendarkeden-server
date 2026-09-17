@@ -25,7 +25,6 @@ void CGPetGambleHandler::execute(CGPetGamble* pPacket, Player* pPlayer)
 
 #ifdef __GAME_SERVER__
 
-        // cout << "Pet gamble" << endl;
 
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Assert(pGamePlayer != NULL);
@@ -42,7 +41,6 @@ void CGPetGambleHandler::execute(CGPetGamble* pPacket, Player* pPlayer)
     int value = rand() % 100;
     pPetInfo->setGamble(0);
 
-    // cout << value << endl;
 
     if (value < pPetInfo->getPetLevel()) {
         if (!pPetInfo->canCutHead()) {
@@ -52,7 +50,6 @@ void CGPetGambleHandler::execute(CGPetGamble* pPacket, Player* pPlayer)
         } else if (pPetInfo->getPetType() > 2) {
             pPetInfo->setAttack(1);
         }
-        //		cout << "Gamble succeeded!" << endl;
     }
 
     pPetInfo->getPetItem()->savePetInfo();

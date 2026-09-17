@@ -62,21 +62,9 @@ void SGGuildInfoHandler::execute(SGGuildInfo* pPacket)
             pGuildMember->setRank(pGuildMemberInfo->getRank());
             pGuildMember->setLogOn(pGuildMemberInfo->getLogOn());
 
-            /*
-            if (pGuildMember->getLogOn() )
-            {
-                cout << "log on set : " << pGuildMember->getName() << endl;
-            }
-
-            if (g_pPCFinder->getCreature(pGuildMember->getName() ) != NULL )
-            {
-                cout << "gameserver on : " << pGuildMember->getName() << endl;
-            }
-            */
 
             if (pGuildMember->getLogOn() && g_pPCFinder->getCreature(pGuildMember->getName()) != NULL) {
                 pGuild->addCurrentMember(pGuildMember->getName());
-                // cout << "add current member : " << pGuildMember->getName() << endl;
             }
 
             pGuild->addMember(pGuildMember);

@@ -51,7 +51,6 @@
 #include "repository/ZoneInfoRepository.h"
 
 namespace de::gm {
-
 void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
     __BEGIN_TRY
 
@@ -64,7 +63,6 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
 
     filelog("change.txt", "[%s] %s", pCreature->getName().c_str(), msg.c_str());
 
-    //	Creature* pCreature = pGamePlayer->getCreature();
     GCSystemMessage gcSystemMessage;
 
     // Blocked for now
@@ -668,7 +666,6 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
                 gcSystemMessage.toString().c_str());
 
         gcSystemMessage.setMessage(msg3);
-
     } else if (set_type == "ItemTaxRatio") {
         if (pGamePlayer != NULL) {
             Creature* pCreature = pGamePlayer->getCreature();
@@ -898,33 +895,16 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
 
     if (load_type == "master_lair_info") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::MASTER_LAIR_INFO);
-        //		StringStream msg;
-        //		msg << "loading the master lair information.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_MASTER_LAIR_INFO));
         filelog("change.txt", "[%s]%s",
                 (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
                 gcSystemMessage.toString().c_str());
     } else if (load_type == "monster_info") {
-        //	string MonsterName = load_value;
         string MonsterName = "all";
         int SpriteType = 0;
 
-        // First look for the monster SpriteType by 'name'.
-        //		int SpriteType = g_pMonsterInfoManager->getSpriteTypeByName( MonsterName );
-
-        //		if (SpriteType==0)
-        //		{
-        // If there is none by name.. is the string itself the number (SpriteType)?
-        //			SpriteType = atoi( MonsterName.c_str() );
-        //		}
 
         bool bExist = true;
-        //		try
-        //		{
-        //			g_pMonsterInfoManager->getMonsterTypeBySprite(SpriteType);
-        //		} catch (Throwable&) {
-        //			bExist = false;
-        //		}
 
         //		StringStream msg;
         char msg[100];
@@ -935,14 +915,11 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
 
             if (SpriteType != 0) {
                 sprintf(msg, g_pStringPool->c_str(STRID_LOAD_MONSTER_INFO), load_value.c_str());
-                //				msg << "loading the monster information (" << load_value.c_str() << ").";
             } else {
                 sprintf(msg, g_pStringPool->c_str(STRID_LOAD_ALL_MONSTER_INFO));
-                //				msg << "loading every monster's information.";
             }
         } else {
             sprintf(msg, g_pStringPool->c_str(STRID_LOAD_WRONG_MONSTER_INFO), load_value.c_str());
-            //			msg << "the monster (" << load_value.c_str() << ") was given wrongly.";
         }
 
         gcSystemMessage.setMessage(msg);
@@ -951,16 +928,12 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
                 gcSystemMessage.toString().c_str());
     } else if (load_type == "monster_ai") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::MONSTER_AI);
-        //		StringStream msg;
-        //		msg << "loading the monster AI information (DirectiveSet).";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_DIRECTIVESET));
         filelog("change.txt", "[%s]%s",
                 (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
                 gcSystemMessage.toString().c_str());
     } else if (load_type == "zone_info") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::ZONE_INFO);
-        //		StringStream msg;
-        //		msg << "loading the zone information.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_ZONE));
         filelog("change.txt", "[%s]%s",
                 (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
@@ -970,16 +943,12 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
 
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::ZONE, zoneID);
 
-        //		StringStream msg;
-        //		msg << "loading the zone.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_ZONE));
         filelog("change.txt", "[%s]%s",
                 (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
                 gcSystemMessage.toString().c_str());
     } else if (load_type == "log_user") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::LOG_USER_INFO);
-        //		StringStream msg;
-        //		msg << "loading the LogUser information.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_LOG_USER));
         filelog("change.txt", "[%s]%s",
                 (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
@@ -1000,21 +969,15 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
 
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::ITEM_INFO, ItemClass);
 
-        //		StringStream msg;
-        //		msg << load_value << " loading that Info.";
 
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_LOAD_ITEM_INFO), load_value.c_str());
         gcSystemMessage.setMessage(msg);
     } else if (load_type == "option_info") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::OPTION_INFO);
-        //	StringStream msg;
-        //	msg << "loading the OptionInfo information.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_OPTION_INFO));
     } else if (load_type == "rank_bonus_info") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::RANK_BONUS_INFO);
-        //		StringStream msg;
-        //		msg << "loading the RankBonusInfo information.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_RANK_BONUS_INFO));
     } else if (load_type == "string_pool") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::STRING_POOL);
@@ -1045,25 +1008,18 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
         }
 
         gcSystemMessage.setMessage(msg.toString().c_str());
-
     } else if (load_type == "blood_bible_owner") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::BLOOD_BIBLE_OWNER);
 
-        //		StringStream msg;
-        //		msg << "loading the BloodBibleOwner information.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_BLOOD_BIBLE_OWNER_INFO));
     } else if (load_type == "sweeper_owner") {
         int level = atoi(load_value.c_str());
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::SWEEPER_OWNER, level);
 
-        //		StringStream msg;
-        //		msg << "loading the BloodBibleOwner information.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_BLOOD_BIBLE_OWNER_INFO));
     } else if (load_type == "race_war_pc_limit") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::RACE_WAR_PC_LIMIT);
 
-        //		StringStream msg;
-        //		msg << "loading the RaceWarPCLimit information.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_RACE_WAR_PC_LIMIT_INFO));
     } else if (load_type == "npc") {
         ZoneID_t zoneID = (ZoneID_t)(atoi(load_value.c_str()));
@@ -1075,19 +1031,11 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
             if (pCastleInfo != NULL)
                 pZone->loadNPCs(pCastleInfo->getRace());
         }
-
     } else if (load_type == "goods_list_info") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::GOODS_LIST_INFO);
 
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_GOODS_LIST_INFO));
-    }
-    /*	else if ( load_type == "quest_info" )
-        {
-            pEvent = new EventReloadInfo( pGamePlayer, EventReloadInfo::QUEST_INFO );
-
-            gcSystemMessage.setMessage( g_pStringPool->getString( STRID_LOAD_QUEST_INFO ) );
-        }*/
-    else {
+    } else {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WRONG_VARIABLE_NAME));
     }
 
@@ -1370,5 +1318,4 @@ void opcrashreport(Creature* pCreature, GamePlayer* pGamePlayer, string msg, int
         filelog("CrashReport.log", "%s", msg.c_str());
     }
 }
-
 } // namespace de::gm

@@ -53,7 +53,6 @@ Mutex::~Mutex() noexcept {
 void Mutex::lock() {
     __BEGIN_TRY
 
-    // filelog("lock.txt", "Thread[%d][%s] waiting lock", Thread::self(), m_Name.c_str());
 
     try {
         int TID = (int)(long)Thread::self();
@@ -71,7 +70,6 @@ void Mutex::lock() {
         throw Error(me.toString());
     }
 
-    // filelog("lock.txt", "Thread[%d][%s] gain lock", Thread::self(), m_Name.c_str());
 
     __END_CATCH
 }
@@ -85,7 +83,6 @@ void Mutex::lock() {
 void Mutex::trylock() {
     __BEGIN_TRY
 
-    // filelog("lock.txt", "Thread[%d][%s] trying to gain lock", Thread::self(), m_Name.c_str());
 
     try {
         int TID = (int)(long)Thread::self();
@@ -103,7 +100,6 @@ void Mutex::trylock() {
         throw Error(me.toString());
     }
 
-    // filelog("lock.txt", "Thread[%d][%s] gain lock", Thread::self(), m_Name.c_str());
 
     __END_CATCH
 }
@@ -125,7 +121,6 @@ void Mutex::unlock() {
         throw Error(me.toString());
     }
 
-    // filelog("lock.txt", "Thread[%d][%s] release lock", Thread::self(), m_Name.c_str());
 
     __END_CATCH
 }

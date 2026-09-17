@@ -170,7 +170,6 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
 
                 if (isCastle && g_pWarSystem->hasCastleActiveWar(castleZoneID)) {
                     // Guild war handling
-                    // if (pItem->getItemClass() != Item::ITEM_CLASS_CASTLE_SYMBOL ) return;
 
                     // In a castle the defending side cannot click.
                     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
@@ -182,7 +181,6 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
 
                 if (g_pWarSystem->hasActiveRaceWar()) {
                     // Race war handling
-                    // if (pItem->getItemClass() != Item::ITEM_CLASS_BLOOD_BIBLE ) return;
 
                     // In a castle the defending side cannot click.
                     if (g_pShrineInfoManager->isDefenderOfGuardShrine(pPC, pMonsterCorpse))
@@ -327,12 +325,6 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                     pPC->isFlag(Effect::EFFECT_CLASS_HAS_CASTLE_SYMBOL))
                     return;
             }
-            //			else if (
-            //					pZone->getLevelWarManager() != NULL &&
-            //					pZone->getLevelWarManager()->isSafe(pMonsterCorpse ) )
-            //			{
-            //				if (!pZone->getLevelWarManager()->hasWar() ) return;
-            //			}
         }
 
         Corpse* pCorpse = dynamic_cast<Corpse*>(pItem);
@@ -380,7 +372,6 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
             // count the items and keep it from appearing past the limit.
 
             if (pTreasure->getItemClass() == Item::ITEM_CLASS_EVENT_STAR && pTreasure->getItemType() == 0) {
-                // cout << "Black star appeared" << endl;
                 int BlackStarNumber = 0;
 
                 try {
@@ -437,7 +428,6 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
 
                                     GCRemoveCorpseHead _GCRemoveCorpseHead;
                                     _GCRemoveCorpseHead.setObjectID(pItem->getObjectID());
-                                    // pZone->broadcastPacket(pt.x, pt.y, &_GCRemoveCorpseHead);
                                     pZone->broadcastPacket(ZoneX, ZoneY,
                                                            &_GCRemoveCorpseHead); // the original corpse coordinates
 
@@ -603,7 +593,6 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
 
                             GCRemoveCorpseHead _GCRemoveCorpseHead;
                             _GCRemoveCorpseHead.setObjectID(pItem->getObjectID());
-                            // pZone->broadcastPacket(pt.x, pt.y, &_GCRemoveCorpseHead);
                             pZone->broadcastPacket(ZoneX, ZoneY,
                                                    &_GCRemoveCorpseHead); // the original corpse coordinates
 
@@ -636,10 +625,8 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                                   g_pMonsterInfoManager->getMonsterInfo(pMonsterCorpse->getMonsterType())->getLevel(),
                                   pPC->getPetInfo(), pGamePlayer);
                 if (!increasePetExp(pPC->getPetInfo(), exp, &gcMI)) {
-                    //					cout << "The experience changed: " << gcMI.toString() << endl;
                     pGamePlayer->sendPacket(&gcMI);
                 } else {
-                    //					cout << "It levelled up" << endl;
                     sendPetInfo(pGamePlayer, true);
                 }
 

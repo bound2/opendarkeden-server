@@ -44,14 +44,12 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
 
 #ifdef __GAME_SERVER__
 
-        //	Assert(pPacket != NULL);
         Assert(pPlayer != NULL);
 
     // Under the new login structure, a Logout has to leave into the waiting state.
     // On a Logout packet the player is sent to the IncomingPlayerManager.
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
 
-    // cout << "CGLogoutHandler: " << pGamePlayer->getID() << endl;
 
     Creature* pCreature = pGamePlayer->getCreature();
 
@@ -67,8 +65,6 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
 
     try {
         // On logout, drop the relic and the blood bible fragments.
-        //		bool bSendPacket = false;
-        //		dropRelicToZone( pCreature, bSendPacket );
 
         if (pCreature->isPLAYER() && g_pPKZoneInfoManager->isPKZone(pCreature->getZoneID())) {
             g_pPKZoneInfoManager->leavePKZone(pCreature->getZoneID());
@@ -100,8 +96,6 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
 
             // Logging out after using Eternity once sends one to the revival position.
             if (pCreature->isFlag(Effect::EFFECT_CLASS_COMA) || pCreature->isFlag(Effect::EFFECT_CLASS_ETERNITY)) {
-                // cout << "Logged out in the COMA state" << endl;
-
                 ZoneID_t ZoneID = 0;
                 ZoneCoord_t ZoneX = 0;
                 ZoneCoord_t ZoneY = 0;
@@ -131,70 +125,6 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
                     }
                 }
             }
-            /*
-                        if(pCreature->isSlayer())
-                        {
-                            Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-                            Assert(pSlayer != NULL);
-
-                            if (g_pResurrectLocationManager->getSlayerPosition(pSlayer->getResurrectZoneID(),
-               ResurrectCoord))
-                            {
-                                ZoneID = ResurrectCoord.id;
-                                ZoneX  = ResurrectCoord.x;
-                                ZoneY  = ResurrectCoord.y;
-                            }
-                            else
-                            {
-                                if (g_pResurrectLocationManager->getSlayerPosition(pSlayer->getZone()->getZoneID(),
-               ResurrectCoord))
-                                {
-                                    ZoneID = ResurrectCoord.id;
-                                    ZoneX  = ResurrectCoord.x;
-                                    ZoneY  = ResurrectCoord.y;
-                                }
-                                else
-                                {
-                                    throw Error("Critical Error: ResurrectInfo is not established");
-                                }
-                            }
-
-                            char pField[80];
-                            sprintf(pField, "ZoneID=%d, XCoord=%d, YCoord=%d, CurrentHP=HP", ZoneID, ZoneX, ZoneY);
-                            pSlayer->tinysave(pField);
-                        }
-                        else if(pCreature->isVampire())
-                        {
-                            Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-                            Assert(pVampire != NULL);
-
-                            if (g_pResurrectLocationManager->getVampirePosition(pVampire->getResurrectZoneID(),
-               ResurrectCoord))
-                            {
-                                ZoneID = ResurrectCoord.id;
-                                ZoneX  = ResurrectCoord.x;
-                                ZoneY  = ResurrectCoord.y;
-                            }
-                            else
-                            {
-                                if (g_pResurrectLocationManager->getVampirePosition(pVampire->getZone()->getZoneID(),
-               ResurrectCoord))
-                                {
-                                    ZoneID = ResurrectCoord.id;
-                                    ZoneX  = ResurrectCoord.x;
-                                    ZoneY  = ResurrectCoord.y;
-                                }
-                                else
-                                {
-                                    throw Error("Critical Error: ResurrectInfo is not established");
-                                }
-                            }
-                            // Now save the information.
-                            char pField[80];
-                            sprintf(pField, "ZoneID=%d, XCoord=%d, YCoord=%d, CurrentHP=HP", ZoneID, ZoneX, ZoneY);
-                            pVampire->tinysave(pField);
-                        }
-            */
         }
 
 
@@ -208,20 +138,16 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
         //
         pZone->deleteCreature(pCreature, pCreature->getX(), pCreature->getY());
 
-        ////cout << "PC deleted from Zone >> ";
 
         // Delete the player from the zone group's ZPM.
         // This runs inside ZonePlayerManager's ProcessCommand, so it must be deleted NoBlocked.
         pZone->getZoneGroup()->getZonePlayerManager()->deletePlayer(pGamePlayer->getSocket()->getSOCKET());
 
         // Move the player to the IPM.
-        // g_pIncomingPlayerManager->pushPlayer(pGamePlayer);
 
         // With the Core structure changed, to act independently of the thread and handle it all at once later,
         // it goes into the OutList.
         pZone->getZoneGroup()->getZonePlayerManager()->pushOutPlayer(pGamePlayer);
-
-        ////cout << "Move PC to IPM >> ";
     } catch (NoSuchElementException& nsee) {
         throw DisconnectException();
     }

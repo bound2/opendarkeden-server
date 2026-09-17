@@ -131,7 +131,6 @@ void LoginPlayer::setExpireTimeForKickCharacter() {
 void LoginPlayer::processCommand(bool Option) {
     __BEGIN_TRY
 
-    //	static Timeval currentTime;
 
     // For the 'already connected' case, when forcing a disconnect.
     if (m_PlayerStatus == LPS_WAITING_FOR_GL_KICK_VERIFY) {
@@ -179,16 +178,6 @@ void LoginPlayer::processCommand(bool Option) {
             memcpy(&packetID, &header[0], szPacketID);
             memcpy(&packetSize, &header[szPacketID], szPacketSize);
 
-            /*
-            LOG4("RECV PACKET from %s, %s(%d) %d/%d\n",
-                m_ID.c_str(),
-                g_pPacketFactoryManager->getPacketName( packetID ).c_str(),
-                packetID,
-                szPacketHeader + packetSize,
-                m_pInputStream->length()
-            );
-
-            */
             // DEBUG by tiancaiamao
             StringStream msg;
             msg << "RECV PACKET from " << m_ID << ", " << g_pPacketFactoryManager->getPacketName(packetID) << "("
@@ -252,7 +241,6 @@ void LoginPlayer::processCommand(bool Option) {
                     delete oldPacket;
                     m_PacketHistory.pop_front();
                 }
-
             } catch (IgnorePacketException&) {
                 // The PacketValidator said to ignore the packet, so
                 // drop it from the input stream and do not execute it.
@@ -275,18 +263,15 @@ void LoginPlayer::processCommand(bool Option) {
                 // It does not go into the history either.
             }
         }
-
     } catch (InsufficientDataException& ide) {
         // If there was no input at all, check whether the input timeout expired.
         Timeval currentTime;
         getCurrentTime(currentTime);
         if (currentTime >= m_ExpireTime)
             throw DisconnectException("Connection closed after a period with no input.");
-
     } catch (InvalidProtocolException& ipe) {
         // The connection has to be closed by force. By what means??
         throw;
-
     } catch (DisconnectException& de) {
         // Some problem in packet processing means the connection must be closed.
         throw;
@@ -303,10 +288,6 @@ void LoginPlayer::disconnect(bool bDisconnected) {
     __BEGIN_TRY
 
     if (bDisconnected == UNDISCONNECTED) {
-        // Send a GCDisconnect packet to the client.
-        // GCDisconnect lcDisconnect;
-        // sendPacket( lcDisconnect );
-
         // Send whatever data is left in the output buffer.
         m_pOutputStream->flush();
     }
@@ -329,7 +310,6 @@ void LoginPlayer::disconnect(bool bDisconnected) {
     if (m_ID != "NONE") {
         try {
             defaultLoginAccountRepository().markLoggedOff(m_ID);
-
         } catch (const DatabaseError& error) {
             // A SQL failure arrives as END_DB's DatabaseError carrying the
             // line it wrote to DBError.log; rethrown as the Error the callers
@@ -348,10 +328,6 @@ void LoginPlayer::disconnect_nolog(bool bDisconnected) {
     __BEGIN_TRY
 
     if (bDisconnected == UNDISCONNECTED) {
-        // Send a GCDisconnect packet to the client.
-        // GCDisconnect lcDisconnect;
-        // sendPacket( lcDisconnect );
-
         // Send whatever data is left in the output buffer.
         m_pOutputStream->flush();
     }
@@ -374,7 +350,6 @@ void LoginPlayer::disconnect_nolog(bool bDisconnected) {
     if (m_ID != "NONE") {
         try {
             defaultLoginAccountRepository().markLoggedOff(m_ID);
-
         } catch (const DatabaseError& error) {
             // A SQL failure arrives as END_DB's DatabaseError carrying the
             // line it wrote to DBError.log; rethrown as the Error the callers
@@ -400,8 +375,6 @@ void LoginPlayer::sendPacket(Packet* pPacket) {
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    // LOG4("SEND PACKET to %s : %s(%d) %d /%d\n", m_ID.c_str() , pPacket->getPacketName().c_str() ,
-    // pPacket->getPacketID(), pPacket->getPacketSize(), m_pOutputStream->length() );
     Player::sendPacket(pPacket);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -549,11 +522,6 @@ void LoginPlayer::sendLGKickCharacter() {
             }
         } catch (NoSuchElementException&) {
             cout << "No GameServerInfo" << endl;
-            // LoginError (already connected)
-            //		LCLoginError lcLoginError;
-            //		lcLoginError.setErrorID(ALREADY_CONNECTED);
-            //		sendPacket(&lcLoginError);
-            //		setPlayerStatus(LPS_BEGIN_SESSION);
 
             setID("NONE"); // so that disconnect does not set it to LOGOFF
 

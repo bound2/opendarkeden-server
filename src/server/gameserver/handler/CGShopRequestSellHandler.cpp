@@ -63,8 +63,6 @@ void CGShopRequestSellHandler::execute(CGShopRequestSell* pPacket, Player* pPlay
         if (pPC->getStore()->hasItem(pItem))
             return sendFailPacket(pPacket, pPlayer);
 
-        // ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo( pItem->getItemClass(), pItem->getItemType() );
-        // Assert(pItemInfo!=NULL);
 
         // A unique item cannot be sold.
         // Certain item classes cannot be sold.
@@ -122,16 +120,6 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
         return sendFailPacket(pPacket, pPlayer);
 
     Creature* pNPCBase = NULL;
-    /*
-    try
-    {
-        pNPCBase = pZone->getCreature(NPCID);
-    }
-    catch (NoSuchElementException & nsee)
-    {
-        pNPCBase = NULL;
-    }
-    */
 
     // NoSuch removed.
     pNPCBase = pZone->getCreature(NPCID);
@@ -143,7 +131,6 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
 
     // Check that the player holds the item it wants to sell
     Inventory* pInventory = pPC->getInventory();
-    // Gold_t     playerMoney = pPC->getGold();
     Item* pItem = pInventory->getItemWithObjectID(ITEMOID);
     ItemNum_t itemNumber = pItem->getNum();
     Price_t itemPrice = g_pPriceManager->getPrice(pItem, pNPC->getMarketCondBuy(), SHOP_RACK_NORMAL, pPC) * itemNumber;
@@ -184,8 +171,6 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
     }
 
     // Pay the player for the goods.
-    // pPC->setGoldEx(playerMoney+itemPrice);
-    // by sigi. 2002.9.4
     pPC->increaseGoldEx(itemPrice);
 
     // Handle what has to be handled when the player sells goods.
@@ -239,7 +224,6 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
             boughtpkt.setGrade(pItem->getGrade());
             boughtpkt.setEnchantLevel(pItem->getEnchantLevel());
 
-            // pZone->broadcastPacket(pNPC->getX(), pNPC->getY(), &boughtpkt, pPC);
 
             try {
                 for (int zx = CenterX - 5; zx <= CenterX + 5; zx++) {
@@ -286,13 +270,11 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
                                 pNearPlayer->sendPacket(&boughtpkt);
                             }
                         }
-
                     } // end of for (ZoneCoord_t zy=CenterY-5; zy<=CenterY+5; zy++)
                 } // end of for (ZoneCoord_t zx=CenterX-5; zx<=CenterX+5; zx++)
             } catch (Throwable& t) {
                 filelog("shopbug_packet.log", "%s", t.toString().c_str());
             }
-
         } // if (index < SHOP_RACK_INDEX_MAX)
         else {
             SAFE_DELETE(pItem);
@@ -311,7 +293,6 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
     else
         okpkt.setShopVersion(pNPC->getShopVersion(SHOP_RACK_NORMAL));
     okpkt.setItemObjectID(ITEMOID);
-    // okpkt.setPrice(playerMoney+itemPrice);
     //  playerMoney + itemPrice can go past MAX_MONEY.
     //  2003.1.8 by bezz
     okpkt.setPrice(pPC->getGold());
@@ -345,16 +326,6 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
         return sendFailPacket(pPacket, pPlayer);
 
     Creature* pNPCBase = NULL;
-    /*
-    try
-    {
-        pNPCBase = pZone->getCreature(NPCID);
-    }
-    catch (NoSuchElementException & nsee)
-    {
-        pNPCBase = NULL;
-    }
-    */
 
     // NoSuch removed.
     pNPCBase = pZone->getCreature(NPCID);
@@ -406,8 +377,6 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
                                 g_pPriceManager->getPrice(pItemOnTile, pNPC->getMarketCondBuy(), SHOP_RACK_NORMAL, pPC);
 
                             // Increase the player's money.
-                            // pPC->setGoldEx(playerMoney+itemPrice);
-                            // by sigi. 2002.9.4
                             pPC->increaseGoldEx(itemPrice);
 
                             // Send GCShopSellOK to the player that sold the goods.
@@ -425,22 +394,6 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
                             if (g_pParkingCenter->hasMotorcycleBox(motorcycleID))
                                 g_pParkingCenter->deleteMotorcycleBox(motorcycleID);
 
-                            // If the NPC has enough room it keeps the item the player sold.
-                            // Only a special item is kept; a normal item is simply thrown away.
-                            // if (pItemOnTile->getOptionType() != 0)
-                            //{
-                            //	index = pNPC->getFirstEmptySlot(SHOP_RACK_SPECIAL);
-                            //	if (index < SHOP_RACK_INDEX_MAX)
-                            //	{
-                            //		pNPC->insertShopItem(SHOP_RACK_SPECIAL, index, pItemOnTile);
-                            //		// The NPC added a special item to its rack, so the shop version goes up.
-                            //		pNPC->increaseShopVersion(SHOP_RACK_SPECIAL);
-                            //	}
-                            //}
-                            // else
-                            //{
-                            //	SAFE_DELETE(pItemOnTile);
-                            //}
 
                             // The motorcycle was found, so the work is done.
                             return;
@@ -484,16 +437,6 @@ void CGShopRequestSellHandler::executeOpAllSkull(CGShopRequestSell* pPacket, Pla
         return sendFailPacket(pPacket, pPlayer);
 
     Creature* pNPCBase = NULL;
-    /*
-    try
-    {
-        pNPCBase = pZone->getCreature(NPCID);
-    }
-    catch (NoSuchElementException & nsee)
-    {
-        pNPCBase = NULL;
-    }
-    */
 
     // NoSuch removed.
     pNPCBase = pZone->getCreature(NPCID);
@@ -503,8 +446,6 @@ void CGShopRequestSellHandler::executeOpAllSkull(CGShopRequestSell* pPacket, Pla
 
     NPC* pNPC = dynamic_cast<NPC*>(pNPCBase);
     Inventory* pInventory = pPC->getInventory();
-    // by sigi. 2002.9.4
-    // Gold_t     playerMoney = pPC->getGold();
     Price_t itemPrice = 0;
     Item* pItem = NULL;
 
@@ -533,8 +474,6 @@ void CGShopRequestSellHandler::executeOpAllSkull(CGShopRequestSell* pPacket, Pla
     itemPrice = itemPrice * (g_pVariableManager->getHeadPriceBonus() / 100);
 
     // Pay the player for the goods.
-    // pPC->setGoldEx(playerMoney);
-    // by sigi. 2002.9.4
     pPC->increaseGoldEx(itemPrice);
 
     // Send GCShopSellOK to the player that sold the goods.

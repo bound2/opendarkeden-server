@@ -39,7 +39,6 @@ void CGCastingSkillHandler::execute(CGCastingSkill* pPacket, Player* pPlayer)
             _GCCastingSkill.setSkillType(pPacket->getSkillType());
         }
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
 #endif // __GAME_SERVER__

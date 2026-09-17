@@ -127,20 +127,9 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
                 }
             }
 
-            /*
-            #ifdef __XMAS_EVENT_CODE__
-                        Inventory* pInventory = pPC->getInventory();
-                        // If the item being picked up is a green gift box,
-                        // it cannot be picked up while a green gift box is in the inventory.
-                        if (pItem->getItemClass() == Item::ITEM_CLASS_EVENT_GIFT_BOX &&
-                            pItem->getItemType() == 0 &&
-                            pInventory->hasGreenGiftBox()) goto ERROR;
-            #endif
-            */
             pItem->whenPCTake(pPC);
 
             Item::ItemClass itemclass = pItem->getItemClass();
-            // ItemType_t itemtype = pItem->getItemType();
 
             // For a relic, a relic kind already held cannot be held again.
             // If it can be held, attach the effect that says the relic is held and
@@ -162,8 +151,6 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
 
                 pPC->setFlag(pEffect->getEffectClass());
                 pPC->addEffect(pEffect);
-                //				addSimpleCreatureEffect( pPC, (Effect::EffectClass)(Effect::EFFECT_CLASS_HAS_SWEEPER +
-                // pItem->getItemType()) );
 
                 GCAddEffect gcAddEffect;
                 gcAddEffect.setObjectID(pPC->getObjectID());
@@ -205,15 +192,11 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
 
             // Tell the others nearby that the item has disappeared.
             _GCDeleteObject.setObjectID(pItem->getObjectID());
-            //			pZone->broadcastPacket(pPC->getX(), pPC->getY(), &_GCDeleteObject, pPC);
-            //			pZone->broadcastPacket(ZoneX, ZoneY, &_GCDeleteObject, pPC);
             pZone->broadcastPacket(ZoneX, ZoneY, &_GCDeleteObject);
 
             Success = true;
 
             // Save the item.
-            // pItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-            // Item save optimization.
             char pField[80];
             sprintf(pField, "OwnerID='%s', Storage=%d", pPC->getName().c_str(), STORAGE_EXTRASLOT);
             pItem->tinysave(pField);
@@ -261,7 +244,6 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
                 pPC->setBaseLuck(10);
                 pPC->initAllStatAndSend();
             }
-
         } else {
             goto ERROR;
         }
@@ -272,7 +254,6 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
             remainTraceLog(pItem, zoneName, pCreature->getName(), ITEM_LOG_MOVE, DETAIL_PICKUP);
         }
     } catch (Throwable& t) {
-        // cerr << t.toString();
     }
 
 ERROR:
@@ -286,165 +267,3 @@ ERROR:
 
     __END_DEBUG_EX __END_CATCH
 }
-
-//////////////////////////////////////////////////////////////////////////////
-// This is the version with the event code in it.
-// The same event may be run again, so do not delete this!
-//////////////////////////////////////////////////////////////////////////////
-/*
-void CGAddZoneToMouseHandler::execute (CGAddZoneToMouse* pPacket , Player* pPlayer)
-
-{
-    __BEGIN_TRY __BEGIN_DEBUG_EX
-
-#ifdef __GAME_SERVER__
-
-    Assert(pPacket != NULL);
-    Assert(pPlayer != NULL);
-
-    try
-    {
-        GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
-        Creature*   pCreature   = pGamePlayer->getCreature();
-        bool        Success     = false;
-
-        if (pCreature == NULL) return;
-        PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-
-        Zone*       pZone   = pPC->getZone();
-        ZoneCoord_t ZoneX   = pPacket->getZoneX();
-        ZoneCoord_t ZoneY   = pPacket->getZoneY();
-
-        // Check that the bounds are not crossed.
-        if (!isValidZoneCoord(pZone, ZoneX, ZoneY)) goto ERROR;
-
-        Tile& _Tile = pZone->getTile(ZoneX, ZoneY);
-
-        // With no item on the tile there is of course nothing to add.
-        if (!_Tile.hasItem())
-        {
-            GCCannotAdd _GCCannotAdd;
-            _GCCannotAdd.setObjectID(pPacket->getObjectID());
-            pPlayer->sendPacket(&_GCCannotAdd);
-            return;
-        }
-
-        // A null item pointer of course cannot be added.
-        Item* pItem = _Tile.getItem();
-        if (pItem == NULL)
-        {
-            GCCannotAdd _GCCannotAdd;
-            _GCCannotAdd.setObjectID(pPacket->getObjectID());
-            pPlayer->sendPacket(&_GCCannotAdd);
-            return;
-        }
-
-        ObjectID_t ItemObjectID = pItem->getObjectID();
-
-        // Check that the item's ObjectID matches.
-        if (ItemObjectID == pPacket->getObjectID())
-        {
-            Item* pExtraItem = pPC->getExtraInventorySlotItem();
-
-            // If something is already held, the item cannot be added.
-            if (pExtraItem != NULL)
-            {
-                GCCannotAdd _GCCannotAdd;
-                _GCCannotAdd.setObjectID(pPacket->getObjectID());
-                pPlayer->sendPacket(&_GCCannotAdd);
-                return;
-            }
-
-            // If the item lying on the ground is an event skull...
-            if (pItem->getItemClass() == Item::ITEM_CLASS_SKULL &&
-                12 <= pItem->getItemType() && pItem->getItemType() <= 16)
-            {
-                uint scount = pGamePlayer->getSpecialEventCount();
-                int  prev   = (int)(scount/10);
-                int  cur    = 0;
-
-                switch (pItem->getItemType())
-                {
-                    case 12: scount += 1; break; // golden skull
-                    case 15: scount += 4; break; // crystal skull
-                    case 14: scount += 9; break; // black skull
-                    default: break;
-                }
-
-                // Save the count.
-                pGamePlayer->setSpecialEventCount(scount);
-                pGamePlayer->saveSpecialEventCount();
-                cur = scount/10;
-
-                // Delete the item from the zone.
-                pZone->deleteItem(pItem, ZoneX, ZoneY);
-
-                // Tell the one who picked it up that it worked.
-                GCDeleteandPickUpOK _GCDeleteandPickUpOK;
-                GCDeleteObject _GCDeleteObject;
-                _GCDeleteandPickUpOK.setObjectID(pItem->getObjectID());
-                pPlayer->sendPacket(&_GCDeleteandPickUpOK);
-                // Tell the others nearby that the item has disappeared.
-                _GCDeleteObject.setObjectID(pItem->getObjectID());
-                pZone->broadcastPacket(pPC->getX(), pPC->getY(), &_GCDeleteObject, pPC);
-
-                // Finally delete the actual item object.
-                SAFE_DELETE(pItem);
-
-                // Report the score at regular intervals.
-                StringStream msg;
-                msg << "Your current event points are " << pGamePlayer->getSpecialEventCount() << " points.";
-                GCSystemMessage gcMsg;
-                gcMsg.setMessage(msg.toString());
-                pPlayer->sendPacket(&gcMsg);
-
-                // Broadcast the score at regular intervals.
-                if (prev != cur)
-                {
-                    StringStream msg;
-                    msg << pPC->getName() << " has gained " << pGamePlayer->getSpecialEventCount() << " event
-points."; GCSystemMessage gcMsg; gcMsg.setMessage(msg.toString()); pPlayer->sendPacket(&gcMsg);
-                    pZone->broadcastPacket(pPC->getX(), pPC->getY(), &gcMsg , pPC);
-                }
-
-                return;
-            }
-
-            // Delete the item from the zone and hang it on the mouse.
-            pZone->deleteItem(pItem, ZoneX, ZoneY);
-            pPC->addItemToExtraInventorySlot(pItem);
-
-            // Tell the one who picked it up that it worked.
-            GCDeleteandPickUpOK _GCDeleteandPickUpOK;
-            GCDeleteObject _GCDeleteObject;
-            _GCDeleteandPickUpOK.setObjectID(pItem->getObjectID());
-            pPlayer->sendPacket(&_GCDeleteandPickUpOK);
-
-            // Tell the others nearby that the item has disappeared.
-            _GCDeleteObject.setObjectID(pItem->getObjectID());
-            pZone->broadcastPacket(pPC->getX(), pPC->getY(), &_GCDeleteObject, pPC);
-
-            Success = true;
-
-            // Save the item.
-            pItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-        }
-
-        if (!Success)
-        {
-            GCCannotAdd _GCCannotAdd;
-            _GCCannotAdd.setObjectID(pPacket->getObjectID());
-            pPlayer->sendPacket(&_GCCannotAdd);
-        }
-    }
-    catch (Throwable & t)
-    {
-        //cerr << t.toString();
-    }
-
-#endif	// __GAME_SERVER__
-
-    __END_DEBUG_EX __END_CATCH
-
-}
-*/

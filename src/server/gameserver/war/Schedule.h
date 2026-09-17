@@ -53,9 +53,6 @@ protected:
     ScheduleType m_ScheduleType;
     Work* m_pWork;
     VSDateTime m_ScheduledTime;
-    //	VSDateTime		m_LimitCheckDateTime;
-    //	VSTime			m_LimitCheckTime;
-    //	int				m_WrongCount;
 
     Scheduler* m_pScheduler;
 };

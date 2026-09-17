@@ -109,7 +109,6 @@ void CGUseMessageItemFromInventoryHandler::execute(CGUseMessageItemFromInventory
         executeEventFromMessage(pPacket, pPlayer);
         break;
     default: {
-        // Assert(false);
         //  by sigi. 2002.12.25
         filelog("useItemError.txt", "[CGUseMessageItemFromInventory] No Such ItemClassHandler=%s, owner=%s",
                 ItemClass2ShortString[pItem->getItemClass()].c_str(), pCreature->getName().c_str());
@@ -207,16 +206,6 @@ void CGUseMessageItemFromInventoryHandler::executeEventTree(CGUseMessageItemFrom
         }
     }
 
-    /*	// Add the tree to the zone. (the tree uses a monster corpse)
-        MonsterCorpse* pMonsterCorpse = new MonsterCorpse( 482, pPacket->getMessage(), 2 );
-        Assert(pMonsterCorpse!=NULL);
-
-        pZone->getObjectRegistry().registerObject( pMonsterCorpse );
-
-        // Add the created corpse to the zone.
-        int delayTime = g_pVariableManager->getVariable( CHRISTMAS_TREE_DECAY_TIME ); // by sigi. 2002.12.17
-        TPOINT pt = pZone->addItem( pMonsterCorpse, pPC->getX(), pPC->getY(), true, delayTime );	// after 6 hours
-       the tree (corpse) disappears. if (pt.x == -1)*/
     if (!createBulletinBoard(pZone, pPC->getX(), pPC->getY(), MType, pPacket->getMessage(),
                              VSDateTime::currentDateTime().addSecs(time))) {
         GCCannotUse _GCCannotUse;
@@ -235,7 +224,6 @@ void CGUseMessageItemFromInventoryHandler::executeEventTree(CGUseMessageItemFrom
     GCUseOK gcUseOK;
     pGamePlayer->sendPacket(&gcUseOK);
 
-    // pZone->broadcastPacket( pCreature->getX(), pCreature->getY(), &gcAddEffectToTile );
 
 #endif
     __END_DEBUG_EX __END_CATCH
@@ -295,7 +283,6 @@ void CGUseMessageItemFromInventoryHandler::executeEventFromMessage(CGUseMessageI
     message += color.c_str();
     _GCSystemMessage.setMessage(message);
     _GCSystemMessage.setType(SYSTEM_MESSAGE_PLAYER);
-    // pZone->broadcastPacket( pCreature->getX(), pCreature->getY(), &_GCSystemMessage );
     g_pZoneGroupManager->broadcast(&_GCSystemMessage);
     GCUseOK gcUseOK;
     pGamePlayer->sendPacket(&gcUseOK);

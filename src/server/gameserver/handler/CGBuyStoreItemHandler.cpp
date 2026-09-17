@@ -60,7 +60,6 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
     if (pStorePC == NULL) {
         filelog("Store.log", "[%s:%s] (%u) ±×·± À¯Àú°¡ ¾ø½À´Ï´Ù.", pGamePlayer->getID().c_str(), pPC->getName().c_str(),
                 pPacket->getOwnerObjectID());
-        //		errorMsg.setMessage("The seller cannot be found.");
         errorNotice.setCode(NOTICE_EVENT_CANNOT_FIND_STORE);
         pGamePlayer->sendPacket(&errorNotice);
         return;
@@ -76,7 +75,6 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
     if (pStore == NULL || !pStore->isOpen()) {
         filelog("Store.log", "[%s:%s] (%s) »óÁ¡ÀÌ ¿­·ÁÀÖÁö ¾Ê½À´Ï´Ù..", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pStorePC->getName().c_str());
-        //		errorMsg.setMessage("The store is already closed.");
         errorNotice.setCode(NOTICE_EVENT_STORE_CLOSED);
         pGamePlayer->sendPacket(&errorNotice);
         return;
@@ -86,7 +84,6 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
     if (!storeItem.isExists()) {
         filelog("Store.log", "[%s:%s] (%s:%u) ÇØ´ç À§Ä¡¿¡ ¾ÆÀÌÅÛÀÌ ¾ø½À´Ï´Ù..", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pStorePC->getName().c_str(), pPacket->getIndex());
-        //		errorMsg.setMessage("The item has already been sold or withdrawn by the seller.");
         errorNotice.setCode(NOTICE_EVENT_ITEM_NOT_FOUND);
         pGamePlayer->sendPacket(&errorNotice);
         return;
@@ -100,7 +97,6 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
     if (pPC->getGold() < price) {
         filelog("Store.log", "[%s:%s] (%s:%u) (%u<%u) µ·ÀÌ ¸ðÀÚ¶ø´Ï´Ù.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pStorePC->getName().c_str(), pPacket->getIndex(), pPC->getGold(), price);
-        //		errorMsg.setMessage("There is not enough money.");
         errorNotice.setCode(NOTICE_EVENT_NOT_ENOUGH_MONEY);
         pGamePlayer->sendPacket(&errorNotice);
         return;
@@ -109,7 +105,6 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
     if (pStorePC->getGold() > MAX_MONEY - price) {
         filelog("Store.log", "[%s:%s] (%s:%u) (%u,%u) µ·ÀÌ ³ÑÄ¨´Ï´Ù.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pStorePC->getName().c_str(), pPacket->getIndex(), pStorePC->getGold(), price);
-        //		errorMsg.setMessage("The seller holds too much money, so it cannot be bought.");
         errorNotice.setCode(NOTICE_EVENT_TOO_MUCH_MONEY);
         pGamePlayer->sendPacket(&errorNotice);
         errorMsg.setMessage("ÉíÉÏ½ð±ÒÌ«¶à,ÎÞ·¨½øÐÐ½»Ò×.");
@@ -143,7 +138,6 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
     if (!pInventory->getEmptySlot(pItem, emptyPos)) {
         filelog("Store.log", "[%s:%s] (%s:%u) »ì »ç¶÷ ÀÎº¥Åä¸®¿¡ ÀÚ¸®°¡ ¾ø½À´Ï´Ù.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pStorePC->getName().c_str(), pPacket->getIndex());
-        //		errorMsg.setMessage("There is no free space in the inventory, so it cannot be bought.");
         errorNotice.setCode(NOTICE_EVENT_NO_INVENTORY_SPACE);
         pGamePlayer->sendPacket(&errorNotice);
         return;

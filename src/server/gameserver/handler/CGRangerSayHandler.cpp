@@ -49,19 +49,6 @@ void CGRangerSayHandler::execute(CGRangerSay* pPacket, Player* pPlayer)
     // Broadcast to every user
     g_pZoneGroupManager->pushBroadcastPacket(&gcSystemMessage, &filter);
 
-/*	hash_map<ZoneGroupID_t, ZoneGroup*>::const_iterator itr = g_pZoneGroupManager->getZoneGroups().begin();
-    hash_map<ZoneGroupID_t, ZoneGroup*>::const_iterator endItr = g_pZoneGroupManager->getZoneGroups().end();
-
-    for ( ; itr != endItr; ++itr )
-    {
-        GCSystemMessage* pSystemMessage = new GCSystemMessage();
-        pSystemMessage->setMessage( msg.toString() );
-        pSystemMessage->setType( SYSTEM_MESSAGE_RANGER_SAY );
-        pSystemMessage->setRace( race );
-
-        itr->second->getZonePlayerManager()->pushBroadcastPacket( pSystemMessage );
-    }
-*/
 #endif
 
     __END_CATCH

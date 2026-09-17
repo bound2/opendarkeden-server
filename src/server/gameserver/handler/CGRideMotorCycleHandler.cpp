@@ -70,14 +70,12 @@ void CGRideMotorCycleHandler::execute(CGRideMotorCycle* pPacket, Player* pPlayer
                 if (pSlayer->hasRelicItem() || pSlayer->isFlag(Effect::EFFECT_CLASS_REFINIUM_TICKET) ||
                     pSlayer->isFlag(Effect::EFFECT_CLASS_HAS_FLAG) ||
                     pSlayer->isFlag(Effect::EFFECT_CLASS_HAS_SWEEPER)) {
-                    // cout << "A motorcycle cannot be ridden while holding a relic" << endl;
                     GCRideMotorCycleFailed _GCRideMotorCycleFailed;
                     pGamePlayer->sendPacket(&_GCRideMotorCycleFailed);
                     return;
                 }
 
                 if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_MOTORCYCLE) {
-                    // cout << "Item NULL or Not Motorcycle" << endl;
                     GCRideMotorCycleFailed _GCRideMotorCycleFailed;
                     pGamePlayer->sendPacket(&_GCRideMotorCycleFailed);
                     return;
@@ -90,7 +88,6 @@ void CGRideMotorCycleHandler::execute(CGRideMotorCycle* pPacket, Player* pPlayer
                 }
 
                 if (pSlayer->isDead() || pSlayer->isFlag(Effect::EFFECT_CLASS_COMA)) {
-                    // cout << "Is Dead or Coma" << endl;
                     GCRideMotorCycleFailed _GCRideMotorCycleFailed;
                     pGamePlayer->sendPacket(&_GCRideMotorCycleFailed);
                     return;
@@ -135,7 +132,6 @@ void CGRideMotorCycleHandler::execute(CGRideMotorCycle* pPacket, Player* pPlayer
 
                         pSlayer->getGQuestManager()->rideMotorcycle();
                     } else {
-                        // cout << "Not has key : " << TargetItemID << endl;
                     }
                 }
             }
@@ -146,7 +142,6 @@ void CGRideMotorCycleHandler::execute(CGRideMotorCycle* pPacket, Player* pPlayer
             }
         }
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
 #endif // __GAME_SERVER__

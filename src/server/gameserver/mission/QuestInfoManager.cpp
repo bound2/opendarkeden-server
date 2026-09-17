@@ -126,29 +126,3 @@ QuestStatus* QuestInfoManager::makeQuestStatus(QuestID_t qID, PlayerCreature* pP
 
     __END_CATCH
 }
-
-/*bool QuestInfoManager::canGiveReward( QuestID_t qID, PlayerCreature* pPC ) const
-{
-    __BEGIN_TRY
-
-    QuestInfoHashMap::const_iterator itr = m_QuestInfos.find( qID );
-
-    if ( itr == m_QuestInfos.end() ) return false;
-
-    return itr->second->canGiveReward( pPC );
-
-    __END_CATCH
-}
-
-bool QuestInfoManager::giveReward( QuestID_t qID, PlayerCreature* pPC ) const
-{
-    __BEGIN_TRY
-
-    QuestInfoHashMap::const_iterator itr = m_QuestInfos.find( qID );
-
-    if ( itr == m_QuestInfos.end() ) return false;
-
-    return itr->second->giveReward( pPC );
-
-    __END_CATCH
-}*/

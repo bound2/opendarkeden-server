@@ -30,7 +30,6 @@ void CGGQuestCancelHandler::execute(CGGQuestCancel* pPacket, Player* pPlayer)
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pGamePlayer->getCreature());
     Assert(pPC != NULL);
 
-    // cout << pPC->getName() << " Cancel : " << pPacket->getQuestID() << endl;
 
     pPC->getGQuestManager()->cancel(pPacket->getQuestID());
 

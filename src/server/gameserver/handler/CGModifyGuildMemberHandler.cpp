@@ -28,7 +28,6 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
 
 #ifdef __GAME_SERVER__
 
-        // cout << "CGModifyGuildMember received." << endl;
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
@@ -56,7 +55,6 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
     if (pGuildMember == NULL)
         return;
 
-    // cout << "get guild" << endl;
 
     if (pPacket->getGuildMemberRank() == GuildMember::GUILDMEMBER_RANK_DENY) {
         ////////////////////////////////////////////////////////
@@ -80,7 +78,6 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
         gsExpelGuildMember.setName(pPacket->getName());
         gsExpelGuildMember.setSender(pPlayerCreature->getName());
 
-        // cout << "send GSExpelGuildMember" << endl;
         g_pSharedServerManager->sendPacket(&gsExpelGuildMember);
     } else {
         if (pGuild->getActiveMemberCount() >= MAX_GUILDMEMBER_ACTIVE_COUNT) {
@@ -113,7 +110,6 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
         gsModifyGuildMember.setGuildMemberRank(pPacket->getGuildMemberRank());
         gsModifyGuildMember.setSender(pPlayerCreature->getName());
 
-        // cout << "send GSModifyGuildMember" << endl;
         g_pSharedServerManager->sendPacket(&gsModifyGuildMember);
     }
 

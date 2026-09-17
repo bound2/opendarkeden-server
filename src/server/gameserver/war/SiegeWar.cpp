@@ -104,26 +104,6 @@ void SiegeWar::executeStart()
 
     ZoneID_t siegeZoneID = SiegeManager::Instance().getSiegeZoneID(m_CastleZoneID);
     Assert(siegeZoneID != 0);
-    /*
-        GuildID_t OwnerGuildID = pCastleInfo->getGuildID();
-        if ( !pCastleInfo->isCommon() )
-        {
-            SiegeManager::Instance().recallGuild( m_CastleZoneID, siegeZoneID, OwnerGuildID, 1, 200 );
-            filelog("WarLog.txt", "guild %d owns the castle.", OwnerGuildID);
-        }
-
-        if ( m_ReinforceGuildID != 0 )
-        {
-            SiegeManager::Instance().recallGuild( m_CastleZoneID, siegeZoneID, m_ReinforceGuildID, 2, 200 );
-            filelog("WarLog.txt", "guild %d reinforces the defence.", m_ReinforceGuildID);
-        }
-
-        for ( int i=0; i<m_ChallangerGuildCount; ++i )
-        {
-            if ( m_ChallangerGuildID[i] != 0 ) SiegeManager::Instance().recallGuild( m_CastleZoneID, siegeZoneID,
-       m_ChallangerGuildID[i], 3+i, 200 ); filelog("WarLog.txt", "guild %d is attacker number %d.", m_ChallangerGuildID[i],
-       i);
-        }*/
 
     SiegeManager::Instance().start(siegeZoneID);
 
@@ -149,12 +129,6 @@ void SiegeWar::executeEnd()
     if (m_bModifyCastleOwner) {
         g_pCastleInfoManager->modifyCastleOwner(m_CastleZoneID, m_WinnerRace, m_WinnerGuildID);
 
-        /*		if ( g_pConfig->getPropertyInt("IsNetMarble") == 1 )
-                {
-                    char sCommand[100];
-                    sprintf( sCommand, "*world *command setCastleOwnerGuild %u %u", m_CastleZoneID, m_WinnerGuildID );
-                    CGSayHandler::opworld( NULL, sCommand, 0, true );
-                }*/
 
         char sCommand[100];
         sprintf(sCommand, "*command setCastleOwnerGuild %u %u", m_CastleZoneID, m_WinnerGuildID);
@@ -271,8 +245,6 @@ GuildID_t SiegeWar::getWinnerGuildID(PlayerCreature* pPC)
     // in a guild war : pPC's GuildID when the applying guild is pPC's guild
     // 					 otherwise the original castle owner's GuildID when it matches that
     //					 otherwise COMMON_GUILD_ID
-    //	CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo( m_CastleZoneID );
-    //	Assert( pCastleInfo!=NULL );
 
     return pPC->getGuildID();
 

@@ -79,7 +79,6 @@
 #include "war/WarSystem.h"
 
 namespace de::gm {
-
 static const Effect::EffectClass FirecrackerEffects[] = {
     Effect::EFFECT_CLASS_FIRE_CRACKER_1,             // 0
     Effect::EFFECT_CLASS_FIRE_CRACKER_2,             // 1
@@ -98,13 +97,11 @@ static const Effect::EffectClass FirecrackerEffects[] = {
 };
 
 namespace {
-
 // A body that ends here answers nothing at all: the console sends its reply
 // only while bSendPacket stands.
 void answerNothing(bool& bSendPacket) {
     bSendPacket = false;
 }
-
 } // namespace
 
 //////////////////////////////////////////////////////////////////////////////
@@ -360,7 +357,6 @@ void opClearInventory(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
                         if (pItem->getItemClass() != Item::ITEM_CLASS_KEY && !isRelicItem(pItem)) {
                             // Leave a log for a unique item.
                             if (pItem->isUnique()) {
-                                // UniqueItemManager::deleteItem( pItem->getItemClass(), pItem->getItemType() );
                                 filelog("uniqueItem.txt", "[ClearInventory] %s", pItem->toString().c_str());
                             }
 
@@ -448,7 +444,6 @@ void opSetCastleOwner(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
                 bSendPacket = true;
             }
         }
-
     } else {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NOT_IN_CASTLE));
         bSendPacket = true;
@@ -462,8 +457,6 @@ void opSetCastleOwnerGuild(GamePlayer* pGamePlayer, const string& value1, GCSyst
     ZoneID_t zoneID = (ZoneID_t)atoi(trim(value1.substr(0, j)).c_str());
     GuildID_t guildID = (GuildID_t)atoi(trim(value1.substr(j + 1, value1.size() - j - 1)).c_str());
 
-    //		cout << zoneID << endl;
-    //		cout << guildID << endl;
 
     bSendPacket = false;
 
@@ -533,14 +526,10 @@ void opRemoveWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
     }
 
     if (g_pWarSystem->removeWar(zoneID)) {
-        //			StringStream msg;
-        //			msg << "[" << (int)zoneID << "] the guild war was removed.";
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_GUILD_WAR_REMOVED), (int)zoneID);
         gcSystemMessage.setMessage(msg);
     } else {
-        //			StringStream msg;
-        //			msg << "[" << (int)zoneID << "] there is no guild war in progress.";
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_NO_GUILD_WAR_IN_ACTIVE), (int)zoneID);
         gcSystemMessage.setMessage(msg);
@@ -552,12 +541,8 @@ void opRemoveWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
 void opRemoveRaceWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage,
                      bool& bSendPacket) {
     if (g_pWarSystem->removeRaceWar()) {
-        //			StringStream msg;
-        //			msg << "the race war was removed.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_RACE_WAR_REMOVED));
     } else {
-        //			StringStream msg;
-        //			msg << "there is no race war in progress.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_RACE_WAR_IN_ACTIVE));
     }
     bSendPacket = true;
@@ -984,10 +969,6 @@ void opBulletin(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& 
         int time = 0;
 
         switch (bulletinLevel) {
-            //				case 0:
-            //					MType = 482;
-            //					time = g_pVariableManager->getVariable( CHRISTMAS_TREE_DECAY_TIME ) / 10;
-            //					break;
         case 1:
             MType = 650;
             time = 21600;
@@ -1591,5 +1572,4 @@ void opPrintTile(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
         cout << endl;
     }
 }
-
 } // namespace de::gm

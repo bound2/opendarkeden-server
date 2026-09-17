@@ -34,7 +34,6 @@ void GLIncomingConnectionOKHandler::execute(GLIncomingConnectionOK* pPacket)
 #ifdef __LOGIN_SERVER__
 
         try {
-
         // Reach the player object through the player id.
         __ENTER_CRITICAL_SECTION((*g_pLoginPlayerManager))
 
@@ -47,22 +46,16 @@ void GLIncomingConnectionOKHandler::execute(GLIncomingConnectionOK* pPacket)
             // internal one. pLoginPlayer->getGameServerIP() get the outside one.
 
             LCReconnect lcReconnect;
-            // lcReconnect.setGameServerIP(pPacket->getHost());
             lcReconnect.setGameServerIP(pLoginPlayer->getGameServerIP());
             lcReconnect.setGameServerPort(pPacket->getTCPPort());
             lcReconnect.setKey(pPacket->getKey());
 
             // Send the LCReconnect packet.
             pLoginPlayer->sendPacket(&lcReconnect);
-
-            // cout << "GLIncomingConnectionOKHandler Send to Client Required Reconnect ServerIP : " <<
-            // pPacket->getHost() << endl;
         } else {
-            // cout << "Invalid Player Status.. must be AFTER_SENDING_LG_INCOMING_CONNECTION" << endl;
         }
 
         // Close the connection.
-        // pLoginPlayer->disconnect(UNDISCONNECTED);
         pLoginPlayer->disconnect_nolog(UNDISCONNECTED);
 
         // Remove it from the LPM.
@@ -72,10 +65,7 @@ void GLIncomingConnectionOKHandler::execute(GLIncomingConnectionOK* pPacket)
         SAFE_DELETE(pLoginPlayer);
 
         __LEAVE_CRITICAL_SECTION((*g_pLoginPlayerManager))
-
-
     } catch (NoSuchElementException& nsee) {
-        // cout << "Player not exist or already disconnected" << endl;
     }
 
 #endif

@@ -89,34 +89,23 @@ void CGMouseToStashHandler::execute(CGMouseToStash* pPacket, Player* pPlayer)
                     pMouseItem->setNum(AddNum + CurrentNum - MaxStack);
 
                     // Save the changed information to the DB.
-                    // pStashItem->save(pPC->getName(), STORAGE_STASH, 0, rack, index);
-                    // Item save optimization.
                     char pField[80];
                     sprintf(pField, "Num=%d, Storage=%d, X=%d, Y=%d", MaxStack, STORAGE_STASH, rack, index);
                     pStashItem->tinysave(pField);
 
-                    // pMouseItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                    //  Item save optimization.
                     sprintf(pField, "Num=%d, Storage=%d", pMouseItem->getNum(), STORAGE_EXTRASLOT);
                     pMouseItem->tinysave(pField);
 
 
-                    // log(LOG_STASH_ADD_ITEM, pPC->getName(), "", pMouseItem->toString());
-
                     Success = true;
                 } else {
                     pPC->deleteItemFromExtraInventorySlot();
-                    //					pMouseItem->whenPCLost(pPC);
 
                     pStashItem->setNum(pStashItem->getNum() + pMouseItem->getNum());
-                    // pStashItem->save(pPC->getName(), STORAGE_STASH, 0, rack, index);
-                    //  Item save optimization.
                     char pField[80];
                     sprintf(pField, "Num=%d, Storage=%d, X=%d, Y=%d", pStashItem->getNum(), STORAGE_STASH, rack, index);
                     pStashItem->tinysave(pField);
 
-
-                    // log(LOG_STASH_ADD_ITEM, pPC->getName(), "", pMouseItem->toString());
 
                     // The two items became one, so
                     // the item that came in to be added is deleted.
@@ -131,27 +120,19 @@ void CGMouseToStashHandler::execute(CGMouseToStash* pPacket, Player* pPlayer)
                 pPC->deleteItemFromExtraInventorySlot();
                 pPC->addItemToExtraInventorySlot(pStashItem);
 
-                //				pStashItem->whenPCTake(pPC);
 
                 // Put the item that hung on the mouse into the Stash.
                 pStash->remove(rack, index);
                 pStash->insert(rack, index, pMouseItem);
 
-                //				pMouseItem->whenPCLost(pPC);
 
-                // pStashItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                //  Item save optimization.
                 char pField[80];
                 sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
                 pStashItem->tinysave(pField);
 
-                // pMouseItem->save(pPC->getName(), STORAGE_STASH, 0, rack, index);
-                //  Item save optimization.
                 sprintf(pField, "Storage=%d, X=%d, Y=%d", STORAGE_STASH, rack, index);
                 pMouseItem->tinysave(pField);
 
-                // log(LOG_STASH_REMOVE_ITEM, pPC->getName(), "", pStashItem->toString());
-                // log(LOG_STASH_ADD_ITEM, pPC->getName(), "", pMouseItem->toString());
 
                 Success = true;
             }
@@ -160,15 +141,10 @@ void CGMouseToStashHandler::execute(CGMouseToStash* pPacket, Player* pPlayer)
             // Put a given item into the Stash.
             pStash->insert(rack, index, pMouseItem);
             pPC->deleteItemFromExtraInventorySlot();
-            //			pMouseItem->whenPCLost(pPC);
-            // pMouseItem->save(pPC->getName(), STORAGE_STASH, 0, rack, index);
-            // Item save optimization.
             char pField[80];
             sprintf(pField, "Storage=%d, X=%d, Y=%d", STORAGE_STASH, rack, index);
             pMouseItem->tinysave(pField);
 
-
-            // log(LOG_STASH_ADD_ITEM, pPC->getName(), "", pMouseItem->toString());
 
             Success = true;
         }
@@ -188,7 +164,6 @@ void CGMouseToStashHandler::execute(CGMouseToStash* pPacket, Player* pPlayer)
             }
         }
     } catch (Throwable& t) {
-        // cout << t.toString();
     }
 
 #endif // __GAME_SERVER__

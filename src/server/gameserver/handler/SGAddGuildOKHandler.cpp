@@ -68,7 +68,6 @@ void SGAddGuildOKHandler::execute(SGAddGuildOK* pPacket)
 
     __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
 
-    // cout << pGuild->toString() << endl;
 
 #endif
 

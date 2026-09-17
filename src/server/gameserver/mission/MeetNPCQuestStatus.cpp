@@ -14,7 +14,6 @@ GCQuestStatus* MeetNPCQuestStatus::makeStatusPacket() const {
         pPacket->setRemainTime((DWORD)VSDateTime::currentDateTime().secsTo(m_Deadline));
     }
 
-    //	cout << "Make Packet : " << pPacket->toString() << endl;
 
     return pPacket;
 }

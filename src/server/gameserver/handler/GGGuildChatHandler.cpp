@@ -26,8 +26,6 @@ static void broadcastGuild(Guild* pGuild, Packet* pPacket) {
     list<string> currentMembers = pGuild->getCurrentMembers();
     list<string>::const_iterator itr = currentMembers.begin();
     for (; itr != currentMembers.end(); itr++) {
-        // g_pPCFinder->sendPacket((*itr), &gcGuildChat);
-
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
         Creature* pCreature = g_pPCFinder->getCreature_LOCKED((*itr));

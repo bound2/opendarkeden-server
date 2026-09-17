@@ -138,7 +138,6 @@ void GameServerManager::run() {
                 dummyQueryTime.tv_sec = (60 + rand() % 30) * 60;
             }
         }
-
     } catch (Throwable& t) {
         filelog("sharedserverBug.txt", "%s", t.toString().c_str());
         throw;
@@ -196,7 +195,6 @@ void GameServerManager::broadcast(Packet* pPacket, Player* pPlayer) {
 void GameServerManager::select() {
     __BEGIN_TRY
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     // Copy m_Timeout[0] into m_Timeout[1].
     m_Timeout[1].tv_sec = m_Timeout[0].tv_sec;
@@ -212,10 +210,8 @@ void GameServerManager::select() {
         SocketAPI::select_ex(m_MaxFD + 1, &m_ReadFDs[1], &m_WriteFDs[1], &m_ExceptFDs[1], &m_Timeout[1]);
     } catch (InterruptedException& ie) {
         // No signal can arrive here.
-        // log(LOG_GAMESERVER_ERROR, "", "", ie.toString());
     }
 
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }
@@ -230,11 +226,9 @@ void GameServerManager::select() {
 void GameServerManager::processInputs() {
     __BEGIN_TRY
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
-        // m_Mutex.unlock();
         return;
     }
 
@@ -284,7 +278,6 @@ void GameServerManager::processInputs() {
         }
     }
 
-    //	__LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }
@@ -298,15 +291,12 @@ void GameServerManager::processCommands() {
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
-        // m_Mutex.unlock();
         return;
     }
 
-    // copyPlayers();
 
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         if (i != m_SocketID && m_pGameServerPlayers[i] != NULL) {
@@ -344,7 +334,6 @@ void GameServerManager::processCommands() {
         }
     }
 
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_DEBUG
     __END_CATCH
@@ -358,15 +347,12 @@ void GameServerManager::processCommands() {
 void GameServerManager::processOutputs() {
     __BEGIN_TRY
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
-        // m_Mutex.unlock();
         return;
     }
 
-    // copyPlayers();
 
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         if (FD_ISSET(i, &m_WriteFDs[1])) {
@@ -398,7 +384,6 @@ void GameServerManager::processOutputs() {
                     } catch (ConnectException& ce) {
                         StringStream msg;
                         msg << "DISCONNECT " << pGameServerPlayer->getID() << "(" << ce.toString() << ")";
-                        // log(LOG_GAMESERVER_ERROR, "", "", msg.toString());
 
                         try {
                             // The connection is already gone, so the output buffer must not be flushed.
@@ -413,7 +398,6 @@ void GameServerManager::processOutputs() {
                     } catch (ProtocolException& cp) {
                         StringStream msg;
                         msg << "DISCONNECT " << pGameServerPlayer->getID() << "(" << cp.toString() << ")";
-                        // log(LOG_GAMESERVER_ERROR, "", "", cp.toString());
 
                         // The connection is already gone, so the output buffer must not be flushed.
 
@@ -432,7 +416,6 @@ void GameServerManager::processOutputs() {
         }
     }
 
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }
@@ -447,15 +430,12 @@ void GameServerManager::processOutputs() {
 void GameServerManager::processExceptions() {
     __BEGIN_TRY
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
-        // m_Mutex.unlock();
         return;
     }
 
-    // copyPlayers();
 
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         if (FD_ISSET(i, &m_ExceptFDs[1])) {
@@ -471,7 +451,6 @@ void GameServerManager::processExceptions() {
                     try {
                         pGameServerPlayer->disconnect();
                     } catch (Throwable& t) {
-                        // cerr << t.toString() << endl;
                     }
 
                     deleteGameServerPlayer(i);
@@ -479,12 +458,10 @@ void GameServerManager::processExceptions() {
                     delete pGameServerPlayer;
                 }
             } else {
-                // cerr << "Exception in Loginserver to Gameserver" << endl;
             }
         }
     }
 
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }
@@ -526,8 +503,6 @@ void GameServerManager::acceptNewConnection() {
         // set socket option (!NonBlocking, NoLinger)
         client->setLinger(0);
 
-        // StringStream msg;
-        // cout << "NEW CONNECTION FROM " << client->getHost() << ":" << client->getPort();
 
         // Create the player object with the client socket as parameter.
         GameServerPlayer* pGameServerPlayer = new GameServerPlayer(client);
@@ -544,7 +519,6 @@ void GameServerManager::acceptNewConnection() {
     } catch (NoSuchElementException&) {
         StringStream msg2;
         msg2 << "ILLEGAL ACCESS FROM " << client->getHost() << ":" << client->getPort();
-        // log(LOG_GAMESERVER, "", "", msg2.toString());
 
         // The connection is not authenticated, so cut it.
         client->send("Error : Unauthorized access", 27);
@@ -553,7 +527,6 @@ void GameServerManager::acceptNewConnection() {
     } catch (Throwable& t) {
         try {
             if (client != NULL) {
-                //				client->close();
                 SAFE_DELETE(client);
             }
         } catch (Throwable& t) {

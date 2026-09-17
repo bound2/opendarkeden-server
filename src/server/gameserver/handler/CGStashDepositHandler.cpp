@@ -54,17 +54,11 @@ void CGStashDepositHandler::execute(CGStashDeposit* pPacket, Player* pPlayer) {
         // only part goes in and the rest stays with the player.
         if (pSlayer->getStashGold() + amount > MAX_MONEY) {
             Gold_t margin = MAX_MONEY - pSlayer->getStashGold();
-            // pSlayer->setGoldEx(pSlayer->getGold() - margin);
-            // pSlayer->setStashGoldEx(pSlayer->getStashGold() + margin);
-            //  by sigi. 2002.9.4
             pSlayer->decreaseGoldEx(margin);
             pSlayer->increaseStashGoldEx(margin);
 
             log(LOG_STASH_ADD_MONEY, pSlayer->getName(), "", itos(margin));
         } else {
-            // pSlayer->setGoldEx(pSlayer->getGold() - amount);
-            // pSlayer->setStashGoldEx(pSlayer->getStashGold() + amount);
-            //  by sigi. 2002.9.4
             pSlayer->decreaseGoldEx(amount);
             pSlayer->increaseStashGoldEx(amount);
 
@@ -78,15 +72,11 @@ void CGStashDepositHandler::execute(CGStashDeposit* pPacket, Player* pPlayer) {
 
         if (pVampire->getStashGold() + amount > MAX_MONEY) {
             Gold_t margin = MAX_MONEY - pVampire->getStashGold();
-            // pVampire->setGoldEx(pVampire->getGold() - margin);
-            // pVampire->setStashGoldEx(pVampire->getStashGold() + margin);
             pVampire->decreaseGoldEx(margin);
             pVampire->increaseStashGoldEx(margin);
 
             log(LOG_STASH_ADD_MONEY, pVampire->getName(), "", itos(margin));
         } else {
-            // pVampire->setGoldEx(pVampire->getGold() - amount);
-            // pVampire->setStashGoldEx(pVampire->getStashGold() + amount);
             pVampire->decreaseGoldEx(amount);
             pVampire->increaseStashGoldEx(amount);
 
@@ -100,15 +90,11 @@ void CGStashDepositHandler::execute(CGStashDeposit* pPacket, Player* pPlayer) {
 
         if (pOusters->getStashGold() + amount > MAX_MONEY) {
             Gold_t margin = MAX_MONEY - pOusters->getStashGold();
-            // pOusters->setGoldEx(pOusters->getGold() - margin);
-            // pOusters->setStashGoldEx(pOusters->getStashGold() + margin);
             pOusters->decreaseGoldEx(margin);
             pOusters->increaseStashGoldEx(margin);
 
             log(LOG_STASH_ADD_MONEY, pOusters->getName(), "", itos(margin));
         } else {
-            // pOusters->setGoldEx(pOusters->getGold() - amount);
-            // pOusters->setStashGoldEx(pOusters->getStashGold() + amount);
             pOusters->decreaseGoldEx(amount);
             pOusters->increaseStashGoldEx(amount);
 

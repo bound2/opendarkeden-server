@@ -53,14 +53,10 @@ public:
     // destructor
     ~LoginPlayer() noexcept;
 
-    // read socket's receive buffer and fill input buffer
-    // virtual void processInput () ;
 
     // parse packet and execute handler for the packet
     virtual void processCommand(bool Option = true);
 
-    // flush output buffer to socket's send buffer
-    // virtual void processOutput () ;
 
     // send packet to player's output buffer
     virtual void sendPacket(Packet* packet);

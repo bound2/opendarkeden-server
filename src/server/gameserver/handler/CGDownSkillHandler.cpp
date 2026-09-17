@@ -116,12 +116,6 @@ void CGDownSkillHandler::execute(CGDownSkill* pPacket, Player* pPlayer)
         }
     }
 
-    /*	if (pTargetSkillSlot->getExpLevel() >= 30 )
-        {
-            failpkt.setDesc(TOO_HIGH);
-            pPlayer->sendPacket(&failpkt);
-            return;
-        }*/
 
     Assert(pTargetSkillInfo != NULL);
 

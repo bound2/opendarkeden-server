@@ -70,8 +70,6 @@ void CGAddQuickSlotToMouseHandler::execute(CGAddQuickSlotToMouse* pPacket, Playe
             // Erase the item from the belt inventory and move it to the Mouse.
             pBeltInventory->deleteItem(SlotID, 0);
             pSlayer->addItemToExtraInventorySlot(pSlotItem);
-            // pSlotItem->save(pSlayer->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-            //  Item save optimization.
             char pField[80];
             sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
             pSlotItem->tinysave(pField);
@@ -115,14 +113,11 @@ void CGAddQuickSlotToMouseHandler::execute(CGAddQuickSlotToMouse* pPacket, Playe
             // Erase the item from the belt inventory and move it to the Mouse.
             pOustersArmsbandInventory->deleteItem(SlotID, 0);
             pOusters->addItemToExtraInventorySlot(pSlotItem);
-            // pSlotItem->save(pOusters->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-            //  Item save optimization.
             char pField[80];
             sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
             pSlotItem->tinysave(pField);
         }
     } catch (Throwable& t) {
-        // cout << t.toString();
     }
 
 #endif // __GAME_SERVER__

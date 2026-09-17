@@ -72,13 +72,11 @@ void WarSchedule::makeWarInfo(WarInfo* pWarInfo) const
     if (endSecs > curSecs)
         remainSec = endSecs - curSecs;
 
-    //	cout << "makeWarInfo : " << m_ScheduledTime.toString() << endl;
     DWORD startTime = ((DWORD)((DWORD)(m_ScheduledTime.date().year() - 2000)) * 1000000) +
                       ((DWORD)((DWORD)m_ScheduledTime.date().month()) * 10000) +
                       ((DWORD)((DWORD)m_ScheduledTime.date().day()) * 100) +
                       ((DWORD)((DWORD)m_ScheduledTime.time().hour()));
 
-    //	cout << "startTime : " << startTime << endl;
 
     //---------------------------------------------------
     // Set the WarInfo values
@@ -87,7 +85,6 @@ void WarSchedule::makeWarInfo(WarInfo* pWarInfo) const
     pWarInfo->setRemainTime(remainSec);
     pWarInfo->setStartTime(startTime);
 
-    //	cout << "after set : " << pWarInfo->getStartTime() << endl;
 
     __END_CATCH
 }
@@ -155,13 +152,6 @@ void WarSchedule::tinysave(const string& query)
 
     defaultWarInfoRepository().tinysaveWarSchedule(query, pWar->getWarID(), g_pConfig->getPropertyInt("ServerID"));
 
-    /*		if( pStmt->getAffectedRowCount() == 0 )
-                {
-                    filelog( "WarError.log", "WarSchedule::tinySave() the WarSchedule is missing from the DB or its information is wrong.
-           ZoneID:%d, WarID:%d, Query:%s", pWarScheduler->getZone()->getZoneID(), pWar->getWarID(), query.c_str() );
-                    SAFE_DELETE(pStmt);
-                    return;
-                }*/
 
     __END_CATCH
 }

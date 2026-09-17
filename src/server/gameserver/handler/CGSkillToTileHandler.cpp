@@ -80,7 +80,6 @@ void CGSkillToTileHandler::execute(CGSkillToTile* pPacket, Player* pPlayer)
                 EffectAberration* pEffect =
                     dynamic_cast<EffectAberration*>(pCreature->findEffect(Effect::EFFECT_CLASS_ABERRATION));
                 if (pEffect != NULL && (rand() % 100) < pEffect->getRatio()) {
-                    // cout << "aberration affected " << endl;
                     Dir_t dir = rand() % 8;
                     pPacket->setX(pPacket->getX() + dirMoveMask[dir].x * 3);
                     pPacket->setY(pPacket->getY() + dirMoveMask[dir].y * 3);
@@ -110,12 +109,6 @@ void CGSkillToTileHandler::execute(CGSkillToTile* pPacket, Player* pPlayer)
                 if (!isAbleToUseTileSkill(pSlayer))
                     bSuccess = false;
 
-                /*				if (pCreature->isSlayer() && pCreature->isFlag(Effect::EFFECT_CLASS_SNIPING_MODE))
-                                {
-                                    Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-                                    Assert(pSlayer != NULL);
-                                    g_Sniping.checkRevealRatio(pSlayer, 20, 10);
-                                } */
 
                 if (bSuccess) {
                     SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
@@ -153,20 +146,6 @@ void CGSkillToTileHandler::execute(CGSkillToTile* pPacket, Player* pPlayer)
                 if (!isAbleToUseTileSkill(pVampire))
                     bSuccess = false;
 
-                /*				if (pVampire->isFlag(Effect::EFFECT_CLASS_INVISIBILITY))
-                                {
-                                    addVisibleCreature(pZone, pVampire, true);
-                                }
-
-                                if (pVampire->isFlag(Effect::EFFECT_CLASS_EXTREME))
-                                {
-                                    EffectManager * pEffectManager = pVampire->getEffectManager();
-                                    Assert(pEffectManager != NULL);
-                                    Effect * pEffect = pEffectManager->findEffect(Effect::EFFECT_CLASS_EXTREME);
-                                    if (pEffect != NULL ) {
-                                        pEffect->setDeadline(0);
-                                    }
-                                } */
                 if (bSuccess) {
                     SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
                     Assert(pSkillHandler != NULL);
@@ -196,11 +175,9 @@ void CGSkillToTileHandler::execute(CGSkillToTile* pPacket, Player* pPlayer)
                     bSuccess = false;
                 if (SkillType == SKILL_DESTRUCTION_SPEAR &&
                     pOusters->hasSkill(SKILL_DESTRUCTION_SPEAR_MASTERY) == NULL) {
-                    // cout << "has no mastery : destruction spear" << endl;
                     bSuccess = false;
                 }
                 if (SkillType == SKILL_ICE_LANCE && pOusters->hasSkill(SKILL_ICE_LANCE_MASTERY) == NULL) {
-                    // cout << "has no mastery : ice lance" << endl;
                     bSuccess = false;
                 }
 
@@ -225,7 +202,6 @@ void CGSkillToTileHandler::execute(CGSkillToTile* pPacket, Player* pPlayer)
             }
         }
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
 #endif // __GAME_SERVER__

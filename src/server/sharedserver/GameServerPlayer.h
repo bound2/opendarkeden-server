@@ -58,19 +58,6 @@ public:
     virtual string toString() const noexcept(false);
 
 protected:
-    /*
-    // player id
-    string m_ID;
-
-    // TCP client socket
-    Socket* m_pSocket;
-
-    // buffered socket input stream
-    SocketInputStream* m_pInputStream;
-
-    // buffered socket output stream
-    SocketOutputStream* m_pOutputStream;
-    */
 };
 
 #endif

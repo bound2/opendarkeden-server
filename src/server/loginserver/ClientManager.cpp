@@ -158,7 +158,6 @@ void ClientManager::run() {
         getCurrentTime(currentTime);
 
         if (NextTime < currentTime) {
-            // outputProfileEx(false, false);
             (g_ProfileSampleManager.getProfileSampleSet())->outputProfileToFile("Profile", false, false);
 
             NextTime.tv_sec = currentTime.tv_sec + 10;
@@ -168,7 +167,6 @@ void ClientManager::run() {
             // To measure time per interval rather than cumulative data...
             initProfileEx();
 
-            // g_PacketProfileManager.outputResultToFile("PacketProfile.txt");
             g_PacketProfileManager.init();
         }
 
