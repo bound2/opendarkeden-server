@@ -166,7 +166,6 @@ src/
 │   │   ├── repository/        # Persistence seams: *Repository.h interfaces + MySQL*Repository.cpp impls
 │   │   ├── skill/             # Skill system module
 │   │   ├── item/              # Item system module
-│   │   ├── billing/           # Billing/payment module
 │   │   ├── war/               # War system module
 │   │   ├── couple/            # Couple/party system module
 │   │   ├── mission/           # Mission system module
@@ -334,11 +333,12 @@ known violations are listed at the end, not silently fixed.
   `m_Mutex`.
 - **`SharedServerManager` thread** — TCP link to the sharedserver;
   dispatches **SG** packets on its own thread under its own `m_Mutex`.
-- **`BillingPlayerManager`, `MPlayerManager` (mofus), `GDRLairManager`** —
-  auxiliary threads with their own loops. (`SMSServiceThread` is a
-  `ManagedThread` too, but `GameServer::start()` never starts it; its queue is
-  only filled by `CGSMSSendHandler`. The obsolete China billing integration
-  has been removed.)
+- **`MPlayerManager` (mofus), `GDRLairManager`** — auxiliary threads with
+  their own loops. (`SMSServiceThread` is a `ManagedThread` too, but
+  `GameServer::start()` never starts it; its queue is only filled by
+  `CGSMSSendHandler`. Neither billing integration is in the tree: the
+  external billing link had a thread of its own, and the China one its own
+  tree.)
 
 The loginserver and sharedserver follow the same contract. The loginserver's
 main thread runs `ClientManager::run()` and its `GameServerManager` worker

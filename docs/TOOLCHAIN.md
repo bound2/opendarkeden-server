@@ -254,7 +254,7 @@ order. The full list with file paths is task 3.1 in `docs/RESTRUCTURING.md`.
 
 `ManagedThread` is now the only subclass of the legacy `Thread`, so every
 worker in all three server processes uses it: gameserver zone, login-link,
-shared-link, GDR, SMS and enabled billing/mofus workers, the loginserver's
+shared-link, GDR, SMS and mofus workers, the loginserver's
 `GameServerManager` (UDP game-server link) and the sharedserver's
 `GameServerManager` (TCP game-server link).
 `ManagedThread` owns a `CooperativeThread` backed by `std::jthread`. What is
