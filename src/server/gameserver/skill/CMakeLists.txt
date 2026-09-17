@@ -11,6 +11,7 @@ set(SKILL_HANDLER_SOURCES
     SkillSlot.cpp
     SkillFormula.cpp
     SkillUtil.cpp
+    SkillDamage.cpp
     CastleSkillSlot.cpp
 )
 
