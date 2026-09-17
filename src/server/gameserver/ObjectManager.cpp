@@ -155,7 +155,7 @@ ObjectManager::ObjectManager()
     g_pItemFactoryManager = new ItemFactoryManager();
     g_pVolumeInfoManager = new VolumeInfoManager();
     g_pItemLoaderManager = new ItemLoaderManager();
-    g_pShopTemplateManager = new ShopTemplateManager();
+    m_pShopTemplateManager = new ShopTemplateManager();
     g_pOptionInfoManager = new OptionInfoManager();
     g_pItemMineInfoManager = new ItemMineInfoManager();
     g_pDirectiveSetManager = new DirectiveSetManager();
@@ -180,15 +180,19 @@ ObjectManager::ObjectManager()
     context.setZoneInfoManager(g_pZoneInfoManager);
     context.setVariableManager(g_pVariableManager);
     context.setItemFactoryManager(g_pItemFactoryManager);
+    context.setShopTemplateManager(m_pShopTemplateManager);
     context.setZoneGroupManager(g_pZoneGroupManager);
     context.setPCFinder(g_pPCFinder);
 
     g_pParkingCenter = new ParkingCenter();
     g_pTelephoneCenter = new TelephoneCenter();
-    g_pPublicScriptManager = new ScriptManager();
+    m_pPublicScriptManager = new ScriptManager();
+    context.setPublicScriptManager(m_pPublicScriptManager);
     // g_pSkillParentInfoManager   = new SkillParentInfoManager();
-    g_pConditionFactoryManager = new ConditionFactoryManager();
-    g_pActionFactoryManager = new ActionFactoryManager();
+    m_pConditionFactoryManager = new ConditionFactoryManager();
+    context.setConditionFactoryManager(m_pConditionFactoryManager);
+    m_pActionFactoryManager = new ActionFactoryManager(context);
+    context.setActionFactoryManager(m_pActionFactoryManager);
     //	g_pDEXBalanceInfoManager    = new DEXBalanceInfoManager();
     //	g_pSTRBalanceInfoManager    = new STRBalanceInfoManager();
     //	g_pINTBalanceInfoManager    = new INTBalanceInfoManager();
@@ -267,9 +271,9 @@ ObjectManager::~ObjectManager()
     __BEGIN_TRY
 
     SAFE_DELETE(g_pStringPool);
-    SAFE_DELETE(g_pActionFactoryManager);
-    SAFE_DELETE(g_pConditionFactoryManager);
-    SAFE_DELETE(g_pPublicScriptManager);
+    SAFE_DELETE(m_pActionFactoryManager);
+    SAFE_DELETE(m_pConditionFactoryManager);
+    SAFE_DELETE(m_pPublicScriptManager);
     SAFE_DELETE(g_pPCFinder);
     SAFE_DELETE(g_pParkingCenter);
     SAFE_DELETE(g_pTelephoneCenter);
@@ -296,7 +300,7 @@ ObjectManager::~ObjectManager()
     //	SAFE_DELETE(g_pSTRBalanceInfoManager);
     //	SAFE_DELETE(g_pDEXBalanceInfoManager);
     //	SAFE_DELETE(g_pINTBalanceInfoManager);
-    SAFE_DELETE(g_pShopTemplateManager);
+    SAFE_DELETE(m_pShopTemplateManager);
     SAFE_DELETE(g_pEffectLoaderManager);
     SAFE_DELETE(g_pPriceManager);
     SAFE_DELETE(g_pVampEXPInfoManager);
@@ -381,15 +385,15 @@ void ObjectManager::init()
     printf("ObjectManager::init() : VariableManager Initialization Success....... \n");
 
     printf("ObjectManager::init() : ConditionFactoryManager Initialization Start\n");
-    g_pConditionFactoryManager->init();
+    m_pConditionFactoryManager->init();
     printf("ObjectManager::init() : ConditionFactoryManager Initialization Success\n");
 
     printf("ObjectManager::init() : ActionFactoryManager Initialization Start\n");
-    g_pActionFactoryManager->init();
+    m_pActionFactoryManager->init();
     printf("ObjectManager::init() : ActionFactoryManager Initialization Success\n");
 
     printf("ObjectManager::init() : ShopTemplate Initialization Start\n");
-    g_pShopTemplateManager->init();
+    m_pShopTemplateManager->init();
     printf("ObjectManager::init() : ShopTemplate Initialization Success\n");
 
     printf("ObjectManager::init() : DirectiveSetManager Initialization Start\n");
@@ -405,7 +409,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : TimeManager Initialization Success\n");
 
     printf("ObjectManager::init() : PublicScriptManager Initialization Start\n");
-    g_pPublicScriptManager->init();
+    m_pPublicScriptManager->init();
     printf("ObjectManager::init() : PublicScriptManager Initialization Success\n");
 
     // option을 itemInfo보다 먼저 load()해야한다.
@@ -772,7 +776,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : ZoneInfoManager Loading Success\n");
 
     printf("ObjectManager::load() : PublicScriptManager Loading Start\n");
-    g_pPublicScriptManager->load("");
+    m_pPublicScriptManager->load("");
     printf("ObjectManager::load() : PublicScriptManager Loading Success\n");
     */
 

@@ -11,6 +11,7 @@
 #include "Assert.h"
 #include "Condition.h"
 #include "ConditionFactoryManager.h"
+#include "GameContext.h"
 #include "PropertyBuffer.h"
 #include "Utility.h"
 
@@ -18,7 +19,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // constructor
 ////////////////////////////////////////////////////////////////////////////////
-Trigger::Trigger() {
+Trigger::Trigger(de::GameContext& context) : m_Context(context) {
     __BEGIN_TRY
 
     m_TriggerType = NPC_TRIGGER;
@@ -176,10 +177,10 @@ void Trigger::setConditions(const string& str) {
                 break;
 
             // read ConditionType
-            ConditionType_t conditionType = g_pConditionFactoryManager->getConditionType(ConditionTypeString);
+            ConditionType_t conditionType = m_Context.conditionFactories().getConditionType(ConditionTypeString);
 
             // create condition object
-            Condition* pCondition = g_pConditionFactoryManager->createCondition(conditionType);
+            Condition* pCondition = m_Context.conditionFactories().createCondition(conditionType);
 
             // read condition parameters
             pCondition->read(propertyBuffer);
@@ -203,10 +204,10 @@ void Trigger::setConditions(const string& str) {
         {
             // read ConditionType
             ConditionType_t conditionType =
-    g_pConditionFactoryManager->getConditionType(propertyBuffer.getProperty("ConditionType"));
+    m_Context.conditionFactories().getConditionType(propertyBuffer.getProperty("ConditionType"));
 
             // create condition object
-            Condition * pCondition = g_pConditionFactoryManager->createCondition(conditionType);
+            Condition * pCondition = m_Context.conditionFactories().createCondition(conditionType);
 
             // read condition parameters
             pCondition->read(propertyBuffer);
@@ -259,10 +260,10 @@ void Trigger::setActions(const string& str) {
                 break;
 
             // read Action-Type
-            ActionType_t actionType = g_pActionFactoryManager->getActionType(ActionTypeString);
+            ActionType_t actionType = m_Context.actionFactories().getActionType(ActionTypeString);
 
             // create action object
-            Action* pAction = g_pActionFactoryManager->createAction(actionType);
+            Action* pAction = m_Context.actionFactories().createAction(actionType);
 
             // read action parameters
             pAction->read(propertyBuffer);
@@ -287,10 +288,10 @@ void Trigger::setActions(const string& str) {
         for (uint i = 0 ; i < nActions ; i ++)
         {
             // read Action-Type
-            ActionType_t actionType = g_pActionFactoryManager->getActionType(propertyBuffer.getProperty("ActionType"));
+            ActionType_t actionType = m_Context.actionFactories().getActionType(propertyBuffer.getProperty("ActionType"));
 
             // create action object
-            Action * pAction = g_pActionFactoryManager->createAction(actionType);
+            Action * pAction = m_Context.actionFactories().createAction(actionType);
 
             // read action parameters
             pAction->read(propertyBuffer);
@@ -344,10 +345,10 @@ void Trigger::setCounterActions(const string& str) {
                 break;
 
             // read Action-Type
-            ActionType_t actionType = g_pActionFactoryManager->getActionType(ActionTypeString);
+            ActionType_t actionType = m_Context.actionFactories().getActionType(ActionTypeString);
 
             // create action object
-            Action* pAction = g_pActionFactoryManager->createAction(actionType);
+            Action* pAction = m_Context.actionFactories().createAction(actionType);
 
             // read action parameters
             pAction->read(propertyBuffer);
@@ -372,10 +373,10 @@ void Trigger::setCounterActions(const string& str) {
         for (uint i = 0 ; i < nActions ; i ++)
         {
             // read Action-Type
-            ActionType_t actionType = g_pActionFactoryManager->getActionType(propertyBuffer.getProperty("ActionType"));
+            ActionType_t actionType = m_Context.actionFactories().getActionType(propertyBuffer.getProperty("ActionType"));
 
             // create action object
-            Action * pAction = g_pActionFactoryManager->createAction(actionType);
+            Action * pAction = m_Context.actionFactories().createAction(actionType);
 
             // read action parameters
             pAction->read(propertyBuffer);

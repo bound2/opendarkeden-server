@@ -2,8 +2,6 @@
 
 #include "CastleInfoManager.h"
 
-HolyLandRaceBonus* g_pHolyLandRaceBonus = NULL;
-
 HolyLandRaceBonus::HolyLandRaceBonus() {
     refresh();
 }

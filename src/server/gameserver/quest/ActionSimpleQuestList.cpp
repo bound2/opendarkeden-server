@@ -49,7 +49,7 @@ void ActionSimpleQuestList::execute(Creature* pCreature1, Creature* pCreature2)
               NPC* pNPC = dynamic_cast<NPC*>(pCreature1);
 
               // m_ScriptID와 관련된 정보를 PublicScriptManager에 생성
-              Script* pScript = g_pPublicScriptManager->getScript(m_ScriptID);
+              Script* pScript = context().publicScripts().getScript(m_ScriptID);
 
               pNPC->setSimpleQuestListScript( pScript );
 

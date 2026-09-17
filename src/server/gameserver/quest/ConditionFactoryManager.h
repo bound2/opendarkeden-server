@@ -34,6 +34,4 @@ private:
     ushort m_Size;
 };
 
-extern ConditionFactoryManager* g_pConditionFactoryManager;
-
 #endif

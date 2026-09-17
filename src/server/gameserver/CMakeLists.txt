@@ -92,7 +92,6 @@ set(EVENT_SOURCES
     EventSystemMessage.cpp
     EventRefreshHolyLandPlayer.cpp
     EventHeadCount.cpp
-    EventAuth.cpp
 )
 
 # ============================================================================

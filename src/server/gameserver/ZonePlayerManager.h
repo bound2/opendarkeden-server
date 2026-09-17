@@ -142,7 +142,4 @@ private:
     ZoneGroupID_t m_ZGID;
 };
 
-// external variable declaration
-extern ZonePlayerManager* g_pZonePlayerManager;
-
 #endif

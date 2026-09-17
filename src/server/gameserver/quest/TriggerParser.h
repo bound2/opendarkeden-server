@@ -6,11 +6,16 @@
 #include "SXml.h"
 #include "Types.h"
 
+namespace de {
+class GameContext;
+}
+
 class XMLTree;
 
 class TriggerParser {
 public:
-    TriggerParser() : m_pTargetTree(NULL), m_TargetScriptID(0), m_TargetContentID(0) {}
+    explicit TriggerParser(de::GameContext& context)
+        : m_Context(context), m_pTargetTree(NULL), m_TargetScriptID(0), m_TargetContentID(0) {}
     void parseTrigger(const string& type, const string& condition, const string& action);
 
     bool parseElement(XMLTree* pTree, const string& key, const string& element);
@@ -21,6 +26,7 @@ public:
     }
 
 private:
+    de::GameContext& m_Context;
     map<ScriptID_t, XMLTree*> m_ScriptMap;
     XMLTree* m_pTargetTree;
     uint m_TargetScriptID, m_TargetContentID;

@@ -121,7 +121,4 @@ private:
     SkillParentInfo** m_SkillParentInfoList;
 };
 
-// Global Variable Definition
-extern SkillParentInfoManager* g_pSkillParentInfoManager;
-
 #endif // __SKILL_PARENT_INFO_MANAGER_H__

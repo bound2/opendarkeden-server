@@ -22,10 +22,14 @@
 #ifndef __GAME_CONTEXT_H__
 #define __GAME_CONTEXT_H__
 
+class ActionFactoryManager;
+class ConditionFactoryManager;
 class DatabaseManager;
 class ItemFactoryManager;
 class PCFinder;
 class Properties;
+class ScriptManager;
+class ShopTemplateManager;
 class StringPool;
 class VariableManager;
 class ZoneGroupManager;
@@ -40,6 +44,12 @@ public:
     GameContext(const GameContext&) = delete;
     GameContext& operator=(const GameContext&) = delete;
 
+    void setActionFactoryManager(ActionFactoryManager* pActionFactoryManager) {
+        m_pActionFactoryManager = pActionFactoryManager;
+    }
+    void setConditionFactoryManager(ConditionFactoryManager* pConditionFactoryManager) {
+        m_pConditionFactoryManager = pConditionFactoryManager;
+    }
     void setConfig(Properties* pConfig) {
         m_pConfig = pConfig;
     }
@@ -51,6 +61,12 @@ public:
     }
     void setPCFinder(PCFinder* pPCFinder) {
         m_pPCFinder = pPCFinder;
+    }
+    void setPublicScriptManager(ScriptManager* pPublicScriptManager) {
+        m_pPublicScriptManager = pPublicScriptManager;
+    }
+    void setShopTemplateManager(ShopTemplateManager* pShopTemplateManager) {
+        m_pShopTemplateManager = pShopTemplateManager;
     }
     void setStringPool(StringPool* pStringPool) {
         m_pStringPool = pStringPool;
@@ -65,20 +81,28 @@ public:
         m_pZoneInfoManager = pZoneInfoManager;
     }
 
+    ActionFactoryManager& actionFactories() const;
+    ConditionFactoryManager& conditionFactories() const;
     Properties& config() const;
     DatabaseManager& databases() const;
     ItemFactoryManager& itemFactories() const;
     PCFinder& playerCreatures() const;
+    ScriptManager& publicScripts() const;
+    ShopTemplateManager& shopTemplates() const;
     StringPool& strings() const;
     VariableManager& variables() const;
     ZoneGroupManager& zoneGroups() const;
     ZoneInfoManager& zoneInfos() const;
 
 private:
+    ActionFactoryManager* m_pActionFactoryManager = nullptr;
+    ConditionFactoryManager* m_pConditionFactoryManager = nullptr;
     Properties* m_pConfig = nullptr;
     DatabaseManager* m_pDatabaseManager = nullptr;
     ItemFactoryManager* m_pItemFactoryManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
+    ScriptManager* m_pPublicScriptManager = nullptr;
+    ShopTemplateManager* m_pShopTemplateManager = nullptr;
     StringPool* m_pStringPool = nullptr;
     VariableManager* m_pVariableManager = nullptr;
     ZoneGroupManager* m_pZoneGroupManager = nullptr;

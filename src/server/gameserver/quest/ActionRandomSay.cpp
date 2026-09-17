@@ -8,6 +8,7 @@
 
 #include "Creature.h"
 #include "GCNPCSay.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "NPC.h"
 #include "Script.h"
@@ -52,7 +53,7 @@ void ActionRandomSay::execute(Creature* pCreature1, Creature* pCreature2)
     // 데이터가 반드시 연속적으로 존재하게 만들어야 한다.
     NPC* pNPC = dynamic_cast<NPC*>(pCreature1);
     ScriptID_t scriptID = m_StartScriptID + random() % (m_EndScriptID - m_StartScriptID + 1);
-    const Script* pScript = g_pPublicScriptManager->getScript(scriptID);
+    const Script* pScript = context().publicScripts().getScript(scriptID);
 
     GCNPCSay gcNPCSay;
     gcNPCSay.setObjectID(pNPC->getObjectID());

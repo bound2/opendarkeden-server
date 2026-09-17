@@ -8,6 +8,7 @@
 
 #include "Creature.h"
 #include "GCNPCAskDynamic.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Script.h"
 #include "ScriptManager.h"
@@ -44,7 +45,7 @@ void ActionAskDynamic::execute(Creature* pCreature1, Creature* pCreature2)
     Assert(pCreature1->isNPC());
     Assert(pCreature2->isPC());
 
-    const Script* pScript = g_pPublicScriptManager->getScript(m_ScriptID);
+    const Script* pScript = context().publicScripts().getScript(m_ScriptID);
 
     GCNPCAskDynamic gcNPCAskDynamic;
     gcNPCAskDynamic.setObjectID(pCreature1->getObjectID());

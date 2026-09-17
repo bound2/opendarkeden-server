@@ -43,7 +43,7 @@ void ActionSimpleQuestComplete::execute(Creature* pCreature1, Creature* pCreatur
               Assert(pCreature1->isNPC());
               Assert(pCreature2->isPC());
 
-              const Script* pScript = g_pPublicScriptManager->getScript(m_ScriptID);
+              const Script* pScript = context().publicScripts().getScript(m_ScriptID);
 
               GCNPCAskDynamic gcNPCAskDynamic;
               gcNPCAskDynamic.setObjectID(pCreature1->getObjectID());

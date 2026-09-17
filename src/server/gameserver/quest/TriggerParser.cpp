@@ -1,6 +1,7 @@
 #include "TriggerParser.h"
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "ScriptManager.h"
 #include "Utility.h"
 
@@ -32,7 +33,7 @@ void TriggerParser::parseTrigger(const string& type, const string& condition, co
         XMLTree* pScriptTree = m_ScriptMap[m_TargetScriptID];
         if (pScriptTree == NULL) {
             m_ScriptMap[m_TargetScriptID] = pScriptTree =
-                new XMLTree(*(g_pPublicScriptManager->getScriptXML(m_TargetScriptID)));
+                new XMLTree(*(m_Context.publicScripts().getScriptXML(m_TargetScriptID)));
             m_pTargetTree->AddChild(pScriptTree);
         }
 
@@ -89,7 +90,7 @@ bool TriggerParser::findText(XMLTree* pTree) {
         {
             uint scriptID = 0;
             Assert(pTree->GetAttribute("ScriptID", scriptID));
-            pTree->SetText(g_pPublicScriptManager->getScript( scriptID )->getSubject(0));
+            pTree->SetText(m_Context.publicScripts().getScript( scriptID )->getSubject(0));
         }*/
     if (pTree->GetName() == "AnsweredBy") {
         uint scriptID = 0, answerID = 0;
@@ -98,7 +99,7 @@ bool TriggerParser::findText(XMLTree* pTree) {
         m_TargetScriptID = scriptID;
         m_TargetContentID = answerID;
         return false;
-        //		pTree->SetText(g_pPublicScriptManager->getScript( scriptID )->getContent(answerID-1));
+        //		pTree->SetText(m_Context.publicScripts().getScript( scriptID )->getContent(answerID-1));
     }
     if (pTree->GetName() == "RandomSay") {
         uint start = 0, end = 0;
@@ -108,7 +109,7 @@ bool TriggerParser::findText(XMLTree* pTree) {
         for (uint i = start; i <= end; ++i) {
             XMLTree* pScriptTree = m_ScriptMap[i];
             if (pScriptTree == NULL) {
-                m_ScriptMap[i] = pScriptTree = new XMLTree(*(g_pPublicScriptManager->getScriptXML(i)));
+                m_ScriptMap[i] = pScriptTree = new XMLTree(*(m_Context.publicScripts().getScriptXML(i)));
                 m_pTargetTree->AddChild(pScriptTree);
             }
         }

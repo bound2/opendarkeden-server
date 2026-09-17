@@ -49,7 +49,4 @@ private:
     unordered_map<ScriptID_t, XMLTree*> m_ScriptXMLs;
 };
 
-// global variable declaration
-extern ScriptManager* g_pPublicScriptManager;
-
 #endif

@@ -13,6 +13,12 @@
 #include "Exception.h"
 #include "Types.h"
 
+// GameContext.h is not on the include path of every target that reaches
+// this header, and a reference member only needs the type's name.
+namespace de {
+class GameContext;
+}
+
 const string TriggerType2String[] = {"NPC_TRIGGER", "QUEST_TRIGGER", "MONSTER_TRIGGER"};
 
 //////////////////////////////////////////////////////////////////////////////
@@ -35,7 +41,7 @@ public:
     const static char* SpaceTab;
 
 public:
-    Trigger();
+    explicit Trigger(de::GameContext& context);
     ~Trigger();
 
 
@@ -104,6 +110,8 @@ public:
 
 
 private:
+    de::GameContext& m_Context;
+
     // 트리거 타입
     TriggerType m_TriggerType;
 

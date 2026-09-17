@@ -32,7 +32,4 @@ private:
     mutable Mutex m_Mutex;    // mutex
 };
 
-// global variable declaration
-extern ObjectRegistry* g_pObjectRegistry;
-
 #endif
