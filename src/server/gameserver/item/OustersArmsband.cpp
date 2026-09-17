@@ -563,5 +563,3 @@ void OustersArmsbandLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-OustersArmsbandLoader* g_pOustersArmsbandLoader = NULL;

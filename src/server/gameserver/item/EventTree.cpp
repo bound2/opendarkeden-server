@@ -350,5 +350,3 @@ void EventTreeLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-EventTreeLoader* g_pEventTreeLoader = NULL;

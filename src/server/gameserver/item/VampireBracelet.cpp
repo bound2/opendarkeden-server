@@ -453,5 +453,3 @@ void VampireBraceletLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-VampireBraceletLoader* g_pVampireBraceletLoader = NULL;

@@ -147,6 +147,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern MittenLoader* g_pMittenLoader;
-
 #endif

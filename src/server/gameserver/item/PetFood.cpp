@@ -351,5 +351,3 @@ void PetFoodLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-PetFoodLoader* g_pPetFoodLoader = NULL;

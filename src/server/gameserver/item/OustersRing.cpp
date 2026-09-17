@@ -456,5 +456,3 @@ void OustersRingLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-OustersRingLoader* g_pOustersRingLoader = NULL;

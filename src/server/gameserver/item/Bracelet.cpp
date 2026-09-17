@@ -452,5 +452,3 @@ void BraceletLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-BraceletLoader* g_pBraceletLoader = NULL;

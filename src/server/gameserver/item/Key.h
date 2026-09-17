@@ -161,7 +161,5 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern KeyLoader* g_pKeyLoader;
-
 
 #endif

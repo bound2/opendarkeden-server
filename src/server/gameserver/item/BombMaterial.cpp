@@ -371,5 +371,3 @@ void BombMaterialLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-BombMaterialLoader* g_pBombMaterialLoader = NULL;

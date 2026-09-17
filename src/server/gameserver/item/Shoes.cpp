@@ -448,5 +448,3 @@ void ShoesLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-ShoesLoader* g_pShoesLoader = NULL;

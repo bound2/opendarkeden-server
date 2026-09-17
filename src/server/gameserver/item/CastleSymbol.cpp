@@ -332,5 +332,3 @@ void CastleSymbolLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-CastleSymbolLoader* g_pCastleSymbolLoader = NULL;

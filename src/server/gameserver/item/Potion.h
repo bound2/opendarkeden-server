@@ -216,6 +216,4 @@ public:
     // load to inventory
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
-
-extern PotionLoader* g_pPotionLoader;
 #endif

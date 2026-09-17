@@ -447,5 +447,3 @@ void CoreZapLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-CoreZapLoader* g_pCoreZapLoader = NULL;

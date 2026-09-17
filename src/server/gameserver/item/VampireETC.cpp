@@ -373,5 +373,3 @@ void VampireETCLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-VampireETCLoader* g_pVampireETCLoader = NULL;

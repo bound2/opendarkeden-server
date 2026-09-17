@@ -347,5 +347,3 @@ void LuckyBagLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-LuckyBagLoader* g_pLuckyBagLoader = NULL;

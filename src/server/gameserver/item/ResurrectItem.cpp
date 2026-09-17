@@ -351,5 +351,3 @@ void ResurrectItemLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-ResurrectItemLoader* g_pResurrectItemLoader = NULL;

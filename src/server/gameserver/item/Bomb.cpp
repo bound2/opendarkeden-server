@@ -395,5 +395,3 @@ void BombLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-BombLoader* g_pBombLoader = NULL;

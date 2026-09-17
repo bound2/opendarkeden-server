@@ -157,6 +157,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern EventETCLoader* g_pEventETCLoader;
-
 #endif

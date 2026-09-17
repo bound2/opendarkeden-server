@@ -576,5 +576,3 @@ void LarvaLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-LarvaLoader* g_pLarvaLoader = NULL;

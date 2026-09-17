@@ -352,5 +352,3 @@ void DyePotionLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-DyePotionLoader* g_pDyePotionLoader = NULL;

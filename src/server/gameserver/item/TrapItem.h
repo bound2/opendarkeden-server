@@ -149,6 +149,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern TrapItemLoader* g_pTrapItemLoader;
-
 #endif

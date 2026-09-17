@@ -138,6 +138,4 @@ public:
     virtual void load(Zone* pZone);
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
-
-extern CarryingReceiverLoader* g_pCarryingReceiverLoader;
 #endif

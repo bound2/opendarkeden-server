@@ -180,6 +180,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern CoatLoader* g_pCoatLoader;
-
 #endif

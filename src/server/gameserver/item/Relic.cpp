@@ -332,5 +332,3 @@ void RelicLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-RelicLoader* g_pRelicLoader = NULL;

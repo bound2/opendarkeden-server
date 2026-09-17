@@ -201,6 +201,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern SMGLoader* g_pSMGLoader;
-
 #endif

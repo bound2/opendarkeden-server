@@ -141,6 +141,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern WarItemLoader* g_pWarItemLoader;
-
 #endif

@@ -473,5 +473,3 @@ void VampireWeaponLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-VampireWeaponLoader* g_pVampireWeaponLoader = NULL;

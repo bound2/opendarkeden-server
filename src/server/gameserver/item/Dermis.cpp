@@ -322,8 +322,8 @@ void DermisLoader::load(Zone* pZone)
 //--------------------------------------------------------------------------------
 void DermisLoader::load(StorageID_t storageID, Inventory* pInventory)
 
-    {__BEGIN_TRY
+{
+    __BEGIN_TRY
 
-         __END_CATCH}
-
-DermisLoader* g_pDermisLoader = NULL;
+    __END_CATCH
+}

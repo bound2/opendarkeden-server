@@ -451,5 +451,3 @@ void CoatLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-CoatLoader* g_pCoatLoader = NULL;

@@ -332,8 +332,8 @@ void ShoulderArmorLoader::load(Zone* pZone)
 //--------------------------------------------------------------------------------
 void ShoulderArmorLoader::load(StorageID_t storageID, Inventory* pInventory)
 
-    {__BEGIN_TRY
+{
+    __BEGIN_TRY
 
-         __END_CATCH}
-
-ShoulderArmorLoader* g_pShoulderArmorLoader = NULL;
+    __END_CATCH
+}

@@ -429,5 +429,3 @@ void SerumLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-SerumLoader* g_pSerumLoader = NULL;

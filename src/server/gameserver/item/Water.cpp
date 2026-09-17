@@ -369,5 +369,3 @@ void WaterLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-WaterLoader* g_pWaterLoader = NULL;

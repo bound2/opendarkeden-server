@@ -452,5 +452,3 @@ void ShieldLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-ShieldLoader* g_pShieldLoader = NULL;

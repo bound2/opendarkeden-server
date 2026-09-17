@@ -185,6 +185,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern MixingItemLoader* g_pMixingItemLoader;
-
 #endif

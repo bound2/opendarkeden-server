@@ -139,6 +139,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern WaterLoader* g_pWaterLoader;
-
 #endif

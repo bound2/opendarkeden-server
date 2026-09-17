@@ -208,6 +208,4 @@ public:
     // load to inventory
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
-
-extern ComposMeiLoader* g_pComposMeiLoader;
 #endif

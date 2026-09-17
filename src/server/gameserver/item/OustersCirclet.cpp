@@ -458,5 +458,3 @@ void OustersCircletLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-OustersCircletLoader* g_pOustersCircletLoader = NULL;

@@ -458,5 +458,3 @@ void OustersBootsLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-OustersBootsLoader* g_pOustersBootsLoader = NULL;

@@ -160,6 +160,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern HolyWaterLoader* g_pHolyWaterLoader;
-
 #endif

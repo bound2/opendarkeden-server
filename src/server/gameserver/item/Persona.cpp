@@ -325,9 +325,9 @@ void PersonaLoader::load(Zone* pZone)
 //--------------------------------------------------------------------------------
 void PersonaLoader::load(StorageID_t storageID, Inventory* pInventory)
 
-    {__BEGIN_TRY
+{
+    __BEGIN_TRY
 
 
-         __END_CATCH}
-
-PersonaLoader* g_pPersonaLoader = NULL;
+    __END_CATCH
+}

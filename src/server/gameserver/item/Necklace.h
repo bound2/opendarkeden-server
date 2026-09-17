@@ -184,6 +184,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern NecklaceLoader* g_pNecklaceLoader;
-
 #endif

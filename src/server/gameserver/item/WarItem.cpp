@@ -239,8 +239,8 @@ void WarItemLoader::load(Zone* pZone)
 //--------------------------------------------------------------------------------
 void WarItemLoader::load(StorageID_t storageID, Inventory* pInventory)
 
-    {__BEGIN_TRY
+{
+    __BEGIN_TRY
 
-         __END_CATCH}
-
-WarItemLoader* g_pWarItemLoader = NULL;
+    __END_CATCH
+}

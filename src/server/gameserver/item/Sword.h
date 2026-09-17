@@ -229,6 +229,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern SwordLoader* g_pSwordLoader;
-
 #endif

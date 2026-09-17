@@ -399,5 +399,3 @@ void MineLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-MineLoader* g_pMineLoader = NULL;

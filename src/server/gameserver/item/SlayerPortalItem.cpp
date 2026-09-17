@@ -20,7 +20,6 @@ ItemID_t SlayerPortalItem::m_ItemIDRegistry = 0;
 Mutex SlayerPortalItem::m_Mutex;
 
 SlayerPortalItemInfoManager* g_pSlayerPortalItemInfoManager = NULL;
-SlayerPortalItemLoader* g_pSlayerPortalItemLoader = NULL;
 
 //////////////////////////////////////////////////////////////////////////////
 // class SlayerPortalItem member methods

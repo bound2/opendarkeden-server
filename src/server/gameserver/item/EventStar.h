@@ -179,6 +179,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern EventStarLoader* g_pEventStarLoader;
-
 #endif

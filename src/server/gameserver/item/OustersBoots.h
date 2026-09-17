@@ -183,6 +183,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern OustersBootsLoader* g_pOustersBootsLoader;
-
 #endif

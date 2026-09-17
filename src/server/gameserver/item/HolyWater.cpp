@@ -395,5 +395,3 @@ void HolyWaterLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-HolyWaterLoader* g_pHolyWaterLoader = NULL;

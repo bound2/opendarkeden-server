@@ -352,5 +352,3 @@ void EffectItemLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-EffectItemLoader* g_pEffectItemLoader = NULL;

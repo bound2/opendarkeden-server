@@ -117,6 +117,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern SMSItemLoader* g_pSMSItemLoader;
-
 #endif

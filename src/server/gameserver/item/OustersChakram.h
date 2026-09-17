@@ -216,6 +216,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern OustersChakramLoader* g_pOustersChakramLoader;
-
 #endif

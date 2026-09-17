@@ -173,6 +173,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern CoupleRingLoader* g_pCoupleRingLoader;
-
 #endif

@@ -456,5 +456,3 @@ void OustersCoatLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-OustersCoatLoader* g_pOustersCoatLoader = NULL;

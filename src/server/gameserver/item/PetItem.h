@@ -142,6 +142,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern PetItemLoader* g_pPetItemLoader;
-
 #endif

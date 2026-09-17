@@ -368,5 +368,3 @@ void LearningItemLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-LearningItemLoader* g_pLearningItemLoader = NULL;

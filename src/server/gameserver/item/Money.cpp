@@ -371,5 +371,3 @@ void MoneyLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-MoneyLoader* g_pMoneyLoader = NULL;
