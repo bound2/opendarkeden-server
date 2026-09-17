@@ -13,18 +13,18 @@
 
 struct MissionInfo {
     enum Status {
-        HIDE = 0, // 보여주지 않음
-        CURRENT,  // 지금 해야 되는 미션 (수행중)
-        SUCCESS,  // 이미 성공한 미션
-        FAIL,     // 실패
+        HIDE = 0, // Not shown
+        CURRENT,  // The mission to do now (in progress)
+        SUCCESS,  // A mission that has already succeeded
+        FAIL,     // Failed
     };
 
-    BYTE m_Condition = 0; // 어느 조건에 있는가 0 : Happen, 1 : Complete, 2 : Fail, 3 : Reward
-    WORD m_Index = 0;     // 해당 조건의 몇번째 element인가
-    BYTE m_Status = 0;    // 현재 상태
+    BYTE m_Condition = 0; // Which condition it is in 0 : Happen, 1 : Complete, 2 : Fail, 3 : Reward
+    WORD m_Index = 0;     // Which element of that condition it is
+    BYTE m_Status = 0;    // Current state
 
-    string m_StrArg;    // 찍어줄 문자열
-    DWORD m_NumArg = 0; // 찍어줄 숫자
+    string m_StrArg;    // String to print
+    DWORD m_NumArg = 0; // Number to print
 
     MissionInfo() {}
     virtual ~MissionInfo() {}
@@ -60,13 +60,13 @@ struct MissionInfo {
 class QuestStatusInfo {
 public:
     enum Status {
-        CANNOT = 0, // 아직 불가능
-        CAN_ACCEPT, // 수행가능
-        DOING,      // 수행중
-        SUCCESS,    // 성공 (아직 보상받지 않음)
-        COMPLETE,   // 완료 (보상받음, 재수행 불가능)
-        FAIL,       // 실패 (재수행 불가능)
-        CAN_REPLAY, // 재수행 가능
+        CANNOT = 0, // Not possible yet
+        CAN_ACCEPT, // Can be started
+        DOING,      // In progress
+        SUCCESS,    // Succeeded (not rewarded yet)
+        COMPLETE,   // Complete (rewarded, cannot be done again)
+        FAIL,       // Failed (cannot be done again)
+        CAN_REPLAY, // Can be done again
     };
 
     QuestStatusInfo(DWORD qID) : m_QuestID(qID), m_Status(CANNOT) {}
@@ -84,7 +84,7 @@ public:
 
 protected:
     DWORD m_QuestID;
-    BYTE m_Status; // 위의 enum 참조
+    BYTE m_Status; // See the enum above
     list<MissionInfo*> m_Missions;
 };
 

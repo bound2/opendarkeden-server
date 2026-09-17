@@ -35,7 +35,7 @@ void PacketIDSet::addPacketID(PacketID_t packetID) {
 
     pair<PACKET_ID_SET::iterator, bool> p = m_PacketIDSet.insert(packetID);
 
-    // 이미 같은 키가 존재한다는 소리다.
+    // It means the same key exists already.
     if (!p.second)
         throw DuplicatedException();
 
@@ -65,18 +65,18 @@ bool PacketIDSet::hasPacketID(PacketID_t packetID) const {
     __BEGIN_TRY
 
     if (m_PacketIDSetType == PIST_NORMAL) {
-        // 일반적인 경우, 존재할 때에만 true 를 리턴한다.
+        // In the normal case, return true only when it exists.
         PACKET_ID_SET::const_iterator itr = m_PacketIDSet.find(packetID);
 
         return itr != m_PacketIDSet.end();
 
     } else if (m_PacketIDSetType == PIST_ANY) {
-        // 그 어떤 패킷도 허용된다.
+        // Any packet at all is allowed.
         return true;
 
     } else if (m_PacketIDSetType == PIST_IGNORE_EXCEPT) {
-        // 패킷이 존재할 경우, true 를 리턴한다.
-        // 패킷이 존재하지 않으면, 무시해야 한다.
+        // If the packet exists, return true.
+        // If the packet does not exist, it has to be ignored.
         PACKET_ID_SET::const_iterator itr = m_PacketIDSet.find(packetID);
 
         if (itr != m_PacketIDSet.end()) {

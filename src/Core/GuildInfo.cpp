@@ -28,13 +28,13 @@ GuildInfo::~GuildInfo() noexcept = default;
 
 
 //////////////////////////////////////////////////////////////////////
-// �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void GuildInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     iStream.read(m_GuildID);
     de::wire::readString(iStream, m_GuildName, {1, 30}, "GuildName");
     de::wire::readString(iStream, m_GuildMaster, {1, 20}, "GuildMaster");
@@ -45,12 +45,12 @@ void GuildInfo::read(SocketInputStream& iStream) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void GuildInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     oStream.write(m_GuildID);
     de::wire::writeString(oStream, m_GuildName, {1, 30}, "GuildName");
     de::wire::writeString(oStream, m_GuildMaster, {1, 20}, "GuildMaster");

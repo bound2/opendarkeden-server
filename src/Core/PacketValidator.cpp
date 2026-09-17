@@ -56,13 +56,13 @@ void PacketValidator::init() {
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
 
     //----------------------------------------------------------------------
-    // CPS_BEGIN_SESSION ( �α��� ��Ŷ�� ���� ���� )
+    // CPS_BEGIN_SESSION ( before the login packet )
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(CPS_BEGIN_SESSION, PacketIDSet::PIST_NONE);
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
 
     //----------------------------------------------------------------------
-    // CPS_AFTER_SENDING_CL_LOGIN ( CLLogin �� ���� ���� )
+    // CPS_AFTER_SENDING_CL_LOGIN ( right after CLLogin )
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(CPS_AFTER_SENDING_CL_LOGIN);
     pPacketIDSet->addPacketID(Packet::PACKET_LC_VERSION_CHECK_OK);
@@ -72,14 +72,14 @@ void PacketValidator::init() {
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
 
     //----------------------------------------------------------------------
-    // CPS_AFTER_SENDING_CL_QUERY_PLAYER_ID ( CLQueryPlayerID �� ���� ���� )
+    // CPS_AFTER_SENDING_CL_QUERY_PLAYER_ID ( right after CLQueryPlayerID )
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(CPS_AFTER_SENDING_CL_QUERY_PLAYER_ID);
     pPacketIDSet->addPacketID(Packet::PACKET_LC_QUERY_RESULT_PLAYER_ID);
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
 
     //----------------------------------------------------------------------
-    // CPS_AFTER_SENDING_CL_REGISTER_PLAYER ( CLRegisterPlayer �� ���� ���� )
+    // CPS_AFTER_SENDING_CL_REGISTER_PLAYER ( right after CLRegisterPlayer )
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(CPS_AFTER_SENDING_CL_REGISTER_PLAYER);
     pPacketIDSet->addPacketID(Packet::PACKET_LC_VERSION_CHECK_OK);
@@ -89,8 +89,8 @@ void PacketValidator::init() {
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
 
     //----------------------------------------------------------------------
-    // CPS_AFTER_SENDING_CL_GET_PC_LIST ( CLGetPCList �� ���� ���� )
-    // CLChangeServer�� ���� ���Ŀ��� �� ���¸� �����ϵ��� �Ѵ�.
+    // CPS_AFTER_SENDING_CL_GET_PC_LIST ( right after CLGetPCList )
+    // This state is kept after CLChangeServer as well.
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(CPS_AFTER_SENDING_CL_GET_PC_LIST);
     pPacketIDSet->addPacketID(Packet::PACKET_LC_PC_LIST);
@@ -98,7 +98,7 @@ void PacketValidator::init() {
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
 
     //----------------------------------------------------------------------
-    // CPS_AFTER_SENDING_CL_CREATE_PC ( CLCreatePC �� ���� ���� )
+    // CPS_AFTER_SENDING_CL_CREATE_PC ( right after CLCreatePC )
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(CPS_AFTER_SENDING_CL_CREATE_PC);
     pPacketIDSet->addPacketID(Packet::PACKET_LC_CREATE_PC_OK);
@@ -106,7 +106,7 @@ void PacketValidator::init() {
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
 
     //----------------------------------------------------------------------
-    // CPS_AFTER_SENDING_CL_DELETE_PC ( CLDeletePC �� ���� ���� )
+    // CPS_AFTER_SENDING_CL_DELETE_PC ( right after CLDeletePC )
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(CPS_AFTER_SENDING_CL_DELETE_PC);
     pPacketIDSet->addPacketID(Packet::PACKET_LC_DELETE_PC_OK);
@@ -114,7 +114,7 @@ void PacketValidator::init() {
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
 
     //----------------------------------------------------------------------
-    // CPS_AFTER_SENDING_CL_SELECT_PC ( CLSelectPC �� ���� ���� )
+    // CPS_AFTER_SENDING_CL_SELECT_PC ( right after CLSelectPC )
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(CPS_AFTER_SENDING_CL_SELECT_PC);
     pPacketIDSet->addPacketID(Packet::PACKET_LC_RECONNECT);
@@ -151,7 +151,7 @@ void PacketValidator::init() {
 
 
     //----------------------------------------------------------------------
-    // CPS_NORMAL (���ӿ� ����!)
+    // CPS_NORMAL (into the game!)
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(CPS_NORMAL, PacketIDSet::PIST_ANY);
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
@@ -171,7 +171,7 @@ void PacketValidator::init() {
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
 
     //----------------------------------------------------------------------
-    // LPS_BEGIN_SESSION ( �α��� ������ ������ ���� )
+    // LPS_BEGIN_SESSION ( right after the login session begins )
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(LPS_BEGIN_SESSION);
     // In-client account registration: a fresh connection may query an ID or
@@ -187,7 +187,7 @@ void PacketValidator::init() {
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
 
     //----------------------------------------------------------------------
-    // LPS_WAITING_FOR_CL_GET_PC_LIST ( ����� ������ ���� ���� )
+    // LPS_WAITING_FOR_CL_GET_PC_LIST ( before the user information is sent )
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(LPS_WAITING_FOR_CL_GET_PC_LIST);
     pPacketIDSet->addPacketID(Packet::PACKET_CL_GET_PC_LIST);
@@ -274,13 +274,13 @@ void PacketValidator::init() {
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
 
     //----------------------------------------------------------------------
-    // GPS_NORMAL ( �ε��� ��ġ�� ���ӿ� ���� �ٷ��� )
+    // GPS_NORMAL ( loading is done, the position is settled, into the game )
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(GPS_NORMAL, PacketIDSet::PIST_ANY);
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);
 
     //----------------------------------------------------------------------
-    // GPS_IGNORE_ALL ( �ƹ� ��Ŷ�� ���� �ʰ� �� �����ϴ� ���´�.. fucksuck)
+    // GPS_IGNORE_ALL ( the state that takes no packet at all and only sends.. fucksuck)
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(GPS_IGNORE_ALL, PacketIDSet::PIST_IGNORE_EXCEPT);
     addPacketIDSet(pPacketIDSet->getPlayerStatus(), pPacketIDSet);

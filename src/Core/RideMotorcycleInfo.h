@@ -2,10 +2,10 @@
 // Filename    : RideMotorcycleInfo.h
 // Written By  : elca@ewestsoft.com
 // Description :
-// Ÿ�� �ִ� ���ͻ���Ŭ�� ���� ������ ������ �ִ� ��Ŷ�̴�.
-// ���� ����Ŭ ��ü�� ���� ���� �ܿ���, ���� ����Ŭ ���ο� �ִ�
-// �κ��丮�� ���� ������ ���� ������ �ִ�. �κ��丮 ������ ���� ����
-// RideMotorcycleSlotInfo�� InventorySlotInfo�� �����϶�.
+// Packet that carries the information about the motorcycle being ridden.
+// Besides the motorcycle object's own information it also carries the
+// information about the items in the motorcycle's inventory. For the
+// inventory information see RideMotorcycleSlotInfo and InventorySlotInfo.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __RIDE_MOTORCYCLE_INFO_H__

@@ -19,10 +19,10 @@
 //
 // class PCInfo;
 //
-// LCPCList 패킷에 담겨서 날아오는 SlayerPCInfo, VampirePCInfo 클래스의 베이스
-// 클래스이다. LCPCList 패킷에는 PCInfo* [3] 이 저장되며, DB 상의 캐릭터의
-// 숫자에 따라서, 여기에 실제 SlayerPCInfo, VampirePCInfo 또는 NULL 이 저장
-// 된다.
+// Base of the SlayerPCInfo and VampirePCInfo classes that arrive in the
+// LCPCList packet. The LCPCList packet stores PCInfo* [3], and by the DB's character
+// count, the real SlayerPCInfo, VampirePCInfo or NULL is stored
+// here.
 //
 //----------------------------------------------------------------------
 
@@ -31,11 +31,11 @@ public:
     // destructor
     virtual ~PCInfo() {}
 
-    // 현재 인스턴스가 슬레이어인지 뱀파이어인지..
+    // Whether the current instance is a slayer or a vampire..
     virtual PCType getPCType() const = 0;
 
     //----------------------------------------------------------------------
-    // 패킷에 embedding 되려는 객체는 아래와 같은 데이타를 명시해야 한다.
+    // An object that wants to be embedded in a packet has to state the following data.
     //----------------------------------------------------------------------
 
     // read data from socket input stream

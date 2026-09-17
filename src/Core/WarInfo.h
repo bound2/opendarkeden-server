@@ -19,7 +19,7 @@
 //
 // class WarInfo;
 //
-// 하나의 전쟁에 대한 정보
+// Information about a single war
 //
 //--------------------------------------------------------------------------------
 
@@ -31,10 +31,10 @@ public:
     }
     virtual ~WarInfo() {}
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     virtual void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     virtual void write(SocketOutputStream& oStream) const;
 
     virtual PacketSize_t getSize() const {
@@ -66,8 +66,8 @@ public:
     }
 
 protected:
-    DWORD m_RemainTime; // 남은 시간(초)
-    DWORD m_StartTime;  // 시작 시간(년/월/일)
+    DWORD m_RemainTime; // Time left (seconds)
+    DWORD m_StartTime;  // Start time (year/month/day)
 };
 
 #endif

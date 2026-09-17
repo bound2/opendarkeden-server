@@ -10,14 +10,14 @@
 #include "PCInfo.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// Vampire 정보를 담고 있는 객체.
-// GCPCList 패킷에 담겨서 클라이언트에게 전송된다.
-// 아이템이나 걸려있는 마법 같은 정보는 담겨있지 않다.
+// Object that carries Vampire information.
+// It is carried in the GCPCList packet and sent to the client.
+// It does not carry information such as items or the magic in effect.
 //////////////////////////////////////////////////////////////////////////////
 
 class PCVampireInfo : public PCInfo {
 public:
-    // 아직 bitset은 사용하지 않는다.
+    // bitset is not used yet.
     enum VampireBits { VAMPIRE_BIT_COAT1, VAMPIRE_BIT_COAT2, VAMPIRE_BIT_COAT3, VAMPIRE_BIT_MAX };
 
     enum VampireColors { VAMPIRE_COLOR_COAT, VAMPIRE_COLOR_MAX };
@@ -32,41 +32,41 @@ public:
     void write(SocketOutputStream& oStream) const;
 
     uint getSize() const {
-        return szBYTE             // 이름길이
-               + m_Name.size()    // 뱀파이어 이름
-               + szSlot           // 슬롯
-               + szAlignment      // 성향
-               + szSex            // 성별
-               + szColor * 2      // 색상
-               + szBYTE + szColor // 옷 타입, 색상
-               + szAttr * 3       // 능력치
+        return szBYTE             // Name length
+               + m_Name.size()    // Vampire name
+               + szSlot           // Slot
+               + szAlignment      // Alignment
+               + szSex            // Sex
+               + szColor * 2      // Colour
+               + szBYTE + szColor // Coat type, colour
+               + szAttr * 3       // Attributes
                + szHP * 2         // HP
-               + szRank           // 계급
-               + szExp            // 경험치
-               + szLevel          // 경험치
+               + szRank           // Rank
+               + szExp            // Experience
+               + szLevel          // Experience
                + szFame
-               //+ szGold					// 돈
-               + szBonus // 보너스 포인트
+               //+ szGold					// Money
+               + szBonus // Bonus points
                //+ szZoneID;					// ZoneID
                + szLevel;
     }
 
     // get max size of object
     static constexpr uint getMaxSize() {
-        return szBYTE + 20        // 뱀파이어 이름
-               + szSlot           // 슬롯
-               + szAlignment      // 성향
-               + szSex            // 성별
-               + szColor * 2      // 색상
-               + szBYTE + szColor // 옷 타입, 색상
-               + szAttr * 3       // 능력치
+        return szBYTE + 20        // Vampire name
+               + szSlot           // Slot
+               + szAlignment      // Alignment
+               + szSex            // Sex
+               + szColor * 2      // Colour
+               + szBYTE + szColor // Coat type, colour
+               + szAttr * 3       // Attributes
                + szHP * 2         // HP
-               + szRank           // 계급
-               + szExp            // 경험치
+               + szRank           // Rank
+               + szExp            // Experience
                + szFame +
                szLevel
-               //+ szGold					// 돈
-               + szBonus // 보너스 포인트
+               //+ szGold					// Money
+               + szBonus // Bonus points
                //+ szZoneID;					// ZoneID
                + szLevel;
     }
@@ -248,7 +248,7 @@ private:
     // PC name
     string m_Name;
 
-    // PC 슬롯
+    // PC slot
     Slot m_Slot;
 
     // Alignment
@@ -265,7 +265,7 @@ private:
     ItemType_t m_CoatType;
     Color_t m_CoatColor;
 
-    // 계급
+    // Rank
     Rank_t m_Rank;
 
     // Exp
@@ -296,7 +296,7 @@ private:
     Bonus_t m_Bonus;
 
     Level_t m_AdvancementLevel;
-    // 걸려 있는 마법
+    // The magic in effect
 };
 
 #endif

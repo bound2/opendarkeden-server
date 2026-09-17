@@ -2,7 +2,7 @@
 //
 // Filename    : ModifyItemInfo.h
 // Written By  : elca@ewestsoft.com
-// Description : ����� ���������� ������ ��Ŷ�� ���� Ŭ���� ����
+// Description : Class definition for the packet sent when a skill succeeds
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -19,9 +19,9 @@
 //
 // class ModifyItemInfo;
 //
-// ���Ӽ������� Ŭ���̾�Ʈ�� �ڽ��� ������ �����͸�
-// �˷��ֱ� ���� ��ä ModifyItemInformation, SkillToObjectOK � �Ƿ���
-// ���ư���.
+// Object the game server uses to tell the client about its own changed
+// data. It is carried in ModifyItemInformation, SkillToObjectOK and
+// the like.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -34,15 +34,15 @@ public:
     ~ModifyItemInfo() noexcept;
 
 public:
-    // �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ��
-    // �ʱ�ȭ�Ѵ�.
+    // Read data from the input stream (buffer) and initialise the
+    // packet.
     void read(SocketInputStream& iStream);
 
-    // ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
     // get packet's body size
-    // ����ȭ��, �̸� ���� ������ ����Ѵ�.
+    // When optimizing, use the precomputed constant.
     PacketSize_t getSize() const {
         return szDWORD + szDWORD * m_ListNum * 3;
     }

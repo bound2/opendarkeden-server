@@ -17,10 +17,10 @@
 
 //----------------------------------------------------------------------
 //
-// Inventory 정보를 담고 있는 객체.
+// Object that carries inventory information.
 //
-// GCUpdateInfo 패킷에 담겨서 클라이언트에게 전송된다.
-// 아이템이나 걸려있는 마법 같은 정보는 담겨있지 않다.
+// It is carried in the GCUpdateInfo packet and sent to the client.
+// It does not carry information such as items or the magic in effect.
 //
 //----------------------------------------------------------------------
 

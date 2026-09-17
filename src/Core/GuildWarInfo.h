@@ -19,7 +19,7 @@
 //
 // class WarInfo;
 //
-// 하나의 전쟁에 대한 정보
+// Information about a single war
 //
 //--------------------------------------------------------------------------------
 
@@ -31,10 +31,10 @@ public:
     GuildWarInfo() {}
     ~GuildWarInfo() {}
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
     PacketSize_t getSize() const {
@@ -92,10 +92,10 @@ public:
     }
 
 private:
-    ZoneID_t m_CastleID = 0;   // 전쟁중인 성
-    string m_DefenseGuildName; // 방어 길드
-    string m_AttackGuildName;  // 공격 길드
-    GuildIDList m_GuildIDs;    // 참여길드들
+    ZoneID_t m_CastleID = 0;   // Castle at war
+    string m_DefenseGuildName; // Defending guild
+    string m_AttackGuildName;  // Attacking guild
+    GuildIDList m_GuildIDs;    // Participating guilds
 };
 
 #endif

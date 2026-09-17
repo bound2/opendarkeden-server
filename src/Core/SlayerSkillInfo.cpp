@@ -2,8 +2,8 @@
 //
 // Filename    : SlayerSkillInfo.cpp
 // Written By  : elca@ewestsoft.com
-// Description : �ڽſ��� ���� ����� ������ �˸��� ���� ��Ŷ Ŭ������
-//               ��� ����.
+// Description : Member definitions of the packet class that reports the
+//               success of a skill used on oneself.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -48,12 +48,12 @@ void SlayerSkillInfo::clearList() {
 
 
 //////////////////////////////////////////////////////////////////////
-// �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void SlayerSkillInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     // The list replaces the one the record holds.
     clearList();
 
@@ -86,12 +86,12 @@ void SlayerSkillInfo::read(SocketInputStream& iStream) {
 
 
 //////////////////////////////////////////////////////////////////////
-// ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void SlayerSkillInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     if (m_SubSlayerSkillInfoList.size() > kMaxSkills)
         throw InvalidProtocolException("too many slayer skills");
 

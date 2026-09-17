@@ -73,16 +73,16 @@ public:
     }
 
 private:
-    // 스킬 타입
+    // Skill type
     SkillType_t m_SkillType;
 
-    // 스킬 레벨
+    // Skill level
     ExpLevel_t m_ExpLevel;
 
-    // 한번쓰고 다음에 쓸 딜레이
+    // Delay before it can be used again
     Turn_t m_Interval;
 
-    // 캐스팅 타임
+    // Casting time
     Turn_t m_CastingTime;
 };
 

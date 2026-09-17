@@ -18,7 +18,7 @@
 //
 // class GuildInfo;
 //
-// Ŭ���̾�Ʈ�� ��� ����Ʈ�� ������.
+// Send the guild list to the client.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -31,15 +31,15 @@ public:
     ~GuildInfo() noexcept;
 
 public:
-    // �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ��
-    // �ʱ�ȭ�Ѵ�.
+    // Read data from the input stream (buffer) and initialise the
+    // packet.
     void read(SocketInputStream& iStream);
 
-    // ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
     // get packet's body size
-    // ����ȭ��, �̸� ���� ������ ����Ѵ�.
+    // When optimizing, use the precomputed constant.
     PacketSize_t getSize();
 
     // The guild-table packets' factory maxima budget this many guilds;
@@ -96,19 +96,19 @@ public:
 
 
 private:
-    // ��� ���̵�
+    // Guild ID
     GuildID_t m_GuildID;
 
-    // ��� �̸�
+    // Guild name
     string m_GuildName;
 
-    // ��� ������
+    // Guild master
     string m_GuildMaster;
 
-    // ��� ��� ī��Ʈ
+    // Guild member count
     BYTE m_GuildMemberCount;
 
-    // ��� Expire Date
+    // Guild expire date
     string m_GuildExpireDate;
 };
 

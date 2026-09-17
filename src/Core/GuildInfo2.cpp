@@ -39,7 +39,7 @@ GuildInfo2::~GuildInfo2() {
 void GuildInfo2::clearGuildMemberInfoList() {
     __BEGIN_TRY
 
-    // GuildInfoList를 삭제한다.
+    // Delete the GuildInfoList.
     while (!m_GuildMemberInfoList.empty()) {
         GuildMemberInfo2* pGuildMemberInfo = m_GuildMemberInfoList.front();
         m_GuildMemberInfoList.pop_front();
@@ -51,7 +51,7 @@ void GuildInfo2::clearGuildMemberInfoList() {
 
 
 //////////////////////////////////////////////////////////////////////
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void GuildInfo2::read(SocketInputStream& iStream) {
     __BEGIN_TRY
@@ -82,12 +82,12 @@ void GuildInfo2::read(SocketInputStream& iStream) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void GuildInfo2::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    // 최적화 작업시 실제 크기를 명시하도록 한다.
+    // State the actual size when optimizing.
     oStream.write(m_ID);
     de::wire::writeString(oStream, m_Name, {1, 30}, "Name");
     oStream.write(m_Type);
