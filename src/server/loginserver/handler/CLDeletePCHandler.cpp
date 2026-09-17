@@ -69,9 +69,7 @@ void CLDeletePCHandler::execute(CLDeletePC* pPacket, Player* pPlayer) {
             return;
         }
 
-#ifndef __NETMARBLE_SERVER__
         repo.recordDeletion(request.playerID, WorldID, request.name);
-#endif
 
         // The Vampire and Ousters rows, the character's items, couple
         // entry, effects, flags, time-limited items, event and Mofus rows.

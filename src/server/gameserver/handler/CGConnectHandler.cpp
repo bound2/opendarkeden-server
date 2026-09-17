@@ -61,7 +61,6 @@
 #include "skill/EffectGnomesWhisper.h"
 // #include "GCLoadInventory.h"
 #include "DynamicZoneManager.h"
-#include "EventAuth.h"
 #include "GDRLairManager.h"
 #include "SystemAvailabilitiesManager.h"
 #include "types/ServerType.h"
@@ -565,12 +564,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         pCreature->getEffectManager()->addEffect(pEffect);
         pCreature->setFlag(Effect::EFFECT_CLASS_GHOST);
         pCreature->setMoveMode(Creature::MOVE_MODE_FLYING);
-    } else {
-#ifdef __TEST_SERVER__
-        EventAuth* pAuth = new EventAuth(pGamePlayer);
-        pGamePlayer->addEvent(pAuth);
-        cout << "¿£ÇÁ·ÎÅØÆ® ÀÎÁõ Å¸ÀÌ¸Ó ºÙÀÔ´Ï´Ù : " << pGamePlayer->getID() << endl;
-#endif
     }
 
     if (pCreature->getCompetenceShape() == 0) {

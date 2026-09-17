@@ -6,9 +6,9 @@ using namespace std;
 
 #include "types/ServerType.h"
 
-#ifdef __NETMARBLE_SERVER__
-#define __CONNECT_BILLING_SYSTEM__
-#endif
+// Nothing defines __CONNECT_BILLING_SYSTEM__, so the external billing
+// blocks behind it are not compiled.
+
 // #define __COUT_BILLING_SYSTEM__
 
 #ifdef __GAME_SERVER__

@@ -2159,10 +2159,10 @@ noted.
   was 3 bytes short. Worked only because TCP usually delivers the whole
   packet at once, so the client's length check passed anyway; a
   fragmented delivery could throw `InsufficientDataException` mid-parse.
-  Separately, the trailing `m_Agree` byte is written only under
-  `__NETMARBLE_SERVER__` (never defined by the build) but was counted
-  unconditionally in `getPacketMaxSize()`; the accounting is now guarded
-  the same way as the write.
+  Separately, the trailing `m_Agree` byte was written only under
+  `__NETMARBLE_SERVER__`, which nothing defines, but was counted
+  unconditionally in `getPacketMaxSize()`; the byte and the macro are
+  both gone now (R14), so the size no longer carries it.
   > **Status:** fixed (restructuring/wire-maxsize-reconcile)
 
 - **`GCUseOK` client cap dropped large use results (client).** The

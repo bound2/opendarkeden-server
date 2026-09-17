@@ -535,20 +535,6 @@ void PlayerCreature::whenQuestLevelUpgrade() {
             }
         }
     }
-
-#ifdef __TEST_SERVER__
-    if (getLevel() >= 150) {
-        increaseAdvancementClassExp(1);
-        GCModifyInformation gcMI;
-        gcMI.addShortData(MODIFY_ADVANCEMENT_CLASS_LEVEL, getAdvancementClassLevel());
-        gcMI.addLongData(MODIFY_ADVANCEMENT_CLASS_GOAL_EXP, getAdvancementClassGoalExp());
-        getPlayer()->sendPacket(&gcMI);
-
-        GCOtherModifyInfo gcOMI;
-        gcOMI.addShortData(MODIFY_ADVANCEMENT_CLASS_LEVEL, getAdvancementClassLevel());
-        getZone()->broadcastPacket(getX(), getY(), &gcOMI, this);
-    }
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////

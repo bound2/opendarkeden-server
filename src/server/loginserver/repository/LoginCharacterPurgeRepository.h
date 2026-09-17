@@ -30,10 +30,8 @@
 // Slayer row for every race and a Vampire or Ousters row besides, so the
 // ownership check and the retirement consult Slayer whatever the race, and
 // the purge's Vampire/Ousters statements match the row the character has.
-// Outside __NETMARBLE_SERVER__ the race rows are set INACTIVE, not
-// deleted, and the three skill-save tables are left alone; under that
-// flag the race rows are deleted and the skill-save tables join the
-// list. The gameserver's own purge
+// The race rows are set INACTIVE, not deleted, and the three skill-save
+// tables are left alone. The gameserver's own purge
 // (CharacterPurgeRepository, run when a gameserver deletes a character)
 // deletes the skill saves in every build, lacks six of the object tables
 // here (CarryingReceiver, ShoulderArmor, Dermis, Persona, Fascia, Mitten)

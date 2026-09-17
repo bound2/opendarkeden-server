@@ -2567,11 +2567,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 //////////////////////////////////////////////////////////////////////////////
 void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInfo* pSkillInfo, ModifyInfo* pMI1,
                         ModifyInfo* pMI2) {
-    // #ifdef __TEST_SERVER__
     WORD Point = (pSkillInfo) ? (pSkillInfo->getConsumeMP() / 3) : 1;
-    // #else
-    //	WORD Point = (pSkillInfo)?pSkillInfo->getPoint():1;
-    // #endif
 
     // ¶³¾î¶ß¸± ³»±¸µµ°¡ 0ÀÌ¶ó¸é °Á ¸®ÅÏÇØ¾ßÁã...
     if (Point == 0)

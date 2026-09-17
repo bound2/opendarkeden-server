@@ -71,19 +71,9 @@ public:
         m_pPCInfos[slot] = pPCInfo;
     }
 
-    bool isAgree() const {
-        return (m_Agree ? true : false);
-    }
-    void setAgree(bool agree) {
-        m_Agree = agree;
-    }
-
 private:
     // 캐릭터 정보
     PCInfo* m_pPCInfos[SLOT_MAX];
-
-    // 넷마블 사용자 약관 동의 여부
-    BYTE m_Agree;
 };
 
 
@@ -100,13 +90,8 @@ public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_LC_PC_LIST;
     static constexpr std::string_view kName = "LCPCList";
     // Slayer info is the largest of the three races, so the packet is
-    // biggest with SLOT_MAX slayers. The m_Agree byte is only on the
-    // wire for netmarble builds (see write()).
-    static constexpr PacketSize_t kMaxSize{PCSlayerInfo::getMaxSize() * SLOT_MAX + SLOT_MAX
-#ifdef __NETMARBLE_SERVER__
-                                           + szBYTE
-#endif
-    };
+    // biggest with SLOT_MAX slayers.
+    static constexpr PacketSize_t kMaxSize{PCSlayerInfo::getMaxSize() * SLOT_MAX + SLOT_MAX};
 
     // create packet
     Packet* createPacket() override {

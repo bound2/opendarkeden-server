@@ -1307,11 +1307,7 @@ int Slayer::getBloodBibleSignOpenNum() const {
         openNumLimit = 2;
     }
 
-#ifdef __TEST_SERVER__
-    Fame_t fame = getFame() * 10;
-#else
     Fame_t fame = getFame();
-#endif
 
     if (!g_pWarSystem->canApplyBloodBibleSign())
         return 0;
@@ -2678,11 +2674,7 @@ int Vampire::getBloodBibleSignOpenNum() const {
         openNumLimit = 2;
     }
 
-#ifdef __TEST_SERVER__
-    Fame_t fame = getFame() * 10;
-#else
     Fame_t fame = getFame();
-#endif
 
     if (!g_pWarSystem->canApplyBloodBibleSign())
         return 0;
@@ -4257,11 +4249,7 @@ int Ousters::getBloodBibleSignOpenNum() const {
         openNumLimit = 2;
     }
 
-#ifdef __TEST_SERVER__
-    Fame_t fame = getFame() * 10;
-#else
     Fame_t fame = getFame();
-#endif
 
     if (!g_pWarSystem->canApplyBloodBibleSign())
         return 0;

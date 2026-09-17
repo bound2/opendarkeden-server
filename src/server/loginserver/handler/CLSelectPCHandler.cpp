@@ -75,10 +75,6 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
     request.pcType = pPacket->getPCType();
     request.inCharacterManagement = (pLoginPlayer->getPlayerStatus() == LPS_PC_MANAGEMENT);
 
-#ifdef __NETMARBLE_SERVER__
-    request.agreedToTerms = pLoginPlayer->isAgree();
-#endif
-
     // The external billing gate that used to answer SELECT_PC_CANNOT_PLAY and
     // SELECT_PC_NOT_BILLING_CHECK is switched off, so nothing produces those
     // two codes and the free-play cap below is the only account-state check
