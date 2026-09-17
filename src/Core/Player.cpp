@@ -106,51 +106,51 @@ void Player::processCommand(bool Option) {
     /*
         try {
 
-            // ����� �ӽ������� ���� ����
+            // Variables used temporarily below
             char header[szPacketHeader];
             PacketID_t packetID;
             PacketSize_t packetSize;
             Packet * pPacket;
 
-            // �Է¹��ۿ� ����ִ� ������ ��Ŷ���� ������ ó���Ѵ�.
+            // Handle as many packets as the input buffer holds.
             while ( true ) {
 
-                // �Է½�Ʈ������ ��Ŷ���ũ�⸸ŭ �о��.
-                // ���� ������ ũ�⸸ŭ ��Ʈ������ ���� �� ���ٸ�,
-                // Insufficient ���ܰ� �߻��ϰ�, ������ ����������.
+                // Read the packet header size from the input stream.
+                // If the stream does not hold that many bytes,
+                // an Insufficient exception is thrown and the loop is left.
                 m_pInputStream->peek( header , szPacketHeader );
 
-                // ��Ŷ���̵� �� ��Ŷũ�⸦ �˾Ƴ���.
-                // �̶� ��Ŷũ��� ����� �����Ѵ�.
+                // Work out the packet id and the packet size.
+                // The packet size here excludes the header.
                 memcpy( &packetID   , &header[0] , szPacketID );
                 memcpy( &packetSize , &header[szPacketID] , szPacketSize );
 
-                // ��Ŷ ���̵� �̻��ϸ� �������� ������ �����Ѵ�.
+                // If the packet id is odd, treat it as a protocol error.
                 if ( packetID >= Packet::PACKET_MAX )
                     throw InvalidProtocolException("invalid packet id");
 
-                // ��Ŷ ũ�Ⱑ �ʹ� ũ�� �������� ������ �����Ѵ�.
+                // If the packet size is too large, treat it as a protocol error.
                 if ( packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID) )
                     throw InvalidProtocolException("too large packet size");
 
-                // �Է¹��۳��� ��Ŷũ�⸸ŭ�� ����Ÿ�� ����ִ��� Ȯ���Ѵ�.
-                // ����ȭ�� break �� ����ϸ� �ȴ�. (���⼭�� �ϴ� exception�� �� ���̴�.)
+                // Check whether the input buffer holds as many bytes as the packet size.
+                // A break would do just as well here. (an exception is used for now.)
                 if ( m_pInputStream->length() < szPacketHeader + packetSize )
                     throw InsufficientDataException();
 
-                // ������� �Դٸ� �Է¹��ۿ��� ������ ��Ŷ �ϳ� �̻��� ����ִٴ� ���̴�.
-                // ��Ŷ���丮�Ŵ����κ��� ��Ŷ���̵� ����ؼ� ��Ŷ ��Ʈ��ó�� �����ϸ� �ȴ�.
-                // ��Ŷ���̵� �߸��� ���� ��Ŷ���丮�Ŵ������� ó���Ѵ�.
+                // Getting this far means the input buffer holds at least one whole packet.
+                // Ask the packet factory manager for a packet by its id and create the packet stream.
+                // A wrong packet id is handled by the packet factory manager.
                 pPacket = g_pPacketFactoryManager->createPacket( packetID );
 
-                // ���� �� ��Ŷ��Ʈ��ó�� �ʱ�ȭ�Ѵ�.
-                // ��Ŷ����Ŭ������ ���ǵ� read()�� virtual ��Ŀ���� ���ؼ� ȣ��Ǿ�
-                // �ڵ������� �ʱ�ȭ�ȴ�.
+                // Then initialise the packet from the stream.
+                // read(), defined in the packet subclass, is called through the virtual mechanism
+                // so it is initialised automatically.
                 m_pInputStream->read( pPacket );
 
                 PacketDispatcher::dispatch(pPacket, this);
 
-                // ��Ŷ�� �����Ѵ�
+                // Delete the packet
                 delete pPacket;
 
             }
@@ -159,7 +159,7 @@ void Player::processCommand(bool Option) {
 
             // PacketFactoryManager::createPacket(PacketID_t)
             // PacketFactoryManager::getPacketMaxSize(PacketID_t)
-            // ���� ���� ���ɼ��� �ִ�.
+            // can throw it.
             throw Error( nsee.toString() );
 
         } catch ( InsufficientDataException ) {
@@ -236,9 +236,9 @@ void Player::disconnect(bool bDisconnected) {
     __BEGIN_TRY
 
     try {
-        // �����ϰ� �α׾ƿ��� ��쿡�� ��� ���۸� �÷����� ��
-        // �ִ�. �׷���, �ҹ����� �𽺸� �ɾ��ٸ� ������
-        // �ݰ����Ƿ� �÷����� ��� SIG_PIPE �� �ް� �ȴ�.
+        // When the logout is clean the send buffer can be flushed.
+        // If a nonsense packet was sent, though, the other side
+        // closes the connection, so flushing it brings a SIG_PIPE.
         if (bDisconnected == UNDISCONNECTED) {
             m_pOutputStream->flush();
         }
@@ -248,7 +248,7 @@ void Player::disconnect(bool bDisconnected) {
         cerr << "Player::disconnect Exception Check!!" << endl;
         cerr << t.toString() << endl;
         m_pSocket->close();
-        // throw Error("����...");
+        // throw Error("...");
     }
 
     __END_CATCH

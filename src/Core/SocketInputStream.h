@@ -8,13 +8,13 @@
 //
 // *Reiot's Notes*
 //
-// �ý��ۿ��� ���� ����ϰ� ���Ǵ� Ŭ�������� �ϳ��̴�.
-// �ӵ��� ���������� ������ ��ġ�Ƿ�, ���� ���� �ӵ��� �����ϰ�
-// �ʹٸ�, exception�� ���� re-write �϶�.
+// One of the classes used most heavily in the system.
+// Speed matters a great deal here, so if the speed has to be pushed
+// further, re-write it without exceptions.
 //
-// ���� nonblocking �� ������-�����-���� ���� �߻��Ѵٰ�
-// ������, �̰��� NonBlockingIOException���� wrapping�ɶ� overhead�� �߻���
-// Ȯ���� ���ٰ� �����ȴ�.
+// A nonblocking socket is said to raise an exception once in every
+// thousand or so, and the overhead of wrapping that in a
+// NonBlockingIOException is reckoned to be negligible.
 //
 //////////////////////////////////////////////////////////////////////
 

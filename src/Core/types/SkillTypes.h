@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : SkillTypes.h
-// Description : the SkillTypes enum and its name table — wire vocabulary
+// Description : the SkillTypes enum and its name table: wire vocabulary
 //               used by skill-carrying packets, moved out of
 //               src/server/gameserver/skill/Skill.h so the wire layer does
 //               not depend on the gameserver.
@@ -192,7 +192,7 @@ enum SkillTypes {
     SKILL_BLOODY_STRIKE, // 149
     SKILL_BLOODY_STORM,  // 150
 
-    // ÀÓ½Ã·Î Ãß°¡ 2002.2.22
+    // Added temporarily 2002.2.22
     SKILL_SUMMON_BAT,  // 151
     SKILL_CHARM,       // 152
     SKILL_POLYMORPH,   // 153
@@ -394,7 +394,7 @@ enum SkillTypes {
     SKILL_FABULOUS_SOUL, // 305
     SKILL_WILL_OF_IRON,  // 306
 
-    // Áúµå·¹ ½ºÅ³
+    // Gilles de Rais skill
     SKILL_WIDE_ICE_FIELD, // 307
     SKILL_GLACIER_1,      // 308
     SKILL_GLACIER_2,      // 309
@@ -429,10 +429,10 @@ enum SkillTypes {
     SKILL_REACTIVE_ARMOR_MASTERY,    // 335
 
     SKILL_THROWING_AXE,       // 336
-    SKILL_CHOPPING_FIREWOOD,  // 337 ÀåÀÛÆÐ±â
-    SKILL_CHAIN_THROWING_AXE, // 338 µµ³¢ ¼¼°³ ´øÁö±â
-    SKILL_MULTI_THROWING_AXE, // 339 µµ³¢  ""
-    SKILL_PLAYING_WITH_FIRE,  // 340 ºÒÀå³­
+    SKILL_CHOPPING_FIREWOOD,  // 337 Chop wood
+    SKILL_CHAIN_THROWING_AXE, // 338 Throw three axes
+    SKILL_MULTI_THROWING_AXE, // 339 Axe  ""
+    SKILL_PLAYING_WITH_FIRE,  // 340 Playing with fire
 
     SKILL_INFINITY_THUNDERBOLT,   // 341
     SKILL_SPIT_STREAM,            // 342
@@ -443,17 +443,17 @@ enum SkillTypes {
     SKILL_NOOSE_OF_WRAITH,        // 347
 
     SKILL_SHARP_HAIL,         // 348
-    SKILL_SUMMON_MIGA,        // 349	// ¾Æ¿ì½ºÅÍÁî°¡ ¾²´Â ½ºÅ³
-    SKILL_SUMMON_MIGA_ATTACK, // 350	// ¼ÒÈ¯µÈ³ðÀÌ ¾²´Â ½ºÅ³
+    SKILL_SUMMON_MIGA,        // 349	// Skill used by the Ousters
+    SKILL_SUMMON_MIGA_ATTACK, // 350	// Skill used by a summoned creature
     SKILL_ICE_HORIZON,        // 351
     SKILL_FURY_OF_GNOME,      // 352
 
-    SKILL_CANNONADE,        // 353	// Æ÷°Ý
-    SKILL_SELF_DESTRUCTION, // 354	// ÀÚÆø°ø°Ý
+    SKILL_CANNONADE,        // 353	// Bombardment
+    SKILL_SELF_DESTRUCTION, // 354	// Self-destruct attack
 
-    SKILL_AR_ATTACK,      // 355	// ¸ó½ºÅÍ¿ë
-    SKILL_SMG_ATTACK,     // 356	// ¸ó½ºÅÍ¿ë
-    SKILL_GRENADE_ATTACK, // 357	// ¸ó½ºÅÍ¿ë
+    SKILL_AR_ATTACK,      // 355	// For monsters
+    SKILL_SMG_ATTACK,     // 356	// For monsters
+    SKILL_GRENADE_ATTACK, // 357	// For monsters
 
     SKILL_DRAGON_TORNADO,  // 358
     SKILL_BIKE_CRASH,      // 359
@@ -466,7 +466,7 @@ enum SkillTypes {
     SKILL_DESTINIES,       // 366
     SKILL_FIERCE_FLAME,    // 367
     SKILL_SHADOW_OF_STORM, // 368
-    SKILL_HEAL_PASS,       // 369 // ¿Å°Ü°¡´Â Èú
+    SKILL_HEAL_PASS,       // 369 // Heal that moves on
 
     SKILL_TRASLA_ATTACK,       // 370
     SKILL_PUSCA_ATTACK,        // 371
@@ -476,26 +476,26 @@ enum SkillTypes {
     SKILL_BLLODY_SCARIFY, // 374
     SKILL_BLOOD_CURSE,    // 375
     //////////////////////////////////////////////////////////////////////////
-    // ÈËÀà¼¼ÄÜ
-    SKILL_SHINE_SWORD,             // 376  ÉÁÒ«Ö®½£
-    SKILL_BOMB_CRASH_WALK,         // 377  ¾ÞÅÚºäÕ¨
-    SKILL_SATELLITE_BOMB,          // 378  ÎÀÐÇºä»÷
-    SKILL_ILLUSION_INVERSION,      // 379  ¿Ö²À»Ã¾õ
-    SKILL_HEAVEN_GROUND,           // 380  ÌìÉñ½µÁÙ
+    // Flame sword
+    SKILL_SHINE_SWORD,             // 376  Shining sword
+    SKILL_BOMB_CRASH_WALK,         // 377  Bomb crash walk
+    SKILL_SATELLITE_BOMB,          // 378  Satellite bomb
+    SKILL_ILLUSION_INVERSION,      // 379  Illusion inversion
+    SKILL_HEAVEN_GROUND,           // 380  Heaven ground
     TEMP_SKILL_ILLUSION_INVERSION, // 381
     //////////////////////////////////////////////////////////////////////////
-    // Ä§ÁéÐÂ¼¼ÄÜ
+    // Ice needle
     // 2007-2-15 Coffee add end
-    SKILL_DUMMY_DRAKE,       // 382 µÂÀ×¿Ë¿þÀÜ(»ð)
-    SKILL_HYDRO_CONVERGENCE, // 383 ¸´ºÏË®ÁÆ(Ë®)
-    SKILL_SUMMON_CLAY,       // 384 Õ³ÍÁÕÙ»½(ÍÁ)
-    SKILL_HETER_CHAKRAM,     // 385 ÏÄ²¼Àû»ùÒò(Õ½Ê¿)
-    SKILL_Sky_Fire,          // 386 ÌìÀ×»ð»¨ ADD BY RALLSER
+    SKILL_DUMMY_DRAKE,       // 382 Dummy drake (shovel)
+    SKILL_HYDRO_CONVERGENCE, // 383 Hydro convergence (water)
+    SKILL_SUMMON_CLAY,       // 384 Summon clay (earth)
+    SKILL_HETER_CHAKRAM,     // 385 Heter chakram (warrior)
+    SKILL_Sky_Fire,          // 386 Sky fire ADD BY RALLSER
     SKILL_Cut_Storm,         // 387 ADD BY RALLSER
     SKILL_XRL_Missile,       // 388 ADD BY RALLSER
     SKILL_Sacred_Stamp,      // 389 ADD BY RALLSER
     SKILL_Bramble_Halo,      // 390 ADD BY RALLSER
-    SKILL_Deadly_Claw,       // 391ÖÂÉËÁÑ×¦ add by rallser
+    SKILL_Deadly_Claw,       // 391 Wound claw add by rallser
     SKILL_Voodoo_Ring,       // 392 ADD BY RALLSER
     SKILL_Penetrate_Wheel,   // 393 ADD BY RALLSER
     SKILL_Fire_Meteor,       // 394 ADD BY RALLSER
@@ -913,10 +913,10 @@ const string SkillTypes2String[] = {"SKILL_ATTACK_MELEE", // 0
                                     "SKILL_REACTIVE_ARMOR_MASTERY",    // 335
 
                                     "SKILL_THROWING_AXE",       // 336
-                                    "SKILL_CHOPPING_FIREWOOD",  // 337 ÀåÀÛÆÐ±â
+                                    "SKILL_CHOPPING_FIREWOOD",  // 337 Chop wood
                                     "SKILL_CHAIN_THROWING_AXE", // 338
                                     "SKILL_MULTI_THROWING_AXE", // 339
-                                    "SKILL_PLAYING_WITH_FIRE",  // 340 ºÒÀå³­
+                                    "SKILL_PLAYING_WITH_FIRE",  // 340 Playing with fire
 
                                     "SKILL_INFINITY_THUNDERBOLT",   // 341
                                     "SKILL_SPIT_STREAM",            // 342
@@ -927,17 +927,17 @@ const string SkillTypes2String[] = {"SKILL_ATTACK_MELEE", // 0
                                     "SKILL_NOOSE_OF_WRAITH",        // 347
 
                                     "SKILL_SHARP_HAIL",         // 348
-                                    "SKILL_SUMMON_MIGA",        // 349	// ¾Æ¿ì½ºÅÍÁî°¡ ¾²´Â ½ºÅ³
-                                    "SKILL_SUMMON_MIGA_ATTACK", // 350	// ¼ÒÈ¯µÈ³ðÀÌ ¾²´Â ½ºÅ³
+                                    "SKILL_SUMMON_MIGA",        // 349	// Skill used by the Ousters
+                                    "SKILL_SUMMON_MIGA_ATTACK", // 350	// Skill used by a summoned creature
                                     "SKILL_ICE_HORIZON",        // 351
                                     "SKILL_FURY_OF_GNOME",      // 352
 
-                                    "SKILL_CANNONADE",        // 353	// Æ÷°Ý
-                                    "SKILL_SELF_DESTRUCTION", // 354	// ÀÚÆø°ø°Ý
+                                    "SKILL_CANNONADE",        // 353	// Bombardment
+                                    "SKILL_SELF_DESTRUCTION", // 354	// Self-destruct attack
 
-                                    "SKILL_AR_ATTACK",      // 355	// ¸ó½ºÅÍ¿ë
-                                    "SKILL_SMG_ATTACK",     // 356	// ¸ó½ºÅÍ¿ë
-                                    "SKILL_GRENADE_ATTACK", // 357	// ¸ó½ºÅÍ¿ë
+                                    "SKILL_AR_ATTACK",      // 355	// For monsters
+                                    "SKILL_SMG_ATTACK",     // 356	// For monsters
+                                    "SKILL_GRENADE_ATTACK", // 357	// For monsters
 
                                     "SKILL_DRAGON_TORNADO",  // 358
                                     "SKILL_BIKE_CRASH",      // 359
@@ -950,36 +950,36 @@ const string SkillTypes2String[] = {"SKILL_ATTACK_MELEE", // 0
                                     "SKILL_DESTINIES",       // 366
                                     "SKILL_FIERCE_FLAME",    // 367
                                     "SKILL_SHADOW_OF_STORM", // 368
-                                    "SKILL_HEAL_PASS",       // 369 // ¿Å°Ü°¡´Â Èú
+                                    "SKILL_HEAL_PASS",       // 369 // Heal that moves on
 
                                     "SKILL_TRASLA_ATTACK",       // 370
                                     "SKILL_PUSCA_ATTACK",        // 371
                                     "SKILL_NOD_COPILA_ATTACK",   // 372
                                     "SKILL_NOD_COPILA_ATTACK_2", // 373
                                     // add by coffee 2007-2-17  start
-                                    "SKILL_BLLODY_SCARIFY", // 374  ÑªÖ®ÀÓÓ¡
+                                    "SKILL_BLLODY_SCARIFY", // 374  Blood curse
                                     "SKILL_BLOOD_CURSE",
                                     //////////////////////////////////////////////////////////////////////////
-                                    // ÈËÀà¼¼ÄÜ
-                                    "SKILL_SHINE_SWORD",             // 376  ÉÁÒ«Ö®½£
-                                    "SKILL_BOMB_CRASH_WALK",         // 377  ¾ÞÅÚºäÕ¨
-                                    "SKILL_SATELLITE_BOMB",          // 378  ÎÀÐÇºä»÷
-                                    "SKILL_ILLUSION_INVERSION",      // 379  ¿Ö²À»Ã¾õ
-                                    "SKILL_HEAVEN_GROUND",           // 380  ÌìÉñ½µÁÙ
+                                    // Flame sword
+                                    "SKILL_SHINE_SWORD",             // 376  Shining sword
+                                    "SKILL_BOMB_CRASH_WALK",         // 377  Bomb crash walk
+                                    "SKILL_SATELLITE_BOMB",          // 378  Satellite bomb
+                                    "SKILL_ILLUSION_INVERSION",      // 379  Illusion inversion
+                                    "SKILL_HEAVEN_GROUND",           // 380  Heaven ground
                                     "TEMP_SKILL_ILLUSION_INVERSION", // 381
                                     //////////////////////////////////////////////////////////////////////////
-                                    // Ä§ÁéÐÂ¼¼ÄÜ
+                                    // Ice needle
 
-                                    "SKILL_DUMMY_DRAKE",       // 382 µÂÀ×¿Ë¿þÀÜ(»ð)
-                                    "SKILL_HYDRO_CONVERGENCE", // 383 ¸´ºÏË®ÁÆ(Ë®)
-                                    "SKILL_SUMMON_CLAY",       // 384 Õ³ÍÁÕÙ»½(ÍÁ)
-                                    "HETER_CHAKRAM",           // 385 ÏÄ²¼Àû»ùÒò(Õ½Ê¿)
-                                    "SKILL_Sky_Fire",          // 386 ÌìÀ×»ð»¨ ADD BY RALLSER
+                                    "SKILL_DUMMY_DRAKE",       // 382 Dummy drake (shovel)
+                                    "SKILL_HYDRO_CONVERGENCE", // 383 Hydro convergence (water)
+                                    "SKILL_SUMMON_CLAY",       // 384 Summon clay (earth)
+                                    "HETER_CHAKRAM",           // 385 Heter chakram (warrior)
+                                    "SKILL_Sky_Fire",          // 386 Sky fire ADD BY RALLSER
                                     "SKILL_Cut_Storm",         // 387 ADD BY RALLSER
                                     "SKILL_XRL_Missile",       // 388 ADD BY RALLSER
                                     "SKILL_Sacred_Stamp",      // 389 ADD BY RALLSER
                                     "SKILL_Bramble_Halo",      // 390 ADD BY RALLSER
-                                    "SKILL_Deadly_Claw",       // 391ÖÂÉËÁÑ×¦ add by rallser
+                                    "SKILL_Deadly_Claw",       // 391 Wound claw add by rallser
                                     "SKILL_Voodoo_Ring",       // 392 ADD BY RALLSER
                                     "SKILL_Penetrate_Wheel",   // 393 ADD BY RALLSER
                                     "SKILL_Fire_Meteor",       // 394 ADD BY RALLSER

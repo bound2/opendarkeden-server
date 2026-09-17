@@ -16,14 +16,14 @@
 
 //--------------------------------------------------------------------------------
 //
-// 게임 내에서의 시간을 나타낸다.
+// It represents the time inside the game.
 //
 //--------------------------------------------------------------------------------
 
 class GameTime {
 public:
-    // 소켓에 embedding 되려는 객체는 다음과 같은 메쏘드를 구현해야 한다.
-    // 나중에는 이거 인터페이스로 해결할 전망이다.
+    // An object that wants to be embedded in a socket has to implement these methods.
+    // This is expected to be solved with an interface later.
 
     // read from socket input stream
     void read(SocketInputStream& iStream);

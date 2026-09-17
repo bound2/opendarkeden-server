@@ -1,6 +1,6 @@
 /******************************************************************************
 FileName                : md5.h
-Description             : 벗句炬랬，경홈백페鱗諒杰唐
+Description             : MD5 message-digest implementation
 Version                 :
 Date                    : 1991
 Author                  : RSA Data Security, Inc.

@@ -26,7 +26,7 @@ class Socket;
 //
 // class Resource
 //
-// 다운로드 받아야할 파일을 나타낸다.
+// It stands for a file that has to be downloaded.
 //
 //--------------------------------------------------------------------------------
 
@@ -113,9 +113,9 @@ public:
 
 
 private:
-    Version_t m_Version; // 클라이언트 버전
-    string m_Filename;   // 다운받아야 할 파일명
-    DWORD m_FileSize;    // 파일 크기
+    Version_t m_Version; // Client version
+    string m_Filename;   // Name of the file to download
+    DWORD m_FileSize;    // File size
 };
 
 #endif

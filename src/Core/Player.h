@@ -2,8 +2,8 @@
 //
 // Filename    : Player.h
 // Written by  : reiot@ewestsoft.com
-// Description : ���Ӽ���/�α��μ���/�׽�Ʈ Ŭ���̾�Ʈ�� �÷��̾�
-// Ŭ����
+// Description : The player class of the game server / login server / test
+// client
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -24,16 +24,16 @@ class Packet;
 //
 // class Player
 //
-// �÷��̾�� �ý��� ��ü��, ����� �ϳ��� Ŭ���̾�Ʈ�� �����ȴ�.
-// TCP ���ϰ� ��������½�Ʈ���� ���ο� ������, ��Ŷ �����/ó��
-// �޽�带
-// ���� �ִ�. ���Ӽ���/�α��μ���/�׽�ƮŬ���̾�Ʈ������
-// �� Ŭ������ ��ӹ޾Ƽ� ����ϰ� �ȴ�.?
+// A player is a system object, and one is created per client.
+// It holds the TCP socket, the input and output streams over it, and the
+// packet sending and handling
+// methods. The game server, the login server and the test client each
+// inherit from this class and use it.
 //
 // *CAUTION*
 //
-// Ư�� ���Ӽ����� �α��μ����� ���, �� Ŭ������ ��ӹ��� Ŭ��������
-// ����ȭ(Mutex Lock/Unlock)�� ����� �Ѵ�.
+// In the game server and the login server in particular, the classes that
+// inherit from this class have to synchronise (Mutex Lock/Unlock).
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -65,10 +65,10 @@ public:
     virtual void sendStream(SocketOutputStream* pOutputStream);
 
     // disconnect
-    // �÷��̾��� ������ ������ ��, ������� �����ϰ�
-    // �α׾ƿ����� ���� ��� ������ ������ �̹� ���� �����Ƿ� disconnect(DISCONNECTED) �� ����ؼ� ������ �����ؾ�
-    // �Ѵ�. �ݸ�, �����ϰ� �α׾ƿ��� �� ��쿡�� disconnect(UNDISCONNECTED) �� ����ؾ�
-    // �Ѵ�.
+    // When the player's connection is already closed, or when the logout was
+    // not clean, the connection is gone already, so disconnect(DISCONNECTED) has to be used to close the
+    // connection. On a clean logout, disconnect(UNDISCONNECTED) has to be used
+    // instead.
     virtual void disconnect(bool bDisconnected = DISCONNECTED);
 
     // get/set socket
@@ -120,7 +120,7 @@ protected:
     // buffered socket output stream
     SocketOutputStream* m_pOutputStream;
 
-    // �� �÷��̾ ���� �����ϴ� ������ ��ġ
+    // The position of the server this player is connected to
     ServerGroupID_t m_ServerGroupID;
 
     // MAC Address

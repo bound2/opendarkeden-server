@@ -674,11 +674,11 @@ VSDateTime VSDateTime::fromString(string text) {
 
 ////////////////////////////////////////////////////////////////////////////////
 // return VSDateTime Object from YYYYMMDDHHMMSS style string
-// ��Ʈ���� ������ �����ѵ� ������ �����Ѵ�.
-// ( �� YYYYMMDD ������ �־�� �Ѵ�. ������ ����ð�. ��. ������.)
-//  YYYYMMDD ������ ��Ʈ���̶�� ��,��,�� ������ ����
-// ������ �κ��� bEndOfDay �� true �� 23�� 59�� 59��
-// false �̸� 0�� 0�� 0��
+// The string is checked and a proper VSDateTime is returned.
+// ( at least YYYYMMDD has to be given. Otherwise the current time. hmm. is returned.)
+//  For a YYYYMMDD string the year, month and day are taken and
+// the rest is 23:59:59 when bEndOfDay is true
+// and 0:0:0 when it is false
 ////////////////////////////////////////////////////////////////////////////////
 VSDateTime VSDateTime::fromYYYYMMDDHHMMSS(string text, bool bEndOfDay) {
     uint szText = text.size();
