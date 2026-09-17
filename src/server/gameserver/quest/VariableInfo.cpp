@@ -68,7 +68,6 @@ void VariableInfo::parse()
         }
 
         string parameter = parameters.substr(i, j - i);
-        // m_Parameters.push_back( trim( parameters.substr( i, j-i ) ) );
         m_Parameters.push_back(trim(parameter));
 
         index++;

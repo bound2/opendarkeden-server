@@ -50,12 +50,6 @@ void ActionWarpLevelWarZone::execute(Creature* pCreature1, Creature* pCreature2)
 
     GCSystemMessage gcSystemMessage;
 
-    /*	if ( g_pVariableManager->getVariable( ACTIVE_LEVEL_WAR ) == 0 )
-        {
-            gcSystemMessage.setMessage( g_pStringPool->getString( STRID_CANNOT_ENTER ) );
-            pGamePlayer->sendPacket( &gcSystemMessage );
-            return;
-        }*/
 
     // 레벨 너무 높은 캐릭터는 들어갈 수 없다
     if (g_pLevelWarZoneInfoManager->getCreatureLevelGrade(pCreature2) == -1) {

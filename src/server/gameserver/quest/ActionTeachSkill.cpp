@@ -37,7 +37,6 @@ void ActionTeachSkill::read(PropertyBuffer& propertyBuffer)
             m_DomainType = SKILL_DOMAIN_SWORD;
         else if (domainType == "GUN")
             m_DomainType = SKILL_DOMAIN_GUN;
-        // else if (domainType == "RIFLE")   m_DomainType = SKILL_DOMAIN_RIFLE;
         else if (domainType == "ENCHANT")
             m_DomainType = SKILL_DOMAIN_ENCHANT;
         else if (domainType == "HEAL")
@@ -111,27 +110,6 @@ void ActionTeachSkill::executeSlayer(Creature* pCreature1, Creature* pCreature2)
     Level_t DomainLevel = pSlayer->getSkillDomainLevel(m_DomainType);
     SkillType_t SkillType = g_pSkillInfoManager->getSkillTypeByLevel(m_DomainType, DomainLevel);
 
-    /*
-
-    // 크리쳐가 배울 수 있는 기술의 레벨을 확인한다.
-    LastLearnSkillType = pSlayer->findLastSkill();
-
-    // 플레이어가 배운 기술이 하나도 없다면 다음 배울 기술은 1레벨이다.
-    // 플레이어가 모든 기술을 배웠다면 정해놓은 상수를 보내준다.
-    if (LastLearnSkillType == 0)
-    {
-        targetLevel = 1;
-    }
-    else if (LastLearnSkillType == SKILL_MAX)
-    {
-        targetLevel = ALL_SKILL_LEARNED;
-    }
-    else
-    {
-        pSkillInfo  = g_pSkillInfoManager->getSkillInfo(LastLearnSkillType);
-        targetLevel = pSkillInfo->getLevel() + 1;
-    }
-    */
 
     // 패킷을 만들어 가지고...
     teachinfo.setDomainType(m_DomainType);
@@ -153,28 +131,6 @@ void ActionTeachSkill::executeVampire(Creature* pCreature1, Creature* pCreature2
 
     Vampire* pVampire = dynamic_cast<Vampire*>(pCreature2);
 
-    /*
-    // 크리쳐가 배울 수 있는 기술의 레벨을 확인한다.
-    SkillType_t  LastLearnSkillType = pVampire->findLastSkill();
-    SkillInfo*   pSkillInfo         = NULL;
-    SkillLevel_t targetLevel        = 0;
-
-    // 플레이어가 배운 기술이 하나도 없다면 다음 배울 기술은 1레벨이다.
-    // 플레이어가 모든 기술을 배웠다면 정해놓은 상수를 보내준다.
-    if (LastLearnSkillType == 0)
-    {
-        targetLevel = 1;
-    }
-    else if (LastLearnSkillType == SKILL_MAX)
-    {
-        targetLevel = ALL_SKILL_LEARNED;
-    }
-    else
-    {
-        pSkillInfo  = g_pSkillInfoManager->getSkillInfo(LastLearnSkillType);
-        targetLevel = pSkillInfo->getLevel() + 1;
-    }
-    */
 
     Level_t DomainLevel = pVampire->getLevel();
 

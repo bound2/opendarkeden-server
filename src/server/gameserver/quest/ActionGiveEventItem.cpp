@@ -178,26 +178,6 @@ void ActionGiveEventItem::execute(Creature* pCreature1, Creature* pCreature2)
     //--------------------------------------------------------
     // 속도 체크를 위해서 1000번 돌려보는 코드
     // 결과는.. 0.07초 정도 나왔다. 감덩~ -_-;
-    /*
-    Timeval beforeTime;
-    getCurrentTime(beforeTime);
-
-    for (int i=0; i<1000; i++)
-    {
-        // 루아의 계산 결과를 받아 아이템을 생성한다.
-        pLuaSelectItem->prepare();
-
-        int result = pLuaSelectItem->executeFile( luaFileName );
-        LuaState::logError(result);
-        pLuaSelectItem->clear();
-    }
-
-    Timeval afterTime;
-    getCurrentTime(afterTime);
-
-    cout << "luaExecute time before : " << beforeTime.tv_sec  << "." << beforeTime.tv_usec << endl;
-    cout << "luaExecute time after  : " << afterTime.tv_sec  << "." << afterTime.tv_usec << endl;
-    */
     //--------------------------------------------------------
 
     // 루아의 계산 결과를 받아 아이템을 생성한다.

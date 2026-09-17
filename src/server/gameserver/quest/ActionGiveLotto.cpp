@@ -70,7 +70,6 @@ void ActionGiveLotto::execute(Creature* pCreature1, Creature* pCreature2)
         GamePlayer* pGP = dynamic_cast<GamePlayer*>(pPC->getPlayer());
         Assert(pGP != NULL);
 
-        //		if ( g_pConfig->getPropertyInt( "IsNetMarble" ) || !pGP->isPayPlaying() )
         if (true) {
             pPC->getQuestManager()->getEventQuestAdvanceManager()->rewarded(questLevel);
             pPC->getQuestManager()->getEventQuestAdvanceManager()->save();
@@ -102,11 +101,9 @@ void ActionGiveLotto::execute(Creature* pCreature1, Creature* pCreature2)
             cgLS.setQuestLevel(0);
             cgLS.setGiftID(0);
             CGLotterySelectHandler::execute(&cgLS, pPC->getPlayer());
-            //			cgLS.execute( pPC->getPlayer() );
 
         } else {
             Player* pPlayer = pCreature2->getPlayer();
-            //		pPlayer->sendPacket(&gcSM);
 
             GCNPCResponse gcNPCResponse;
             gcNPCResponse.setCode(NPC_RESPONSE_LOTTERY);

@@ -64,7 +64,6 @@ void ActionActivatePortal::execute(Creature* pNPC, Creature* pCreature)
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pCreature->getPlayer());
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-    // Zone* pZone = pCreature->getZone();
 
     bool bTransport = true;
 

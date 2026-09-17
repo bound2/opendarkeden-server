@@ -233,7 +233,6 @@ void ActionGiveNewbieItem::execute(Creature* pCreature1, Creature* pCreature2)
     }
 
     // 돈도 준다네...
-    // pSlayer->setGoldEx(pSlayer->getGold() + 500);
     // by sigi. 2002.9.18
     pSlayer->increaseGoldEx(500);
     GCModifyInformation gcModifyInformation;

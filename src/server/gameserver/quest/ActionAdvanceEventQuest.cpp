@@ -100,20 +100,11 @@ void ActionAdvanceEventQuest::execute(Creature* pCreature1, Creature* pCreature2
                 result = COMPLETE_FAIL_INVALID_NPC;
             }
 
-            //			list<RewardClass_t>::iterator itr = rList.begin();
-            //			list<QuestID_t>::iterator qitr = qList.begin();
-            //
-            //			for ( ; itr != rList.end(); ++itr, ++qitr )
-            //			{
-            //				cout << "Quest Reward : " << (int)*itr << " checking.." << endl;
-            //
-            //			}
         } else {
             result = COMPLETE_FAIL_NOT_COMPLETE;
         }
     }
 
-    // cout << "ActionAdvanceEventQuest : result " << (int)result << endl;
 
     GCNPCResponse gcNPCResponse;
 
@@ -127,8 +118,6 @@ void ActionAdvanceEventQuest::execute(Creature* pCreature1, Creature* pCreature2
         pPC->sendCurrentQuestInfo();
     }
 
-    //	gcNPCResponse.setCode( NPC_RESPONSE_QUIT_DIALOGUE );
-    //	pPC->getPlayer()->sendPacket( &gcNPCResponse );
 
     __END_CATCH
 }

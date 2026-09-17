@@ -67,7 +67,6 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
     Assert(pCreature != NULL);
 
     if (m_Type == GUILD_DIALOG_REGIST) {
-        // cout << "길드 등록" << endl;
         ////////////////////////////////////////////////////////////////////////////////
         // 길드 등록을 선택했을 경우
         ////////////////////////////////////////////////////////////////////////////////
@@ -192,22 +191,13 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
 
                 return;
             }
-            //			if ( pVampire->getFame() < 500000 )				// 명성 50만
-            //			{
             //				// 명성이 모자람
-            //				GCNPCResponse response;
-            //				response.setCode( NPC_RESPONSE_CLAN_REGIST_FAIL_FAME );
-            //				pPlayer->sendPacket( &response );
             //
-            //				return;
-            //			}
             // 길드 등록 창을 띄우도록 메시지를 보낸다.
             GCNPCResponse response;
             response.setCode(NPC_RESPONSE_GUILD_SHOW_REGIST);
 
-            // cout << "길드가입비 : " << REQUIRE_VAMPIRE_MASTER_GOLD << endl;
             response.setParameter(REQUIRE_VAMPIRE_MASTER_GOLD);
-            // cout << "길드가입비(param) : " << response.getParameter() << endl;
             pPlayer->sendPacket(&response);
         } else if (pCreature->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
@@ -237,17 +227,12 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
             GCNPCResponse response;
             response.setCode(NPC_RESPONSE_GUILD_SHOW_REGIST);
 
-            // cout << "길드가입비 : " << REQUIRE_VAMPIRE_MASTER_GOLD << endl;
             response.setParameter(REQUIRE_OUSTERS_MASTER_GOLD);
-            // cout << "길드가입비(param) : " << response.getParameter() << endl;
             pPlayer->sendPacket(&response);
         }
     } else if (m_Type == GUILD_DIALOG_WAIT_LIST) {
-        // cout << "길드 대기 리스트" << endl;
         GCWaitGuildList gcWaitGuildList;
 
-        //		const HashMapGuild& Guilds = g_pGuildManager->getGuilds_const();
-        //		HashMapGuildConstItor itr = Guilds.begin();
 
         GuildRace_t race;
         if (pCreature->isSlayer())
@@ -263,7 +248,6 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
 
         pPlayer->sendPacket(&gcWaitGuildList);
     } else if (m_Type == GUILD_DIALOG_LIST) {
-        // cout << "길드 리스트" << endl;
         GCActiveGuildList gcActiveGuildList;
 
         GuildRace_t race;

@@ -104,7 +104,6 @@ void ActionAcceptReinforce::execute(Creature* pCreature1, Creature* pCreature2)
         gcNPCResponse.setCode(NPC_RESPONSE_NO_WAR_REGISTERED);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
 
-        //		SAFE_DELETE( pNextWar );
         return;
     } else if (pNextWar->getReinforceGuildID() == 0) {
         WarSchedule* pNextWarSchedule = dynamic_cast<WarSchedule*>(pNextSchedule);
@@ -114,14 +113,12 @@ void ActionAcceptReinforce::execute(Creature* pCreature1, Creature* pCreature2)
             gcNPCResponse.setCode(NPC_RESPONSE_CANNOT_ACCEPT);
             pPC->getPlayer()->sendPacket(&gcNPCResponse);
 
-            // SAFE_DELETE( pNextWar );
             return;
         }
     } else {
         gcNPCResponse.setCode(NPC_RESPONSE_ALREADY_REINFORCE_ACCEPTED);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
 
-        // SAFE_DELETE( pNextWar );
         return;
     }
 

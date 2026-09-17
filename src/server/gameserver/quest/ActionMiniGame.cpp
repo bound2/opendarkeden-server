@@ -46,7 +46,6 @@ void ActionMiniGame::execute(Creature* pCreature1, Creature* pCreature2)
     GCNoticeEvent gcNoticeEvent;
     gcNoticeEvent.setCode(NOTICE_EVENT_MINI_GAME);
     gcNoticeEvent.setParameter((uint)m_GameType);
-    //	gcNoticeEvent.setNPCID( dynamic_cast<NPC*>(pCreature1)->getNPCID() );
 
     Player* pPlayer = pCreature2->getPlayer();
     pPlayer->sendPacket(&gcNoticeEvent);

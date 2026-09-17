@@ -229,9 +229,6 @@ void ActionRegenEventShop::execute(Creature* pCreature1, Creature* pCreature2)
             maxOptionLevel = pTemplate->getMaxOptionLevel();
 
             // 먼저 생성가능한 옵션 타입의 벡터를 생성해둔다.
-            // vector<OptionType_t> optionVector =
-            // g_pOptionInfoManager->getPossibleOptionVector((Item::ItemClass)itemClass, minOptionLevel,
-            // maxOptionLevel);
             // ShopTemplate에서 ItemType이 2,3이 나온다면 optionType은 +2로 조절하고
             // ShopTemplate에서 ItemType이 다른 것이라면, +3까지 주도록 한다.
 
@@ -240,19 +237,16 @@ void ActionRegenEventShop::execute(Creature* pCreature1, Creature* pCreature2)
                 optionVector.push_back(2);  // STR+2
                 optionVector.push_back(7);  // DEX+2
                 optionVector.push_back(12); // INT+2
-                // optionVector.push_back(50); // DAM+3
                 optionVector.push_back(79); // ASPEED+2
             } else if (minItemType == 4 && maxItemType == 5) {
                 optionVector.push_back(3);  // STR+3
                 optionVector.push_back(8);  // DEX+3
                 optionVector.push_back(13); // INT+3
-                // optionVector.push_back(50); // DAM+3
                 optionVector.push_back(80); // ASPEED+3
             } else if (minItemType == 6 && maxItemType == 6) {
                 optionVector.push_back(4);  // STR+4
                 optionVector.push_back(9);  // DEX+4
                 optionVector.push_back(14); // INT+4
-                // optionVector.push_back(50); // DAM+3
                 optionVector.push_back(80); // ASPEED+3
             }
 

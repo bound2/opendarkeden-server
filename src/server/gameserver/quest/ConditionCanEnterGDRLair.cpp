@@ -20,15 +20,6 @@ bool ConditionCanEnterGDRLair::isSatisfied(Creature* pCreature1, Creature* pCrea
     Assert(pCreature2 != NULL);
     Assert(pCreature2->isPC());
 
-    //	return false;
-
-    /*	if ( GDRLairManager::Instance().getTotalPCs() > 36 )
-        {
-            GCSystemMessage gcSystemMessage;
-            gcSystemMessage.setMessage( "제한 인원이 초과되어 들어갈 수 없습니다." );
-            pCreature2->getPlayer()->sendPacket (&gcSystemMessage);
-            return false;
-        }*/
 
     if (!GDRLairManager::Instance().canEnter()) {
         GCSystemMessage gcSystemMessage;

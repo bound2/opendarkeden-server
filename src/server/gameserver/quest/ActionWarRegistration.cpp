@@ -95,11 +95,6 @@ void ActionWarRegistration::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    //	ServerID_t serverID;
-    //	ZoneID_t zoneID;
-    //	bool bHasCastle = g_pGuildManager->hasCastle( guildID , serverID , zoneID );
-
-    //	if ( bHasCastle && serverID == g_pConfig->getPropertyInt( "ServerID" ) && zoneID == m_ZoneID )
 
     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_ZoneID);
     GuildID_t ownerGuildID = pCastleInfo->getGuildID();

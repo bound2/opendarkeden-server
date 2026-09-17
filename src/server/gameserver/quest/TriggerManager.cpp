@@ -54,7 +54,6 @@ void TriggerManager::load(const string& name)
 {
     __BEGIN_TRY
 
-    //	TriggerParser parser;
 
     vector<NPCTriggerRow> rows = defaultContentInfoRepository().loadNPCTriggers(name);
 
@@ -63,28 +62,14 @@ void TriggerManager::load(const string& name)
 
         pTrigger->setTriggerID(it->triggerID);
 
-        // cout << "Trigger[" << pTrigger->getTriggerID() << "] loading > ";
-        // cout << "CONDITIONS:\n" << trim(it->conditions) << endl;
-        // cout << "ACTIONS:\n" << trim(it->actions) << endl;
 
         pTrigger->setTriggerType(trim(it->triggerType));
         pTrigger->setConditions(trim(it->conditions));
         pTrigger->setActions(trim(it->actions));
 
         addTrigger(pTrigger);
-
-        //			parser.parseTrigger(trim(it->triggerType), trim(it->conditions),
-        // trim(it->actions));
-
-        // cout << "Trigger[" << pTrigger->getTriggerID() << "] loaded" <<  endl;
     }
 
-    //	XMLTree* pXML = parser.getResult();
-    //	if ( pXML != NULL )
-    //	{
-    //		pXML->SaveToFile((g_pConfig->getProperty("HomePath") + "/data/" + name + ".xml").c_str());
-    //		SAFE_DELETE( pXML );
-    //	}
 
     __END_CATCH
 }
@@ -102,14 +87,12 @@ void TriggerManager::load(ZoneID_t zoneid, int left, int top, int right, int bot
 
         pTrigger->setTriggerID(it->triggerID);
 
-        // printf("ZoneTrigger[%d] loading > \n", (int)pTrigger->getTriggerID());
 
         pTrigger->setTriggerType(trim(it->triggerType));
         pTrigger->setConditions(trim(it->conditions));
         pTrigger->setActions(trim(it->actions));
         pTrigger->setCounterActions(trim(it->counterActions));
 
-        // printf("ZoneTrigger[%d] loaded > \n", (int)pTrigger->getTriggerID());
 
         addTrigger(pTrigger);
     }
@@ -141,7 +124,6 @@ void TriggerManager::addTrigger(Trigger* pTrigger) {
 
     Assert(pTrigger != NULL);
 
-    // auto itr = find(m_Triggers.begin() , m_Triggers.end(), pTrigger);
     list<Trigger*>::iterator itr = m_Triggers.begin();
     for (; itr != m_Triggers.end(); itr++) {
         if ((*itr) == pTrigger) {
@@ -166,7 +148,6 @@ void TriggerManager::addTrigger(Trigger* pTrigger) {
 void TriggerManager::deleteTrigger(TriggerID_t triggerID) {
     __BEGIN_TRY
 
-    // list<Trigger*>::iterator itr = find_if(m_Triggers.begin() , m_Triggers.end() , isSameTriggerID(triggerID));
     list<Trigger*>::iterator itr;
     for (itr = m_Triggers.begin(); itr != m_Triggers.end(); itr++) {
         if ((*itr)->getTriggerID() == triggerID) {
@@ -196,7 +177,6 @@ void TriggerManager::deleteTrigger(TriggerID_t triggerID) {
 Trigger* TriggerManager::getTrigger(TriggerID_t triggerID) {
     __BEGIN_TRY
 
-    // list<Trigger*>::iterator itr = find_if(m_Triggers.begin() , m_Triggers.end() , isSameTriggerID(triggerID));
     list<Trigger*>::iterator itr;
     for (itr = m_Triggers.begin(); itr != m_Triggers.end(); itr++) {
         if ((*itr)->getTriggerID() == triggerID) {

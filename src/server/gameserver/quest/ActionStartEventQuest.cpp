@@ -82,13 +82,10 @@ void ActionStartEventQuest::execute(Creature* pCreature1, Creature* pCreature2)
     }
 
     QuestID_t qID = qList[0];
-    // cout << "Start Event Quest : " << qID << "... " << pPC->getName() << endl;
 
     pPC->getQuestManager()->adjustQuestStatus();
     QuestMessage result = pQIM->startQuest(qID, pPC);
-    //	gcNPCResponse.setParameter( (uint)result );
 
-    //	pPC->getPlayer()->sendPacket( &gcNPCResponse );
     pPC->sendCurrentQuestInfo();
 
     gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);

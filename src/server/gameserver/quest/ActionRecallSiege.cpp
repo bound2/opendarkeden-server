@@ -59,10 +59,6 @@ void ActionRecallSiege::execute(Creature* pNPC, Creature* pCreature)
     Assert(pCreature != NULL);
     Assert(pCreature->isPC());
 
-    /*	if ( !g_pWarSystem->hasCastleActiveWar( m_ZoneID ) )
-        {
-            return;
-        }*/
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pCreature->getPlayer());
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
@@ -78,23 +74,6 @@ void ActionRecallSiege::execute(Creature* pNPC, Creature* pCreature)
     ZoneID_t siegeZoneID = SiegeManager::Instance().getSiegeZoneID(m_ZoneID);
     Assert(siegeZoneID != 0);
 
-    /*	WarSchedule* pSchedule = dynamic_cast<WarSchedule*>(pWS->getRecentSchedule());
-        if ( pSchedule == NULL )
-        {
-            return;
-        }
-
-        SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pSchedule->getWork());
-        if ( pSiegeWar == NULL )
-        {
-            return;
-        }
-
-        int side = pSiegeWar->getGuildSide( pPC->getGuildID() );
-        if ( side == 0 )
-        {
-            return;
-        }*/
 
     if (!g_pGuildManager->isGuildMaster(pPC->getGuildID(), pPC)) {
         GCSystemMessage gcSM;
@@ -105,7 +84,6 @@ void ActionRecallSiege::execute(Creature* pNPC, Creature* pCreature)
 
     // ¼±ÅÃÇÑ ±æµå¸¦ °¡Á®¿Â´Ù.
     Guild* pGuild = g_pGuildManager->getGuild(pPC->getGuildID());
-    // try { Assert( pGuild != NULL ); } catch ( Throwable& ) { return; }
     if (pGuild == NULL)
         return;
 

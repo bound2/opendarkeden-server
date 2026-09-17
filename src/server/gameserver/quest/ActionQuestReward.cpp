@@ -92,7 +92,6 @@ void ActionQuestReward::execute(Creature* pCreature1, Creature* pCreature2)
         }
     }
 
-    // cout << "ActionQuestReward : result " << (int)result << endl;
 
     GCNPCResponse gcNPCResponse;
 

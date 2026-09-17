@@ -90,21 +90,6 @@ void ActionRegisterSiege::execute(Creature* pCreature1, Creature* pCreature2)
     WarScheduler* pWarScheduler = pZone->getWarScheduler();
     Assert(pWarScheduler != NULL);
 
-    /* 성을 소유했어도 전쟁 신청이 되도록 수정함 (자기 성에는 신청 못하겠지 -_-;;)
-    // 이미 성을 소유한 길드인가?
-    if ( g_pGuildManager->hasCastle( guildID ) )
-    {
-        gcNPCResponse.setCode( NPC_RESPONSE_ALREADY_HAS_CASTLE );
-        pPC->getPlayer()->sendPacket( &gcNPCResponse );
-        return;
-    }
-    */
-
-    //	ServerID_t serverID;
-    //	ZoneID_t zoneID;
-    //	bool bHasCastle = g_pGuildManager->hasCastle( guildID , serverID , zoneID );
-
-    //	if ( bHasCastle && serverID == g_pConfig->getPropertyInt( "ServerID" ) && zoneID == m_ZoneID )
 
     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_ZoneID);
     GuildID_t ownerGuildID = pCastleInfo->getGuildID();
@@ -123,25 +108,6 @@ void ActionRegisterSiege::execute(Creature* pCreature1, Creature* pCreature2)
     }
 
     // 전쟁 스케쥴이 다 찼는가?
-    /*	if ( !pWarScheduler->canAddWar( WAR_GUILD ) )
-        {
-            gcNPCResponse.setCode( NPC_RESPONSE_WAR_SCHEDULE_FULL );
-            pPC->getPlayer()->sendPacket( &gcNPCResponse );
-            return;
-        }
-
-        GuildWar* pWar = new GuildWar( m_ZoneID, guildID, War::WAR_STATE_WAIT );
-
-        pWar->setRegistrationFee( warRegistrationFee );
-
-        if ( !pWarScheduler->addWar( pWar ) )
-        {
-            gcNPCResponse.setCode( NPC_RESPONSE_WAR_SCHEDULE_FULL );
-            pPC->getPlayer()->sendPacket( &gcNPCResponse );
-
-            SAFE_DELETE( pWar );
-            return;
-        }*/
 
     Schedule* pNextSchedule = pWarScheduler->getRecentSchedule();
 
@@ -174,7 +140,6 @@ void ActionRegisterSiege::execute(Creature* pCreature1, Creature* pCreature2)
         gcNPCResponse.setCode(NPC_RESPONSE_WAR_SCHEDULE_FULL);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
 
-        //		SAFE_DELETE( pNextWar );
         return;
     }
 

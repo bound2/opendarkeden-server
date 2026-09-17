@@ -86,12 +86,6 @@ bool TriggerParser::parseElement(XMLTree* pTree, const string& key, const string
 }
 
 bool TriggerParser::findText(XMLTree* pTree) {
-    /*	if ( pTree->GetName() == "Ask" || pTree->GetName() == "AskVariable" )
-        {
-            uint scriptID = 0;
-            Assert(pTree->GetAttribute("ScriptID", scriptID));
-            pTree->SetText(m_Context.publicScripts().getScript( scriptID )->getSubject(0));
-        }*/
     if (pTree->GetName() == "AnsweredBy") {
         uint scriptID = 0, answerID = 0;
         Assert(pTree->GetAttribute("ScriptID", scriptID));
@@ -99,7 +93,6 @@ bool TriggerParser::findText(XMLTree* pTree) {
         m_TargetScriptID = scriptID;
         m_TargetContentID = answerID;
         return false;
-        //		pTree->SetText(m_Context.publicScripts().getScript( scriptID )->getContent(answerID-1));
     }
     if (pTree->GetName() == "RandomSay") {
         uint start = 0, end = 0;

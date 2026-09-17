@@ -90,15 +90,6 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
     pPlayer->sendPacket(&okpkt);
     StringStream message;
 
-    /*
-
-    GCSystemMessage gcSystemMessage;
-    gcSystemMessage.setMessage("아직 지원되지 않는 기능입니다");
-    pPlayer->sendPacket(&gcSystemMessage);
-    */
-
-
-    // cout << "ActionTradeLairItem" << ":" << m_Type;
 
     Inventory* pInventory = pPC->getInventory();
 
@@ -145,25 +136,21 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
     } else if (m_Type == 2) // 브리콜라카스, 비쥬
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 2);
-        //		if ( pMasterItem == NULL ) pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 8); //질드레
         // 비쥬
         MonsterType = TEPEZ_TYPE;
     } else if (m_Type == 3) // 브리콜라카스, 팬던트
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 3);
-        //		if ( pMasterItem == NULL ) pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 9); //질드레
         // 펜던트
         MonsterType = TEPEZ_TYPE;
     } else if (m_Type == 4) // 카임, 비쥬
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 0);
-        //		if ( pMasterItem == NULL ) pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 8); //질드레
         // 비쥬
         MonsterType = BATORI_TYPE;
     } else if (m_Type == 5) // 카임, 팬던트
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 1);
-        //		if ( pMasterItem == NULL ) pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 9); //질드레
         // 펜던트
         MonsterType = BATORI_TYPE;
     } else if (m_Type == 10) // 질드레, 비쥬
@@ -289,7 +276,6 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 
     Zone* pZone = pPC->getZone();
 
-    //	if ( MonsterType != 0 ) // 루팅표를 참조해서 아이템을 만들어오는 경우
     if (pItem1 == NULL) {
         QuestItemInfo* pItemInfo = dynamic_cast<QuestItemInfo*>(
             g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_QUEST_ITEM, pMasterItem->getItemType()));
@@ -326,14 +312,8 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
             // QuestItem 마다 다른.. 옵션이 2개 붙을 확률
             it.NextOptionRatio = pItemInfo->getBonusRatio();
 
-            // cout << "TradeLairItem: BonusRatio = " << it.NextOptionRatio << endl;
 
             if (pTreasure->getRandomItem(&it)) {
-                /*				if ( bUpgrade && isPossibleUpgradeItemType( it.ItemClass ) )
-                                {
-                                    it.ItemType = getUpgradeItemType( it.ItemClass, it.ItemType, 1 );
-                                }
-                */
                 pItem1 = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
                 Assert(pItem1 != NULL);
             }
@@ -368,15 +348,6 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
         pItem1->create(pPC->getName(), STORAGE_INVENTORY, 0, pt.x, pt.y);
 
         GCCreateItem gcCreateItem;
-        /*		gcCreateItem.setObjectID(pItem1->getObjectID());
-                gcCreateItem.setItemClass(pItem1->getItemClass());
-                gcCreateItem.setItemType(pItem1->getItemType());
-                gcCreateItem.setOptionType(pItem1->getOptionTypeList());
-                gcCreateItem.setDurability(pItem1->getDurability());
-                gcCreateItem.setItemNum(pItem1->getNum());
-                gcCreateItem.setInvenX(pt.x);
-                gcCreateItem.setInvenY(pt.y);
-                gcCreateItem.setGrade( pItem1->getGrade() );*/
 
         makeGCCreateItem(&gcCreateItem, pItem1, pt.x, pt.y);
 
@@ -402,15 +373,10 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
         SAFE_DELETE(pMasterItem);
 
         // 사용자에게 성공 메시지 출력
-        //		StringStream message;
-        //		message << "성공적으로 교환되었습니다";
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TRADE_SUCCESS));
         pPlayer->sendPacket(&gcSystemMessage);
     } else {
-        //		StringStream buf;
-        //		buf << "인벤토리에 공간이 부족합니다";
-
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NOT_ENOUGH_INVENTORY_SPACE));
         pPlayer->sendPacket(&gcSystemMessage);
