@@ -14,10 +14,13 @@
 // A failing Assert appends to assertion_failed.log in the working
 // directory, so the ctest entry runs this from the build tree.
 //
-// ItemLoaderManager's loader table gets no test here: filling it means
-// constructing the eighty-seven concrete loaders, which drags in the whole
-// gameserver, and reading it means talking to the database. The R1 ratchet
-// is what pins that the globals stay gone.
+// The per-item-class tables get no test here. ItemLoaderManager's loaders
+// and ItemInfoManager's info managers are eighty-seven concrete classes
+// each, so filling either table means dragging in the whole gameserver and
+// reading one means talking to the database. Neither can be a context
+// accessor either: keying one needs Item::ItemClass, a nested enum this
+// header cannot forward-declare. The R1 ratchet is what pins that the
+// globals those tables replaced stay gone.
 //----------------------------------------------------------------------
 
 #include <gtest/gtest.h>

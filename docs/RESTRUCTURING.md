@@ -1230,27 +1230,30 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `DefaultOptionSetInfoManager` and `DynamicZoneFactoryManager`; and the
   > four quest scripting managers), each registered by the code that creates
   > it — `GameServer`'s constructor for the first two, `ObjectManager`'s for
-  > the world ones — and read back through an accessor that asserts the
-  > manager is there, a null one being a startup-order bug rather than a
-  > condition to branch on. Ownership is untouched: the same `new` and
-  > `SAFE_DELETE` sites, except that a manager no global names any more is
-  > an `ObjectManager` member. `ctf/` and `quest/` are the converted
-  > subsystems: `FlagManager` takes the context, `FlagWar`/`NewbieFlagWar`
-  > take their `FlagManager` and the context, `ActionFactoryManager`,
-  > `Trigger` and `TriggerParser` take it in their constructors, and every
-  > `Action` is handed it by the factory that creates it.
+  > the world ones — and read back through an accessor that asserts it is
+  > there, a null one being a startup-order bug, not a condition to branch
+  > on. Ownership is untouched: the same `new` and `SAFE_DELETE` sites,
+  > except that a manager no global names any more is an `ObjectManager`
+  > member. `ctf/` and `quest/` are the converted subsystems: `FlagManager`,
+  > `FlagWar`/`NewbieFlagWar`, `ActionFactoryManager`, `Trigger` and
+  > `TriggerParser` take the context in their constructors, and every
+  > `Action` is handed it by its factory.
   > `de::gameContext()` is the shim the creation sites and the unconverted
-  > callers reach the context through — in `quest/` only
-  > `TriggerManager::load()` and `ZoneLoad.cpp`; a converted subsystem is
-  > handed the context and never calls it. `game_context_tests` builds a
-  > context over stand-in pointers with nothing of the gameserver linked,
-  > which is what the forward-declaration-only header buys and what makes a
-  > subsystem holding a `GameContext&` testable at all. R1: 325 → 177. An
-  > `extern` line goes when nothing creates the global, when the manager
-  > that owns it can reach it without one — `EffectLoaderManager` and
-  > `ItemLoaderManager` through their own loader tables — or when its last
-  > caller is converted. Next: the remaining managers `ObjectManager`
-  > creates; `g_pFlagManager`, read from fifteen files, still waits.
+  > callers reach it through — in `quest/` only `TriggerManager::load()` and
+  > `ZoneLoad.cpp`; a converted subsystem never calls it.
+  > `game_context_tests` builds a context over stand-in pointers with
+  > nothing of the gameserver linked, which is what the
+  > forward-declaration-only header buys. R1: 325 → 89. An `extern` line goes
+  > when nothing creates the global, when the manager that owns it can reach
+  > and hand out its objects without one — `EffectLoaderManager` and
+  > `ItemLoaderManager` through their loader tables, `ItemInfoManager`
+  > through the `m_InfoClassManagers` slot its `getItemInfo(class, type)`
+  > already indexes, a table no context accessor can key because the nested
+  > `Item::ItemClass` cannot be forward-declared — or when its last caller
+  > is converted. Next: `g_pItemInfoManager`, the one route left to a
+  > class's item infos but read from a hundred and thirty files; the
+  > managers `ObjectManager` still creates; `g_pFlagManager`, read from
+  > fifteen files.
   - Owner: R1 ratchet test.
 
 
