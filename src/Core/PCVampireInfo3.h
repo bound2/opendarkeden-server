@@ -13,8 +13,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class PCVampireInfo3;
-// 뱀파이어의 외모 정보를 담고 있는 객체
-// GCAddSlayer, GCAddVampireCorpse 에 담겨서 전송된다.
+// Object that carries the vampire's appearance information
+// It is carried in GCAddSlayer and GCAddVampireCorpse.
 //////////////////////////////////////////////////////////////////////////////
 
 class PCVampireInfo3 : public PCInfo {
@@ -45,36 +45,36 @@ public:
 
     uint getSize() const {
         return szObjectID                         // ObjectID
-               + de::wire::stringWireSize(m_Name) // 뱀파이어 이름
-               + szCoord + szCoord + szDir        // 좌표와 방향
-               + szSex                            // 성별
+               + de::wire::stringWireSize(m_Name) // Vampire name
+               + szCoord + szCoord + szDir        // Coordinates and direction
+               + szSex                            // Sex
                + szBYTE                           // coatType
-               + szColor * VAMPIRE_COLOR_MAX      // 색상
-               + szBYTE + szHP * 2                // 최대 체력
-               + szAlignment                      // 성향
-               + szShape                          // 모양
-               + szSpeed                          // 공격 속도
-               + szGuildID                        // 길드 아이디
-               + szRank                           // 계급
-               + szBYTE                           // 권한
+               + szColor * VAMPIRE_COLOR_MAX      // Colour
+               + szBYTE + szHP * 2                // Max HP
+               + szAlignment                      // Alignment
+               + szShape                          // Shape
+               + szSpeed                          // Attack speed
+               + szGuildID                        // Guild ID
+               + szRank                           // Rank
+               + szBYTE                           // Competence
                + szuint + szLevel;
     }
 
     // get max size of object
     static constexpr uint getMaxSize() {
         return szObjectID                    // ObjectID
-               + szBYTE + 20                 // 뱀파이어 이름
-               + szCoord + szCoord + szDir   // 좌표와 방향
-               + szSex                       // 성별
+               + szBYTE + 20                 // Vampire name
+               + szCoord + szCoord + szDir   // Coordinates and direction
+               + szSex                       // Sex
                + szBYTE                      // coatType
-               + szColor * VAMPIRE_COLOR_MAX // 색상
-               + szBYTE + szHP * 2           // 최대 체력
-               + szAlignment                 // 성향
-               + szShape                     // 모양
-               + szSpeed                     // 공격 속도
-               + szGuildID                   // 길드 아이디
-               + szRank                      // 계급
-               + szBYTE                      // 권한
+               + szColor * VAMPIRE_COLOR_MAX // Colour
+               + szBYTE + szHP * 2           // Max HP
+               + szAlignment                 // Alignment
+               + szShape                     // Shape
+               + szSpeed                     // Attack speed
+               + szGuildID                   // Guild ID
+               + szRank                      // Rank
+               + szBYTE                      // Competence
                + szuint + szLevel;
     }
 
@@ -259,7 +259,7 @@ private:
     // colors
     Color_t m_Colors[VAMPIRE_COLOR_MAX] = {};
 
-    // 마스터 이펙트 색깔
+    // Master effect colour
     BYTE m_MasterEffectColor = 0;
 
     // Current HP
@@ -271,21 +271,21 @@ private:
     // Attack Speed
     Speed_t m_AttackSpeed = 0;
 
-    // 성향
+    // Alignment
     Alignment_t m_Alignment = 0;
 
-    // 뱀파이어 모양
+    // Vampire shape
     Shape_t m_Shape = 0;
 
-    // 권한
+    // Competence
     BYTE m_Competence = 0;
 
-    // 길드 아이디
+    // Guild ID
     GuildID_t m_GuildID = 0;
 
     uint m_UnionID = 0;
 
-    // 계급
+    // Rank
     Rank_t m_Rank = 0;
 
     Level_t m_AdvancementLevel = 0;

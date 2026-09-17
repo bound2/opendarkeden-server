@@ -1,11 +1,10 @@
 //--------------------------------------------------------------------------------
 //
 // Filename    : GCShopSold.h
-// Written By  : 김성민
-// Description : 한 플레이어가 상점 NPC에게 물건을 구입했는데,
-//               다른 플레이어도 같은 상점 NPC와 대화 중이었다면,
-//               그 플레이어와 아이템 목록을 동기화시켜주어야 한다.
-//               이 패킷은 그를 위한 패킷이다.
+// Description : One player bought goods from a shop NPC, and
+//               another player was also talking to the same shop NPC,
+//               that player's item list has to be resynchronised.
+//               This packet is the one for that.
 //
 //--------------------------------------------------------------------------------
 
@@ -28,10 +27,10 @@ public:
     GCShopSold();
     virtual ~GCShopSold();
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -91,13 +90,13 @@ private:
     // NPC's object id
     ObjectID_t m_ObjectID = 0;
 
-    // 상점 버젼
+    // Shop version
     ShopVersion_t m_Version = 0;
 
-    // 진열장 종류
+    // Display rack kind
     ShopRackType_t m_RackType = 0;
 
-    // 진열장 인덱스
+    // Display rack index
     BYTE m_RackIndex = 0;
 };
 
@@ -133,7 +132,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCShopSoldPacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static GCShopSoldPacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

@@ -2,7 +2,7 @@
 //
 // Filename    : PlayerStatus.h
 // Written By  : Reiot
-// Description : ÇÃ·¹ÀÌ¾î »óÅÂ¿¡ µû¸¥ Çã¿ë °¡´ÉÇÑ ÆÐÅ¶ ¾ÆÀÌµðÀÇ ¸ÅÇÎ Á¤ÀÇ
+// Description : Mapping of the packet ids allowed per player status
 //
 //----------------------------------------------------------------------
 
@@ -14,95 +14,95 @@ enum PlayerStatus {
 #if defined(__GAME_CLIENT__)
 
     //----------------------------------------------------------------------
-    // ClientPlayer °´Ã¼°¡ »ý¼ºµÈ Á÷ÈÄ
+    // Right after the ClientPlayer object is created
     // Next Packets : NONE
     //----------------------------------------------------------------------
     CPS_NONE,
 
     //----------------------------------------------------------------------
-    // ·Î±×ÀÎ ¼­¹ö¿¡ ·Î±×ÀÎ Á¤º¸¸¦ º¸³»±â Àü
+    // Before the login information is sent to the login server
     // Next Packets : LCLoginOK, LCLoginError
     //----------------------------------------------------------------------
     CPS_BEGIN_SESSION,
 
     //----------------------------------------------------------------------
-    // CLLogin À» º¸³½ Á÷ÈÄ
+    // Right after sending CLLogin
     // Next Packets : LCLoginOK, LCLoginError
     //----------------------------------------------------------------------
     CPS_AFTER_SENDING_CL_LOGIN,
 
     //----------------------------------------------------------------------
-    // CLQueryPlayerID À» º¸³½ Á÷ÈÄ
+    // Right after sending CLQueryPlayerID
     // Next Packets : LCQueryResultPlayerID
     //----------------------------------------------------------------------
     CPS_AFTER_SENDING_CL_QUERY_PLAYER_ID,
 
     //----------------------------------------------------------------------
-    // CLRegisterPlayer À» º¸³½ Á÷ÈÄ
+    // Right after sending CLRegisterPlayer
     // Next Packets : LCRegisterPlayerOK, LCRegisterPlayerError
     //----------------------------------------------------------------------
     CPS_AFTER_SENDING_CL_REGISTER_PLAYER,
 
     //----------------------------------------------------------------------
-    // CLGetPCList ÆÐÅ¶À» º¸³½ Á÷ÈÄ
+    // Right after sending the CLGetPCList packet
     // Next Packets : LCPCList
     //----------------------------------------------------------------------
     CPS_AFTER_SENDING_CL_GET_PC_LIST,
 
     //----------------------------------------------------------------------
-    // CLCreatePC ¸¦ º¸³½ Á÷ÈÄ
+    // Right after sending CLCreatePC
     // Next Packets : LCCreatePCOK
     //----------------------------------------------------------------------
     CPS_AFTER_SENDING_CL_CREATE_PC,
 
     //----------------------------------------------------------------------
-    // CLDeletePC ¸¦ º¸³½ Á÷ÈÄ
+    // Right after sending CLDeletePC
     // Next Packets : LCDeletePCOK, LCDeletePCError
     //----------------------------------------------------------------------
     CPS_AFTER_SENDING_CL_DELETE_PC,
 
     //----------------------------------------------------------------------
-    // CLSelectPC ¸¦ º¸³½ Á÷ÈÄ
+    // Right after sending CLSelectPC
     // Next Packets : LCSelectPCOK, LCSelectPCError
     //----------------------------------------------------------------------
     CPS_AFTER_SENDING_CL_SELECT_PC,
 
     //----------------------------------------------------------------------
-    // °ÔÀÓ ¼­¹ö·Î CGConnect ÆÐÅ¶À» º¸³½´Ù.
+    // Send the CGConnect packet to the game server.
     // Next Packets : GCUpdateInfo
     //----------------------------------------------------------------------
     CPS_AFTER_SENDING_CG_CONNECT,
 
     //----------------------------------------------------------------------
-    // ·ÎµùÀÌ ³¡³¯ ¶§±îÁö ±â´Ù¸°´Ù.
+    // Wait until loading finishes.
     // Next Packets : NONE
     //----------------------------------------------------------------------
     CPS_WAITING_FOR_LOADING,
 
     //----------------------------------------------------------------------
-    // CGReady ÆÐÅ¶À» º¸³½ ÈÄ, ¼­¹ö»ó¿¡¼­ ÀÚ½ÅÀÇ À§Ä¡°¡ °áÁ¤µÇ±â¸¦ ±â´Ù¸°´Ù.
+    // After sending the CGReady packet, wait for the server to settle its own position.
     // Next Packets : GCSetPosition
     //----------------------------------------------------------------------
     CPS_WAITING_FOR_GC_SET_POSITION,
 
     //----------------------------------------------------------------------
-    // ÀÏ¹ÝÀûÀÎ °ÔÀÓ »óÅÂ
+    // Normal game state
     //----------------------------------------------------------------------
     CPS_NORMAL,
 
     //----------------------------------------------------------------------
-    // LOGOUTÈÄ CGReconnectLogin
+    // CGReconnectLogin after LOGOUT
     //----------------------------------------------------------------------
     CPS_WAITING_FOR_GC_RECONNECT_LOGIN,
 
     //----------------------------------------------------------------------
-    // ·Î±×ÀÎ/°ÔÀÓ ¼­¹ö¿ÍÀÇ ¿¬°á Á¾·á
+    // Connection to the login/game server closed
     //----------------------------------------------------------------------
     CPS_END_SESSION,
 
 /*
 //----------------------------------------------------------------------
-// °ÔÀÓ °Ô½ÃÆÇ ½ÃÀÛ
+// Game bulletin board start
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
@@ -150,57 +150,57 @@ CPS_AFTER_SENDING_CL_NEXT_PAGE,
 //----------------------------------------------------------------------
 CPS_AFTER_SENDING_CL_SELECT_LIST,
 //----------------------------------------------------------------------
-// °ÔÀÓ °Ô½ÃÆÇ ³¡½
+// Game bulletin board end
 //----------------------------------------------------------------------
 */
 
 #elif defined(__LOGIN_SERVER__)
 
     //----------------------------------------------------------------------
-    // LoginPlayer °´Ã¼°¡ »ý¼ºµÈ Á÷ÈÄ
+    // Right after the LoginPlayer object is created
     // Next Packets : NONE
     //----------------------------------------------------------------------
     LPS_NONE,
 
     //----------------------------------------------------------------------
-    // ·Î±×ÀÎ ¼­¹ö¿¡ ¼ÒÄÏ ¿¬°á Á÷ÈÄ
+    // Right after the socket connection to the login server
     // Next Packets : CLLogin
     //----------------------------------------------------------------------
     LPS_BEGIN_SESSION,
 
     //----------------------------------------------------------------------
-    // ¾ÆÀÌµð/ÆÐ½º¿öµå Àü¼Û Á÷ÈÄ
+    // Right after the id/password is sent
     // Next Packets : CLGetPCList, CLLogout
     //----------------------------------------------------------------------
     LPS_WAITING_FOR_CL_GET_PC_LIST,
 
     //----------------------------------------------------------------------
-    // guest ·Î ·Î±×¿ÂÇßÀ» °æ¿ì
+    // Logged on as a guest
     // Next Packets : CLRegisterPlayer, CLQueryPlayerID
     //----------------------------------------------------------------------
     LPS_WAITING_FOR_CL_REGISTER_PLAYER,
 
     //----------------------------------------------------------------------
-    // Ä³¸¯ÅÍ °ü¸® »óÅÂ
+    // Character management state
     // Next Packets : CLCreatePC, CLDeletePC, CLSelectPC, CLLogout
     //----------------------------------------------------------------------
     LPS_PC_MANAGEMENT,
 
     //----------------------------------------------------------------------
-    // °ÔÀÓ ¼­¹ö·Î LGIncomingConnection ÆÐÅ¶À» º¸³½ Á÷ÈÄ
+    // Right after sending the LGIncomingConnection packet to the game server
     // Next Packets : GLIncomingConnectionOK, GLIncomingConnectionError
     //----------------------------------------------------------------------
     LPS_AFTER_SENDING_LG_INCOMING_CONNECTION,
 
     //----------------------------------------------------------------------
-    // 'ÀÌ¹Ì Á¢¼Ó Áß'ÀÎ °æ¿ì..
-    // °­Á¦ Á¢¼Ó Á¾·á°¡ µÇ±â¸¦ ±â´Ù¸®´Â »óÅÂ
+    // The 'already connected' case..
+    // State waiting for the connection to be closed by force
     //----------------------------------------------------------------------
     LPS_WAITING_FOR_GL_KICK_VERIFY,
 
 
     //----------------------------------------------------------------------
-    // ·Î±×ÀÎ ¼­¹ö¿ÍÀÇ ¿¬°áÀ» Á¾·áÇÒ¶§
+    // When the connection to the login server is closed
     // Next Packets : NONE
     //----------------------------------------------------------------------
     LPS_END_SESSION,
@@ -208,7 +208,7 @@ CPS_AFTER_SENDING_CL_SELECT_LIST,
 
 /*
 //----------------------------------------------------------------------
-// °ÔÀÓ °Ô½ÃÆÇ ½ÃÀÛ
+// Game bulletin board start
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
@@ -227,49 +227,49 @@ CPS_AFTER_SENDING_CL_SELECT_LIST,
  LPS_AFTER_SENDING_LC_SEND_CONTENT,
 
 //----------------------------------------------------------------------
-// °ÔÀÓ °Ô½ÃÆÇ ³¡Û
+// Game bulletin board end
 //----------------------------------------------------------------------
 */
 
 #elif defined(__GAME_SERVER__)
 
     //----------------------------------------------------------------------
-    // GamePlayer °´Ã¼°¡ »ý¼ºµÈ Á÷ÈÄ
+    // Right after the GamePlayer object is created
     // Next Packets : NONE
     //----------------------------------------------------------------------
     GPS_NONE,
 
     //----------------------------------------------------------------------
-    // °ÔÀÓ ¼­¹ö¿¡ ¼ÒÄÏ ¿¬°á Á÷ÈÄ
+    // Right after the socket connection to the game server
     // Next Packets : CGConnect
     //----------------------------------------------------------------------
     GPS_BEGIN_SESSION,
 
     //----------------------------------------------------------------------
-    // »ç¿ëÀÚ ÀÎÁõ Á÷ÈÄ
+    // Right after the user is authenticated
     // Next Packets : CGReady
     //----------------------------------------------------------------------
     GPS_WAITING_FOR_CG_READY,
 
     //----------------------------------------------------------------------
-    // °ÔÀÓ¿¡ µé¾î°¬´Ù. ÀÌÁ¦ ¾Æ¹« ÆÐÅ¶ÀÌ³ª ¿Í¶ó.
+    // In the game now. Any packet may arrive.
     // Next Packets : ANY
     //----------------------------------------------------------------------
     GPS_NORMAL,
 
     //----------------------------------------------------------------------
-    // ¾Æ¹« ÆÐÅ¶µµ ¹ÞÁö ¾Ê´Â »óÅÂ´Ù. -_-; fuck suck
+    // The state where no packet at all is accepted. -_-; fuck suck
     //----------------------------------------------------------------------
     GPS_IGNORE_ALL,
 
     //----------------------------------------------------------------------
-    // ·Î±×ÀÎ ¼­¹ö·Î GLIncomingConnection ÆÐÅ¶À» º¸³½ Á÷ÈÄ
+    // Right after sending the GLIncomingConnection packet to the login server
     // Next Packets : LGIncomingConnectionOK, LGIncomingConnectionError
     //----------------------------------------------------------------------
     GPS_AFTER_SENDING_GL_INCOMING_CONNECTION,
 
     //----------------------------------------------------------------------
-    // °ÔÀÓ ¼­¹ö¿ÍÀÇ ¿¬°áÀ» Á¾·áÇÑ´Ù.
+    // Close the connection to the game server.
     // Next Packets : NONE
     //----------------------------------------------------------------------
     GPS_END_SESSION,
@@ -278,7 +278,7 @@ CPS_AFTER_SENDING_CL_SELECT_LIST,
 #endif
 
     //--------------------------------------------------
-    // Player Status ¹è¿­ÀÇ Å©±â µîÀ» ¼³Á¤ÇÒ ¶§ »ç¿ëµÈ´Ù.
+    // Used when setting the size of the Player Status array and the like.
     //--------------------------------------------------
     PLAYER_STATUS_MAX
 

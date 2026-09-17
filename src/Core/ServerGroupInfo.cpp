@@ -2,8 +2,8 @@
 //
 // Filename    : ServerGroupInfo.cpp
 // Written By  : elca@ewestsoft.com
-// Description : �ڽſ��� ���� ����� ������ �˸��� ���� ��Ŷ Ŭ������
-//               ��� ����.
+// Description : Member definitions of the packet class that reports the
+//               success of a skill used on oneself.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -33,12 +33,12 @@ ServerGroupInfo::~ServerGroupInfo() noexcept = default;
 
 
 //////////////////////////////////////////////////////////////////////
-// �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void ServerGroupInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     iStream.read(m_GroupID);
 
     // The name is read unconditionally, so an empty one is refused here
@@ -50,12 +50,12 @@ void ServerGroupInfo::read(SocketInputStream& iStream) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void ServerGroupInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     oStream.write(m_GroupID);
     de::wire::writeString(oStream, m_GroupName, {0, maxNameLength}, "GroupName");
     oStream.write(m_Stat);

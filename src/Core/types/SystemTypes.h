@@ -7,9 +7,9 @@
 #ifndef __SYSTEM_TYPES_H__
 #define __SYSTEM_TYPES_H__
 
-/* �׼�/���� ��ġ�� ���� ���� ������ �Ʒ� BUILD_NUMBER ��
- * BUILD_INFO�� ä���ִ´�. BUILD_NUMBER ����� BUILD_INFO  +Add (�߰��� ��� ���� ���) -Delete (������ ��� ���� ���) *Fix
- * (������ġ/���� ���� ���) BUILD_INFO �� �����ϰ� �������� ���
+/* When the action/version is patched, the version information goes into the
+ * BUILD_NUMBER and BUILD_INFO below. BUILD_NUMBER is the build number, BUILD_INFO is  +Add (something added) -Delete (something removed) *Fix
+ * (a fix or a change), recorded together with the version
  */
 #define BUILD_NUMBER 40518
 #define BUILD_INFO "<Version Information>\n+Add ----- \n-Delete -----\nFix -----\n"

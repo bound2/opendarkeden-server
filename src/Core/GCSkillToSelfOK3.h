@@ -2,7 +2,7 @@
 //
 // Filename    : GCSkillToSelfOK3.h
 // Written By  : elca@ewestsoft.com
-// Description : 자신에게 쓴 기술이 성공했을때, 기술 시행자를 볼 수 없는 경우
+// Description : When a skill used on oneself succeeds and the user cannot be seen
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -32,10 +32,10 @@ public:
 
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -45,7 +45,7 @@ public:
     }
 
     // get packet's body size
-    // 최적화시, 미리 계산된 정수를 사용한다.
+    // When optimizing, use the precomputed constant.
     PacketSize_t getPacketSize() const {
         return szCoord * 2 + szSkillType + szDuration + szBYTE;
     }

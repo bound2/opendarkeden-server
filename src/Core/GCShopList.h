@@ -1,10 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GCShopList.h
-// Written By  : 김성민
 // Description :
-// 플레이어가 가진 상점 버전이 서버에 있는 것과 다를 경우,
-// 플레이어는 서버에 상점에 있는 상품 목록을 요구하게 된다.
-// 이 패킷은 그 때 플레이어에게 전달하게 되는 패킷이다.
+// When the shop version the player holds differs from the server's,
+// the player asks the server for the list of goods in the shop.
+// This packet is the one handed to the player at that point.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GC_SHOP_LIST_H__

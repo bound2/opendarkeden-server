@@ -2,7 +2,7 @@
 //
 // Filename    : GCRemoveEffect.h
 // Written By  : crazydog
-// Description : Effect 제거.
+// Description : Effect removal.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -19,8 +19,8 @@
 //
 // class GCRemoveEffect;
 //
-// 게임서버에서 클라이언트로 자신의 변형된 데이터를 알려주기 위한 객채
-// RemoveEffectrmation, SkillToObjectOK 등에 실려서 날아간다.
+// Object the game server uses to tell the client about its own changed data
+// It is carried in RemoveEffectrmation, SkillToObjectOK and the like.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -41,10 +41,10 @@ public:
     }
 
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
     // The effect list is counted in a BYTE, and the factory max budgets this
@@ -52,7 +52,7 @@ public:
     static constexpr uint kMaxCount = 255;
 
     // get packet's body size
-    // 최적화시, 미리 계산된 정수를 사용한다.
+    // When optimizing, use the precomputed constant.
     PacketSize_t getPacketSize() const {
         return (PacketSize_t)(szObjectID + szBYTE + szEffectID * m_EffectList.size());
     }

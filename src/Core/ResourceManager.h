@@ -57,7 +57,7 @@ public:
         return m_Resources.empty();
     }
 
-    // 동일한 파일일 경우, 가장 최신 버전만을 유지하고 구버전의 파일은 삭제한다.
+    // For the same file only the newest version is kept and the old ones are deleted.
     void optimize();
 
     // get debug string

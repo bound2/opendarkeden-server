@@ -1,16 +1,15 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GCTeachSkillInfo.cpp
-// Written By  : 김성민
 // Description :
-// NPC가 플레이어에게 스킬을 가르쳐 줄 때 제일 먼저 플레이어에게
-// 전송되는 패킷이다. NPC가 가르쳐 줄 수 있는 기술의 범위를 기술하는 데
-// 쓰이는 패킷이다.
+// The first packet sent to the player when an NPC is about to teach a skill.
+// It describes the range of skills the NPC can teach and is
+// the packet used for that.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "GCTeachSkillInfo.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////////////
 void GCTeachSkillInfo::read(SocketInputStream& iStream)
 
@@ -24,7 +23,7 @@ void GCTeachSkillInfo::read(SocketInputStream& iStream)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////////////
 void GCTeachSkillInfo::write(SocketOutputStream& oStream) const
 

@@ -2,8 +2,8 @@
 // Filename    : GCShopBuyFail.h
 // Written By  : excel96
 // Description :
-// 플레이어가 상점에서 아이템을 구입하려고 했는데,
-// 정상적인 구매가 실패했을 경우에 플레이어에게 보내는 패킷.
+// A player tried to buy an item from a shop and,
+// this packet is sent when the normal purchase fails.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GC_SHOP_BUY_FAIL_H__
@@ -13,19 +13,19 @@
 #include "PacketFactory.h"
 
 enum GCShopBuyFailCode {
-    // 돈이 모자란다.
+    // Not enough money.
     GC_SHOP_BUY_FAIL_NOT_ENOUGH_MONEY = 0,
 
-    // 자리가 모자란다.
+    // Not enough room.
     GC_SHOP_BUY_FAIL_NOT_ENOUGH_SPACE,
 
-    // NPC가 존재하지 않는다.
+    // The NPC does not exist.
     GC_SHOP_BUY_FAIL_NPC_NOT_EXIST,
 
-    // NPC라고 보내온 놈이 NPC가 아니다.
+    // What was sent as an NPC is not an NPC.
     GC_SHOP_BUY_FAIL_NOT_NPC,
 
-    // 지정한 위치에 아이템이 존재하지 않는다.
+    // There is no item at the position given.
     GC_SHOP_BUY_FAIL_ITEM_NOT_EXIST,
 
     GC_SHOP_BUY_FAIL_NOT_ENOUGH_BLACK_STAR,

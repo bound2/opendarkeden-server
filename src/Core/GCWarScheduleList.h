@@ -18,7 +18,7 @@
 #define MAX_WAR_NUM 20
 
 struct WarScheduleInfo {
-    BYTE warType = 0; // 0 : 동족간 1 : 종족간
+    BYTE warType = 0; // 0 : within a race 1 : between races
     WORD year = 0;
     BYTE month = 0;
     BYTE day = 0;

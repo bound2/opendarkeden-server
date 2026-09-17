@@ -1,9 +1,8 @@
 //--------------------------------------------------------------------------------
 //
 // Filename    : GCShopSellFail.h
-// Written By  : 김성민
-// Description : 플레이어가 NPC에게 물건을 팔려고 했는데, 어떤 이유로
-//               실패했을 경우에는 이 패킷을 플레이어에게 보내준다.
+// Description : The player tried to sell goods to an NPC and, for some
+//               reason it failed, so this packet is sent to the player.
 //
 //--------------------------------------------------------------------------------
 
@@ -26,10 +25,10 @@ public:
     GCShopSellFail();
     virtual ~GCShopSellFail();
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -99,7 +98,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCShopSellFailPacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static GCShopSellFailPacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

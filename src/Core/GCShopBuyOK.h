@@ -1,9 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GCShopBuyOK.h
-// Written By  : 김성민
 // Description :
-// 플레이어가 상점 NPC에게 물건 구입을 요청했을 때, 제대로
-// 인증이 되면 이 패킷이 플레이어에게 날아간다.
+// Description : When a player asks a shop NPC to buy goods and it
+// passes, this packet flies to the player.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GC_SHOP_BUY_OK_H__
@@ -153,17 +152,17 @@ public:
 
 private:
     ObjectID_t m_ObjectID;           // NPC's object id
-    ShopVersion_t m_Version;         // 상점 버젼
-    ObjectID_t m_ItemObjectID;       // 플레이어가 산 아이템의 OID
-    BYTE m_ItemClass;                // 플레이어가 산 아이템의 class
-    ItemType_t m_ItemType;           // 플레이어가 산 아이템의 type
-    list<OptionType_t> m_OptionType; // 플레이어가 산 아이템의 option type
-    Durability_t m_Durability;       // 플레이어가 산 아이템의 durability
-    ItemNum_t m_ItemNum;             // 플레이어가 산 아이템의 item num
-    Silver_t m_Silver;               // 플레이어가 산 아이템의 silver coating amount
-    Grade_t m_Grade;                 // 플레이어가 산 아이템의 silver coating amount
-    EnchantLevel_t m_EnchantLevel;   // 플레이어가 산 아이템의 enchant level
-    Price_t m_Price;                 // 플레이어가 현재 돈
+    ShopVersion_t m_Version;         // Shop version
+    ObjectID_t m_ItemObjectID;       // OID of the item the player bought
+    BYTE m_ItemClass;                // class of the item the player bought
+    ItemType_t m_ItemType;           // type of the item the player bought
+    list<OptionType_t> m_OptionType; // option type of the item the player bought
+    Durability_t m_Durability;       // durability of the item the player bought
+    ItemNum_t m_ItemNum;             // item num of the item the player bought
+    Silver_t m_Silver;               // silver coating amount of the item the player bought
+    Grade_t m_Grade;                 // silver coating amount of the item the player bought
+    EnchantLevel_t m_EnchantLevel;   // enchant level of the item the player bought
+    Price_t m_Price;                 // the player's current money
 };
 
 

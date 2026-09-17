@@ -24,7 +24,7 @@
 //
 // class GCMorph1;
 //
-//	slayer등이 vampire로 변신할때, 변신하시는 분에게 보내는 패킷.
+//	Packet sent to the one transforming when a slayer turns into a vampire.
 //--------------------------------------------------------------------------------
 
 class GCMorph1 : public Packet {
@@ -35,10 +35,10 @@ public:
     // destructor
     ~GCMorph1();
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -124,7 +124,7 @@ private:
     //--------------------------------------------------------------------------------
     // PC Information
     //--------------------------------------------------------------------------------
-    // PCSlayerInfo2 또는 PCVampireInfo2 를 사용한다.
+    // PCSlayerInfo2 or PCVampireInfo2 is used.
     PCInfo* m_pPCInfo;
 
     //--------------------------------------------------------------------------------
@@ -146,10 +146,10 @@ private:
     // quick item slot
     // gear
 
-    // 저널(PDA)
-    // 수행 퀘스트 정보
-    // 공지사항, 이벤트 정보
-    // 흐흠.. 얘들은 처음 PDS를 켤 때 다운받을까나.. - -;
+    // Journal (PDA)
+    // Quest progress information
+    // Notices, event information
+    // Hmm.. maybe these should be downloaded the first time the PDS is opened.. - -;
 };
 
 
@@ -185,7 +185,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCMorph1PacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static GCMorph1PacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

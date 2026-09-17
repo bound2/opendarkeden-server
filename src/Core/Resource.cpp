@@ -20,7 +20,7 @@ Resource::Resource(Version_t version, const string& str) : m_Version(version), m
 
     //--------------------------------------------------------------------------------
     //
-    // 입력 스트링의 구조는 다음과 같다.
+    // The structure of the input string is as follows.
     //
     // ex> "creature.spk 30021"
     //      012345678901234567
@@ -30,7 +30,7 @@ Resource::Resource(Version_t version, const string& str) : m_Version(version), m
     //
     //--------------------------------------------------------------------------------
     if (str != "") {
-        // 첫번째와 마지막 스페이스의 인덱스를 구한다.
+        // Work out the index of the first and the last space.
         size_t firstspace = str.find_first_of(' ');
 
         if (firstspace == string::npos)

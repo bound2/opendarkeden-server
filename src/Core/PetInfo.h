@@ -132,7 +132,7 @@ public:
     // defined in the gameserver (packetfill/PetInfoFill.cpp): installs the
     // pet item together with a thunk that reads its ObjectID, so the wire
     // library never needs the PetItem definition. The ObjectID must stay a
-    // LIVE lookup at write() time — ObjectIDs are zone-local and reassigned
+    // LIVE lookup at write() time: ObjectIDs are zone-local and reassigned
     // on every zone entry, and a freshly created item has none until it is
     // registered (a cached id would go stale and assert on an unregistered
     // item).

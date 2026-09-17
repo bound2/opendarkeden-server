@@ -2,7 +2,7 @@
 //
 // Filename    : GCSkillFailed2.cc
 // Written By  : elca@ewestsoft.com
-// Description : Skill이 실패 했을때 날려주는 패킷의 멤버 정의
+// Description : Member definitions of the packet sent when a skill fails
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -37,7 +37,7 @@ GCSkillFailed2::~GCSkillFailed2()
 
 
 //////////////////////////////////////////////////////////////////////
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void GCSkillFailed2::read(SocketInputStream& iStream)
 
@@ -52,7 +52,7 @@ void GCSkillFailed2::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void GCSkillFailed2::write(SocketOutputStream& oStream) const
 

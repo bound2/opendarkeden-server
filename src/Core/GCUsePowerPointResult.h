@@ -24,18 +24,18 @@ class GCUsePowerPointResult : public Packet {
 public:
     enum RESULT_CODE {
         NO_ERROR = 0,
-        NOT_ENOUGH_POWER_POINT,     // 파워 포인트가 부족합니다.
-        NOT_ENOUGH_INVENTORY_SPACE, // 인벤토리에 공간이 부족합니다.
+        NOT_ENOUGH_POWER_POINT,     // Not enough power points.
+        NOT_ENOUGH_INVENTORY_SPACE, // There is not enough room in the inventory.
     };
 
     enum ITEM_CODE {
-        CANDY = 0,            // 사탕 1개
-        RESURRECTION_SCROLL,  // 부활 스크롤 1개
-        ELIXIR_SCROLL,        // 엘릭서 스크롤 1개
-        MEGAPHONE,            // 확성기 30분
-        NAMING_PEN,           // 네이밍 펜 1개
-        SIGNPOST,             // 알림판 6시간
-        BLACK_RICE_CAKE_SOUP, // 검은 떡국 1개
+        CANDY = 0,            // One candy
+        RESURRECTION_SCROLL,  // One resurrection scroll
+        ELIXIR_SCROLL,        // One elixir scroll
+        MEGAPHONE,            // Thirty minutes of the megaphone
+        NAMING_PEN,           // One naming pen
+        SIGNPOST,             // Six hours of the notice board
+        BLACK_RICE_CAKE_SOUP, // One black rice cake soup
     };
 
 public:
@@ -43,10 +43,10 @@ public:
     ~GCUsePowerPointResult();
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -96,13 +96,13 @@ public:
     // data members
     //--------------------------------------------------
 private:
-    // 에러 코드
+    // Error code
     BYTE m_ErrorCode;
 
-    // 아이템 코드
+    // Item code
     BYTE m_ItemCode;
 
-    // 파워 포인트
+    // Power points
     int m_PowerPoint = 0;
 };
 
@@ -138,7 +138,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCUsePowerPointResultPacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static GCUsePowerPointResultPacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

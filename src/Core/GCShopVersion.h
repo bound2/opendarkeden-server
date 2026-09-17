@@ -1,8 +1,7 @@
 //--------------------------------------------------------------------------------
 //
 // Filename    : GCShopVersion.h
-// Written By  : 김성민
-// Description : 플레이어에게 서버 측의 상점 버전을 알려줄 때 쓰이는 패킷이다.
+// Description : Packet that tells the player the server-side shop version.
 //
 //--------------------------------------------------------------------------------
 
@@ -25,10 +24,10 @@ public:
     GCShopVersion();
     virtual ~GCShopVersion();
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -123,7 +122,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCShopVersionPacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static GCShopVersionPacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

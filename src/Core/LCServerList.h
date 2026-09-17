@@ -23,18 +23,18 @@
 class LCServerList : public Packet {
 public:
     // constructor
-    // PCInfo* �迭�� ���� NULL�� �����Ѵ�.
+    // Set every entry of the PCInfo* array to NULL.
     LCServerList();
 
     // destructor
-    // PCInfo* �迭�� �Ҵ�� ��ü�� �����Ѵ�.
+    // Delete the objects allocated in the PCInfo* array.
     ~LCServerList() noexcept;
 
-    // �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ��
-    // �ʱ�ȭ�Ѵ�.
+    // Read data from the input stream (buffer) and initialise the
+    // packet.
     void read(SocketInputStream& iStream);
 
-    // ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -55,7 +55,7 @@ public:
     string toString() const;
 
 public:
-    // ���� ���� �׷�
+    // Current server group
     ServerGroupID_t getCurrentServerGroupID() const {
         return m_CurrentServerGroupID;
     }
@@ -92,10 +92,10 @@ public:
     }
 
 private:
-    // ���� ���� �׷�
+    // Current server group
     ServerGroupID_t m_CurrentServerGroupID;
 
-    // ĳ���� ����
+    // Character information
     list<ServerGroupInfo*> m_ServerGroupInfoList;
 };
 

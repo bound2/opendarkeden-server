@@ -17,20 +17,20 @@
 //
 // class GCRemoveCorpseHead;
 //
-// 존의 특정 객체가 시야에서 사라진 경우에 전송되며, 클라이언트는 이 패킷을 받으면
-// 패킷 내부의 OID를 사용해서 해당되는 객체를 찾아서 클라이언트의 존에서 삭제해야 한다.
+// Sent when a particular object in the zone leaves the field of view; on receiving it the client
+// has to find the matching object by the OID inside the packet and delete it from the client's zone.
 //
-// 다음은 이 패킷이 전송되는 구체적인 상황의 예시이다.
+// The following are concrete examples of when this packet is sent.
 //
-//(1) PC가 로그아웃한 경우
-//(2) 아이템을 크리처가 줍는 경우
-//(3) 특정 이펙트가 사라진 경우
-//(4) 시체가 사라진 경우
+//(1) When the PC logs out
+//(2) When a creature picks the item up
+//(3) When a particular effect disappears
+//(4) When the corpse disappears
 //
 // *CAUTION*
 //
-//(3) 특정 이펙트가 사라진 경우.. 는 이펙트가 생성될 때, 사라지는 시간이 전송되기
-// 때문에, 삭제되어도 무방할 것이다. -_-;
+//(3) When a particular effect disappears.. the time it disappears is sent when the effect is created,
+// so it would do no harm to delete it. -_-;
 //
 //--------------------------------------------------------------------------------
 
@@ -44,10 +44,10 @@ public:
 
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 

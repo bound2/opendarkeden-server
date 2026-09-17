@@ -206,16 +206,16 @@ StringStream& StringStream::operator<<(const string& str) {
 // make string
 //////////////////////////////////////////////////////////////////////
 const string& StringStream::toString() const {
-    // 일단 스트링을 한번 생성해놓으면,
-    // 그다음 호출때에는 새로 추가되지 않는 한 그대로 사용한다.
+    // Once the string has been built,
+    // On later calls it is used as it is unless something new is added.
     if (m_bInserted) {
         m_bInserted = false;
 
-        // 속도를 위해 쓸데없는 복사 방지를 일단 메모리를 다 잡아놓고 시작한다.
+        // For speed, grab all the memory up front so pointless copies are avoided.
         m_Buffer.reserve(m_Size);
 
         for (list<string>::const_iterator itr = m_Strings.begin(); itr != m_Strings.end(); itr++) {
-            // 버퍼에 하나씩 추가한다.
+            // Append to the buffer one by one.
             m_Buffer.append(*itr);
         }
     }

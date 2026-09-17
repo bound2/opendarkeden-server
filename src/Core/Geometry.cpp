@@ -28,8 +28,8 @@ uint getPointsFromLine(int x1, int y1, int x2, int y2, list<POINT>& rList) {
         yStep = (double)(y2 - y1) / (double)(x2 - x1);
         Y = y1;
         for (xCount = x1; xCount <= x2; xCount++) {
-            // 마지막 점이라면 기울기를 무시하고,
-            // 강제로 마지막 좌표를 집어넣는다.
+            // If it is the last point ignore the slope, and
+            // Force the last coordinate in.
             if (xCount == x2) {
                 rList.push_front(POINT(x2, y2));
             } else {
@@ -89,11 +89,11 @@ uint getPointsFromLineEx(int x1, int y1, int x2, int y2, int range, list<POINT>&
     } else if (xLength > yLength) {
         // cout << "xLength:" << xLength << endl;
 
-        // 현재의 X 길이가 사정거리보다 길다면 그냥 선을 그어서 리턴한다.
+        // If the current X length is longer than the range, just draw a line and return.
         if (xLength >= range)
             return getPointsFromLine(x1, y1, x2, y2, rList);
 
-        // 모자란 길이를 구한다.
+        // Work out the missing length.
         int xoffset = range - xLength;
 
         // cout << "xOffset:" << xoffset << endl;
@@ -122,11 +122,11 @@ uint getPointsFromLineEx(int x1, int y1, int x2, int y2, int range, list<POINT>&
     } else {
         // cout << "yLength:" << yLength << endl;
 
-        // 현재의 Y 길이가 사정거리보다 길다면 그냥 선을 그어서 리턴한다.
+        // If the current Y length is longer than the range, just draw a line and return.
         if (yLength >= range)
             return getPointsFromLine(x1, y1, x2, y2, rList);
 
-        // 모자란 길이를 구한다.
+        // Work out the missing length.
         int yoffset = range - yLength;
 
         // cout << "yOffset:" << yoffset << endl;
@@ -153,12 +153,12 @@ uint getPointsFromLineEx(int x1, int y1, int x2, int y2, int range, list<POINT>&
         getPointsFromLine(x1, y1, nx2, ny2, rList);
     }
 
-    // getPointsFromLineEx()는 x^2 + y^2 = r^2과 y = ax의 교점을 찾아서,
-    // 원점에서 교점까지의 좌표들을 리스트로 리턴하는 함수인데,
-    // 알고리즘 상에서의 문제로 인해 (x2,y2), 즉 처음에 목표로 했던
-    // 좌표가 빠지는 경우가 생길 수 있다.
-    // 이런 경우를 방지하기 위해서 리스트에 원래 목표 좌표가 없다면,
-    // 집어넣어 준다.
+    // getPointsFromLineEx() finds the intersection of x^2 + y^2 = r^2 and y = ax
+    // and returns, as a list, the coordinates from the origin to that point, but
+    // because of a problem in the algorithm (x2,y2), the coordinate originally
+    // aimed at, can be dropped.
+    // To avoid that, if the original target coordinate is not in the list,
+    // put it in.
     bool bAdd = true;
     list<POINT>::iterator itr = rList.begin();
     for (; itr != rList.end(); itr++) {

@@ -31,7 +31,7 @@ Properties::Properties(const string& filename)
       // destructor
       //--------------------------------------------------------------------------------
       Properties::~Properties() noexcept {
-    // ��� pair �� �����Ѵ�.
+    // Delete every pair.
     m_Properties.clear();
 }
 
@@ -57,47 +57,47 @@ void Properties::load() {
         if (ifile.eof())
             break;
 
-        // �ڸ�Ʈ �����̰ų� �� �����̹Ƿ� skip �Ѵ�.
+        // It is a comment line or an empty line, so skip it.
         if (line.size() == 0 || line[0] == Comment)
             continue;
 
-        // key �� ���۹���(white space�� �ƴ� ����)�� ã�´�.
+        // Find the start of the key (the first character that is not white space).
         size_t key_begin = line.find_first_not_of(WhiteSpaces);
 
-        // key_begin�� npos ��� ���� �׷� ���ڸ� ã�� ���ߴٴ� ���̴�.
-        // ��, ���� white space �θ� �Ǿ� �ִ� �����̹Ƿ� skip �Ѵ�.
+        // If key_begin is npos, no such character was found.
+        // That is, the line is nothing but white space, so skip it.
         if (key_begin == string::npos)
             continue;
 
-        // key �� value �� �������� separator �� ã�´�.
-        // key_end ���� sep �� ���� ã�� ������ find_last_not_of()�� �Ἥ
-        // sep �������� ������ key_end �� ã�� ���ؼ��̴�. ^^;
+        // Find the separator that divides the key and the value.
+        // find_last_not_of() is used rather than searching for sep from key_end,
+        // so that key_end, the character just before sep, is found. ^^;
         size_t sep = line.find(Separator, key_begin);
 
-        // Separator �� �߰����� ������ ���� �Ľ� ������ �����Ѵ�.
+        // If no Separator is found, treat it as a parse error.
         if (sep == string::npos)
             throw IOException("missing separator");
 
-        // sep �������� ������ key_end �� ã�Ƴ�����.
+        // Find key_end, the character just before sep.
         size_t key_end = line.find_last_not_of(WhiteSpaces, sep - 1);
 
-        // sep �������� value_begin �� ã�´�.
+        // Find value_begin after sep.
         size_t value_begin = line.find_first_not_of(WhiteSpaces, sep + 1);
 
-        // key �� ������ value �� ���� �����̴�.
+        // The key has no value; it is an empty line.
         if (value_begin == string::npos)
             throw IOException("missing value");
 
-        // �� ���������� ������ value_end �� ã�´�.
-        // ( value_begin �� ������ value_end �� ������ �����Ѵ�.)
+        // Find value_end, the last character that is not white space.
+        // ( If value_begin is empty, value_end is empty too.)
         size_t value_end = line.find_last_not_of(WhiteSpaces);
 
-        // key_begin,key_end �� value_begin,value_end �� ����ؼ�
-        // line �� substring �� key �� value �� �����Ѵ�.
+        // Using key_begin,key_end and value_begin,value_end,
+        // take the key and the value out of the line as substrings.
         string key = line.substr(key_begin, key_end - key_begin + 1);
         string value = line.substr(value_begin, value_end - value_begin + 1);
 
-        // property �� ����Ѵ�.
+        // Register the property.
         setProperty(key, value);
     }
 
@@ -166,7 +166,7 @@ int Properties::getPropertyInt(string key) const {
 void Properties::setProperty(string key, string value) {
     __BEGIN_TRY
 
-    // �̹� Ű�� ������ ���, value �� �����.
+    // If the key exists already, the value is overwritten.
     m_Properties[key] = value;
 
     __END_CATCH

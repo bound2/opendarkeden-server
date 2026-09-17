@@ -11,9 +11,9 @@
 #include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// Ousters 정보를 담고 있는 객체.
-// GCPCList 패킷에 담겨서 클라이언트에게 전송된다.
-// 아이템이나 걸려있는 마법 같은 정보는 담겨있지 않다.
+// Object that carries Ousters information.
+// It is carried in the GCPCList packet and sent to the client.
+// It does not carry information such as items or the magic in effect.
 //////////////////////////////////////////////////////////////////////////////
 
 class PCOustersInfo2 : public PCInfo {
@@ -27,50 +27,50 @@ public:
 
     uint getSize() const {
         return szObjectID                              // ObjectID
-               + de::wire::stringWireSize(m_Name)      // 아우스터스 이름
-               + szLevel                               // 레벨
-               + szSex                                 // 성별
-               + szColor                               // 머리 색상
-               + szBYTE + szAlignment                  // 성향
-               + szAttr * 3 * 3                        // 능력치
+               + de::wire::stringWireSize(m_Name)      // Ousters name
+               + szLevel                               // Level
+               + szSex                                 // Sex
+               + szColor                               // Hair colour
+               + szBYTE + szAlignment                  // Alignment
+               + szAttr * 3 * 3                        // Attributes
                + szHP * 2                              // HP
                + szMP * 2                              // MP
-               + szRank + szRankExp                    // 계급 경험치
-               + szExp                                 // 경험치
-               + szGold                                // 돈
+               + szRank + szRankExp                    // Rank experience
+               + szExp                                 // Experience
+               + szGold                                // Money
                + szFame                                // Fame
-               + szSight                               // 시야
-               + szBonus                               // 보너스 포인트
-               + szSkillBonus                          // 스킬 보너스 포인트
-               + szSilver                              // 실버 데미지
-               + szBYTE                                // 권한
-               + szGuildID                             // 길드 아이디
-               + de::wire::stringWireSize(m_GuildName) // 길드 이름
+               + szSight                               // Sight
+               + szBonus                               // Bonus points
+               + szSkillBonus                          // Skill bonus points
+               + szSilver                              // Silver damage
+               + szBYTE                                // Competence
+               + szGuildID                             // Guild ID
+               + de::wire::stringWireSize(m_GuildName) // Guild name
                + szGuildMemberRank                     // guild member rank
                + szuint + szLevel + szExp;
     }
 
     static constexpr uint getMaxSize() {
         return szObjectID             // ObjectID
-               + szBYTE + 20          // 아우스터스 이름
-               + szLevel              // 레벨
-               + szSex                // 성별
-               + szColor              // 색상
-               + szBYTE + szAlignment // 성향
-               + szAttr * 3 * 3       // 능력치
+               + szBYTE + 20          // Ousters name
+               + szLevel              // Level
+               + szSex                // Sex
+               + szColor              // Colour
+               + szBYTE + szAlignment // Alignment
+               + szAttr * 3 * 3       // Attributes
                + szHP * 2             // HP
                + szMP * 2             // MP
-               + szRank + szRankExp   // 계급 경험치
-               + szExp                // 경험치
-               + szGold               // 돈
+               + szRank + szRankExp   // Rank experience
+               + szExp                // Experience
+               + szGold               // Money
                + szFame               // Fame
-               + szSight              // 시야
-               + szBonus              // 보너스 포인트
-               + szSkillBonus         // 스킬 보너스 포인트
-               + szSilver             // 실버 데미지
-               + szBYTE               // 권한
-               + szGuildID            // 길드 아이디
-               + szBYTE + 30          // 길드 이름
+               + szSight              // Sight
+               + szBonus              // Bonus points
+               + szSkillBonus         // Skill bonus points
+               + szSilver             // Silver damage
+               + szBYTE               // Competence
+               + szGuildID            // Guild ID
+               + szBYTE + 30          // Guild name
                + szGuildMemberRank    // guild member rank
                + szuint + szLevel + szExp;
     }
@@ -335,7 +335,7 @@ private:
     // MP[0] = current mp, mp[1] == max mp
     MP_t m_MP[2];
 
-    // 계급
+    // Rank
     Rank_t m_Rank;
     RankExp_t m_RankExp;
 
@@ -348,22 +348,22 @@ private:
     // Gold
     Gold_t m_Gold;
 
-    // 시야
+    // Sight
     Sight_t m_Sight;
 
-    // 보너스 포인트
+    // Bonus points
     Bonus_t m_Bonus;
 
-    // 스킬 보너스 포인트
+    // Skill bonus points
     SkillBonus_t m_SkillBonus;
 
-    // 실버 데미지
+    // Silver damage
     Silver_t m_SilverDamage;
 
     // Competence
     BYTE m_Competence;
 
-    // 길드 ID
+    // Guild ID
     GuildID_t m_GuildID;
 
     // guild name

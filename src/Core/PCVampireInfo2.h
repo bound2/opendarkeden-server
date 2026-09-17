@@ -29,22 +29,22 @@ public:
                + de::wire::stringWireSize(m_Name)      // Character name
                + szLevel                               // Level
                + szSex                                 // Sex
-               + szColor * 2                           // ����
-               + szBYTE + szAlignment                  // ����
-               + szAttr * 3 * 3                        // �ɷ�ġ
+               + szColor * 2                           // Colour
+               + szBYTE + szAlignment                  // Alignment
+               + szAttr * 3 * 3                        // Attributes
                + szHP * 2                              // HP
-               + szRank + szRankExp                    // ��� ����ġ
-               + szExp                                 // ����ġ
+               + szRank + szRankExp                    // Rank experience
+               + szExp                                 // Experience
                + szFame                                // Fame
-               + szGold                                // ��
-               + szSight                               // �þ�
-               + szSkillType * 8                       // �� Ű
-               + szSilver                              // �� Ű
-               + szBonus                               // ���ʽ�����Ʈ
-               + szGuildID                             // ��� ���̵�
-               + de::wire::stringWireSize(m_GuildName) // ��� �̸�
+               + szGold                                // Money
+               + szSight                               // Sight
+               + szSkillType * 8                       // Hot keys
+               + szSilver                              // Hot keys
+               + szBonus                               // Bonus points
+               + szGuildID                             // Guild ID
+               + de::wire::stringWireSize(m_GuildName) // Guild name
                + szGuildMemberRank                     // guild member rank
-               + szBYTE                                // ����
+               + szBYTE                                // Competence
                + szuint + szLevel + szExp;
     }
 
@@ -53,22 +53,22 @@ public:
                + szBYTE + 20          // Character name
                + szLevel              // Level
                + szSex                // Sex
-               + szColor * 2          // ����
-               + szBYTE + szAlignment // ����
-               + szAttr * 3 * 3       // �ɷ�ġ
+               + szColor * 2          // Colour
+               + szBYTE + szAlignment // Alignment
+               + szAttr * 3 * 3       // Attributes
                + szHP * 2             // HP
-               + szRank + szRankExp   // ��� ����ġ
-               + szExp                // ����ġ
+               + szRank + szRankExp   // Rank experience
+               + szExp                // Experience
                + szFame               // Fame
-               + szGold               // ��
-               + szSight              // �þ�
-               + szSkillType * 8      // �� Ű
-               + szSilver             // �� Ű
-               + szBonus              // ���ʽ�����Ʈ
-               + szGuildID            // ��� ���̵�
-               + szBYTE + 30          // ��� �̸�
+               + szGold               // Money
+               + szSight              // Sight
+               + szSkillType * 8      // Hot keys
+               + szSilver             // Hot keys
+               + szBonus              // Bonus points
+               + szGuildID            // Guild ID
+               + szBYTE + 30          // Guild name
                + szGuildMemberRank +  // guild member rank
-               +szBYTE                // ����
+               +szBYTE                // Competence
                + szuint + szLevel + szExp;
     }
 
@@ -325,7 +325,7 @@ private:
     // HP[0] = current hp, hp[1] == max hp
     HP_t m_HP[2];
 
-    // ���
+    // Rank
     Rank_t m_Rank;
     RankExp_t m_RankExp;
 
@@ -341,13 +341,13 @@ private:
     // Sight
     Sight_t m_Sight;
 
-    // ���ʽ� ����Ʈ
+    // Bonus points
     Bonus_t m_Bonus;
 
-    // �� Ű
+    // Hot keys
     SkillType_t m_HotKey[8];
 
-    // �ǹ� ������
+    // Silver damage
     Silver_t m_SilverDamage;
 
     // Competence

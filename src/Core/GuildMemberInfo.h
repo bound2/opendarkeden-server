@@ -18,7 +18,7 @@
 //
 // class GuildMemberInfo;
 //
-// Ŭ���̾�Ʈ�� ����� ����Ʈ�� ������.
+// Send the member list to the client.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -31,15 +31,15 @@ public:
     ~GuildMemberInfo() noexcept;
 
 public:
-    // �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ��
-    // �ʱ�ȭ�Ѵ�.
+    // Read data from the input stream (buffer) and initialise the
+    // packet.
     void read(SocketInputStream& iStream);
 
-    // ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
     // get packet's body size
-    // ����ȭ��, �̸� ���� ������ ����Ѵ�.
+    // When optimizing, use the precomputed constant.
     PacketSize_t getSize();
 
     // The roster packet's factory max budgets this many members;
@@ -88,7 +88,7 @@ public:
     }
 
 private:
-    // �̸�
+    // Name
     string m_Name;
 
     // Guild Member Rank

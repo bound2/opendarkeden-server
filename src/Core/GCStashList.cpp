@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GCStashList.cpp
-// Written By  : 김성민
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -36,7 +35,7 @@ GCStashList::~GCStashList()
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////////////
 void GCStashList::read(SocketInputStream& iStream)
 
@@ -63,13 +62,13 @@ void GCStashList::read(SocketInputStream& iStream)
         }
     }
 
-    // 보관함의 갯수를 읽어들인다.
+    // Read the number of stashes.
     iStream.read(m_StashNum);
 
-    // 총 아이템의 숫자를 읽어들인다.
+    // Read the total number of items.
     iStream.read(nTotal);
 
-    // 각 아이템의 정보를 읽어들인다.
+    // Read the information of each item.
     for (i = 0; i < nTotal; i++) {
         iStream.read(rack);
         iStream.read(index);
@@ -96,7 +95,7 @@ void GCStashList::read(SocketInputStream& iStream)
         iStream.read(item.grade);
         iStream.read(item.enchantLevel);
 
-        // sub 아이템 정보를 읽어들인다.
+        // Read the sub-item information.
         BYTE subItemCount;
         iStream.read(subItemCount);
 
@@ -112,7 +111,7 @@ void GCStashList::read(SocketInputStream& iStream)
         m_bExist[rack][index] = true;
     }
 
-    // 돈의 양을 읽어들인다.
+    // Read the amount of money.
     iStream.read(m_StashGold);
 
     __END_CATCH
@@ -120,7 +119,7 @@ void GCStashList::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////////////
 void GCStashList::write(SocketOutputStream& oStream) const
 
@@ -132,16 +131,16 @@ void GCStashList::write(SocketOutputStream& oStream) const
     BYTE i = 0;
     BYTE nTotal = 0;
 
-    // 총 아이템의 숫자를 계산한다.
+    // Count the total number of items.
     for (r = 0; r < STASH_RACK_MAX; r++)
         for (i = 0; i < STASH_INDEX_MAX; i++)
             if (m_bExist[r][i])
                 nTotal++;
 
-    // 보관함의 갯수를 날려준다.
+    // Write the number of stashes.
     oStream.write(m_StashNum);
 
-    // 총 아이템의 숫자를 날려준다
+    // Write the total number of items
     oStream.write(nTotal);
 
     // write each item info
@@ -172,7 +171,7 @@ void GCStashList::write(SocketOutputStream& oStream) const
                 oStream.write(item.grade);
                 oStream.write(item.enchantLevel);
 
-                // sub 아이템 정보를 쓴다.
+                // Write the sub-item information.
                 if (m_pSubItems[r][i].size() > kMaxSubItemCount)
                     throw InvalidProtocolException("too many sub items");
 
@@ -190,7 +189,7 @@ void GCStashList::write(SocketOutputStream& oStream) const
         }
     }
 
-    // 돈의 양을 써준다.
+    // Write the amount of money.
     oStream.write(m_StashGold);
 
     __END_DEBUG
@@ -205,17 +204,17 @@ PacketSize_t GCStashList::getPacketSize() const
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    PacketSize_t size = szBYTE; // 보관함의 갯수
+    PacketSize_t size = szBYTE; // Number of stashes
 
-    size += szBYTE; // 총 아이템 숫자
+    size += szBYTE; // Total number of items
 
     for (int r = 0; r < STASH_RACK_MAX; r++) {
         for (int i = 0; i < STASH_INDEX_MAX; i++) {
             if (m_bExist[r][i]) {
-                // rack과 인덱스
+                // rack and index
                 size += szBYTE * 2;
 
-                // 실제 정보
+                // Actual information
                 /*
                 size += szObjectID;
                 size += szBYTE;
@@ -228,16 +227,16 @@ PacketSize_t GCStashList::getPacketSize() const
                 */
                 size += m_pItems[r][i].getPacketSize();
 
-                // 벨트에 들어있는 아이템의 숫자
+                // Number of items in the belt
                 size += szBYTE;
 
-                // 벨트에 들어 있는 아이템의 크기
+                // Size of the items in the belt
                 size += SubItemInfo::getSize() * m_pSubItems[r][i].size();
             }
         }
     }
 
-    size += szGold; // 보관함에 들어있는 돈
+    size += szGold; // Money in the stash
 
     return size;
 

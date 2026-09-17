@@ -848,13 +848,13 @@ void SocketAPI::shutdown_ex(SOCKET s, uint how) {
 // system call for I/O multiplexing
 //
 // Parameters
-//     maxfdp1   - �׽�Ʈ�� ���� ��ũ������ ���� ū �� + 1
-//     readset   - �Է��� ���Դ��� �׽�Ʈ�� ���� ��ũ������
-//     ����
-//     writeset  - ����� �� �� �ִ��� �׽�Ʈ�� ���� ��ũ������
-//     ����
-//     exceptset - OOB ����Ÿ�� ���Դ��� �׽�Ʈ�� ����
-//     ��ũ������ ���� timeout   - �󸶳� ��ٸ� ���ΰ�?
+//     maxfdp1   - the largest descriptor to test + 1
+//     readset   - the descriptor set to test for incoming input
+//     set
+//     writeset  - the descriptor set to test for being able to write
+//     set
+//     exceptset - the descriptor set to test for incoming OOB
+//     data timeout   - how long to wait?
 //
 // Return
 //     positive count of ready descriptors
@@ -879,7 +879,7 @@ int SocketAPI::select_ex(int maxfdp1, fd_set* readset, fd_set* writeset, fd_set*
         // throw TimeoutException();
 
         /*
-        // �ּ�ó�� by sigi. 2002.5.17
+        // commented out by sigi. 2002.5.17
         if ( result < 0 ) {
             switch ( errno ) {
             case EINTR :
@@ -897,8 +897,8 @@ int SocketAPI::select_ex(int maxfdp1, fd_set* readset, fd_set* writeset, fd_set*
         */
 
     } catch (Throwable& t) {
-        // � ������ ���� �����Ѵ�.
-        //		cout << "����Ʈ���� �̻��� ������ ����.." << endl;
+        // Ignore any exception.
+        //		cout << "a strange error came out of select.." << endl;
         //		throw TimeoutException();
     }
 

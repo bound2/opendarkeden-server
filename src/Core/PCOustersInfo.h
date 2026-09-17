@@ -10,9 +10,9 @@
 #include "PCInfo.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// Ousters 정보를 담고 있는 객체.
-// GCPCList 패킷에 담겨서 클라이언트에게 전송된다.
-// 아이템이나 걸려있는 마법 같은 정보는 담겨있지 않다.
+// Object that carries Ousters information.
+// It is carried in the GCPCList packet and sent to the client.
+// It does not carry information such as items or the magic in effect.
 //////////////////////////////////////////////////////////////////////////////
 
 class PCOustersInfo : public PCInfo {
@@ -35,42 +35,42 @@ public:
     void write(SocketOutputStream& oStream) const;
 
     uint getSize() const {
-        return szBYTE                        // 이름길이
-               + m_Name.size()               // 아우스터스 이름
-               + szSlot                      // 슬롯
-               + szAlignment                 // 성향
-               + szSex                       // 성별
-               + szColor * OUSTERS_COLOR_MAX // 색상
-               + szBYTE                      // 옷, 무기 타입
-               + szAttr * 3                  // 능력치
+        return szBYTE                        // Name length
+               + m_Name.size()               // Ousters name
+               + szSlot                      // Slot
+               + szAlignment                 // Alignment
+               + szSex                       // Sex
+               + szColor * OUSTERS_COLOR_MAX // Colour
+               + szBYTE                      // Coat and weapon type
+               + szAttr * 3                  // Attributes
                + szHP * 2                    // HP
                + szMP * 2                    // MP
-               + szRank                      // 계급
-               + szExp                       // 경험치
-               + szLevel                     // 레벨
-               + szFame                      // 명성
-               + szBonus                     // 보너스 포인트
-               + szSkillBonus                // 스킬보너스 포인트
+               + szRank                      // Rank
+               + szExp                       // Experience
+               + szLevel                     // Level
+               + szFame                      // Fame
+               + szBonus                     // Bonus points
+               + szSkillBonus                // Skill bonus points
                + szLevel;
     }
 
     // get max size of object
     static constexpr uint getMaxSize() {
-        return szBYTE + 20                   // 아우스터스 이름
-               + szSlot                      // 슬롯
-               + szAlignment                 // 성향
-               + szSex                       // 성별
-               + szColor * OUSTERS_COLOR_MAX // 색상
-               + szBYTE                      // 옷, 무기 타입
-               + szAttr * 3                  // 능력치
+        return szBYTE + 20                   // Ousters name
+               + szSlot                      // Slot
+               + szAlignment                 // Alignment
+               + szSex                       // Sex
+               + szColor * OUSTERS_COLOR_MAX // Colour
+               + szBYTE                      // Coat and weapon type
+               + szAttr * 3                  // Attributes
                + szHP * 2                    // HP
                + szMP * 2                    // MP
-               + szRank                      // 계급
-               + szExp                       // 경험치
-               + szFame                      // 명성치
-               + szLevel                     // 레벨
-               + szBonus                     // 보너스 포인트
-               + szSkillBonus                // 스킬 보너스 포인트
+               + szRank                      // Rank
+               + szExp                       // Experience
+               + szFame                      // Fame
+               + szLevel                     // Level
+               + szBonus                     // Bonus points
+               + szSkillBonus                // Skill bonus points
                + szLevel;
     }
 
@@ -273,7 +273,7 @@ private:
     // PC name
     string m_Name;
 
-    // PC 슬롯
+    // PC slot
     Slot m_Slot;
 
     // Alignment
@@ -292,7 +292,7 @@ private:
     OustersCoatType m_CoatType;
     OustersArmType m_ArmType;
 
-    // 계급
+    // Rank
     Rank_t m_Rank;
 
     // Exp

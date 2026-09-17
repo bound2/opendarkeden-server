@@ -11,31 +11,31 @@
 #include "PacketFactory.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 파티 가입 관련 코드
+// Party join related codes
 //////////////////////////////////////////////////////////////////////////////
 enum {
-    // 파티에 가입시키거나 탈퇴시킬 대상이 존재하지 않는다.
+    // The target to join or leave the party does not exist.
     GC_PARTY_ERROR_TARGET_NOT_EXIST = 0,
 
-    // 파티에 가입시키거나 탈퇴시킬 대상이 다른 종족이다.
+    // The target to join or leave the party is of another race.
     GC_PARTY_ERROR_RACE_DIFFER,
 
-    // 안전지대가 아니다.
+    // Not a safe zone.
     GC_PARTY_ERROR_NOT_SAFE,
 
-    // 늑대나 박쥐 상태에서는 할 수 없다.
+    // Cannot be done in wolf or bat form.
     GC_PARTY_ERROR_NOT_NORMAL_FORM,
 
-    // 초대 중이면서 또 초대를 하려고 한다.
+    // Trying to invite again while an invitation is in progress.
     GC_TRADE_ERROR_ALREADY_INVITING,
 
-    // 초대 중이 아니면서 초대에 대한 응답을 보내왔다.
+    // A reply to an invitation arrived although no invitation is in progress.
     GC_PARTY_ERROR_NOT_INVITING,
 
-    // 파티원을 추방할 수 있는 권한이 없다.
+    // No authority to throw a party member out.
     GC_PARTY_ERROR_NO_AUTHORITY,
 
-    // 알 수 없는 에러다
+    // An unknown error
     GC_TRADE_ERROR_UNKNOWN,
 
     GC_PARTY_ERROR_MAX
@@ -79,7 +79,7 @@ public:
 
 private:
     ObjectID_t m_TargetObjectID;
-    BYTE m_Code; // 코드
+    BYTE m_Code; // Code
 };
 
 

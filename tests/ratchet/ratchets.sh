@@ -433,14 +433,15 @@ rm -f "$r16_inc" "$r16_dead"
 # as Latin-1 and re-encoded as UTF-8, which reads as runs of accented Latin
 # letters; and U+FFFD runs, where the text itself is gone and only the code
 # beside it still says what the comment meant. Comments are translated tree
-# by tree: src/domain, src/server/database, src/server/loginserver and
-# src/server/sharedserver are done, and so is the first half of src/Core's
-# files by path, through GCMPRecoveryEnd.h; the rest of src/Core and
-# src/server/gameserver are what is left. String literals -- log lines, GM
-# messages, the reserved-name table -- are left for a pass of their own,
-# because changing one changes what the server says rather than how the
-# source reads; the six that remain in the finished trees, and the two in
-# the half of src/Core still to do, are all this count holds there.
+# by tree: src/domain, src/server/database, src/server/loginserver,
+# src/server/sharedserver and the whole of src/Core are done; what is left
+# is src/server/gameserver and ServerCore's own files, the ones directly
+# under src/server and in src/server/repository. String literals -- log
+# lines, GM messages, the reserved-name table -- are left for a pass of
+# their own, because changing one changes what the server says rather than
+# how the source reads; the eight that remain in the finished trees, six of
+# them in the loginserver and the sharedserver and two in src/Core, are all
+# this count holds there.
 #
 # Line-based, and the byte class is spelled the way R12 spells it: exclude
 # everything from \x01 to \x7f, so what is left is a byte with the high bit
@@ -448,7 +449,7 @@ rm -f "$r16_inc" "$r16_dead"
 # working tree out of the count, which [^[:print:]] would not, and LC_ALL=C
 # keeps the range byte-wise where a locale would read it as characters.
 R17=$(LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R17 "source lines carrying non-ASCII bytes" 21277 "$R17"
+check_ratchet R17 "source lines carrying non-ASCII bytes" 18302 "$R17"
 
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).

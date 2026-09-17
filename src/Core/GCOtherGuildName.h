@@ -17,9 +17,9 @@
 //
 // class GCOtherGuildName;
 //
-// 게임 서버가 특정 플레이어의 OtherGuildName 를 다른 플레이어들에게 브로드캐스트
-// 할 때 전송하는 패킷이다. 내부에 캐릭터명과 OtherGuildName 스트링을 데이타
-// 필드로 가지고 있다.
+// Packet the game server sends when broadcasting a particular player's
+// OtherGuildName to the other players. It holds the character name and that string
+// as data fields.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -27,10 +27,10 @@ class GCOtherGuildName : public Packet {
 public:
     GCOtherGuildName(){};
     ~GCOtherGuildName(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -117,7 +117,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCOtherGuildNamePacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static GCOtherGuildNamePacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

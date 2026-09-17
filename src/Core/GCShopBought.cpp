@@ -1,12 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GCShopBought.cpp
-// Written By  : 김성민
 // Description :
-// 상점 NPC가 플레이어로부터 물건을 사들였을 때, 같은 NPC와
-// 이야기하고 있는 플레이어에게 물건을 사들였다는 사실을
-// 알려주기 위해 이 패킷을 보낸다.
-// 클라이언트는 이 패킷을 받으면 해당하는 아이템을 해당하는
-// NPC의 상품 목록에 추가해야 한다. 상점 버전도 업데이트~
+// When a shop NPC has bought goods from a player, this packet is sent to
+// the players talking to the same NPC to tell them that the goods were
+// bought.
+// On receiving this packet the client has to add the matching item
+// to the NPC's list of goods. The shop version is updated too.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "GCShopBought.h"
@@ -48,7 +47,7 @@ GCShopBought::~GCShopBought()
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////////////
 void GCShopBought::read(SocketInputStream& iStream)
 
@@ -87,7 +86,7 @@ void GCShopBought::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////////////
 void GCShopBought::write(SocketOutputStream& oStream) const
 

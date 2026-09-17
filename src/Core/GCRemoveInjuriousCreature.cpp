@@ -13,7 +13,7 @@ void GCRemoveInjuriousCreature::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    // 이름 읽기
+    // Read the name
 
     de::wire::readString(iStream, m_Name, {1, 10}, "Name");
 
@@ -25,7 +25,7 @@ void GCRemoveInjuriousCreature::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    // 이름 쓰기
+    // Write the name
     de::wire::writeString(oStream, m_Name, {1, 10}, "Name");
 
     __END_CATCH

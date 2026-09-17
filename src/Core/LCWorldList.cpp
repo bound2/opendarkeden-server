@@ -28,7 +28,7 @@ LCWorldList::LCWorldList()
 LCWorldList::~LCWorldList() noexcept
 
 {
-    // �Ҽӵ� ��� ��ü���� �����Ѵ�.
+    // Delete every object it owns.
     while (!m_WorldInfoList.empty()) {
         WorldInfo* pWorldInfo = m_WorldInfoList.front();
         SAFE_DELETE(pWorldInfo);
@@ -38,7 +38,7 @@ LCWorldList::~LCWorldList() noexcept
 
 
 //----------------------------------------------------------------------
-// �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read data from the input stream (buffer) and initialise the packet.
 //----------------------------------------------------------------------
 void LCWorldList::read(SocketInputStream& iStream)
 
@@ -49,7 +49,7 @@ void LCWorldList::read(SocketInputStream& iStream)
 
     BYTE ListNum;
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     iStream.read(ListNum);
     for (int i = 0; i < ListNum; i++) {
         WorldInfo* pWorldInfo = new WorldInfo();
@@ -62,7 +62,7 @@ void LCWorldList::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////
-// ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void LCWorldList::write(SocketOutputStream& oStream) const
 
@@ -72,7 +72,7 @@ void LCWorldList::write(SocketOutputStream& oStream) const
     oStream.write(m_CurrentWorldID);
 
     BYTE ListNum = m_WorldInfoList.size();
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     oStream.write(ListNum);
 
     for (list<WorldInfo*>::const_iterator itr = m_WorldInfoList.begin(); itr != m_WorldInfoList.end(); itr++) {
@@ -90,7 +90,7 @@ PacketSize_t LCWorldList::getPacketSize() const
 {
     __BEGIN_TRY
 
-    // ����Ʈ ������ ����
+    // Includes the size of the list count.
     PacketSize_t PacketSize = szWorldID + szBYTE;
 
     for (list<WorldInfo*>::const_iterator itr = m_WorldInfoList.begin(); itr != m_WorldInfoList.end(); itr++) {

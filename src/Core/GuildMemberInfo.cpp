@@ -28,7 +28,7 @@ GuildMemberInfo::~GuildMemberInfo() noexcept = default;
 
 
 //////////////////////////////////////////////////////////////////////
-// �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void GuildMemberInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
@@ -42,7 +42,7 @@ void GuildMemberInfo::read(SocketInputStream& iStream) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void GuildMemberInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY

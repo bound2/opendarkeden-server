@@ -2,8 +2,8 @@
 // Filename    : InventoryInfo.h
 // Written By  : elca@ewestsoft.com
 // Description :
-// �κ��丮 �ȿ� �ִ� �����۵��� ���� ����Ʈ�̴�.
-// �κ��丮 ���� ������ �����۵鿡 ���� ������ InventorySlotInfo�� ����.
+// The list of information about the items in the inventory.
+// For the information about the items in an inventory slot see InventorySlotInfo.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __INVENTORY_INFO_H__

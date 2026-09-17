@@ -2,8 +2,8 @@
 // Filename    : GCShopBuyFail.cpp
 // Written By  : excel96
 // Description :
-// 플레이어가 상점에서 아이템을 구입하려고 했는데,
-// 정상적인 구매가 실패했을 경우에 플레이어에게 보내는 패킷.
+// A player tried to buy an item from a shop and,
+// this packet is sent when the normal purchase fails.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "GCShopBuyFail.h"

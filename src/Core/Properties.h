@@ -27,9 +27,9 @@ public:
 //
 // class Properties;
 //
-// ���Ϸκ��� (key,value) pair �� �о map �� ���·� ������ �ִ´�.
-// �ַ� ȯ���̳� �ɼǵ��� ���� ���Ͽ� ����Ѵ�. ��ü�� �����ؼ� ����
-// �ɼ��� �����ϰ� �����ϸ� �� ������ ���������.
+// Read (key,value) pairs from a file and keep them in a map.
+// Mostly used for environment or option files. Create the object once and
+// managing the options becomes that much easier.
 //
 // *Usage*
 //
@@ -89,7 +89,7 @@ public:
     string toString() const;
 
 private:
-    // key �� string �̰�, value ���� string �� map �̴�.
+    // A map whose key is a string and whose value is a string too.
     map<string, string, StringCompare> m_Properties;
 
     // load/save target file's name

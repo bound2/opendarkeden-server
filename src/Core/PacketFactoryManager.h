@@ -28,30 +28,30 @@ public:
     // destructor
     ~PacketFactoryManager() noexcept;
 
-    // ��Ŷ���丮�Ŵ����� �ʱ�ȭ�Ѵ�.
-    // ���Ӽ�����ü�� init()���� ȣ��ȴ�.
+    // Initialise the packet factory manager.
+    // Called from the game server object's init().
     void init();
 
-    // ���丮 ��ü�� Ư�� �ε����� �߰��Ѵ�.
+    // Add a factory object at a particular index.
     void addFactory(PacketFactory* pFactory);
 
-    // ��Ŷ���̵�� ��Ŷ��ü�� �����Ѵ�.
+    // Create a packet object from a packet id.
     Packet* createPacket(PacketID_t packetID);
 
-    // Ư�� ��Ŷ�� �ִ� ũ�⸦ �����Ѵ�.
+    // Return the maximum size of a particular packet.
     string getPacketName(PacketID_t packetID);
 
-    // Ư�� ��Ŷ�� �ִ� ũ�⸦ �����Ѵ�.
+    // Return the maximum size of a particular packet.
     PacketSize_t getPacketMaxSize(PacketID_t packetID);
 
     // get debug string
     string toString() const;
 
 private:
-    // ��Ŷ���丮�� �迭
+    // Array of packet factories
     PacketFactory** m_Factories;
 
-    // ��Ŷ���丮�迭�� ũ��
+    // Size of the packet factory array
     ushort m_Size;
 };
 

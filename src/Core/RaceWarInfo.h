@@ -18,7 +18,7 @@
 //
 // class WarInfo;
 //
-// 하나의 전쟁에 대한 정보
+// Information about a single war
 //
 //--------------------------------------------------------------------------------
 
@@ -30,10 +30,10 @@ public:
     RaceWarInfo() {}
     ~RaceWarInfo() {}
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
     PacketSize_t getSize() const {
@@ -66,7 +66,7 @@ public:
     }
 
 private:
-    ZoneIDList m_CastleIDs; // 전쟁중인 성
+    ZoneIDList m_CastleIDs; // Castle at war
 };
 
 #endif

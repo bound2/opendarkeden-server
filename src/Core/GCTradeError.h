@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : GCTradeError.h
-// Written By  : 김성민
 // Description :
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -11,50 +10,50 @@
 #include "PacketFactory.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// 에러 코드
+// Error code
 ////////////////////////////////////////////////////////////////////////////////
 
 enum {
-    // 교환을 요구한 대상이 존재하지 않는다
+    // The target of the trade does not exist
     GC_TRADE_ERROR_CODE_TARGET_NOT_EXIST = 0,
 
-    // 교환을 요구한 대상이 다른 종족이다
+    // The target of the trade is of another race
     GC_TRADE_ERROR_CODE_RACE_DIFFER,
 
-    // 교환을 하려고 하는 곳이 안전 지대가 아니다.
+    // The place the trade is attempted in is not a safe zone.
     GC_TRADE_ERROR_CODE_NOT_SAFE,
 
-    // 모터사이클을 탄 채로 교환을 시도하고 있다.
+    // Trying to trade while riding a motorcycle.
     GC_TRADE_ERROR_CODE_MOTORCYCLE,
 
-    // 늑대나 박쥐 상태에서는 교환을 할 수 없다.
+    // A trade cannot be made in wolf or bat form.
     GC_TRADE_ERROR_CODE_BAT_OR_WOLF,
 
-    // 교환 중이면서 다시 교환을 하려고 한다
+    // Trying to start another trade while already trading
     GC_TRADE_ERROR_CODE_ALREADY_TRADING,
 
-    // 교환 중이 아닌데, 교환 관련 패킷이 날아왔다.
+    // A trade packet arrived although no trade is in progress.
     GC_TRADE_ERROR_CODE_NOT_TRADING,
 
-    // 교환 대상에 더하려고 하는 아이템을 가지고 있지 않다
+    // Does not hold the item it is trying to add to the trade
     GC_TRADE_ERROR_CODE_ADD_ITEM,
 
-    // 교환 대상에서 빼려고 하는 아이템을 가지고 있지 않다
+    // Does not hold the item it is trying to take out of the trade
     GC_TRADE_ERROR_CODE_REMOVE_ITEM,
 
-    // 교환 대상에 더하려고 하는 돈을 가지고 있지 않다.
+    // Does not hold the money it is trying to add to the trade.
     GC_TRADE_ERROR_CODE_INCREASE_MONEY,
 
-    // 교환 대상에서 빼려고 하는 돈을 가지고 있지 않다.
+    // Does not hold the money it is trying to take out of the trade.
     GC_TRADE_ERROR_CODE_DECREASE_MONEY,
 
-    // 교환을 했는데, 자리가 모자라서 실패했다
+    // The trade failed because there was not enough room
     GC_TRADE_ERROR_CODE_NOT_ENOUGH_SPACE,
 
-    // 교환을 했는데, 선물 상자 교환 조건 때문에 실패했다
+    // The trade failed because of the gift box trade condition
     GC_TRADE_ERROR_CODE_EVENT_GIFT_BOX,
 
-    // 알 수 없는 에러이다...
+    // An unknown error...
     GC_TRADE_ERROR_CODE_UNKNOWN,
 
     GC_TRADE_ERROR_CODE_MAX
@@ -99,8 +98,8 @@ public:
     }
 
 private:
-    ObjectID_t m_TargetObjectID; // 교환의 대상 아이디
-    BYTE m_Code;                 // 코드
+    ObjectID_t m_TargetObjectID; // Id of the trade target
+    BYTE m_Code;                 // Code
 };
 
 

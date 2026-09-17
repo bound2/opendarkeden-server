@@ -101,13 +101,13 @@ void PCOustersInfo2::read(SocketInputStream& iStream) {
     iStream.read(m_Bonus);
     iStream.read(m_SkillBonus);
 
-    // 은도금 데미쥐
+    // Silver coating damage
     iStream.read(m_SilverDamage);
 
-    // 권한
+    // Competence
     iStream.read(m_Competence);
 
-    // 길드 아이디
+    // Guild ID
     iStream.read(m_GuildID);
 
     de::wire::readString(iStream, m_GuildName, {0, 30}, "GuildName");
@@ -207,13 +207,13 @@ void PCOustersInfo2::write(SocketOutputStream& oStream) const {
     oStream.write(m_Bonus);
     oStream.write(m_SkillBonus);
 
-    // 은도금 데미지
+    // Silver coating damage
     oStream.write(m_SilverDamage);
 
-    // 권한
+    // Competence
     oStream.write(m_Competence);
 
-    // 길드 아이디
+    // Guild ID
     oStream.write(m_GuildID);
 
     de::wire::writeString(oStream, m_GuildName, {0, 30}, "GuildName");

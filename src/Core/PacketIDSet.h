@@ -22,7 +22,7 @@ typedef unordered_set<PacketID_t> PACKET_ID_SET;
 //
 // class PacketValidator;
 //
-// ��Ŷ�� ������ �����Ѵ�.
+// Manages a set of packets.
 //
 //----------------------------------------------------------------------
 
@@ -58,10 +58,10 @@ private:
     // Packet ID Set Type
     PacketIDSetType m_PacketIDSetType;
 
-    // �÷��̾� ����
+    // Player status
     PlayerStatus m_PlayerStatus;
 
-    // ���Ǵ� ��Ŷ�� �ؽ���
+    // Hash set of the packets allowed
     PACKET_ID_SET m_PacketIDSet;
 };
 

@@ -72,15 +72,15 @@ uint SocketInputStream::read(string& str, uint len) {
     if (len == 0)
         throw InvalidProtocolException("len==0");
 
-    // ��û�� ��ŭ�� ����Ÿ�� ���۳��� �������� ���� ��� ���ܸ� ������.
-    // ���� ��� read �� peek() �� üũ�� �� ȣ��ȴٸ�, �Ʒ� if-throw ��
-    // �ߺ��� ���� �ִ�. ����, �ڸ�Ʈ�� ó���ص� �����ϴ�.
-    // �� �Ʒ� �ڵ带 �ڸ�Ʈó���ϸ�, �ٷ� �Ʒ��� if-else �� if-else if-else
-    // �� ��������� �Ѵ�.
+    // If the buffer does not hold as much data as was asked for, throw an exception.
+    // When read is called after peek() has checked, the if-throw below
+    // is redundant. So it could be commented out.
+    // If the code below is commented out, the if-else just below has to become
+    // an if-else if-else.
     if (len > length())
         throw InsufficientDataException(len - length());
 
-    // ��Ʈ�����ٰ� len ��ŭ ������ �̸� �Ҵ��Ѵ�.
+    // Reserve len bytes in the string up front.
     str.reserve(len);
 
     if (m_Head < m_Tail) { // normal order
@@ -123,15 +123,15 @@ uint SocketInputStream::read(string& str, uint len) {
 void SocketInputStream::readPacket(Packet* pPacket) {
     __BEGIN_TRY
 
-    // �̹� ���� �������� ID, Size�� �а� ID�� �´� ��Ŷ��ü��
-    // ���� �Ķ���ͷ� �Ѱ����Ƿ� ID �� skip �Ѵ�. Size�� ��ü�� ���̳ʸ� �̹����� ���
-    // �����ߴ����� üũ�һ�, ��ü�� �ʱ�ȭ�ʹ� �����ϱ� ������ skip �Ѵ�.
+    // The ID and the Size have already been read further up, and the packet object
+    // matching the ID is handed in as a parameter, so the ID is skipped. The Size is used
+    // to check that the whole binary image arrived; the initialisation does not need it, so it is skipped.
     skip(szPacketHeader);
 
-    // ���� ���� ��Ŷ Ŭ������ ���ǵ� �޽�带 �����ϸ�,
-    // ���ο��� �˾Ƽ� �� �ʱ�ȭ�ϰ� �ȴ�.
-    // �� � ��Ŷ�� read()���� Ʋ���� �Ǹ� �� ������ ���
-    // ��Ŷ�� �Ľ��� �Ұ����ϰ� �ȴ�. ����, ��Ŷ Ŭ������ �������� �� �����ؾ� �Ѵ�.
+    // From here on the method defined in each packet class is called,
+    // and it initialises itself.
+    // If read() of any packet gets it wrong, everything after that
+    // becomes impossible to parse. So a packet class has to be written with real care.
     // cout<<"Receive_before:"<<pPacket->toString()<<endl;
     pPacket->read(*this);
     cout << "Receive:" << pPacket->toString() << endl;
@@ -219,7 +219,7 @@ void SocketInputStream::skip(uint len) {
     if (len > length())
         throw InsufficientDataException(len - length());
 
-    // m_Head �� ������Ų��.
+    // Advance m_Head.
     m_Head = (m_Head + len) % m_BufferLen;
 
     __END_CATCH
@@ -230,43 +230,43 @@ void SocketInputStream::skip(uint len) {
 //
 // fill buffer from socket
 //
-// ����Ÿ�� ���� ��� 0 �� �����Ѵ�.
-// �׷���, NonBlocking �� ��� NonBlockingIOException �� ������.
+// When there is no data, 0 is returned.
+// With NonBlocking, though, a NonBlockingIOException is thrown.
 //
 // *NOTES*
 //
-// ���� ���� ����� �Լ����ٰ� char buf[N]; �� ������ �Ŀ� ����ٰ�
-// receive() ������� ������ ��, ���ۿ� �����ϴ� ���̴�.
-// �׷���, �� ����� ���簡 2ȸ �߻��ϱ� ������ ����Ǿ��
-// �ϰڴ�.
+// The usual way is to declare char buf[N]; in the calling function, receive()
+// into it and then copy it into the buffer.
+// That way the copy happens twice, though, so it is done
+// differently here.
 //
-// ����, ��Ʈ���� ���� ���ۿ��ٰ� ���� ��� �ϴµ�, �̶� ���� ���۰�
-// circular �̹Ƿ�, normal order �� ��쿡�� 2ȸ �̻� receive()�� ȣ���
-// Ȯ���� �ְ� �ȴ�.
+// So the stream receives straight into its own buffer, and because that
+// buffer is circular, in the normal order there is a good chance
+// receive() is called more than once.
 //
-// �̶� ù��° receive()���� ������ receive ������ ����Ÿ�� �� �о������,
-// ���ÿ� ������ ���� ������ ��� �ι�° receive() ���� NonBlockingIOException
-// �� �߻��ϰ� �ȴ�. (���� �̷� ���� �幰��. ������ ����
-// �Ǿտ� ���ļ� ����Ÿ�� ���� ���� ���� �߻��Ѵ�
-// ġ����..
+// The first receive() then reads all the data in the receive buffer,
+// and if nothing arrives at the same time the second receive() raises
+// a NonBlockingIOException. (this is rare. it happens when data
+// arrives right behind the first one and is left over
+// by chance..)
 // )
 //
-// ��. �̷� ��� fill()�� �ܺη� NonBlockingIOException �� ������ �ϴ°�?
-// �ƴϸ� ���ݱ��� ���� ����Ÿ ũ�⸦ �����ؾ� �ϴ°�? ������ ���ڴ�. ^^;
-// �� �� ����ξ�~~~ ������������~
+// So. should fill() throw the NonBlockingIOException out, in that case?
+// Or should it return the size of the data read so far? Hard to say. ^^;
+// Let us leave it like this~~~ go with the flow~
 //
 //////////////////////////////////////////////////////////////////////
 uint SocketInputStream::fill() {
     __BEGIN_TRY
 
-    uint nFilled = 0; // ���ۿ� ä������ ũ��
-    uint nReceived;   // Socket::receive()�� �ѹ� �о���� ũ��
-    uint nFree;       // ������ �� ������ ũ��
+    uint nFilled = 0; // size filled into the buffer
+    uint nReceived;   // size read in one Socket::receive()
+    uint nFree;       // size of the free room left
 
     if (m_Head <= m_Tail) { // normal order
-        // m_Head == m_Tail �� ���� ���۰� �� ���¸� ��Ÿ����.
+        // m_Head == m_Tail means the buffer is empty.
 
-        // �ϴ� ������ ������ �� �������� ä���.
+        // First fill the room up to the end of the buffer.
         if (m_Head == 0) {
             //
             // H   T
@@ -274,14 +274,14 @@ uint SocketInputStream::fill() {
             // abcd......
             //
 
-            // ������ ����, m_Head == 0 �� ���, m_Tail �� ������ ���� ���Ƽ� �ٽ� 0 ����
-            // �ǰ� �Ǹ� buffer empty �� ���� ���°� �ȴٴ� ���̴�. ����, m_Head �� üũ
-            // �ؼ� 0 �� ��� m_Tail �� ���ؼ� ������ �� ������ ĭ�� ����־� �ϰڴ�. ^^
+            // Note that when m_Head == 0, m_Tail could wrap round to 0 again and
+            // the buffer would look empty. So m_Head is checked and, when it
+            // is 0, one slot before the end is left free for m_Tail. ^^
 
             nFree = m_BufferLen - m_Tail - 1;
             nReceived = m_pSocket->receive(&m_Buffer[m_Tail], nFree);
 
-            // by sigi. NonblockException����. 2002.5.17
+            // by sigi. NonblockException handling. 2002.5.17
             if (nReceived == 0)
                 return 0;
             // add by viva
@@ -292,16 +292,16 @@ uint SocketInputStream::fill() {
             nFilled += nReceived;
 
             if (nReceived == nFree) {
-                // ������ receive ���ۿ� ����Ÿ�� �������� ���ɼ��� �ִ�.
-                // �׷���, �Է� ���ۿ� ���� ������ �����Ƿ�
-                // ����Ÿ�� ���� �ִٸ� ���۸� �������Ѿ� �Ѵ�.
+                // There may be data left in the receive buffer of the socket.
+                // The input buffer has no room left, though, so if there
+                // is data left the buffer has to be grown.
                 uint available = m_pSocket->available();
                 if (available > 0) {
                     resize(available + 1);
-                    // resize �Ǹ�, ������ ����Ÿ�� ���ĵǹǷ� m_Tail ���� ���� �ȴ�.
+                    // After a resize the data is aligned again, so m_Tail changes too.
                     nReceived = m_pSocket->receive(&m_Buffer[m_Tail], available);
 
-                    // by sigi. NonblockException����. 2002.5.17
+                    // by sigi. NonblockException handling. 2002.5.17
                     if (nReceived == 0)
                         return 0;
                     // add by viva
@@ -321,12 +321,12 @@ uint SocketInputStream::fill() {
             // ...abcd...
             //
 
-            // �� ���, m_Tail �� ������ �������� �Ѿ��
-            // �����ϴ�.
+            // In that case m_Tail cannot pass the end of the
+            // buffer.
             nFree = m_BufferLen - m_Tail;
             nReceived = m_pSocket->receive(&m_Buffer[m_Tail], nFree);
 
-            // by sigi. NonblockException����. 2002.5.17
+            // by sigi. NonblockException handling. 2002.5.17
             if (nReceived == 0)
                 return 0;
             // add by viva
@@ -339,14 +339,14 @@ uint SocketInputStream::fill() {
             if (nReceived == nFree) {
                 Assert(m_Tail == 0);
 
-                // ������ receive ���ۿ� ����Ÿ�� �� �������� ���ɼ��� �ִ�.
-                // ����, �Է� ������ ���� ���� ������ ����Ÿ�� ������ �Ѵ�.
-                // �� �̶����� m_Head == m_Tail �̸� empty �� �ǹǷ�,
-                // -1 ���̵��� �Ѵ�.
+                // There may be more data left in the socket's receive buffer.
+                // So the data has to be received into the front of the input buffer.
+                // m_Head == m_Tail means empty, though, so
+                // one byte is left spare.
                 nFree = m_Head - 1;
                 nReceived = m_pSocket->receive(&m_Buffer[0], nFree);
 
-                // by sigi. NonblockException����. 2002.5.17
+                // by sigi. NonblockException handling. 2002.5.17
                 if (nReceived == 0)
                     return 0;
                 // add by viva
@@ -358,16 +358,16 @@ uint SocketInputStream::fill() {
 
                 if (nReceived == nFree) { // buffer is full
 
-                    // ���۰� ���� �� ������ ���, ������ receive ���ۿ� ����Ÿ�� ��
-                    // �������� ���ɼ��� �ִ�. ����, �о�� ��
-                    // ������ ���۸� ������Ų��.
+                    // When the buffer is completely full there may be more data left in the
+                    // socket's receive buffer. So, to read it,
+                    // the buffer is grown.
                     uint available = m_pSocket->available();
                     if (available > 0) {
                         resize(available + 1);
-                        // resize �Ǹ�, ������ ����Ÿ�� ���ĵǹǷ� m_Tail ���� ���� �ȴ�.
+                        // After a resize the data is aligned again, so m_Tail changes too.
                         nReceived = m_pSocket->receive(&m_Buffer[m_Tail], available);
 
-                        // by sigi. NonblockException����. 2002.5.17
+                        // by sigi. NonblockException handling. 2002.5.17
                         if (nReceived == 0)
                             return 0;
                         // add by viva
@@ -392,7 +392,7 @@ uint SocketInputStream::fill() {
         nFree = m_Head - m_Tail - 1;
         nReceived = m_pSocket->receive(&m_Buffer[m_Tail], nFree);
 
-        // by sigi. NonblockException����. 2002.5.17
+        // by sigi. NonblockException handling. 2002.5.17
         if (nReceived == 0)
             return 0;
         // add by viva
@@ -404,16 +404,16 @@ uint SocketInputStream::fill() {
 
         if (nReceived == nFree) { // buffer is full
 
-            // �� ���, ������ receive ���ۿ� ����Ÿ�� �� ��������
-            // ���ɼ��� �ִ�. ����, �о�� �� ������ ���۸�
-            // ������Ų��.
+            // In that case there may be more data left in the socket's receive
+            // buffer. So, to read it, the buffer is
+            // grown.
             uint available = m_pSocket->available();
             if (available > 0) {
                 resize(available + 1);
-                // resize �Ǹ�, ������ ����Ÿ�� ���ĵǹǷ� m_Tail ���� ���� �ȴ�.
+                // After a resize the data is aligned again, so m_Tail changes too.
                 nReceived = m_pSocket->receive(&m_Buffer[m_Tail], available);
 
-                // by sigi. NonblockException����. 2002.5.17
+                // by sigi. NonblockException handling. 2002.5.17
                 if (nReceived == 0)
                     return 0;
                 // add by viva
@@ -446,7 +446,7 @@ uint SocketInputStream::fill() {
 //////////////////////////////////////////////////////////////////////
 // fill buffer from socket
 //
-// ����Ʈ ��� - ���� �� ������. 0 -;
+// Byte mode - it may be a little slow. 0 -;
 //
 //////////////////////////////////////////////////////////////////////
 uint SocketInputStream::fill_RAW() {
@@ -476,21 +476,21 @@ uint SocketInputStream::fill_RAW() {
     m_Tail += nread;
 
     if (nread == (int)nfree) {
-        // ����Ÿ�� �� ���� ���ɼ��� �ִ�.
+        // There may be more data.
         uint more = 0;
         int result = ioctl(m_pSocket->getSOCKET(), FIONREAD, &more);
         if (result < 0)
             throw UnknownError(strerror(errno), errno);
 
         if (more > 0) {
-            // ���۸� ������Ų��.
+            // Grow the buffer.
             resize(more + 1);
 
-            // ���۸� ä���.
+            // Fill the buffer.
             nread = recv(m_pSocket->getSOCKET(), &m_Buffer[m_Tail], more, 0);
 
-            // ������ more ��ŭ �о�� �Ѵ�. �׷��� ���� ���
-            // ������.
+            // It has to read exactly more bytes. If it does not,
+            // something is wrong.
             Assert((int)more == nread);
 
             nread += more;
@@ -513,22 +513,22 @@ void SocketInputStream::resize(int size) {
 
     Assert(size != 0);
 
-    // resize size����. by sigi. 2002.10.7
+    // resize size related. by sigi. 2002.10.7
     size = max(size, (int)(m_BufferLen >> 1));
     uint newBufferLen = m_BufferLen + size;
     uint len = length();
 
     if (size < 0) {
-        // ���� ũ�⸦ ���̷��µ� ���ۿ� ����ִ� ����Ÿ��
-        // �� ����Ƴ� ���
+        // The buffer size is being reduced but the data in the buffer
+        // would not fit
         if (newBufferLen < 0 || newBufferLen < len)
             throw IOException("new buffer is too small!");
     }
 
-    // �� ���۸� �Ҵ�޴´�.
+    // Allocate a new buffer.
     char* newBuffer = new char[newBufferLen];
 
-    // ���� ������ ������ �����Ѵ�.
+    // Copy the data in the existing buffer.
     if (m_Head < m_Tail) {
         //
         //    H   T
@@ -549,14 +549,14 @@ void SocketInputStream::resize(int size) {
         memcpy(&newBuffer[m_BufferLen - m_Head], m_Buffer, m_Tail);
     }
 
-    // ���� ���۸� �����Ѵ�.
+    // Delete the old buffer.
     delete[] m_Buffer;
 
-    // ???�� ���� ũ�⸦ �缳���Ѵ�.
+    // Reset the buffer and its size.
     m_Buffer = newBuffer;
     m_BufferLen = newBufferLen;
     m_Head = 0;
-    m_Tail = len; // m_Tail �� ����ִ� ����Ÿ�� ���̿� ����.
+    m_Tail = len; // m_Tail is set to the length of the data held.
 
     ofstream ofile("buffer_resized.log", ios::app);
     ofile << "SocketInputStream resized " << size << " bytes!" << endl;
@@ -579,9 +579,9 @@ void SocketInputStream::resize(int size) {
 //
 // CAUTION
 //
-//    m_Tail �� �� ĭ�� ����Ű�� �ִٴ� �Ϳ� �����϶�.
-//    ������ ũ�Ⱑ m_BufferLen ��� ���� �� ť�� ��
-//    �� �ִ� ����Ÿ�� ( m_BufferLen - 1 ) �� �ȴ�.
+//    Note that m_Tail points at an empty slot.
+//    So if the buffer size is m_BufferLen, the data the queue can
+//    hold is ( m_BufferLen - 1 ).
 //
 //////////////////////////////////////////////////////////////////////
 uint SocketInputStream::length() const {

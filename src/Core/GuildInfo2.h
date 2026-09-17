@@ -35,14 +35,14 @@ public:
     ~GuildInfo2();
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
     // get packet's body size
-    // 최적화시, 미리 계산된 정수를 사용한다.
+    // When optimizing, use the precomputed constant.
     PacketSize_t getSize();
 
     // The list packet SGGuildInfo budgets this many guilds in its factory
@@ -163,10 +163,10 @@ public:
     }
 
 private:
-    // 길드 아이디
+    // Guild ID
     GuildID_t m_ID;
 
-    // 길드 이름
+    // Guild name
     string m_Name;
 
     // guild type
@@ -184,10 +184,10 @@ private:
     // guild zone ID
     ZoneID_t m_ZoneID;
 
-    // 길드 마스터
+    // Guild master
     string m_Master;
 
-    // 길드 Expire Date
+    // Guild expire date
     string m_Date;
 
     // guild intro

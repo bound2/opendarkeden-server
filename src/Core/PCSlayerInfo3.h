@@ -14,13 +14,13 @@
 #include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어의 정보는 다음과 같다.
+// The slayer's information is as follows.
 //
 //(1) OID
 //(2) Name
 //(3) X,Y,Dir
 //
-// bit_set 으로 표현되는 정보들
+// Information expressed as a bit_set
 //
 //(4) Sex - MALE | FEMALE
 //(5) HairStyle - HAIR_STYLE1 | HAIR_STYLE2 | HAIR_STYLE3
@@ -30,7 +30,7 @@
 //(11) Weapon Type - NONE | SWORD | BLADE | SHIELD | SWORD + SHIELD | AR | TR | SG | SMG | CROSS
 //(12) Motorcycle Type - NONE | MOTORCYCLE1
 //
-// 상의/하의를 제외하면 모두 한 부분의 색상만이 바뀐다.
+// Apart from the coat and the trousers only one part's colour changes.
 //
 //(13) HairColor
 //(14) SkinColor
@@ -107,32 +107,32 @@ public:
     void write(SocketOutputStream& oStream) const;
 
     uint getSize() const {
-        return szObjectID                         // 크리처 아이디
-               + de::wire::stringWireSize(m_Name) // 이름
-               + szCoord + szCoord + szDir        // 좌표와 방향
-               + szDWORD                          // 슬레이어 플래그
-               + szColor * SLAYER_COLOR_MAX       // 색깔 정보
-               + szBYTE + szHP * 2                // 최대 체력
-               + szAlignment                      // 성향
-               + szRank                           // 계급
-               + szSpeed                          // 공격 스피드
-               + szGuildID                        // 공격 스피드
-               + szBYTE                           // 권한
+        return szObjectID                         // Creature id
+               + de::wire::stringWireSize(m_Name) // Name
+               + szCoord + szCoord + szDir        // Coordinates and direction
+               + szDWORD                          // Slayer flags
+               + szColor * SLAYER_COLOR_MAX       // Colour information
+               + szBYTE + szHP * 2                // Max HP
+               + szAlignment                      // Alignment
+               + szRank                           // Rank
+               + szSpeed                          // Attack speed
+               + szGuildID                        // Attack speed
+               + szBYTE                           // Competence
                + szuint + szLevel;
     }
 
     static constexpr uint getMaxSize() {
-        return szObjectID                   // 크리처 아이디
-               + szBYTE + 20                // 이름
-               + szCoord + szCoord + szDir  // 좌표와 방향
-               + szDWORD                    // 슬레이어 플래그
-               + szColor * SLAYER_COLOR_MAX // 색깔 정보
-               + szBYTE + szHP * 2          // 최대 체력
-               + szAlignment                // 성향
-               + szRank                     // 계급
-               + szSpeed                    // 공격 스피드
-               + szGuildID                  // 공격 스피드
-               + szBYTE                     // 권한
+        return szObjectID                   // Creature id
+               + szBYTE + 20                // Name
+               + szCoord + szCoord + szDir  // Coordinates and direction
+               + szDWORD                    // Slayer flags
+               + szColor * SLAYER_COLOR_MAX // Colour information
+               + szBYTE + szHP * 2          // Max HP
+               + szAlignment                // Alignment
+               + szRank                     // Rank
+               + szSpeed                    // Attack speed
+               + szGuildID                  // Attack speed
+               + szBYTE                     // Competence
                + szuint + szLevel;
     }
 
@@ -386,21 +386,21 @@ public:
 
 private:
     ObjectID_t m_ObjectID = 0;               // OID
-    string m_Name;                           // PC의 이름
-    Coord_t m_X = 0;                         // X 좌표
-    Coord_t m_Y = 0;                         // Y 좌표
-    Dir_t m_Dir = 0;                         // 방향
-    bitset<SLAYER_BIT_MAX> m_Outlook;        // 슬레이어외모정보
-    Color_t m_Colors[SLAYER_COLOR_MAX] = {}; // 슬레이어색깔정보
-    BYTE m_MasterEffectColor = 0;            // 마스터 이펙트 색깔
-    HP_t m_CurrentHP = 0;                    // 슬레이어현재체력
-    HP_t m_MaxHP = 0;                        // 슬레이어최대체력
-    Speed_t m_AttackSpeed = 0;               // 공격속도
-    Alignment_t m_Alignment = 0;             // 성향
-    BYTE m_Competence = 0;                   // 권한
-    GuildID_t m_GuildID = 0;                 // 길드 아이디
+    string m_Name;                           // The PC's name
+    Coord_t m_X = 0;                         // X coordinate
+    Coord_t m_Y = 0;                         // Y coordinate
+    Dir_t m_Dir = 0;                         // Direction
+    bitset<SLAYER_BIT_MAX> m_Outlook;        // Slayer appearance information
+    Color_t m_Colors[SLAYER_COLOR_MAX] = {}; // Slayer colour information
+    BYTE m_MasterEffectColor = 0;            // Master effect colour
+    HP_t m_CurrentHP = 0;                    // Slayer current HP
+    HP_t m_MaxHP = 0;                        // Slayer max HP
+    Speed_t m_AttackSpeed = 0;               // Attack speed
+    Alignment_t m_Alignment = 0;             // Alignment
+    BYTE m_Competence = 0;                   // Competence
+    GuildID_t m_GuildID = 0;                 // Guild ID
     uint m_UnionID = 0;
-    Rank_t m_Rank = 0; // 계급
+    Rank_t m_Rank = 0; // Rank
     Level_t m_AdvancementLevel = 0;
 };
 

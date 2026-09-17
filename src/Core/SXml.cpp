@@ -57,7 +57,7 @@ public:
 /// 1. Text is actually captured. XMLTreeGenerator::characters() declared its
 ///    length parameter as `unsigned int`, but Xerces-C 3.x declares that
 ///    virtual as XMLSize_t (size_t). The signatures never matched, so the
-///    override never bound and DefaultHandler's no-op ran instead — every
+///    override never bound and DefaultHandler's no-op ran instead: every
 ///    text node in every file was silently discarded. No caller reads
 ///    XMLTree::GetText() today, so nothing depended on the empty result.
 ///

@@ -18,9 +18,9 @@
 //
 // class GCReconnectLogin;
 //
-// 로그인 서버에서 인증을 받고, 캐릭터를 선택한 클라이언트의 경우,
-// 캐릭터가 이전 연결에 존재했던 존을 알아내서, 그 존을 관리하는
-// 게임 서버로 재접속하라는 패킷이다.
+// For a client that has been authenticated by the login server and has chosen a
+// character, the zone the character was in on the previous connection is found and
+// this is the packet that tells it to reconnect to that zone's game server.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -28,10 +28,10 @@ class GCReconnectLogin : public Packet {
 public:
     GCReconnectLogin(){};
     ~GCReconnectLogin(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -42,9 +42,9 @@ public:
 
     // get packet's body size
     PacketSize_t getPacketSize() const {
-        return de::wire::stringWireSize(m_LoginServerIP) // 게임 서버 아이피
-               + szuint                                  // 게임 서버 포트
-               + szDWORD;                                // 인증 키
+        return de::wire::stringWireSize(m_LoginServerIP) // Game server IP
+               + szuint                                  // Game server port
+               + szDWORD;                                // Authentication key
     }
 
     // get packet name
@@ -104,9 +104,9 @@ class GCReconnectLoginFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_RECONNECT_LOGIN;
     static constexpr std::string_view kName = "GCReconnectLogin";
-    static constexpr PacketSize_t kMaxSize{szBYTE + 15 // 게임 서버 아이피
-                                           + szuint    // 게임 서버 포트
-                                           + szDWORD}; // 인증 키
+    static constexpr PacketSize_t kMaxSize{szBYTE + 15 // Game server IP
+                                           + szuint    // Game server port
+                                           + szDWORD}; // Authentication key
 
     // create packet
     Packet* createPacket() override {
@@ -125,7 +125,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCReconnectLoginPacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static GCReconnectLoginPacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

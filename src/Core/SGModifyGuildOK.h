@@ -18,7 +18,7 @@
 //
 // class SGModifyGuildOK;
 //
-// 팀이 추가 되었음을 게임서버에 알린다.
+// Tell the game server that a team has been added.
 //
 // *CAUTION*
 //
@@ -28,10 +28,10 @@ class SGModifyGuildOK : public Packet {
 public:
     SGModifyGuildOK(){};
     ~SGModifyGuildOK(){};
-    // Datagram 객체에서부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the Datagram object and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // Datagram 객체로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the Datagram object.
     void write(SocketOutputStream& oStream) const;
 
 
@@ -112,7 +112,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static LGIncomingConnectionPacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static LGIncomingConnectionPacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

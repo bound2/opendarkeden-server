@@ -16,13 +16,13 @@
 
 enum SystemMessageType {
     SYSTEM_MESSAGE_NORMAL = 0,
-    SYSTEM_MESSAGE_OPERATOR,    // 운영자 말씀
-    SYSTEM_MESSAGE_MASTER_LAIR, // 마스터 레어 관련
-    SYSTEM_MESSAGE_COMBAT,      // 전쟁 관련
-    SYSTEM_MESSAGE_INFO,        // 특정한 정보 관련
-    SYSTEM_MESSAGE_HOLY_LAND,   // 아담의 성지 관련
-    SYSTEM_MESSAGE_RANGER_SAY,  // Ranger Say, DragonEye 를 가진 Ranger의 메시지
-    SYSTEM_MESSAGE_PLAYER,      // 鯤소홍혐랙箇斤口
+    SYSTEM_MESSAGE_OPERATOR,    // Word from the operator
+    SYSTEM_MESSAGE_MASTER_LAIR, // Master lair related
+    SYSTEM_MESSAGE_COMBAT,      // War related
+    SYSTEM_MESSAGE_INFO,        // Particular information related
+    SYSTEM_MESSAGE_HOLY_LAND,   // Adam's holy land related
+    SYSTEM_MESSAGE_RANGER_SAY,  // Ranger Say, message of a Ranger who has DragonEye
+    SYSTEM_MESSAGE_PLAYER,      // Player message
     SYSTEM_MESSAGE_MAX
 };
 
@@ -30,9 +30,9 @@ enum SystemMessageType {
 //
 // class GCSystemMessage;
 //
-// 게임 서버가 특정 플레이어의 SystemMessage 를 다른 플레이어들에게 브로드캐스트
-// 할 때 전송하는 패킷이다. 내부에 캐릭터명과 SystemMessage 스트링을 데이타
-// 필드로 가지고 있다.
+// Packet the game server sends when broadcasting a particular player's
+// SystemMessage to the other players. It holds the character name and that string
+// as data fields.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -40,10 +40,10 @@ class GCSystemMessage : public Packet {
 public:
     GCSystemMessage() : m_Color(0x006040E8), m_Type(SYSTEM_MESSAGE_NORMAL) {}
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -130,7 +130,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCSystemMessagePacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static GCSystemMessagePacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

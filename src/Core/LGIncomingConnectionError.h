@@ -24,10 +24,10 @@ class LGIncomingConnectionError : public DatagramPacket {
 public:
     LGIncomingConnectionError(){};
     ~LGIncomingConnectionError(){};
-    // Datagram 객체에서부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the Datagram object and initialise the packet.
     void read(Datagram& iDatagram);
 
-    // Datagram 객체로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the Datagram object.
     void write(Datagram& oDatagram) const;
 
 

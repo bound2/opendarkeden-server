@@ -2,7 +2,7 @@
 //
 // Filename    : ServerGroupInfo.h
 // Written By  : elca@ewestsoft.com
-// Description : �κ��丮 �������� ������
+// Description : Server group information
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -18,7 +18,7 @@
 //
 // class ServerGroupInfo;
 //
-// ���Ӽ������� Ŭ���̾�Ʈ�� �ڽ��� ����� ������ �˷��ֱ� ���� Ŭ����
+// Class the game server uses to tell the client that its own skill succeeded
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -31,15 +31,15 @@ public:
     ~ServerGroupInfo() noexcept;
 
 public:
-    // �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ��
-    // �ʱ�ȭ�Ѵ�.
+    // Read data from the input stream (buffer) and initialise the
+    // packet.
     void read(SocketInputStream& iStream);
 
-    // ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
     // get packet's body size
-    // ����ȭ��, �̸� ���� ������ ����Ѵ�.
+    // When optimizing, use the precomputed constant.
     PacketSize_t getSize();
 
     // The list packet's factory max budgets this many entries of a
@@ -79,13 +79,13 @@ public:
     }
 
 private:
-    // �׷� ���̵�
+    // Group id
     ServerGroupID_t m_GroupID;
 
-    // �׷� �̸�
+    // Group name
     string m_GroupName;
 
-    // �׷��� ����
+    // Group state
     BYTE m_Stat;
 };
 

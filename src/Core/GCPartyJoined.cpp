@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GCPartyJoined.cpp
-// Written By  : 김성민
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -27,16 +26,16 @@ PacketSize_t GCPartyJoined::getPacketSize() const
 
     PacketSize_t value = 0;
 
-    value += szBYTE; // 멤버 카운트
+    value += szBYTE; // Member count
 
     list<PARTY_MEMBER_INFO*>::const_iterator itr = m_MemberInfoList.begin();
     for (; itr != m_MemberInfoList.end(); itr++) {
         PARTY_MEMBER_INFO* pInfo = (*itr);
 
-        value += szBYTE;               // 이름 길이
-        value += (pInfo->name).size(); // 실제 이름
-        value += szBYTE;               // 성별
-        value += szBYTE;               // 헤어 스타일
+        value += szBYTE;               // Name length
+        value += (pInfo->name).size(); // Actual name
+        value += szBYTE;               // Sex
+        value += szBYTE;               // Hair style
         value += szIP;                 // IP
     }
 
@@ -106,7 +105,7 @@ void GCPartyJoined::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    // 먼저 리스트의 사이즈를 읽어들인다.
+    // First read the size of the list.
     iStream.read(m_MemberCount);
 
     if (m_MemberCount > PARTY_MEMBER_INFO_MAX_COUNT)
@@ -145,7 +144,7 @@ void GCPartyJoined::write(SocketOutputStream& oStream) const
     if (m_MemberInfoList.size() > PARTY_MEMBER_INFO_MAX_COUNT)
         throw InvalidProtocolException("too many party members");
 
-    // 먼저 리스트의 사이즈를 쓴다.
+    // First write the size of the list.
     oStream.write(m_MemberCount);
 
     list<PARTY_MEMBER_INFO*>::const_iterator itr = m_MemberInfoList.begin();

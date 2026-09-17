@@ -18,28 +18,28 @@ const uint szPCType = szBYTE;
 enum RaceType { RACE_SLAYER, RACE_VAMPIRE, RACE_OUSTERS };
 
 //////////////////////////////////////////////////////////////////////////////
-// 종족
+// Race
 //////////////////////////////////////////////////////////////////////////////
 typedef BYTE Race_t;
 const int szRace = sizeof(Race_t);
 
 //////////////////////////////////////////////////////////////////////////////
-// 권한
+// Competence
 //////////////////////////////////////////////////////////////////////////////
 enum Competence { GOD = 0, DM, HELPER, PLAYER };
 
 //////////////////////////////////////////////////////////////////////////////
-// 클라이언트와 복장 공유를 위한...
+// For sharing the outfit with the client...
 //////////////////////////////////////////////////////////////////////////////
 enum ADDON {
-    ADDON_HAIR,      // 머리
-    ADDON_HELM,      // 모자
-    ADDON_COAT,      // 상의
-    ADDON_TROUSER,   // 하의
-    ADDON_LEFTHAND,  // 왼손
-    ADDON_RIGHTHAND, // 오른손
-    ADDON_MOTOR,     // 오토바이
-    ADDON_SHOULDER,  // 어깨
+    ADDON_HAIR,      // Head
+    ADDON_HELM,      // Hat
+    ADDON_COAT,      // Coat
+    ADDON_TROUSER,   // Trousers
+    ADDON_LEFTHAND,  // Left hand
+    ADDON_RIGHTHAND, // Right hand
+    ADDON_MOTOR,     // Motorcycle
+    ADDON_SHOULDER,  // Shoulder
     ADDON_MAX
 };
 
@@ -126,7 +126,7 @@ const string OustersSylphType2String[] = {"OUSTERS_SYLPH_NONE", "OUSTERS_SYLPH1"
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 성별
+// Sex
 //////////////////////////////////////////////////////////////////////////////
 enum Sex {
     FEMALE, // female == 0   -_-; why? don't know?
@@ -144,7 +144,7 @@ const uint szSex = szBYTE;
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 헤어스타일
+// Hair style
 //////////////////////////////////////////////////////////////////////////////
 enum HairStyle { HAIR_STYLE1, HAIR_STYLE2, HAIR_STYLE3 };
 const string HairStyle2String[] = {"HAIR_STYLE1", "HAIR_STYLE2", "HAIR_STYLE3"};
@@ -160,7 +160,7 @@ const uint szSlot = szBYTE;
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 색상 정보
+// Colour information
 //////////////////////////////////////////////////////////////////////////////
 typedef WORD Color_t;
 const uint szColor = sizeof(Color_t);
@@ -184,9 +184,9 @@ enum AttrType { ATTR_CURRENT = 0, ATTR_MAX, ATTR_BASIC };
 typedef WORD Attr_t;
 const uint szAttr = sizeof(Attr_t);
 
-// 능력치 오버로 서버 다운이 가끔 있어서..
-// 둘다 350으로 돼있던걸 2000으로 수정한당.
-// (!) 이건 적당한 수준에 잡아두고 Error를 catch해서 log만 남기는게 더 좋겠지만...
+// The server used to go down now and then on an attribute overflow..
+// Both were 350 and are changed to 2000.
+// (!) It would be better to cap this at a sensible level and only log the caught error...
 // by sigi. 2002.9.16
 const uint maxSlayerAttr = 2000;
 const uint maxVampireAttr = 2000;
@@ -198,15 +198,15 @@ const uint szHP = sizeof(HP_t);
 typedef WORD MP_t;
 const uint szMP = sizeof(MP_t);
 
-// 방어력
+// Defence
 typedef WORD Defense_t;
 const uint szDefense = sizeof(Defense_t);
 
-// 프로텍션
+// Protection
 typedef WORD Protection_t;
 const uint szProtection = sizeof(Protection_t);
 
-// 명중률
+// To-hit
 typedef WORD ToHit_t;
 const uint szToHit = sizeof(ToHit_t);
 
@@ -219,8 +219,8 @@ const uint szSkillPoint = sizeof(SkillPoint_t);
 
 //////////////////////////////////////////////////////////////////////////////
 // defines for MODIFY bit flag //abcd
-// 기본치수 str, int, dex등의 변화에 따라서 변화된 값들이 어떤 값인가를
-// 나타냄
+// The base values change as str, int, dex and so on change; this says what
+// those changed values are.
 //////////////////////////////////////////////////////////////////////////////
 #define MF_STR 0x01
 #define MF_DEX 0x02
@@ -234,13 +234,13 @@ const uint szSkillPoint = sizeof(SkillPoint_t);
 enum Attribute { STR = 0, DEX, INTE, MP, HP, DEFENSE, TOHIT, PROTECT, DAM, SD, DUR, LEV, MAX_ATTR };
 
 //////////////////////////////////////////////////////////////////////////////
-// Skill 관련
+// Skill related
 //////////////////////////////////////////////////////////////////////////////
-// Skill의 Type 갯수.
+// Number of skill types.
 typedef WORD SkillType_t;
 const uint szSkillType = sizeof(SkillType_t);
 
-// Client 에서 날려주는 EffectID.
+// EffectID sent by the client.
 typedef WORD CEffectID_t;
 const uint szCEffectID = sizeof(CEffectID_t);
 
@@ -248,7 +248,7 @@ const uint szCEffectID = sizeof(CEffectID_t);
 typedef WORD EffectID_t;
 const uint szEffectID = sizeof(EffectID_t);
 
-// Slot의 갯수
+// Number of slots
 typedef BYTE SlotID_t;
 const uint szSlotID = sizeof(SlotID_t);
 
@@ -275,7 +275,7 @@ enum SkillDomain {
     SKILL_DOMAIN_VAMPIRE,   // 6
     SKILL_DOMAIN_OUSTERS,   // 6
     SKILL_DOMAIN_MAX        // 7
-    //	SKILL_DOMAIN_RIFLE ,    // 2...3번은 쓰이지 않쥐...
+    //	SKILL_DOMAIN_RIFLE ,    // 2 and 3 are not used...
 };
 
 enum SkillGrade {
@@ -299,14 +299,14 @@ const string SkillDomain2String[] = {"SKILL_DOMAIN_BLADE", "SKILL_DOMAIN_SWORD",
                                      "SKILL_DOMAIN_VAMPIRE"};
 
 //////////////////////////////////////////////////////////////////////////////
-// NPC로부터 기술을 배울 때 쓰이는 상수이다.
-// 모든 레벨의 기술을 다 배워서 더 이상 배울 수 없음을 나타날 때
-// 패킷에다 넣어서 보내는 상수이다.
+// Constant used when learning a skill from an NPC.
+// When every level of the skill has been learned and no more can be learned,
+// this constant is put into a packet and sent.
 //////////////////////////////////////////////////////////////////////////////
 const SkillLevel_t ALL_SKILL_LEARNED = 100;
 
 //////////////////////////////////////////////////////////////////////////////
-// PC 기타 정보 타입
+// PC extra information type
 //////////////////////////////////////////////////////////////////////////////
 typedef DWORD Fame_t;
 const uint szFame = sizeof(Fame_t);
@@ -329,7 +329,7 @@ const uint szGold = sizeof(Gold_t);
 const Gold_t MAX_MONEY = 2000000000;
 
 //////////////////////////////////////////////////////////////////////////////
-// 좌표와 방향
+// Coordinates and direction
 //////////////////////////////////////////////////////////////////////////////
 typedef BYTE Coord_t;
 const uint szCoord = sizeof(Coord_t);
@@ -349,13 +349,13 @@ inline string dir2String(Dir_t dir) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 시야 관련
+// Sight related
 //////////////////////////////////////////////////////////////////////////////
 
 typedef BYTE Vision_t;
 const uint szVision = sizeof(Vision_t);
 
-// 캐릭터의 가로/세로 시야 범위의 최대값. 시야 범위는 상하가 비대칭이다.
+// Maximum width and height of a character's field of view. The field of view is asymmetric vertically.
 // const Coord_t maxViewportWidth  = 9;
 // const Coord_t maxViewportUpperHeight = 10;
 // const Coord_t maxViewportLowerHeight = 10;
@@ -367,11 +367,11 @@ const uint szVision = sizeof(Vision_t);
 // const Coord_t maxViewportUpperHeight = 14;
 // const Coord_t maxViewportLowerHeight = 14;
 
-// 시야사각형(vision)의 가로/세로 크기
+// Width and height of the sight rectangle (vision)
 // const Coord_t maxVisionWidth = maxViewportWidth * 2 + 1;
 // const Coord_t maxVisionHeight = maxViewportUpperHeight + maxViewportLowerHeight + 1;
 
-// 시야 레벨
+// Sight level
 typedef BYTE Sight_t;
 const uint szSight = sizeof(Sight_t);
 const Sight_t minSight = 0;
@@ -379,14 +379,14 @@ const Sight_t maxSight = 13;
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 게임 내에서의 턴(0.1초)을 계산할 때 사용한다.
+// Used when counting turns (0.1 second) inside the game.
 //////////////////////////////////////////////////////////////////////////////
 typedef DWORD Turn_t;
 const uint szTurn = sizeof(Turn_t);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터
+// Monster
 //////////////////////////////////////////////////////////////////////////////
 typedef WORD MonsterType_t;
 const uint szMonsterType = sizeof(MonsterType_t);
@@ -408,7 +408,7 @@ typedef WORD NPCID_t;
 const uint szNPCID = sizeof(NPCID_t);
 
 //////////////////////////////////////////////////////////////////////////////
-// 핸드폰&슬랏 관련
+// Mobile phone and slot related
 //////////////////////////////////////////////////////////////////////////////
 #define MAX_PHONE_SLOT 3
 typedef DWORD PhoneNumber_t;
@@ -435,26 +435,26 @@ typedef short Luck_t;
 const uint szLuck = sizeof(Luck_t);
 
 //////////////////////////////////////////////////////////////////////////////
-// 마법 저항력
+// Magic resistance
 //////////////////////////////////////////////////////////////////////////////
 typedef short Resist_t;
 const uint szResist = sizeof(Resist_t);
 
 enum MagicDomain {
-    MAGIC_DOMAIN_NO_DOMAIN = 0, // 무속성 마법
-    MAGIC_DOMAIN_POISON = 1,    // 독 계열 마법
-    MAGIC_DOMAIN_ACID = 2,      // 산 계열 마법
-    MAGIC_DOMAIN_CURSE = 3,     // 저주 계열 마법
-    MAGIC_DOMAIN_BLOOD = 4,     // 피 계열 마법
+    MAGIC_DOMAIN_NO_DOMAIN = 0, // Attribute-free magic
+    MAGIC_DOMAIN_POISON = 1,    // Poison domain magic
+    MAGIC_DOMAIN_ACID = 2,      // Acid domain magic
+    MAGIC_DOMAIN_CURSE = 3,     // Curse domain magic
+    MAGIC_DOMAIN_BLOOD = 4,     // Blood domain magic
 
     MAGIC_DOMAIN_MAX
 };
 
-const string MagicDomain2String[] = {"NO_DOMAIN", // 무속성 마법
-                                     "POISON",    // 독 계열 마법
-                                     "ACID",      // 산 계열 마법
-                                     "CURSE",     // 저주 계열 마법
-                                     "BLOOD",     // 피 계열 마법
+const string MagicDomain2String[] = {"NO_DOMAIN", // Attribute-free magic
+                                     "POISON",    // Poison domain magic
+                                     "ACID",      // Acid domain magic
+                                     "CURSE",     // Curse domain magic
+                                     "BLOOD",     // Blood domain magic
                                      "MAGIC_DOMAIN_MAX"};
 
 const int MAX_RESIST = 90;
@@ -466,21 +466,21 @@ const uint szShape = sizeof(Shape_t);
 enum Shape { SHAPE_NORMAL = 0, SHAPE_WOLF, SHAPE_BAT, SHAPE_WERWOLF, SHAPE_MAX };
 
 //////////////////////////////////////////////////////////////////////////////
-// 기술의 타겟 타입
-// 비트 플래그로써, 맞출 수 있는 타입을 결정한다.
+// Target type of a skill
+// A bit flag that decides which types can be hit.
 //////////////////////////////////////////////////////////////////////////////
 const uint TARGET_UNDERGROUND = 0x01;
 const uint TARGET_GROUND = 0x02;
 const uint TARGET_AIR = 0x04;
 
 //////////////////////////////////////////////////////////////////////////////
-// 클랜 타입
+// Clan type
 //////////////////////////////////////////////////////////////////////////////
-typedef WORD ClanType_t; // BYTE에서 WORD로 바꿈. by sigi. 2002.12.27
+typedef WORD ClanType_t; // Changed from BYTE to WORD. by sigi. 2002.12.27
 const uint szClanType = sizeof(ClanType_t);
 
 //////////////////////////////////////////////////////////////////////////////
-// 경험치 관련 세이브 주기
+// Save period for experience
 //////////////////////////////////////////////////////////////////////////////
 const WORD ATTR_EXP_SAVE_PERIOD = 100;
 const WORD DOMAIN_EXP_SAVE_PERIOD = 100;
@@ -493,23 +493,23 @@ const WORD OUSTERS_EXP_SAVE_PERIOD = 100;
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// 시야 영역 상수들
+// Sight area constants
 //
-// VisionState >= IN_SIGHT     : 이미 보고 있다.
-// VisionState == OUT_OF_SIGHT : 보이지 않는다.
+// VisionState >= IN_SIGHT     : already being seen.
+// VisionState == OUT_OF_SIGHT : not visible.
 //
 ////////////////////////////////////////////////////////////////////////////////
 enum VisionState {
-    OUT_OF_SIGHT, // 시야 8각형의 외부 영역. 보이지 않는다.
-    IN_SIGHT,     // 시야 8각형의 내부 영역. 보인다. 이미 보고 있다.
-    ON_SIGHT,     // 시야 8각형의 경계 영역. 보인다. 이미 보고 있다.
-    NEW_SIGHT     // 시야 8각형의 경계 영역. 스캐닝영역. 보인다. 처음 본다.
+    OUT_OF_SIGHT, // Outside of the sight octagon. Not visible.
+    IN_SIGHT,     // Inside of the sight octagon. Visible. Already being seen.
+    ON_SIGHT,     // Boundary of the sight octagon. Visible. Already being seen.
+    NEW_SIGHT     // Boundary of the sight octagon. Scanning area. Visible. Seen for the first time.
 };
 
 const string VisionState2String[] = {"OUT_OF_SIGHT", "IN_SIGHT", "ON_SIGHT", "NEW_SIGHT"};
 
 ////////////////////////////////////////////////////////////////////////////////
-// 아우스터스 엘리멘탈 속성
+// Ousters elemental attribute
 ////////////////////////////////////////////////////////////////////////////////
 enum ElementalType {
     ELEMENTAL_ANY = -1,
@@ -533,14 +533,14 @@ typedef WORD Elemental_t;
 const uint szElemental = sizeof(Elemental_t);
 
 enum ElementalDomain {
-    ELEMENTAL_DOMAIN_NO_DOMAIN = -1,   // 무속성
-    ELEMENTAL_DOMAIN_FIRE = 0,         // 불계열
-    ELEMENTAL_DOMAIN_WATER,            // 물계열
-    ELEMENTAL_DOMAIN_EARTH,            // 대지계열
-    ELEMENTAL_DOMAIN_WIND,             // 바람계열
-    ELEMENTAL_DOMAIN_COMBAT,           // 전투 일반 계열
-    ELEMENTAL_DOMAIN_ELEMENTAL_COMBAT, // 전투 정령 계열
-    ELEMENTAL_DOMAIN_ETC,              // 기타(계열구분없음)
+    ELEMENTAL_DOMAIN_NO_DOMAIN = -1,   // No attribute
+    ELEMENTAL_DOMAIN_FIRE = 0,         // Fire domain
+    ELEMENTAL_DOMAIN_WATER,            // Water domain
+    ELEMENTAL_DOMAIN_EARTH,            // Earth domain
+    ELEMENTAL_DOMAIN_WIND,             // Wind domain
+    ELEMENTAL_DOMAIN_COMBAT,           // General combat domain
+    ELEMENTAL_DOMAIN_ELEMENTAL_COMBAT, // Combat spirit domain
+    ELEMENTAL_DOMAIN_ETC,              // Other (no domain)
 
     ELEMENTAL_DOMAIN_MAX
 };

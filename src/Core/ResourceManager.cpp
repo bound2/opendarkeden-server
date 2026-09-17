@@ -103,13 +103,13 @@ void ResourceManager::save(const string& filename) const {
 
 
 //--------------------------------------------------------------------------------
-// 다운받는 파일의 중복 여부 등을 체크해서 다운로드 시간과 용량을 최적화하도록 한다.
-// 일단은 실행 파일의 중복 여부만을 체크한다.
+// Check for duplicate downloads and the like to optimize download time and volume.
+// For now only the executable is checked for duplicates.
 //--------------------------------------------------------------------------------
 void ResourceManager::optimize(){__BEGIN_TRY
 
                                      /*
-                                           // 뒤에서부터 체크한다.
+                                           // Check from the back.
                                            bool exefileFound = false;
 
                                            list< Resource * >::reverse_iterator before = m_Resources.rend();
@@ -117,19 +117,19 @@ void ResourceManager::optimize(){__BEGIN_TRY
 
                                            while ( current != m_Resources.rend() ) {
 
-                                               // 파일명을 받아온다.
+                                               // Take the filename.
                                                string filename = (*current)->getFilename();
 
-                                               // 파일 사이즈를 잘라내고 순수하게 파일명만을 저장해둔다.
+                                               // Cut off the file size and keep only the plain filename.
                                                size_t i = filename.find_first_of(' ');
                                                filename = filename.substr(0,i);
 
-                                               // 이 파일명안에 darkeden.exe 가 포함될 경우, 중복 체크에 들어간다.
+                                               // If darkeden.exe is part of this filename, run the duplicate check.
                                                if ( filename == "DarkEden.exe" ) {
                                                    if ( exefileFound == false ) {
                                                        exefileFound = true;
                                                    } else {
-                                                       // 노드를 삭제한다.
+                                                       // Delete the node.
                                                        if ( before == m_Resources.rend() ) {
                                                            m_Resources.erase( current );
                                                            current = m_Resources.rbegin();

@@ -38,8 +38,8 @@ SocketOutputStream::SocketOutputStream(Socket* sock, uint BufferLen)
 //////////////////////////////////////////////////////////////////////
 SocketOutputStream::~SocketOutputStream() noexcept {
     if (m_Buffer != NULL) {
-        // ������ ���ܼ� ConnectException �� �޾� ����� ���¿���
-        // flush�� �� ��� SIGPIPE �� ����. ����, ��������~
+        // After a ConnectException has been caught because the connection broke,
+        // flushing here would raise SIGPIPE. So, leave it alone~
         // flush();
         delete[] m_Buffer;
         m_Buffer = NULL;
@@ -249,22 +249,22 @@ void SocketOutputStream::resize(int size) {
 
     int orgSize = size;
 
-    // ���� resize�� �����ϱ� ���ؼ�.. ���� ������ 1/2��ŭ �÷����� by sigi. 2002.9.26
+    // To avoid frequent resizes.. grow by half the current size by sigi. 2002.9.26
     size = max(size, (int)(m_BufferLen >> 1));
     uint newBufferLen = m_BufferLen + size;
     uint len = length();
 
     if (size < 0) {
-        // ���� ũ�⸦ ���̷��µ� ���ۿ� ����ִ� ����Ÿ��
-        // �� ����Ƴ� ���
+        // The buffer size is being reduced but the data in the buffer
+        // would not fit
         if (newBufferLen < 0 || newBufferLen < len)
             throw IOException("new buffer is too small!");
     }
 
-    // �� ���۸� �Ҵ�޴´�.
+    // Allocate a new buffer.
     char* newBuffer = new char[newBufferLen];
 
-    // ���� ������ ������ �����Ѵ�.
+    // Copy the data in the existing buffer.
     if (m_Head < m_Tail) {
         //
         //    H   T
@@ -285,7 +285,7 @@ void SocketOutputStream::resize(int size) {
         memcpy(&newBuffer[m_BufferLen - m_Head], m_Buffer, m_Tail);
     }
 
-    // ���� ���۸� �����Ѵ�.
+    // Delete the old buffer.
     delete[] m_Buffer;
 
     // Point the stream at the new buffer.
@@ -301,8 +301,8 @@ void SocketOutputStream::resize(int size) {
     VSDateTime current = VSDateTime::currentDateTime();
 
     if (m_Socket == NULL) {
-        // m_Socket �� NULL �̶�� ���� �� ��Ʈ���� ��ε� ĳ��Ʈ�� ��Ʈ���̶�� ���̴�.
-        // resize �� �ҷȴٴ� ���� ��Ŷ�� getPacketSize() �Լ��� �߸��Ǿ� �ִٴ� ���̴�.
+        // m_Socket being NULL means this stream is a broadcast stream.
+        // A resize being called means the packet's getPacketSize() function is wrong.
         filelog("packetsizeerror.txt", "PacketID = %u", *(PacketID_t*)m_Buffer);
     } else {
         ofstream ofile("buffer_resized.log", ios::app);

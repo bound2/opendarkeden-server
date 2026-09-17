@@ -2,8 +2,8 @@
 // Filename    : GearInfo.h
 // Written By  : elca@ewestsoft.com
 // Description :
-// �԰� �ִ� ��� �����۵��� ���� ����Ʈ�̴�.
-// ������ ��� �����ۿ� ���� ������ GearSlotInfo�� �����ϸ� �ȴ�.
+// The list of information about the gear items being worn.
+// For the information about each gear item see GearSlotInfo.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GEAR_INFO_H__

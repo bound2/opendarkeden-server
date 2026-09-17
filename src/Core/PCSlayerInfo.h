@@ -13,9 +13,9 @@
 #include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// Slayer 정보를 담고 있는 객체.
-// GCPCList 패킷에 담겨서 클라이언트에게 전송된다.
-// 아이템이나 걸려있는 마법 같은 정보는 담겨있지 않다.
+// Object that carries Slayer information.
+// It is carried in the GCPCList packet and sent to the client.
+// It does not carry information such as items or the magic in effect.
 //////////////////////////////////////////////////////////////////////////////
 
 class PCSlayerInfo : public PCInfo {
@@ -75,8 +75,8 @@ public:
                //+ szGold
                + szSkillLevel * 6
                //+ szZoneID
-               + szDWORD                    // 슬레이어 플래그
-               + szColor * SLAYER_COLOR_MAX // 색깔 정보
+               + szDWORD                    // Slayer flags
+               + szColor * SLAYER_COLOR_MAX // Colour information
                + szLevel;
     }
 
@@ -87,8 +87,8 @@ public:
                //+ szGold
                + szSkillLevel * 6
                //+ szZoneID
-               + szDWORD                    // 슬레이어 플래그
-               + szColor * SLAYER_COLOR_MAX // 색깔 정보
+               + szDWORD                    // Slayer flags
+               + szColor * SLAYER_COLOR_MAX // Colour information
                + szLevel;
     }
 
@@ -133,7 +133,7 @@ public:
 
     // get/set STR
     // *CAUTION*
-    // Assert()로 할 경우, NDEBUG 모드에서는 disable 되므로 if 로 체크해야 한다.
+    // With Assert() it would be disabled in NDEBUG mode, so check with if instead.
     Attr_t getSTR() const {
         if (m_STR > maxSlayerAttr)
             throw Error("STR out of range");
@@ -415,20 +415,20 @@ private:
     Alignment_t m_Alignment;
 
     // *NOTE
-    // ATTR_BASIC   : 순수 능력치.
+    // ATTR_BASIC   : the pure attribute.
     Attr_t m_STR;
     Attr_t m_DEX;
     Attr_t m_INT;
 
-    // 능력치 올리는 현재 경험치
-    // 다음 레벨로 가기 위한 목표 경험치와
-    // 토탈 경험치는 Client에도 Exp Table을 가지므로
-    // 클라이언트에서 연산 하도록 한다.
+    // Current experience towards raising the attribute
+    // The goal experience for the next level and the total experience are
+    // held in an Exp Table on the client too, so
+    // let the client work them out.
     Exp_t m_STRExp;
     Exp_t m_DEXExp;
     Exp_t m_INTExp;
 
-    // 계급
+    // Rank
     Rank_t m_Rank;
 
     // HP/MP
@@ -447,12 +447,12 @@ private:
     Gold_t m_Gold;
 
 
-    // 최종적으로 놀던 존
+    // The zone last played in
     ZoneID_t m_ZoneID;
     */
 
-    bitset<SLAYER_BIT_MAX> m_Outlook;   // 슬레이어 외모 정보
-    Color_t m_Colors[SLAYER_COLOR_MAX]; // 슬레이어 색깔 정보
+    bitset<SLAYER_BIT_MAX> m_Outlook;   // Slayer appearance information
+    Color_t m_Colors[SLAYER_COLOR_MAX]; // Slayer colour information
 
     Level_t m_AdvancementLevel;
 };

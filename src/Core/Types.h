@@ -22,7 +22,7 @@
 // clang-format off
 // Utility.h uses the sz*/BYTE/WORD types defined above, and its own
 // include of Types.h is an empty no-op here (the guard is already set),
-// so it must stay BELOW the types/ block — do not let clang-format sort
+// so it must stay BELOW the types/ block; do not let clang-format sort
 // it up.
 #include "Utility.h"
 // clang-format on

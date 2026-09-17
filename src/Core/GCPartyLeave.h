@@ -47,13 +47,13 @@ public:
     }
 
 private:
-    // 누군가가 혼자 파티에서 스스로 빠져나갔을 경우에는
-    // 추방자의 이름이 NULL이다.
-    // 누군가가 다른 사람에 의해서 빠져나갔을 경우에는
-    // 추방자의 이름이 NULL이 아니다.
-    // 어느 경우에도 추방당한 이의 이름이 NULL인 경우는 없다.
-    string m_Expeller; // 추방자
-    string m_Expellee; // 추방당한 이
+    // When somebody left the party on their own
+    // The name of the one who threw them out is NULL.
+    // When somebody was thrown out by somebody else
+    // The name of the one who threw them out is not NULL.
+    // In neither case is the name of the one thrown out NULL.
+    string m_Expeller; // The one who threw them out
+    string m_Expellee; // The one thrown out
 };
 
 

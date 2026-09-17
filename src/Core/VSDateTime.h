@@ -152,10 +152,10 @@ public:
 
 public:
     //////////////////////////////////////////////////
-    // start()로써 시작점을 저장해 두고,
-    // elapsed로 몇 milli-second가 지났는지
-    // 알아내면 딜레이 조사하는 부분 같은 곳에
-    // 쓸 수 있다.
+    // start() records the starting point, and
+    // elapsed tells how many milliseconds have passed,
+    // which is useful in places like the delay-checking
+    // code.
     //////////////////////////////////////////////////
     void start();
     int restart();

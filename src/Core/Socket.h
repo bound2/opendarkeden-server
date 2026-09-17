@@ -17,7 +17,7 @@
 //
 // *Reiot's Note*
 //
-// ���� ũ�⸦ �����Ϸ���, connect() ���� �����ؾ� �Ѵ�.
+// To set the buffer size, it has to be set before connect().
 //////////////////////////////////////////////////////////////////////////////
 
 class Socket {

@@ -2,8 +2,8 @@
 //
 // Filename    : ModifyItemInfo.cpp
 // Written By  : elca@ewestsoft.com
-// Description : �ڽſ��� ���� ����� ������ �˸��� ���� ��Ŷ Ŭ������
-//               ��� ����.
+// Description : Member definitions of the packet class that reports the
+//               success of a skill used on oneself.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -32,12 +32,12 @@ ModifyItemInfo::~ModifyItemInfo() noexcept = default;
 
 
 //////////////////////////////////////////////////////////////////////
-// �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void ModifyItemInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     iStream.read(m_ListNum);
 
     DWORD m_Value;
@@ -60,12 +60,12 @@ void ModifyItemInfo::read(SocketInputStream& iStream) {
 
 
 //////////////////////////////////////////////////////////////////////
-// ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void ModifyItemInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     oStream.write(m_ListNum);
 
     for (list<DWORD>::const_iterator itr = m_SList.begin(); itr != m_SList.end(); itr++) {
@@ -79,7 +79,7 @@ void ModifyItemInfo::write(SocketOutputStream& oStream) const {
 //
 // ModifyItemInfo::addListElement()
 //
-// ( ��ȭ����, ��ȭ��ġ ) �� �� ���� ����Ʈ�� �ֱ� ���� ��� �Լ�.
+// Member function that adds one (changed part, changed value) set to the list.
 //
 //////////////////////////////////////////////////////////////////////
 void ModifyItemInfo::addListElement(ObjectID_t ObjectID, ModifyType List, DWORD Value) {
@@ -87,13 +87,13 @@ void ModifyItemInfo::addListElement(ObjectID_t ObjectID, ModifyType List, DWORD 
 
     m_SList.push_back(ObjectID);
 
-    // ���ϴ� ���� �������� List�� �ִ´�.
+    // Put the wanted modify type into the List.
     m_SList.push_back(List);
 
-    // ���ϴ� ��ġ�� List�� �ִ´�.
+    // Put the wanted value into the List.
     m_SList.push_back(Value);
 
-    // ��ȭ ���� ������ �ϳ� ���� ��Ų��.
+    // Raise the number of changed entries by one.
     m_ListNum++;
 
     __END_CATCH

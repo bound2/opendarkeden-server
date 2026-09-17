@@ -46,11 +46,11 @@ const uint szPacketHeader = szPacketID + szPacketSize + szSequenceSize;
 //
 // class Packet;
 //
-// 패킷 데이타를 나타내는 인터페이스 클래스이다.
+// Interface class that stands for the packet data.
 //
-// read()와 write()를 주의깊게 살펴보라. 소켓입력스트림과 소켓출력스트림은
-// 모든 패킷을 어떻게 읽고 쓸 것인지를 알 수 없다. 따라서, 패킷 자신이 각
-// 스트림에 어떻게 읽고 쓸 것인지를 알고 있어야 한다.
+// Look carefully at read() and write(). The socket input stream and the socket
+// output stream cannot know how to read and write every packet. So each packet
+// has to know how to read and write itself to the stream.
 //
 //----------------------------------------------------------------------
 
@@ -584,18 +584,18 @@ public:
     // destructor
     virtual ~Packet() {}
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     virtual void read(SocketInputStream& iStream) = 0;
 
-    // 소켓으로부터 직접 데이터를 읽어서 패킷을 초기화한다.
+    // Read data straight from the socket and initialise the packet.
     virtual void read(Socket* pSocket) {
         throw UnsupportedError();
     }
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     virtual void write(SocketOutputStream& oStream) const = 0;
 
-    // 소켓으로 직접 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image straight to the socket.
     virtual void write(Socket* pSocket) const {
         throw UnsupportedError();
     }
