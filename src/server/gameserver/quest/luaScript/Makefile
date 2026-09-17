@@ -23,7 +23,7 @@ DEFS     = -D__LINUX__ -D_REENTRANT
 INCLUDES = -I$(STLDIR) -I$(COREDIR) -I$(SERVDIR) -I$(GSDIR)
 CCFLAGS  = -Wall -c -g  
 #CCFLAGS  = -Wall -c -g 
-#LIBS     = -L$(LIBDIR) -lItems -lQuest -lGameServerDatabase -lServerCore -lGameServerPackets -lSkill -lCore -lGameServerBilling -lSimpleQuest
+#LIBS     = -L$(LIBDIR) -lItems -lQuest -lGameServerDatabase -lServerCore -lGameServerPackets -lSkill -lCore -lSimpleQuest
 #SYSLIBS  = -llua -llualib
 
 .cpp.o :

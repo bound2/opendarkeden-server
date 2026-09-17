@@ -6,7 +6,6 @@
 
 #include "EventShutdown.h"
 
-#include "BillingInfo.h"
 #include "IncomingPlayerManager.h"
 #include "VariableManager.h"
 #include "ZoneGroupManager.h"

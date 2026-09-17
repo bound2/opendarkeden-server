@@ -11,7 +11,6 @@
 #include <unistd.h>
 
 #include "Assert.h"
-#include "BillingPlayerManager.h"
 #include "ClientManager.h"
 #include "DatabaseManager.h"
 #include "GameContext.h"

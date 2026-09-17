@@ -22,7 +22,6 @@
 #include "Properties.h"
 #include "ZoneGroupInfoManager.h"
 #include "ZoneInfoManager.h"
-#include "gameserver/billing/BillingInfo.h"
 #include "repository/LoginAccountRepository.h"
 #include "repository/LoginCharacterRepository.h"
 

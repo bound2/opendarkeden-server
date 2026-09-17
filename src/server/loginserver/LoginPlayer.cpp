@@ -23,7 +23,6 @@
 #include "PacketProfile.h"
 #include "PacketValidator.h"
 #include "Profile.h"
-#include "gameserver/billing/BillingPlayerManager.h"
 #include "repository/LoginAccountRepository.h"
 #include "repository/LoginCharacterRepository.h"
 
@@ -616,31 +615,6 @@ void LoginPlayer::sendLCLoginOK() {
     }
 }
 
-
-bool LoginPlayer::sendBillingLogin() {
-    __BEGIN_TRY
-
-    if (!m_ID.empty() && m_ID != "NONE") {
-        Timeval currentTime;
-        getCurrentTime(currentTime);
-
-        if (currentTime > m_BillingNextLoginRequestTime) {
-            g_pBillingPlayerManager->sendPayLogin(this);
-
-            // PayLogin 요청한 회수 기억
-            m_BillingLoginRequestCount++;
-
-            // 10초 후 다시 체크한다.
-            m_BillingNextLoginRequestTime.tv_sec = currentTime.tv_sec + 10;
-        }
-
-        return true;
-    }
-
-    return false;
-
-    __END_CATCH
-}
 
 //////////////////////////////////////////////////////////////////////
 //

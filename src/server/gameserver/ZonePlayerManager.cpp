@@ -28,7 +28,6 @@
 #include "Zone.h"
 #include "ZoneInfoManager.h"
 #include "ZoneUtil.h"
-#include "billing/BillingInfo.h"
 // #include "UserGateway.h"
 #include "BroadcastFilter.h"
 #include "DefaultOptionSetInfo.h"

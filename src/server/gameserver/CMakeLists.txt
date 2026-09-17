@@ -11,7 +11,6 @@ set(GAMESERVER_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/src/server/database
     ${CMAKE_CURRENT_SOURCE_DIR}/skill
     ${CMAKE_CURRENT_SOURCE_DIR}/item
-    ${CMAKE_CURRENT_SOURCE_DIR}/billing
     ${CMAKE_CURRENT_SOURCE_DIR}/war
     ${CMAKE_CURRENT_SOURCE_DIR}/couple
     ${CMAKE_CURRENT_SOURCE_DIR}/mission
@@ -26,7 +25,6 @@ set(GAMESERVER_INCLUDE_DIRS
 # ============================================================================
 add_subdirectory(skill)
 add_subdirectory(item)
-add_subdirectory(billing)
 add_subdirectory(war)
 add_subdirectory(couple)
 add_subdirectory(mission)
@@ -671,7 +669,6 @@ target_link_libraries(gameserver PRIVATE
     GameServerPackets
     Skill
     Core
-    GameServerBilling
     LuaScript
     War
     Couple
