@@ -9,7 +9,7 @@
 // (AbilityBalance.cpp, SkillUtil.cpp) as thin adapters that gather the
 // inputs from Creature/Item/VariableManager/Properties and delegate here.
 //
-// The math is transplanted verbatim from those files — these formulas ARE
+// The math is transplanted verbatim from those files -- these formulas ARE
 // the game balance. Oddities (narrow-integer wrap-around, asymmetric
 // weapon-family branches, magic constants) are preserved on purpose and
 // pinned by tests/formula_test.cpp; fixing one is a balance change, not a
@@ -22,7 +22,7 @@
 // alongside SkillUtil's Euclidean one (which delegates to tileDistance
 // here). Near-twin inside de-core itself: skillformula's WildWolf
 // computeOutput independently encodes the same DEX/8 + STR/30 core as
-// wolfDamageBonus below — both pinned, but the coefficient pair exists
+// wolfDamageBonus below -- both pinned, but the coefficient pair exists
 // twice. Folding any of these together is a balance decision, not a
 // refactor.
 //////////////////////////////////////////////////////////////////////////////
@@ -114,7 +114,7 @@ int oustersStealRatio(int amount);
 double finalDamage(int realDamage, int protection, bool critical);
 
 // Euclidean tile distance, truncated into the BYTE-wide Range_t exactly as
-// the original does (distances beyond 255 wrap — preserved behavior).
+// the original does (distances beyond 255 wrap -- preserved behavior).
 int tileDistance(int ox, int oy, int tx, int ty);
 
 // Rank experience for a kill: killing 20%+ above your level pays a
@@ -130,13 +130,13 @@ int vampireSkillConsumeMP(int originalMP, int magicLevel, int intStat);
 //////////////////////////////////////////////////////////////////////////////
 // Hit-roll success ratios (adapters: skill/HitRoll.cpp). Each function
 // returns the success percentage that the caller compares against its dice
-// roll — the roll itself (Random/rand) stays out of de-core, as do the
+// roll -- the roll itself (Random/rand) stays out of de-core, as do the
 // gate checks on live game state (no-damage flags, master monsters,
 // precedence effects). Stat sums arrive already accumulated at their
 // original (possibly narrow) widths in the adapter. One deliberate width
 // note: skill levels arrive as int though SkillInfo::getLevel() returns
 // uint, so the magic-ratio expressions now evaluate signed where the
-// originals were unsigned — provably identical results (every operand fits
+// originals were unsigned -- provably identical results (every operand fits
 // in int; the original's final (int) cast made the values equal by
 // two's-complement).
 //////////////////////////////////////////////////////////////////////////////
@@ -169,7 +169,7 @@ int vampireCurseRatio(int magicLevel, int resist);
 int dispelRatio(int base, int skillLevel, int difficulty, int magicLevel, int minRatio);
 
 // Flare has NO floor: a target enough levels above the skill drives the
-// ratio negative and the roll can never succeed — preserved behavior.
+// ratio negative and the roll can never succeed -- preserved behavior.
 int flareRatio(int skillLevel, int targetLevel);
 
 int rebukeRatio(int intStat, int skillExpLevel);
@@ -215,7 +215,7 @@ LivenessBonus livenessBonus(int grade, int domainLevel);
 LivenessBonus livenessBonusChina(int grade);
 
 // Sniping mode (SR): percent = STR/20 * expLevel / 20 of current damage,
-// DEX/10 * expLevel / 20 of current to-hit — evaluated left to right:
+// DEX/10 * expLevel / 20 of current to-hit -- evaluated left to right:
 // the stat division truncates first, the final /20 only after the
 // multiply. Shipped operator order, preserved.
 int snipingDamageBonus(int curDamage, int str, int expLevel);
@@ -231,7 +231,7 @@ int shieldMasteryProtectionBonus(int domainLevel);
 int wolfDamageBonus(int dex, int str);
 int werwolfDamageBonus(int dex, int str);
 
-// Vampire Extreme effect (caps included — they are the formula).
+// Vampire Extreme effect (caps included -- they are the formula).
 int extremeDamageBonus(int str);
 int extremeToHitBonus(int str, int dex);
 
@@ -264,10 +264,10 @@ int blockHeadPoint(int dex);
 int blessFirePoint(int str, int dex);
 int sandCrossPoint(int str, int dex);
 
-// Blood Bible sign-open ladders, one per race — the fame thresholds have
+// Blood Bible sign-open ladders, one per race -- the fame thresholds have
 // drifted between races and slayer has a second ladder for HEAL/ENCHANT
 // domains, which is exactly why they are pinned here. fame is Fame_t
-// (DWORD) — unsigned comparison semantics preserved. The adapters keep
+// (DWORD) -- unsigned comparison semantics preserved. The adapters keep
 // the pay-status openNumLimit and the canApplyBloodBibleSign() gate
 // (0 when closed).
 int slayerBloodBibleSignOpenNum(unsigned int fame, int openNumLimit, bool healOrEnchantDomain);

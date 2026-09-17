@@ -28,7 +28,7 @@ inline int getPercentValue(int value, int percent) {
 
 // Attr_t is WORD in the game (src/Core/types/CreatureTypes.h). Two bodies
 // (MagicElusion, IllusionOfAvenge) funnel the stat sum through it, so the
-// 16-bit truncation is part of the shipped math — duplicated here to keep
+// 16-bit truncation is part of the shipped math -- duplicated here to keep
 // this file freestanding, pinned by formula_test.cpp.
 typedef unsigned short Attr_t;
 
