@@ -7,6 +7,7 @@
 #include "SkillInfo.h"
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "SkillPropertyManager.h"
 #include "SkillUtil.h"
 #include "repository/ContentInfoRepository.h"
@@ -294,7 +295,7 @@ void SkillInfoManager::load() {
     __BEGIN_DEBUG
 
     // Initialise the skill property manager first.
-    g_pSkillPropertyManager->init();
+    de::gameContext().skillProps().init();
 
     ContentInfoRepository& repository = defaultContentInfoRepository();
 
@@ -346,7 +347,7 @@ void SkillInfoManager::load() {
         pSkillProperty->setMagic(row.magic);
         pSkillProperty->setPhysic(row.physic);
 
-        g_pSkillPropertyManager->addSkillProperty(pSkillProperty);
+        de::gameContext().skillProps().addSkillProperty(pSkillProperty);
 
         if (pSkillInfo->getDomainType() == SKILL_DOMAIN_OUSTERS) {
             pSkillInfo->setSkillPoint(row.skillPoint);

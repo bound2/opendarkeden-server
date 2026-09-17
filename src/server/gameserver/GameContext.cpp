@@ -18,6 +18,11 @@ ActionFactoryManager& GameContext::actionFactories() const {
     return *m_pActionFactoryManager;
 }
 
+CastleShrineInfoManager& GameContext::castleShrines() const {
+    Assert(m_pCastleShrineInfoManager != nullptr);
+    return *m_pCastleShrineInfoManager;
+}
+
 ConditionFactoryManager& GameContext::conditionFactories() const {
     Assert(m_pConditionFactoryManager != nullptr);
     return *m_pConditionFactoryManager;
@@ -26,6 +31,11 @@ ConditionFactoryManager& GameContext::conditionFactories() const {
 Properties& GameContext::config() const {
     Assert(m_pConfig != nullptr);
     return *m_pConfig;
+}
+
+DarkLightInfoManager& GameContext::darkLights() const {
+    Assert(m_pDarkLightInfoManager != nullptr);
+    return *m_pDarkLightInfoManager;
 }
 
 DatabaseManager& GameContext::databases() const {
@@ -38,9 +48,34 @@ DefaultOptionSetInfoManager& GameContext::optionSets() const {
     return *m_pDefaultOptionSetInfoManager;
 }
 
+DirectiveSetManager& GameContext::directiveSets() const {
+    Assert(m_pDirectiveSetManager != nullptr);
+    return *m_pDirectiveSetManager;
+}
+
+DragonEyeManager& GameContext::dragonEyes() const {
+    Assert(m_pDragonEyeManager != nullptr);
+    return *m_pDragonEyeManager;
+}
+
 DynamicZoneFactoryManager& GameContext::dynamicZoneFactories() const {
     Assert(m_pDynamicZoneFactoryManager != nullptr);
     return *m_pDynamicZoneFactoryManager;
+}
+
+DynamicZoneInfoManager& GameContext::dynamicZoneInfos() const {
+    Assert(m_pDynamicZoneInfoManager != nullptr);
+    return *m_pDynamicZoneInfoManager;
+}
+
+EventQuestLootingManager& GameContext::eventQuestLoot() const {
+    Assert(m_pEventQuestLootingManager != nullptr);
+    return *m_pEventQuestLootingManager;
+}
+
+GoodsInfoManager& GameContext::goodsInfos() const {
+    Assert(m_pGoodsInfoManager != nullptr);
+    return *m_pGoodsInfoManager;
 }
 
 ItemFactoryManager& GameContext::itemFactories() const {
@@ -53,6 +88,11 @@ MonsterNameManager& GameContext::monsterNames() const {
     return *m_pMonsterNameManager;
 }
 
+OustersEXPInfoManager& GameContext::oustersExp() const {
+    Assert(m_pOustersEXPInfoManager != nullptr);
+    return *m_pOustersEXPInfoManager;
+}
+
 PCFinder& GameContext::playerCreatures() const {
     Assert(m_pPCFinder != nullptr);
     return *m_pPCFinder;
@@ -63,14 +103,34 @@ ScriptManager& GameContext::publicScripts() const {
     return *m_pPublicScriptManager;
 }
 
+RankBonusInfoManager& GameContext::rankBonuses() const {
+    Assert(m_pRankBonusInfoManager != nullptr);
+    return *m_pRankBonusInfoManager;
+}
+
 ShopTemplateManager& GameContext::shopTemplates() const {
     Assert(m_pShopTemplateManager != nullptr);
     return *m_pShopTemplateManager;
 }
 
+SkillDomainInfoManager& GameContext::skillDomains() const {
+    Assert(m_pSkillDomainInfoManager != nullptr);
+    return *m_pSkillDomainInfoManager;
+}
+
+SkillPropertyManager& GameContext::skillProps() const {
+    Assert(m_pSkillPropertyManager != nullptr);
+    return *m_pSkillPropertyManager;
+}
+
 StringPool& GameContext::strings() const {
     Assert(m_pStringPool != nullptr);
     return *m_pStringPool;
+}
+
+VampEXPInfoManager& GameContext::vampireExp() const {
+    Assert(m_pVampEXPInfoManager != nullptr);
+    return *m_pVampEXPInfoManager;
 }
 
 VariableManager& GameContext::variables() const {
@@ -81,6 +141,11 @@ VariableManager& GameContext::variables() const {
 VolumeInfoManager& GameContext::volumeInfos() const {
     Assert(m_pVolumeInfoManager != nullptr);
     return *m_pVolumeInfoManager;
+}
+
+WayPointManager& GameContext::wayPoints() const {
+    Assert(m_pWayPointManager != nullptr);
+    return *m_pWayPointManager;
 }
 
 WeatherInfoManager& GameContext::weatherInfos() const {

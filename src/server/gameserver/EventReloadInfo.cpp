@@ -10,6 +10,7 @@
 
 #include "Directive.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GoodsInfoManager.h"
 #include "IncomingPlayerManager.h"
@@ -76,7 +77,7 @@ void EventReloadInfo::activate()
     } break;
 
     case MONSTER_AI:
-        g_pDirectiveSetManager->load();
+        de::gameContext().directiveSets().load();
         break;
 
     case ZONE_INFO:
@@ -96,7 +97,7 @@ void EventReloadInfo::activate()
         break;
 
     case RANK_BONUS_INFO: {
-        g_pRankBonusInfoManager->load();
+        de::gameContext().rankBonuses().load();
     } break;
 
     case OPTION_INFO: {
@@ -164,7 +165,7 @@ void EventReloadInfo::activate()
                 break;*/
 
     case GOODS_LIST_INFO:
-        g_pGoodsInfoManager->load();
+        de::gameContext().goodsInfos().load();
         break;
 
     case SWEEPER_OWNER:

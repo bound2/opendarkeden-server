@@ -19,6 +19,7 @@
 #include "GCNoticeEvent.h"
 #include "GCSystemMessage.h"
 #include "GCWarScheduleList.h"
+#include "GameContext.h"
 #include "HolyLandManager.h"
 #include "PCManager.h"
 #include "RaceWarInfo.h"
@@ -85,7 +86,7 @@ void RaceWar::executeStart()
     RegenZoneManager::getInstance()->broadcastStatus();
 
     // 드래곤 아이 아이템을 초기 위치에 둔다.
-    g_pDragonEyeManager->addAllDragonEyesToZone();
+    de::gameContext().dragonEyes().addAllDragonEyesToZone();
 
     // hasActiveRaceWar()가 설정되는 타이밍 때문에..
     // WarSystem::addWar()에서 실행한다.
@@ -203,7 +204,7 @@ void RaceWar::executeEnd()
     de::gm::opworld(NULL, "*world *load blood_bible_owner", 0, true);
 
     // 드래곤 아이 아이템을 없앤다.
-    g_pDragonEyeManager->removeAllDragonEyes();
+    de::gameContext().dragonEyes().removeAllDragonEyes();
 
     // RaceWarHistory Table 에 기록
     recordRaceWarEnd();

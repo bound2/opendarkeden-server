@@ -34,7 +34,7 @@ check_ratchet() {
 
 # --- R1: g_p* global-singleton extern declarations -------------------------
 R1=$(grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R1 "global singleton externs" 89 "$R1"
+check_ratchet R1 "global singleton externs" 72 "$R1"
 
 # --- R2: files with inline SQL in the gameserver root ----------------------
 R2=$(grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h 2>/dev/null | wc -l)
@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5437 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5434 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -449,7 +449,7 @@ rm -f "$r16_inc" "$r16_dead"
 # working tree out of the count, which [^[:print:]] would not, and LC_ALL=C
 # keeps the range byte-wise where a locale would read it as characters.
 R17=$(LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R17 "source lines carrying non-ASCII bytes" 18302 "$R17"
+check_ratchet R17 "source lines carrying non-ASCII bytes" 18298 "$R17"
 
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).

@@ -120,7 +120,7 @@ void WeatherManager::init()
     //--------------------------------------------------------------------------------
     // 현재의 존의 밝기와 어둡기 레벨, 다음 변경시간을 설정한다.
     //--------------------------------------------------------------------------------
-    DarkLightInfo* pDIInfo = g_pDarkLightInfoManager->getCurrentDarkLightInfo(m_pZone);
+    DarkLightInfo* pDIInfo = de::gameContext().darkLights().getCurrentDarkLightInfo(m_pZone);
     m_pZone->setDarkLevel(pDIInfo->getDarkLevel());
     m_pZone->setLightLevel(pDIInfo->getLightLevel());
 
@@ -245,7 +245,7 @@ void WeatherManager::heartbeat()
     // 게임 시간 10분마다 존의 밝기와 어둡기 정보를 바꿔준다.
     //--------------------------------------------------------------------------------
     if (currentTime > m_Next10Min) {
-        DarkLightInfo* pDIInfo = g_pDarkLightInfoManager->getCurrentDarkLightInfo(m_pZone);
+        DarkLightInfo* pDIInfo = de::gameContext().darkLights().getCurrentDarkLightInfo(m_pZone);
 
         DarkLevel_t darkLevel = pDIInfo->getDarkLevel();
         LightLevel_t lightLevel = pDIInfo->getLightLevel();

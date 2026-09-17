@@ -42,7 +42,4 @@ private:
     mutable Mutex m_Mutex;
 };
 
-// global variable declaration
-extern TelephoneCenter* g_pTelephoneCenter;
-
 #endif

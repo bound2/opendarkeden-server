@@ -135,5 +135,3 @@ void WayPointManager::addWayPoint(WayPoint* pWayPoint)
 
     __END_CATCH
 }
-
-WayPointManager* g_pWayPointManager = NULL;

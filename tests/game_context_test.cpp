@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[17];
+char g_managerStorage[30];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -119,6 +119,66 @@ TEST(GameContextTest, ItemDescriptionManagersAreReadBack) {
     EXPECT_EQ(&context.volumeInfos(), pVolumeInfoManager);
 }
 
+TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
+    de::GameContext context;
+
+    CastleShrineInfoManager* pCastleShrineInfoManager = standIn<CastleShrineInfoManager>(17);
+    DragonEyeManager* pDragonEyeManager = standIn<DragonEyeManager>(18);
+    EventQuestLootingManager* pEventQuestLootingManager = standIn<EventQuestLootingManager>(19);
+    WayPointManager* pWayPointManager = standIn<WayPointManager>(20);
+
+    context.setCastleShrineInfoManager(pCastleShrineInfoManager);
+    context.setDragonEyeManager(pDragonEyeManager);
+    context.setEventQuestLootingManager(pEventQuestLootingManager);
+    context.setWayPointManager(pWayPointManager);
+
+    EXPECT_EQ(&context.castleShrines(), pCastleShrineInfoManager);
+    EXPECT_EQ(&context.dragonEyes(), pDragonEyeManager);
+    EXPECT_EQ(&context.eventQuestLoot(), pEventQuestLootingManager);
+    EXPECT_EQ(&context.wayPoints(), pWayPointManager);
+}
+
+TEST(GameContextTest, ZoneAmbienceManagersAreReadBack) {
+    de::GameContext context;
+
+    DarkLightInfoManager* pDarkLightInfoManager = standIn<DarkLightInfoManager>(21);
+    DirectiveSetManager* pDirectiveSetManager = standIn<DirectiveSetManager>(22);
+    DynamicZoneInfoManager* pDynamicZoneInfoManager = standIn<DynamicZoneInfoManager>(23);
+
+    context.setDarkLightInfoManager(pDarkLightInfoManager);
+    context.setDirectiveSetManager(pDirectiveSetManager);
+    context.setDynamicZoneInfoManager(pDynamicZoneInfoManager);
+
+    EXPECT_EQ(&context.darkLights(), pDarkLightInfoManager);
+    EXPECT_EQ(&context.directiveSets(), pDirectiveSetManager);
+    EXPECT_EQ(&context.dynamicZoneInfos(), pDynamicZoneInfoManager);
+}
+
+TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
+    de::GameContext context;
+
+    GoodsInfoManager* pGoodsInfoManager = standIn<GoodsInfoManager>(24);
+    OustersEXPInfoManager* pOustersEXPInfoManager = standIn<OustersEXPInfoManager>(25);
+    RankBonusInfoManager* pRankBonusInfoManager = standIn<RankBonusInfoManager>(26);
+    SkillDomainInfoManager* pSkillDomainInfoManager = standIn<SkillDomainInfoManager>(27);
+    SkillPropertyManager* pSkillPropertyManager = standIn<SkillPropertyManager>(28);
+    VampEXPInfoManager* pVampEXPInfoManager = standIn<VampEXPInfoManager>(29);
+
+    context.setGoodsInfoManager(pGoodsInfoManager);
+    context.setOustersEXPInfoManager(pOustersEXPInfoManager);
+    context.setRankBonusInfoManager(pRankBonusInfoManager);
+    context.setSkillDomainInfoManager(pSkillDomainInfoManager);
+    context.setSkillPropertyManager(pSkillPropertyManager);
+    context.setVampEXPInfoManager(pVampEXPInfoManager);
+
+    EXPECT_EQ(&context.goodsInfos(), pGoodsInfoManager);
+    EXPECT_EQ(&context.oustersExp(), pOustersEXPInfoManager);
+    EXPECT_EQ(&context.rankBonuses(), pRankBonusInfoManager);
+    EXPECT_EQ(&context.skillDomains(), pSkillDomainInfoManager);
+    EXPECT_EQ(&context.skillProps(), pSkillPropertyManager);
+    EXPECT_EQ(&context.vampireExp(), pVampEXPInfoManager);
+}
+
 TEST(GameContextTest, ReregisteringReplacesTheManager) {
     de::GameContext context;
 
@@ -135,19 +195,32 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     // startup-order bug, so every accessor asserts rather than returning
     // something the caller could test.
     EXPECT_THROW(context.actionFactories(), AssertionError);
+    EXPECT_THROW(context.castleShrines(), AssertionError);
     EXPECT_THROW(context.conditionFactories(), AssertionError);
     EXPECT_THROW(context.config(), AssertionError);
+    EXPECT_THROW(context.darkLights(), AssertionError);
     EXPECT_THROW(context.databases(), AssertionError);
+    EXPECT_THROW(context.directiveSets(), AssertionError);
+    EXPECT_THROW(context.dragonEyes(), AssertionError);
     EXPECT_THROW(context.dynamicZoneFactories(), AssertionError);
+    EXPECT_THROW(context.dynamicZoneInfos(), AssertionError);
+    EXPECT_THROW(context.eventQuestLoot(), AssertionError);
+    EXPECT_THROW(context.goodsInfos(), AssertionError);
     EXPECT_THROW(context.itemFactories(), AssertionError);
     EXPECT_THROW(context.monsterNames(), AssertionError);
     EXPECT_THROW(context.optionSets(), AssertionError);
+    EXPECT_THROW(context.oustersExp(), AssertionError);
     EXPECT_THROW(context.playerCreatures(), AssertionError);
     EXPECT_THROW(context.publicScripts(), AssertionError);
+    EXPECT_THROW(context.rankBonuses(), AssertionError);
     EXPECT_THROW(context.shopTemplates(), AssertionError);
+    EXPECT_THROW(context.skillDomains(), AssertionError);
+    EXPECT_THROW(context.skillProps(), AssertionError);
     EXPECT_THROW(context.strings(), AssertionError);
+    EXPECT_THROW(context.vampireExp(), AssertionError);
     EXPECT_THROW(context.variables(), AssertionError);
     EXPECT_THROW(context.volumeInfos(), AssertionError);
+    EXPECT_THROW(context.wayPoints(), AssertionError);
     EXPECT_THROW(context.weatherInfos(), AssertionError);
     EXPECT_THROW(context.zoneGroups(), AssertionError);
     EXPECT_THROW(context.zoneInfos(), AssertionError);

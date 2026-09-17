@@ -13,6 +13,7 @@
 #include "GCNoticeEvent.h"
 #include "GCSystemMessage.h"
 #include "GCWarScheduleList.h"
+#include "GameContext.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "GuildWarInfo.h"
@@ -60,7 +61,7 @@ void GuildWar::executeStart()
     sendWarStartMessage();
 
     // 성 안의 안전지대를 끈다.
-    ZoneID_t guardShrineZoneID = g_pCastleShrineInfoManager->getGuardShrineZoneID(m_CastleZoneID);
+    ZoneID_t guardShrineZoneID = de::gameContext().castleShrines().getGuardShrineZoneID(m_CastleZoneID);
     Zone* pZone = getZoneByZoneID(guardShrineZoneID);
     Assert(pZone != NULL);
 
@@ -94,7 +95,7 @@ void GuildWar::executeStart()
         }
     }
 
-    g_pCastleShrineInfoManager->removeShrineShield(pZone);
+    de::gameContext().castleShrines().removeShrineShield(pZone);
 
     // GuildWarHistory Table 에 기록
     recordGuildWarStart();
@@ -159,14 +160,14 @@ void GuildWar::executeEnd()
     //----------------------------------------------------------------------------
     // 성 상징을 되돌려준다.
     //----------------------------------------------------------------------------
-    g_pCastleShrineInfoManager->returnAllCastleSymbol(m_CastleZoneID);
+    de::gameContext().castleShrines().returnAllCastleSymbol(m_CastleZoneID);
 
     //----------------------------------------------------------------------------
     // 성 안 안전지대 복구
     //----------------------------------------------------------------------------
     // 이 함수는 ClientManager와 같은 스레드에서 돌아가는 WarSystem에서 불러주므로
     // 성이 포함된 Zone의 락을 걸어줘야 된다.
-    ZoneID_t guardShrineZoneID = g_pCastleShrineInfoManager->getGuardShrineZoneID(m_CastleZoneID);
+    ZoneID_t guardShrineZoneID = de::gameContext().castleShrines().getGuardShrineZoneID(m_CastleZoneID);
     Zone* pZone = getZoneByZoneID(guardShrineZoneID);
     Assert(pZone != NULL);
 
@@ -185,7 +186,7 @@ void GuildWar::executeEnd()
     __LEAVE_CRITICAL_SECTION( (*pZone) )
     */
 
-    g_pCastleShrineInfoManager->addShrineShield(pZone);
+    de::gameContext().castleShrines().addShrineShield(pZone);
 
     //----------------------------------------------------------------------------
     // 전쟁 신청금을 성에 쌓는다.

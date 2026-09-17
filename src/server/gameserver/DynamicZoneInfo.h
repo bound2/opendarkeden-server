@@ -79,7 +79,4 @@ private:
     HashMapDynamicZoneType m_DynamicZoneTypes;
 };
 
-// global variable
-extern DynamicZoneInfoManager* g_pDynamicZoneInfoManager;
-
 #endif

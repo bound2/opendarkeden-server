@@ -12,6 +12,7 @@
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PacketUtil.h"
 #include "PlayerCreature.h"
@@ -64,7 +65,7 @@ void ActionEnterQuestZone::execute(Creature* pNPC, Creature* pCreature)
 
     if (bTransport) {
         // Dynamic 존인지 확인.
-        int targetDynamicZoneType = g_pDynamicZoneInfoManager->getDynamicZoneTypeByZoneID(m_ZoneID);
+        int targetDynamicZoneType = context().dynamicZoneInfos().getDynamicZoneTypeByZoneID(m_ZoneID);
 
         if (targetDynamicZoneType != DYNAMIC_ZONE_MAX) {
             // Dynamic 존일 경우

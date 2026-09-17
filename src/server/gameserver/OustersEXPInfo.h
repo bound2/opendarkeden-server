@@ -81,7 +81,4 @@ private:
     OustersEXPInfo** m_OustersEXPInfoList;
 };
 
-// Global Variable Definition
-extern OustersEXPInfoManager* g_pOustersEXPInfoManager;
-
 #endif

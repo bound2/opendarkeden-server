@@ -128,7 +128,7 @@ OBJS = main.o Zone.o Slayer.o Vampire.o Ousters.o OustersEXPInfo.o \
 	PrecedenceTable.o VariableManager.o CombatInfoManager.o \
 	UniqueItemManager.o \
 	MasterLairInfoManager.o MasterLairManager.o \
-	MonsterSummonInfo.o LuckInfo.o \
+	MonsterSummonInfo.o \
 	LogNameManager.o RankBonusInfo.o RankBonus.o \
 	CastleInfoManager.o HolyLandRaceBonus.o \
 	ShrineInfoManager.o GlobalItemPositionLoader.o \

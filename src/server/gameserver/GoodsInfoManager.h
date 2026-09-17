@@ -140,7 +140,4 @@ private:
     HashMapGoodsInfo m_GoodsInfos;
 };
 
-// Global Variable Definition
-extern GoodsInfoManager* g_pGoodsInfoManager;
-
 #endif // __SKILL_INFO_MANAGER_H__

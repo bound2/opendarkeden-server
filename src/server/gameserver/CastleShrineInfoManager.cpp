@@ -781,5 +781,3 @@ string CastleShrineInfoManager::toString() const
 
     __END_CATCH
 }
-
-CastleShrineInfoManager* g_pCastleShrineInfoManager = NULL;

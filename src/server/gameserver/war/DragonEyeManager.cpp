@@ -179,5 +179,3 @@ void DragonEyeManager::warpToDefaultPosition(Creature* pCreature)
 
     __END_CATCH
 }
-
-DragonEyeManager* g_pDragonEyeManager = NULL;

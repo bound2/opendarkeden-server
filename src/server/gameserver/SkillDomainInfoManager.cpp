@@ -184,6 +184,3 @@ string SkillDomainInfoManager::toString() const
     return msg.toString();
     __END_CATCH
 }
-
-// global variable declaration
-SkillDomainInfoManager* g_pSkillDomainInfoManager = NULL;

@@ -225,6 +225,3 @@ string DarkLightInfoManager::toString() const
     return msg.toString();
     __END_CATCH
 }
-
-// global variable definition
-DarkLightInfoManager* g_pDarkLightInfoManager = NULL;

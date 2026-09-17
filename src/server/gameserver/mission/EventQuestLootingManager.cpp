@@ -18,8 +18,6 @@
 
 int g_ratio[5] = {34, 50, 34, 25, 16};
 
-EventQuestLootingManager* g_pEventQuestLootingManager = NULL;
-
 string EventQuestLootingInfo::toString() const {
     StringStream msg;
     msg << "EventQuestLootingInfo : " << "QuestLevel : " << m_QuestLevel << " ,Type : " << (uint)m_Type

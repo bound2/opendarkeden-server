@@ -41,6 +41,4 @@ private:
     VectorZoneCoord m_DefaultPositions;
 };
 
-extern DragonEyeManager* g_pDragonEyeManager;
-
 #endif

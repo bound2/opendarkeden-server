@@ -336,6 +336,4 @@ protected:
     DirectiveSet** m_ppSet;
 };
 
-extern DirectiveSetManager* g_pDirectiveSetManager;
-
 #endif // __DIRECTIVESETMANAGER_H__

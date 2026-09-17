@@ -9,6 +9,7 @@
 #include "Assert.h"
 #include "DynamicZoneGroup.h"
 #include "DynamicZoneInfo.h"
+#include "GameContext.h"
 
 // global variable
 DynamicZoneManager* g_pDynamicZoneManager = NULL;
@@ -28,6 +29,7 @@ DynamicZoneManager::~DynamicZoneManager() {
 }
 
 void DynamicZoneManager::init() {
+    DynamicZoneInfoManager& dynamicZoneInfos = de::gameContext().dynamicZoneInfos();
     // DynamicZoneGroup 추가. 수동
 
     {
@@ -35,7 +37,7 @@ void DynamicZoneManager::init() {
         DynamicZoneGroup* pDynamicZoneGroup = new DynamicZoneGroup();
         pDynamicZoneGroup->setDynamicZoneType(DYNAMIC_ZONE_GATE_OF_ALTER);
         pDynamicZoneGroup->setTemplateZoneID(
-            g_pDynamicZoneInfoManager->getDynamicZoneInfo(DYNAMIC_ZONE_GATE_OF_ALTER)->getTemplateZoneID());
+            dynamicZoneInfos.getDynamicZoneInfo(DYNAMIC_ZONE_GATE_OF_ALTER)->getTemplateZoneID());
 
         addDynamicZoneGroup(pDynamicZoneGroup);
     }
@@ -45,7 +47,7 @@ void DynamicZoneManager::init() {
         DynamicZoneGroup* pDynamicZoneGroup = new DynamicZoneGroup();
         pDynamicZoneGroup->setDynamicZoneType(DYNAMIC_ZONE_ALTER_OF_BLOOD);
         pDynamicZoneGroup->setTemplateZoneID(
-            g_pDynamicZoneInfoManager->getDynamicZoneInfo(DYNAMIC_ZONE_ALTER_OF_BLOOD)->getTemplateZoneID());
+            dynamicZoneInfos.getDynamicZoneInfo(DYNAMIC_ZONE_ALTER_OF_BLOOD)->getTemplateZoneID());
 
         addDynamicZoneGroup(pDynamicZoneGroup);
     }
@@ -55,7 +57,7 @@ void DynamicZoneManager::init() {
         DynamicZoneGroup* pDynamicZoneGroup = new DynamicZoneGroup();
         pDynamicZoneGroup->setDynamicZoneType(DYNAMIC_ZONE_SLAYER_MIRROR_OF_ABYSS);
         pDynamicZoneGroup->setTemplateZoneID(
-            g_pDynamicZoneInfoManager->getDynamicZoneInfo(DYNAMIC_ZONE_SLAYER_MIRROR_OF_ABYSS)->getTemplateZoneID());
+            dynamicZoneInfos.getDynamicZoneInfo(DYNAMIC_ZONE_SLAYER_MIRROR_OF_ABYSS)->getTemplateZoneID());
 
         addDynamicZoneGroup(pDynamicZoneGroup);
     }
@@ -65,7 +67,7 @@ void DynamicZoneManager::init() {
         DynamicZoneGroup* pDynamicZoneGroup = new DynamicZoneGroup();
         pDynamicZoneGroup->setDynamicZoneType(DYNAMIC_ZONE_VAMPIRE_MIRROR_OF_ABYSS);
         pDynamicZoneGroup->setTemplateZoneID(
-            g_pDynamicZoneInfoManager->getDynamicZoneInfo(DYNAMIC_ZONE_VAMPIRE_MIRROR_OF_ABYSS)->getTemplateZoneID());
+            dynamicZoneInfos.getDynamicZoneInfo(DYNAMIC_ZONE_VAMPIRE_MIRROR_OF_ABYSS)->getTemplateZoneID());
 
         addDynamicZoneGroup(pDynamicZoneGroup);
     }
@@ -75,7 +77,7 @@ void DynamicZoneManager::init() {
         DynamicZoneGroup* pDynamicZoneGroup = new DynamicZoneGroup();
         pDynamicZoneGroup->setDynamicZoneType(DYNAMIC_ZONE_OUSTERS_MIRROR_OF_ABYSS);
         pDynamicZoneGroup->setTemplateZoneID(
-            g_pDynamicZoneInfoManager->getDynamicZoneInfo(DYNAMIC_ZONE_OUSTERS_MIRROR_OF_ABYSS)->getTemplateZoneID());
+            dynamicZoneInfos.getDynamicZoneInfo(DYNAMIC_ZONE_OUSTERS_MIRROR_OF_ABYSS)->getTemplateZoneID());
 
         addDynamicZoneGroup(pDynamicZoneGroup);
     }

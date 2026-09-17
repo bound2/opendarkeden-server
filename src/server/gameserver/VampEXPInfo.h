@@ -73,7 +73,4 @@ private:
     VampEXPInfo** m_VampEXPInfoList;
 };
 
-// Global Variable Definition
-extern VampEXPInfoManager* g_pVampEXPInfoManager;
-
 #endif
