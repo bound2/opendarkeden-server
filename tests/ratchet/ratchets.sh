@@ -362,6 +362,56 @@ else
     rm -f "$r15_built" "$r15_dead"
 fi
 
+# --- R16: headers under src/ that nothing includes -------------------------
+# A header no translation unit reaches is not part of any build: nothing it
+# declares is checked against the code it describes, so it drifts while
+# still reading as live declarations and the compiler never says so. Five
+# went at once, among them an ItemNumberManager.h whose body is not valid
+# C++ and a CombatSystemManager.h for a relic system the servers run
+# elsewhere. Three more headers were reached only by includes that used
+# nothing from them, for classes declared here and defined nowhere; the
+# includes went with the headers.
+#
+# The measure is an approximation, stated rather than hidden: a header
+# counts as included when some #include "..." text under src/ or tests/
+# equals the header's path or the path ends with "/" plus that text. That
+# is looser than resolving each include against the including file's own
+# directory and the -I list the CMake files build, so "Item.h" marks every
+# path ending in /Item.h as reached. Every error it makes is in the same
+# direction -- calling a header used -- so it never calls a live header
+# dead. Comments are not stripped for the same reason: an include behind
+# /* */ still counts as a mention.
+#
+# The include-text list is materialised first for R13's reason: a broken
+# grep would otherwise read as zero orphan headers.
+r16_inc=$(mktemp)
+r16_dead=$(mktemp)
+LC_ALL=C grep -rhoE '#[[:space:]]*include[[:space:]]*"[^"]*\.h"' src tests \
+    --include='*.c' --include='*.cc' --include='*.cpp' --include='*.h' \
+    --include='*.hpp' --include='*.inc' |
+    sed 's/.*"\(.*\)"/\1/' | sort -u > "$r16_inc"
+if [ "$(wc -l < "$r16_inc")" -lt 1500 ]; then
+    echo "[FAIL] R16 orphan headers: only $(wc -l < "$r16_inc") include texts found (grep or find broken?)"
+    fail=1
+else
+    find src -name '*.h' | sort | awk -v incfile="$r16_inc" '
+        BEGIN { while ((getline i < incfile) > 0) if (i != "") inc[++n] = i }
+        {
+            for (k = 1; k <= n; k++) {
+                if ($0 == inc[k]) next
+                if (length($0) > length(inc[k]) &&
+                    substr($0, length($0) - length(inc[k])) == "/" inc[k]) next
+            }
+            print
+        }' > "$r16_dead"
+    R16=$(wc -l < "$r16_dead")
+    check_ratchet R16 "headers under src/ nothing includes" 0 "$R16"
+    if [ "$R16" -gt 0 ]; then
+        sed 's/^/         /' < "$r16_dead"
+    fi
+fi
+rm -f "$r16_inc" "$r16_dead"
+
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
 # Historical build logs and documentation are not build inputs.
