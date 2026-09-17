@@ -6,7 +6,7 @@
 //
 // The originals accumulate into the narrow wire typedefs (HP_t/Damage_t are
 // WORD, Speed_t/Range_t/Steal_t are BYTE), so extreme inputs wrap. That
-// wrap-around is observed behavior — the transplants keep the same widths
+// wrap-around is observed behavior -- the transplants keep the same widths
 // on purpose, and tests/formula_test.cpp pins representative wrap cases.
 //////////////////////////////////////////////////////////////////////////////
 
@@ -528,7 +528,7 @@ int slayerStealRatio(const StatAttr& a, int amount) {
     Byte result = 0;
 
     // Bare hands count as the melee (90%) base; an unrecognized weapon
-    // falls to the 65% base — the one place None and Other diverge.
+    // falls to the 65% base -- the one place None and Other diverge.
     switch (a.weapon) {
     case WeaponFamily::None:
     case WeaponFamily::Sword:
@@ -648,7 +648,7 @@ int meleeHitRatio(int toHit, int defense, int toHitBonus, bool involvesMonster) 
     if (toHit >= defense) {
         // ToHit above Defense: the chance to land is quite high. The
         // bonus/2 sits outside the (int) cast here and inside it below,
-        // preserved as shipped — but note the cast is a NO-OP on this
+        // preserved as shipped -- but note the cast is a NO-OP on this
         // path (every operand is already int; the division truncates
         // regardless), so the placement changes nothing here.
         if (involvesMonster) {

@@ -21,16 +21,16 @@ ZoneGroupInfoManager::ZoneGroupInfoManager() noexcept {}
 // destructor
 //----------------------------------------------------------------------
 ZoneGroupInfoManager::~ZoneGroupInfoManager() noexcept {
-    // hashmap ���� �� pair �� second, �� ZoneGroupInfo ��ü���� �����ϰ�
-    // pair ��ü�� �״�� �д�. (ZoneGroupInfo�� ���� �����Ǿ� �ִٴ� �Ϳ�
-    // �����϶�. �� �ʻ������ �ؾ� �Ѵ�. �ϱ�, ZGIM�� destruct �ȴٴ� ����
-    // �α��� ������ �˴ٿ�ȴٴ� ���� �ǹ��ϴϱ�.. - -; )
+    // Delete only the second of each pair in the hash map, i.e. the
+    // ZoneGroupInfo objects, and leave the pairs themselves. (Note that
+    // they live on the heap, so they must be deleted explicitly. ZGIM being
+    // destructed means the login server is shutting down anyway.)
     for (HashMapZoneGroupInfo::iterator itr = m_ZoneGroupInfos.begin(); itr != m_ZoneGroupInfos.end(); itr++) {
         delete itr->second;
         itr->second = NULL;
     }
 
-    // ���� �ؽ��ʾȿ� �ִ� ��� pair ���� �����Ѵ�.
+    // Now erase every pair in the hash map.
     m_ZoneGroupInfos.clear();
 }
 
@@ -102,10 +102,10 @@ void ZoneGroupInfoManager::deleteZoneGroupInfo(ZoneGroupID_t zoneGroupID) noexce
     HashMapZoneGroupInfo::iterator itr = m_ZoneGroupInfos.find(zoneGroupID);
 
     if (itr != m_ZoneGroupInfos.end()) {
-        // ZoneGroupInfo �� �����Ѵ�.
+        // Delete the ZoneGroupInfo.
         delete itr->second;
 
-        // pair�� �����Ѵ�.
+        // Erase the pair.
         m_ZoneGroupInfos.erase(itr);
 
     } else { // not found
@@ -161,7 +161,7 @@ string ZoneGroupInfoManager::toString() const {
         //--------------------------------------------------
         // *OPTIMIZATION*
         //
-        // for_each()�� ����� ��
+        // Could use for_each()
         //--------------------------------------------------
         for (HashMapZoneGroupInfo::const_iterator itr = m_ZoneGroupInfos.begin(); itr != m_ZoneGroupInfos.end(); itr++)
             msg << itr->second->toString();

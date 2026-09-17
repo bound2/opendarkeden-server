@@ -2,7 +2,7 @@
 //
 // Filename    : ClientManager.h
 // Written by  : reiot@ewestsoft.com
-// Description : 로그인 서버용 클라이언트 매니저
+// Description : Client manager for the login server
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -17,17 +17,17 @@
 //
 // class ClientManager;
 //
-// 로그인 서버에 접속한 모든 플레이어들의 입출력을 처리하며,
-// 새로운 클라이언트의 연결 시도를 처리한다.
+// Handles the input and output of every player connected to the login server,
+// and handles new client connection attempts.
 //
-// 클라이언트의 run()은 로그인 서버 프로세스의 메인 쓰레드에서 돌아간다.
-// 따라서, Thread를 상속받을 필요가 없다. 그러나, 클래스의 구조나 역할은
-// Thread 를 상속받은 다른 클래스와 유사하다.
+// The client's run() runs on the main thread of the login server process,
+// so it need not inherit Thread. Its structure and role are nonetheless
+// similar to the other classes that do inherit Thread.
 //
 // *NOTES*
 //
-// LoginPlayerManager를 ClientManager의 데이터 멤버로 정의할 수도 있지만,
-// 패킷 핸들러에서 쉽게 접근하기 위해서는 글로벌 변수로 정의되어야 한다.
+// LoginPlayerManager could be a data member of ClientManager, but it has to
+// be a global variable so packet handlers can reach it easily.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -39,16 +39,16 @@ public:
     // destructor
     ~ClientManager() noexcept(false);
 
-    // 클라이언트 매니저를 초기화한다.
+    // Initialize the client manager.
     void init();
 
-    // 클라이언트 매니저를 시작한다.
+    // Start the client manager.
     void start();
 
-    // 클라이언트 매니저를 중단한다.
+    // Stop the client manager.
     void stop();
 
-    // 클라이언트 매니저의 메인 메쏘드
+    // The client manager's main method
     void run();
 };
 

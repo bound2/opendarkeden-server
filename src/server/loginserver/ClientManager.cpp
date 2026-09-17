@@ -2,7 +2,7 @@
 //
 // Filename    : ClientManager.cpp
 // Written by  : reiot@ewestsoft.com
-// Description : 로그인 서버용 클라이언트 매니저
+// Description : Client manager for the login server
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -24,13 +24,13 @@
 //
 // constructor
 //
-// 하위 매니저 객체를 생성하는 곳이다.
+// This is where the sub-manager objects are created.
 //
 //////////////////////////////////////////////////////////////////////
 ClientManager::ClientManager() {
     __BEGIN_TRY
 
-    // 로그인 플레이어 매니저를 생성한다.
+    // Create the login player manager.
     g_pLoginPlayerManager = new LoginPlayerManager();
 
     __END_CATCH
@@ -41,13 +41,13 @@ ClientManager::ClientManager() {
 //
 // destructor
 //
-// 하위 매니저 객체를 삭제하는 곳이다.
+// This is where the sub-manager objects are deleted.
 //
 //////////////////////////////////////////////////////////////////////
 ClientManager::~ClientManager() noexcept(false) {
     __BEGIN_TRY
 
-    // 로그인 플레이어 매니저를 삭제한다.
+    // Delete the login player manager.
     if (g_pLoginPlayerManager != NULL) {
         delete g_pLoginPlayerManager;
         g_pLoginPlayerManager = NULL;
@@ -59,7 +59,7 @@ ClientManager::~ClientManager() noexcept(false) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// 하위 매니저 객체를 초기화하고, 자신을 초기화한다.
+// Initialize the sub-manager objects, then initialize itself.
 //
 //////////////////////////////////////////////////////////////////////
 void ClientManager::init() {
@@ -73,13 +73,13 @@ void ClientManager::init() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// 서비스를 시작한다.
+// Start the service.
 //
 //////////////////////////////////////////////////////////////////////
 void ClientManager::start() {
     __BEGIN_TRY
 
-    run(); // 바로 run() 메쏘드를 호출한다. ^^;
+    run(); // Call the run() method directly.
 
     __END_CATCH
 }
@@ -87,7 +87,7 @@ void ClientManager::start() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// 자신의 서비스를 중단한 후, 하위 매니저 객체들의 서비스를 중단시킨다.
+// Stop its own service, then stop the sub-managers' services.
 //
 //////////////////////////////////////////////////////////////////////
 void ClientManager::stop() {
@@ -102,7 +102,7 @@ void ClientManager::stop() {
 
 
 //////////////////////////////////////////////////////////////////////
-// 클라이언트 매니저의 메인 루프이다.
+// This is the client manager's main loop.
 //////////////////////////////////////////////////////////////////////
 void ClientManager::run() {
     __BEGIN_TRY
@@ -112,9 +112,9 @@ void ClientManager::run() {
     Timeval NextTime;
     getCurrentTime(NextTime);
 
-    // GameWorldInfo, GameServerInfo 새로 로드하는 시간
+    // Time GameWorldInfo and GameServerInfo were last reloaded
     Timeval ReloadNextTime = NextTime;
-    // GameWorldInfo, GameServerInfo 새로 로드하는 시간 간격, 분 단위
+    // Interval at which GameWorldInfo and GameServerInfo are reloaded, in minutes
     int ReloadGap = g_pConfig->getPropertyInt("ServerInfoReloadTime") * 60;
     ReloadNextTime.tv_sec += ReloadGap;
 
@@ -124,7 +124,7 @@ void ClientManager::run() {
     getCurrentTime(dummyQueryTime);
 
     while (!ServerShutdown::isRequested()) {
-        usleep(1000); // FIX: 降低 CPU 占用率，从 100 微秒改为 1000 微秒（1ms）
+        usleep(1000); // FIX: lower the CPU usage, 100 microseconds raised to 1000 (1ms)
 
         beginProfileEx("LS_MAIN");
 
@@ -164,8 +164,8 @@ void ClientManager::run() {
             NextTime.tv_sec = currentTime.tv_sec + 10;
             NextTime.tv_usec = currentTime.tv_usec;
 
-            // 매턴마다 프로파일 데이터를 초기화해준다.
-            // 누적 데이터보다는 시간대에 따른 시간을 측정하기 위해서...
+            // Reset the profile data every turn.
+            // To measure time per interval rather than cumulative data...
             initProfileEx();
 
             // g_PacketProfileManager.outputResultToFile("PacketProfile.txt");
@@ -184,7 +184,7 @@ void ClientManager::run() {
             ReloadNextTime.tv_sec += ReloadGap;
         }
 
-        // DB connection 이 timeout 으로 끊어지지 않게 가끔씩 의미없는 쿼리함해준다.
+        // Run a meaningless query now and then so the DB connection does not time out.
         // by bezz. 2003.04.21
         if (dummyQueryTime < currentTime) {
             g_pDatabaseManager->executeDummyQuery(g_pDatabaseManager->getConnection("DARKEDEN"));

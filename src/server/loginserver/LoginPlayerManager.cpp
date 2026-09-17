@@ -2,7 +2,7 @@
 //
 // Filename    : LoginPlayerManager.cpp
 // Written by  : reiot@ewestsoft.com
-// Description : 로그인 서버용 클라이언트 매니저
+// Description : Client manager for the login server
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -28,7 +28,7 @@
 //
 // constructor
 //
-// 하위 매니저 객체를 생성하는 곳이다. (그런데, 없다. - -;)
+// This is where the sub-manager objects are created. (There are none.)
 //
 //////////////////////////////////////////////////////////////////////
 LoginPlayerManager::LoginPlayerManager() : m_pServerSocket(NULL), m_ServerFD(INVALID_SOCKET), m_MinFD(-1), m_MaxFD(-1) {
@@ -46,7 +46,7 @@ LoginPlayerManager::LoginPlayerManager() : m_pServerSocket(NULL), m_ServerFD(INV
 //
 // destructor
 //
-// 하위 매니저 객체를 삭제하는 곳이다. (그런데, 없다. - -;)
+// This is where the sub-manager objects are deleted. (There are none.)
 //
 //////////////////////////////////////////////////////////////////////
 LoginPlayerManager::~LoginPlayerManager() noexcept {
@@ -58,8 +58,8 @@ LoginPlayerManager::~LoginPlayerManager() noexcept {
         m_pServerSocket = NULL;
     }
 
-    // base class인 PlayerManager의 destructor에서 접속한 모든 플레이어들의
-    // 연결을 끊고, 객체를 삭제하므로 신경쓰지 않아도 된다.
+    // The destructor of the base class PlayerManager disconnects every connected
+    // player and deletes the objects, so there is nothing to do here.
     //
     if (g_pReconnectLoginInfoManager != NULL) {
         delete g_pReconnectLoginInfoManager;
@@ -72,18 +72,18 @@ LoginPlayerManager::~LoginPlayerManager() noexcept {
 
 //////////////////////////////////////////////////////////////////////
 //
-// 하위 매니저 객체를 초기화하고, 자신을 초기화한다.
+// Initialize the sub-manager objects, then initialize itself.
 //
 //////////////////////////////////////////////////////////////////////
 void LoginPlayerManager::init() {
     __BEGIN_TRY
 
-    // 바인드될때까지 재시도
+    // Retry until the bind succeeds
     while (1) {
         try {
-            // 서버 소켓을 생성한다.
+            // Create the server socket.
             m_pServerSocket = new ServerSocket(g_pConfig->getPropertyInt("LoginServerPort"));
-            // 정상적으로 바인드되면 나간다.
+            // Leave once the bind succeeds.
             break;
         } catch (BindException& be) {
             SAFE_DELETE(m_pServerSocket);
@@ -92,28 +92,28 @@ void LoginPlayerManager::init() {
         }
     }
 
-    // 서버 소켓 디스크립터를 지정한다.
+    // Set the server socket descriptor.
     m_ServerFD = m_pServerSocket->getSOCKET();
 
-    // fd_set 들을 0 으로 초기화한다.
+    // Zero the fd_sets.
     FD_ZERO(&m_ReadFDs[0]);
     FD_ZERO(&m_WriteFDs[0]);
     FD_ZERO(&m_ExceptFDs[0]);
 
-    // 서버 소켓을 켠다.
+    // Turn the server socket on.
     FD_SET(m_ServerFD, &m_ReadFDs[0]);
 
     // set min/max fd
     m_MaxFD = m_MinFD = m_ServerFD;
 
-    // m_Timeout 을 초기화한다.
-    // 나중에는 이 주기 역시 옵션으로 처리하도록 하자.
-    // ZonePlayerManager에 비해서 길어도 무방하다.....
+    // Initialize m_Timeout.
+    // This period should become an option later as well.
+    // It may be longer than the one in ZonePlayerManager.
     m_Timeout[0].tv_sec = 0;
     m_Timeout[0].tv_usec = 0;
 
     //--------------------------------------------------------------------------------
-    // Player.LogOn 를 정리해준다.
+    // Tidy Player.LogOn up.
     //--------------------------------------------------------------------------------
     // Every account this login server left LOGON is logged off, and its
     // PC-room record dropped.
@@ -139,30 +139,30 @@ void LoginPlayerManager::init() {
 }
 
 //////////////////////////////////////////////////////////////////////
-// select()를 사용해서 I/O Multiplexing 을 한다.
+// Use select() for I/O multiplexing.
 //////////////////////////////////////////////////////////////////////
 void LoginPlayerManager::select() {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    // m_Timeout[0] 을 m_Timeout[1] 으로 복사한다.
+    // Copy m_Timeout[0] into m_Timeout[1].
     m_Timeout[1].tv_sec = m_Timeout[0].tv_sec;
     m_Timeout[1].tv_usec = m_Timeout[0].tv_usec;
 
-    // m_XXXFDs[0] 을 m_XXXFDs[1] 으로 복사한다.
+    // Copy m_XXXFDs[0] into m_XXXFDs[1].
     m_ReadFDs[1] = m_ReadFDs[0];
     m_WriteFDs[1] = m_WriteFDs[0];
     m_ExceptFDs[1] = m_ExceptFDs[0];
 
     try {
-        // 이제 m_XXXFDs[1] 을 가지고 select() 를 호출한다.
+        // Now call select() with m_XXXFDs[1].
         SocketAPI::select_ex(m_MaxFD + 1, &m_ReadFDs[1], &m_WriteFDs[1], &m_ExceptFDs[1], &m_Timeout[1]);
 
     } catch (TimeoutException) {
         // do nothing
     } catch (InterruptedException& ie) {
-        // 시그널이 올 리가 엄찌~~
+        // No signal can arrive here.
         log(LOG_LOGINSERVER, "", "", ie.toString());
     }
 
@@ -172,7 +172,7 @@ void LoginPlayerManager::select() {
 }
 
 //////////////////////////////////////////////////////////////////////
-// 혹시모를 OOB 데이타를 처리한다.
+// Handle any OOB data.
 //////////////////////////////////////////////////////////////////////
 void LoginPlayerManager::processExceptions() {
     __BEGIN_TRY
@@ -188,13 +188,13 @@ void LoginPlayerManager::processExceptions() {
             log(LOG_LOGINSERVER_ERROR, "", "", msg.toString());
             cout << msg.toString() << endl;
 
-            // 출력 버퍼를 플러시한다.
+            // Flush the output buffer.
             m_pPlayers[i]->disconnect(UNDISCONNECTED);
 
-            // 플레이어 객체를 삭제한다.
+            // Delete the player object.
             delete m_pPlayers[i];
 
-            // 플레이어 매니저에서 플레이어를 삭제한다.
+            // Remove the player from the player manager.
             deletePlayer_NOLOCKED(i);
         }
     }
@@ -205,7 +205,7 @@ void LoginPlayerManager::processExceptions() {
 }
 
 //////////////////////////////////////////////////////////////////////
-// 접속한 모든 플레이어들의 입력을 각자의 입력 버퍼에 복사한다.
+// Copy the input of every connected player into its own input buffer.
 //////////////////////////////////////////////////////////////////////
 void LoginPlayerManager::processInputs() {
     __BEGIN_TRY
@@ -215,7 +215,7 @@ void LoginPlayerManager::processInputs() {
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         if (FD_ISSET(i, &m_ReadFDs[1])) {
             if (i == m_ServerFD) {
-                // 서버 소켓일 경우, 새로운 접속이 들어왔다는 뜻이다.
+                // The server socket means a new connection came in.
                 acceptNewConnection();
 
             } else {
@@ -223,31 +223,31 @@ void LoginPlayerManager::processInputs() {
 
                 try {
                     if (m_pPlayers[i]->getSocket()->getSockError()) {
-                        // 이미 연결이 끊긴 상태이므로, 출력 버퍼를 플러시하지 않아야 한다.
+                        // The connection is already gone, so the output buffer must not be flushed.
                         m_pPlayers[i]->disconnect(DISCONNECTED);
 
-                        // 플레이어 객체를 삭제한다.
+                        // Delete the player object.
                         delete m_pPlayers[i];
 
-                        // 플레이어 매니저에서 플레이어를 삭제한다.
+                        // Remove the player from the player manager.
                         deletePlayer_NOLOCKED(i);
                     } else {
                         m_pPlayers[i]->processInput();
                     }
 
                 } catch (ConnectException& ce) {
-                    // Blocking 소켓이므로 ConnectException 과 Error를 제외한 어떤 예외도 발생하지 않는다.
+                    // The socket is blocking, so no exception other than ConnectException and Error can occur.
 
                     cout << ce.toString() << endl;
                     log(LOG_LOGINSERVER_ERROR, "", ce.toString());
 
-                    // 이미 연결이 끊긴 상태이므로, 출력 버퍼를 플러시하지 않아야 한다.
+                    // The connection is already gone, so the output buffer must not be flushed.
                     m_pPlayers[i]->disconnect(DISCONNECTED);
 
-                    // 플레이어 객체를 삭제한다.
+                    // Delete the player object.
                     delete m_pPlayers[i];
 
-                    // 플레이어 매니저에서 플레이어를 삭제한다.
+                    // Remove the player from the player manager.
                     deletePlayer_NOLOCKED(i);
                 }
             }
@@ -260,15 +260,15 @@ void LoginPlayerManager::processInputs() {
 }
 
 //////////////////////////////////////////////////////////////////////
-// 접속한 모든 플레이어들의 입력 패킷을 처리한다.
+// Process the input packets of every connected player.
 //////////////////////////////////////////////////////////////////////
 void LoginPlayerManager::processCommands() {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    // m_pPlayers[i] != NULL 의 확률이 i != m_ServerFD 보다 높으므로
-    // 이 조건을 앞에다가 둔다.
+    // m_pPlayers[i] != NULL is more likely than i != m_ServerFD,
+    // so that condition goes first.
 
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         if (m_pPlayers[i] != NULL && i != m_ServerFD) {
@@ -276,15 +276,15 @@ void LoginPlayerManager::processCommands() {
                 m_pPlayers[i]->processCommand();
             } catch (ProtocolException& pe) {
                 //--------------------------------------------------
-                // ProtocolException의 종류에는 3 가지가 있다.
+                // There are three kinds of ProtocolException.
                 //
-                // - InvalidProtocolException : 프로토콜 에러
-                // - DisconnectException : 연결을 종료시킴
-                // - InsufficiendDataException : 패킷이 부분적으로만 도착했음
+                // - InvalidProtocolException : protocol error
+                // - DisconnectException : close the connection
+                // - InsufficiendDataException : the packet arrived only partially
                 //
-                // 이 모두 클라이언트와의 연결이 지속되어 있는 상태
-                // 이므로, disconnect시 UNDISCONNECTED 파라미터를 사용해서
-                // 출력 버퍼를 플러시해줘야 한다.
+                // In all of these the connection to the client is still up,
+                // so disconnect must be called with the UNDISCONNECTED parameter
+                // to flush the output buffer.
                 //
                 //--------------------------------------------------
 
@@ -293,23 +293,21 @@ void LoginPlayerManager::processCommands() {
 
                 m_pPlayers[i]->disconnect(UNDISCONNECTED);
 
-                // 플레이어 객체를 삭제한다.
+                // Delete the player object.
                 delete m_pPlayers[i];
 
-                // 플레이어 매니저에서 플레이어를 삭제한다.
+                // Remove the player from the player manager.
                 deletePlayer_NOLOCKED(i);
-            }
-            // 김성민에 의해 추가...
-            catch (ConnectException& ce) {
+            } catch (ConnectException& ce) {
                 cout << ce.toString() << endl;
                 log(LOG_LOGINSERVER_ERROR, "", "", ce.toString());
 
                 m_pPlayers[i]->disconnect(DISCONNECTED);
 
-                // 플레이어 객체를 삭제한다.
+                // Delete the player object.
                 delete m_pPlayers[i];
 
-                // 플레이어 매니저에서 플레이어를 삭제한다.
+                // Remove the player from the player manager.
                 deletePlayer_NOLOCKED(i);
             }
         }
@@ -321,7 +319,7 @@ void LoginPlayerManager::processCommands() {
 }
 
 //////////////////////////////////////////////////////////////////////
-// 접속한 모든 플레이어들의 출력을 클라이언트로 전송한다.
+// Send the output of every connected player to the client.
 //////////////////////////////////////////////////////////////////////
 void LoginPlayerManager::processOutputs() {
     __BEGIN_TRY
@@ -339,26 +337,26 @@ void LoginPlayerManager::processOutputs() {
                 cout << ce.toString() << endl;
                 log(LOG_LOGINSERVER_ERROR, "", "", ce.toString());
 
-                // 이미 연결이 끊긴 상태이므로, 출력 버퍼를 플러시하지 않아야 한다.
+                // The connection is already gone, so the output buffer must not be flushed.
                 m_pPlayers[i]->disconnect(DISCONNECTED);
 
-                // 플레이어 객체를 삭제한다.
+                // Delete the player object.
                 delete m_pPlayers[i];
 
-                // 플레이어 매니저에서 플레이어를 삭제한다.
+                // Remove the player from the player manager.
                 deletePlayer_NOLOCKED(i);
 
             } catch (ProtocolException& pe) {
                 cout << pe.toString() << endl;
                 log(LOG_LOGINSERVER_ERROR, "", "", pe.toString());
 
-                // 이미 연결이 끊긴 상태이므로, 출력 버퍼를 플러시하지 않아야 한다.
+                // The connection is already gone, so the output buffer must not be flushed.
                 m_pPlayers[i]->disconnect(DISCONNECTED);
 
-                // 플레이어 객체를 삭제한다.
+                // Delete the player object.
                 delete m_pPlayers[i];
 
-                // 플레이어 매니저에서 플레이어를 삭제한다.
+                // Remove the player from the player manager.
                 deletePlayer_NOLOCKED(i);
             }
         }
@@ -374,18 +372,18 @@ void LoginPlayerManager::processOutputs() {
 //
 // accept new connection
 //
-// select 기반에서는 nonblocking 소켓을 사용하지 않는다.
+// A select-based design does not use nonblocking sockets.
 //
-// 로그인 서버는 기본적으로 모든 연결시도를 받아들인다.
-// 단 BAN DB에 등록된 IP로부터의 연결은 받아들이지 않는다.
+// The login server accepts every connection attempt by default.
+// Only connections from an IP registered in the BAN DB are refused.
 //
 //////////////////////////////////////////////////////////////////////
 void LoginPlayerManager::acceptNewConnection() {
     __BEGIN_TRY
 
-    // 블록킹 방식으로 connection을 기다릴 경우
-    // 리턴되는 값은 절대 NULL이 될 수 없다.
-    // 또한 NonBlockingIOException도 발생할 수 없다.
+    // When waiting for a connection in blocking mode
+    // the returned value can never be NULL.
+    // NonBlockingIOException cannot be thrown either.
     Socket* client = NULL;
 
     try {
@@ -393,9 +391,9 @@ void LoginPlayerManager::acceptNewConnection() {
     } catch (Throwable& t) {
     }
 
-    // ConnectException 이 발생할 가능성이 있다. (실제로 발생했다.)
-    // 현재 내부에서 CE 가 발새할 경우, NULL 을 리턴하기 때문에..
-    // NULL 을 체크해서, 무시해줘야 한다.
+    // A ConnectException can occur. (It actually did.)
+    // Since NULL is returned when a CE occurs inside,
+    // check for NULL and ignore it.
     if (client == NULL)
         return;
 
@@ -419,7 +417,7 @@ void LoginPlayerManager::acceptNewConnection() {
     cerr << "NEW CONNECTION FROM " << client->getHost() << ":" << client->getPort() << endl;
 
     //--------------------------------------------------
-    // BAN DB에 쿼리해서 현재 IP가 올바른지 확인해본다.
+    // Query the BAN DB to check whether the current IP is allowed.
     //--------------------------------------------------
     /*
     if ( g_pBanManager->isBanned( client->getHost() ) ) {
@@ -433,14 +431,14 @@ void LoginPlayerManager::acceptNewConnection() {
     // set socket option ( !NonBlocking, NoLinger )
     client->setLinger(0);
 
-    // 클라이언트 소켓을 파라미터로 사용해서 플레이어 객체를 생성한다.
+    // Create the player object with the client socket as parameter.
     LoginPlayer* pPlayer = new LoginPlayer(client);
 
     // set player status to PLAYER_LOGON
     Assert(pPlayer->getPlayerStatus() == LPS_NONE);
     pPlayer->setPlayerStatus(LPS_BEGIN_SESSION);
 
-    // LoginPlayerManager에 등록한다.
+    // Register it with the LoginPlayerManager.
     addPlayer_NOLOCKED(pPlayer);
 
     __END_CATCH
@@ -448,10 +446,10 @@ void LoginPlayerManager::acceptNewConnection() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// 특정 플레이어를 매니저에 추가한다.
+// Add a given player to the manager.
 //
-// 로그인 서버에서는 플레이어 배열에 대해서 따로 쓰레드가 돌지 않으므로
-// locking 을 할 필요가 없다.
+// On the login server no separate thread runs over the player array,
+// so no locking is needed.
 //
 //////////////////////////////////////////////////////////////////////
 void LoginPlayerManager::addPlayer_NOLOCKED(Player* pPlayer) {
@@ -461,12 +459,12 @@ void LoginPlayerManager::addPlayer_NOLOCKED(Player* pPlayer) {
 
     SOCKET fd = pPlayer->getSocket()->getSOCKET();
 
-    // m_MinFD , m_MaxFD 를 재조정한다.
+    // Readjust m_MinFD and m_MaxFD.
     m_MinFD = min(fd, m_MinFD);
     m_MaxFD = max(fd, m_MaxFD);
 
-    // 모든 fd_set 에 fd 비트를 on 시킨다.
-    // m_XXXFDs[1] 은 다음번에 처리해주면 된다.
+    // Turn the fd bit on in every fd_set.
+    // m_XXXFDs[1] can be dealt with on the next round.
     FD_SET(fd, &m_ReadFDs[0]);
     FD_SET(fd, &m_WriteFDs[0]);
     FD_SET(fd, &m_ExceptFDs[0]);
@@ -488,10 +486,10 @@ void LoginPlayerManager::addPlayer(Player* pPlayer) {
 
 //--------------------------------------------------------------------------------
 //
-// 특정 플레이어를 매니저에서 삭제한다.
+// Remove a given player from the manager.
 //
-// 로그인 서버에서는 플레이어 배열에 대해서 따로 쓰레드가 돌지 않으므로
-// locking 을 할 필요가 없다.
+// On the login server no separate thread runs over the player array,
+// so no locking is needed.
 //
 //--------------------------------------------------------------------------------
 void LoginPlayerManager::deletePlayer_NOLOCKED(SOCKET fd) {
@@ -501,11 +499,11 @@ void LoginPlayerManager::deletePlayer_NOLOCKED(SOCKET fd) {
 
     Assert(m_pPlayers[fd] == NULL);
 
-    // m_MinFD , m_MaxFD 를 재조정한다.
-    // fd == m_MinFD && fd == m_MaxFD 인 경우는 첫번째 if 에서 처리된다.
+    // Readjust m_MinFD and m_MaxFD.
+    // The fd == m_MinFD && fd == m_MaxFD case is handled by the first if.
     if (fd == m_MinFD) {
-        // 앞에서부터 제일 작은 fd 를 찾는다.
-        // m_MinFD 자리는 현재 NULL 이 되어 있음을 유의하라.
+        // Find the smallest fd from the front.
+        // Note that the m_MinFD slot is NULL at this point.
         int i = m_MinFD;
         for (; i <= m_MaxFD; i++) {
             if (m_pPlayers[i] != NULL || i == m_ServerFD) {
@@ -514,15 +512,15 @@ void LoginPlayerManager::deletePlayer_NOLOCKED(SOCKET fd) {
             }
         }
 
-        // 적절한 m_MinFD를 찾지 못했을 경우,
-        // 이때에는 m_MinFD == m_MaxFD 인 경우이다.
-        // 이때에는 둘 다 -1 로 설정해주자.
+        // When no suitable m_MinFD was found,
+        // this is the m_MinFD == m_MaxFD case.
+        // Set both to -1 then.
         if (i > m_MaxFD)
             m_MinFD = m_MaxFD = -1;
 
     } else if (fd == m_MaxFD) {
-        // 뒤에서부터 가장 큰 fd 를 찾는다.
-        // ServerFD 에 유의할 것! ( ServerFD 의 경우 Player 포인터는 NULL 이다. )
+        // Find the largest fd from the back.
+        // Watch out for ServerFD! ( for ServerFD the Player pointer is NULL. )
         int i = m_MaxFD;
         for (; i >= m_MinFD; i--) {
             if (m_pPlayers[i] != NULL || i == m_ServerFD) {
@@ -531,15 +529,15 @@ void LoginPlayerManager::deletePlayer_NOLOCKED(SOCKET fd) {
             }
         }
 
-        // 적절한 m_MinFD를 찾지 못했을 경우,
+        // When no suitable m_MinFD was found,
         if (i < m_MinFD) {
             throw UnknownError("m_MinFD & m_MaxFD problem.");
         }
     }
 
-    // 모든 fd_set 에 fd 비트를 off 시킨다.
-    // m_XXXFDs[1]도 고쳐야 하는 이유는, 이후 처리에서 객체가 없어졌는데도
-    // 처리받을 확률이 있기 때문이다.
+    // Turn the fd bit off in every fd_set.
+    // m_XXXFDs[1] has to be fixed too, because otherwise an object that is gone
+    // could still be processed later.
     FD_CLR(fd, &m_ReadFDs[0]);
     FD_CLR(fd, &m_ReadFDs[1]);
     FD_CLR(fd, &m_WriteFDs[0]);
@@ -562,7 +560,7 @@ void LoginPlayerManager::deletePlayer(SOCKET fd) {
 
 
 //----------------------------------------------------------------------
-// 로그인 서버에 접속한 특정 플레이어를 검색한다.
+// Look a given player connected to the login server up.
 //----------------------------------------------------------------------
 LoginPlayer* LoginPlayerManager::getPlayer_NOLOCKED(const string& id) const {
     __BEGIN_TRY
@@ -610,7 +608,7 @@ LoginPlayer* LoginPlayerManager::getPlayer(const string& id) const {
 
 
 //--------------------------------------------------------------------------------
-// 로그인 서버에 접속한 모든 플레이어들에게 특정 패킷을 전송한다.
+// Send a given packet to every player connected to the login server.
 //--------------------------------------------------------------------------------
 void LoginPlayerManager::broadcastPacket(Packet* pPacket) {
     __BEGIN_TRY
@@ -626,7 +624,7 @@ void LoginPlayerManager::broadcastPacket(Packet* pPacket) {
 
 
 //--------------------------------------------------------------------------------
-// 로그인 서버에 접속한 특정 플레이어에게 특정 패킷을 보낸다.
+// Send a given packet to a given player connected to the login server.
 //--------------------------------------------------------------------------------
 void LoginPlayerManager::sendPacket(const string& id, Packet* pPacket) {
     __BEGIN_TRY

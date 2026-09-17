@@ -102,10 +102,10 @@ void GameServerManager::run() {
             DatagramPacket* pDatagramPacket = NULL;
 
             try {
-                // �����ͱ׷� ��ü�� �������.
+                // Pull the datagram object out.
                 pDatagram = m_pDatagramSocket->receive();
 
-                if (pDatagram != NULL) // �Ϻ� exception����. by sigi. 2002.5.17
+                if (pDatagram != NULL) // guards against some exceptions
                 {
                     // cout << pDatagramPacket->toString() << endl;
 
@@ -124,19 +124,19 @@ void GameServerManager::run() {
                     }
                     */
 
-                    // �����ͱ׷� ��Ŷ ��ü�� �������.
+                    // Pull the datagram packet object out.
                     pDatagram->read(pDatagramPacket);
 
                     if (pDatagramPacket != NULL) {
-                        // ����� �����ͱ׷� ��Ŷ ��ü�� �����Ѵ�.
+                        // Process the datagram packet object that arrived.
                         PacketDispatcher::dispatch(pDatagramPacket, NULL);
 
-                        // �����ͱ׷� ��Ŷ ��ü�� �����Ѵ�.
+                        // Delete the datagram packet object.
                         delete pDatagramPacket;
                         pDatagramPacket = NULL;
                     }
 
-                    // �����ͱ׷� ��ü�� �����Ѵ�.
+                    // Delete the datagram object.
                     delete pDatagram;
                     pDatagram = NULL;
                 }
@@ -144,9 +144,9 @@ void GameServerManager::run() {
                 cout << "GameServerManager::run Exception Check(ProtocolException)" << endl;
                 cout << pe.toString() << endl;
 
-                // ������ ��ſ��� �������� ������ �߻��ϸ�,
-                // ���α׷��� �����̰ų� ��ŷ �õ��̴�.
-                // �ϴ��� ���ڸ��� �ش�ǹǷ�.. ������ �����Ѵ�.
+                // A protocol error in server-to-server communication means
+                // a programming error or a hacking attempt.
+                // For now the error is simply ignored.
                 // throw Error( pe.toString() );
                 delete pDatagramPacket;
                 delete pDatagram;
@@ -154,8 +154,8 @@ void GameServerManager::run() {
                 cout << "GameServerManager::run Exception Check(ConnectException)" << endl;
                 cout << ce.toString() << endl;
 
-                // ����.. ���� �̰�..
-                // �ϴ� ������..
+                // Hmm, what is this..
+                // Treat it as an error for now.
                 // throw Error( ce.toString() );
                 delete pDatagramPacket;
                 delete pDatagram;
@@ -207,24 +207,24 @@ void GameServerManager::sendPacket(string host, uint port, DatagramPacket* pPack
     try {
         //	try
         //	{
-        // �����ͱ׷� ��ü�� �ϳ� �ΰ�, ������ peer �� ȣ��Ʈ��
-        // ��Ʈ�� �����Ѵ�.
+        // Keep one datagram object and set the destination peer's host
+        // and port on it.
         Datagram datagram;
 
         datagram.setHost(host);
         datagram.setPort(port);
 
-        // �����ͱ׷� ��Ŷ�� �����ͱ׷��� ����ִ´�.
+        // Put the datagram packet into the datagram.
         datagram.write(pPacket);
 
-        // �����ͱ׷� ������ ���ؼ� �����ͱ׷��� �����Ѵ�.
+        // Send the datagram through the datagram socket.
         m_pDatagramSocket->send(&datagram);
         //	}
         //	catch ( ConnectException & t )
         //	{
         //		cout << "GameServerManager::sendDatagram Exception Check!!" << endl;
         //		cout << t.toString() << endl;
-        //		throw ConnectException( "GameServerManager::sendDatagram ������ ������");
+        //		throw ConnectException( "GameServerManager::sendDatagram send failed");
         //	}
 
     } catch (Throwable& t) {

@@ -19,7 +19,7 @@
 //
 // class ReconnectLoginInfo;
 //
-// ¼­¹ö°£ ÀÌµ¿¿¡¼­ Á¤´çÇÑ ¿¬°á¿¡ ´ëÇÑ Á¤º¸¸¦ ³ªÅ¸³»´Â °´Ã¼
+// Object describing a connection authorized for a server-to-server move
 //
 //----------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ private:
     // PlayerID
     string m_PlayerID;
 
-    // expire time : ¾ðÁ¦±îÁö ÀÌ Á¤º¸¸¦ À¯ÁöÇÏ°í ÀÖ¾î¾ß ÇÏ´ÂÁö..
+    // expire time : how long this information has to be kept..
     Timeval m_ExpireTime;
 
     // validation key
@@ -92,13 +92,12 @@ private:
 //
 // CompareReconnectLoginInfo
 //
-// priority_queue ¿¡¼­ ReconnectLoginInfo ³¢¸® ºñ±³ÇÒ ¶§ »ç¿ëÇÏ´Â Å¬·¡½º¸
+// Class used when comparing ReconnectLoginInfo objects in a priority_queue
 //
 // *CAUTION*
 //
-// ½Ã°£ÀûÀ¸·Î ÀÌ¸¥(½Ã°£°ªÀÌ ÀÛÀº) ÂÊÀÌ PQ ÀÇ top ¿¡ À§Ä¡ÇØ¾ß ÇÑ´Ù.
-// Áï PQ ´Â ascending order ¸¦ ÀÌ·ï¾ß ÇÑ´Ù. ¿Ö ±×·±Áö´Â Àß »ìÆìº¸±â¸¦..
-// ½Ã°£ÀÌ ¾ø´Â °ü°è·Î.. - -;
+// The earlier one (the smaller time value) must sit at the top of the PQ.
+// That is, the PQ must be in ascending order. Look closely to see why..
 //
 //----------------------------------------------------------------------
 class CompareReconnectLoginInfo {

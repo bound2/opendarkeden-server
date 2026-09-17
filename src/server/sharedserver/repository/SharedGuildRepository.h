@@ -10,7 +10,7 @@
 // roster (GuildMember), the guild's union membership (GuildUnionMember)
 // and its pending war schedules (WarScheduleInfo) that GuildManager,
 // Guild and GuildMember keep, plus the character side of a membership
-// change the GS handlers write — the GuildID column of the race tables
+// change the GS handlers write -- the GuildID column of the race tables
 // (Slayer, Vampire, Ousters), the Gold refund when a guild registration
 // is cancelled, and the Messages rows that tell the character what
 // happened.
@@ -30,7 +30,7 @@
 // overlap: the worker starts after init() returns, and the main thread
 // runs no statement after that.
 //
-// Reads are typed to the driver getter used: getInt → int, getString →
+// Reads are typed to the driver getter used: getInt -> int, getString ->
 // std::string. Names, dates, intros and the tinysave field text are
 // interpolated raw; the callers escape an intro through
 // Guild::correctString before passing it, nothing else is escaped.
@@ -68,15 +68,15 @@
 // the caller says which text goes out.
 enum SharedMessageSpelling {
     // "INSERT INTO Messages (Receiver, Message ) VALUES ('%s', '%s' )"
-    // — GSQuitGuildHandler, GSModifyGuildMemberHandler.
+    // -- GSQuitGuildHandler, GSModifyGuildMemberHandler.
     SHARED_MESSAGE_SQL_COMPACT,
     // "INSERT INTO Messages ( Receiver, Message ) VALUES ( '%s', '%s' )"
-    // — GSAddGuildMemberHandler.
+    // -- GSAddGuildMemberHandler.
     SHARED_MESSAGE_SQL_SPACED,
     SHARED_MESSAGE_SQL_SPELLING_MAX
 };
 
-// GuildMember::load — the four columns it reads back.
+// GuildMember::load -- the four columns it reads back.
 struct SharedGuildMemberRow {
     int guildID;
     std::string name;
@@ -94,7 +94,7 @@ struct SharedGuildMemberListRow {
     int logOn;
 };
 
-// Guild::load — eight columns, the Intro excluded.
+// Guild::load -- eight columns, the Intro excluded.
 struct SharedGuildRow {
     std::string name;
     int type;
@@ -106,7 +106,7 @@ struct SharedGuildRow {
     std::string date;
 };
 
-// GuildManager::load — ten columns, Intro included.
+// GuildManager::load -- ten columns, Intro included.
 struct SharedGuildListRow {
     int id;
     std::string name;
@@ -156,14 +156,14 @@ public:
     virtual bool loadMember(const std::string& name, SharedGuildMemberRow& row) = 0;
     virtual void saveMember(GuildID_t guildID, GuildMemberRank_t rank, const std::string& name) = 0;
     virtual void deleteMember(const std::string& name) = 0;
-    // GuildMember::expire / leave — a GuildRank enumerator through "%d"
+    // GuildMember::expire / leave -- a GuildRank enumerator through "%d"
     // and the caller's "%03d%02d%02d" date text (seven characters; the
     // column is varchar(7)).
     virtual void setMemberRankAndExpireDate(int rank, const std::string& expireDate, const std::string& name) = 0;
     virtual void saveMemberIntro(const std::string& intro, const std::string& name) = 0;
     // False when the name has no row, leaving intro untouched.
     virtual bool loadMemberIntro(const std::string& name, std::string& intro) = 0;
-    // RequestDateTime = now() — GSAddGuildMemberHandler stamps every
+    // RequestDateTime = now() -- GSAddGuildMemberHandler stamps every
     // member when a waiting guild becomes active.
     virtual void stampMemberRequestDateTime(const std::string& name) = 0;
     // Every row with Rank IN (0, 1, 2, 3): normal, master, submaster,
@@ -210,13 +210,13 @@ public:
 
     // --- the character side of a membership change (the GS handlers) ----------
     // "UPDATE <race table> SET GuildID = %d WHERE Name = '%s'": the table
-    // is chosen by race (Guild::GuildRace — 0 Slayer, 1 Vampire, 2
+    // is chosen by race (Guild::GuildRace -- 0 Slayer, 1 Vampire, 2
     // Ousters). A race outside those three runs no statement. The callers
     // pass the guild's id on joining, and the race's no-guild id on
-    // leaving (99 for Slayer, 0 for Vampire, 66 for Ousters — except that
+    // leaving (99 for Slayer, 0 for Vampire, 66 for Ousters -- except that
     // GSQuitGuildHandler's dissolve-on-quit branch passes 0 for Ousters).
     virtual void setCharacterGuildID(GuildRace_t race, int guildID, const std::string& name) = 0;
-    // "UPDATE <race table> SET Gold = Gold + %d WHERE Name = '%s'" — the
+    // "UPDATE <race table> SET Gold = Gold + %d WHERE Name = '%s'" -- the
     // registration-fee refund when a waiting guild's master quits. Same
     // race-to-table choice as setCharacterGuildID.
     virtual void addCharacterGold(GuildRace_t race, int gold, const std::string& name) = 0;

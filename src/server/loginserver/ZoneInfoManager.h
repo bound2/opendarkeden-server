@@ -22,7 +22,7 @@ typedef unordered_map<ZoneID_t, ZoneInfo*> HashMapZoneInfo;
 //
 // class ZoneInfoManager;
 //
-// 존 아이디를 키값으로 하는 존 정보의 unordered_map 을 가지고 있다.
+// Holds an unordered_map of zone information keyed by the zone id.
 //
 //----------------------------------------------------------------------
 

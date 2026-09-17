@@ -25,8 +25,8 @@
 // of the account, and the caller follows a VAMPIRE or OUSTERS race to the
 // matching table through loadVampireListRow / loadOustersListRow.
 //
-// Reads are typed to the driver getter used: getInt → int, getString →
-// std::string, getWORD → WORD, getDWORD → DWORD. The callers narrow from
+// Reads are typed to the driver getter used: getInt -> int, getString ->
+// std::string, getWORD -> WORD, getDWORD -> DWORD. The callers narrow from
 // there. Names, account ids and the slot / sex / hair-style texts are
 // interpolated raw.
 //

@@ -28,7 +28,7 @@ public:
     ~GameServerManager() noexcept;
 
 public:
-    // 쉐어드서버에서 받아들이는 최대 게임서버 수
+    // Maximum number of game servers the shared server accepts
     const static uint nMaxGameServers = 100;
 
     // initialize
@@ -74,23 +74,23 @@ public:
     void heartbeat();
 
 private:
-    // TCP 서버 소켓과 소켓 디스크립터
+    // TCP server socket and socket descriptor
     ServerSocket* m_pServerSocket;
     SOCKET m_SocketID;
 
-    // 소속된 플레이어들의 소켓 디스크립터의 집합이다.
-    // m_XXXXFDs[0]은 저장용이며, m_XXXFDs[1]이 실제로 select()의 파라미터로 사용된다.
-    // 즉 select()하기 전에 [0] -> [1] 로 복사가 이루어져야 한다.
+    // The set of socket descriptors of the players that belong here.
+    // m_XXXXFDs[0] is the stored copy; m_XXXFDs[1] is what select() actually gets.
+    // That is, [0] -> [1] must be copied before calling select().
     fd_set m_ReadFDs[2];
     fd_set m_WriteFDs[2];
     fd_set m_ExceptFDs[2];
 
-    // select에 사용되는 시간
+    // Time used by select
     Timeval m_Timeout[2];
 
     // min_fd, max_fd
-    // select()후 iterating 할 때 속도 증가를 위해서 사용한다.
-    // 또한 select()의 첫번째 파라미터를 계산하기 위해서 사용한다.
+    // Used to speed the iteration after select() up.
+    // Also used to compute select()'s first parameter.
     SOCKET m_MinFD;
     SOCKET m_MaxFD;
 
@@ -98,7 +98,7 @@ private:
     mutable Mutex m_Mutex;
 
 
-    // 게임서버의 포인터 배열. 소켓 디스크립터를 인덱스로 사용한다.
+    // Array of game server pointers, indexed by socket descriptor.
     GameServerPlayer* m_pGameServerPlayers[nMaxGameServers];
 };
 

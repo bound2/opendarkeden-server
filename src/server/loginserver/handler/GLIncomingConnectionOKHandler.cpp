@@ -22,9 +22,9 @@
 //
 // GLIncomingConnectionOKHander::execute()
 //
-// 게임 서버로부터 GLIncomingConnectionOK 패킷이 날아오면, 로그인 서버는 이 허가가
-// 어느 플레이어에 대한 허가인지 찾아내야 한다. 그 후, 이 플레이어에게 LCReconnect
-// 패킷을 던져줘야 한다.
+// When a GLIncomingConnectionOK packet arrives from the game server, the login server
+// has to find which player the permission is for and then throw an LCReconnect
+// packet at that player.
 //
 //--------------------------------------------------------------------------------
 void GLIncomingConnectionOKHandler::execute(GLIncomingConnectionOK* pPacket)
@@ -35,7 +35,7 @@ void GLIncomingConnectionOKHandler::execute(GLIncomingConnectionOK* pPacket)
 
         try {
 
-        // 플레이어 아이디를 사용해서 플레이어 객체에 접근한다.
+        // Reach the player object through the player id.
         __ENTER_CRITICAL_SECTION((*g_pLoginPlayerManager))
 
         LoginPlayer* pLoginPlayer = g_pLoginPlayerManager->getPlayer_NOLOCKED(pPacket->getPlayerID());
@@ -52,7 +52,7 @@ void GLIncomingConnectionOKHandler::execute(GLIncomingConnectionOK* pPacket)
             lcReconnect.setGameServerPort(pPacket->getTCPPort());
             lcReconnect.setKey(pPacket->getKey());
 
-            // LCReconnect 패킷을 전송한다.
+            // Send the LCReconnect packet.
             pLoginPlayer->sendPacket(&lcReconnect);
 
             // cout << "GLIncomingConnectionOKHandler Send to Client Required Reconnect ServerIP : " <<
@@ -61,14 +61,14 @@ void GLIncomingConnectionOKHandler::execute(GLIncomingConnectionOK* pPacket)
             // cout << "Invalid Player Status.. must be AFTER_SENDING_LG_INCOMING_CONNECTION" << endl;
         }
 
-        // 연결을 종료한다.
+        // Close the connection.
         // pLoginPlayer->disconnect(UNDISCONNECTED);
         pLoginPlayer->disconnect_nolog(UNDISCONNECTED);
 
-        // LPM에서 삭제한다.
+        // Remove it from the LPM.
         g_pLoginPlayerManager->deletePlayer_NOLOCKED(pLoginPlayer->getSocket()->getSOCKET());
 
-        // LoginPlayer 객체를 삭제한다.
+        // Delete the LoginPlayer object.
         SAFE_DELETE(pLoginPlayer);
 
         __LEAVE_CRITICAL_SECTION((*g_pLoginPlayerManager))

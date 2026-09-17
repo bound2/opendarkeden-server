@@ -24,8 +24,8 @@
 //
 // GLIncomingConnectionHander::execute()
 //
-// 게임 서버가 로그인 서버로부터 GLIncomingConnection 패킷을 받게 되면,
-// ReconnectLoginInfo를 새로 추가하게 된다.
+// When the game server receives a GLIncomingConnection packet from the login server,
+// a new ReconnectLoginInfo is added.
 //
 //----------------------------------------------------------------------
 void GLIncomingConnectionHandler::execute(GLIncomingConnection* pPacket)
@@ -37,33 +37,33 @@ void GLIncomingConnectionHandler::execute(GLIncomingConnection* pPacket)
 
         //--------------------------------------------------------------------------------
         //
-        // 인증키를 생성한다.
+        // Generate the authentication key.
         //
         // *NOTE*
         //
-        // 기존의 방식은 로그인 서버에서 인증키를 생성해서 게임서버에 보낸 후, 클라이언트로
-        // 전송했다. 이렇게 할 경우 CLSelectPCHandler::execute()에서 인증키를 생성하고
-        // GLIncomingConnectionOKHandler::execute()에서 인증키를 클라이언트로 보내게 되는데,
-        // 처리 메쏘드가 다르므로 키값이 어디에선가 유지되어야 한다. 가장 단순한 방법은 로그인
-        // 플레이어 객체에 저장하면 되는데.. 뭔가 꾸지하다. 또다른 방법은 게임 서버에서 다시
-        // 로그인 서버로 키값을 되돌려주는 것인데, 이는 네트워크상에 키값이 2회 왕복한다는
-        // 점에서 불필요하다.
+        // The old scheme generated the key on the login server, sent it to the game server
+        // and on to the client. Done that way, CLSelectPCHandler::execute() generates the
+        // key and GLIncomingConnectionOKHandler::execute() sends it to the client,
+        // so with two different methods the key has to be kept somewhere. The simplest
+        // place is the login player object, which is a bit ugly. Another way is for the
+        // game server to hand the key back to the login server, which is unnecessary
+        // since the key then crosses the network twice.
         //
-        // 따라서, 로그인 서버에서 생성해서 게임서버에 보내주는 편이 훨씬 깔끔해지게 된다.
+        // So generating it on the login server and sending it to the game server is much cleaner.
         //
         // *TODO*
         //
-        // 최악의 경우, 로컬네트워크가 스니퍼링당해서 키값이 유출될 수 있다. (하긴 뭐 루트
-        // 패스워드가 유출될 가능성도 있는데.. - -; 이런 거야 SSL을 써야 하는거고..)
-        // 이를 대비해서 GLIncomingConnectionOK 패킷은 암호화되어야 한다.
+        // In the worst case the local network is sniffed and the key leaks. (Then again, the
+        // root password could leak too.. that is what SSL is for..)
+        // To guard against that the GLIncomingConnectionOK packet must be encrypted.
         //
-        // 또한 키값은 예측불가능해야 한다. (어차피 코드를 보면 예측가능해진다.)
+        // The key must also be unpredictable. (It becomes predictable once the code is read.)
         //
         //--------------------------------------------------------------------------------
 
         DWORD authKey = rand() << (time(0) % 10) + rand() >> (time(0) % 10);
 
-    // CI 객체를 생성한다.
+    // Create the CI object.
     ReconnectLoginInfo* pReconnectLoginInfo = new ReconnectLoginInfo();
     pReconnectLoginInfo->setClientIP(pPacket->getClientIP());
     pReconnectLoginInfo->setPlayerID(pPacket->getPlayerID());
@@ -71,11 +71,11 @@ void GLIncomingConnectionHandler::execute(GLIncomingConnection* pPacket)
 
     //--------------------------------------------------------------------------------
     //
-    // 현재 시간 + 30 초 후를 expire time 으로 설정한다.
+    // Set the expire time to the current time + 30 seconds.
     //
     // *TODO*
     //
-    // expire period 역시 Config 파일에서 지정해주면 좋겠다.
+    // The expire period should be configurable too.
     //
     //--------------------------------------------------------------------------------
     Timeval currentTime;
@@ -89,10 +89,10 @@ void GLIncomingConnectionHandler::execute(GLIncomingConnection* pPacket)
     // << authKey << endl;
 
     try {
-        // RLIM 에 추가한다.
+        // Add it to the RLIM.
         g_pReconnectLoginInfoManager->addReconnectLoginInfo(pReconnectLoginInfo);
 
-        // 로그인 서버에게 다시 알려준다.
+        // Tell the login server about it again.
         LGIncomingConnectionOK lgIncomingConnectionOK;
         lgIncomingConnectionOK.setPlayerID(pPacket->getPlayerID());
         lgIncomingConnectionOK.setTCPPort(g_pConfig->getPropertyInt("LoginServerPort"));

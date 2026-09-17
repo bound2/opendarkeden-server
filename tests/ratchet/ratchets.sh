@@ -412,6 +412,28 @@ else
 fi
 rm -f "$r16_inc" "$r16_dead"
 
+# --- R17: source lines carrying non-ASCII bytes ----------------------------
+# The tree's code language is English, so each of these is a line a reader
+# cannot read. The legacy text came through the encoding migration in three
+# states: readable Korean; mojibake, where EUC-KR/CP949 bytes were decoded
+# as Latin-1 and re-encoded as UTF-8, which reads as runs of accented Latin
+# letters; and U+FFFD runs, where the text itself is gone and only the code
+# beside it still says what the comment meant. Comments are translated tree
+# by tree: src/domain, src/server/database, src/server/loginserver and
+# src/server/sharedserver are done, src/Core and src/server/gameserver are
+# what is left. String literals -- log lines, GM messages, the reserved-name
+# table -- are left for a pass of their own, because changing one changes
+# what the server says rather than how the source reads; the six that remain
+# in the finished trees are all this count still holds there.
+#
+# Line-based, and the byte class is spelled the way R12 spells it: exclude
+# everything from \x01 to \x7f, so what is left is a byte with the high bit
+# set -- a UTF-8 lead or continuation byte. That keeps the CR of a CRLF
+# working tree out of the count, which [^[:print:]] would not, and LC_ALL=C
+# keeps the range byte-wise where a locale would read it as characters.
+R17=$(LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | wc -l)
+check_ratchet R17 "source lines carrying non-ASCII bytes" 22802 "$R17"
+
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
 # Historical build logs and documentation are not build inputs.

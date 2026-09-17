@@ -22,8 +22,8 @@ typedef unordered_map<ServerGroupID_t, GameServerGroupInfo*> HashMapGameServerGr
 //
 // class GameServerGroupInfoManager;
 //
-// ���� ������ ID �� Ű������ �ϴ� GameServerGroupInfo�� unordered_map ��
-// ���ο� ������ �ִ�.
+// Holds an unordered_map of GameServerGroupInfo keyed by the game server ID
+// internally.
 //
 //----------------------------------------------------------------------
 

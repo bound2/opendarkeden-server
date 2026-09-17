@@ -11,7 +11,7 @@
 // (ZoneInfo) and its message texts (SSStringPool). Every statement runs on
 // getConnection("DARKEDEN").
 //
-// Fields are typed to the driver getter used (getInt → int, getString →
+// Fields are typed to the driver getter used (getInt -> int, getString ->
 // std::string); the callers narrow to their own types. The two MAX probes
 // answer false over an empty table (MySQL returns one NULL row); their
 // callers size an array from the answer.

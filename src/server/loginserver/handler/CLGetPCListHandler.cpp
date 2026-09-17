@@ -16,8 +16,8 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// 클라이언트가 PC 의 리스트를 달라고 요청해오면, 로그인 서버는 DB로부터
-// PC들의 정보를 로딩해서 LCPCList 패킷에 담아서 전송한다.
+// When a client asks for the list of PCs, the login server loads the PCs'
+// information from the DB and sends it in an LCPCList packet.
 //////////////////////////////////////////////////////////////////////////////
 void CLGetPCListHandler::execute(CLGetPCList* pPacket, Player* pPlayer)
 
@@ -35,7 +35,7 @@ void CLGetPCListHandler::execute(CLGetPCList* pPacket, Player* pPlayer)
 
 
     //----------------------------------------------------------------------
-    // 이제 LCPCList 패킷을 만들어 보낸다
+    // Now build and send the LCPCList packet
     //----------------------------------------------------------------------
     LCPCList lcPCList;
     pLoginPlayer->makePCList(lcPCList);

@@ -20,8 +20,8 @@
 //
 // GMServerInfoHander::execute()
 //
-// 게임 서버가 로그인 서버로부터 GMServerInfo 패킷을 받게 되면,
-// ReconnectLoginInfo를 새로 추가하게 된다.
+// When the game server receives a GMServerInfo packet from the login server,
+// a new ReconnectLoginInfo is added.
 //
 //----------------------------------------------------------------------
 void GMServerInfoHandler::execute(GMServerInfo* pPacket)

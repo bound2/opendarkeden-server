@@ -26,7 +26,7 @@ class GCGuildMemberList;
 
 //////////////////////////////////////////////////////////////////////////////
 // class GuildMember
-// ������� ���� ������ ������.
+// Holds the information about a guild member.
 //
 //////////////////////////////////////////////////////////////////////////////
 
@@ -78,12 +78,12 @@ public:
 
 public:
     enum GuildRank {
-        GUILDMEMBER_RANK_NORMAL = 0, // �Ϲ� ���
-        GUILDMEMBER_RANK_MASTER,     // ��� ������
-        GUILDMEMBER_RANK_SUBMASTER,  // ��� ���� ������
-        GUILDMEMBER_RANK_WAIT,       // ��� ���� ���
-        GUILDMEMBER_RANK_DENY,       // �߹�/�ź� ����
-        GUILDMEMBER_RANK_LEAVE,      // ��� Ż��(������)
+        GUILDMEMBER_RANK_NORMAL = 0, // ordinary member
+        GUILDMEMBER_RANK_MASTER,     // guild master
+        GUILDMEMBER_RANK_SUBMASTER,  // guild sub-master
+        GUILDMEMBER_RANK_WAIT,       // waiting to join the guild
+        GUILDMEMBER_RANK_DENY,       // expelled/refused
+        GUILDMEMBER_RANK_LEAVE,      // left the guild (withdrawn)
 
         GUILDMEMBER_RANK_MAX
     };
@@ -119,7 +119,7 @@ public: // identity methods
     GuildMemberRank_t getRank() const noexcept {
         return m_Rank;
     }
-    void setRank(GuildMemberRank_t rank) noexcept(false); // Guild class ���� ó���Ѵ�.
+    void setRank(GuildMemberRank_t rank) noexcept(false); // handled inside the Guild class.
 
     bool getLogOn() const noexcept {
         return m_bLogOn;
@@ -155,20 +155,20 @@ public:
     ///// Member data /////
 
 protected:
-    GuildID_t m_GuildID;          // ��� ID
-    string m_Name;                // ��� �̸�
-    GuildMemberRank_t m_Rank;     // ����� ���
-    VSDateTime m_RequestDateTime; // ���� ��û �ð�
-    bool m_bLogOn;                // ���� ����
-    ServerID_t m_ServerID;        // ���� ��ġ
+    GuildID_t m_GuildID;          // guild ID
+    string m_Name;                // member name
+    GuildMemberRank_t m_Rank;     // member rank
+    VSDateTime m_RequestDateTime; // join request time
+    bool m_bLogOn;                // logged on or not
+    ServerID_t m_ServerID;        // current location
 };
 
 
 //////////////////////////////////////////////////////////////////////////////
 // class Guild
-// ��忡 ���� ������ ������.
+// Holds the information about a guild.
 //
-// GuildInfo ���̺��� ����
+// Structure of the GuildInfo table
 // ----------------------------------------
 // GuildID            INT
 // GuildName          VARCHAR(20)
@@ -190,26 +190,26 @@ class Guild {
 
 public:
     enum GuildTypes {
-        GUILD_TYPE_NORMAL = 0, // �Ϲ� ���
-        GUILD_TYPE_JUDGE,      // �ǰ� ���
-        GUILD_TYPE_ASSASSIN,   // �ϻ��� ���
+        GUILD_TYPE_NORMAL = 0, // ordinary guild
+        GUILD_TYPE_JUDGE,      // judge guild
+        GUILD_TYPE_ASSASSIN,   // assassin guild
 
         GUILD_TYPE_MAX
     };
 
     enum GuildState {
-        GUILD_STATE_ACTIVE = 0, // Ȱ�� ���� ���
-        GUILD_STATE_WAIT,       // ��� ��� ���� ���
-        GUILD_STATE_CANCEL,     // ��ҵ� ���
-        GUILD_STATE_BROKEN,     // ��ü�� ���
+        GUILD_STATE_ACTIVE = 0, // guild in active service
+        GUILD_STATE_WAIT,       // guild waiting for approval
+        GUILD_STATE_CANCEL,     // cancelled guild
+        GUILD_STATE_BROKEN,     // disbanded guild
 
         GUILD_STATE_MAX
     };
 
     enum GuildRace {
-        GUILD_RACE_SLAYER = 0, // �����̾� ���
-        GUILD_RACE_VAMPIRE,    // �����̾� ���
-        GUILD_RACE_OUSTERS,    // �ƿ콺���� ���
+        GUILD_RACE_SLAYER = 0, // slayer guild
+        GUILD_RACE_VAMPIRE,    // vampire guild
+        GUILD_RACE_OUSTERS,    // ousters guild
 
         GUILD_RACE_MAX
     };
@@ -379,30 +379,30 @@ public: // debug
     ///// Member data /////
 
 protected:
-    GuildID_t m_ID;                  // ��� ID
-    string m_Name;                   // ��� �̸�
-    GuildType_t m_Type;              // ��� Ÿ��
-    GuildRace_t m_Race;              // ��� ����
-    GuildState_t m_State;            // ��� ����
-    ServerGroupID_t m_ServerGroupID; // ��� ���� �ִ� ���� �׷� ID
-    ZoneID_t m_ZoneID;               // ��� ZoneID
-    string m_Master;                 // ��� ������
-    string m_Date;                   // ��� Expire, Regist Date
-    string m_Intro;                  // ��� �Ұ�
+    GuildID_t m_ID;                  // guild ID
+    string m_Name;                   // guild name
+    GuildType_t m_Type;              // guild type
+    GuildRace_t m_Race;              // guild race
+    GuildState_t m_State;            // guild state
+    ServerGroupID_t m_ServerGroupID; // ID of the server group the guild is in
+    ZoneID_t m_ZoneID;               // guild ZoneID
+    string m_Master;                 // guild master
+    string m_Date;                   // guild Expire, Regist Date
+    string m_Intro;                  // guild introduction
 
-    HashMapGuildMember m_Members; // ��� ��� ������ ��
+    HashMapGuildMember m_Members; // map of the guild's members
     int m_ActiveMemberCount;      // Active Member Count
     int m_WaitMemberCount;        // Wait Member Count
 
-    static GuildID_t m_MaxGuildID;      // ��� ���̵� �ִ밪
-    static ZoneID_t m_MaxSlayerZoneID;  // �����̾� ��� �� ID �ִ밪
-    static ZoneID_t m_MaxVampireZoneID; // �����̾� ��� �� ID �ִ밪
-    static ZoneID_t m_MaxOustersZoneID; // �ƿ콺���� ��� �� ID �ִ밪
+    static GuildID_t m_MaxGuildID;      // maximum guild id
+    static ZoneID_t m_MaxSlayerZoneID;  // maximum slayer guild zone ID
+    static ZoneID_t m_MaxVampireZoneID; // maximum vampire guild zone ID
+    static ZoneID_t m_MaxOustersZoneID; // maximum ousters guild zone ID
 
     mutable Mutex m_Mutex; // Mutex for Guild
 
 #ifdef __GAME_SERVER__
-    list<string> m_CurrentMembers; // ���� ���� ���� ���
+    list<string> m_CurrentMembers; // members currently in the zone
 #endif
 };
 

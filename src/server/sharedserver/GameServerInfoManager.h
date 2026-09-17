@@ -18,9 +18,9 @@ typedef HashMapGameServerInfo::iterator HashMapGameServerInfoItor;
 
 //////////////////////////////////////////////////////////////////////////////
 // class GameServerInfoManager;
-// 게임 서버의 ID 를 키값으로 하는 GameServerInfo의 unordered_map 을
-// 내부에 가지고 있다.
-// World 하나의 GameServerInfo를 가진다.
+// Holds an unordered_map of GameServerInfo keyed by the game server ID
+// internally.
+// Holds the GameServerInfo of a single World.
 //////////////////////////////////////////////////////////////////////////////
 
 class GameServerInfoManager {

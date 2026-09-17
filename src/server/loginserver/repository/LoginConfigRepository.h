@@ -8,15 +8,15 @@
 
 // The loginserver's boot-time catalogues, read once in LoginServer::init()
 // on the main thread and never written: the game-server groups it lists
-// to clients (GameServerGroupInfo, read twice — GameServerGroupInfoManager
+// to clients (GameServerGroupInfo, read twice -- GameServerGroupInfoManager
 // keeps the names and status, UserInfoManager the ids for its user
 // counters), the zone-to-group and group-to-server maps a character
 // selection routes through (ZoneInfo, ZoneGroupInfo) and the client
 // version row (ClientVersion). Every statement runs on
 // getConnection("DARKEDEN").
 //
-// Fields are typed to the driver getter used: getInt → int, getString →
-// std::string, getWORD → WORD. The MAX probe answers false over an empty
+// Fields are typed to the driver getter used: getInt -> int, getString ->
+// std::string, getWORD -> WORD. The MAX probe answers false over an empty
 // table (MySQL returns one NULL row); both its callers size an array from
 // the answer.
 //

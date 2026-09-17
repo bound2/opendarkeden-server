@@ -22,8 +22,8 @@ typedef unordered_map<ZoneGroupID_t, UserInfo*> HashMapUserInfo;
 //
 // class UserInfoManager;
 //
-// ���׷� ���̵� Ű������ �ϴ� �� ������ unordered_map ��
-// ������ �ִ�.
+// Holds an unordered_map of that information keyed by the zone group id
+// internally.
 //
 //----------------------------------------------------------------------
 

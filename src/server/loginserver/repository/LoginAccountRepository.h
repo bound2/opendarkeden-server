@@ -17,7 +17,7 @@
 // (the USERINFO database). In the loginserver the main thread runs every
 // handler, so the DARKEDEN name is the process default connection.
 //
-// Reads are typed to the driver getter used: getInt → int, getString →
+// Reads are typed to the driver getter used: getInt -> int, getString ->
 // std::string. The callers cast to their own types (PayType, WorldID_t,
 // ServerGroupID_t, uint). Every argument is interpolated raw; the callers
 // reject quotes and backslashes in the account id and the registration
@@ -105,9 +105,9 @@ struct LoginNewAccount {
 };
 
 enum LoginLocationSpelling {
-    // "... FROM Player where PlayerID='%s'" — CLGetServerListHandler.
+    // "... FROM Player where PlayerID='%s'" -- CLGetServerListHandler.
     LOGIN_LOCATION_SQL_LOWER,
-    // "... FROM Player WHERE PlayerID = '%s'" — CLRegisterPlayerHandler.
+    // "... FROM Player WHERE PlayerID = '%s'" -- CLRegisterPlayerHandler.
     LOGIN_LOCATION_SQL_UPPER,
     LOGIN_LOCATION_SQL_SPELLING_MAX
 };

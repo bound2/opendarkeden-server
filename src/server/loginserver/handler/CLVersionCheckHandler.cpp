@@ -15,10 +15,10 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// �� ��Ŷ�� Ŭ���̾�Ʈ�� ���̵�� �н����带 ��ȣȭ�ؼ�
-// �α��� ������ �����Ѵ�. �α��� ������ �� ��Ŷ��
-// �޾Ƽ� �÷��̾��� ���̵�� �н����尡 ��Ȯ���� DB�κ���
-// �о ���� ��, �α����� ���� ���θ� �����Ѵ�.
+// This packet encrypts the client's id and password and
+// sends them to the login server. The login server takes this packet,
+// reads the player's id and password from the DB, checks that they are
+// correct and then decides whether the login succeeds.
 //////////////////////////////////////////////////////////////////////////////
 void CLVersionCheckHandler::execute(CLVersionCheck* pPacket, Player* pPlayer)
 
