@@ -84,7 +84,7 @@ are enforced so far.
 | File | Baseline lines |
 |------|---------------:|
 | `src/server/gameserver/Zone.cpp` | 1,472 (was 9,350 before the 4.2 extractions; enforced by `ratchets.sh` R6g) |
-| `src/server/gameserver/skill/SkillUtil.cpp` | 3,837 (was 6,626 before the damage split to `SkillDamage.cpp`; enforced by `ratchets.sh` R6a) |
+| `src/server/gameserver/skill/SkillUtil.cpp` | 1,205 (was 6,626 before the damage and experience splits to `SkillDamage.cpp` / `SkillExperience.cpp`; enforced by `ratchets.sh` R6a) |
 | `src/server/gameserver/InitAllStat.cpp` | 4,787 (was 4,949 before the 3.3 bonus-formula extraction; enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 116 (was 4,720 before the 4.1 command extraction; enforced by `ratchets.sh` R6e) |
 | `src/server/gameserver/gm/ConsoleCommands.cpp` | 1,595 (the 61 `*command` sub-command bodies, one function per name; enforced by `ratchets.sh` R6f) |

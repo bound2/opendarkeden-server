@@ -81,16 +81,17 @@ check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5437 "$R5"
 # 2026-08-31 post-3.3-extraction; R6d added 2026-09-01 with the
 # SkillFormula.cpp computeOutput extraction (the doc's 08-29 numbers
 # predate the clang-format-18 pass and are superseded).
+# R6a shrinks as SkillUtil.cpp's concerns leave it: the damage formulas and
+# the code that applies them live in SkillDamage.cpp, and everything a kill
+# earns a creature -- experience, alignment, fame -- in SkillExperience.cpp.
 R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
-check_ratchet R6a "SkillUtil.cpp lines" 3837 "$R6a"
+check_ratchet R6a "SkillUtil.cpp lines" 1205 "$R6a"
 R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
 check_ratchet R6b "InitAllStat.cpp lines" 4787 "$R6b"
 R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)
 check_ratchet R6c "HitRoll.cpp lines" 728 "$R6c"
 R6d=$(wc -l < src/server/gameserver/skill/SkillFormula.cpp 2>/dev/null || echo missing)
 check_ratchet R6d "SkillFormula.cpp lines" 820 "$R6d"
-# R6a shrinks as SkillUtil.cpp's concerns leave it: the damage formulas and
-# the code that applies them live in SkillDamage.cpp.
 # R6e added with the 4.1 GM-command extraction: the 33 command bodies and
 # the branch ladder left CGSayHandler.cpp for gm/, leaving the packet
 # handler itself.

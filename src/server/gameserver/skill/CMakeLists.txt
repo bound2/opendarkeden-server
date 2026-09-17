@@ -12,6 +12,7 @@ set(SKILL_HANDLER_SOURCES
     SkillFormula.cpp
     SkillUtil.cpp
     SkillDamage.cpp
+    SkillExperience.cpp
     CastleSkillSlot.cpp
 )
 
