@@ -297,6 +297,28 @@ add_dependencies(wire_tests snapshot_tests)
 add_test(NAME snapshot_tests COMMAND snapshot_tests)
 set_tests_properties(snapshot_tests PROPERTIES TIMEOUT 60)
 
+# The manager registry a converted subsystem takes instead of reading the
+# g_p* globals (src/server/gameserver/GameContext.h). Its header only
+# forward-declares the managers, so this links the context's own
+# translation unit and de-kernel (for Assert) and nothing of the
+# gameserver -- which is the property that makes a subsystem holding a
+# GameContext& testable. A failing Assert appends to
+# assertion_failed.log in the working directory, hence the build-tree
+# WORKING_DIRECTORY (same reason as scheduler_tests).
+add_executable(game_context_tests EXCLUDE_FROM_ALL
+    game_context_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/GameContext.cpp
+)
+target_include_directories(game_context_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+)
+target_link_libraries(game_context_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests game_context_tests)
+add_test(NAME game_context_tests COMMAND game_context_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(game_context_tests PROPERTIES TIMEOUT 30)
+
 add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)
 target_include_directories(shutdown_probe PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
 target_link_libraries(shutdown_probe PRIVATE Threads::Threads)

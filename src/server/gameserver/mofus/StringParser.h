@@ -1,3 +1,6 @@
+#ifndef __MOFUS_STRING_PARSER_H__
+#define __MOFUS_STRING_PARSER_H__
+
 //////////////////////////////////////////////////////////////////////
 //
 //	created		:	2004/04/08
@@ -60,3 +63,5 @@ private:
     // parts of string
     HashMapString m_Parts;
 };
+
+#endif // __MOFUS_STRING_PARSER_H__

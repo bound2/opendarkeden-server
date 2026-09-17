@@ -1082,8 +1082,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > for `SkillUtil.cpp`/`InitAllStat.cpp`. **`HitRoll.cpp`'s success-ratio
   > formulas are extracted too** (melee/blood-drain/magic-per-race/curse/
   > dispel/flare/rebuke/self-buff/hallucination/backstab — the dice rolls
-  > and live-state gates stay in the adapters; the `__CHINA_SERVER__`
-  > variants stay behind their #ifdef there; `isCriticalHit`'s additive
+  > and live-state gates stay in the adapters; the China-build
+  > variants went with their never-defined macro; `isCriticalHit`'s additive
   > ratio and the blood-drain defense gathering remain inline), pinned by
   > 19 more tests (62 assertions) including the floorless negative
   > `flareRatio` and the toward-zero negative-bonus truncation;
@@ -1129,8 +1129,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > 19 pure functions joined `Formulas.{h,cpp}` — Concealment's
   > divide-then-float-scale bonuses, Will of Iron's truncated 15%, both
   > Liveness grade tables (normal keeps its level>=125 hpPercent
-  > override; the `__CHINA_SERVER__` selection stays behind the #ifdef in
-  > the adapter), Sniping's divide-first percents, the four slayer
+  > override; the China table is selected by no build now that
+  > its macro is gone), Sniping's divide-first percents, the four slayer
   > weapon-domain passives (sword mastery / concentration / evasion /
   > shield mastery, including evasion's negative-term truncation below
   > level 20), the vampire wolf/werwolf damage bonuses and Extreme's
@@ -1161,8 +1161,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > percent application (same category), Monster::initAllStat's
   > hardcoded event `HP*10` for four monster ids (no stat/level
   > composition), and the flat arms-mastery constants (`ToHitBonus += 5`
-  > etc. — no computation). The `__CHINA_SERVER__` liveness path is
-  > compiled by no build config; it was hand-compiled clean in the
+  > etc. — no computation). The China liveness adapter went with
+  > its never-defined macro; it was hand-compiled clean in the
   > review, and `livenessBonusChina` is now compiled and unit-tested for
   > the first time. InitAllStat.cpp 4,949→4,803 across both commits (R6b
   > tightened).
@@ -1219,8 +1219,30 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   `GameContext` owning the managers; converted subsystems take it (or narrow
   interfaces) explicitly; the old `g_p*` externs become shims into it until
   their last caller is converted. Ratchet R1.
-  > **Status:** not started
+  > **Status:** in progress — `src/server/gameserver/GameContext.h` is a
+  > registry of non-owning pointers to eight managers (`Properties`,
+  > `DatabaseManager`, `ItemFactoryManager`, `PCFinder`, `StringPool`,
+  > `VariableManager`, `ZoneGroupManager`, `ZoneInfoManager`), each
+  > registered by the code that creates it — `GameServer`'s constructor for
+  > the config and the database manager, `ObjectManager`'s for the world
+  > ones — and read back through an accessor that asserts the manager is
+  > there, a null one being a startup-order bug rather than a condition to
+  > branch on. Ownership is untouched: the same `new` and `SAFE_DELETE`
+  > sites. `ctf/` is the first converted subsystem — `FlagManager` takes the
+  > context, `FlagWar`/`NewbieFlagWar` take their `FlagManager` and the
+  > context, and none of the three files reads a global any more.
+  > `de::gameContext()` is the shim the creation sites and the unconverted
+  > callers reach the context through; a converted subsystem is handed the
+  > context and never calls it. `game_context_tests` builds a context over
+  > stand-in pointers with nothing of the gameserver linked, which is what
+  > the forward-declaration-only header buys and what makes a subsystem
+  > holding a `GameContext&` testable at all. R1 is unmoved at 325: an
+  > `extern` line only goes when a global's *last* caller is converted, and
+  > all four the ctf files read still have callers elsewhere (sixteen files
+  > for `g_pFlagManager` alone). The slices that move R1 are the subsystems
+  > whose own manager is read nowhere else.
   - Owner: R1 ratchet test.
+
 
 **Phase exit criteria:** no hard gate — this phase *is* the ratchets trending
 down. Review checkpoint: when R2 hits 0, close 3.2 and re-baseline R3.

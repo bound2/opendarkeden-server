@@ -5,6 +5,8 @@
 
 class NewbieFlagWar : public FlagWar {
 public:
+    NewbieFlagWar(FlagManager& flagManager, de::GameContext& context) : FlagWar(flagManager, context) {}
+
     virtual int getWarTime() const {
         return 3600;
     }

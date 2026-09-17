@@ -160,7 +160,7 @@
 //               Three packets outside this set are worth recording.
 //               GCRing is constructed by CGDialUpHandler but its
 //               factory appears in no registration list, so nothing can
-//               build one off the wire; GCModifyMoney, GCModyfyMoney,
+//               build one off the wire; GCModifyMoney,
 //               GCSubInventoryInfo and GCShowGuildRegist have neither a
 //               registered factory nor a sender.
 //

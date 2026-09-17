@@ -128,7 +128,7 @@
 //               GCTradeVerify (packet_trade_test.cpp), GCNPCResponse
 //               (packet_guild_test.cpp).
 //
-//               GCModifyMoney (in GCModyfyMoney.h) and
+//               GCModifyMoney and
 //               GCSubInventoryInfo have no factory in
 //               tests/ratchet/factory_registrations.txt and no source
 //               outside src/Core mentions them: no id, no sender.

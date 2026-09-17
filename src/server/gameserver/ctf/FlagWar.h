@@ -8,8 +8,11 @@
 #include <list>
 #include <vector>
 
+#include "GameContext.h"
 #include "VSDateTime.h"
 #include "war/Work.h"
+
+class FlagManager;
 
 class FlagWar : public Work {
     struct FlagGenZone {
@@ -18,7 +21,7 @@ class FlagWar : public Work {
     };
 
 public:
-    FlagWar() {
+    FlagWar(FlagManager& flagManager, de::GameContext& context) : m_FlagManager(flagManager), m_Context(context) {
         m_State = STATE_WAIT;
     }
     virtual void execute();
@@ -39,6 +42,9 @@ protected:
     string toString() const {
         return "FlagWar";
     }
+
+    FlagManager& m_FlagManager;
+    de::GameContext& m_Context;
 
 private:
     enum State { STATE_WAIT, STATE_READY, STATE_START, STATE_FINISH, STATE_END };

@@ -23,7 +23,7 @@
 
 FlagManager* g_pFlagManager = NULL;
 
-FlagManager::FlagManager() {
+FlagManager::FlagManager(de::GameContext& context) : m_Context(context) {
     m_Mutex.setName("FlagManager");
     m_FlagCount.clear();
 
@@ -34,10 +34,10 @@ FlagManager::FlagManager() {
 
     m_PutTime[RACE_SLAYER] = m_PutTime[RACE_VAMPIRE] = m_PutTime[RACE_OUSTERS] = VSDateTime::currentDateTime();
 
-    FlagWar* pFlagWar = new FlagWar();
+    FlagWar* pFlagWar = new FlagWar(*this, m_Context);
     addSchedule(new Schedule(pFlagWar, pFlagWar->getNextFlagWarTime()));
 
-    pFlagWar = new NewbieFlagWar();
+    pFlagWar = new NewbieFlagWar(*this, m_Context);
     addSchedule(new Schedule(pFlagWar, pFlagWar->getNextFlagWarTime()));
 }
 
@@ -102,7 +102,7 @@ void FlagManager::manualStart() {
         addSchedule(new Schedule(popRecentWork(), VSDateTime::currentDateTime()));
     } else {
         cout << "스케줄 만들기.." << endl;
-        addSchedule(new Schedule(new FlagWar(), VSDateTime::currentDateTime()));
+        addSchedule(new Schedule(new FlagWar(*this, m_Context), VSDateTime::currentDateTime()));
     }
 }
 
@@ -139,9 +139,10 @@ bool FlagManager::endFlagWar() {
         // script 돌리기 ㅡ.,ㅡ system 함수를 쓰게 될 줄이야 !_!
         char cmd[100];
         sprintf(cmd, "/home/darkeden/vs/bin/script/recordFlagWarHistory.py %s %d %d %d %d %d %d %d ",
-                m_EndTime.toStringforWeb().c_str(), (int)getWinnerRace(), g_pConfig->getPropertyInt("Dimension"),
-                g_pConfig->getPropertyInt("WorldID"), g_pConfig->getPropertyInt("ServerID"), m_FlagCount[SLAYER],
-                m_FlagCount[VAMPIRE], m_FlagCount[OUSTERS]);
+                m_EndTime.toStringforWeb().c_str(), (int)getWinnerRace(),
+                m_Context.config().getPropertyInt("Dimension"), m_Context.config().getPropertyInt("WorldID"),
+                m_Context.config().getPropertyInt("ServerID"), m_FlagCount[SLAYER], m_FlagCount[VAMPIRE],
+                m_FlagCount[OUSTERS]);
 
         filelog("script.log", cmd);
         system(cmd);
@@ -323,7 +324,7 @@ void FlagManager::recordPutFlag(PlayerCreature* pPC, Item* pItem)
     // 있으면 무시 없으면 INSERT
     if (!flagWars.flagStatExists(pPC->getName(), pItem->getItemID())) {
         flagWars.insertFlagStat(pPC->getPlayer()->getID(), pPC->getName(), (int)pPC->getRace(),
-                                g_pConfig->getPropertyInt("ServerID"), pItem->getItemID());
+                                m_Context.config().getPropertyInt("ServerID"), pItem->getItemID());
     }
 }
 
