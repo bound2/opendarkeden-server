@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : GCTradeAddItem.h
-// Written By  : 김성민
 // Description :
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -48,7 +47,7 @@ public:
         size += szDurability;                                 // m_Durability
         size += szItemNum;                                    // m_ItemNum
         size += szSilver;                                     // silver coating amount
-        size += szGrade;                                      // 아이템 등급
+        size += szGrade;                                      // Item grade
         size += szEnchantLevel;                               // enchant level
         size += szBYTE;                                       // sub-item count
         size += (SubItemInfo::getSize() * m_InfoList.size()); // list<SubItemInfo*> m_InfoList;
@@ -189,19 +188,19 @@ public:
     }
 
 private:
-    ObjectID_t m_TargetObjectID;     // 교환을 하고 있는 상대방의 OID
-    ObjectID_t m_ItemObjectID;       // 아이템 OID
-    CoordInven_t m_X;                // 인벤토리에서의 X 좌표
-    CoordInven_t m_Y;                // 인벤토리에서의 Y 좌표
-    BYTE m_ItemClass;                // 아이템 클래스
-    ItemType_t m_ItemType;           // 아이템 타입
-    list<OptionType_t> m_OptionType; // 옵션 타입
-    Durability_t m_Durability;       // 내구도
-    ItemNum_t m_ItemNum;             // 아이템 숫자
+    ObjectID_t m_TargetObjectID;     // OID of the partner being traded with
+    ObjectID_t m_ItemObjectID;       // Item OID
+    CoordInven_t m_X;                // X coordinate in the inventory
+    CoordInven_t m_Y;                // Y coordinate in the inventory
+    BYTE m_ItemClass;                // Item class
+    ItemType_t m_ItemType;           // Item type
+    list<OptionType_t> m_OptionType; // Option type
+    Durability_t m_Durability;       // Durability
+    ItemNum_t m_ItemNum;             // Number of items
     Silver_t m_Silver;               // silver coating amount
-    Grade_t m_Grade;                 // 아이템 등급
+    Grade_t m_Grade;                 // Item grade
     EnchantLevel_t m_EnchantLevel;   // enchant level
-    list<SubItemInfo*> m_InfoList;   // 벨트일 경우, 안에 있는 아이템의 정보
+    list<SubItemInfo*> m_InfoList;   // For a belt, the information about the items inside it
 };
 
 
@@ -227,7 +226,7 @@ public:
         size += szDurability;                                            // m_Durability
         size += szItemNum;                                               // m_ItemNum
         size += szSilver;                                                // silver coating amount
-        size += szGrade;                                                 // 아이템 등급
+        size += szGrade;                                                 // Item grade
         size += szEnchantLevel;                                          // enchant level
         size += szBYTE;                                                  // sub-item count
         size += (SubItemInfo::getSize() * GCTradeAddItem::kMaxSubItems); // list<SubItemInfo*> m_InfoList;

@@ -20,7 +20,7 @@ typedef struct {
 
 } PARTY_MEMBER_INFO;
 
-// 구조체 맥스 크기(14) + 이름 길이 (1)
+// Max struct size (14) + name length (1)
 const uint PARTY_MEMBER_INFO_MAX_SIZE = 17;
 
 // The name width PARTY_MEMBER_INFO_MAX_SIZE budgets, and the number of

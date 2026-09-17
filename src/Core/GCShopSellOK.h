@@ -1,12 +1,11 @@
 //--------------------------------------------------------------------------------
 //
 // Filename    : GCShopSellOK.h
-// Written By  : 김성민
-// Description : 플레이어가 상점 NPC에게 물건 구입을 요청했을 때, 제대로
-//               인증이 되면 이 패킷이 플레이어에게 날아간다.
-//               클라이언트는 이 패킷을 받아서 상점 버전을 업데이트하고,
-//               오브젝트 ID로 아이템 정보를 체크해 놓고, 가격을 이용해
-//               플레이어의 돈을 업데이트한다.
+// Description : When a player asks a shop NPC to buy goods and it
+//               passes, this packet flies to the player.
+//               The client takes this packet, updates the shop version,
+//               checks the item information by object ID, and with the price
+//               updates the player's money.
 //
 //--------------------------------------------------------------------------------
 
@@ -29,10 +28,10 @@ public:
     GCShopSellOK();
     virtual ~GCShopSellOK();
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -92,13 +91,13 @@ private:
     // NPC's object id
     ObjectID_t m_ObjectID = 0;
 
-    // 상점 버젼
+    // Shop version
     ShopVersion_t m_Version = 0;
 
-    // 아이템 정보
+    // Item information
     ObjectID_t m_ItemObjectID = 0;
 
-    // 가격
+    // Price
     Price_t m_Price = 0;
 };
 

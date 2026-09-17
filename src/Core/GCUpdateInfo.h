@@ -334,7 +334,7 @@ public:
         return m_ServerStat;
     }
 
-    // premium play ����
+    // premium play related
     void setPremiumZone() {
         m_fPremium |= FLAG_PREMIUM_ZONE;
     }
@@ -406,7 +406,7 @@ private:
     //--------------------------------------------------------------------------------
     // PC Information
     //--------------------------------------------------------------------------------
-    // PCSlayerInfo2 �Ǵ� PCVampireInfo2 �� ����Ѵ�.
+    // PCSlayerInfo2 or PCVampireInfo2 is used.
     PCInfo* m_pPCInfo;
 
     //--------------------------------------------------------------------------------
@@ -430,7 +430,7 @@ private:
     EffectInfo* m_pEffectInfo;
 
     //--------------------------------------------------------------------------------
-    // �������Ŭ�� �ֳ� ����.
+    // Whether there is a motorcycle or not.
     //--------------------------------------------------------------------------------
     bool m_hasMotorcycle;
 
@@ -443,25 +443,25 @@ private:
     // quick item slot
     // gear
 
-    // ����(PDA)
-    // ���� ����Ʈ ����
-    // ��������, �̺�Ʈ ����
-    // ����.. ����� ó�� PDS�� �� �� �ٿ�����.. - -;
+    // Journal (PDA)
+    // Quest progress information
+    // Notices, event information
+    // Hmm.. maybe these should be downloaded the first time the PDS is opened.. - -;
 
     //--------------------------------------------------------------------------------
     // Zone Information
     //--------------------------------------------------------------------------------
-    // �� ���̵�
+    // Zone id
     ZoneID_t m_ZoneID;
 
-    // ��Ÿ�� ��ǥ�� �밭�� ��ġ
+    // Rough position in zone coordinates
     Coord_t m_ZoneX;
     Coord_t m_ZoneY;
 
     // Game Time
     GameTime m_GameTime;
 
-    // Weather(���� ����)
+    // Weather(weather level)
     Weather m_Weather;
     WeatherLevel_t m_WeatherLevel;
 
@@ -469,21 +469,21 @@ private:
     DarkLevel_t m_DarkLevel;
     LightLevel_t m_LightLevel;
 
-    // ���� �����ϴ� NPC ��������Ʈ Ÿ���� ����, ��������Ʈ Ÿ�� �迭
+    // Number of NPC sprite types present in the zone, and the sprite type array
     BYTE m_nNPCs;
     NPCType_t m_NPCTypes[maxNPCPerZone];
 
-    // ���� �����ϴ� ���� ��������Ʈ Ÿ���� ����, ��������Ʈ Ÿ�� �迭
+    // Number of monster sprite types present in the zone, and the sprite type array
     BYTE m_nMonsters;
     MonsterType_t m_MonsterTypes[maxMonsterPerZone];
 
-    // ���� ���� �����ϴ� NPC�鿡 ���� ����
+    // Information about the NPCs present in the current zone
     list<NPCInfo*> m_NPCInfos;
 
-    // ���� ����
+    // Server status
     BYTE m_ServerStat;
 
-    // �����̾� ����
+    // Premium related
     BYTE m_fPremium;
 
     DWORD m_SMSCharge;
@@ -491,13 +491,13 @@ private:
 
     BYTE m_NonPK;
 
-    // ���ձ�� ����
+    // Guild union related
     uint m_GuildUnionID;
     BYTE m_GuildUnionUserType;
 
     BloodBibleSignInfo* m_pBloodBibleSign;
 
-    // �Ŀ�¯ ����Ʈ
+    // PowerZzang points
     int m_PowerPoint;
 };
 
@@ -540,9 +540,9 @@ public:
 
         size += szBYTE;
         size += NPCInfo::getMaxSize() * GCUpdateInfo::kMaxNPCInfos;
-        // ���� ����
+        // Server status
         size += szBYTE;
-        // �����̾�
+        // Premium
         size += szBYTE;
         size += szDWORD;
         size += NicknameInfo::getMaxSize();
@@ -555,7 +555,7 @@ public:
 
         size += BloodBibleSignInfo::getMaxSize();
 
-        // �Ŀ�¯ ����Ʈ
+        // PowerZzang points
         size += szint;
 
         return size;
@@ -578,7 +578,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCUpdateInfoPacketMaxSize �� ����, �����϶�.
+    // Define and return const static GCUpdateInfoPacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

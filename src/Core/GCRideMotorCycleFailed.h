@@ -2,7 +2,7 @@
 //
 // Filename    : GCRideMotorCycleFailed.h
 // Written By  : elca@ewestsoft.com
-// Description : 기술이 성공했을때 보내는 패킷을 위한 클래스 정의
+// Description : Class definition for the packet sent when a skill succeeds
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -19,7 +19,7 @@
 //
 // class GCRideMotorCycleFailed;
 //
-// 게임서버에서 클라이언트로 자신의 기술이 성공을 알려주기 위한 클래스
+// Class the game server uses to tell the client that its own skill succeeded
 //
 //////////////////////////////////////////////////////////////////////
 class GCRideMotorCycleFailed : public Packet {
@@ -32,10 +32,10 @@ public:
 
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -45,7 +45,7 @@ public:
     }
 
     // get packet's body size
-    // 최적화시, 미리 계산된 정수를 사용한다.
+    // When optimizing, use the precomputed constant.
     PacketSize_t getPacketSize() const {
         return szObjectID;
     }

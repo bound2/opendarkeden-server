@@ -16,8 +16,8 @@
 //
 // class  GCUnburrowOK;
 //
-// 게임 서버에서 특정 사용자가 움직였다는 정보를 클라이언트로 보내줄
-// 때 사용하는 패킷 객체이다.(CreatureID,X,Y,DIR) 을 포함한다.
+// Packet used when the game server tells the client that a particular user
+// has moved. It carries (CreatureID, X, Y, DIR).
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -30,10 +30,10 @@ public:
 
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -44,7 +44,7 @@ public:
 
     // get packet body size
     // *OPTIMIZATION HINT*
-    // const static GCUnburrowOKPacketSize 를 정의, 리턴하라.
+    // Define and return const static GCUnburrowOKPacketSize.
     PacketSize_t getPacketSize() const {
         return szCoord + szCoord + szDir;
     }
@@ -85,9 +85,9 @@ public:
 
 
 private:
-    Coord_t m_X = 0; // 목표 X 좌표
-    Coord_t m_Y = 0; // 목표 Y 좌표
-    Dir_t m_Dir = 0; // 목표 방향
+    Coord_t m_X = 0; // Target X coordinate
+    Coord_t m_Y = 0; // Target Y coordinate
+    Dir_t m_Dir = 0; // Target direction
 };
 
 
@@ -122,7 +122,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCUnburrowOKPacketSize 를 정의, 리턴하라.
+    // Define and return const static GCUnburrowOKPacketSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

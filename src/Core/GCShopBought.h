@@ -1,12 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GCShopBought.h
-// Written By  : 김성민
 // Description :
-// 상점 NPC가 플레이어로부터 물건을 사들였을 때, 같은 NPC와
-// 이야기하고 있는 플레이어에게 물건을 사들였다는 사실을
-// 알려주기 위해 이 패킷을 보낸다.
-// 클라이언트는 이 패킷을 받으면 해당하는 아이템을 해당하는
-// NPC의 상품 목록에 추가해야 한다. 상점 버전도 업데이트~
+// When a shop NPC has bought goods from a player, this packet is sent to
+// the players talking to the same NPC to tell them that the goods were
+// bought.
+// On receiving this packet the client has to add the matching item
+// to the NPC's list of goods. The shop version is updated too.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GC_SHOP_BOUGHT_H__
@@ -159,17 +158,17 @@ public:
 
 private:
     ObjectID_t m_ObjectID;           // NPC's object id
-    ShopVersion_t m_Version;         // 상점 버젼
-    ShopRackType_t m_ShopType;       // 상점 종류
-    BYTE m_ShopIndex;                // 상점 인덱스
-    ObjectID_t m_ItemObjectID;       // 사들인 아이템의 item OID
-    BYTE m_ItemClass;                // 사들인 아이템의 item class
-    ItemType_t m_ItemType;           // 사들인 아이템의  item type
-    list<OptionType_t> m_OptionType; // 사들인 아이템의 option type
-    Durability_t m_Durability;       // 사들인 아이템의 durability
-    Silver_t m_Silver;               // 사들인 아이템의 silver coating amount
+    ShopVersion_t m_Version;         // Shop version
+    ShopRackType_t m_ShopType;       // Shop kind
+    BYTE m_ShopIndex;                // Shop index
+    ObjectID_t m_ItemObjectID;       // item OID of the bought item
+    BYTE m_ItemClass;                // item class of the bought item
+    ItemType_t m_ItemType;           // item type of the bought item
+    list<OptionType_t> m_OptionType; // option type of the bought item
+    Durability_t m_Durability;       // durability of the bought item
+    Silver_t m_Silver;               // silver coating amount of the bought item
     Grade_t m_Grade;
-    EnchantLevel_t m_EnchantLevel; // 사들인 아이템의 enchant level
+    EnchantLevel_t m_EnchantLevel; // enchant level of the bought item
 };
 
 

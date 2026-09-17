@@ -1,8 +1,7 @@
 //--------------------------------------------------------------------------------
 //
 // Filename    : GCSearchMotorcycleFail.h
-// Written By  : 김성민
-// Description : 플레이어에게 서버 측의 상점 버전을 알려줄 때 쓰이는 패킷이다.
+// Description : Packet that tells the player the server-side shop version.
 //
 //--------------------------------------------------------------------------------
 

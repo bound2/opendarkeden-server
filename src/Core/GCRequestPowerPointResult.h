@@ -24,14 +24,14 @@ class GCRequestPowerPointResult : public Packet {
 public:
     enum RESULT_CODE {
         NO_ERROR = 0,
-        SERVER_ERROR,  // 파워짱 서버는 살아있으나 현재 정상적으로 동작하지 못하는 상황
-        PROCESS_ERROR, // 서버 처리 오류 (ex DB 오류 )
-        NO_MEMBER,     // 파워짱 회원이 아닌 경우
-        NO_POINT,      // 누적된 파워짱 포인트가 없음
-        NO_MATCHING,   // 매칭 정보가 없음.
-                       // 파워짱 홈페이지에서 게임 매칭을 하지 않은 경우
-                       // 파워짱 홈페이지에서 매칭을 유도하는 문장을 부여준다.
-        CONNECT_ERROR, // 게임코드 확인 실패 및 패킷 오류
+        SERVER_ERROR,  // The PowerZzang server is alive but is not working properly at the moment
+        PROCESS_ERROR, // Server processing error (e.g. a DB error)
+        NO_MEMBER,     // When the user is not a PowerZzang member
+        NO_POINT,      // No PowerZzang points accumulated
+        NO_MATCHING,   // No matching information.
+                       // When the game was not matched on the PowerZzang home page
+                       // Hand out the sentence that leads to matching on the PowerZzang home page.
+        CONNECT_ERROR, // Game code check failure and packet error
     };
 
 public:
@@ -39,10 +39,10 @@ public:
     ~GCRequestPowerPointResult();
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -92,13 +92,13 @@ public:
     // data members
     //--------------------------------------------------
 private:
-    // 에러 코드
+    // Error code
     BYTE m_ErrorCode;
 
-    // 현재 누적된 파워짱 포인트
+    // PowerZzang points accumulated so far
     int m_SumPowerPoint;
 
-    // 요청으로 가져온 파워짱 포인트
+    // PowerZzang points fetched by the request
     int m_RequestPowerPoint;
 };
 
@@ -134,7 +134,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCRequestPowerPointResultPacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static GCRequestPowerPointResultPacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

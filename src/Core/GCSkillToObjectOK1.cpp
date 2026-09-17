@@ -2,8 +2,8 @@
 //
 // Filename    : GCSkillToObjectOK1.cpp
 // Written By  : elca@ewestsoft.com
-// Description : 자신에게 쓰는 기술의 성공을 알리기 위한 패킷 클래스의
-//               멤버 정의.
+// Description : Member definitions of the packet class that reports the
+//               success of a skill used on oneself.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -41,14 +41,14 @@ GCSkillToObjectOK1::~GCSkillToObjectOK1()
 
 
 //////////////////////////////////////////////////////////////////////
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void GCSkillToObjectOK1::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
 
-    // 최적화 작업시 실제 크기를 명시하도록 한다.
+    // State the actual size when optimizing.
     iStream.read(m_SkillType);
     iStream.read(m_CEffectID);
     iStream.read(m_TargetObjectID);
@@ -62,12 +62,12 @@ void GCSkillToObjectOK1::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void GCSkillToObjectOK1::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    // 최적화 작업시 실제 크기를 명시하도록 한다.
+    // State the actual size when optimizing.
     oStream.write(m_SkillType);
     oStream.write(m_CEffectID);
     oStream.write(m_TargetObjectID);

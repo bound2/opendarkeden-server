@@ -49,7 +49,7 @@ GCUpdateInfo::~GCUpdateInfo()
     // On the server the Zone owns a (currently immutable) list of NPCInfo
     // objects. Creating them with new, putting them into GCUpdateInfo and
     // deleting them again for every packet would cost real speed, so the
-    // NPCInfoList here just carries pointers into the Zone's NPCInfoList —
+    // NPCInfoList here just carries pointers into the Zone's NPCInfoList;
     // the server must never delete them. (The client's copy of this packet
     // does delete them.)
     m_NPCInfos.clear();
@@ -60,7 +60,7 @@ GCUpdateInfo::~GCUpdateInfo()
 }
 
 //--------------------------------------------------------------------------------
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //--------------------------------------------------------------------------------
 void GCUpdateInfo::read(SocketInputStream& iStream)
 
@@ -168,10 +168,10 @@ void GCUpdateInfo::read(SocketInputStream& iStream)
         addNPCInfo(pInfo);
     }
 
-    // 서버 상태
+    // Server status
     iStream.read(m_ServerStat);
 
-    // 프리미엄
+    // Premium
     iStream.read(m_fPremium);
 
     iStream.read(m_SMSCharge);
@@ -188,7 +188,7 @@ void GCUpdateInfo::read(SocketInputStream& iStream)
     m_pBloodBibleSign = new BloodBibleSignInfo;
     m_pBloodBibleSign->read(iStream);
 
-    // 파워짱 포인트
+    // PowerZzang points
     iStream.read(m_PowerPoint);
 
     __END_CATCH
@@ -196,7 +196,7 @@ void GCUpdateInfo::read(SocketInputStream& iStream)
 
 
 //--------------------------------------------------------------------------------
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //--------------------------------------------------------------------------------
 void GCUpdateInfo::write(SocketOutputStream& oStream) const
 
@@ -295,10 +295,10 @@ void GCUpdateInfo::write(SocketOutputStream& oStream) const
         pInfo->write(oStream);
     }
 
-    // 서버 상태
+    // Server status
     oStream.write(m_ServerStat);
 
-    // 프리미엄
+    // Premium
     oStream.write(m_fPremium);
 
     oStream.write(m_SMSCharge);
@@ -323,7 +323,7 @@ void GCUpdateInfo::write(SocketOutputStream& oStream) const
     } else
         m_pBloodBibleSign->write(oStream);
 
-    // 파워짱 포인트
+    // PowerZzang points
     oStream.write(m_PowerPoint);
 
     __END_CATCH

@@ -2,7 +2,7 @@
 //
 // Filename    : GCSkillToTileOK6.h
 // Written By  : elca@ewestsoft.com
-// Description : 기술에 당했는데 사용자는 볼 수 없는 자가 받는 packet
+// Description : Packet received by the one hit by the skill who cannot see the user
 //////////////////////////////////////////////////////////////////////
 
 #ifndef __GC_SKILL_TO_TILE_OK_6_H__
@@ -31,10 +31,10 @@ public:
 
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -149,7 +149,7 @@ public:
 
 private:
     // ObjectID
-    Coord_t m_OrgX, m_OrgY; // 기술 사용자의 위치.
+    Coord_t m_OrgX, m_OrgY; // Position of the skill user.
 
     // SkillType
     SkillType_t m_SkillType;

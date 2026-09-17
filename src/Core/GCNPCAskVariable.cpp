@@ -27,7 +27,7 @@ GCNPCAskVariable::~GCNPCAskVariable()
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////////////
 void GCNPCAskVariable::read(SocketInputStream& iStream)
 
@@ -52,7 +52,7 @@ void GCNPCAskVariable::read(SocketInputStream& iStream)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////////////
 void GCNPCAskVariable::write(SocketOutputStream& oStream) const
 
@@ -118,8 +118,8 @@ string GCNPCAskVariable::getValue(const string& name) const {
     HashMapScriptParameterConstItor itr = m_ScriptParameters.find(name);
 
     if (itr == m_ScriptParameters.end()) {
-        // name �� ���� ����. NoSuchElement �� �������ϳ�
-        // �� name �� �����ֵ��� �Ѵ�.
+        // The name does not exist. Should NoSuchElement be thrown?
+        // Return the name itself instead.
         return name;
     }
 

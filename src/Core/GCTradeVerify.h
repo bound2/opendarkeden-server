@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : GCTradeVerify.h
-// Written By  : 김성민
 // Description :
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -11,44 +10,44 @@
 #include "PacketFactory.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// 에러 코드
+// Error code
 ////////////////////////////////////////////////////////////////////////////////
 
 enum {
-    // 교환 대상으로 아이템을 추가하는 것을 인증
+    // Verify adding an item to the trade
     GC_TRADE_VERIFY_CODE_ADD_ITEM_WHEN_ACCEPT,
 
-    // 교환 대상에서 아이템을 제거하는 것을 인증
+    // Verify removing an item from the trade
     GC_TRADE_VERIFY_CODE_REMOVE_ITEM,
 
-    // 교환 대상에서 돈을 추가하는 것을 인증
+    // Verify adding money to the trade
     GC_TRADE_VERIFY_CODE_MONEY_INCREASE,
 
-    // 교환 대상에서 돈을 제거하는 것을 인증
+    // Verify removing money from the trade
     GC_TRADE_VERIFY_CODE_MONEY_DECREASE,
 
-    // 교환 성립을 확인하는 것을 인증
+    // Verify confirming the trade
     GC_TRADE_VERIFY_CODE_FINISH_ACCEPT,
 
-    // 교환 성립을 취소하는 것을 인증
+    // Verify cancelling the trade
     GC_TRADE_VERIFY_CODE_FINISH_REJECT,
 
-    // 교환 성립을 재고려하는 것을 인증
+    // Verify reconsidering the trade
     GC_TRADE_VERIFY_CODE_FINISH_RECONSIDER,
 
-    // 교환을 하고 있을 때 마우스에 인벤토리로 아이템을 옮기는 것을 검증
+    // Verify moving an item to the mouse from the inventory while trading
     GC_TRADE_VERIFY_CODE_MOUSE_TO_INVENTORY_OK,
     GC_TRADE_VERIFY_CODE_MOUSE_TO_INVENTORY_FAIL,
 
-    // 교환을 하고 있을 때 인벤토리에서 마우스로 아이템을 옮기는 것을 검증
+    // Verify moving an item from the inventory to the mouse while trading
     GC_TRADE_VERIFY_CODE_INVENTORY_TO_MOUSE_OK,
     GC_TRADE_VERIFY_CODE_INVENTORY_TO_MOUSE_FAIL,
 
-    // 현재로서는 선물 상자인 경우...
+    // For now, when it is a gift box...
     GC_TRADE_VERIFY_CODE_ADD_ITEM_OK,
     GC_TRADE_VERIFY_CODE_ADD_ITEM_FAIL,
 
-    // 에러닷.
+    // An error.
     GC_TRADE_VERIFY_CODE_MAX
 };
 
@@ -84,7 +83,7 @@ public:
     }
 
 private:
-    BYTE m_Code; // 코드
+    BYTE m_Code; // Code
 };
 
 

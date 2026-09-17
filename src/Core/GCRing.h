@@ -20,8 +20,8 @@
 //
 // class GCRing;
 //
-// 게임 서버에서 특정 사용자가 움직였다는 정보를 클라이언트로 보내줄
-// 때 사용하는 패킷 객체이다.(CreatureID,X,Y,DIR) 을 포함한다.
+// Packet used when the game server tells the client that a particular user
+// has moved. It carries (CreatureID, X, Y, DIR).
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -35,10 +35,10 @@ public:
 
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -48,7 +48,7 @@ public:
     }
 
     // get packet's body size
-    // 최적화시, 미리 계산된 정수를 사용한다.
+    // When optimizing, use the precomputed constant.
     PacketSize_t getPacketSize() const {
         return szPhoneNumber + szSlotID + de::wire::stringWireSize(m_Name);
     }
@@ -92,7 +92,7 @@ private:
     // SlotID
     SlotID_t m_SlotID;
 
-    // 전화 건 사람의 이름.
+    // Name of the one who called.
     string m_Name;
 };
 

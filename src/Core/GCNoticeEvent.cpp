@@ -7,7 +7,7 @@
 #include "GCNoticeEvent.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////////////
 void GCNoticeEvent::read(SocketInputStream& iStream)
 
@@ -23,7 +23,7 @@ void GCNoticeEvent::read(SocketInputStream& iStream)
     m_Code = code;
 
     switch (m_Code) {
-    // 파라미터를 써야 하는 코드
+    // Codes that need a parameter
     case NOTICE_EVENT_MASTER_COMBAT_TIME:
     case NOTICE_EVENT_KICK_OUT_FROM_ZONE:
     case NOTICE_EVENT_CONTINUAL_GROUND_ATTACK:
@@ -48,7 +48,7 @@ void GCNoticeEvent::read(SocketInputStream& iStream)
     case NOTICE_EVENT_CROWN_PRICE:
         iStream.read(m_Parameter);
         break;
-    // 파라미터를 쓰지 않아도 되는 코드
+    // Codes that need no parameter
     default:
         break;
     }
@@ -57,7 +57,7 @@ void GCNoticeEvent::read(SocketInputStream& iStream)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////////////
 void GCNoticeEvent::write(SocketOutputStream& oStream) const
 
@@ -67,7 +67,7 @@ void GCNoticeEvent::write(SocketOutputStream& oStream) const
     oStream.write(m_Code);
 
     switch (m_Code) {
-    // 파라미터를 써야 하는 코드
+    // Codes that need a parameter
     case NOTICE_EVENT_MASTER_COMBAT_TIME:
     case NOTICE_EVENT_KICK_OUT_FROM_ZONE:
     case NOTICE_EVENT_CONTINUAL_GROUND_ATTACK:
@@ -92,7 +92,7 @@ void GCNoticeEvent::write(SocketOutputStream& oStream) const
     case NOTICE_EVENT_CROWN_PRICE:
         oStream.write(m_Parameter);
         break;
-    // 파라미터를 쓰지 않아도 되는 코드
+    // Codes that need no parameter
     default:
         break;
     }
@@ -101,7 +101,7 @@ void GCNoticeEvent::write(SocketOutputStream& oStream) const
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 패킷 사이즈
+// Packet size
 //////////////////////////////////////////////////////////////////////////////
 
 PacketSize_t GCNoticeEvent::getPacketSize() const
@@ -112,7 +112,7 @@ PacketSize_t GCNoticeEvent::getPacketSize() const
     PacketSize_t size = szWORD;
 
     switch (m_Code) {
-    // 파라미터를 써야 하는 코드
+    // Codes that need a parameter
     case NOTICE_EVENT_MASTER_COMBAT_TIME:
     case NOTICE_EVENT_KICK_OUT_FROM_ZONE:
     case NOTICE_EVENT_CONTINUAL_GROUND_ATTACK:
@@ -137,7 +137,7 @@ PacketSize_t GCNoticeEvent::getPacketSize() const
     case NOTICE_EVENT_CROWN_PRICE:
         size += szuint;
         break;
-    // 파라미터를 쓰지 않아도 되는 코드
+    // Codes that need no parameter
     default:
         break;
     }
