@@ -20,12 +20,6 @@
 #include "ServerShutdown.h"
 #include "Timeval.h"
 
-#ifdef __THAILAND_SERVER__
-
-#include "TimeChecker.h"
-
-#endif
-
 //////////////////////////////////////////////////////////////////////
 //
 // constructor
@@ -197,10 +191,6 @@ void ClientManager::run() {
 
             dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
         }
-#ifdef __THAILAND_SERVER__
-
-        g_pTimeChecker->heartbeat();
-#endif
     }
 
     __END_CATCH

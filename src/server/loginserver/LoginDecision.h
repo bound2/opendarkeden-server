@@ -33,8 +33,8 @@
 // NotPayAccount is produced only by a build with a pay system compiled in
 // and FreePassAccountMissing only by a NetMarble free-pass login, so
 // neither is possible in this build. Number 9 belongs to the NetMarble
-// authorization refusal and the Thailand build's CHILDGUARD_DENYED to the
-// child guard; both stay in the handler with the rest of their paths.
+// authorization refusal, which stays in the handler with the rest of its
+// path. Nothing sends CHILDGUARD_DENYED.
 enum class LoginRejectReason {
     IPBlocked,
     MalformedID,

@@ -39,12 +39,6 @@ void CLSelectWorldHandler::execute(CLSelectWorld* pPacket, Player* pPlayer)
     GlobalWorldTopology topology;
 
     ServerLoadThresholds thresholds;
-#ifdef __CHINA_SERVER__
-    // The China build carries more accounts per group before a group reads
-    // very busy, and more before it reads full.
-    thresholds.veryBusyBelow = 1000;
-    thresholds.userMax = 1800;
-#endif
 
     Outcome<void, SelectWorldRejection> outcome = decideSelectWorld(WorldID, topology);
 

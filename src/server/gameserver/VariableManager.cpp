@@ -215,12 +215,6 @@ VariableManager::VariableManager()
 
     m_Variables[TIME_PERIOD_EXP_2X] = 0;
 
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-
-    m_fRemoveAllGame = false;
-    m_fEggDummyDB = false;
-
-#endif
     __END_CATCH
 }
 

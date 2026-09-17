@@ -3454,27 +3454,6 @@ void Slayer::divideAttrExp(AttrKind kind, Damage_t damage, ModifyInfo& modifyInf
     Exp_t MainPoint = max(1, damage * 8 / 10);
     Exp_t SubPoint = max(1, damage / 10);
 
-#ifdef __CHINA_SERVER__
-
-    // 중국쪽은 레벨별로 능력치 경험치 얻는 것이 다르다
-    float userExpConst = 1.0;
-
-    SkillLevel_t HighSkillLevel = getHighestSkillDomainLevel();
-
-    if (HighSkillLevel < 50)
-        userExpConst = 1.0;
-    else if (HighSkillLevel > 49 && HighSkillLevel < 75)
-        userExpConst = 0.8;
-    else if (HighSkillLevel > 74 && HighSkillLevel < 100)
-        userExpConst = 0.6;
-    else if (HighSkillLevel > 99)
-        userExpConst = 0.4;
-
-    MainPoint = (Exp_t)(MainPoint * userExpConst);
-    SubPoint = (Exp_t)(SubPoint * userExpConst);
-
-#endif
-
     // 슬레이어 능력치는 도메인 레벨 100이전에는 총합 300으로 제한 된다.(기존처럼 50, 200, 50 으로..)또한 그 이후의
     // 경험치는 누적되지 않는다. 그리고 도메인 레벨 이 100을 넘어서면 다시 능력치 경험치가 누적되어 능력치가 올라가기
     // 시작한다. 도메인 레벨이 100 아래로 도로 떨어졌어도 능력치 총합이 300을 넘었을 경우 300의 제한을 받지 않는다.

@@ -181,9 +181,6 @@ private:
     static bool checkFreePass(CLLogin* pPacket, Player* pPlayer);
     static bool checkNetMarbleClient(CLLogin* pPacket, Player* pPlayer);
     static bool checkWebLogin(CLLogin* pPacket, Player* pPlayer);
-#ifdef __THAILAND_SERVER__
-    static bool onChildGuardTimeArea(int pm, int am, string enable);
-#endif
 };
 
 #endif

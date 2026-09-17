@@ -12,14 +12,12 @@ namespace {
 //    kPurgeStatements in array order, all on one Statement with no
 //    transaction: a failure at statement N leaves the earlier ones
 //    applied. destroyItems does the same with kItemStatements.
-//  - Under __CHINA_SERVER__, __THAILAND_SERVER__ or __NETMARBLE_SERVER__
-//    the three race rows are DELETEd instead of set INACTIVE and the three
-//    skill-save tables join the list; under __THAILAND_SERVER__ the five
-//    tables from SMSItemObject to TrapItemObject leave it.
+//  - Under __NETMARBLE_SERVER__ the three race rows are DELETEd instead
+//    of set INACTIVE and the three skill-save tables join the list.
 //  - The name, the account id and the slot text are interpolated raw; the
 //    slot indexes Slot2String unchecked.
 const char* const kPurgeStatements[] = {
-#if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__) || defined(__NETMARBLE_SERVER__)
+#ifdef __NETMARBLE_SERVER__
     "DELETE FROM SkillSave WHERE OwnerID = '%s'",
     "DELETE FROM VampireSkillSave WHERE OwnerID = '%s'",
     "DELETE FROM OustersSkillSave WHERE OwnerID = '%s'",
@@ -102,13 +100,11 @@ const char* const kPurgeStatements[] = {
     "DELETE FROM PetFoodObject WHERE OwnerID = '%s'",
     "DELETE FROM PetEnchantItemObject WHERE OwnerID = '%s'",
     "DELETE FROM LuckyBagObject WHERE OwnerID = '%s'",
-#ifndef __THAILAND_SERVER__
     "DELETE FROM SMSItemObject WHERE OwnerID = '%s'",
     "DELETE FROM CoreZapObject WHERE OwnerID = '%s'",
     "DELETE FROM GQuestItemObject WHERE OwnerID = '%s'",
     "DELETE FROM GQuestSave WHERE OwnerID = '%s'",
     "DELETE FROM TrapItemObject WHERE OwnerID = '%s'",
-#endif
     "DELETE FROM CarryingReceiverObject WHERE OwnerID = '%s'",
     "DELETE FROM ShoulderArmorObject WHERE OwnerID = '%s'",
     "DELETE FROM DermisObject WHERE OwnerID = '%s'",
@@ -212,7 +208,7 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
-#if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__) || defined(__NETMARBLE_SERVER__)
+#ifdef __NETMARBLE_SERVER__
             pStmt->executeQuery("DELETE FROM Slayer WHERE Name = '%s' AND Slot = '%s'", name.c_str(),
                                 Slot2String[slot].c_str());
 #else
@@ -248,7 +244,7 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
 
-#if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__) || defined(__NETMARBLE_SERVER__)
+#ifdef __NETMARBLE_SERVER__
             pStmt->executeQuery("DELETE FROM Vampire WHERE Name = '%s' AND Slot = '%s'", name.c_str(),
                                 Slot2String[slot].c_str());
 #else
@@ -256,7 +252,7 @@ public:
                                 Slot2String[slot].c_str());
 #endif
 
-#if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__) || defined(__NETMARBLE_SERVER__)
+#ifdef __NETMARBLE_SERVER__
             pStmt->executeQuery("DELETE FROM Ousters WHERE Name = '%s' AND Slot = '%s'", name.c_str(),
                                 Slot2String[slot].c_str());
 #else

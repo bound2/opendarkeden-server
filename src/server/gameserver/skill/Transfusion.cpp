@@ -82,13 +82,8 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 
         // 15%를 사용
         int CurrentHP = pVampire->getHP(ATTR_CURRENT);
-#ifdef __CHINA_SERVER__
-        int RequiredMP = CurrentHP * 15 / 100; // decreaseConsumeMP(pVampire, pSkillInfo);
-        int RecoverHP = CurrentHP * 17 / 100;
-#else
         int RequiredMP = CurrentHP * 12 / 100; // decreaseConsumeMP(pVampire, pSkillInfo);
         int RecoverHP = CurrentHP * 12 / 100;
-#endif
         // bool bManaCheck  = hasEnoughMana(pVampire, RequiredMP);
         bool bTimeCheck = verifyRunTime(pVampireSkillSlot);
         bool bRangeCheck = verifyDistance(pVampire, X, Y, pSkillInfo->getRange());

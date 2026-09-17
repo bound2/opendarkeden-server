@@ -332,35 +332,6 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
         SSN = accepted.ssn;
         zipcode = accepted.zipCode;
 
-        // The Thailand build's child guard refuses a login by an unapproved
-        // account inside the guarded hours. Not compiled here, and its first
-        // statement is truncated in the source, so it does not build either.
-#ifdef __THAILAND_SERVER__
-        // add by inthesky for THAILAND child guard rule
-            bool bChildGuardArea = onChildGuardTimeArea(g_pConfig->getPropertyInt("CHILDGUARD_START_TIME"),g_pConf
-
-			cout << "Global ChildGuard Policy : " << g_pConfig->getProperty("CHILDGUARD") << endl;
-			cout << "ChildGuard Start Time : " << (int)g_pConfig->getPropertyInt("CHILDGUARD_START_TIME") << endl;
-			cout << "ChildGuard End Time : " << (int)g_pConfig->getPropertyInt("CHILDGUARD_END_TIME") << endl;
-
-			if(bChildGuardArea)     cout << "ChildGuard System : RUN" << endl;
-			else                    cout << "ChildGuard System : STOP" << endl;
-
-			if(bPermission) cout << "(" << ID << ") Permission : ALLOW" << endl;
-			else            cout << "(" << ID << ") Permission : DENY" << endl;
-
-			if (!bPermission && bChildGuardArea )
-			{
-            LCLoginError lcLoginError;
-            lcLoginError.setErrorID(CHILDGUARD_DENYED);
-            pLoginPlayer->sendPacket(&lcLoginError);
-            pLoginPlayer->setPlayerStatus(LPS_BEGIN_SESSION);
-
-            return;
-
-			}
-#endif
-
         if (accepted.next == LoginNextStep::KickCharacter) {
             // The client is answered only once the game server has dropped
             // the character, so what the OK packet needs is kept on the
@@ -560,37 +531,3 @@ bool CLLoginHandler::checkWebLogin(CLLogin* pPacket, Player* pPlayer) {
 
     return true;
 }
-
-#ifdef __THAILAND_SERVER__
-bool CLLoginHandler::onChildGuardTimeArea(int pm, int am, string enable) {
-    bool returnValue = false;
-    tm Timem;
-    time_t daytime = time(0);
-    localtime_r(&daytime, &Timem);
-
-    int Hour = Timem.tm_hour;
-    int Min = Timem.tm_min;
-
-    int timeValue = (Hour * 100) + Min;
-    bool bSwitch = (enable == "ENABLE" || enable == "enable" || enable == "Enable");
-
-    if ((timeValue >= pm && timeValue <= am) && bSwitch) {
-        returnValue = true;
-    } else if ((timeValue <= pm && timeValue <= am) && bSwitch) {
-        if (am > 1200)
-            returnValue = false;
-        else
-            returnValue = true;
-    } else if ((timeValue <= pm && timeValue <= am) && bSwitch) {
-        returnValue = false;
-    } else if ((timeValue >= pm && timeValue >= am) && bSwitch) {
-        if (am > 1200)
-            returnValue = false;
-        else
-            returnValue = true;
-    }
-
-
-    return returnValue;
-}
-#endif

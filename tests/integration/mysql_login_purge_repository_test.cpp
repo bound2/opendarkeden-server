@@ -8,10 +8,9 @@
 // same server and schema as the DARKEDEN connection the seeding below
 // uses.
 //
-// The build-flag variants (the DELETE race rows and the skill-save trio
-// under __CHINA_SERVER__ / __THAILAND_SERVER__ / __NETMARBLE_SERVER__,
-// the five tables __THAILAND_SERVER__ drops) are not compiled into this
-// binary and are not exercised.
+// The build-flag variant (the DELETE race rows and the skill-save trio
+// under __NETMARBLE_SERVER__) is not compiled into this binary and is
+// not exercised.
 
 #include <string>
 
@@ -85,11 +84,10 @@ protected:
     }
 
     // One row in a table from every stretch of purgeCharacterRows' list:
-    // RankBonusData; the first object table, the last before the
-    // __THAILAND_SERVER__ block, one inside it, GQuestSave, and the last
-    // of the list; CoupleInfo by both columns; the first and the last
-    // Effect table; EnemyErase; the four name-keyed tables at the end.
-    // 15 rows.
+    // RankBonusData; the first object table, LuckyBagObject,
+    // SMSItemObject, GQuestSave, and the last of the list; CoupleInfo by
+    // both columns; the first and the last Effect table; EnemyErase; the
+    // four name-keyed tables at the end. 15 rows.
     static void seedPurgeRows(const std::string& name, int id) {
         const std::string n = q(name);
         const std::string i = std::to_string(id);

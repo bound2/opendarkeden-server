@@ -52,22 +52,10 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
 
-#ifdef __THAILAND_SERVER__
-
-            Result* pResult = pStmt->executeQuery(
-                "SELECT PlayerID, CurrentServerGroupID, LogOn, SpecialEventCount, PayType, PayPlayDate, "
-                "PayPlayHours, PayPlayFlag, BillingUserKey, FamilyPayPlayDate, Birthday FROM Player WHERE "
-                "PlayerID = '%s'",
-                playerID.c_str());
-
-#else
-
             Result* pResult = pStmt->executeQuery(
                 "SELECT PlayerID, CurrentServerGroupID, LogOn, SpecialEventCount, PayType, PayPlayDate, "
                 "PayPlayHours, PayPlayFlag, BillingUserKey, FamilyPayPlayDate FROM Player WHERE PlayerID = '%s'",
                 playerID.c_str());
-
-#endif
 
             if (pResult->getRowCount() == 1) {
                 pResult->next();
@@ -83,9 +71,6 @@ public:
                 row.payPlayFlag = pResult->getInt(++i);
                 row.billingUserKey = pResult->getInt(++i);
                 row.familyPayPlayDate = pResult->getString(++i);
-#ifdef __THAILAND_SERVER__
-                row.birthday = pResult->getString(++i);
-#endif
                 found = true;
             }
 

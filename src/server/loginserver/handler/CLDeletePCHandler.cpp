@@ -69,7 +69,7 @@ void CLDeletePCHandler::execute(CLDeletePC* pPacket, Player* pPlayer) {
             return;
         }
 
-#if !defined(__CHINA_SERVER__) && !defined(__THAILAND_SERVER__) && !defined(__NETMARBLE_SERVER__)
+#ifndef __NETMARBLE_SERVER__
         repo.recordDeletion(request.playerID, WorldID, request.name);
 #endif
 

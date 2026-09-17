@@ -2041,7 +2041,6 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
     }
 
 
-    // #if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
     //  ZoneInfo 의 OpenLevel에 따라 warp/zone이동을 막는다.
     //  add by inthesky 2004.07.26
 

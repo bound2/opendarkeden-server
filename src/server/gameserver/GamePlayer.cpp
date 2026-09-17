@@ -138,10 +138,6 @@ GamePlayer::GamePlayer(Socket* pSocket)
     // The construction time counts as the login time.
     m_LoginDateTime = VSDateTime::currentDateTime();
 
-#ifdef __THAILAND_SERVER__
-    m_bPermission = false;
-#endif
-
     //	m_NProtectCSAuth.Init();
 
     __END_CATCH

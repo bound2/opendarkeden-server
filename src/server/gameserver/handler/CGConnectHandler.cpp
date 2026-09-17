@@ -266,10 +266,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         billingUserKey = session.billingUserKey;
         familyPayPlayDate = session.familyPayPlayDate;
 
-#ifdef __THAILAND_SERVER__
-        pGamePlayer->setPermission(isAdultByBirthdayDate(session.birthday));
-#endif
-
         pGamePlayer->setServerGroupID(GID);
         pGamePlayer->setSpecialEventCount(scount);
         pGamePlayer->setBillingUserKey(billingUserKey);
