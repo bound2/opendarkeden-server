@@ -12,6 +12,7 @@
 #include "GCChangeDarkLight.h"
 #include "GCChangeWeather.h"
 #include "GCLightning.h"
+#include "GameContext.h"
 #include "GameTime.h"
 #include "LogClient.h"
 #include "PKZoneInfoManager.h"
@@ -50,7 +51,7 @@ void WeatherManager::init()
     GameTime gametime = g_pTimeManager->getGameTime();
 
     // 이번달의 날씨 정보를 받아온다.
-    // const WeatherInfo & weatherInfo = g_pWeatherInfoManager->getWeatherInfo(gametime.getMonth());
+    // const WeatherInfo & weatherInfo = de::gameContext().weatherInfos().getWeatherInfo(gametime.getMonth());
 
     // 다이스를 굴려서, 오늘의 날씨를 지정한다.
     // m_TodayWeather = weatherInfo.getWeather(Dice(1,100));
@@ -157,7 +158,7 @@ void WeatherManager::heartbeat()
         GameTime gametime = g_pTimeManager->getGameTime();
 
         // 이번달의 날씨 정보를 받아온다.
-        const WeatherInfo& weatherInfo = g_pWeatherInfoManager->getWeatherInfo(gametime.getMonth());
+        const WeatherInfo& weatherInfo = de::gameContext().weatherInfos().getWeatherInfo(gametime.getMonth());
 
         // 다이스를 굴려서, 오늘의 날씨를 지정한다.
         m_TodayWeather = weatherInfo.getWeather(Dice(1, 100));

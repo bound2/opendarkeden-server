@@ -10,6 +10,7 @@
 #include "DynamicZoneFactoryManager.h"
 #include "DynamicZoneInfo.h"
 #include "DynamicZoneManager.h"
+#include "GameContext.h"
 #include "Zone.h"
 #include "ZoneGroup.h"
 
@@ -107,7 +108,7 @@ DynamicZone* DynamicZoneGroup::getAvailableDynamicZone() {
         // 새로 DynamicZone 을 만든다. Reserve it here -- RUNNING, so no one
         // else picks it, and listed, so canEnter() counts it against
         // m_MaxSize -- and build it after the lock is gone.
-        pDynamicZone = g_pDynamicZoneFactoryManager->createDynamicZone(m_DynamicZoneType);
+        pDynamicZone = de::gameContext().dynamicZoneFactories().createDynamicZone(m_DynamicZoneType);
 
         pDynamicZone->setTemplateZoneID(m_TemplateZoneID);
         pDynamicZone->setZoneID(g_pDynamicZoneManager->getNewDynamicZoneID());

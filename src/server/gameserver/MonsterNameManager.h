@@ -54,7 +54,4 @@ protected:
     unordered_map<ulonglong, string> m_UsedName;
 };
 
-// global varible definition
-extern MonsterNameManager* g_pMonsterNameManager;
-
 #endif

@@ -246,7 +246,7 @@ void MonsterManager::parseMonsterList(const string& text, bool bReload)
                         g_pVariableManager->getEventActivate() == 1)
                 {
                   pMonster->setEventMonsterFlag(true);
-                  string MonsterName =  g_pMonsterNameManager->getRandomName(pMonster, true);
+                  string MonsterName =  de::gameContext().monsterNames().getRandomName(pMonster, true);
                   pMonster->setName(MonsterName);
                   //cout << "ÀÌº¥Æ® ¸ó½ºÅÍ ÀÌ¸§: " << pMonster->getName();
                 }
@@ -762,7 +762,7 @@ void MonsterManager::regenerateCreatures()
                     g_pVariableManager->getEventActivate() == 1 )
             {
                 pMonster->setEventMonsterFlag(true);
-                string MonsterName = g_pMonsterNameManager->getRandomName(pMonster, true);
+                string MonsterName = de::gameContext().monsterNames().getRandomName(pMonster, true);
                 pMonster->setName(MonsterName);
 
                 //cout << "ÀÌº¥Æ® ¸ó½ºÅÍ ÀÌ¸§: " << MonsterName;
@@ -1132,7 +1132,7 @@ void MonsterManager::addMonsters(ZoneCoord_t x, ZoneCoord_t y, MonsterType_t mon
                     g_pVariableManager->getEventActivate() == 1 )
             {
                 pMonster->setEventMonsterFlag(true);
-                string MonsterName = g_pMonsterNameManager->getRandomName(pMonster, true);
+                string MonsterName = de::gameContext().monsterNames().getRandomName(pMonster, true);
                 pMonster->setName(MonsterName);
 
                 //cout << "ÀÌº¥Æ® ¸ó½ºÅÍ ÀÌ¸§: " << MonsterName;

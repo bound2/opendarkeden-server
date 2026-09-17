@@ -15,6 +15,7 @@
 #include "GCSay.h"
 #include "GCStatusCurrentHP.h"
 #include "GDRLairManager.h"
+#include "GameContext.h"
 #include "MonsterAI.h"
 #include "MonsterFunctionObject.h"
 #include "MonsterInfo.h"
@@ -261,7 +262,7 @@ Monster::Monster(MonsterType_t monsterType) : m_MonsterType(monsterType) {
         if (pMonsterInfo->getEName().length() < 20) {
             m_Name = pMonsterInfo->getEName();
         } else {
-            m_Name = g_pMonsterNameManager->getRandomName(this);
+            m_Name = de::gameContext().monsterNames().getRandomName(this);
         }
 
         getCurrentTime(m_LastSpeechTime);

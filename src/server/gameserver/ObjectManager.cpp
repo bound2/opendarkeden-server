@@ -159,12 +159,12 @@ ObjectManager::ObjectManager()
     g_pOptionInfoManager = new OptionInfoManager();
     g_pItemMineInfoManager = new ItemMineInfoManager();
     g_pDirectiveSetManager = new DirectiveSetManager();
-    g_pMonsterNameManager = new MonsterNameManager();
+    m_pMonsterNameManager = new MonsterNameManager();
     g_pZoneGroupManager = new ZoneGroupManager();
     g_pTimeManager = new TimeManager();
     g_pDarkLightInfoManager = new DarkLightInfoManager();
     g_pVisionInfoManager = new VisionInfoManager();
-    g_pWeatherInfoManager = new WeatherInfoManager();
+    m_pWeatherInfoManager = new WeatherInfoManager();
     g_pMonsterInfoManager = new MonsterInfoManager();
     g_pSkillHandlerManager = new SkillHandlerManager();
     g_pSkillInfoManager = new SkillInfoManager();
@@ -181,7 +181,9 @@ ObjectManager::ObjectManager()
     context.setVariableManager(g_pVariableManager);
     context.setItemFactoryManager(g_pItemFactoryManager);
     context.setShopTemplateManager(m_pShopTemplateManager);
+    context.setMonsterNameManager(m_pMonsterNameManager);
     context.setZoneGroupManager(g_pZoneGroupManager);
+    context.setWeatherInfoManager(m_pWeatherInfoManager);
     context.setPCFinder(g_pPCFinder);
 
     g_pParkingCenter = new ParkingCenter();
@@ -260,7 +262,8 @@ ObjectManager::ObjectManager()
     g_pTimeChecker = new TimeChecker();
     g_pDynamicZoneInfoManager = new DynamicZoneInfoManager();
     g_pDynamicZoneManager = new DynamicZoneManager();
-    g_pDynamicZoneFactoryManager = new DynamicZoneFactoryManager();
+    m_pDynamicZoneFactoryManager = new DynamicZoneFactoryManager();
+    context.setDynamicZoneFactoryManager(m_pDynamicZoneFactoryManager);
 
     __END_CATCH
 }
@@ -283,12 +286,12 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(g_pSkillDomainInfoManager);
     SAFE_DELETE(g_pMonsterInfoManager);
     SAFE_DELETE(g_pItemInfoManager);
-    SAFE_DELETE(g_pWeatherInfoManager);
+    SAFE_DELETE(m_pWeatherInfoManager);
     SAFE_DELETE(g_pVisionInfoManager);
     SAFE_DELETE(g_pDarkLightInfoManager);
     SAFE_DELETE(g_pTimeManager);
     SAFE_DELETE(g_pDirectiveSetManager);
-    SAFE_DELETE(g_pMonsterNameManager);
+    SAFE_DELETE(m_pMonsterNameManager);
     SAFE_DELETE(g_pZoneInfoManager);
     SAFE_DELETE(g_pZoneGroupManager);
     SAFE_DELETE(g_pSkillDomainInfoManager);
@@ -357,7 +360,7 @@ ObjectManager::~ObjectManager()
 
     SAFE_DELETE(g_pDynamicZoneInfoManager);
     SAFE_DELETE(g_pDynamicZoneManager);
-    SAFE_DELETE(g_pDynamicZoneFactoryManager);
+    SAFE_DELETE(m_pDynamicZoneFactoryManager);
 
     __END_CATCH_NO_RETHROW
 }
@@ -401,7 +404,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : DirectiveSetManager Initialization Success\n");
 
     printf("ObjectManager::init() : MonsterNameManager Initialization Start\n");
-    g_pMonsterNameManager->init();
+    m_pMonsterNameManager->init();
     printf("ObjectManager::init() : MonsterNameManager Initialization Success\n");
 
     printf("ObjectManager::init() : TimeManager Initialization Start\n");
@@ -501,7 +504,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : CastleShrineInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : WeatherInfoManager Initialization Start\n");
-    g_pWeatherInfoManager->init();
+    m_pWeatherInfoManager->init();
     printf("ObjectManager::init() : WeatherInfoManager Initialization Success\n");
 
     // WayPointManager 도 필살로 Zone이 모두 로딩된 다음에 불려야 된다.
@@ -748,7 +751,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : DynamicZoneManager Initialization Success\n");
 
     printf("ObjectManager::load() : DynamicZoneFactoryManager Initialization Start\n");
-    g_pDynamicZoneFactoryManager->init();
+    m_pDynamicZoneFactoryManager->init();
     printf("ObjectManager::load() : DynamicZoneFactoryManager Initialization Success\n");
 
     /*
@@ -764,7 +767,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : MonsterInfoManager Loading Success\n");
 
     printf("ObjectManager::load() : WeatherInfoManager Loading Start\n");
-    g_pWeatherInfoManager->load();
+    m_pWeatherInfoManager->load();
     printf("ObjectManager::load() : WeatherInfoManager Loading Success\n");
 
     printf("ObjectManager::load() : ZoneGroupManager Loading Start\n");
