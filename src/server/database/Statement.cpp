@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // File Name 	: Statement.cpp
 // Written by	: Gday29@ewestsoft.com
-// Description	: SQL ���� �����..
+// Description	: SQL statement wrapper
 //////////////////////////////////////////////////////////////////////////////
 
 #include "Statement.h"
@@ -52,14 +52,14 @@ Statement::Statement(const char* fmt, ...)
 
     int nchars = vsnprintf(buffer, 2048, fmt, valist);
 
-    // ���� ���� ũ�Ⱑ �����ϰ� �Ǹ�, ������ ������ �������� ���� �������Ѿ� �Ѵ�.
+    // If the buffer is not big enough, fail instead of truncating.
     if (nchars == -1 || nchars > 2048)
         throw Error("more buffer size needed for SQL statement buffer...");
 
     va_end(valist);
 
-    // string �̹Ƿ� �����ص� �����ϴ�.
-    // ���� char * ���ٸ�, local variable�� �������ϴ� ���� �����ϴ�.
+    // m_Statement is a string, so assigning the buffer copies it.
+    // If it were a char*, pointing at a local variable would be dangerous.
     m_Statement = buffer;
 
     __END_CATCH
@@ -69,7 +69,7 @@ Statement::Statement(const char* fmt, ...)
 //
 // destructor
 //
-// ���������� ���� ����� �޸𸮿��� �����Ѵ�.
+// Frees the result it created internally.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -85,8 +85,8 @@ Statement::~Statement() {
 //
 // executeQuery()
 //
-// Connection, SQL���� ��Ʈ������ �޾Ƽ� ������� Result *��
-// �����Ѵ�.
+// Takes the Connection and the SQL statement string and returns the
+// resulting Result *.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -98,7 +98,7 @@ Result* Statement::executeQuery()
     Assert(m_pConnection != NULL);
 
     if (m_pResult != NULL) {
-        // ���ø����̼ǿ��� Result �� �������� ���� ���,
+        // The application did not take the previous Result; drop it here.
         delete m_pResult;
         m_pResult = NULL;
     }
@@ -115,7 +115,7 @@ Result* Statement::executeQuery()
 
     MYSQL_RES* pResult = mysql_store_result(m_pConnection->getMYSQL());
 
-    // ���� ������� NULL�� ���� update���̰ų� �����̴�.
+    // A NULL result means the statement was an update, or an error.
     if (pResult != NULL) {
         m_pResult = new Result(pResult, m_Statement);
     } else {
@@ -140,8 +140,8 @@ Result* Statement::executeQuery()
 //
 // executeQuery ()
 //
-// Connection, SQL���� ��Ʈ������ �޾Ƽ� ������� Result *��
-// �����Ѵ�.
+// Takes the Connection and the SQL statement string and returns the
+// resulting Result *.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -159,15 +159,15 @@ Result* Statement::executeQueryString(const string& sqlStatement) {
 //
 // executeQuery ()
 //
-// Connection, SQL���� ��Ʈ������ �޾Ƽ� ������� Result *��
-// �����Ѵ�.
+// Takes the Connection and the SQL statement string and returns the
+// resulting Result *.
 //
 //////////////////////////////////////////////////////////////////////
 
 Result* Statement::executeQuery(const char* fmt, ...) {
     __BEGIN_TRY
 
-    // SQL Statement �� ������.
+    // Build the SQL statement.
     va_list valist;
 
     va_start(valist, fmt);
@@ -176,7 +176,7 @@ Result* Statement::executeQuery(const char* fmt, ...) {
 
     int nchars = vsnprintf(buffer, 2048, fmt, valist);
 
-    // ���� ���� ũ�Ⱑ �����ϰ� �Ǹ�, ���ܸ� ������ ���� �������Ѿ� �Ѵ�.
+    // If the buffer is not big enough, throw instead of truncating.
     if (nchars == -1 || nchars > 2048)
         throw Error("more buffer size needed for SQL statement buffer...");
 
@@ -193,7 +193,7 @@ Result* Statement::executeQuery(const char* fmt, ...) {
 //
 //	setStatement()
 //
-//	�������� �ٽ� �����.
+//	Rebuild the statement.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -212,7 +212,7 @@ void Statement::setStatement(const char* fmt, ...)
 
     int nchars = vsnprintf(buffer, 2048, fmt, valist);
 
-    // ���� ���� ũ�Ⱑ �����ϰ� �Ǹ�, ���ܸ� ������ ���� �������Ѿ� �Ѵ�.
+    // If the buffer is not big enough, throw instead of truncating.
     if (nchars == -1 || nchars > 2048)
         throw Error("more buffer size needed for SQL statement buffer...");
 

@@ -2,7 +2,7 @@
 //
 // File Name 	: Statement.h
 // Written by	: Gday29@ewestsoft.com
-// Description	: SQL ���� �����..
+// Description	: SQL statement wrapper
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -21,7 +21,7 @@ class Result;
 //
 // class Statement;
 //
-// SQL���� ����� ��� �����Ѵ�.
+// Wraps the execution of an SQL statement.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -37,10 +37,10 @@ public:
     ~Statement();
 
 public:
-    // ������ ������ SQL ���� ������ �����Ѵ�.
+    // Executes the SQL statement already stored.
     Result* executeQuery();
 
-    // SQL ���� �޾Ƽ� �����Ѵ�.
+    // Takes an SQL statement and executes it.
     // The format attribute lets -Wformat check every literal-format call
     // against its arguments: a 32-bit argument read through %ld/%lu takes
     // garbage upper bits under Clang. Formats reached through a pointer,
@@ -54,7 +54,7 @@ public:
         return m_Statement;
     }
 
-    // SQL ���� �����Ѵ�.
+    // Executes the SQL statement.
     void setStatement(const char* fmt, ...);
 
     // get connection object
@@ -85,13 +85,13 @@ private:
     // Connection
     Connection* m_pConnection;
 
-    // SQL Statement�
+    // SQL Statement
     string m_Statement;
 
     // Query Result
     Result* m_pResult;
 
-    // insert, update, delete ���� �� ������ ���� row �� ����
+    // Number of rows affected by an insert, update or delete
     uint m_nAffectedRows;
 };
 

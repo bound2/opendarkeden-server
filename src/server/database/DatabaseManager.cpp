@@ -31,12 +31,12 @@ DatabaseManager::DatabaseManager() {
 }
 
 DatabaseManager::~DatabaseManager() {
-    // ��� Connection �� �����ؾ� �Ѵ�.
+    // Every Connection must be deleted.
     unordered_map<int, Connection*>::iterator itr = m_Connections.begin();
     for (; itr != m_Connections.end(); itr++)
         SAFE_DELETE(itr->second);
 
-    // �ؽ��ʾȿ� �ִ� ��� pair ���� �����Ѵ�.
+    // Erase every pair in the hash map.
     m_Connections.clear();
 
     SAFE_DELETE(m_pDefaultConnection);
@@ -104,7 +104,7 @@ void DatabaseManager::init() {
             double dbDiff = difftime(tSYSTime, tDBTime);
 
             if ((int)dbDiff > 3600) {
-                // ������ ���̽��� �������� �ð����̰� 1�ð� �̻��̴�.
+                // The gap between DB time and server time is more than an hour.
                 cout << "======================================================" << endl;
                 cout << "!!! Time Check Error !!!" << endl;
                 cout << "DB time is " << tDBTime << "and server time is " << tSYSTime << endl;
@@ -213,7 +213,7 @@ void DatabaseManager::addConnection(int TID, Connection* pConnection) {
 }
 
 ////////////////////////////////////////////////////////////////////////////
-// Potion �� Thread Connection�� ���� �κ�
+// Potion and Thread Connection section
 ////////////////////////////////////////////////////////////////////////////
 void DatabaseManager::addDistConnection(int TID, Connection* pConnection) {
     __BEGIN_TRY
@@ -240,7 +240,7 @@ void DatabaseManager::addDistConnection(int TID, Connection* pConnection) {
 
 /*
 ////////////////////////////////////////////////////////////////////////////////
-// PC �� ���� Connection ����
+// Connection section for PC rooms
 ////////////////////////////////////////////////////////////////////////////////
 void DatabaseManager::addPCRoomConnection ( int TID,  Connection * pConnection )
 
@@ -304,7 +304,7 @@ Connection* DatabaseManager::getConnection(const string& connName)
 
     unordered_map<int, Connection*>::iterator itr;
 
-    // connName�� ���ؼ� ���� �ٸ� DB Server�� �б��ϵ��� �Ѵ�.
+    // Route to a different DB Server depending on connName.
     // if(connName == "DIST_DARKEDEN")
     //{
     //	itr = m_DistConnections.find(Thread::self());
@@ -332,7 +332,7 @@ Connection* DatabaseManager::getConnection(const string& connName)
 
 /*
 ////////////////////////////////////////////////////////////////////////////
-// PC �� ���տ� Connection ��������
+// Getting the Connection for PC room integration
 ////////////////////////////////////////////////////////////////////////////
 Connection * DatabaseManager::getPCRoomConnection ( const string& connName )
 
