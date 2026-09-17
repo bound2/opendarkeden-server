@@ -48,8 +48,6 @@ void GCKnocksTargetBackOK5::read(SocketInputStream& iStream)
     // State the actual size when optimizing.
     iStream.read(m_ObjectID);
     iStream.read(m_TargetObjectID);
-    //	iStream.read(m_X);
-    //	iStream.read(m_Y);
 
     // A bool holds 0 or 1, so any other byte is refused rather than
     // stored in one.
@@ -80,8 +78,6 @@ void GCKnocksTargetBackOK5::write(SocketOutputStream& oStream) const {
     // State the actual size when optimizing.
     oStream.write(m_ObjectID);
     oStream.write(m_TargetObjectID);
-    //	oStream.write(m_X);
-    //	oStream.write(m_Y);
     oStream.write(m_bSuccess);
 
     oStream.write(m_SkillType);

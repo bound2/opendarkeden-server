@@ -31,8 +31,6 @@ ServerSocket::ServerSocket(uint port, uint backlog) : m_Impl(NULL) {
     // The port is already stored in m_Impl, so Bind() can be called without a parameter.
     m_Impl->bind();
 
-    //	m_Impl->setSendBufferSize( 9000 );
-    //	m_Impl->setReceiveBufferSize( 9000 );
 
     // set listening queue size
     m_Impl->listen(backlog);
@@ -78,8 +76,6 @@ Socket* ServerSocket::accept() {
             throw UnknownError("impl == NULL");
 
         Client = new Socket(impl);
-        //		Client->setNonBlocking();
-
     } catch (NonBlockingIOException&) {
         // ignore
     } catch (ConnectException&) {

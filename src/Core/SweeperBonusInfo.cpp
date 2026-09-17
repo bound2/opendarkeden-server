@@ -43,18 +43,9 @@ SweeperBonusInfo::~SweeperBonusInfo() {
 void SweeperBonusInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    //	BYTE szOptionList;
 
     iStream.read(m_Race);
 
-    /*	iStream.read( szOptionList );
-        for ( int i = 0 ; i < szOptionList; i++ )
-        {
-            OptionType_t optionType;
-            iStream.read( optionType );
-            m_OptionTypeList.push_back( optionType );
-        }
-    */
     __END_CATCH
 }
 
@@ -66,16 +57,6 @@ void SweeperBonusInfo::write(SocketOutputStream& oStream) const {
 
     oStream.write(m_Race);
 
-    /*	BYTE szOptionList = m_OptionTypeList.size();
-        oStream.write( szOptionList );
-
-        OptionTypeListConstItor itr = m_OptionTypeList.begin();
-        for ( ; itr != m_OptionTypeList.end(); itr++ )
-        {
-            OptionType_t optionType = *itr;
-            oStream.write( optionType );
-        }
-    */
     __END_CATCH
 }
 

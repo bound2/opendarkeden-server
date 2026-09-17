@@ -29,7 +29,6 @@ GCAddItemToInventory::GCAddItemToInventory()
     m_Durability = 0;
 
 
-    //	m_ListNum = 0;
     __END_CATCH
 }
 
@@ -70,14 +69,6 @@ void GCAddItemToInventory::read(SocketInputStream& iStream)
 
     iStream.read(m_Durability);
     iStream.read(m_ItemNum);
-    /*
-        iStream.read(m_ListNum);
-        for(int i = 0; i < m_ListNum; i++ ) {
-            SubItemInfo * pSubItemInfo = new SubItemInfo();
-            pSubItemInfo->read(iStream);
-            m_SubItemInfoList.push_back(pSubItemInfo);
-        }
-    */
 
 
     __END_CATCH
@@ -110,15 +101,6 @@ void GCAddItemToInventory::write(SocketOutputStream& oStream) const {
 
     oStream.write(m_Durability);
     oStream.write(m_ItemNum);
-    /*
-        oStream.write(m_ListNum);
-
-        for (list<SubItemInfo*>:: const_iterator itr = m_SubItemInfoList.begin(); itr!= m_SubItemInfoLi
-            Assert(*itr != NULL);
-            (*itr)->write(oStream);
-        }
-
-    */
     __END_CATCH
 }
 

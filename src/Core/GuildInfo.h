@@ -47,7 +47,6 @@ public:
     static constexpr uint kMaxCount = 5000;
 
     static constexpr uint getMaxSize() {
-        //		return ( szGuildID + szBYTE + 30 + szBYTE + 20 + szBYTE + szBYTE + 11 ) * 256 + szBYTE;
         return szGuildID + szBYTE + 30 + szBYTE + 20 + szBYTE + szBYTE + 11;
     }
 

@@ -92,7 +92,6 @@ uint SocketInputStream::read(string& str, uint len) {
         //
 
         str.assign(&m_Buffer[m_Head], len);
-
     } else { // reversed order ( m_Head > m_Tail )
 
         //
@@ -132,7 +131,6 @@ void SocketInputStream::readPacket(Packet* pPacket) {
     // and it initialises itself.
     // If read() of any packet gets it wrong, everything after that
     // becomes impossible to parse. So a packet class has to be written with real care.
-    // cout<<"Receive_before:"<<pPacket->toString()<<endl;
     pPacket->read(*this);
     cout << "Receive:" << pPacket->toString() << endl;
     __END_CATCH
@@ -143,8 +141,6 @@ void SocketInputStream::readPacket(Packet* pPacket) {
 // peek data from buffer
 //////////////////////////////////////////////////////////////////////
 bool SocketInputStream::peek(std::span<std::byte> dst) {
-    //	__BEGIN_TRY
-
     char* buf = reinterpret_cast<char*>(dst.data());
     const uint len = (uint)dst.size();
 
@@ -170,7 +166,6 @@ bool SocketInputStream::peek(std::span<std::byte> dst) {
         //
 
         memcpy(buf, &m_Buffer[m_Head], len);
-
     } else { // reversed order ( m_Head > m_Tail )
 
         //
@@ -189,7 +184,6 @@ bool SocketInputStream::peek(std::span<std::byte> dst) {
     }
 
     return true;
-    //	__END_CATCH
 }
 
 
@@ -312,7 +306,6 @@ uint SocketInputStream::fill() {
                     nFilled += nReceived;
                 }
             }
-
         } else { // m_Head != 0
 
             //
@@ -380,7 +373,6 @@ uint SocketInputStream::fill() {
                 }
             }
         }
-
     } else { // reversed order ( m_Head > m_Tail )
 
         //
@@ -425,18 +417,6 @@ uint SocketInputStream::fill() {
             }
         }
     }
-    // add by viva 2008-12-31
-    //	if(nFilled>0)
-    //	{
-    //		if(m_Tail>=nFilled)
-    //			m_EncryptKey = EncryptData(m_EncryptKey, &m_Buffer[m_Tail-nFilled], nFilled);
-    //		else
-    //		{
-    //			m_EncryptKey = EncryptData(m_EncryptKey, &m_Buffer[m_BufferLen - m_Tail], nFilled - m_Tail);
-    //			m_EncryptKey = EncryptData(m_EncryptKey, &m_Buffer[0], m_Tail);
-    //		}
-    //	}
-    // end
     return nFilled;
 
     __END_CATCH
@@ -537,7 +517,6 @@ void SocketInputStream::resize(int size) {
         //
 
         memcpy(newBuffer, &m_Buffer[m_Head], m_Tail - m_Head);
-
     } else if (m_Head > m_Tail) {
         //
         //     T  H

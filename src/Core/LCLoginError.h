@@ -61,8 +61,6 @@ public:
 private:
     // Error ID
     BYTE m_ErrorID;
-
-    //	string m_Message;
 };
 
 

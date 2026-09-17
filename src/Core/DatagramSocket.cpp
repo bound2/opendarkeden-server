@@ -51,8 +51,6 @@ DatagramSocket::DatagramSocket(uint port) : m_SocketID(INVALID_SOCKET) {
     m_SockAddr.sin_family = AF_INET;
     m_SockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
     m_SockAddr.sin_port = htons(port);
-    // add by viva
-    //	cout<<"DatagramSocket Bind Port:"<<port<<endl;
     //  bind address to socket
     SocketAPI::bind_ex(m_SocketID, (SOCKADDR*)&m_SockAddr, szSOCKADDR_IN);
 
@@ -85,7 +83,6 @@ uint DatagramSocket::send(Datagram* pDatagram) {
                                          pDatagram->getAddress(), szSOCKADDR_IN);
 
         return (uint)nSent;
-
     } catch (ConnectException& t) {
         cout << "DatagramSocket::send Exception Check!" << endl;
         cout << t.toString() << endl;

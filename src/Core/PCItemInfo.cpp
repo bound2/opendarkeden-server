@@ -113,7 +113,6 @@ void PCItemInfo::write(SocketOutputStream& oStream) const {
     for (; itr != m_SubItemInfoList.end(); itr++)
         (*itr)->write(oStream);
 
-    // cout << toString().c_str() << endl;
 
     __END_CATCH
 }

@@ -28,7 +28,6 @@ void WarInfo::read(SocketInputStream& iStream) {
 void WarInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    //	cout << "WarInfo : " << m_StartTime << endl;
 
     oStream.write(m_RemainTime);
     oStream.write(m_StartTime);

@@ -240,7 +240,6 @@ uint SocketImpl::send(const void* buf, uint len, uint flags) {
 
     try {
         result = SocketAPI::send_ex(m_SocketID, buf, len, flags);
-
     } catch (Throwable& t) {
         cout << "SocketImpl::send Exception Check!" << endl;
         cout << t.toString() << endl;
@@ -257,8 +256,6 @@ uint SocketImpl::send(const void* buf, uint len, uint flags) {
 //////////////////////////////////////////////////////////////////////
 uint SocketImpl::receive(void* buf, uint len, uint flags) {
     __BEGIN_TRY
-    // modify by viva 2008-12-22
-    // len =  SocketAPI::recv_ex( m_SocketID , buf , len , flags );
     return SocketAPI::recv_ex(m_SocketID, buf, len, flags);
     // end
 

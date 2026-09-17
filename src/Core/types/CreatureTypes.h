@@ -355,21 +355,6 @@ inline string dir2String(Dir_t dir) {
 typedef BYTE Vision_t;
 const uint szVision = sizeof(Vision_t);
 
-// Maximum width and height of a character's field of view. The field of view is asymmetric vertically.
-// const Coord_t maxViewportWidth  = 9;
-// const Coord_t maxViewportUpperHeight = 10;
-// const Coord_t maxViewportLowerHeight = 10;
-//
-// const Coord_t maxViewportWidth  = 12;
-// const Coord_t maxViewportUpperHeight = 13;
-// const Coord_t maxViewportLowerHeight = 13;
-// const Coord_t maxViewportWidth  = 14;
-// const Coord_t maxViewportUpperHeight = 14;
-// const Coord_t maxViewportLowerHeight = 14;
-
-// Width and height of the sight rectangle (vision)
-// const Coord_t maxVisionWidth = maxViewportWidth * 2 + 1;
-// const Coord_t maxVisionHeight = maxViewportUpperHeight + maxViewportLowerHeight + 1;
 
 // Sight level
 typedef BYTE Sight_t;

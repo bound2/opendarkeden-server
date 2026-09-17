@@ -52,7 +52,6 @@ void GCAttackArmsOK3::read(SocketInputStream& iStream)
     // State the actual size when optimizing.
     iStream.read(m_SkillType);
     iStream.read(m_ObjectID);
-    //	iStream.read(m_TargetObjectID);
     iStream.read(m_X);
     iStream.read(m_Y);
 
@@ -69,7 +68,6 @@ void GCAttackArmsOK3::write(SocketOutputStream& oStream) const {
     // State the actual size when optimizing.
     oStream.write(m_SkillType);
     oStream.write(m_ObjectID);
-    //	oStream.write(m_TargetObjectID);
     oStream.write(m_X);
     oStream.write(m_Y);
 

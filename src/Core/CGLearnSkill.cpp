@@ -45,7 +45,6 @@ string CGLearnSkill::toString() const
     case SKILL_DOMAIN_GUN:
         domain = "GUN";
         break;
-    // case SKILL_DOMAIN_RIFLE:   domain = "RIFLE";   break;
     case SKILL_DOMAIN_ENCHANT:
         domain = "ENCHANT";
         break;

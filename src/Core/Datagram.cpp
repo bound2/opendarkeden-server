@@ -287,10 +287,6 @@ void Datagram::setAddress(SOCKADDR_IN* pSockAddr) {
 
     memcpy(&m_SockAddr, pSockAddr, szSOCKADDR_IN);
 
-    // char str[80];
-    // sprintf(str, "0x%X - 0x%X", m_SockAddr.sin_port, ntohs(m_SockAddr.sin_port));
-    // cout << "[Datagram::setAddress] " << inet_ntoa(m_SockAddr.sin_addr) << ":" << ntohs(m_SockAddr.sin_port) << " - "
-    // << str << endl;
 
     __END_CATCH
 }

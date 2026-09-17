@@ -79,16 +79,6 @@ public:
         return write(buf);
     }
 
-    /*    uint writeEncrypt (bool   buf)  { buf = m_Encrypter.convert(buf); return write((const char*)&buf, szbool  ); }
-        uint writeEncrypt (char   buf)  { buf = m_Encrypter.convert(buf); return write((const char*)&buf, szchar  ); }
-        uint writeEncrypt (uchar  buf)  { buf = m_Encrypter.convert(buf); return write((const char*)&buf, szuchar ); }
-        uint writeEncrypt (short  buf)  { buf = m_Encrypter.convert(buf); return write((const char*)&buf, szshort ); }
-        uint writeEncrypt (ushort buf)  { buf = m_Encrypter.convert(buf); return write((const char*)&buf, szushort); }
-        uint writeEncrypt (int    buf)  { buf = m_Encrypter.convert(buf); return write((const char*)&buf, szint   ); }
-        uint writeEncrypt (uint   buf)  { buf = m_Encrypter.convert(buf); return write((const char*)&buf, szuint  ); }
-        uint writeEncrypt (long   buf)  { buf = m_Encrypter.convert(buf); return write((const char*)&buf, szlong  ); }
-        uint writeEncrypt (ulong  buf)  { buf = m_Encrypter.convert(buf); return write((const char*)&buf, szulong ); }
-    */
     void setEncryptCode(uchar code) {
         m_Encrypter.setCode(code);
     }

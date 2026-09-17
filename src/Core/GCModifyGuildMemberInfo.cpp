@@ -39,9 +39,6 @@ void GCModifyGuildMemberInfo::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
 
 
-    // if (szGuildName == 0 )
-    //	throw InvalidProtocolException("szGuildName == 0");
-
     oStream.write(m_GuildID);
     de::wire::writeString(oStream, m_GuildName, {0, de::wire::kMaxByteStringLength}, "GuildName");
 

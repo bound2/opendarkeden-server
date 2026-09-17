@@ -215,16 +215,6 @@ PacketSize_t GCStashList::getPacketSize() const
                 size += szBYTE * 2;
 
                 // Actual information
-                /*
-                size += szObjectID;
-                size += szBYTE;
-                size += szItemType;
-                size += szBYTE + optionType.size();
-                size += szDurability;
-                size += szItemNum;
-                size += szSilver;
-                size += szEnchantLevel;
-                */
                 size += m_pItems[r][i].getPacketSize();
 
                 // Number of items in the belt

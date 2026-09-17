@@ -37,9 +37,7 @@ void CGTypeStringList::read(SocketInputStream& iStream)
         throw InvalidProtocolException("list type out of range");
 
     m_StringType = type;
-    //	cout << "CGTypeStringList(StringType:" << (int)m_StringType << ", ";
     iStream.read(num);
-    //	cout << "Number of String:" << (int)num << ", ";
 
     if (num > kMaxStringCount)
         throw InvalidProtocolException("too many list strings");
@@ -51,7 +49,6 @@ void CGTypeStringList::read(SocketInputStream& iStream)
     }
 
     iStream.read(m_Param);
-    //	cout << "Parameter : " << m_Param << " )" << endl;
 
     __END_CATCH
 }

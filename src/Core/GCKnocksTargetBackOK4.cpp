@@ -43,11 +43,7 @@ void GCKnocksTargetBackOK4::read(SocketInputStream& iStream)
     __BEGIN_TRY
 
     // State the actual size when optimizing.
-    //	iStream.read(m_ObjectID);
     iStream.read(m_TargetObjectID);
-    //	iStream.read(m_X);
-    //	iStream.read(m_Y);
-    //	iStream.read(m_bSuccess);
 
     iStream.read(m_SkillType);
     iStream.read(m_dir);
@@ -64,11 +60,7 @@ void GCKnocksTargetBackOK4::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
     // State the actual size when optimizing.
-    //	oStream.write(m_ObjectID);
     oStream.write(m_TargetObjectID);
-    //	oStream.write(m_X);
-    //	oStream.write(m_Y);
-    //	oStream.write(m_bSuccess);
 
     oStream.write(m_SkillType);
     oStream.write(m_dir);

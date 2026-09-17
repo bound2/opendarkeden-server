@@ -28,20 +28,12 @@ public:
         if (m_PetType == PET_NONE)
             return szPetType;
 
-        //		if ( type == MY_INFO )
         return szPetType + szMonsterType + szPetLevel + szPetExp + szPetHP + szPetAttr + szPetAttrLevel + szOptionType +
                szItemType + szBYTE + szBYTE + szBYTE + szBYTE + szObjectID + de::wire::stringWireSize(m_Nickname);
-        //		else
-        //			return szPetType + szMonsterType + szPetLevel + szPetExp + szPetAttr + szPetAttrLevel + szOptionType
-        //+ szItemType + szObjectID;
     }
     static constexpr PacketSize_t getMaxSize() {
-        //		if ( type == MY_INFO )
         return szPetType + szMonsterType + szPetLevel + szPetExp + szPetHP + szPetAttr + szPetAttrLevel + szOptionType +
                szItemType + szBYTE + szBYTE + szBYTE + szBYTE + szObjectID + szBYTE + kMaxNicknameSize;
-        //		else
-        //			return szPetType + szMonsterType + szPetLevel + szPetExp + szPetAttr + szPetAttrLevel + szOptionType
-        //+ szItemType + szObjectID;
     }
 
 public:

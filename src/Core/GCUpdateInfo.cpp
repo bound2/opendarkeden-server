@@ -134,8 +134,6 @@ void GCUpdateInfo::read(SocketInputStream& iStream)
     //--------------------------------------------------
     iStream.read(m_nNPCs);
 
-    //	if (m_nNPCs == 0 )
-    //		throw InvalidProtocolException("m_nNPCs == 0");
 
     if (m_nNPCs > maxNPCPerZone)
         throw InvalidProtocolException("too many NPC types per zone");
@@ -148,8 +146,6 @@ void GCUpdateInfo::read(SocketInputStream& iStream)
     //--------------------------------------------------
     iStream.read(m_nMonsters);
 
-    //	if (m_nMonsters == 0 )
-    //		throw InvalidProtocolException("m_nMonsters == 0");
 
     if (m_nMonsters > maxMonsterPerZone)
         throw InvalidProtocolException("too many Monster types per zone");
@@ -260,8 +256,6 @@ void GCUpdateInfo::write(SocketOutputStream& oStream) const
     //--------------------------------------------------
     oStream.write(m_nNPCs);
 
-    //	if (m_nNPCs == 0 )
-    //		throw InvalidProtocolException("m_nNPCs == 0");
 
     if (m_nNPCs > maxNPCPerZone)
         throw InvalidProtocolException("too many NPC types per zone");
@@ -274,8 +268,6 @@ void GCUpdateInfo::write(SocketOutputStream& oStream) const
     //--------------------------------------------------
     oStream.write(m_nMonsters);
 
-    //	if (m_nMonsters == 0 )
-    //		throw InvalidProtocolException("m_nMonsters == 0");
 
     if (m_nMonsters > maxMonsterPerZone)
         throw InvalidProtocolException("too many Monster types per zone");

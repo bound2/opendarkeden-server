@@ -108,40 +108,6 @@ void ResourceManager::save(const string& filename) const {
 //--------------------------------------------------------------------------------
 void ResourceManager::optimize(){__BEGIN_TRY
 
-                                     /*
-                                           // Check from the back.
-                                           bool exefileFound = false;
-
-                                           list< Resource * >::reverse_iterator before = m_Resources.rend();
-                                           list< Resource * >::reverse_iterator current = m_Resources.rbegin();
-
-                                           while ( current != m_Resources.rend() ) {
-
-                                               // Take the filename.
-                                               string filename = (*current)->getFilename();
-
-                                               // Cut off the file size and keep only the plain filename.
-                                               size_t i = filename.find_first_of(' ');
-                                               filename = filename.substr(0,i);
-
-                                               // If darkeden.exe is part of this filename, run the duplicate check.
-                                               if ( filename == "DarkEden.exe" ) {
-                                                   if ( exefileFound == false ) {
-                                                       exefileFound = true;
-                                                   } else {
-                                                       // Delete the node.
-                                                       if ( before == m_Resources.rend() ) {
-                                                           m_Resources.erase( current );
-                                                           current = m_Resources.rbegin();
-                                                       } else {
-                                                           m_Resources.erase( current );
-                                                           current = before;
-                                                           current ++;
-                                                       }
-                                                   }
-                                               }
-                                           }
-                                       */
 
                                      __END_CATCH}
 

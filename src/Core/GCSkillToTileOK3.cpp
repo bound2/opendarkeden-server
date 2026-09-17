@@ -54,17 +54,6 @@ void GCSkillToTileOK3::read(SocketInputStream& iStream)
     iStream.read(m_X);
     iStream.read(m_Y);
     iStream.read(m_Grade);
-    /*
-        iStream.read(m_Duration);
-        iStream.read(m_CListNum);
-
-        ObjectID_t m_Value;
-
-        for(int i = 0; i < m_CListNum; i++ ) {
-            iStream.read(m_Value);
-            m_CList.push_back(m_Value);
-        }
-    */
     __END_CATCH
 }
 
@@ -81,61 +70,8 @@ void GCSkillToTileOK3::write(SocketOutputStream& oStream) const {
     oStream.write(m_X);
     oStream.write(m_Y);
     oStream.write(m_Grade);
-    /*
-        oStream.write(m_Duration);
-        oStream.write(m_CListNum);
-
-        for (list<ObjectID_t>::const_iterator itr = m_CList.begin(); itr!= m_CList.end() ; itr++ ) {
-            oStream.write(*itr);
-        }
-    */
     __END_CATCH
 }
-/*
-//////////////////////////////////////////////////////////////////////
-//
-// GCSkillToTileOK3::addListElement()
-//
-// Member function that adds one (changed part, changed value) set to the list.
-//
-//////////////////////////////////////////////////////////////////////
-void GCSkillToTileOK3::addCListElement(ObjectID_t ObjectID )
-
-{
-    __BEGIN_TRY
-
-    // Add a creature ID.
-    m_CList.push_back(ObjectID);
-
-    // Raise the creature ID count.
-    m_CListNum++;
-
-    __END_CATCH
-
-}
-*/
-/*
-//////////////////////////////////////////////////////////////////////
-//
-// GCSkillToTileOK3::deleteCListElement()
-//
-// Member function needed when removing an element of the creature list.
-//
-//////////////////////////////////////////////////////////////////////
-void GCSkillToTileOK3::deleteCListElement()
-
-{
-    __BEGIN_TRY
-
-    // Drop one creature id.
-    m_CList.pop_front();
-
-    // Drop one from the creature list counter.
-    m_CListNum--;
-
-    __END_CATCH
-}
-*/
 
 //////////////////////////////////////////////////////////////////////
 //

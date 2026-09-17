@@ -100,9 +100,6 @@ private:
 
     // TargetObjectID
     //	ObjectID_t m_TargetObjectID;
-
-    // bool
-    //	bool m_bSuccess;
 };
 
 

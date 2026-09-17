@@ -111,9 +111,6 @@ private:
     Coord_t m_X = 0, m_Y = 0; // Coordinates it was moved to.
     Dir_t m_dir = 0;          // Direction it was pushed back in.
     SkillType_t m_SkillType = 0;
-
-    // bool
-    //	bool m_bSuccess;
 };
 
 

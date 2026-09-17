@@ -60,19 +60,6 @@ public:
 
     // get packet's debug string
     string toString() const;
-    /*
-        // get/set X Coordicate
-        Coord_t getX() const  { return m_X; }
-        void setX(Coord_t x)  { m_X = x; }
-
-        // get/set Y Coordicate
-        Coord_t getY() const  { return m_Y; }
-        void setY(Coord_t y)  { m_Y = y; }
-
-        // get/set Direction
-        Dir_t getDir() const  { return m_Dir; }
-        void setDir(Dir_t dir)  { m_Dir = dir; }
-    */
     // get/set ObjectID
     ObjectID_t getObjectID() const {
         return m_ObjectID;
