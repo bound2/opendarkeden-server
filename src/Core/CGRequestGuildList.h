@@ -28,17 +28,17 @@ typedef BYTE GuildType_t;
 class CGRequestGuildList : public Packet {
 public:
     enum {
-        GUILDTYPE_WAIT,   // 등록대기중 길드.
-        GUILDTYPE_NORMAL, // 등록된 길드(일반길드).
+        GUILDTYPE_WAIT,   // Guild waiting to be registered.
+        GUILDTYPE_NORMAL, // Registered guild (an ordinary guild).
         GUILDTYPE_MAX
     };
 
     CGRequestGuildList(){};
     virtual ~CGRequestGuildList(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 

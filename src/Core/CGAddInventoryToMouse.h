@@ -62,7 +62,7 @@ public:
 private:
     ObjectID_t m_ObjectID = 0;
 
-    // 보조 인벤토리 아이템의 오브젝트 아이디. 0이면 메인 인벤토리에서 꺼냄
+    // Object id of the sub inventory item. 0 means it is taken from the main inventory
     ObjectID_t m_InventoryItemObjectID = 0;
 
     CoordInven_t m_InvenX = 0;

@@ -13,7 +13,7 @@ void CGRangerSay::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    // 메세지 읽기
+    // Read the message
     de::wire::readString(iStream, m_Message, {1, 128}, "Message");
 
     __END_CATCH
@@ -24,7 +24,7 @@ void CGRangerSay::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    // 메세지 쓰기
+    // Write the message
     de::wire::writeString(oStream, m_Message, {1, 128}, "Message");
 
     __END_CATCH

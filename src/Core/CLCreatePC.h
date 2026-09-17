@@ -20,7 +20,7 @@
 //
 // class CLCreatePC;
 //
-// 슬레이어 캐릭터를 새로 만들 경우, 이 패킷에 정보를 담아서 서버로 전송한다.
+// When a new slayer character is created, its information is put in this packet and sent to the server.
 //
 //----------------------------------------------------------------------
 
@@ -42,10 +42,10 @@ public:
 public:
     CLCreatePC(){};
     virtual ~CLCreatePC(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -56,7 +56,7 @@ public:
 
     // get packet's body size
     // *OPTIMIZATION HINT*
-    // const static CLCreatePCPacketSize 를 정의, 리턴하라.
+    // Define and return const static CLCreatePCPacketSize.
     PacketSize_t getPacketSize() const {
         return de::wire::stringWireSize(m_Name)          // name
                + szSlot                                  // slot
@@ -174,16 +174,16 @@ public:
 
 
 private:
-    // PC의 이름
+    // Name of the PC
     string m_Name;
 
-    // 슬랏
+    // Slot
     Slot m_Slot;
 
-    // 슬레이어 플래그
+    // Slayer flags
     bitset<SLAYER_BIT_MAX> m_BitSet;
 
-    // 슬레이어 색깔 정보
+    // Slayer colour information
     Color_t m_Colors[SLAYER_COLOR_MAX];
 
     // STR, DEX, INTE
@@ -191,7 +191,7 @@ private:
     Attr_t m_DEX;
     Attr_t m_INT;
 
-    // 종족
+    // Race
     Race_t m_Race;
 };
 
@@ -208,11 +208,11 @@ class CLCreatePCFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_CL_CREATE_PC;
     static constexpr std::string_view kName = "CLCreatePC";
-    static constexpr PacketSize_t kMaxSize{szBYTE + 20 // 이름
-                                           + szSlot    // 슬랏
-                                           + szBYTE    // 슬레이어 플래그(3 bit)
-                                           + szAttr * 3 + szColor * CLCreatePC::SLAYER_COLOR_MAX // 색깔 정보
-                                           + szRace};                                            // 종족
+    static constexpr PacketSize_t kMaxSize{szBYTE + 20                                           // Name
+                                           + szSlot                                              // Slot
+                                           + szBYTE                                              // Slayer flags (3 bit)
+                                           + szAttr * 3 + szColor * CLCreatePC::SLAYER_COLOR_MAX // Colour information
+                                           + szRace};                                            // Race
 
     // create packet
     Packet* createPacket() override {
@@ -231,7 +231,7 @@ public:
 
     // get packet's body size
     // *OPTIMIZATION HINT*
-    // const static CLCreatePCPacketSize 를 정의, 리턴하라.
+    // Define and return const static CLCreatePCPacketSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

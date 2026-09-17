@@ -17,8 +17,8 @@
 //
 // class CLVersionCheck;
 //
-// 클라이언트가 로그인 서버에게 최초에 전송하는 패킷이다.
-// 아이디와 패스워드가 암호화되어 있다.
+// The first packet the client sends to the login server.
+// The id and the password are encrypted.
 //
 //--------------------------------------------------------------------------------
 
@@ -26,10 +26,10 @@ class CLVersionCheck : public Packet {
 public:
     CLVersionCheck(){};
     ~CLVersionCheck(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -61,7 +61,7 @@ public:
     }
 
 private:
-    // 클라이언트 버젼
+    // Client version
     DWORD m_Version;
 };
 

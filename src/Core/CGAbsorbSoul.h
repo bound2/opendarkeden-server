@@ -32,10 +32,10 @@ public:
 
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -121,11 +121,11 @@ private:
     ZoneCoord_t m_TargetZoneX = 0;
     ZoneCoord_t m_TargetZoneY = 0;
 
-    ObjectID_t m_InvenObjectID = 0;  // 라바의 ObjectID
-    CoordInven_t m_InvenX = 0;       // X 좌표
-    CoordInven_t m_InvenY = 0;       // Y 좌표
-    CoordInven_t m_TargetInvenX = 0; // Target X 좌표
-    CoordInven_t m_TargetInvenY = 0; // Target Y 좌표
+    ObjectID_t m_InvenObjectID = 0;  // ObjectID of the larva
+    CoordInven_t m_InvenX = 0;       // X coordinate
+    CoordInven_t m_InvenY = 0;       // Y coordinate
+    CoordInven_t m_TargetInvenX = 0; // Target X coordinate
+    CoordInven_t m_TargetInvenY = 0; // Target Y coordinate
 };
 
 

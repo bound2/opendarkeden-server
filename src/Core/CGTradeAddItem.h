@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : CGTradeAddItem.h
-// Written By  : 김성민
 // Description :
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -49,8 +48,8 @@ public:
     }
 
 private:
-    ObjectID_t m_TargetObjectID; // 교환을 원하는 상대방의 ObjectID
-    ObjectID_t m_ItemObjectID;   // 교환 리스트에 추가할 아이템의 OID
+    ObjectID_t m_TargetObjectID; // ObjectID of the partner to exchange with
+    ObjectID_t m_ItemObjectID;   // OID of the item to add to the exchange list
 };
 
 

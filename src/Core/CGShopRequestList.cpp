@@ -1,10 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : CGShopRequestList.cpp
-// Written By  : 김성민
 // Description :
-// 플레이어가 가지고 있는 상점 버전과 서버가 가지고 잇는 상점의
-// 버전이 다를 경우, 플레이어는 서버에게 상품의 리스트를
-// 요청하게 된다. 이 패킷은 그때 보내게 되는 패킷이다.
+// When the shop version the player holds and the version the server holds
+// differ, the player asks the server for the list of goods.
+// This is the packet sent at that point.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGShopRequestList.h"

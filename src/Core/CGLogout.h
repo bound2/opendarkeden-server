@@ -17,9 +17,9 @@
 //
 // class CGLogout;
 //
-// 클라이언트가 서버에게 로그아웃을 알리는 패킷이다.
-// data field 가 없기 때문에 getSize()는 0 을 리턴하며, read(), write()
-// 메쏘드는 아무런 역할도 하지 않는다.
+// The packet with which the client tells the server it is logging out.
+// It has no data field, so getSize() returns 0 and the read() and write()
+// methods do nothing.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -27,10 +27,10 @@ class CGLogout : public Packet {
 public:
     CGLogout(){};
     ~CGLogout(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 

@@ -11,7 +11,7 @@
 #include "PacketFactory.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 파티 가입 관련 코드
+// Codes for joining a party
 //////////////////////////////////////////////////////////////////////////////
 enum {
     CG_PARTY_INVITE_REQUEST = 0,
@@ -60,8 +60,8 @@ public:
     }
 
 private:
-    ObjectID_t m_TargetObjectID; // 상대방의 OID
-    BYTE m_Code;                 // 코드
+    ObjectID_t m_TargetObjectID; // OID of the other player
+    BYTE m_Code;                 // Code
 };
 
 

@@ -13,12 +13,12 @@ void CGWhisper::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    // 이름 읽기
+    // Read the name
 
     de::wire::readString(iStream, m_Name, {1, 10}, "Name");
     iStream.read(m_Color);
 
-    // 메세지 읽기
+    // Read the message
 
     de::wire::readString(iStream, m_Message, {1, 128}, "Message");
 
@@ -36,7 +36,7 @@ void CGWhisper::write(SocketOutputStream& oStream) const
 
     oStream.write(m_Color);
 
-    // 메세지 쓰기
+    // Write the message
     de::wire::writeString(oStream, m_Message, {1, 128}, "Message");
 
     __END_CATCH
