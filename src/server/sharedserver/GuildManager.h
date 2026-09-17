@@ -4,8 +4,8 @@
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __GUILDMANAGER_H__
-#define __GUILDMANAGER_H__
+#ifndef __SHARED_SERVER_GUILD_MANAGER_H__
+#define __SHARED_SERVER_GUILD_MANAGER_H__
 
 #include <unordered_map>
 

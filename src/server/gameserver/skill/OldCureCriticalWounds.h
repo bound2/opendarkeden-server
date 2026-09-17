@@ -4,8 +4,8 @@
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __SKILL_CURE_CRITICAL_WOUNDS_HANDLER_H__
-#define __SKILL_CURE_CRITICAL_WOUNDS_HANDLER_H__
+#ifndef __SKILL_OLD_CURE_CRITICAL_WOUNDS_HANDLER_H__
+#define __SKILL_OLD_CURE_CRITICAL_WOUNDS_HANDLER_H__
 
 #include "SkillHandler.h"
 
@@ -35,4 +35,4 @@ public:
 // global variable declaration
 extern CureCriticalWounds g_CureCriticalWounds;
 
-#endif // __SKILL_CURE_CRITICAL_WOUNDS_HANDLER_H__
+#endif // __SKILL_OLD_CURE_CRITICAL_WOUNDS_HANDLER_H__

@@ -6,8 +6,8 @@
 //
 //----------------------------------------------------------------------
 
-#ifndef __GAME_SERVER_GROUP_INFO_MANAGER_H__
-#define __GAME_SERVER_GROUP_INFO_MANAGER_H__
+#ifndef __LOGIN_SERVER_GAME_SERVER_GROUP_INFO_MANAGER_H__
+#define __LOGIN_SERVER_GAME_SERVER_GROUP_INFO_MANAGER_H__
 
 // include files
 #include <unordered_map>

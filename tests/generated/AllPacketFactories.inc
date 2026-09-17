@@ -279,7 +279,6 @@
 #include "GCModifyInformation.h"
 #include "GCModifyMoney.h"
 #include "GCModifyNickname.h"
-#include "GCModyfyMoney.h"
 #include "GCMonsterKillQuestInfo.h"
 #include "GCMorph1.h"
 #include "GCMorphSlayer2.h"

@@ -5,8 +5,8 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#ifndef __GC_MODIFY_MONEY_H__
-#define __GC_MODIFY_MONEY_H__
+#ifndef __GC_MODYFY_MONEY_H__
+#define __GC_MODYFY_MONEY_H__
 
 // include files
 #include "Packet.h"

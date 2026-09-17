@@ -626,8 +626,6 @@ src/Core/GCModifyMoney.cpp
 src/Core/GCModifyMoney.h
 src/Core/GCModifyNickname.cpp
 src/Core/GCModifyNickname.h
-src/Core/GCModyfyMoney.cpp
-src/Core/GCModyfyMoney.h
 src/Core/GCMonsterKillQuestInfo.cpp
 src/Core/GCMonsterKillQuestInfo.h
 src/Core/GCMorph1.cpp

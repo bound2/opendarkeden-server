@@ -4,8 +4,8 @@
 // Description	:
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __GUILD_H__
-#define __GUILD_H__
+#ifndef __SHARED_SERVER_GUILD_H__
+#define __SHARED_SERVER_GUILD_H__
 
 #include <list>
 
