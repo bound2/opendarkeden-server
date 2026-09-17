@@ -29,6 +29,4 @@ public:
     list<OptionType_t> m_VampireOptionTypes;
 };
 
-extern HolyLandRaceBonus* g_pHolyLandRaceBonus;
-
 #endif

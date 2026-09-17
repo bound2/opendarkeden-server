@@ -217,6 +217,4 @@ private:
     mutable Mutex m_Mutex;
 };
 
-extern CombatSystemManager* g_pCombatSystemManager;
-
 #endif

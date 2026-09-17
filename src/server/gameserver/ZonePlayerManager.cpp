@@ -1538,6 +1538,3 @@ bool checkZonePlayerManager(GamePlayer* pGamePlayer, ZonePlayerManager* pZPM, co
 
     return true;
 }
-
-// external variable definition
-ZonePlayerManager* g_pZonePlayerManager = NULL;

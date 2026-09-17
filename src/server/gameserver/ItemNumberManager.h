@@ -69,8 +69,6 @@ private:
     vector<NUMBER_INFO*> m_ItemNumberInfos[Item::ITEM_CLASS_MAX];
 };
 
-extern ItemNumberManager* g_pItemNumberManager;
-
 #endif
 
 ItemNumberManager::ItemNumberManager()

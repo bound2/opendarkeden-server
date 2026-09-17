@@ -313,6 +313,3 @@ string SkillParentInfoManager::toString() const
 
     __END_CATCH
 }
-
-// Global Variable definition
-SkillParentInfoManager* g_pSkillParentInfoManager = NULL;
