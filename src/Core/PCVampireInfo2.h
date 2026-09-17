@@ -39,7 +39,7 @@ public:
                + szGold                                // Money
                + szSight                               // Sight
                + szSkillType * 8                       // Hot keys
-               + szSilver                              // Hot keys
+               + szSilver                              // Silver
                + szBonus                               // Bonus points
                + szGuildID                             // Guild ID
                + de::wire::stringWireSize(m_GuildName) // Guild name
@@ -63,7 +63,7 @@ public:
                + szGold               // Money
                + szSight              // Sight
                + szSkillType * 8      // Hot keys
-               + szSilver             // Hot keys
+               + szSilver             // Silver
                + szBonus              // Bonus points
                + szGuildID            // Guild ID
                + szBYTE + 30          // Guild name

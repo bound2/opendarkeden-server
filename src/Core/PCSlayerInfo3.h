@@ -116,7 +116,7 @@ public:
                + szAlignment                      // Alignment
                + szRank                           // Rank
                + szSpeed                          // Attack speed
-               + szGuildID                        // Attack speed
+               + szGuildID                        // Guild ID
                + szBYTE                           // Competence
                + szuint + szLevel;
     }
@@ -131,7 +131,7 @@ public:
                + szAlignment                // Alignment
                + szRank                     // Rank
                + szSpeed                    // Attack speed
-               + szGuildID                  // Attack speed
+               + szGuildID                  // Guild ID
                + szBYTE                     // Competence
                + szuint + szLevel;
     }
