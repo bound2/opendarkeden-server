@@ -499,6 +499,7 @@ set(GAMESERVER_MAIN_SOURCES
     SkillDomainInfoManager.cpp
     SkillParentInfo.cpp
     InitAllStat.cpp
+    SlayerStat.cpp
     PrecedenceTable.cpp
     VariableManager.cpp
     CombatInfoManager.cpp
