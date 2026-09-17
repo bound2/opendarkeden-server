@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5211 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5204 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -107,11 +107,11 @@ check_ratchet R6d "SkillFormula.cpp lines" 818 "$R6d"
 # the branch ladder left CGSayHandler.cpp for gm/, leaving the packet
 # handler itself.
 R6e=$(wc -l < src/server/gameserver/handler/CGSayHandler.cpp 2>/dev/null || echo missing)
-check_ratchet R6e "CGSayHandler.cpp lines" 116 "$R6e"
+check_ratchet R6e "CGSayHandler.cpp lines" 114 "$R6e"
 # R6f: the *command console, whose sub-command bodies are one function per
 # name in ConsoleCommands.cpp beside the console that dispatches them.
 R6f=$(wc -l < src/server/gameserver/gm/ConsoleCommands.cpp 2>/dev/null || echo missing)
-check_ratchet R6f "ConsoleCommands.cpp lines" 1595 "$R6f"
+check_ratchet R6f "ConsoleCommands.cpp lines" 1575 "$R6f"
 
 # R6g: Zone.cpp with broadcast, scan/visibility, movement, the loaders,
 # spawn/despawn and the item tables split out to ZoneBroadcast.cpp /
@@ -525,7 +525,7 @@ if ! [[ "$r18_files" =~ ^[0-9]+$ ]] || [ "$r18_files" -lt 3000 ]; then
     echo "[FAIL] R18 commented-out code: only '$r18_files' files scanned (find or perl broken?)"
     fail=1
 else
-    check_ratchet R18 "commented-out code lines in /* */ blocks" 5279 "$R18"
+    check_ratchet R18 "commented-out code lines in /* */ blocks" 3306 "$R18"
 fi
 
 # --- Removed dead services must not return --------------------------------
