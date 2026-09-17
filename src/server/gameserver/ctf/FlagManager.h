@@ -9,6 +9,7 @@
 
 #include "Assert.h"
 #include "Exception.h"
+#include "GameContext.h"
 #include "Mutex.h"
 #include "Types.h"
 #include "war/Scheduler.h"
@@ -48,7 +49,7 @@ class FlagManager : public Scheduler {
     };
 
 public:
-    FlagManager();
+    explicit FlagManager(de::GameContext& context);
     virtual ~FlagManager();
 
 public:
@@ -127,6 +128,8 @@ protected:
                       MonsterType_t type);
 
 private:
+    de::GameContext& m_Context;
+
     map<RACEINDEX, uint> m_FlagCount;
     mutable Mutex m_Mutex;
 

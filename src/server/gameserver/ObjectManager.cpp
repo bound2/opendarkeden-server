@@ -113,6 +113,7 @@
 #include "GQuestCheckPoint.h"
 #include "GQuestElement.h"
 #include "GQuestInfo.h"
+#include "GameContext.h"
 #include "GameServerGroupInfoManager.h"
 #include "GoodsInfoManager.h"
 #include "GuildUnion.h"
@@ -170,6 +171,18 @@ ObjectManager::ObjectManager()
     g_pSkillDomainInfoManager = new SkillDomainInfoManager();
     // g_pSkillParentInfoManager   = new SkillParentInfoManager ();
     g_pPCFinder = new PCFinder();
+
+    // The context is given the managers created above so that a subsystem
+    // can be handed them explicitly. It does not own them: they are created
+    // here and deleted in this class's destructor.
+    de::GameContext& context = de::gameContext();
+    context.setStringPool(g_pStringPool);
+    context.setZoneInfoManager(g_pZoneInfoManager);
+    context.setVariableManager(g_pVariableManager);
+    context.setItemFactoryManager(g_pItemFactoryManager);
+    context.setZoneGroupManager(g_pZoneGroupManager);
+    context.setPCFinder(g_pPCFinder);
+
     g_pParkingCenter = new ParkingCenter();
     g_pTelephoneCenter = new TelephoneCenter();
     g_pPublicScriptManager = new ScriptManager();
@@ -234,7 +247,7 @@ ObjectManager::ObjectManager()
     // g_pQuestInfoManager = new QuestInfoManager();
     // g_pRewardClassInfoManager = new RewardClassInfoManager();
 
-    g_pFlagManager = new FlagManager();
+    g_pFlagManager = new FlagManager(context);
     g_pDefaultOptionSetInfoManager = new DefaultOptionSetInfoManager();
 
     g_pLevelWarZoneInfoManager = new LevelWarZoneInfoManager();

@@ -56,10 +56,10 @@ void FlagWar::executeReady() {
                       ((DWORD)((DWORD)current.date().month()) * 10000) + ((DWORD)((DWORD)current.date().day()) * 100) +
                       ((DWORD)((DWORD)current.time().hour())));
 
-    g_pZoneGroupManager->broadcast(&gcNE);
+    m_Context.zoneGroups().broadcast(&gcNE);
 
     // 5분있다가 시작하자
-    g_pFlagManager->addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(300)));
+    m_FlagManager.addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(300)));
 
     __END_CATCH
 }
@@ -83,7 +83,7 @@ void FlagWar::addFlagsRandom(ZoneID_t zoneID, uint no) {
             pt.y = rand() % pZone->getHeight();
         }
 
-        Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_ITEM, 27, list<OptionType_t>());
+        Item* pItem = m_Context.itemFactories().createItem(Item::ITEM_CLASS_EVENT_ITEM, 27, list<OptionType_t>());
         Assert(pItem != NULL);
 
         pZone->registerObject(pItem);
@@ -97,7 +97,7 @@ void FlagWar::addFlagsRandom(ZoneID_t zoneID, uint no) {
 
     pZone->unlock();
 
-    g_pFlagManager->getAllowMap()[zoneID] = no;
+    m_FlagManager.getAllowMap()[zoneID] = no;
 }
 
 void FlagWar::executeStart() {
@@ -111,18 +111,18 @@ void FlagWar::executeStart() {
                       ((DWORD)((DWORD)current.date().month()) * 10000) + ((DWORD)((DWORD)current.date().day()) * 100) +
                       ((DWORD)((DWORD)current.time().hour())));
 
-    g_pZoneGroupManager->broadcast(&gcNE);
+    m_Context.zoneGroups().broadcast(&gcNE);
 
     m_Flags.clear();
-    g_pFlagManager->getAllowMap().clear();
+    m_FlagManager.getAllowMap().clear();
 
     addFlags();
     //	addFlagsRandom( 1122, 20 );
 
     // 랜덤하게 존을 선택해서 100개의 깃발을 생성한다.
     // 2시간 하자
-    g_pFlagManager->addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(getWarTime())));
-    g_pFlagManager->startFlagWar();
+    m_FlagManager.addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(getWarTime())));
+    m_FlagManager.startFlagWar();
 
     __END_CATCH
 }
@@ -133,14 +133,14 @@ void FlagWar::executeFinish() {
     GCNoticeEvent gcNE;
     gcNE.setCode(NOTICE_EVENT_FLAG_WAR_FINISH);
 
-    Race_t winnerRace = g_pFlagManager->getWinnerRace();
-    gcNE.setParameter(((DWORD)((DWORD)winnerRace << 16)) | (DWORD)g_pFlagManager->getFlagCount(winnerRace));
+    Race_t winnerRace = m_FlagManager.getWinnerRace();
+    gcNE.setParameter(((DWORD)((DWORD)winnerRace << 16)) | (DWORD)m_FlagManager.getFlagCount(winnerRace));
 
-    g_pZoneGroupManager->broadcast(&gcNE);
+    m_Context.zoneGroups().broadcast(&gcNE);
 
     // 3분있다가 아템 터친다.
-    g_pFlagManager->addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(180)));
-    g_pFlagManager->endFlagWar();
+    m_FlagManager.addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(180)));
+    m_FlagManager.endFlagWar();
 
     __END_CATCH
 }
@@ -169,15 +169,15 @@ void FlagWar::executeEnd() {
         }
     }
 
-    g_pFlagManager->resetFlagCounts();
+    m_FlagManager.resetFlagCounts();
     m_Flags.clear();
 
     // 다음을 기약하자
-    g_pFlagManager->addSchedule(new Schedule(this, getNextFlagWarTime()));
+    m_FlagManager.addSchedule(new Schedule(this, getNextFlagWarTime()));
 
     /*	ZoneCoord_t	ZoneX, ZoneY;
 
-        switch ( g_pFlagManager->getWinnerRace() )
+        switch ( m_FlagManager.getWinnerRace() )
         {
             case RACE_SLAYER:
                 ZoneX = 90;

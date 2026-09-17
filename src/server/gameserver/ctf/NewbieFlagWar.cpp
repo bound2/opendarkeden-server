@@ -10,7 +10,7 @@ void NewbieFlagWar::executeEnd() {
     FlagWar::executeEnd();
     ZoneCoord_t ZoneX, ZoneY;
 
-    switch (g_pFlagManager->getWinnerRace()) {
+    switch (m_FlagManager.getWinnerRace()) {
     case RACE_SLAYER:
         ZoneX = 90;
         ZoneY = 50;
