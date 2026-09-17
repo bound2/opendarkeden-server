@@ -81,8 +81,15 @@ check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5437 "$R5"
 # 2026-08-31 post-3.3-extraction; R6d added 2026-09-01 with the
 # SkillFormula.cpp computeOutput extraction (the doc's 08-29 numbers
 # predate the clang-format-18 pass and are superseded).
+# R6a shrinks as SkillUtil.cpp's concerns leave it: the damage formulas and the
+# code that applies them live in SkillDamage.cpp, everything a kill earns a
+# creature -- experience, alignment, fame -- in SkillExperience.cpp, and the
+# distance, line-of-sight, splash and facing work in SkillGeometry.cpp. What is
+# left is the mana and HP costs, the slot run-time and zone-level gates, the
+# skill-failure packets and the elemental lookups. Under the 2,000-line phase
+# exit criterion, so the ratchet is a pin rather than a god-file baseline now.
 R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
-check_ratchet R6a "SkillUtil.cpp lines" 6626 "$R6a"
+check_ratchet R6a "SkillUtil.cpp lines" 705 "$R6a"
 R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
 check_ratchet R6b "InitAllStat.cpp lines" 4787 "$R6b"
 R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)
