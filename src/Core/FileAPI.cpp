@@ -563,10 +563,10 @@ uint FileAPI::availablefile_ex(int fd) {
     __BEGIN_TRY
 
 #if defined(__LINUX__) || defined(__APPLE__)
-    // �Ǽ��� FIONBIO �Ķ���͸� �ִ� �ٶ��� ���α׷��� ����
-    // �Ǿ���.
-    // ���� �޾ƿ��Ƿ� 0 ���� �ʱ�ȭ�����ָ� �ξ� ������ ��
-    // ����.
+    // Passing the FIONBIO parameter here by mistake made the program
+    // misbehave.
+    // The value is received into arg, so there is no harm at all in
+    // initialising it to 0.
     uint arg = 0;
     ioctl_ex(fd, FIONREAD, &arg);
     return arg;

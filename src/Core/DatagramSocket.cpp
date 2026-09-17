@@ -18,9 +18,9 @@
 //
 // constructor for UDP Client Socket
 //
-// UDP Ŭ���̾�Ʈ ������ ���� nonamed ���ϸ� ������ �θ� �ȴ�.
-// �ֳ��ϸ�, ������ send�� ������ Datagram�� �ּҸ� �����صθ�
-// �Ǳ� �����̴�.
+// For a UDP client socket it is enough to create a nonamed socket,
+// because setting the Datagram's address on every actual send is all
+// that is needed.
 //
 //////////////////////////////////////////////////////////////////////
 DatagramSocket::DatagramSocket() : m_SocketID(INVALID_SOCKET) {
@@ -38,7 +38,7 @@ DatagramSocket::DatagramSocket() : m_SocketID(INVALID_SOCKET) {
 //
 // constructor for UDP Server Socket
 //
-// UDP ���� ������ ������ �����ϰ�, port �� ���ε���Ű�� �غ� �Ϸ�ȴ�.
+// A UDP server socket is ready once the socket is created and the port is bound.
 //
 //////////////////////////////////////////////////////////////////////
 DatagramSocket::DatagramSocket(uint port) : m_SocketID(INVALID_SOCKET) {
@@ -100,8 +100,8 @@ uint DatagramSocket::send(Datagram* pDatagram) {
 //
 // receive datagram from peer
 //
-// ���࿡ �� Ŭ������ blocking ���� ����Ѵٸ�, (�� select
-// �������) �Ƹ��� nReceived �� 0 ������ ���� ��������� �Ǵܵȴ�.
+// If this class were used in blocking mode (that is, without select),
+// nReceived of 0 or less would probably be judged an error.
 //
 //////////////////////////////////////////////////////////////////////
 Datagram* DatagramSocket::receive() {
@@ -112,7 +112,7 @@ Datagram* DatagramSocket::receive() {
     SOCKADDR_IN SockAddr;
     uint _szSOCKADDR_IN = szSOCKADDR_IN;
 
-    // ���� ���ۿ��ٰ� �����صд�.
+    // Store it in the internal buffer.
     int nReceived = SocketAPI::recvfrom_ex(m_SocketID, m_Buffer, DATAGRAM_SOCKET_BUFFER_LEN, 0, (SOCKADDR*)&SockAddr,
                                            &_szSOCKADDR_IN);
 

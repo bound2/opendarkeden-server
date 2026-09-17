@@ -2,8 +2,8 @@
 // Filename    : BloodBibleSignInfo.h
 // Written By  : elca@ewestsoft.com
 // Description :
-// 입고 있는 기어 아이템들의 정보 리스트이다.
-// 각각의 기어 아이템에 대한 정보는 BloodBibleSignSlotInfo를 참조하면 된다.
+// The list of information about the gear items being worn.
+// For the information about each gear item see BloodBibleSignSlotInfo.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __BLOOD_BIBLE_SIGN_INFO_H__

@@ -2,7 +2,7 @@
 //
 // Filename    : EffectInfo.cpp
 // Written By  : elca@ewestsoft.com
-// Description : ����Ʈ ���� ����Ʈ ��� ����.
+// Description : Effect information: definition of the effect list.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -31,12 +31,12 @@ EffectInfo::~EffectInfo() noexcept = default;
 
 
 //////////////////////////////////////////////////////////////////////
-// �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void EffectInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     iStream.read(m_ListNum);
 
     WORD m_Value;
@@ -50,12 +50,12 @@ void EffectInfo::read(SocketInputStream& iStream) {
 
 
 //////////////////////////////////////////////////////////////////////
-// ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void EffectInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     oStream.write(m_ListNum);
 
     for (list<WORD>::const_iterator itr = m_EList.begin(); itr != m_EList.end(); itr++) {
@@ -69,19 +69,19 @@ void EffectInfo::write(SocketOutputStream& oStream) const {
 //
 // EffectInfo::addListElement()
 //
-// ( ��ȭ����, ��ȭ��ġ ) �� �� ���� ����Ʈ�� �ֱ� ���� ��� �Լ�.
+// Member function that appends one ( change type, change value ) pair to the list.
 //
 //////////////////////////////////////////////////////////////////////
 void EffectInfo::addListElement(EffectID_t EffectID, WORD Value) {
     __BEGIN_TRY
 
-    // ���ϴ� ���� �������� List�� �ִ´�.
+    // Put the wanted effect id into the list.
     m_EList.push_back(EffectID);
 
-    // ���ϴ� ��ġ�� List�� �ִ´�.
+    // Put the wanted value into the list.
     m_EList.push_back(Value);
 
-    // ��ȭ ���� ������ �ϳ� ���� ��Ų��.
+    // Increase the number of change entries by one.
     m_ListNum++;
 
     __END_CATCH
