@@ -33,7 +33,7 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
 
 #ifdef __GAME_SERVER__
 
-        // -_-; 무시
+        // Ignored
         //	return;
         throw DisconnectException("Money cannot be dropped.");
 
@@ -52,8 +52,8 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
         ZoneCoord_t ZoneY = pPC->getY();
 
         if (amount == 0) {
-            // 현재로서는 걍 리턴한다.
-            // 돈 떨어뜨리기를 실패했다는 패킷을 만들어야 하는 걸까?
+            // For now just return.
+            // Should a packet saying the money drop failed be made?
             return;
         }
 
@@ -69,7 +69,7 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
         } else
             throw ProtocolException("CGDropMoneyHandler::execute() : unknown player creature.");
 
-        // 플레이어가 떨어뜨리고자 하는 액수만큼의 돈을 가지고 있는지 확인한다.
+        // Check that the player holds as much money as it wants to drop.
         Item* pItem = NULL;
         list<OptionType_t> optionNULL;
         if (pPC->isSlayer()) {
@@ -89,18 +89,18 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
             pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MONEY, 2, optionNULL);
         }
 
-        // 돈 아이템을 생성한다.
+        // Create the money item.
 
         dynamic_cast<Money*>(pItem)->setAmount(amount);
 
-        // 돈 아이템을 등록한다.
+        // Register the money item.
         pZone->getObjectRegistry().registerObject(pItem);
 
-        // 돈을 존에다 떨어뜨린다.
+        // Drop the money in the zone.
         TPOINT pt = pZone->addItem(pItem, ZoneX, ZoneY);
         if (pt.x != -1) {
             // pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
-            //  item저장 최적화. by sigi. 2002.5.13
+            //  Item save optimization.
             char pField[80];
             sprintf(pField, "OwnerID='', Storage=%d, StorageID=%u, X=%d, Y=%d", STORAGE_ZONE, pZone->getZoneID(), pt.x,
                     pt.y);
@@ -108,7 +108,7 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
 
             // pItem->create("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
 
-            // 돈로그 남길 액수면 돈로그 남긴다
+            // Leave a money log if the amount warrants one
             if (amount >= g_pVariableManager->getMoneyTraceLogLimit()) {
                 char zoneName[15];
                 sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), ZoneX, ZoneY);
@@ -128,7 +128,7 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
             return;
         }
 
-        // 플레이어로부터 돈을 뺏는다.
+        // Take the money from the player.
         // if (pPC->isSlayer())       pSlayer->setGoldEx(pSlayer->getGold() - amount);
         // else if (pPC->isVampire()) pVampire->setGoldEx(pVampire->getGold() - amount);
 

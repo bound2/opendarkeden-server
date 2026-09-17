@@ -84,7 +84,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
         ZoneCoord_t ZoneX = pPacket->getX();
         ZoneCoord_t ZoneY = pPacket->getY();
 
-        // 바운드를 넘어가지는 않는지 체크한다.
+        // Check that the bounds are not crossed.
         if (!isValidZoneCoord(pZone, ZoneX, ZoneY)) {
             return;
         }
@@ -92,13 +92,13 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
         Tile& rTile = pZone->getTile(ZoneX, ZoneY);
         Item* pItem = rTile.getItem();
 
-        // Coma상태라면 루팅 불가. by sigi. 2002.12.10
-        // 현재 박쥐 상태라면 리턴
+        // No looting in the Coma state.
+        // Return while currently a bat
         if (pCreature->isFlag(Effect::EFFECT_CLASS_COMA) || pCreature->isFlag(Effect::EFFECT_CLASS_PARALYZE) ||
             (pCreature->isVampire() && pCreature->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT)))
             return;
 
-        // 슬레이어인 경우 오토바이 타고 있으면 아이템 루팅 불가 by sigi
+        // A Slayer riding a motorcycle cannot loot items
         if (pCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
             if (pSlayer->hasRideMotorcycle()) {
@@ -106,7 +106,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
             }
         }
 
-        // 아우스터즈인 경우 실프 타고 있으면 루팅 불가 by DEW
+        // An Ousters riding a sylph cannot loot
         if (pCreature->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
             if (pOusters->isFlag(Effect::EFFECT_CLASS_SUMMON_SYLPH)) {
@@ -114,9 +114,9 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
             }
         }
 
-        // 바닥에 아이템이 없으면 리턴
-        // 오브젝트 아이디가 일치하지 않으면 리턴
-        // 바닥에 있는 아이템이 시체가 아니면 리턴
+        // Return if there is no item on the ground
+        // Return if the object id does not match
+        // Return if the item on the ground is not a corpse
         if (pItem == NULL || pItem->getObjectID() != pPacket->getObjectID() ||
             pItem->getItemClass() != Item::ITEM_CLASS_CORPSE) {
             return;
@@ -125,18 +125,18 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
         bool bSlayerRelicTable = pItem->isFlag(Effect::EFFECT_CLASS_SLAYER_RELIC_TABLE);
         bool bVampireRelicTable = pItem->isFlag(Effect::EFFECT_CLASS_VAMPIRE_RELIC_TABLE);
 
-        // 슬레이어가 슬레이어의 성물보관함을 클릭할 수 없고,
-        // 뱀파이어도 뱀파이어의 성물보관함을 클릭할 수 없다.
+        // A Slayer cannot click a Slayer relic table, and
+        // a Vampire cannot click a Vampire relic table either.
         if ((pCreature->isSlayer() && bSlayerRelicTable) || (pCreature->isVampire() && bVampireRelicTable)) {
             return;
         }
 
-        // 성단일 경우 전쟁중이 아니라면 클릭할 수 없다.
-        // 수호 성단일 경우 수비측에서는 클릭할 수 없다.
+        // A shrine cannot be clicked outside a war.
+        // A guardian shrine cannot be clicked by the defending side.
         if (pItem->getItemType() == MONSTER_CORPSE) {
             MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
             if (pMonsterCorpse->getTreasureCount() > 200) {
-                // 퀘스트용 시체. 설마 진짜로 200개 루팅되는 몬스터는 없겠지 --;
+                // Quest corpse. Surely no monster really drops 200 loot items.
                 PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
                 pPC->getGQuestManager()->touchWayPoint(pMonsterCorpse);
                 return;
@@ -154,7 +154,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                     return;
                 }
             } else if (pMonsterCorpse->isShrine()) {
-                // 보호막이 걸려있으면 못 꺼낸다.
+                // Nothing can be taken out while the shield is up.
                 if (pMonsterCorpse->isFlag(Effect::EFFECT_CLASS_SHRINE_SHIELD))
                     return;
 
@@ -169,10 +169,10 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                 isCastle = g_pCastleInfoManager->getCastleZoneID(pZone->getZoneID(), castleZoneID);
 
                 if (isCastle && g_pWarSystem->hasCastleActiveWar(castleZoneID)) {
-                    // 길드전쟁일 경우 처리
+                    // Guild war handling
                     // if (pItem->getItemClass() != Item::ITEM_CLASS_CASTLE_SYMBOL ) return;
 
-                    // 성에서는 방어측일 경우 클릭할 수 없다.
+                    // In a castle the defending side cannot click.
                     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
                     if (pCastleInfo->getRace() != pPC->getRace())
                         return;
@@ -181,28 +181,28 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                 }
 
                 if (g_pWarSystem->hasActiveRaceWar()) {
-                    // 종족간 전쟁일 경우 처리
+                    // Race war handling
                     // if (pItem->getItemClass() != Item::ITEM_CLASS_BLOOD_BIBLE ) return;
 
-                    // 성에서는 방어측일 경우 클릭할 수 없다.
+                    // In a castle the defending side cannot click.
                     if (g_pShrineInfoManager->isDefenderOfGuardShrine(pPC, pMonsterCorpse))
                         return;
 
                     hasWar = true;
                 }
 
-                // 전쟁이 암것도 없으면 성단에서 암것도 못 꺼낸다.
+                // With no war at all, nothing can be taken out of the shrine.
                 if (!hasWar) {
                     return;
                 }
             }
         }
 
-        // 이까지 왔다면, 상대편 종족의 성물보관함을 클릭한 경우이다.
-        // 이 경우, 만약 EffectRelic이 얼만큼 남아 있는지 체크해야 한다.
+        // Reaching here means the other race's relic table was clicked.
+        // In that case, how much of the EffectRelic is left has to be checked.
         EffectRelicTable* pRelicTableEffect = NULL;
 
-        // 성물 보관대 종류에 따라서 붙어있는 Effect를 얻어온다.
+        // Get the Effect attached, according to the relic table kind.
         if (bSlayerRelicTable) {
             pRelicTableEffect = dynamic_cast<EffectRelicTable*>(
                 pItem->getEffectManager().findEffect(Effect::EFFECT_CLASS_SLAYER_RELIC_TABLE));
@@ -211,9 +211,9 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                 pItem->getEffectManager().findEffect(Effect::EFFECT_CLASS_VAMPIRE_RELIC_TABLE));
         }
 
-        // 성물 보관대에서 아이템을 빼어낼 수 있는 시간인가?
-        // SafeTime이 되지 않았으면 안된다.
-        // LockTime 동안은 안된다.
+        // Is it time to take an item out of the relic table?
+        // Not before the SafeTime.
+        // Not during the LockTime.
         if (pRelicTableEffect != NULL && (!pRelicTableEffect->isSafeTime() || pRelicTableEffect->isLockTime())) {
             GCSystemMessage gcSystemMessage;
             gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_TAKE_RELIC_NOW));
@@ -222,7 +222,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
             return;
         }
 
-        // 성향을 체크 해야 한다.
+        // The alignment has to be checked.
         if (pItem->getItemType() != MONSTER_CORPSE) {
             if (pPacket->isPet())
                 return;
@@ -232,13 +232,13 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
 
                     PCSlayerInfo3& rPCSlayerInfo = pSlayerCorpse->getSlayerInfo();
 
-                    // 자기 시체가 아니라면
+                    // If it is not one's own corpse
                     if (rPCSlayerInfo.getName() != pCreature->getName()) {
-                        // 악한자의 시체는 보호받지 못한다....
+                        // An evil one's corpse gets no protection....
                         if (g_pAlignmentManager->getAlignmentType(rPCSlayerInfo.getAlignment()) >= NEUTRAL) {
                             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
 
-                            // 성향이 -500 내려간다~
+                            // The alignment drops by 500
                             Alignment_t NewAlignment = max(-10000, pSlayer->getAlignment() - 500);
 
                             pSlayer->setAlignment(NewAlignment);
@@ -250,13 +250,13 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                 } else if (pItem->getItemType() == VAMPIRE_CORPSE && pCreature->isVampire()) {
                     PCVampireInfo3& rPCVampireInfo = dynamic_cast<VampireCorpse*>(pItem)->getVampireInfo();
 
-                    // 자기 시체가 아니라면
+                    // If it is not one's own corpse
                     if (rPCVampireInfo.getName() != pCreature->getName()) {
-                        // 악한자의 시체는 보호받지 못한다....
+                        // An evil one's corpse gets no protection....
                         if (g_pAlignmentManager->getAlignmentType(rPCVampireInfo.getAlignment()) >= NEUTRAL) {
                             Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
 
-                            // 성향이 -500 내려간다~
+                            // The alignment drops by 500
                             Alignment_t NewAlignment = max(-10000, pVampire->getAlignment() - 500);
 
                             pVampire->setAlignment(NewAlignment);
@@ -268,13 +268,13 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                 } else if (pItem->getItemType() == OUSTERS_CORPSE && pCreature->isOusters()) {
                     PCOustersInfo3& rPCOustersInfo = dynamic_cast<OustersCorpse*>(pItem)->getOustersInfo();
 
-                    // 자기 시체가 아니라면
+                    // If it is not one's own corpse
                     if (rPCOustersInfo.getName() != pCreature->getName()) {
-                        // 악한자의 시체는 보호받지 못한다....
+                        // An evil one's corpse gets no protection....
                         if (g_pAlignmentManager->getAlignmentType(rPCOustersInfo.getAlignment()) >= NEUTRAL) {
                             Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
 
-                            // 성향이 -500 내려간다~
+                            // The alignment drops by 500
                             Alignment_t NewAlignment = max(-10000, pOusters->getAlignment() - 500);
 
                             pOusters->setAlignment(NewAlignment);
@@ -298,7 +298,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
             if (pMonsterCorpse != NULL && g_pFlagManager->isFlagPole(pMonsterCorpse)) {
                 if (!g_pFlagManager->hasFlagWar())
                     return;
-                // 같은 종족이면 못 뽑는다..
+                // The same race cannot pull it out..
                 if (g_pFlagManager->getFlagPoleRace(pMonsterCorpse) == pPC->getRace())
                     return;
 
@@ -338,8 +338,8 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
         Corpse* pCorpse = dynamic_cast<Corpse*>(pItem);
         bool bDissectAll = false;
 
-        // 시체에 아이템이 3개 보다 더 많이 들어가 있으면 한 번에 다뽀바낸다.
-        // 펫이 뽑아내는 아이템은 한번에 다 뽑혀나온다.
+        // With more than 3 items in the corpse, everything comes out at once.
+        // Items a pet pulls out all come out at once.
         // 2003.1.14  by bezz, Sequoia, sigi
         if (pCorpse->getTreasureCount() > 3 || pPacket->isPet())
             bDissectAll = true;
@@ -372,15 +372,15 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                 pTreasure->setFlag(Effect::EFFECT_CLASS_PET_DISSECT);
 
             ////////////////////////////////////////////////////////////////
-            // 2002년 어린이날 이벤트
-            // 검은별 아이템은 가족사진 촬영권으로 교환된다.
-            // 그러므로 개수가 일정 수준(트랜실베니아7개, 왈라키아 3개)을
-            // 넘게 나올 수 없다.
-            // 만약 검은별 아이템이 나왔을 경우,
-            // 아이템의 숫자를 파악해서, 제한 개수 이상이면 나오지 않도록 한다.
+            // 2002 Children's Day event
+            // The black star item is exchanged for a family photo voucher.
+            // So it cannot come out beyond a fixed count
+            // (7 in Transylvania, 3 in Wallachia).
+            // When a black star item does come out,
+            // count the items and keep it from appearing past the limit.
 
             if (pTreasure->getItemClass() == Item::ITEM_CLASS_EVENT_STAR && pTreasure->getItemType() == 0) {
-                // cout << "검은별 출현" << endl;
+                // cout << "Black star appeared" << endl;
                 int BlackStarNumber = 0;
 
                 try {
@@ -406,9 +406,9 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                             if (pItem->getItemType() == MONSTER_CORPSE) {
                                 MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
 
-                                // 몬스터 시체에서 나온 아이템이라면 우선권 이펙트를 붙여주어야 한다.
-                                // 혹시라도 기존의 이펙트가 있다면 삭제해주고,
-                                // 새로이 이펙트를 더한다.
+                                // An item out of a monster corpse must get the precedence effect.
+                                // Delete any effect that is already there and
+                                // add the effect anew.
                                 const string& HostName = pMonsterCorpse->getHostName();
                                 int HostPartyID = pMonsterCorpse->getHostPartyID();
 
@@ -430,16 +430,16 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                                     pTreasure->setFlag(Effect::EFFECT_CLASS_PRECEDENCE);
                                 }
 
-                                // 만약 해골이라면 주위에다가 시체에서 목을 제거하라고 패킷을 날려주어야 한다.
+                                // For a skull, a packet telling the others to remove the head from the corpse must be sent.
                                 if (pTreasure->getItemClass() == Item::ITEM_CLASS_SKULL) {
-                                    // 목 자르기~~ by sigi
+                                    // Cut the head off
                                     pMonsterCorpse->removeHead();
 
                                     GCRemoveCorpseHead _GCRemoveCorpseHead;
                                     _GCRemoveCorpseHead.setObjectID(pItem->getObjectID());
                                     // pZone->broadcastPacket(pt.x, pt.y, &_GCRemoveCorpseHead);
                                     pZone->broadcastPacket(ZoneX, ZoneY,
-                                                           &_GCRemoveCorpseHead); // 원래 시체 좌표 by sigi
+                                                           &_GCRemoveCorpseHead); // the original corpse coordinates
 
                                     if (pCreature->getPartyID() != 0 && HostPartyID == pCreature->getPartyID()) {
                                         Party* pParty =
@@ -451,8 +451,8 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                                 }
                             }
 
-                            // 기존의 ItemID를 그대로 유지한다.
-                            // ItemID가 0이면.. create()할때 다시 ItemID를 받는다.
+                            // Keep the existing ItemID.
+                            // An ItemID of 0 means create() hands out a new ItemID.
                             // by sigi. 2002.10.28
                             pTreasure->create("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y, pTreasure->getItemID());
                         } else {
@@ -461,7 +461,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                     }
                 }
             } else if (pTreasure->isFlagItem()) {
-                // 깃발은 바로 인벤토리로 넣어준다.
+                // A flag goes straight into the inventory.
                 PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
                 Assert(pPC != NULL);
 
@@ -472,7 +472,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
 
                 if (!pInventory->getEmptySlot(pTreasure, tp) || pCorpse->getItemType() != MONSTER_CORPSE ||
                     !g_pFlagManager->getFlag(pPC, dynamic_cast<MonsterCorpse*>(pCorpse))) {
-                    // 도로 넣는다.
+                    // Put it back in.
                     pCorpse->addTreasure(pTreasure);
 
                     pCorpse->setFlag(Effect::EFFECT_CLASS_FLAG_INSERT);
@@ -510,7 +510,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                         MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
 
                         if (dissectionRelicItem(pCorpse, pTreasure, pt)) {
-                            // pTreasure가 relicItem인 경우
+                            // When pTreasure is a relicItem
                         }
 
                         treasureCount++;
@@ -529,7 +529,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                                 pZone->broadcastPacket(pMonsterCorpse->getX(), pMonsterCorpse->getY(), &gcRE);
                             }
 
-                            // 뽑으면 존에 뿌려준다.
+                            // Broadcast to the zone once it is pulled out.
                             char safeRace[15];
                             if (pZone->getLevelWarManager()->getSafeIndex(pMonsterCorpse) == 0) {
                                 sprintf(safeRace, g_pStringPool->c_str(STRID_SLAYER));
@@ -565,11 +565,11 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                             pZone->broadcastPacket(&gcSystemMessage);
                         }
 
-                        // 몬스터 시체에서 나온 아이템이라면 우선권 이펙트를 붙여주어야 한다.
-                        // 혹시라도 기존의 이펙트가 있다면 삭제해주고,
-                        // 새로이 이펙트를 더한다.
-                        // 2003.2.28 기존의 이펙트가 있다면 그냥 둔다. 시체에 가 바닥에 추가될 때
-                        // 바닥에 있던 아이템이 들어갈 경우에 우선권 이텍트를 붙이지 않기 위해
+                        // An item out of a monster corpse must get the precedence effect.
+                        // Delete any effect that is already there and
+                        // add the effect anew.
+                        // Leave an existing effect alone. When a corpse is added to the ground
+                        // and an item already on the ground goes in, no precedence effect is attached.
                         if (!bSlayerRelicTable && !bVampireRelicTable) {
                             const string& HostName = pMonsterCorpse->getHostName();
                             int HostPartyID = pMonsterCorpse->getHostPartyID();
@@ -580,12 +580,12 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                                 && !pTreasure->isFlag(Effect::EFFECT_CLASS_PRECEDENCE)) {
                                 EffectPrecedence* pEffectPrecedence = new EffectPrecedence(pTreasure);
                                 if (!pTreasure->isQuestItem()) {
-                                    // 퀘스트 아이템은 파티원도 못 줍는다.
+                                    // A quest item cannot be picked up even by party members.
                                     pEffectPrecedence->setDeadline(100);
                                     pEffectPrecedence->setHostPartyID(HostPartyID);
                                     pEffectPrecedence->setHostName(HostName);
                                 } else {
-                                    // 퀘스트 아이템은 없어질때까지 우선권이 안 없어진다.
+                                    // A quest item keeps its precedence until it disappears.
                                     pEffectPrecedence->setDeadline(999999);
                                     pEffectPrecedence->setHostName(pMonsterCorpse->getQuestHostName());
                                 }
@@ -596,15 +596,16 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                             }
                         }
 
-                        // 만약 해골이라면 주위에다가 시체에서 목을 제거하라고 패킷을 날려주어야 한다.
+                        // For a skull, a packet telling the others to remove the head from the corpse must be sent.
                         if (pTreasure->getItemClass() == Item::ITEM_CLASS_SKULL) {
-                            // 목 자르기~~ by sigi
+                            // Cut the head off
                             pMonsterCorpse->removeHead();
 
                             GCRemoveCorpseHead _GCRemoveCorpseHead;
                             _GCRemoveCorpseHead.setObjectID(pItem->getObjectID());
                             // pZone->broadcastPacket(pt.x, pt.y, &_GCRemoveCorpseHead);
-                            pZone->broadcastPacket(ZoneX, ZoneY, &_GCRemoveCorpseHead); // 원래 시체 좌표 by sigi
+                            pZone->broadcastPacket(ZoneX, ZoneY,
+                                                   &_GCRemoveCorpseHead); // the original corpse coordinates
 
                             if (pCreature->getPartyID() != 0 &&
                                 pMonsterCorpse->getHostPartyID() == pCreature->getPartyID()) {
@@ -616,7 +617,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                         }
                     }
 
-                    // DB에 저장한다.
+                    // Save to the DB.
                     saveDissectionItem(pCreature, pTreasure, pt.x, pt.y);
                 } else {
                     SAFE_DELETE(pTreasure);
@@ -626,7 +627,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
 
         if (pItem->getItemType() == MONSTER_CORPSE) {
             MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
-            // 펫 경험치 주자
+            // Give the pet experience
             if (pPacket->isPet() && treasureCount != 0) {
                 PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
                 GCModifyInformation gcMI;
@@ -635,10 +636,10 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                                   g_pMonsterInfoManager->getMonsterInfo(pMonsterCorpse->getMonsterType())->getLevel(),
                                   pPC->getPetInfo(), pGamePlayer);
                 if (!increasePetExp(pPC->getPetInfo(), exp, &gcMI)) {
-                    //					cout << "경험치가 바뀌었어요 : " << gcMI.toString() << endl;
+                    //					cout << "The experience changed: " << gcMI.toString() << endl;
                     pGamePlayer->sendPacket(&gcMI);
                 } else {
-                    //					cout << "레벨없을 했대요" << endl;
+                    //					cout << "It levelled up" << endl;
                     sendPetInfo(pGamePlayer, true);
                 }
 

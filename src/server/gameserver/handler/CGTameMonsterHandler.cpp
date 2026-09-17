@@ -89,7 +89,7 @@ void CGTameMonsterHandler::execute(CGTameMonster* pPacket, Player* pPlayer)
     SAFE_DELETE(pItem);
 
     /*
-     * 여기서 뭔가 확인을 해야 한다.
+     * Something has to be checked here.
      */
 
     int ratio = rand() % 100;
@@ -98,11 +98,11 @@ void CGTameMonsterHandler::execute(CGTameMonster* pPacket, Player* pPlayer)
         ratio = 100;
     }
 
-    // 공용 펫만 꼬실 수 있다.
+    // Only a common pet can be tamed.
     PetTypeInfo* pPetTypeInfo = PetTypeInfoManager::getInstance()->getPetTypeInfo(petType);
     if (pPetTypeInfo == NULL || pPetTypeInfo->getOriginalMonsterType() != pMonster->getMonsterType() ||
         ratio >= pPetFoodInfo->getTameRatio()) {
-        // cout << "꼬시기 실패 : " << ratio << endl;
+        // cout << "Taming failed : " << ratio << endl;
         SAFE_DELETE(pPetItem);
         pMonster->addEnemy(pPC);
         return;
@@ -112,7 +112,7 @@ void CGTameMonsterHandler::execute(CGTameMonster* pPacket, Player* pPlayer)
     SAFE_DELETE(pMonster);
 
     /*
-     * 여기서 해당 펫의 정보를 가져와야 된다.
+     * The pet's information has to be fetched here.
      */
 
     PetInfo* pPetInfo = new PetInfo;
@@ -129,7 +129,7 @@ void CGTameMonsterHandler::execute(CGTameMonster* pPacket, Player* pPlayer)
     pPetInfo->setPetHP(pPetFoodInfo->getPetHP());
     pPetInfo->setFeedTime(VSDateTime::currentDateTime());
 
-    // 양방향 링크
+    // Two-way link
     pPetItem->setPetInfo(pPetInfo);
     pPetInfo->setPetItem(pPetItem);
 
@@ -139,7 +139,7 @@ void CGTameMonsterHandler::execute(CGTameMonster* pPacket, Player* pPlayer)
 
     pPetItem->create(pPC->getName(), STORAGE_INVENTORY, 0, pt.x, pt.y);
 
-    // TraceLog 를 남긴다.
+    // Leave a TraceLog.
     remainTraceLog(pPetItem, "GOD", pPC->getName(), ITEM_LOG_CREATE, DETAIL_PICKUP);
 
     GCCreateItem gcCreateItem;

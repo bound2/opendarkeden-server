@@ -83,7 +83,7 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
             return;
         }
 
-        // 아이템의 ObjectID가 일치하는지 체크한다.
+        // Check that the item's ObjectID matches.
         if (itemObjectID != pPacket->getObjectID()) {
             // cout << "wrong objectID" << endl;
             GCCannotAdd _GCCannotAdd;
@@ -92,7 +92,7 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
             return;
         }
 
-        // 인벤토리에 넣을 수 있는지 체크한다.
+        // Check whether it can go into the inventory.
         if (!pInventory->canAdding(InvenX, InvenY, pItem)) {
             // cout << "cannot add" << endl;
             GCCannotAdd _GCCannotAdd;
@@ -107,16 +107,16 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
 
         // cout << "chk relic1" << endl;
 
-        // 넣을려는 Inventory Slot의 Item을 받아온다.
+        // Get the Item of the target Inventory Slot.
         Item* pPrevItem = pInventory->searchItem(InvenX, InvenY, pItem, pt);
 
-        // 그 장소에 아이템이 있다면
+        // If there is an item in that place
         if (pPrevItem != NULL) {
             // cout << "prevItem!=0" << endl;
             bool bisSame = true;
-            // 아이템 클래스가 같을때 숫자를 올려 주고 마우스에 있는 것은 없앤다.
+            // When the item class is the same, raise the count and remove the one on the mouse.
             if (canStack(pItem, pPrevItem)) {
-                // add by sonic 2006.10.30  렝岺唐珂쇌掘齡膠틔렴瞳寧폅
+                // Keep time-limited items from being put together
                 if (pItem->isTimeLimitItem() | pPrevItem->isTimeLimitItem()) {
                     // cout << "cannot add" << endl;
                     GCCannotAdd _GCCannotAdd;
@@ -148,9 +148,9 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                     }
                 }
 
-                // 들어갈 아이템과 들어있는 아이템의 좌표가 꼭 일치 한다면?
+                // What if the incoming item and the item already there have exactly the same coordinates?
                 if (bisSame) {
-                    // 숫자가 9개를 넘으면 9개 될때까지만 Add 하고 나머지는 마우스에 달아둔다.
+                    // If the count goes past 9, add only up to 9 and leave the rest on the mouse.
                     if (pItem->getNum() + pPrevItem->getNum() > MaxStack) {
                         ItemNum_t CurrentNum = pPrevItem->getNum();
                         ItemNum_t AddNum = pItem->getNum();
@@ -161,13 +161,13 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                         pInventory->increaseNum(MaxStack - CurrentNum);
                         pInventory->increaseWeight(pItem->getWeight() * (MaxStack - CurrentNum));
                         // pPrevItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-                        //  item저장 최적화. by sigi. 2002.5.13
+                        //  Item save optimization.
                         char pField[80];
                         sprintf(pField, "Num=%d, Storage=%d, X=%d, Y=%d", MaxStack, STORAGE_INVENTORY, InvenX, InvenY);
                         pPrevItem->tinysave(pField);
 
                         // pItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                        //  item저장 최적화. by sigi. 2002.5.13
+                        //  Item save optimization.
                         sprintf(pField, "Num=%d, Storage=%d", NewNum, STORAGE_EXTRASLOT);
                         pItem->tinysave(pField);
 
@@ -178,7 +178,7 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                         pInventory->increaseNum(pItem->getNum());
                         pInventory->increaseWeight(pItem->getWeight() * pItem->getNum());
                         // pPrevItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-                        //  item저장 최적화. by sigi. 2002.5.13
+                        //  Item save optimization.
                         char pField[80];
                         sprintf(pField, "Num=%d, Storage=%d, X=%d, Y=%d", pPrevItem->getNum(), STORAGE_INVENTORY,
                                 InvenX, InvenY);
@@ -236,13 +236,13 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                     pInventory->addItem(InvenX, InvenY, pItem);
 
                     // pPrevItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                    //  item저장 최적화. by sigi. 2002.5.13
+                    //  Item save optimization.
                     char pField[80];
                     sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
                     pPrevItem->tinysave(pField);
 
                     // pItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-                    //  item저장 최적화. by sigi. 2002.5.13
+                    //  Item save optimization.
                     sprintf(pField, "Storage=%d, X=%d, Y=%d", STORAGE_INVENTORY, InvenX, InvenY);
                     pItem->tinysave(pField);
 
@@ -250,7 +250,7 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                     Success = true;
                 }
 
-            } else // 아이템 클래스가 다르거나, 쌓이는 아이템이 아니라면.
+            } else // If the item class differs, or the item does not stack.
             {
                 pInventory->deleteItem(pPrevItem->getObjectID());
 
@@ -261,31 +261,31 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                 pInventory->addItem(InvenX, InvenY, pItem);
 
                 // pPrevItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                //  item저장 최적화. by sigi. 2002.5.13
+                //  Item save optimization.
                 char pField[80];
                 sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
                 pPrevItem->tinysave(pField);
 
                 // pItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-                //  item저장 최적화. by sigi. 2002.5.13
+                //  Item save optimization.
                 sprintf(pField, "Storage=%d, X=%d, Y=%d", STORAGE_INVENTORY, InvenX, InvenY);
                 pItem->tinysave(pField);
 
 
                 Success = true;
             }
-        } else // 그 장소에 아이템이 없다면.
+        } else // If there is no item in that place.
         {
             // cout << "prevItem is NULL" << endl;
 
-            // Inventory에 특정 아이템을 넣는다.
+            // Put a given item into the Inventory.
             pInventory->addItem(InvenX, InvenY, pItem);
 
-            // 넣기에 성공하면 마우스에 달려있는 아이템을 없앤다.
+            // On a successful add, remove the item hanging on the mouse.
             pPC->deleteItemFromExtraInventorySlot();
 
             // pItem->save(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-            //  item저장 최적화. by sigi. 2002.5.13
+            //  Item save optimization.
             char pField[80];
             sprintf(pField, "Storage=%d, X=%d, Y=%d", STORAGE_INVENTORY, InvenX, InvenY);
             pItem->tinysave(pField);
@@ -306,19 +306,19 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                 pPlayer->sendPacket(&gcTradeVerify);
             }
 
-            // 트리 조각일 경우
+            // When it is a tree piece
             if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_EVENT_TREE) {
                 ItemType_t itemtype = pItem->getItemType();
 
-                // 크리스마스 트리 조각이면
+                // When it is a Christmas tree piece
                 if (itemtype <= 11) {
-                    // 크리스마스 트리 조각이 맞춰지는지 본다.
+                    // See whether the Christmas tree pieces fit together.
                     TPOINT pt = checkEventPuzzle(pPC, InvenX, InvenY, 0);
                     if (pt.x != -1 && pt.y != -1) {
-                        // 맞춰진 트리 조각을 지운다.
+                        // Erase the tree pieces that fit together.
                         deleteInventoryItem(pInventory, pt.x, pt.y, pt.x + 2, pt.y + 3);
 
-                        // 트리를 생성한다.
+                        // Create the tree.
                         list<OptionType_t> optionType;
                         Item* pTreeItem =
                             g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_TREE, 12, optionType);
@@ -326,21 +326,21 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                         pInventory->addItem(pt.x, pt.y, pTreeItem);
                         pTreeItem->create(pPC->getName(), STORAGE_INVENTORY, 0, pt.x, pt.y);
 
-                        // 클라이언트에 트리가 만들어졌다는 걸 알린다.
+                        // Tell the client that the tree was made.
                         GCCreateItem gcCreateItem;
                         makeGCCreateItem(&gcCreateItem, pTreeItem, pt.x, pt.y);
                         pGamePlayer->sendPacket(&gcCreateItem);
                     }
                 }
-                // 크리스마스 트리 조각이면
+                // When it is a Christmas tree piece
                 else if (itemtype > 12 && itemtype <= 24) {
-                    // 크리스마스 트리 조각이 맞춰지는지 본다.
+                    // See whether the Christmas tree pieces fit together.
                     TPOINT pt = checkEventPuzzle(pPC, InvenX, InvenY, 13);
                     if (pt.x != -1 && pt.y != -1) {
-                        // 맞춰진 트리 조각을 지운다.
+                        // Erase the tree pieces that fit together.
                         deleteInventoryItem(pInventory, pt.x, pt.y, pt.x + 2, pt.y + 3);
 
-                        // 트리를 생성한다.
+                        // Create the tree.
                         list<OptionType_t> optionType;
                         Item* pTreeItem =
                             g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_TREE, 25, optionType);
@@ -349,21 +349,21 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                         pInventory->addItem(pt.x, pt.y, pTreeItem);
                         pTreeItem->create(pPC->getName(), STORAGE_INVENTORY, 0, pt.x, pt.y);
 
-                        // 클라이언트에 트리가 만들어졌다는 걸 알린다.
+                        // Tell the client that the tree was made.
                         GCCreateItem gcCreateItem;
                         makeGCCreateItem(&gcCreateItem, pTreeItem, pt.x, pt.y);
                         pGamePlayer->sendPacket(&gcCreateItem);
                     }
                 }
-                // 크리스마스 트리 조각이면
+                // When it is a Christmas tree piece
                 else if (itemtype > 28 && itemtype <= 40) {
-                    // 크리스마스 트리 조각이 맞춰지는지 본다.
+                    // See whether the Christmas tree pieces fit together.
                     TPOINT pt = checkEventPuzzle(pPC, InvenX, InvenY, 29);
                     if (pt.x != -1 && pt.y != -1) {
-                        // 맞춰진 트리 조각을 지운다.
+                        // Erase the tree pieces that fit together.
                         deleteInventoryItem(pInventory, pt.x, pt.y, pt.x + 2, pt.y + 3);
 
-                        // 트리를 생성한다.
+                        // Create the tree.
                         list<OptionType_t> optionType;
                         Item* pTreeItem =
                             g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_TREE, 41, optionType);
@@ -372,7 +372,7 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                         pInventory->addItem(pt.x, pt.y, pTreeItem);
                         pTreeItem->create(pPC->getName(), STORAGE_INVENTORY, 0, pt.x, pt.y);
 
-                        // 클라이언트에 트리가 만들어졌다는 걸 알린다.
+                        // Tell the client that the tree was made.
                         GCCreateItem gcCreateItem;
                         makeGCCreateItem(&gcCreateItem, pTreeItem, pt.x, pt.y);
                         pGamePlayer->sendPacket(&gcCreateItem);

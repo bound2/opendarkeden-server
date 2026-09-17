@@ -9,8 +9,8 @@ namespace {
 //  - The FlagWarStat roll-up GROUPs BY "Name, ServerID" while PlayerID
 //    and Race are selected bare. THAT IS BROKEN under the sql_mode this
 //    project requires: CLAUDE.md's setting keeps ONLY_FULL_GROUP_BY, and
-//    PlayerID is not functionally dependent on (Name, ServerID) —
-//    FlagWarStat has no unique key at all — so MySQL raises error 1055
+//    PlayerID is not functionally dependent on (Name, ServerID) --
+//    FlagWarStat has no unique key at all -- so MySQL raises error 1055
 //    every time the statement is called. It is called only when the flag
 //    war is switched on, which ActiveFlagWar : 0 in both shipped configs
 //    prevents; and when it is called, the DatabaseError END_DB throws
@@ -22,7 +22,7 @@ namespace {
 //    is bigint(20) unsigned and ItemID_t is a DWORD. An id above INT_MAX
 //    formats negative: the SELECT then matches nothing, and the INSERT
 //    writes ItemID = 0, clamped, because this project's sql_mode drops
-//    STRICT_TRANS_TABLES. Unreachable in practice — ids step by the
+//    STRICT_TRANS_TABLES. Unreachable in practice -- ids step by the
 //    server count from a per-class MAX(ItemID), so 2^31 rows in one item
 //    table would be needed.
 //  - Names, player ids and the FlagWarID date text are interpolated

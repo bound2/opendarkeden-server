@@ -4,7 +4,7 @@
 namespace {
 
 // MySQL implementation of GoldRepository. Quirks:
-//  - The writes are RELATIVE — Gold = Gold ± delta — so the database
+//  - The writes are RELATIVE -- Gold = Gold +/- delta -- so the database
 //    arithmetic runs against whatever the row holds, not the in-memory
 //    balance. The gameplay clamps (MAX_MONEY / zero) were applied by the
 //    caller against its in-memory copy; when the two agree the result is
@@ -12,7 +12,7 @@ namespace {
 //  - Gold is int(10) UNSIGNED on all three tables. A decrease below the
 //    ROW's balance (reachable only through integrity drift, since the
 //    caller clamps against memory) raises ER_DATA_OUT_OF_RANGE (1690)
-//    and leaves the row untouched — same failure shape as
+//    and leaves the row untouched -- same failure shape as
 //    GoodsRepository::takeOne. An
 //    increase clamps at the column maximum only via the caller's
 //    MAX_MONEY (2,000,000,000) cap.

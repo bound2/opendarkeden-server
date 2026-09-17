@@ -27,10 +27,10 @@ const string DiffClanSpeech[] = {
     "네 놈은 누구야? 감히 여기가 어디라고.. Abscede Hinc!!"};
 
 //////////////////////////////////////////////////////////////////////////////
-// 플레이어가 NPC를 클릭할 경우, 클라이언트가 CGNPCTalk 패킷을 서버로
-// 전송한다. 서버는 이 패킷을 핸들링할 때, NPC에 CONDITION_TALKED_BY
-// 컨디션 플래그가 켜져 있으면, 트리거를 탐색하면서 적절한 트리거를 찾아서
-// 연관된 액션을 실행한다.
+// When a player clicks an NPC the client sends the CGNPCTalk packet to the
+// server. When the server handles this packet, and the NPC has the
+// CONDITION_TALKED_BY condition flag set, it searches the triggers for a
+// fitting one and runs the associated action.
 //////////////////////////////////////////////////////////////////////////////
 void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
 
@@ -47,13 +47,13 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
         Assert(pPC != NULL);
         Zone* pZone = pPC->getZone();
 
-        // 일단 말을 거는 PC가 현재 살아있는 상태여야 한다.
-        // 이 검사를 하는 이유는 독에 중독되어 있는 슬레이어가, 시간 차로 인해서
-        // NPC한테 HEAL을 요청한 직후에, 독에 의해서 죽어버리면,
-        // 일단 바닥에 쓰러지게 되는데, 곧이어 NPC에 의해서 치료를 받게 된다.
-        // 이 경우, HP는 풀인데 바닥에 쓰러져있게 된다.
-        // 이 말은 PCManager::heartbeat()에서 killCreature로 들어가지 않게 된다는 말이다.
-        // 음. 잘 설명이 되지 않는데, 하옇튼 NPC에게 말을 걸려면 플레이어는 살아있어야 한다.
+        // The PC that talks must currently be alive.
+        // The reason for the check: a poisoned Slayer that dies of the poison just
+        // after asking an NPC for a HEAL, because of the timing,
+        // falls to the ground and is then healed by the NPC right after.
+        // In that case the HP is full while it lies on the ground.
+        // That means PCManager::heartbeat() never goes into killCreature.
+        // Hard to explain; anyway, a player has to be alive to talk to an NPC.
         if (pPC->isDead()) {
             return;
         }
@@ -67,12 +67,12 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
         }
         catch (NoSuchElementException)
         {
-            // 그런 NPC가 없다면 리턴한다.
+            // Return when there is no such NPC.
             return;
         }
         */
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // NoSuch removed.
         pNPCBase = pZone->getCreature(pPacket->getObjectID());
 
         if (pNPCBase == NULL) {
@@ -81,8 +81,8 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
 
         NPC* pNPC = dynamic_cast<NPC*>(pNPCBase);
 
-        // ObjectID가 NPC가 아닐 수도 있었다. 뭘까.. 사기인가? 패킷 꼬인건가?
-        // 어쨋든 무시하도록하자.
+        // The ObjectID might not be an NPC. What is it, a cheat, or a tangled packet?
+        // Ignore it either way.
         // by sigi. 2002.11.25
         if (pNPC == NULL) {
             return;
@@ -110,28 +110,28 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
             return;
         }
 
-        // 퀘스트로 만난 넘일때 ^^;
+        // When it is one met through a quest
         if (pPC->getGQuestManager()->metNPC(pNPC)) {
-            // 일단 클라이언트를 위해 OK패킷을 함 날린다.
+            // Send an OK packet first, for the client.
             GCNPCResponse gcNPCAskAnswer;
             pPlayer->sendPacket(&gcNPCAskAnswer);
 
             return;
         }
 
-        // 아담의 성지에서는 NPC와 NP의 종족을 무시한다.
-        // 성에서는 종족별 NPC가 다르다.
+        // In Adam's holy land the races of the NPC and the PC are ignored.
+        // In a castle the NPCs differ by race.
         if (!pZone->isHolyLand() || pZone->isCastle()) {
-            // 뱀파이어가 슬레이어 NPC에게 말을 걸었을 경우에 무시한다.
+            // Ignore a Vampire talking to a Slayer NPC.
             if (pNPC->getRace() == NPC_RACE_SLAYER && pPC->isVampire()) {
-                // 일단 클라이언트를 위해 OK패킷을 함 날린다.
+                // Send an OK packet first, for the client.
                 GCNPCResponse gcNPCAskAnswer;
                 pPlayer->sendPacket(&gcNPCAskAnswer);
 
-                // 뱀파이어가 슬레이어 NPC에게 말을 걸면...
+                // When a Vampire talks to a Slayer NPC...
                 GCNPCSayDynamic saypkt;
                 saypkt.setObjectID(pNPC->getObjectID());
-                // Event 용 NPC 인 경우 다른 말을 한다 ;;
+                // An Event NPC says something different
                 if (pNPC->getNPCID() == 639) {
                     saypkt.setMessage(g_pStringPool->c_str(STRID_EVENT_NPC_1));
                 } else {
@@ -140,29 +140,29 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
                 pPlayer->sendPacket(&saypkt);
                 return;
             }
-            // 아우스터스가 슬레이어 NPC에게 말을 걸었을 경우에 무시한다.
+            // Ignore an Ousters talking to a Slayer NPC.
             else if (pNPC->getRace() == NPC_RACE_SLAYER && pPC->isOusters()) {
-                // 일단 클라이언트를 위해 OK패킷을 함 날린다.
+                // Send an OK packet first, for the client.
                 GCNPCResponse gcNPCAskAnswer;
                 pPlayer->sendPacket(&gcNPCAskAnswer);
 
-                // 뱀파이어가 슬레이어 NPC에게 말을 걸면...
+                // When a Vampire talks to a Slayer NPC...
                 GCNPCSayDynamic saypkt;
                 saypkt.setObjectID(pNPC->getObjectID());
                 saypkt.setMessage(g_pStringPool->c_str(STRID_ALERT_OUSTERS_2));
                 pPlayer->sendPacket(&saypkt);
                 return;
             }
-            // 슬레이어가 뱀파이어 NPC에게 말을 걸어도 무시한다.
+            // Ignore a Slayer talking to a Vampire NPC too.
             else if (pNPC->getRace() == NPC_RACE_VAMPIRE && pPC->isSlayer()) {
-                // 일단 클라이언트를 위해 OK패킷을 함 날린다.
+                // Send an OK packet first, for the client.
                 GCNPCResponse gcNPCAskAnswer;
                 pPlayer->sendPacket(&gcNPCAskAnswer);
 
-                // 슬레이어가 뱀파이어 NPC에게 말을 걸면...
+                // When a Slayer talks to a Vampire NPC...
                 GCNPCSayDynamic saypkt;
                 saypkt.setObjectID(pNPC->getObjectID());
-                // Event 용 NPC 인 경우 다른 말을 한다 ;;
+                // An Event NPC says something different
                 if (pNPC->getNPCID() == 638) {
                     saypkt.setMessage(g_pStringPool->c_str(STRID_EVENT_NPC_2));
                 } else if (pNPC->getNPCID() == 636) {
@@ -175,9 +175,9 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
                 pPlayer->sendPacket(&saypkt);
                 return;
             }
-            // 아우스터스가 뱀파이어 NPC에게 말을 걸어도 무시한다.
+            // Ignore an Ousters talking to a Vampire NPC too.
             else if (pNPC->getRace() == NPC_RACE_VAMPIRE && pPC->isOusters()) {
-                // 일단 클라이언트를 위해 OK패킷을 함 날린다.
+                // Send an OK packet first, for the client.
                 GCNPCResponse gcNPCAskAnswer;
                 pPlayer->sendPacket(&gcNPCAskAnswer);
 
@@ -187,9 +187,9 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
                 pPlayer->sendPacket(&saypkt);
                 return;
             }
-            // 슬레이어가 아우스터스 NPC에게 말을 걸어도 무시한다.
+            // Ignore a Slayer talking to an Ousters NPC too.
             else if (pNPC->getRace() == NPC_RACE_OUSTERS && pPC->isSlayer()) {
-                // 일단 클라이언트를 위해 OK패킷을 함 날린다.
+                // Send an OK packet first, for the client.
                 GCNPCResponse gcNPCAskAnswer;
                 pPlayer->sendPacket(&gcNPCAskAnswer);
 
@@ -199,9 +199,9 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
                 pPlayer->sendPacket(&saypkt);
                 return;
             }
-            // 뱀파이어가 아우스터스 NPC에게 말을 걸어도 무시한다.
+            // Ignore a Vampire talking to an Ousters NPC too.
             else if (pNPC->getRace() == NPC_RACE_OUSTERS && pPC->isVampire()) {
-                // 일단 클라이언트를 위해 OK패킷을 함 날린다.
+                // Send an OK packet first, for the client.
                 GCNPCResponse gcNPCAskAnswer;
                 pPlayer->sendPacket(&gcNPCAskAnswer);
 
@@ -213,11 +213,11 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
             }
         }
 
-        // 같은 뱀파이어끼리도 클랜이 다른 NPC일 경우 무시한다.
-        // 이 부분의 코드는 나중에 다른 방법으로 출력해야 할 것이다.
-        // 현재는 클랜이 오직 두 가지 뿐이기 때문에...
+        // Among Vampires, an NPC of a different clan is ignored too.
+        // This code will have to print it another way later.
+        // For now there are only two clans...
         // .....
-        // 클랜 한가지 밖에 엄써~~
+        // There is only one clan
         /*		if (pPC->isVampire() && pNPC->getRace() == NPC_RACE_VAMPIRE)
                 {
                     if (pPC->getClanType() != pNPC->getClanType())
@@ -233,7 +233,7 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
                     }
                 }
         */
-        // 플레이어가 말을 걸었을 경우에 반응하는 액션이 있다면...
+        // If there is an action that reacts to the player talking...
         const TriggerManager& triggerManager = pNPC->getTriggerManager();
         if (triggerManager.hasCondition(Condition::CONDITION_TALKED_BY)) {
             const list<Trigger*>& triggers = triggerManager.getTriggers();
@@ -244,22 +244,22 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
                 // check all condition after check main condition
                 if (pTrigger->hasCondition(Condition::CONDITION_TALKED_BY) &&
                     pTrigger->isAllSatisfied(Trigger::PASSIVE_TRIGGER, pNPC, pPC)) {
-                    // 최초로 발견된 트리거만 실행한 다음 break 한다.
+                    // Run only the first trigger found, then break.
                     pTrigger->activate(pNPC, pPC);
                     break;
                 }
             }
         }
-        // 클라이언트는 NPC를 클릭했을 경우, 무조건 서버의 응답을 기다리기 때문에,
-        // 그런 액션이 존재하지 않을 때 아무 것도 하지 않으면, 클라이언트가 일종의 데드락(?)
-        // 상태에 빠지게 된다. 그것을 방지하기 위해서 대화창을 닫으라는 메세지를 보내준다.
+        // The client always waits for the server's answer after clicking an NPC, so
+        // doing nothing when no such action exists puts the client into a kind of deadlock.
+        // To prevent that, a message to close the dialog is sent.
         else {
             GCNPCResponse gcNPCResponse;
             gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
             pPlayer->sendPacket(&gcNPCResponse);
         }
     } catch (Throwable& t) {
-        // cerr << "누가 NPC 오브젝트 아이디를 이상하게 보내주네?" << endl;
+        // cerr << "Someone is sending an odd NPC object id?" << endl;
         // cerr << t.toString() << endl;
     }
 

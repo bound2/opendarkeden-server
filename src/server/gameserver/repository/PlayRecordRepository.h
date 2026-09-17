@@ -6,13 +6,13 @@
 
 #include "Types.h"
 
-// Per-player play records: a player's saved quest states (GQuestSave —
+// Per-player play records: a player's saved quest states (GQuestSave --
 // loaded at login, REPLACEd on every status change, deleted when a quest
 // is erased), the head-count log a half-hourly event writes (HeadCount),
-// the minigame score board (MiniGameScores), the trade log (TradeLog —
+// the minigame score board (MiniGameScores), the trade log (TradeLog --
 // store purchases and player-to-player trades) and the per-account event
 // tallies (GoldMedalCount, EventLotto, UnderworldEvent). Reads are typed
-// to the driver getter used for each column (getInt → int, getString →
+// to the driver getter used for each column (getInt -> int, getString ->
 // std::string).
 //
 // Connections: the event tallies go through the thread's dist connection
@@ -42,7 +42,7 @@ public:
     virtual void insertHeadCount(const std::string& name, Level_t firstLevel, Level_t lastLevel, uint count) = 0;
 
     // --- minigame score board (sendGCMiniGameScores) --------------------------
-    // The first row LIMIT 1 happens to return for a type and level — there
+    // The first row LIMIT 1 happens to return for a type and level -- there
     // is no ORDER BY, so "first" is the optimizer's choice. False when none.
     virtual bool loadMiniGameScore(BYTE gameType, BYTE level, std::string& name, int& score) = 0;
     // UPDATE ... WHERE Type AND Level AND Score>score LIMIT 1: with no ORDER

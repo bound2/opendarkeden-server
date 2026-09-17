@@ -38,8 +38,8 @@ void CGStashToMouseHandler::execute(CGStashToMouse* pPacket, Player* pPlayer)
     BYTE rack = pPacket->getRack();
     BYTE index = pPacket->getIndex();
 
-    // 맥스 범위를 초과하는 것 말고도
-    // 자기가 가지고 있는 최대한의 랙을 초과해도 에러당.
+    // Going past the maximum range, and
+    // going past one's own maximum rack, are both errors.
     if (rack >= STASH_RACK_MAX || index >= STASH_INDEX_MAX || rack >= pPC->getStashNum()) {
         GCCannotAdd _GCCannotAdd;
         _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -51,12 +51,12 @@ void CGStashToMouseHandler::execute(CGStashToMouse* pPacket, Player* pPlayer)
     Item* pStashItem = pStash->get(rack, index);
     Item* pMouseItem = pPC->getExtraInventorySlotItem();
 
-    // 보관함에 아이템이 없거나, 마우스에 아이템이 달려있는 경우
-    // 아이템을 마우스에 또 달아줄 수는 없는 것 아닌가?
+    // When the stash holds no item, or an item hangs on the mouse,
+    // another item cannot be hung on the mouse.
     if (pStashItem == NULL || pMouseItem != NULL) {
-        // throw ProtocolException("CGStashToMouseHandler::executeSlayer() : 아이템이 없거나, 마우스에 아이템이
-        // 달려있습니다.");
-        //  아이템이 없었거나...마우스에 아이템이 달려있었을 경우에는 더할 수 없다.
+        // throw ProtocolException("CGStashToMouseHandler::executeSlayer() : there is no item, or an item hangs on
+        // the mouse.");
+        //  With no item, or with an item already on the mouse, nothing can be added.
         GCCannotAdd _GCCannotAdd;
         _GCCannotAdd.setObjectID(pPacket->getObjectID());
         pPlayer->sendPacket(&_GCCannotAdd);
@@ -72,12 +72,12 @@ void CGStashToMouseHandler::execute(CGStashToMouse* pPacket, Player* pPlayer)
         return;
     }
 
-    // 보관함에서 아이템을 제거하고, 마우스에다 달아준 후 DB에다 저장.
+    // Remove the item from the stash, hang it on the mouse, then save to the DB.
     pStash->remove(rack, index);
     pPC->addItemToExtraInventorySlot(pStashItem);
     //	pStashItem->whenPCTake(pPC);
     // pStashItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-    // 아이템 저장 최적화. by sigi. 2002.5.13
+    // Item save optimization.
     char pField[80];
     sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
     pStashItem->tinysave(pField);

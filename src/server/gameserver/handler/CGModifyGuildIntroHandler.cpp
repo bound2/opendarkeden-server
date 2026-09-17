@@ -39,23 +39,23 @@ void CGModifyGuildIntroHandler::execute(CGModifyGuildIntro* pPacket, Player* pPl
     PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
     Assert(pPlayerCreature != NULL);
 
-    // 길드를 가져온다.
+    // Get the guild.
     Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
     if (pGuild == NULL)
         return;
 
-    // 길드 멤버 정보를 가져온다.
+    // Get the guild member information.
     GuildMember* pGuildMember = pGuild->getMember(pPlayerCreature->getName());
     if (pGuildMember == NULL)
         return;
 
-    // 길드 마스터 이어야 한다.
+    // Must be the guild master.
     if (pGuild->getMaster() != pPlayerCreature->getName())
         return;
     if (pGuildMember->getRank() != GuildMember::GUILDMEMBER_RANK_MASTER)
         return;
 
-    // 길드 Intro 수정 패킷을 쉐어드 서버로 보낸다.
+    // Send the guild Intro change packet to the shared server.
     GSModifyGuildIntro gsModifyGuildIntro;
     gsModifyGuildIntro.setGuildID(pGuild->getID());
     gsModifyGuildIntro.setGuildIntro(pPacket->getGuildIntro());

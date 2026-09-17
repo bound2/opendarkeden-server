@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////
-// 전쟁에 대한 전반적인 정보 및 전쟁 시작 및 종료시 처리루틴.
+// General war information and the routines run when a war starts and ends.
 ///////////////////////////////////////////////////////////////////
 
 #ifndef __WAR_H__
@@ -86,8 +86,8 @@ public:
 
 private:
     WarID_t m_WarID;
-    WarState m_State;       // 전쟁의 현재 상태.
-    VSDateTime m_StartTime; // 전쟁 시작 시간
+    WarState m_State;       // the war's current state.
+    VSDateTime m_StartTime; // the war's start time
 
     static Mutex m_Mutex;
     static WarID_t m_WarIDRegistry;

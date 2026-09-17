@@ -13,12 +13,12 @@
 // The catalogues come in pairs. SimpleQuestInfoManager reads the nine columns of
 // MonsterKillQuestInfo for one NPC; EventQuestInfoManager reads the same table and
 // three sisters (GatherItemQuestInfo, MeetNPCQuestInfo, MiniGameQuestInfo) with
-// EventQuest and QuestLevel appended — so a row type per shape and an event row
+// EventQuest and QuestLevel appended -- so a row type per shape and an event row
 // wrapping it. SimpleQuestRewardManager reads ItemRewardInfo and
 // SlayerWeaponRewardInfo, whose six columns are identical, into one row type.
 //
-// Every numeric column is read through getInt — the callers cast into their own
-// typedefs and turn EventQuest and IsChief into bool themselves — and OptionType
+// Every numeric column is read through getInt -- the callers cast into their own
+// typedefs and turn EventQuest and IsChief into bool themselves -- and OptionType
 // through getString. The one non-column expression, EventQuestLootingInfo's
 // "LootingType-1", is part of the SELECT.
 //
@@ -125,29 +125,29 @@ class QuestInfoRepository {
 public:
     virtual ~QuestInfoRepository() {}
 
-    // SimpleQuestInfoManager::load — the nine-column catalogue for one NPC.
+    // SimpleQuestInfoManager::load -- the nine-column catalogue for one NPC.
     virtual std::vector<MonsterKillQuestRow> loadMonsterKillQuestsOfNPC(const std::string& npcName) = 0;
 
-    // SimpleQuestRewardManager::load — the two reward tables, one NPC each.
+    // SimpleQuestRewardManager::load -- the two reward tables, one NPC each.
     virtual std::vector<ItemRewardRow> loadItemRewardsOfNPC(const std::string& npcName) = 0;
     virtual std::vector<ItemRewardRow> loadSlayerWeaponRewardsOfNPC(const std::string& npcName) = 0;
 
-    // EventQuestInfoManager::load — the four catalogues with EventQuest and
+    // EventQuestInfoManager::load -- the four catalogues with EventQuest and
     // QuestLevel, in the order it reads them.
     virtual std::vector<EventMonsterKillQuestRow> loadEventMonsterKillQuestsOfNPC(const std::string& npcName) = 0;
     virtual std::vector<EventGatherItemQuestRow> loadEventGatherItemQuestsOfNPC(const std::string& npcName) = 0;
     virtual std::vector<EventMeetNPCQuestRow> loadEventMeetNPCQuestsOfNPC(const std::string& npcName) = 0;
     virtual std::vector<EventMiniGameQuestRow> loadEventMiniGameQuestsOfNPC(const std::string& npcName) = 0;
 
-    // EventQuestAdvance::save — the UPDATE, false when no row went (the caller
+    // EventQuestAdvance::save -- the UPDATE, false when no row went (the caller
     // then runs the INSERT IGNORE).
     virtual bool updateEventQuestAdvance(uint status, const std::string& ownerName, uint questLevel) = 0;
     virtual void insertEventQuestAdvance(uint questLevel, const std::string& ownerName, uint status) = 0;
 
-    // EventQuestAdvanceManager::load — every advance row the owner has.
+    // EventQuestAdvanceManager::load -- every advance row the owner has.
     virtual std::vector<EventQuestAdvanceRow> loadEventQuestAdvances(const std::string& ownerName) = 0;
 
-    // EventQuestLootingManager::load — the whole catalogue.
+    // EventQuestLootingManager::load -- the whole catalogue.
     virtual std::vector<EventQuestLootingRow> loadEventQuestLootingInfos() = 0;
 };
 

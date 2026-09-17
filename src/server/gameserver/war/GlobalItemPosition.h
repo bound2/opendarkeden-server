@@ -17,7 +17,7 @@ public:
     };
 
 protected:
-    // 이 클래스를 직접 생성할 수는 없다.
+    // This class cannot be created directly.
     GlobalItemPosition(PositionType type) : m_ItemPosType(type) {}
 
 public:
@@ -32,7 +32,7 @@ public:
     }
 
 public:
-    // 아이템을 뽑아낸다.
+    // Pull the item out.
     virtual Item* popItem(bool bLock = true) = 0;
     virtual Zone* getZone() = 0;
 

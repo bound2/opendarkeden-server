@@ -64,8 +64,8 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
     string ItemClassName = trim(msg.substr(j + 1, k - j - 1));
     Item::ItemClass ItemClass = g_pItemFactoryManager->getItemClassByName(ItemClassName);
 
-    // ItemClass�� MAX��� �̸����δ� �� ã�Ҵٴ� ���̴�.
-    // �� ��쿡�� ������ Ŭ������ ���ڷ� �ٷ� ������ �ʾҴ��� �˻��ؾ� �Ѵ�.
+    // ItemClass being MAX means it was not found by that name.
+    // In that case it has to be checked whether the item class was given directly as a number.
     if (ItemClass == Item::ITEM_CLASS_MAX) {
         int temp = atoi(ItemClassName.c_str());
         if (temp < 0 || temp >= Item::ITEM_CLASS_MAX) {
@@ -78,7 +78,7 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
     if (ItemClass == Item::ITEM_CLASS_CORPSE
         //		|| ItemClass == Item::ITEM_CLASS_KEY
         || ItemClass == Item::ITEM_CLASS_MOTORCYCLE || isRelicItem(ItemClass) && optional != "force") {
-        // ��ü ������ ����~~ by sigi
+        // Creating an item is blocked
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_CREATE_ITEM));
 
@@ -137,7 +137,7 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
     }
 
 
-    // ���������� ������ �� �ִ� �������� �ƴ϶�� �����Ѵ�.
+    // Return when it is not an item that can really be created.
     if (!g_pItemInfoManager->isPossibleItem(ItemClass, ItemType, optionTypes)) {
         // cerr << "Cannot create item" << endl;
         StringStream msg;
@@ -153,18 +153,18 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
     }
 
     // cout << "createItemOptions : " << getOptionTypeToString(optionTypes) << endl;
-    //  create�� ������ ����ũ �����۵� ���� ������ ���Ѿ��ұ�?
+    //  Should a unique item made by create have its count limited too?
     ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(ItemClass, ItemType);
     Assert(pItemInfo != NULL);
 
-    // ����ũ �������� ���
+    // For a unique item
     /*
     if (pItemInfo->isUnique())
     {
         if (!UniqueItemManager::isPossibleCreate( ItemClass, ItemType ))
         {
             GCSystemMessage gcSystemMessage;
-            gcSystemMessage.setMessage("�� �̻� ���� �� ���� ����ũ �������Դϴ�.");
+            gcSystemMessage.setMessage("This unique item cannot be created any more.");
 
             pGamePlayer->sendPacket( &gcSystemMessage );
 
@@ -250,7 +250,7 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
             makeGCCreateItem(&gcCreateItem, pItem, p.x, p.y);
             pGamePlayer->sendPacket(&gcCreateItem);
         } else {
-            // cerr << "������ â���� �����Ͽ����ϴ�" << endl;
+            // cerr << "Failed to put it in the inventory window" << endl;
             SAFE_DELETE(pItem);
         }
     }
@@ -276,7 +276,7 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
             }
             else
             {
-                //cout << "������ â���� �����Ͽ����ϴ�" << endl;
+                //cout << "Failed to put it in the inventory window" << endl;
                 SAFE_DELETE(pItem);
             }
         }
@@ -302,7 +302,7 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
             }
             else
             {
-                //cout << "������ â���� �����Ͽ����ϴ�" << endl;
+                //cout << "Failed to put it in the inventory window" << endl;
                 SAFE_DELETE(pItem);
             }
         }*/
@@ -312,7 +312,7 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
             addRelicEffect(pCreature, pItem);
         }
 
-        // ����ũ �������� ��� ���� üũ���ش�.
+        // For a unique item, mark it unique.
         if (pItemInfo->isUnique()) {
             pItem->setUnique();
             // UniqueItemManager::createItem( ItemClass, ItemType );
@@ -320,7 +320,7 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
         }
 
 
-        // �α׸� �����.
+        // Leave a log.
         defaultItemRepository().insertOpCreateLog(pCreature->getName(), VSDateTime::currentDateTime().toString(),
                                                   pItem->toString());
         if (pItem != NULL && pItem->isTraceItem()) {

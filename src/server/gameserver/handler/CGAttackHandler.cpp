@@ -45,7 +45,7 @@ void CGAttackHandler::execute(CGAttack* pPacket, Player* pPlayer)
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
         Assert(pGamePlayer != NULL); // by sigi
 
-        // 플레이어가 정상적인 상태가 아니라면 리턴한다.
+        // Return if the player is not in a normal state.
         if (pGamePlayer->getPlayerStatus() != GPS_NORMAL) {
             GCSkillFailed1 _GCSkillFailed1;
             _GCSkillFailed1.setSkillType(SKILL_ATTACK_MELEE);
@@ -59,7 +59,7 @@ void CGAttackHandler::execute(CGAttack* pPacket, Player* pPlayer)
         Zone* pZone = pCreature->getZone();
         Assert(pZone != NULL);
 
-        // 완전 안전지대라면 기술 사용 불가. by sigi. 2002.11.14
+        // A complete safe zone forbids skill use.
         ZoneLevel_t ZoneLevel = pZone->getZoneLevel(pCreature->getX(), pCreature->getY());
         if (ZoneLevel & COMPLETE_SAFE_ZONE) {
             GCSkillFailed1 _GCSkillFailed1;
@@ -78,7 +78,7 @@ void CGAttackHandler::execute(CGAttack* pPacket, Player* pPlayer)
 
         pCreature->setLastTarget(pTarget->getObjectID());
 
-        // 만약 같은 종족의 성물 보관대라면 공격하지 않도록 한다. bezz 6.8 수정 확인바람.
+        // Do not attack a relic table of one's own race.
 
         /*
         if ( pTarget->isMonster() )
@@ -111,29 +111,29 @@ void CGAttackHandler::execute(CGAttack* pPacket, Player* pPlayer)
                 switch(type)
                 {
                     case 371:
-                        RelicName = "롬멜의훈장";
+                        RelicName = "Rommel's Medal";
                         break;
                     case 372:
-                        RelicName = "성의";
+                        RelicName = "Holy Robe";
                         break;
                     case 374:
-                        RelicName = "처녀의피";
+                        RelicName = "Virgin's Blood";
                         break;
                     case 375:
-                        RelicName = "역십자가";
+                        RelicName = "Inverted Cross";
                         break;
                     default:
                         RelicName = pMonster->getName();
                 }
 
-                // 이펙트 만들기
+                // Make the effect
                 EffectCombatMessage1* pEffect = new EffectCombatMessage1();
                 pEffect->setNextTime(30);
                 pEffect->setDelay(30);
                 pEffect->setDeadline(60);
                 pEffect->setRelicName(RelicName);
 
-                // Zone에 이펙트 붙이기
+                // Attach the effect to the Zone
                 (pZone->getObjectRegistry()).registerObject(pEffect);
                 pZone->addEffect(pEffect);
             }

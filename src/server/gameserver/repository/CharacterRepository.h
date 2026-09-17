@@ -80,7 +80,7 @@ struct SlayerLoadRecord {
 // Vampire load(): the 33 columns of the Vampire row, in SELECT order.
 // stashNum, competence and competenceShape are read through getBYTE (the
 // slayer reads Competence through getInt); the columns are tinyint
-// unsigned, so nothing is lost, and the loader's ">= 4 → 3" clamp
+// unsigned, so nothing is lost, and the loader's ">= 4 -> 3" clamp
 // compares the BYTE. reward: selected, never acted on. No MP columns;
 // SilverDamage instead.
 struct VampireLoadRecord {
@@ -119,7 +119,7 @@ struct VampireLoadRecord {
     int rankGoalExp;
 };
 
-// Ousters load(): the 34 columns of the Ousters row, in SELECT order —
+// Ousters load(): the 34 columns of the Ousters row, in SELECT order --
 // the vampire's shape plus MP, SkillBonus and HairColor, minus Reward.
 struct OustersLoadRecord {
     std::string name;
@@ -260,7 +260,7 @@ public:
 
     // The login-time load: the character's ACTIVE row from its own race
     // table. False when there is none (the name has no row, or the row is
-    // INACTIVE — the login server may have deleted the character while it
+    // INACTIVE -- the login server may have deleted the character while it
     // was handed over); on true, record carries every selected column.
     virtual bool loadSlayer(const std::string& ownerName, SlayerLoadRecord& record) = 0;
     // The connect-time probe that takes the character's race from the
@@ -306,12 +306,12 @@ public:
     // a vampire. The text is the caller's Sex2String entry.
     virtual void saveSex(const std::string& name, const std::string& sexText) = 0;
 
-    // The periodic save() row update — vitals and position.
+    // The periodic save() row update -- vitals and position.
     virtual void saveSlayerVitals(const std::string& ownerName, const SlayerVitalsRecord& record) = 0;
     virtual void saveVampireVitals(const std::string& ownerName, const VampireVitalsRecord& record) = 0;
     virtual void saveOustersVitals(const std::string& ownerName, const OustersVitalsRecord& record) = 0;
 
-    // The saveExps() tail — flushed on logout so the sub-threshold exp
+    // The saveExps() tail -- flushed on logout so the sub-threshold exp
     // the handlers batch up (they persist only every 10th tick) is not
     // lost.
     virtual void saveSlayerExps(const std::string& ownerName, const SlayerExpsRecord& record) = 0;

@@ -41,7 +41,7 @@ void CGRequestStoreInfoHandler::execute(CGRequestStoreInfo* pPacket, Player* pPl
         PlayerCreature* pTargetPC =
             dynamic_cast<PlayerCreature*>(pPC->getZone()->getCreature(pPacket->getOwnerObjectID()));
         if (pTargetPC != NULL && pTargetPC->getRace() == pPC->getRace()) {
-            // cout << pTargetPC->getName() << " 의 상점 정보를 보냅니다." << endl;
+            // cout << pTargetPC->getName() << "'s store information is being sent." << endl;
             GCOtherStoreInfo gcInfo;
             gcInfo.setObjectID(pTargetPC->getObjectID());
             gcInfo.setRequested(1);

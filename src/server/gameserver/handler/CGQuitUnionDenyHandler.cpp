@@ -52,11 +52,11 @@ void CGQuitUnionDenyHandler::execute(CGQuitUnionDeny* pPacket, Player* pPlayer)
         return;
     }
 
-    // 요청한놈이 지가 속한 길드의 마스터인가? || 연합의 마스터길드가 내 길드가 맞나?
+    // Is the requester the master of its own guild, and is the union's master guild my guild?
     if (!g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature) ||
         pUnion->getMasterGuildID() != pPlayerCreature->getGuildID()) {
-        // GC_GUILD_RESPONSE 날려준다.
-        // 내용 : 길드 마스터가 아니자녀 -.-+
+        // Send GC_GUILD_RESPONSE.
+        // Content: not the guild master.
 
         gcGuildResponse.setCode(GuildUnionOfferManager::SOURCE_IS_NOT_MASTER);
         pPlayer->sendPacket(&gcGuildResponse);
@@ -78,7 +78,7 @@ void CGQuitUnionDenyHandler::execute(CGQuitUnionDeny* pPacket, Player* pPlayer)
     }
     string TargetGuildMaster = pGuild->getMaster();
 
-    // cout << "탈퇴가 거부되었다. 통보받을 유저는 : " << TargetGuildMaster.c_str() << endl;
+    // cout << "The withdrawal was refused. The user to notify is: " << TargetGuildMaster.c_str() << endl;
 
 
     defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(376));

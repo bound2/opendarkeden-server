@@ -408,7 +408,7 @@ struct SilverWeaponMPInfoRow {
 
 // The guns' owner SELECT: gear's twelve columns plus BulletCount and Silver
 // (14). SG, SMG and SR name them EnchantLevel, BulletCount, Silver; AR names
-// BulletCount, Silver, EnchantLevel — the loader reads in the table's order,
+// BulletCount, Silver, EnchantLevel -- the loader reads in the table's order,
 // so each value lands in the field its column names.
 struct GunObjectRow {
     DWORD itemID;
@@ -470,7 +470,7 @@ struct GunInfoRow {
     int downgradeRatio;
 };
 
-// The Num + ItemFlag items' owner SELECT: nine columns — the ids (getDWORD),
+// The Num + ItemFlag items' owner SELECT: nine columns -- the ids (getDWORD),
 // Storage (getInt), StorageID (getDWORD), X, Y and Num (getBYTE), ItemFlag (getInt).
 struct NumObjectRow {
     DWORD itemID;
@@ -549,7 +549,7 @@ struct StringInfoRow {
 };
 
 // The Num-only items' owner SELECT: the Num + ItemFlag columns without ItemFlag
-// (eight) — the ids (getDWORD), Storage (getInt), StorageID (getDWORD), X, Y and Num (getBYTE).
+// (eight) -- the ids (getDWORD), Storage (getInt), StorageID (getDWORD), X, Y and Num (getBYTE).
 struct NumOnlyObjectRow {
     DWORD itemID;
     DWORD objectID;
@@ -774,7 +774,7 @@ struct KeyZoneObjectRow {
 };
 
 // The charge items' owner AND zone SELECT: the plain columns (ids getDWORD, Storage
-// getInt, StorageID getDWORD, X, Y getBYTE) plus Charge (getInt) — both loads read
+// getInt, StorageID getDWORD, X, Y getBYTE) plus Charge (getInt) -- both loads read
 // the same getters, so one row serves both.
 struct ChargeObjectRow {
     DWORD itemID;
@@ -827,7 +827,7 @@ struct CoupleRingObjectRow {
     DWORD partnerItemID;
 };
 
-// VampirePortalItem's owner SELECT — and what its zone load reads, see
+// VampirePortalItem's owner SELECT -- and what its zone load reads, see
 // loadVampirePortalInZone: the charge columns plus TargetZID, TargetX, TargetY (getWORD).
 struct VampirePortalObjectRow {
     DWORD itemID;
@@ -947,7 +947,7 @@ struct WarItemZoneObjectRow {
 };
 
 // BloodBibleInfo / CastleSymbolInfo / SweeperInfo: the eight head columns and
-// Defense, Protection, ReqAbility, ItemLevel — twelve, with no upgrade tail.
+// Defense, Protection, ReqAbility, ItemLevel -- twelve, with no upgrade tail.
 struct WarInfoRow {
     int itemType;
     std::string name;
@@ -1070,7 +1070,7 @@ struct PetItemObjectRow {
 // rest of this repository carries: they are POSITIONAL, name no columns,
 // and quote every value including the numeric ones, so they depend on
 // each table's exact column order and count. The id is INT_MAX in both
-// the ItemID and ObjectID positions — a sentinel, not a real object.
+// the ItemID and ObjectID positions -- a sentinel, not a real object.
 //
 // No caller in the shipped gameserver.
 enum DummyObjectTable { DUMMY_OBJECT_LARVA, DUMMY_OBJECT_SKULL, DUMMY_OBJECT_POTION, DUMMY_OBJECT_TABLE_MAX };
@@ -1083,13 +1083,13 @@ public:
     // these three are positional. No caller.
     virtual void insertDummySentinelRow(DummyObjectTable table) = 0;
 
-    // <Class>::create — the INSERT with the ItemFlag column fed the create type.
+    // <Class>::create -- the INSERT with the ItemFlag column fed the create type.
     // Refuses tables whose INSERT takes other arguments (the guns' thirteen, the
     // Num + ItemFlag items' ten, the Num-only items' nine).
     virtual void insertGear(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                             const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                             const std::string& optionField, Durability_t durability, int grade, int createType) = 0;
-    // <Class>::tinysave — "SET %s": the caller's field text is the statement.
+    // <Class>::tinysave -- "SET %s": the caller's field text is the statement.
     // Refuses the GUN_OBJECT tables, whose tinysave literal takes a BulletCount too,
     // and MONEY_OBJECT, whose takes an Amount.
     virtual void tinysaveGear(GearTable table, const char* field, ItemID_t itemID) = 0;
@@ -1098,7 +1098,7 @@ public:
                             int storage, StorageID_t storageID, int x, int y, const std::string& optionField,
                             Durability_t durability, int grade, int enchantLevel, ItemID_t itemID) = 0;
 
-    // <Class>InfoManager::load — MAX(ItemType) through getInt (an empty Info
+    // <Class>InfoManager::load -- MAX(ItemType) through getInt (an empty Info
     // table is one NULL row, and atoi(NULL) crashes; VampireEarring's literal is
     // ifnull(MAX(ItemType),0), so it reads 0 instead), then the rows.
     virtual int loadMaxGearType(GearTable table) = 0;
@@ -1134,10 +1134,10 @@ public:
     virtual std::vector<SummonItemInfoRow> loadSummonItemInfos(GearTable table) = 0;
     virtual std::vector<PocketInfoRow> loadPocketInfos(GearTable table) = 0; // both pocket kinds
 
-    // <Class>Loader::load(Creature*) — the owner's rows in Storage IN(0, 1, 2, 3, 4, 9).
+    // <Class>Loader::load(Creature*) -- the owner's rows in Storage IN(0, 1, 2, 3, 4, 9).
     // Both gear loads serve the AMULET_OBJECT table too: its SELECTs are gear's.
     virtual std::vector<GearObjectRow> loadGearOfOwner(GearTable table, const std::string& ownerName) = 0;
-    // <Class>Loader::load(Zone*) — `storage` is the caller's (int)STORAGE_ZONE.
+    // <Class>Loader::load(Zone*) -- `storage` is the caller's (int)STORAGE_ZONE.
     // Serves CodeSheet too: its zone SELECT is gear's eleven columns. Refuses the
     // gear tables that carry no zone literal because their zone loader holds no SQL
     // (Mitten, ShoulderArmor, Persona); other shapes it refuses anyway.
@@ -1198,7 +1198,7 @@ public:
                                    int num, ItemID_t itemID) = 0;
     virtual std::vector<NumOnlyObjectRow> loadNumOnlyItemOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<NumOnlyZoneObjectRow> loadNumOnlyItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
-    // <Class>::destroy of Pupa, Larva, ComposMei and Potion — "DELETE FROM %s" with the
+    // <Class>::destroy of Pupa, Larva, ComposMei and Potion -- "DELETE FROM %s" with the
     // class's object table name; false when no row went, true otherwise (also after
     // a caught DB error). Refuses tables without the literal.
     virtual bool destroyItemObject(GearTable table, const std::string& objectTableName, ItemID_t itemID) = 0;
@@ -1237,7 +1237,7 @@ public:
     virtual std::vector<NumIntObjectRow> loadNumIntItemOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<NumIntZoneObjectRow> loadNumIntItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 
-    // Key (see GearObjectKind): the plain columns plus Target — an ItemID_t, "%u" in
+    // Key (see GearObjectKind): the plain columns plus Target -- an ItemID_t, "%u" in
     // the INSERT, "%d" in the UPDATE.
     virtual void insertKey(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                            const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
@@ -1246,7 +1246,7 @@ public:
                            int storage, StorageID_t storageID, int x, int y, ItemID_t target, ItemID_t itemID) = 0;
     virtual std::vector<KeyObjectRow> loadKeyOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<KeyZoneObjectRow> loadKeyInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
-    // Key::setNewMotorcycle — "UPDATE KeyObject SET Target=%u WHERE ItemID=%u" with the
+    // Key::setNewMotorcycle -- "UPDATE KeyObject SET Target=%u WHERE ItemID=%u" with the
     // new motorcycle's id. Refuses other tables.
     virtual void saveKeyTarget(GearTable table, ItemID_t targetID, ItemID_t itemID) = 0;
 
@@ -1274,7 +1274,7 @@ public:
 
     // The couple rings (see GearObjectKind): the plain columns plus OptionType, Name
     // and PartnerItemID in the INSERT, Name and PartnerItemID in the UPDATE; the
-    // owner load; and hasPartnerItem's count(*) — true with the count when a row
+    // owner load; and hasPartnerItem's count(*) -- true with the count when a row
     // came back, false otherwise. The zone load is loadPlainItemInZone.
     virtual void insertCoupleRing(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                                   const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
@@ -1303,7 +1303,7 @@ public:
 
     // VampireAmulet, CoreZap, Dermis, Fascia and CarryingReceiver (see
     // GearObjectKind): the gear INSERT without Durability, VampireAmulet's UPDATE
-    // with Grade and EnchantLevel — Dermis's, Fascia's and CarryingReceiver's too —
+    // with Grade and EnchantLevel -- Dermis's, Fascia's and CarryingReceiver's too --
     // CoreZap's with Grade alone and its two loads, and the owner load the three
     // OPTION_GRADE_OBJECT tables share.
     virtual void insertOptionGradeItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
@@ -1356,7 +1356,7 @@ public:
                                                                       ZoneID_t zoneID) = 0;
     // The motorcycle-redeem statements (see the header comment). These name
     // MotorcycleObject alone, so they take no table.
-    // "SELECT ItemID FROM MotorcycleObject WHERE ItemID=%u" — true when a row
+    // "SELECT ItemID FROM MotorcycleObject WHERE ItemID=%u" -- true when a row
     // came back.
     virtual bool motorcycleExists(ItemID_t itemID) = 0;
     // The four-column read; true and the row when it exists, false otherwise.
@@ -1393,7 +1393,7 @@ public:
     virtual void deleteWarItemsOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<WarItemZoneObjectRow> loadWarItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 
-    // Belt::destroy and OustersArmsband::destroy — "DELETE FROM <Class>Object WHERE
+    // Belt::destroy and OustersArmsband::destroy -- "DELETE FROM <Class>Object WHERE
     // ItemID = %u"; false when no row went, true otherwise. Refuses tables without
     // the literal.
     virtual bool destroyGearObject(GearTable table, ItemID_t itemID) = 0;

@@ -8,7 +8,7 @@
 // 					PCWarLimiter
 //
 //--------------------------------------------------------------------------------
-// 에 대한 출입 체크
+// Entry check for the above
 //--------------------------------------------------------------------------------
 class PCWarLimiter : public PCLimiter<LevelLimitInfo> {
 public:
@@ -111,7 +111,7 @@ public:
 
     LevelLimitInfo* getLimitInfo(Race_t race, int index);
 
-    // 전쟁 참가자 리스트
+    // War participant list
     static void clearPCList();
     static void addPCList(PlayerCreature* pPC);
     static bool isInPCList(PlayerCreature* pPC);

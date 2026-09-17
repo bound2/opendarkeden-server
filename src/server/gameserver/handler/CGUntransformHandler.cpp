@@ -40,11 +40,11 @@ void CGUntransformHandler::execute(CGUntransform* pPacket, Player* pPlayer)
             if (pOusters->isFlag(Effect::EFFECT_CLASS_SUMMON_SYLPH) )
             {
 
-                // 플레이어에서 Flag 때주고
+                // Take the Flag off the player, and
                 pOusters->removeFlag(Effect::EFFECT_CLASS_SUMMON_SYLPH);
                 Zone* pZone = pCreature->getZone();
 
-                // 존에 이펙트 없앴다고 보내주고
+                // tell the zone the effect was removed, and
                 GCRemoveEffect removeEffect;
                 removeEffect.setObjectID(pOusters->getObjectID());
                 removeEffect.addEffectList(Effect::EFFECT_CLASS_SUMMON_SYLPH);
@@ -53,7 +53,7 @@ void CGUntransformHandler::execute(CGUntransform* pPacket, Player* pPlayer)
 
                 GCModifyInformation gcMI;
 
-                // 디펜 프텍 다시 계산해서 보내주고
+                // recompute defense and protection and send them
                 OUSTERS_RECORD prev;
                 pOusters->getOustersRecord(prev);
                 pOusters->initAllStat();

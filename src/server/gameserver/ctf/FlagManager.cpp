@@ -136,7 +136,7 @@ bool FlagManager::endFlagWar() {
     if (m_bHasFlagWar) {
         recordFlagWarHistory();
 
-        // script 돌리기 ㅡ.,ㅡ system 함수를 쓰게 될 줄이야 !_!
+        // running a script -- who would have thought the system function would be used
         char cmd[100];
         sprintf(cmd, "/home/darkeden/vs/bin/script/recordFlagWarHistory.py %s %d %d %d %d %d %d %d ",
                 m_EndTime.toStringforWeb().c_str(), (int)getWinnerRace(),
@@ -215,7 +215,7 @@ bool FlagManager::putFlag(PlayerCreature* pPC, Item* pItem, MonsterCorpse* pFlag
 
     Effect* pEffect = pPC->findEffect(Effect::EFFECT_CLASS_HAS_FLAG);
     if (pEffect != NULL) {
-        // cout << "이펙트도 없애주고.." << endl;
+        // cout << "the effect is removed too.." << endl;
         pEffect->setDeadline(0);
     }
 
@@ -269,8 +269,8 @@ void FlagManager::resetFlagCounts() {
     m_FlagCount[VAMPIRE] = 0;
     m_FlagCount[OUSTERS] = 0;
 
-    // 추적 실패한 깃발들을 지워주는 일이 필요한 거 같다
-    // 필드의 깃발들은 문제가 없지만 깃대에 꽂힌 깃발은 반드시 지워줘야 한다
+    // Flags whose tracking failed seem to need erasing
+    // Flags in the field are no trouble, but a flag planted on a pole has to be erased
     list<PoleFieldInfo>::iterator itr = m_PoleFields.begin();
     list<PoleFieldInfo>::iterator endItr = m_PoleFields.end();
     for (; itr != endItr; ++itr) {
@@ -300,7 +300,7 @@ void FlagManager::resetFlagCounts() {
             }
     }
 
-    // Reset 할 때 FlagWarStat 테이블을 정리한다
+    // Clear out the FlagWarStat table on Reset
     defaultFlagWarRepository().deleteAllFlagWarStats();
 }
 
@@ -321,7 +321,7 @@ void FlagManager::recordPutFlag(PlayerCreature* pPC, Item* pItem)
 {
     FlagWarRepository& flagWars = defaultFlagWarRepository();
 
-    // 있으면 무시 없으면 INSERT
+    // Ignore it if it is there, INSERT if it is not
     if (!flagWars.flagStatExists(pPC->getName(), pItem->getItemID())) {
         flagWars.insertFlagStat(pPC->getPlayer()->getID(), pPC->getName(), (int)pPC->getRace(),
                                 m_Context.config().getPropertyInt("ServerID"), pItem->getItemID());

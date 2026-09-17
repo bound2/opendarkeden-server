@@ -1,12 +1,12 @@
 // MySQL-backed ItemObjectRepository. One method set per object shape; the
-// table — and the class's exact literal, copy-paste whitespace and all —
+// table -- and the class's exact literal, copy-paste whitespace and all --
 // comes from the spec row the GearTable enum indexes. Streamed expressions
 // map to the conversion for their type (DWORD/WORD "%u", int "%d", text as
 // is). Beyond the seven common statements the spec row has slots for the
 // guns' saveBullet UPDATE, the destroy() DELETEs (Pupa, Larva, ComposMei,
 // Potion by table name; Belt and OustersArmsband by ItemID), Key's Target
 // UPDATE, the couple rings' count(*), the war items' delete-by-owner (in
-// place of an owner SELECT) and PetItem's with-info variants — NULL for
+// place of an owner SELECT) and PetItem's with-info variants -- NULL for
 // every other table. Six tables carry no zone literal because their
 // <Class>Loader::load(Zone*) holds no SQL (WarItem's creature loader holds
 // none either, so it has no owner literal); the loads check the literal and
@@ -31,26 +31,27 @@ using namespace std;
 namespace {
 
 struct GearSpec {
-    const char* insert;       // <Class>::create
-    const char* tinysave;     // <Class>::tinysave
-    const char* update;       // <Class>::save
-    const char* maxType;      // <Class>InfoManager::load, first statement
-    const char* infos;        // <Class>InfoManager::load, second statement
-    const char* ofOwner;      // <Class>Loader::load(Creature*) — NULL for the war items, whose
-                              // creature loader deletes the owner's rows instead (deleteByOwner)
-    const char* inZone;       // <Class>Loader::load(Zone*) — NULL when that loader holds no SQL
-    const char* saveBullet;   // <Class>::saveBullet — the guns only; NULL for the other tables
-    const char* destroy;      // <Class>::destroy — Pupa, Larva, ComposMei, Potion only; NULL for the other tables
-    const char* saveTarget;   // Key::setNewMotorcycle — Key only; NULL for the other tables
-    const char* partnerCount; // <Class>::hasPartnerItem — CoupleRing, VampireCoupleRing only; NULL for the other tables
+    const char* insert;     // <Class>::create
+    const char* tinysave;   // <Class>::tinysave
+    const char* update;     // <Class>::save
+    const char* maxType;    // <Class>InfoManager::load, first statement
+    const char* infos;      // <Class>InfoManager::load, second statement
+    const char* ofOwner;    // <Class>Loader::load(Creature*) -- NULL for the war items, whose
+                            // creature loader deletes the owner's rows instead (deleteByOwner)
+    const char* inZone;     // <Class>Loader::load(Zone*) -- NULL when that loader holds no SQL
+    const char* saveBullet; // <Class>::saveBullet -- the guns only; NULL for the other tables
+    const char* destroy;    // <Class>::destroy -- Pupa, Larva, ComposMei, Potion only; NULL for the other tables
+    const char* saveTarget; // Key::setNewMotorcycle -- Key only; NULL for the other tables
     const char*
-        destroyByID; // <Class>::destroy — Belt, OustersArmsband only (a DELETE by ItemID); NULL for the other tables
+        partnerCount; // <Class>::hasPartnerItem -- CoupleRing, VampireCoupleRing only; NULL for the other tables
     const char*
-        deleteByOwner; // <Class>Loader::load(Creature*) — the four war items only (a DELETE by OwnerID); NULL for the other tables
+        destroyByID; // <Class>::destroy -- Belt, OustersArmsband only (a DELETE by ItemID); NULL for the other tables
+    const char*
+        deleteByOwner; // <Class>Loader::load(Creature*) -- the four war items only (a DELETE by OwnerID); NULL for the other tables
     const char*
         insertWithInfo; // PetItem::create when the item carries a PetInfo (the twelve extra columns); NULL elsewhere
     const char* updateWithInfo; // PetItem::save when it does; NULL elsewhere
-    const char* savePetInfo;    // PetItem::savePetInfo — the pet columns alone; NULL elsewhere
+    const char* savePetInfo;    // PetItem::savePetInfo -- the pet columns alone; NULL elsewhere
     GearInfoKind infoKind;      // which load*Infos reads `infos`
     GearObjectKind objectKind;  // which update / load*OfOwner / load*InZone fit the object table
 };
@@ -2363,11 +2364,11 @@ struct MotorcycleRedeemSpec {
 };
 
 const MotorcycleRedeemSpec kMotorcycleRedeemSpecs[REDEEM_SPELLING_MAX] = {
-    // REDEEM_SPELLING_HANDLER — CGUseItemFromInventoryHandler, CGUsePotionFromQuickSlotHandler
+    // REDEEM_SPELLING_HANDLER -- CGUseItemFromInventoryHandler, CGUsePotionFromQuickSlotHandler
     {"SELECT ItemID, ItemType, OptionType, Durability FROM MotorcycleObject WHERE ItemID=%u",
      "INSERT INTO MotorcycleObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, OptionType, "
      "Durability) Values (%d, %d, %d, '', %d, %d, %d, %d, '', %d)"},
-    // REDEEM_SPELLING_QUEST_ACTION — quest/ActionRedeemMotorcycle
+    // REDEEM_SPELLING_QUEST_ACTION -- quest/ActionRedeemMotorcycle
     {"SELECT ItemID, ItemType, OptionType, Durability FROM MotorcycleObject where ItemID = %u",
      "INSERT IGNORE INTO MotorcycleObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, OptionType, "
      "Durability) Values (%d, %d, %d, '', %d, %d, %d, %d, '', %d)"},
@@ -2473,7 +2474,7 @@ void requireOptionGradeInsert(GearTable table, const char* method) {
     }
 }
 
-// VampireAmulet's UPDATE — Grade and EnchantLevel, no Durability — is Dermis's,
+// VampireAmulet's UPDATE -- Grade and EnchantLevel, no Durability -- is Dermis's,
 // Fascia's and CarryingReceiver's too, so updateAmulet serves OPTION_GRADE_OBJECT.
 void requireAmuletUpdate(GearTable table, const char* method) {
     GearObjectKind kind = spec(table).objectKind;
@@ -3332,7 +3333,7 @@ public:
         return rows;
     }
 
-    // The Num-only items: the Num + ItemFlag shape without ItemFlag — eight
+    // The Num-only items: the Num + ItemFlag shape without ItemFlag -- eight
     // columns in the INSERT, the UPDATE and both loads; no create type anywhere.
     void insertNumOnlyItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                            const string& ownerID, int storage, StorageID_t storageID, int x, int y, int num) {
@@ -4005,7 +4006,7 @@ public:
         return rows;
     }
 
-    // Key::setNewMotorcycle — the Target UPDATE with the new motorcycle's id.
+    // Key::setNewMotorcycle -- the Target UPDATE with the new motorcycle's id.
     // Refuses tables without the literal.
     void saveKeyTarget(GearTable table, ItemID_t targetID, ItemID_t itemID) {
         if (spec(table).saveTarget == NULL) {
@@ -4022,8 +4023,8 @@ public:
     }
 
     // OustersSummonItem and SlayerPortalItem: the plain columns plus Charge (an
-    // int). Both loads read the same getters — the zone one too reads the ids
-    // through getDWORD and X, Y through getBYTE — so one row serves both.
+    // int). Both loads read the same getters -- the zone one too reads the ids
+    // through getDWORD and X, Y through getBYTE -- so one row serves both.
     void insertChargeItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                           const string& ownerID, int storage, StorageID_t storageID, int x, int y, int charge) {
         requireObjectKind(table, CHARGE_OBJECT, "insertChargeItem");
@@ -4357,7 +4358,7 @@ public:
         return rows;
     }
 
-    // <Class>::hasPartnerItem — the count(*) of the partner ring's row in an
+    // <Class>::hasPartnerItem -- the count(*) of the partner ring's row in an
     // owner's storage. True when a row came back (count(*) always sends one),
     // false otherwise; the count itself goes out through `count`. Refuses
     // tables without the literal.
@@ -4483,8 +4484,8 @@ public:
 
     // VampireAmulet (AMULET_OBJECT), CoreZap (CORE_ZAP_OBJECT) and the three
     // OPTION_GRADE_OBJECT tables: the gear INSERT without Durability (eleven
-    // columns); VampireAmulet's UPDATE writes Grade and EnchantLevel — Dermis's,
-    // Fascia's and CarryingReceiver's too, through the same updateAmulet — and its
+    // columns); VampireAmulet's UPDATE writes Grade and EnchantLevel -- Dermis's,
+    // Fascia's and CarryingReceiver's too, through the same updateAmulet -- and its
     // loads are gear's, CoreZap's UPDATE writes Grade alone and its loads name
     // OptionType, Grade (owner) and OptionType (zone) with ItemFlag.
     void insertOptionGradeItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
@@ -4657,8 +4658,8 @@ public:
     }
 
     // Dermis, Fascia and CarryingReceiver (OPTION_GRADE_OBJECT): VampireAmulet's
-    // eleven-column INSERT and its UPDATE, but an owner load of eleven columns —
-    // gear's without Durability — and no zone load at all.
+    // eleven-column INSERT and its UPDATE, but an owner load of eleven columns --
+    // gear's without Durability -- and no zone load at all.
     vector<OptionGradeObjectRow> loadOptionGradeOfOwner(GearTable table, const string& ownerName) {
         requireObjectKind(table, OPTION_GRADE_OBJECT, "loadOptionGradeOfOwner");
         vector<OptionGradeObjectRow> rows;
@@ -4693,7 +4694,7 @@ public:
     }
 
     // DermisInfo, FasciaInfo and CarryingReceiverInfo: the standard gear Info shape
-    // without Durability — the basic seven columns and gear's ten.
+    // without Durability -- the basic seven columns and gear's ten.
     vector<GearInfoNoDurabilityRow> loadGearInfosNoDurability(GearTable table) {
         requireInfoKind(table, GEAR_INFO_NO_DURABILITY, "loadGearInfosNoDurability");
         vector<GearInfoNoDurabilityRow> rows;
@@ -4801,7 +4802,7 @@ public:
     }
 
     // BloodBibleInfo, CastleSymbolInfo, SweeperInfo: the eight head columns and
-    // Defense, Protection, ReqAbility, ItemLevel — twelve, gear's without the
+    // Defense, Protection, ReqAbility, ItemLevel -- twelve, gear's without the
     // upgrade tail.
     vector<WarInfoRow> loadWarInfos(GearTable table) {
         requireInfoKind(table, GEAR_INFO_WAR, "loadWarInfos");
@@ -4827,7 +4828,7 @@ public:
     }
 
     // RelicInfo: those twelve plus RelicType (text) and ZoneID, XCoord, YCoord,
-    // MonsterType — the four the caller assigns to the info's members directly.
+    // MonsterType -- the four the caller assigns to the info's members directly.
     vector<RelicInfoRow> loadRelicInfos(GearTable table) {
         requireInfoKind(table, GEAR_INFO_RELIC, "loadRelicInfos");
         vector<RelicInfoRow> rows;
@@ -4879,7 +4880,7 @@ public:
 
     // Motorcycle (MOTORCYCLE_OBJECT): the gear INSERT without Grade and ItemFlag (ten
     // columns), an UPDATE of nine SET columns, an owner load of nine columns through
-    // gear's getters and a zone load of eight — no OptionType there — every one getInt.
+    // gear's getters and a zone load of eight -- no OptionType there -- every one getInt.
     void insertMotorcycle(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                           const string& ownerID, int storage, StorageID_t storageID, int x, int y,
                           const string& optionField, Durability_t durability) {
@@ -5029,8 +5030,8 @@ public:
     }
 
     // CodeSheet (CODE_SHEET_OBJECT): the plain INSERT plus OptionType (nine columns),
-    // an UPDATE of eight SET columns, an owner load of eight — the plain columns plus
-    // OptionType — and gear's eleven-column zone load, which loadGearInZone serves.
+    // an UPDATE of eight SET columns, an owner load of eight -- the plain columns plus
+    // OptionType -- and gear's eleven-column zone load, which loadGearInZone serves.
     void insertCodeSheet(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                          const string& ownerID, int storage, StorageID_t storageID, int x, int y,
                          const string& optionField) {
@@ -5138,9 +5139,9 @@ public:
         return rows;
     }
 
-    // PetItem (PET_ITEM_OBJECT): its create and save each run one of two statements —
+    // PetItem (PET_ITEM_OBJECT): its create and save each run one of two statements --
     // without the pet's columns when the item carries no PetInfo, with them when it
-    // does — and savePetInfo writes the pet columns alone. The ids and PetExp are
+    // does -- and savePetInfo writes the pet columns alone. The ids and PetExp are
     // unsigned; the byte- and word-wide pet fields are promoted to int.
     void insertPetItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                        const string& ownerID, int storage, StorageID_t storageID, int x, int y, int createType) {

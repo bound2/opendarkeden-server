@@ -126,7 +126,7 @@ void ProfileSampleSet::initProfile(void) {
 void ProfileSampleSet::beginProfile(const string& name) {
     unordered_map<string, int>::iterator itr = m_NameMap.find(name);
 
-    // �̹� ���� �̸��� ������ �����Ѵٸ�...
+    // If a sample with the same name already exists...
     if (itr != m_NameMap.end()) {
         int i = itr->second;
 
@@ -134,14 +134,14 @@ void ProfileSampleSet::beginProfile(const string& name) {
         m_ProfileSamples[i].setCallCount(m_ProfileSamples[i].getCallCount() + 1);
         m_ProfileSamples[i].setStartTime();
 
-        // ���ȣ���� �������� �ʴ´�.
+        // Recursive calls are not supported.
         Assert(m_ProfileSamples[i].getOpenCount() == 1);
     }
-    // ó������ ����ϴ� �Ŷ��...
+    // If it is being used for the first time...
     else {
-        // �� �ڸ��� ã�ƾ� �Ѵ�.
+        // an empty slot has to be found.
         for (int i = 0; i < MAX_PROFILE_SAMPLES; i++) {
-            // ���� ������ ���� ������ ã�Ҵٸ� ����Ѵ�.
+            // If a sample that is not in use is found, use it.
             if (!m_ProfileSamples[i].isUsed()) {
                 m_ProfileSamples[i].setUsed(true);
                 m_ProfileSamples[i].setName(name);
@@ -151,15 +151,15 @@ void ProfileSampleSet::beginProfile(const string& name) {
                 m_ProfileSamples[i].initChildTime();
                 m_ProfileSamples[i].initAccuTime();
 
-                // ���� �˻��� ���ؼ� �ؽ��ʿ��� �ε����� �־�д�.
+                // Put the index into the hash map so that it can be searched quickly.
                 m_NameMap[name] = i;
 
                 return;
             }
         }
 
-        // �̱��� �Դٴ� ���� �������� �ִ� ������ �ʰ��ߴٴ� ���̴�.
-        // �׷��Ƿ� ������.
+        // Getting here means the largest number of samples was exceeded.
+        // So it is an error.
         Assert(false);
     }
 }
@@ -167,8 +167,8 @@ void ProfileSampleSet::beginProfile(const string& name) {
 void ProfileSampleSet::endProfile(const string& name) {
     unordered_map<string, int>::iterator itr = m_NameMap.find(name);
 
-    // �׷� �̸��� ���� �������� ������ ��������
-    // �ʴ´ٸ� ������...
+    // If no sample with that name exists,
+    // it is an error...
     if (itr == m_NameMap.end()) {
         Assert(false);
     }
@@ -184,36 +184,36 @@ void ProfileSampleSet::endProfile(const string& name) {
 
     m_ProfileSamples[index].setOpenCount(m_ProfileSamples[index].getOpenCount() - 1);
 
-    // ���� �ð��� ����Ѵ�.
+    // Compute the elapsed time.
     Timeval timeoffset = timediff(m_ProfileSamples[index].getStartTime(), endTime);
 
-    // ��� �θ���� ������ ����, ���� �θ� ã�´�.
+    // Count every possible parent and find the real parent.
     for (int i = 0; i < MAX_PROFILE_SAMPLES; i++) {
-        // 1. ���Ǵ� �����̴�.
-        // 2. ���� �����ִ�.
-        // ��� �θ��� ���ɼ��� �ִ� �����̴�.
+        // 1. it is a sample in use.
+        // 2. it is open.
+        // Such a sample can be a parent.
         if (m_ProfileSamples[i].isUsed() && m_ProfileSamples[i].getOpenCount() > 0) {
             ParentCount++;
 
-            // ������ �θ���...
+            // The first parent...
             if (Parent < 0) {
                 Parent = i;
             }
-            // ������ �θ� �ƴ϶�� �� �� �ֱٿ� ���� �θ� ��¥ �θ� �����̴�.
+            // If it is not the first parent, the most recently opened parent is the real one.
             else if (m_ProfileSamples[i].getStartTime() >= m_ProfileSamples[Parent].getStartTime()) {
                 Parent = i;
             }
         }
     }
 
-    // ���� ���ÿ��� �θ��� ������ �˷��ش�.
+    // Tell the current sample how many parents it has.
     m_ProfileSamples[index].setParentCount(ParentCount);
 
-    // ���� ������ ���� �ð��� ���� ���� �ð��� ������Ų��.
+    // Add the elapsed time to the current sample's accumulated time.
     m_ProfileSamples[index].addAccuTime(timeoffset);
 
     if (Parent >= 0) {
-        // ���� �θ��� �ڽ� ���� �ð��� ���� ���� �ð��� ������Ų��.
+        // Add the elapsed time to the parent's child time.
         m_ProfileSamples[Parent].addChildTime(timeoffset);
     }
 }
@@ -249,9 +249,9 @@ void ProfileSampleSet::outputProfile(bool bOutputOnlyRootNode, bool bOutputThrea
             cout << endl;
         }
 
-        // ��Ʈ ��常 ��´ٴ� ���� �迭�� ���� �պκп� �����ϴ�
-        // ��常�� ��´ٴ� ���� ����. �׷��Ƿ� �ϳ��� ���,
-        // �ٷ� �����ϸ� �ǰڴ�.
+        // Taking only the root node is the same as taking only the node at the very
+        // front of the array. So take one and
+        // return right away.
         if (bOutputOnlyRootNode) {
             return;
         }
@@ -308,9 +308,9 @@ void ProfileSampleSet::outputProfileToFile(const char* filename, bool bOutputOnl
             file << endl;
         }
 
-        // ��Ʈ ��常 ��´ٴ� ���� �迭�� ���� �պκп� �����ϴ�
-        // ��常�� ��´ٴ� ���� ����. �׷��Ƿ� �ϳ��� ���,
-        // �ٷ� �����ϸ� �ǰڴ�.
+        // Taking only the root node is the same as taking only the node at the very
+        // front of the array. So take one and
+        // return right away.
         if (bOutputOnlyRootNode)
         {
             return;
@@ -361,7 +361,7 @@ void ProfileSampleManager::addProfileSampleSet(int TID, ProfileSampleSet* pSet) 
 ProfileSampleSet* ProfileSampleManager::getProfileSampleSet(void) {
     unordered_map<int, ProfileSampleSet*>::iterator itr = m_ProfileSampleMap.find((int)(long)Thread::self());
 
-    // ���ٸ� �����ؼ� �����Ѵ�.
+    // If there is none, create and register one.
     if (itr == m_ProfileSampleMap.end()) {
         ProfileSampleSet* pProfileSampleSet = new ProfileSampleSet;
         m_ProfileSampleMap[(int)(long)Thread::self()] = pProfileSampleSet;

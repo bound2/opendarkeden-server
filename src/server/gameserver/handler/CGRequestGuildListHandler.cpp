@@ -45,7 +45,7 @@ void CGRequestGuildListHandler::execute(CGRequestGuildList* pPacket, Player* pPl
 
     GuildType_t tmpGuildType = pPacket->getGuildType();
 
-    // 대기길드 이면
+    // If it is a waiting guild
     if (tmpGuildType == CGRequestGuildList::GUILDTYPE_WAIT) {
         GCWaitGuildList gcWaitGuildList;
 
@@ -64,7 +64,7 @@ void CGRequestGuildListHandler::execute(CGRequestGuildList* pPacket, Player* pPl
         pPlayer->sendPacket(&gcWaitGuildList);
 
     }
-    // 일반길드 이면
+    // If it is a normal guild
     else if (tmpGuildType == CGRequestGuildList::GUILDTYPE_NORMAL) {
         GCActiveGuildList gcActiveGuildList;
 

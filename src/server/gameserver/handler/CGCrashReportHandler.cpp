@@ -32,7 +32,7 @@ void CGCrashReportHandler::execute(CGCrashReport* pPacket, Player* pPlayer)
         defaultSessionRepository().insertCrashReport(
             pGamePlayer->getID(), pCreature->getName(), pPacket->getExecutableTime(), pPacket->getVersion(),
             pPacket->getAddress(), pPacket->getMessage(), pPacket->getOS(), pPacket->getCallStack());
-        // 누가 이상한거 날리면 무시하자
+        // Ignore anyone who sends something odd
     } catch (...) {
         filelog("CrashReport.log", "%s", pPacket->toString().c_str());
     }

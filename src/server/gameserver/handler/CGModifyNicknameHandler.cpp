@@ -78,7 +78,7 @@ void CGModifyNicknameHandler::execute(CGModifyNickname* pPacket, Player* pPlayer
     }
 
     switch (pItem->getItemType()) {
-    // 펫 닉네임 바꾸기
+    // Change the pet nickname
     case 23: {
         PetInfo* pPetInfo = pPC->getPetInfo();
         if (pPetInfo == NULL) {
@@ -112,7 +112,7 @@ void CGModifyNicknameHandler::execute(CGModifyNickname* pPacket, Player* pPlayer
         return;
     }
 
-    // 커스텀 닉네임 바꾸기
+    // Change the custom nickname
     case 22:
     case 25: {
         NicknameInfo* pNickname = pPC->getNicknameBook()->getNicknameInfo(0);
@@ -158,7 +158,7 @@ void CGModifyNicknameHandler::execute(CGModifyNickname* pPacket, Player* pPlayer
         break;
     }
 
-    // 닉네임 추가하기
+    // Add a nickname
     case 24: {
         if (pItem == NULL) {
             gcNV.setCode(NICKNAME_MODIFY_FAIL_NO_ITEM);

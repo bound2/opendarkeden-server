@@ -42,7 +42,7 @@ void CGRequestUnionInfoHandler::execute(CGRequestUnionInfo* pPacket, Player* pPl
     GCGuildResponse gcGuildResponse;
 
     GuildUnion* pGuildUnion = GuildUnionManager::Instance().getGuildUnion(pPlayerCreature->getGuildID());
-    // 자기가 속한 길드가 연합에 가입되어있는지 찾는다
+    // Find out whether one's own guild belongs to a union
     if (pGuildUnion == NULL) {
         gcGuildResponse.setCode(GuildUnionOfferManager::NOT_IN_UNION);
         pPlayer->sendPacket(&gcGuildResponse);
@@ -50,7 +50,7 @@ void CGRequestUnionInfoHandler::execute(CGRequestUnionInfo* pPacket, Player* pPl
         return;
     }
 
-    // Master 길드의 정보를 가져온다.
+    // Get the Master guild's information.
     Guild* pGuild = g_pGuildManager->getGuild(pGuildUnion->getMasterGuildID());
 
     if (pGuild == NULL) {

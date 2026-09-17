@@ -28,15 +28,15 @@ class ThreadAttrException;
 //
 // class ThreadAttr;
 //
-// Thread-Attribute 클래스는 동일한 속성(attribute)의 Thread 클래스를
-// 여러 개 생성할 필요가 있을 때 pthread_create()의 파라미터로 사용된다.
-// 즉 하나의 Thread-Attribute 객체만 생성해놓으면 된다는 뜻이다.
-// (솔라리스 쓰레드에 있어서 생성할때마다 thread-flag 를 지정했던
-// 기억을 되살려 보라~)
+// The Thread-Attribute class is used as the parameter to pthread_create()
+// when several Thread objects with the same attribute have to be created.
+// That is, only one Thread-Attribute object has to be created.
+// (remember specifying the thread-flag on every creation with Solaris
+// threads.)
 //
-// 그런데, 실제로는 잘 쓰이지 않을 듯 하다. 왜냐하면 가장 유용하게
-// 사용될 setstacksize()가 제공되지 않으며, detach 는 pthread_detach()
-// 로도 충분하기 때문이다.
+// In practice it is hardly used, because the most useful
+// setstacksize() is not provided and detach is covered by
+// pthread_detach().
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -63,7 +63,7 @@ public:
     //
     // do not return pthread_attr_t value !!
     // use pthread_attr_t pointer instead.
-    // (pthread_attr_t 에 대해 assignment 가 지원되지 않을 가능성 있음)
+    // (assignment may not be supported for pthread_attr_t)
     //
     pthread_attr_t* getAttr() {
         return &attr;

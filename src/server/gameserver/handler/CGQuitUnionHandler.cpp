@@ -61,12 +61,12 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
     uint tempUnionID = pUnion->getUnionID();
 
 
-    // 요청한놈이 지가 속한 길드의 마스터인가?
+    // Is the requester the master of the guild it belongs to?
     if (!g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature)
         //|| pUnion->getMasterGuildID() != pPlayerCreature->getGuildID()
     ) {
-        // GC_GUILD_RESPONSE 날려준다.
-        // 내용 : 길드 마스터가 아니자녀 -.-+
+        // Send GC_GUILD_RESPONSE.
+        // Content: not the guild master.
 
         gcGuildResponse.setCode(GuildUnionOfferManager::SOURCE_IS_NOT_MASTER);
         pPlayer->sendPacket(&gcGuildResponse);
@@ -78,7 +78,7 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
     // cout << "CGQuitUnion - Guild : " << pPacket->getGuildID() << ", Method : " << (int)pPacket->getQuitMethod() <<
     // endl;
 
-    // 정상적으로 신청한다
+    // Apply normally
     if (pPacket->getQuitMethod() == CGQuitUnion::QUIT_NORMAL) {
         uint result = GuildUnionOfferManager::Instance().offerQuit(pPlayerCreature->getGuildID());
 
@@ -86,16 +86,16 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
         pPlayer->sendPacket(&gcGuildResponse);
         // cout << "normal send quit result : " << result << endl;
     }
-    // 강제적으로 탈퇴한다
+    // Withdraw by force
     else if (pPacket->getQuitMethod() == CGQuitUnion::QUIT_QUICK) {
-        // 길드마스터의 마스터 아이디..
+        // The guild master's master id..
         string TargetGuildMaster = g_pGuildManager->getGuild(pUnion->getMasterGuildID())->getMaster();
 
         if (GuildUnionManager::Instance().removeGuild(pUnion->getUnionID(), pPlayerCreature->getGuildID())) {
             gcGuildResponse.setCode(GuildUnionOfferManager::OK);
             pPlayer->sendPacket(&gcGuildResponse);
 
-            /* 10일간 다른연합에 가입하지 못하도록 패널티 처리한다. TODO
+            /* Apply the penalty that blocks joining another union for 10 days. TODO
              */
             MessageRepository& messages = defaultMessageRepository();
             GuildRepository& guilds = defaultGuildRepository();
@@ -106,9 +106,9 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, escapeGuildNotice);
             guilds.insertEscapeOffer(tempUnionID, pPacket->getGuildID());
 
-            // 연합맴버가 있는지 보자..없으면?
+            // See whether the union has members.. and if not?
             if (guilds.countUnionMembersSpelled(UNION_SQL_PLAIN, tempUnionID) == 0) {
-                // cout << "강제적으로 탈퇴를 한다..연합에 멤버가 없으므로 연합을..지워버린다 : unionid " <<
+                // cout << "Forced withdrawal.. with no member left in the union the union is deleted : unionid " <<
                 // (int)tempUnionID << endl;
                 guilds.deleteUnionInfoOnly(UNION_SQL_PLAIN, tempUnionID);
                 messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(379));
@@ -146,7 +146,7 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             sendGCOtherModifyInfoGuildUnion(pTargetCreature);
             sendGCOtherModifyInfoGuildUnion(pCreature);
 
-            // 다른 서버에 있는 놈들에게 변경사항을 알린다.
+            // Tell the ones on other servers about the change.
             GuildUnionManager::Instance().sendModifyUnionInfo(
                 dynamic_cast<PlayerCreature*>(pTargetCreature)->getGuildID());
             GuildUnionManager::Instance().sendModifyUnionInfo(dynamic_cast<PlayerCreature*>(pCreature)->getGuildID());

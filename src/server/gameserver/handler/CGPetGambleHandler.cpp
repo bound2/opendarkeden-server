@@ -25,7 +25,7 @@ void CGPetGambleHandler::execute(CGPetGamble* pPacket, Player* pPlayer)
 
 #ifdef __GAME_SERVER__
 
-        // cout << "펫 갬블함니당" << endl;
+        // cout << "Pet gamble" << endl;
 
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Assert(pGamePlayer != NULL);
@@ -52,7 +52,7 @@ void CGPetGambleHandler::execute(CGPetGamble* pPacket, Player* pPlayer)
         } else if (pPetInfo->getPetType() > 2) {
             pPetInfo->setAttack(1);
         }
-        //		cout << "갬블 성공!" << endl;
+        //		cout << "Gamble succeeded!" << endl;
     }
 
     pPetInfo->getPetItem()->savePetInfo();

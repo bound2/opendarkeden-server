@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : PetInfoFill.cpp
-// Description : gameserver-side half of PetInfo — setPetItem() installs the
+// Description : gameserver-side half of PetInfo -- setPetItem() installs the
 //               live PetItem plus the thunk that reads its ObjectID, so the
 //               game-object definition lives here, out of the wire library
 //               (see src/Core/PetInfo.h).

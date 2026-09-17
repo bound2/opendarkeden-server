@@ -43,16 +43,16 @@ void CGAddGearToMouseHandler::execute(CGAddGearToMouse* pPacket, Player* pPlayer
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
             Assert(pSlayer != NULL);
 
-            // 마우스에 뭔가를 들고 있어선 안 되고,
-            // 벗으려는 부분에 아이템을 입고 있지 않아서도 안 된다.
+            // Nothing may be held on the mouse,
+            // and the part being uncovered must have an item worn on it.
             if (pSlayer->getExtraInventorySlotItem() == NULL && pSlayer->isWear((Slayer::WearPart)SlotID)) {
-                // 장착하고 있는 Item을 받아온다.
+                // Get the Item that is worn.
                 Item* pItem = pSlayer->getWearItem((Slayer::WearPart)SlotID);
 
-                // 아이템이 있는지 그 아이템의 ObjectID가 일치하는지 체크한다.
+                // Check that the item exists and that its ObjectID matches.
                 if (pItem != NULL && pItem->getObjectID() == pPacket->getObjectID()) {
-                    // 아이템을 장착창에서 지우고 Mouse로 이동시킨다.
-                    // 옷을 벗기면서 능력치를 다운시키고 벗은 아이템을 Mouse로 이동시킨다.
+                    // Erase the item from the gear window and move it to the Mouse.
+                    // Take the gear off, lowering the stats, and move the removed item to the Mouse.
                     pSlayer->takeOffItem((Slayer::WearPart)SlotID, true, true);
                     bSuccess = true;
                 }
@@ -62,16 +62,16 @@ void CGAddGearToMouseHandler::execute(CGAddGearToMouse* pPacket, Player* pPlayer
 
             Assert(pVampire != NULL);
 
-            // 마우스에 뭔가를 들고 있어선 안 되고,
-            // 벗으려는 부분에 아이템을 입고 있지 않아서도 안 된다.
+            // Nothing may be held on the mouse,
+            // and the part being uncovered must have an item worn on it.
             if (pVampire->getExtraInventorySlotItem() == NULL && pVampire->isWear((Vampire::WearPart)SlotID)) {
-                // 장착하고 있는 Item을 받아온다.
+                // Get the Item that is worn.
                 Item* pItem = pVampire->getWearItem((Vampire::WearPart)SlotID);
 
-                // 아이템이 있는지 그 아이템의 ObjectID가 일치하는지 체크한다.
+                // Check that the item exists and that its ObjectID matches.
                 if (pItem != NULL && pItem->getObjectID() == pPacket->getObjectID()) {
-                    // 아이템을 장착창에서 지우고 Mouse로 이동시킨다.
-                    // 옷을 벗기면서 능력치를 다운시키고 벗은 아이템을 Mouse로 이동시킨다.
+                    // Erase the item from the gear window and move it to the Mouse.
+                    // Take the gear off, lowering the stats, and move the removed item to the Mouse.
                     pVampire->takeOffItem((Vampire::WearPart)SlotID, true, true);
                     bSuccess = true;
                 }
@@ -81,16 +81,16 @@ void CGAddGearToMouseHandler::execute(CGAddGearToMouse* pPacket, Player* pPlayer
 
             Assert(pOusters != NULL);
 
-            // 마우스에 뭔가를 들고 있어선 안 되고,
-            // 벗으려는 부분에 아이템을 입고 있지 않아서도 안 된다.
+            // Nothing may be held on the mouse,
+            // and the part being uncovered must have an item worn on it.
             if (pOusters->getExtraInventorySlotItem() == NULL && pOusters->isWear((Ousters::WearPart)SlotID)) {
-                // 장착하고 있는 Item을 받아온다.
+                // Get the Item that is worn.
                 Item* pItem = pOusters->getWearItem((Ousters::WearPart)SlotID);
 
-                // 아이템이 있는지 그 아이템의 ObjectID가 일치하는지 체크한다.
+                // Check that the item exists and that its ObjectID matches.
                 if (pItem != NULL && pItem->getObjectID() == pPacket->getObjectID()) {
-                    // 아이템을 장착창에서 지우고 Mouse로 이동시킨다.
-                    // 옷을 벗기면서 능력치를 다운시키고 벗은 아이템을 Mouse로 이동시킨다.
+                    // Erase the item from the gear window and move it to the Mouse.
+                    // Take the gear off, lowering the stats, and move the removed item to the Mouse.
                     pOusters->takeOffItem((Ousters::WearPart)SlotID, true, true);
                     bSuccess = true;
                 }

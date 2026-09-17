@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GCShopListFill.cpp
-// Description : gameserver-side half of GCShopList — setShopItem()
+// Description : gameserver-side half of GCShopList -- setShopItem()
 //               converts a live Item into the packet's wire fields, so its
 //               definition lives with the game objects, out of the wire
 //               library (see src/Core/GCShopList.cpp).

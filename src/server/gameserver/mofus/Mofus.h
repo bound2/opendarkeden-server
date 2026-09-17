@@ -3,17 +3,17 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // Filename : Mofus.h
-// Desc		: 모퍼스 헤더
+// Desc		: mofus header
 /////////////////////////////////////////////////////////////////////////////
 
 #include "Types.h"
 
-// 모퍼스 정의. 켜져있으면 모퍼스 모듈이 실행된다.
+// The mofus definition. When it is on, the mofus module runs.
 #if defined(__METRO_SERVER__)
 #define __MOFUS__
 #endif
 
-// 로그용 파일
+// log files
 #define MOFUS_ERROR_FILE "mofus_error.txt"
 #define MOFUS_LOG_FILE "mofus_log.txt"
 #define MOFUS_PACKET_FILE "mofus_packet.txt"

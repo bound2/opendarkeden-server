@@ -11,7 +11,7 @@ namespace {
 //    "DARKEDEN" (ZoneGroupThread.cpp), and silently falls back to the
 //    world default connection on a thread that never registered one. In
 //    the shipped stack both connections point at the same server and
-//    schema — the "dist" connection is just a second socket.
+//    schema -- the "dist" connection is just a second socket.
 //  - Status is an enum('NOT','GET'): 'NOT' = still waiting for pickup.
 //  - takeOne()'s single UPDATE decrements Num and sets Status in one
 //    statement, relying on MySQL's non-standard left-to-right SET
@@ -20,7 +20,7 @@ namespace {
 //  - A pending row at Num=0 is reachable (the loader delivers one item
 //    for it: its loop runs max(1, min(50, num)) times) and taking it
 //    FAILS: Num - 1 on the UNSIGNED column raises ER_DATA_OUT_OF_RANGE
-//    (1690) — an expression error independent of strict mode — leaving
+//    (1690) -- an expression error independent of strict mode -- leaving
 //    the row untouched. The SQLQueryException escapes through END_DB
 //    (as a DatabaseError), GoodsInventory::popItem never erases the entry,
 //    and the purchase is re-delivered on the next load: a stuck-item bug.

@@ -22,8 +22,8 @@
 //
 // CGPortCheckHander::execute()
 //
-// 게임 서버가 로그인 서버로부터 CGPortCheck 패킷을 받게 되면,
-// ConnectionInfo를 새로 추가하게 된다.
+// When the game server gets a CGPortCheck packet from the login server,
+// it adds a new ConnectionInfo.
 //
 //----------------------------------------------------------------------
 void CGPortCheckHandler::execute(CGPortCheck* pPacket)
@@ -50,7 +50,7 @@ void CGPortCheckHandler::execute(CGPortCheck* pPacket)
         // to DBError.log; swallowed.
         /*
         try {
-            // 다시 한번 시도
+            // Try once more
             // (an older retry that re-ran the UPDATE alone; the UPDATE is
             // the second half of recordUserIP)
             defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port,
@@ -60,7 +60,7 @@ void CGPortCheckHandler::execute(CGPortCheck* pPacket)
 
         } catch (const DatabaseError&) {
 
-            // 무시한다.
+            // Ignore it.
             //throw ProtocolException("Duplicated IPInfo");
         }
         */

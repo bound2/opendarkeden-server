@@ -5,7 +5,7 @@ namespace {
 
 // MySQL implementation of RegenZoneRepository. Quirks:
 //  - No ORDER BY; ID is the primary key, so a clustered scan returns
-//    ID order today — the optimizer's choice, not a contract (see
+//    ID order today -- the optimizer's choice, not a contract (see
 //    MySQLSkillSaveRepository.cpp). The callers key everything by ID.
 //  - Owner is tinyint unsigned defaulting to 3 (unowned); the callers
 //    Assert(Owner < 4) on what they read.

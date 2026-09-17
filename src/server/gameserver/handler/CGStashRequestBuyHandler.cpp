@@ -34,7 +34,7 @@ void CGStashRequestBuyHandler::execute(CGStashRequestBuy* pPacket, Player* pPlay
 
     BYTE curStashNum = pPlayerCreature->getStashNum();
 
-    // 가지고 있는 보관함이 맥스라면 리턴
+    // Return when the number of stashes held is at the maximum
     if (curStashNum >= STASH_RACK_MAX) {
         GCNPCResponse failpkt;
         failpkt.setCode(NPC_RESPONSE_STASH_SELL_FAIL_MAX);
@@ -44,7 +44,7 @@ void CGStashRequestBuyHandler::execute(CGStashRequestBuy* pPacket, Player* pPlay
 
     Price_t price = g_pPriceManager->getStashPrice(curStashNum + 1);
 
-    // 돈이 모자라도 실패쥐.
+    // Not enough money is a failure too.
     if (pPlayerCreature->getGold() < price) {
         GCNPCResponse failpkt;
         failpkt.setCode(NPC_RESPONSE_STASH_SELL_FAIL_MONEY);
@@ -52,16 +52,16 @@ void CGStashRequestBuyHandler::execute(CGStashRequestBuy* pPacket, Player* pPlay
         return;
     }
 
-    // 보관함 갯수를 한 칸 늘려주고...
+    // Raise the stash count by one, and...
     pPlayerCreature->setStashNumEx(curStashNum + 1);
 
-    // 돈을 줄인다.
+    // Take the money.
     // pPlayerCreature->setGoldEx(pPlayerCreature->getGold() - price);
 
     // by sigi. 2002.9.4
     pPlayerCreature->decreaseGoldEx(price);
 
-    // 마지막으로 OK 패킷을 날려준다.
+    // finally send the OK packet.
     GCNPCResponse okpkt;
     okpkt.setCode(NPC_RESPONSE_STASH_SELL_OK);
     pPlayer->sendPacket(&okpkt);

@@ -33,7 +33,7 @@ void CGQuitGuildHandler::execute(CGQuitGuild* pPacket, Player* pPlayer)
     PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pPlayer);
     Assert(pPlayerCreature != NULL);
 
-    // 플레이어가 속한 길드를 가져온다.
+    // Get the guild the player belongs to.
     Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
     try {
         Assert(pGuild != NULL);
@@ -41,7 +41,7 @@ void CGQuitGuildHandler::execute(CGQuitGuild* pPacket, Player* pPlayer)
         return;
     }
 
-    // 플레이어가 길드의 멤버인지 확인한다.
+    // Check that the player is a member of the guild.
     GuildMember* pGuildMember = pGuild->getMember(pPlayerCreature->getName());
     if (pGuildMember == NULL)
         return;

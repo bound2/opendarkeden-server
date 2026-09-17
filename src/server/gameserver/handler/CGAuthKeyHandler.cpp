@@ -18,7 +18,7 @@
 
 //////////////////////////////////////////////////////////////////////
 //
-// 클라이언트에서 서버로부터 메시지를 받았을때 실행되는 메쏘드이다.
+// Method run when the client receives a message from the server.
 //
 //////////////////////////////////////////////////////////////////////
 void CGAuthKeyHandler::execute(CGAuthKey* pPacket, Player* pPlayer)
@@ -36,15 +36,15 @@ void CGAuthKeyHandler::execute(CGAuthKey* pPacket, Player* pPlayer)
     DWORD key = pPacket->getKey();
     // 	if ( !pGamePlayer->getCSAuth().CheckAuthDword(key) )
     // 	{
-    // 		filelog("CSAuth.log", "[%s] 인증 값이 잘못되었습니다.", pGamePlayer->getID().c_str());
+    // 		filelog("CSAuth.log", "[%s] The authentication value is wrong.", pGamePlayer->getID().c_str());
 
     // 		GCSystemMessage gcSystemMessage;
-    // 		gcSystemMessage.setMessage("nProtect GameGuard훰聯呵겨.獵契匡숭댄轎샀GameGuard匡숭愆뻐.");
+    // 		gcSystemMessage.setMessage("nProtect GameGuard authentication failed. The executable is wrong or the GameGuard files are damaged.");
     // 		pGamePlayer->sendPacket( &gcSystemMessage );
 
     // 		EventKick* pKick = new EventKick( pGamePlayer );
     // 		pKick->setDeadline(100);
-    // //		pKick->setMessage("GameGuard 인증 코드가 잘못되었습니다. 10초 뒤에 연결이 종료됩니다.");
+    // //		pKick->setMessage("The GameGuard authentication code is wrong. The connection closes in 10 seconds.");
     // 		pKick->sendMessage();
 
     // 		pGamePlayer->addEvent(pKick);

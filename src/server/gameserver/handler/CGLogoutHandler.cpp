@@ -34,8 +34,8 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 클라이언트가 CGLogout 패킷을 보내면, 게임 서버는 크리처를 존에서 삭제하고,
-// 크리처와 아이템 정보를 DB에 저장한 후, 접속을 종료한다.
+// When the client sends a CGLogout packet, the game server deletes the creature from
+// the zone, saves the creature and item information to the DB, and closes the connection.
 //////////////////////////////////////////////////////////////////////////////
 void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
 
@@ -47,8 +47,8 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
         //	Assert(pPacket != NULL);
         Assert(pPlayer != NULL);
 
-    // 새로그인 구조에서는 Logout을 하면 대기 상태로 나가야 한다.
-    // Logout 패킷을 받으면 플레이어를 IncomingPlayerManager로 보낸다.
+    // Under the new login structure, a Logout has to leave into the waiting state.
+    // On a Logout packet the player is sent to the IncomingPlayerManager.
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
 
     // cout << "CGLogoutHandler: " << pGamePlayer->getID() << endl;
@@ -62,11 +62,11 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
     Assert(pZone != NULL);
 
 
-    // 나는 나간다 라고 로그를 남긴다.
+    // Log that I am leaving.
     pGamePlayer->logLoginoutDateTime();
 
     try {
-        // 로그아웃할때 성물, 피의 성서 조각을 떨어뜨린다.
+        // On logout, drop the relic and the blood bible fragments.
         //		bool bSendPacket = false;
         //		dropRelicToZone( pCreature, bSendPacket );
 
@@ -76,7 +76,7 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
 
         if (g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0 && pPacket == NULL) {
         } else {
-            // 크리처의 정보를 저장한다.
+            // Save the creature's information.
             pCreature->save();
 
             if (pCreature->isSlayer()) {
@@ -91,16 +91,16 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
             }
 
             //////////////////////////////////////////////////////////////
-            // 플레이어가 COMA상태(현재 죽은 상태)라면 로그아웃시 자동으로
-            // 부활위치로 캐릭터를 이동시킨다.
-            // Login/Logout의 반복으로 부활기술을 사용하지 못하게 함
+            // A player in the COMA state (currently dead) is moved automatically
+            // to the revival position on logout.
+            // This keeps repeated Login/Logout from replacing the revival skill
             //
-            // Creature의 정보를 먼저 DB에 업데이트한 후 새로 업데이트를 한다.
+            // The Creature's information is updated to the DB first, then updated again.
             //////////////////////////////////////////////////////////////
 
-            // 이터니티를 한번 쓴 상태로 로그아웃하면 부활 위치로 날라간다.
+            // Logging out after using Eternity once sends one to the revival position.
             if (pCreature->isFlag(Effect::EFFECT_CLASS_COMA) || pCreature->isFlag(Effect::EFFECT_CLASS_ETERNITY)) {
-                // cout << "COMA 상태에서 로그아웃했음" << endl;
+                // cout << "Logged out in the COMA state" << endl;
 
                 ZoneID_t ZoneID = 0;
                 ZoneCoord_t ZoneX = 0;
@@ -189,7 +189,7 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
                                     throw Error("Critical Error: ResurrectInfo is not established");
                                 }
                             }
-                            // 이제 정보를 저장한다.
+                            // Now save the information.
                             char pField[80];
                             sprintf(pField, "ZoneID=%d, XCoord=%d, YCoord=%d, CurrentHP=HP", ZoneID, ZoneX, ZoneY);
                             pVampire->tinysave(pField);
@@ -199,26 +199,26 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
 
 
         //
-        // 이제, 존에서 PC를 삭제한다.
+        // Now delete the PC from the zone.
         //
         // *CAUTION*
         //
-        // pCreature의 좌표가 실제로 pCreature가 존재하는 타일의 좌표와 같아야 한다.
-        // 따라서, 이 메쏘드를 호출하기 전에 좌표를 잘 바꿔놔야 한당..
+        // pCreature's coordinates must match the coordinates of the tile it really sits on.
+        // So the coordinates have to be set properly before calling this method.
         //
         pZone->deleteCreature(pCreature, pCreature->getX(), pCreature->getY());
 
         ////cout << "PC deleted from Zone >> ";
 
-        // 존그룹의 ZPM에서 플레이어를 삭제한다.
-        // ZonePlayerManager의 ProcessCommand 안에서 지우는 것이므로 반드시 NoBlocked 으로 지워야 한다.
+        // Delete the player from the zone group's ZPM.
+        // This runs inside ZonePlayerManager's ProcessCommand, so it must be deleted NoBlocked.
         pZone->getZoneGroup()->getZonePlayerManager()->deletePlayer(pGamePlayer->getSocket()->getSOCKET());
 
-        // IPM으로 플레이어를 옮긴다.
+        // Move the player to the IPM.
         // g_pIncomingPlayerManager->pushPlayer(pGamePlayer);
 
-        // Core의 구조를 바꾸면서 쓰레드로 부터 독립적으로 행하기 위하여 뒤에 한꺼번에 처리하기 위해서
-        // OutList로 넣는다.
+        // With the Core structure changed, to act independently of the thread and handle it all at once later,
+        // it goes into the OutList.
         pZone->getZoneGroup()->getZonePlayerManager()->pushOutPlayer(pGamePlayer);
 
         ////cout << "Move PC to IPM >> ";
@@ -226,8 +226,8 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
         throw DisconnectException();
     }
 
-    // 로그인 서버로 GLIncomingConnection을 보낸다.
-    // PlayerName과 ClientIP를 같이 실어서 보낸다.
+    // Send GLIncomingConnection to the login server.
+    // PlayerName and ClientIP are sent along with it.
     // add by zdj
     GLIncomingConnection glIncomingConnection;
     glIncomingConnection.setPlayerID(pGamePlayer->getID());

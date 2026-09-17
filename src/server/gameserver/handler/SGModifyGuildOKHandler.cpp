@@ -46,11 +46,11 @@ void SGModifyGuildOKHandler::execute(SGModifyGuildOK* pPacket)
 
     if (pGuild->getState() == Guild::GUILD_STATE_WAIT && pPacket->getGuildState() == Guild::GUILD_STATE_ACTIVE) {
         /////////////////////////////////////////////////////////////
-        // 존 추가
+        // Add the zone
         /////////////////////////////////////////////////////////////
         /*		if (pGuild->getServerGroupID() == g_pConfig->getPropertyInt("ServerID" ) )
                 {
-                    // 이 게임 서버에 길드 아지트를 만든다.
+                    // Build the guild hideout on this game server.
 
                     //////////////
                     // Zone Info
@@ -97,7 +97,7 @@ void SGModifyGuildOKHandler::execute(SGModifyGuildOK* pPacket)
                 }
         */
 
-        // 정식 길드로 변경
+        // Change it into a regular guild
         pGuild->setState(Guild::GUILD_STATE_ACTIVE);
 
         HashMapGuildMember& Members = pGuild->getMembers_NOLOCKED();
@@ -114,17 +114,17 @@ void SGModifyGuildOKHandler::execute(SGModifyGuildOK* pPacket)
             const string guildName = pGuild->getName();
             const GuildMemberRank_t rank = pGuildMember->getRank();
             de::postToPlayer(memberName, [=](PlayerCreature& pc, Player& player) {
-                // 길드 아이디를 바꿔준다.
+                // Change the guild id.
                 pc.setGuildID(guildID);
 
-                // 클라이언트에 길드 아이디가 바꼈음을 알려준다.
+                // Tell the client that the guild id changed.
                 GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
                 gcModifyGuildMemberInfo.setGuildID(guildID);
                 gcModifyGuildMemberInfo.setGuildName(guildName);
                 gcModifyGuildMemberInfo.setGuildMemberRank(rank);
                 player.sendPacket(&gcModifyGuildMemberInfo);
 
-                // 주위에 알린다.
+                // Tell those around.
                 Zone* pZone = pc.getZone();
                 Assert(pZone != NULL);
 
@@ -134,7 +134,7 @@ void SGModifyGuildOKHandler::execute(SGModifyGuildOK* pPacket)
 
                 pZone->broadcastPacket(pc.getX(), pc.getY(), &gcOtherModifyInfo, &pc);
 
-                // 정식 길드가 되었음을 알림
+                // Report that it became a regular guild
                 MessageRepository& messages = defaultMessageRepository();
                 vector<string> queued = messages.loadMessages(memberName);
 

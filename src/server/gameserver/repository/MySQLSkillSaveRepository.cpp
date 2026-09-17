@@ -141,7 +141,7 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            // SkillLevel comes LAST in this table's insert — the column
+            // SkillLevel comes LAST in this table's insert -- the column
             // list and the value list agree, so it lands correctly.
             pStmt->executeQuery("INSERT INTO OustersSkillSave (OwnerID, SkillType, Delay, CastingTime, NextTime, "
                                 "SkillLevel) VALUES ( '%s', %d, %d, %d, %ld, %d )",

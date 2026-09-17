@@ -34,7 +34,7 @@ void CGSelectGuildHandler::execute(CGSelectGuild* pPacket, Player* pPlayer)
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Creature* pCreature = dynamic_cast<Creature*>(pGamePlayer->getCreature());
 
-    // 선택한 길드를 가져온다.
+    // Get the selected guild.
     Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
 
     // try { Assert( pGuild != NULL ); } catch ( Throwable& t ) {

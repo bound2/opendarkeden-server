@@ -8,7 +8,7 @@
 
 // The relative carried-gold writes and the integrity read. Gold is a
 // column on the three race tables; every operation here targets only
-// the character's own table, and the writes are relative (Gold = Gold ±
+// the character's own table, and the writes are relative (Gold = Gold +/-
 // delta, arithmetic done by the database against whatever the row
 // holds). The gameplay clamps (MAX_MONEY on the way up, zero on the way
 // down) happen in the calling creature against its in-memory balance
@@ -25,7 +25,7 @@ public:
     // Gold = Gold - delta on the character's own race table. The caller
     // clamps delta to its in-memory balance; if the ROW holds less than
     // delta (integrity drift), the unsigned subtraction is the same
-    // ER_DATA_OUT_OF_RANGE territory as GoodsRepository::takeOne — see
+    // ER_DATA_OUT_OF_RANGE territory as GoodsRepository::takeOne -- see
     // the MySQL implementation's quirk notes.
     virtual void decreaseGold(const std::string& ownerName, CharacterRace race, Gold_t delta) = 0;
 

@@ -40,48 +40,48 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
     Assert(pPC != NULL);
 
-    // 결과 패킷
+    // Result packet
     GCNPCResponse gcNPCResponse;
 
     // Dimension ID
     static int dimensionID = g_pConfig->getPropertyInt("Dimension");
-    // 월드 ID
+    // World ID
     static int worldID = g_pConfig->getPropertyInt("WorldID");
 
     // affectWorldID
     static int affectWorldID = dimensionID * 3 + worldID;
 
-    // 기부 횟수
+    // Donation count
     int sumBeforePersonal = 0;
     int sumAfterPersonal = 0;
     int sumBeforeGuild = 0;
     int sumAfterGuild = 0;
 
-    // 기부 이벤트가 활성화된 상태인지 확인한다.
+    // Check that the donation event is active.
     if (g_pVariableManager->getVariable(DONATION_EVENT_200501) != 1) {
         return;
     }
 
-    // 돈이 충분한지 확인
+    // Check that there is enough money
     if (pPC->getGold() < pPacket->getGold()) {
         gcNPCResponse.setCode(NPC_RESPONSE_NOT_ENOUGH_MONEY);
         pPlayer->sendPacket(&gcNPCResponse);
         return;
     }
 
-    // 인단 돈을 까고
+    // Take the money first
     pPC->decreaseGoldEx(pPacket->getGold());
 
-    // 바뀐 금액을 보낸다.
+    // Send the changed amount.
     GCModifyInformation gcModifyInformation;
     gcModifyInformation.addLongData(MODIFY_GOLD, pPC->getGold());
     pPlayer->sendPacket(&gcModifyInformation);
 
-    // 지금까지의 기부 회수를 구한다.
+    // Get the donation count so far.
     sumBeforePersonal = defaultComebackEventRepository().countPersonalDonations(pCreature->getName(), affectWorldID);
     sumBeforeGuild = defaultComebackEventRepository().countGuildDonations(pCreature->getName(), affectWorldID);
 
-    // 기부 내용을 데이터 베이스에 기록한다.
+    // Record the donation in the database.
     {
         if (pPacket->getDonationType() == DONATION_TYPE_200501_PERSONAL) {
             defaultComebackEventRepository().insertPersonalDonation(pGamePlayer->getID(), pCreature->getName(),
@@ -95,7 +95,7 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
         }
     }
 
-    // 지금까지의 기부 회수를 구한다.
+    // Get the donation count so far.
     {
         {
             std::unique_ptr<GCNicknameList> pNicknamePacket;
@@ -104,7 +104,7 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
                 sumAfterPersonal =
                     defaultComebackEventRepository().countPersonalDonations(pCreature->getName(), affectWorldID);
 
-                // 닉 네임을 추가해야되는 경우
+                // When a nickname has to be added
                 if (sumAfterPersonal == 1 && sumBeforePersonal != sumAfterPersonal) {
                     NicknameBook* pNicknameBook = pPC->getNicknameBook();
                     Assert(pNicknameBook != NULL);
@@ -130,7 +130,7 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
                 sumAfterGuild =
                     defaultComebackEventRepository().countGuildDonations(pCreature->getName(), affectWorldID);
 
-                // 닉 네임을 추가해야되는 경우
+                // When a nickname has to be added
                 if (sumAfterGuild == 1 && sumBeforeGuild != sumAfterGuild) {
                     NicknameBook* pNicknameBook = pPC->getNicknameBook();
                     Assert(pNicknameBook != NULL);
@@ -159,15 +159,15 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
     }
 
 
-    // 이펙트를 추가한다.
+    // Add the effect.
     if (!pPC->isFlag(Effect::EFFECT_CLASS_DONATION_200501)) {
         EffectDonation200501* pEffect = new EffectDonation200501(pPC);
         pPC->addEffect(pEffect);
-        // 강제로 affect 한다. 안에서 브로드캐스팅 등의 처리를 한다.
+        // Force the affect. Broadcasting and the rest happens inside.
         pEffect->affect();
     }
 
-    // 기부 결과를 알린다.
+    // Report the donation result.
     gcNPCResponse.setCode(NPC_RESPONSE_SHOW_DONATION_COMPLETE_DIALOG);
     pPlayer->sendPacket(&gcNPCResponse);
 

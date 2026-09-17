@@ -10,7 +10,7 @@
 #include "repository/MofusPointRepository.h"
 
 // Every function here deliberately IGNORES a SQL failure and carries on
-// with a zero balance ("SQL 에러는 무시한다"): the mofus link is an
+// with a zero balance (SQL errors are deliberately ignored): the mofus link is an
 // external service, and the game must not fall over when its bookkeeping
 // does.
 //
@@ -25,7 +25,7 @@
 // GamePlayer::processCommand's catch (...) and disconnects the player
 // instead of logging them in with zero points. The Restore and
 // EventMorph paths call it on a zone thread, where nothing catches a
-// DatabaseError at all — std::terminate, i.e. the process. And
+// DatabaseError at all -- std::terminate, i.e. the process. And
 // MPlayerManager::processResult calls it INSIDE
 // __ENTER_CRITICAL_SECTION((*g_pPCFinder)), whose
 // __LEAVE_CRITICAL_SECTION catches Throwable& only: that one would
@@ -39,7 +39,7 @@ int loadPowerPoint(const string& name) {
     try {
         defaultMofusPointRepository().loadPowerPoint(name, powerpoint);
     } catch (const DatabaseError&) {
-        // SQL 에러는 무시한다.
+        // SQL errors are ignored.
     }
 
     return powerpoint;
@@ -64,7 +64,7 @@ int savePowerPoint(const string& name, int amount) {
 
         points.loadPowerPoint(name, powerpoint);
     } catch (const DatabaseError&) {
-        // SQL 에러는 무시한다.
+        // SQL errors are ignored.
     }
 
     return powerpoint;
@@ -78,7 +78,7 @@ void logPowerPoint(const string& name, int recvPoint, int savePoint) {
     try {
         defaultMofusPointRepository().logPowerPoint(name, recvPoint, savePoint);
     } catch (const DatabaseError&) {
-        // SQL 에러는 무시한다.
+        // SQL errors are ignored.
     }
 
     __END_CATCH

@@ -44,7 +44,7 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
 
         Assert(pPacket != NULL);
 
-    // 길드를 가져온다.
+    // Get the guild.
     Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
     try {
         Assert(pGuild != NULL);
@@ -52,7 +52,7 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
         return;
     }
 
-    // 길드 멤버인지 확인한다.
+    // Check whether it is a guild member.
     GuildMember* pGuildMember = pGuild->getMember(pPacket->getName());
     try {
         Assert(pGuildMember != NULL);
@@ -62,13 +62,13 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
 
     if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_WAIT) {
         //////////////////////////////////////////////////////////
-        // 가입 취소
+        // Cancel the join
         //////////////////////////////////////////////////////////
 
-        // 길드에서 삭제한다.
+        // Delete from the guild.
         pGuild->deleteMember(pGuildMember->getName());
 
-        // 접속해 있다면 메시지를 보낸다.
+        // Send a message if connected.
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
         Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getName());
@@ -77,7 +77,7 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
             Assert(pPlayer != NULL);
 
             //			StringStream msg;
-            //			msg << pGuild->getName() << " 길드 가입신청이 취소되었습니다.";
+            //			msg << pGuild->getName() << " the guild join request was cancelled.";
 
             char msg[100];
             if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)
@@ -86,20 +86,20 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
                 sprintf(msg, g_pStringPool->c_str(STRID_CLAN_JOIN_DENY), pGuild->getName().c_str());
             else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS)
                 sprintf(msg, g_pStringPool->c_str(STRID_CLAN_JOIN_DENY), pGuild->getName().c_str());
-            // 길드 가입신청취소 메시지를 보낸다.
+            // Send the guild join cancellation message.
             GCSystemMessage gcSystemMessage;
             gcSystemMessage.setMessage(msg);
             pPlayer->sendPacket(&gcSystemMessage);
         }
 
-        // 취소시킨 사람에게 메시지를 보낸다.
+        // Send the one who cancelled a message.
         pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getSender());
         if (pCreature != NULL && pCreature->isPC()) {
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
 
             //			StringStream msg;
-            //			msg << pPacket->getName() << "님의 길드가입을 취소하였습니다.";
+            //			msg << pPacket->getName() << "'s guild join was cancelled.";
 
             char msg[100];
             if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)
@@ -117,10 +117,10 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
         __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
     } else {
         ///////////////////////////////////////////////////////////
-        // 길드에서 추방한다.
+        // Expel from the guild.
         ///////////////////////////////////////////////////////////
 
-        // 길드에서 삭제한다.
+        // Delete from the guild.
         pGuild->deleteMember(pGuildMember->getName());
 
         // If the expelled member is online, reset its guild id and tell the
@@ -131,27 +131,27 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
             const GuildState_t guildState = pGuild->getState();
             de::postToPlayer(pPacket->getName(), [=](PlayerCreature& pc, Player& player) {
                 if (pc.isSlayer()) {
-                    pc.setGuildID(99); // 슬레이어의 가입안한 상태의 길드 ID
+                    pc.setGuildID(99); // the guild ID of a Slayer that has not joined
 
-                    // 클라이언트에 길드 추방을 알린다.
+                    // Tell the client about the guild expulsion.
                     GCModifyGuildMemberInfo gcModifyGuildMember;
                     gcModifyGuildMember.setGuildID(pc.getGuildID());
                     gcModifyGuildMember.setGuildName("");
                     gcModifyGuildMember.setGuildMemberRank(GuildMember::GUILDMEMBER_RANK_DENY);
                     player.sendPacket(&gcModifyGuildMember);
                 } else if (pc.isVampire()) {
-                    pc.setGuildID(0); // 뱀파이어의 가입안한 상태의 길드 ID
+                    pc.setGuildID(0); // the guild ID of a Vampire that has not joined
 
-                    // 클라이언트에 길드 추방을 알린다.
+                    // Tell the client about the guild expulsion.
                     GCModifyGuildMemberInfo gcModifyGuildMember;
                     gcModifyGuildMember.setGuildID(pc.getGuildID());
                     gcModifyGuildMember.setGuildName("");
                     gcModifyGuildMember.setGuildMemberRank(GuildMember::GUILDMEMBER_RANK_DENY);
                     player.sendPacket(&gcModifyGuildMember);
                 } else if (pc.isOusters()) {
-                    pc.setGuildID(66); // 아우스터즈 가입안한 상태의 길드 ID
+                    pc.setGuildID(66); // the guild ID of an Ousters that has not joined
 
-                    // 클라이언트에 길드 추방을 알린다.
+                    // Tell the client about the guild expulsion.
                     GCModifyGuildMemberInfo gcModifyGuildMember;
                     gcModifyGuildMember.setGuildID(pc.getGuildID());
                     gcModifyGuildMember.setGuildName("");
@@ -159,9 +159,9 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
                     player.sendPacket(&gcModifyGuildMember);
                 }
 
-                // 길드 추방 메시지를 보낸다.
+                // Send the guild expulsion message.
                 GCSystemMessage gcSystemMessage;
-                //			gcSystemMessage.setMessage("길드에서 추방당했습니다.");
+                //			gcSystemMessage.setMessage("You were expelled from the guild.");
 
                 if (guildRace == Guild::GUILD_RACE_SLAYER)
                     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_EXPEL_TEAM_MEMBER));
@@ -173,7 +173,7 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
                 player.sendPacket(&gcSystemMessage);
 
                 if (guildState == Guild::GUILD_STATE_ACTIVE) {
-                    // 주위에 알린다.
+                    // Tell those around.
                     Zone* pZone = pc.getZone();
                     Assert(pZone != NULL);
 
@@ -186,7 +186,7 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
             });
         }
 
-        // 추방시킨 사람에게 메시지를 보낸다. (send only: fine from this thread)
+        // Send the one who expelled a message. (send only: fine from this thread)
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
         Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getSender());
@@ -195,7 +195,7 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
             Assert(pPlayer != NULL);
 
             //			StringStream msg;
-            //			msg << pPacket->getName() << "님을 길드에서 추방하였습니다.";
+            //			msg << pPacket->getName() << " was expelled from the guild.";
 
             char msg[100];
             if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)

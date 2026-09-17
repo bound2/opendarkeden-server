@@ -56,10 +56,10 @@ void CGWithdrawTaxHandler::execute(CGWithdrawTax* pPacket, Player* pPlayer)
         }
     }
 
-    if (!g_pGuildManager->isGuildMaster(guildID, pPC) // 길드 마스터가 아니다.
-        || !bOwner                                    // 이 플레이어의 길드가 점령한 성이 아니다.
-        || gold == 0                                  // 장난치나~
-        || pCastleInfo->getTaxBalance() < gold        // 돈이 모자란다.
+    if (!g_pGuildManager->isGuildMaster(guildID, pPC) // not the guild master.
+        || !bOwner                                    // not a castle this player's guild has taken.
+        || gold == 0                                  // is this a joke?
+        || pCastleInfo->getTaxBalance() < gold        // not enough money.
     ) {
         GCNPCResponse fail;
         fail.setCode(NPC_RESPONSE_WITHDRAW_TAX_FAIL);
@@ -68,17 +68,17 @@ void CGWithdrawTaxHandler::execute(CGWithdrawTax* pPacket, Player* pPlayer)
         return;
     }
 
-    // 모든 조건이 충족되었다. 이제 돈을 찾아서 플레이어에게 넣어준다.
+    // Every condition is met. Now withdraw the money and give it to the player.
     Gold_t remainBalance = pCastleInfo->decreaseTaxBalanceEx(gold);
     pPC->increaseGoldEx(gold);
 
-    // 사용자의 돈이 늘어났다는 정보를 보내준다.
+    // Send the information that the user's money grew.
     GCModifyInformation gcMI;
     gcMI.addLongData(MODIFY_GOLD, pPC->getGold());
 
     pGamePlayer->sendPacket(&gcMI);
 
-    // 돈을 찾는 데 성공했다고 알린다.
+    // Report that the withdrawal succeeded.
     GCNPCResponse success;
     success.setCode(NPC_RESPONSE_WITHDRAW_TAX_OK);
     success.setParameter(remainBalance);

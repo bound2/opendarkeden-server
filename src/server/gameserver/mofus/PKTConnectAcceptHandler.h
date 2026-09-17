@@ -12,10 +12,10 @@
 // class PKTConnectAcceptHandler
 class PKTConnectAcceptHandler : public MPacketHandler {
 public:
-    // 해당 패킷의 ID
+    // the ID of this packet
     MPacketID_t getID() const;
 
-    // 실행 함수
+    // run function
     void execute(MPlayer* pPlayer, MPacket* pPacket);
 };
 

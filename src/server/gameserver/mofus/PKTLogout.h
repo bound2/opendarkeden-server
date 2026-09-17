@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Filename : PKTLogout.h
-// Desc		: 접속을 종료함을 통지한다.
+// Desc		: reports that the connection is closing.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __PKT_LOGOUT_H__
@@ -10,10 +10,10 @@
 #include "Assert.h"
 #include "MPacket.h"
 
-// 패킷 구조
+// packet layout
 struct _PKT_LOGOUT {
-    int nSize; // 패킷 전체의 크기
-    int nCode; // 패킷 코드
+    int nSize; // the size of the whole packet
+    int nCode; // packet code
 };
 
 const int szPKTLogout = sizeof(_PKT_LOGOUT);
@@ -21,29 +21,29 @@ const int szPKTLogout = sizeof(_PKT_LOGOUT);
 // class PKTLogout
 class PKTLogout : public _PKT_LOGOUT, public MPacket {
 public:
-    // 생성자
+    // constructor
     PKTLogout();
 
 public:
-    // 패킷 아이디를 반환한다.
+    // Returns the packet id.
     MPacketID_t getID() const;
 
-    // 패킷의 크기를 반환한다.
+    // Returns the packet's size.
     MPacketSize_t getSize() const {
         return szPKTLogout - szMPacketSize;
     }
 
-    // 새로운 패킷을 생성해서 반환
+    // Creates a new packet and returns it
     MPacket* create() {
         MPacket* pPacket = new PKTLogout;
         Assert(pPacket != NULL);
         return pPacket;
     }
 
-    // 입력 스트림으로부터 데이터를 읽어서 패킷을 초기화 한다.
+    // Reads data from the input stream and initialises the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력 스트림으로 패킷의 바이너리 이미지를 보낸다.
+    // Sends the packet's binary image to the output stream.
     void write(SocketOutputStream& oStream);
 
     // debug message

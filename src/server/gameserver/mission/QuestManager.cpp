@@ -41,7 +41,7 @@ QuestManager::~QuestManager() {
 void QuestManager::load() {
     __BEGIN_TRY
 
-    // 아직 퀘스트 이어서 하기는 지원하지 않는다.
+    // Resuming a quest is not supported yet.
     m_pEventQuestAdvanceManager->load();
 
     __END_CATCH

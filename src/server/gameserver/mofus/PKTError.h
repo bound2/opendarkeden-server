@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
 // Filename : PKTError.h
-// Desc		: 파워짱 서버에서 에러에 대한 결과를 보내기 위해서 사용된다.
-// 			  온라인 서버에서는 서버 오류로 일관 처리하고 대부분
-// 			  디버그용으로 사용
+// Desc		: used by the PowerJjang server to report an error result.
+// 			  The online server treats them all as a server error and mostly
+// 			  uses them for debugging
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __PKT_ERROR_H__
@@ -12,25 +12,25 @@
 #include "Assert.h"
 #include "MPacket.h"
 
-// 에러 코드
+// error code
 enum MERR_CODE {
-    MERR_SERVER = 0x01,    // 서버는 살아 있으나 현재 정상적으로
-                           // 동작하지 못하는 상황
-    MERR_CONFIRM = 0x02,   // 온라인 게임 코드로 확인 이 실패할 경우
-    MERR_PACKET = 0x03,    // 잘못된 패킷이 송/수신된 경우
-    MERR_PROCESS = 0x04,   // 서버 처리 오류 ( ex: DB 오류 )
-    MERR_SEARCH = 0x05,    // 파워짱 회원이 아닌 경우
-    MERR_NULLPOINT = 0x06, // 파워짱 회원이나 누적된 파워짱 포인트가
-                           // 없는 경우
-    MERR_MATCHING = 0x07,  // 매칭 정보 오류 (ex: 회원 매칭 정보가 없음)
-                           // 홈페이지에서 매칭을 유도하는 문장을 전송.
+    MERR_SERVER = 0x01,    // the server is alive but cannot currently
+                           // work properly
+    MERR_CONFIRM = 0x02,   // the online game code check failed
+    MERR_PACKET = 0x03,    // a wrong packet was sent or received
+    MERR_PROCESS = 0x04,   // server handling error ( ex: DB error )
+    MERR_SEARCH = 0x05,    // not a PowerJjang member
+    MERR_NULLPOINT = 0x06, // a PowerJjang member, but with no PowerJjang points
+                           // accumulated
+    MERR_MATCHING = 0x07,  // matching information error (ex: no member matching information)
+                           // send the text that steers the user to match on the home page.
 };
 
-// 패킷 구조
+// packet layout
 struct _PKT_ERROR {
-    int nSize;  // 패킷 전체의 크기
-    int nCode;  // 패킷 코드
-    int nError; // 에러 코드
+    int nSize;  // the size of the whole packet
+    int nCode;  // packet code
+    int nError; // error code
 };
 
 const int szPKTError = sizeof(_PKT_ERROR);
@@ -38,29 +38,29 @@ const int szPKTError = sizeof(_PKT_ERROR);
 // class PKTError
 class PKTError : public _PKT_ERROR, public MPacket {
 public:
-    // 생성자
+    // constructor
     PKTError();
 
 public:
-    // 패킷 아이디를 반환한다.
+    // Returns the packet id.
     MPacketID_t getID() const;
 
-    // 패킷의 크기를 반환한다.
+    // Returns the packet's size.
     MPacketSize_t getSize() const {
         return szPKTError - szMPacketSize;
     }
 
-    // 새로운 패킷을 생성해서 반환
+    // Creates a new packet and returns it
     MPacket* create() {
         MPacket* pPacket = new PKTError;
         Assert(pPacket != NULL);
         return pPacket;
     }
 
-    // 입력 스트림으로부터 데이터를 읽어서 패킷을 초기화 한다.
+    // Reads data from the input stream and initialises the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력 스트림으로 패킷의 바이너리 이미지를 보낸다.
+    // Sends the packet's binary image to the output stream.
     void write(SocketOutputStream& oStream);
 
     // debug message

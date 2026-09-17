@@ -10,14 +10,14 @@
 // ZoneInfo (including its MonsterList/EventMonsterList texts),
 // ZoneTriggers, EffectPKZoneRegen, WayPointInfo, ZoneEffectInfo (one
 // zone, one effect class) and the PKZoneInfo / EventZoneInfo /
-// LevelWarZoneInfo tables — the data the gameserver reads while it
+// LevelWarZoneInfo tables -- the data the gameserver reads while it
 // bootstraps its zone groups, zones, threads and per-zone effects, and
 // never writes. Every row field is typed to the driver getter used for
-// that column (getInt → int, getString → std::string); callers narrow
+// that column (getInt -> int, getString -> std::string); callers narrow
 // from there. The NPC-keyed sister table Triggers is
 // ContentInfoRepository's.
 
-// ZoneInfoManager::load — the 17 columns of a ZoneInfo row, in SELECT
+// ZoneInfoManager::load -- the 17 columns of a ZoneInfo row, in SELECT
 // order. The SELECT spells three columns differently from the schema
 // (OwnerID, SMPFilename, SSIFilename vs OwnerId, SmpFileName,
 // SsiFileName); MySQL column names are case-insensitive, so it resolves.
@@ -41,7 +41,7 @@ struct ZoneInfoRow {
     std::string shortName;
 };
 
-// ResurrectLocationManager::load — a zone and its three per-race
+// ResurrectLocationManager::load -- a zone and its three per-race
 // resurrect positions.
 struct ResurrectLocationRow {
     int zoneID;

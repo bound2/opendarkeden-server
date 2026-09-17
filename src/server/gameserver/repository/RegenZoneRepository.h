@@ -4,13 +4,13 @@
 #include <vector>
 
 // Read-only access to the RegenZonePosition table: the race-war regen
-// towers — where each stands and which
+// towers -- where each stands and which
 // race currently owns it. The gameserver reads the table at boot
 // (RegenZoneManager::load builds the towers) and on a race-war reload
 // (RegenZoneManager::reload re-applies the owners); nothing in this
 // tree writes it.
 //
-// What loadPositions() returns — every field as the driver's getInt
+// What loadPositions() returns -- every field as the driver's getInt
 // returned it.
 struct RegenZoneRow {
     int id;

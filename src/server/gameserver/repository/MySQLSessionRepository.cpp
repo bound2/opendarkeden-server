@@ -8,7 +8,7 @@ namespace {
 //    positional.
 //  - Connections: Player, PCRoomUserInfo, PCRoomLottoObject,
 //    SpeedHackPlayer and the LastLogoutDate read through the dist
-//    connection ("PLAYER_DB" — the name is ignored by
+//    connection ("PLAYER_DB" -- the name is ignored by
 //    DatabaseManager::getDistConnection, which returns the thread's
 //    second socket to the same DARKEDEN schema), UserStatus through the
 //    USERINFO connection, GuildMember, UserIPInfo, CrashReportLog,

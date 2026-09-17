@@ -47,7 +47,7 @@ bool GatherItemQuestStatus::isSuccess() const {
     PlayerCreature* pOwnerPC = getOwnerPC();
     Inventory* pInventory = pOwnerPC->getInventory();
 
-    // 인벤토리 뒤지기 ㅎㅎㅎ
+    // Search the inventory
     map<ObjectID_t, Item*> ItemList;
     int height = pInventory->getHeight();
     int width = pInventory->getWidth();
@@ -58,7 +58,7 @@ bool GatherItemQuestStatus::isSuccess() const {
         for (int i = 0; i < width; i++) {
             Item* pItem = pInventory->getItem(i, j);
             if (pItem != NULL) {
-                // 체크된 아이템의 리스트에서 현재 아이템을 찾는다.
+                // Find the current item in the list of checked items.
                 map<ObjectID_t, Item*>::iterator itr = ItemList.find(pItem->getObjectID());
 
                 if (itr == ItemList.end()) {

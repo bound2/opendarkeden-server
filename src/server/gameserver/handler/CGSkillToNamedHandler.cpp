@@ -41,7 +41,7 @@ void CGSkillToNamedHandler::execute(CGSkillToNamed* pPacket, Player* pPlayer)
 
         SkillType_t SkillType = pPacket->getSkillType();
 
-        // 완전 안전지대라면 기술 사용 불가. by sigi. 2002.11.14
+        // A complete safe zone forbids skill use.
         ZoneLevel_t ZoneLevel = pZone->getZoneLevel(pCreature->getX(), pCreature->getY());
         if ((ZoneLevel & COMPLETE_SAFE_ZONE) || (pCreature->isFlag(Effect::EFFECT_CLASS_PARALYZE)) ||
             (pCreature->isFlag(Effect::EFFECT_CLASS_CAUSE_CRITICAL_WOUNDS)) ||

@@ -35,13 +35,13 @@ void CGSelectGuildMemberHandler::execute(CGSelectGuildMember* pPacket, Player* p
     PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pGamePlayer->getCreature());
     Assert(pPlayerCreature != NULL);
 
-    // 선택한 길드를 가져온다.
+    // Get the selected guild.
     Guild* pGuild = g_pGuildManager->getGuild(pPlayerCreature->getGuildID());
     // try { Assert( pGuild != NULL ); } catch ( Throwable& ) { return; }
     if (pGuild == NULL)
         return;
 
-    // 선택한 길드 멤버를 가져온다.
+    // Get the selected guild member.
     GuildMember* pGuildMember = pGuild->getMember(pPacket->getName());
     // try { Assert( pGuildMember != NULL ); } catch ( Throwable& ) { return; }
     if (pGuildMember == NULL)

@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // Filename : PKTResult.h
-// Desc		: 마지막으로 전송 받은 자료에 대한 처리 여부를 파워링 서버에
-// 			  답신한다.
+// Desc		: answers the PowerRing server whether the last data received
+// 			  was handled.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __PKT_RESULT_H__
@@ -11,10 +11,10 @@
 #include "Assert.h"
 #include "MPacket.h"
 
-// 패킷 구조
+// packet layout
 struct _PKT_RESULT {
-    int nSize; // 패킷 전체의 크기
-    int nCode; // 패킷 코드
+    int nSize; // the size of the whole packet
+    int nCode; // packet code
 };
 
 const int szPKTResult = sizeof(_PKT_RESULT);
@@ -22,29 +22,29 @@ const int szPKTResult = sizeof(_PKT_RESULT);
 // class PKTResult
 class PKTResult : public _PKT_RESULT, public MPacket {
 public:
-    // 생성자
+    // constructor
     PKTResult();
 
 public:
-    // 패킷 아이디를 반환한다.
+    // Returns the packet id.
     MPacketID_t getID() const;
 
-    // 패킷의 크기를 반환한다.
+    // Returns the packet's size.
     MPacketSize_t getSize() const {
         return szPKTResult - szMPacketSize;
     }
 
-    // 새로운 패킷을 생성해서 반환
+    // Creates a new packet and returns it
     MPacket* create() {
         MPacket* pPacket = new PKTResult;
         Assert(pPacket != NULL);
         return pPacket;
     }
 
-    // 입력 스트림으로부터 데이터를 읽어서 패킷을 초기화 한다.
+    // Reads data from the input stream and initialises the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력 스트림으로 패킷의 바이너리 이미지를 보낸다.
+    // Sends the packet's binary image to the output stream.
     void write(SocketOutputStream& oStream);
 
     // debug message

@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // Filename : PKTPowerPoint.cpp
-// Desc		: 온라인 게임으로부터 전송되어온 데이터를 통해 파워링 DB에서
-// 			  추훌한 값을 온라인사로 넘겨준다.
+// Desc		: hands the online company the value drawn from the PowerRing DB
+// 			  using the data sent from the online game.
 /////////////////////////////////////////////////////////////////////////////
 
 // include files
@@ -9,14 +9,14 @@
 
 #include "MPacketID.h"
 
-// 생성자
+// constructor
 PKTPowerPoint::PKTPowerPoint() {
     // memset( this, 0, szPKTPowerPoint );
 
     nSize = szPKTPowerPoint - szMPacketSize;
 }
 
-// 입력 스트림으로부터 데이터를 읽어서 패킷을 초기화 한다.
+// Reads data from the input stream and initialises the packet.
 void PKTPowerPoint::read(SocketInputStream& iStream) {
     iStream.read((char*)this, szPKTPowerPoint);
 
@@ -34,7 +34,7 @@ void PKTPowerPoint::read(SocketInputStream& iStream) {
     //	nIndex				= ntohl( nIndex );
 }
 
-// 출력 스트림으로 패킷의 바이너리 이미지를 보낸다.
+// Sends the packet's binary image to the output stream.
 void PKTPowerPoint::write(SocketOutputStream& oStream) {
     nCode = getID();
 

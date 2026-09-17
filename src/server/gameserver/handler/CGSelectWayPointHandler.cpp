@@ -57,13 +57,13 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
             executeEnterQuestZone(pPacket, pPlayer, targetDynamicZoneType);
         }
 
-        // 게임 플레이어의 상태가 정상이 아니라면 걍 리턴한다.
+        // Just return if the game player's state is not normal.
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
         Assert(pGamePlayer != NULL);
         if (pGamePlayer->getPlayerStatus() != GPS_NORMAL)
             return;
 
-        // 크리쳐가 슬레이어가 아니라면 리턴한다.
+        // Return if the creature is not a Slayer.
         Creature* pCreature = pGamePlayer->getCreature();
         Assert(pCreature != NULL);
 
@@ -75,11 +75,11 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
         if (pCreature->hasRelicItem())
             return;
 
-        // 크리쳐가 죽었으면 리턴
+        // Return if the creature is dead
         if (pCreature->isDead())
             return;
 
-        // 초보존으로 들어가는 경우엔 종족 상관없이 보내준다.
+        // Entering the beginner zone is allowed regardless of race.
         if (pPacket->getZoneID() == 1122) {
             ZONE_COORD pos(1122);
 
@@ -124,7 +124,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
                         }
             */
 
-            // 크리쳐 정보 보고 알아서 튕겨주자 =_=;;
+            // Look at the creature information and bounce it accordingly
             ZONE_COORD pos(g_pLevelWarZoneInfoManager->getCreatureZoneID(pCreature));
 
             if (g_pSweeperBonusManager->isAble(g_pLevelWarZoneInfoManager->getCreatureZoneID(pCreature))) {
@@ -172,7 +172,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
                         }
             */
 
-            // 크리쳐 정보 보고 알아서 튕겨주자 =_=;;
+            // Look at the creature information and bounce it accordingly
             ZONE_COORD pos;
 
             if (pCreature->isSlayer()) {
@@ -202,17 +202,17 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
         }
 
         if (!pCreature->isSlayer() && !pCreature->isOusters()) {
-            // 뭔가를 해야하지 않을까?
+            // Should something be done here?
             return;
         }
 
         if (pCreature->isFlag(Effect::EFFECT_CLASS_HAS_FLAG)) {
-            // 뭔가를 해야하지 않을까?
+            // Should something be done here?
             return;
         }
 
         if (pCreature->isFlag(Effect::EFFECT_CLASS_HAS_SWEEPER)) {
-            // 뭔가를 해야하지 않을까?
+            // Should something be done here?
             return;
         }
 
@@ -221,7 +221,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
 
         bool bCancel = false;
 
-        // 이펙트가 걸려있어야 정상적인 이동이다.
+        // A normal move requires the effect to be attached.
         if (pCreature->isOusters() ||
             (pCreature->isSlayer() && pCreature->isFlag(Effect::EFFECT_CLASS_SLAYER_PORTAL))) {
             ZoneID_t id = pPacket->getZoneID();
@@ -231,15 +231,15 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
             if (id == 0 && x == 0 && y == 0) {
                 bCancel = true;
             } else {
-                // 석화 상태일 경우 생깐다.
+                // Ignored in the petrified state.
                 if (pCreature->isFlag(Effect::EFFECT_CLASS_PARALYZE)) {
                     bCancel = true;
                 }
 
-                // 웨이포인트 매니저를 통해서 클라이언트가 보내온
-                // 웨이포인트가 정상적인 웨이포인트인지를 검증한다.
+                // Through the waypoint manager, verify that the waypoint the client sent
+                // is a valid waypoint.
                 if (!de::gameContext().wayPoints().isValidWayPoint(id, x, y, pCreature->getRace())) {
-                    // 뭔가를 해야하지 않을까?
+                    // Should something be done here?
                     bCancel = true;
 
                     // return;
@@ -248,7 +248,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
                 try {
                     if (!bCancel) {
                         if (!bCancel) {
-                            // 이동시키기 전에 이펙트를 삭제한다.
+                            // Delete the effect before moving.
                             if (pCreature->isSlayer())
                                 pCreature->removeFlag(Effect::EFFECT_CLASS_SLAYER_PORTAL);
 
@@ -258,7 +258,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
 
                                 GCNoticeEvent gcNoticeEvent;
 
-                                // 대지정령의 뿔을 사용할라면 시오람과 계약을 맺었어야 한다.
+                                // Using the Gnome's Horn requires a contract with Sioram.
                                 if (!pOusters->getFlagSet()->isOn(FLAGSET_GNOMES_HORN)) {
                                     gcNoticeEvent.setCode(NOTICE_EVENT_CONTRACT_GNOMES_HORN);
                                     pPlayer->sendPacket(&gcNoticeEvent);
@@ -290,7 +290,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
                                 }
                             }
 
-                            // 올바른 웨이포인트라면 슬레이어를 이동시켜준다.
+                            // On a valid waypoint, move the slayer.
                             pPC->getGQuestManager()->illegalWarp();
                             transportCreature(pCreature, id, x, y, false);
                         }
@@ -305,10 +305,10 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
             Zone* pZone = pCreature->getZone();
             Assert(pZone != NULL);
 
-            // id, x, y가 모두 0일 경우 이동을 취소한다는 뜻이다.
+            // id, x and y all 0 means the move is cancelled.
             pCreature->removeFlag(Effect::EFFECT_CLASS_SLAYER_PORTAL);
 
-            // 헬기를 제거하라고 뿌려준다.
+            // Broadcast that the helicopter is to be removed.
             GCAddHelicopter gcAddHelicopter;
             gcAddHelicopter.setObjectID(pCreature->getObjectID());
             gcAddHelicopter.setCode(1);

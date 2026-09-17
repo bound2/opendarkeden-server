@@ -37,47 +37,47 @@ void CGResurrectHandler::execute(CGResurrect* pPacket, Player* pPlayer)
     if (pCreature->findEffect(Effect::EFFECT_CLASS_ETERNITY))
         return;
 
-    // 현재 크리쳐에게 COMA 이펙트가 붙어있지 않다면 에러다.
+    // It is an error when the creature carries no COMA effect.
     if (pCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
-        // cout << "플래그 붙어있음." << endl;
+        // cout << "The flag is on." << endl;
 
-        // COMA 이펙트에 접근한다.
+        // Reach the COMA effect.
         EffectManager* pEffectManager = pCreature->getEffectManager();
         Assert(pEffectManager != NULL);
 
         EffectComa* pEffectComa = (EffectComa*)(pEffectManager->findEffect(Effect::EFFECT_CLASS_COMA));
         Assert(pEffectComa != NULL);
 
-        // 죽은 지 5초가 아직 지나지 않았다면, 되살아날 수 없다.
+        // Without 5 seconds since death, no revival is possible.
         if (pEffectComa->canResurrect()) {
-            // cout << "5초가 지났으니 부활시킬 수 있음." << endl;
+            // cout << "5 seconds passed, so it can be revived." << endl;
 
             /*
             if (pCreature->isSlayer())
             {
                 Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-                //cout << "현재 HP:" << pSlayer->getHP(ATTR_CURRENT);
+                //cout << "Current HP:" << pSlayer->getHP(ATTR_CURRENT);
             }
             else if (pCreature->isVampire())
             {
                 Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-                //cout << "현재 HP:" << pVampire->getHP(ATTR_CURRENT);
+                //cout << "Current HP:" << pVampire->getHP(ATTR_CURRENT);
             }
             */
 
-            // 데드라인을 0으로 만들어준다. 이렇게 하면 하트비트에서
-            // unaffect되면서 플레이어를 자동으로 부활시키게 된다.
+            // Set the deadline to 0. The heartbeat then unaffects it and
+            // revives the player automatically.
             pEffectComa->setDeadline(0);
         } else {
-            // cout << "5초가 지나지 않았다." << endl;
+            // cout << "5 seconds have not passed." << endl;
         }
     } else {
-        // cout << "플래그가 없다." << endl;
+        // cout << "There is no flag." << endl;
 
-        // 어디서인지는 확실히 알 수 없으나, 어딘가에서 죽은 뒤에
-        // 코마 이펙트가 날아가 버리거나, 죽은 상태에서 HP가 올라가는 현상이
-        // 발생하는 듯 하다. 그래서 이펙트 걸려있지 않은 상황에서 패킷
-        // 날아오면 강제로 죽이는 코드를 집어넣는다.
+        // Where exactly is unclear, but after dying somewhere the coma
+        // effect seems to fly off, or the HP rises while dead.
+        // So code is put in that kills by force when the packet arrives
+        // with no effect attached.
         if (pCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
             pSlayer->setHP(0, ATTR_CURRENT);

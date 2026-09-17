@@ -2,7 +2,7 @@
 //
 // Filename    : GGServerChatHandler.cpp
 // Written By  : inthesky
-// Description : 서버간 Whisper Chat을 수행한다.
+// Description : Carries out Whisper Chat between servers.
 //
 //----------------------------------------------------------------------
 

@@ -37,19 +37,19 @@ void CGThrowItemHandler::execute(CGThrowItem* pPacket, Player* pPlayer)
     try {
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
 
-        // 게임 플레이어의 상태가 정상이 아니라면 걍 리턴한다.
+        // Just return if the game player's state is not normal.
         if (pGamePlayer->getPlayerStatus() != GPS_NORMAL)
             return;
 
         Creature* pCreature = pGamePlayer->getCreature();
-        // 플레이어가 슬레이어가 아니라면 걍 리턴한다.
+        // Just return if the player is not a Slayer.
         if (!pCreature->isSlayer())
             return;
 
         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
         Assert(pSlayer != NULL);
 
-        // 완전 안전지대라면 기술 사용 불가. by sigi. 2002.11.14
+        // A complete safe zone forbids skill use.
         ZoneLevel_t ZoneLevel = pSlayer->getZone()->getZoneLevel(pSlayer->getX(), pSlayer->getY());
         if (ZoneLevel & COMPLETE_SAFE_ZONE) {
             GCSkillFailed1 _GCSkillFailed1;

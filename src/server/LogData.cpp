@@ -46,21 +46,21 @@ LogData::~LogData() {}
 uint LogData::getSize(void) {
     uint rValue = 0;
 
-    // 타입 사이즈
+    // type size
     rValue += szshort;
 
-    // 존 아이디
+    // zone id
     rValue += szshort;
 
-    // 소스
+    // source
     rValue += szBYTE;
     rValue += m_Source.size();
 
-    // 타겟
+    // target
     rValue += szBYTE;
     rValue += m_Target.size();
 
-    // 컨텐트
+    // content
     rValue += szshort;
     rValue += m_Content.size();
 

@@ -8,10 +8,10 @@
 //
 // Mutex-Attribute Class
 //
-// Mutex-Attribute 클래스는 동일한 속성(attribute)의 Mutex 클래스를
-// 여러 개 생성할 필요가 있을 때 pthread_mutex_init()의 파라미터로
-// 사용된다. 즉 하나의 Mutex-Attribute 객체만 생성해놓으면 된다는
-// 뜻이다.
+// The Mutex-Attribute class is used as the parameter to pthread_mutex_init()
+// when several Mutex objects with the same attribute have to be created.
+// That is, only one Mutex-Attribute object has to be created for
+// all of them.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -69,8 +69,8 @@ public:
     //
     // do not return pthread_mutexattr_t value !!
     // use pthread_mutexattr_t pointer instead.
-    // (pthread_mutexattr_t 에 대해 assignment 가 지원되지 않을
-    // 가능성 있음)
+    // (assignment may not be supported for
+    // pthread_mutexattr_t)
     //
     pthread_mutexattr_t* getAttr() {
         return &m_Attr;

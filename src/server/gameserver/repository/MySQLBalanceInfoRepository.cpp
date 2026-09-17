@@ -19,7 +19,7 @@ namespace {
 //    out at 2431521747, the vampire and ousters ladders at 3344798380):
 //    atoi truncates the 64-bit strtol result to int, i.e. a negative
 //    value, which the caller's DWORD Exp_t turns back into the original
-//    number — lossless below 2^32.
+//    number -- lossless below 2^32.
 struct LadderSpec {
     const char* max;
     const char* rows;

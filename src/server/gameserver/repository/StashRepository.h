@@ -10,7 +10,7 @@
 // columns ON the three race tables
 // (Slayer/Vampire/Ousters), written outside the normal character save by
 // the immediate-persist stash operations. isOusters selects which second
-// table is written — the WRITES fan out (Slayer always, plus the race's
+// table is written -- the WRITES fan out (Slayer always, plus the race's
 // own table) while the integrity-check READ targets only the character's
 // own table; see the quirk notes on the MySQL implementation.
 class StashRepository {

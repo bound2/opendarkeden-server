@@ -26,7 +26,7 @@ public:
 
 public:
     virtual QuestMessage canGiveReward(PlayerCreature* pPC) const;
-    // 쓰지 말 것.
+    // Do not use.
     virtual QuestMessage giveReward(PlayerCreature* pPC) const;
 
     bool isAnotherQuest() const {

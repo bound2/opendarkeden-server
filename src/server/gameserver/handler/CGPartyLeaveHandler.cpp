@@ -42,57 +42,57 @@ void CGPartyLeaveHandler::execute(CGPartyLeave* pPacket, Player* pPlayer)
 
     int PartyID = pCreature->getPartyID();
     if (PartyID == 0) {
-        // filelog("PARTY_EXCEPTION.log", "CGPartyLeaveHandler::execute() : 파티ID가 0입니다. [%s]",
+        // filelog("PARTY_EXCEPTION.log", "CGPartyLeaveHandler::execute() : the party ID is 0. [%s]",
         // pCreature->toString().c_str());
         throw ProtocolException();
     }
 
     GCPartyError gcPartyError;
 
-    // 타겟 이름이 NULL이라면 스스로 파티를 떠나고자 하는 것이다.
+    // An empty target name means one wants to leave the party oneself.
     if (TargetName == "") {
-        // 글로벌 파티에서 삭제해 준다.
-        // 2명인 상태에서 다른 하나를 추방했다면,
-        // 이 내부에서 글로벌 파티는 삭제된다.
-        // 남은 파티원들의 ID는 0으로 바뀐다.
-        // cout << "===== 파티를 떠나기 전의 글로벌 파티 매니저 상태" << endl;
+        // Delete from the global party.
+        // If one of two members expelled the other,
+        // the global party is deleted inside this.
+        // The remaining party members' IDs become 0.
+        // cout << "===== Global party manager state before leaving the party" << endl;
         // cout << g_pGlobalPartyManager->toString() << endl;
         // cout << "================================================" << endl;
 
         g_pGlobalPartyManager->deletePartyMember(PartyID, pCreature);
 
-        // cout << "===== 파티를 떠난 후의 글로벌 파티 매니저 상태" << endl;
+        // cout << "===== Global party manager state after leaving the party" << endl;
         // cout << g_pGlobalPartyManager->toString() << endl;
         // cout << "================================================" << endl;
 
-        // 로컬 파티에서 삭제해준다.
+        // Delete from the local party.
         LocalPartyManager* pLocalPartyManager = pZone->getLocalPartyManager();
         Assert(pLocalPartyManager != NULL);
         pLocalPartyManager->deletePartyMember(PartyID, pCreature);
     }
-    // 이름이 다르다면 파티 내에 존재하는 다른 파티원을 추방하고자 하는 것이다.
+    // A different name means one wants to expel another member of the party.
     else {
-        // cout << "===== 추방전의 글로벌 파티 매니저 상태" << endl;
+        // cout << "===== Global party manager state before the expulsion" << endl;
         // cout << g_pGlobalPartyManager->toString() << endl;
         // cout << "=======================================" << endl;
 
-        // 글로벌 파티에서 삭제해준다.
-        // 2명인 상태에서 다른 하나를 추방했다면,
-        // 이 내부에서 글로벌 파티는 삭제된다.
-        // 남은 파티원들의 ID는 0으로 바뀐다.
+        // Delete from the global party.
+        // If one of two members expelled the other,
+        // the global party is deleted inside this.
+        // The remaining party members' IDs become 0.
         g_pGlobalPartyManager->expelPartyMember(PartyID, pCreature, TargetName);
 
-        // cout << "===== 추방후의 글로벌 파티 매니저 상태" << endl;
+        // cout << "===== Global party manager state after the expulsion" << endl;
         // cout << g_pGlobalPartyManager->toString() << endl;
         // cout << "=======================================" << endl;
 
-        // 차인 놈을 로컬 파티에서 삭제해준다.
+        // Delete the expelled one from the local party.
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
         Creature* pTargetCreature = g_pPCFinder->getCreature_LOCKED(TargetName);
         // Assert(pTargetCreature != NULL);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // NoSuch removed.
         if (pTargetCreature == NULL) {
             return;
         }
@@ -102,12 +102,12 @@ void CGPartyLeaveHandler::execute(CGPartyLeave* pPacket, Player* pPlayer)
         LocalPartyManager* pLocalPartyManager = pTargetZone->getLocalPartyManager();
         Assert(pLocalPartyManager != NULL);
 
-        // cout << "===== 추방 전의 로컬 파티 매니저 상태" << endl;
+        // cout << "===== Local party manager state before the expulsion" << endl;
         // cout << pLocalPartyManager->toString() << endl;
         // cout << "=======================================" << endl;
 
         pLocalPartyManager->deletePartyMember(PartyID, pTargetCreature);
-        // cout << "로컬 파티에서 추방당한 플레이어를 삭제했습니다." << endl;
+        // cout << "The expelled player was deleted from the local party." << endl;
 
         __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
     }

@@ -49,14 +49,14 @@ void PCWarLimiter::load()
 //--------------------------------------------------------------------------------
 // saveCurrent
 //
-// lock걸린 상태에서 불려야 한다.
+// Must be called with the lock held.
 //--------------------------------------------------------------------------------
 void PCWarLimiter::clearCurrent()
 
 {
     __BEGIN_TRY
 
-    // 참가 인원을 0으로
+    // Set the participant count to 0
     int num = m_LimitInfos.size();
     for (int i = 0; i < num; i++) {
         LimitInfo_t* pLI = &(m_LimitInfos[i]);
@@ -64,7 +64,7 @@ void PCWarLimiter::clearCurrent()
         pLI->setCurrent(0);
     }
 
-    // DB에도 0으로 바꿔준다.
+    // Set it to 0 in the DB too.
     defaultWarInfoRepository().clearRaceWarCurrentNums(getTableName());
 
     __END_CATCH
@@ -73,7 +73,7 @@ void PCWarLimiter::clearCurrent()
 //--------------------------------------------------------------------------------
 // saveCurrent
 //
-// lock걸린 상태에서 불려야 한다.
+// Must be called with the lock held.
 //--------------------------------------------------------------------------------
 void PCWarLimiter::saveCurrent(const LevelLimitInfo* pLI) const
 
@@ -411,7 +411,7 @@ void RaceWarLimiter::clearPCList()
 
     for (size_t r = 0; r < entries.size(); r++) {
         const string& Name = entries[r].name;
-        // Column 1 of the SELECT, which is Name — see WarInfoRepository.h.
+        // Column 1 of the SELECT, which is Name -- see WarInfoRepository.h.
         int Race = entries[r].race;
 
         file << "[" << Race << "] " << Name << endl;

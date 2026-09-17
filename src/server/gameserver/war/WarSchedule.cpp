@@ -56,7 +56,7 @@ void WarSchedule::makeWarInfo(WarInfo* pWarInfo) const
     Assert(pWar != NULL);
 
     //---------------------------------------------------
-    // 남은 전쟁 시간 구하기.. -_-; 따로 빼야돼...
+    // Get the remaining war time.. this should be pulled out separately...
     //---------------------------------------------------
     VSDateTime dt(VSDateTime::currentDateTime());
     int endHour = m_ScheduledTime.time().hour();
@@ -81,7 +81,7 @@ void WarSchedule::makeWarInfo(WarInfo* pWarInfo) const
     //	cout << "startTime : " << startTime << endl;
 
     //---------------------------------------------------
-    // WarInfo 값 설정
+    // Set the WarInfo values
     //---------------------------------------------------
     pWar->makeWarInfo(pWarInfo);
     pWarInfo->setRemainTime(remainSec);
@@ -157,7 +157,7 @@ void WarSchedule::tinysave(const string& query)
 
     /*		if( pStmt->getAffectedRowCount() == 0 )
                 {
-                    filelog( "WarError.log", "WarSchedule::tinySave() DB에 WarSchedule이 없거나 정보가 잘못되었습니다.
+                    filelog( "WarError.log", "WarSchedule::tinySave() the WarSchedule is missing from the DB or its information is wrong.
            ZoneID:%d, WarID:%d, Query:%s", pWarScheduler->getZone()->getZoneID(), pWar->getWarID(), query.c_str() );
                     SAFE_DELETE(pStmt);
                     return;
@@ -172,7 +172,7 @@ bool WarSchedule::heartbeat()
     __BEGIN_TRY
 
     if (Schedule::heartbeat()) {
-        // pSchedule가 실행되었다.
+        // pSchedule ran.
         if (m_pWork != NULL) {
             War* pWar = dynamic_cast<War*>(m_pWork);
             Assert(pWar != NULL);

@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GCStashListFill.cpp
-// Description : gameserver-side half of GCStashList — setStashItem()
+// Description : gameserver-side half of GCStashList -- setStashItem()
 //               converts a live Item into the packet's wire fields, so its
 //               definition lives with the game objects, out of the wire
 //               library (see src/Core/GCStashList.cpp).
@@ -101,8 +101,8 @@ void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
         m_pItems[rack][index].grade = pItem->getGrade();
         m_pItems[rack][index].enchantLevel = pItem->getEnchantLevel();
 
-        // 벨트일 경우에는 안에 있는 아이템까지 함께 세팅해줘야한다.
-        // 아, 씨바 졸라 귀찮네.
+        // For a belt, the items inside it have to be set too.
+        // Which is a nuisance.
         pBelt = dynamic_cast<Belt*>(pItem);
         pItemInfo = g_pItemInfoManager->getItemInfo(pBelt->getItemClass(), pBelt->getItemType());
         pocketCount = dynamic_cast<BeltInfo*>(pItemInfo)->getPocketCount();
@@ -110,7 +110,7 @@ void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
 
         for (i = 0; i < pocketCount; i++) {
             Item* pBeltItem = pBeltInventory->getItem((int)i, 0);
-            // 슬랏에 아이템이 있다면...
+            // If there is an item in the slot...
             if (pBeltItem != NULL) {
                 SubItemInfo* pSubItemInfo = new SubItemInfo;
                 Assert(pSubItemInfo != NULL);
@@ -121,7 +121,7 @@ void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
                 pSubItemInfo->setItemNum(pBeltItem->getNum());
                 pSubItemInfo->setSlotID(i);
 
-                // 만든 정보를 해당하는 리스트에다가 더한다.
+                // Add the information that was built to the matching list.
                 m_pSubItems[rack][index].push_back(pSubItemInfo);
             }
         }
@@ -138,8 +138,8 @@ void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
         m_pItems[rack][index].grade = pItem->getGrade();
         m_pItems[rack][index].enchantLevel = pItem->getEnchantLevel();
 
-        // 벨트일 경우에는 안에 있는 아이템까지 함께 세팅해줘야한다.
-        // 아, 씨바 졸라 귀찮네.
+        // For a belt, the items inside it have to be set too.
+        // Which is a nuisance.
         pOustersArmsband = dynamic_cast<OustersArmsband*>(pItem);
         pItemInfo = g_pItemInfoManager->getItemInfo(pOustersArmsband->getItemClass(), pOustersArmsband->getItemType());
         pocketCount = dynamic_cast<OustersArmsbandInfo*>(pItemInfo)->getPocketCount();
@@ -147,7 +147,7 @@ void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
 
         for (i = 0; i < pocketCount; i++) {
             Item* pOustersArmsbandItem = pOustersArmsbandInventory->getItem((int)i, 0);
-            // 슬랏에 아이템이 있다면...
+            // If there is an item in the slot...
             if (pOustersArmsbandItem != NULL) {
                 SubItemInfo* pSubItemInfo = new SubItemInfo;
                 Assert(pSubItemInfo != NULL);
@@ -158,7 +158,7 @@ void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
                 pSubItemInfo->setItemNum(pOustersArmsbandItem->getNum());
                 pSubItemInfo->setSlotID(i);
 
-                // 만든 정보를 해당하는 리스트에다가 더한다.
+                // Add the information that was built to the matching list.
                 m_pSubItems[rack][index].push_back(pSubItemInfo);
             }
         }

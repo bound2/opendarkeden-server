@@ -38,9 +38,9 @@ public:
     }
 
 private:
-    SpriteType_t m_TargetMonsterSpriteType; // 퀘스트에서 잡을 몬스터의 스프라이트 타입
-    bool m_IsChief;                         // 퀘스트에서 잡을 몬스터가 chief이어야 하는가?
-    int m_GoalNum;                          // 퀘스트에서 잡을 몬스터 수
+    SpriteType_t m_TargetMonsterSpriteType; // the sprite type of the monster the quest kills
+    bool m_IsChief;                         // does the monster the quest kills have to be a chief?
+    int m_GoalNum;                          // how many monsters the quest kills
 };
 
 #endif

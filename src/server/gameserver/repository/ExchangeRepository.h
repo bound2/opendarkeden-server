@@ -14,11 +14,11 @@
 //
 // Connections. The listing and order statements run on the thread's
 // DARKEDEN connection. The point statements ask
-// g_pDatabaseManager->getConnection("USERINFO") — but the string overload
+// g_pDatabaseManager->getConnection("USERINFO") -- but the string overload
 // ignores its argument and returns that same DARKEDEN connection (the
 // USERINFO socket is getUserInfoConnection(), which nothing here calls).
-// initdb/DARKEDEN.sql does not create AccountPoint or PointLedger — both
-// are in initdb/USERINFO.sql — so against the shipped schema every point
+// initdb/DARKEDEN.sql does not create AccountPoint or PointLedger -- both
+// are in initdb/USERINFO.sql -- so against the shipped schema every point
 // statement fails with ER_NO_SUCH_TABLE, is logged to DBError.log and
 // thrown as END_DB's DatabaseError. ExchangeService::buyListing reads the
 // buyer's balance before it begins, so a buy always throws out of
@@ -46,7 +46,7 @@
 //
 // ExchangeListing's UNIQUE KEY (ItemClass, ItemID, ObjectID), and the
 // fact that no statement deletes a listing row, mean createListing for an
-// object that was ever listed — whatever status its old row is in now —
+// object that was ever listed -- whatever status its old row is in now --
 // fails with ER_DUP_ENTRY (thrown as a DatabaseError). ExchangeOrder's
 // UNIQUE ListingID does the same to a second order on one listing.
 //
@@ -150,8 +150,8 @@ public:
     // AccountPoint.PointBalance (0 when it has no row); false, nothing
     // written, when balance + delta is below 0; otherwise REPLACE INTO
     // AccountPoint with the new balance and UpdatedAt = now, then an
-    // INSERT INTO PointLedger — with the IdempotencyKey column when a key
-    // is given, without it otherwise — and balanceAfter is the new
+    // INSERT INTO PointLedger -- with the IdempotencyKey column when a key
+    // is given, without it otherwise -- and balanceAfter is the new
     // balance. The caller cannot tell the two false results apart.
     virtual bool adjustPoints(const std::string& account, int delta, int& balanceAfter, uint8_t reason,
                               int64_t refListingID, int64_t refOrderID, const std::string& idempotencyKey) = 0;

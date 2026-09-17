@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : CGShopRequestSellHandler.cpp
-// Written By  : 김성민
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -35,8 +34,8 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// 플레이어가 팔려고 하는 아이템을 가지고 있는지 확인한 다음에,
-// 일반 아이템과 모터 사이클 처리 부분으로 분기한다.
+// Check that the player holds the item it wants to sell, then
+// branch into the ordinary item and the motorcycle handling.
 //////////////////////////////////////////////////////////////////////////////
 void CGShopRequestSellHandler::execute(CGShopRequestSell* pPacket, Player* pPlayer) {
     __BEGIN_TRY __BEGIN_DEBUG_EX
@@ -53,7 +52,7 @@ void CGShopRequestSellHandler::execute(CGShopRequestSell* pPacket, Player* pPlay
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
 
     if (OPCODE == SHOP_REQUEST_SELL_NORMAL) {
-        // 플레이어가 팔려고 하는 아이템을 가지고 있는지 검사
+        // Check that the player holds the item it wants to sell
         Inventory* pInventory = pPC->getInventory();
         if (pInventory->hasItem(ITEMOID) == false)
             throw ProtocolException("CGShopRequestSellHandler::execute() : No such item to sell!");
@@ -67,15 +66,15 @@ void CGShopRequestSellHandler::execute(CGShopRequestSell* pPacket, Player* pPlay
         // ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo( pItem->getItemClass(), pItem->getItemType() );
         // Assert(pItemInfo!=NULL);
 
-        // 유니크 아이템은 못판다.
-        // 특정 아이템 클래스는 팔 수 없다. by sigi. 2002.8.29
-        // 선물 상자는 팔 수 있다. by bezz. 2002.12.13
-        // 커플링은 팔 수 없다. by Sequoia. 2003. 3. 3
-        // ItemUtil 안에 canSell 로 Extract 2003. 3. 3
+        // A unique item cannot be sold.
+        // Certain item classes cannot be sold.
+        // A gift box can be sold.
+        // A couple ring cannot be sold.
+        // Extracted into canSell in ItemUtil
         if (!canSell(pItem)) {
             return sendFailPacket(pPacket, pPlayer);
         }
-        // 唐珂쇌掘齡돨膠틔꼇횻놔簡
+        // A time-limited item may not be sold
         // add by Coffee 2007-8-5
         if (pItem->isTimeLimitItem()) {
             return sendFailPacket(pPacket, pPlayer);
@@ -102,7 +101,7 @@ void CGShopRequestSellHandler::execute(CGShopRequestSell* pPacket, Player* pPlay
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// 일반 아이템을 처리한다.
+// Handles an ordinary item.
 //
 //////////////////////////////////////////////////////////////////////////////
 void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player* pPlayer) {
@@ -134,7 +133,7 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
     }
     */
 
-    // NoSuch제거. by sigi. 2002.5.2
+    // NoSuch removed.
     pNPCBase = pZone->getCreature(NPCID);
 
     if (pNPCBase == NULL || !pNPCBase->isNPC())
@@ -142,14 +141,14 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
 
     NPC* pNPC = dynamic_cast<NPC*>(pNPCBase);
 
-    // 플레이어가 팔려고 하는 아이템을 가지고 있는지 검사
+    // Check that the player holds the item it wants to sell
     Inventory* pInventory = pPC->getInventory();
     // Gold_t     playerMoney = pPC->getGold();
     Item* pItem = pInventory->getItemWithObjectID(ITEMOID);
     ItemNum_t itemNumber = pItem->getNum();
     Price_t itemPrice = g_pPriceManager->getPrice(pItem, pNPC->getMarketCondBuy(), SHOP_RACK_NORMAL, pPC) * itemNumber;
 
-    // 플레이어의 인벤토리에 아이템을 제거한다.
+    // Remove the item from the player's inventory.
     pInventory->deleteItem(ITEMOID);
     pItem->whenPCLost(pPC);
 
@@ -159,8 +158,8 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
         throw DisconnectException("Item to delete is not in the database.");
     }
 
-    // 만약 벨트라면 안에 있는 포션을 삭제해준다.
-    // DB에서 지우는 것은 Belt::destroy()를 부르는 것만으로 포션까지 삭제된다.
+    // For a belt, the potions inside it are deleted too.
+    // Deleting from the DB takes only a Belt::destroy() call; the potions go with it.
     if (pItem->getItemClass() == Item::ITEM_CLASS_BELT) {
         Inventory* pBeltInventory = dynamic_cast<Belt*>(pItem)->getInventory();
         for (int y = 0; y < pBeltInventory->getHeight(); y++) {
@@ -174,46 +173,46 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
         }
     }
 
-    // Skull 일 경우 Variable Manager 에서 머리값 배수 값으로 가격을 새로 계산한다
+    // For a Skull the price is recomputed with the head price multiplier from the Variable Manager
     if (pItem->getItemClass() == Item::ITEM_CLASS_SKULL) {
         itemPrice = itemPrice * (g_pVariableManager->getHeadPriceBonus() / 100);
     }
 
-    // ItemTrace Log 를 남겨야 한다면 남긴다
+    // Leave an ItemTrace Log if one has to be left
     if (pItem != NULL && pItem->isTraceItem()) {
         remainTraceLog(pItem, pCreature->getName(), pNPC->getName(), ITEM_LOG_DELETE, DETAIL_SHOPSELL);
     }
 
-    // 플레이어에게 물건값을 지불한다.
+    // Pay the player for the goods.
     // pPC->setGoldEx(playerMoney+itemPrice);
     // by sigi. 2002.9.4
     pPC->increaseGoldEx(itemPrice);
 
-    // 플레이어가 물건 팔 때 처리할 것들을 처리한다.
+    // Handle what has to be handled when the player sells goods.
     pPC->sellItem(pItem);
 
     if (pItem->getItemClass() == Item::ITEM_CLASS_MOON_CARD && pItem->getItemType() == 4) {
         addOlympicStat(pPC, 4, (uint)(itemNumber));
     }
 
-    // NPC에게 자리가 충분하다면 플레이어가 판 아이템을 보관한다.
-    // 운영자 명령어로 만든 아이템은 바로 없앤다.
-    // 단 스페셜 아이템만을 보관한다. 노말 아이템은 그냥 버림.
-    // 퀘스트 아이템은 보관하지 않고 버린다.
+    // If the NPC has enough room it keeps the item the player sold.
+    // An item made by a GM command is removed right away.
+    // Only a special item is kept; a normal item is simply thrown away.
+    // A quest item is thrown away rather than kept.
     if (pNPC->getShopType() == SHOPTYPE_NORMAL && pItem->getCreateType() != Item::CREATE_TYPE_CREATE &&
         !pItem->getOptionTypeList().empty() && !pItem->isTimeLimitItem()) {
         bSpecialItem = true;
         index = pNPC->getFirstEmptySlot(SHOP_RACK_SPECIAL);
 
         if (index < SHOP_RACK_INDEX_MAX) {
-            // 아이템을 추가한다.
+            // Add the item.
             pNPC->insertShopItem(SHOP_RACK_SPECIAL, index, pItem);
 
-            // 스페셜 아이템을 NPC가 진열장에 추가했으므로, 상점 버전이 올라간다.
+            // The NPC added a special item to its rack, so the shop version goes up.
             pNPC->increaseShopVersion(SHOP_RACK_SPECIAL);
 
             ////////////////////////////////////////////////////////////////////////////
-            // 근처의 플레이어들에게는 GCShopBought를...
+            // GCShopBought to the players nearby...
             ////////////////////////////////////////////////////////////////////////////
 
             int CenterX = pNPC->getX();
@@ -245,23 +244,23 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
             try {
                 for (int zx = CenterX - 5; zx <= CenterX + 5; zx++) {
                     for (int zy = CenterY - 5; zy <= CenterY + 5; zy++) {
-                        // 바운드를 넘어가지 않는가를 체크
+                        // Check that the bounds are not crossed
                         if (!isValidZoneCoord(pZone, zx, zy))
                             continue;
 
                         Tile& tile = pZone->getTile(zx, zy);
 
-                        // 걸어다니는 크리쳐를 검색
+                        // Search the walking creatures
                         if (tile.hasCreature(Creature::MOVE_MODE_WALKING)) {
                             pNearCreature = tile.getCreature(Creature::MOVE_MODE_WALKING);
                             if (pNearCreature == NULL)
                                 continue;
 
-                            // 방금 물건을 판 플레이어라면 생략
+                            // Skip the player that just sold the goods
                             if (pNearCreature->getObjectID() == pPC->getObjectID())
                                 continue;
 
-                            // 만약 플레이어라면 패킷을 보내준다.
+                            // Send the packet if it is a player.
                             if (pNearCreature->isPC()) {
                                 pNearPlayer = pNearCreature->getPlayer();
                                 if (pNearPlayer == NULL)
@@ -269,17 +268,17 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
                                 pNearPlayer->sendPacket(&boughtpkt);
                             }
                         }
-                        // 날아다니는 크리쳐를 검색
+                        // Search the flying creatures
                         if (tile.hasCreature(Creature::MOVE_MODE_FLYING)) {
                             pNearCreature = tile.getCreature(Creature::MOVE_MODE_FLYING);
                             if (pNearCreature == NULL)
                                 continue;
 
-                            // 방금 물건을 판 플레이어라면 생략
+                            // Skip the player that just sold the goods
                             if (pNearCreature->getObjectID() == pPC->getObjectID())
                                 continue;
 
-                            // 만약 플레이어라면 패킷을 보내준다.
+                            // Send the packet if it is a player.
                             if (pNearCreature->isPC()) {
                                 pNearPlayer = pNearCreature->getPlayer();
                                 if (pNearPlayer == NULL)
@@ -304,7 +303,7 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
         SAFE_DELETE(pItem);
     }
 
-    // 물건을 산 플레이어에게 GCShopSellOK를...보낸다.
+    // Send GCShopSellOK to the player that sold the goods.
     GCShopSellOK okpkt;
     okpkt.setObjectID(NPCID);
     if (bSpecialItem)
@@ -313,7 +312,7 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
         okpkt.setShopVersion(pNPC->getShopVersion(SHOP_RACK_NORMAL));
     okpkt.setItemObjectID(ITEMOID);
     // okpkt.setPrice(playerMoney+itemPrice);
-    //  playerMoney + itemPrice 가 MAX_MONEY를 넘어갈 수 있다.
+    //  playerMoney + itemPrice can go past MAX_MONEY.
     //  2003.1.8 by bezz
     okpkt.setPrice(pPC->getGold());
     pPlayer->sendPacket(&okpkt);
@@ -326,7 +325,7 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// 모터 사이클을 처리한다.
+// Handles a motorcycle.
 //
 //////////////////////////////////////////////////////////////////////////////
 void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Player* pPlayer) {
@@ -334,7 +333,7 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
 
 #ifdef __GAME_SERVER__
 
-        // 패킷 정보를 뽑아낸다.
+        // Pull the packet information out.
         ObjectID_t NPCID = pPacket->getObjectID();
     ObjectID_t ITEMOID = pPacket->getItemObjectID();
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
@@ -357,7 +356,7 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
     }
     */
 
-    // NoSuch제거. by sigi. 2002.5.2
+    // NoSuch removed.
     pNPCBase = pZone->getCreature(NPCID);
 
     if (pNPCBase == NULL || !pNPCBase->isNPC())
@@ -367,18 +366,18 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
     int CenterX = pNPC->getX();
     int CenterY = pNPC->getY();
 
-    // 플레이어가 팔려고 하는 아이템을 가지고 있는지 검사
+    // Check that the player holds the item it wants to sell
     Inventory* pInventory = pPC->getInventory();
     Gold_t playerMoney = pPC->getGold();
     Item* pItem = pInventory->getItemWithObjectID(ITEMOID);
     if (pItem == NULL)
         return sendFailPacket(pPacket, pPlayer);
 
-    // 주위 일정 범위를 검색해서, 모터 사이클이 있는지 확인한다.
+    // Search a range around, to see whether a motorcycle is there.
     try {
         for (int zx = CenterX - 5; zx <= CenterX + 5; zx++) {
             for (int zy = CenterY - 5; zy <= CenterY + 5; zy++) {
-                // 바운드를 넘어가지 않는가를 체크
+                // Check that the bounds are not crossed
                 if (!isValidZoneCoord(pZone, zx, zy))
                     continue;
 
@@ -388,30 +387,30 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
                     if (pItemOnTile == NULL)
                         continue;
 
-                    // 만일 아이템이 타일 위에 있을 경우, 모터 사이클인지 확인한다.
+                    // If an item sits on the tile, check whether it is a motorcycle.
                     if (pItemOnTile->getItemClass() == Item::ITEM_CLASS_MOTORCYCLE) {
                         DWORD targetID = dynamic_cast<Key*>(pItem)->getTarget();
                         ItemID_t motorcycleID = pItemOnTile->getItemID();
 
                         if (targetID == motorcycleID) {
-                            // 모터사이클을 DB에서 삭제한다.
+                            // Delete the motorcycle from the DB.
                             pItemOnTile->destroy();
 
-                            // 플레이어의 인벤토리에서 열쇠를 제거한다.
+                            // Remove the key from the player's inventory.
                             pInventory->deleteItem(ITEMOID);
                             pItem->destroy();
                             SAFE_DELETE(pItem);
 
-                            // 열쇠 값이 아니라, 오토바이 값을 줘야 한다.
+                            // The motorcycle price, not the key price, has to be paid.
                             Price_t itemPrice =
                                 g_pPriceManager->getPrice(pItemOnTile, pNPC->getMarketCondBuy(), SHOP_RACK_NORMAL, pPC);
 
-                            // 플레이어의 돈을 늘린다.
+                            // Increase the player's money.
                             // pPC->setGoldEx(playerMoney+itemPrice);
                             // by sigi. 2002.9.4
                             pPC->increaseGoldEx(itemPrice);
 
-                            // 물건을 판 플레이어에게 GCShopSellOK를...보낸다.
+                            // Send GCShopSellOK to the player that sold the goods.
                             GCShopSellOK okpkt;
                             okpkt.setObjectID(NPCID);
                             if (!pItemOnTile->getOptionTypeList().empty())
@@ -422,19 +421,19 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
                             okpkt.setPrice(playerMoney + itemPrice);
                             pPlayer->sendPacket(&okpkt);
 
-                            // 뻑킹 센터에서 박스를 삭제해 준다.
+                            // Delete the box from the parking center.
                             if (g_pParkingCenter->hasMotorcycleBox(motorcycleID))
                                 g_pParkingCenter->deleteMotorcycleBox(motorcycleID);
 
-                            // NPC에게 자리가 충분하다면 플레이어가 판 아이템을 보관한다.
-                            // 단 스페셜 아이템만을 보관한다. 노말 아이템은 그냥 버림.
+                            // If the NPC has enough room it keeps the item the player sold.
+                            // Only a special item is kept; a normal item is simply thrown away.
                             // if (pItemOnTile->getOptionType() != 0)
                             //{
                             //	index = pNPC->getFirstEmptySlot(SHOP_RACK_SPECIAL);
                             //	if (index < SHOP_RACK_INDEX_MAX)
                             //	{
                             //		pNPC->insertShopItem(SHOP_RACK_SPECIAL, index, pItemOnTile);
-                            //		// 스페셜 아이템을 NPC가 진열장에 추가했으므로, 상점 버전이 올라간다.
+                            //		// The NPC added a special item to its rack, so the shop version goes up.
                             //		pNPC->increaseShopVersion(SHOP_RACK_SPECIAL);
                             //	}
                             //}
@@ -443,7 +442,7 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
                             //	SAFE_DELETE(pItemOnTile);
                             //}
 
-                            // 모터 사이클을 찾았으므로, 할 일이 끝났다.
+                            // The motorcycle was found, so the work is done.
                             return;
                         }
                     }
@@ -454,8 +453,8 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
         filelog("shopbug_packet.log", "%s", t.toString().c_str());
     }
 
-    // FOR 루프를 다 돌고, 이까지 왔다는 것은 근처에 오토바이가 없다는 말이당...
-    // 그러므로 모터 사이클 팔기가 실패했다는 것을 알린다.
+    // Coming this far through the FOR loop means there is no motorcycle nearby...
+    // So report that selling the motorcycle failed.
     GCShopSellFail failpkt;
     failpkt.setObjectID(NPCID);
     pPlayer->sendPacket(&failpkt);
@@ -467,7 +466,7 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// 해골 한꺼번에 팔기를 실행한다.
+// Runs selling every skull at once.
 //
 //////////////////////////////////////////////////////////////////////////////
 void CGShopRequestSellHandler::executeOpAllSkull(CGShopRequestSell* pPacket, Player* pPlayer) {
@@ -496,7 +495,7 @@ void CGShopRequestSellHandler::executeOpAllSkull(CGShopRequestSell* pPacket, Pla
     }
     */
 
-    // NoSuch제거. by sigi. 2002.5.2
+    // NoSuch removed.
     pNPCBase = pZone->getCreature(NPCID);
 
     if (pNPCBase == NULL || !pNPCBase->isNPC())
@@ -513,9 +512,9 @@ void CGShopRequestSellHandler::executeOpAllSkull(CGShopRequestSell* pPacket, Pla
         for (uint x = 0; x < pInventory->getWidth(); x++) {
             pItem = pInventory->getItem(x, y);
 
-            // 아이템이 존재하고, 해골이라면...
+            // If the item exists and is a skull...
             if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_SKULL) {
-                // 아이템 가격을 계산해서 플레이어의 돈에다 더한다.
+                // compute the item price and add it to the player's money.
                 // itemPrice = g_pPriceManager->getPrice(pItem, pNPC->getMarketCondBuy(), SHOP_RACK_NORMAL, pPC) *
                 // pItem->getNum(); playerMoney += itemPrice;
 
@@ -523,7 +522,7 @@ void CGShopRequestSellHandler::executeOpAllSkull(CGShopRequestSell* pPacket, Pla
                 itemPrice +=
                     g_pPriceManager->getPrice(pItem, pNPC->getMarketCondBuy(), SHOP_RACK_NORMAL, pPC) * pItem->getNum();
 
-                // 인벤토리 및 DB에서 아이템을 삭제한다.
+                // Delete the item from the inventory and the DB.
                 pInventory->deleteItem(x, y);
                 pItem->destroy();
                 SAFE_DELETE(pItem);
@@ -533,12 +532,12 @@ void CGShopRequestSellHandler::executeOpAllSkull(CGShopRequestSell* pPacket, Pla
 
     itemPrice = itemPrice * (g_pVariableManager->getHeadPriceBonus() / 100);
 
-    // 플레이어에게 물건값을 지불한다.
+    // Pay the player for the goods.
     // pPC->setGoldEx(playerMoney);
     // by sigi. 2002.9.4
     pPC->increaseGoldEx(itemPrice);
 
-    // 물건을 산 플레이어에게 GCShopSellOK를...보낸다.
+    // Send GCShopSellOK to the player that sold the goods.
     GCShopSellOK okpkt;
     okpkt.setObjectID(NPCID);
     okpkt.setShopVersion(pNPC->getShopVersion(SHOP_RACK_NORMAL));
@@ -920,7 +919,7 @@ void CGShopRequestSellHandler::executeOpSwapAdvancementItem(CGShopRequestSell* p
     okpkt.setPrice(0);
     pGamePlayer->sendPacket(&okpkt);
 
-    // ItemTrace Log 를 남겨야 한다면 남긴다
+    // Leave an ItemTrace Log if one has to be left
     if (pItem != NULL && pItem->isTraceItem()) {
         remainTraceLog(pItem, pCreature->getName(), pNPC->getName(), ITEM_LOG_DELETE, DETAIL_SHOPSELL);
     }
@@ -947,7 +946,7 @@ void CGShopRequestSellHandler::executeOpSwapAdvancementItem(CGShopRequestSell* p
 }
 //////////////////////////////////////////////////////////////////////////////
 //
-// 물건 팔기가 실패했다는 정보를 날려준댜.
+// Report that selling the goods failed.
 //
 //////////////////////////////////////////////////////////////////////////////
 void CGShopRequestSellHandler::sendFailPacket(CGShopRequestSell* pPacket, Player* pPlayer) {

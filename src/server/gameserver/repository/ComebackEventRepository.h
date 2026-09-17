@@ -61,7 +61,7 @@ public:
     // COUNT(*) of Donation<Personal|Guild>200501 rows for (Name, WorldID).
     virtual int countPersonalDonations(const std::string& name, int worldID) = 0;
     virtual int countGuildDonations(const std::string& name, int worldID) = 0;
-    // The two INSERTs are POSITIONAL — they name no columns, so they depend
+    // The two INSERTs are POSITIONAL -- they name no columns, so they depend
     // on each table's column order: (PlayerID, Name, WorldID, Amount,
     // DonationDateTime) and (GuildID, GuildName, PlayerID, Name, WorldID,
     // Amount, DonationDateTime), the date now().

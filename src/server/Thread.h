@@ -8,25 +8,25 @@
 //
 // POSIX Thread Class
 //
-// 만일 어떤 루틴을 쓰레드로 돌리려면, 일단 Thread 클래스를 상속
-// 받아 derived 클래스를 설계, run() 멤버함수만 재정의한 후,
-// derived 클래스의 객체를 생성해서 Start() 함수를 실행하면 된다.
+// To run some routine on a thread, inherit the Thread class, design a
+// derived class that reimplements only the run() member function, then
+// create an object of the derived class and call Start().
 //
-// 사용방법은 다음과 같다.
+// It is used like this.
 //
 // MDerivedThread * dt = new DerivedThread (...);
 // dt->Start();
 // delete dt;
 //
-// virtual destructor 가 정의된 이유는, 다음과 같은 상황에서 제대로
-// 동작하게 하기 위해서이다. ( 만일 정의하지 않으면 하위 클래스의
-// destructor 는 호출되지 않는다. )
+// The virtual destructor is defined so that the following works properly.
+// ( without it the derived class's
+// destructor is not called. )
 //
 // Thread * t = new DerivedThread (...);
 // t->Start();
 // delete t;
 //
-// 단 쓰레드 객체를 삭제하는 것과 쓰레드를 종료시키는 것은 무관하다.
+// Deleting the thread object has nothing to do with ending the thread.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -68,10 +68,10 @@ class Thread {
     //////////////////////////////////////////////////
 public:
     enum ThreadStatus {
-        READY,   // run 할 준비가 되어 있는 상태
-        RUNNING, // 실제로 running 중인 상태
-        EXITING, // 종료 직전 상태 (실제로 처리는 하고 있는 중임)
-        EXIT     // 완전히 종료한 상태
+        READY,   // ready to run
+        RUNNING, // actually running
+        EXITING, // just before exit (still doing work)
+        EXIT     // completely finished
     };
 
 
@@ -92,44 +92,44 @@ public:
     //////////////////////////////////////////////////
 
 public:
-    // 쓰레드가 최초로 동작하도록 해주는 trigger 의 역할을 하는 함수. 쓰레드
-    // 객체를 생성한 후에, 이 함수를 호출하면 내부적으로 derived 클래스의
-    // run() 멤버함수를 호출하게 된다.
+    // The trigger function that first sets the thread going. Calling it after
+    // creating the thread object calls the derived class's run() member
+    // function internally.
     virtual void start();
 
-    // 동작중인 쓰레드를 중단시킨다.
-    // 내부에 뮤텍스를 사용하는 하위 쓰레드 클래스에서만 가능하다.
+    // Stops a running thread.
+    // Only possible in a derived thread class that uses a mutex internally.
     virtual void stop();
 
     // Wait for this thread to finish. Cooperative implementations override
     // this so callers do not need to know which threading backend owns it.
     virtual void join();
 
-    // 쓰레드가 종료할 때까지 기다린다. 역시 쓰레드간에 사용된다. 보통은
-    // 쓰레드를 새로 생성시켜 특정 작업을 시킨 후 그 처리가 완료될 때까지
-    // 생성시킨 쓰레드를 잠재우는 과정에서 사용된다. 멀티프로세싱 환경
-    // 에서의 join 과 같은 역할을 한다.
+    // Waits until the thread finishes. Used between threads too. Usually it
+    // creates a thread, gives it a task, and sleeps the creating thread until
+    // that work is done. It plays the same role as join in a multiprocessing
+    // environment.
     //
-    // 주의할 점은 pthread_join() 은 현재 이 코드를 실행하는 쓰레드가
-    // 파라미터로 지정받은 쓰레드를 기다린다는 것이다. 즉, 특정 쓰레드가
-    // 또다른 특정 쓰레드를 기다리게 할 수는 없다.
+    // Note that pthread_join() makes the thread running this code wait for the
+    // thread given as the parameter. That is, one thread cannot be made to wait
+    // for another given thread.
     //
     // ex> Thread t;
     //     Thread::Join ( t );
     static void join(const Thread& t);
 
-    // 현재 쓰레드들 종료한다. 즉 특정 쓰레드를 종료시킨다는 말이 아니라,
-    // 이 메쏘드를 수행하는 쓰레드를 종료시킨다는 말이다. 이때, 특정
-    // 객체를 파라미터로 넘겨줌으로써 JOIN 하는 쓰레드가 그 값을 받아낼
-    // 수도 있다.
+    // Ends the current thread. That is, it does not end a given thread but the
+    // thread running this method. A given object can be passed as the parameter
+    // so that the JOINing thread can take that
+    // value.
     //
     // ex> Thread::Exit();
     //     or
     //     Thread::Exit(retval);
     static void exit(void* retval = NULL);
 
-    // 쓰레드에서 독립적으로 실행되는 코드가 들어가는 부분이다. Thread
-    // 클래스를 상속받은 하위 클래스는 항상 이 함수를 재정의해줘야 한다.
+    // Where the code that runs independently on the thread goes. A subclass of
+    // the Thread class always has to reimplement this function.
     virtual void run() {};
 
 
@@ -140,7 +140,7 @@ public:
     // get current thread's tid
     static TID self();
 
-    // 디버깅용이다. 쓰레드에 대한 정보를 string 의 형태로 반환한다.
+    // For debugging. Returns the thread's information as a string.
     virtual string toString() const;
 
     // get thread identifier

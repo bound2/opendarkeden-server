@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Filename : PKTReceiveOK.h
-// Desc		: 받은 자료에 대한 처리 여부를 파워링 서버에 답신한다.
+// Desc		: answers the PowerRing server whether the data received was handled.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __PKT_RECEIVE_OK_H__
@@ -10,10 +10,10 @@
 #include "Assert.h"
 #include "MPacket.h"
 
-// 패킷구조
+// packet layout
 struct _PKT_RECEIVE_OK {
-    int nSize; // 패킷 전체의 크기
-    int nCode; // 패킷 코드
+    int nSize; // the size of the whole packet
+    int nCode; // packet code
 };
 
 const int szPKTReceiveOK = sizeof(_PKT_RECEIVE_OK);
@@ -21,29 +21,29 @@ const int szPKTReceiveOK = sizeof(_PKT_RECEIVE_OK);
 // class PKTReceiveOK
 class PKTReceiveOK : public _PKT_RECEIVE_OK, public MPacket {
 public:
-    // 생성자
+    // constructor
     PKTReceiveOK();
 
 public:
-    // 패킷 아이디를 반환한다.
+    // Returns the packet id.
     MPacketID_t getID() const;
 
-    // 패킷의 크기를 반환한다.
+    // Returns the packet's size.
     MPacketSize_t getSize() const {
         return szPKTReceiveOK - szMPacketSize;
     }
 
-    // 새로운 패킷을 생성해서 반환
+    // Creates a new packet and returns it
     MPacket* create() {
         MPacket* pPacket = new PKTReceiveOK;
         Assert(pPacket != NULL);
         return pPacket;
     }
 
-    // 입력 스트림으로부터 데이터를 읽어서 패킷을 초기화 한다.
+    // Reads data from the input stream and initialises the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력 스트림으로 패킷의 바이너리 이미지를 보낸다.
+    // Sends the packet's binary image to the output stream.
     void write(SocketOutputStream& oStream);
 
     // debug message

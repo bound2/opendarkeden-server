@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////
-// 전쟁에 대한 전반적인 정보 및 전쟁 시작 및 종료시 처리루틴.
+// General war information and the routines run when a war starts and ends.
 ///////////////////////////////////////////////////////////////////
 
 #ifndef __GUILD_WAR_H__
@@ -63,11 +63,11 @@ public:
     virtual string toString() const;
 
 private:
-    ZoneID_t m_CastleZoneID;       // 전쟁과 관련된 성의 ZoneID
-    GuildID_t m_ChallangerGuildID; // WAR_GUILD 일때 전쟁을 신청한 길드의 ID
-    Gold_t m_RegistrationFee;      // 지급된 전쟁 신청금
+    ZoneID_t m_CastleZoneID;       // the ZoneID of the castle the war concerns
+    GuildID_t m_ChallangerGuildID; // the ID of the guild that applied for the war, for WAR_GUILD
+    Gold_t m_RegistrationFee;      // the war application fee that was paid
 
-    // 전쟁 결과
+    // war result
     Race_t m_WinnerRace;
     GuildID_t m_WinnerGuildID;
     bool m_bModifyCastleOwner;

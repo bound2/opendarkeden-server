@@ -4,7 +4,7 @@
 namespace {
 
 // MySQL implementation of BulletinBoardRepository. Quirks:
-//  - The INSERT lists no columns — "VALUES (0, ...)" — so it depends on
+//  - The INSERT lists no columns -- "VALUES (0, ...)" -- so it depends on
 //    the table's column ORDER (ID, ServerID, ZoneID, X, Y, Message, Type,
 //    TimeLimit) and on the literal 0 letting the auto-increment ID
 //    assign itself.

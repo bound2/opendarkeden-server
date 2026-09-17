@@ -33,7 +33,7 @@ uint WaitForMeet::waitPartner(PlayerCreature* pTargetPC) {
     __BEGIN_TRY
 
     if (pTargetPC == NULL)
-        return COUPLE_MESSAGE_LOGOFF; // 걍 이메시지 쓴다. 별로 여기서 리턴되는 일을 없을듯
+        return COUPLE_MESSAGE_LOGOFF; // just use this message. returning here is unlikely anyway
 
     PlayerCreature* pWaitingPC = getWaitingPC();
     if (pWaitingPC == NULL)
@@ -45,7 +45,7 @@ uint WaitForMeet::waitPartner(PlayerCreature* pTargetPC) {
 
     GCSystemMessage gcSystemMessage;
     //	StringStream msg;
-    //	msg << pWaitingPC->getName() << "님으로부터 커플 신청이 왔습니다.";
+    //	msg << pWaitingPC->getName() << " sent a couple request.";
 
     char msg[100];
     sprintf(msg, g_pStringPool->c_str(STRID_REQUEST_MEET), pWaitingPC->getName().c_str());
@@ -67,31 +67,31 @@ uint WaitForMeet::acceptPartner(PlayerCreature* pRequestedPC) {
     if (pWaitingPC == NULL)
         return COUPLE_MESSAGE_LOGOFF;
 
-    // 종족이 다르거나 성별이 같으면 안된다.
-    // 레벨 제한에 걸리거나 돈이 모자라도 안된다.
-    // 둘 중 한명이 이미 커플이라도 안된다.
+    // A different race or the same sex is not allowed.
+    // Failing the level limit or being short of money is not allowed either.
+    // Nor is one of the two already being in a couple.
     uint result = canMakeCouple(pRequestedPC, pWaitingPC);
     if (result != 0)
         return result;
 
-    // 커플링을 준다.
+    // Give the couple ring.
     _TPOINT pt1;
     _TPOINT pt2;
 
-    // 한명만 받는 경우를 방지하기 위해 미리 넣을 수 있는지를 확인한다.
-    // 바닥에 떨어지면 난리난다.
+    // Check in advance that it fits, so that only one of them does not end up receiving it.
+    // Dropping it on the ground would be a mess.
     if (!(canGetCoupleRing(pRequestedPC, pt1) && canGetCoupleRing(pWaitingPC, pt2)))
         return COUPLE_MESSAGE_INVENTORY_FULL;
 
-    // 커플링을 준다.
+    // Give the couple ring.
     CoupleRingBase* pNewItem1 = giveCoupleRing(pRequestedPC, pWaitingPC->getName(), &pt1);
     CoupleRingBase* pNewItem2 = giveCoupleRing(pWaitingPC, pRequestedPC->getName(), &pt2);
 
-    // 위에서 확인했으므로 여기서 삑사리나면 스레드가 꼬였거나 먼 문제가 있다.
+    // It was checked above, so a slip here means a tangled thread or some other problem.
     Assert(pNewItem1 != NULL);
     Assert(pNewItem2 != NULL);
 
-    // 커플링에 서로 상대의 아이템ID를 기록해둔다. 나중에 지울때 같이 지워야 되니까.
+    // Each couple ring records the other's item ID, because they have to be deleted together later.
     pNewItem1->setPartnerItemID(pNewItem2->getItemID());
     pNewItem2->setPartnerItemID(pNewItem1->getItemID());
 
@@ -101,14 +101,14 @@ uint WaitForMeet::acceptPartner(PlayerCreature* pRequestedPC) {
     //	pRequestedPC->addItemNameInfoList( pRequestedPCItemNameInfo );
     //	pWaitingPC->addItemNameInfoList( pWaitingPCItemNameInfo );
 
-    // 커플매니저에 등록한다.
+    // Register with the couple manager.
     g_pCoupleManager->makeCouple(pWaitingPC, pRequestedPC);
 
-    // 커플 등록금을 받아낸다.
+    // Take the couple registration fee.
     receiveCoupleRegisterFee(pWaitingPC);
     receiveCoupleRegisterFee(pRequestedPC);
 
-    // 이제 정식으로 커플임을 선포합니다.
+    // Now they are officially a couple.
     pRequestedPC->getFlagSet()->turnOn(FLAGSET_IS_COUPLE);
     pWaitingPC->getFlagSet()->turnOn(FLAGSET_IS_COUPLE);
     pRequestedPC->getFlagSet()->turnOn(FLAGSET_WAS_COUPLE);
@@ -117,9 +117,9 @@ uint WaitForMeet::acceptPartner(PlayerCreature* pRequestedPC) {
     pRequestedPC->getFlagSet()->save(pRequestedPC->getName());
     pWaitingPC->getFlagSet()->save(pWaitingPC->getName());
 
-    // 더 할 거 없나.....
-    // 이름붙은 아이템 리스트 목록을 갱신해서 보내준다.
-    // 안 보내준다. -_- - 2003.2.24
+    // Anything else to do.....
+    // Refresh the list of named items and send it.
+    // It is not sent.
     /*	if ( !pRequestedPC->isEmptyItemNameInfoList()
             && !pWaitingPC->isEmptyItemNameInfoList() )
         {
@@ -145,7 +145,7 @@ uint WaitForMeet::acceptPartner(PlayerCreature* pRequestedPC) {
 void WaitForMeet::timeExpired() {
     __BEGIN_TRY
 
-    // 기다리던 사람에게 안되셨습니다..라고 메시지를 보내준다.
+    // Tell the one who was waiting that it did not work out.
     GCNPCResponse gcNPCResponse;
     gcNPCResponse.setCode(NPC_RESPONSE_MEET_WAIT_TIME_EXPIRED);
 

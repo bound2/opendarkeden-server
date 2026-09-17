@@ -24,8 +24,8 @@
 //
 // LGKickCharacterHander::execute()
 //
-// 게임 서버가 로그인 서버로부터 LGKickCharacter 패킷을 받게 되면,
-// ConnectionInfo를 새로 추가하게 된다.
+// When the game server gets an LGKickCharacter packet from the login server,
+// it adds a new ConnectionInfo.
 //
 //----------------------------------------------------------------------
 void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
@@ -34,7 +34,7 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
     __BEGIN_TRY __BEGIN_DEBUG_EX
 #ifdef __GAME_SERVER__
 
-        // 냐햐햐
+        // hmm
         /*
         if (!g_pPCFinder->setKickCharacter(pPacket->getPCName(), pPacket->getHost(), pPacket->getPort() ))
         {
@@ -59,7 +59,7 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
         const uint port = pPacket->getPort();
         const uint requestID = pPacket->getID();
 
-        // 캐릭터가 없는 경우에는 GLKickVerify(false)를 보낸다.
+        // With no such character, GLKickVerify(false) is sent.
         de::GoneCommand notHere = [=] {
             GLKickVerify glKickVerify;
             glKickVerify.setKicked(false);
@@ -90,7 +90,7 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
                 GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(&player);
 
                 // Assert(pGamePlayer!=NULL);
-                if (pGamePlayer == NULL) // 어떻게 가능할까? -_-;
+                if (pGamePlayer == NULL) // how could that happen?
                 {
                     return;
                 }
@@ -103,12 +103,12 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
                 FILELOG_INCOMING_CONNECTION("incomingDisconnect.log", "Kick FD : %d, %s", fd,
                                             (pSocket == NULL ? "NULL" : pSocket->getHost().c_str()));
 
-                // 강제 종료 시킨다.
+                // Force the shutdown.
                 pGamePlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
                 pGamePlayer->setItemRatioBonusPoint(4);
                 pGamePlayer->setKickForLogin(true);
 
-                // 접속 해제 후, 응답을 보내줄 곳..
+                // Where to send the answer after disconnecting..
                 pGamePlayer->setKickRequestHost(host);
                 pGamePlayer->setKickRequestPort(port);
             },

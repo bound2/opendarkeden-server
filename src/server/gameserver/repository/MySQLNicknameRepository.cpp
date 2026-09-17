@@ -22,7 +22,7 @@ string getDBString(const string& str) {
 namespace {
 
 // MySQL implementation of NicknameRepository. Quirks:
-//  - OwnerID is the character *name*, not a numeric id — denormalized; a
+//  - OwnerID is the character *name*, not a numeric id -- denormalized; a
 //    character rename orphans these rows.
 //  - The id-0 custom slot stores a single space, never an empty string
 //    (the client renders '' as no slot), and is created with INSERT IGNORE

@@ -15,9 +15,9 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// 클라이언트가 데이터 로딩을 끝내면, 게임 서버에게 CGReady 패킷을 전송한다.
-// 이 패킷을 받은 클라이언트는 Zone의 큐에 PC를 넣어주고, 마지막으로
-// 플레이어를 IPM에서 ZPM으로 옮긴다.
+// When the client finishes loading its data it sends the game server a CGReady packet.
+// The one that gets this packet puts the PC into the Zone's queue and, finally,
+// moves the player from the IPM to the ZPM.
 //////////////////////////////////////////////////////////////////////////////
 void CGReadyHandler::execute(CGReady* pPacket, Player* pPlayer)
 
@@ -37,21 +37,20 @@ void CGReadyHandler::execute(CGReady* pPacket, Player* pPlayer)
     Creature* pCreature = pGamePlayer->getCreature();
     Assert(pCreature != NULL);
 
-    // 주석처리 by sigi. 2002.5.11
     // Zone* pZone = pCreature->getZone();
     // Assert(pZone != NULL);
 
     // filelog("CGReadyTrace.txt", "CGReadyHandler : After pointer");
 
     //--------------------------------------------------------------------------------
-    // 플레이어를 IPM에서 삭제하고 ZPM으로 옮긴다.
+    // Delete the player from the IPM and move it to the ZPM.
     //--------------------------------------------------------------------------------
     try {
-        // IncomingPlayer의 Process Commands 안에서 실행되는 것이므로 반드시 노 블락으로 지워야 할 것이다.
+        // This runs inside IncomingPlayer's Process Commands, so it has to be deleted no-block.
         // g_pIncomingPlayerManager->deletePlayer_NOBLOCKED(pGamePlayer->getSocket()->getSOCKET());
         g_pIncomingPlayerManager->deletePlayer(pGamePlayer->getSocket()->getSOCKET());
 
-        // Core의 구조 변경에 따라 쓰레드 간의 간섭을 최대한 억제하기 위하여 heartbeat에서 일괄적으로 보낸다.
+        // With the Core structure changed, the heartbeat sends them all at once to keep the threads from interfering.
         g_pIncomingPlayerManager->pushOutPlayer(pGamePlayer);
 
         // filelog("CGReadyTrace.txt", "CGReadyHandler : After deletePlayer[Name:%s]", pCreature->getName().c_str());
@@ -74,7 +73,7 @@ pCreature->getName().c_str());
         //filelog("CGReadyTrace.txt", "CGReadyHandler : After pushPlayer[Name:%s]", pCreature->getName().c_str());
 
 
-        // PC를 존의 큐에 집어넣는다.
+        // Put the PC into the zone's queue.
         //pGamePlayer->getCreature()->getZone()->pushPC(pGamePlayer->getCreature());
 
 //		pZone->pushPC(pCreature);
@@ -89,7 +88,7 @@ pCreature->getName().c_str());
         throw Error(msg.toString());
     }
 
-    // 잠시동안 적으로부터 공격을 받지 않는 상태이다.
+    // For a short while it cannot be attacked by an enemy.
     pGamePlayer->setPlayerStatus(GPS_NORMAL);
 
     // filelog("CGReadyTrace.txt", "CGReadyHandler : END");

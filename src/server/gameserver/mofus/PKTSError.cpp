@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Filename : PKTSError.cpp
-// Desc		: 온라인 서버에서 처리 에러에 대한 결과를 보내기 위해서 사용된다.
+// Desc		: used by the online server to report a handling error result.
 /////////////////////////////////////////////////////////////////////////////
 
 // include files
@@ -8,12 +8,12 @@
 
 #include "MPacketID.h"
 
-// 생성자
+// constructor
 PKTSError::PKTSError() {
     nSize = szPKTSError - szMPacketSize;
 }
 
-// 입력 스트림으로부터 데이터를 읽어서 패킷을 초기화 한다.
+// Reads data from the input stream and initialises the packet.
 void PKTSError::read(SocketInputStream& iStream) {
     iStream.read((char*)this, szPKTSError);
 
@@ -23,7 +23,7 @@ void PKTSError::read(SocketInputStream& iStream) {
     //	nError		= ntohl( nError );
 }
 
-// 출력 스트림으로 패킷의 바이너리 이미지를 보낸다.
+// Sends the packet's binary image to the output stream.
 void PKTSError::write(SocketOutputStream& oStream) {
     nCode = getID();
 

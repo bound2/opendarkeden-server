@@ -6,7 +6,7 @@ namespace {
 // MySQL implementation of EffectSaveRepository.
 //  - The format strings are per-table data rather than one template
 //    because the tables' spellings differ (spacing, "SELECt" in the
-//    force-scroll loads — keywords are case-insensitive).
+//    force-scroll loads -- keywords are case-insensitive).
 //  - The Turn_t (DWORD) year time and remain turn go through %u, the
 //    time_t DayTime through %ld. A DWORD prints at most 4294967295,
 //    exactly the int(10) unsigned columns' maximum, so no value is ever
@@ -117,7 +117,7 @@ const CreatureEffectSpec CREATURE_EFFECT_SPECS[CREATURE_EFFECT_TABLE_MAX] = {
      "UPDATE EffectFlare SET YearTime = %u, DayTime = %ld, OldSight = %d WHERE OwnerID = '%s'",
      "SELECT YearTime, DayTime, OldSight FROM EffectFlare WHERE OwnerID = '%s'", SHAPE_OLD_SIGHT},
     // CREATURE_EFFECT_LIGHT: EffectFlare's four statements with the table
-    // name swapped — the two classes' StringStream chains are identical
+    // name swapped -- the two classes' StringStream chains are identical
     // token for token.
     {"INSERT INTO EffectLight(OwnerID , YearTime, DayTime, OldSight) VALUES('%s' , %u , %ld,%d)",
      "DELETE FROM EffectLight WHERE OwnerID = '%s'",
@@ -271,7 +271,7 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            // keyed on OwnerID alone — rewrites every EnemyErase row the
+            // keyed on OwnerID alone -- rewrites every EnemyErase row the
             // owner has (see the quirk notes above)
             pStmt->executeQuery(
                 "UPDATE EnemyErase SET YearTime = %u, DayTime = %ld, EnemyName = '%s' WHERE OwnerID = '%s'", yearTime,

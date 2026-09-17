@@ -6,7 +6,7 @@ namespace {
 // MySQL implementation of ComebackEventRepository.
 //  - The zero-date comparisons ('0000-00-00') in the predicates are why
 //    the production sql_mode drops NO_ZERO_DATE.
-//  - getDistConnection("PLAYER_DB") IGNORES its name argument — it is
+//  - getDistConnection("PLAYER_DB") IGNORES its name argument -- it is
 //    the thread's second connection to the same DARKEDEN schema.
 //  - The zone asks the three predicates one call at a time, sending a
 //    dialog packet between them; a failure in the second or third
@@ -204,7 +204,7 @@ public:
 
 private:
     // The three predicate literals reach executeQuery through this pointer
-    // rather than in place — executeQuery carries no printf format
+    // rather than in place -- executeQuery carries no printf format
     // attribute (see Statement.h), so nothing is lost to -Wformat.
     static bool exists(const char* format, const string& playerID) {
         bool found = false;

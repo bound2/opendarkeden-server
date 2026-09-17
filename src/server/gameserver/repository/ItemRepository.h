@@ -15,7 +15,7 @@
 // item-object table operations that take the table NAME as data
 // (Item::destroy's DELETE, GlobalItemPositionLoader's position read, the
 // ItemIDRegistry counts). Reads are typed to the driver getter used for
-// each column (getInt → int, getString → std::string).
+// each column (getInt -> int, getString -> std::string).
 
 // The item's id and type as their own types, the rest the strings the
 // caller resolved from its lookup tables.
@@ -101,11 +101,11 @@ public:
     virtual bool updateTimeLimitItemStatus(uint status, const std::string& owner, uint itemClass, uint itemID) = 0;
 
     // --- per-class item-object tables (the table name is data) ------------------
-    // Item::destroy — true when a row was deleted.
+    // Item::destroy -- true when a row was deleted.
     virtual bool deleteItemRow(const std::string& tableName, ItemID_t itemID) = 0;
-    // GlobalItemPositionLoader::load — false when the item has no row.
+    // GlobalItemPositionLoader::load -- false when the item has no row.
     virtual bool loadItemPosition(const std::string& tableName, ItemID_t itemID, ItemPositionRow& row) = 0;
-    // ItemIDRegistry: the row count, then — only for a non-empty table — the
+    // ItemIDRegistry: the row count, then -- only for a non-empty table -- the
     // highest ItemID. Both through getDWORD, so a bigint ItemID above 32 bits
     // is truncated.
     virtual DWORD countItemRows(const std::string& tableName) = 0;

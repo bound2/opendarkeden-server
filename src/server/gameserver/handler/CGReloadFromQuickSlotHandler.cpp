@@ -81,10 +81,10 @@ void CGReloadFromQuickSlotHandler::execute(CGReloadFromQuickSlot* pPacket, Playe
                     return;
                 }
 
-                // 슬랏에 있는 아이템의 Object를 받는다.
+                // Get the Object of the item in the slot.
                 ItemObjectID = pBeltItem->getObjectID();
 
-                // 아이템이 있는지 그 아이템의 ObjectID가 일치하는지 체크한다.
+                // Check that the item exists and that its ObjectID matches.
                 if (ItemObjectID == pPacket->getObjectID() && pBeltItem->getItemClass() == Item::ITEM_CLASS_MAGAZINE) {
                     SkillSlot* pVivid = pSlayer->getSkill(SKILL_VIVID_MAGAZINE);
                     bool hasVivid = (pVivid != NULL) && pVivid->canUse();
@@ -96,7 +96,7 @@ void CGReloadFromQuickSlotHandler::execute(CGReloadFromQuickSlot* pPacket, Playe
             }
         }
 
-        // 검증 패킷을 날린다.
+        // Send the verify packet.
         EffectManager* pEffectManager = pSlayer->getEffectManager();
         if (Success && !pSlayer->isFlag(Effect::EFFECT_CLASS_RELOAD_TIMER)) {
             EffectReloadTimer* pEffect = new EffectReloadTimer(pSlayer);
@@ -104,9 +104,9 @@ void CGReloadFromQuickSlotHandler::execute(CGReloadFromQuickSlot* pPacket, Playe
             pEffect->setObjectID(ItemObjectID);
             pEffect->setSlotID(SlotID);
             if (pSlayer->hasSkill(SKILL_FAST_RELOAD)) {
-                pEffect->setDeadline(7); // 빠른 reload(0.7초)
+                pEffect->setDeadline(7); // fast reload (0.7 sec)
             } else {
-                pEffect->setDeadline(2 * 10); // 보통 reload(2sec)
+                pEffect->setDeadline(2 * 10); // ordinary reload (2sec)
             }
 
             pSlayer->setFlag(Effect::EFFECT_CLASS_RELOAD_TIMER);

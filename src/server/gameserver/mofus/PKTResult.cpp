@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // Filename : PKTResult.cpp
-// Desc		: 마지마긍로 전송 받은 자료에 대한 처리 여부를 파워링 서버에
-// 			  답신한다.
+// Desc		: answers the PowerRing server whether the last data received
+// 			  was handled.
 /////////////////////////////////////////////////////////////////////////////
 
 // include files
@@ -9,12 +9,12 @@
 
 #include "MPacketID.h"
 
-// 생성자
+// constructor
 PKTResult::PKTResult() {
     nSize = szPKTResult - szMPacketSize;
 }
 
-// 입력 스트림으로부터 데이터를 읽어서 패킷을 초기화 한다.
+// Reads data from the input stream and initialises the packet.
 void PKTResult::read(SocketInputStream& iStream) {
     iStream.read((char*)this, szPKTResult);
 
@@ -23,7 +23,7 @@ void PKTResult::read(SocketInputStream& iStream) {
     //	nCode		= ntohl( nCode );
 }
 
-// 출력 스트림으로 패킷의 바이너리 이미지를 보낸다.
+// Sends the packet's binary image to the output stream.
 void PKTResult::write(SocketOutputStream& oStream) {
     nCode = getID();
 

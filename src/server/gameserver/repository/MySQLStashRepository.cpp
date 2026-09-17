@@ -12,7 +12,7 @@ namespace {
 //  - Gold_t is a DWORD but the value is streamed as (int): a stash above
 //    2^31-1 gold would emit a NEGATIVE literal, which the UNSIGNED
 //    StashGold column then clamps to 0 (warning 1264) under the project's
-//    non-strict sql_mode — the balance would be destroyed, not stored
+//    non-strict sql_mode -- the balance would be destroyed, not stored
 //    negative. Unreachable with the current MAX_MONEY cap
 //    (2,000,000,000).
 //  - The integrity-check read (loadStashGold) targets ONE table, the

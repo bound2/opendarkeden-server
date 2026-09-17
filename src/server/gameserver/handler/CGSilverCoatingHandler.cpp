@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : CGSilverCoatingHandler.cpp
-// Written By  : 김성민
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -47,13 +46,13 @@ void CGSilverCoatingHandler::execute(CGSilverCoating* pPacket, Player* pPlayer)
     int Y = 0;
     GCNPCResponse response;
 
-    // 플레이어가 슬레이어인지 뱀파이어인지 구분.
+    // Tell whether the player is a Slayer or a Vampire.
     if (pPC->isSlayer())
         bSlayer = true;
     else if (pPC->isVampire())
         bSlayer = false;
 
-    // 플레이어가 코팅하려고 하는 아이템을 가지고 있는지 검사
+    // Check that the player holds the item it wants to coat
     if (bSlayer) {
         pSlayer = dynamic_cast<Slayer*>(pPC);
         playerMoney = pSlayer->getGold();
@@ -64,14 +63,14 @@ void CGSilverCoatingHandler::execute(CGSilverCoating* pPacket, Player* pPlayer)
         pItem = pVampire->findItemOID(ITEMOID, storage, X, Y);
     }
 
-    // 아이템이 없다면 당연히 코팅할 수 없다.
+    // With no item there is of course nothing to coat.
     if (pItem == NULL) {
         response.setCode(NPC_RESPONSE_SILVER_COATING_FAIL_ITEM_NOT_EXIST);
         pPlayer->sendPacket(&response);
         return;
     }
 
-    // 코팅하려는 아이템이 코팅될 수 없는 아이템이라면...
+    // When the item to coat cannot be coated...
     switch (pItem->getItemClass()) {
     case Item::ITEM_CLASS_BLADE:
     case Item::ITEM_CLASS_SWORD:
@@ -91,11 +90,11 @@ void CGSilverCoatingHandler::execute(CGSilverCoating* pPacket, Player* pPlayer)
         return;
     }
 
-    // 최대 은 도금량을 얻어와서... 도금한다.
+    // Get the maximum silver plating and... plate it.
     ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
     pItem->setSilver(pItemInfo->getMaxSilver());
 
-    // 돈을 줄인다.
+    // Take the money.
     if (bSlayer) {
         // pSlayer->setGoldEx(playerMoney - coatingPrice);
 
@@ -110,16 +109,16 @@ void CGSilverCoatingHandler::execute(CGSilverCoating* pPacket, Player* pPlayer)
         // log(LOG_REPAIR_ITEM, pVampire->getName(), "", pItem->toString());
     }
 
-    // silver만 저장하면 된다.
-    // 아이템 저장 최적화. by sigi. 2002.5.13
+    // Only silver has to be saved.
+    // Item save optimization.
     char pField[80];
     sprintf(pField, "Silver=%d", pItem->getSilver());
     pItem->tinysave(pField);
 
-    // 아이템을 은으로 코팅했다는 정보를 DB에다가 저장해준다.
-    // 단 분명히 STORAGE_STASH가 돌아올 수 있지만,
-    // 보관함에 있는 것을 수리한다는 것은 말이 안 되므로,
-    // 저장하지 않는다.
+    // Save to the DB that the item was coated with silver.
+    // STORAGE_STASH can certainly come back, but
+    // repairing something in the stash makes no sense, so
+    // it is not saved.
     /*
     switch (storage)
     {
@@ -135,7 +134,7 @@ void CGSilverCoatingHandler::execute(CGSilverCoating* pPacket, Player* pPlayer)
     }
     */
 
-    // OK 패킷을 날려준다.
+    // Send the OK packet.
     response.setCode(NPC_RESPONSE_SILVER_COATING_OK);
     response.setParameter(playerMoney - coatingPrice);
     pPlayer->sendPacket(&response);

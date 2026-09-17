@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////
 // FlagManager.h
 //
-// Global하게 1개만 돌아가야 한다.
+// Only one may run globally.
 ///////////////////////////////////////////////////////////////////
 
 #ifndef __FLAG_MANAGER_H__
@@ -133,7 +133,7 @@ private:
     map<RACEINDEX, uint> m_FlagCount;
     mutable Mutex m_Mutex;
 
-    // 종족 추가할 일 없겠지? -_-;
+    // No more races will be added, surely?
     map<MonsterCorpse*, Race_t> m_FlagPoles;
     GCFlagWarStatus m_StatusPacket;
 

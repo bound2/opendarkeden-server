@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////
-// 전쟁에 대한 전반적인 정보 및 전쟁 시작 및 종료시 처리루틴.
+// General war information and the routines run when a war starts and ends.
 ///////////////////////////////////////////////////////////////////
 
 #ifndef __SIEGE_WAR_H__
@@ -92,15 +92,15 @@ public:
     }
 
 private:
-    ZoneID_t m_CastleZoneID;          // 전쟁과 관련된 성의 ZoneID
-    uint m_ChallangerGuildCount;      // 전쟁 신청한 길드 수
-    GuildID_t m_ChallangerGuildID[5]; // 전쟁을 신청한 길드의 ID
-    GuildID_t m_ReinforceGuildID;     // 수비측 원군 길드 ID
-    Gold_t m_RegistrationFee;         // 지급된 전쟁 신청금
+    ZoneID_t m_CastleZoneID;          // the ZoneID of the castle the war concerns
+    uint m_ChallangerGuildCount;      // the number of guilds that applied for the war
+    GuildID_t m_ChallangerGuildID[5]; // the IDs of the guilds that applied for the war
+    GuildID_t m_ReinforceGuildID;     // the ID of the defending side's reinforcing guild
+    Gold_t m_RegistrationFee;         // the war application fee that was paid
 
     GuildID_t m_RecentReinforceCandidate;
 
-    // 전쟁 결과
+    // war result
     Race_t m_WinnerRace;
     GuildID_t m_WinnerGuildID;
     bool m_bModifyCastleOwner;

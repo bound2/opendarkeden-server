@@ -28,7 +28,7 @@ void CGRequestIPHandler::execute(CGRequestIP* pPacket, Player* pPlayer)
     Assert(pPlayer != NULL);
 
     try {
-        // UserIPInfo 테이블에서 사용자 IP를 쿼리 한다.
+        // Query the user IP from the UserIPInfo table.
         {
             DWORD ip = 0;
             DWORD port = 0;
@@ -50,7 +50,7 @@ void CGRequestIPHandler::execute(CGRequestIP* pPacket, Player* pPlayer)
     }
     // catch (NoSuchElementException & nsee)
     catch (Throwable& t) {
-        // no such인 경우..
+        // When there is no such one..
         GCRequestFailed gcRequestFailed;
         gcRequestFailed.setCode(REQUEST_FAILED_IP);
         gcRequestFailed.setName(pPacket->getName());

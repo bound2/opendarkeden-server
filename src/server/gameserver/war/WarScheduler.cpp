@@ -14,31 +14,31 @@
 #include "Zone.h"
 #include "repository/WarInfoRepository.h"
 
-// dt 이후의 월, 수, 금 오후 8시(~9시)
-// dt 이후의 일요일 7시(~9시)
+// Monday, Wednesday and Friday after dt, 8 pm (~9 pm)
+// Sunday after dt, 7 pm (~9 pm)
 const int NextWarDay[2][8] = {
-    {0, 1, 7, 6, 5, 4, 3, 2}, // 길드전
-    //{ 0, 2, 1, 0, 3, 2, 1, 0 }	// RaceWar 휑,寧,랗,힛,愷,巧,짇,휑
-    {0, 6, 5, 4, 3, 2, 1, 0} // RaceWar 휑,寧,랗,힛,愷,巧,짇,휑
+    {0, 1, 7, 6, 5, 4, 3, 2}, // guild war
+    //{ 0, 2, 1, 0, 3, 2, 1, 0 }	// RaceWar Sun,Mon,Tue,Wed,Thu,Fri,Sat,Sun
+    {0, 6, 5, 4, 3, 2, 1, 0} // RaceWar Sun,Mon,Tue,Wed,Thu,Fri,Sat,Sun
 };
 
-// 테스트 서버에서..
+// On the test server..
 const int NextWarHour[2][24] = {
     //                               *     *              *     *
     // 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18  19  20  21  22  23
-    {10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 2, 1, 5, 4, 3, 2, 1, 2, 1, 15, 14, 13, 12, 11}, // 길드전
+    {10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 2, 1, 5, 4, 3, 2, 1, 2, 1, 15, 14, 13, 12, 11}, // guild war
 
     //                                           *                          *
     // 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18  19  20  21  22  23
-    {14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1, 16, 15} // 종족전
+    {14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 8, 7, 6, 5, 4, 3, 2, 1, 16, 15} // race war
 };
 
 
 WarScheduler::WarScheduler(Zone* pZone)
 
     : m_pZone(pZone) {
-    // Zone에 붙어서 돌아간다.
-    // 그런데, cancelGuildSchedules()는 외부에서 불린다.
+    // It runs attached to a Zone.
+    // But cancelGuildSchedules() is called from outside.
     m_Mutex.setName("WarSheduler");
 }
 
@@ -66,7 +66,7 @@ bool WarScheduler::makeGCWarScheduleList(GCWarScheduleList* pGCWarScheduleList) 
         pGCWarScheduleList->addWarScheduleInfo(pWSI);
     }
 
-    // 자동으로 시작하는 기능이 설정되어 있다면, 종족 전쟁 정보는 무조건 넣어준다.
+    // When the automatic start is configured, the race war information always goes in.
     if (g_pVariableManager->isAutoStartRaceWar()) {
         WarScheduleInfo* pWSI = new WarScheduleInfo;
         if (g_pWarSystem->addRaceWarScheduleInfo(pWSI)) {
@@ -97,7 +97,7 @@ Work* WarScheduler::heartbeat()
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
 
-    // 종족 전쟁인 경우는 다시 1주일 후 스케쥴을 넣어준다.
+    // For a race war the schedule for a week later goes back in.
     /*
     if (pWork != NULL)
     {
@@ -111,7 +111,7 @@ Work* WarScheduler::heartbeat()
 
             addWar( pNewWar );
 
-            filelog("WarLog.txt", "[%d][WarID=%d] 종족 전쟁이 시작되었으므로 다음 종족 전쟁을 추가합니다.",
+            filelog("WarLog.txt", "[%d][WarID=%d] the race war started, so the next race war is added.",
                                 (int)m_pZone->getZoneID(), (int)pWar->getWarID());
         }
     }
@@ -169,7 +169,7 @@ void WarScheduler::load()
             dateTemp = schedules[r].startTime;
             warStartTime = VSDateTime(dateTemp);
 
-            // 이미 시작되었어야할 전쟁이라면 시작시간을 바꿔준다.
+            // For a war that should already have started, the start time is changed.
             if (warStartTime < currentDateTime) {
                 warStartTime = currentDateTime;
             }
@@ -198,7 +198,7 @@ void WarScheduler::load()
         }
     }
 
-    // 종족 전쟁 설정된게 없으면 설정한다.
+    // If no race war is set, set one.
     /*
     if (numRaceWar==0)
     {
@@ -208,7 +208,7 @@ void WarScheduler::load()
         WarSchedule* pWarSchedule = new WarSchedule( pRaceWar, warStartTime, Schedule::SCHEDULE_TYPE_PERIODIC );
         addSchedule( pWarSchedule );
 
-        filelog("WarLog.txt", "[%d][WarID=%d] 종족 전쟁이 없으므로 종족 전쟁을 추가합니다.",
+        filelog("WarLog.txt", "[%d][WarID=%d] there is no race war, so a race war is added.",
                                 (int)m_pZone->getZoneID(), (int)pRaceWar->getWarID());
 
         pWarSchedule->create();
@@ -298,23 +298,23 @@ VSDateTime WarScheduler::getLastWarDateTime(WarType_t warType) const {
     return dt;
 }
 
-// dt 이후의 전쟁 시간을 알아온다.
+// Get the war time after dt.
 VSDateTime WarScheduler::getNextWarDateTime(WarType_t warType, const VSDateTime& dt) {
     int startHour = 0;
 
     VSDateTime nextWarDateTime;
     VSTime nextWarTime;
 
-    if (g_pVariableManager->isWarPeriodWeek()) // 아 너무하자나 ㅜㅜ
+    if (g_pVariableManager->isWarPeriodWeek()) // that is a bit much
     {
         switch (warType) {
         case WAR_GUILD:
-            // dt 이후의 월, 수, 금 오후 8시(~9시)
+            // Monday, Wednesday and Friday after dt, 8 pm (~9 pm)
             startHour = 20;
             break;
 
         case WAR_RACE:
-            // dt 이후의 일요일 7시(~9시)
+            // Sunday after dt, 7 pm (~9 pm)
             startHour = 19;
             break;
         }
@@ -395,7 +395,7 @@ void WarScheduler::cancelGuildSchedules()
 
     defaultWarInfoRepository().cancelGuildWarSchedules(g_pConfig->getPropertyInt("ServerID"), m_pZone->getZoneID());
 
-    // 다시 로드한다. ㅋㅋ - -;
+    // Load it again.
     load();
 
     __END_CATCH

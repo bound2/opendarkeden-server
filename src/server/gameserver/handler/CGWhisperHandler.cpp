@@ -43,14 +43,14 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
 
         bool Success = false;
 
-        // 이름으로 사용자를 찾아온다.
+        // Find the user by name.
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
         Creature* pTargetCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getName());
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // NoSuch removed.
         if (pTargetCreature != NULL) {
-            // 채팅 로그를 남긴다. by sigi. 2002.10.30
+            // Leave a chat log.
             if (LogNameManager::getInstance().isExist(pCreature->getName())) {
                 filelog("chatLog.txt", "[Whisper] %s --> %s> %s", pCreature->getName().c_str(),
                         pTargetCreature->getName().c_str(), pPacket->getMessage().c_str());
@@ -64,14 +64,14 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
                 Success = false;
             }
 
-            // 사용자를 성공적으로 찾았으면 Message 전송
+            // Send the Message once the user is found
             if (Success) {
                 if (((GamePlayer*)pTargetPlayer)->getPlayerStatus() == GPS_NORMAL) {
                     if (pCreature != NULL && pTargetCreature != NULL) {
-                        // 서버에서 클라이언트로 전송하므로 GC- 패킷을 사용해야 한다.
+                        // It goes from server to client, so a GC- packet must be used.
                         GCWhisper gcWhisper;
 
-                        // 크리처 이름과 메시지를 패킷에 대입한다.
+                        // Put the creature name and the message into the packet.
                         gcWhisper.setName(pCreature->getName());
                         gcWhisper.setColor(pPacket->getColor());
                         gcWhisper.setMessage(pPacket->getMessage());
@@ -85,14 +85,14 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
                 }
             }
 
-            // 그런 사용자가 없거나 이름을 잘못 넣었을때 Failed
+            // Failed when there is no such user or the name was wrong
         } else {
             /*inthesky*/
-            /*	DB를 뒤져서 사용자를 찾는다. DB에서 가져올 정보는 Player, Logon 정보와, ServerID 정도가 되곘다?
-             *	찾으면 해당게임서버로 GGServerChat 패킷을 전송한다 (sender, Color, Message, Race(종족),
-             *	GGServerChat 패킷을 받은 서버는 사용자 이름으로 플레이어를 찾아서 GCWhisper패킷을 만들어 쏜다.
-             *	없으면 말자(Failed보낸다).
-             *	사용자가 있다 없다는 DB에서만 판단하자. DB의 신뢰도는..??????
+            /*	Search the DB for the user. What the DB has to give is the Player, the Logon information and the ServerID.
+             *	Once found, send a GGServerChat packet to that game server (sender, Color, Message, Race,
+             *	the server that receives the GGServerChat packet finds the player by name, builds a GCWhisper packet and sends it.
+             *	If not found, give up (send Failed).
+             *	Whether the user exists is decided from the DB alone. How much can the DB be trusted..??????
              */
             bool bServerFind = false;
             ServerGroupID_t CurrentServerGroupID;
@@ -101,32 +101,32 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
 
             try {
                 {
-                    // 크리쳐이름으로 Slayer테이블에서 PlayerID 를 찾는다.
+                    // Find the PlayerID in the Slayer table by creature name.
                     if (defaultCharacterRepository().loadSlayerPlayerID(pPacket->getName(), PlayerID)) {
-                        // 찾은 PlayerID로 Player테이블에서 ServerGroupID와 LogOn정보를 찾는다.
+                        // With the PlayerID found, find the ServerGroupID and the LogOn information in the Player table.
                         int serverGroupID = 0;
 
-                        // Player 정보를 찾았다.
+                        // The Player information was found.
                         if (defaultSessionRepository().loadPlayerLocation(PlayerID, serverGroupID, LogOn)) {
                             CurrentServerGroupID = serverGroupID;
 
-                            // 게임중인 상태일때 bServerFind에 true flag
+                            // Set the bServerFind flag to true while in game
                             if (LogOn == "GAME") {
                                 bServerFind = true;
                             }
                         }
                     }
 
-                    if (bServerFind) // 찾았을때
+                    if (bServerFind) // when it was found
                     {
-                        /*	GGServerChat 패킷을 만들어서
-                         *	쏜다...게임서버로..
-                         *  pCreature->getName() = 보내는 크리쳐 이름
-                         *	pPacket->getName() = 받는 크리쳐 이름
-                         *	PlayerID	= 받는 크리쳐 계정
-                         *	pPacket->getColor()	= 글자색
-                         *	pPacket->getMessage() = 메세지
-                         *  pCreature->getRace() = 보내는 크리쳐 종족
+                        /*	Build a GGServerChat packet
+                         *	and send it... to the game server..
+                         *  pCreature->getName() = the name of the sending creature
+                         *	pPacket->getName() = the name of the receiving creature
+                         *	PlayerID	= the account of the receiving creature
+                         *	pPacket->getColor()	= the text color
+                         *	pPacket->getMessage() = the message
+                         *  pCreature->getRace() = the race of the sending creature
                          * */
 
 

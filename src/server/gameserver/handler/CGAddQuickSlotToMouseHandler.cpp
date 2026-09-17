@@ -59,7 +59,7 @@ void CGAddQuickSlotToMouseHandler::execute(CGAddQuickSlotToMouse* pPacket, Playe
 
             Item* pSlotItem = pBeltInventory->getItem(SlotID, 0);
 
-            // 벨트에 아이템이 없거나, 마우스에 뭔가를 들고 있다면 더할 수 없다.
+            // With no item in the belt, or something held on the mouse, nothing can be added.
             if (pSlotItem == NULL || pSlayer->getExtraInventorySlotItem() != NULL) {
                 GCCannotAdd _GCCannotAdd;
                 _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -67,11 +67,11 @@ void CGAddQuickSlotToMouseHandler::execute(CGAddQuickSlotToMouse* pPacket, Playe
                 return;
             }
 
-            // 아이템을 벨트 인벤토리에서 지우고 Mouse로 이동시킨다.
+            // Erase the item from the belt inventory and move it to the Mouse.
             pBeltInventory->deleteItem(SlotID, 0);
             pSlayer->addItemToExtraInventorySlot(pSlotItem);
             // pSlotItem->save(pSlayer->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-            //  item저장 최적화. by sigi. 2002.5.13
+            //  Item save optimization.
             char pField[80];
             sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
             pSlotItem->tinysave(pField);
@@ -104,7 +104,7 @@ void CGAddQuickSlotToMouseHandler::execute(CGAddQuickSlotToMouse* pPacket, Playe
 
             Item* pSlotItem = pOustersArmsbandInventory->getItem(SlotID, 0);
 
-            // 벨트에 아이템이 없거나, 마우스에 뭔가를 들고 있다면 더할 수 없다.
+            // With no item in the belt, or something held on the mouse, nothing can be added.
             if (pSlotItem == NULL || pOusters->getExtraInventorySlotItem() != NULL) {
                 GCCannotAdd _GCCannotAdd;
                 _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -112,11 +112,11 @@ void CGAddQuickSlotToMouseHandler::execute(CGAddQuickSlotToMouse* pPacket, Playe
                 return;
             }
 
-            // 아이템을 벨트 인벤토리에서 지우고 Mouse로 이동시킨다.
+            // Erase the item from the belt inventory and move it to the Mouse.
             pOustersArmsbandInventory->deleteItem(SlotID, 0);
             pOusters->addItemToExtraInventorySlot(pSlotItem);
             // pSlotItem->save(pOusters->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-            //  item저장 최적화. by sigi. 2002.5.13
+            //  Item save optimization.
             char pField[80];
             sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
             pSlotItem->tinysave(pField);

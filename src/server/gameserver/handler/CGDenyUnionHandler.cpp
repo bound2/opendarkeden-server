@@ -57,11 +57,11 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
         return;
     }
 
-    // 요청한놈이 지가 속한 길드의 마스터인가? || 연합의 마스터길드가 내 길드가 맞나?
+    // Is the requester the master of its own guild, and is the union's master guild my guild?
     if (!g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature) ||
         pUnion->getMasterGuildID() != pPlayerCreature->getGuildID()) {
-        // GC_GUILD_RESPONSE 날려준다.
-        // 내용 : 길드 마스터가 아니자녀 -.-+
+        // Send GC_GUILD_RESPONSE.
+        // Content: not the guild master.
 
         gcGuildResponse.setCode(GuildUnionOfferManager::SOURCE_IS_NOT_MASTER);
         pPlayer->sendPacket(&gcGuildResponse);
@@ -84,7 +84,7 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
         string TargetGuildMaster = pGuild->getMaster();
 
 
-        // cout << "가입이 거부되었다. 통보받을 유저는 : " << TargetGuildMaster.c_str() << endl;
+        // cout << "The join was refused. The user to notify is: " << TargetGuildMaster.c_str() << endl;
 
 
         GuildRepository& guilds = defaultGuildRepository();
@@ -92,9 +92,9 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
         defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, TargetGuildMaster,
                                                      g_pStringPool->c_str(374));
 
-        // 거부한뒤에 나 혼자 남아있다면?
+        // What if I am the only one left after refusing?
         if (guilds.countUnionMembersSpelled(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
-            // cout << "가입을 거부했는데..내가 계속 연합장이면 안되니까..지워버린다" << endl;
+            // cout << "The join was refused.. I must not stay union master.. so it is deleted" << endl;
             guilds.deleteUnionInfoOnly(UNION_SQL_QUOTED, pUnion->getUnionID());
 
             GuildUnionManager::Instance().reload();
@@ -111,7 +111,7 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
 
         pPlayer->sendPacket(&gcModifyInformation);
 
-        // 통보받을 유저에게 길드Union정보를 다시 보낸다
+        // Send the guild union information to the notified user again
 
         Creature* pTargetCreature = NULL;
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
@@ -129,7 +129,7 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
         sendGCOtherModifyInfoGuildUnion(pTargetCreature);
         sendGCOtherModifyInfoGuildUnion(pCreature);
 
-        // 다른 서버에 있는 놈들에게 변경사항을 알린다.
+        // Tell the ones on other servers about the change.
         GuildUnionManager::Instance().sendModifyUnionInfo(dynamic_cast<PlayerCreature*>(pTargetCreature)->getGuildID());
         GuildUnionManager::Instance().sendModifyUnionInfo(dynamic_cast<PlayerCreature*>(pCreature)->getGuildID());
     }
