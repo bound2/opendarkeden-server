@@ -24,10 +24,10 @@ GameServerInfoManager::~GameServerInfoManager() {
 
 
 void GameServerInfoManager::clear() {
-    // hashmap 안의 각 pair 의 second, 즉 GameServerInfo 객체만을 삭제하고
-    // pair 자체는 그대로 둔다. (GameServerInfo가 힙에 생성되어 있다는 것에
-    // 유의하라. 즉 필살삭제를 해야 한다. 하긴, GSIM이 destruct 된다는 것은
-    // 로그인 서버가 셧다운된다는 것을 의미하니깐.. - -;)
+    // Delete only the second of each pair in the hashmap, that is the GameServerInfo
+    // object, and leave the pair itself. (note that GameServerInfo is created on
+    // the heap, so it has to be deleted explicitly. then again, GSIM being destructed
+    // means the login server is shutting down..)
     for (int j = 1; j < m_MaxWorldID; j++) {
         for (int i = 0; i < m_MaxServerGroupID; i++) {
             HashMapGameServerInfo::iterator itr = m_pGameServerInfos[j][i].begin();
@@ -35,7 +35,7 @@ void GameServerInfoManager::clear() {
                 SAFE_DELETE(itr->second);
             }
 
-            // 이제 해쉬맵안에 있는 모든 pair 들을 삭제한다.
+            // Now delete every pair in the hash map.
             m_pGameServerInfos[j][i].clear();
         }
     }
@@ -190,13 +190,13 @@ void GameServerInfoManager::deleteGameServerInfo(const ServerID_t ServerID, cons
     HashMapGameServerInfo::iterator itr = m_pGameServerInfos[WorldID][ServerGroupID].find(ServerID);
 
     if (itr != m_pGameServerInfos[WorldID][ServerGroupID].end()) {
-        // GameServerInfo 를 삭제한다.
+        // Delete the GameServerInfo.
         delete itr->second;
 
-        // pair를 삭제한다.
+        // Delete the pair.
         m_pGameServerInfos[WorldID][ServerGroupID].erase(itr);
     } else {
-        // 그런 게임서버인포 객체를 찾을 수 없을 때
+        // When no such game server info object can be found
         throw NoSuchElementException();
     }
 
@@ -222,7 +222,7 @@ GameServerInfo * GameServerInfoManager::getGameServerInfo (const string & nickna
 
     } else {
 
-        // 그런 게임서버인포 객체를 찾을 수 없었을 때
+        // When no such game server info object could be found
         throw NoSuchElementException(nickname);
 
     }
@@ -240,7 +240,7 @@ GameServerInfo* GameServerInfoManager::getGameServerInfo(const ServerID_t Server
     GameServerInfo* pGameServerInfo = NULL;
 
     if (WorldID >= m_MaxWorldID || ServerGroupID >= m_MaxServerGroupID) {
-        // 그런 게임서버인포 객체를 찾을 수 없었을 때
+        // When no such game server info object could be found
         throw NoSuchElementException();
     }
 
@@ -249,7 +249,7 @@ GameServerInfo* GameServerInfoManager::getGameServerInfo(const ServerID_t Server
     if (itr != m_pGameServerInfos[WorldID][ServerGroupID].end()) {
         pGameServerInfo = itr->second;
     } else {
-        // 그런 게임서버인포 객체를 찾을 수 없었을 때
+        // When no such game server info object could be found
         throw NoSuchElementException();
     }
 

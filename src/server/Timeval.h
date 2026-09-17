@@ -2,7 +2,7 @@
 //
 // Filename    : Timeval.h
 // Written By  : Reiot
-// Description : struct timeval 에 관련된 operator 들을 모아놓은 파일
+// Description : a file collecting the operators that concern struct timeval
 //
 //--------------------------------------------------------------------------------
 
@@ -32,12 +32,12 @@ bool operator==(const Timeval& left, const Timeval& right);
 bool operator<=(const Timeval& left, const Timeval& right);
 bool operator<(const Timeval& left, const Timeval& right);
 
-// timediff의 결과값끼리 더할 경우에 사용한다.
-// (사실 현재 시간끼리 더한다는 것은 우스운 짓이다. - -; )
+// Used when adding the results of timediff together.
+// (adding two current times together is of course a silly thing to do.)
 Timeval operator+(const Timeval& left, const Timeval& right);
 
 //
-// 두 Timeval 간의 시간차를 구한다.
+// Computes the difference between two Timevals.
 //
 Timeval timediff(const Timeval& left, const Timeval& right);
 

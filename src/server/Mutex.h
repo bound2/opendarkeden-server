@@ -41,9 +41,9 @@ public:
     }
 
 private:
-    pthread_mutex_t m_Mutex; // ���ؽ� ��ü
-    string m_Name;           // �� ���ؽ��� ������ Ŭ���� �̸�
-    int m_LockTID;           // ���� ���� �� ���� precoess id
+    pthread_mutex_t m_Mutex; // the mutex object
+    string m_Name;           // the name of the class that owns this mutex
+    int m_LockTID;           // the id of the process that currently holds the lock
 };
 
 #endif

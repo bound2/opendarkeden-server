@@ -314,7 +314,7 @@ bool PaySystem::updatePayPlayTime(const string& playerID, const VSDateTime& curr
             }
 
             if (m_PayPlayAvailableHours <= 0) {
-                // throw ProtocolException("사용시간이 다됐다.");
+                // throw ProtocolException("the play time ran out.");
                 m_PayPlayStartTime.tv_sec = 0;
                 m_bPremiumPlay = false;
                 return false;
@@ -518,7 +518,7 @@ bool PaySystem::loginPayPlay(PayType payType, const string& payPlayDate, int pay
 
     getCurrentTime(m_PayPlayStartTime);
 
-    // PayType을 설정한다.
+    // Set the PayType.
     checkPayPlayAvailable();
     m_bPremiumPlay = true;
 
@@ -624,7 +624,7 @@ bool PaySystem::loginPayPlay(const string& ip, const string& playerID) {
 
     getCurrentTime(m_PayPlayStartTime);
 
-    // PayType을 설정한다.
+    // Set the PayType.
     checkPayPlayAvailable();
 
     m_bPremiumPlay = true;

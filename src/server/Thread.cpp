@@ -25,19 +25,19 @@ using namespace pthreadAPI;
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Thread Ŭ������ ��ӹ��� DerivedThread �� �ּ��� ThreadAttr �� �����ϰ� �ȴ�.
-// ���� DerivedThread �� ���� �� ���� �ʿ䰡 �ִٸ�, �� �޽��
-// ������ ������ ThreadAttr �� ������ �Ŀ�, �̸� ���� �������� �����ڿ� �Ѱ��ְ� ��� ���� �����带 ������ �Ŀ�, Thread-Attribute
-// ��ü�� �����ϸ� �� ���̴�.
+// A DerivedThread inheriting the Thread class takes the ThreadAttr given here.
+// If several DerivedThreads need the same attribute, build one ThreadAttr,
+// hand its pointer to every constructor, and delete the Thread-Attribute
+// object once every thread is gone.
 //
-// ������ ����, ��ü ������ ���� �������� ������ ���ÿ� �̷������ �ʴ´ٴ�
-// ���̴�. �� ��� �������� Start() �� ������ �Ŀ� ThreadAttr ��ü�� �����ؾ�
-// �Ѵ�. �׷��� ������ ������ �� ���̴�.
+// Note that creating the thread and creating the object do not happen at the
+// same time: the ThreadAttr object has to stay alive until start() is called,
+// or the creation fails.
 //
-// ���� ��� ������� new �� �����ؾ� �Ѵ�. ���� pthread_create() �� ������
-// �Ķ���ͷ� ������ ��ü�� �ּҸ� �Ѱ��ְ� �Ǵµ�, �̶� �Լ� ���ÿ� ������
-// ��ü�� ������ ��� Scope Rule�� ���� ������ ���� �ȴ�. ������ ������ ��ü��
-// ��(Heap)�� �����ؾ߸� �Ѵ�!!!
+// The object itself has to be created with new, because pthread_create() is
+// handed the object's address as a parameter; an object on the function's
+// stack would be gone by the Scope Rule. So a thread object must live on
+// the (Heap)!!!
 //
 ////////////////////////////////////////////////////////////////////////////////
 Thread::Thread(ThreadAttr* attr) : m_TID(0), m_ThreadAttr(attr), m_Status(Thread::READY) {}
@@ -49,8 +49,8 @@ Thread::Thread(ThreadAttr* attr) : m_TID(0), m_ThreadAttr(attr), m_Status(Thread
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// DerivedThread Ŭ�������� �߰��� attribute �� ������� �ϱ� ���ؼ� virtual ��
-// ���ǵǾ� �ִ�. �����δ� �ƹ��� �ϵ� ���� �ʴ´�.
+// It is declared virtual so that an attribute a DerivedThread class added can
+// be released. It does nothing itself.
 //
 ////////////////////////////////////////////////////////////////////////////////
 Thread::~Thread() noexcept(false) {}
@@ -58,11 +58,11 @@ Thread::~Thread() noexcept(false) {}
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// �����带 �����Ѵ�.
+// Starts the thread.
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// pthread_create() �� ���ؼ� ���캸���� ����.
+// A look at pthread_create().
 //
 // int pthread_create ( pthread_t * tid ,
 //                      pthread_attr_t * atttr ,
@@ -70,21 +70,21 @@ Thread::~Thread() noexcept(false) {}
 //                      void * arg
 //                    );
 //
-// ������ �����ϸ� 0 �� �����ϸ�, ������ ��� ���� �ڵ带 �����Ѵ�.
-// ���� �ڵ�� EAGAIN �� �����ϸ�, �ý��� ���ҽ��� �����ϰų� ������ ���ڰ�
-// �ʹ� ������ �ǹ��Ѵ�.
+// It returns 0 on success and an error code on failure.
+// An error code of EAGAIN means the system is out of resources or there are
+// too many threads.
 //
-// tid �� �����͸� ù��° �Ķ���ͷ� �ָ�, �� �ȿ� thread identifier ��
-// ����ȴ�.
+// Passing a pointer to tid as the first parameter stores the thread identifier
+// in it.
 //
-// attr �� NULL �� ��� Default Attribute �� ���� �����尡 �����ȴ�. Ư����
-// � �Ӽ��� �����Ϸ��� ������ pthread_attr_t �� �����ϸ� ��
-// ���̴�.
+// With attr NULL the thread is created with the Default Attribute. To set a
+// particular attribute, create a pthread_attr_t and set it
+// there.
 //
-// start_routine ���δ� Thread Ŭ������ friend method �� ����ϴµ�, �̶� arg ��
-// this - Thread Object - �� �����ϰ� �ȴ�. �׷���, start_routine �ȿ�����
-// polymorphism �� ����ؼ� ���� Ŭ������ run() �޽�带 �ڵ�����
-// ȣ���ϰ� �ǹǷ�.. ��� ���� ����������. -_-;
+// start_routine is a friend method of the Thread class, and arg is passed
+// this - the Thread Object. Inside start_routine, polymorphism then calls the
+// derived class's run() method automatically,
+// which is what makes it work.
 //
 ////////////////////////////////////////////////////////////////////////////////
 void Thread::start() {
@@ -101,7 +101,7 @@ void Thread::start() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// ���� Ŭ�������� ���ؽ��� �����ϸ鼭 �������ؾ� �Ѵ�.
+// A derived class has to reimplement this with a mutex of its own.
 //
 ////////////////////////////////////////////////////////////////////////////////
 void Thread::stop() {
@@ -122,12 +122,12 @@ void Thread::join() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Ư�� �����尡 ������ ������ ���� �����带 �����.
+// Waits for a given thread to finish before the current thread goes on.
 //
-// ���⼭ *����* �������µ� �����϶�. ������ A �� ������ B �� ��ٸ��� ����
-// �ƴϹǷ�, �� �޽��� static �̾�� �Ѵ�.
+// Note that it *waits*. Thread A does not make thread B wait,
+// so this method has to be static.
 //
-// �̶� status �� � ����Ÿ������ �����ϴ�. (structure, class...)
+// status here may be any data type. (structure, class...)
 //
 ////////////////////////////////////////////////////////////////////////////////
 void Thread::join(const Thread& t) {
@@ -137,13 +137,13 @@ void Thread::join(const Thread& t) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// ���� �����带 �����Ų��.
+// Ends the current thread.
 //
 // void pthread_exit ( void * retval );
 //
-// �ʿ��ϴٸ� � ����Ÿ������ �����ؼ� join �ϴ� �������
-// �ѱ� �� �ִ�. (�׷���, ��κ��� ��������� detached ��
-// ���ư��ٸ� NULL �� �����ϴ� ���� ���� ���̴�.)
+// If needed, any data type may be passed back to the thread that joins.
+// (then again, most threads run detached, so returning NULL
+// is usually good enough.)
 //
 ////////////////////////////////////////////////////////////////////////////////
 void Thread::exit(void* retval) {
@@ -155,13 +155,13 @@ void Thread::exit(void* retval) {
 //
 // thread's start routine
 //
-// Thread Ŭ������ friend method �̴�.
+// It is a friend method of the Thread class.
 //
-// REENTRANT function �̸� ���� ���⿣ ������ �� �ѵ�.. �¼��� thread
-// ��ü�� thread specific data �� ������� �����̾�. ȣȪ. ������ ���� �ȿ��� ����Ǹ� �Ϻ��ϰ� �ٸ� �� ���� �ʳ�?
+// It is a REENTRANT function, so it should be fine here.. every thread
+// keeps its own thread specific data. Running inside one object should make no difference.
 //
-// ���� Ŭ������ run()�� virtual�� ȣ���ϱ� ���Ŀ�, �������� ���¸� RUNNING,
-// EXIT�� �ٲٴµ� �����϶�. �ϴ� EXIT�� �ٲ��, ������� ���̻� ����۵� �� ����.
+// Note that it sets the thread's status to RUNNING before calling the derived
+// class's virtual run(), and to EXIT after. Once it is EXIT the thread no longer runs.
 //
 ////////////////////////////////////////////////////////////////////////////////
 void* start_routine(void* derivedThread) {
@@ -184,7 +184,7 @@ void* start_routine(void* derivedThread) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// ���� �������� TID �� �˾Ƴ���. static ����Լ��̴�.
+// Finds the current thread's TID. It is a static member function.
 //
 ////////////////////////////////////////////////////////////////////////////////
 TID Thread::self() {

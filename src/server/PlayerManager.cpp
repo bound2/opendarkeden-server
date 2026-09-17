@@ -26,11 +26,11 @@
 PlayerManager::PlayerManager() : m_nPlayers(0) {
     __BEGIN_TRY
 
-    // �÷��̾� ������ �迭�� NULL �� �ʱ�ȭ�Ѵ�.
+    // Initialise the array of player pointers to NULL.
     for (uint i = 0; i < nMaxPlayers; i++)
         m_pPlayers[i] = NULL;
 
-    // �÷��̾� ������ �迭�� NULL �� �ʱ�ȭ�Ѵ�.
+    // Initialise the array of player pointers to NULL.
     for (uint i = 0; i < nMaxPlayers; i++)
         m_pCopyPlayers[i] = NULL;
 
@@ -46,7 +46,7 @@ PlayerManager::~PlayerManager() noexcept(false) {
     try {
         for (uint i = 0; i < nMaxPlayers; i++) {
             if (m_pPlayers[i] != NULL) {
-                // �÷��̾� ��ü�� �����ϸ�, destructor���� ������ �����Ѵ�.
+                // If the player object exists, the destructor deletes it.
                 delete m_pPlayers[i];
                 m_pPlayers[i] = NULL;
             }
@@ -77,7 +77,7 @@ void PlayerManager::broadcastPacket(Packet* pPacket) {
 
 
 //////////////////////////////////////////////////////////////////////
-// Ư�� �÷��̾ �Ŵ����� �߰��Ѵ�.
+// Adds a given player to the manager.
 //////////////////////////////////////////////////////////////////////
 void PlayerManager::addPlayer(Player* pPlayer) {
     __BEGIN_TRY
@@ -97,10 +97,10 @@ void PlayerManager::addPlayer(Player* pPlayer) {
         throw DuplicatedException("socket descriptor duplicated");
     }
 
-    // �������� �����͸� �����Ѵ�.
+    // Store the pointer that came in.
     m_pPlayers[fd] = pPlayer;
 
-    // �÷��̾� ���ڸ� ������Ų��.
+    // Increase the player count.
     m_nPlayers++;
 
     __END_CATCH
@@ -108,8 +108,8 @@ void PlayerManager::addPlayer(Player* pPlayer) {
 
 
 //////////////////////////////////////////////////////////////////////
-// Ư�� �÷��̾ �Ŵ������� �����Ѵ�.
-// ��ü�� �������� ������, �������� NULL�� �����.
+// Deletes a given player from the manager.
+// The object itself is not deleted; the pointer is set to NULL.
 //////////////////////////////////////////////////////////////////////
 void PlayerManager::deletePlayer(SOCKET fd) {
     __BEGIN_TRY
@@ -122,10 +122,10 @@ void PlayerManager::deletePlayer(SOCKET fd) {
     if (m_pPlayers[fd] == NULL)
         throw NoSuchElementException();
 
-    // �迭�� fd��°�� Ŭ�����Ѵ�.
+    // Clear the fd-th slot of the array.
     m_pPlayers[fd] = NULL;
 
-    // �÷��̾� ���ڸ� ���ҽ�Ų��.
+    // Decrease the player count.
     m_nPlayers--;
 
     __END_CATCH
@@ -133,7 +133,7 @@ void PlayerManager::deletePlayer(SOCKET fd) {
 
 
 //////////////////////////////////////////////////////////////////////
-// Ư�� �÷��̾� ��ü�� �����´�.
+// Gets a given player object.
 //////////////////////////////////////////////////////////////////////
 Player* PlayerManager::getPlayer(SOCKET fd) {
     __BEGIN_TRY
@@ -152,7 +152,7 @@ Player* PlayerManager::getPlayer(SOCKET fd) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// �÷��̾ �����Ѵ�.
+// Copies the players.
 //////////////////////////////////////////////////////////////////////
 void PlayerManager::copyPlayers() {
     __BEGIN_TRY

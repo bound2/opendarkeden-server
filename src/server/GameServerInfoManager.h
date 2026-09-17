@@ -17,8 +17,8 @@ typedef unordered_map<ServerID_t, GameServerInfo*> HashMapGameServerInfo;
 
 //////////////////////////////////////////////////////////////////////////////
 // class GameServerInfoManager;
-// 게임 서버의 ID 를 키값으로 하는 GameServerInfo의 unordered_map 을
-// 내부에 가지고 있다.
+// It holds an unordered_map of GameServerInfo keyed by the game server's ID
+// internally.
 //////////////////////////////////////////////////////////////////////////////
 
 class GameServerInfoManager {

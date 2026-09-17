@@ -434,14 +434,14 @@ rm -f "$r16_inc" "$r16_dead"
 # letters; and U+FFFD runs, where the text itself is gone and only the code
 # beside it still says what the comment meant. Comments are translated tree
 # by tree: src/domain, src/server/database, src/server/loginserver,
-# src/server/sharedserver and the whole of src/Core are done; what is left
-# is src/server/gameserver and ServerCore's own files, the ones directly
-# under src/server and in src/server/repository. String literals -- log
-# lines, GM messages, the reserved-name table -- are left for a pass of
-# their own, because changing one changes what the server says rather than
-# how the source reads; the eight that remain in the finished trees, six of
-# them in the loginserver and the sharedserver and two in src/Core, are all
-# this count holds there.
+# src/server/sharedserver, the whole of src/Core, the files directly under
+# src/server, and the gameserver's handler, war, gm, repository, mission,
+# couple, ctf, packetfill and mofus trees are done; what is left is the rest
+# of src/server/gameserver. String literals -- log lines, GM messages, the
+# reserved-name table -- are left for a pass of their own, because changing
+# one changes what the server says rather than how the source reads; the 221
+# that remain in the finished trees, 213 of them in those gameserver trees,
+# are all this count holds there.
 #
 # Line-based, and the byte class is spelled the way R12 spells it: exclude
 # everything from \x01 to \x7f, so what is left is a byte with the high bit
@@ -449,7 +449,7 @@ rm -f "$r16_inc" "$r16_dead"
 # working tree out of the count, which [^[:print:]] would not, and LC_ALL=C
 # keeps the range byte-wise where a locale would read it as characters.
 R17=$(LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R17 "source lines carrying non-ASCII bytes" 17690 "$R17"
+check_ratchet R17 "source lines carrying non-ASCII bytes" 14197 "$R17"
 
 # --- R18: commented-out code inside /* */ blocks ---------------------------
 # Code that was switched off years ago says nothing true about the running

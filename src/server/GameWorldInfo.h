@@ -2,7 +2,7 @@
 //
 // Filename    : GameWorldInfo.h
 // Written By  : Reiot
-// Description : 로그인 서버에서 갖고 있는 각 게임 서버에 대한 정보
+// Description : the information the login server holds about each game server
 //
 //----------------------------------------------------------------------
 
@@ -19,8 +19,8 @@
 //
 // class GameWorldInfo;
 //
-// GAME DB의 GameWorldInfo 테이블에서 읽어들인 각 게임 서버의 정보를
-// 담은 클래스이다.
+// A class holding each game server's information read from the GameWorldInfo
+// table in the GAME DB.
 //
 //----------------------------------------------------------------------
 
