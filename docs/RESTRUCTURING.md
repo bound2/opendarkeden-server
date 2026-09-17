@@ -1223,37 +1223,29 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   interfaces) explicitly; the old `g_p*` externs become shims into it until
   their last caller is converted. Ratchet R1.
   > **Status:** in progress — `src/server/gameserver/GameContext.h` is a
-  > registry of non-owning pointers to seventeen managers (the config and
-  > the database manager; `ItemFactoryManager`, `PCFinder`, `StringPool`,
-  > `VariableManager`, `ZoneGroupManager`, `ZoneInfoManager`,
-  > `MonsterNameManager`, `WeatherInfoManager`, `VolumeInfoManager`,
-  > `DefaultOptionSetInfoManager` and `DynamicZoneFactoryManager`; and the
-  > four quest scripting managers), each registered by the code that creates
-  > it — `GameServer`'s constructor for the first two, `ObjectManager`'s for
-  > the world ones — and read back through an accessor that asserts it is
-  > there, a null one being a startup-order bug, not a condition to branch
-  > on. Ownership is untouched: the same `new` and `SAFE_DELETE` sites,
-  > except that a manager no global names any more is an `ObjectManager`
-  > member. `ctf/` and `quest/` are the converted subsystems: `FlagManager`,
-  > `FlagWar`/`NewbieFlagWar`, `ActionFactoryManager`, `Trigger` and
-  > `TriggerParser` take the context in their constructors, and every
-  > `Action` is handed it by its factory.
+  > registry of non-owning pointers to thirty managers, each registered by
+  > the code that creates it — `GameServer`'s constructor for the config and
+  > the database manager, `ObjectManager`'s for the world ones — and read
+  > back through an accessor that asserts it is there, a null one being a
+  > startup-order bug, not a condition to branch on. Ownership is untouched:
+  > the same `new` and `SAFE_DELETE` sites, except that a manager no global
+  > names any more is an `ObjectManager` member, registered on the context
+  > only if something outside that file reads it. `ctf/` and `quest/` are the
+  > converted subsystems: `FlagManager`, `FlagWar`/`NewbieFlagWar`,
+  > `ActionFactoryManager`, `Trigger` and `TriggerParser` take the context in
+  > their constructors, and every `Action` is handed it by its factory.
   > `de::gameContext()` is the shim the creation sites and the unconverted
-  > callers reach it through — in `quest/` only `TriggerManager::load()` and
-  > `ZoneLoad.cpp`; a converted subsystem never calls it.
-  > `game_context_tests` builds a context over stand-in pointers with
-  > nothing of the gameserver linked, which is what the
-  > forward-declaration-only header buys. R1: 325 → 89. An `extern` line goes
-  > when nothing creates the global, when the manager that owns it can reach
-  > and hand out its objects without one — `EffectLoaderManager` and
-  > `ItemLoaderManager` through their loader tables, `ItemInfoManager`
-  > through the `m_InfoClassManagers` slot its `getItemInfo(class, type)`
-  > already indexes, a table no context accessor can key because the nested
-  > `Item::ItemClass` cannot be forward-declared — or when its last caller
-  > is converted. Next: `g_pItemInfoManager`, the one route left to a
-  > class's item infos but read from a hundred and thirty files; the
-  > managers `ObjectManager` still creates; `g_pFlagManager`, read from
-  > fifteen files.
+  > callers reach it through; a converted subsystem never calls it.
+  > `game_context_tests` builds a context over stand-in pointers with nothing
+  > of the gameserver linked, which is what the forward-declaration-only
+  > header buys. R1: 325 → 72. An `extern` line goes when nothing creates the
+  > global, when the manager that owns it can reach its objects through a
+  > table it already fills (`EffectLoaderManager`, `ItemLoaderManager`,
+  > `ItemInfoManager`, whose `m_InfoClassManagers` slot no context accessor
+  > could key, the nested `Item::ItemClass` not being forward-declarable), or
+  > when its last caller is converted. Next: `g_pItemInfoManager`, read from
+  > a hundred and thirty files; the managers `ObjectManager` creates that
+  > more than five files read; `g_pFlagManager`, read from fifteen files.
   - Owner: R1 ratchet test.
 
 
