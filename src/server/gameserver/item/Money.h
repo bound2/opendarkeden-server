@@ -164,6 +164,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern MoneyLoader* g_pMoneyLoader;
-
 #endif

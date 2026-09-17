@@ -184,7 +184,5 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern HelmLoader* g_pHelmLoader;
-
 
 #endif

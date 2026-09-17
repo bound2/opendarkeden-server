@@ -352,5 +352,3 @@ void PetEnchantItemLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-PetEnchantItemLoader* g_pPetEnchantItemLoader = NULL;

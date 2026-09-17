@@ -429,5 +429,3 @@ void KeyLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-KeyLoader* g_pKeyLoader = NULL;

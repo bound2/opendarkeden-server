@@ -187,6 +187,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern MagazineLoader* g_pMagazineLoader;
-
 #endif

@@ -414,5 +414,3 @@ void CodeSheetLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-CodeSheetLoader* g_pCodeSheetLoader = NULL;

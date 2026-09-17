@@ -208,6 +208,4 @@ public:
     virtual void load(Zone* pZone);
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
-
-extern RelicLoader* g_pRelicLoader;
 #endif

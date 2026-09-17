@@ -13,6 +13,11 @@
 //
 // A failing Assert appends to assertion_failed.log in the working
 // directory, so the ctest entry runs this from the build tree.
+//
+// ItemLoaderManager's loader table gets no test here: filling it means
+// constructing the eighty-seven concrete loaders, which drags in the whole
+// gameserver, and reading it means talking to the database. The R1 ratchet
+// is what pins that the globals stay gone.
 //----------------------------------------------------------------------
 
 #include <gtest/gtest.h>
@@ -24,7 +29,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[15];
+char g_managerStorage[17];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -98,6 +103,19 @@ TEST(GameContextTest, WorldTableManagersAreReadBack) {
     EXPECT_EQ(&context.weatherInfos(), pWeatherInfoManager);
 }
 
+TEST(GameContextTest, ItemDescriptionManagersAreReadBack) {
+    de::GameContext context;
+
+    DefaultOptionSetInfoManager* pDefaultOptionSetInfoManager = standIn<DefaultOptionSetInfoManager>(15);
+    VolumeInfoManager* pVolumeInfoManager = standIn<VolumeInfoManager>(16);
+
+    context.setDefaultOptionSetInfoManager(pDefaultOptionSetInfoManager);
+    context.setVolumeInfoManager(pVolumeInfoManager);
+
+    EXPECT_EQ(&context.optionSets(), pDefaultOptionSetInfoManager);
+    EXPECT_EQ(&context.volumeInfos(), pVolumeInfoManager);
+}
+
 TEST(GameContextTest, ReregisteringReplacesTheManager) {
     de::GameContext context;
 
@@ -120,11 +138,13 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.dynamicZoneFactories(), AssertionError);
     EXPECT_THROW(context.itemFactories(), AssertionError);
     EXPECT_THROW(context.monsterNames(), AssertionError);
+    EXPECT_THROW(context.optionSets(), AssertionError);
     EXPECT_THROW(context.playerCreatures(), AssertionError);
     EXPECT_THROW(context.publicScripts(), AssertionError);
     EXPECT_THROW(context.shopTemplates(), AssertionError);
     EXPECT_THROW(context.strings(), AssertionError);
     EXPECT_THROW(context.variables(), AssertionError);
+    EXPECT_THROW(context.volumeInfos(), AssertionError);
     EXPECT_THROW(context.weatherInfos(), AssertionError);
     EXPECT_THROW(context.zoneGroups(), AssertionError);
     EXPECT_THROW(context.zoneInfos(), AssertionError);

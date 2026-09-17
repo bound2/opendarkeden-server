@@ -480,5 +480,3 @@ void OustersChakramLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-OustersChakramLoader* g_pOustersChakramLoader = NULL;

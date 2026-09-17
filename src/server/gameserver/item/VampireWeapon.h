@@ -216,6 +216,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern VampireWeaponLoader* g_pVampireWeaponLoader;
-
 #endif

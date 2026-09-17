@@ -156,6 +156,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern DyePotionLoader* g_pDyePotionLoader;
-
 #endif

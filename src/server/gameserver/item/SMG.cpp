@@ -528,5 +528,3 @@ void SMGLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-SMGLoader* g_pSMGLoader = NULL;

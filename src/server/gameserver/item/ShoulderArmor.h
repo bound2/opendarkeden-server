@@ -146,6 +146,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern ShoulderArmorLoader* g_pShoulderArmorLoader;
-
 #endif

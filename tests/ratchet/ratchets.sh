@@ -34,7 +34,7 @@ check_ratchet() {
 
 # --- R1: g_p* global-singleton extern declarations -------------------------
 R1=$(grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R1 "global singleton externs" 265 "$R1"
+check_ratchet R1 "global singleton externs" 176 "$R1"
 
 # --- R2: files with inline SQL in the gameserver root ----------------------
 R2=$(grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h 2>/dev/null | wc -l)
@@ -432,7 +432,7 @@ rm -f "$r16_inc" "$r16_dead"
 # working tree out of the count, which [^[:print:]] would not, and LC_ALL=C
 # keeps the range byte-wise where a locale would read it as characters.
 R17=$(LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R17 "source lines carrying non-ASCII bytes" 22802 "$R17"
+check_ratchet R17 "source lines carrying non-ASCII bytes" 22620 "$R17"
 
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).

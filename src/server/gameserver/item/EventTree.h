@@ -142,6 +142,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern EventTreeLoader* g_pEventTreeLoader;
-
 #endif

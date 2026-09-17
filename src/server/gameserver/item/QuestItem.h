@@ -135,6 +135,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern QuestItemLoader* g_pQuestItemLoader;
-
 #endif

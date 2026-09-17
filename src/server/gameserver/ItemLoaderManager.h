@@ -36,7 +36,10 @@ public:
     string toString() const;
 
 private:
-    ItemLoader* m_pItemLoaders[Item::ITEM_CLASS_MAX];
+    // The loaders this manager creates and owns, one slot per item class.
+    // init() fills the slots whose items are loaded from the database and
+    // leaves the rest null.
+    ItemLoader* m_pItemLoaders[Item::ITEM_CLASS_MAX] = {};
 };
 
 extern ItemLoaderManager* g_pItemLoaderManager;

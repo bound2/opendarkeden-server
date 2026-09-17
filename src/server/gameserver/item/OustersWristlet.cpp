@@ -506,5 +506,3 @@ void OustersWristletLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-OustersWristletLoader* g_pOustersWristletLoader = NULL;

@@ -337,5 +337,3 @@ void EventGiftBoxLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-EventGiftBoxLoader* g_pEventGiftBoxLoader = NULL;

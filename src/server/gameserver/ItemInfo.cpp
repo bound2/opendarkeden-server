@@ -5,6 +5,7 @@
 
 #include "ItemInfo.h"
 
+#include "GameContext.h"
 #include "ItemUtil.h"
 #include "OptionInfo.h"
 #include "VolumeInfo.h"
@@ -52,7 +53,7 @@ VolumeWidth_t ItemInfo::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pVolumeInfoManager->getVolumeInfo(m_VolumeType)->getVolumeWidth();
+    return de::gameContext().volumeInfos().getVolumeInfo(m_VolumeType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -62,7 +63,7 @@ VolumeHeight_t ItemInfo::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pVolumeInfoManager->getVolumeInfo(m_VolumeType)->getVolumeHeight();
+    return de::gameContext().volumeInfos().getVolumeInfo(m_VolumeType)->getVolumeHeight();
 
     __END_CATCH
 }

@@ -347,5 +347,3 @@ void MoonCardLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-MoonCardLoader* g_pMoonCardLoader = NULL;

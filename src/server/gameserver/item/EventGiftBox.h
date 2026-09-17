@@ -123,6 +123,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern EventGiftBoxLoader* g_pEventGiftBoxLoader;
-
 #endif

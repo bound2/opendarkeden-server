@@ -21,7 +21,6 @@ ItemID_t OustersSummonItem::m_ItemIDRegistry = 0;
 Mutex OustersSummonItem::m_Mutex;
 
 OustersSummonItemInfoManager* g_pOustersSummonItemInfoManager = NULL;
-OustersSummonItemLoader* g_pOustersSummonItemLoader = NULL;
 
 //////////////////////////////////////////////////////////////////////////////
 // class OustersSummonItem member methods

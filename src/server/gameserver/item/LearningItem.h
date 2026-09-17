@@ -142,7 +142,5 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern LearningItemLoader* g_pLearningItemLoader;
-
 
 #endif

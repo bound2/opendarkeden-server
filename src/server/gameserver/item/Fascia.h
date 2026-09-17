@@ -139,6 +139,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern FasciaLoader* g_pFasciaLoader;
-
 #endif

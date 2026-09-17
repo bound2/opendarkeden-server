@@ -477,5 +477,3 @@ void BladeLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-BladeLoader* g_pBladeLoader = NULL;

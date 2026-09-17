@@ -182,6 +182,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern TrouserLoader* g_pTrouserLoader;
-
 #endif

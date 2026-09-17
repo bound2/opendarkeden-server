@@ -580,5 +580,3 @@ void PupaLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-PupaLoader* g_pPupaLoader = NULL;

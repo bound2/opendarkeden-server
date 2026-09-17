@@ -415,5 +415,3 @@ void CoupleRingLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-CoupleRingLoader* g_pCoupleRingLoader = NULL;

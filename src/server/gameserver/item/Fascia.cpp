@@ -329,8 +329,8 @@ void FasciaLoader::load(Zone* pZone)
 //--------------------------------------------------------------------------------
 void FasciaLoader::load(StorageID_t storageID, Inventory* pInventory)
 
-    {__BEGIN_TRY
+{
+    __BEGIN_TRY
 
-         __END_CATCH}
-
-FasciaLoader* g_pFasciaLoader = NULL;
+    __END_CATCH
+}

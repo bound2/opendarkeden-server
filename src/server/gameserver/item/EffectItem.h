@@ -145,6 +145,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern EffectItemLoader* g_pEffectItemLoader;
-
 #endif

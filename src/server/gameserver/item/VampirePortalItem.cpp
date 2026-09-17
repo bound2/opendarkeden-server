@@ -21,7 +21,6 @@ ItemID_t VampirePortalItem::m_ItemIDRegistry = 0;
 Mutex VampirePortalItem::m_Mutex;
 
 VampirePortalItemInfoManager* g_pVampirePortalItemInfoManager = NULL;
-VampirePortalItemLoader* g_pVampirePortalItemLoader = NULL;
 
 //////////////////////////////////////////////////////////////////////////////
 // class VampirePortalItem member methods

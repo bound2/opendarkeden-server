@@ -528,5 +528,3 @@ void SGLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-SGLoader* g_pSGLoader = NULL;

@@ -67,6 +67,4 @@ private:
     VolumeInfo* m_VolumeInfo[MAX_VOLUME_TYPE];
 };
 
-extern VolumeInfoManager* g_pVolumeInfoManager;
-
 #endif // __VOLUME_INFO_MANAGER_H__

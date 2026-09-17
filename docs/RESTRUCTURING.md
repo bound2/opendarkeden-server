@@ -57,7 +57,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
-| R1 | `g_p*` global-singleton extern declarations | 306 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` (332→331 on 2026-09-10 with the never-built `EventMonsterNameManager.h`, which redeclared `g_pMonsterNameManager`; 331→327 on 2026-09-10 with the never-built `EventBall.h` (two) and the commented-out `EffectBloodyWallLoader` and `EffectGrayDarknessLoader` declarations; a `default*Repository()` accessor is a function, not a global, so extractions do not move this number; 327→325 on 2026-09-13 with the never-built `item/SubInventory.h` (two); 325→319 on 2026-09-17 with six globals that were declared and never created (`g_pCombatSystemManager`, `g_pItemNumberManager`, `g_pHolyLandRaceBonus`, `g_pObjectRegistry`, `g_pSkillParentInfoManager`, `g_pZonePlayerManager`); 319→315 on 2026-09-17 with the four quest scripting managers, whose only readers were `quest/` and the composition root, and which `ObjectManager` now owns and registers on `de::GameContext`; the remaining nine of the 325→306 span went with the sources no target compiled; 306→285 on 2026-09-17 with the twenty-one `g_pEffect*Loader` globals that were declared and defined but never created and never read; 285→269 on 2026-09-17 with the sixteen `g_pEffect*Loader` globals `EffectLoaderManager` did create, which it now reaches through the `m_pEffectLoaders` table it was already filling; 269→266 on 2026-09-17 with `g_pMonsterNameManager`, `g_pWeatherInfoManager` and `g_pDynamicZoneFactoryManager`, which `ObjectManager` now owns and registers on `de::GameContext`; 266→265 on 2026-09-17 with `g_pBillingPlayerManager`, whose module was deleted) |
+| R1 | `g_p*` global-singleton extern declarations | 176 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` (332→331 on 2026-09-10 with the never-built `EventMonsterNameManager.h`, which redeclared `g_pMonsterNameManager`; 331→327 on 2026-09-10 with the never-built `EventBall.h` (two) and the commented-out `EffectBloodyWallLoader` and `EffectGrayDarknessLoader` declarations; a `default*Repository()` accessor is a function, not a global, so extractions do not move this number; 327→325 on 2026-09-13 with the never-built `item/SubInventory.h` (two); 325→319 on 2026-09-17 with six globals that were declared and never created (`g_pCombatSystemManager`, `g_pItemNumberManager`, `g_pHolyLandRaceBonus`, `g_pObjectRegistry`, `g_pSkillParentInfoManager`, `g_pZonePlayerManager`); 319→315 on 2026-09-17 with the four quest scripting managers, whose only readers were `quest/` and the composition root, and which `ObjectManager` now owns and registers on `de::GameContext`; the remaining nine of the 325→306 span went with the sources no target compiled; 306→285 on 2026-09-17 with the twenty-one `g_pEffect*Loader` globals that were declared and defined but never created and never read; 285→269 on 2026-09-17 with the sixteen `g_pEffect*Loader` globals `EffectLoaderManager` did create, which it now reaches through the `m_pEffectLoaders` table it was already filling; 269→266 on 2026-09-17 with `g_pMonsterNameManager`, `g_pWeatherInfoManager` and `g_pDynamicZoneFactoryManager`, which `ObjectManager` now owns and registers on `de::GameContext`; 266→179 on 2026-09-17 with the eighty-seven `g_p*Loader` item globals `ItemLoaderManager` created, which it now reaches through the `m_pItemLoaders` table it was already filling; 179→177 on 2026-09-17 with `g_pVolumeInfoManager` and `g_pDefaultOptionSetInfoManager`, which `ObjectManager` now owns and registers on `de::GameContext`) |
 | R2 | Files with inline SQL in gameserver root | 0 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29; 7→0 on 2026-09-10, the last two live sites into `PlayRecordRepository::logPlayerTrade` and the new `SMSMessageRepository`, `CreatureUtil.cpp`'s commented-out `addOlympicStat` body deleted, and four never-built stale copies deleted with it. The root is clean; new SQL there fails the ratchet.) |
 | R3 | Files with inline SQL outside `database/` and any `repository/` | 0 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (18→11 on 2026-09-10 with the seven gameserver-root files R2 counted; 11→0 the same day with the never-built `EventBall.cpp`, the `*notice` command that held the last live statement, and the nine files whose only `executeQuery` sat inside a comment block. `gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
@@ -73,7 +73,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R14 | Mentions of macros nothing defines | 0 | `LC_ALL=C grep -rhE '__((THAILAND\|THIALAND\|CHINA\|CHAINA\|INTERNATIONAL\|NETMARBLE\|TEST)_SERVER\|OLD_GUILD_WAR\|CONNECT_BILLING_SYSTEM\|COUT_BILLING_SYSTEM\|PAY_SYSTEM_(ZONE\|LOGIN\|FREE_LIMIT)\|UNDERWORLD\|ACTIVE_QUEST\|ACTIVE_SERVICE_DEADLINE\|WINDOWS)__' src --include='*.h' --include='*.cpp' \| wc -l` — a macro no build defines makes the block behind it dead text: it never reached the compiler, so the `#else`/`#ifndef` branch beside it was the only code the servers ran, while the block kept reading as live code. A translation-unit-local `#define` arms one again, and one did, giving that TU a `SystemAvailabilitiesManager` with a layout no other TU shared. The region builds went first (`__THAILAND_SERVER__`, `__CHINA_SERVER__`, the misspellings `__CHAINA_SERVER__`/`__THIALAND_SERVER__`, `__INTERNATIONAL_SERVER__`, `__NETMARBLE_SERVER__`, `__TEST_SERVER__`); the feature macros followed — `__OLD_GUILD_WAR__` (guild union/tax handlers that only answered "not supported yet", a one-attacker war schedule where the live read takes five), `__CONNECT_BILLING_SYSTEM__`/`__COUT_BILLING_SYSTEM__` (the external billing link and its console trace), `__PAY_SYSTEM_ZONE__`/`__PAY_SYSTEM_LOGIN__`/`__PAY_SYSTEM_FREE_LIMIT__` (with none defined `GamePlayer::isPayPlaying()` answers true for every player and each gate passes), `__UNDERWORLD__`, `__ACTIVE_QUEST__`, `__ACTIVE_SERVICE_DEADLINE__` and `__WINDOWS__`, whose arm of the platform switch was the only dead one (`__LINUX__` comes from the top-level `CMakeLists.txt`, `__APPLE__` from the compiler). The instrumentation toggles a developer switches on by hand (`__PROFILE_*`, `__FULL_PROFILE__`, `__DEBUG_OUTPUT__`, `__OUTPUT_INIT__`) are deliberately not counted. Comments count too, so a comment about one of these branches states the behaviour instead |
 | R15 | `src/**/*.cpp` that no target compiles | 0 | A source no target names is never compiled, so nothing it says is true of a running server: it drifts out of sync with the headers it includes while still reading as live code. Built means a `CMakeLists.txt` names it, `tests/arch/kernel_files.txt` lists it, or another source `#include`s it. A CMake reference is relative to its own `CMakeLists.txt`, so each is resolved against that directory — a basename match would call `gameserver/SocketImpl.cpp` built because the kernel list carries `Core/SocketImpl.cpp` — and comments are stripped first, since two quest sources sat behind a `#` in a source list. The scan is scoped to `src` plus the top-level `CMakeLists.txt` because the container configures its build tree inside the source root, and a `file(GLOB ...)` in the build files fails the check outright, a name-based measure being blind to a globbed target. 39→0 on 2026-09-17 |
 | R16 | Headers under `src/` that nothing includes | 0 | A header no translation unit reaches is not part of any build, so nothing it declares is ever checked against the code it describes. Included means some `#include "..."` text under `src/` or `tests/` equals the header's path or the path ends with `/` plus that text. That approximates resolving each include against the including file's own directory and the CMake `-I` list, and it errs only toward calling a header used, never toward calling a live one dead; comments are not stripped, for the same direction. The include-text list is materialised first, as R13 does, so a broken grep fails loudly instead of reading as zero orphans. 5→0 on 2026-09-17 |
-| R17 | Source lines carrying a non-ASCII byte | 22802 | `LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' \| wc -l` - the tree's code language is English, and these are the lines a reader cannot read. The legacy text survived in three states: readable Korean, mojibake (EUC-KR/CP949 bytes decoded as Latin-1 and re-encoded as UTF-8), and U+FFFD runs where the text is gone and only the adjacent code says what it meant. Comments are translated tree by tree; `src/domain`, `src/server/database`, `src/server/loginserver` and `src/server/sharedserver` are done (869 -> 6 on 2026-09-17, the six being string literals), leaving `src/Core` and `src/server/gameserver`. String literals are a pass of their own: changing one changes what the server says, not how the source reads. The byte class is R12's, so the CR of a CRLF working tree stays out of the count |
+| R17 | Source lines carrying a non-ASCII byte | 22620 | `LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' \| wc -l` - the tree's code language is English, and these are the lines a reader cannot read. The legacy text survived in three states: readable Korean, mojibake (EUC-KR/CP949 bytes decoded as Latin-1 and re-encoded as UTF-8), and U+FFFD runs where the text is gone and only the adjacent code says what it meant. Comments are translated tree by tree; `src/domain`, `src/server/database`, `src/server/loginserver` and `src/server/sharedserver` are done (869 -> 6 on 2026-09-17, the six being string literals), leaving `src/Core` and `src/server/gameserver`. String literals are a pass of their own: changing one changes what the server says, not how the source reads. The byte class is R12's, so the CR of a CRLF working tree stays out of the count |
 
 God-file baselines (R6):
 
@@ -1223,34 +1223,34 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   interfaces) explicitly; the old `g_p*` externs become shims into it until
   their last caller is converted. Ratchet R1.
   > **Status:** in progress — `src/server/gameserver/GameContext.h` is a
-  > registry of non-owning pointers to fifteen managers (the config and the
-  > database manager; `ItemFactoryManager`, `PCFinder`, `StringPool`,
+  > registry of non-owning pointers to seventeen managers (the config and
+  > the database manager; `ItemFactoryManager`, `PCFinder`, `StringPool`,
   > `VariableManager`, `ZoneGroupManager`, `ZoneInfoManager`,
-  > `MonsterNameManager`, `WeatherInfoManager` and
-  > `DynamicZoneFactoryManager`; and the four quest scripting managers),
-  > each registered by the code that creates it —
-  > `GameServer`'s constructor for the first two,
-  > `ObjectManager`'s for the world ones — and read back through an
-  > accessor that asserts the manager is there, a null one being a
-  > startup-order bug rather than a condition to branch on. Ownership is
-  > untouched: the same `new` and `SAFE_DELETE` sites, except that a manager
-  > no global names any more is an `ObjectManager` member. `ctf/` and
-  > `quest/` are the converted subsystems: `FlagManager` takes the context,
-  > `FlagWar`/`NewbieFlagWar` take their `FlagManager` and the context,
-  > `ActionFactoryManager`, `Trigger` and `TriggerParser` take it in their
-  > constructors, and every `Action` is handed it by the factory that
-  > creates it. `de::gameContext()` is the shim the creation sites and the
-  > unconverted callers reach the context through — in `quest/` only
+  > `MonsterNameManager`, `WeatherInfoManager`, `VolumeInfoManager`,
+  > `DefaultOptionSetInfoManager` and `DynamicZoneFactoryManager`; and the
+  > four quest scripting managers), each registered by the code that creates
+  > it — `GameServer`'s constructor for the first two, `ObjectManager`'s for
+  > the world ones — and read back through an accessor that asserts the
+  > manager is there, a null one being a startup-order bug rather than a
+  > condition to branch on. Ownership is untouched: the same `new` and
+  > `SAFE_DELETE` sites, except that a manager no global names any more is
+  > an `ObjectManager` member. `ctf/` and `quest/` are the converted
+  > subsystems: `FlagManager` takes the context, `FlagWar`/`NewbieFlagWar`
+  > take their `FlagManager` and the context, `ActionFactoryManager`,
+  > `Trigger` and `TriggerParser` take it in their constructors, and every
+  > `Action` is handed it by the factory that creates it.
+  > `de::gameContext()` is the shim the creation sites and the unconverted
+  > callers reach the context through — in `quest/` only
   > `TriggerManager::load()` and `ZoneLoad.cpp`; a converted subsystem is
   > handed the context and never calls it. `game_context_tests` builds a
   > context over stand-in pointers with nothing of the gameserver linked,
   > which is what the forward-declaration-only header buys and what makes a
-  > subsystem holding a `GameContext&` testable at all. R1: 325 → 266. An
+  > subsystem holding a `GameContext&` testable at all. R1: 325 → 177. An
   > `extern` line goes when nothing creates the global, when the manager
-  > that owns it can reach it without one — `EffectLoaderManager` through
-  > its own loader table — or when its last caller is converted. Next: the
-  > item loader globals, which only `ItemLoaderManager` reads and already
-  > holds in a table; `g_pFlagManager`, read from fifteen files, still waits.
+  > that owns it can reach it without one — `EffectLoaderManager` and
+  > `ItemLoaderManager` through their own loader tables — or when its last
+  > caller is converted. Next: the remaining managers `ObjectManager`
+  > creates; `g_pFlagManager`, read from fifteen files, still waits.
   - Owner: R1 ratchet test.
 
 

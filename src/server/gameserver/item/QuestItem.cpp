@@ -346,5 +346,3 @@ void QuestItemLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-QuestItemLoader* g_pQuestItemLoader = NULL;

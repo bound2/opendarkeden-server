@@ -558,6 +558,3 @@ void BeltLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-// global variable definition
-BeltLoader* g_pBeltLoader = NULL;

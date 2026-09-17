@@ -327,8 +327,8 @@ void CarryingReceiverLoader::load(Zone* pZone)
 //--------------------------------------------------------------------------------
 void CarryingReceiverLoader::load(StorageID_t storageID, Inventory* pInventory)
 
-    {__BEGIN_TRY
+{
+    __BEGIN_TRY
 
-         __END_CATCH}
-
-CarryingReceiverLoader* g_pCarryingReceiverLoader = NULL;
+    __END_CATCH
+}

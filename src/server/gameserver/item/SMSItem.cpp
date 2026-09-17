@@ -345,5 +345,3 @@ void SMSItemLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-SMSItemLoader* g_pSMSItemLoader = NULL;

@@ -141,6 +141,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern VampireETCLoader* g_pVampireETCLoader;
-
 #endif

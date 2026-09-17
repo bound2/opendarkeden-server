@@ -352,5 +352,3 @@ void MixingItemLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-MixingItemLoader* g_pMixingItemLoader = NULL;

@@ -334,8 +334,8 @@ void MittenLoader::load(Zone* pZone)
 //--------------------------------------------------------------------------------
 void MittenLoader::load(StorageID_t storageID, Inventory* pInventory)
 
-    {__BEGIN_TRY
+{
+    __BEGIN_TRY
 
-         __END_CATCH}
-
-MittenLoader* g_pMittenLoader = NULL;
+    __END_CATCH
+}

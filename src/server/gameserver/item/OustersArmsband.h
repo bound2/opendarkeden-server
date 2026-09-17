@@ -205,6 +205,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern OustersArmsbandLoader* g_pOustersArmsbandLoader;
-
 #endif

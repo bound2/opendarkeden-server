@@ -25,6 +25,7 @@
 class ActionFactoryManager;
 class ConditionFactoryManager;
 class DatabaseManager;
+class DefaultOptionSetInfoManager;
 class DynamicZoneFactoryManager;
 class ItemFactoryManager;
 class MonsterNameManager;
@@ -34,6 +35,7 @@ class ScriptManager;
 class ShopTemplateManager;
 class StringPool;
 class VariableManager;
+class VolumeInfoManager;
 class WeatherInfoManager;
 class ZoneGroupManager;
 class ZoneInfoManager;
@@ -59,6 +61,9 @@ public:
     void setDatabaseManager(DatabaseManager* pDatabaseManager) {
         m_pDatabaseManager = pDatabaseManager;
     }
+    void setDefaultOptionSetInfoManager(DefaultOptionSetInfoManager* pDefaultOptionSetInfoManager) {
+        m_pDefaultOptionSetInfoManager = pDefaultOptionSetInfoManager;
+    }
     void setDynamicZoneFactoryManager(DynamicZoneFactoryManager* pDynamicZoneFactoryManager) {
         m_pDynamicZoneFactoryManager = pDynamicZoneFactoryManager;
     }
@@ -83,6 +88,9 @@ public:
     void setVariableManager(VariableManager* pVariableManager) {
         m_pVariableManager = pVariableManager;
     }
+    void setVolumeInfoManager(VolumeInfoManager* pVolumeInfoManager) {
+        m_pVolumeInfoManager = pVolumeInfoManager;
+    }
     void setWeatherInfoManager(WeatherInfoManager* pWeatherInfoManager) {
         m_pWeatherInfoManager = pWeatherInfoManager;
     }
@@ -97,6 +105,7 @@ public:
     ConditionFactoryManager& conditionFactories() const;
     Properties& config() const;
     DatabaseManager& databases() const;
+    DefaultOptionSetInfoManager& optionSets() const;
     DynamicZoneFactoryManager& dynamicZoneFactories() const;
     ItemFactoryManager& itemFactories() const;
     MonsterNameManager& monsterNames() const;
@@ -105,6 +114,7 @@ public:
     ShopTemplateManager& shopTemplates() const;
     StringPool& strings() const;
     VariableManager& variables() const;
+    VolumeInfoManager& volumeInfos() const;
     WeatherInfoManager& weatherInfos() const;
     ZoneGroupManager& zoneGroups() const;
     ZoneInfoManager& zoneInfos() const;
@@ -114,6 +124,7 @@ private:
     ConditionFactoryManager* m_pConditionFactoryManager = nullptr;
     Properties* m_pConfig = nullptr;
     DatabaseManager* m_pDatabaseManager = nullptr;
+    DefaultOptionSetInfoManager* m_pDefaultOptionSetInfoManager = nullptr;
     DynamicZoneFactoryManager* m_pDynamicZoneFactoryManager = nullptr;
     ItemFactoryManager* m_pItemFactoryManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;
@@ -122,6 +133,7 @@ private:
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
     StringPool* m_pStringPool = nullptr;
     VariableManager* m_pVariableManager = nullptr;
+    VolumeInfoManager* m_pVolumeInfoManager = nullptr;
     WeatherInfoManager* m_pWeatherInfoManager = nullptr;
     ZoneGroupManager* m_pZoneGroupManager = nullptr;
     ZoneInfoManager* m_pZoneInfoManager = nullptr;

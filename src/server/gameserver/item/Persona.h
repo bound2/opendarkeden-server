@@ -146,6 +146,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern PersonaLoader* g_pPersonaLoader;
-
 #endif

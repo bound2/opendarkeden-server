@@ -214,6 +214,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern GloveLoader* g_pGloveLoader;
-
 #endif

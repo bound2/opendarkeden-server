@@ -392,5 +392,3 @@ void EventETCLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-EventETCLoader* g_pEventETCLoader = NULL;

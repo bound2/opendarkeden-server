@@ -332,5 +332,3 @@ void BloodBibleLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-BloodBibleLoader* g_pBloodBibleLoader = NULL;

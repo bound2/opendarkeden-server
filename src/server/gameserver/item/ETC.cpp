@@ -371,5 +371,3 @@ void ETCLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-ETCLoader* g_pETCLoader = NULL;

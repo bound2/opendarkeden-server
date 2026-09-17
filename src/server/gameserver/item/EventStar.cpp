@@ -350,5 +350,3 @@ void EventStarLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-EventStarLoader* g_pEventStarLoader = NULL;

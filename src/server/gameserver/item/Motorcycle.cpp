@@ -374,5 +374,3 @@ void MotorcycleLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-MotorcycleLoader* g_pMotorcycleLoader = NULL;

@@ -153,7 +153,7 @@ ObjectManager::ObjectManager()
     g_pVariableManager = new VariableManager();
     g_pItemInfoManager = new ItemInfoManager();
     g_pItemFactoryManager = new ItemFactoryManager();
-    g_pVolumeInfoManager = new VolumeInfoManager();
+    m_pVolumeInfoManager = new VolumeInfoManager();
     g_pItemLoaderManager = new ItemLoaderManager();
     m_pShopTemplateManager = new ShopTemplateManager();
     g_pOptionInfoManager = new OptionInfoManager();
@@ -180,6 +180,7 @@ ObjectManager::ObjectManager()
     context.setZoneInfoManager(g_pZoneInfoManager);
     context.setVariableManager(g_pVariableManager);
     context.setItemFactoryManager(g_pItemFactoryManager);
+    context.setVolumeInfoManager(m_pVolumeInfoManager);
     context.setShopTemplateManager(m_pShopTemplateManager);
     context.setMonsterNameManager(m_pMonsterNameManager);
     context.setZoneGroupManager(g_pZoneGroupManager);
@@ -254,7 +255,8 @@ ObjectManager::ObjectManager()
     // g_pRewardClassInfoManager = new RewardClassInfoManager();
 
     g_pFlagManager = new FlagManager(context);
-    g_pDefaultOptionSetInfoManager = new DefaultOptionSetInfoManager();
+    m_pDefaultOptionSetInfoManager = new DefaultOptionSetInfoManager();
+    context.setDefaultOptionSetInfoManager(m_pDefaultOptionSetInfoManager);
 
     g_pLevelWarZoneInfoManager = new LevelWarZoneInfoManager();
     g_pSweeperBonusManager = new SweeperBonusManager();
@@ -294,11 +296,10 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pMonsterNameManager);
     SAFE_DELETE(g_pZoneInfoManager);
     SAFE_DELETE(g_pZoneGroupManager);
-    SAFE_DELETE(g_pSkillDomainInfoManager);
     // SAFE_DELETE(g_pSkillParentInfoManager);
     SAFE_DELETE(g_pSkillHandlerManager);
-    SAFE_DELETE(g_pOptionInfoManager);
     SAFE_DELETE(g_pItemFactoryManager);
+    SAFE_DELETE(m_pVolumeInfoManager);
     SAFE_DELETE(g_pItemLoaderManager);
     //	SAFE_DELETE(g_pSTRBalanceInfoManager);
     //	SAFE_DELETE(g_pDEXBalanceInfoManager);
@@ -351,7 +352,7 @@ ObjectManager::~ObjectManager()
     // SAFE_DELETE(g_pRewardClassInfoManager);
 
     SAFE_DELETE(g_pFlagManager);
-    SAFE_DELETE(g_pDefaultOptionSetInfoManager);
+    SAFE_DELETE(m_pDefaultOptionSetInfoManager);
 
     SAFE_DELETE(g_pLevelWarZoneInfoManager);
     SAFE_DELETE(g_pSweeperBonusManager);
@@ -438,7 +439,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : WarID Initialization Success\n");
 
     printf("ObjectManager::init() : VolumeInfoManager Initialization Start\n");
-    g_pVolumeInfoManager->init();
+    m_pVolumeInfoManager->init();
     printf("ObjectManager::init() : VolumeInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : ItemFactory Initialization Start\n");
@@ -702,7 +703,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : RegenZoneManager Initialization Success\n");
 
     printf("ObjectManager::load() : DefaultOptionSetInfoManager Initialization Start\n");
-    g_pDefaultOptionSetInfoManager->load();
+    m_pDefaultOptionSetInfoManager->load();
     printf("ObjectManager::load() : DefaultOptionSetInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : PetTypeInfoManager Initialization Start\n");

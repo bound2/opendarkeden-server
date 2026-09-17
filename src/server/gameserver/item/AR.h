@@ -200,6 +200,4 @@ public:
     virtual void load(StorageID_t storageID, Inventory* pInventory);
 };
 
-extern ARLoader* g_pARLoader;
-
 #endif

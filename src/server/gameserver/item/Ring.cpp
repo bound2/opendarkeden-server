@@ -451,5 +451,3 @@ void RingLoader::load(StorageID_t storageID, Inventory* pInventory)
 
     __END_CATCH
 }
-
-RingLoader* g_pRingLoader = NULL;
