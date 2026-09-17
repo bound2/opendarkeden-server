@@ -61,15 +61,6 @@ void MagnumSpear::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
 
 
         int HitBonus = 0;
-        /*
-        if ( pOusters->hasRankBonus( RankBonus::RANK_BONUS_KNOWLEDGE_OF_ACID ) )
-        {
-            RankBonus* pRankBonus = pOusters->getRankBonus( RankBonus::RANK_BONUS_KNOWLEDGE_OF_ACID );
-            Assert( pRankBonus != NULL );
-
-            HitBonus = pRankBonus->getPoint();
-        }
-        */
 
 
         int RequiredMP = (int)(pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 3);

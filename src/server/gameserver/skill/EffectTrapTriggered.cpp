@@ -34,12 +34,10 @@ void EffectTrapTriggered::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectTrapTriggered " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectTrapTriggered " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -50,10 +48,8 @@ void EffectTrapTriggered::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectTrapTriggered " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
-    // Assert(pCreature->isSlayer());
 
     pCreature->removeFlag(Effect::EFFECT_CLASS_TRAPPED);
 
@@ -67,7 +63,6 @@ void EffectTrapTriggered::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_TRAP_TRIGGERED);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectTrapTriggered " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

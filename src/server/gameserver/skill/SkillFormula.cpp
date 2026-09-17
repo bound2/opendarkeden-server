@@ -570,8 +570,6 @@ DE_SKILL_FORMULA(BloodyStorm)
 DE_SKILL_FORMULA(Extreme)
 void CriticalGround::computeOutput(const SkillInput& input, SkillOutput& output) {
     // same as acid bolt - -;
-    // output.Damage = min(40, 20 + (input.INTE-20)/6);
-    // output.Delay  = 10; // 1 sec
 
     // 20
     // 145 --> 145~290 --> 22~46

@@ -31,7 +31,6 @@ void BackStab::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
 
     SIMPLE_SKILL_INPUT param;
     param.SkillType = getSkillType();
-    //	param.SkillDamage   = output.Damage;
 
     bool bCritical = false;
     if (HitRoll::isSuccessBackStab(pOusters)) {

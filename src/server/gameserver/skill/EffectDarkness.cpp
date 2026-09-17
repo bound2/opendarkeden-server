@@ -105,7 +105,6 @@ void EffectDarkness::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectDarkness " << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
 
@@ -119,7 +118,6 @@ void EffectDarkness::unaffect()
 
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectDarkness " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -167,7 +165,6 @@ void EffectDarknessLoader::load(Zone* pZone)
                     pEffect->setStartTime();
 
                     pZone->registerObject(pEffect);
-                    // pZone->addEffect(pEffect);  // REMOVED: Don't add permanent tile effects to Zone
                     tile.addEffect(pEffect);
                 }
             }

@@ -34,7 +34,6 @@ void PleasureExplosion::execute(Monster* pMonster)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
@@ -100,7 +99,6 @@ void PleasureExplosion::execute(Monster* pMonster)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

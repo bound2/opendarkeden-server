@@ -33,85 +33,6 @@ CriticalGround::CriticalGround() {
 //////////////////////////////////////////////////////////////////////////////
 // 뱀파이어 셀프 핸들러
 //////////////////////////////////////////////////////////////////////////////
-/*
-void CriticalGround::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEffectID_t CEffectID)
-
-{
-    __BEGIN_TRY
-
-    //cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
-
-    Assert(pVampire != NULL);
-    Assert(pSkillSlot != NULL);
-
-    try
-    {
-        Player* pPlayer = pVampire->getPlayer();
-        Zone* pZone = pVampire->getZone();
-
-        Assert(pPlayer != NULL);
-        Assert(pZone != NULL);
-
-        GCSkillToSelfOK1 _GCSkillToSelfOK1;
-        GCSkillToSelfOK2 _GCSkillToSelfOK2;
-
-        SkillType_t SkillType  = pSkillSlot->getSkillType();
-        SkillInfo*  pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-
-        ZoneCoord_t x = pVampire->getX();
-        ZoneCoord_t y = pVampire->getY();
-
-        int  RequiredMP     = decreaseConsumeMP(pVampire, pSkillInfo);
-        bool bManaCheck     = hasEnoughMana(pVampire, RequiredMP);
-        bool bTimeCheck     = verifyRunTime(pSkillSlot);
-        bool bRangeCheck    = checkZoneLevelToUseSkill(pVampire);
-        bool bHitRoll       = HitRoll::isSuccessMagic(pVampire, pSkillInfo, pSkillSlot);
-        bool bTileCheck     = canBurrow(pZone, x, y);
-        bool bMoveModeCheck = pVampire->isWalking();
-        bool bEffected      = pVampire->isFlag(Effect::EFFECT_CLASS_HIDE);
-
-        if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bTileCheck && bMoveModeCheck && !bEffected)
-        {
-            decreaseMana(pVampire, RequiredMP, _GCSkillToSelfOK1);
-
-            // 뱀파이어를 땅 위에서 삭제하기 이전에 기술 패킷들을 날린다.
-            _GCSkillToSelfOK1.setSkillType(SkillType);
-            _GCSkillToSelfOK1.setCEffectID(CEffectID);
-            _GCSkillToSelfOK1.setDuration(0);
-
-            _GCSkillToSelfOK2.setXY(x, y);
-            _GCSkillToSelfOK2.setSkillType(SkillType);
-            _GCSkillToSelfOK2.setDuration(0);
-
-            pPlayer->sendPacket(&_GCSkillToSelfOK1);
-            pZone->broadcastPacket(x, y, &_GCSkillToSelfOK2, pVampire);
-
-            // 땅 위에 나와있는 뱀파이어 삭제하라고 알린다.
-            GCDeleteObject gcDO;
-            gcDO.setObjectID(pVampire->getObjectID());
-            pZone->broadcastPacket(x, y, &gcDO, pVampire);
-
-            // 땅 속에다가 뱀파이어를 추가한다.
-            addBurrowingCreature(pZone, pVampire, x, y);
-
-            pSkillSlot->setRunTime();
-        }
-        else
-        {
-            executeSkillFailNormal(pVampire, getSkillType(), NULL);
-        }
-    }
-    catch(Throwable & t)
-    {
-        executeSkillFailException(pVampire, getSkillType());
-    }
-
-    //cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
-
-    __END_CATCH
-
-}
-*/
 
 //////////////////////////////////////////////////////////////////////////////
 // 몬스터 셀프 핸들러
@@ -121,7 +42,6 @@ void CriticalGround::execute(Monster* pMonster)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
@@ -130,14 +50,12 @@ void CriticalGround::execute(Monster* pMonster)
         Assert(pZone != NULL);
 
         if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
         if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
             addVisibleCreature(pZone, pMonster, true);
         }
 
-        // GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         ZoneCoord_t x = pMonster->getX();
         ZoneCoord_t y = pMonster->getY();
@@ -149,10 +67,6 @@ void CriticalGround::execute(Monster* pMonster)
             //--------------------------------------------------------
             // Critical Ground 기술을 보이게 한다.
             //--------------------------------------------------------
-            //_GCSkillToSelfOK2.setObjectID(pMonster->getObjectID());
-            //_GCSkillToSelfOK2.setDuration(0);
-            //_GCSkillToSelfOK2.setSkillType(getSkillType());
-            // pZone->broadcastPacket(x, y, &_GCSkillToSelfOK2);
 
 
             //--------------------------------------------------------
@@ -190,7 +104,6 @@ void CriticalGround::execute(Monster* pMonster)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

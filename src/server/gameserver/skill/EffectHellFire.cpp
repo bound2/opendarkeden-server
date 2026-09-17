@@ -42,7 +42,6 @@ void EffectHellFire::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectHellFire" << "affect BEGIN" << endl;
 
     Assert(m_pZone != NULL);
 
@@ -105,7 +104,6 @@ void EffectHellFire::affect()
 
     setNextTime(m_Tick);
 
-    // cout << "EffectHellFire" << "affect END" << endl;
 
     __END_CATCH
 }
@@ -135,12 +133,10 @@ void EffectHellFire::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectHellFire" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectHellFire" << "unaffect END" << endl;
 
     __END_CATCH
 }

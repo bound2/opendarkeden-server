@@ -304,21 +304,3 @@ void SimpleLinearMeleeSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
 
     __END_CATCH
 }
-
-/*
-void SimpleLinearMeleeSkill::execute(Vampire* pVampire, int X, int Y, VampireSkillSlot* pVampireSkillSlot,
-    const SIMPLE_SKILL_INPUT& param,  SIMPLE_SKILL_OUTPUT& result,
-    CEffectID_t CEffectID=0)
-{
-    __BEGIN_TRY
-    __END_CATCH
-}
-
-void SimpleLinearMeleeSkill::execute(Monster* pMonster, int X, int Y,
-    const SIMPLE_SKILL_INPUT& param,  SIMPLE_SKILL_OUTPUT& result,
-    CEffectID_t CEffectID=0)
-{
-    __BEGIN_TRY
-    __END_CATCH
-}
-*/

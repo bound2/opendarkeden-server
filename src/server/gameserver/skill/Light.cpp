@@ -19,7 +19,6 @@ void Light::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -70,7 +69,6 @@ void Light::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
             pSlayer->setFlag(Effect::EFFECT_CLASS_LIGHT);
             pSlayer->addEffect(pEffectLight);
 
-            // pEffectLight->create(pSlayer->getName());
 
             // 시야처리..
             Sight_t MinSight = pSkillInfo->getMinDamage();
@@ -119,7 +117,6 @@ void Light::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

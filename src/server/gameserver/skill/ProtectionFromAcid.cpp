@@ -23,7 +23,6 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Ski
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -35,12 +34,10 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Ski
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !pTargetCreature->isSlayer()) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -140,7 +137,6 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Ski
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -153,7 +149,6 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     try {
         Player* pPlayer = pSlayer->getPlayer();
@@ -234,7 +229,6 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

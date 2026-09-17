@@ -17,7 +17,6 @@ EffectGnomesWhisper::EffectGnomesWhisper(Creature* pCreature)
     __BEGIN_TRY
 
     Assert(pCreature != NULL);
-    //	Assert(pCreature->isOusters());
 
     setTarget(pCreature);
 
@@ -31,10 +30,8 @@ void EffectGnomesWhisper::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectGnomesWhisper" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
-    //	Assert(pCreature->isOusters());
 
     // 플래그를 끈다.
     pCreature->removeFlag(Effect::EFFECT_CLASS_GNOMES_WHISPER);
@@ -44,8 +41,6 @@ void EffectGnomesWhisper::unaffect(Creature* pCreature)
 
     pZone->updateInvisibleScan(pCreature);
 
-    //	Ousters* pTargetOusters = dynamic_cast<Ousters*>(pCreature);
-    //	Assert( pTargetOusters != NULL );
 
     // 이펙트를 삭제하라고 알려준다.
     GCRemoveEffect gcRemoveEffect;
@@ -53,7 +48,6 @@ void EffectGnomesWhisper::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_GNOMES_WHISPER);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectGnomesWhisper" << "unaffect END" << endl;
 
     __END_CATCH
 }

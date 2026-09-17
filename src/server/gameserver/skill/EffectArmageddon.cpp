@@ -59,41 +59,9 @@ void EffectArmageddon::affect(Creature* pCreature)
     // 이펙트를 건 크리쳐를 가져온다.
     // !! 이미 존을 떠났을 수도 있으므로 NULL 이 될 수 있다.
     // by bezz. 2003.1.4
-    // Creature* pCastCreature = pZone->getCreature( m_UserObjectID );
 
-    // ZoneCoord_t X = pCreature->getX();
-    // ZoneCoord_t Y = pCreature->getY();
-
-    // if ( pCreature->isFlag( Effect::EFFECT_CLASS_NO_DAMAGE ) )
-    //{
-    //	return;
-    // }
-
-    // cout << "EffectArmageddon affect damage :" << m_Damage << endl;
 
     // 매초 데미지 주는거 잠시 막아놓음. by Sequoia
-    /*if ( pCreature->isSlayer() )
-    {
-        Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-
-        GCModifyInformation gcMI;
-        ::setDamage( pSlayer, m_Damage, pCastCreature, SKILL_ARMAGEDDON, &gcMI );
-
-        pSlayer->getPlayer()->sendPacket( &gcMI );
-    }
-    else if ( pCreature->isVampire() )
-    {
-        Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-        GCModifyInformation gcMI;
-        ::setDamage( pVampire, m_Damage, pCastCreature, SKILL_ARMAGEDDON, &gcMI );
-
-        pVampire->getPlayer()->sendPacket( &gcMI );
-    }
-    else if ( pCreature->isMonster() )
-    {
-        Monster* pMonster = dynamic_cast<Monster*>(pCreature);
-        ::setDamage( pMonster, m_Damage, pCastCreature, SKILL_ARMAGEDDON );
-    }*/
 
     setNextTime(m_Delay);
 
@@ -109,7 +77,6 @@ void EffectArmageddon::unaffect(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    // cout << "EffectArmageddon unaffect.." << endl;
 
     // 플래그를 끈다.
     pCreature->removeFlag(Effect::EFFECT_CLASS_ARMAGEDDON);
@@ -155,8 +122,6 @@ string EffectArmageddon::toString() const {
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 void EffectArmageddon::decreaseHP(Damage_t damage) {
-    // cout << "EffectArmageddon Damaged : " << (int)damage << endl;
-
     HP_t RemainHP = max(0, m_HP - damage);
 
     setHP(RemainHP);

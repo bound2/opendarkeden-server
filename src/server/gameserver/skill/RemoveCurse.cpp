@@ -28,7 +28,6 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -40,13 +39,11 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // 슬레이어 외에는 치료할 수 없다.
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || pTargetCreature->isSlayer() == false) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -65,16 +62,12 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         bool bDoom = false;
         bool bParalyze = false;
         bool bSeduction = false;
-        // by sigi. 2002.12.3
-        // bool bHallucination = false;
         bool bDeath = false;
         bool bEffected = false; // 아무 저주나 걸려 있으면 켠다.
 
         EffectDoom* pEffectDoom = NULL;
         EffectParalyze* pEffectParalyze = NULL;
         EffectSeduction* pEffectSeduction = NULL;
-        // by sigi. 2002.12.3
-        // EffectHallucination* pEffectHallucination = NULL;
         EffectDeath* pEffectDeath = NULL;
 
         if (pTargetCreature->isEffect(Effect::EFFECT_CLASS_DOOM)) {
@@ -98,16 +91,6 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
             bSeduction = HitRoll::isSuccessRemoveCurse(45, SkillLevel, 30, pEffectSeduction->getLevel() / 4);
             bEffected = true;
         }
-        // by sigi. 2002.12.3
-        //		if (pTargetCreature->isEffect(Effect::EFFECT_CLASS_HALLUCINATION))
-        //		{
-        //			pEffectHallucination =
-        //(EffectHallucination*)pTargetCreature->findEffect(Effect::EFFECT_CLASS_HALLUCINATION);
-        ////			Assert(pEffectHallucination != NULL);
-        //
-        //			bHallucination = HitRoll::isSuccessRemoveCurse(45, SkillLevel, 40,
-        // pEffectHallucination->getLevel()/4); 			bEffected = true;
-        //		}
         if (pTargetCreature->isEffect(Effect::EFFECT_CLASS_DEATH)) {
             pEffectDeath = (EffectDeath*)pTargetCreature->findEffect(Effect::EFFECT_CLASS_DEATH);
             Assert(pEffectDeath != NULL);
@@ -150,13 +133,6 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
                 pTargetCreature->removeFlag(Effect::EFFECT_CLASS_SEDUCTION);
                 gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_SEDUCTION);
             }
-            // by sigi. 2002.12.3
-            //			if (bHallucination)
-            //			{
-            //				pEffectHallucination->setDeadline(0);
-            //				pTargetCreature->removeFlag(Effect::EFFECT_CLASS_HALLUCINATION);
-            //				gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_HALLUCINATION);
-            //			}
             if (bDeath) {
                 pEffectDeath->setDeadline(0);
                 pTargetCreature->removeFlag(Effect::EFFECT_CLASS_DEATH);
@@ -223,7 +199,6 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -236,7 +211,6 @@ void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -260,16 +234,12 @@ void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
         bool bDoom = false;
         bool bParalyze = false;
         bool bSeduction = false;
-        // by sigi. 2002.12.3
-        // bool bHallucination = false;
         bool bDeath = false;
         bool bEffected = false; // 아무 독이나 걸려있으면 켠다.
 
         EffectDoom* pEffectDoom = NULL;
         EffectParalyze* pEffectParalyze = NULL;
         EffectSeduction* pEffectSeduction = NULL;
-        // by sigi. 2002.12.3
-        // EffectHallucination* pEffectHallucination = NULL;
         EffectDeath* pEffectDeath = NULL;
 
         if (pSlayer->isEffect(Effect::EFFECT_CLASS_DOOM)) {
@@ -293,16 +263,6 @@ void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
             bSeduction = HitRoll::isSuccessRemoveCurse(70, SkillLevel, 30, pEffectSeduction->getLevel() / 4);
             bEffected = true;
         }
-        // by sigi. 2002.12.3
-        //		if (pSlayer->isEffect(Effect::EFFECT_CLASS_HALLUCINATION))
-        //		{
-        //			pEffectHallucination =
-        //(EffectHallucination*)pSlayer->findEffect(Effect::EFFECT_CLASS_HALLUCINATION);
-        // Assert(pEffectHallucination != NULL);
-        //
-        //			bHallucination = HitRoll::isSuccessRemoveCurse(70, SkillLevel, 40,
-        // pEffectHallucination->getLevel()/4); 			bEffected = true;
-        //		}
         if (pSlayer->isEffect(Effect::EFFECT_CLASS_DEATH)) {
             pEffectDeath = (EffectDeath*)pSlayer->findEffect(Effect::EFFECT_CLASS_DEATH);
             Assert(pEffectDeath != NULL);
@@ -345,13 +305,6 @@ void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
                 pSlayer->removeFlag(Effect::EFFECT_CLASS_SEDUCTION);
                 gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_SEDUCTION);
             }
-            // by sigi. 2002.12.3
-            //			if (bHallucination)
-            //			{
-            //				pEffectHallucination->setDeadline(0);
-            //				pSlayer->removeFlag(Effect::EFFECT_CLASS_HALLUCINATION);
-            //				gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_HALLUCINATION);
-            //			}
             if (bDeath) {
                 pEffectDeath->setDeadline(0);
                 pSlayer->removeFlag(Effect::EFFECT_CLASS_DEATH);
@@ -390,7 +343,6 @@ void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

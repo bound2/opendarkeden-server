@@ -20,7 +20,6 @@ void BombingStar::execute(Slayer* pSlayer, ObjectID_t targetObjectID, SkillSlot*
     Assert(pZone != NULL);
 
     Creature* pTargetCreature = pZone->getCreature(targetObjectID);
-    // Assert(pTargetCreature != NULL);
 
     // NoSuch제거. by sigi. 2002.5.2
     if (pTargetCreature == NULL) {
@@ -38,7 +37,6 @@ void BombingStar::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
     try {
         SkillInput input(pSlayer, pSkillSlot);
         SkillOutput output;

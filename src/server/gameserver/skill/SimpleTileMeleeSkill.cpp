@@ -619,8 +619,6 @@ void SimpleTileMeleeSkill::execute(Ousters* pOusters, int X, int Y, OustersSkill
                                 }
 
                                 if (pTargetCreature->isDead()) {
-                                    //									int exp = computeCreatureExp(pTargetCreature,
-                                    // 100, pOusters);
                                     int exp = computeCreatureExp(pTargetCreature, 70, pOusters);
                                     shareOustersExp(pOusters, exp, _GCSkillToTileOK1);
                                 }

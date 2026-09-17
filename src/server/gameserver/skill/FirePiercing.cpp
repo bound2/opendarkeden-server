@@ -23,7 +23,6 @@ void FirePiercing::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -41,24 +40,20 @@ void FirePiercing::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
 
         // NPC는 공격할 수가 없다.
         if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
             || !canAttack(pOusters, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType(), Grade);
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
         execute(pOusters, pTargetCreature->getX(), pTargetCreature->getY(), pOustersSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType(), Grade);
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -72,7 +67,6 @@ void FirePiercing::execute(Ousters* pOusters, ZoneCoord_t tX, ZoneCoord_t tY, Ou
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -215,8 +209,6 @@ void FirePiercing::execute(Ousters* pOusters, ZoneCoord_t tX, ZoneCoord_t tY, Ou
                                         Ousters* pCastOusters = dynamic_cast<Ousters*>(pOusters);
                                         Assert(pCastOusters != NULL);
 
-                                        //									int exp = computeCreatureExp(pCreature, 100,
-                                        // pCastOusters);
                                         int exp = computeCreatureExp(pCreature, 70, pCastOusters);
                                         shareOustersExp(pCastOusters, exp, _GCSkillToTileOK1);
                                     }
@@ -228,10 +220,6 @@ void FirePiercing::execute(Ousters* pOusters, ZoneCoord_t tX, ZoneCoord_t tY, Ou
                                 }
 
                                 _GCSkillToTileOK2.clearList();
-
-                                //							if ( _GCSkillToTileOK1.getShortCount() != 0 ||
-                                //_GCSkillToTileOK1.getLongCount() != 0 )
-                                // pOusters->getPlayer()->sendPacket(&_GCSkillToTileOK1);
                             }
                         }
                     }
@@ -296,10 +284,8 @@ void FirePiercing::execute(Ousters* pOusters, ZoneCoord_t tX, ZoneCoord_t tY, Ou
         }
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType(), Grade);
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

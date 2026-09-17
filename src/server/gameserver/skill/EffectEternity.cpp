@@ -39,7 +39,6 @@ void EffectEternity::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectEternity " << "unaffect BEGIN" << endl;
 
     Zone* pZone = m_pZone;
     Assert(pZone != NULL);
@@ -49,7 +48,6 @@ void EffectEternity::unaffect()
         return;
     unaffect(pCreature);
 
-    // cout << "EffectEternity " << "unaffect END" << endl;
 
     __END_CATCH
 }

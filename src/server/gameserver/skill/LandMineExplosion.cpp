@@ -27,14 +27,6 @@ LandMineExplosion::LandMineExplosion() {
         }
 
     // 주위 8타일
-    /*	m_pLandMineExplosionMask[0].set(1,  1);
-        m_pLandMineExplosionMask[1].set(-1, -1);
-        m_pLandMineExplosionMask[2].set(0, -1);
-        m_pLandMineExplosionMask[3].set(1, -1);
-        m_pLandMineExplosionMask[4].set(-1,  0);
-        m_pLandMineExplosionMask[5].set(1,  0);
-        m_pLandMineExplosionMask[6].set(-1,  1);
-        m_pLandMineExplosionMask[7].set(0,  1);*/
 
     __END_CATCH
 }
@@ -47,7 +39,6 @@ void LandMineExplosion::execute(Monster* pMonster)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
@@ -55,7 +46,6 @@ void LandMineExplosion::execute(Monster* pMonster)
         Zone* pZone = pMonster->getZone();
         Assert(pZone != NULL);
 
-        // GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         ZoneCoord_t x = pMonster->getX();
         ZoneCoord_t y = pMonster->getY();
@@ -89,7 +79,6 @@ void LandMineExplosion::execute(Monster* pMonster)
             }
 
             // 강제로 맞는 애들을 knockback 시킨다.
-            //	bool bForceKnockback = true;
             g_SimpleTileMeleeSkill.execute(pMonster, x, y, param, result, 0, false);
 
             GCAddEffectToTile gcAE;
@@ -105,7 +94,6 @@ void LandMineExplosion::execute(Monster* pMonster)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

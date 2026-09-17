@@ -19,7 +19,6 @@ void CrossGuard::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot,
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -52,8 +51,6 @@ void CrossGuard::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot,
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        // SkillLevel_t      SkillLevel = pOustersSkillSlot->getExpLevel();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
@@ -110,7 +107,6 @@ void CrossGuard::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot,
         executeSkillFailException(pOusters, getSkillType(), Grade);
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

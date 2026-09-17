@@ -53,7 +53,6 @@ void EffectReputoFactum::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectReputoFactum" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -68,7 +67,6 @@ void EffectReputoFactum::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_REPUTO_FACTUM_LAST);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectReputoFactum" << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

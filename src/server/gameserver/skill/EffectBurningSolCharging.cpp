@@ -53,7 +53,6 @@ void EffectBurningSolCharging::affect(Creature* pCreature)
 
     setNextTime(delay[m_Level]);
 
-    //	cout << "upgrade burning sol..." << m_Level << endl;
 
     // 이펙트를 삭제하라고 알려준다.
     GCRemoveEffect gcRemoveEffect;
@@ -92,7 +91,6 @@ void EffectBurningSolCharging::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectBurningSolCharging" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -108,7 +106,6 @@ void EffectBurningSolCharging::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(getSendEffectClass());
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectBurningSolCharging" << "unaffect END" << endl;
 
     __END_CATCH
 }

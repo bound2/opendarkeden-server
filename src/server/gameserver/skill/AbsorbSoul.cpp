@@ -91,7 +91,6 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
         GCSkillToTileOK2 _GCSkillToTileOK2;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        // bool bRangeCheck = verifyDistance(pOusters, pTargetCreature, 2);
 
         // 타 종족의 시체에 흡영을 한 경우 (아직 시체가 Creature 인 경우)
         if (pTargetCreature != NULL) //&& bRangeCheck)
@@ -119,7 +118,6 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
                 makeLarvaToPupa(pOusters, targetLevel, ItemObjectID, InvenX, InvenY, TargetInvenX, TargetInvenY);
 
             // 흡영에 대한 경험치는?? - 나중에 수정 ??
-            //			Exp_t Exp = computeCreatureExp(pTargetCreature, BLOODDRAIN_EXP);
 
             // 흡영을 하게 되면 흡영한 사람의 EP가 올라간다.
             // 올라가는 양은 Creature Exp에 비례한다.
@@ -130,25 +128,20 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
             if (CurrentMP < MaxMP) {
                 HealPoint = computeCreatureExp(pTargetCreature, 60);
             } else {
-                // MP_t ExtraMP = CurrentMP - MaxMP;
                 float ExtraMP = (float)(CurrentMP - MaxMP) / (float)(MaxMP * 2) * 100;
                 float ftemp = 1.1 - ((float)ExtraMP / ((float)ExtraMP + 10.0));
                 int ratio = (int)(ftemp * 100);
-                //				cout << "AbsorbSoul : " << ratio << endl;
                 HealPoint = computeCreatureExp(pTargetCreature, ratio);
             }
 
             MP_t NewMP = min((int)MaxMP * 3, (int)CurrentMP + (int)HealPoint);
 
-            //			cout << NewMP << endl;
             // 아우스터즈의 MP를 세팅한다.
             pOusters->setMP(NewMP);
-            //			cout << pOusters->getMP(ATTR_CURRENT) << endl;
 
             GCModifyInformation gcMI;
             gcMI.addShortData(MODIFY_CURRENT_MP, pOusters->getMP(ATTR_CURRENT));
 
-            //			cout << gcMI.toString() << endl;
 
             pOusters->getPlayer()->sendPacket(&gcMI);
 
@@ -231,35 +224,27 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
             // 흡영을 하게 되면 흡영한 사람의 SP가 올라간다.
             // 이거 어떻게 될지 나중에 더 봐야될듯
             // HealPoint == Exp 임 -_-
-            //			MP_t HealPoint = Exp;
             MP_t CurrentMP = pOusters->getMP();
             MP_t MaxMP = pOusters->getMP(ATTR_MAX);
             MP_t HealPoint = 0;
 
             if (CurrentMP < MaxMP) {
-                //				HealPoint = computeCreatureExp(pTargetCreature, 60);
                 HealPoint = getPercentValue(Exp, 60);
             } else {
-                //				MP_t ExtraMP = CurrentMP - MaxMP;
                 float ExtraMP = (float)(CurrentMP - MaxMP) / (float)(MaxMP * 2) * 100;
                 float ftemp = 1.1 - ((float)ExtraMP / ((float)ExtraMP + 10.0));
                 int ratio = (int)(ftemp * 100);
-                //				cout << "AbsorbSoul : " << ratio << endl;
-                //				HealPoint = computeCreatureExp(pTargetCreature, ratio);
                 HealPoint = getPercentValue(Exp, ratio);
             }
 
             MP_t NewMP = min((int)MaxMP * 3, (int)CurrentMP + (int)HealPoint);
-            //			cout << NewMP << endl;
 
             // 아우스터즈의 MP를 세팅한다.
             pOusters->setMP(NewMP);
-            //			cout << pOusters->getMP(ATTR_CURRENT) << endl;
 
             GCModifyInformation gcMI;
             gcMI.addShortData(MODIFY_CURRENT_MP, pOusters->getMP(ATTR_CURRENT));
 
-            //			cout << gcMI.toString() << endl;
 
             pOusters->getPlayer()->sendPacket(&gcMI);
 
@@ -295,7 +280,6 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
         executeAbsorbSoulSkillFail(pOusters, getSkillType(), TargetObjectID, false, bClientLocked);
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampire)" << endl;
 
     __END_CATCH
 }
@@ -323,7 +307,6 @@ void AbsorbSoul::makeLarvaToPupa(Ousters* pOusters, int TargetLevel, ObjectID_t 
 
     ItemType_t LarvaType = pLarva->getItemType();
 
-    //	int ratio = ( 100 * TargetLevel ) / ( (pOusters->getLevel() * 2) * ( pLarva->getItemType() + 1 ) );
     //  확률 4배로 증가
     int ratio = (200 * TargetLevel) / (pOusters->getLevel() * (pLarva->getItemType() + 1));
 

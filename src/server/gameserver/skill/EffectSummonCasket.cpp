@@ -52,19 +52,16 @@ void EffectSummonCasket::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectTransfromToWolf " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     Assert(pCreature != NULL);
 
     if (pCreature->isSlayer()) {
-        // cout << "EffectTransfromToWolf::unaffect() : Slayer cannot transfrom to wolf!" << endl;
         throw Error("EffectTransfromToWolf::unaffect() : Slayer cannot transfrom to wolf!");
     }
 
     unaffect(pCreature);
 
-    // cout << "EffectTransfromToWolf " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -76,7 +73,6 @@ void EffectSummonCasket::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectTransfromToWolf " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -96,22 +92,8 @@ void EffectSummonCasket::unaffect(Creature* pCreature)
         pTargetVampire->sendRealWearingInfo();
         pTargetVampire->sendModifyInfo(prev);
 
-        //		cout << "Effect Summon Casket unaffected - " << pTargetVampire->getName() << endl;
-        //		cout << "Prev Defense : " << (int)prev.Defense << " Current Defense : " <<
         //(int)pTargetVampire->getDefense() << endl; 		cout << "Prev Protection : " << (int)prev.Protection << "
-        // Current Protection : " << (int)pTargetVampire->getProtection() << endl;
     }
-    /*
-    else if (pCreature->isMonster())
-    {
-        Monster* pMonster = dynamic_cast<Monster*>(pCreature);
-        pMonster->initAllStat();
-    }
-    else
-    {
-        Assert(false);
-    }
-    */
 
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());

@@ -25,7 +25,6 @@ void Resurrect::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -37,7 +36,6 @@ void Resurrect::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // 슬레이어만을 되살릴 수 있다.
         // NoSuch제거. by sigi. 2002.5.2
@@ -182,7 +180,6 @@ void Resurrect::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

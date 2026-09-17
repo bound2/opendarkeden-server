@@ -87,7 +87,6 @@ void MoleShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -97,7 +96,6 @@ void MoleShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -129,7 +127,6 @@ void MoleShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -184,7 +181,6 @@ void MoleShot::SGexecute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " SGexecute  Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -221,7 +217,6 @@ void MoleShot::SGexecute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
         if (bBulletCheck) {
             decreaseBullet(pWeapon);
             // 한발쓸때마다 저장할 필요 없다. by sigi. 2002.5.9
-            // pWeapon->save(pSlayer->getName(), STORAGE_GEAR, 0, Slayer::WEAR_RIGHTHAND, 0);
             RemainBullet = getRemainBullet(pWeapon);
         }
 
@@ -415,7 +410,6 @@ void MoleShot::SGexecute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " SGexecute End" << endl;
 
     __END_CATCH
 }
@@ -428,7 +422,6 @@ void MoleShot::ARSMGexecute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " SGexecute  Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -465,7 +458,6 @@ void MoleShot::ARSMGexecute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
         if (bBulletCheck) {
             decreaseBullet(pWeapon);
             // 한발쓸때마다 저장할 필요 없다. by sigi. 2002.5.9
-            // pWeapon->save(pSlayer->getName(), STORAGE_GEAR, 0, Slayer::WEAR_RIGHTHAND, 0);
             RemainBullet = getRemainBullet(pWeapon);
         }
 
@@ -654,7 +646,6 @@ void MoleShot::ARSMGexecute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " SGexecute End" << endl;
 
     __END_CATCH
 }

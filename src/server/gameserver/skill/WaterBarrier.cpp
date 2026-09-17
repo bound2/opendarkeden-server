@@ -19,7 +19,6 @@ void WaterBarrier::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlo
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -43,8 +42,6 @@ void WaterBarrier::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlo
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        // SkillLevel_t      SkillLevel = pOustersSkillSlot->getExpLevel();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 2;
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
@@ -94,7 +91,6 @@ void WaterBarrier::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlo
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

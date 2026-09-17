@@ -56,12 +56,10 @@ void EffectBless::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectBless" << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectBless" << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -73,7 +71,6 @@ void EffectBless::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectBless" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer()); // 슬레이어말고는 걸리지 않는다.
@@ -100,7 +97,6 @@ void EffectBless::unaffect(Creature* pCreature)
     makeGCOtherModifyInfo(&gcOtherModifyInfo, pSlayer, &prev);
     pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &gcOtherModifyInfo, pSlayer);
 
-    // cout << "EffectBless" << "unaffect END" << endl;
 
     __END_CATCH
 }

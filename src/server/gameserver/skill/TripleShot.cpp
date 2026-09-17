@@ -21,7 +21,6 @@ void TripleShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 {
     __BEGIN_TRY __BEGIN_DEBUG
 
-        // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
         Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -33,12 +32,10 @@ void TripleShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -58,7 +55,6 @@ void TripleShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
         //			pWeapon->getItemClass() == Item::ITEM_CLASS_SR)
         {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -90,7 +86,6 @@ void TripleShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
             // 총알 숫자를 떨어뜨리고, 저장하고, 남은 총알 숫자를 받아온다.
             decreaseBullet(pWeapon);
             // 한발쓸때마다 저장할 필요 없다. by sigi. 2002.5.9
-            // pWeapon->save(pSlayer->getName(), STORAGE_GEAR, 0, Slayer::WEAR_RIGHTHAND, 0);
             RemainBullet = getRemainBullet(pWeapon);
         }
 
@@ -108,7 +103,6 @@ void TripleShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
             Damage += getPercentValue(Damage, output.Damage);
             Damage = max(0, Damage);
 
-            // cout << "TripleShotDamage:" << Damage << endl;
 
             // 데미지를 세팅한다.
             setDamage(pTargetCreature, Damage, pSlayer, SkillType, &_GCAttackArmsOK2, &_GCAttackArmsOK1);
@@ -119,12 +113,6 @@ void TripleShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
                 knockbackCreature(pZone, pTargetCreature, pSlayer->getX(), pSlayer->getY());
             }
 
-            /*
-            // 80% 확률로만 능력치가 상승한다.
-            // 상대방이 슬레이어가 아닐 경우에만 경험치가 상승한다.
-            if (Random(1, 100) < 80 && !pTargetCreature->isSlayer())
-            {
-            */
             if (!pTargetCreature->isSlayer()) {
                 if (bIncreaseExp) {
                     shareAttrExp(pSlayer, Damage, 1, 8, 1, _GCAttackArmsOK1);
@@ -184,7 +172,6 @@ void TripleShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_DEBUG __END_CATCH
 }

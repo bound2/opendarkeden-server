@@ -60,7 +60,6 @@ void ShiftBreak::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " begin(slayerobject)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -70,7 +69,6 @@ void ShiftBreak::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -83,7 +81,6 @@ void ShiftBreak::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end(slayerobject)" << endl;
 
     __END_CATCH
 }
@@ -99,7 +96,6 @@ void ShiftBreak::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " begin" << endl;
 
     SkillInput input(pOusters, pOustersSkillSlot);
     SIMPLE_SKILL_INPUT param;
@@ -162,9 +158,6 @@ void ShiftBreak::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
             Ratio = min(Ratio, 75);
         }
 
-        //		Ratio = min(30, Ratio);
-        //		if ( input.SkillLevel > 15 ) Ratio += 10;
-        //		Ratio = max(10, Ratio);
 
         cout << "다크니스 있음. 확률 " << Ratio << endl;
 
@@ -180,7 +173,6 @@ void ShiftBreak::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
         }
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end" << endl;
 
     __END_CATCH
 }

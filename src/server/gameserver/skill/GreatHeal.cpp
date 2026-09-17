@@ -18,7 +18,6 @@ void GreatHeal::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -38,7 +37,6 @@ void GreatHeal::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 
     g_SimpleCureSkill.execute(pSlayer, TargetObjectID, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -51,7 +49,6 @@ void GreatHeal::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -71,7 +68,6 @@ void GreatHeal::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
 
     g_SimpleCureSkill.execute(pSlayer, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

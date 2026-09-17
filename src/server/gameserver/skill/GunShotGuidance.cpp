@@ -34,7 +34,6 @@ void GunShotGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillS
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수가 없다.
         if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
@@ -46,10 +45,8 @@ void GunShotGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillS
         execute(pSlayer, pTargetCreature->getX(), pTargetCreature->getY(), pSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -85,7 +82,6 @@ void GunShotGuidance::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Ski
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         int RequiredMP = pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);

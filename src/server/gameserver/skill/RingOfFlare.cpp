@@ -19,7 +19,6 @@ void RingOfFlare::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -51,8 +50,6 @@ void RingOfFlare::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        // SkillLevel_t      SkillLevel = pOustersSkillSlot->getExpLevel();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 2;
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
@@ -70,7 +67,6 @@ void RingOfFlare::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
             SkillOutput output;
             computeOutput(input, output);
 
-            // cout << pOusters->getName() << "이 RingOfFlare를 썼고 데미지는 " << output.Damage << "입니다." << endl;
 
             // 이팩트 클래스를 만들어 붙인다.
             EffectRingOfFlare* pEffect = new EffectRingOfFlare(pOusters);
@@ -115,7 +111,6 @@ void RingOfFlare::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
         executeSkillFailException(pOusters, getSkillType(), Grade);
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

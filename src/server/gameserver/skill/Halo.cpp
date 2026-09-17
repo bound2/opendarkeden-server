@@ -96,7 +96,6 @@ void Halo::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlo
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(vampire)" << endl;
 
     SkillInput input(pOusters, pOustersSkillSlot);
     SkillOutput output;
@@ -142,7 +141,6 @@ void Halo::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlo
         }
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampire)" << endl;
 
     __END_CATCH
 }

@@ -85,7 +85,6 @@ void BloodyWall::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -95,7 +94,6 @@ void BloodyWall::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature)) {
@@ -108,7 +106,6 @@ void BloodyWall::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -122,7 +119,6 @@ void BloodyWall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -233,7 +229,6 @@ void BloodyWall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
 
                                 pEffect->affect(pTargetCreature);
                             }
-                            //								pEffect->affect(pTarget);
                         }
                     }
                 }
@@ -252,7 +247,6 @@ void BloodyWall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
             _GCSkillToTileOK2.setY(Y);
             _GCSkillToTileOK2.setDuration(output.Duration);
             _GCSkillToTileOK2.setRange(Dir);
-            //_GCSkillToTileOK2.addShortData(MODIFY_VISION, BLOODY_WALL_SIGHT);
 
             _GCSkillToTileOK3.setObjectID(pVampire->getObjectID());
             _GCSkillToTileOK3.setSkillType(SkillType);
@@ -278,7 +272,6 @@ void BloodyWall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
             _GCSkillToTileOK6.setY(Y);
             _GCSkillToTileOK6.setDuration(output.Duration);
             _GCSkillToTileOK6.setRange(Dir);
-            //_GCSkillToTileOK6.addShortData(MODIFY_VISION, BLOODY_WALL_SIGHT);
 
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
@@ -304,14 +297,11 @@ void BloodyWall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
 
                 Creature* pWatcher = (*itr);
                 if (bBelong == false && canSee(pWatcher, pVampire) == false) {
-                    // Assert(pWatcher->isPC());	// 당연 PC다.. Zone::getWatcherList는 PC만 return한다
                     if (!pWatcher->isPC()) {
-                        // cout << "BloodyWall : 왓처 리스트가 PC가 아닙니다." << endl;
                         GCSkillFailed1 _GCSkillFailed1;
                         _GCSkillFailed1.setSkillType(getSkillType());
                         pVampire->getPlayer()->sendPacket(&_GCSkillFailed1);
 
-                        // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
                         return;
                     }
                     pWatcher->getPlayer()->sendPacket(&_GCSkillToTileOK4);
@@ -333,7 +323,6 @@ void BloodyWall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -360,7 +349,6 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
@@ -397,7 +385,6 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             SkillOutput output;
             computeOutput(input, output);
 
-            // Range_t    Range    = 3;
             Dir_t Dir = getDirectionToPosition(myX, myY, X, Y);
 
             list<Creature*> cList; // denier list
@@ -460,8 +447,6 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
                                 pEffect->affect(pTargetCreature);
                             }
-
-                            // pEffect->affectObject(pTarget, false);
                         }
                     }
                 }
@@ -473,7 +458,6 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             _GCSkillToTileOK2.setY(Y);
             _GCSkillToTileOK2.setDuration(output.Duration);
             _GCSkillToTileOK2.setRange(Dir);
-            //_GCSkillToTileOK2.addShortData(MODIFY_VISION, BLOODY_WALL_SIGHT);
 
             _GCSkillToTileOK3.setObjectID(pMonster->getObjectID());
             _GCSkillToTileOK3.setSkillType(SkillType);
@@ -499,7 +483,6 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             _GCSkillToTileOK6.setY(Y);
             _GCSkillToTileOK6.setDuration(output.Duration);
             _GCSkillToTileOK6.setRange(Dir);
-            //_GCSkillToTileOK6.addShortData(MODIFY_VISION, BLOODY_WALL_SIGHT);
 
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
@@ -523,9 +506,7 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
                 Creature* pWatcher = (*itr);
                 if (bBelong == false && canSee(pWatcher, pMonster) == false) {
-                    // Assert(pWatcher->isPC());	// 당연 PC다.. Zone::getWatcherList는 PC만 return한다
                     if (!pWatcher->isPC()) {
-                        // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
                         return;
                     }
 
@@ -546,7 +527,6 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

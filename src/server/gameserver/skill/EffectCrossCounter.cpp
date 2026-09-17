@@ -47,7 +47,6 @@ void EffectCrossCounter::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectCrossCounter" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -63,7 +62,6 @@ void EffectCrossCounter::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_CROSS_COUNTER);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectCrossCounter" << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH
@@ -76,12 +74,10 @@ void EffectCrossCounter::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectCrossCounter" << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectCrossCounter" << "unaffect END" << endl;
 
     __END_CATCH
 }

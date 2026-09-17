@@ -19,7 +19,6 @@ void DivineSpirits::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -36,8 +35,6 @@ void DivineSpirits::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        // SkillLevel_t      SkillLevel = pOustersSkillSlot->getExpLevel();
 
         int RequiredMP = pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
@@ -62,10 +59,6 @@ void DivineSpirits::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
             pOusters->addEffect(pEffect);
             pOusters->setFlag(Effect::EFFECT_CLASS_DIVINE_SPIRITS);
 
-            //			OUSTERS_RECORD prev;
-            //			pOusters->getOustersRecord(prev);
-            //	pOusters->initAllStat();
-            //			pOusters->addModifyInfo(prev, _GCSkillToSelfOK1);
 
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
@@ -92,7 +85,6 @@ void DivineSpirits::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

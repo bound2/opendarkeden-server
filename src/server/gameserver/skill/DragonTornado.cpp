@@ -18,7 +18,6 @@ void DragonTornado::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -38,12 +37,10 @@ void DragonTornado::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // cout << "DragonTornado damage = " << output.Damage << endl;
 
     g_SimpleMeleeSkill.execute(pSlayer, TargetObjectID, pSkillSlot, param, result);
 
     if (result.bSuccess) {
-        // cout << "DragonTornado Success" << endl;
         Zone* pZone = pSlayer->getZone();
         Assert(pZone != NULL);
 
@@ -89,7 +86,6 @@ void DragonTornado::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
 
     // 상대에게 데미지를 준 다음 이펙트를 붙여준다.
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

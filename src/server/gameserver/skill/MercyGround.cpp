@@ -24,7 +24,6 @@ void MercyGround::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -34,7 +33,6 @@ void MercyGround::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -47,7 +45,6 @@ void MercyGround::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -60,7 +57,6 @@ void MercyGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -144,7 +140,6 @@ void MercyGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
                         Tile& tile = pZone->getTile(tileX, tileY);
 
                         // 현재 타일에다 이펙트를 추가할 수 있다면...
-                        // if (tile.canAddEffect())	// 위에서 체크했다.
                         {
                             // 이펙트 클래스를 생성한다.
                             EffectMercyGround* pEffect = new EffectMercyGround(pZone, tileX, tileY);
@@ -185,7 +180,6 @@ void MercyGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
             _GCSkillToTileOK2.setY(Y);
             _GCSkillToTileOK2.setDuration(output.Duration);
             _GCSkillToTileOK2.setRange(Range);
-            //_GCSkillToTileOK2.addShortData(MODIFY_VISION, SANCTUARY_SIGHT);
 
             _GCSkillToTileOK3.setObjectID(pSlayer->getObjectID());
             _GCSkillToTileOK3.setSkillType(SkillType);
@@ -211,7 +205,6 @@ void MercyGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
             _GCSkillToTileOK6.setY(Y);
             _GCSkillToTileOK6.setDuration(output.Duration);
             _GCSkillToTileOK6.setRange(Range);
-            //_GCSkillToTileOK6.addShortData(MODIFY_VISION, SANCTUARY_SIGHT);
 
             // EXP UP!
             SkillDomainType_t DomainType = pSkillInfo->getDomainType();
@@ -246,14 +239,11 @@ void MercyGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
 
                 Creature* pWatcher = (*itr);
                 if (bBelong == false && canSee(pWatcher, pSlayer) == false) {
-                    // Assert(pWatcher->isPC());	// 당연 PC다.. Zone::getWatcherList는 PC만 return한다
                     if (!pWatcher->isPC()) {
-                        // cout << "MercyGround : 왓처 리스트가 PC가 아닙니다." << endl;
                         GCSkillFailed1 _GCSkillFailed1;
                         _GCSkillFailed1.setSkillType(getSkillType());
                         pSlayer->getPlayer()->sendPacket(&_GCSkillFailed1);
 
-                        // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
                         return;
                     }
                     pWatcher->getPlayer()->sendPacket(&_GCSkillToTileOK4);
@@ -276,7 +266,6 @@ void MercyGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

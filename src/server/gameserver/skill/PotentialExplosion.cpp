@@ -21,7 +21,6 @@ void PotentialExplosion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -38,7 +37,6 @@ void PotentialExplosion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_BLADE) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -68,7 +66,6 @@ void PotentialExplosion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
             // HP가 반보다 작을 때는 약간 더 올라간다.
             // by sigi. 2002.12.3
             if (pSlayer->getHP(ATTR_CURRENT) < (pSlayer->getHP(ATTR_MAX) / 2)) {
-                // output.Damage += 4;
                 output.Damage = 8 + input.SkillLevel / 15;
             } else {
                 output.Damage = 3 + input.SkillLevel / 20;
@@ -96,7 +93,6 @@ void PotentialExplosion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 8, 1, 1, _GCSkillToSelfOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
-            // increaseSkillExp(pSlayer, DomainType,  pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
 
             // 패킷을 보내준다.
             _GCSkillToSelfOK1.setSkillType(SkillType);
@@ -129,7 +125,6 @@ void PotentialExplosion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

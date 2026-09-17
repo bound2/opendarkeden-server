@@ -56,12 +56,10 @@ void EffectObservingEye::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectObservingEye" << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectObservingEye" << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -73,7 +71,6 @@ void EffectObservingEye::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectObservingEye" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer()); // 슬레이어말고는 걸리지 않는다.
@@ -103,7 +100,6 @@ void EffectObservingEye::unaffect(Creature* pCreature)
     makeGCOtherModifyInfo(&gcOtherModifyInfo, pSlayer, &prev);
     pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &gcOtherModifyInfo, pSlayer);
 
-    // cout << "EffectObservingEye" << "unaffect END" << endl;
 
     __END_CATCH
 }

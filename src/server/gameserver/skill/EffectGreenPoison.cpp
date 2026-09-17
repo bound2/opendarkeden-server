@@ -37,13 +37,11 @@ bool EffectGreenPoison::affectCreature(Creature* pTargetCreature, bool bAffectBy
 {
     __BEGIN_TRY
 
-    // cout << "EffectGreenPoison " << "affectCreature Begin " << endl;
 
     Assert(pTargetCreature != NULL);
 
     // 상대에게 이미 poison 이펙트가 걸려져 있는 경우에는 걸리지 않는다.
     if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_POISON)) {
-        // cout << "EffectGreenPoison " << "affectCreature End " << endl;
         return false;
     }
 
@@ -79,7 +77,6 @@ bool EffectGreenPoison::affectCreature(Creature* pTargetCreature, bool bAffectBy
         pZone->broadcastPacket(pTargetCreature->getX(), pTargetCreature->getY(), &gcAddEffect);
     }
 
-    // cout << "EffectGreenPoison " << "affectCreature End " << endl;
 
     return true;
 
@@ -112,12 +109,10 @@ void EffectGreenPoison::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectGreenPoison " << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectGreenPoison " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -171,7 +166,6 @@ void EffectGreenPoisonLoader::load(Zone* pZone)
 
                         // 존 및 타일에다가 이펙트를 추가한다.
                         pZone->registerObject(pEffect);
-                        // pZone->addEffect(pEffect);  // REMOVED: Don't add permanent tile effects to Zone
                         tile.addEffect(pEffect);
                     }
                 }

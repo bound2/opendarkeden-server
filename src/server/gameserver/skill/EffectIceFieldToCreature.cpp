@@ -17,7 +17,6 @@ EffectIceFieldToCreature::EffectIceFieldToCreature(Creature* pCreature, bool bFr
     __BEGIN_TRY
 
     Assert(pCreature != NULL);
-    // Assert(pCreature->isOusters());
 
     setTarget(pCreature);
     m_bFrozenArmor = bFrozenArmor;
@@ -32,10 +31,8 @@ void EffectIceFieldToCreature::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectIceFieldToCreature" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
-    //	Assert(pCreature->isOusters());
 
     // 플래그를 끈다.
     pCreature->removeFlag(Effect::EFFECT_CLASS_ICE_FIELD_TO_CREATURE);
@@ -43,8 +40,6 @@ void EffectIceFieldToCreature::unaffect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    //	Ousters* pTargetOusters = dynamic_cast<Ousters*>(pCreature);
-    //	Assert( pTargetOusters != NULL );
 
     // 이펙트를 삭제하라고 알려준다.
     GCRemoveEffect gcRemoveEffect;
@@ -52,7 +47,6 @@ void EffectIceFieldToCreature::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(getSendEffectClass());
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectIceFieldToCreature" << "unaffect END" << endl;
 
     __END_CATCH
 }

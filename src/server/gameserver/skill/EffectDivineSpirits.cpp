@@ -31,7 +31,6 @@ void EffectDivineSpirits::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectDivineSpirits" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isOusters());
@@ -45,12 +44,6 @@ void EffectDivineSpirits::unaffect(Creature* pCreature)
     Ousters* pTargetOusters = dynamic_cast<Ousters*>(pCreature);
     Assert(pTargetOusters != NULL);
 
-    //	OUSTERS_RECORD prev;
-
-    //	pTargetOusters->getOustersRecord(prev);
-    //	pTargetOusters->initAllStat();
-    //	pTargetOusters->sendRealWearingInfo();
-    //	pTargetOusters->sendModifyInfo(prev);
 
     // 이펙트를 삭제하라고 알려준다.
     GCRemoveEffect gcRemoveEffect;
@@ -58,7 +51,6 @@ void EffectDivineSpirits::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_DIVINE_SPIRITS);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectDivineSpirits" << "unaffect END" << endl;
 
     __END_CATCH
 }

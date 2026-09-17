@@ -26,7 +26,6 @@ void IceLance::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -38,7 +37,6 @@ void IceLance::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
         execute(pOusters, pTargetCreature->getX(), pTargetCreature->getY(), pOustersSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType());
-        // cout << t.toString() << endl;
     }
 
     __END_CATCH
@@ -50,7 +48,6 @@ void IceLance::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(vampire)" << endl;
 
     SkillInput input(pOusters, pOustersSkillSlot);
     SkillOutput output;
@@ -68,9 +65,6 @@ void IceLance::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
     param.bMagicDamage = true;
     param.bAdd = false;
 
-    /*	if ( input.SkillLevel < 15 ) param.Grade = 0;
-        else if ( input.SkillLevel < 30 ) param.Grade = 1;
-        else param.Grade = 2;*/
 
     int offset = 0;
 
@@ -89,7 +83,6 @@ void IceLance::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
 
     g_SimpleTileMissileSkill.execute(pOusters, X, Y, pOustersSkillSlot, param, result, CEffectID);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampire)" << endl;
 
     __END_CATCH
 }
@@ -99,7 +92,6 @@ void IceLance::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     SkillInput input(pMonster);
     SkillOutput output;
@@ -128,7 +120,6 @@ void IceLance::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
     g_SimpleTileMissileSkill.execute(pMonster, X, Y, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

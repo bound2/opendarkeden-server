@@ -54,7 +54,6 @@ void EffectBloodySnake::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectBloodySnake" << "affect BEGIN" << endl;
 
     Assert(m_pZone != NULL);
 
@@ -184,15 +183,6 @@ void EffectBloodySnake::affect()
 
                 // m_CasterName이 pCreature를 죽인 경우의 KillCount 처리
                 // by sigi. 2002.8.31
-                /*				if (pCreature->isDead())
-                                {
-                                    Creature* pAttacker = m_pZone->getCreature( m_CasterID );
-
-                                    if (pAttacker!=NULL)
-                                    {
-                                        affectKillCount(pAttacker, pCreature);
-                                    }
-                                }*/
             }
         }
     }
@@ -200,12 +190,6 @@ void EffectBloodySnake::affect()
     // 다음 이동 좌표 계산
     POINT pt = getNextPosition();
 
-    /*
-    cout << "EffectSnake(" << m_ObjectID << ")"
-        << "[" << dir2String(m_Dir) << "] ("
-        << m_X << ", " << m_Y << ") --> ("
-        << pt.x << ", " << pt.y << ")" << endl;
-    */
 
     // 다음 이동할 타일에 추가한다.
     VSRect rect(0, 0, m_pZone->getWidth() - 1, m_pZone->getHeight() - 1);
@@ -245,7 +229,6 @@ void EffectBloodySnake::affect()
         setDeadline(0);
     }
 
-    // cout << "EffectBloodySnake" << "affect END" << endl;
 
     __END_CATCH
 }
@@ -284,12 +267,10 @@ void EffectBloodySnake::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectBloodySnake" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectBloodySnake" << "unaffect END" << endl;
 
     __END_CATCH
 }

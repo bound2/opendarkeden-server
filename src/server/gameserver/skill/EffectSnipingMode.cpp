@@ -49,7 +49,6 @@ void EffectSnipingMode::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectSnipingMode " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer()); // 슬레이어말고는 걸리지 않는다.
@@ -58,7 +57,6 @@ void EffectSnipingMode::unaffect(Creature* pCreature)
     Assert(pZone != NULL);
 
     // addUnSnipingModeCreature() 내부에서 플래그를 끄므로...
-    // pCreature->removeFlag(Effect::EFFECT_CLASS_SNIPING_MODE);
     addUnSnipingModeCreature(pZone, pCreature, false);
 
     Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -69,7 +67,6 @@ void EffectSnipingMode::unaffect(Creature* pCreature)
     pSlayer->sendRealWearingInfo();
     pSlayer->sendModifyInfo(prev);
 
-    // cout << "EffectSnipingMode " << "unaffect END" << endl;
 
     __END_CATCH
 }

@@ -21,7 +21,6 @@ void HeartCatalyst::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -37,7 +36,6 @@ void HeartCatalyst::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
         Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pWeapon == NULL || !isArmsWeapon(pWeapon)) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -89,7 +87,6 @@ void HeartCatalyst::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
             if (bIncreaseDomainExp) {
                 shareAttrExp(pSlayer, ExpUp, 1, 8, 1, _GCSkillToSelfOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
-                //	increaseSkillExp(pSlayer, DomainType,  pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
             }
 
             // 패킷을 만들어 보낸다.
@@ -117,10 +114,8 @@ void HeartCatalyst::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
         }
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

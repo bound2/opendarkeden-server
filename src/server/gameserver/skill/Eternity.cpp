@@ -18,7 +18,6 @@ void Eternity::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -69,7 +68,6 @@ void Eternity::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
             pEffect->setDeadline(output.Duration);
             pEffect->setHPPenalty(output.Damage);
             pEffect->setBroadcastingEffect(false);
-            //			pSlayer->addEffect(pEffect);
             pSlayer->setFlag(Effect::EFFECT_CLASS_ETERNITY);
 
             pZone->registerObject(pEffect);
@@ -103,10 +101,8 @@ void Eternity::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
         pSkillSlot->setRunTime(20); // 2초
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

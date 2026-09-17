@@ -24,7 +24,6 @@ void Purify::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSki
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerobject)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -34,7 +33,6 @@ void Purify::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSki
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -45,10 +43,8 @@ void Purify::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSki
         execute(pSlayer, pTargetCreature->getX(), pTargetCreature->getY(), pSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerobject)" << endl;
 
     __END_CATCH
 }
@@ -61,7 +57,6 @@ void Purify::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* p
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayertile)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -240,7 +235,6 @@ void Purify::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* p
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayertile)" << endl;
 
     __END_CATCH
 }

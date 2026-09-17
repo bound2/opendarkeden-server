@@ -21,19 +21,10 @@ ClaymoreExplosion::ClaymoreExplosion() {
 
     for (int i = 0; i < 5; ++i)
         for (int j = i - 4; j <= 0; ++j) {
-            //			if ( i==0 && j==0 ) continue;
             m_pClaymoreExplosionMask[index++].set(j, i);
         }
 
     // 주위 8타일
-    /*	m_pClaymoreExplosionMask[0].set(1,  1);
-        m_pClaymoreExplosionMask[1].set(-1, -1);
-        m_pClaymoreExplosionMask[2].set(0, -1);
-        m_pClaymoreExplosionMask[3].set(1, -1);
-        m_pClaymoreExplosionMask[4].set(-1,  0);
-        m_pClaymoreExplosionMask[5].set(1,  0);
-        m_pClaymoreExplosionMask[6].set(-1,  1);
-        m_pClaymoreExplosionMask[7].set(0,  1);*/
 
     __END_CATCH
 }
@@ -46,7 +37,6 @@ void ClaymoreExplosion::execute(Monster* pMonster)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
@@ -54,7 +44,6 @@ void ClaymoreExplosion::execute(Monster* pMonster)
         Zone* pZone = pMonster->getZone();
         Assert(pZone != NULL);
 
-        // GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         ZoneCoord_t x = pMonster->getX();
         ZoneCoord_t y = pMonster->getY();
@@ -88,7 +77,6 @@ void ClaymoreExplosion::execute(Monster* pMonster)
             }
 
             // 강제로 맞는 애들을 knockback 시킨다.
-            //	bool bForceKnockback = true;
             g_SimpleTileMeleeSkill.execute(pMonster, x, y, param, result, 0, false);
             GCAddEffectToTile gcAE;
             gcAE.setXY(x, y);
@@ -103,7 +91,6 @@ void ClaymoreExplosion::execute(Monster* pMonster)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

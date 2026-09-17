@@ -25,7 +25,6 @@ void IceHail::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin(monster) " << endl;
 
     try {
         Zone* pZone = pMonster->getZone();
@@ -48,7 +47,6 @@ void IceHail::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             if (tile.canAddEffect())
                 bTileCheck = true;
             // 머시 그라운드 있음 추가 못한당.
-            //			if ( tile.getEffect(Effect::EFFECT_CLASS_MERCY_GROUND) != NULL ) bTileCheck=false;
         }
 
         Range_t Range = 5;
@@ -117,7 +115,6 @@ void IceHail::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end(monster) " << endl;
 
     __END_CATCH
 }

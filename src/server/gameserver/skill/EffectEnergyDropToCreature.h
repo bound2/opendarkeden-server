@@ -48,12 +48,6 @@ public:
     string toString() const;
 
 public:
-    //	string getCasterName(void) const { return m_CasterName; }
-    //	void setCasterName(const string & CasterName ) { m_CasterName = CasterName; }
-
-    //	int getPartyID(void) const { return m_PartyID; }
-    //	void setPartyID(int PartyID) { m_PartyID = PartyID; }
-
     ObjectID_t getUserObjectID() const {
         return m_UserObjectID;
     }
@@ -83,8 +77,6 @@ public:
     }
 
 private:
-    //	string  m_CasterName;
-    //	int     m_PartyID;
     ObjectID_t m_UserObjectID;
     Level_t m_Level;
     HP_t m_Point;

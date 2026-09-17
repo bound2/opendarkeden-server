@@ -38,12 +38,10 @@ void EffectGreenStalker::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectGreenStalker " << "affect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     affect(pCreature);
 
-    // cout << "EffectGreenStalker " << "affect END" << endl;
 
     __END_CATCH
 }
@@ -55,7 +53,6 @@ void EffectGreenStalker::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectGreenStalker " << "affect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -117,20 +114,10 @@ void EffectGreenStalker::affect(Creature* pCreature)
 
         // m_CasterName이 pCreature를 죽인 경우의 KillCount 처리
         // by sigi. 2002.9.9
-        /*		if (pCreature->isDead())
-                {
-                    Creature* pAttacker = pZone->getCreature( m_UserObjectID );
-
-                    if (pAttacker!=NULL)
-                    {
-                        affectKillCount(pAttacker, pCreature);
-                    }
-                }*/
     }
 
     setNextTime(m_Tick);
 
-    // cout << "EffectGreenStalker " << "affect END" << endl;
 
     __END_CATCH
 }
@@ -152,7 +139,6 @@ void EffectGreenStalker::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectGreenStalker " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -168,7 +154,6 @@ void EffectGreenStalker::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_GREEN_STALKER);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectGreenStalker " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH
@@ -181,12 +166,10 @@ void EffectGreenStalker::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectGreenStalker " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectGreenStalker " << "unaffect END" << endl;
 
     __END_CATCH
 }

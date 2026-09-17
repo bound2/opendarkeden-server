@@ -25,7 +25,6 @@ void ShadowOfStorm::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouster
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -35,24 +34,20 @@ void ShadowOfStorm::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouster
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
 
         // NPC는 공격할 수가 없다.
         if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
             || !canAttack(pOusters, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType(), 0);
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
         execute(pOusters, pTargetCreature->getX(), pTargetCreature->getY(), pOustersSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType(), 0);
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -66,7 +61,6 @@ void ShadowOfStorm::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ous
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -199,10 +193,8 @@ void ShadowOfStorm::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ous
         }
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType(), 0);
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

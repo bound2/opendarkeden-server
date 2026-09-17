@@ -379,63 +379,6 @@ const int yOffsetByEType3[5] = {0, -1, 1, 0, 0};
 const int xOffsetByEType4[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
 const int yOffsetByEType4[9] = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
 
-/*
-// 폭발 종류에 따른 피해 타일의 위치
-const int xOffsetByEType0[ 1 ] = { 0};
-const int yOffsetByEType0[ 1 ] = { 0};
-
-const int xOffsetByEType1[ 5 ] = { 0, -1, 0, 1, 0};
-const int yOffsetByEType1[ 5 ] = { -1, 0, 0, 0, 1};
-
-const int xOffsetByEType2[ 5 ] = { -1, 1, 0, -1, 1};
-const int yOffsetByEType2[ 5 ] = { -1, -1, 0, 1, 1};
-
-const int xOffsetByEType3[ 9 ] = { -1, 0, 1, -1, 0, 1, -1, 0, 1};
-const int yOffsetByEType3[ 9 ] = { -1, -1, -1, 0, 0, 0, 1, 1, 1};
-
-const int xOffsetByEType4[DIR_MAX][ 9 ] = {
-    {  0, -1,  0, -2, -1,  0, -1,  0,  0},
-    { -2, -1, -1,  0, -1,  0,  1, -2,  2},
-    { -2, -1,  0,  1,  2, -1,  0,  1,  0},
-    {  2,  1,  0,  1, -1,  0,  1, -2,  2},
-    {  0,  0,  1,  0,  1,  2,  0,  1,  0},
-    { -2,  2, -1,  0,  1,  0,  1,  1,  2},
-    {  0, -1,  0,  1, -2, -1,  0,  1,  2},
-    { -2,  2, -1,  0,  1, -1,  0, -1, -2}
-};
-
-const int yOffsetByEType4[DIR_MAX][ 9 ] = {
-    { -2, -1, -1,  0, 0, 0, 1, 1, 2},
-    { -2, -1,  0,  0, 1, 1, 1, 2, 2},
-    {  0,  0,  0,  0, 0, 1, 1, 1, 2},
-    { -2, -1,  0,  0, 1, 1, 1, 2, 2},
-    { -2, -1, -1,  0, 0, 0, 1, 1, 2},
-    { -2, -2, -1, -1, -1, 0, 0, 1, 2},
-    { -2, -1, -1, -1, 0, 0, 0, 0, 0},
-    { -2, -2, -1, -1, -1, 0, 0, 1, 2}
-};
-
-const int xOffsetByEType5[DIR_MAX][ 5 ] = {
-    { 0, 0, 0, 0, 0},
-    { -2, -1, 0, 1, 2},
-    { -2, -1, 0, 1, 2},
-    { 2, 1, 0, -1, -2},
-    { 0, 0, 0, 0, 0},
-    { -2, -1, 0, 1, 2},
-    { -2, -1, 0, 1, 2},
-    { 2, 1, 0, -1, -2}
-};
-const int yOffsetByEType5[DIR_MAX][ 5 ] = {
-    { -2, -1, 0, 1, 2},
-    { -2, -1, 0, 1, 2},
-    { 0, 0, 0, 0, 0},
-    { -2, -1, 0, 1, 2},
-    { -2, -1, 0, 1, 2},
-    { -2, -1, 0, 1, 2},
-    { 0, 0, 0, 0, 0},
-    { -2, -1, 0, 1, 2}
-};
-*/
 
 void getExplosionTypeXYOffset(int explodeType, int dir, const int*& xOffset, const int*& yOffset, int& tiles) {
     switch (explodeType) {

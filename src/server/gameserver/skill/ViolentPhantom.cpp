@@ -39,7 +39,6 @@ void ViolentPhantom::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampi
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -49,7 +48,6 @@ void ViolentPhantom::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampi
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -61,10 +59,8 @@ void ViolentPhantom::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampi
         execute(pVampire, pTargetCreature->getX(), pTargetCreature->getY(), pVampireSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pVampire, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -78,7 +74,6 @@ void ViolentPhantom::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Va
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     SkillInput input(pVampire);
     SkillOutput output;
@@ -103,10 +98,8 @@ void ViolentPhantom::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Va
     }
 
     // Knowledge of Blood 가 있다면 hit bonus 10
-    // int HitBonus = 0;
     g_SimpleTileMeleeSkill.execute(pVampire, X, Y, pVampireSkillSlot, param, result, CEffectID);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -119,7 +112,6 @@ void ViolentPhantom::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     SkillInput input(pMonster);
     SkillOutput output;
@@ -145,7 +137,6 @@ void ViolentPhantom::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
     g_SimpleTileMeleeSkill.execute(pMonster, X, Y, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

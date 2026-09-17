@@ -24,7 +24,6 @@ void AttackMelee::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "Begin (slayer)" << endl;
 
     Assert(pSlayer != NULL);
 
@@ -36,26 +35,15 @@ void AttackMelee::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC를 공격할 수는 없다.
         if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
             || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
             return;
         }
 
         // 슬레이어는 맨손이면 공격할 수 없다. by sigi. 2002.6.29
-        /*
-        Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
-
-        if (pWeapon==NULL)
-        {
-            executeSkillFailException(pSlayer, getSkillType());
-            return;
-        }
-        */
         bool bIncreaseDomainExp = pSlayer->isRealWearingEx(Slayer::WEAR_RIGHTHAND);
 
         // 기본 공격 스킬 슬랏을 받아온다.
@@ -166,10 +154,8 @@ void AttackMelee::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
         }
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString();
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }
@@ -182,7 +168,6 @@ void AttackMelee::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "Begin (vampire)" << endl;
 
     Assert(pVampire != NULL);
 
@@ -193,7 +178,6 @@ void AttackMelee::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거 때문에. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature)) {
@@ -282,7 +266,6 @@ void AttackMelee::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampire)" << endl;
 
     __END_CATCH
 }
@@ -393,7 +376,6 @@ void AttackMelee::execute(Ousters* pOusters, ObjectID_t TargetObjectID)
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampire)" << endl;
 
     __END_CATCH
 }
@@ -406,7 +388,6 @@ void AttackMelee::execute(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(monster)" << endl;
 
     Assert(pMonster != NULL);
     Assert(pEnemy != NULL);
@@ -416,8 +397,6 @@ void AttackMelee::execute(Monster* pMonster, Creature* pEnemy)
         Assert(pZone != NULL);
 
         if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-            // cout << "Monster cannot use skill while hiding." << endl;
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
             return;
         }
         if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
@@ -474,7 +453,6 @@ void AttackMelee::execute(Monster* pMonster, Creature* pEnemy)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
 
     __END_CATCH
 }

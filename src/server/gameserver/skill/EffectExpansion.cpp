@@ -54,12 +54,10 @@ void EffectExpansion::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectExpansion " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectExpansion " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -72,7 +70,6 @@ void EffectExpansion::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectExpansion " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer() == true);
@@ -105,7 +102,6 @@ void EffectExpansion::unaffect(Creature* pCreature)
     makeGCOtherModifyInfo(&gcOtherModifyInfo, pSlayer, &prev);
     pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &gcOtherModifyInfo, pSlayer);
 
-    // cout << "EffectExpansion " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

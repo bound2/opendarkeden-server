@@ -19,7 +19,6 @@ void GnomesWhisper::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -43,8 +42,6 @@ void GnomesWhisper::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        // SkillLevel_t      SkillLevel = pOustersSkillSlot->getExpLevel();
 
         // 지속 시간을 계산한다.
         SkillInput input(pOusters, pOustersSkillSlot);
@@ -102,7 +99,6 @@ void GnomesWhisper::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

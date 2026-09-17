@@ -29,7 +29,6 @@ void HolyBlast::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -49,7 +48,6 @@ void HolyBlast::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 
     g_SimpleTileCureSkill.execute(pSlayer, TargetObjectID, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -62,7 +60,6 @@ void HolyBlast::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -82,7 +79,6 @@ void HolyBlast::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
 
     g_SimpleTileCureSkill.execute(pSlayer, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -179,7 +175,6 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
             bool bHit = false;
             bool bHeal = false;
 
-            // VSRect rect(1, 1, pZone->getWidth()-2, pZone->getHeight()-2);
 
             int Splash = 3 + pSkillSlot->getExpLevel() / 10 + 1;
 

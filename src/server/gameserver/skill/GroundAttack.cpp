@@ -24,7 +24,6 @@ void GroundAttack::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -34,23 +33,19 @@ void GroundAttack::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수가 없다.
         if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
             || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
         execute(pVampire, pTargetCreature->getX(), pTargetCreature->getY(), pVampireSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pVampire, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -64,7 +59,6 @@ void GroundAttack::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     try {
         Player* pPlayer = pVampire->getPlayer();
@@ -121,11 +115,8 @@ void GroundAttack::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
             EffectGroundAttack* pEffect = new EffectGroundAttack(pZone, X, Y);
             pEffect->setDamagePercent(output.Damage);
             pEffect->setDeadline(output.Duration);
-            // pEffect->setNextTime(0);
-            // pEffect->setTick(output.Tick);
 
             // 우선권 시스템을 위하여 이름과 파티 아이디를 넣는다.
-            // pEffect->setCasterName(pVampire->getName());
             pEffect->setUserObjectID(pVampire->getObjectID());
 
             // 타일에 붙은 이펙트는 OID를 받아야 한다.
@@ -232,10 +223,8 @@ void GroundAttack::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
         }
     } catch (Throwable& t) {
         executeSkillFailException(pVampire, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -248,7 +237,6 @@ void GroundAttack::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin(monster) " << endl;
 
     try {
         Zone* pZone = pMonster->getZone();
@@ -297,10 +285,7 @@ void GroundAttack::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             // 이펙트 오브젝트를 생성한다.
             EffectGroundAttack* pEffect = new EffectGroundAttack(pZone, X, Y);
             pEffect->setDeadline(output.Duration);
-            // pEffect->setNextTime(0);
-            // pEffect->setTick(output.Tick);
             pEffect->setDamagePercent(output.Damage);
-            // pEffect->setLevel(pSkillInfo->getLevel()/2);
 
             // 타일에 붙은 이펙트는 OID를 받아야 한다.
             ObjectRegistry& objectregister = pZone->getObjectRegistry();
@@ -390,7 +375,6 @@ void GroundAttack::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end(monster) " << endl;
 
     __END_CATCH
 }

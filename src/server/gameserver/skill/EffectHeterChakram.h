@@ -53,15 +53,11 @@ public:
         m_Duration = Duration;
     }
 
-    // 	int getAttackNum(void) const { return m_AttackNum; }
-    // 	void setAttackNum(int AttackNum ) { m_AttackNum = AttackNum; }
 
 private:
     ObjectID_t m_UserOID;
     Damage_t m_Damage;
     Turn_t m_Duration;
-    // 	int						m_AttackNum;
-    // 	HP_t					m_TrageSaveHP;
 };
 
 #endif // __EFFECT_FIRECE_FLAME__

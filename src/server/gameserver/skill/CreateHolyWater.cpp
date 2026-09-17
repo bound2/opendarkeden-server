@@ -21,7 +21,6 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerinventory)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -41,7 +40,6 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
         if (pWater == NULL || pWater->getItemClass() != Item::ITEM_CLASS_WATER ||
             pWater->getObjectID() != InvenObjectID) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerinventory)" << endl;
             return;
         }
 
@@ -54,12 +52,6 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
         // (이전의 물병을 삭제하고, 같은 위치에 성수를 생성한다는 의미이다.)
         // 1이 아니라면 리턴해야한다.
         // 이제 한개씩만 아니라 물병이 몽땅 다 바뀌므로 체크할 필요 없다.
-        /*		if (bSamePosition && pWater->getNum() != 1)
-                {
-                    executeSkillFailException(pSlayer, getSkillType());
-                    //cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerinventory)" <<
-           endl; return;
-                }*/
 
         GCSkillToInventoryOK1 _GCSkillToInventoryOK1;
         GCSkillToInventoryOK2 _GCSkillToInventoryOK2;
@@ -96,7 +88,6 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
             // 물병의 갯수를 줄여준다.
             // 이 함수 안에서 물병의 갯수가 자동적으로 하나 줄어들고,
             // 만일 1개인 물병이었다면 인벤토리 및 DB에서 삭제되게 된다.
-            //			decreaseItemNum(pWater, pInventory, pSlayer->getName(), STORAGE_INVENTORY, 0, X, Y);
             // 이제 몇개든 상관없이 몽땅 바꿔버린다.
             pInventory->deleteItem(X, Y);
             pWater->destroy();
@@ -112,8 +103,6 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
 
                     executeSkillFailException(pSlayer, getSkillType());
 
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerinventory)" <<
-                    // endl;
                     return;
                 }
 
@@ -164,7 +153,6 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
 
             pSkillSlot->setRunTime(output.Delay);
         } else {
-            // executeSkillFailNormal(pSlayer, getSkillType(), NULL);
             //  성수 만들기 같은 경우에는, 실패했을 때 딜레이가 없기 때문에,
             //  클라이언트에게서 패킷이 상당히 빠르게 연속적으로 날아온다.
             //  이 때, 실패 패킷을 브로드 캐스팅하게 되면, 옆에 있는 사람이 보기에는
@@ -177,7 +165,6 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerinventory)" << endl;
 
     __END_CATCH
 }

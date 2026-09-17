@@ -30,7 +30,6 @@ void RefusalEther::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -48,7 +47,6 @@ void RefusalEther::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -61,7 +59,6 @@ void RefusalEther::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
         executeSkillFailException(pOusters, getSkillType(), Grade);
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -75,7 +72,6 @@ void RefusalEther::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Oust
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -195,7 +191,6 @@ void RefusalEther::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Oust
             _GCSkillToTileOK2.setY(Y);
             _GCSkillToTileOK2.setDuration(output.Duration);
             _GCSkillToTileOK2.setRange(0);
-            //_GCSkillToTileOK2.addShortData(MODIFY_VISION, ICE_FIELD_SIGHT);
             _GCSkillToTileOK2.setGrade(Grade);
 
             _GCSkillToTileOK3.setObjectID(pOusters->getObjectID());
@@ -225,7 +220,6 @@ void RefusalEther::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Oust
             _GCSkillToTileOK6.setY(Y);
             _GCSkillToTileOK6.setDuration(output.Duration);
             _GCSkillToTileOK6.setRange(0);
-            //_GCSkillToTileOK6.addShortData(MODIFY_VISION, ICE_FIELD_SIGHT);
             _GCSkillToTileOK6.setGrade(Grade);
 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
@@ -255,7 +249,6 @@ void RefusalEther::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Oust
         executeSkillFailException(pOusters, getSkillType(), Grade);
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

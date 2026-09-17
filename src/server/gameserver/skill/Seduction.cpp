@@ -26,7 +26,6 @@ void Seduction::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSki
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pSkillSlot != NULL);
@@ -38,7 +37,6 @@ void Seduction::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSki
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수 없다.
         // 저주 면역. by sigi. 2002.9.13
@@ -46,7 +44,6 @@ void Seduction::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSki
         if (pTargetCreature == NULL || pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_CURSE) ||
             !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -193,7 +190,6 @@ void Seduction::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSki
             if (pTargetCreature->isPC()) {
                 Player* pTargetPlayer = pTargetCreature->getPlayer();
                 if (pTargetPlayer == NULL) {
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                     return;
                 }
 
@@ -220,7 +216,6 @@ void Seduction::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSki
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -234,7 +229,6 @@ void Seduction::execute(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pMonster != NULL);
 
@@ -243,8 +237,6 @@ void Seduction::execute(Monster* pMonster, Creature* pEnemy)
         Assert(pZone != NULL);
 
         if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-            // cout << "Monster cannot use skill while hiding." << endl;
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
             return;
         }
         if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
@@ -274,7 +266,6 @@ void Seduction::execute(Monster* pMonster, Creature* pEnemy)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -397,7 +388,6 @@ void Seduction::executeMonster(Zone* pZone, Monster* pMonster, Creature* pEnemy)
         if (pEnemy->isPC()) {
             Player* pTargetPlayer = pEnemy->getPlayer();
             if (pTargetPlayer == NULL) {
-                // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                 return;
             }
 

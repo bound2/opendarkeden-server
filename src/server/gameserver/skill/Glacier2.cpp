@@ -23,7 +23,6 @@ void Glacier2::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin(monster) " << endl;
 
     try {
         Zone* pZone = pMonster->getZone();
@@ -111,7 +110,6 @@ void Glacier2::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end(monster) " << endl;
 
     __END_CATCH
 }

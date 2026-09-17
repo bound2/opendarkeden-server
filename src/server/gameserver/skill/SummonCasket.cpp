@@ -25,12 +25,10 @@ void SummonCasket::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pSkillSlot != NULL);
 
-    // cout << "SummonCasket try.." << endl;
 
     try {
         Player* pPlayer = pVampire->getPlayer();
@@ -73,8 +71,6 @@ void SummonCasket::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
         bool bEffected = pVampire->isFlag(Effect::EFFECT_CLASS_CASKET);
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bTileCheck && bMoveModeCheck && !bEffected) {
-            // cout << "SummonCasket Success" << endl;
-
             decreaseMana(pVampire, RequiredMP, _GCSkillToSelfOK1);
 
             SkillInput input(pVampire);
@@ -169,15 +165,12 @@ void SummonCasket::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
 
             pSkillSlot->setRunTime();
         } else {
-            // cout << "SummonCasket Failed" << endl;
             executeSkillFailNormal(pVampire, getSkillType(), NULL);
         }
     } catch (Throwable& t) {
-        // cout << "SummonCasket Failed2" << endl;
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -189,68 +182,6 @@ void SummonCasket::execute(Monster* pMonster)
 
     {__BEGIN_TRY
 
-         // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
-         /*
-          Assert(pMonster != NULL);
-
-          try
-          {
-              Zone* pZone = pMonster->getZone();
-              Assert(pZone != NULL);
-
-              if (pMonster->isFlag(Effect::EFFECT_CLASS_CASKET))
-              {
-                  //cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
-                  return;
-              }
-              if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY))
-              {
-                  addVisibleCreature(pZone, pMonster, true);
-              }
-
-              GCSkillToSelfOK3 _GCSkillToSelfOK3;
-
-              SkillType_t SkillType  = SKILL_SUMMON_CASKET;
-              SkillInfo*  pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-
-              ZoneCoord_t x = pMonster->getX();
-              ZoneCoord_t y = pMonster->getY();
-
-              bool bRangeCheck    = checkZoneLevelToUseSkill(pMonster);
-              bool bHitRoll       = HitRoll::isSuccessMagic(pMonster, pSkillInfo);
-              bool bTileCheck     = canBurrow(pZone, x, y);
-              bool bMoveModeCheck = pMonster->isWalking();
-              bool bEffected      = pMonster->isFlag(Effect::EFFECT_CLASS_CASKET);
-
-              if (bRangeCheck && bHitRoll && bTileCheck && bMoveModeCheck && !bEffected)
-              {
-                  // 몬스터를 땅 위에서 삭제하기 이전에 기술 패킷들을 날린다.
-                  _GCSkillToSelfOK3.setXY(x, y);
-                  _GCSkillToSelfOK3.setDuration(0);
-                  _GCSkillToSelfOK3.setSkillType(SkillType);
-
-                  pZone->broadcastPacket(x, y, &_GCSkillToSelfOK3);
-
-                  // 땅 위에 나와있는 몬스터 삭제하라고 알린다.
-                  GCDeleteObject gcDO;
-                  gcDO.setObjectID(pMonster->getObjectID());
-                  pZone->broadcastPacket(x, y, &gcDO);
-
-                  // 땅 속에다가 몬스터를 추가한다.
-                  addBurrowingCreature(pZone, pMonster, x, y);
-              }
-              else
-              {
-                  executeSkillFailNormal(pMonster, getSkillType(), NULL);
-              }
-          }
-          catch(Throwable & t)
-          {
-              executeSkillFailException(pMonster, getSkillType());
-          }
-
-          //cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
-          */
 
          __END_CATCH
 

@@ -35,7 +35,6 @@ void GreenStalker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -47,13 +46,11 @@ void GreenStalker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수가 없다.
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -180,7 +177,6 @@ void GreenStalker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -193,7 +189,6 @@ void GreenStalker::execute(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pMonster != NULL);
     Assert(pEnemy != NULL);
@@ -275,7 +270,6 @@ void GreenStalker::execute(Monster* pMonster, Creature* pEnemy)
             if (pEnemy->isPC()) {
                 Player* pTargetPlayer = pEnemy->getPlayer();
                 if (pTargetPlayer == NULL) {
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                     return;
                 }
                 if (bCanSeeCaster)
@@ -302,7 +296,6 @@ void GreenStalker::execute(Monster* pMonster, Creature* pEnemy)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

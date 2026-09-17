@@ -17,7 +17,6 @@ void CauseLightWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skill
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -48,7 +47,6 @@ void CauseLightWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skill
 
     g_SimpleMissileSkill.execute(pSlayer, TargetObjectID, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

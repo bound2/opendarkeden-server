@@ -23,7 +23,6 @@ void BloodyTunnel::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pSkillSlot != NULL);
@@ -40,13 +39,9 @@ void BloodyTunnel::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
         // 전쟁 존이라면 BloodyTunnel를 사용할 수 없다.
         // 일단은 ZoneID로 가는데.. ZoneInfo에 넣도록 해야한다.
         ///*
-        // if (pZone->getZoneID()==1122 || pZone->getZoneID()==1123)
         //  이벤트 경기장/OX 막기. by sigi. 2002.8.31
-        // int zoneID = pZone->getZoneID();
-        // if (zoneID==1005 || zoneID==1006)
         if (pZone->isNoPortalZone() || pZone->isMasterLair() || pZone->isCastle() || pZone->isHolyLand()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
         //*/
@@ -57,7 +52,6 @@ void BloodyTunnel::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_VAMPIRE_PORTAL_ITEM ||
             pItem->getObjectID() != InvenObjectID) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -70,7 +64,6 @@ void BloodyTunnel::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
         ZoneCoord_t ty = pVampirePortalItem->getY();
         if (zoneid == 0) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -83,17 +76,14 @@ void BloodyTunnel::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
             return;
         }
 
-        // cout << "타겟 존 포인터 획득 성공" << endl;
 
         VSRect* pRect = pTargetZone->getOuterRect();
 
         if (!pRect->ptInRect(tx, ty)) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
-        // cout << "좌표 검증 성공" << endl;
 
         GCSkillToInventoryOK1 _GCSkillToInventoryOK1;
 
@@ -104,7 +94,6 @@ void BloodyTunnel::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);
         bool bTimeCheck = verifyRunTime(pSkillSlot);
         bool bRangeCheck = checkZoneLevelToUseSkill(pVampire);
-        // bool bHitRoll       = HitRoll::isSuccessMagic(pVampire, pSkillInfo, pSkillSlot);
         bool bHitRoll = true;
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll) {
@@ -160,7 +149,6 @@ void BloodyTunnel::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

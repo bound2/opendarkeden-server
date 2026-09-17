@@ -43,7 +43,6 @@ void EffectCauseCriticalWounds::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectCauseCriticalWounds " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isVampire() || pCreature->isOusters() || pCreature->isMonster());

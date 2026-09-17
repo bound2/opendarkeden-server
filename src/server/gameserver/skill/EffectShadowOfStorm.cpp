@@ -74,7 +74,6 @@ void EffectShadowOfStorm::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectShadowOfStorm" << "affect BEGIN" << endl;
 
     Assert(m_pZone != NULL);
 
@@ -128,12 +127,10 @@ void EffectShadowOfStorm::affect()
                             m_TargetPositions.find(pCreature->getObjectID());
 
                         if (itr == m_TargetPositions.end()) {
-                            //						damage = m_Damage;
                             m_TargetPositions[pCreature->getObjectID()].x = pCreature->getX();
                             m_TargetPositions[pCreature->getObjectID()].y = pCreature->getY();
                         } else {
                             if (itr->second.x == pCreature->getX() && itr->second.y == pCreature->getY()) {
-                                //							damage = m_Damage;
                             } else {
                                 m_TargetPositions[pCreature->getObjectID()].x = pCreature->getX();
                                 m_TargetPositions[pCreature->getObjectID()].y = pCreature->getY();
@@ -173,21 +170,12 @@ void EffectShadowOfStorm::affect()
                                 Ousters* pCastOusters = dynamic_cast<Ousters*>(pCastCreature);
                                 Assert(pCastOusters != NULL);
 
-                                //						int exp = computeCreatureExp(pCreature, 100, pCastOusters);
                                 int exp = computeCreatureExp(pCreature, 70, pCastOusters);
                                 shareOustersExp(pCastOusters, exp, gcAttackerMI);
                             }
                         }
 
                         // 성향 계산하기
-                        /*				if ( pCastCreature != NULL
-                                            && pCastCreature->isPC()
-                                            && pCreature->isPC()
-                                        )
-                                        {
-                                            computeAlignmentChange( pCreature, m_Damage, pCastCreature, &gcDefenderMI,
-                           &gcAttackerMI ); modifiedAttacker = true;
-                                        }*/
 
                         if (gcAttackerMI.getShortCount() != 0 || gcAttackerMI.getLongCount() != 0)
                             pCastCreature->getPlayer()->sendPacket(&gcAttackerMI);
@@ -198,7 +186,6 @@ void EffectShadowOfStorm::affect()
 
     setNextTime(10);
 
-    // cout << "EffectShadowOfStorm" << "affect END" << endl;
 
     __END_CATCH
 }
@@ -210,12 +197,10 @@ void EffectShadowOfStorm::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectShadowOfStorm" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectShadowOfStorm" << "unaffect END" << endl;
 
     __END_CATCH
 }

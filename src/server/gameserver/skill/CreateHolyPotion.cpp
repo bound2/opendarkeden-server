@@ -21,7 +21,6 @@ void CreateHolyPotion::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordI
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerinventory)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -41,7 +40,6 @@ void CreateHolyPotion::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordI
         if (pPotion == NULL || pPotion->getItemClass() != Item::ITEM_CLASS_WATER ||
             pPotion->getObjectID() != InvenObjectID) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerinventory)" << endl;
             return;
         }
 
@@ -56,7 +54,6 @@ void CreateHolyPotion::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordI
         // 이제 한개씩만 아니라 물병이 몽땅 다 바뀌므로 체크할 필요 없다.
         if (bSamePosition && pPotion->getNum() != 1) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerinventory)" << endl;
             return;
         }
 
@@ -105,8 +102,6 @@ void CreateHolyPotion::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordI
 
                     executeSkillFailException(pSlayer, getSkillType());
 
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerinventory)" <<
-                    // endl;
                     return;
                 }
 
@@ -149,7 +144,6 @@ void CreateHolyPotion::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordI
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToInventoryOK1);
             // 홀리포션 만들기는 도메인 경험치 안 준다.
-            //			increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToInventoryOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToInventoryOK1);
 
             pPlayer->sendPacket(&_GCSkillToInventoryOK1);
@@ -158,7 +152,6 @@ void CreateHolyPotion::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordI
 
             pSkillSlot->setRunTime(output.Delay);
         } else {
-            // executeSkillFailNormal(pSlayer, getSkillType(), NULL);
             //  성수 만들기 같은 경우에는, 실패했을 때 딜레이가 없기 때문에,
             //  클라이언트에게서 패킷이 상당히 빠르게 연속적으로 날아온다.
             //  이 때, 실패 패킷을 브로드 캐스팅하게 되면, 옆에 있는 사람이 보기에는
@@ -171,7 +164,6 @@ void CreateHolyPotion::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordI
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerinventory)" << endl;
 
     __END_CATCH
 }

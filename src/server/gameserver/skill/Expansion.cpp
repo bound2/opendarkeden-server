@@ -20,7 +20,6 @@ void Expansion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -36,7 +35,6 @@ void Expansion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_SWORD) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -82,7 +80,6 @@ void Expansion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
             if (bIncreaseDomainExp) {
                 shareAttrExp(pSlayer, ExpUp, 8, 1, 1, _GCSkillToSelfOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
-                //				increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
             }
 
             _GCSkillToSelfOK1.setSkillType(SkillType);
@@ -116,7 +113,6 @@ void Expansion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

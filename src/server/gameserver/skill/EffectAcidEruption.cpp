@@ -86,12 +86,10 @@ void EffectAcidEruption::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectAcidEruption " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectAcidEruption " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -102,7 +100,6 @@ void EffectAcidEruption::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectAcidEruption " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -117,7 +114,6 @@ void EffectAcidEruption::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_ACID_ERUPTION);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectAcidEruption " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

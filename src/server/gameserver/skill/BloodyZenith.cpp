@@ -35,7 +35,6 @@ void BloodyZenith::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수가 없다.
         // NoSuch제거. by sigi. 2002.5.2
@@ -97,10 +96,6 @@ void BloodyZenith::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
             decreaseDurability(pVampire, pTargetCreature, pSkillInfo, &_GCSkillToObjectOK1, &_GCSkillToObjectOK2);
 
             // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
-            //			if (bCriticalHit)
-            //			{
-            //				knockbackCreature(pZone, pTargetCreature, pVampire->getX(), pVampire->getY());
-            //			}
 
             // 이번 공격으로 상대가 죽었다면 경험치가 올라간다.
             if (pTargetCreature->isDead()) {

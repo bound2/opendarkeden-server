@@ -19,7 +19,6 @@ void HandsOfFire::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -43,8 +42,6 @@ void HandsOfFire::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        // SkillLevel_t      SkillLevel = pOustersSkillSlot->getExpLevel();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 6;
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
@@ -69,10 +66,7 @@ void HandsOfFire::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
             pOusters->addEffect(pEffect);
             pOusters->setFlag(Effect::EFFECT_CLASS_HANDS_OF_FIRE);
 
-            //			OUSTERS_RECORD prev;
-            //			pOusters->getOustersRecord(prev);
             pOusters->initAllStat();
-            //			pOusters->addModifyInfo(prev, _GCSkillToSelfOK1);
 
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
@@ -99,7 +93,6 @@ void HandsOfFire::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

@@ -40,52 +40,6 @@ void EffectDummyDrake::affect()
 
     setNextTime(10);
 
-    // 	Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
-    // 	affect(pCreature);
-    // 	int cx = pCreature->getX();
-    // 	int cy = pCreature->getY();
-    //
-    // 	Zone* pZone = pCreature->getZone();
-    //
-    // 	for ( int i=-1; i<=1; ++i )
-    // 	for ( int j=-1; j<=1; ++j )
-    // 	{
-    // 		int tx = cx + i;
-    // 		int ty = cy + j;
-    // 		if ( tx < 0 || ty < 0 ) continue;
-    // 		if ( !isValidZoneCoord( pZone, tx, ty ) ) continue;
-    //
-    // 		forward_list<Object*>& olist = pZone->getTile(tx, ty).getObjectList();
-    // 		forward_list<Object*>::iterator itr = olist.begin();
-    // 		for ( ; itr != olist.end() ; ++itr )
-    // 		{
-    // 			Object* pObject = *itr;
-    // 			if ( pObject == NULL || pObject->getObjectClass() != Object::OBJECT_CLASS_CREATURE ) continue;
-    //
-    // 			Creature* pTargetCreature = dynamic_cast<Creature*>(pObject);
-    // 			if ( pTargetCreature == NULL || pTargetCreature->isOusters() || pTargetCreature == pCreature ) continue;
-    // 			if ( pTargetCreature->isFlag( getEffectClass() ) ) continue;
-    //
-    // 			EffectDummyDrake* pEffect = new EffectDummyDrake( pTargetCreature );
-    // 			pEffect->setUserOID( m_UserOID );
-    // 			pEffect->setDamage( m_Damage );
-    // 			pEffect->setDeadline( m_Duration/2 );
-    // 			pEffect->setDuration( m_Duration/2 );
-    // 			pEffect->setNextTime(10);
-    // 			pTargetCreature->setFlag( pEffect->getEffectClass() );
-    // 			pTargetCreature->addEffect( pEffect );
-    //
-    // 			GCAddEffect gcAddEffect;
-    // 			gcAddEffect.setObjectID( pTargetCreature->getObjectID() );
-    // 			gcAddEffect.setEffectID( pEffect->getSendEffectClass() );
-    // 			gcAddEffect.setDuration( m_Duration/2 );
-    //
-    // 			pZone->broadcastPacket( pTargetCreature->getX(), pTargetCreature->getY(), &gcAddEffect );
-    //
-    // 		}
-    // 	}
-
-    // cout << "EffectDummyDrake" << "affect BEGIN" << endl;
 
     __END_CATCH
 }
@@ -162,11 +116,9 @@ void EffectDummyDrake::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectDummyDrake" << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     // ¶ÁÈ¡5*5·¶Î§ÄÚ¶ÔÏó,²¢´´½¨ÉËº¦
-    // 	Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     // ´´½¨Ä¿±êÉËº¦
     affect(pCreature);
 
@@ -198,27 +150,10 @@ void EffectDummyDrake::unaffect()
                     continue;
                 // ´´½¨ÉËº¦
                 affect(pTargetCreature);
-                // 	 			EffectDummyDrake* pEffect = new EffectDummyDrake( pTargetCreature );
-                // 	 			pEffect->setUserOID( m_UserOID );
-                // 	 			pEffect->setDamage( m_Damage );
-                // 	 			pEffect->setDeadline( m_Duration/2 );
-                // 	 			pEffect->setDuration( m_Duration/2 );
-                // 	 			pEffect->setNextTime(10);
-                // 	 			pTargetCreature->setFlag( pEffect->getEffectClass() );
-                // 	 			pTargetCreature->addEffect( pEffect );
-                //
-                // 	 			GCAddEffect gcAddEffect;
-                // 	 			gcAddEffect.setObjectID( pTargetCreature->getObjectID() );
-                // 	 			gcAddEffect.setEffectID( pEffect->getSendEffectClass() );
-                // 	 			gcAddEffect.setDuration( m_Duration/2 );
-                //
-                // 	 			pZone->broadcastPacket( pTargetCreature->getX(), pTargetCreature->getY(), &gcAddEffect
-                // );
             }
         }
     unaffect(pCreature);
 
-    // cout << "EffectDummyDrake" << "unaffect END" << endl;
 
     __END_CATCH
 }

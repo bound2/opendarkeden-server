@@ -31,7 +31,6 @@ void IceHorizon::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -41,7 +40,6 @@ void IceHorizon::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pOusters, pTargetCreature)) {
@@ -54,7 +52,6 @@ void IceHorizon::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -68,7 +65,6 @@ void IceHorizon::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -175,7 +171,6 @@ void IceHorizon::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
 
                                     pEffect->affect(pTargetCreature);
                                 }
-                                //								pEffect->affect(pTarget);
                             }
                         }
                     }
@@ -192,7 +187,6 @@ void IceHorizon::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
             _GCSkillToTileOK2.setX(X);
             _GCSkillToTileOK2.setY(Y);
             _GCSkillToTileOK2.setDuration(output.Duration);
-            //_GCSkillToTileOK2.addShortData(MODIFY_VISION, ICE_FIELD_SIGHT);
 
             _GCSkillToTileOK3.setObjectID(pOusters->getObjectID());
             _GCSkillToTileOK3.setSkillType(SkillType);
@@ -215,7 +209,6 @@ void IceHorizon::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
             _GCSkillToTileOK6.setX(X);
             _GCSkillToTileOK6.setY(Y);
             _GCSkillToTileOK6.setDuration(output.Duration);
-            //_GCSkillToTileOK6.addShortData(MODIFY_VISION, ICE_FIELD_SIGHT);
 
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
@@ -241,15 +234,7 @@ void IceHorizon::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
 
                 Creature* pWatcher = (*itr);
                 if (bBelong == false && canSee(pWatcher, pOusters) == false) {
-                    // Assert(pWatcher->isPC());	// 당연 PC다.. Zone::getWatcherList는 PC만 return한다
                     if (!pWatcher->isPC()) {
-                        // cout << "IceHorizon : 왓처 리스트가 PC가 아닙니다." << endl;
-                        //						GCSkillFailed1 _GCSkillFailed1;
-                        //						_GCSkillFailed1.setSkillType(getSkillType());
-                        //						pOusters->getPlayer()->sendPacket(&_GCSkillFailed1);
-
-                        // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
-                        //						return;
                         continue;
                     }
                     pWatcher->getPlayer()->sendPacket(&_GCSkillToTileOK4);
@@ -271,7 +256,6 @@ void IceHorizon::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

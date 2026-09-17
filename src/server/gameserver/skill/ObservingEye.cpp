@@ -26,7 +26,6 @@ void ObservingEye::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -68,7 +67,6 @@ void ObservingEye::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
             pEffect->setDamageBonus(output.Damage * 2 - 1);
             pEffect->setCriticalHitBonus(output.Damage * 10 - 49);
             pEffect->setVisionBonus(output.Damage);
-            //			pEffect->setSkillLevel( pSkillSlot->getExpLevel() );
             pEffect->setSkillLevel(max(100, (int)pSlayer->getSkillDomainLevel(SKILL_DOMAIN_GUN)));
             pSlayer->setFlag(Effect::EFFECT_CLASS_OBSERVING_EYE);
             pSlayer->addEffect(pEffect);
@@ -88,7 +86,6 @@ void ObservingEye::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 8, 1, _GCSkillToSelfOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
-            //			increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
 
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
@@ -119,7 +116,6 @@ void ObservingEye::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }

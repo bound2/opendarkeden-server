@@ -53,12 +53,10 @@ void EffectRestore::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectRestore" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     destroy(pCreature->getName());
 
-    // cout << "EffectRestore" << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -70,12 +68,10 @@ void EffectRestore::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectRestore" << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectRestore" << "unaffect END" << endl;
 
     __END_CATCH
 }

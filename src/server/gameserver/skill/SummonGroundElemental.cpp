@@ -87,7 +87,6 @@ void SummonGroundElemental::execute(Ousters* pOusters, ObjectID_t TargetObjectID
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -107,24 +106,20 @@ void SummonGroundElemental::execute(Ousters* pOusters, ObjectID_t TargetObjectID
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
 
         // NPC는 공격할 수가 없다.
         if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
             || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType(), Grade);
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
         execute(pOusters, pTargetCreature->getX(), pTargetCreature->getY(), pOustersSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType(), Grade);
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -138,7 +133,6 @@ void SummonGroundElemental::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -189,11 +183,6 @@ void SummonGroundElemental::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_
 
         bool bTileCheck = false;
         VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);
-        //		if (rect.ptInRect(X, Y))
-        //		{
-        //			Tile& tile = pZone->getTile(X, Y);
-        //			if (tile.canAddEffect()) bTileCheck = true;
-        //		}
 
         TPOINT pt = findSuitablePosition(pZone, X, Y, Creature::MOVE_MODE_WALKING);
 
@@ -262,14 +251,9 @@ void SummonGroundElemental::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_
             gcAddEffect.setEffectID(pCreatureEffect->getSendEffectClass());
             pZone->broadcastPacket(X, Y, &gcAddEffect);
 
-            //			addSimpleCreatureEffect( pGroundElemental, Effect::EFFECT_CLASS_GROUND_ELEMENTAL_CENTER );
 
-            //			for ( int i = 0; i < m_MaskIndex[Grade]; ++i )
             for (oX = X - 2; oX <= X + 2; ++oX)
                 for (oY = Y - 2; oY <= Y + 2; ++oY) {
-                    //				oX = m_ElementalMask[Grade][i].x;
-                    //				oY = m_ElementalMask[Grade][i].y;
-
                     if (!rect.ptInRect(oX, oY))
                         continue;
                     if (oX == X && oY == Y)
@@ -355,10 +339,8 @@ void SummonGroundElemental::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_
         }
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType(), Grade);
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

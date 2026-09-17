@@ -25,7 +25,6 @@ void SwordRay::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     // Slayer Object Assertion
     Assert(pSlayer != NULL);
@@ -36,7 +35,6 @@ void SwordRay::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
@@ -48,10 +46,8 @@ void SwordRay::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         execute(pSlayer, pTargetCreature->getX(), pTargetCreature->getY(), pSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -65,7 +61,6 @@ void SwordRay::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot*
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     try {
         Player* pPlayer = pSlayer->getPlayer();
@@ -95,7 +90,6 @@ void SwordRay::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot*
         // 일단 기술은 성공하는 걸로 하고 데미지를 가할때(EffectTileStorm::affect())
         // 개별적으로 HitRoll을 계산한다.
         // 2003.1.8 by bezz
-        // bool bHitRoll = HitRoll::isSuccessMagic(pSlayer, pSkillInfo, pSkillSlot);
 
         bool bTileCheck = false;
         Tile& tile = pZone->getTile(X, Y);
@@ -143,7 +137,6 @@ void SwordRay::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot*
             _GCSkillToTileOK3.setSkillType(SkillType);
             _GCSkillToTileOK3.setX(X);
             _GCSkillToTileOK3.setY(Y);
-            //_GCSkillToTileOK3.setRange(Range);
 
             // 기술을 당한 사람만 볼 수 있는 사람들에게
             _GCSkillToTileOK4.setSkillType(SkillType);
@@ -186,7 +179,6 @@ void SwordRay::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot*
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

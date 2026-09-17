@@ -56,19 +56,16 @@ void EffectTransformToWerwolf::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectTransfromToWerwolf " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     Assert(pCreature != NULL);
 
     if (pCreature->isSlayer()) {
-        // cout << "EffectTransfromToWerwolf::unaffect() : Slayer cannot transfrom to wolf!" << endl;
         throw Error("EffectTransfromToWerwolf::unaffect() : Slayer cannot transfrom to wolf!");
     }
 
     unaffect(pCreature);
 
-    // cout << "EffectTransfromToWerwolf " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -80,7 +77,6 @@ void EffectTransformToWerwolf::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectTransfromToWerwolf " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -107,7 +103,6 @@ void EffectTransformToWerwolf::unaffect(Creature* pCreature)
         Assert(false);
     }
 
-    // cout << "EffectTransfromToWerwolf " << "unaffect END" << endl;
 
     __END_CATCH
 }

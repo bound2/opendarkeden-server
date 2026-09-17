@@ -16,7 +16,6 @@ void SingleBlow::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -38,7 +37,6 @@ void SingleBlow::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 
     g_SimpleMeleeSkill.execute(pSlayer, TargetObjectID, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -51,7 +49,6 @@ void SingleBlow::execute(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SIMPLE_SKILL_INPUT param;
     param.SkillType = getSkillType();
@@ -69,7 +66,6 @@ void SingleBlow::execute(Monster* pMonster, Creature* pEnemy)
 
     g_SimpleMeleeSkill.execute(pMonster, pEnemy, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

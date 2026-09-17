@@ -217,9 +217,6 @@ void EffectBombCrashWalk::affect()
 
                                 bHit = true;
                             }
-                            //
-                            // 						if ( maxEnemyLevel < pTargetCreature->getLevel() ) maxEnemyLevel =
-                            // pTargetCreature->getLevel(); 						EnemyNum++;
                         }
                     }
                 }
@@ -228,8 +225,6 @@ void EffectBombCrashWalk::affect()
 
     if (bHit) {
         GCModifyInformation gcMI;
-        // shareAttrExp( pSlayer, maxDamage, 8, 1, 1, gcMI );
-        // increaseDomainExp( pSlayer, DomainType, pSkillInfo->getPoint(), gcMI, maxEnemyLevel, EnemyNum );
         increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, gcMI);
 
         pSlayer->getPlayer()->sendPacket(&gcMI);

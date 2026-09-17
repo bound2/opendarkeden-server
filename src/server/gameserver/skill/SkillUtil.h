@@ -26,7 +26,6 @@
 #define MAKEWORD(U, D) (WORD)((WORD)(U) << 8 | (WORD)(D))
 #define MAKEDWORD(U, D) (DWORD)((DWORD)(U) << 16 | (DWORD)(D))
 
-// #define VAMPIRE_MAX_LEVEL	150
 
 //////////////////////////////////////////////////////////////////////////////
 // forward declaration
@@ -160,12 +159,9 @@ bool checkZoneLevelToUseSkill(Creature* pCaster);
 bool checkZoneLevelToHitTarget(Creature* pTargetCreature);
 
 // 기술이 밀리 공격인가? - 2003. 1. 1. Sequoia
-// bool isMeleeSkill(SkillType_t SkillType);
 
 // Magic 기술인가?
-// bool isMagicSkill(SkillType_t SkillType);
 // Physic 기술인가?
-// bool isPhysicSkill(SkillType_t SkillType);
 
 //////////////////////////////////////////////////////////////////////////////
 // 성향 관련 함수들...

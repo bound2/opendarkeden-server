@@ -22,7 +22,6 @@ void Sniping::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -38,7 +37,6 @@ void Sniping::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || isArmsWeapon(pItem) == false || pSlayer->hasRelicItem()) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -109,7 +107,6 @@ void Sniping::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -136,7 +133,6 @@ void Sniping::checkRevealRatio(Creature* pCreature, int base, int divisor) {
     pEffectSM->setRevealRatio(pEffectSM->getRevealRatio() + penalty);
 
     if (rand() % 100 < pEffectSM->getRevealRatio()) {
-        // addUnSnipingModeCreature(pZone, pCreature, true);
         //  이펙트가 꺼지도록 한다.
         //  2003. 1. 17 by bezz
         pEffectSM->setDeadline(0);

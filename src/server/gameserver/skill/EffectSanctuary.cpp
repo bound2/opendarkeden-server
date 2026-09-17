@@ -41,19 +41,6 @@ bool EffectSanctuary::affectObject(Object* pTarget, bool bAffectByMove)
 {
     __BEGIN_TRY
 
-    //	if (pTarget->getObjectClass() == Object::OBJECT_CLASS_CREATURE)
-    //	{
-    //		Creature* pTargetCreature = dynamic_cast<Creature*>(pTarget);
-    //		// 이미 걸려있는 경우에는 다시 걸지 않는다.
-    //		if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_SANCTUARY))
-    //		{
-    //			return false;
-    //		}
-    //
-    //		pTargetCreature->setFlag(Effect::EFFECT_CLASS_SANCTUARY);
-    //		return true;
-    //	}
-    //
     return false;
 
     __END_CATCH
@@ -64,14 +51,6 @@ void EffectSanctuary::unaffectObject(Object* pTarget, bool bUnaffectByMove)
 {
     __BEGIN_TRY
 
-    //	Assert(pTarget != NULL);
-    //
-    //	if (pTarget->getObjectClass() == Object::OBJECT_CLASS_CREATURE)
-    //	{
-    //		Creature* pTargetCreature = dynamic_cast<Creature*>(pTarget);
-    //
-    //		pTargetCreature->removeFlag(Effect::EFFECT_CLASS_SANCTUARY);
-    //	}
 
     __END_CATCH
 }
@@ -105,23 +84,11 @@ void EffectSanctuary::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectSanctuary " << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
-    //
-    //	// unaffect creatures on tile
-    //	const forward_list<Object*>& oList = tile.getObjectList();
-    //	for (forward_list<Object*>::const_iterator itr = oList.begin(); itr != oList.end(); itr++)
-    //	{
-    //		if (*itr != this)
-    //		{
-    //			EffectSanctuary::unaffectObject((Object*)(*itr), false);
-    //		}
-    //	}
 
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectSanctuary " << "unaffect END" << endl;
 
     __END_CATCH
 }

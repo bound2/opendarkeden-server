@@ -41,12 +41,6 @@ public:
     string toString() const;
 
 public:
-    //	string getCasterName(void) const { return m_CasterName; }
-    //	void setCasterName(const string & CasterName ) { m_CasterName = CasterName; }
-
-    //	int getPartyID(void) const { return m_PartyID; }
-    //	void setPartyID(int PartyID) { m_PartyID = PartyID; }
-
     ObjectID_t getUserObjectID() const {
         return m_UserObjectID;
     }
@@ -78,8 +72,6 @@ public:
     bool affectCreature(Creature* pCreature, bool bAffectByMove);
 
 private:
-    //	string  m_CasterName;
-    //	int     m_PartyID;
     ObjectID_t m_UserObjectID;
     int m_Damage;               // EffectEnergyDrop Damage;
     Turn_t m_Tick;              // EffectEnergyDrop turn;

@@ -51,7 +51,6 @@ void EffectDenialMagic::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectDenialMagic" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
@@ -68,7 +67,6 @@ void EffectDenialMagic::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_DENIAL_MAGIC);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectDenialMagic" << "unaffect END" << endl;
 
     __END_CATCH
 }

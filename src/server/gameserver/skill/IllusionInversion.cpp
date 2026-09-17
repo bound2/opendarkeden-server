@@ -25,7 +25,6 @@ void IllusionInversion::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skil
 {
     __BEGIN_TRY
 
-    //	cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -112,21 +111,6 @@ void IllusionInversion::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skil
         bool bPK = verifyPK(pSlayer, pTargetCreature);
 
         bool bUseSkill = false;
-        /*
-        // È¡³öµ±Ç°Ê¹ÓÃ¼¼ÄÜ½ÇÉ«ËùÊ¹ÓÃµÄÎäÆ÷
-        Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
-        //Ã»ÓÐÎäÆ÷²»ÄÜÊ¹ÓÃ¼¼ÄÜ
-        if (pWeapon != NULL)
-        {
-            Silver_t silverDamage= pWeapon->getSilver();
-            if (silverDamage >50)
-            {
-                silverDamage-=50;
-                pWeapon->setSilver(silverDamage);
-                bUseSkill=true;
-            }
-        }
-        */
         bUseSkill = true;
 
 
@@ -216,30 +200,6 @@ void IllusionInversion::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skil
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, param.SkillType);
     }
-    /*
-        g_SimpleMissileSkill.execute(pSlayer, TargetObjectID, pSkillSlot, param, result);
-        // È¡³öÉËº¦Öµ
-        Zone* pZone = pSlayer->getZone();
-        Player* pPlayer = pSlayer->getPlayer();
-        Assert(pPlayer != NULL);
-        Assert(pZone != NULL);
-        Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-
-        if (pTargetCreature==NULL		// NoSuch Á¦°Å. by sigi. 2002.5.2
-            || pTargetCreature->isNPC()
-            || !canAttack( pSlayer, pTargetCreature )
-            || pTargetCreature->isDead()
-            )
-        {
-            executeSkillFailException(pSlayer, getSkillType());
-            return;
-        }
-        int targetLevel = 0;
-        int targetMaxHP = 0;
-        Exp_t Exp = output.Damage;
-        cout << "Ê¹ÓÃ¼¼ÄÜ:¿Ö²À»Ã¾õ,Ôì³ÉÉËº¦:"<< (int)output.Damage << endl;
-    //	cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
-    */
     __END_CATCH
 }
 

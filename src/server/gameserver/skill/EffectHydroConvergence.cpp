@@ -76,7 +76,6 @@ void EffectHydroConvergence::affect()
         if (CurrentHP < m_TrageSaveHP) {
             // Ôö¼ÓÆäËü¹¥»÷´ÎÊý
             m_AttackNum++;
-            // m_TrageSaveHP = CurrentHP;
         }
         // ´´½¨ÉËº¦
         affect(pCreature);
@@ -94,53 +93,6 @@ void EffectHydroConvergence::affect()
         }
     }
 
-
-    // 	Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
-    // 	affect(pCreature);
-    // 	int cx = pCreature->getX();
-    // 	int cy = pCreature->getY();
-    //
-    // 	Zone* pZone = pCreature->getZone();
-    //
-    // 	for ( int i=-1; i<=1; ++i )
-    // 	for ( int j=-1; j<=1; ++j )
-    // 	{
-    // 		int tx = cx + i;
-    // 		int ty = cy + j;
-    // 		if ( tx < 0 || ty < 0 ) continue;
-    // 		if ( !isValidZoneCoord( pZone, tx, ty ) ) continue;
-    //
-    // 		forward_list<Object*>& olist = pZone->getTile(tx, ty).getObjectList();
-    // 		forward_list<Object*>::iterator itr = olist.begin();
-    // 		for ( ; itr != olist.end() ; ++itr )
-    // 		{
-    // 			Object* pObject = *itr;
-    // 			if ( pObject == NULL || pObject->getObjectClass() != Object::OBJECT_CLASS_CREATURE ) continue;
-    //
-    // 			Creature* pTargetCreature = dynamic_cast<Creature*>(pObject);
-    // 			if ( pTargetCreature == NULL || pTargetCreature->isOusters() || pTargetCreature == pCreature ) continue;
-    // 			if ( pTargetCreature->isFlag( getEffectClass() ) ) continue;
-    //
-    // 			EffectHydroConvergence* pEffect = new EffectHydroConvergence( pTargetCreature );
-    // 			pEffect->setUserOID( m_UserOID );
-    // 			pEffect->setDamage( m_Damage );
-    // 			pEffect->setDeadline( m_Duration/2 );
-    // 			pEffect->setDuration( m_Duration/2 );
-    // 			pEffect->setNextTime(10);
-    // 			pTargetCreature->setFlag( pEffect->getEffectClass() );
-    // 			pTargetCreature->addEffect( pEffect );
-    //
-    // 			GCAddEffect gcAddEffect;
-    // 			gcAddEffect.setObjectID( pTargetCreature->getObjectID() );
-    // 			gcAddEffect.setEffectID( pEffect->getSendEffectClass() );
-    // 			gcAddEffect.setDuration( m_Duration/2 );
-    //
-    // 			pZone->broadcastPacket( pTargetCreature->getX(), pTargetCreature->getY(), &gcAddEffect );
-    //
-    // 		}
-    // 	}
-
-    // cout << "EffectHydroConvergence" << "affect BEGIN" << endl;
 
     __END_CATCH
 }
@@ -217,11 +169,9 @@ void EffectHydroConvergence::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectHydroConvergence" << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     // ¶ÁÈ¡5*5·¶Î§ÄÚ¶ÔÏó,²¢´´½¨ÉËº¦
-    // 	Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     // ´´½¨Ä¿±êÉËº¦
     affect(pCreature);
 
@@ -253,27 +203,10 @@ void EffectHydroConvergence::unaffect()
                     continue;
                 // ´´½¨ÉËº¦
                 affect(pTargetCreature);
-                // 	 			EffectHydroConvergence* pEffect = new EffectHydroConvergence( pTargetCreature );
-                // 	 			pEffect->setUserOID( m_UserOID );
-                // 	 			pEffect->setDamage( m_Damage );
-                // 	 			pEffect->setDeadline( m_Duration/2 );
-                // 	 			pEffect->setDuration( m_Duration/2 );
-                // 	 			pEffect->setNextTime(10);
-                // 	 			pTargetCreature->setFlag( pEffect->getEffectClass() );
-                // 	 			pTargetCreature->addEffect( pEffect );
-                //
-                // 	 			GCAddEffect gcAddEffect;
-                // 	 			gcAddEffect.setObjectID( pTargetCreature->getObjectID() );
-                // 	 			gcAddEffect.setEffectID( pEffect->getSendEffectClass() );
-                // 	 			gcAddEffect.setDuration( m_Duration/2 );
-                //
-                // 	 			pZone->broadcastPacket( pTargetCreature->getX(), pTargetCreature->getY(), &gcAddEffect
-                // );
             }
         }
     unaffect(pCreature);
 
-    // cout << "EffectHydroConvergence" << "unaffect END" << endl;
 
     __END_CATCH
 }

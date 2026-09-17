@@ -20,7 +20,6 @@ void MiracleShield::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -36,7 +35,6 @@ void MiracleShield::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_SWORD) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -111,7 +109,6 @@ void MiracleShield::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

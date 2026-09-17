@@ -23,7 +23,6 @@ void Regeneration::execute(Slayer* pSlayer, ObjectID_t ObjectID, SkillSlot* pSki
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     // Slayer Object Assertion
     Assert(pSlayer != NULL);
@@ -34,7 +33,6 @@ void Regeneration::execute(Slayer* pSlayer, ObjectID_t ObjectID, SkillSlot* pSki
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(ObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || pTargetCreature->isNPC()) {
@@ -46,10 +44,8 @@ void Regeneration::execute(Slayer* pSlayer, ObjectID_t ObjectID, SkillSlot* pSki
         execute(pSlayer, pTargetCreature->getX(), pTargetCreature->getY(), pSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -59,7 +55,6 @@ void Regeneration::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -72,11 +67,9 @@ void Regeneration::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
         Assert(pZone != NULL);
 
         GCSkillToTileOK1 _GCSkillToTileOK1;
-        //		GCSkillToTileOK2 _GCSkillToTileOK2;
         GCSkillToTileOK3 _GCSkillToTileOK3;
         GCSkillToTileOK4 _GCSkillToTileOK4;
         GCSkillToTileOK5 _GCSkillToTileOK5;
-        //		GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
@@ -144,17 +137,6 @@ void Regeneration::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
             _GCSkillToTileOK1.setDuration(output.Duration);
             _GCSkillToTileOK1.setRange(Range);
 
-            /*			_GCSkillToTileOK3.setObjectID(pSlayer->getObjectID());
-                        _GCSkillToTileOK3.setSkillType(SkillType);
-                        _GCSkillToTileOK3.setX(X);
-                        _GCSkillToTileOK3.setY(Y);
-
-                        _GCSkillToTileOK4.setSkillType(SkillType);
-                        _GCSkillToTileOK4.setX(X);
-                        _GCSkillToTileOK4.setY(Y);
-                        _GCSkillToTileOK4.setDuration(output.Duration);
-                        _GCSkillToTileOK4.setRange(Range);
-            */
             _GCSkillToTileOK5.setObjectID(pSlayer->getObjectID());
             _GCSkillToTileOK5.setSkillType(SkillType);
             _GCSkillToTileOK5.setX(X);
@@ -169,8 +151,6 @@ void Regeneration::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
 
             cList = pZone->broadcastSkillPacket(X, Y, X, Y, &_GCSkillToTileOK5, cList);
 
-            // pZone->broadcastPacket( X, Y, &_GCSkillToTileOK3, cList );
-            // pZone->broadcastPacket( X, Y, &_GCSkillToTileOK4, cList );
 
             pSkillSlot->setRunTime(output.Delay);
         } else {
@@ -180,7 +160,6 @@ void Regeneration::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

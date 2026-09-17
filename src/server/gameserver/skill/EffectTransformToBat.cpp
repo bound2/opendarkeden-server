@@ -54,19 +54,16 @@ void EffectTransformToBat::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectTransformToBat " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     Assert(pCreature != NULL);
 
     if (pCreature->isSlayer()) {
-        // cout << "EffectTransfromToWolf::unaffect() : Slayer cannot transfrom to bat!" << endl;
         throw Error("EffectTransfromToWolf::unaffect() : Slayer cannot transfrom to bat!");
     }
 
     unaffect(pCreature);
 
-    // cout << "EffectTransformToBat " << "unaffect BEGIN" << endl;
 
     __END_CATCH
 }
@@ -78,7 +75,6 @@ void EffectTransformToBat::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectTransformToBat " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -105,7 +101,6 @@ void EffectTransformToBat::unaffect(Creature* pCreature)
         Assert(false);
     }
 
-    // cout << "EffectTransformToBat " << "unaffect END" << endl;
 
     __END_CATCH
 }

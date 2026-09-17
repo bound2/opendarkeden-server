@@ -108,7 +108,6 @@ bool EffectYellowPoison::affectCreature(Creature* pTargetCreature, bool bAffectB
         pTargetCreature->addEffect(pEffect);
 
         // DB에 Effect를 생성한다.
-        // pEffect->create(pTargetCreature->getName());
 
         // 원래 이 부분에 존 레벨을 체크해서, 안전지대일 경우,
         // GCChangeDarkLight에다 다크레벨을 0으로 해서 보내주었으나,
@@ -226,7 +225,6 @@ void EffectYellowPoisonLoader::load(Zone* pZone)
 
                         // 존 및 타일에다가 이펙트를 추가한다.
                         pZone->registerObject(pEffect);
-                        // pZone->addEffect(pEffect);  // REMOVED: Don't add permanent tile effects to Zone
                         tile.addEffect(pEffect);
                     }
                 }

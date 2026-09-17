@@ -20,7 +20,6 @@ void Hide::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEffectID_t 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pSkillSlot != NULL);
@@ -94,7 +93,6 @@ void Hide::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEffectID_t 
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -107,7 +105,6 @@ void Hide::execute(Monster* pMonster)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
@@ -116,7 +113,6 @@ void Hide::execute(Monster* pMonster)
         Assert(pZone != NULL);
 
         if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
         if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
@@ -159,7 +155,6 @@ void Hide::execute(Monster* pMonster)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

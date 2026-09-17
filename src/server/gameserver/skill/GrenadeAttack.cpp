@@ -23,7 +23,6 @@ void GrenadeAttack::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin(monster) " << endl;
 
     try {
         Zone* pZone = pMonster->getZone();
@@ -75,51 +74,11 @@ void GrenadeAttack::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             tile.addEffect(pEffect);
 
             // 타일 위에 크리쳐가 있다면 바로 영향을 주도록 한다.
-            // Creature* pTargetCreature = NULL;
 
-            // if (tile.hasCreature(Creature::MOVE_MODE_WALKING))
-            // 	pTargetCreature = tile.getCreature(Creature::MOVE_MODE_WALKING);
 
             ZoneCoord_t myX = pMonster->getX();
             ZoneCoord_t myY = pMonster->getY();
 
-            /*			if (pTargetCreature != NULL)
-                        {
-                            if (pTargetCreature->isPC())
-                            {
-                                pEffect->affect();
-
-                                Player* pTargetPlayer = pTargetCreature->getPlayer();
-                                bool bCanSee = canSee(pTargetCreature, pMonster);
-
-                                if (bCanSee)
-                                {
-                                    _GCSkillToTileOK2.setObjectID(pMonster->getObjectID());
-                                    _GCSkillToTileOK2.setSkillType(SkillType);
-                                    _GCSkillToTileOK2.setX(X);
-                                    _GCSkillToTileOK2.setY(Y);
-                                    _GCSkillToTileOK2.setDuration(output.Duration);
-                                    _GCSkillToTileOK2.setRange(Range);
-                                    pTargetPlayer->sendPacket(&_GCSkillToTileOK2);
-                                }
-                                else
-                                {
-                                    _GCSkillToTileOK6.setOrgXY(myX, myY);
-                                    _GCSkillToTileOK6.setSkillType(SkillType);
-                                    _GCSkillToTileOK6.setX(X);
-                                    _GCSkillToTileOK6.setY(Y);
-                                    _GCSkillToTileOK6.setDuration(output.Duration);
-                                    _GCSkillToTileOK6.setRange(Range);
-                                    pTargetPlayer->sendPacket(&_GCSkillToTileOK6);
-                                }
-                            }
-                            else if (pTargetCreature->isMonster())
-                            {
-                                Monster* pTargetMonster = dynamic_cast<Monster*>(pTargetCreature);
-                                pEffect->affect();
-                                pTargetMonster->addEnemy(pMonster);
-                            }
-                        }*/
 
             _GCSkillToTileOK3.setObjectID(pMonster->getObjectID());
             _GCSkillToTileOK3.setSkillType(SkillType);
@@ -151,7 +110,6 @@ void GrenadeAttack::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end(monster) " << endl;
 
     __END_CATCH
 }

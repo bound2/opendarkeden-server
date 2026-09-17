@@ -25,7 +25,6 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(vampire)" << endl;
 
     Assert(pVampire != NULL);
 
@@ -36,7 +35,6 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수가 없다.
         // 면역 상태. by sigi. 2002.9.13
@@ -47,7 +45,6 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
             !canAttack(pVampire, pTargetCreature) || pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA) ||
             pTargetCreature->isDead()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampire)" << endl;
             return;
         }
 
@@ -88,31 +85,11 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
                 log(LOG_BLOODDRAINED, pTargetCreature->getName(), pVampire->getName());
             }
             // 아우스터즈의 경우엔..... -_-; 제한시간 없는 이펙트를 생성한다. 엄밀히 말해 제한시간이 없는 건 아니지만..
-            //			else if ( pTargetCreature->isOusters() )
-            //			{
-            //				EffectBloodDrain* pEffectBloodDrain = new EffectBloodDrain(pTargetCreature);
-            //				pEffectBloodDrain->setLevel(pVampire->getLevel());
-            //				pTargetCreature->addEffect(pEffectBloodDrain);
-            //				pEffectBloodDrain->create(pTargetCreature->getName());
-            //				_GCBloodDrainOK2.addShortData(MODIFY_EFFECT_STAT, Effect::EFFECT_CLASS_BLOOD_DRAIN);
             //
             //				// 타겟이 뭐든 플래그는 건다.
-            //				pTargetCreature->setFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
             //
-            //				Sight_t oldSight = pTargetCreature->getSight();
-            //				Sight_t newSight = pTargetCreature->getEffectedSight();
             //
-            //				if ( oldSight != newSight )
-            //				{
-            //					pTargetCreature->setSight(newSight);
-            //					_GCBloodDrainOK2.addShortData(MODIFY_VISION, pTargetCreature->getSight());
             //
-            //					GCChangeDarkLight gcChangeDarkLight;
-            //					gcChangeDarkLight.setDarkLevel(15);
-            //					gcChangeDarkLight.setLightLevel(newSight);
-            //					pTargetCreature->getPlayer()->sendPacket(&gcChangeDarkLight);
-            //				}
-            //			}
 
             // 타겟이 뭐든 플래그는 건다.
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
@@ -124,17 +101,14 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
             int targetMaxHP = 0;
             // 페임을 올려준다.
             if (pTargetCreature->isSlayer()) {
-                // increaseFame(pVampire, Exp);
                 Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
                 targetLevel = pTargetSlayer->getHighestSkillDomainLevel();
                 targetMaxHP = pTargetSlayer->getHP(ATTR_MAX);
             } else if (pTargetCreature->isVampire()) {
-                // increaseFame(pVampire, Exp);
                 Vampire* pTargetVampire = dynamic_cast<Vampire*>(pTargetCreature);
                 targetLevel = pTargetVampire->getLevel();
                 targetMaxHP = pTargetVampire->getHP(ATTR_MAX);
             } else if (pTargetCreature->isOusters()) {
-                // increaseFame(pOusters, Exp);
                 Ousters* pTargetOusters = dynamic_cast<Ousters*>(pTargetCreature);
                 targetLevel = pTargetOusters->getLevel();
                 targetMaxHP = pTargetOusters->getHP(ATTR_MAX);
@@ -193,7 +167,6 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
             }
 
             if (drainDamage > 0) {
-                // decreaseHP(pZone, pTargetCreature, drainDamage, pVampire->getObjectID());
                 EffectDecreaseHP* pEffect = new EffectDecreaseHP(pTargetCreature);
                 pEffect->setPoint(drainDamage);
                 pEffect->setDeadline(20); // 2초 후
@@ -208,7 +181,6 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
             // by sigi. 2002.12.16
             // EffectDecreaseHP에서 HP가 닳아서 0이 되어야하는 경우가 있어서
             // EffectDecreaseHP::unaffect()로 옮긴다.
-            // computeAlignmentChange(pTargetCreature, drainDamage, pVampire, NULL, &_GCBloodDrainOK1);
 
             _GCBloodDrainOK1.setObjectID(TargetObjectID);
 
@@ -238,7 +210,6 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampire)" << endl;
 
     __END_CATCH
 }
@@ -254,7 +225,6 @@ void BloodDrain::execute(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(monster)" << endl;
 
     Assert(pMonster != NULL);
     Assert(pEnemy != NULL);
@@ -266,8 +236,6 @@ void BloodDrain::execute(Monster* pMonster, Creature* pEnemy)
         Assert(pZone != NULL);
 
         if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-            // cout << "Monster cannot use skill while hiding." << endl;
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
             return;
         }
         if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
@@ -276,7 +244,6 @@ void BloodDrain::execute(Monster* pMonster, Creature* pEnemy)
 
         // 마스터 : 광역 흡혈 - -;
         if (pMonster->isMaster()) {
-            //			cout << pMonster->getName() << "가 광역흡혈함" << endl;
             int x = pMonster->getX();
             int y = pMonster->getY();
             int Splash = 3 + rand() % 5; // 3~7 마리
@@ -290,7 +257,6 @@ void BloodDrain::execute(Monster* pMonster, Creature* pEnemy)
                 Assert(pTargetCreature != NULL);
 
                 if (pMonster != pTargetCreature) {
-                    // cout << "BloodDrain: " << pTargetCreature->getName().c_str() << endl;
                     executeMonster(pMonster, pTargetCreature);
                 }
             }
@@ -314,8 +280,6 @@ void BloodDrain::execute(Monster* pMonster, Creature* pEnemy)
     DelayTurn.tv_usec = 500000;
     pMonster->addAccuDelay(DelayTurn);
 
-
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
 
     __END_CATCH
 }
@@ -379,30 +343,10 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
             log(LOG_BLOODDRAINED, pEnemy->getName(), "게임 내의 몬스터");
         }
         // 아우스터즈의 경우엔..... -_-; 제한시간 없는 이펙트를 생성한다. 엄밀히 말해 제한시간이 없는 건 아니지만..
-        //		else if ( pEnemy->isOusters() && !isMaster )
-        //		{
-        //			EffectBloodDrain* pEffectBloodDrain = new EffectBloodDrain(pEnemy);
-        //			pEffectBloodDrain->setLevel(pMonster->getLevel());
-        //			pEnemy->addEffect(pEffectBloodDrain);
-        //			pEffectBloodDrain->create(pEnemy->getName());
-        //			_GCBloodDrainOK2.addShortData(MODIFY_EFFECT_STAT, Effect::EFFECT_CLASS_BLOOD_DRAIN);
         //
-        //			pEnemy->setFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         //
-        //			Sight_t oldSight = pEnemy->getSight();
-        //			Sight_t newSight = pEnemy->getEffectedSight();
         //
-        //			if ( oldSight != newSight )
-        //			{
-        //				pEnemy->setSight(newSight);
-        //				_GCBloodDrainOK2.addShortData(MODIFY_VISION, pEnemy->getSight());
         //
-        //				GCChangeDarkLight gcChangeDarkLight;
-        //				gcChangeDarkLight.setDarkLevel(15);
-        //				gcChangeDarkLight.setLightLevel(newSight);
-        //				pEnemy->getPlayer()->sendPacket(&gcChangeDarkLight);
-        //			}
-        //		}
 
 
         _GCBloodDrainOK3.setObjectID(pMonster->getObjectID());
@@ -499,7 +443,6 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
         }
 
         if (drainDamage > 0) {
-            // decreaseHP(pZone, pEnemy, drainDamage);
             EffectDecreaseHP* pEffect = new EffectDecreaseHP(pEnemy);
             pEffect->setPoint(drainDamage);
             pEffect->setDeadline(20); // 2초 후

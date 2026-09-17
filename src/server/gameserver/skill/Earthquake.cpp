@@ -16,7 +16,6 @@ void Earthquake::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -36,7 +35,6 @@ void Earthquake::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -49,7 +47,6 @@ void Earthquake::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -72,7 +69,6 @@ void Earthquake::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
 
     g_SimpleLinearMeleeSkill.execute(pSlayer, X, Y, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

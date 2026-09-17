@@ -25,7 +25,6 @@ void MindControl::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -107,7 +106,6 @@ void MindControl::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }

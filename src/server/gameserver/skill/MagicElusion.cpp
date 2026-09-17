@@ -28,7 +28,6 @@ void MagicElusion::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -223,7 +222,6 @@ void MagicElusion::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
 
                 Creature* pWatcher = (*itr);
                 if (bBelong == false && canSee(pWatcher, pSlayer) == false) {
-                    // Assert(pWatcher->isPC());	// 당연 PC다.. Zone::getWatcherList는 PC만 return한다
                     if (pWatcher->isPC()) {
                         pWatcher->getPlayer()->sendPacket(&_GCSkillToTileOK4);
                         cList.push_back(*itr);
@@ -245,8 +243,6 @@ void MagicElusion::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
     }
-
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
 
     __END_CATCH

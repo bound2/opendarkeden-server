@@ -36,12 +36,10 @@ void EffectHowl::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectHowl" << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectHowl" << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -52,7 +50,6 @@ void EffectHowl::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectHowl" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isVampire());
@@ -76,7 +73,6 @@ void EffectHowl::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_HOWL);
     pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &gcRemoveEffect);
 
-    // cout << "EffectHowl" << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

@@ -36,12 +36,10 @@ void EffectMephisto::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectMephisto" << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectMephisto" << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -52,7 +50,6 @@ void EffectMephisto::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectMephisto" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isVampire());
@@ -76,7 +73,6 @@ void EffectMephisto::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_MEPHISTO);
     pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &gcRemoveEffect);
 
-    // cout << "EffectMephisto" << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

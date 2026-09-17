@@ -20,7 +20,6 @@ void GhostBlade::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -36,7 +35,6 @@ void GhostBlade::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_BLADE) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -67,7 +65,6 @@ void GhostBlade::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
             computeOutput(input, output);
 
             int ToHitBonus = getPercentValue(pSlayer->getToHit(), output.Damage);
-            // int ToHitBonus = output.Damage;
 
             // 이펙트 클래스를 만들어 붙인다.
             EffectGhostBlade* pEffect = new EffectGhostBlade(pSlayer);
@@ -89,7 +86,6 @@ void GhostBlade::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
             if (bIncreaseDomainExp) {
                 shareAttrExp(pSlayer, ExpUp, 8, 1, 1, _GCSkillToSelfOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
-                //				increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
             }
 
             _GCSkillToSelfOK1.setSkillType(SkillType);
@@ -117,7 +113,6 @@ void GhostBlade::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

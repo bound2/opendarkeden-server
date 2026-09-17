@@ -31,7 +31,6 @@ void PoisonMesh::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -50,7 +49,6 @@ void PoisonMesh::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -81,20 +79,12 @@ void PoisonMesh::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         SkillOutput output;
         computeOutput(input, output);
 
-        // if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bHitRoll2 && bCanHit && !bEffected && bPK)
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bCanHit && !bEffected && bPK &&
             pTargetCreature->getCompetence() == 3) {
             decreaseMana(pVampire, RequiredMP, _GCSkillToObjectOK1);
 
             bool bCanSeeCaster = canSee(pTargetCreature, pVampire);
 
-            /*			// pTargetCreature가 저주마법을 반사하는 경우
-                        if (CheckReflection(pVampire, pTargetCreature, getSkillType()))
-                        {
-                            pTargetCreature = (Creature*)pVampire;
-                            TargetObjectID = pVampire->getObjectID();
-                        }
-            */
 
             // 이펙트 오브젝트를 생성해서 붙인다.
             EffectPoisonMesh* pEffectPoisonMesh = new EffectPoisonMesh(pTargetCreature);
@@ -178,7 +168,6 @@ void PoisonMesh::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

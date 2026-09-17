@@ -69,7 +69,6 @@ void DummyDrake::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 3;
         // 헌뇜杰唐MP
-        // RequiredMP = pOusters->getMP();
 
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
         bool bTimeCheck = verifyRunTime(pOustersSkillSlot);

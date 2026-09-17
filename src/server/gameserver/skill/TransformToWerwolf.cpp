@@ -26,7 +26,6 @@ void TransformToWerwolf::execute(Vampire* pVampire, ObjectID_t InvenObjectID, Co
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pSkillSlot != NULL);
@@ -49,7 +48,6 @@ void TransformToWerwolf::execute(Vampire* pVampire, ObjectID_t InvenObjectID, Co
             g_pPKZoneInfoManager->isPKZone(pZone->getZoneID()) ||
             pVampire->isFlag(Effect::EFFECT_CLASS_REFINIUM_TICKET)) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -121,10 +119,6 @@ void TransformToWerwolf::execute(Vampire* pVampire, ObjectID_t InvenObjectID, Co
             gcAddWerwolf.setGuildID(pVampire->getGuildID());
             pZone->broadcastPacket(x, y, &gcAddWerwolf, pVampire);
 
-            /*			GCAddVampire gcAddVampire;
-                        makeGCAddVampire( &gcAddVampire, pVampire );
-
-                        pZone->broadcastPacket(x, y, &gcAddVampire, pVampire);*/
 
             decreaseItemNum(pItem, pInventory, pVampire->getName(), STORAGE_INVENTORY, 0, X, Y);
 
@@ -136,7 +130,6 @@ void TransformToWerwolf::execute(Vampire* pVampire, ObjectID_t InvenObjectID, Co
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -149,7 +142,6 @@ void TransformToWerwolf::execute(Monster* pMonster)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
@@ -199,7 +191,6 @@ void TransformToWerwolf::execute(Monster* pMonster)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

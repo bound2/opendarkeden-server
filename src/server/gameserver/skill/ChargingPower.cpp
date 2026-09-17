@@ -19,7 +19,6 @@ void ChargingPower::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -35,7 +34,6 @@ void ChargingPower::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_BLADE) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
             return;
         }
 
@@ -85,7 +83,6 @@ void ChargingPower::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
             if (bIncreaseExp) {
                 shareAttrExp(pSlayer, ExpUp, 8, 1, 1, _GCSkillToSelfOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
-                //				increaseSkillExp(pSlayer, DomainType,  pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
             }
 
             // 패킷을 만들어 보낸다.
@@ -117,7 +114,6 @@ void ChargingPower::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }

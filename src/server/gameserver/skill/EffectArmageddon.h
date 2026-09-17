@@ -32,12 +32,6 @@ public:
     string toString() const;
 
 public:
-    //	string getCasterName(void) const { return m_CasterName; }
-    //	void setCasterName(const string & CasterName ) { m_CasterName = CasterName; }
-
-    //	int getPartyID(void) const { return m_PartyID; }
-    //	void setPartyID(int PartyID) { m_PartyID = PartyID; }
-
     ObjectID_t getUserObjectID() const {
         return m_UserObjectID;
     }
@@ -69,8 +63,6 @@ public:
 
 private:
     ObjectID_t m_UserObjectID; // 시전자 Object ID
-                               //	string		m_CasterName;	// 시전자
-                               //	int			m_PartyID;		// 파티ID
 
     HP_t m_HP;         // 체력
     Damage_t m_Damage; // 데미지

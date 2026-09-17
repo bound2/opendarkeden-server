@@ -15,13 +15,11 @@ void Uninvisibility::execute(Vampire* pVampire)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
 
     try {
         if (pVampire->isDead()) {
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -31,7 +29,6 @@ void Uninvisibility::execute(Vampire* pVampire)
 
         if (!pVampire->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -40,7 +37,6 @@ void Uninvisibility::execute(Vampire* pVampire)
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -52,13 +48,11 @@ void Uninvisibility::execute(Monster* pMonster)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
     try {
         if (pMonster->isDead()) {
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -69,10 +63,8 @@ void Uninvisibility::execute(Monster* pMonster)
             addVisibleCreature(pZone, pMonster, true);
         }
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

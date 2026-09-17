@@ -89,7 +89,6 @@ void EffectInvisibility::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectInvisibility " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -99,7 +98,6 @@ void EffectInvisibility::unaffect(Creature* pCreature)
     // true면 내부에서 effectManager의 effect를 삭제한다.
     addVisibleCreature(pZone, pCreature, false);
 
-    // cout << "EffectInvisibility " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -111,12 +109,10 @@ void EffectInvisibility::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectInvisibility " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectInvisibility " << "unaffect END" << endl;
 
     __END_CATCH
 }

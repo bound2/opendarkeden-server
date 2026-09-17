@@ -19,7 +19,6 @@ void LightningHand::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -31,13 +30,11 @@ void LightningHand::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수가 없다.
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -45,7 +42,6 @@ void LightningHand::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_SWORD) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -85,7 +81,6 @@ void LightningHand::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
 
             decreaseMana(pSlayer, RequiredMP, _GCSkillToObjectOK1);
 
-            //			Exp_t Point = pSkillInfo->getPoint();
 
             // 데미지를 주고, 내구도를 떨어뜨린다.
             setDamage(pTargetCreature, Damage, pSlayer, SkillType, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
@@ -148,7 +143,6 @@ void LightningHand::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

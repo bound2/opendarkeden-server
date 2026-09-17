@@ -67,7 +67,6 @@ void SwordWave::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " begin(slayerobject)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -77,7 +76,6 @@ void SwordWave::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -90,7 +88,6 @@ void SwordWave::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end(slayerobject)" << endl;
 
     __END_CATCH
 }
@@ -105,7 +102,6 @@ void SwordWave::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -135,7 +131,6 @@ void SwordWave::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
 
     g_SimpleTileMeleeSkill.execute(pSlayer, myX, myY, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end" << endl;
 
     __END_CATCH
 }

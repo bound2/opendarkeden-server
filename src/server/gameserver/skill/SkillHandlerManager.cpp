@@ -441,9 +441,6 @@ void SkillHandlerManager::init()
     addSkillHandler(&g_ThunderStorm);
     addSkillHandler(&g_MentalSword);
 
-    // addSkillHandler(&g_DragonRising);
-    // addSkillHandler(&g_FiveStormCrash);
-    // addSkillHandler(&g_HeavensSword);
 
     // µµ°è¿­
     addSkillHandler(&g_SingleBlow);
@@ -472,7 +469,6 @@ void SkillHandlerManager::init()
     addSkillHandler(&g_Sniping);
     addSkillHandler(&g_MindControl);
     addSkillHandler(&g_Revealer);
-    // addSkillHandler(&g_DetectMine);
     addSkillHandler(&g_InstallMine);
     addSkillHandler(&g_CreateBomb);
     addSkillHandler(&g_CreateMine);
@@ -490,10 +486,8 @@ void SkillHandlerManager::init()
     addSkillHandler(&g_AuraRing);
     addSkillHandler(&g_Striking);
     addSkillHandler(&g_DetectInvisibility);
-    // addSkillHandler(&g_Identify);
     addSkillHandler(&g_AuraShield);
     addSkillHandler(&g_VigorDrop);
-    // addSkillHandler(&g_Enchant);
     addSkillHandler(&g_Visible);
     addSkillHandler(&g_Sanctuary);
     addSkillHandler(&g_Reflection);
@@ -518,9 +512,6 @@ void SkillHandlerManager::init()
     addSkillHandler(&g_Peace);
     addSkillHandler(&g_Activation);
     addSkillHandler(&g_HolyBlast);
-    // addSkillHandler(&g_RegenerationSkill);
-    // addSkillHandler(&g_MassCure);
-    // addSkillHandler(&g_MassHeal);
 
     // ¹ìÇÁ °è¿­
     addSkillHandler(&g_BloodDrain);
@@ -539,7 +530,6 @@ void SkillHandlerManager::init()
     addSkillHandler(&g_Paralyze);
     addSkillHandler(&g_Doom);
     addSkillHandler(&g_Seduction);
-    // addSkillHandler(&g_Blind);
     addSkillHandler(&g_Death);
 
     addSkillHandler(&g_BloodyNail);
@@ -563,11 +553,8 @@ void SkillHandlerManager::init()
     addSkillHandler(&g_TransformToWolf);
     addSkillHandler(&g_TransformToBat);
 
-    // addSkillHandler(&g_SummonWolf);
     addSkillHandler(&g_SummonCasket);
     addSkillHandler(&g_OpenCasket);
-    // addSkillHandler(&g_RaisingDead);
-    // addSkillHandler(&g_SummonServant);
 
     addSkillHandler(&g_BloodyMarker);
     addSkillHandler(&g_BloodyTunnel);
@@ -833,19 +820,6 @@ SkillHandler* SkillHandlerManager::getSkillHandler(SkillType_t SkillType)
     __BEGIN_TRY
 
     // Wide Storm À» °¡Áö°í ÀÖÀ» °æ¿ì, Wide Ã³¸®´Â ¿ø·¡ ±â¼ú ¾È¿¡¼­ Ã³¸®ÇÑ´Ù.
-    /*	if ( SkillType == SKILL_DARKNESS_WIDE )
-        {
-            SkillType = SKILL_DARKNESS;
-        }
-        else if ( SkillType == SKILL_POISON_STORM_WIDE )
-        {
-            SkillType = SKILL_POISON_STORM;
-        }
-        else if ( SkillType == SKILL_ACID_STORM_WIDE )
-        {
-            SkillType = SKILL_ACID_STORM;
-        }
-    */
     if (m_SkillHandlers[SkillType] == NULL) {
         StringStream msg;
         msg << "None Skill Handler (Type : " << (int)SkillType << ")";

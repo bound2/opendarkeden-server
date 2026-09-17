@@ -50,10 +50,7 @@ void EffectBloodCurse::affect()
     // !! 존을 떠났을 수도 있으므로 NULL 이 될 수 있다.
     Creature* pCastCreature = m_pZone->getCreature(m_UserObjectID);
     if (m_bPlayer) {
-        //		pCastCreature = m_pZone->getCreature( m_UserObjectID );
         if (pCastCreature == NULL) {
-            //			Tile& tile = m_pZone->getTile(m_X, m_Y);
-            //			tile.deleteEffect(m_ObjectID);
             setDeadline(0);
             return;
         }
@@ -76,31 +73,10 @@ void EffectBloodCurse::affect()
             int splash = max(abs(x), abs(y));
 
             // 가운데는 100%
-            //			if ( m_bPlayer )
-            //			{
-            /*				if ( splash == 0 )
-                            {
-                                Damage = m_Damage;
-                            }
-                            else if ( splash == 1 )
-                            {
-                                Damage = getPercentValue( m_Damage, 85 );
-                            }
-                            else
-                            {
-                                Damage = getPercentValue( m_Damage, 70 );
-                            }*/
 
             if (splash >= 3)
                 splash = 2;
             Damage = getPercentValue(m_Damage, m_SplashRatio[splash]);
-            //			}
-            //			else
-            //			{
-            //				// 주위에는 50% damage
-            //				if ( splash != 0 ) Damage = m_Damage >> splash;
-            //				else Damage = m_Damage;
-            //			}
 
             // 타일 안에 존재하는 오브젝트들을 검색한다.
             const forward_list<Object*>& oList = tile.getObjectList();
@@ -128,7 +104,6 @@ void EffectBloodCurse::affect()
                             continue;
                     }
 
-                    // GCModifyInformation gcMI;
                     GCModifyInformation gcAttackerMI;
                     GCSkillToObjectOK2 gcSkillToObjectOK2;
 
@@ -138,9 +113,6 @@ void EffectBloodCurse::affect()
                         ::setDamage(pSlayer, Damage, pCastCreature, SKILL_BLOOD_CURSE, &gcSkillToObjectOK2,
                                     &gcAttackerMI);
 
-                        /*						Player* pPlayer = pSlayer->getPlayer();
-                                                Assert(pPlayer != NULL);
-                                                pPlayer->sendPacket(&gcMI);*/
 
                     } else if (pCreature->isVampire()) {
                         // 뱀파이어가 사용했을 경우 뱀파이어는 중심 타일을 제외하고는 맞지 않는다.
@@ -152,18 +124,12 @@ void EffectBloodCurse::affect()
                         ::setDamage(pVampire, Damage, pCastCreature, SKILL_BLOOD_CURSE, &gcSkillToObjectOK2,
                                     &gcAttackerMI);
 
-                        /*						Player* pPlayer = pVampire->getPlayer();
-                                                Assert(pPlayer != NULL);
-                                                pPlayer->sendPacket(&gcMI);*/
                     } else if (pCreature->isOusters()) {
                         Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
 
                         ::setDamage(pOusters, Damage, pCastCreature, SKILL_BLOOD_CURSE, &gcSkillToObjectOK2,
                                     &gcAttackerMI);
 
-                        /*						Player* pPlayer = pOusters->getPlayer();
-                                                Assert(pPlayer != NULL);
-                                                pPlayer->sendPacket(&gcMI);*/
                     } else if (pCreature->isMonster()) {
                         Monster* pMonster = dynamic_cast<Monster*>(pCreature);
 
@@ -240,7 +206,6 @@ void EffectBloodCurse::unaffect()
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectBloodCurse" << "unaffect END" << endl;
 
     __END_CATCH
 }

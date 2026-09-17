@@ -26,7 +26,6 @@ void IntimateGrail::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerobject)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -38,12 +37,10 @@ void IntimateGrail::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         if (pTargetCreature == NULL) // NoSuch 제거. by sigi. 2002.5.2
         {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerobject)" << endl;
             return;
         }
 
@@ -84,11 +81,6 @@ void IntimateGrail::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
             pTargetCreature->addEffect(pEffect);
 
             // 이펙트를 붙였으니, 능력치를 재계산한다.
-            /*			SLAYER_RECORD prev;
-                        pTargetSlayer->getSlayerRecord(prev);
-                        pTargetSlayer->initAllStat();
-                        pTargetSlayer->sendRealWearingInfo();
-                        pTargetSlayer->addModifyInfo(prev, _GCSkillToObjectOK2);*/
 
             if (pTargetCreature->isPC()) {
                 PlayerCreature* pTargetPC = dynamic_cast<PlayerCreature*>(pTargetCreature);
@@ -155,9 +147,6 @@ void IntimateGrail::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
             gcAddEffect.setDuration(output.Duration);
             pZone->broadcastPacket(targetX, targetY, &gcAddEffect);
 
-            /*			GCOtherModifyInfo gcOtherModifyInfo;
-                        makeGCOtherModifyInfo(&gcOtherModifyInfo, pTargetSlayer, &prev);
-                        pZone->broadcastPacket(targetX, targetY, &gcOtherModifyInfo, pTargetSlayer);*/
 
             pSkillSlot->setRunTime(output.Delay);
         } else {
@@ -168,7 +157,6 @@ void IntimateGrail::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerobject)" << endl;
 
     __END_CATCH
 }
@@ -181,7 +169,6 @@ void IntimateGrail::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -267,7 +254,6 @@ void IntimateGrail::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }

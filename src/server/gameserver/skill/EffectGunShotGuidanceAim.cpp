@@ -140,8 +140,6 @@ void EffectGunShotGuidanceAim::unaffect(Creature* pCastCreature)
                         FinalDamage += Damage;
 
                         if (pCreature->isPC() && pCreature->getCreatureClass() != pCastCreature->getCreatureClass()) {
-                            //							Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-
                             GCModifyInformation gcMI;
                             ::setDamage(pCreature, FinalDamage, pCastCreature, SKILL_GUN_SHOT_GUIDANCE,
                                         &gcMI); // ::추가 by Sequoia
@@ -192,7 +190,6 @@ void EffectGunShotGuidanceAim::unaffect(Creature* pCastCreature)
             SkillSlot* pSkillSlot = pSlayer->hasSkill(SKILL_GUN_SHOT_GUIDANCE);
             SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_GUN_SHOT_GUIDANCE);
             SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-            // SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
             GCModifyInformation gcMI;
             shareAttrExp(pSlayer, maxDamage, 1, 8, 1, gcMI);

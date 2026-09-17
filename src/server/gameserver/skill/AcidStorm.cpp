@@ -26,7 +26,6 @@ void AcidStorm::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSki
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     // Vampire Object Assertion
     Assert(pVampire != NULL);
@@ -37,7 +36,6 @@ void AcidStorm::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSki
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
             || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
@@ -49,10 +47,8 @@ void AcidStorm::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSki
         execute(pVampire, pTargetCreature->getX(), pTargetCreature->getY(), pVampireSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pVampire, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -66,7 +62,6 @@ void AcidStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     try {
         Player* pPlayer = pVampire->getPlayer();
@@ -142,7 +137,6 @@ void AcidStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
             }
 
             // 이펙트 오브젝트를 생성해서 타일에 붙인다.
-            // cout << "make EffectObject to Tile" << X << " " << Y << endl;
             EffectAcidStorm* pEffect = new EffectAcidStorm(pZone, X, Y);
             pEffect->setDeadline(output.Duration);
             pEffect->setNextTime(0);
@@ -211,7 +205,6 @@ void AcidStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
 
                         if (pTargetCreature->isSlayer() || pTargetCreature->isOusters()) {
                             if (pEffect->affectCreature(pTargetCreature, false) == true) {
-                                // cout << "AcidStorm to Slayer Success" << endl;
                                 Player* pTargetPlayer = pTargetCreature->getPlayer();
                                 bEffected = true;
 
@@ -234,11 +227,9 @@ void AcidStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
                                     pTargetPlayer->sendPacket(&_GCSkillToTileOK2);
                                 }
                             } else {
-                                // cout << "AcidStorm to creature fail" << endl;
                             }
                         } else if (pTargetCreature->isMonster()) {
                             if (pEffect->affectCreature(pTargetCreature, false) == true) {
-                                // cout << "AcidStorm to Monster Success" << endl;
                                 Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
                                 pMonster->addEnemy(pVampire);
 
@@ -261,8 +252,6 @@ void AcidStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
             _GCSkillToTileOK3.setSkillType(SkillType);
             _GCSkillToTileOK3.setX(X);
             _GCSkillToTileOK3.setY(Y);
-            //_GCSkillToTileOK3.setDuration(output.Duration);
-            //_GCSkillToTileOK3.setRange(Range);
 
             // 기술을 당한 사람만 볼 수 있는 사람들에게
             _GCSkillToTileOK4.setSkillType(SkillType);
@@ -302,7 +291,6 @@ void AcidStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -315,7 +303,6 @@ void AcidStorm::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     try {
         Zone* pZone = pMonster->getZone();
@@ -458,8 +445,6 @@ void AcidStorm::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             _GCSkillToTileOK3.setSkillType(SkillType);
             _GCSkillToTileOK3.setX(myX);
             _GCSkillToTileOK3.setY(myY);
-            //_GCSkillToTileOK3.setDuration(output.Duration);
-            //_GCSkillToTileOK3.setRange(Range);
 
             // 기술을 당한 사람만 볼 수 있는 사람들에게
             _GCSkillToTileOK4.setSkillType(SkillType);
@@ -492,8 +477,6 @@ void AcidStorm::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

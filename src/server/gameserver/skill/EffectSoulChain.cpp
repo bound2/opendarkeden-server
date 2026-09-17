@@ -28,7 +28,6 @@ EffectSoulChain::EffectSoulChain(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // setTarget(pCreature);
 
     m_OwnerOID = pCreature->getObjectID();
 
@@ -51,7 +50,6 @@ void EffectSoulChain::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectSoulChain " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 

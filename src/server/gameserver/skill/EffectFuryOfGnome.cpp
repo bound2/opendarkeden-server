@@ -38,7 +38,6 @@ void EffectFuryOfGnome::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectFuryOfGnome" << "affect BEGIN" << endl;
 
     __END_CATCH
 }
@@ -68,7 +67,6 @@ void EffectFuryOfGnome::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectFuryOfGnome" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
@@ -79,7 +77,6 @@ void EffectFuryOfGnome::unaffect()
     gcDT.setEffectID(Effect::EFFECT_CLASS_FURY_OF_GNOME);
     m_pZone->broadcastPacket(m_X, m_Y, &gcDT);
 
-    // cout << "EffectFuryOfGnome" << "unaffect END" << endl;
 
     __END_CATCH
 }

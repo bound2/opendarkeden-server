@@ -44,7 +44,6 @@ void EnergyDrop::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     // Slayer Object Assertion
     Assert(pSlayer != NULL);
@@ -55,7 +54,6 @@ void EnergyDrop::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
@@ -67,10 +65,8 @@ void EnergyDrop::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
         execute(pSlayer, pTargetCreature->getX(), pTargetCreature->getY(), pSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -84,7 +80,6 @@ void EnergyDrop::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     EffectEnergyDrop* pEffect = NULL;
     EffectEnergyDrop* pEffect2 = NULL;
@@ -155,26 +150,18 @@ void EnergyDrop::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
             }
 
             // 이펙트 오브젝트를 생성해서 타일에 붙인다.
-            // cout << "make EffectObject to Tile" << X << " " << Y << endl;
             pEffect = new EffectEnergyDrop(pZone, X, Y);
 
             pEffect->setUserObjectID(pSlayer->getObjectID());
-            //			pEffect->setCasterName(pSlayer->getName());
-            //			pEffect->setPartyID(pSlayer->getPartyID());
             pEffect->setDeadline(output.Duration);
             pEffect->setNextTime(0);
             pEffect->setTick(output.Tick);
             pEffect->setDamage(output.Damage);
             pEffect->setLevel(pSkillInfo->getLevel() / 2);
 
-            //
-            // ObjectRegistry& objectregister = pZone->getObjectRegistry();
-            // objectregister.registerObject(pEffect);
 
             //
             //
-            // pZone->addEffect(pEffect);
-            // tile.addEffect(pEffect);
             // 이펙트 오브젝트를 생성해서 타일에 붙인다.
             pEffect2 = new EffectEnergyDrop(pZone, X, Y);
             pEffect2->setUserObjectID(pSlayer->getObjectID());
@@ -225,7 +212,6 @@ void EnergyDrop::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
                     if (pTargetCreature != NULL && canAttack(pSlayer, pTargetCreature)) {
                         if (pTargetCreature->isVampire() || pTargetCreature->isOusters()) {
                             if (pTempEffect->affectCreature(pTargetCreature, false) == true) {
-                                // cout << "EnergyDrop to Slayer Success" << endl;
                                 Player* pTargetPlayer = pTargetCreature->getPlayer();
                                 bEffected = true;
 
@@ -254,11 +240,9 @@ void EnergyDrop::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
                                     pTargetPlayer->sendPacket(&_GCSkillToTileOK2);
                                 }
                             } else {
-                                // cout << "EnergyDrop to Vampire fail" << endl;
                             }
                         } else if (pTargetCreature->isMonster()) {
                             if (pTempEffect->affectCreature(pTargetCreature, false) == true) {
-                                // cout << "EnergyDrop to Monster Success" << endl;
                                 bHit = true;
 
                                 if (maxEnemyLevel < pTargetCreature->getLevel())
@@ -271,14 +255,12 @@ void EnergyDrop::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
                                 // 마지막 때린 애가 슬레이어라고 설정한다. by sigi. 2002.6.21
                                 pMonster->setLastHitCreatureClass(Creature::CREATURE_CLASS_SLAYER);
                             } else {
-                                // cout << "EnergyDrop to Monster Falis" << endl;
                             }
                         }
                     } // if(pTargetCreature!= NULL)
                 }
 
             if (bHit) {
-                // cout << "Skill Succesfully Attacked(" << output.Damage << ")" << endl;
                 shareAttrExp(pSlayer, output.Damage, 1, 1, 8, _GCSkillToTileOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToTileOK1, maxEnemyLevel,
                                   EnemyNum);
@@ -297,8 +279,6 @@ void EnergyDrop::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
             _GCSkillToTileOK3.setSkillType(SkillType);
             _GCSkillToTileOK3.setX(X);
             _GCSkillToTileOK3.setY(Y);
-            //_GCSkillToTileOK3.setDuration(output.Duration);
-            //_GCSkillToTileOK3.setRange(Range);
 
             // 기술을 당한 사람만 볼 수 있는 사람들에게
             _GCSkillToTileOK4.setSkillType(SkillType);
@@ -344,7 +324,6 @@ void EnergyDrop::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -357,7 +336,6 @@ void EnergyDrop::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
     EffectEnergyDrop* pEffect = NULL;
     EffectEnergyDrop* pEffect2 = NULL;
 
@@ -417,14 +395,6 @@ void EnergyDrop::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             pEffect->setDamage(output.Damage);
             pEffect->setLevel(pSkillInfo->getLevel() / 2);
 
-            //
-            // ObjectRegistry& objectregister = pZone->getObjectRegistry();
-            // objectregister.registerObject(pEffect);
-
-            //
-            //
-            // pZone->addEffect(pEffect);
-            // tile.addEffect(pEffect);
 
             // 이펙트 오브젝트를 생성해서 타일에 붙인다.
             pEffect2 = new EffectEnergyDrop(pZone, X, Y);
@@ -504,8 +474,6 @@ void EnergyDrop::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             _GCSkillToTileOK3.setSkillType(SkillType);
             _GCSkillToTileOK3.setX(myX);
             _GCSkillToTileOK3.setY(myY);
-            //_GCSkillToTileOK3.setDuration(output.Duration);
-            //_GCSkillToTileOK3.setRange(Range);
 
             // 기술을 당한 사람만 볼 수 있는 사람들에게
             _GCSkillToTileOK4.setSkillType(SkillType);
@@ -543,8 +511,6 @@ void EnergyDrop::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

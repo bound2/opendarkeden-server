@@ -25,7 +25,6 @@ void Extreme::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CE
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -110,7 +109,6 @@ void Extreme::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CE
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }
@@ -121,7 +119,6 @@ void Extreme::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkill
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -134,7 +131,6 @@ void Extreme::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkill
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -232,7 +228,6 @@ void Extreme::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkill
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }
@@ -242,7 +237,6 @@ void Extreme::execute(Vampire* pVampire)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pVampire != NULL);
 
@@ -257,7 +251,6 @@ void Extreme::execute(Vampire* pVampire)
 
 
         GCSkillToObjectOK1 _GCSkillToObjectOK1;
-        // GCSkillToObjectOK2 _GCSkillToObjectOK2;
         GCSkillToObjectOK3 _GCSkillToObjectOK3;
 
         ZoneCoord_t myX = pVampire->getX();
@@ -307,23 +300,6 @@ void Extreme::execute(Vampire* pVampire)
                     pTargetVampire->sendRealWearingInfo();
                     pTargetVampire->sendModifyInfo(prev);
 
-                    /*
-                    if (pTargetCreature->isPC())
-                    {
-                        Player* pTargetPlayer = pTargetCreature->getPlayer();
-                        Assert(pTargetPlayer != NULL);
-
-                        _GCSkillToObjectOK2.setObjectID(pVampire->getObjectID());
-                        _GCSkillToObjectOK2.setSkillType(getSkillType());
-                        _GCSkillToObjectOK2.setDuration(output.Duration);
-
-                        pTargetPlayer->sendPacket(&_GCSkillToObjectOK2);
-                    }
-                    else
-                    {
-                        Assert(false);
-                    }
-                    */
 
                     // 이펙트가 붙었다고 알려준다.
                     GCAddEffect gcAddEffect;
@@ -337,7 +313,6 @@ void Extreme::execute(Vampire* pVampire)
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }

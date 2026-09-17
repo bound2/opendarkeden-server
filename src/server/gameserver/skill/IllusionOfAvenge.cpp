@@ -22,7 +22,6 @@ void IllusionOfAvenge::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     // Slayer Object Assertion
     Assert(pSlayer != NULL);
@@ -61,7 +60,6 @@ void IllusionOfAvenge::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToSelfOK1);
 
-            // bool bHit = false;
 
             int oX, oY;
 
@@ -101,7 +99,6 @@ void IllusionOfAvenge::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID
                             if (pTargetCreature->isVampire()) {
                                 Player* pTargetPlayer = pTargetCreature->getPlayer();
 
-                                // bHit = true;
 
                                 Vampire* pVampire = dynamic_cast<Vampire*>(pTargetCreature);
 
@@ -118,7 +115,6 @@ void IllusionOfAvenge::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID
                                 gcSkillToObjectOK2.setDuration(14);
                             } else if (pTargetCreature->isMonster()) {
                                 Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
-                                // bHit = true;
 
                                 ::setDamage(pMonster, output.Damage, pSlayer, pSkillSlot->getSkillType());
                             }
@@ -136,13 +132,6 @@ void IllusionOfAvenge::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID
                     }
                 }
 
-            /*			if(bHit)
-                        {
-                            //cout << "Skill Succesfully Attacked(" << output.Damage << ")" << endl;
-                            shareAttrExp(pSlayer, output.Damage, 1, 1, 8, _GCSkillToSelfOK1);
-                            increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
-                            increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
-                        }*/
 
             // 패킷을 만들어 보낸다.
             _GCSkillToSelfOK1.setSkillType(SkillType);
@@ -167,7 +156,6 @@ void IllusionOfAvenge::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

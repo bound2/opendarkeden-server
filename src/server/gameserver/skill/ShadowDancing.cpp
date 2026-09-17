@@ -16,7 +16,6 @@ void ShadowDancing::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -36,11 +35,9 @@ void ShadowDancing::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // cout << "ShadowDancing" << endl;
 
     g_SimpleMeleeSkill.execute(pSlayer, TargetObjectID, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

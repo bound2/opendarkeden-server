@@ -74,12 +74,9 @@ void ChainThrowingAxe::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
                 pEffect->setNextTime(output.Duration + (int)(i * 2.5));
                 pEffect->setUserObjectID(pMonster->getObjectID());
                 pEffect->setBroadcastingEffect(false);
-                // pEffect->setNextTime(0);
-                // pEffect->setTick(output.Tick);
                 pEffect->setDamage(output.Damage);
                 pEffect->setSplashRatio(1, 75);
                 pEffect->setSplashRatio(2, 50);
-                // pEffect->setLevel(pSkillInfo->getLevel()/2);
 
                 // 타일에 붙은 이펙트는 OID를 받아야 한다.
                 ObjectRegistry& objectregister = pZone->getObjectRegistry();
@@ -125,7 +122,6 @@ void ChainThrowingAxe::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end(monster) " << endl;
 
     __END_CATCH
 }

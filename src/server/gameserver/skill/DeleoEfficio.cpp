@@ -23,7 +23,6 @@ void DeleoEfficio::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pSkillSlot != NULL);
@@ -34,23 +33,14 @@ void DeleoEfficio::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        /*		Item* pWeapon = pOusters->getWearItem(Ousters::WEAR_RIGHTHAND);
-                if (pWeapon == NULL || pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_WRISTLET ||
-           !pOusters->isRealWearingEx(Ousters::WEAR_RIGHTHAND))
-                {
-                    executeSkillFailException(pOusters, pSkillSlot->getSkillType());
-                    return;
-                }*/
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수 없다.
         // 저주 면역. by sigi. 2002.9.13
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -215,7 +205,6 @@ void DeleoEfficio::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
             if (pTargetCreature->isPC()) {
                 Player* pTargetPlayer = pTargetCreature->getPlayer();
                 if (pTargetPlayer == NULL) {
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                     return;
                 }
 
@@ -236,7 +225,6 @@ void DeleoEfficio::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

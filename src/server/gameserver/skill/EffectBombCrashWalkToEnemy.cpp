@@ -37,12 +37,10 @@ void EffectBombCrashWalkToEnemy::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectBombCrashWalkToEnemy " << "begin begin" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     affect(pCreature);
 
-    // cout << "EffectBombCrashWalkToEnemy " << "begin end" << endl;
 
     __END_CATCH
 }
@@ -54,8 +52,6 @@ void EffectBombCrashWalkToEnemy::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectBombCrashWalkToEnemy " << "begin" << endl;
-    // cout << "EffectBombCrashWalkToEnemy " << "end" << endl;
     Assert(pCreature != NULL);
 
     Zone* pZone = pCreature->getZone();
@@ -79,8 +75,6 @@ void EffectBombCrashWalkToEnemy::affect(Creature* pCreature)
                     Slayer* pSlayer = dynamic_cast<Slayer*>(pAttacker);
 
                     if (pSlayer != NULL) {
-                        // GCModifyInformation gcMI;
-                        // shareAttrExp( pSlayer, m_Point, 1, 1, 8, gcAttackerMI );
                     }
                 }
 

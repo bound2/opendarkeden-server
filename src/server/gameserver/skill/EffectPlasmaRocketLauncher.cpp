@@ -38,12 +38,7 @@ void EffectPlasmaRocketLauncher::affect()
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     affect(pCreature);
-    // cout << "EffectPlasmaRocketLauncher " << "begin begin" << endl;
 
-    //	Creature* pCreature = dynamic_cast<Creature *>(m_pTarget);
-    //	affect(pCreature);
-
-    // cout << "EffectPlasmaRocketLauncher " << "begin end" << endl;
 
     __END_CATCH
 }
@@ -136,7 +131,6 @@ void EffectPlasmaRocketLauncher::unaffect()
     __BEGIN_TRY
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
-    //	unaffect(pCreature);
 
     if (pCreature == NULL)
         return;

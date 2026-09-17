@@ -16,13 +16,11 @@ void Unburrow::execute(Vampire* pVampire)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
 
     try {
         if (pVampire->isDead()) {
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -37,7 +35,6 @@ void Unburrow::execute(Vampire* pVampire)
             GCUnburrowFail gcUnburrowFail;
             pPlayer->sendPacket(&gcUnburrowFail);
 
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -46,7 +43,6 @@ void Unburrow::execute(Vampire* pVampire)
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -58,13 +54,11 @@ void Unburrow::execute(Monster* pMonster)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
     try {
         if (pMonster->isDead()) {
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -78,10 +72,8 @@ void Unburrow::execute(Monster* pMonster)
             addUnburrowCreature(pZone, pMonster, x, y, pMonster->getDir());
         }
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

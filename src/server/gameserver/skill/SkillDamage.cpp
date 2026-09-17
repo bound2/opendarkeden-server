@@ -241,8 +241,6 @@ Damage_t computeSlayerDamage(Slayer* pSlayer, Creature* pTargetCreature, bool bC
         // ½ºÆ®¶óÀÌÅ· µ¥¹ÌÁö¸¦ °è»êÇÏ´Â ºÎºÐÀ» Slayer::initAllStat() ºÎºÐÀ¸·Î
         // ¿Å±â¸é¼­ ±×°÷¿¡¼­ m_Damage[]¸¦ ¼¼ÆÃÇØ ¹ö¸®±â ¶§¹®¿¡, ¿©±â¼­ ´õÇÒ
         // ÇÊ¿ä°¡ ¾ø¾îÁ³´Ù. -- 2002.01.17 ±è¼º¹Î
-        // MinDamage += (pItem->getMinDamage() + pItem->getBonusDamage());
-        // MaxDamage += (pItem->getMaxDamage() + pItem->getBonusDamage());
         MinDamage += pItem->getMinDamage();
         MaxDamage += pItem->getMaxDamage();
     }
@@ -286,7 +284,6 @@ Damage_t computeSlayerDamage(Slayer* pSlayer, Creature* pTargetCreature, bool bC
     }
 
     // AbilityBalance.cpp¿¡¼­ ÇÑ´Ù.
-    // FinalDamage += g_pVariableManager->getCombatSlayerDamageBonus();
 
     return (Damage_t)FinalDamage;
 }
@@ -353,7 +350,6 @@ Damage_t computeVampireDamage(Vampire* pVampire, Creature* pTargetCreature, bool
     }
 
     // AbilityBalance.cpp¿¡¼­ ÇÑ´Ù.
-    // FinalDamage += g_pVariableManager->getCombatVampireDamageBonus();
 
     return (Damage_t)FinalDamage;
 }
@@ -418,7 +414,6 @@ Damage_t computeOustersDamage(Ousters* pOusters, Creature* pTargetCreature, bool
     }
 
     // AbilityBalance.cpp¿¡¼­ ÇÑ´Ù.
-    // FinalDamage += g_pVariableManager->getCombatOustersDamageBonus();
 
     return (Damage_t)FinalDamage;
 }
@@ -492,7 +487,6 @@ Damage_t computeMagicDamage(Creature* pTargetCreature, int Damage, SkillType_t S
     int Resist = pTargetCreature->getResist(MagicDomain);
 
     if (pAttacker != NULL && pAttacker->isVampire()) {
-        //		cout << "before mastery " << Resist << endl;
         Vampire* pVampire = dynamic_cast<Vampire*>(pAttacker);
         if (pVampire != NULL) {
             if (pSkillInfo->getMagicDomain() >= MAGIC_DOMAIN_POISON &&
@@ -501,7 +495,6 @@ Damage_t computeMagicDamage(Creature* pTargetCreature, int Damage, SkillType_t S
                 Resist = getPercentValue(Resist, 100 - mastery);
             }
         }
-        //		cout << "after mastery " << Resist << endl;
     }
 
     float penalty = 1.5 * (Resist - (MagicLevel / 5.0)) / (Resist - (MagicLevel / 5.0) + 100.0);
@@ -556,7 +549,6 @@ Damage_t computeSlayerSilverDamage(Creature* pCreature, int Damage, ModifyInfo* 
 
             if (silverDamage > 0) {
                 pWeapon->setSilver(pWeapon->getSilver() - silverDamage);
-                // pWeapon->save(pSlayer->getName(), STORAGE_GEAR, 0, Slayer::WEAR_RIGHTHAND, 0);
 
                 if (pMI != NULL)
                     pMI->addShortData(MODIFY_SILVER_DURABILITY, pWeapon->getSilver());
@@ -572,7 +564,6 @@ Damage_t computeSlayerSilverDamage(Creature* pCreature, int Damage, ModifyInfo* 
 
             if (silverDamage > 0) {
                 pWeapon->setSilver(pWeapon->getSilver() - silverDamage);
-                // pWeapon->save(pSlayer->getName(), STORAGE_GEAR, 0, Slayer::WEAR_RIGHTHAND, 0);
 
                 if (pMI != NULL)
                     pMI->addShortData(MODIFY_SILVER_DURABILITY, pWeapon->getSilver());
@@ -662,8 +653,6 @@ HP_t setCounterDamage(Creature* pAttacker, Creature* pTarget, Damage_t counterDa
                     } else {
                         pVampireAttacker->removeFlag(Effect::EFFECT_CLASS_MEPHISTO);
                     }
-                    //					pVampireAttacker->getEffectManager()->deleteEffect(
-                    // Effect::EFFECT_CLASS_MEPHISTO );
                 }
             }
         } else if (pAttacker->isOusters()) {
@@ -805,14 +794,12 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 
     if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE) ||
         pTargetCreature->isFlag(Effect::EFFECT_CLASS_TENDRIL) || pTargetCreature->isDead()) {
-        // if (pTargetCreature->isVampire())
         //  return°ªÀ¸·Î ÇöÀç HP¸¦ ³Ñ°ÜÁà¾ß Á¤»óÀÌ°ÚÁö¸¸
         //  return°ªÀ» »ç¿ëÇÏ´Â ºÎºÐÀÌ ¾ø¾î¼­ ÀÏ´Ü ¹«½ÃÇÑ´Ù.
         //  by sigi. 2002.9.5
         return 0;
     }
 
-    //	bool canKillTarget = (SkillType==SKILL_ACID_SWAMP)?false:true;
 
     Zone* pZone = pTargetCreature->getZone();
     Assert(pZone != NULL);
@@ -876,37 +863,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 
     // ¾Æ¸¶°Ôµ· ÀÌÆåÆ®°¡ °É·ÁÀÖÀ» °æ¿ì ¼öÁ¤±¸½½(?)ÀÇ HP¸¦ ±ð¾ÆÁÖ°í Å¸°ÙÀº °ø°Ý¹ÞÁö ¾Ê´Â´Ù.
     // SKILL_ARMAGEDDONÀÏ °æ¿ì ¾Æ¸¶°Ôµ· ÀÌÆåÆ® ÀÚÃ¼ÀÇ µ¥¹ÌÁöÀÌ¹Ç·Î ±×³É Å¸°ÙÀ» °ø°ÝÇÏ´Â ÂÊÀ¸·Î ³Ñ¾î°£´Ù.
-    /*
-    if( pTargetCreature != NULL && pTargetCreature->isFlag( Effect::EFFECT_CLASS_ARMAGEDDON ) && SkillType !=
-    SKILL_ARMAGEDDON )
-    {
-        EffectArmageddon* pEffect =
-    dynamic_cast<EffectArmageddon*>(pTargetCreature->findEffect(Effect::EFFECT_CLASS_ARMAGEDDON)); Assert( pEffect !=
-    NULL );
-
-        Damage = computePureDamage( pAttacker );
-
-        pEffect->decreaseHP( Damage );
-
-        if ( pTargetCreature->isSlayer() )
-        {
-            Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);
-            Result = pSlayer->getHP( ATTR_CURRENT );
-        }
-        else if ( pTargetCreature->isVampire() )
-        {
-            Vampire* pVampire = dynamic_cast<Vampire*>(pTargetCreature);
-            Result = pVampire->getHP( ATTR_CURRENT );
-        }
-        else if ( pTargetCreature->isMonster() )
-        {
-            Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
-            Result = pMonster->getHP( ATTR_CURRENT );
-        }
-
-        return Result;
-    }
-    */
 
     if (pTargetCreature != NULL && pTargetCreature->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
@@ -948,7 +904,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
                 pTargetCreature->getZone()->broadcastPacket(pTargetCreature->getX(), pTargetCreature->getY(),
                                                             &gcAddEffect);
 
-                //				return 0;
                 // ¹èÂ°Áö ¸»°í µ¥¹ÌÁö 60%...... ¤Ì.¤Ð
                 Damage = max(1, (int)(Damage * 0.4));
             }
@@ -986,7 +941,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
                     gcAddEffect.setDuration(0);
 
                     pZone->broadcastPacket(pOusters->getX(), pOusters->getY(), &gcAddEffect);
-                    // cout << "¿öÅÍ½Çµå ¹ßµ¿Çß½À´Ï´Ù." << endl;
                     return 0;
                 }
             }
@@ -1025,7 +979,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             switch (pSkillInfo->getElementalDomain()) {
             case ELEMENTAL_DOMAIN_FIRE:
                 Damage += pOusters->getFireDamage();
-                // cout << "FireDamageÀû¿ë : " << pOusters->getFireDamage() <<"," <<Damage << endl;;
 
                 if (pOusters->isFlag(Effect::EFFECT_CLASS_HANDS_OF_FIRE)) {
                     EffectHandsOfFire* pEffect =
@@ -1121,61 +1074,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
                 if (pAttackSlayer->isFlag(Effect::EFFECT_CLASS_AURA_SHIELD) && (rand() % 2) != 0)
                     giveSkillExp(pAttackSlayer, SKILL_AURA_SHIELD, *pAttackerMI);
             }
-
-            /*			if (pAttacker->isFlag(Effect::EFFECT_CLASS_REDIANCE) && pAttacker->isSlayer() && pAttackerMI !=
-               NULL && !pTargetCreature->isSlayer())
-                        {
-                            EffectRediance* pEffect = dynamic_cast<EffectRediance*>(
-               pAttacker->findEffect(Effect::EFFECT_CLASS_REDIANCE) ); if ( pEffect != NULL && pEffect->canGiveExp())
-                            {
-                                Slayer* pSlayer = dynamic_cast<Slayer*>(pAttacker);
-                                Assert( pSlayer != NULL );
-
-                                SkillSlot* pSkillSlot = pSlayer->getSkill( SKILL_REDIANCE );
-                                SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo( SKILL_REDIANCE );
-                                if ( pSkillSlot != NULL && pSkillInfo != NULL )
-                                {
-                                    increaseSkillExp(pSlayer, SKILL_DOMAIN_SWORD,  pSkillSlot, pSkillInfo,
-               *pAttackerMI);
-                                }
-                            }
-                        }
-                        if (pAttacker->isFlag(Effect::EFFECT_CLASS_EXPANSION) && pAttacker->isSlayer() && pAttackerMI !=
-               NULL && !pTargetCreature->isSlayer())
-                        {
-                            Effect* pEffect = pAttacker->findEffect(Effect::EFFECT_CLASS_EXPANSION);
-                            if ( pEffect != NULL && (rand()%2)==1 )
-                            {
-                                Slayer* pSlayer = dynamic_cast<Slayer*>(pAttacker);
-                                Assert( pSlayer != NULL );
-
-                                SkillSlot* pSkillSlot = pSlayer->getSkill( SKILL_EXPANSION );
-                                SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo( SKILL_EXPANSION );
-                                if ( pSkillSlot != NULL && pSkillInfo != NULL )
-                                {
-                                    increaseSkillExp(pSlayer, SKILL_DOMAIN_SWORD,  pSkillSlot, pSkillInfo,
-               *pAttackerMI);
-                                }
-                            }
-                        }
-                        if (pAttacker->isFlag(Effect::EFFECT_CLASS_GHOST_BLADE) && pAttacker->isSlayer() && pAttackerMI
-               != NULL && !pTargetCreature->isSlayer())
-                        {
-                            Effect* pEffect = pAttacker->findEffect(Effect::EFFECT_CLASS_GHOST_BLADE);
-                            if ( pEffect != NULL && (rand()%2)==1 )
-                            {
-                                Slayer* pSlayer = dynamic_cast<Slayer*>(pAttacker);
-                                Assert( pSlayer != NULL );
-
-                                SkillSlot* pSkillSlot = pSlayer->getSkill( SKILL_GHOST_BLADE );
-                                SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo( SKILL_GHOST_BLADE );
-                                if ( pSkillSlot != NULL && pSkillInfo != NULL )
-                                {
-                                    increaseSkillExp(pSlayer, SKILL_DOMAIN_BLADE,  pSkillSlot, pSkillInfo,
-               *pAttackerMI);
-                                }
-                            }
-                        }*/
         }
 
         // Blood Bible º¸³Ê½º¸¦ Àû¿ëÇÑ´Ù.
@@ -1184,14 +1082,10 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             Damage_t MagicBonusDamage = pPC->getMagicBonusDamage();
             Damage_t PhysicBonusDamage = pPC->getPhysicBonusDamage();
 
-            //			if ( MagicBonusDamage != 0 && pSkillProperty!= NULL && pSkillProperty->isMagic() )
             if (MagicBonusDamage != 0 && bMagicDamage) {
-                //				cout << "µ¥¹ÌÁö º¸³Ê½º Àû¿ë : " << Damage << " + " << MagicBonusDamage << endl;
                 Damage += MagicBonusDamage;
             }
-            //			if ( PhysicBonusDamage != 0 && pSkillProperty!= NULL && pSkillProperty->isPhysic() )
             if (PhysicBonusDamage != 0 && bPhysicDamage) {
-                //				cout << "µ¥¹ÌÁö º¸³Ê½º Àû¿ë : " << Damage << " + " << PhysicBonusDamage << endl;
                 Damage += PhysicBonusDamage;
             }
         }
@@ -1240,7 +1134,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 
                     // ÇöÀçÀÇ HP¿¡´Ù ½ºÆ¿ÇÑ ¾çÀ» ´õÇÏ°í,
                     // ¸Æ½º¸¦ ³ÑÁö´Â ¾Ê´ÂÁö Ã¼Å©¸¦ ÇÑ´Ù.
-                    // cout << "HP Steal!" << (int)HPStealAmount << endl;
                     hp = pOusters->getHP(ATTR_CURRENT) + (int)HPStealAmount;
                     hp = min(hp, pOusters->getHP(ATTR_MAX));
 
@@ -1390,13 +1283,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
                 Effect* pEffect = pSlayer->findEffect(Effect::EFFECT_CLASS_AURA_SHIELD);
                 if (pEffect != NULL)
                     pEffect->setDeadline(0);
-                /*				pSlayer->deleteEffect(Effect::EFFECT_CLASS_AURA_SHIELD);
-                                pSlayer->removeFlag(Effect::EFFECT_CLASS_AURA_SHIELD);
-
-                                GCRemoveEffect removeEffect;
-                                removeEffect.setObjectID(TOID);
-                                removeEffect.addEffectList(Effect::EFFECT_CLASS_AURA_SHIELD);
-                                pZone->broadcastPacket(TX, TY, &removeEffect);*/
 
                 // ±â¼úÀ» ´Ù½Ã ¾µ ¼ö ÀÖµµ·Ï ±â¼ú µô·¹ÀÌ¸¦ ³¯·ÁÁØ´Ù.
                 SkillSlot* pSkillSlot = pSlayer->hasSkill(SKILL_AURA_SHIELD);
@@ -1426,83 +1312,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             if (pAttacker != NULL && !pAttacker->isSlayer())
                 if (pMI != NULL && (rand() % 2) != 0)
                     giveSkillExp(pSlayer, SKILL_SHARP_SHIELD, *pMI);
-            //			SkillSlot* pSkillSlot = pSlayer->getSkill( SKILL_SHARP_SHIELD );
-            //			SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo( SKILL_SHARP_SHIELD );
-            //
-            //			if ( rand()%2 ) increaseSkillExp(pSlayer, SKILL_DOMAIN_SWORD, pSkillSlot, pSkillInfo,
-            //*pAttackerMI);
-
-            /*			// ¾ÈÀüÁö´ë Ã¼Å©
-                        // 2003.1.10 by bezz, Sequoia
-                        if ( checkZoneLevelToHitTarget(pAttacker) )
-                        {
-                            if (pAttacker->isSlayer())
-                            {
-                                Slayer* pSlayerAttacker = dynamic_cast<Slayer*>(pAttacker);
-                                Result2 = max(0, (int)pSlayerAttacker->getHP()-(int)counterDamage);
-                                pSlayerAttacker->setHP(Result2, ATTR_CURRENT);
-
-                                bBroadcastAttackerHP = true;
-                                bSendAttackerHP      = true;
-                            }
-                            else if (pAttacker->isVampire())
-                            {
-                                Vampire* pVampireAttacker = dynamic_cast<Vampire*>(pAttacker);
-                                Result2 = max(0, (int)pVampireAttacker->getHP()-(int)counterDamage);
-                                pVampireAttacker->setHP(Result2, ATTR_CURRENT);
-
-                                bBroadcastAttackerHP = true;
-                                bSendAttackerHP      = true;
-
-                                // Mephisto ÀÌÆåÆ® °É·ÁÀÖÀ¸¸é HP 30% ÀÌÇÏÀÏ¶§ Ç®¸°´Ù.
-                                if (pVampireAttacker->isFlag(Effect::EFFECT_CLASS_MEPHISTO))
-                                {
-                                    HP_t maxHP = pVampireAttacker->getHP(ATTR_MAX);
-
-                                    // 33% ... ÄÉÄÉ..
-                                    if (Result2*3 < maxHP)
-                                    {
-                                        pVampireAttacker->getEffectManager()->deleteEffect(
-               Effect::EFFECT_CLASS_MEPHISTO );
-                                    }
-                                }
-                            }
-                            else if (pAttacker->isMonster())
-                            {
-                                Monster* pMonsterAttacker = dynamic_cast<Monster*>(pAttacker);
-                                Result2 = max(0, (int)pMonsterAttacker->getHP()-(int)counterDamage);
-                                pMonsterAttacker->setHP(Result2, ATTR_CURRENT);
-                                pMonsterAttacker->setDamaged(true);
-
-                                // ¸ó½ºÅÍ°¡ ¿ª µ¥¹ÌÁö¸¦ ¹ÞÀ» °æ¿ì¿¡µµ »þÇÁ½Çµå ¾²°í °ø°Ý¹ÞÀº ½½·¹ÀÌ¾î¿¡°Ô ¿ì¼±±ÇÀÌ
-               ÁÖ¾îÁø´Ù. pMonsterAttacker->addPrecedence(pSlayer->getName(), pSlayer->getPartyID(), counterDamage);
-                                pMonsterAttacker->setLastHitCreatureClass(pSlayer->getCreatureClass());
-
-                                bBroadcastAttackerHP = true;
-                                if (pMonsterAttacker->getHP(ATTR_CURRENT)*3 < pMonsterAttacker->getHP(ATTR_MAX))
-                                {
-                                    PrecedenceTable* pTable = pMonsterAttacker->getPrecedenceTable();
-
-                                    // HP°¡ 3ºÐÀÇ 1 ÀÌÇÏÀÎ »óÅÂ¶ó°í ¹«Á¶°Ç °è»êÀ» ÇÏ¸é,
-                                    // ¸ÅÅÏ¸¶´Ù ÀÇ¹Ì°¡ ¾ø´Â °è»êÀ» °è¼Ó ÇÏ°Ô µÇ¹Ç·Î,
-                                    // ÇÑ¹ø °è»êÀ» ÇÏ°í ³ª¸é, Á×±â Àü±îÁö´Â ´Ù½Ã °è»êÇÏÁö ¾Êµµ·Ï
-                                    // ÇÃ·¡±×¸¦ ¼¼ÆÃÇØ ÁØ´Ù. ÀÌ ÇÃ·¡±×¸¦ ÀÌ¿ëÇÏ¿© ÇÊ¿ä¾ø´Â °è»êÀ» ÁÙÀÎ´Ù.
-                                    if (pTable->getComputeFlag() == false)
-                                    {
-                                        // °è»êÀ» ÇØÁØ´Ù.
-                                        pTable->compute();
-
-                                        // È£½ºÆ®ÀÇ ÀÌ¸§°ú ÆÄÆ¼ ID¸¦ ÀÌ¿ëÇÏ¿©, ÀÌÆåÆ®¸¦ °É¾îÁØ´Ù.
-                                        EffectPrecedence* pEffectPrecedence = new EffectPrecedence(pMonsterAttacker);
-                                        pEffectPrecedence->setDeadline(100);
-                                        pEffectPrecedence->setHostName(pTable->getHostName());
-                                        pEffectPrecedence->setHostPartyID(pTable->getHostPartyID());
-                                        pMonsterAttacker->setFlag(Effect::EFFECT_CLASS_PRECEDENCE);
-                                        pMonsterAttacker->addEffect(pEffectPrecedence);
-                                    }
-                                }
-                            }
-                        }*/
         }
 
         if (pSlayer->isFlag(Effect::EFFECT_CLASS_AIR_SHIELD_1) && pSkillProperty != NULL && pSkillProperty->isMelee()) {
@@ -1530,16 +1339,11 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             if (pSlayer->isFlag(Effect::EFFECT_CLASS_HAS_BLOOD_BIBLE))
                 Damage *= 1.5;
 
-            //			cout << "before " << Damage << endl;
-            //			if ( pSkillProperty->isMagic() )
             if (bMagicDamage) {
                 Damage -= min(Damage - 1, (int)pSlayer->getMagicDamageReduce());
-            }
-            //			else if ( pSkillProperty->isPhysic() )
-            else if (bPhysicDamage) {
+            } else if (bPhysicDamage) {
                 Damage -= min(Damage - 1, (int)pSlayer->getPhysicDamageReduce());
             }
-            //			cout << "after " << Damage << endl;
 
             // AuraShield°¡ ¾øÀ¸´Ï, ±×³É ¸öÀ¸·Î ¸Â¾Æ¾ß ÇÑ´Ù.
             if (canKillTarget)
@@ -1583,16 +1387,11 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         if (pVampire->isFlag(Effect::EFFECT_CLASS_HAS_BLOOD_BIBLE))
             Damage *= 1.5;
 
-        //		cout << "before " << Damage << endl;
-        //		if ( pSkillProperty->isMagic() )
         if (bMagicDamage) {
             Damage -= min(Damage - 1, (int)pVampire->getMagicDamageReduce());
-        }
-        //		else if ( pSkillProperty->isPhysic() )
-        else if (bPhysicDamage) {
+        } else if (bPhysicDamage) {
             Damage -= min(Damage - 1, (int)pVampire->getPhysicDamageReduce());
         }
-        //		cout << "after " << Damage << endl;
 
         HP_t currentHP = pVampire->getHP(ATTR_CURRENT);
 
@@ -1615,7 +1414,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
                 } else {
                     pVampire->removeFlag(Effect::EFFECT_CLASS_MEPHISTO);
                 }
-                //				pVampire->getEffectManager()->deleteEffect( Effect::EFFECT_CLASS_MEPHISTO );
             }
         }
 
@@ -1704,16 +1502,11 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 
         HP_t currentHP = pOusters->getHP(ATTR_CURRENT);
 
-        //		cout << "before " << Damage << endl;
-        //		if ( pSkillProperty->isMagic() )
         if (bMagicDamage) {
             Damage -= min(Damage - 1, (int)pOusters->getMagicDamageReduce());
-        }
-        //		else if ( pSkillProperty->isPhysic() )
-        else if (bPhysicDamage) {
+        } else if (bPhysicDamage) {
             Damage -= min(Damage - 1, (int)pOusters->getPhysicDamageReduce());
         }
-        //		cout << "after " << Damage << endl;
 
         if (canKillTarget)
             Result = max(0, (int)currentHP - (int)Damage);
@@ -1782,8 +1575,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             gcFameMI.addLongData(MODIFY_FAME, pAttackerPC->getFame());
 
             pAttackerPC->getPlayer()->sendPacket(&gcFameMI);
-
-            //			if ( pAttackerMI != NULL ) pAttackerMI->addLongData(MODIFY_FAME, pAttackerPC->getFame());
         }
 
         bBroadcastTargetHP = true;
@@ -1801,18 +1592,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             pMonster->setLastHitCreatureClass(pAttacker->getCreatureClass());
         }
 
-        /*
-        // ¸ó½ºÅÍ°¡ ¸¸¾à Á×¾ú´Ù¸é ¿ì¼±±Ç °è»êÀ» ÇØÁà¾ß ÇÑ´Ù.
-        if (pMonster->isDead())
-        {
-            PrecedenceTable* pTable = pMonster->getPrecedenceTable();
-
-            pTable->compute();
-
-            pMonster->setHostName(pTable->getHostName());
-            pMonster->setHostPartyID(pTable->getHostPartyID());
-        }
-        */
         // ¸ó½ºÅÍ°¡ ¾ÆÁ÷ Á×Áö´Â ¾Ê¾ÒÁö¸¸, ÈíÇ÷ÀÌ °¡´ÉÇÑ »óÅÂ¶ó¸é,
         // ¸¸¾à ¿ì¼±±Ç °è»êÀ» ÇÏÁö ¾Ê¾Ò´Ù¸é °è»êÀ» ÇØÁØ´Ù.
         if (pMonster->getHP(ATTR_CURRENT) * 3 < pMonster->getHP(ATTR_MAX)) {
@@ -1857,7 +1636,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         }
     }
 
-    //	if ( pAttacker != NULL ) pAttacker->setLastTarget( pTargetCreature->getObjectID() );
 
     ////////////////////////////////////////////////////////////
     // º¯°æµÈ »çÇ×À» ÇÃ·¡±×¿¡ µû¶ó¼­ º¸³»ÁØ´Ù.
@@ -1888,12 +1666,10 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);
             if (pMI != NULL)
                 pMI->addShortData(MODIFY_CURRENT_HP, pSlayer->getHP(ATTR_CURRENT));
-            // if (pSlayer->getHP(ATTR_CURRENT) == 0) increaseFame(pAttacker, Damage);
         } else if (pTargetCreature->isVampire()) {
             Vampire* pVampire = dynamic_cast<Vampire*>(pTargetCreature);
             if (pMI != NULL)
                 pMI->addShortData(MODIFY_CURRENT_HP, pVampire->getHP(ATTR_CURRENT));
-            // if (pVampire->getHP(ATTR_CURRENT) == 0) increaseFame(pAttacker, Damage);
         } else if (pTargetCreature->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pTargetCreature);
             if (pMI != NULL)
@@ -1954,12 +1730,10 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             Slayer* pSlayer = dynamic_cast<Slayer*>(pAttacker);
             if (pAttackerMI != NULL)
                 pAttackerMI->addShortData(MODIFY_CURRENT_HP, pSlayer->getHP(ATTR_CURRENT));
-            // if (pSlayer->getHP(ATTR_CURRENT) == 0) increaseFame(pTargetCreature, Damage);
         } else if (pAttacker->isVampire()) {
             Vampire* pVampire = dynamic_cast<Vampire*>(pAttacker);
             if (pAttackerMI != NULL)
                 pAttackerMI->addShortData(MODIFY_CURRENT_HP, pVampire->getHP(ATTR_CURRENT));
-            // if (pVampire->getHP(ATTR_CURRENT) == 0) increaseFame(pTargetCreature, Damage);
         } else if (pAttacker->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pAttacker);
             if (pAttackerMI != NULL)
@@ -2054,12 +1828,10 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
 
                     pWeapon->setDurability(Result);
 
-                    //					value = MAKEDWORD(slot, Result);
                     value = (DWORD)(slot) << 24 | (DWORD)(Result);
                     pMI1->addLongData(MODIFY_DURABILITY, value);
 
                     // ¶³¾îÁø ³»±¸¼ºÀ» ÀúÀåÇÑ´Ù.
-                    // pWeapon->save(pCreature->getName(), STORAGE_GEAR, 0, slot, 0);
                 }
             } // if (pWeapon != NULL)
         } // if (pCreature->isSlayer())
@@ -2101,7 +1873,6 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
 
                     pWeapon->setDurability(Result);
 
-                    //					value = MAKEDWORD(slot, Result);
                     value = (DWORD)(slot) << 24 | (DWORD)(Result);
                     pMI1->addLongData(MODIFY_DURABILITY, value);
                 }
@@ -2145,7 +1916,6 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
 
                     pWeapon->setDurability(Result);
 
-                    //					value = MAKEDWORD(slot, Result);
                     value = (DWORD)(slot) << 24 | (DWORD)(Result);
                     pMI1->addLongData(MODIFY_DURABILITY, value);
                 }
@@ -2232,7 +2002,6 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
             } else {
                 pGear->setDurability(Result);
 
-                //				value = MAKEDWORD(slot, Result);
                 value = (DWORD)(slot) << 24 | (DWORD)(Result);
 
                 if (pMI2 == NULL) {
@@ -2242,7 +2011,6 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
                 pMI2->addLongData(MODIFY_DURABILITY, value);
 
                 // ¶³¾îÁø ³»±¸¼ºÀ» ÀúÀåÇÑ´Ù.
-                // pGear->save(pTargetCreature->getName(), STORAGE_GEAR, 0, slot, 0);
             }
         }
     }
@@ -2253,10 +2021,6 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
 //////////////////////////////////////////////////////////////////////////////
 bool canHit(Creature* pAttacker, Creature* pDefender, SkillType_t SkillType, SkillLevel_t SkillLevel) {
     // ¹«Àû »óÅÂ
-    //	if (pDefender->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE))
-    //	{
-    //		return false;
-    //	}
 
     // ½ºÅ³ÀÇ Á¾·ù¿¡ ¹«°üÇÏ°Ô, ¸ÂÃâ ¼ö ¾ø´Â »óÅÂ¸¦ Ã¼Å©ÇÑ´Ù.
     if (pAttacker->isSlayer()) {
@@ -2364,8 +2128,6 @@ int computeArmsWeaponDamageBonus(Item* pWeapon, int ox, int oy, int tx, int ty) 
     int range = getDistance(ox, oy, tx, ty);
 
     if (IClass == Item::ITEM_CLASS_SR) {
-        // DamageBonus = max(0, range - 3);
-        //  by sigi. 2002.12.3
         DamageBonus = range + 3;
     }
     // by sigi. 2002.12.3
@@ -2764,25 +2526,6 @@ Damage_t computeElementalCombatSkill(Ousters* pOusters, Creature* pTargetCreatur
         }
     }
 
-    /*	if ( pOusters->isPassiveAvailable(SKILL_WATER_SHIELD) )
-        {
-            if ( (rand()%100) < min(20, (int)(ratio * 3/2)) )
-            {
-                EffectWaterShield* pEffect = new EffectWaterShield(pOusters);
-                pEffect->setDeadline(0);
-                pOusters->addEffect(pEffect);
-                pOusters->setFlag(Effect::EFFECT_CLASS_WATER_SHIELD);
-
-                GCAddEffectToTile gcAddEffect;
-                gcAddEffect.setObjectID( pOusters->getObjectID() );
-                gcAddEffect.setXY( pOusters->getX(), pOusters->getY() );
-                gcAddEffect.setEffectID( Effect::EFFECT_CLASS_WATER_SHIELD );
-                gcAddEffect.setDuration( 0 );
-
-                pZone->broadcastPacket( pOusters->getX(), pOusters->getY(), &gcAddEffect );
-            }
-        }
-    */
     if (pOusters->isPassiveAvailable(SKILL_SAND_CROSS)) {
         if ((rand() % 100) < min(30, ratio)) {
             GCAddEffectToTile gcAddEffect;

@@ -23,7 +23,6 @@ void RottenApple::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerobject)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -35,12 +34,10 @@ void RottenApple::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         if (pTargetCreature == NULL || pTargetCreature->isSlayer()) // NoSuch Á¦°Å. by sigi. 2002.5.2
         {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerobject)" << endl;
             return;
         }
 
@@ -240,7 +237,6 @@ void RottenApple::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerobject)" << endl;
 
     __END_CATCH
 }

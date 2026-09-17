@@ -70,7 +70,6 @@ void HeterChakram::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 3;
         // 헌뇜杰唐MP
-        // RequiredMP = pOusters->getMP();
 
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
         bool bTimeCheck = verifyRunTime(pOustersSkillSlot);
@@ -79,8 +78,6 @@ void HeterChakram::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
         bool bCanHit = canHit(pOusters, pTargetCreature, getSkillType());
         bool bPK = verifyPK(pOusters, pTargetCreature);
         bool bSatisfyRequire = pOusters->satisfySkillRequire(pSkillInfo);
-        // 		if (RequiredMP < ((int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel()/3 ) )
-        // 			bManaCheck = false;
 
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bCanHit && bPK && bSatisfyRequire) {
@@ -95,8 +92,6 @@ void HeterChakram::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
             SkillInput input(pOusters, pOustersSkillSlot);
             SkillOutput output;
             computeOutput(input, output);
-            // int cx = pTargetCreature->getX();
-            // int cy = pTargetCreature->getY();
             if (pTargetCreature == NULL || pTargetCreature->isDead() ||
                 pTargetCreature->isFlag(Effect::EFFECT_CLASS_HETER_CHAKRAM)) {
                 executeSkillFailException(pOusters, getSkillType(), Grade);
@@ -186,50 +181,11 @@ void HeterChakram::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
 
             pOustersSkillSlot->setRunTime(output.Delay);
 
-            // 			for ( int i=-2; i<=2; ++i )
-            // 			for ( int j=-2; j<=2; ++j )
-            // 			{
-            // 				int tx = cx + i;
-            // 				int ty = cy + j;
-            // 				if ( tx < 0 || ty < 0 ) continue;
-            // 				if ( !isValidZoneCoord( pZone, tx, ty ) ) continue;
             // 				//
-            // 				forward_list<Object*>& olist = pZone->getTile(tx, ty).getObjectList();
-            // 				forward_list<Object*>::iterator itr = olist.begin();
-            // 				for ( ; itr != olist.end() ; ++itr )
-            // 				{
-            // 					Object* pObject = *itr;
-            // 					if ( pObject == NULL || pObject->getObjectClass() != Object::OBJECT_CLASS_CREATURE )
-            // continue;
             //
-            // 					Creature* pTargetCreature2 = dynamic_cast<Creature*>(pObject);
-            // 					if ( pTargetCreature2 == NULL || pTargetCreature2->isDead() ) continue;
-            // 					if ( pTargetCreature2->isFlag( Effect::EFFECT_CLASS_HETER_CHAKRAM ) ) continue;
-            // 					if (pTargetCreature2->isOusters() && pTargetCreature->isOusters() ||
-            // 						pTargetCreature2->isVampire() && pTargetCreature->isVampire() ||
-            // 						pTargetCreature2->isSlayer() && pTargetCreature->isSlayer() ||
             // 						pTargetCreature2->isMonster() && pTargetCreature->isMonster()
-            // 						)
-            // 					{
-            // 						EffectHeterChakram* pEffect = new EffectHeterChakram( pTargetCreature2 );
-            // 						pEffect->setUserOID( pOusters->getObjectID() );
-            // 						pEffect->setDamage( output.Damage );
-            // 						pEffect->setDeadline( output.Duration );
-            // 						pEffect->setDuration( output.Duration );
-            // 						pEffect->setNextTime(10);
-            // 						pTargetCreature->setFlag( pEffect->getEffectClass() );
-            // 						pTargetCreature->addEffect( pEffect );
             //
-            // 						GCAddEffect gcAddEffect;
-            // 						gcAddEffect.setObjectID( pTargetCreature2->getObjectID() );
-            // 						gcAddEffect.setEffectID( pEffect->getEffectClass() );
-            // 						gcAddEffect.setDuration( output.Duration );
-            // 						pZone->broadcastPacket( pTargetCreature->getX(), pTargetCreature->getY(),
-            // &gcAddEffect );
-            // 					}
             //
-            // 				}
-            // 			}
 
         } else {
             executeSkillFailNormal(pOusters, getSkillType(), pTargetCreature, Grade);

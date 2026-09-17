@@ -27,7 +27,6 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pSkillSlot != NULL);
@@ -39,7 +38,6 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수 없다.
         // 저주 면역. by sigi. 2002.9.13
@@ -47,7 +45,6 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
         if (pTargetCreature == NULL || pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_CURSE) ||
             !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -211,7 +208,6 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
             if (pTargetCreature->isPC()) {
                 Player* pTargetPlayer = pTargetCreature->getPlayer();
                 if (pTargetPlayer == NULL) {
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                     return;
                 }
 
@@ -230,8 +226,6 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
             gcAddEffect.setDuration(output.Duration);
             pZone->broadcastPacket(targetX, targetY, &gcAddEffect);
 
-            // cout << pTargetCreature->getName() << "에게 Death를 " << output.Duration << " duration 동안 건다." <<
-            // endl;
 
             pSkillSlot->setRunTime(output.Delay);
         } else {
@@ -241,7 +235,6 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -255,7 +248,6 @@ void Death::execute(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pMonster != NULL);
 
@@ -264,8 +256,6 @@ void Death::execute(Monster* pMonster, Creature* pEnemy)
         Assert(pZone != NULL);
 
         if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-            // cout << "Monster cannot use skill while hiding." << endl;
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
             return;
         }
         if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
@@ -295,7 +285,6 @@ void Death::execute(Monster* pMonster, Creature* pEnemy)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -432,7 +421,6 @@ void Death::executeMonster(Zone* pZone, Monster* pMonster, Creature* pEnemy)
         if (pEnemy->isPC()) {
             Player* pTargetPlayer = pEnemy->getPlayer();
             if (pTargetPlayer == NULL) {
-                // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                 return;
             }
 

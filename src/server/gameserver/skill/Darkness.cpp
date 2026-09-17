@@ -32,7 +32,6 @@ void Darkness::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -42,7 +41,6 @@ void Darkness::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -55,7 +53,6 @@ void Darkness::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -69,7 +66,6 @@ void Darkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -165,7 +161,6 @@ void Darkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireS
                         }
                     }
                 }
-            //			map<int, uint> canAddMap;
 
             for (oY = -edge; oY <= edge; oY++)
                 for (oX = -edge; oX <= edge; oX++) {
@@ -174,7 +169,6 @@ void Darkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireS
                     if (rect.ptInRect(tileX, tileY)) {
                         Tile& tile = pZone->getTile(tileX, tileY);
 
-                        //					if ( canAddMap[normalizeCoord_DARKNESS( oX, oY, edge )] == 1 ) continue;
 
                         if (tile.hasItem()) {
                             Item* pItem = tile.getItem();
@@ -183,9 +177,6 @@ void Darkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireS
                                 MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
                                 if (g_pFlagManager->isFlagPole(pMonsterCorpse)) {
                                     //								canAddMap[normalizeCoord_DARKNESS( oX+1, oY, edge )]
-                                    //= 1; 								canAddMap[normalizeCoord_DARKNESS( oX+1, oY+1,
-                                    // edge )] = 1; 								canAddMap[normalizeCoord_DARKNESS(
-                                    // oX, oY+1, edge )] = 1;
                                     continue;
                                 }
                             }
@@ -201,8 +192,6 @@ void Darkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireS
                                 continue;
                             if (tile.getEffect(Effect::EFFECT_CLASS_DARKNESS_FORBIDDEN) != NULL)
                                 continue;
-                            /*						if ( tile.getEffect(Effect::EFFECT_CLASS_SUMMON_CLAY) != NULL )
-                             * continue;*/
 
                             // 같은 effect가 있으면 지운다.
                             Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_DARKNESS);
@@ -256,7 +245,6 @@ void Darkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireS
             _GCSkillToTileOK2.setY(Y);
             _GCSkillToTileOK2.setDuration(output.Duration);
             _GCSkillToTileOK2.setRange(Range);
-            //_GCSkillToTileOK2.addShortData(MODIFY_VISION, DARKNESS_SIGHT);
 
             _GCSkillToTileOK3.setObjectID(pVampire->getObjectID());
             _GCSkillToTileOK3.setSkillType(SkillType);
@@ -282,7 +270,6 @@ void Darkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireS
             _GCSkillToTileOK6.setY(Y);
             _GCSkillToTileOK6.setDuration(output.Duration);
             _GCSkillToTileOK6.setRange(Range);
-            //_GCSkillToTileOK6.addShortData(MODIFY_VISION, DARKNESS_SIGHT);
 
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
@@ -308,14 +295,11 @@ void Darkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireS
 
                 Creature* pWatcher = (*itr);
                 if (bBelong == false && canSee(pWatcher, pVampire) == false) {
-                    // Assert(pWatcher->isPC());	// 당연 PC다.. Zone::getWatcherList는 PC만 return한다
                     if (!pWatcher->isPC()) {
-                        // cout << "Darkness : 왓처 리스트가 PC가 아닙니다." << endl;
                         GCSkillFailed1 _GCSkillFailed1;
                         _GCSkillFailed1.setSkillType(getSkillType());
                         pVampire->getPlayer()->sendPacket(&_GCSkillFailed1);
 
-                        // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
                         return;
                     }
                     pWatcher->getPlayer()->sendPacket(&_GCSkillToTileOK4);
@@ -337,7 +321,6 @@ void Darkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireS
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -364,7 +347,6 @@ void Darkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
@@ -476,7 +458,6 @@ void Darkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             _GCSkillToTileOK2.setY(Y);
             _GCSkillToTileOK2.setDuration(output.Duration);
             _GCSkillToTileOK2.setRange(Range);
-            //_GCSkillToTileOK2.addShortData(MODIFY_VISION, DARKNESS_SIGHT);
 
             _GCSkillToTileOK3.setObjectID(pMonster->getObjectID());
             _GCSkillToTileOK3.setSkillType(SkillType);
@@ -502,7 +483,6 @@ void Darkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             _GCSkillToTileOK6.setY(Y);
             _GCSkillToTileOK6.setDuration(output.Duration);
             _GCSkillToTileOK6.setRange(Range);
-            //_GCSkillToTileOK6.addShortData(MODIFY_VISION, DARKNESS_SIGHT);
 
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
@@ -526,9 +506,7 @@ void Darkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
                 Creature* pWatcher = (*itr);
                 if (bBelong == false && canSee(pWatcher, pMonster) == false) {
-                    // Assert(pWatcher->isPC());	// 당연 PC다.. Zone::getWatcherList는 PC만 return한다
                     if (!pWatcher->isPC()) {
-                        // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
                         return;
                     }
 
@@ -549,7 +527,6 @@ void Darkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

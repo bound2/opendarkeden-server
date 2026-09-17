@@ -38,7 +38,6 @@ void GoreGlandFire::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     SkillInput input(pMonster);
     SkillOutput output;
@@ -64,7 +63,6 @@ void GoreGlandFire::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
     g_SimpleTileMissileSkill.execute(pMonster, X, Y, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

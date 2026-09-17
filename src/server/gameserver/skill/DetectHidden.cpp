@@ -20,7 +20,6 @@ void DetectHidden::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -103,7 +102,6 @@ void DetectHidden::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

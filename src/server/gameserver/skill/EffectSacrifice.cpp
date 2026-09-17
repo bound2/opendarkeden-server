@@ -44,12 +44,10 @@ void EffectSacrifice::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectSacrifice " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectSacrifice " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -62,7 +60,6 @@ void EffectSacrifice::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectSacrifice " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer() == true);
@@ -78,7 +75,6 @@ void EffectSacrifice::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_SACRIFICE);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectSacrifice " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

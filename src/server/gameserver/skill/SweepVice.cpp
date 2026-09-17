@@ -24,7 +24,6 @@ void SweepVice::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -36,7 +35,6 @@ void SweepVice::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
         execute(pSlayer, pTargetCreature->getX(), pTargetCreature->getY(), pSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString() << endl;
     }
 
     __END_CATCH
@@ -67,7 +65,6 @@ void SweepVice::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
     param.bMagicHitRoll = true;
     param.bMagicDamage = true;
     param.bAdd = false;
-    //	param.bExpForTotalDamage = true;
 
     SIMPLE_SKILL_OUTPUT result;
 

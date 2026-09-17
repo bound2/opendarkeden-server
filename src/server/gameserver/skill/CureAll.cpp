@@ -63,7 +63,6 @@ void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         // 슬레이어 외에는 치료할 수가 없다.

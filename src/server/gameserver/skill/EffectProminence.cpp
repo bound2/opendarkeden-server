@@ -42,7 +42,6 @@ void EffectProminence::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectProminence" << "affect BEGIN" << endl;
 
     Assert(m_pZone != NULL);
 
@@ -129,21 +128,12 @@ void EffectProminence::affect()
                         Ousters* pCastOusters = dynamic_cast<Ousters*>(pCastCreature);
                         Assert(pCastOusters != NULL);
 
-                        //						int exp = computeCreatureExp(pCreature, 100, pCastOusters);
                         int exp = computeCreatureExp(pCreature, 70, pCastOusters);
                         shareOustersExp(pCastOusters, exp, gcAttackerMI);
                     }
                 }
 
                 // 성향 계산하기
-                /*				if ( pCastCreature != NULL
-                                    && pCastCreature->isPC()
-                                    && pCreature->isPC()
-                                )
-                                {
-                                    computeAlignmentChange( pCreature, m_Damage, pCastCreature, &gcDefenderMI,
-                   &gcAttackerMI ); modifiedAttacker = true;
-                                }*/
 
                 if (gcAttackerMI.getShortCount() != 0 || gcAttackerMI.getLongCount() != 0)
                     pCastCreature->getPlayer()->sendPacket(&gcAttackerMI);
@@ -153,7 +143,6 @@ void EffectProminence::affect()
 
     setNextTime(m_Tick);
 
-    // cout << "EffectProminence" << "affect END" << endl;
 
     __END_CATCH
 }
@@ -165,12 +154,10 @@ void EffectProminence::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectProminence" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectProminence" << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -221,7 +208,6 @@ void EffectProminenceLoader::load(Zone* pZone)
 
                         // 존 및 타일에다가 이펙트를 추가한다.
                         pZone->registerObject(pEffect);
-                        // pZone->addEffect(pEffect);  // REMOVED: Don't add permanent tile effects to Zone
                         tile.addEffect(pEffect);
                     }
                 }
