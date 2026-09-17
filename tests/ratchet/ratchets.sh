@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5474 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5473 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -105,7 +105,7 @@ check_ratchet R6f "ConsoleCommands.cpp lines" 1595 "$R6f"
 # What is left is the zone's own state: tiles, effects, creature lookup, the
 # NPC registry and the heartbeat. Under the 2,000-line phase exit criterion.
 R6g=$(wc -l < src/server/gameserver/Zone.cpp 2>/dev/null || echo missing)
-check_ratchet R6g "Zone.cpp lines" 1474 "$R6g"
+check_ratchet R6g "Zone.cpp lines" 1472 "$R6g"
 
 # R6h-j: the three race classes. Persistence, gold, item-shape, inventory and
 # free-play bodies now live once on PlayerCreature; what is left in each file
@@ -361,6 +361,56 @@ else
     fi
     rm -f "$r15_built" "$r15_dead"
 fi
+
+# --- R16: headers under src/ that nothing includes -------------------------
+# A header no translation unit reaches is not part of any build: nothing it
+# declares is checked against the code it describes, so it drifts while
+# still reading as live declarations and the compiler never says so. Five
+# went at once, among them an ItemNumberManager.h whose body is not valid
+# C++ and a CombatSystemManager.h for a relic system the servers run
+# elsewhere. Three more headers were reached only by includes that used
+# nothing from them, for classes declared here and defined nowhere; the
+# includes went with the headers.
+#
+# The measure is an approximation, stated rather than hidden: a header
+# counts as included when some #include "..." text under src/ or tests/
+# equals the header's path or the path ends with "/" plus that text. That
+# is looser than resolving each include against the including file's own
+# directory and the -I list the CMake files build, so "Item.h" marks every
+# path ending in /Item.h as reached. Every error it makes is in the same
+# direction -- calling a header used -- so it never calls a live header
+# dead. Comments are not stripped for the same reason: an include behind
+# /* */ still counts as a mention.
+#
+# The include-text list is materialised first for R13's reason: a broken
+# grep would otherwise read as zero orphan headers.
+r16_inc=$(mktemp)
+r16_dead=$(mktemp)
+LC_ALL=C grep -rhoE '#[[:space:]]*include[[:space:]]*"[^"]*\.h"' src tests \
+    --include='*.c' --include='*.cc' --include='*.cpp' --include='*.h' \
+    --include='*.hpp' --include='*.inc' |
+    sed 's/.*"\(.*\)"/\1/' | sort -u > "$r16_inc"
+if [ "$(wc -l < "$r16_inc")" -lt 1500 ]; then
+    echo "[FAIL] R16 orphan headers: only $(wc -l < "$r16_inc") include texts found (grep or find broken?)"
+    fail=1
+else
+    find src -name '*.h' | sort | awk -v incfile="$r16_inc" '
+        BEGIN { while ((getline i < incfile) > 0) if (i != "") inc[++n] = i }
+        {
+            for (k = 1; k <= n; k++) {
+                if ($0 == inc[k]) next
+                if (length($0) > length(inc[k]) &&
+                    substr($0, length($0) - length(inc[k])) == "/" inc[k]) next
+            }
+            print
+        }' > "$r16_dead"
+    R16=$(wc -l < "$r16_dead")
+    check_ratchet R16 "headers under src/ nothing includes" 0 "$R16"
+    if [ "$R16" -gt 0 ]; then
+        sed 's/^/         /' < "$r16_dead"
+    fi
+fi
+rm -f "$r16_inc" "$r16_dead"
 
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).

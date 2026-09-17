@@ -88,8 +88,6 @@
 // #include "EffectRevealer.h"
 #include "EffectAddItem.h"
 #include "EffectAddItemToCorpse.h"
-#include "EffectCallMotorcycle.h"
-#include "EffectDecayMotorcycle.h"
 #include "EffectDeleteItem.h"
 #include "EffectGnomesWhisper.h"
 #include "EffectHasBloodBible.h"
