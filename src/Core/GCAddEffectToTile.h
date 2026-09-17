@@ -2,7 +2,7 @@
 // Filename    : GCAddEffectToTile.h
 // Written By  : elca@ewestsoft.com
 // Description :
-// ����� ���������� ������ ��Ŷ�� ���� Ŭ���� ����
+// Class definition for the packet sent when a skill succeeds
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GC_ADD_EFFECT_TO_TILE_H__
@@ -15,7 +15,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class GCAddEffectToTile;
-// ���Ӽ������� Ŭ���̾�Ʈ�� �ڽ��� ����� ������ �˷��ֱ� ���� Ŭ����
+// Class the game server uses to tell the client that its own skill succeeded
 //////////////////////////////////////////////////////////////////////////////
 
 class GCAddEffectToTile : public Packet {

@@ -18,13 +18,13 @@
 //////////////////////////////////////////////////////////////////////////////
 // class GCAddVampire;
 //
-// 로그인이나 포탈, 텔레포트 등으로 슬레이어가 존에 새로 들어갔을 경우, 또는
-// 슬레이어가 존에서 이동할 경우,(1) 이미 이 슬레이어에 대한 정보를 갖고 있는
-//(즉 이 슬레이어를 보고 있는..) 영역에 존재하는 PC들에게는 GCMove 패킷을
-// 브로드캐스트한다. 그러나,(2) 이 슬레이어를 처음 보게 되는 영역에 존재하는
-// PC들에게는 GCAddVampire 패킷을 브로드캐스트한다. 또한,(3) 이 슬레이어는
-// 자신이 새로 개척한 시야(?) 안에 존재하는 슬레이어들의 정보를 GCAddVampire에
-// 담아서 받게 된다.
+// When a slayer newly enters a zone through login, a portal or a teleport, or
+// when a slayer moves within a zone,(1) the PCs in the area that already hold
+// information about this slayer (that is, that can see it) get the GCMove packet
+// broadcast to them. But,(2) the PCs in the area that see this slayer
+// for the first time get the GCAddVampire packet broadcast to them. Also,(3)
+// this slayer receives, inside GCAddVampire, the information about the
+// slayers within its newly opened field of view.
 //////////////////////////////////////////////////////////////////////////////
 
 class GCAddVampire : public Packet {
@@ -115,12 +115,12 @@ public:
     }
 
 private:
-    PCVampireInfo3 m_VampireInfo;  // 뱀파이어 외모 정보
-    EffectInfo* m_pEffectInfo;     // 이펙트 정보
-    PetInfo* m_pPetInfo;           // 펫 정보
-    NicknameInfo* m_pNicknameInfo; // 펫 정보
-    StoreOutlook m_StoreOutlook;   // 개인상점 정보
-    BYTE m_FromFlag; // 어디로부터인가? 정상일 경우에는 0, 포탈을 통했을 경우에는 1
+    PCVampireInfo3 m_VampireInfo;  // Vampire's appearance information
+    EffectInfo* m_pEffectInfo;     // Effect information
+    PetInfo* m_pPetInfo;           // Pet information
+    NicknameInfo* m_pNicknameInfo; // Pet information
+    StoreOutlook m_StoreOutlook;   // Personal store information
+    BYTE m_FromFlag;               // Where from? 0 when normal, 1 when through a portal
 };
 
 

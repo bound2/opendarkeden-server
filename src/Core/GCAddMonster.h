@@ -151,7 +151,7 @@ private:
     EffectInfo* m_pEffectInfo;   // effects info on monster
     HP_t m_CurrentHP;            // current hp
     HP_t m_MaxHP;                // max hp
-    BYTE m_FromFlag; // ���κ����ΰ�? ������ ��쿡�� 0, ��Ż�� ������ ��쿡�� 1
+    BYTE m_FromFlag;             // Where from? 0 when normal, 1 when through a portal
 };
 
 
@@ -194,7 +194,7 @@ public:
 
     // get packet's body size
     // *OPTIMIZATION HINT*
-    // const static GCAddMonsterPacketSize �� ����, �����϶�.
+    // Define and return const static GCAddMonsterPacketSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

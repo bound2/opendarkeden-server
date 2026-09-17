@@ -28,14 +28,14 @@ GCAddEffectToTile::~GCAddEffectToTile() noexcept {}
 
 
 //////////////////////////////////////////////////////////////////////
-// �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void GCAddEffectToTile::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     iStream.read(m_ObjectID);
     iStream.read(m_X);
     iStream.read(m_Y);
@@ -47,12 +47,12 @@ void GCAddEffectToTile::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////
-// ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void GCAddEffectToTile::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    // State the actual size when optimizing.
     oStream.write(m_ObjectID);
     oStream.write(m_X);
     oStream.write(m_Y);

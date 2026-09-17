@@ -18,15 +18,15 @@
 //
 // class GCAddVampireFromTransformation;
 //
-// �α����̳� ��Ż, �ڷ���Ʈ ������ �����̾ ���� ����
-// ���� ���, �Ǵ�
-// �����̾ ������ �̵��� ���,(1) �̹� �� �����̾
-// ���� ������ ���� �ִ�
-//(�� �� �����̾ ���� �ִ�..) ������ �����ϴ� PC�鿡�Դ�
-// GCMove ��Ŷ��
-// ��ε�ĳ��Ʈ�Ѵ�. �׷���,(2) �� �����̾ ó�� ���� �Ǵ�
-// ������ �����ϴ� PC�鿡�Դ� GCAddVampireFromTransformation ��Ŷ�� ��ε�ĳ��Ʈ�Ѵ�. ����,(3) �� �����̾�� �ڽ��� ���� ��ô�� �þ�(?)
-// �ȿ� �����ϴ� �����̾���� ������ GCAddVampireFromTransformation�� ��Ƽ� �ް� �ȴ�.
+// When a slayer newly enters a zone through login, a portal or a
+// teleport, or
+// when a slayer moves within a zone,(1) the PCs in the area that
+// already hold information about
+// this slayer (that is, that can see it) get the
+// GCMove packet
+// broadcast to them. But,(2) the PCs in the area that see this slayer
+// for the first time get the GCAddVampireFromTransformation packet broadcast to them. Also,(3) this slayer receives,
+// inside GCAddVampireFromTransformation, the information about the slayers within its newly opened field of view.
 //
 //----------------------------------------------------------------------
 
@@ -41,11 +41,11 @@ public:
 
 
 public:
-    // �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ��
-    // �ʱ�ȭ�Ѵ�.
+    // Read data from the input stream (buffer) and initialise
+    // the packet.
     void read(SocketInputStream& iStream);
 
-    // ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -94,10 +94,10 @@ public:
 
 
 private:
-    // �����̾� �ܸ� ����
+    // Vampire's appearance information
     PCVampireInfo3 m_VampireInfo;
 
-    // ����Ʈ ����
+    // Effect information
     EffectInfo* m_pEffectInfo;
 };
 

@@ -24,14 +24,14 @@ GCHolyLandBonusInfo::~GCHolyLandBonusInfo()
 {
     __BEGIN_TRY
 
-    // 길드 리스트의 모든 객체를 삭제
+    // Delete every object in the guild list
     clearBloodBibleBonusInfoList();
 
     __END_CATCH_NO_RETHROW
 }
 
 //////////////////////////////////////////////////////////////////////
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void GCHolyLandBonusInfo::read(SocketInputStream& iStream)
 
@@ -59,7 +59,7 @@ void GCHolyLandBonusInfo::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void GCHolyLandBonusInfo::write(SocketOutputStream& oStream) const
 
@@ -86,7 +86,7 @@ void GCHolyLandBonusInfo::clearBloodBibleBonusInfoList()
 {
     __BEGIN_TRY
 
-    // BloodBibleBonusInfoList 를 삭제한다
+    // Delete the BloodBibleBonusInfoList
     while (!m_BloodBibleBonusInfoList.empty()) {
         BloodBibleBonusInfo* pBloodBibleBonusInfo = m_BloodBibleBonusInfoList.front();
         m_BloodBibleBonusInfoList.pop_front();

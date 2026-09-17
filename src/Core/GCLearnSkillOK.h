@@ -2,7 +2,7 @@
 //
 // Filename    :  GCLearnSkillOK.h
 // Written By  :  elca@ewestsoft.com
-// Description :  ÃÂ
+// Description :  Declaration of the GCLearnSkillOK packet class
 //
 //
 //////////////////////////////////////////////////////////////////////
@@ -32,10 +32,10 @@ public:
 
 
 public:
-    // ÃÂÃÂÃÂ·ÃÂÃÂ½ÃÂºÃÂÃÂ®ÃÂ¸ÃÂ²(ÃÂ¹ÃÂ¶ÃÂÃÂ)ÃÂÃÂ¸ÃÂ·ÃÂÃÂºÃÂÃÂÃÂ ÃÂµÃÂ¥ÃÂÃÂÃÂÃÂ¸ÃÂ¸ÃÂ¦ ÃÂÃÂÃÂ¾ÃÂ®ÃÂ¼ÃÂ­ ÃÂÃÂÃÂÃÂ¶ÃÂÃÂ» ÃÂÃÂÃÂ±ÃÂ¢ÃÂÃÂ­ÃÂÃÂÃÂ´ÃÂ.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // ÃÂÃÂ¢ÃÂ·ÃÂÃÂ½ÃÂºÃÂÃÂ®ÃÂ¸ÃÂ²(ÃÂ¹ÃÂ¶ÃÂÃÂ)ÃÂÃÂ¸ÃÂ·ÃÂ ÃÂÃÂÃÂÃÂ¶ÃÂÃÂ ÃÂ¹ÃÂÃÂÃÂÃÂ³ÃÂÃÂ¸ÃÂ® ÃÂÃÂÃÂ¹ÃÂÃÂÃÂ¶ÃÂ¸ÃÂ¦ ÃÂºÃÂ¸ÃÂ³ÃÂ½ÃÂ´ÃÂ.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 

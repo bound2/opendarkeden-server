@@ -17,7 +17,7 @@
 //
 // class GCAddNPC;
 //
-// 시야 안에 NPC 가 들어왔을 경우, 이 패킷에 NPC 정보를 담아서 전송받는다.
+// When an NPC comes into view, its information is received in this packet.
 //
 //--------------------------------------------------------------------------------
 
@@ -25,10 +25,10 @@ class GCAddNPC : public Packet {
 public:
     GCAddNPC(){};
     ~GCAddNPC(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -39,7 +39,7 @@ public:
 
     // get packet's body size
     // *OPTIMIZATION HINT*
-    // const static GCAddNPCPacketSize 를 정의, 리턴하라.
+    // Define and return const static GCAddNPCPacketSize.
     PacketSize_t getPacketSize() const {
         return szObjectID + de::wire::stringWireSize(m_Name) + szNPCID + szSpriteType + szColor + szColor + szCoord +
                szCoord + szDir;
@@ -128,23 +128,23 @@ public:
     }
 
 private:
-    // 존 레벨에서 유니크한 아이디로 객체 구분을 위해서 사용한다.
+    // Used to tell objects apart by an id that is unique within the zone.
     ObjectID_t m_ObjectID;
 
-    // NPC의 이름
+    // Name of the NPC
     string m_Name;
 
-    // NPC의 아이디(오브젝트 아이디가 아니다.)
+    // Id of the NPC (not the object id.)
     NPCID_t m_NPCID;
 
-    // 스프라이트 타입
+    // Sprite type
     SpriteType_t m_SpriteType;
 
-    // 색깔 정보
+    // Colour information
     Color_t m_MainColor;
     Color_t m_SubColor;
 
-    // X, Y 및 방향
+    // X, Y and direction
     Coord_t m_X;
     Coord_t m_Y;
     Dir_t m_Dir;
@@ -183,7 +183,7 @@ public:
 
     // get packet's body size
     // *OPTIMIZATION HINT*
-    // const static GCAddNPCPacketSize 를 정의, 리턴하라.
+    // Define and return const static GCAddNPCPacketSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

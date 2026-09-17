@@ -2,7 +2,7 @@
 // Filename    : GCAddHelicopter.h
 // Written By  : excel96
 // Description :
-// 슬레이어가 무전기를 사용해, 헬기를 호출했을 경우에 날아가는 패킷
+// Packet sent when a slayer uses a radio to call a helicopter
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GC_ADD_HELICOPTER_H__
@@ -50,8 +50,8 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID = 0; // 헬기를 호출한 슬레이어의 오브젝트 ID
-    BYTE m_Code = 0;           // 헬기 소환과 관련된 코드 (0:호출, 1:제거)
+    ObjectID_t m_ObjectID = 0; // Object ID of the slayer who called the helicopter
+    BYTE m_Code = 0;           // Code for the helicopter summon (0: call, 1: remove)
 };
 
 //////////////////////////////////////////////////////////////////////////////

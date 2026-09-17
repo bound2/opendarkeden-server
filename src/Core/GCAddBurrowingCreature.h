@@ -13,8 +13,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class GCAddBurrowingCreature;
-// 시야 안에 BurrowingCreature 가 들어왔을 경우,
-// 이 패킷에 BurrowingCreature 정보를 담아서 전송받는다.
+// When a BurrowingCreature comes into view,
+// its information is received in this packet.
 //////////////////////////////////////////////////////////////////////////////
 
 class GCAddBurrowingCreature : public Packet {

@@ -5,10 +5,10 @@
 //
 //////////////////////////////////////////////////////////////////////
 //
-// STORAGE_CORPSE  ItemType, ZoneID, Race, X, Y  최초에, 옮겨졌을때: load(), returnBloodBible()
-// STORAGE_INVENTORY  ItemType, ZoneID, OwnerName, Race, X, Y  누군가가 주웠을때: CGAddZoneToInventory
-// STORAGE_MOUSE  ItemType, ZoneID, OwnerName, Race, X, Y  누군가가 주웠을때: CGAddZoneToMouse
-// STORAGE_ZONE  ItemType, ZoneID, X, Y  바닥에 떨어졌을때: CGAddMouseToZone, CGDissectionCorpse
+// STORAGE_CORPSE  ItemType, ZoneID, Race, X, Y  at the start and when moved: load(), returnBloodBible()
+// STORAGE_INVENTORY  ItemType, ZoneID, OwnerName, Race, X, Y  when someone picks it up: CGAddZoneToInventory
+// STORAGE_MOUSE  ItemType, ZoneID, OwnerName, Race, X, Y  when someone picks it up: CGAddZoneToMouse
+// STORAGE_ZONE  ItemType, ZoneID, X, Y  when dropped on the ground: CGAddMouseToZone, CGDissectionCorpse
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -25,9 +25,9 @@
 //
 // class GCBloodBibleStatus;
 //
-// 게임 서버가 특정 플레이어의 BloodBibleStatus 를 다른 플레이어들에게 브로드캐스트
-// 할 때 전송하는 패킷이다. 내부에 캐릭터명과 BloodBibleStatus 스트링을 데이타
-// 필드로 가지고 있다.
+// Sent when the game server broadcasts one player's BloodBibleStatus to
+// the other players. It holds the character name and the BloodBibleStatus string as its data
+// fields.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -35,10 +35,10 @@ class GCBloodBibleStatus : public Packet {
 public:
     GCBloodBibleStatus(){};
     ~GCBloodBibleStatus(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -126,7 +126,7 @@ public:
     }
 
 private:
-    ItemType_t m_ItemType = 0; // 피의 성서 종류
+    ItemType_t m_ItemType = 0; // Type of the blood bible
 
     ZoneID_t m_ZoneID = 0;
 
@@ -171,7 +171,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCBloodBibleStatusPacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static GCBloodBibleStatusPacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

@@ -32,7 +32,7 @@ GCAddItemToZone::GCAddItemToZone()
 //--------------------------------------------------------------------
 GCAddItemToZone::~GCAddItemToZone() noexcept {
     try {
-        // �Ҽӵ� ��� ��ü���� �����Ѵ�.
+        // Delete every object it owns.
         while (!m_SubItemInfoList.empty()) {
             SubItemInfo* pSubItemInfo = m_SubItemInfoList.front();
             SAFE_DELETE(pSubItemInfo);
@@ -44,7 +44,7 @@ GCAddItemToZone::~GCAddItemToZone() noexcept {
 }
 
 //////////////////////////////////////////////////////////////////////
-// �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void GCAddItemToZone::read(SocketInputStream& iStream)
 
@@ -83,7 +83,7 @@ void GCAddItemToZone::read(SocketInputStream& iStream)
     iStream.read(m_EnchantLevel);
     iStream.read(m_ItemNum);
 
-    // Sub ������ ������ �о� ���δ�.
+    // Read the sub item information.
     iStream.read(m_ListNum);
     for (int i = 0; i < m_ListNum; i++) {
         SubItemInfo* pSubItemInfo = new SubItemInfo();
@@ -97,7 +97,7 @@ void GCAddItemToZone::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////
-// ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void GCAddItemToZone::write(SocketOutputStream& oStream) const
 
@@ -136,7 +136,7 @@ void GCAddItemToZone::write(SocketOutputStream& oStream) const
     oStream.write(m_EnchantLevel);
     oStream.write(m_ItemNum);
 
-    // Sub �������� ������ ����.
+    // Write the sub item information.
     oStream.write(m_ListNum);
 
     for (list<SubItemInfo*>::const_iterator itr = m_SubItemInfoList.begin(); itr != m_SubItemInfoList.end(); itr++) {

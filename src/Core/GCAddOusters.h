@@ -17,14 +17,13 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class GCAddOusters;
-// 로그인이나 포탈, 텔레포트 등으로 슬레이어가 존에 새로 들어갔을 경우, 또는
-// 슬레이어가 존에서 이동할 경우,(1) 이미 이 슬레이어에 대한 정보를 갖고 있는
-//(즉 이 슬레이어를 보고 있는..) 영역에 존재하는 PC들에게는 GCMove 패킷을
-// 브로드캐스트한다. 그러나,(2) 이 슬레이어를 처음 보게 되는 영역에 존재하는
-// PC들에게는 GCAddOusters 패킷을 브로드캐스트한다. 또한,(3) 이 슬레이어는
-// 자신이 새로 개척한 시야(?) 안에 존재하는 슬레이어들의 정보를 GCAddOusters에
-// 담아서 받게 된다.
-// 멍~~
+// When a slayer newly enters a zone through login, a portal or a teleport, or
+// when a slayer moves within a zone,(1) the PCs in the area that already hold
+// information about this slayer (that is, that can see it) get the GCMove packet
+// broadcast to them. But,(2) the PCs in the area that see this slayer
+// for the first time get the GCAddOusters packet broadcast to them. Also,(3)
+// this slayer receives, inside GCAddOusters, the information about the
+// slayers within its newly opened field of view.
 //////////////////////////////////////////////////////////////////////////////
 
 class GCAddOusters : public Packet {
@@ -85,9 +84,9 @@ public:
     }
 
 private:
-    PCOustersInfo3 m_OustersInfo; // 슬레이어의 외모 정보
-    EffectInfo* m_pEffectInfo;    // 걸려있는 이펙트 정보
-    PetInfo* m_pPetInfo;          // 걸려있는 이펙트 정보
+    PCOustersInfo3 m_OustersInfo; // Slayer's appearance information
+    EffectInfo* m_pEffectInfo;    // Information about the effects in force
+    PetInfo* m_pPetInfo;          // Information about the effects in force
     NicknameInfo* m_pNicknameInfo;
     StoreOutlook m_StoreOutlook;
 };

@@ -43,7 +43,7 @@ void GCExchangeList::read(SocketInputStream& iStream) {
     // the wire carried. The client's counterpart clears here too.
     m_Listings.clear();
 
-    // Read listings — this must stay an exact mirror of write() below, both in
+    // Read listings -- this must stay an exact mirror of write() below, both in
     // field order and in the clamping of every length-prefixed string. Each
     // string's else-branch is part of that mirror: a zero length on the wire
     // must leave an empty string, not the value the listing happened to hold.

@@ -23,10 +23,10 @@ class GCChangeDarkLight : public Packet {
 public:
     GCChangeDarkLight(){};
     ~GCChangeDarkLight(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -37,7 +37,7 @@ public:
 
     // get packet's body size
     // *OPTIMIZATION HINT*
-    // const static GCChangeDarkLightPacketSize 를 정의, 리턴하라.
+    // Define and return const static GCChangeDarkLightPacketSize.
     PacketSize_t getPacketSize() const {
         return szDarkLevel + szLightLevel;
     }
@@ -69,10 +69,10 @@ public:
 
 
 public:
-    // 존의 어둡기(0 - 15)
+    // Zone darkness (0 - 15)
     DarkLevel_t m_DarkLevel = 0;
 
-    // 존의 빛의 크기(1 - 13)
+    // Size of the zone's light (1 - 13)
     LightLevel_t m_LightLevel = 0;
 };
 
@@ -108,7 +108,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCChangeDarkLightPacketSize 를 정의, 리턴하라.
+    // Define and return const static GCChangeDarkLightPacketSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

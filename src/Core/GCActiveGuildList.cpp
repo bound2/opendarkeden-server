@@ -33,7 +33,7 @@ GCActiveGuildList::~GCActiveGuildList()
 }
 
 //////////////////////////////////////////////////////////////////////
-// �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void GCActiveGuildList::read(SocketInputStream& iStream) {
     __BEGIN_TRY
@@ -56,7 +56,7 @@ void GCActiveGuildList::read(SocketInputStream& iStream) {
 
 
 //////////////////////////////////////////////////////////////////////
-// ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void GCActiveGuildList::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
@@ -81,7 +81,7 @@ void GCActiveGuildList::clearGuildInfoList()
 {
     __BEGIN_TRY
 
-    // GuildInfoList �� �����Ѵ�
+    // Delete the GuildInfoList
     while (!m_GuildInfoList.empty()) {
         GuildInfo* pGuildInfo = m_GuildInfoList.front();
         m_GuildInfoList.pop_front();
