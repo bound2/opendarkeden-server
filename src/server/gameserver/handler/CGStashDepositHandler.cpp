@@ -50,8 +50,8 @@ void CGStashDepositHandler::execute(CGStashDeposit* pPacket, Player* pPlayer) {
         if (pSlayer->getGold() < amount)
             return;
 
-        // 보관함에 들어갈 수 있는 돈보다 많은 양의 돈을 넣으려 한다면
-        // 일부만 넣고, 나머지는 걍 플레이어에게 남겨놓아야 한다.
+        // When more money than the stash can hold is put in,
+        // only part goes in and the rest stays with the player.
         if (pSlayer->getStashGold() + amount > MAX_MONEY) {
             Gold_t margin = MAX_MONEY - pSlayer->getStashGold();
             // pSlayer->setGoldEx(pSlayer->getGold() - margin);

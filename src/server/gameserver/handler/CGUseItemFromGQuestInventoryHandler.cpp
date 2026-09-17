@@ -132,7 +132,7 @@ void CGUseItemFromGQuestInventoryHandler::execute(CGUseItemFromGQuestInventory* 
     giveLotto(pPC, 4, 3);
     filelog("ChoboEvent.log", "%s open %d box", pPC->getName().c_str(), iType);
 
-    // ItemTraceLog 를 남긴다
+    // Leave an ItemTraceLog
     if (pItem != NULL && pItem->isTraceItem()) {
         remainTraceLog(pItem, "GQuestBox", pPC->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
     }

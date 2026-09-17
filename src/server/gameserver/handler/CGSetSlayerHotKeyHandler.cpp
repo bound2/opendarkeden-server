@@ -29,8 +29,8 @@ void CGSetSlayerHotKeyHandler::execute(CGSetSlayerHotKey* pPacket, Player* pPlay
 
     //	if (pGamePlayer->getPlayerStatus() == GPS_NORMAL) {
 
-            // 이 상태에서는 크리처가 옳게 로딩되었어야 하므로, NULL 이 아니어야 한다.
-            // PLAYER_INGAME 자체가 크리처 로딩이 성공되었음을 의미한다.
+            // In this state the creature must have loaded correctly, so it must not be NULL.
+            // PLAYER_INGAME itself means the creature loading succeeded.
             Creature* pCreature = pGamePlayer->getCreature();
             Assert(pCreature != NULL);
             if (pCreature->isSlayer()) {

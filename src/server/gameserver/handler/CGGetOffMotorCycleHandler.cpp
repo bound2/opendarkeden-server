@@ -30,7 +30,7 @@ void CGGetOffMotorCycleHandler::execute(CGGetOffMotorCycle* pPacket, Player* pPl
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
 
-    // 플레이어의 상태가 정상적인 상태인지를 검사한다.
+    // Check that the player's state is normal.
     if (pGamePlayer->getPlayerStatus() != GPS_NORMAL) {
         GCGetOffMotorCycleFailed _GCGetOffMotorCycleFailed;
         pPlayer->sendPacket(&_GCGetOffMotorCycleFailed);
@@ -39,7 +39,7 @@ void CGGetOffMotorCycleHandler::execute(CGGetOffMotorCycle* pPacket, Player* pPl
 
     Creature* pCreature = pGamePlayer->getCreature();
 
-    // 슬레이어이인지를 검사한다.
+    // Check that it is a Slayer.
     if (!pCreature->isSlayer()) {
         GCGetOffMotorCycleFailed _GCGetOffMotorCycleFailed;
         pPlayer->sendPacket(&_GCGetOffMotorCycleFailed);
@@ -51,12 +51,12 @@ void CGGetOffMotorCycleHandler::execute(CGGetOffMotorCycle* pPacket, Player* pPl
     bool bSuccess = false;
     Zone* pZone = pSlayer->getZone();
 
-    // 오토바이를 타고 있다면...
+    // If riding a motorcycle...
     if (pMotorcycle != NULL) {
         ZoneCoord_t x = pSlayer->getX();
         ZoneCoord_t y = pSlayer->getY();
 
-        // 일반 지역이 아니라면 (0이 일반 지역이다.), 운영자만이 내릴 수 있다.
+        // Outside an ordinary area (0 is the ordinary one), only a GM can get off.
         if (pZone->getZoneLevel(x, y) & SAFE_ZONE) {
             if (pSlayer->isGOD() || pSlayer->isDM())
                 bSuccess = true;

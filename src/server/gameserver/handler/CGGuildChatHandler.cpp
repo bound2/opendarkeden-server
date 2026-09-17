@@ -49,7 +49,7 @@ void CGGuildChatHandler::execute(CGGuildChat* pPacket, Player* pPlayer)
     ggGuildChat.setColor(pPacket->getColor());
     ggGuildChat.setMessage(pPacket->getMessage());
 
-    // 각 서버로 보낸다.
+    // Send it to each server.
     HashMapGameServerInfo** pGameServerInfos = g_pGameServerInfoManager->getGameServerInfos();
 
     static int myWorldID = g_pConfig->getPropertyInt("WorldID");

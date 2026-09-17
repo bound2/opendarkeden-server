@@ -32,12 +32,12 @@ void CGSayHandler::execute(CGSay* pPacket, Player* pPlayer) {
     try {
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
 
-        // �������� Ŭ���̾�Ʈ�� �����ϹǷ� GC- ��Ŷ�� ����ؾ� �Ѵ�.
+        // It goes from server to client, so a GC- packet must be used.
         GCSay gcSay;
 
         Creature* pCreature = pGamePlayer->getCreature();
 
-        // ũ��ó �̸��� �޽����� ��Ŷ�� �����Ѵ�.
+        // Put the creature name and the message into the packet.
         gcSay.setObjectID(pCreature->getObjectID());
         gcSay.setColor(pPacket->getColor());
 
@@ -61,12 +61,12 @@ void CGSayHandler::execute(CGSay* pPacket, Player* pPlayer) {
                 de::gm::operatorCommands().dispatch(command);
         }
 
-        // ä�� �α׸� �����. by sigi. 2002.10.30
+        // Leave a chat log.
         if (LogNameManager::getInstance().isExist(pCreature->getName())) {
             filelog("chatLog.txt", "[Say] %s> %s", pCreature->getName().c_str(), msg.c_str());
         }
 
-        // invisibility���¸� Ǭ��.
+        // Clear the invisibility state.
         if (pCreature->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
             Zone* pZone = pCreature->getZone();
             Assert(pZone);
@@ -78,7 +78,7 @@ void CGSayHandler::execute(CGSay* pPacket, Player* pPlayer) {
         }
 
         bool isVampire = false;
-        // �����̾ ����, �����̸� ���Ҽ�����.
+        // A transformed Vampire cannot speak.
         if (pCreature->isVampire()) {
             Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
 
@@ -100,7 +100,7 @@ void CGSayHandler::execute(CGSay* pPacket, Player* pPlayer) {
         }
 
         if (Success) {
-            // �ֺ� PC�鿡�� ��ε�ĳ��Ʈ�Ѵ�.
+            // Broadcast to the PCs nearby.
             //		pCreature->getZone()->broadcastSayPacket(pCreature->getX() , pCreature->getY() , &gcSay , pCreature,
             // isVampire);
             pCreature->getZone()->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcSay, pCreature);

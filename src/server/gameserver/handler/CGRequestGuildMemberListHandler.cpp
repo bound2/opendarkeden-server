@@ -37,7 +37,7 @@ void CGRequestGuildMemberListHandler::execute(CGRequestGuildMemberList* pPacket,
     PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pGamePlayer->getCreature());
     Assert(pPlayerCreature != NULL);
 
-    // 선택한 길드를 가져온다.
+    // Get the selected guild.
     Guild* pGuild = g_pGuildManager->getGuild(pPlayerCreature->getGuildID());
     // try { Assert(pGuild != NULL); } catch (Throwable& ) { return; }
     if (pGuild == NULL)

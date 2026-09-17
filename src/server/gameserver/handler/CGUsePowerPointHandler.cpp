@@ -26,7 +26,7 @@ struct POWER_POINT_ITEM_TEMPLATE {
     uint Ratio;
     string ItemName;
 };
-// edit by Coffee  2006-12-10  ÐÞ¸Ä²©²ÊÏµÍ³µÀ¾ß
+// change the gambling system items
 const POWER_POINT_ITEM_TEMPLATE PowerPointItemTemplate[7] = {
     {GCUsePowerPointResult::CANDY, Item::ITEM_CLASS_EVENT_ETC, 14, 20, "Áéµ¤"},
     {GCUsePowerPointResult::RESURRECTION_SCROLL, Item::ITEM_CLASS_RESURRECT_ITEM, 0, 20, "¸´»î¾íÖá"},
@@ -70,9 +70,9 @@ void CGUsePowerPointHandler::execute(CGUsePowerPoint* pPacket, Player* pPlayer)
 
     GCUsePowerPointResult gcUsePowerPointResult;
 
-    // ÆÄ¿ö Æ÷ÀÎÆ®°¡ ÀÖ´ÂÁö È®ÀÎ
+    // Check that there are power points
     if (pPC->getPowerPoint() < 300) {
-        // ÆÄ¿ö Æ÷ÀÎÆ®°¡ ºÎÁ·ÇÏ´Ù.
+        // There are not enough power points.
         gcUsePowerPointResult.setErrorCode(GCUsePowerPointResult::NOT_ENOUGH_POWER_POINT);
 
         pGamePlayer->sendPacket(&gcUsePowerPointResult);
@@ -80,10 +80,10 @@ void CGUsePowerPointHandler::execute(CGUsePowerPoint* pPacket, Player* pPlayer)
         return;
     }
 
-    // ÀÎº¥Åä¸®¿¡ °ø°£ÀÌ ÀÖ´ÂÁö È®ÀÎÇÑ´Ù.
+    // Check that there is room in the inventory.
     _TPOINT pt;
     if (!pPC->getInventory()->getEmptySlot(1, 2, pt)) {
-        // ÀÎº¥Åä¸®¿¡ °ø°£ÀÌ ºÎÁ·ÇÏ´Ù.
+        // There is not enough room in the inventory.
         gcUsePowerPointResult.setErrorCode(GCUsePowerPointResult::NOT_ENOUGH_INVENTORY_SPACE);
 
         pGamePlayer->sendPacket(&gcUsePowerPointResult);
@@ -91,7 +91,7 @@ void CGUsePowerPointHandler::execute(CGUsePowerPoint* pPacket, Player* pPlayer)
         return;
     }
 
-    // ¾ÆÀÌÅÛ ·£´ý »ý¼º
+    // Create the item at random
     int ratio = rand() % 100 + 1;
 
     GCUsePowerPointResult::ITEM_CODE itemCode;
@@ -114,20 +114,20 @@ void CGUsePowerPointHandler::execute(CGUsePowerPoint* pPacket, Player* pPlayer)
     }
 
     if (bFind) {
-        // ¾ÆÀÌÅÛ »ý¼º ¹× Ãß°¡
+        // Create and add the item
         list<OptionType_t> nullOption;
         Item* pItem = g_pItemFactoryManager->createItem(itemClass, itemType, nullOption);
 
         pPC->getZone()->registerObject(pItem);
 
         if (pPC->getInventory()->addItem(pItem, pt)) {
-            // DB ¿¡ ¾ÆÀÌÅÛ »ý¼º
+            // Create the item in the DB
             pItem->create(pPC->getName(), STORAGE_INVENTORY, 0, pt.x, pt.y);
 
-            // ItemTraceLog ¸¦ ¸¸±ä´Ù.
+            // Leave an ItemTraceLog.
             remainTraceLog(pItem, "Mofus", pPC->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
 
-            // °á°ú¸¦ Å¬¶óÀÌ¾ðÆ®¿¡ ¾Ë¸®±â
+            // Report the result to the client
             GCCreateItem gcCreateItem;
             gcCreateItem.setObjectID(pItem->getObjectID());
             gcCreateItem.setItemClass(pItem->getItemClass());
@@ -140,13 +140,13 @@ void CGUsePowerPointHandler::execute(CGUsePowerPoint* pPacket, Player* pPlayer)
 
             pPlayer->sendPacket(&gcCreateItem);
 
-            // ¾ÆÀÌÅÛ »ý¼º¿¡ ÇÊ¿äÇÑ ÆÄ¿öÂ¯ Æ÷ÀÎÆ®
+            // The power points needed to create the item
             static int RequirePowerPoint = -300;
 
-            // ÆÄ¿öÂ¯ Æ÷ÀÎÆ® ÀúÀå
+            // Save the power points
             pPC->setPowerPoint(savePowerPoint(pPC->getName(), RequirePowerPoint));
 
-            // °á°ú¸¦ Å¬¶óÀÌ¾ðÆ®¿¡ ¾Ë¸®±â
+            // Report the result to the client
             gcUsePowerPointResult.setErrorCode(GCUsePowerPointResult::NO_ERROR);
             gcUsePowerPointResult.setItemCode(itemCode);
             gcUsePowerPointResult.setPowerPoint(pPC->getPowerPoint());

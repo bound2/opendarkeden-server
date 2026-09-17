@@ -56,8 +56,8 @@ void CGModifyTaxRatioHandler::execute(CGModifyTaxRatio* pPacket, Player* pPlayer
         }
     }
 
-    if (!g_pGuildManager->isGuildMaster(guildID, pPC) // 길드 마스터가 아니다.
-        || !bOwner                                    // 이 플레이어의 길드가 점령한 성이 아니다.
+    if (!g_pGuildManager->isGuildMaster(guildID, pPC) // not the guild master.
+        || !bOwner                                    // not a castle this player's guild has taken.
         || pPacket->getRatio() > 10) {
         GCNPCResponse fail;
         fail.setCode(NPC_RESPONSE_MODIFY_TAX_RATIO_FAIL);

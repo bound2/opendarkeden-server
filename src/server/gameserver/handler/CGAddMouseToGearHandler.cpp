@@ -58,11 +58,11 @@ void CGAddMouseToGearHandler::execute(CGAddMouseToGear* pPacket, Player* pPlayer
             ObjectID_t ItemObjectID = pItem->getObjectID();
             SlotID_t SlotID = pPacket->getSlotID();
 
-            // 아이템의 ObjectID가 일치하는지 체크한다.
+            // Check that the item's ObjectID matches.
             if (ItemObjectID == pPacket->getObjectID()) {
                 Item::ItemClass IClass = pItem->getItemClass();
 
-                switch (SlotID) // 슬랏을 보고 그 슬랏에 맞는 아이템 유형인지 비교한다.
+                switch (SlotID) // Look at the slot and compare whether the item type fits it.
                 {
                 case Slayer::WEAR_HEAD:
                     if (IClass == Item::ITEM_CLASS_HELM)
@@ -143,7 +143,7 @@ void CGAddMouseToGearHandler::execute(CGAddMouseToGear* pPacket, Player* pPlayer
                     break;
                 }
 
-                // 그 슬랏에 맞는 아이템을 장착하려고 하는지 체크한다.
+                // Check whether the item being equipped fits that slot.
                 if (Success)
                     pSlayer->wearItem((Slayer::WearPart)SlotID);
             }
@@ -163,11 +163,11 @@ void CGAddMouseToGearHandler::execute(CGAddMouseToGear* pPacket, Player* pPlayer
             ObjectID_t ItemObjectID = pItem->getObjectID();
             SlotID_t SlotID = pPacket->getSlotID();
 
-            // 아이템의 ObjectID가 일치하는지 체크한다.
+            // Check that the item's ObjectID matches.
             if (ItemObjectID == pPacket->getObjectID()) {
                 Item::ItemClass IClass = pItem->getItemClass();
 
-                switch (SlotID) // 슬랏을 보고 그 슬랏에 맞는 아이템 유형인지 비교한다.
+                switch (SlotID) // Look at the slot and compare whether the item type fits it.
                 {
                 case Vampire::WEAR_NECK:
                     if (IClass == Item::ITEM_CLASS_VAMPIRE_NECKLACE)
@@ -253,7 +253,7 @@ void CGAddMouseToGearHandler::execute(CGAddMouseToGear* pPacket, Player* pPlayer
                     break;
                 }
 
-                // 그 슬랏에 맞는 아이템을 장착하려고 하는지 체크한다.
+                // Check whether the item being equipped fits that slot.
                 if (Success)
                     pVampire->wearItem((Vampire::WearPart)SlotID);
             }
@@ -273,11 +273,11 @@ void CGAddMouseToGearHandler::execute(CGAddMouseToGear* pPacket, Player* pPlayer
             ObjectID_t ItemObjectID = pItem->getObjectID();
             SlotID_t SlotID = pPacket->getSlotID();
 
-            // 아이템의 ObjectID가 일치하는지 체크한다.
+            // Check that the item's ObjectID matches.
             if (ItemObjectID == pPacket->getObjectID()) {
                 Item::ItemClass IClass = pItem->getItemClass();
 
-                switch (SlotID) // 슬랏을 보고 그 슬랏에 맞는 아이템 유형인지 비교한다.
+                switch (SlotID) // Look at the slot and compare whether the item type fits it.
                 {
                 case Ousters::WEAR_CIRCLET:
                     if (IClass == Item::ITEM_CLASS_OUSTERS_CIRCLET)
@@ -340,13 +340,13 @@ void CGAddMouseToGearHandler::execute(CGAddMouseToGear* pPacket, Player* pPlayer
                     break;
                 }
 
-                // 그 슬랏에 맞는 아이템을 장착하려고 하는지 체크한다.
+                // Check whether the item being equipped fits that slot.
                 if (Success)
                     pOusters->wearItem((Ousters::WearPart)SlotID);
             }
         }
 
-        // Adding에 실패 하였을 경우
+        // When adding failed
         if (!Success) {
             GCCannotAdd _GCCannotAdd;
             _GCCannotAdd.setObjectID(pPacket->getObjectID());

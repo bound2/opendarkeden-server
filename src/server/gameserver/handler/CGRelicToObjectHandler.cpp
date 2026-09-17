@@ -59,32 +59,32 @@ void CGRelicToObjectHandler::execute(CGRelicToObject* pPacket, Player* pPlayer)
 #ifdef __GAME_SERVER__
 
         //	cout << "CGRelicToObject start" << endl;
-        //	cout << "받은 패킷(아이템 오브젝트)" << pPacket->getItemObjectID()
-        //		 << "받은 패킷(성물 보관함)"  << pPacket->getObjectID() << endl;
+        //	cout << "packet received (item object)" << pPacket->getItemObjectID()
+        //		 << "packet received (relic table)"  << pPacket->getObjectID() << endl;
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
-    // 렐릭을 해당 성물보관함에 넣을때..
+    // When a relic is put into the matching relic table..
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Creature* pCreature = pGamePlayer->getCreature();
 
-    // 성물 보관대에 이미 둘 다 있는 경우
-    // 성물 보관대에 Slayer성물이 있고 pItem이 Slayer성물인 경우
+    // When the relic table already holds both
+    // When the relic table holds a Slayer relic and pItem is a Slayer relic
     PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
     if (pPlayerCreature == NULL) {
         throw DisconnectException("CGRelicToObject : invalid state");
         return;
     }
 
-    // 현재 들고 있는 아이템 == Relic ?
+    // Is the item currently held == Relic ?
     InventorySlot* pExtraInventorySlot = pPlayerCreature->getExtraInventorySlot();
     Item* pItem = pExtraInventorySlot->getItem();
 
     if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_EVENT_ITEM && pItem->getItemType() == 31) {
         static map<string, string> scripts;
         if (scripts.empty()) {
-            // cout << "스크립트 초기화" << endl;
+            // cout << "Script initialization" << endl;
             scripts["존슨"] = "고맙소. 이 은혜 잊지않겠소";
             scripts["빌리"] = "얼른 다른 동료들도 구해주세요. 부탁입니다.";
             scripts["리"] = "우웃…. 겨우 살았군.";
@@ -108,7 +108,7 @@ void CGRelicToObjectHandler::execute(CGRelicToObject* pPacket, Player* pPlayer)
             GCCannotAdd _GCCannotAdd;
             _GCCannotAdd.setObjectID(pPacket->getObjectID());
             pPlayer->sendPacket(&_GCCannotAdd);
-            // cout << "몬스터가 없습니다." << endl;
+            // cout << "There is no monster." << endl;
 
             return;
         }
@@ -121,7 +121,7 @@ void CGRelicToObjectHandler::execute(CGRelicToObject* pPacket, Player* pPlayer)
             _GCCannotAdd.setObjectID(pPacket->getObjectID());
             pPlayer->sendPacket(&_GCCannotAdd);
 
-            // cout << "이상한 몬스터이거나 몬스터 이름이 틀립니다. : " << (int)pMonster->getMonsterType() << "," <<
+            // cout << "An odd monster, or the monster name is wrong: " << (int)pMonster->getMonsterType() << "," <<
             // pMonster->getName() << endl;
 
             return;
@@ -165,7 +165,7 @@ void CGRelicToObjectHandler::execute(CGRelicToObject* pPacket, Player* pPlayer)
     } else if (pItem->getItemClass() == Item::ITEM_CLASS_CASTLE_SYMBOL) {
         executeCastleSymbol(pPacket, pPlayer);
     } else if (pItem->isFlagItem()) {
-        // cout << "깃발 꼽기!" << endl;
+        // cout << "Plant the flag!" << endl;
         executeFlag(pPacket, pPlayer);
     } else if (pItem->getItemClass() == Item::ITEM_CLASS_SWEEPER) {
         executeSweeper(pPacket, pPlayer);
@@ -185,15 +185,15 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
 
 #ifdef __GAME_SERVER__
 
-    // 렐릭을 해당 성물보관함에 넣을때..
+    // When a relic is put into the matching relic table..
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Creature* pCreature = pGamePlayer->getCreature();
 
-    // 성물 보관대에 이미 둘 다 있는 경우
-    // 성물 보관대에 Slayer성물이 있고 pItem이 Slayer성물인 경우
+    // When the relic table already holds both
+    // When the relic table holds a Slayer relic and pItem is a Slayer relic
     PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
 
-    // 현재 들고 있는 아이템 == Relic ?
+    // Is the item currently held == Relic ?
     InventorySlot* pExtraInventorySlot = pPlayerCreature->getExtraInventorySlot();
     Item* pItem = pExtraInventorySlot->getItem();
 
@@ -205,9 +205,9 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
 
     Item* pTableItem = pZone->getItem(pPacket->getObjectID());
 
-    // 그런 item이 없거나
-    // 시체가 아니거나
-    // Monster시체가 아니면 성물보관대가 아니다.
+    // No such item, or
+    // not a corpse, or
+    // not a Monster corpse: then it is not a relic table.
     if (pTableItem == NULL || pTableItem->getItemClass() != Item::ITEM_CLASS_CORPSE ||
         pTableItem->getItemType() != MONSTER_CORPSE) {
         GCCannotAdd _GCCannotAdd;
@@ -218,11 +218,11 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
         return;
     }
 
-    // 성물 보관대
+    // Relic table
     MonsterCorpse* pCorpse = dynamic_cast<MonsterCorpse*>(pTableItem);
     Assert(pCorpse != NULL);
 
-    // 2타일 안에 있어야 된다.
+    // It has to be within 2 tiles.
     if (!verifyDistance(pCreature, pCorpse->getX(), pCorpse->getY(), 2)) {
         GCCannotAdd _GCCannotAdd;
         _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -232,7 +232,7 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
         return;
     }
 
-    // Relic 소유 여부를 체크한다.
+    // Check whether a Relic is held.
     bool bPlayerHasSlayerRelic = pCreature->isFlag(Effect::EFFECT_CLASS_HAS_SLAYER_RELIC);
     bool bPlayerHasVampireRelic = pCreature->isFlag(Effect::EFFECT_CLASS_HAS_VAMPIRE_RELIC);
     bool bTableHasSlayerRelic = pCorpse->isFlag(Effect::EFFECT_CLASS_SLAYER_RELIC);
@@ -240,10 +240,10 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
     bool bSlayerRelicTable = pCorpse->isFlag(Effect::EFFECT_CLASS_SLAYER_RELIC_TABLE);
     bool bVampireRelicTable = pCorpse->isFlag(Effect::EFFECT_CLASS_VAMPIRE_RELIC_TABLE);
 
-    // 이미 두 성물이 다 있거나
-    // Player가 두 성물이 다 없거나
-    // item이 없는 경우?
-    // 성물이 아니거나
+    // Both relics are already there, or
+    // the Player has neither relic, or
+    // there is no item?
+    // or it is not a relic
     if ((bTableHasSlayerRelic && bTableHasVampireRelic) || (!bPlayerHasSlayerRelic && !bPlayerHasVampireRelic) ||
         pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_RELIC) {
         GCCannotAdd _GCCannotAdd;
@@ -256,7 +256,7 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
 
     ItemType_t relicIndex = pItem->getItemType();
 
-    // RelicInfo를 얻는다.
+    // Get the RelicInfo.
     const RelicInfo* pRelicInfo =
         dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
 
@@ -273,10 +273,10 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
     bool bSlayer = pCreature->isSlayer();
     bool bVampire = pCreature->isVampire();
 
-    // itemObjectID가 잘못되었거나
-    // 들고 있는 아이템이 없거나
-    // 남의 보관대이거나
-    // 이미 같은 종족의 성물이 있다면 넣을 수 없다.
+    // A wrong itemObjectID, or
+    // no item held, or
+    // someone else's table, or
+    // a relic of the same race already there: then it cannot be put in.
     if (pItem->getObjectID() != pPacket->getItemObjectID() || (bSlayer && bVampireRelicTable) ||
         (bVampire && bSlayerRelicTable) || (bTableHasSlayerRelic && pRelicInfo->relicType == RELIC_TYPE_SLAYER) ||
         (bTableHasVampireRelic && pRelicInfo->relicType == RELIC_TYPE_VAMPIRE)) {
@@ -288,14 +288,14 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
         return;
     }
 
-    // 슬레이어인 경우는 오토바이, 스나이핑상태 이면 안되고
-    // 뱀파이어인 경우는 변신상태, 투명상태이면 안된다.
+    // A Slayer must not be on a motorcycle or in sniping mode, and
+    // a Vampire must not be transformed or invisible.
     if (bSlayer) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
 
-        // 오토바이를 타고 있으면 불가능하다.
+        // Riding a motorcycle makes it impossible.
         if (!pSlayer->hasRideMotorcycle() && !pSlayer->isFlag(Effect::EFFECT_CLASS_SNIPING_MODE)) {
-            // Effect를 붙인다.
+            // Attach the Effect.
             Success = true;
         }
     } else if (bVampire) {
@@ -307,17 +307,17 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
         }
     }
 
-    // 성물보관대에 성물을 넣을 수 있는 경우
+    // When the relic can be put into the relic table
     if (Success) {
-        // Mouse에서 아이템을 지우고
+        // Erase the item from the Mouse and
         pPlayerCreature->deleteItemFromExtraInventorySlot();
 
-        // 성물을 성물 보관대에 추가한다.
+        // add the relic to the relic table.
         pCorpse->addTreasure(pItem);
 
         /*		StringStream msg;
-                msg << pPlayerCreature->getName() << " 님이 성물 보관대에 "
-                    << "성물(" << pRelicInfo->getName() << ")을 넣었습니다."; */
+                msg << pPlayerCreature->getName() << " put into the relic table "
+                    << "the relic (" << pRelicInfo->getName() << ")."; */
 
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_PUT_RELIC_TO_RELIC_TABLE), pPlayerCreature->getName().c_str(),
@@ -330,7 +330,7 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
         Effect::EffectClass effectClass;
         Effect::EffectClass effectClassTable;
 
-        // Creature에서 Effect를 제거하고
+        // Remove the Effect from the Creature and
         if (pRelicInfo->relicType == RELIC_TYPE_SLAYER) {
             effectClass = Effect::EFFECT_CLASS_HAS_SLAYER_RELIC;
             effectClassTable = Effect::EFFECT_CLASS_SLAYER_RELIC;
@@ -342,12 +342,12 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
         Effect* pEffect = pCreature->findEffect(effectClass);
         Assert(pEffect != NULL);
 
-        // Creature의 flag를 끄고
-        // GCRemoveEffect를 보내게 된다.
+        // turn the Creature's flag off and
+        // send GCRemoveEffect.
         pEffect->unaffect();
         pCreature->deleteEffect(effectClass);
 
-        // 성물 보관대가 Relic을 가졌다는 Effect를 붙여준다.
+        // Attach the Effect saying the relic table holds a Relic.
         if (pRelicInfo->relicType == RELIC_TYPE_SLAYER) {
             EffectSlayerRelic* pEffect = new EffectSlayerRelic(pCorpse);
 
@@ -362,14 +362,14 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
             pEffect->affect(pCorpse);
         }
 
-        // 성물보관대에 Effect를 붙인걸 client에 알린다.
+        // Tell the client that an Effect was attached to the relic table.
         GCAddEffect gcAddEffect;
         gcAddEffect.setObjectID(pCorpse->getObjectID());
         gcAddEffect.setEffectID(effectClassTable);
         gcAddEffect.setDuration(65000);
         pZone->broadcastPacket(pCorpse->getX(), pCorpse->getY(), &gcAddEffect);
 
-        // 성물 놓았다고 보내준다.
+        // Report that the relic was placed.
         GCDeleteObject gcDeleteObject;
         gcDeleteObject.setObjectID(pItem->getObjectID());
         pPlayer->sendPacket(&gcDeleteObject);
@@ -377,20 +377,20 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
         // RelicTable
         EffectRelicTable* pTableEffect = NULL;
         if (bSlayer) {
-            // 성물의 소유를 설정한다.
+            // Set the relic's owner.
             g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_SLAYER);
 
-            // 이펙트를 찾는다.
+            // Find the effect.
             Effect* pEffect = pCorpse->getEffectManager().findEffect(Effect::EFFECT_CLASS_SLAYER_RELIC_TABLE);
             Assert(pEffect != NULL);
 
             pTableEffect = dynamic_cast<EffectSlayerRelicTable*>(pEffect);
             Assert(pTableEffect != NULL);
         } else {
-            // 성물의 소유를 설정한다.
+            // Set the relic's owner.
             g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
 
-            // 이펙트를 찾는다.
+            // Find the effect.
             Effect* pEffect = pCorpse->getEffectManager().findEffect(Effect::EFFECT_CLASS_VAMPIRE_RELIC_TABLE);
             Assert(pEffect != NULL);
 
@@ -398,25 +398,25 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
             Assert(pTableEffect != NULL);
         }
 
-        // 성물이 하나 들어가면
-        // 한 동안(10초)은 성물을 빼낼 수 없다.
+        // Once one relic goes in,
+        // no relic can be taken out for a while (10 seconds).
         Timeval lockTime;
         getCurrentTime(lockTime);
         lockTime.tv_sec += 10;
         pTableEffect->setLockTime(lockTime);
 
 
-        // 두 성물을 모두 갖게 되는 경우
+        // When both relics end up held
         if ((bTableHasSlayerRelic && pRelicInfo->relicType == RELIC_TYPE_VAMPIRE) ||
             (bTableHasVampireRelic && pRelicInfo->relicType == RELIC_TYPE_SLAYER))
 
         {
-            // 성물 보관대가 안전한 시간 설정
+            // Set the relic table's safe time
             Timeval safeTime;
             getCurrentTime(safeTime);
             safeTime.tv_sec += g_pVariableManager->getCombatBonusTime() * 60;
 
-            // 승리 message 를 보내준다.
+            // Send the victory message.
             GCSystemMessage gcSystemMessage;
 
             pTableEffect->setSafeTime(safeTime);
@@ -429,10 +429,10 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
                 g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
             }
 
-            // 전쟁이 종료되었다.
+            // The war has ended.
             g_pCombatInfoManager->setCombat(false);
 
-            // 전체 사용자에게 message를 보낸다.
+            // Send the message to every user.
             g_pZoneGroupManager->broadcast(&gcSystemMessage);
 
             g_pCombatInfoManager->computeModify();
@@ -461,20 +461,20 @@ void CGRelicToObjectHandler::executeBloodBible(CGRelicToObject* pPacket, Player*
     Assert(pZone != NULL);
 
 
-    // 성물 보관대에 이미 둘 다 있는 경우
-    // 성물 보관대에 Slayer성물이 있고 pItem이 Slayer성물인 경우
+    // When the relic table already holds both
+    // When the relic table holds a Slayer relic and pItem is a Slayer relic
     PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
 
-    // 현재 들고 있는 아이템 == Relic ?
+    // Is the item currently held == Relic ?
     InventorySlot* pExtraInventorySlot = pPlayerCreature->getExtraInventorySlot();
     Item* pItem = pExtraInventorySlot->getItem();
 
     Item* pTableItem = pZone->getItem(pPacket->getObjectID());
 
-    // 그런 item이 없거나
-    // 시체가 아니거나
-    // Monster시체가 아니거나
-    // ShrineGuard도 ShrineHoly도 아니면.. 성단이 아니지.
+    // No such item, or
+    // not a corpse, or
+    // Not a Monster corpse, or
+    // neither a ShrineGuard nor a ShrineHoly: then it is not a shrine.
     if (pTableItem == NULL || pTableItem->getItemClass() != Item::ITEM_CLASS_CORPSE ||
         pTableItem->getItemType() != MONSTER_CORPSE ||
         (!pTableItem->isFlag(Effect::EFFECT_CLASS_SHRINE_GUARD) &&
@@ -487,12 +487,12 @@ void CGRelicToObjectHandler::executeBloodBible(CGRelicToObject* pPacket, Player*
         return;
     }
 
-    // 성단
+    // Shrine
     MonsterCorpse* pCorpse = dynamic_cast<MonsterCorpse*>(pTableItem);
     Assert(pCorpse != NULL);
 
-    // 2타일 안에 있지 않거나
-    // shrine으로 설정이 안되어 있으면
+    // Not within 2 tiles, or
+    // not set up as a shrine
     if (!verifyDistance(pCreature, pCorpse->getX(), pCorpse->getY(), 2) || !pCorpse->isShrine()) {
         GCCannotAdd _GCCannotAdd;
         _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -503,7 +503,7 @@ void CGRelicToObjectHandler::executeBloodBible(CGRelicToObject* pPacket, Player*
     }
 
     if (g_pShrineInfoManager->putBloodBible(pPlayerCreature, pItem, pCorpse)) {
-        // putBloodBible 안에서 처리한다.
+        // Handled inside putBloodBible.
     }
 
 #endif
@@ -523,11 +523,11 @@ void CGRelicToObjectHandler::executeCastleSymbol(CGRelicToObject* pPacket, Playe
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 성물 보관대에 이미 둘 다 있는 경우
-    // 성물 보관대에 Slayer성물이 있고 pItem이 Slayer성물인 경우
+    // When the relic table already holds both
+    // When the relic table holds a Slayer relic and pItem is a Slayer relic
     PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
 
-    // 현재 들고 있는 아이템 == Relic ?
+    // Is the item currently held == Relic ?
     InventorySlot* pExtraInventorySlot = pPlayerCreature->getExtraInventorySlot();
     Item* pItem = pExtraInventorySlot->getItem();
 
@@ -536,10 +536,10 @@ void CGRelicToObjectHandler::executeCastleSymbol(CGRelicToObject* pPacket, Playe
 
     //	cout << "executeCastleSymbol" << endl;
 
-    // 그런 item이 없거나
-    // 시체가 아니거나
-    // Monster시체가 아니거나
-    // ShrineGuard도 ShrineHoly도 아니면.. 성단이 아니지.
+    // No such item, or
+    // not a corpse, or
+    // Not a Monster corpse, or
+    // neither a ShrineGuard nor a ShrineHoly: then it is not a shrine.
     if (pTableItem == NULL || pTableItem->getItemClass() != Item::ITEM_CLASS_CORPSE ||
         pTableItem->getItemType() != MONSTER_CORPSE ||
         (!pTableItem->isFlag(Effect::EFFECT_CLASS_CASTLE_SHRINE_GUARD) &&
@@ -552,12 +552,12 @@ void CGRelicToObjectHandler::executeCastleSymbol(CGRelicToObject* pPacket, Playe
         return;
     }
 
-    // 성단
+    // Shrine
     MonsterCorpse* pCorpse = dynamic_cast<MonsterCorpse*>(pTableItem);
     Assert(pCorpse != NULL);
 
-    // 2타일 안에 있지 않거나
-    // shrine으로 설정이 안되어 있으면
+    // Not within 2 tiles, or
+    // not set up as a shrine
     if (!verifyDistance(pCreature, pCorpse->getX(), pCorpse->getY(), 2) || !pCorpse->isShrine()) {
         GCCannotAdd _GCCannotAdd;
         _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -594,20 +594,20 @@ void CGRelicToObjectHandler::executeFlag(CGRelicToObject* pPacket, Player* pPlay
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 성물 보관대에 이미 둘 다 있는 경우
-    // 성물 보관대에 Slayer성물이 있고 pItem이 Slayer성물인 경우
+    // When the relic table already holds both
+    // When the relic table holds a Slayer relic and pItem is a Slayer relic
     PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
 
-    // 현재 들고 있는 아이템 == Flag ?
+    // Is the item currently held == Flag ?
     InventorySlot* pExtraInventorySlot = pPlayerCreature->getExtraInventorySlot();
     Item* pItem = pExtraInventorySlot->getItem();
 
     Item* pTableItem = pZone->getItem(pPacket->getObjectID());
 
-    // 그런 item이 없거나
-    // 시체가 아니거나
-    // Monster시체가 아니거나
-    // 깃대가 아니면
+    // No such item, or
+    // not a corpse, or
+    // Not a Monster corpse, or
+    // Not a flagpole
     if (pTableItem == NULL || pTableItem->getItemClass() != Item::ITEM_CLASS_CORPSE ||
         pTableItem->getItemType() != MONSTER_CORPSE ||
         !g_pFlagManager->isFlagPole(dynamic_cast<MonsterCorpse*>(pTableItem))) {
@@ -619,12 +619,12 @@ void CGRelicToObjectHandler::executeFlag(CGRelicToObject* pPacket, Player* pPlay
         return;
     }
 
-    // 성단
+    // Shrine
     MonsterCorpse* pCorpse = dynamic_cast<MonsterCorpse*>(pTableItem);
     Assert(pCorpse != NULL);
 
-    // 2타일 안에 있지 않거나
-    // shrine으로 설정이 안되어 있으면
+    // Not within 2 tiles, or
+    // not set up as a shrine
     if (!verifyDistance(pCreature, pCorpse->getX(), pCorpse->getY(), 2) || !pCorpse->isShrine()) {
         GCCannotAdd _GCCannotAdd;
         _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -635,8 +635,8 @@ void CGRelicToObjectHandler::executeFlag(CGRelicToObject* pPacket, Player* pPlay
     }
 
     if (g_pFlagManager->putFlag(pPlayerCreature, pItem, pCorpse)) {
-        // putCastleSymbol 안에서 처리한다.
-        // cout << "깃발 꽂았지롱~" << endl;
+        // Handled inside putCastleSymbol.
+        // cout << "Flag planted" << endl;
     } else {
         GCCannotAdd _GCCannotAdd;
         _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -679,10 +679,10 @@ void CGRelicToObjectHandler::executeSweeper(CGRelicToObject* pPacket, Player* pP
     const SweeperInfo* pSweeperInfo =
         dynamic_cast<SweeperInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, pItem->getItemType()));
 
-    // 그런 item이 없거나
-    // 시체가 아니거나
-    // Monster시체가 아니거나
-    // 깃대가 아니면
+    // No such item, or
+    // not a corpse, or
+    // Not a Monster corpse, or
+    // Not a flagpole
     if (pTableItem == NULL || pTableItem->getItemClass() != Item::ITEM_CLASS_CORPSE ||
         pTableItem->getItemType() != MONSTER_CORPSE ||
         !pLevelWarManager->isSafe(dynamic_cast<MonsterCorpse*>(pTableItem))) {
@@ -694,12 +694,12 @@ void CGRelicToObjectHandler::executeSweeper(CGRelicToObject* pPacket, Player* pP
         return;
     }
 
-    // 성단
+    // Shrine
     MonsterCorpse* pCorpse = dynamic_cast<MonsterCorpse*>(pTableItem);
     Assert(pCorpse != NULL);
 
-    // 2타일 안에 있지 않거나
-    // shrine으로 설정이 안되어 있으면
+    // Not within 2 tiles, or
+    // not set up as a shrine
     if (!verifyDistance(pCreature, pCorpse->getX(), pCorpse->getY(), 2)) {
         GCCannotAdd _GCCannotAdd;
         _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -710,7 +710,7 @@ void CGRelicToObjectHandler::executeSweeper(CGRelicToObject* pPacket, Player* pP
     }
 
     if (pLevelWarManager->putSweeper(pPlayerCreature, pItem, pCorpse)) {
-        // Sweeper 를 꽂았으면 가지고 있던 건 지워준다
+        // Once the Sweeper is planted, the one held is erased
         pPlayerCreature->deleteItemFromExtraInventorySlot();
         GCDeleteInventoryItem gcDeleteInventoryItem;
         gcDeleteInventoryItem.setObjectID(pPacket->getItemObjectID());
@@ -721,7 +721,7 @@ void CGRelicToObjectHandler::executeSweeper(CGRelicToObject* pPacket, Player* pP
             pEffect->setDeadline(0);
         }
 
-        // 꽂았을 때 존에 시스템 메세지를 뿌려준다
+        // Broadcast a system message to the zone when it is planted
         char race[15];
         if (pCreature->isSlayer()) {
             sprintf(race, g_pStringPool->c_str(STRID_SLAYER));

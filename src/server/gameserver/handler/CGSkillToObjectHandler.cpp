@@ -49,7 +49,7 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
 
         SkillType_t SkillType = pPacket->getSkillType();
 
-        // 완전 안전지대라면 기술 사용 불가. by sigi. 2002.11.14
+        // A complete safe zone forbids skill use.
         ZoneLevel_t ZoneLevel = pZone->getZoneLevel(pCreature->getX(), pCreature->getY());
         if ((ZoneLevel & COMPLETE_SAFE_ZONE) || (pCreature->isFlag(Effect::EFFECT_CLASS_PARALYZE)) ||
             (pCreature->isFlag(Effect::EFFECT_CLASS_CAUSE_CRITICAL_WOUNDS)) ||
@@ -117,7 +117,7 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
                             g_Sniping.checkRevealRatio(pSlayer, 20, 10);
                         } */
 
-            // 만약에 같은 종족의 성물보관함이라면 기술이 사용되지 않는다.
+            // A relic table of one's own race does not accept the skill.
             /*	if (pTargetCreature->isMonster() )
                 {
                     Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
@@ -148,7 +148,7 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
             VampireSkillSlot* pVampireSkillSlot = pVampire->hasSkill(SkillType);
             bool bSuccess = true;
 
-            // BITE OF DEATH 워울프 체크는 isAbleToUseObjectSkill 안에서 한다.
+            // The BITE OF DEATH werewolf check happens inside isAbleToUseObjectSkill.
             if (pVampireSkillSlot == NULL && SkillType != SKILL_BITE_OF_DEATH)
                 bSuccess = false;
             if (!isAbleToUseObjectSkill(pVampire))
@@ -159,16 +159,16 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
                             addVisibleCreature(pZone, pVampire, true);
                         } */
 
-            // 만약 EXTREME 기술을 사용한 상태라면 기술을 해제해 주어야 한다.
-            // EXTREME 기술은 다른 기술과 병행해서 사용하지 못한다.
-            // 이유는 EXTREME기술의 데미지 상승이 너무 크기 때문이고.
-            // EXTREME기술을 사용한 상태에서 다른 기술을 사용할때 Effect가 없기 때문이다.
+            // An EXTREME skill in use has to be released.
+            // The EXTREME skill cannot be used alongside another skill.
+            // The reason is that EXTREME raises the damage far too much, and
+            // that using another skill while EXTREME is up leaves no Effect.
 
             // 2002.4.1
-            // EXTREME 기술을 사용한 상태에서 MELEE Attack에 대해서는 사용가능하도록 수정했다.
-            // 맨손 공격만으로는 너무 부족하다는 의견때문
-            // EXTREME 기술을 사용한 상태에서 사용할 수 있는 MELEE Skill은
-            //  ACID TOUCH, POISONOUS HAND, BLOODY NAIL이 있다.
+            // It was changed so that a MELEE Attack can be used while EXTREME is up.
+            // because bare-handed attacks alone were felt to be too weak
+            // The MELEE skills usable while EXTREME is up are
+            //  ACID TOUCH, POISONOUS HAND and BLOODY NAIL.
             //
 
             /*			if (pVampire->isFlag(Effect::EFFECT_CLASS_EXTREME))
@@ -186,7 +186,7 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
                         } */
 
             /*
-            // 만약에 같은 종족의 성물보관함이라면 기술이 사용되지 않는다.
+            // A relic table of one's own race does not accept the skill.
             if (pTargetCreature->isMonster() )
             {
                 Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);

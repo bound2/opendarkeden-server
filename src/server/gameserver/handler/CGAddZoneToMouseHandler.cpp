@@ -67,37 +67,37 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
         ZoneCoord_t ZoneX = pPacket->getZoneX();
         ZoneCoord_t ZoneY = pPacket->getZoneY();
 
-        // 바운드를 넘어가지는 않는지 체크한다.
+        // Check that the bounds are not crossed.
         if (!isValidZoneCoord(pZone, ZoneX, ZoneY))
             goto ERROR;
 
         Tile& _Tile = pZone->getTile(ZoneX, ZoneY);
 
 
-        // 타일에 아이템이 없다면 당연히 더할 수 없다.
+        // With no item on the tile there is of course nothing to add.
         if (!_Tile.hasItem())
             goto ERROR;
 
-        // 아이템 포인터가 널이거나, 주을 수 없는 아이템이라면 주을 수 없다.
+        // A null item pointer, or an item that cannot be picked up, cannot be taken.
         Item* pItem = _Tile.getItem();
         if (pItem == NULL || !isPortableItem(pItem))
             goto ERROR;
         if (!isAbleToPickupItem(pPC, pItem))
             goto ERROR;
 
-        // 피의 성서일 경우 주울 수 있는지 확인한다. --> isAbleToPickupItem 내부에 넣었다.
+        // For the blood bible, check whether it can be picked up. --> moved inside isAbleToPickupItem.
 
         ObjectID_t ItemObjectID = pItem->getObjectID();
 
-        // 아이템의 ObjectID가 일치하는지 체크한다.
+        // Check that the item's ObjectID matches.
         if (ItemObjectID == pPacket->getObjectID()) {
             Item* pExtraItem = pPC->getExtraInventorySlotItem();
 
-            // 이미 무언가를 들고 있다면, 아이템을 더할 수 없다.
+            // If something is already held, the item cannot be added.
             if (pExtraItem != NULL)
                 goto ERROR;
 
-            // 우선권이 붙어있는 아이템일 경우에는 주인 또는 주인파티가 아니라면 주을 수 없다.
+            // An item carrying precedence can be picked up only by its owner or the owner's party.
             if (pItem->isFlag(Effect::EFFECT_CLASS_PRECEDENCE)) {
                 Timeval currentTime;
                 getCurrentTime(currentTime);
@@ -108,20 +108,20 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
                     dynamic_cast<EffectPrecedence*>(rEffectManager.findEffect(Effect::EFFECT_CLASS_PRECEDENCE));
                 Assert(pEffectPrecedence != NULL);
 
-                // Relic이면 아무나 주울 수 있다.
+                // A Relic can be picked up by anyone.
                 if (isRelicItem(pItem) || pEffectPrecedence->getDeadline() < currentTime) {
-                    // 시간이 지났다면 아무나 주을 수 있다. 더불어 여기서 이펙트를 삭제해준다.
+                    // Once the time has passed anyone may pick it up. The effect is deleted here as well.
                     rEffectManager.deleteEffect(Effect::EFFECT_CLASS_PRECEDENCE);
                     pItem->removeFlag(Effect::EFFECT_CLASS_PRECEDENCE);
                 } else {
-                    // 시간이 아직 지나지 않았다면, 주인 또는 주인 파티만이 주을 수 있다.
+                    // While the time has not passed, only the owner or the owner's party may pick it up.
                     if ((pEffectPrecedence->getHostName() == pPC->getName()) ||
                         (pPC->getPartyID() != 0 && pPC->getPartyID() == pEffectPrecedence->getHostPartyID())) {
-                        // 주을 수 있다. 이펙트를 삭제해 준다.
+                        // It can be picked up. Delete the effect.
                         rEffectManager.deleteEffect(Effect::EFFECT_CLASS_PRECEDENCE);
                         pItem->removeFlag(Effect::EFFECT_CLASS_PRECEDENCE);
                     } else {
-                        // 주을 수 없다.
+                        // It cannot be picked up.
                         goto ERROR;
                     }
                 }
@@ -130,8 +130,8 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
             /*
             #ifdef __XMAS_EVENT_CODE__
                         Inventory* pInventory = pPC->getInventory();
-                        // 주으려는 아이템이 녹색 선물 상자라면,
-                        // 인벤토리에 녹색 선물 상자를 가지고 있다면 주을 수 없다.
+                        // If the item being picked up is a green gift box,
+                        // it cannot be picked up while a green gift box is in the inventory.
                         if (pItem->getItemClass() == Item::ITEM_CLASS_EVENT_GIFT_BOX &&
                             pItem->getItemType() == 0 &&
                             pInventory->hasGreenGiftBox()) goto ERROR;
@@ -142,16 +142,16 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
             Item::ItemClass itemclass = pItem->getItemClass();
             // ItemType_t itemtype = pItem->getItemType();
 
-            // relic인 경우는 이미 갖고 있는 relic종류를 또 가질 수는 없다.
-            // 가질 수 있다면 relic을 가졌다는 effect를 걸어주고
-            // CombatInfoManager에 소유자 값을 설정해준다.
+            // For a relic, a relic kind already held cannot be held again.
+            // If it can be held, attach the effect that says the relic is held and
+            // set the owner value in the CombatInfoManager.
             if (isRelicItem(itemclass)) {
                 addRelicEffect(pPC, pItem);
 
                 deleteEffectRelicPosition(pItem);
             }
 
-            // Flag인 경우엔 Flag 를 붙여준다.
+            // For a Flag, attach the Flag.
             if (pItem->isFlagItem()) {
                 addSimpleCreatureEffect(pPC, Effect::EFFECT_CLASS_HAS_FLAG);
             }
@@ -171,7 +171,7 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
 
                 pZone->broadcastPacket(pPC->getX(), pPC->getY(), &gcAddEffect);
 
-                // 주웠으면 존에 시스템 메세지 뿌려준다
+                // Once picked up, broadcast a system message to the zone
                 char race[15];
                 if (pCreature->isSlayer()) {
                     sprintf(race, g_pStringPool->c_str(STRID_SLAYER));
@@ -197,13 +197,13 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
             pZone->deleteItem(pItem, ZoneX, ZoneY);
             pPC->addItemToExtraInventorySlot(pItem);
 
-            // 주은 놈에게 잘 주었다고 결과를 알려준다.
+            // Tell the one who picked it up that it worked.
             GCDeleteandPickUpOK _GCDeleteandPickUpOK;
             GCDeleteObject _GCDeleteObject;
             _GCDeleteandPickUpOK.setObjectID(pItem->getObjectID());
             pPlayer->sendPacket(&_GCDeleteandPickUpOK);
 
-            // 근처에 있는 다른 사람들에겐 아이템에 사라졌다는 것을 보내준다.
+            // Tell the others nearby that the item has disappeared.
             _GCDeleteObject.setObjectID(pItem->getObjectID());
             //			pZone->broadcastPacket(pPC->getX(), pPC->getY(), &_GCDeleteObject, pPC);
             //			pZone->broadcastPacket(ZoneX, ZoneY, &_GCDeleteObject, pPC);
@@ -211,14 +211,14 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
 
             Success = true;
 
-            // 아이템을 저장한다.
+            // Save the item.
             // pItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-            // item저장 최적화. by sigi. 2002.5.13
+            // Item save optimization.
             char pField[80];
             sprintf(pField, "OwnerID='%s', Storage=%d", pPC->getName().c_str(), STORAGE_EXTRASLOT);
             pItem->tinysave(pField);
 
-            // 벨트일 경우 벨트 안의 아이템들도 모두 소유권이 넘어가야 한다. 2003.3.22 by Sequoia
+            // For a belt, ownership of the items inside it must transfer too.
             if (pItem->getItemClass() == Item::ITEM_CLASS_BELT) {
                 sprintf(pField, "OwnerID='%s'", pPC->getName().c_str());
 
@@ -235,7 +235,7 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
                     }
                 }
             }
-            // 암스밴드일 경우 안의 아이템들도 모두 소유권이 넘어가야 한다. 2003.3.22 by Sequoia
+            // For an armsband, ownership of the items inside it must transfer too.
             if (pItem->getItemClass() == Item::ITEM_CLASS_OUSTERS_ARMSBAND) {
                 sprintf(pField, "OwnerID='%s'", pPC->getName().c_str());
 
@@ -288,8 +288,8 @@ ERROR:
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 이벤트 코드가 들어가있는 버전이다.
-// 똑같은 이벤트가 또 실행될 지 모르니, 지우지 말 것! -- by 김성민
+// This is the version with the event code in it.
+// The same event may be run again, so do not delete this!
 //////////////////////////////////////////////////////////////////////////////
 /*
 void CGAddZoneToMouseHandler::execute (CGAddZoneToMouse* pPacket , Player* pPlayer)
@@ -315,12 +315,12 @@ void CGAddZoneToMouseHandler::execute (CGAddZoneToMouse* pPacket , Player* pPlay
         ZoneCoord_t ZoneX   = pPacket->getZoneX();
         ZoneCoord_t ZoneY   = pPacket->getZoneY();
 
-        // 바운드를 넘어가지는 않는지 체크한다.
+        // Check that the bounds are not crossed.
         if (!isValidZoneCoord(pZone, ZoneX, ZoneY)) goto ERROR;
 
         Tile& _Tile = pZone->getTile(ZoneX, ZoneY);
 
-        // 타일에 아이템이 없다면 당연히 더할 수 없다.
+        // With no item on the tile there is of course nothing to add.
         if (!_Tile.hasItem())
         {
             GCCannotAdd _GCCannotAdd;
@@ -329,7 +329,7 @@ void CGAddZoneToMouseHandler::execute (CGAddZoneToMouse* pPacket , Player* pPlay
             return;
         }
 
-        // 아이템 포인터가 널이라면 당연히 더할 수 없다.
+        // A null item pointer of course cannot be added.
         Item* pItem = _Tile.getItem();
         if (pItem == NULL)
         {
@@ -341,12 +341,12 @@ void CGAddZoneToMouseHandler::execute (CGAddZoneToMouse* pPacket , Player* pPlay
 
         ObjectID_t ItemObjectID = pItem->getObjectID();
 
-        // 아이템의 ObjectID가 일치하는지 체크한다.
+        // Check that the item's ObjectID matches.
         if (ItemObjectID == pPacket->getObjectID())
         {
             Item* pExtraItem = pPC->getExtraInventorySlotItem();
 
-            // 이미 무언가를 들고 있다면, 아이템을 더할 수 없다.
+            // If something is already held, the item cannot be added.
             if (pExtraItem != NULL)
             {
                 GCCannotAdd _GCCannotAdd;
@@ -355,7 +355,7 @@ void CGAddZoneToMouseHandler::execute (CGAddZoneToMouse* pPacket , Player* pPlay
                 return;
             }
 
-            // 바닥에 떨어져 있는 아이템이 이벤트용 해골이라면...
+            // If the item lying on the ground is an event skull...
             if (pItem->getItemClass() == Item::ITEM_CLASS_SKULL &&
                 12 <= pItem->getItemType() && pItem->getItemType() <= 16)
             {
@@ -365,68 +365,68 @@ void CGAddZoneToMouseHandler::execute (CGAddZoneToMouse* pPacket , Player* pPlay
 
                 switch (pItem->getItemType())
                 {
-                    case 12: scount += 1; break; // 황금 해골
-                    case 15: scount += 4; break; // 수정 해골
-                    case 14: scount += 9; break; // 검은 해골
+                    case 12: scount += 1; break; // golden skull
+                    case 15: scount += 4; break; // crystal skull
+                    case 14: scount += 9; break; // black skull
                     default: break;
                 }
 
-                // 카운트를 저장한다.
+                // Save the count.
                 pGamePlayer->setSpecialEventCount(scount);
                 pGamePlayer->saveSpecialEventCount();
                 cur = scount/10;
 
-                // 존에서 아이템을 삭제한다.
+                // Delete the item from the zone.
                 pZone->deleteItem(pItem, ZoneX, ZoneY);
 
-                // 주은 놈에게 잘 주었다고 날려준다.
+                // Tell the one who picked it up that it worked.
                 GCDeleteandPickUpOK _GCDeleteandPickUpOK;
                 GCDeleteObject _GCDeleteObject;
                 _GCDeleteandPickUpOK.setObjectID(pItem->getObjectID());
                 pPlayer->sendPacket(&_GCDeleteandPickUpOK);
-                // 근처에 있는 다른 사람들에겐 아이템에 사라졌다는 것을 보내준다.
+                // Tell the others nearby that the item has disappeared.
                 _GCDeleteObject.setObjectID(pItem->getObjectID());
                 pZone->broadcastPacket(pPC->getX(), pPC->getY(), &_GCDeleteObject, pPC);
 
-                // 마지막으로 실제 아이템 객체를 삭제한다.
+                // Finally delete the actual item object.
                 SAFE_DELETE(pItem);
 
-                // 점수를 정기적으로 가르쳐준다.
+                // Report the score at regular intervals.
                 StringStream msg;
-                msg << "당신의 현재 이벤트 포인트는 " << pGamePlayer->getSpecialEventCount() << " 포인트 입니다.";
+                msg << "Your current event points are " << pGamePlayer->getSpecialEventCount() << " points.";
                 GCSystemMessage gcMsg;
                 gcMsg.setMessage(msg.toString());
                 pPlayer->sendPacket(&gcMsg);
 
-                // 점수를 정기적으로 브로드캐스팅한다.
+                // Broadcast the score at regular intervals.
                 if (prev != cur)
                 {
                     StringStream msg;
-                    msg << pPC->getName() << "님께서 " << pGamePlayer->getSpecialEventCount() << " 포인트의 이벤트
-점수를 획득하였습니다."; GCSystemMessage gcMsg; gcMsg.setMessage(msg.toString()); pPlayer->sendPacket(&gcMsg);
+                    msg << pPC->getName() << " has gained " << pGamePlayer->getSpecialEventCount() << " event
+points."; GCSystemMessage gcMsg; gcMsg.setMessage(msg.toString()); pPlayer->sendPacket(&gcMsg);
                     pZone->broadcastPacket(pPC->getX(), pPC->getY(), &gcMsg , pPC);
                 }
 
                 return;
             }
 
-            // 존에서 아이템을 삭제하고, 마우스에다 달아준다.
+            // Delete the item from the zone and hang it on the mouse.
             pZone->deleteItem(pItem, ZoneX, ZoneY);
             pPC->addItemToExtraInventorySlot(pItem);
 
-            // 주은 놈에게 잘 주었다고 결과를 알려준다.
+            // Tell the one who picked it up that it worked.
             GCDeleteandPickUpOK _GCDeleteandPickUpOK;
             GCDeleteObject _GCDeleteObject;
             _GCDeleteandPickUpOK.setObjectID(pItem->getObjectID());
             pPlayer->sendPacket(&_GCDeleteandPickUpOK);
 
-            // 근처에 있는 다른 사람들에겐 아이템에 사라졌다는 것을 보내준다.
+            // Tell the others nearby that the item has disappeared.
             _GCDeleteObject.setObjectID(pItem->getObjectID());
             pZone->broadcastPacket(pPC->getX(), pPC->getY(), &_GCDeleteObject, pPC);
 
             Success = true;
 
-            // 아이템을 저장한다.
+            // Save the item.
             pItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
         }
 

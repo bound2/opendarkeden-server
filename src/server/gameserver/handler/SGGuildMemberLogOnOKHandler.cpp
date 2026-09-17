@@ -32,7 +32,7 @@ void SGGuildMemberLogOnOKHandler::execute(SGGuildMemberLogOnOK* pPacket)
 
         Assert(pPacket != NULL);
 
-    // 길드를 가져온다.
+    // Get the guild.
     Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
     try {
         Assert(pGuild != NULL);
@@ -40,7 +40,7 @@ void SGGuildMemberLogOnOKHandler::execute(SGGuildMemberLogOnOK* pPacket)
         return;
     }
 
-    // 길드 멤버인지 확인한다.
+    // Check whether it is a guild member.
     GuildMember* pGuildMember = pGuild->getMember(pPacket->getName());
     try {
         Assert(pGuildMember != NULL);

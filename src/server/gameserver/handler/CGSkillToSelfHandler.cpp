@@ -48,7 +48,7 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
 
         SkillType_t SkillType = pPacket->getSkillType();
 
-        // 완전 안전지대라면 기술 사용 불가. by sigi. 2002.11.14
+        // A complete safe zone forbids skill use.
         ZoneLevel_t ZoneLevel = pZone->getZoneLevel(pCreature->getX(), pCreature->getY());
         if ((ZoneLevel & COMPLETE_SAFE_ZONE) || (pCreature->isFlag(Effect::EFFECT_CLASS_PARALYZE)) ||
             (pCreature->isFlag(Effect::EFFECT_CLASS_CAUSE_CRITICAL_WOUNDS)) ||
@@ -93,7 +93,7 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
                             g_Sniping.checkRevealRatio(pSlayer, 20, 10);
                         } */
 
-            // UN_TRANSFORM 인 경우 -_- 혼자 딴 핸들러 가지고 논다 ~_~
+            // For UN_TRANSFORM, a handler of its own does the work
             if (SkillType == SKILL_UN_TRANSFORM) {
                 if (pSlayer->isFlag(Effect::EFFECT_CLASS_INSTALL_TURRET)) {
                     SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_UN_TRANSFORM);
@@ -127,7 +127,7 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
             if ((SkillType == SKILL_TRANSFORM_TO_BAT || SkillType == SKILL_TRANSFORM_TO_WOLF) &&
                 (pVampire->hasRelicItem() || pVampire->isFlag(Effect::EFFECT_CLASS_HAS_FLAG) ||
                  pVampire->isFlag(Effect::EFFECT_CLASS_HAS_SWEEPER))) {
-                // cout << "성물을 가진 상태에서는 변신할 수 없습니다" << endl;
+                // cout << "Transformation is impossible while holding a relic" << endl;
 
                 GCSkillFailed1 _GCSkillFailed1;
                 _GCSkillFailed1.setSkillType(SkillType);
@@ -207,7 +207,7 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
             OustersSkillSlot* pOustersSkillSlot = ((Ousters*)pCreature)->hasSkill(SkillType);
             bool bSuccess = true;
 
-            // UN_TRANSFORM 인 경우 -_- 혼자 딴 핸들러 가지고 논다 ~_~
+            // For UN_TRANSFORM, a handler of its own does the work
             if (SkillType == SKILL_UN_TRANSFORM) {
                 if (pOusters->isFlag(Effect::EFFECT_CLASS_SUMMON_SYLPH)) {
                     SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_UN_TRANSFORM);

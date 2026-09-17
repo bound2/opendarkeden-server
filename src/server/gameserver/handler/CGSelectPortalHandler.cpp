@@ -30,20 +30,20 @@ void CGSelectPortalHandler::execute(CGSelectPortal* pPacket, Player* pPlayer)
     try {
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
 
-        // 게임 플레이어의 상태가 정상이 아니라면 걍 리턴한다.
+        // Just return if the game player's state is not normal.
         if (pGamePlayer->getPlayerStatus() != GPS_NORMAL)
             return;
 
         Creature* pCreature = pGamePlayer->getCreature();
         Zone* pZone = pCreature->getZone();
 
-        // 현재 크리쳐의 좌표가 비정상적이라면 리턴한다.
+        // Return if the creature's coordinates are invalid.
         if (!isValidZoneCoord(pZone, pCreature->getX(), pCreature->getY()))
             return;
 
         Tile& rTile = pZone->getTile(pCreature->getX(), pCreature->getY());
 
-        // 만약 포탈이 있으면서, 크리처가 PC인 경우.. (몬스터와 NPC는 포탈 이동을 하지 않는다.)
+        // When a portal is there and the creature is a PC.. (monsters and NPCs do not move through portals.)
         if (rTile.hasPortal()) {
             Portal* pPortal = rTile.getPortal();
 

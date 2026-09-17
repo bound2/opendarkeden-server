@@ -17,7 +17,7 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// 뭔가에 대한 정보를 요청하는 경우이다.
+// Information about something is being requested.
 //////////////////////////////////////////////////////////////////////////////
 void CGRequestInfoHandler::execute(CGRequestInfo* pPacket, Player* pPlayer) {
     __BEGIN_TRY __BEGIN_DEBUG_EX
@@ -32,7 +32,7 @@ void CGRequestInfoHandler::execute(CGRequestInfo* pPacket, Player* pPlayer) {
 
     switch (pPacket->getCode()) {
     //------------------------------------------------------------
-    // 다른 캐릭터의 정보를 요청하는 경우
+    // When another character's information is requested
     //------------------------------------------------------------
     case CGRequestInfo::REQUEST_CHARACTER_INFO: {
         Creature* pCreature = pGamePlayer->getCreature();
@@ -44,7 +44,7 @@ void CGRequestInfoHandler::execute(CGRequestInfo* pPacket, Player* pPlayer) {
         Creature* pTargetCreature = pZone->getCreature(pPacket->getValue());
 
         if (pTargetCreature != NULL && pTargetCreature->isPC()) {
-            // 볼려는 대상이 운영자 모양이 아닌 경우만 된다.
+            // Only works when the one being looked at does not have the GM shape.
             if (pTargetCreature->isSlayer()) {
                 Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);
                 if (pSlayer->getCompetenceShape() != 1)
@@ -67,8 +67,8 @@ void CGRequestInfoHandler::execute(CGRequestInfo* pPacket, Player* pPlayer) {
             GCOtherModifyInfo gcOtherModifyInfo;
             GCOtherGuildName gcOtherGuildName;
 
-            // 값 설정 부분
-            // 같은 종족만 보여준다.
+            // The part that sets the values
+            // Only the same race is shown.
             if ((pCreature->isSlayer() || pCreature->getCompetenceShape() != 1) && pTargetCreature->isSlayer()) {
                 Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);
 

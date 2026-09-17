@@ -53,7 +53,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
         SlotID_t SlotID = pPacket->getSlotID();
         Item::ItemClass IClass = pItem->getItemClass();
 
-        // 아이템의 ObjectID가 일치하는지 체크한다.
+        // Check that the item's ObjectID matches.
         if (ItemObjectID != pPacket->getObjectID()) {
             GCCannotAdd _GCCannotAdd;
             _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -61,7 +61,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
             return;
         }
 
-        // 벨트를 입고 있지 않다면 벨트에다 아이템을 더할 수가 없다.
+        // Without a belt worn, no item can be added to the belt.
         if (!pSlayer->isWear(Slayer::WEAR_BELT)) {
             GCCannotAdd _GCCannotAdd;
             _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -69,7 +69,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
             return;
         }
 
-        // 포션도 아니고, 탄창도 아니라면 더할 수가 없지.
+        // Anything that is not a potion or a magazine cannot be added.
         if (IClass != Item::ITEM_CLASS_POTION && IClass != Item::ITEM_CLASS_MAGAZINE &&
             IClass != Item::ITEM_CLASS_EVENT_ETC && IClass != Item::ITEM_CLASS_KEY) {
             GCCannotAdd _GCCannotAdd;
@@ -88,12 +88,12 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
         Inventory* pBeltInventory = ((Belt*)pBelt)->getInventory();
 
         if (pBeltInventory->canAdding(SlotID, 0, pItem)) {
-            // 현재 벨트에 있는 Item을 받아온다.
+            // Get the Item currently in the belt.
             Item* pPrevItem = pBeltInventory->getItem(SlotID, 0);
 
-            // 지정한 자리에 아이템이 있다면...
+            // If there is an item in the given place...
             if (pPrevItem != NULL) {
-                // 아이템이 완전히 같은 아이템이라면...
+                // If the item is exactly the same item...
                 if (isStackable(pItem) && isSameItem(pItem, pPrevItem)) {
                     int MaxStack = ItemMaxStack[pItem->getItemClass()];
 
@@ -107,27 +107,27 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                         pBeltInventory->increaseNum(MaxStack - CurrentNum);
                         pBeltInventory->increaseWeight(pItem->getWeight() * (MaxStack - CurrentNum));
                         // pPrevItem->save(pSlayer->getName(), STORAGE_BELT, pBelt->getItemID(), SlotID, 0);
-                        //  item저장 최적화. by sigi. 2002.5.13
+                        //  Item save optimization.
                         char pField[80];
                         sprintf(pField, "Num=%d, Storage=%d, StorageID=%u, X=%d", MaxStack, STORAGE_BELT,
                                 pBelt->getItemID(), SlotID);
                         pPrevItem->tinysave(pField);
 
                         // pItem->save(pSlayer->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                        //  item저장 최적화. by sigi. 2002.5.13
+                        //  Item save optimization.
                         sprintf(pField, "Num=%d, Storage=%d", NewNum, STORAGE_EXTRASLOT);
                         pItem->tinysave(pField);
 
 
                         Success = true;
-                    } else // 숫자가 9개를 넘지 않을 때.
+                    } else // When the count does not go past 9.
                     {
                         pSlayer->deleteItemFromExtraInventorySlot();
                         pPrevItem->setNum(pPrevItem->getNum() + pItem->getNum());
                         pBeltInventory->increaseNum(pItem->getNum());
                         pBeltInventory->increaseWeight(pItem->getWeight() * pItem->getNum());
                         // pPrevItem->save(pSlayer->getName(), STORAGE_BELT , pBelt->getItemID(), SlotID, 0);
-                        //  item저장 최적화. by sigi. 2002.5.13
+                        //  Item save optimization.
                         char pField[80];
                         sprintf(pField, "Num=%d, Storage=%d, StorageID=%u, X=%d", pPrevItem->getNum(), STORAGE_BELT,
                                 pBelt->getItemID(), SlotID);
@@ -137,40 +137,40 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                         SAFE_DELETE(pItem);
                         Success = true;
                     }
-                } else // 클래스랑 타입이 같지 않을때
+                } else // When the class and the type are not the same
                 {
-                    // 마우스에 달려있는 아이템과 벨트에 있는 아이템을 제거한다.
+                    // Remove the item hanging on the mouse and the item in the belt.
                     pSlayer->deleteItemFromExtraInventorySlot();
                     pBeltInventory->deleteItem(pPrevItem->getObjectID());
 
-                    // 둘의 위치를 바꿔 준다.
+                    // Swap the two positions.
                     pSlayer->addItemToExtraInventorySlot(pPrevItem);
                     pBeltInventory->addItem(SlotID, 0, pItem);
 
-                    // DB에다가 저장을 한다.
+                    // Save to the DB.
                     // pPrevItem->save(pSlayer->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                    // item저장 최적화. by sigi. 2002.5.13
+                    // Item save optimization.
                     char pField[80];
                     sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
                     pPrevItem->tinysave(pField);
 
                     // pItem->save(pSlayer->getName(), STORAGE_BELT , pBelt->getItemID(), SlotID, 0);
-                    //  item저장 최적화. by sigi. 2002.5.13
+                    //  Item save optimization.
                     sprintf(pField, "Storage=%d, StorageID=%u, X=%d", STORAGE_BELT, pBelt->getItemID(), SlotID);
                     pItem->tinysave(pField);
 
 
                     Success = true;
                 }
-            } else // 슬랏에 아무런 기존의 아이템이 없을때.
+            } else // When the slot holds no existing item.
             {
-                // Inventory에 특정 아이템을 넣는다.
+                // Put a given item into the Inventory.
                 pBeltInventory->addItem(SlotID, 0, pItem);
 
-                // 넣기에 성공하면 마우스에 달려있는 아이템을 없앤다.
+                // On a successful add, remove the item hanging on the mouse.
                 pSlayer->deleteItemFromExtraInventorySlot();
                 // pItem->save(pSlayer->getName(), STORAGE_BELT, pBelt->getItemID(), SlotID, 0);
-                //  item저장 최적화. by sigi. 2002.5.13
+                //  Item save optimization.
                 char pField[80];
                 sprintf(pField, "Storage=%d, StorageID=%u, X=%d", STORAGE_BELT, pBelt->getItemID(), SlotID);
                 pItem->tinysave(pField);
@@ -195,7 +195,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
         SlotID_t SlotID = pPacket->getSlotID();
         Item::ItemClass IClass = pItem->getItemClass();
 
-        // 아이템의 ObjectID가 일치하는지 체크한다.
+        // Check that the item's ObjectID matches.
         if (ItemObjectID != pPacket->getObjectID()) {
             GCCannotAdd _GCCannotAdd;
             _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -207,7 +207,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
         if (SlotID > 2)
             SlotID -= 3;
 
-        // 해당 암스밴드가 없다
+        // The matching armsband is not worn
         if (!pOusters->isWear(part)) {
             GCCannotAdd _GCCannotAdd;
             _GCCannotAdd.setObjectID(pPacket->getObjectID());
@@ -215,7 +215,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
             return;
         }
 
-        // 푸파도 아니고, 콤포스메이도 아니라면 더할 수가 없지.
+        // Anything that is not a pupa or a compos mei cannot be added.
         if (IClass != Item::ITEM_CLASS_PUPA && IClass != Item::ITEM_CLASS_COMPOS_MEI &&
             IClass != Item::ITEM_CLASS_EVENT_ETC) {
             GCCannotAdd _GCCannotAdd;
@@ -235,12 +235,12 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
         Inventory* pArmsbandInventory = ((OustersArmsband*)pArmsband)->getInventory();
 
         if (pArmsbandInventory->canAdding(SlotID, 0, pItem)) {
-            // 현재 벨트에 있는 Item을 받아온다.
+            // Get the Item currently in the belt.
             Item* pPrevItem = pArmsbandInventory->getItem(SlotID, 0);
 
-            // 지정한 자리에 아이템이 있다면...
+            // If there is an item in the given place...
             if (pPrevItem != NULL) {
-                // 아이템이 완전히 같은 아이템이라면...
+                // If the item is exactly the same item...
                 if (isSameItem(pItem, pPrevItem)) {
                     int MaxStack = ItemMaxStack[pItem->getItemClass()];
 
@@ -254,27 +254,27 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                         pArmsbandInventory->increaseNum(MaxStack - CurrentNum);
                         pArmsbandInventory->increaseWeight(pItem->getWeight() * (MaxStack - CurrentNum));
                         // pPrevItem->save(pOusters->getName(), STORAGE_BELT, pArmsband->getItemID(), SlotID, 0);
-                        //  item저장 최적화. by sigi. 2002.5.13
+                        //  Item save optimization.
                         char pField[80];
                         sprintf(pField, "Num=%d, Storage=%d, StorageID=%u, X=%d", MaxStack, STORAGE_BELT,
                                 pArmsband->getItemID(), SlotID);
                         pPrevItem->tinysave(pField);
 
                         // pItem->save(pOusters->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                        //  item저장 최적화. by sigi. 2002.5.13
+                        //  Item save optimization.
                         sprintf(pField, "Num=%d, Storage=%d", NewNum, STORAGE_EXTRASLOT);
                         pItem->tinysave(pField);
 
 
                         Success = true;
-                    } else // 숫자가 9개를 넘지 않을 때.
+                    } else // When the count does not go past 9.
                     {
                         pOusters->deleteItemFromExtraInventorySlot();
                         pPrevItem->setNum(pPrevItem->getNum() + pItem->getNum());
                         pArmsbandInventory->increaseNum(pItem->getNum());
                         pArmsbandInventory->increaseWeight(pItem->getWeight() * pItem->getNum());
                         // pPrevItem->save(pOusters->getName(), STORAGE_BELT , pArmsband->getItemID(), SlotID, 0);
-                        //  item저장 최적화. by sigi. 2002.5.13
+                        //  Item save optimization.
                         char pField[80];
                         sprintf(pField, "Num=%d, Storage=%d, StorageID=%u, X=%d", pPrevItem->getNum(), STORAGE_BELT,
                                 pArmsband->getItemID(), SlotID);
@@ -284,40 +284,40 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                         SAFE_DELETE(pItem);
                         Success = true;
                     }
-                } else // 클래스랑 타입이 같지 않을때
+                } else // When the class and the type are not the same
                 {
-                    // 마우스에 달려있는 아이템과 벨트에 있는 아이템을 제거한다.
+                    // Remove the item hanging on the mouse and the item in the belt.
                     pOusters->deleteItemFromExtraInventorySlot();
                     pArmsbandInventory->deleteItem(pPrevItem->getObjectID());
 
-                    // 둘의 위치를 바꿔 준다.
+                    // Swap the two positions.
                     pOusters->addItemToExtraInventorySlot(pPrevItem);
                     pArmsbandInventory->addItem(SlotID, 0, pItem);
 
-                    // DB에다가 저장을 한다.
+                    // Save to the DB.
                     // pPrevItem->save(pOusters->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                    // item저장 최적화. by sigi. 2002.5.13
+                    // Item save optimization.
                     char pField[80];
                     sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
                     pPrevItem->tinysave(pField);
 
                     // pItem->save(pOusters->getName(), STORAGE_BELT , pArmsband->getItemID(), SlotID, 0);
-                    //  item저장 최적화. by sigi. 2002.5.13
+                    //  Item save optimization.
                     sprintf(pField, "Storage=%d, StorageID=%u, X=%d", STORAGE_BELT, pArmsband->getItemID(), SlotID);
                     pItem->tinysave(pField);
 
 
                     Success = true;
                 }
-            } else // 슬랏에 아무런 기존의 아이템이 없을때.
+            } else // When the slot holds no existing item.
             {
-                // Inventory에 특정 아이템을 넣는다.
+                // Put a given item into the Inventory.
                 pArmsbandInventory->addItem(SlotID, 0, pItem);
 
-                // 넣기에 성공하면 마우스에 달려있는 아이템을 없앤다.
+                // On a successful add, remove the item hanging on the mouse.
                 pOusters->deleteItemFromExtraInventorySlot();
                 // pItem->save(pOusters->getName(), STORAGE_BELT, pArmsband->getItemID(), SlotID, 0);
-                //  item저장 최적화. by sigi. 2002.5.13
+                //  Item save optimization.
                 char pField[80];
                 sprintf(pField, "Storage=%d, StorageID=%u, X=%d", STORAGE_BELT, pArmsband->getItemID(), SlotID);
                 pItem->tinysave(pField);
@@ -327,7 +327,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
         } // end of if (pArmsbandInventory->canAdding(SlotID, 0,  pItem))
     } // if (pCreature->isOusters())
 
-    // QuickSlot에 넣는 것을 실패 하였을때 실패 패킷을 날린다.
+    // Send a failure packet when adding to the QuickSlot failed.
     if (!Success) {
         GCCannotAdd _GCCannotAdd;
         _GCCannotAdd.setObjectID(pPacket->getObjectID());

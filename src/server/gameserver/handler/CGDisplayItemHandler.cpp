@@ -74,7 +74,7 @@ void CGDisplayItemHandler::execute(CGDisplayItem* pPacket, Player* pPlayer) {
     if (pStore->hasItem(pItem)) {
         filelog("Store.log", "[%s:%s] (%u, %u) 이미 아이템이 상점에 있습니다.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pItem->getObjectID(), pPacket->getIndex());
-        //		errorMsg.setMessage("이미 진열된 아이템입니다.");
+        //		errorMsg.setMessage("The item is already on display.");
         errorNotice.setCode(NOTICE_EVENT_ALREADY_DISPLAYED);
         pGamePlayer->sendPacket(&errorNotice);
         return;
@@ -83,7 +83,7 @@ void CGDisplayItemHandler::execute(CGDisplayItem* pPacket, Player* pPlayer) {
     if (pItem->isTimeLimitItem() || !canSell(pItem) || !canTrade(pItem)) {
         filelog("Store.log", "[%s:%s] (%s) 팔 수 없는 아이템입니다.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pItem->toString().c_str());
-        //		errorMsg.setMessage("판매할 수 없는 아이템입니다.");
+        //		errorMsg.setMessage("This item cannot be sold.");
         errorNotice.setCode(NOTICE_EVENT_CANNOT_SELL);
         pGamePlayer->sendPacket(&errorNotice);
         return;

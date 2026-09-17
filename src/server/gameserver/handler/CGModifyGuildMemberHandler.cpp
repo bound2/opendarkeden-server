@@ -44,13 +44,13 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
     PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
     Assert(pPlayerCreature != NULL);
 
-    // 길드를 가져온다.
+    // Get the guild.
     Guild* pGuild = g_pGuildManager->getGuild(pPlayerCreature->getGuildID());
     // try { Assert(pGuild != NULL); } catch (Throwable& t ) { return; }
     if (pGuild == NULL)
         return;
 
-    // 길드 멤버 정보를 가져온다.
+    // Get the guild member information.
     GuildMember* pGuildMember = pGuild->getMember(pPlayerCreature->getName());
     // try { Assert(pGuild != NULL); } catch (Throwable& t ) { return; }
     if (pGuildMember == NULL)
@@ -60,10 +60,10 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
 
     if (pPacket->getGuildMemberRank() == GuildMember::GUILDMEMBER_RANK_DENY) {
         ////////////////////////////////////////////////////////
-        // 길드 멤버를 추방한다.
+        // Expel a guild member.
         ////////////////////////////////////////////////////////
 
-        // 마스터가 아니면 추방할 수 없다.
+        // Only the master can expel.
         if (pGuildMember->getRank() != GuildMember::GUILDMEMBER_RANK_MASTER)
             return;
 
@@ -91,10 +91,10 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
             return;
         }
         ///////////////////////////////////////////////////////
-        // 길드 가입을 승인한다.
+        // Approve a guild join.
         ///////////////////////////////////////////////////////
 
-        // 마스터나 서브마스터 이어야 한다.
+        // Must be the master or a submaster.
         if (pGuildMember->getRank() != GuildMember::GUILDMEMBER_RANK_MASTER &&
             pGuildMember->getRank() != GuildMember::GUILDMEMBER_RANK_SUBMASTER)
             return;

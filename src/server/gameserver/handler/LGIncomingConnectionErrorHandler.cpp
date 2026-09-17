@@ -25,23 +25,23 @@ void LGIncomingConnectionErrorHandler::execute(LGIncomingConnectionError* pPacke
     __BEGIN_TRY __BEGIN_DEBUG_EX
 #ifdef __GAME_SERVER__
 
-        // 로그인 플레이어에 접근한다.
+        // Reach the login player.
         //
         // *CAUTION*
         //
-        // 이런 접근 방식은 문제가 있다. 로그인 플레이어 매니저가 이 플레이어를 처리하고 있을
-        // 경우, 아래와 같이 접속을 종료해 버리면.. - -; 흐흠.. 이렇게 되면 setPlayerStatus()
-        // 역시 락킹 버전으로 만들어야 하는가..  일단은 이렇게 하장.. (대충 입력이 없을 것이므로
-        // 처리받지는 않는다..)
+        // This way of reaching it has a problem. When the login player manager is handling this
+        // player and the connection is closed as below.. setPlayerStatus() would then
+        // have to become a locking version too.. For now it is left like this. (there will
+        // roughly be no input, so it does not get handled..)
         //
-        // 주의할 점은, 입력으로 리다이렉션하는 것이 불가능하다는 것이다. 왜냐하면, 리다이렉션
-        // 시점에서 입력 버퍼에 패킷이 딱 끊겨서 들어왔다는 것을 알 수 없기 때문이다.
+        // Note that redirecting to input is impossible, because at the moment of the
+        // redirection there is no way to know that a packet arrived cut off in the input buffer.
         try {
         GamePlayer* pGamePlayer = g_pIncomingPlayerManager->getPlayer(pPacket->getPlayerID());
 
         Assert(pGamePlayer->getPlayerStatus() == GPS_AFTER_SENDING_GL_INCOMING_CONNECTION);
 
-        // 이 플레이어의 로그인이 실패했으므로 접속을 종료한다.
+        // This player's login failed, so the connection is closed.
         cout << "Fail to join game server...(" << pPacket->getPlayerID() << ")" << endl;
 
         int fd = -1;

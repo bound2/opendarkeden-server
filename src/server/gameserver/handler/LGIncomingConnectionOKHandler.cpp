@@ -25,9 +25,9 @@
 //
 // LGIncomingConnectionOKHander::execute()
 //
-// 로그인 서버로부터 LGIncomingConnectionOK 패킷이 날아오면, 게임 서버는 이 허가가
-// 어느 플레이어에 대한 허가인지 찾아내야 한다. 그 후, 이 플레이어에게 LCReconnectLogin
-// 패킷을 던져줘야 한다.
+// When an LGIncomingConnectionOK packet arrives from the login server, the game server has
+// to find out which player this permission is for. It then has to throw an LCReconnectLogin
+// packet to that player.
 //
 //--------------------------------------------------------------------------------
 void LGIncomingConnectionOKHandler::execute(LGIncomingConnectionOK* pPacket) {
@@ -36,7 +36,7 @@ void LGIncomingConnectionOKHandler::execute(LGIncomingConnectionOK* pPacket) {
 
         try {
 
-        // 플레이어 아이디를 사용해서 플레이어 객체에 접근한다.
+        // Reach the player object by player id.
         //		__ENTER_CRITICAL_SECTION((*g_pIncomingPlayerManager))
         GamePlayer* pGamePlayer = NULL;
 
@@ -58,24 +58,24 @@ void LGIncomingConnectionOKHandler::execute(LGIncomingConnectionOK* pPacket) {
                                         (pSocket == NULL ? "NULL" : pSocket->getHost().c_str()));
 
             /*
-            // 클라이언트에게 게임 서버로 재접속하라고 알려준다.
+            // Tell the client to reconnect to the game server.
             GCReconnectLogin gcReconnectLogin;
             gcReconnectLogin.setLoginServerIP(pPacket->getHost());
             gcReconnectLogin.setLoginServerPort(pPacket->getTCPPort());
             gcReconnectLogin.setKey(pPacket->getKey());
 
-            // LCReconnectLogin 패킷을 전송한다.
+            // Send the LCReconnectLogin packet.
             pGamePlayer->sendPacket(&gcReconnectLogin);
 
             cout << "LGIncomingConnectionOKHandler Send Packet to Client Required Reconnect ServerIP : " <<
             pPacket->getHost() << endl;
             */
 
-            // 원래는 그냥 이 타이밍에 패킷을 보냈는데..
-            // 타이밍 문제로 접속해제가 제대로 안됐는데 client에서 접속요청을 해오기 때문에
-            // 짤려서..
-            // GamePlayer에 저장해두고.. IncomingPlayerManager에서 disconnect()될때
-            // 저장해둔 packet을 client로 보낸다.
+            // Originally the packet was simply sent at this moment..
+            // but the disconnect did not go through properly because of timing while the client was
+            // already asking to connect, so it was cut off..
+            // It is stored on the GamePlayer and, when the IncomingPlayerManager disconnects,
+            // the stored packet is sent to the client.
             GCReconnectLogin* gcReconnectLogin = new GCReconnectLogin;
             gcReconnectLogin->setLoginServerIP(pPacket->getHost());
             gcReconnectLogin->setLoginServerPort(pPacket->getTCPPort());
@@ -97,19 +97,19 @@ void LGIncomingConnectionOKHandler::execute(LGIncomingConnectionOK* pPacket) {
         }
 
 
-        // 이렇게 해 두면,
-        // GamePlayer->processCommand()에서 isPenaltyFlag()체크에서 걸려서
-        // 다음 턴의 IncomingPlayer->processCommands()에서 잘리게 된다.
+        // Done this way,
+        // the isPenaltyFlag() check in GamePlayer->processCommand() catches it and
+        // the next turn's IncomingPlayer->processCommands() cuts it off.
         pGamePlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
         pGamePlayer->setItemRatioBonusPoint(3);
 
-        // 연결을 종료한다.
+        // Close the connection.
         // pGamePlayer->disconnect(UNDISCONNECTED);
 
-        // LPM에서 삭제한다.
+        // Delete it from the LPM.
         // g_pIncomingPlayerManager->deletePlayer_NOBLOCKED(pGamePlayer->getSocket()->getSOCKET());
 
-        // GamePlayer 객체를 삭제한다.
+        // Delete the GamePlayer object.
         // SAFE_DELETE(pGamePlayer);
 
         //__LEAVE_CRITICAL_SECTION((*g_pIncomingPlayerManager))

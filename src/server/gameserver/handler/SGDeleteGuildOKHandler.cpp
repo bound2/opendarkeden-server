@@ -45,14 +45,14 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
 
 #ifdef __GAME_SERVER__
 
-    // 길드 아지트에 있는 멤버를 warp 시킨다.
-    // 길드 아지트를 삭제한다.
-    // 멤버 warp와 길드 아지트 삭제 시 다른 쓰레드에서 ZoneGroup Thread 내부에서 일어나게 해야 별탈이 없을 듯 하다.
-    // 일단은 걍 둔다. Portal 이 막히므로 다시 들어갈 수 없을 것이다.
+    // Warp the members inside the guild hideout.
+    // Delete the guild hideout.
+    // Warping the members and deleting the hideout would be safest done inside the ZoneGroup Thread from another thread.
+    // For now it is left alone. The Portal is blocked, so it cannot be entered again.
 
     Assert(pPacket != NULL);
 
-    // 길드를 가져온다.
+    // Get the guild.
     Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
     try {
         Assert(pGuild != NULL);
@@ -61,7 +61,7 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
     }
 
 
-    // 길드 활동 중인 상태에서의 해체인지 대기 중인 상태에서의 해체인지 구별한다.
+    // Tell whether the guild is disbanded while active or while waiting.
     if (pGuild->getState() == Guild::GUILD_STATE_ACTIVE) {
         // Take the members out under the guild mutex -- a zone thread may
         // be copying the member list at this moment (CGSelectGuild) -- and
@@ -84,29 +84,29 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
             // (GuildMissing.log), so the window shows as a stale badge, not
             // a crash.
             de::postToPlayer(memberName, [](PlayerCreature& pc, Player& player) {
-                // Slayer, Vampire 의 길드 아이디를 바꾼다.
+                // Change the Slayer's and the Vampire's guild id.
                 if (pc.isSlayer()) {
-                    pc.setGuildID(99); // 슬레이어 가입안한 상태의 길드 ID
+                    pc.setGuildID(99); // the guild ID of a Slayer that has not joined
 
-                    // 클라이언트에 길드 아이디가 바꼈음을 알린다.
+                    // Tell the client that the guild id changed.
                     GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
                     gcModifyGuildMemberInfo.setGuildID(pc.getGuildID());
                     gcModifyGuildMemberInfo.setGuildName("");
                     gcModifyGuildMemberInfo.setGuildMemberRank(GuildMember::GUILDMEMBER_RANK_DENY);
                     player.sendPacket(&gcModifyGuildMemberInfo);
                 } else if (pc.isVampire()) {
-                    pc.setGuildID(0); // 뱀파이어 가입안한 상태의 길드 ID
+                    pc.setGuildID(0); // the guild ID of a Vampire that has not joined
 
-                    // 클라이언트에 길드 아이디가 바꼈음을 알린다.
+                    // Tell the client that the guild id changed.
                     GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
                     gcModifyGuildMemberInfo.setGuildID(pc.getGuildID());
                     gcModifyGuildMemberInfo.setGuildName("");
                     gcModifyGuildMemberInfo.setGuildMemberRank(GuildMember::GUILDMEMBER_RANK_DENY);
                     player.sendPacket(&gcModifyGuildMemberInfo);
                 } else if (pc.isOusters()) {
-                    pc.setGuildID(66); // 아우스터즈 가입안한 상태의 길드 ID
+                    pc.setGuildID(66); // the guild ID of an Ousters that has not joined
 
-                    // 클라이언트에 길드 아이디가 바꼈음을 알린다.
+                    // Tell the client that the guild id changed.
                     GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
                     gcModifyGuildMemberInfo.setGuildID(pc.getGuildID());
                     gcModifyGuildMemberInfo.setGuildName("");
@@ -114,7 +114,7 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
                     player.sendPacket(&gcModifyGuildMemberInfo);
                 }
 
-                // 주위에 클라이언트에 길드 아이디가 바꼈음을 알린다.
+                // Tell the clients around that the guild id changed.
                 GCOtherModifyInfo gcOtherModifyInfo;
                 gcOtherModifyInfo.setObjectID(pc.getObjectID());
                 gcOtherModifyInfo.addShortData(MODIFY_GUILDID, pc.getGuildID());
@@ -126,7 +126,7 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
             });
         }
 
-        // 길드 매니저에서 길드를 삭제한다 (retired, not freed).
+        // Delete the guild from the guild manager (retired, not freed).
         g_pGuildManager->deleteGuild(pGuild->getID());
     } else if (pGuild->getState() == Guild::GUILD_STATE_WAIT) {
         const std::vector<std::pair<std::string, GuildMemberRank_t>> members = pGuild->retireAllMembers();
@@ -144,7 +144,7 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
             // the tick.
             const GuildMemberRank_t rank = members[i].second;
             de::postToPlayer(memberName, [rank](PlayerCreature& pc, Player& player) {
-                // 등록비를 환불한다.
+                // Refund the registration fee.
                 Gold_t Gold = pc.getGold();
                 if (rank == GuildMember::GUILDMEMBER_RANK_MASTER) {
                     Gold = min((uint64_t)(Gold + RETURN_SLAYER_MASTER_GOLD), (uint64_t)2000000000);
@@ -158,7 +158,7 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
                 gcModifyInformation.addLongData(MODIFY_GOLD, Gold);
                 player.sendPacket(&gcModifyInformation);
 
-                // 메시지를 보낸다.
+                // Send the message.
                 MessageRepository& messages = defaultMessageRepository();
                 vector<string> queued = messages.loadMessages(pc.getName());
 
@@ -172,7 +172,7 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
             });
         }
 
-        // 길드 매니저에서 길드를 삭제한다 (retired, not freed).
+        // Delete the guild from the guild manager (retired, not freed).
         g_pGuildManager->deleteGuild(pGuild->getID());
         GuildUnionManager::Instance().removeMasterGuild(pGuild->getID());
     }

@@ -86,7 +86,7 @@ void CGUseItemFromGearHandler::execute(CGUseItemFromGear* pPacket, Player* pPlay
 
     ObjectID_t ItemObjectID = pItem->getObjectID();
 
-    // OID가 일치하지 않거나, 사용할 수 없는 아이템이라면 에러다.
+    // A mismatched OID, or an item that cannot be used, is an error.
     if (ItemObjectID != pPacket->getObjectID() || !isUsableItem(pItem, pCreature)) {
         GCCannotUse _GCCannotUse;
         _GCCannotUse.setObjectID(pPacket->getObjectID());
@@ -94,7 +94,7 @@ void CGUseItemFromGearHandler::execute(CGUseItemFromGear* pPacket, Player* pPlay
         return;
     }
 
-    // 아이템의 종류에 따라, 처리 함수를 분기시켜 준다.
+    // Branch to the handling function by item kind.
     // cout << pItem->getItemClass() << endl;
 
     switch (pItem->getItemClass()) {
@@ -128,8 +128,8 @@ void CGUseItemFromGearHandler::executeCoupleRing(CGUseItemFromGear* pPacket, Gam
         Assert(pPacket != NULL);
     Assert(pGamePlayer != NULL);
 
-    // 상위 함수에서 에러 체크를 많이 했기 때문에,
-    // 에러 체크를 대폭 축소한다.
+    // The enclosing function checked plenty of errors, so
+    // the error checking here is cut right down.
     Creature* pCreature = pGamePlayer->getCreature();
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
     CoupleRingBase* pCoupleRing = NULL;
@@ -157,7 +157,7 @@ void CGUseItemFromGearHandler::executeCoupleRing(CGUseItemFromGear* pPacket, Gam
 
     bool bValidZone = false;
 
-    // trace 하는 부분
+    // the tracing part
     __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
     pTargetCreature = g_pPCFinder->getCreature_LOCKED(targetName);
@@ -171,7 +171,7 @@ void CGUseItemFromGearHandler::executeCoupleRing(CGUseItemFromGear* pPacket, Gam
 
     Zone* pTargetZone = pTargetCreature->getZone();
     if (pTargetZone != NULL) {
-        // 야전사령부, 시외곽지역, 이벤트경기장, 이벤트OX 존, 마스터레어, 성지, PK존, 다이나믹 존으로는 갈 수 없다.
+        // The field HQ, the outskirts, the event arena, the event OX zone, the master lair, the holy land, the PK zone and dynamic zones cannot be reached.
         bValidZone = pTargetZone->getZoneID() != 2101 && pTargetZone->getZoneID() != 2102 &&
                      pTargetZone->getZoneID() != 1005 && pTargetZone->getZoneID() != 1006 &&
                      pTargetZone->getZoneID() != 1122 && pTargetZone->getZoneID() != 1131 &&
@@ -182,7 +182,7 @@ void CGUseItemFromGearHandler::executeCoupleRing(CGUseItemFromGear* pPacket, Gam
     }
     __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
 
-    // 갈 수 없는 곳이라면 실패다.
+    // A place that cannot be reached is a failure.
     if (!bValidZone) {
         GCCannotUse _GCCannotUse;
         _GCCannotUse.setObjectID(pPacket->getObjectID());
@@ -190,7 +190,7 @@ void CGUseItemFromGearHandler::executeCoupleRing(CGUseItemFromGear* pPacket, Gam
         return;
     }
 
-    // 10 초 동안 움직일 수 없도록 이펙트를 붙인다.
+    // Attach the effect that blocks movement for 10 seconds.
     EffectLoveChain* pEffect = new EffectLoveChain(pPC);
     pEffect->setItemObjectID(pPacket->getObjectID());
     pEffect->setDeadline(100);

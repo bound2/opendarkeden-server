@@ -72,16 +72,16 @@ bool isAdultByBirthdayDate(const string& birthday);
 //////////////////////////////////////////////////////////////////////////////
 // CGConnectHandler::execute()
 //
-// ÀÌ ÆÐÅ¶Àº ·Î±×ÀÎ¼­¹ö¿¡¼­ ÃÖÃÊ·Î °ÔÀÓ ¼­¹ö·Î ¿¬°áÇÒ ¶§, ¶Ç´Â °ÔÀÓ ¼­¹ö¿¡¼­
-// ´Ù¸¥ °ÔÀÓ ¼­¹ö·Î ÀÌµ¿ÇÒ ¶§, Å¬¶óÀÌ¾ðÆ®°¡ ¼­¹ö·Î Àü¼ÛÇÏ´Â ÃÖÃÊÀÇ ÆÐÅ¶ÀÌ´Ù.
-// ÀÌ¶§ ÇÃ·¹ÀÌ¾î °´Ã¼´Â »õ·Î »ý°Ü³­ »óÅÂÀÌ°í, ÀÌ ÇÃ·¹ÀÌ¾î °´Ã¼´Â IPM ¿¡¼­
-// °ü¸®µÇ´Â »óÅÂÀÌ´Ù.
+// This is the first packet the client sends to the server, either when the login
+// server first connects it to a game server or when it moves to another game server.
+// At that point the player object has just been created, and it is
+// managed by the IPM.
 //
-// ´ç¿¬È÷ ÃÖÃÊÀÇ ÆÐÅ¶À¸·Î ´Ù¸¥ ÆÐÅ¶ÀÌ ³Ñ¾î¿À´Â °æ¿ì¶ó¸é, ÀÌ°ÍÀº ÇØÅ· ½Ãµµ¶ó°í
-// ºÁµµ ¹«¹æÇÏ¹Ç·Î ÀÌ ÆÐÅ¶ÀÌ ÃÖÃÊÀÎÁö °Ë»çÇØ¾ß ÇÑ´Ù. ÀÌ¸¦ À§ÇØ¼­ ÇÃ·¹ÀÌ¾î °´Ã¼¿¡
-// ÀÌÀü ÆÐÅ¶À» ÀúÀåÇÏ°í ÀÖÀ¸¹Ç·Î, ÀÌ °ªÀÌ NULL ÀÎÁö¸¸ º¸¸é µÇ°Ú´Ù.
+// So another packet arriving first can safely be taken for a hacking attempt,
+// and this packet has to be checked for being the first. The player object
+// stores the previous packet, so it is enough to see whether that value is NULL.
 //
-// Àß¸øµÈ ÆÐÅ¶ÀÌ¶ó¸é, ban ¿¡ µî·ÏÇÏ°í Á¢¼ÓÀ» Á¾·áÇÑ´Ù.
+// A wrong packet is registered in the ban list and the connection is closed.
 //////////////////////////////////////////////////////////////////////////////
 void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
@@ -98,13 +98,13 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     // set MAC Address
     pGamePlayer->setMacAddress(pPacket->getMacAddress());
 
-    // ÀÌ ÆÐÅ¶À» ConnectionInfo °´Ã¼¸¦ °®°í ¿Â´Ù.
-    // Å©·¡Ä¿´Â Å°°ª°ú Ä³¸¯ÅÍ ÀÌ¸§À» ÀÏÁ¤ ½Ã°£¾È¿¡ ¸ÂÃç¾ß¸¸ Á¢¼ÓÀÌ °¡´ÉÇÏ´Ù.
+    // Get this packet's ConnectionInfo object.
+    // A cracker has to match the key value and the character name within a time limit to connect.
     try {
         ConnectionInfo* pConnectionInfo =
             g_pConnectionInfoManager->getConnectionInfo(pGamePlayer->getSocket()->getHost());
 
-        // Å°°ªÀ» ÀÎÁõÇÑ´Ù.
+        // Authenticate the key value.
         if (pPacket->getKey() != pConnectionInfo->getKey()) {
             FILELOG_INCOMING_CONNECTION("connectionError.log", "Wrong Key: [%s] %s",
                                         pConnectionInfo->getPCName().c_str(),
@@ -112,7 +112,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             throw InvalidProtocolException("invalid key");
         }
 
-        // ÀÌ¸§À» ÀÎÁõÇÑ´Ù.
+        // Authenticate the name.
         if (pPacket->getPCName() != pConnectionInfo->getPCName()) {
             FILELOG_INCOMING_CONNECTION("connectionError.log", "Wrong PCName: [%s] %s",
                                         pConnectionInfo->getPCName().c_str(),
@@ -120,19 +120,19 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             throw InvalidProtocolException("invalid pc name");
         }
 
-        // ÀÏ´Ü ÀÌ¸§À» ÀúÀåÇÑ´Ù. ¾îÂ÷ÇÇ ´ÙÀ½¿¡ ½ÇÆÐÇÏ¸é °´Ã¼¸¦ »èÁ¦ÇÏ´Ï±î ¹«¹æÇÏ´Ù.
+        // Store the name for now. A later failure deletes the object anyway, so this is safe.
         pGamePlayer->setID(pConnectionInfo->getPlayerID());
 
-        // CIMÀÇ heartbeat°¡ ½ÇÇàµÇ±â Àü¿¡ Àç¼öÁÁ°Ô Á¢¼ÓÇÒ °¡´É¼ºÀÌ ÀÖ´Ù.
-        // (Å¸ÀÌ¹ÖÀÌ ÁÁÀ¸¸é heartbeat ½ÇÇàÁÖ±â*2 ¾È¿¡¸¸ Á¢¼ÓÇÏ¸é µÈ´Ù.)
-        // µû¶ó¼­, ÇöÀç ½Ã°£°ú expire time À» ºñ±³ÇÑ´Ù.
+        // A lucky connection can get in before the CIM's heartbeat runs.
+        // (With good timing, connecting within twice the heartbeat period is enough.)
+        // So compare the current time with the expire time.
         Timeval currentTime;
         getCurrentTime(currentTime);
         if (pConnectionInfo->getExpireTime() < currentTime) {
             FILELOG_INCOMING_CONNECTION("connectionError.log", "Expired: [%s] %s", pConnectionInfo->getPCName().c_str(),
                                         pGamePlayer->getSocket()->getHost().c_str());
 
-            // ÀÏ´Ü »èÁ¦ÇÑ´Ù.
+            // Delete it first.
             g_pConnectionInfoManager->deleteConnectionInfo(pConnectionInfo->getClientIP());
             throw InvalidProtocolException("session already expired");
         }
@@ -142,7 +142,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                                     pConnectionInfo->getPlayerID().c_str(), pConnectionInfo->getPCName().c_str(),
                                     pConnectionInfo->getClientIP().c_str(), pConnectionInfo->getKey());
 
-        // ÀÎÁõµÇ¾úÀ¸´Ï, ConnectionInfo ¸¦ »èÁ¦ÇÑ´Ù.
+        // Authenticated, so delete the ConnectionInfo.
         try {
             g_pConnectionInfoManager->deleteConnectionInfo(pConnectionInfo->getClientIP());
         } catch (NoSuchElementException& nsee) {
@@ -150,21 +150,21 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                                         pConnectionInfo->getPlayerID().c_str(), pConnectionInfo->getPCName().c_str(),
                                         pConnectionInfo->getClientIP().c_str(), pConnectionInfo->getKey());
         }
-    } catch (NoSuchElementException& nsee) // ±×·± IP¸¦ °¡Áø CI °¡ ¾øÀ» °æ¿ì
+    } catch (NoSuchElementException& nsee) // When no CI with that IP exists
     {
         FILELOG_INCOMING_CONNECTION("connectionError.log", "NoSuchConnectionInfo: %s",
                                     pGamePlayer->getSocket()->getHost().c_str());
 
-        // Èì.. ¿¬°á ÀÌÈÄ CGConnect ÆÐÅ¶À» º¸³»´Â µô·¹ÀÌ°¡ ³Ê¹« ±æ °æ¿ì
-        // session ÀÌ expire µÈ´Ù. ÀÌ·² °æ¿ì¿¡µµ Â¥¸£ÀÚ!
-        // (¿¹¸¦ µé¾î¼­, ÃÖÃÊ ¿¬°á¿¡¼­´Â ¼º°øÇßÀ¸³ª ±×´ÙÀ½¿¡ µð¹ö±ë »óÅÂ·Î
-        // µé¾î°¥ °æ¿ì, CGConnect ÆÐÅ¶À» º¸³¾ ¶§Âë¿¡´Â expire µÈ´Ù.)
+        // When the delay between connecting and sending the CGConnect packet is too long
+        // the session expires. Cut the connection in that case too!
+        // (For example, the first connection succeeds but a debugger is entered next,
+        // so by the time the CGConnect packet is sent the session has expired.)
         GCDisconnect gcDisconnect;
         gcDisconnect.setMessage(nsee.toString());
 
         pGamePlayer->sendPacket(&gcDisconnect);
 
-        // ÀÌ·¸°Ô ´øÁö¸é »óÀ§ IPM::processCommands()¿¡¼­ disconnect Ã³¸®ÇÑ´Ù.
+        // Throwing this way makes the enclosing IPM::processCommands() do the disconnect.
         throw InvalidProtocolException(nsee.toString().c_str());
     } catch (InvalidProtocolException& ipe) {
         FILELOG_INCOMING_CONNECTION("connectionError.log", "%s: %s", ipe.toString().c_str(),
@@ -180,14 +180,14 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
         pGamePlayer->sendPacket(&gcDisconnect);
 
-        // ÀÌ·¸°Ô ´øÁö¸é »óÀ§ IPM::processCommands()¿¡¼­ disconnect Ã³¸®ÇÑ´Ù.
+        // Throwing this way makes the enclosing IPM::processCommands() do the disconnect.
         throw;
     }
 
     //----------------------------------------------------------------------
-    // ·Î±×ÀÎ Ã¼Å©
+    // Login check
     //----------------------------------------------------------------------
-    // ºô¸µ~
+    // Billing
     PayType payType;
     string payPlayDate;
     uint payPlayHours;
@@ -196,8 +196,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
 
     try {
-        // È¡½ÇÉ«ÀàÐÍ£¬²»Ê¹ÓÃ¿Í»§¶ËÉÏÀ´µÄÀàÐÍ£¬·ÀÖ¹µôÏß
-        // ³Â¹â»ÔÐÞ¸Ä2006 05 31
+        // Take the character type from here rather than the one the client sent, to avoid disconnects
         string spID;
         string spRace;
 
@@ -273,7 +272,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
         bool tookTheSession = defaultSessionRepository().markPlayerLoggedOn(playerID);
 
-        // LogOnÀÌ LOGOFF°¡ ¾Æ´Ï°Å³ª.. µîµî.. by sigi. 2002.5.15
+        // LogOn is not LOGOFF, and so on..
         if (!tookTheSession) {
             char str[80];
             sprintf(str, "Already connected player ID2: %s, %s", playerID.c_str(), logon.c_str());
@@ -282,7 +281,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
         string connectIP = pGamePlayer->getSocket()->getHost();
 
-        // ºô¸µ by sigi. 2002.5.31
+        // Billing
         pGamePlayer->setPayPlayValue(payType, payPlayDate, payPlayHours, payPlayFlag, familyPayPlayDate);
 
         // NOTE: nothing in this try can raise a SQLQueryException. Each
@@ -301,7 +300,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     }
 
     //----------------------------------------------------------------------
-    // ½½·¹ÀÌ¾î ¶Ç´Â ¹ìÆÄÀÌ¾î Ä³¸¯ÅÍ¸¦ ·ÎµùÇÑ´Ù.
+    // Load the Slayer or the Vampire character.
     //----------------------------------------------------------------------
     Slayer* pSlayer = NULL;
     Vampire* pVampire = NULL;
@@ -322,7 +321,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             throw ProtocolException("Failed to load SLAYER data from DB");
         }
 
-        // À¯·áÁ¸¿¡¼­¸¸ Àû¿ëµÇ´Â ¾ÆÀÌÅÛ ¶§¹®¿¡ ¹Ø¿¡¼­ Ã¼Å©
+        // Checked below because of items that apply only in a pay zone
         // pSlayer->loadItem();
         // Assert(pSlayer->getName() == pPacket->getPCName());
         if (pSlayer->getName() != pPacket->getPCName()) {
@@ -333,31 +332,31 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
         pGamePlayer->setCreature(pSlayer);
 
-        // Slayer¸¦ TelephoneCenter¿¡ µî·ÏÇÑ´Ù.
+        // Register the Slayer with the TelephoneCenter.
         // g_pTelephoneCenter->addSlayer(pSlayer);
 
-        // ÁÖ±â È¸º¹ ÀÌº¥Æ®¸¦ ÇÃ·¹ÀÌ¾î °´Ã¼¿¡ Ãß°¡ÇÑ´Ù.
-        // ÀÌ¶§ ±âº»ÀûÀ¸·Î 10ÃÊ È¸º¹À» ¿øÄ¢À¸·Î ÇÑ´Ù.
-        // (setDeadlineÀÇ ÆÄ¶ó¹ÌÅÍ´Â 0.1 ÃÊ¶ó´Â µ¥ À¯ÀÇÇÒ °Í)
+        // Add the periodic recovery event to the player object.
+        // Ten-second recovery is the rule here.
+        // (note that setDeadline's parameter is in 0.1 seconds)
         EventRegeneration* pEventRegeneration = new EventRegeneration(pGamePlayer);
         pEventRegeneration->setDeadline(10 * 10);
         pGamePlayer->addEvent(pEventRegeneration);
 
-        // PCFinder¿¡ Ãß°¡ÇÑ´Ù.
-        // PCFinderÀÇ »èÁ¦´Â ~GamePlayer()¿¡¼­¸¸ ÇÑ´Ù.
+        // Add to the PCFinder.
+        // Removal from the PCFinder happens only in ~GamePlayer().
         try {
             g_pPCFinder->addCreature(pSlayer);
         } catch (DuplicatedException& de) {
             bAlreadyConnected = true;
         }
 
-        // ÀÌ¹Ì Á¢¼ÓÁßÀÎ °æ¿ì°¡ ¾Æ´Ï¶ó¸é.. by sigi. 2002.8.29
+        // Unless already connected..
         if (!bAlreadyConnected) {
-            // ±æµå ÇöÀç Á¢¼Ó ¸â¹ö ¸®½ºÆ®¿¡ Ãß°¡ÇÑ´Ù.
+            // Add to the guild's current member list.
             if (pSlayer->getGuildID() != 99) {
                 Guild* pGuild = g_pGuildManager->getGuild(pSlayer->getGuildID());
                 if (pGuild != NULL) {
-                    // sharedserver·Î Á¢¼ÓÀ» ¾Ë¸®°í DB µµ update ÇÑ´Ù.
+                    // Tell the sharedserver about the connection and update the DB too.
                     try {
                         pGuild->addCurrentMember(pSlayer->getName());
 
@@ -369,11 +368,11 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
                         g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
-                        // DB ¾÷µ¥ÀÌÆ®
+                        // DB update
                         { defaultSessionRepository().markGuildMemberLoggedOn(pSlayer->getName()); }
 
                     } catch (DuplicatedException& t) {
-                        // ÀÏ´Ü ¹«½ÃÇÑ´Ù. by sigi. 2002.8.29
+                        // Ignore it for now.
                         filelog("guildBug.log", "%s", t.toString().c_str());
                     }
                 } else
@@ -391,34 +390,34 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             throw ProtocolException("Failed to VAMPIRE data from DB");
         }
 
-        // À¯·áÁ¸¿¡¼­¸¸ Àû¿ëµÇ´Â ¾ÆÀÌÅÛ ¶§¹®¿¡ ¹Ø¿¡¼­ Ã¼Å©
+        // Checked below because of items that apply only in a pay zone
         // pVampire->loadItem();
         Assert(pVampire->getName() == pPacket->getPCName());
 
         pGamePlayer->setCreature(pVampire);
 
-        // ÁÖ±â È¸º¹ ÀÌº¥Æ®¸¦ ÇÃ·¹ÀÌ¾î °´Ã¼¿¡ Ãß°¡ÇÑ´Ù.
-        // ÀÌ¶§ ±âº»ÀûÀ¸·Î 10ÃÊ È¸º¹À» ¿øÄ¢À¸·Î ÇÑ´Ù.
-        // (setDeadlineÀÇ ÆÄ¶ó¹ÌÅÍ´Â 0.1 ÃÊ¶ó´Â µ¥ À¯ÀÇÇÒ °Í)
+        // Add the periodic recovery event to the player object.
+        // Ten-second recovery is the rule here.
+        // (note that setDeadline's parameter is in 0.1 seconds)
         EventRegeneration* pEventRegeneration = new EventRegeneration(pGamePlayer);
         pEventRegeneration->setDeadline(10 * 10);
         pGamePlayer->addEvent(pEventRegeneration);
 
-        // PCFinder¿¡ Ãß°¡ÇÑ´Ù.
-        // PCFinderÀÇ »èÁ¦´Â ~GamePlayer()¿¡¼­¸¸ ÇÑ´Ù.
+        // Add to the PCFinder.
+        // Removal from the PCFinder happens only in ~GamePlayer().
         try {
             g_pPCFinder->addCreature(pVampire);
         } catch (DuplicatedException& de) {
             bAlreadyConnected = true;
         }
 
-        // ÀÌ¹Ì Á¢¼ÓÁßÀÎ °æ¿ì°¡ ¾Æ´Ï¶ó¸é.. by sigi. 2002.8.29
+        // Unless already connected..
         if (!bAlreadyConnected) {
-            // ±æµå ÇöÀç Á¢¼Ó ¸â¹ö ¸®½ºÆ®¿¡ Ãß°¡ÇÑ´Ù.
+            // Add to the guild's current member list.
             if (pVampire->getGuildID() != 0) {
                 Guild* pGuild = g_pGuildManager->getGuild(pVampire->getGuildID());
                 if (pGuild != NULL) {
-                    // sharedserver ¿¡ Á¢¼ÓÀ» ¾Ë¸®°í DB µµ update ÇÑ´Ù.
+                    // Tell the sharedserver about the connection and update the DB too.
                     try {
                         pGuild->addCurrentMember(pVampire->getName());
 
@@ -430,10 +429,10 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
                         g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
-                        // DB ¾÷µ¥ÀÌÆ®
+                        // DB update
                         { defaultSessionRepository().markGuildMemberLoggedOn(pVampire->getName()); }
                     } catch (DuplicatedException& t) {
-                        // ÀÏ´Ü ¹«½ÃÇÑ´Ù. by sigi. 2002.8.29
+                        // Ignore it for now.
                         filelog("guildBug.log", "%s", t.toString().c_str());
                     }
                 } else
@@ -451,7 +450,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             throw ProtocolException("Failed to VAMPIRE data from DB");
         }
 
-        // À¯·áÁ¸¿¡¼­¸¸ Àû¿ëµÇ´Â ¾ÆÀÌÅÛ ¶§¹®¿¡ ¹Ø¿¡¼­ Ã¼Å©
+        // Checked below because of items that apply only in a pay zone
         // pVampire->loadItem();
         Assert(pOusters->getName() == pPacket->getPCName());
         // filelog("Ousters.txt","CGConectHandler.cpp 0,HP:%d,MAXHP:%d,MP:%d,MAXMP:%d",  (int)pOusters->getHP(
@@ -460,28 +459,28 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
         pGamePlayer->setCreature(pOusters);
 
-        // ÁÖ±â È¸º¹ ÀÌº¥Æ®¸¦ ÇÃ·¹ÀÌ¾î °´Ã¼¿¡ Ãß°¡ÇÑ´Ù.
-        // ÀÌ¶§ ±âº»ÀûÀ¸·Î 10ÃÊ È¸º¹À» ¿øÄ¢À¸·Î ÇÑ´Ù.
-        // (setDeadlineÀÇ ÆÄ¶ó¹ÌÅÍ´Â 0.1 ÃÊ¶ó´Â µ¥ À¯ÀÇÇÒ °Í)
+        // Add the periodic recovery event to the player object.
+        // Ten-second recovery is the rule here.
+        // (note that setDeadline's parameter is in 0.1 seconds)
         EventRegeneration* pEventRegeneration = new EventRegeneration(pGamePlayer);
         pEventRegeneration->setDeadline(10 * 10);
         pGamePlayer->addEvent(pEventRegeneration);
 
-        // PCFinder¿¡ Ãß°¡ÇÑ´Ù.
-        // PCFinderÀÇ »èÁ¦´Â ~GamePlayer()¿¡¼­¸¸ ÇÑ´Ù.
+        // Add to the PCFinder.
+        // Removal from the PCFinder happens only in ~GamePlayer().
         try {
             g_pPCFinder->addCreature(pOusters);
         } catch (DuplicatedException& de) {
             bAlreadyConnected = true;
         }
 
-        // ÀÌ¹Ì Á¢¼ÓÁßÀÎ °æ¿ì°¡ ¾Æ´Ï¶ó¸é.. by sigi. 2002.8.29
+        // Unless already connected..
         if (!bAlreadyConnected) {
-            // ±æµå ÇöÀç Á¢¼Ó ¸â¹ö ¸®½ºÆ®¿¡ Ãß°¡ÇÑ´Ù.
+            // Add to the guild's current member list.
             if (pOusters->getGuildID() != 66) {
                 Guild* pGuild = g_pGuildManager->getGuild(pOusters->getGuildID());
                 if (pGuild != NULL) {
-                    // sharedserver ¿¡ Á¢¼ÓÀ» ¾Ë¸®°í DB µµ update ÇÑ´Ù.
+                    // Tell the sharedserver about the connection and update the DB too.
                     try {
                         pGuild->addCurrentMember(pOusters->getName());
 
@@ -493,10 +492,10 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
                         g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
-                        // DB ¾÷µ¥ÀÌÆ®
+                        // DB update
                         { defaultSessionRepository().markGuildMemberLoggedOn(pOusters->getName()); }
                     } catch (DuplicatedException& t) {
-                        // ÀÏ´Ü ¹«½ÃÇÑ´Ù. by sigi. 2002.8.29
+                        // Ignore it for now.
                         filelog("guildBug.log", "%s", t.toString().c_str());
                     }
                 } else
@@ -509,19 +508,19 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
     cout << " ¿©±â´Â µÇ³ª¿ä2" << endl;
 
-    // ÀÌ??Á¢¼Ó ÁßÀÎ °æ¿ìÀÇ Ã³¸®.
-    // PCFinder¿¡¼­ÀÇ DuplicatedExceptionÀ» ¸íÈ®ÇÏ°Ô Ã³¸®ÇÏ±â À§ÇØ¼­
-    // º¯¼ö¸¦ µÖ¼­ Ã¼Å©ÇÑ´Ù.
-    // ¾Æ¸¶ ±æµåÀÇ DuplicatedException¶§¹®¿¡
-    // PCFinder¿¡¼­ ¹®Á¦°¡ »ý±ä°Í °°´Ù.
+    // Handling when already connected.
+    // In order to handle the PCFinder's DuplicatedException unambiguously,
+    // a variable is used for the check.
+    // The problem in the PCFinder seems to come
+    // from the guild's DuplicatedException.
     // by sigi. 2002.8.29
     if (bAlreadyConnected) {
         SAFE_DELETE(pSlayer);
         SAFE_DELETE(pVampire);
         SAFE_DELETE(pOusters);
 
-        pGamePlayer->setID(string("")); // LogOnÀº 'LOGOFF'°¡ µÇ´Â°É ¸·´Â´Ù.
-        pGamePlayer->setCreature(NULL); // PCFinder¿¡¼­ deleteÇÏ´Â°É ¸·´Â´Ù.
+        pGamePlayer->setID(string("")); // keeps LogOn from becoming 'LOGOFF'.
+        pGamePlayer->setCreature(NULL); // keeps the PCFinder from deleting it.
 
         char str[80];
         sprintf(str, "Already connected player ID3(Dup): %s", pPacket->getPCName().c_str());
@@ -529,7 +528,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     }
 
     //----------------------------------------------------------------------
-    // PC¸¦ PCFinder¿Í Á¸¿¡ µî·ÏÇÑ´Ù.
+    // Register the PC with the PCFinder and the zone.
     //----------------------------------------------------------------------
     Creature* pCreature = pGamePlayer->getCreature();
     Assert(pCreature != NULL);
@@ -553,7 +552,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         pCreature->setFlag(pEffect->getEffectClass());
     }
     cout << " ¿©±â´Â µÇ³ª¿ä4" << endl;
-    // ¼ºÀÌ³ª ¼º ´øÀü ¾ÈÀ¸·Î ·Î±×ÀÎÇÒ ¼ö ¾ø´Ù.
+    // Logging in inside a castle or a castle dungeon is not allowed.
     ZoneID_t castleZoneID;
     ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pCreature->getZoneID());
 
@@ -583,21 +582,21 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // ¾Æ¹«°Íµµ ¼³Á¤µÇ¾î ÀÖÁö ¾ÊÀ¸¸é
-    // °Á À¯·á »ç¿ëÀÚ¶ó°í ÇØ¹ö¸®ÀÚ
+    // If nothing at all is set,
+    // just call it a paying user
     pGamePlayer->setPremiumPlay();
 
     // test code
     /*
-    // ·Î±×ÀÎ ÇÏ°í.. ¹Ù·Î ¹º°¡ ¸Þ¼¼Áö¸¦ »Ñ·ÁÁÖ´Â ºÎºÐ. by sigi. 2002.12.11
+    // Broadcasts some message right after login.
     EventSystemMessage* pESM = new EventSystemMessage( pGamePlayer );
     pESM->setDeadline( 0 );
-    pESM->addMessage("ÀÌ°ÍÀº Å×½ºÆ® ½Ã½ºÅÛ ¸Þ½ÃÁö");
-    pESM->addMessage("Á¦´ë·Î Ãâ·ÂµÇ±æ ¹Ù¶ö»Ó.. -_-;;");
+    pESM->addMessage("This is a test system message");
+    pESM->addMessage("Hoping it prints properly..");
     pGamePlayer->addEvent( pESM );
     */
 
-    // À¯·áÁ¸¿¡¼­¸¸ Àû¿ëµÇ´Â ¾ÆÀÌÅÛ ¶§¹®¿¡ ¿©±â¼­ Ã¼Å©
+    // Checked here because of items that apply only in a pay zone
     // 2002.8.26. by sigi
     cout << " ¾ÆÀÌÅÛ ·Îµå ºÎºÐ ÀÌ ºÎºÐÀÌ ¾ÈµÇ¸é ÀÌºÎºÐÀÌ ¿À·ù´Ù." << endl;
     if (pPacket->getPCType() == PC_SLAYER) {
@@ -612,8 +611,8 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     }
 
 
-    // ½½·¹ÀÌ¾î¶ó¸é ±æµå ³»ºÎ, ¹ìÆÄÀÌ¾î¶ó¸é ·¹¾î ³»ºÎ¿¡¼­
-    // ½ÃÀÛÇÏ´Â °æ¿ì, HP¸¦ ¸¸¶¥À¸·Î Ã¤¿öÁØ´Ù.
+    // A Slayer starting inside a guild, or a Vampire inside a lair,
+    // has its HP filled to the maximum.
     if (pCreature->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
 
@@ -669,23 +668,23 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         }
     }
 
-    // Äù½ºÆ® ¸Å´ÏÀú¸¦ ·ÎµåÇÑ´Ù.
+    // Load the quest manager.
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
     pPC->getQuestManager()->load();
 
-    // Å©¸®Ã³ ÀÚ½Å°ú ¼ÒÀ¯ ¾ÆÀÌÅÛµéÀÇ OID¸¦ ÇÒ´ç¹Þ´Â´Ù.
-    // ÀÌ¹Ì Creature::load()¿¡¼­ Zone ÀÌ ÁöÁ¤µÇ¾î ÀÖ¾î¾ß ÇÑ´Ù.
+    // Get OIDs for the creature itself and for the items it owns.
+    // The Zone must already be set by Creature::load().
     pCreature->registerObject();
 
-    // ÁÖ±â ÀúÀå ÀÌº¥Æ®¸¦ ÇÃ·¹ÀÌ¾î °´Ã¼¿¡ Ãß°¡ÇÑ´Ù.
-    // ÀÌ¶§ ±âº»ÀûÀ¸·Î 10ºÐ ÀúÀåÀ» ¿øÄ¢À¸·Î ÇÑ´Ù.
-    // (setDeadlineÀÇ ÆÄ¶ó¹ÌÅÍ´Â 0.1 ÃÊ¶ó´Â µ¥ À¯ÀÇÇÒ °Í)
+    // Add the periodic save event to the player object.
+    // Ten-minute saving is the rule here.
+    // (note that setDeadline's parameter is in 0.1 seconds)
     // EventSave* pEventSave = new EventSave(pGamePlayer);
     // pEventSave->setDeadline(600* 10);
     // pGamePlayer->addEvent(pEventSave);
 
 #ifdef __USE_ENCRYPTER__
-    // ¾ÏÈ£È­ ÄÚµå µî·Ï. Áö±ÝÀº objectID·Î ÇÏ±â ¶§¹®¿¡.. by sigi. 2002.11.27
+    // Register the encryption code. It uses the objectID for now.
     pGamePlayer->setEncryptCode();
 #endif
 
@@ -693,7 +692,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     SEND_SYSTEM_AVAILABILITIES(pGamePlayer);
 
     //----------------------------------------------------------------------
-    // GCUpdateInfo ¿ë PC Á¤º¸, SkillInfo ¸¦ ±¸¼ºÇÑ´Ù.
+    // Build the PC info and the SkillInfo for GCUpdateInfo.
     //----------------------------------------------------------------------
 
     cout << " ¿©±â´Â µÇ³ª¿ä7" << endl;
@@ -710,7 +709,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
     IP_t IP = pGamePlayer->getSocket()->getHostIP();
 
-    // ¸¶Áö¸·À¸·Î IPÀÇ Á¤º¸¸¦ DB¿¡ INSERT ÇÑ´Ù.
+    // Finally INSERT the IP information into the DB.
 
     //--------------------------------------------------
     // change player status
@@ -728,7 +727,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// YYYY-MM-DD ·Î ¼ºÀÎ ÆÇº°
+// Adulthood decided from YYYY-MM-DD
 //
 //////////////////////////////////////////////////////////////////////////////
 bool isAdultByBirthdayDate(const string& birthday) {

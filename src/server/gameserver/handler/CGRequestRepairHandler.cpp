@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : CGRequestRepairHandler.cpp
-// Written By  : 김성민
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -46,7 +45,7 @@ void CGRequestRepairHandler::execute(CGRequestRepair* pPacket, Player* pPlayer)
     bool bOusters = false;
     Item* pItem = NULL;
 
-    // 플레이어가 슬레이어인지 뱀파이어인지 구분.
+    // Tell whether the player is a Slayer or a Vampire.
     if (pPC->isSlayer())
         bSlayer = true;
     else if (pPC->isVampire())
@@ -57,7 +56,7 @@ void CGRequestRepairHandler::execute(CGRequestRepair* pPacket, Player* pPlayer)
         throw ProtocolException("CGRequestRepairHandler::execute() : Unknown player creature!");
 
     if (ITEMOID == 0) {
-        // ObjectID가 0이라면 모든 아이템을 수리하고자 하는 것이다.
+        // An ObjectID of 0 means every item is to be repaired.
         executeAll(pPacket, pPlayer);
     } else {
         if (bSlayer)
@@ -67,16 +66,16 @@ void CGRequestRepairHandler::execute(CGRequestRepair* pPacket, Player* pPlayer)
         else if (bOusters)
             pItem = (dynamic_cast<Ousters*>(pPC))->findItemOID(ITEMOID);
 
-        // 플레이어가 아이템을 가지고 있다면
+        // If the player holds the item
         if (pItem != NULL) {
-            // 그 아이템이 모터 사이클 키라면...
+            // If that item is a motorcycle key...
             if (pItem->getItemClass() == Item::ITEM_CLASS_KEY && pItem->getItemType() == 2) {
                 executeMotorcycle(pPacket, pPlayer);
                 return;
             } else
                 executeNormal(pPacket, pPlayer);
         } else {
-            // 아이템이 없으니, 당연히 수리할 수 없다.
+            // There is no item, so of course nothing can be repaired.
             GCNPCResponse response;
             response.setCode(NPC_RESPONSE_REPAIR_FAIL_ITEM_NOT_EXIST);
             pPlayer->sendPacket(&response);
@@ -89,7 +88,7 @@ void CGRequestRepairHandler::execute(CGRequestRepair* pPacket, Player* pPlayer)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 일반 아이템을 처리한다.
+// Handles an ordinary item.
 //////////////////////////////////////////////////////////////////////////////
 void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPlayer)
 
@@ -114,7 +113,7 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
     int Y = 0;
     GCNPCResponse response;
 
-    // 플레이어가 슬레이어인지 뱀파이어인지 구분.
+    // Tell whether the player is a Slayer or a Vampire.
     if (pPC->isSlayer())
         bSlayer = true;
     else if (pPC->isVampire())
@@ -122,7 +121,7 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
     else if (pPC->isOusters())
         bOusters = true;
 
-    // 플레이어가 수리하려고 하는 아이템을 가지고 있는지 검사
+    // Check whether the player holds the item it wants to repair
     if (bSlayer) {
         pSlayer = dynamic_cast<Slayer*>(pPC);
         playerMoney = pSlayer->getGold();
@@ -137,16 +136,16 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
         pItem = pOusters->findItemOID(ITEMOID, storage, X, Y);
     }
 
-    // 플레이어가 수리하려고 하는 아이템을 가지고 있는지
-    // 상위에서 검사를 하기 때문에, pItem이 널일리는 없다.
-    // 단, 수리할 수 없는 아이템인지를 검사한다.
+    // Whether the player holds the item it wants to repair
+    // is checked further up, so pItem cannot be null.
+    // What is checked here is whether the item cannot be repaired.
     if (isRepairableItem(pItem) == false) {
         response.setCode(NPC_RESPONSE_REPAIR_FAIL_ITEM_TYPE);
         pPlayer->sendPacket(&response);
         return;
     }
 
-    // 이전 내구도를 저장한다.
+    // Save the previous durability.
     Durability_t oldDurability = pItem->getDurability();
 
     repairPrice = g_pPriceManager->getRepairPrice(pItem);
@@ -157,10 +156,10 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
         return;
     }
 
-    // 수리한다.
+    // Repair it.
     repairItem(pItem);
 
-    // 수리한 아이템이 기어창의 아이템이고 이전 내구도가 0 이었다면 정보를 새로 보내줘야한다.
+    // A repaired item in the gear window whose previous durability was 0 needs its information sent again.
     if (storage == STORAGE_GEAR && oldDurability == 0) {
         if (bSlayer && pSlayer != NULL) {
             pSlayer->initAllStatAndSend();
@@ -174,7 +173,7 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
         }
     }
 
-    // 돈을 줄인다.
+    // Take the money.
     if (bSlayer) {
         // pSlayer->setGoldEx(playerMoney-repairPrice);
         //  by sigi. 2002.9.4
@@ -190,13 +189,13 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
         // log(LOG_REPAIR_ITEM, pOusters->getName(), "", pItem->toString());
     }
 
-    // 아이템을 수리했다는 정보를 DB에다가 저장해준다.
-    // 단 분명히 STORAGE_STASH가 돌아올 수 있지만,
-    // 보관함에 있는 것을 수리한다는 것은 말이 안 되므로,
-    // 저장하지 않는다.
+    // Save to the DB that the item was repaired.
+    // STORAGE_STASH can certainly come back, but
+    // repairing something in the stash makes no sense, so
+    // it is not saved.
 
 
-    // item저장 최적화. by sigi. 2002.5.17
+    // Item save optimization.
     if (repairPrice > 0) {
         char pField[80];
 
@@ -214,10 +213,10 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
     }
 
     /*
-    // 뭐가 됐든.. durability만 바꾸면 된다.
-    // 근데.. ItemObject에 Durability field가 없는 것도 있고
-    // Charge를 저장해야 하는 것도 있다.
-    // 그래서.. 일단은 모두 다 저장하는 save를 이용하도록 한다.
+    // Whatever it is.. only the durability has to change.
+    // But.. some ItemObjects have no Durability field and
+    // some have to store a Charge.
+    // So.. for now the save that stores everything is used.
     switch (storage)
     {
         case STORAGE_INVENTORY:
@@ -244,7 +243,7 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
     }
     */
 
-    // OK 패킷을 날려준다.
+    // Send the OK packet.
     response.setCode(NPC_RESPONSE_REPAIR_OK);
     response.setParameter(playerMoney - repairPrice);
     pPlayer->sendPacket(&response);
@@ -256,7 +255,7 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 모터 사이클을 처리한다.
+// Handles a motorcycle.
 //////////////////////////////////////////////////////////////////////////////
 void CGRequestRepairHandler::executeMotorcycle(CGRequestRepair* pPacket, Player* pPlayer)
 
@@ -265,7 +264,7 @@ void CGRequestRepairHandler::executeMotorcycle(CGRequestRepair* pPacket, Player*
 
 #ifdef __GAME_SERVER__
 
-        // 패킷 정보를 뽑아낸다.
+        // Pull the packet information out.
         ObjectID_t ITEMOID = pPacket->getObjectID();
     Creature* pPC = dynamic_cast<GamePlayer*>(pPlayer)->getCreature();
     Zone* pZone = pPC->getZone();
@@ -278,7 +277,7 @@ void CGRequestRepairHandler::executeMotorcycle(CGRequestRepair* pPacket, Player*
     bool bOusters = false;
     GCNPCResponse response;
 
-    // 플레이어가 슬레이어인지 뱀파이어인지 구분.
+    // Tell whether the player is a Slayer or a Vampire.
     if (pPC->isSlayer())
         bSlayer = true;
     else if (pPC->isVampire())
@@ -288,8 +287,8 @@ void CGRequestRepairHandler::executeMotorcycle(CGRequestRepair* pPacket, Player*
     else
         throw ProtocolException("CGRequestRepairHandler::execute() : Unknown player creature!");
 
-    // 플레이어가 수리하려고 하는 아이템을 가지고 있는지
-    // 상위에서 검사를 하기 때문에, pItem이 널일리는 없다.
+    // Whether the player holds the item it wants to repair
+    // is checked further up, so pItem cannot be null.
     if (bSlayer) {
         pItem = (dynamic_cast<Slayer*>(pPC))->findItemOID(ITEMOID);
         playerMoney = (dynamic_cast<Slayer*>(pPC))->getGold();
@@ -301,7 +300,7 @@ void CGRequestRepairHandler::executeMotorcycle(CGRequestRepair* pPacket, Player*
         playerMoney = (dynamic_cast<Ousters*>(pPC))->getGold();
     }
 
-    // 주위 일정 범위를 검색해서, 모터 사이클이 있는지 확인한다.
+    // Search a range around, to see whether a motorcycle is there.
     for (ZoneCoord_t zx = CenterX - 5; zx <= CenterX + 5; zx++) {
         for (ZoneCoord_t zy = CenterY - 5; zy <= CenterY + 5; zy++) {
             if (!isValidZoneCoord(pZone, zx, zy))
@@ -313,7 +312,7 @@ void CGRequestRepairHandler::executeMotorcycle(CGRequestRepair* pPacket, Player*
                 Item* pItemOnTile = tile.getItem();
                 Assert(pItemOnTile != NULL);
 
-                // 만일 아이템이 타일 위에 있을 경우, 모터 사이클인지 확인한다.
+                // If an item sits on the tile, check whether it is a motorcycle.
                 if (pItemOnTile->getItemClass() == Item::ITEM_CLASS_MOTORCYCLE) {
                     DWORD targetID = dynamic_cast<Key*>(pItem)->getTarget();
                     ItemID_t motorcycleID = pItemOnTile->getItemID();
@@ -327,18 +326,18 @@ void CGRequestRepairHandler::executeMotorcycle(CGRequestRepair* pPacket, Player*
                             return;
                         }
 
-                        // 수리한다.
+                        // Repair it.
                         repairItem(pItemOnTile);
 
-                        // 저장한다.
+                        // Save it.
                         // pItemOnTile->save(pPC->getName(), STORAGE_ZONE, pZone->getZoneID(), zx, zy);
-                        // item저장 최적화. by sigi. 2002.5.13
+                        // Item save optimization.
                         char pField[80];
                         sprintf(pField, "Durability=%d", pItemOnTile->getDurability());
                         pItemOnTile->tinysave(pField);
 
 
-                        // 돈을 줄인다.
+                        // Take the money.
                         // if (bSlayer) (dynamic_cast<Slayer*>(pPC))->setGoldEx(playerMoney-repairPrice);
                         // else         (dynamic_cast<Vampire*>(pPC))->setGoldEx(playerMoney-repairPrice);
 
@@ -356,8 +355,8 @@ void CGRequestRepairHandler::executeMotorcycle(CGRequestRepair* pPacket, Player*
         } // end of for (ZoneCoord_t zy=CenterY-5; zy<=CenterY+5; zy++)
     } // end of for (ZoneCoord_t zx=CenterX-5; zx<=CenterX+5; zx++)
 
-    // FOR 루프를 다 돌고, 이까지 왔다는 것은 근처에 오토바이가 없다는 말이당...
-    // 그러므로 모터 사이클 팔기가 실패했다는 것을 알린다.
+    // Coming this far through the FOR loop means there is no motorcycle nearby...
+    // So report that selling the motorcycle failed.
     response.setCode(NPC_RESPONSE_REPAIR_FAIL_ITEM_NOT_EXIST);
     pPlayer->sendPacket(&response);
 
@@ -367,7 +366,7 @@ void CGRequestRepairHandler::executeMotorcycle(CGRequestRepair* pPacket, Player*
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 모든 아이템 수리하기
+// Repair every item
 //////////////////////////////////////////////////////////////////////////////
 void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlayer)
 
@@ -385,43 +384,43 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
     if (pPC->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pPC);
 
-        // 모든 아이템을 합한 수리비를 계산한다.
+        // Compute the repair price summed over every item.
         for (int i = 0; i < Slayer::WEAR_MAX; i++) {
             Item* pItem = pSlayer->getWearItem((Slayer::WearPart)i);
             if (pItem != NULL) {
                 if (i == Slayer::WEAR_RIGHTHAND && isTwohandWeapon(pItem)) {
-                    // 오른손이고, 현재 들고 있는 무기가 양손 무기라면...
-                    // 수리 가격에 포함시킬 필요가 없다.
+                    // For the right hand, when the weapon held is two-handed...
+                    // it does not have to be counted in the repair price.
                 } else {
                     repairPrice += g_pPriceManager->getRepairPrice(pItem);
                 }
             }
         }
 
-        // 돈이 모자라다면 리턴한다.
+        // Return if there is not enough money.
         if (pSlayer->getGold() < repairPrice) {
             response.setCode(NPC_RESPONSE_REPAIR_FAIL_MONEY);
             pPlayer->sendPacket(&response);
             return;
         }
 
-        // 각각의 아이템을 수리하고, DB에 저장한다.
+        // Repair each item and save it to the DB.
         char pField[80];
 
         for (int i = 0; i < Slayer::WEAR_MAX; i++) {
             Item* pItem = pSlayer->getWearItem((Slayer::WearPart)i);
             if (pItem != NULL) {
                 if (i == Slayer::WEAR_RIGHTHAND && isTwohandWeapon(pItem)) {
-                    // 오른손이고, 현재 들고 있는 무기가 양손 무기라면...
-                    // 수리할 필요가 없다.
+                    // For the right hand, when the weapon held is two-handed...
+                    // No repair needed.
                 } else if (isRepairableItem(pItem)) {
                     Durability_t oldDurability = pItem->getDurability();
                     repairItem(pItem);
                     if (pItem->getDurability() != oldDurability) {
-                        // DB 쿼리를 줄이기 위해서
-                        // 내구도의 변화가 생긴 경우에만 세이브한다.
+                        // To cut down DB queries,
+                        // save only when the durability changed.
                         // pItem->save(pSlayer->getName(), STORAGE_GEAR, 0, i, 0);
-                        // item저장 최적화. by sigi. 2002.5.13
+                        // Item save optimization.
                         sprintf(pField, "Durability=%d", pItem->getDurability());
                         pItem->tinysave(pField);
                     }
@@ -432,57 +431,57 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
             }
         }
 
-        // 돈을 줄이고...
+        // Take the money, and...
         // pSlayer->setGoldEx(pSlayer->getGold() - repairPrice);
 
         // by sigi.2002.9.4
         pSlayer->decreaseGoldEx(repairPrice);
 
-        // 로그를 남긴다.
+        // leave a log.
         // log(LOG_REPAIR_ITEM, pSlayer->getName(), "", "ALL");
 
-        // OK 패킷을 날려준다.
+        // Send the OK packet.
         response.setCode(NPC_RESPONSE_REPAIR_OK);
         response.setParameter(pSlayer->getGold());
         pPlayer->sendPacket(&response);
     } else if (pPC->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pPC);
 
-        // 모든 아이템을 합한 수리비를 계산한다.
+        // Compute the repair price summed over every item.
         for (int i = 0; i < Vampire::VAMPIRE_WEAR_MAX; i++) {
             Item* pItem = pVampire->getWearItem((Vampire::WearPart)i);
             if (pItem != NULL) {
                 if (i == Vampire::WEAR_RIGHTHAND && isTwohandWeapon(pItem)) {
-                    // 양손무기는 한쪽만 수리한다.
+                    // A two-handed weapon is repaired on one side only.
                 } else {
                     repairPrice += g_pPriceManager->getRepairPrice(pItem);
                 }
             }
         }
 
-        // 돈이 모자라다면 리턴한다.
+        // Return if there is not enough money.
         if (pVampire->getGold() < repairPrice) {
             response.setCode(NPC_RESPONSE_REPAIR_FAIL_MONEY);
             pPlayer->sendPacket(&response);
             return;
         }
 
-        // 각각의 아이템을 수리하고, DB에 저장한다.
+        // Repair each item and save it to the DB.
         char pField[80];
 
         for (int i = 0; i < Vampire::VAMPIRE_WEAR_MAX; i++) {
             Item* pItem = pVampire->getWearItem((Vampire::WearPart)i);
             if (pItem != NULL) {
                 if (i == Vampire::WEAR_RIGHTHAND && isTwohandWeapon(pItem)) {
-                    // 양손무기는 한쪽만 수리한다.
+                    // A two-handed weapon is repaired on one side only.
                 } else {
                     Durability_t oldDurability = pItem->getDurability();
                     repairItem(pItem);
                     if (pItem->getDurability() != oldDurability) {
-                        // DB 쿼리를 줄이기 위해서
-                        // 내구도의 변화가 생긴 경우에만 세이브한다.
+                        // To cut down DB queries,
+                        // save only when the durability changed.
                         // pItem->save(pVampire->getName(), STORAGE_GEAR, 0, i, 0);
-                        // item저장 최적화. by sigi. 2002.5.13
+                        // Item save optimization.
                         sprintf(pField, "Durability=%d", pItem->getDurability());
                         pItem->tinysave(pField);
                     }
@@ -493,56 +492,56 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
             }
         }
 
-        // 돈을 줄이고...
+        // Take the money, and...
         // pVampire->setGoldEx(pVampire->getGold() - repairPrice);
         // by sigi.2002.9.4
         pVampire->decreaseGoldEx(repairPrice);
 
-        // 로그를 남긴다.
+        // leave a log.
         // log(LOG_REPAIR_ITEM, pVampire->getName(), "", "ALL");
 
-        // OK 패킷을 날려준다.
+        // Send the OK packet.
         response.setCode(NPC_RESPONSE_REPAIR_OK);
         response.setParameter(pVampire->getGold());
         pPlayer->sendPacket(&response);
     } else if (pPC->isOusters()) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pPC);
 
-        // 모든 아이템을 합한 수리비를 계산한다.
+        // Compute the repair price summed over every item.
         for (int i = 0; i < Ousters::OUSTERS_WEAR_MAX; i++) {
             Item* pItem = pOusters->getWearItem((Ousters::WearPart)i);
             if (pItem != NULL) {
                 if (i == Ousters::WEAR_RIGHTHAND && isTwohandWeapon(pItem)) {
-                    // 양손무기는 한쪽만 수리한다.
+                    // A two-handed weapon is repaired on one side only.
                 } else {
                     repairPrice += g_pPriceManager->getRepairPrice(pItem);
                 }
             }
         }
 
-        // 돈이 모자라다면 리턴한다.
+        // Return if there is not enough money.
         if (pOusters->getGold() < repairPrice) {
             response.setCode(NPC_RESPONSE_REPAIR_FAIL_MONEY);
             pPlayer->sendPacket(&response);
             return;
         }
 
-        // 각각의 아이템을 수리하고, DB에 저장한다.
+        // Repair each item and save it to the DB.
         char pField[80];
 
         for (int i = 0; i < Ousters::OUSTERS_WEAR_MAX; i++) {
             Item* pItem = pOusters->getWearItem((Ousters::WearPart)i);
             if (pItem != NULL) {
                 if (i == Ousters::WEAR_RIGHTHAND && isTwohandWeapon(pItem)) {
-                    // 양손무기는 한쪽만 수리한다.
+                    // A two-handed weapon is repaired on one side only.
                 } else {
                     Durability_t oldDurability = pItem->getDurability();
                     repairItem(pItem);
                     if (pItem->getDurability() != oldDurability) {
-                        // DB 쿼리를 줄이기 위해서
-                        // 내구도의 변화가 생긴 경우에만 세이브한다.
+                        // To cut down DB queries,
+                        // save only when the durability changed.
                         // pItem->save(pOusters->getName(), STORAGE_GEAR, 0, i, 0);
-                        // item저장 최적화. by sigi. 2002.5.13
+                        // Item save optimization.
                         sprintf(pField, "Durability=%d", pItem->getDurability());
                         pItem->tinysave(pField);
                     }
@@ -553,15 +552,15 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
             }
         }
 
-        // 돈을 줄이고...
+        // Take the money, and...
         // pOusters->setGoldEx(pOusters->getGold() - repairPrice);
         // by sigi.2002.9.4
         pOusters->decreaseGoldEx(repairPrice);
 
-        // 로그를 남긴다.
+        // leave a log.
         // log(LOG_REPAIR_ITEM, pOusters->getName(), "", "ALL");
 
-        // OK 패킷을 날려준다.
+        // Send the OK packet.
         response.setCode(NPC_RESPONSE_REPAIR_OK);
         response.setParameter(pOusters->getGold());
         pPlayer->sendPacket(&response);

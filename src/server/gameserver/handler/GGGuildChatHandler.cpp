@@ -57,7 +57,7 @@ void GGGuildChatHandler::execute(GGGuildChat* pPacket)
 
 #ifdef __GAME_SERVER__
 
-        // 길드의 현재 접속 중인 멤버를 가져온다.
+        // Get the guild's currently connected members.
         Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
 
     if (pGuild == NULL) {
@@ -65,7 +65,7 @@ void GGGuildChatHandler::execute(GGGuildChat* pPacket)
         return;
     }
 
-    // 길드 채팅 패킷을 만든다.
+    // Build the guild chat packet.
     GCGuildChat gcGuildChat;
     gcGuildChat.setType(pPacket->getType());
     gcGuildChat.setSendGuildName(pGuild->getName());
@@ -76,7 +76,7 @@ void GGGuildChatHandler::execute(GGGuildChat* pPacket)
     if (pPacket->getType() == 0) {
         broadcastGuild(pGuild, &gcGuildChat);
     } else {
-        // 연합 채팅
+        // Union chat
         GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(pGuild->getID());
         if (pUnion == NULL) {
             broadcastGuild(pGuild, &gcGuildChat);

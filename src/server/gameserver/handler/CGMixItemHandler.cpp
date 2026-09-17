@@ -55,9 +55,9 @@ void CGMixItemHandler::execute(CGMixItem* pPacket, Player* pPlayer)
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
 
-    // cout << "패킷날라옴 : " << pPacket->toString() << endl;
+    // cout << "Packet arrived: " << pPacket->toString() << endl;
 
-    // 인벤토리 좌표를 넘어가는 영역이라면 안 된다.
+    // An area beyond the inventory coordinates is not allowed.
     if (InvenX >= pInventory->getWidth() || InvenY >= pInventory->getHeight()) {
         sendCannotUse(pPacket, pPlayer);
         return;
@@ -65,25 +65,25 @@ void CGMixItemHandler::execute(CGMixItem* pPacket, Player* pPlayer)
 
     Item* pItem = pPC->findItemOID(pPacket->getObjectID());
 
-    //	// 인벤토리에 그 아이템이 없다면 에러다.
+    //	// It is an error when the inventory holds no such item.
     //	Item* pItem = pInventory->getItem(InvenX, InvenY);
     if (pItem == NULL) {
         sendCannotUse(pPacket, pPlayer);
         return;
     }
 
-    // 인벤토리에 있는 아이템의 Object를 받는다.
+    // Get the Object of the item in the inventory.
     //	ObjectID_t ItemObjectID = pItem->getObjectID();
 
-    // OID가 일치하지 않거나, 사용할 수 없는 아이템이라면 에러다.
+    // A mismatched OID, or an item that cannot be used, is an error.
     //	if (ItemObjectID != pPacket->getObjectID())
     //	{
-    //		//cout << "아템 사용 불가. 옵젝트 아디가 안 맞던가..." << endl;
+    //		//cout << "Item cannot be used. Object id does not match..." << endl;
     //		sendCannotUse( pPacket, pPlayer );
     //		return;
     //	}
 
-    // 믹싱 포지가 아니면 안된다 -_-
+    // It has to be a mixing forge
     if (pItem->getItemClass() != Item::ITEM_CLASS_MIXING_ITEM) {
         sendCannotUse(pPacket, pPlayer);
         return;
@@ -279,7 +279,7 @@ void CGMixItemHandler::executeMix(CGMixItem* pPacket, Player* pPlayer, Item* pIt
     }
 
     pTargetItem1->addOptionType(option2);
-    // pTargetItem1 이나 pTargetItem2 중 하나라도 남기는 거면 만들어지는 것도 남긴다
+    // If either pTargetItem1 or pTargetItem2 is traced, what is made is traced too
     pTargetItem1->setTraceItem(pTargetItem1->isTraceItem() || pTargetItem2->isTraceItem());
     pTargetItem1->setGrade(TargetGrade);
 
@@ -456,7 +456,7 @@ void CGMixItemHandler::executeDetach(CGMixItem* pPacket, Player* pPlayer, Item* 
     list<OptionType_t> oList = pTargetItem->getOptionTypeList();
     Assert(oList.size() == 2);
 
-    // optionNo는 0 아니면 1이다. (위에서 체크했다.)
+    // optionNo is either 0 or 1 (checked above).
     if (optionNo == 0)
         oList.pop_front();
     else
@@ -473,7 +473,7 @@ void CGMixItemHandler::executeDetach(CGMixItem* pPacket, Player* pPlayer, Item* 
 
     //	pInventory->deleteItem( pItem->getObjectID() );
     Assert(pItem == pPC->getExtraInventorySlotItem());
-    // 옵션 떼내는 아템은 마우스 위에 있다. 없음말고
+    // The item the option is taken off is on the mouse. If not, never mind
     pPC->deleteItemFromExtraInventorySlot();
     if (pItem->isTraceItem()) {
         remainTraceLog(pItem, pPC->getName(), "Furitas", ITEM_LOG_DELETE, DETAIL_ENCHANT);
@@ -579,18 +579,18 @@ void CGMixItemHandler::executeClearOption(CGMixItem* pPacket, Player* pPlayer, I
         return;
     }
 
-    // 이제 옵션을 없애버린다.
+    // Now remove the option.
     oList.clear();
     pTargetItem->setOptionType(oList);
 
-    // 옵션이 없다고 DB에 저장한다
+    // Record in the DB that there is no option
     pTargetItem->tinysave("OptionType=''");
 
     pTargetItem->setTraceItem(bTraceLog(pTargetItem));
 
     //	pInventory->deleteItem( pItem->getObjectID() );
     Assert(pItem == pPC->getExtraInventorySlotItem());
-    // 옵션 떼내는 아템은 마우스 위에 있다. 없음말고
+    // The item the option is taken off is on the mouse. If not, never mind
     pPC->deleteItemFromExtraInventorySlot();
     if (pItem->isTraceItem()) {
         remainTraceLog(pItem, pPC->getName(), "ClearOption", ITEM_LOG_DELETE, DETAIL_ENCHANT);

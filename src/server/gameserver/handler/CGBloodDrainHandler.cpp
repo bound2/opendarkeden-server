@@ -39,13 +39,13 @@ void CGBloodDrainHandler::execute(CGBloodDrain* pPacket, Player* pPlayer)
             Creature* pCreature = pGamePlayer->getCreature();
             Assert(pCreature != NULL);
 
-            // 뱀파이어가 아닌 놈이 흡혈을 할 수는 없다.
+            // Only a Vampire can drain blood.
             if (!pCreature->isVampire())
                 return;
 
             Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
 
-            // 완전 안전지대라면 기술 사용 불가. by sigi. 2002.11.14
+            // A complete safe zone forbids skill use.
             ZoneLevel_t ZoneLevel = pCreature->getZone()->getZoneLevel(pCreature->getX(), pCreature->getY());
             if ((ZoneLevel & COMPLETE_SAFE_ZONE) || (!isAbleToUseObjectSkill(pVampire, SKILL_BLOOD_DRAIN))) {
                 GCSkillFailed1 gcSkillFailed1;
@@ -54,7 +54,7 @@ void CGBloodDrainHandler::execute(CGBloodDrain* pPacket, Player* pPlayer)
                 return;
             }
 
-            // Dark Revenge 상태에서 흡혈을 시도하면 풀어준다.
+            // A blood drain attempted in the Dark Revenge state clears that state.
             if (pVampire->isFlag(Effect::EFFECT_CLASS_EXTREME)) {
                 EffectManager* pEffectManager = pVampire->getEffectManager();
                 Assert(pEffectManager != NULL);
@@ -64,7 +64,7 @@ void CGBloodDrainHandler::execute(CGBloodDrain* pPacket, Player* pPlayer)
                 }
             }
 
-            // 안 보이는 상태에서 흡혈을 시도하면, 보이게 해준다.
+            // A blood drain attempted while invisible makes one visible again.
             if (pVampire->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
                 Zone* pZone = pVampire->getZone();
                 Assert(pZone != NULL);

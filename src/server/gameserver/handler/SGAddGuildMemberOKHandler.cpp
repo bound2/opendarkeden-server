@@ -44,17 +44,17 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
 
 #ifdef __GAME_SERVER__
 
-        // 길드 멤버 object 를 만든다.
+        // Build the guild member object.
         GuildMember* pGuildMember = new GuildMember();
     pGuildMember->setGuildID(pPacket->getGuildID());
     pGuildMember->setName(pPacket->getName());
     pGuildMember->setRank(pPacket->getGuildMemberRank());
 
-    // 길드에 추가한다.
+    // Add it to the guild.
     Guild* pGuild = g_pGuildManager->getGuild(pGuildMember->getGuildID());
     pGuild->addMember(pGuildMember);
 
-    // 멤버에게 메세지를 보낸다.
+    // Send the member a message.
     //
     // A master/submaster pays the fee: from the in-memory gold if the
     // member is online, from the database row if not. The in-memory path
@@ -74,12 +74,12 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
     else
         Fee = 0;
 
-    // 접속이 안되어 있다: 마스터나 서브마스터일 경우 DB 에서 돈을 까도록 한다.
+    // Not connected: for a master or a submaster, take the money from the DB.
     const bool addedHere = pPacket->getServerGroupID() == g_pConfig->getPropertyInt("ServerID");
     de::GoneCommand chargeInDatabase = [=] {
         if ((rank == GuildMember::GUILDMEMBER_RANK_MASTER ||
-             rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) // 길드마스터나 서브마스터일 경우
-            && addedHere)                                     // 이 게임 서버에서 추가한 길드원인가?
+             rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) // when it is the guild master or a submaster
+            && addedHere)                                     // was this guild member added on this game server?
         {
             // The race decides which table the row is in. A guild whose
             // race is none of the three named none, and the write was
@@ -108,11 +108,11 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
         memberName,
         [=](PlayerCreature& pc, Player& player) {
             if (rank == GuildMember::GUILDMEMBER_RANK_MASTER ||
-                rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) // 길드마스터나 서브마스터일 경우
+                rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) // when it is the guild master or a submaster
             {
                 Gold_t CurMoney = pc.getGold();
                 if (CurMoney < Fee) {
-                    // 큰일났군
+                    // This is bad
                     CurMoney = 0;
                 } else
                     CurMoney -= Fee;
@@ -123,11 +123,11 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
                     GCModifyInformation gcModifyInformation;
                     gcModifyInformation.addLongData(MODIFY_GOLD, CurMoney);
 
-                    // 바뀐정보를 클라이언트에 보내준다.
+                    // Send the changed information to the client.
                     player.sendPacket(&gcModifyInformation);
                 }
 
-                // 길드 가입 메시지를 보여준다.
+                // Show the guild join message.
                 GCSystemMessage gcSystemMessage;
                 if (guildRace == Guild::GUILD_RACE_SLAYER)
                     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TEAM_JOIN_ACCEPTED));
@@ -138,7 +138,7 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
                 player.sendPacket(&gcSystemMessage);
 
             } else if (rank == GuildMember::GUILDMEMBER_RANK_WAIT) {
-                // 길드 가입 신청 메시지를 보낸다.
+                // Send the guild join request message.
                 GCSystemMessage gcSystemMessage;
                 if (guildRace == Guild::GUILD_RACE_SLAYER)
                     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TEAM_JOIN_TRY));
@@ -155,7 +155,7 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
     if (!online)
         chargeInDatabase();
 
-    // 길드 마스터에게 메시지를 보낸다. (send only: fine from this thread)
+    // Send the guild master a message. (send only: fine from this thread)
     __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
     Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuild->getMaster());

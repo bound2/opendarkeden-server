@@ -58,11 +58,11 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
         return;
     }
 
-    // 요청한놈이 지가 속한 길드의 마스터인가? || 연합의 마스터길드가 내 길드가 맞나?
+    // Is the requester the master of its own guild, and is the union's master guild my guild?
     if (!g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature) ||
         pUnion->getMasterGuildID() != pPlayerCreature->getGuildID()) {
-        // GC_GUILD_RESPONSE 날려준다.
-        // 내용 : 길드 마스터가 아니자녀 -.-+
+        // Send GC_GUILD_RESPONSE.
+        // Content: not the guild master.
 
         gcGuildResponse.setCode(GuildUnionOfferManager::SOURCE_IS_NOT_MASTER);
         pPlayer->sendPacket(&gcGuildResponse);
@@ -84,21 +84,21 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
         }
         string TargetGuildMaster = pGuild->getMaster();
 
-        // cout << "연합탈퇴가 수락되었다. 통보받을 유저는 : " << TargetGuildMaster.c_str() << endl;
+        // cout << "The union withdrawal was accepted. The user to notify is: " << TargetGuildMaster.c_str() << endl;
 
 
         GuildRepository& guilds = defaultGuildRepository();
 
         defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(375));
 
-        // 탈퇴수락한뒤에 나 혼자 남아있다면?
+        // What if I am the only one left after accepting the withdrawal?
         if (guilds.countUnionMembersSpelled(UNION_SQL_PLAIN, pUnion->getUnionID()) == 0) {
-            // cout << "연합탈퇴가 수락된후..남아있는 멤버가 없으면..연합장이면 안되니까..지워버린다" << endl;
+            // cout << "After the withdrawal is accepted, with no member left there must be no union master, so it is deleted" << endl;
             guilds.deleteUnionInfoOnly(UNION_SQL_PLAIN, pUnion->getUnionID());
             GuildUnionManager::Instance().reload();
         }
 
-        // 연합탈퇴하면 연합정보가 바뀌었을 수도 있다. 갱신된 정보를 다시 보내준다.
+        // A union withdrawal can change the union information. Send the refreshed information again.
         Creature* pCreature = NULL;
         pCreature = pGamePlayer->getCreature();
 
@@ -110,7 +110,7 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
 
         pPlayer->sendPacket(&gcModifyInformation);
 
-        // 통보받을 유저에게 길드Union정보를 다시 보낸다
+        // Send the guild union information to the notified user again
         Creature* pTargetCreature = NULL;
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
@@ -127,7 +127,7 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
         sendGCOtherModifyInfoGuildUnion(pTargetCreature);
         sendGCOtherModifyInfoGuildUnion(pCreature);
 
-        // 다른 서버에 있는 놈들에게 변경사항을 알린다.
+        // Tell the ones on other servers about the change.
         GuildUnionManager::Instance().sendModifyUnionInfo(dynamic_cast<PlayerCreature*>(pTargetCreature)->getGuildID());
         GuildUnionManager::Instance().sendModifyUnionInfo(dynamic_cast<PlayerCreature*>(pCreature)->getGuildID());
     }

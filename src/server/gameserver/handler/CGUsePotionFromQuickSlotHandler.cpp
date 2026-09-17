@@ -150,7 +150,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Creature* pCreature = pGamePlayer->getCreature();
 
-    // 코마 상태라면 사용할 수 없다.
+    // It cannot be used in the coma state.
     if (pCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
         GCCannotUse _GCCannotUse;
         _GCCannotUse.setObjectID(pPacket->getObjectID());
@@ -178,13 +178,13 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 return;
             }
 
-            // 벨트의 인벤토리를 받아온다.
+            // Get the belt's inventory.
             Inventory* pBeltInventory = ((Belt*)pBelt)->getInventory();
 
-            // SlotID를 받는다.
+            // Get the SlotID.
             SlotID_t SlotID = pPacket->getSlotID();
 
-            // 슬랏의 범위를 초과하면 사용할 수 없다.
+            // It cannot be used past the slot range.
             if (SlotID >= pBeltInventory->getWidth()) {
                 GCCannotUse _GCCannotUse;
                 _GCCannotUse.setObjectID(pPacket->getObjectID());
@@ -192,10 +192,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 return;
             }
 
-            // 벨트의 지정 슬랏의 아이템을 받아온다.
+            // Get the item in the belt's given slot.
             Item* pBeltItem = pBeltInventory->getItem(SlotID, 0);
 
-            // 아이템이 없으면 당연히 사용할 수 없다.
+            // With no item there is of course nothing to use.
             if (pBeltItem == NULL) {
                 GCCannotUse _GCCannotUse;
                 _GCCannotUse.setObjectID(pPacket->getObjectID());
@@ -203,10 +203,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 return;
             }
 
-            // 슬랏에 있는 아이템의 Object를 받는다.
+            // Get the Object of the item in the slot.
             ObjectID_t ItemObjectID = pBeltItem->getObjectID();
 
-            // 데이터가 일치하지 않거나, 포션이 아니라면 사용할 수 없다.
+            // It cannot be used when the data does not match or it is not a potion.
             if (ItemObjectID != pPacket->getObjectID() || (pBeltItem->getItemClass() != Item::ITEM_CLASS_POTION &&
                                                            pBeltItem->getItemClass() != Item::ITEM_CLASS_KEY)) {
                 if (ItemObjectID != pPacket->getObjectID()) {
@@ -249,7 +249,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                     return;
                 }
 
-                // 기존에 아이템이 생성되어 있는지를 확인한다.
+                // Check whether the item already exists.
                 ItemID_t targetID = dynamic_cast<Key*>(pBeltItem)->getTarget();
 
                 if (targetID == 0) {
@@ -259,8 +259,8 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                     targetID = pKey->setNewMotorcycle(pSlayer);
 
                 } else {
-                    // 한번 모터사이클이랑 키랑 연결됐는데 모터사이클을 누가 자꾸 지우나보다.
-                    // 키에 연결된 모터사이클이 실제로 디비에 있는지 체크하고 없으면 새로 만들어서 넣어준다.
+                    // Once a motorcycle and a key are linked, someone keeps deleting the motorcycle.
+                    // Check that the motorcycle linked to the key really is in the DB, and if not make a new one.
                     if (!defaultItemObjectRepository().motorcycleExists(targetID)) {
                         Key* pKey = dynamic_cast<Key*>(pBeltItem);
                         Assert(pKey != NULL);
@@ -268,7 +268,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                         targetID = pKey->setNewMotorcycle(pSlayer);
                     }
                 }
-                // 필살 방어 코드 -_-;
+                // Last-ditch defensive code
                 if (targetID == 0) {
                     filelog("errorLog.txt", "[ActionRedeemMotorcycle] itemID=%lu, motorItemID=%lu",
                             (int)pBeltItem->getItemID(), (int)targetID);
@@ -287,13 +287,13 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                         ZoneCoord_t motorY = pMotorcycleBox->getY();
                         Motorcycle* pMotorcycle = pMotorcycleBox->getMotorcycle();
 
-                        // 같은 존에 있는 경우
-                        // 거리가 너무 가까우면 부르지 말자~
+                        // When it is in the same zone
+                        // Do not call it when the distance is too short.
                         if (pMotorZone != pZone || pSlayer->getDistance(motorX, motorY) > 15) {
-                            // 다른 zone으로 이동중이라고 표시한다.
+                            // Mark it as moving to another zone.
                             pMotorcycleBox->setTransport();
 
-                            // motorcycle을 slayer의 zone으로 옮긴다.
+                            // Move the motorcycle to the slayer's zone.
                             /*							pMotorZone->transportItem( motorX, motorY, pMotorcycle,
                                                                                     pZone, pSlayer->getX(),
                                pSlayer->getY() );*/
@@ -303,14 +303,14 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                             pMotorZone->registerObject(pEffectRecallMotorcycle);
                             pMotorZone->addEffect_LOCKING(pEffectRecallMotorcycle);
 
-                            // Use OK 대용이다.
-                            // Use하면 아이템이 사라지던가 그렇지 싶다. - -;
+                            // This stands in for Use OK.
+                            // A Use would probably make the item disappear.
                             /*
                             GCCannotUse _GCCannotUse;
                             _GCCannotUse.setObjectID(pPacket->getObjectID());
                             */
 
-                            // 한동안 delay를 줘야하는데..
+                            // A delay should be applied for a while..
                         }
                     }
 
@@ -343,7 +343,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                         durability = 300;
                     }
 
-                    // 새로운 오토바이 객체를 생성한다.
+                    // Create a new motorcycle object.
                     Motorcycle* pMotorcycle = new Motorcycle(itemType, optionTypes);
 
                     Assert(pMotorcycle != NULL);
@@ -351,11 +351,11 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                     pMotorcycle->setItemID(itemID);
                     pMotorcycle->setDurability(durability);
 
-                    // Object ID 할당받기
+                    // Get an Object ID
                     (pZone->getObjectRegistry()).registerObject(pMotorcycle);
 
 
-                    // 오토바이를 존에 추가한다.
+                    // Add the motorcycle to the zone.
                     cout << "오토바이를 존에 추가합니다" << pSlayer->getX() << " " << pSlayer->getY() << endl;
                     TPOINT pt = pZone->addItem(pMotorcycle, pSlayer->getX(), pSlayer->getY(), false);
 
@@ -365,7 +365,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                             << ", X=" << (int)pSlayer->getX() << ", Y=" << (int)pSlayer->getY();
 
                         filelog("motorError.txt", "%s", msg.toString().c_str());
-                        // throw Error("오토바이를 존에 넣을 수 없습니다");
+                        // throw Error("The motorcycle cannot be put into the zone");
 
                         SAFE_DELETE(pMotorcycle);
                     } else {
@@ -376,12 +376,12 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                                 pZone->getZoneID(), pt.x, pt.y, durability);
                         }
 
-                        // 오토바이를 Parking Center에 등록한다.
+                        // Register the motorcycle with the Parking Center.
                         MotorcycleBox* pBox = new MotorcycleBox(pMotorcycle, pZone, pt.x, pt.y);
                         Assert(pBox != NULL);
                         g_pParkingCenter->addMotorcycleBox(pBox);
 
-                        // 타버린다.
+                        // It burns out.
                         CGRideMotorCycle cgRide;
                         cgRide.setObjectID(pMotorcycle->getObjectID());
                         cgRide.setX(pt.x);
@@ -391,7 +391,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                     }
 
 
-                    // 검증 패킷이다.
+                    // This is the verify packet.
                     GCCannotUse _GCCannotUse;
                     _GCCannotUse.setObjectID(pPacket->getObjectID());
                     pGamePlayer->sendPacket(&_GCCannotUse);
@@ -406,11 +406,11 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
             MP_t CurrentMP = pSlayer->getMP(ATTR_CURRENT);
             Potion* pPotion = dynamic_cast<Potion*>(pBeltItem);
 
-            // 한턴에 회복되는 양
+            // the amount recovered per turn
             int HPQuantity = pPotion->getHPQuantity();
             int MPQuantity = pPotion->getMPQuantity();
 
-            // 한턴이 몇초 인가.
+            // how many seconds one turn is.
             int HPDelayProvider = pPotion->getHPDelay();
             int MPDelayProvider = pPotion->getMPDelay();
 
@@ -426,7 +426,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
             bool notRecoverHP = false;
             bool notRecoverMP = false;
 
-            // Activation Effect가 걸려있다면 회복속도가 2배가 된다.
+            // With the Activation Effect on, the recovery rate doubles.
             if (pSlayer->isFlag(Effect::EFFECT_CLASS_ACTIVATION)) {
                 if (pPotion->getItemType() >= 14 && pPotion->getItemType() <= 17) {
                 } else {
@@ -439,7 +439,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
             }
 
 
-            // HP 회복양이 존재한다면...
+            // If there is an HP recovery amount...
             if (HPAmount != 0 && HPQuantity != 0) {
                 if (CurrentHP < MaxHP) {
                     EffectManager* pEffectManager = pSlayer->getEffectManager();
@@ -452,28 +452,28 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                         Effect* pEffect = pEffectManager->findEffect(Effect::EFFECT_CLASS_HP_RECOVERY);
                         EffectHPRecovery* pEffectHPRecoveryEffect = dynamic_cast<EffectHPRecovery*>(pEffect);
 
-                        // 기존의 단위양과 횟수로 채우는 HP양을 계산한다.
-                        // 그것을 현재 회복양에 더한다.
+                        // Compute the HP the existing unit amount and count would fill.
+                        // Add that to the current recovery amount.
                         int PrevHPAmount =
                             pEffectHPRecoveryEffect->getHPQuantity() * pEffectHPRecoveryEffect->getPeriod();
                         HPAmount = min((int)(HPAmount + PrevHPAmount), MaxHP - CurrentHP);
 
-                        // 둘 중에 큰 단위회복양과 작은 딜레이를 얻어낸다.
+                        // Take the larger unit recovery amount and the smaller delay of the two.
                         HPQuantity = max(HPQuantity, (int)(pEffectHPRecoveryEffect->getHPQuantity()));
                         HPDelayProvider = min(HPDelayProvider, (int)(pEffectHPRecoveryEffect->getDelay()));
 
-                        // 현재 회복양을 가지고, 얼마씩 몇번에 회복할 것인가를 결정한다.
+                        // From the current recovery amount, decide how much is recovered how many times.
                         temp = (double)((double)HPAmount / (double)HPQuantity);
                         Period = (uint)ceil(temp);
                         Deadline = Period * HPDelayProvider;
 
-                        // HP Recovery effect를 갱신한다.
+                        // Refresh the HP Recovery effect.
                         pEffectHPRecoveryEffect->setDeadline(Deadline);
                         pEffectHPRecoveryEffect->setDelay(HPDelayProvider);
                         pEffectHPRecoveryEffect->setHPQuantity(HPQuantity);
                         pEffectHPRecoveryEffect->setPeriod(Period);
 
-                        // 회복 시작하라는 패킷을 자신에게 보낸다.
+                        // Send the packet that starts the recovery to oneself.
                         GCHPRecoveryStartToSelf gcHPRecoveryStartToSelf;
                         gcHPRecoveryStartToSelf.setPeriod(pEffectHPRecoveryEffect->getPeriod());
                         gcHPRecoveryStartToSelf.setDelay(pEffectHPRecoveryEffect->getDelay());
@@ -481,8 +481,8 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                         pGamePlayer->sendPacket(&gcHPRecoveryStartToSelf);
 
-                        // 회복 시작하라는 패킷을 다른이들에게 보낸다.
-                        // 회복 갱신 패킷, 시작과 똑 같은 패킷을 보낸다.
+                        // Send the packet that starts the recovery to the others.
+                        // The recovery refresh packet is the same packet as the start one.
                         GCHPRecoveryStartToOthers gcHPRecoveryStartToOthers;
                         gcHPRecoveryStartToOthers.setObjectID(pSlayer->getObjectID());
                         gcHPRecoveryStartToOthers.setPeriod(pEffectHPRecoveryEffect->getPeriod());
@@ -504,7 +504,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                         pEffectManager->addEffect(pEffectHPRecovery);
 
-                        // 회복 시작하라는 패킷을 자신에게 보낸다.
+                        // Send the packet that starts the recovery to oneself.
                         GCHPRecoveryStartToSelf gcHPRecoveryStartToSelf;
                         gcHPRecoveryStartToSelf.setPeriod(Period);
                         gcHPRecoveryStartToSelf.setDelay(HPDelayProvider);
@@ -512,7 +512,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                         pGamePlayer->sendPacket(&gcHPRecoveryStartToSelf);
 
-                        // 회복 시작하라는 패킷을 보는이들에게 보낸다.
+                        // Send the packet that starts the recovery to those who can see.
                         GCHPRecoveryStartToOthers gcHPRecoveryStartToOthers;
                         gcHPRecoveryStartToOthers.setObjectID(pSlayer->getObjectID());
                         gcHPRecoveryStartToOthers.setPeriod(Period);
@@ -533,9 +533,9 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 notRecoverHP = true;
             }
 
-            // MP 회복양이 존재한다면...
+            // If there is an MP recovery amount...
             if (MPAmount != 0 && MPQuantity != 0) {
-                // 얼마씩 몇번 몇초마다.
+                // How much, how many times, every how many seconds.
                 if (CurrentMP < MaxMP) {
                     EffectManager* pEffectManager = pSlayer->getEffectManager();
 
@@ -547,28 +547,28 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                         Effect* pEffect = pEffectManager->findEffect(Effect::EFFECT_CLASS_MP_RECOVERY);
                         EffectMPRecovery* pEffectMPRecoveryEffect = dynamic_cast<EffectMPRecovery*>(pEffect);
 
-                        // 기존의 단위양과 횟수로 채우는 MP양을 계산한다.
-                        // 그것을 현재 회복양에 더한다.
+                        // Compute the MP the existing unit amount and count would fill.
+                        // Add that to the current recovery amount.
                         int PrevMPAmount =
                             pEffectMPRecoveryEffect->getMPQuantity() * pEffectMPRecoveryEffect->getPeriod();
                         MPAmount = min((int)(MPAmount + PrevMPAmount), MaxMP - CurrentMP);
 
-                        // 둘 중에 큰 단위회복양과 작은 딜레이를 얻어낸다.
+                        // Take the larger unit recovery amount and the smaller delay of the two.
                         MPQuantity = max(MPQuantity, (int)(pEffectMPRecoveryEffect->getMPQuantity()));
                         MPDelayProvider = min(MPDelayProvider, (int)(pEffectMPRecoveryEffect->getDelay()));
 
-                        // 현재 회복양을 가지고, 얼마씩 몇번에 회복할 것인가를 결정한다.
+                        // From the current recovery amount, decide how much is recovered how many times.
                         temp = (double)((double)MPAmount / (double)MPQuantity);
                         Period = (uint)ceil(temp);
                         Deadline = Period * MPDelayProvider;
 
-                        // MP Recovery effect를 갱신한다.
+                        // Refresh the MP Recovery effect.
                         pEffectMPRecoveryEffect->setDeadline(Deadline);
                         pEffectMPRecoveryEffect->setDelay(MPDelayProvider);
                         pEffectMPRecoveryEffect->setMPQuantity(MPQuantity);
                         pEffectMPRecoveryEffect->setPeriod(Period);
 
-                        // 회복 시작하라는 패킷을 자신에게 보낸다.
+                        // Send the packet that starts the recovery to oneself.
                         GCMPRecoveryStart gcMPRecoveryStart;
                         gcMPRecoveryStart.setPeriod(pEffectMPRecoveryEffect->getPeriod());
                         gcMPRecoveryStart.setDelay(pEffectMPRecoveryEffect->getDelay());
@@ -590,7 +590,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                         pEffectManager->addEffect(pEffectMPRecovery);
 
-                        // 회복 시작하라는 패킷을 자신에게 보낸다.
+                        // Send the packet that starts the recovery to oneself.
                         GCMPRecoveryStart gcMPRecoveryStart;
                         gcMPRecoveryStart.setPeriod(Period);
                         gcMPRecoveryStart.setDelay(MPDelayProvider);
@@ -624,7 +624,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
             Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
             Zone* pZone = pOusters->getZone();
 
-            // SlotID를 받는다.
+            // Get the SlotID.
             SlotID_t SlotID = pPacket->getSlotID();
 
             Ousters::WearPart part = (SlotID > 2 ? Ousters::WEAR_ARMSBAND2 : Ousters::WEAR_ARMSBAND1);
@@ -640,10 +640,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 return;
             }
 
-            // 벨트의 인벤토리를 받아온다.
+            // Get the belt's inventory.
             Inventory* pOustersArmsbandInventory = ((OustersArmsband*)pOustersArmsband)->getInventory();
 
-            // 슬랏의 범위를 초과하면 사용할 수 없다.
+            // It cannot be used past the slot range.
             if (SlotID >= pOustersArmsbandInventory->getWidth()) {
                 GCCannotUse _GCCannotUse;
                 _GCCannotUse.setObjectID(pPacket->getObjectID());
@@ -651,10 +651,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 return;
             }
 
-            // 벨트의 지정 슬랏의 아이템을 받아온다.
+            // Get the item in the belt's given slot.
             Item* pOustersArmsbandItem = pOustersArmsbandInventory->getItem(SlotID, 0);
 
-            // 아이템이 없으면 당연히 사용할 수 없다.
+            // With no item there is of course nothing to use.
             if (pOustersArmsbandItem == NULL) {
                 GCCannotUse _GCCannotUse;
                 _GCCannotUse.setObjectID(pPacket->getObjectID());
@@ -662,10 +662,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 return;
             }
 
-            // 슬랏에 있는 아이템의 Object를 받는다.
+            // Get the Object of the item in the slot.
             ObjectID_t ItemObjectID = pOustersArmsbandItem->getObjectID();
 
-            // 데이터가 일치하지 않거나, 푸파나 콤포스메이가 아니라면 사용할 수 없다.
+            // It cannot be used when the data does not match or it is neither a pupa nor a compos mei.
             if (ItemObjectID != pPacket->getObjectID() ||
                 (pOustersArmsbandItem->getItemClass() != Item::ITEM_CLASS_PUPA &&
                  pOustersArmsbandItem->getItemClass() != Item::ITEM_CLASS_COMPOS_MEI)) {
@@ -703,10 +703,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                 Pupa* pPupa = dynamic_cast<Pupa*>(pOustersArmsbandItem);
 
-                // 한턴에 회복되는 양
+                // the amount recovered per turn
                 HPQuantity = pPupa->getHPQuantity();
 
-                // 한턴이 몇초 인가.
+                // how many seconds one turn is.
                 HPDelayProvider = pPupa->getHPDelay();
 
                 PupaHPAmount = pPupa->getHPAmount();
@@ -718,10 +718,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                 ComposMei* pComposMei = dynamic_cast<ComposMei*>(pOustersArmsbandItem);
 
-                // 한턴에 회복되는 양
+                // the amount recovered per turn
                 HPQuantity = pComposMei->getHPQuantity();
 
-                // 한턴이 몇초 인가.
+                // how many seconds one turn is.
                 HPDelayProvider = pComposMei->getHPDelay();
 
                 PupaHPAmount = pComposMei->getHPAmount();
@@ -729,7 +729,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 HPAmount = min(MaxHP - CurrentHP, (int)PupaHPAmount);
             }
 
-            // HP 회복양이 존재한다면...
+            // If there is an HP recovery amount...
             if (HPAmount != 0 && HPQuantity != 0) {
                 if (CurrentHP < MaxHP) {
                     EffectManager* pEffectManager = pOusters->getEffectManager();
@@ -742,28 +742,28 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                         Effect* pEffect = pEffectManager->findEffect(Effect::EFFECT_CLASS_HP_RECOVERY);
                         EffectHPRecovery* pEffectHPRecoveryEffect = dynamic_cast<EffectHPRecovery*>(pEffect);
 
-                        // 기존의 단위양과 횟수로 채우는 HP양을 계산한다.
-                        // 그것을 현재 회복양에 더한다.
+                        // Compute the HP the existing unit amount and count would fill.
+                        // Add that to the current recovery amount.
                         int PrevHPAmount =
                             pEffectHPRecoveryEffect->getHPQuantity() * pEffectHPRecoveryEffect->getPeriod();
                         HPAmount = min((int)(HPAmount + PrevHPAmount), MaxHP - CurrentHP);
 
-                        // 둘 중에 큰 단위회복양과 작은 딜레이를 얻어낸다.
+                        // Take the larger unit recovery amount and the smaller delay of the two.
                         HPQuantity = max(HPQuantity, (int)(pEffectHPRecoveryEffect->getHPQuantity()));
                         HPDelayProvider = min(HPDelayProvider, (int)(pEffectHPRecoveryEffect->getDelay()));
 
-                        // 현재 회복양을 가지고, 얼마씩 몇번에 회복할 것인가를 결정한다.
+                        // From the current recovery amount, decide how much is recovered how many times.
                         temp = (double)((double)HPAmount / (double)HPQuantity);
                         Period = (uint)ceil(temp);
                         Deadline = Period * HPDelayProvider;
 
-                        // HP Recovery effect를 갱신한다.
+                        // Refresh the HP Recovery effect.
                         pEffectHPRecoveryEffect->setDeadline(Deadline);
                         pEffectHPRecoveryEffect->setDelay(HPDelayProvider);
                         pEffectHPRecoveryEffect->setHPQuantity(HPQuantity);
                         pEffectHPRecoveryEffect->setPeriod(Period);
 
-                        // 회복 시작하라는 패킷을 자신에게 보낸다.
+                        // Send the packet that starts the recovery to oneself.
                         GCHPRecoveryStartToSelf gcHPRecoveryStartToSelf;
                         gcHPRecoveryStartToSelf.setPeriod(pEffectHPRecoveryEffect->getPeriod());
                         gcHPRecoveryStartToSelf.setDelay(pEffectHPRecoveryEffect->getDelay());
@@ -771,8 +771,8 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                         pGamePlayer->sendPacket(&gcHPRecoveryStartToSelf);
 
-                        // 회복 시작하라는 패킷을 다른이들에게 보낸다.
-                        // 회복 갱신 패킷, 시작과 똑 같은 패킷을 보낸다.
+                        // Send the packet that starts the recovery to the others.
+                        // The recovery refresh packet is the same packet as the start one.
                         GCHPRecoveryStartToOthers gcHPRecoveryStartToOthers;
                         gcHPRecoveryStartToOthers.setObjectID(pOusters->getObjectID());
                         gcHPRecoveryStartToOthers.setPeriod(pEffectHPRecoveryEffect->getPeriod());
@@ -795,7 +795,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                         pEffectManager->addEffect(pEffectHPRecovery);
 
-                        // 회복 시작하라는 패킷을 자신에게 보낸다.
+                        // Send the packet that starts the recovery to oneself.
                         GCHPRecoveryStartToSelf gcHPRecoveryStartToSelf;
                         gcHPRecoveryStartToSelf.setPeriod(Period);
                         gcHPRecoveryStartToSelf.setDelay(HPDelayProvider);
@@ -803,7 +803,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                         pGamePlayer->sendPacket(&gcHPRecoveryStartToSelf);
 
-                        // 회복 시작하라는 패킷을 보는이들에게 보낸다.
+                        // Send the packet that starts the recovery to those who can see.
                         GCHPRecoveryStartToOthers gcHPRecoveryStartToOthers;
                         gcHPRecoveryStartToOthers.setObjectID(pOusters->getObjectID());
                         gcHPRecoveryStartToOthers.setPeriod(Period);
@@ -835,10 +835,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 CurrentMP = pOusters->getMP(ATTR_CURRENT);
                 ComposMei* pComposMei = dynamic_cast<ComposMei*>(pOustersArmsbandItem);
 
-                // 한턴에 회복되는 양
+                // the amount recovered per turn
                 MPQuantity = pComposMei->getMPQuantity();
 
-                // 한턴이 몇초 인가.
+                // how many seconds one turn is.
                 MPDelayProvider = pComposMei->getMPDelay();
 
                 Attr_t INT = pOusters->getINT();
@@ -852,10 +852,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 CurrentMP = pOusters->getMP(ATTR_CURRENT);
                 Pupa* pPupa = dynamic_cast<Pupa*>(pOustersArmsbandItem);
 
-                // 한턴에 회복되는 양
+                // the amount recovered per turn
                 MPQuantity = pPupa->getMPQuantity();
 
-                // 한턴이 몇초 인가.
+                // how many seconds one turn is.
                 MPDelayProvider = pPupa->getMPDelay();
 
                 Attr_t INT = pOusters->getINT();
@@ -866,7 +866,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                     min(MaxMP - CurrentMP, (int)(ComposMeiMPAmount * (double)(1 + (double)((double)INT / 300.0))));
             }
 
-            // MP 회복양이 존재한다면...
+            // If there is an MP recovery amount...
             if (MPAmount != 0 && MPQuantity != 0) {
                 if (CurrentMP < MaxMP) {
                     EffectManager* pEffectManager = pOusters->getEffectManager();
@@ -879,28 +879,28 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                         Effect* pEffect = pEffectManager->findEffect(Effect::EFFECT_CLASS_MP_RECOVERY);
                         EffectMPRecovery* pEffectMPRecoveryEffect = dynamic_cast<EffectMPRecovery*>(pEffect);
 
-                        // 기존의 단위양과 횟수로 채우는 MP양을 계산한다.
-                        // 그것을 현재 회복양에 더한다.
+                        // Compute the MP the existing unit amount and count would fill.
+                        // Add that to the current recovery amount.
                         int PrevMPAmount =
                             pEffectMPRecoveryEffect->getMPQuantity() * pEffectMPRecoveryEffect->getPeriod();
                         MPAmount = min((int)(MPAmount + PrevMPAmount), MaxMP - CurrentMP);
 
-                        // 둘 중에 큰 단위회복양과 작은 딜레이를 얻어낸다.
+                        // Take the larger unit recovery amount and the smaller delay of the two.
                         MPQuantity = max(MPQuantity, (int)(pEffectMPRecoveryEffect->getMPQuantity()));
                         MPDelayProvider = min(MPDelayProvider, (int)(pEffectMPRecoveryEffect->getDelay()));
 
-                        // 현재 회복양을 가지고, 얼마씩 몇번에 회복할 것인가를 결정한다.
+                        // From the current recovery amount, decide how much is recovered how many times.
                         temp = (double)((double)MPAmount / (double)MPQuantity);
                         Period = (uint)ceil(temp);
                         Deadline = Period * MPDelayProvider;
 
-                        // MP Recovery effect를 갱신한다.
+                        // Refresh the MP Recovery effect.
                         pEffectMPRecoveryEffect->setDeadline(Deadline);
                         pEffectMPRecoveryEffect->setDelay(MPDelayProvider);
                         pEffectMPRecoveryEffect->setMPQuantity(MPQuantity);
                         pEffectMPRecoveryEffect->setPeriod(Period);
 
-                        // 회복 시작하라는 패킷을 자신에게 보낸다.
+                        // Send the packet that starts the recovery to oneself.
                         GCMPRecoveryStart gcMPRecoveryStart;
                         gcMPRecoveryStart.setPeriod(pEffectMPRecoveryEffect->getPeriod());
                         gcMPRecoveryStart.setDelay(pEffectMPRecoveryEffect->getDelay());
@@ -922,7 +922,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                         pEffectManager->addEffect(pEffectMPRecovery);
 
-                        // 회복 시작하라는 패킷을 자신에게 보낸다.
+                        // Send the packet that starts the recovery to oneself.
                         GCMPRecoveryStart gcMPRecoveryStart;
                         gcMPRecoveryStart.setPeriod(Period);
                         gcMPRecoveryStart.setDelay(MPDelayProvider);
@@ -956,10 +956,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                             HP_t  CurrentHP = pOusters->getHP(ATTR_CURRENT);
                             Pupa* pPupa     = dynamic_cast<Pupa*>(pOustersArmsbandItem);
 
-                            // 한턴에 회복되는 양
+                            // the amount recovered per turn
                             int		HPQuantity = pPupa->getHPQuantity();
 
-                            // 한턴이 몇초 인가.
+                            // how many seconds one turn is.
                             int		HPDelayProvider = pPupa->getHPDelay();
 
                             HP_t    PupaHPAmount = 0;
@@ -970,7 +970,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                             bool    notRecoverHP = false;
 
 
-                            // HP 회복양이 존재한다면...
+                            // If there is an HP recovery amount...
                             if (HPAmount != 0 && HPQuantity != 0)
                             {
                                 if (CurrentHP < MaxHP)
@@ -987,28 +987,28 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                                         EffectHPRecovery* pEffectHPRecoveryEffect =
                dynamic_cast<EffectHPRecovery*>(pEffect);
 
-                                        // 기존의 단위양과 횟수로 채우는 HP양을 계산한다.
-                                        // 그것을 현재 회복양에 더한다.
+                                        // Compute the HP the existing unit amount and count would fill.
+                                        // Add that to the current recovery amount.
                                         int PrevHPAmount = pEffectHPRecoveryEffect->getHPQuantity()*
                pEffectHPRecoveryEffect->getPeriod(); HPAmount = min((int)(HPAmount + PrevHPAmount), MaxHP - CurrentHP);
 
-                                        // 둘 중에 큰 단위회복양과 작은 딜레이를 얻어낸다.
+                                        // Take the larger unit recovery amount and the smaller delay of the two.
                                         HPQuantity      = max(HPQuantity,
                (int)(pEffectHPRecoveryEffect->getHPQuantity())); HPDelayProvider = min(HPDelayProvider,
                (int)(pEffectHPRecoveryEffect->getDelay()));
 
-                                        // 현재 회복양을 가지고, 얼마씩 몇번에 회복할 것인가를 결정한다.
+                                        // From the current recovery amount, decide how much is recovered how many times.
                                         temp     = (double)((double)HPAmount/(double)HPQuantity);
                                         Period   = (uint)ceil(temp);
                                         Deadline = Period* HPDelayProvider;
 
-                                        // HP Recovery effect를 갱신한다.
+                                        // Refresh the HP Recovery effect.
                                         pEffectHPRecoveryEffect->setDeadline(Deadline);
                                         pEffectHPRecoveryEffect->setDelay(HPDelayProvider);
                                         pEffectHPRecoveryEffect->setHPQuantity(HPQuantity);
                                         pEffectHPRecoveryEffect->setPeriod(Period);
 
-                                        // 회복 시작하라는 패킷을 자신에게 보낸다.
+                                        // Send the packet that starts the recovery to oneself.
                                         GCHPRecoveryStartToSelf gcHPRecoveryStartToSelf;
                                         gcHPRecoveryStartToSelf.setPeriod(pEffectHPRecoveryEffect->getPeriod());
                                         gcHPRecoveryStartToSelf.setDelay(pEffectHPRecoveryEffect->getDelay());
@@ -1016,8 +1016,8 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                                         pGamePlayer->sendPacket(&gcHPRecoveryStartToSelf);
 
-                                        // 회복 시작하라는 패킷을 다른이들에게 보낸다.
-                                        // 회복 갱신 패킷, 시작과 똑 같은 패킷을 보낸다.
+                                        // Send the packet that starts the recovery to the others.
+                                        // The recovery refresh packet is the same packet as the start one.
                                         GCHPRecoveryStartToOthers gcHPRecoveryStartToOthers;
                                         gcHPRecoveryStartToOthers.setObjectID(pOusters->getObjectID());
                                         gcHPRecoveryStartToOthers.setPeriod(pEffectHPRecoveryEffect->getPeriod());
@@ -1040,7 +1040,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                                         pEffectManager->addEffect(pEffectHPRecovery);
 
-                                        // 회복 시작하라는 패킷을 자신에게 보낸다.
+                                        // Send the packet that starts the recovery to oneself.
                                         GCHPRecoveryStartToSelf gcHPRecoveryStartToSelf;
                                         gcHPRecoveryStartToSelf.setPeriod(Period);
                                         gcHPRecoveryStartToSelf.setDelay(HPDelayProvider);
@@ -1048,7 +1048,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                                         pGamePlayer->sendPacket(&gcHPRecoveryStartToSelf);
 
-                                        // 회복 시작하라는 패킷을 보는이들에게 보낸다.
+                                        // Send the packet that starts the recovery to those who can see.
                                         GCHPRecoveryStartToOthers gcHPRecoveryStartToOthers;
                                         gcHPRecoveryStartToOthers.setObjectID(pOusters->getObjectID());
                                         gcHPRecoveryStartToOthers.setPeriod(Period);
@@ -1091,10 +1091,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                             MP_t    CurrentMP    = pOusters->getMP(ATTR_CURRENT);
                             ComposMei* pComposMei      = dynamic_cast<ComposMei*>(pOustersArmsbandItem);
 
-                            // 한턴에 회복되는 양
+                            // the amount recovered per turn
                             int		MPQuantity = pComposMei->getMPQuantity();
 
-                            // 한턴이 몇초 인가.
+                            // how many seconds one turn is.
                             int		MPDelayProvider = pComposMei->getMPDelay();
 
                             Attr_t INT = pOusters->getINT();
@@ -1106,10 +1106,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                             int     MPAmount     = min(MaxMP - CurrentMP , (int)(pComposMei->getMPAmount()* (1 +
                (double)((double)INT / 300.0)))); bool    notRecoverMP = false;
 
-                            // MP 회복양이 존재한다면...
+                            // If there is an MP recovery amount...
                             if (MPAmount != 0 && MPQuantity != 0 )
                             {
-                                // 얼마씩 몇번 몇초마다.
+                                // How much, how many times, every how many seconds.
                                 if (CurrentMP < MaxMP)
                                 {
                                     EffectManager* pEffectManager = pOusters->getEffectManager();
@@ -1124,28 +1124,28 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                                         EffectMPRecovery* pEffectMPRecoveryEffect =
                dynamic_cast<EffectMPRecovery*>(pEffect);
 
-                                        // 기존의 단위양과 횟수로 채우는 MP양을 계산한다.
-                                        // 그것을 현재 회복양에 더한다.
+                                        // Compute the MP the existing unit amount and count would fill.
+                                        // Add that to the current recovery amount.
                                         int PrevMPAmount = pEffectMPRecoveryEffect->getMPQuantity()*
                pEffectMPRecoveryEffect->getPeriod(); MPAmount = min((int)(MPAmount + PrevMPAmount), MaxMP - CurrentMP);
 
-                                        // 둘 중에 큰 단위회복양과 작은 딜레이를 얻어낸다.
+                                        // Take the larger unit recovery amount and the smaller delay of the two.
                                         MPQuantity      = max(MPQuantity,
                (int)(pEffectMPRecoveryEffect->getMPQuantity())); MPDelayProvider = min(MPDelayProvider,
                (int)(pEffectMPRecoveryEffect->getDelay()));
 
-                                        // 현재 회복양을 가지고, 얼마씩 몇번에 회복할 것인가를 결정한다.
+                                        // From the current recovery amount, decide how much is recovered how many times.
                                         temp     = (double)((double)MPAmount/(double)MPQuantity);
                                         Period   = (uint)ceil(temp);
                                         Deadline = Period* MPDelayProvider;
 
-                                        // MP Recovery effect를 갱신한다.
+                                        // Refresh the MP Recovery effect.
                                         pEffectMPRecoveryEffect->setDeadline(Deadline);
                                         pEffectMPRecoveryEffect->setDelay(MPDelayProvider);
                                         pEffectMPRecoveryEffect->setMPQuantity(MPQuantity);
                                         pEffectMPRecoveryEffect->setPeriod(Period);
 
-                                        // 회복 시작하라는 패킷을 자신에게 보낸다.
+                                        // Send the packet that starts the recovery to oneself.
                                         GCMPRecoveryStart gcMPRecoveryStart;
                                         gcMPRecoveryStart.setPeriod(pEffectMPRecoveryEffect->getPeriod());
                                         gcMPRecoveryStart.setDelay(pEffectMPRecoveryEffect->getDelay());
@@ -1169,7 +1169,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                                         pEffectManager->addEffect(pEffectMPRecovery);
 
-                                        // 회복 시작하라는 패킷을 자신에게 보낸다.
+                                        // Send the packet that starts the recovery to oneself.
                                         GCMPRecoveryStart gcMPRecoveryStart;
                                         gcMPRecoveryStart.setPeriod(Period);
                                         gcMPRecoveryStart.setDelay(MPDelayProvider);

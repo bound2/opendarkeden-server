@@ -69,7 +69,7 @@ void CGVerifyTimeHandler::saveSpeedHackPlayer(Player* pPlayer) {
     filelog("SpeedHack.log", "ID[%s], Name[%s], IP[%s]", ID.c_str(), Name.c_str(), IP.c_str());
 
     /////////////////////////////////////////////////////////
-    // 디비에 관련 정보를 넣는다.
+    // Put the related information into the DB.
     /////////////////////////////////////////////////////////
     try {
         static WorldID_t WorldID = g_pConfig->getPropertyInt("WorldID");

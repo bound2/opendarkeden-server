@@ -31,7 +31,7 @@ void CGUseBonusPointHandler::execute(CGUseBonusPoint* pPacket, Player* pPlayer)
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
-    // 정상적인 상태가 아니라면 리턴
+    // Return if the state is not normal
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     if (pGamePlayer->getPlayerStatus() != GPS_NORMAL)
         return;
@@ -69,7 +69,7 @@ void CGUseBonusPointHandler::execute(CGUseBonusPoint* pPacket, Player* pPlayer)
             return;
         }
     } else if (pCreature->isVampire()) {
-        // 보너스 포인트가 없다면 리턴
+        // Return if there is no bonus point
         Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
         if (pVampire->getBonus() <= 0) {
             GCUseBonusPointFail failPkt;
@@ -78,7 +78,7 @@ void CGUseBonusPointHandler::execute(CGUseBonusPoint* pPacket, Player* pPlayer)
         }
 
         VAMPIRE_RECORD oldRecord;
-        // 능력치를 올리기 전에 기존의 능력치를 저장한다.
+        // Save the existing stats before raising them.
         pVampire->getVampireRecord(oldRecord);
 
         if (which == INC_INT) {
@@ -90,24 +90,24 @@ void CGUseBonusPointHandler::execute(CGUseBonusPoint* pPacket, Player* pPlayer)
             pVampire->tinysave(sst.toString());
 
             /*
-            // INT가 증가하면 새로운 기술을 배울 수 있는 가능성이 있다.
+            // A rise in INT can make a new skill learnable.
             SkillType_t lastSkill = pVampire->findLastSkill();
 
 
-            // lastSkill의 다음 level의 기술을 찾는다.
-            // 못찾았다면 더이상 배울것이 없다는 것.
+            // Find the skill at the level after lastSkill.
+            // Not finding one means there is nothing more to learn.
             for(int i = SKILL_BLOOD_DRAIN + 1 ; i < SKILL_MAX; i++)
             {
                 SkillParentInfo* pParentInfo = g_pSkillParentInfoManager->getSkillParentInfo(i);
 
-                if (pParentInfo->hasParent(lastSkill))// 찾았다!
+                if (pParentInfo->hasParent(lastSkill))// found it!
                 {
                     SkillInfo* pNewSkillInfo = g_pSkillInfoManager->getSkillInfo(i);
                     if (pNewSkillInfo->getEXP() <= cur && pVampire->hasSkill(i) == NULL)
                     {
                         //cout << "(" << pVampire->getName() << ") can learn new skill >> ";
 
-                        // 새로운 기술을 배울 수 있다.
+                        // A new skill can be learned.
                         GCLearnSkillReady gcLSR;
                         gcLSR.setSkillDomainType(SKILL_DOMAIN_VAMPIRE);
                         pVampire->getPlayer()->sendPacket(&gcLSR);
@@ -139,30 +139,30 @@ void CGUseBonusPointHandler::execute(CGUseBonusPoint* pPacket, Player* pPlayer)
             // log(LOG_USE_BONUS_POINT, pVampire->getName(), "", "DEX");
         }
 
-        // 바뀐 보너스 포인트를 저장한다.
+        // Save the changed bonus points.
         Bonus_t OldBonus = pVampire->getBonus();
         pVampire->setBonus(OldBonus - 1);
         StringStream sst;
         sst << "Bonus = " << (int)(OldBonus - 1);
         pVampire->tinysave(sst.toString());
 
-        // 능력치가 변화되었으니, stat을 새로 고친다.
+        // The stats changed, so refresh stat.
         pVampire->initAllStat();
 
-        // 클라이언트의 계산 순서 때문에 생기는 버그로 인하여,
-        // 먼저 인증 패킷을 날려준 후에, 바뀐 능력치에 대한 정보를 보낸다.
-        // 나중에 CGUseBonusPointOK에다 바로 바뀐 능력치에 대한 정보를
-        // 실어보내도록 해야 한다.
+        // Because of a bug caused by the client's computation order,
+        // the verify packet is sent first and the changed stats after it.
+        // Later the changed stat information should be carried
+        // in CGUseBonusPointOK itself.
 
-        // OK 패킷을 보내준다.
+        // Send the OK packet.
         GCUseBonusPointOK okpkt;
         pGamePlayer->sendPacket(&okpkt);
 
-        // 바뀐 능력치에 관한 정보를 보내준다.
+        // Send the information about the changed stats.
         pVampire->sendModifyInfo(oldRecord);
         pVampire->sendRealWearingInfo();
     } else if (pCreature->isOusters()) {
-        // 보너스 포인트가 없다면 리턴
+        // Return if there is no bonus point
         Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
         if (pOusters->getBonus() <= 0) {
             GCUseBonusPointFail failPkt;
@@ -171,7 +171,7 @@ void CGUseBonusPointHandler::execute(CGUseBonusPoint* pPacket, Player* pPlayer)
         }
 
         OUSTERS_RECORD oldRecord;
-        // 능력치를 올리기 전에 기존의 능력치를 저장한다.
+        // Save the existing stats before raising them.
         pOusters->getOustersRecord(oldRecord);
 
         if (which == INC_INT) {
@@ -197,21 +197,21 @@ void CGUseBonusPointHandler::execute(CGUseBonusPoint* pPacket, Player* pPlayer)
             pOusters->tinysave(sst.toString());
         }
 
-        // 바뀐 보너스 포인트를 저장한다.
+        // Save the changed bonus points.
         Bonus_t OldBonus = pOusters->getBonus();
         pOusters->setBonus(OldBonus - 1);
         StringStream sst;
         sst << "Bonus = " << (int)(OldBonus - 1);
         pOusters->tinysave(sst.toString());
 
-        // 능력치가 변화되었으니, stat을 새로 고친다.
+        // The stats changed, so refresh stat.
         pOusters->initAllStat();
 
-        // OK 패킷을 보내준다.
+        // Send the OK packet.
         GCUseBonusPointOK okpkt;
         pGamePlayer->sendPacket(&okpkt);
 
-        // 바뀐 능력치에 관한 정보를 보내준다.
+        // Send the information about the changed stats.
         pOusters->sendModifyInfo(oldRecord);
         pOusters->sendRealWearingInfo();
     } else {

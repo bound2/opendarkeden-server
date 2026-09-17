@@ -46,9 +46,9 @@ void CGMouseToStashHandler::execute(CGMouseToStash* pPacket, Player* pPlayer)
         Item* pMouseItem = pPC->getExtraInventorySlotItem();
         bool Success = false;
 
-        // 마우스에 아이템이 달려있나?
-        // 유니크 아이템은 보관함에 못 넣는다.
-        // canPutInStash로 extract 2003. 3. 3
+        // Is an item hanging on the mouse?
+        // A unique item cannot go into the stash.
+        // extracted into canPutInStash
         if (pMouseItem == NULL || !canPutInStash(pMouseItem)
             //			|| pMouseItem->isUnique())
         ) {
@@ -62,8 +62,8 @@ void CGMouseToStashHandler::execute(CGMouseToStash* pPacket, Player* pPlayer)
         BYTE rack = pPacket->getRack();
         BYTE index = pPacket->getIndex();
 
-        // 정상적인 좌표값인가? 오브젝트 아이디는 일치하나?
-        // Relic은 보관함에 저장될 수 없다.
+        // Are the coordinates valid? Does the object id match?
+        // A Relic cannot be stored in the stash.
         if (rack >= STASH_RACK_MAX || index >= STASH_INDEX_MAX || rack >= pPC->getStashNum() ||
             MouseItemOID != pPacket->getObjectID()) {
             GCCannotAdd _GCCannotAdd;
@@ -72,12 +72,12 @@ void CGMouseToStashHandler::execute(CGMouseToStash* pPacket, Player* pPlayer)
             return;
         }
 
-        // 넣을려는 Stash Slot의 Item을 받아온다.
+        // Get the Item of the target Stash Slot.
         Item* pStashItem = pStash->get(rack, index);
 
-        // 그 장소에 아이템이 있다면
+        // If there is an item in that place
         if (pStashItem != NULL) {
-            // 아이템 클래스가 같을때 숫자를 올려 주고 마우스에 있는 것은 없앤다.
+            // When the item class is the same, raise the count and remove the one on the mouse.
             if (isSameItem(pMouseItem, pStashItem) && isStackable(pMouseItem)) {
                 int MaxStack = ItemMaxStack[pMouseItem->getItemClass()];
 
@@ -88,15 +88,15 @@ void CGMouseToStashHandler::execute(CGMouseToStash* pPacket, Player* pPlayer)
                     pStashItem->setNum(MaxStack);
                     pMouseItem->setNum(AddNum + CurrentNum - MaxStack);
 
-                    // 바뀐 정보를 DB에 저장한다.
+                    // Save the changed information to the DB.
                     // pStashItem->save(pPC->getName(), STORAGE_STASH, 0, rack, index);
-                    // item저장 최적화. by sigi. 2002.5.13
+                    // Item save optimization.
                     char pField[80];
                     sprintf(pField, "Num=%d, Storage=%d, X=%d, Y=%d", MaxStack, STORAGE_STASH, rack, index);
                     pStashItem->tinysave(pField);
 
                     // pMouseItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                    //  item저장 최적화. by sigi. 2002.5.13
+                    //  Item save optimization.
                     sprintf(pField, "Num=%d, Storage=%d", pMouseItem->getNum(), STORAGE_EXTRASLOT);
                     pMouseItem->tinysave(pField);
 
@@ -110,7 +110,7 @@ void CGMouseToStashHandler::execute(CGMouseToStash* pPacket, Player* pPlayer)
 
                     pStashItem->setNum(pStashItem->getNum() + pMouseItem->getNum());
                     // pStashItem->save(pPC->getName(), STORAGE_STASH, 0, rack, index);
-                    //  item저장 최적화. by sigi. 2002.5.13
+                    //  Item save optimization.
                     char pField[80];
                     sprintf(pField, "Num=%d, Storage=%d, X=%d, Y=%d", pStashItem->getNum(), STORAGE_STASH, rack, index);
                     pStashItem->tinysave(pField);
@@ -118,35 +118,35 @@ void CGMouseToStashHandler::execute(CGMouseToStash* pPacket, Player* pPlayer)
 
                     // log(LOG_STASH_ADD_ITEM, pPC->getName(), "", pMouseItem->toString());
 
-                    // 두개의 아이템이 하나로 되었으니까,
-                    // 더하라고 온 아이템은 삭제해 준다.
+                    // The two items became one, so
+                    // the item that came in to be added is deleted.
                     pMouseItem->destroy();
                     SAFE_DELETE(pMouseItem);
 
                     Success = true;
                 }
-            } else // 아이템 클래스가 다르거나, 쌓이는 아이템이 아니라면.
+            } else // If the item class differs, or the item does not stack.
             {
-                // 보관함에 있던 것을 마우스에 달아준다.
+                // Hang what was in the stash on the mouse.
                 pPC->deleteItemFromExtraInventorySlot();
                 pPC->addItemToExtraInventorySlot(pStashItem);
 
                 //				pStashItem->whenPCTake(pPC);
 
-                // Stash에 마우스에 달려있던 아이템을 넣는다.
+                // Put the item that hung on the mouse into the Stash.
                 pStash->remove(rack, index);
                 pStash->insert(rack, index, pMouseItem);
 
                 //				pMouseItem->whenPCLost(pPC);
 
                 // pStashItem->save(pPC->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                //  item저장 최적화. by sigi. 2002.5.13
+                //  Item save optimization.
                 char pField[80];
                 sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
                 pStashItem->tinysave(pField);
 
                 // pMouseItem->save(pPC->getName(), STORAGE_STASH, 0, rack, index);
-                //  item저장 최적화. by sigi. 2002.5.13
+                //  Item save optimization.
                 sprintf(pField, "Storage=%d, X=%d, Y=%d", STORAGE_STASH, rack, index);
                 pMouseItem->tinysave(pField);
 
@@ -155,14 +155,14 @@ void CGMouseToStashHandler::execute(CGMouseToStash* pPacket, Player* pPlayer)
 
                 Success = true;
             }
-        } else // 그 장소에 아이템이 없다면.
+        } else // If there is no item in that place.
         {
-            // Stash에 특정 아이템을 넣는다.
+            // Put a given item into the Stash.
             pStash->insert(rack, index, pMouseItem);
             pPC->deleteItemFromExtraInventorySlot();
             //			pMouseItem->whenPCLost(pPC);
             // pMouseItem->save(pPC->getName(), STORAGE_STASH, 0, rack, index);
-            // item저장 최적화. by sigi. 2002.5.13
+            // Item save optimization.
             char pField[80];
             sprintf(pField, "Storage=%d, X=%d, Y=%d", STORAGE_STASH, rack, index);
             pMouseItem->tinysave(pField);

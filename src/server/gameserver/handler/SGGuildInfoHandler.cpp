@@ -36,7 +36,7 @@ void SGGuildInfoHandler::execute(SGGuildInfo* pPacket)
 
     g_pGuildManager->lock();
 
-    // 모든 길들 삭제한다.
+    // Delete every guild.
     g_pGuildManager->clear_NOBLOCKED();
 
     GuildInfo2* pGuildInfo = NULL;

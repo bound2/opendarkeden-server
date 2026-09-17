@@ -37,7 +37,7 @@ void CGSelectTileEffectHandler::execute(CGSelectTileEffect* pPacket, Player* pPl
     Assert(pPlayer != NULL);
 
     try {
-        // 게임 플레이어의 상태가 정상이 아니라면 걍 리턴한다.
+        // Just return if the game player's state is not normal.
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
         Assert(pGamePlayer != NULL);
         if (pGamePlayer->getPlayerStatus() != GPS_NORMAL)
@@ -46,7 +46,7 @@ void CGSelectTileEffectHandler::execute(CGSelectTileEffect* pPacket, Player* pPl
         Creature* pCreature = pGamePlayer->getCreature();
         Assert(pCreature != NULL);
 
-        // 성물 들고 있으면 포탈에 들어갈 수 없다.
+        // A portal cannot be entered while holding a relic.
         if (pCreature->hasRelicItem() || pCreature->isFlag(Effect::EFFECT_CLASS_HAS_FLAG) ||
             pCreature->isFlag(Effect::EFFECT_CLASS_HAS_SWEEPER)) {
             return;
@@ -57,7 +57,7 @@ void CGSelectTileEffectHandler::execute(CGSelectTileEffect* pPacket, Player* pPl
 
         Effect* pEffect = NULL;
 
-        // 먼저 뱀파이어 포탈 매니저에서 찾는다.
+        // Look in the vampire portal manager first.
         EffectManager* pVampirePortalManager = pZone->getVampirePortalManager();
 
         pEffect = pVampirePortalManager->findEffect(pPacket->getEffectObjectID());
@@ -76,7 +76,7 @@ void CGSelectTileEffectHandler::execute(CGSelectTileEffect* pPacket, Player* pPl
         } else {
             cout << "CGSelectTileEffectHandler::execute() : Effect DOES NOT Exist" << endl;
 
-            // 흠... 그런 OID를 가진 이펙트가 없을 때에는 살짝 무시해준다.
+            // Hmm... when no effect with that OID exists, quietly ignore it.
         }
     } catch (Throwable& t) {
         cerr << t.toString() << endl;
@@ -102,7 +102,7 @@ void CGSelectTileEffectHandler::executeVampirePortal(CGSelectTileEffect* pPacket
     Assert(pEffect->getEffectClass() == Effect::EFFECT_CLASS_VAMPIRE_PORTAL);
 
     try {
-        // 게임 플레이어의 상태가 정상이 아니라면 걍 리턴한다.
+        // Just return if the game player's state is not normal.
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
         Assert(pGamePlayer != NULL);
         if (pGamePlayer->getPlayerStatus() != GPS_NORMAL)
@@ -111,7 +111,7 @@ void CGSelectTileEffectHandler::executeVampirePortal(CGSelectTileEffect* pPacket
         Creature* pCreature = pGamePlayer->getCreature();
         Assert(pCreature != NULL);
 
-        // 뱀파이어만이 이용할 수 있다.
+        // Only a Vampire can use it.
         if (!pCreature->isVampire())
             return;
 
@@ -124,9 +124,9 @@ void CGSelectTileEffectHandler::executeVampirePortal(CGSelectTileEffect* pPacket
         EffectVampirePortal* pEffectVampirePortal = dynamic_cast<EffectVampirePortal*>(pEffect);
         ZONE_COORD zonecoord = pEffectVampirePortal->getZoneCoord();
 
-        // 테메리에로는 갈 수 없다.
-        // 원래는 아예 블러디 터널을 만들 수 없도록해야 하지만
-        // 이미 좌표가 설정되어 있는 씰이 있어서 어쩔 수 없이 여기서도 막는다.
+        // Temerie cannot be reached.
+        // Really a bloody tunnel should not be creatable at all, but
+        // a seal with the coordinates already set exists, so it is blocked here too.
         if (zonecoord.id == 1122 || zonecoord.id == 8000) {
             return;
         }
@@ -139,13 +139,13 @@ void CGSelectTileEffectHandler::executeVampirePortal(CGSelectTileEffect* pPacket
         }
 
         if (pEffectVampirePortal->getCount() > 0) {
-            // 뱀파이어 자신에게 플래그를 걸어준다.
-            // 이는 Zone::addPC에서 뱀파이어가 추가될 때, 주위에다 뿌리는
-            // GCAddVampire 에다 포탈로부터 왔음을 알리기 위해서이다.
-            // Zone::addPC에서 다시 풀어주면 된다.
+            // Set the flag on the Vampire itself.
+            // This is so that when Zone::addPC adds the vampire, the GCAddVampire
+            // broadcast around it says the vampire came from a portal.
+            // Zone::addPC clears it again.
             pVampire->setFlag(Effect::EFFECT_CLASS_VAMPIRE_PORTAL);
 
-            // 먼저 주위에다가 뱀파이어가 포탈을 이용해 사라진다는 사실을 알려준다.
+            // First tell those around that the vampire disappears through a portal.
             GCEnterVampirePortal gcEnterVampirePortal;
             gcEnterVampirePortal.setObjectID(pVampire->getObjectID());
             gcEnterVampirePortal.setX(pEffectVampirePortal->getX());
@@ -153,10 +153,10 @@ void CGSelectTileEffectHandler::executeVampirePortal(CGSelectTileEffect* pPacket
             pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &gcEnterVampirePortal);
 
             pVampire->getGQuestManager()->illegalWarp();
-            // 실제로 이동을 시킨다.
+            // Actually move it.
             transportCreature(pCreature, zonecoord.id, zonecoord.x, zonecoord.y, false);
 
-            // 이동시켰다면 카운트를 줄이고, 카운트가 0이 되면 이펙트는 사라진다.
+            // After the move, lower the count; when the count reaches 0 the effect disappears.
             pEffectVampirePortal->setCount(pEffectVampirePortal->getCount() - 1);
             // if (pEffectVampirePortal->getCount() == 0) pEffectVampirePortal->setDeadline(0);
         }

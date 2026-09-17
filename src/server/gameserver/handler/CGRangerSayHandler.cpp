@@ -32,21 +32,21 @@ void CGRangerSayHandler::execute(CGRangerSay* pPacket, Player* pPlayer)
     Creature* pCreature = pGamePlayer->getCreature();
     Assert(pCreature != NULL);
 
-    // 크리쳐 이름과 메시지를 패킷에 넣는다.
+    // Put the creature name and the message into the packet.
     StringStream msg;
     msg << pCreature->getName() << " " << pPacket->getMessage();
 
     Race_t race = pCreature->getRace();
 
-    // 패킷 생성
+    // Build the packet
     GCSystemMessage gcSystemMessage;
     gcSystemMessage.setMessage(msg.toString());
     gcSystemMessage.setType(SYSTEM_MESSAGE_RANGER_SAY);
 
-    // 필터 생성
+    // Build the filter
     BroadcastFilterRace filter(race);
 
-    // 모든 사용자에게 뿌리기
+    // Broadcast to every user
     g_pZoneGroupManager->pushBroadcastPacket(&gcSystemMessage, &filter);
 
 /*	hash_map<ZoneGroupID_t, ZoneGroup*>::const_iterator itr = g_pZoneGroupManager->getZoneGroups().begin();
