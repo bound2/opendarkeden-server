@@ -85,7 +85,7 @@ are enforced so far.
 |------|---------------:|
 | `src/server/gameserver/Zone.cpp` | 1,472 (was 9,350 before the 4.2 extractions; enforced by `ratchets.sh` R6g) |
 | `src/server/gameserver/skill/SkillUtil.cpp` | 705 (was 6,626 before the split by concern into `SkillDamage.cpp` / `SkillExperience.cpp` / `SkillGeometry.cpp`, leaving the mana and HP costs, the slot run-time and zone-level gates, the skill-failure packets and the elemental lookups; under the 2,000-line phase exit criterion, so R6a pins it rather than baselining a god file; enforced by `ratchets.sh` R6a) |
-| `src/server/gameserver/InitAllStat.cpp` | 2,945 (was 4,787 before the split by race; the Slayer members live in `SlayerStat.cpp`; enforced by `ratchets.sh` R6b) |
+| `src/server/gameserver/InitAllStat.cpp` | 1,735 (was 4,787 before the split by race; the Slayer and Vampire members live in `SlayerStat.cpp` / `VampireStat.cpp`; enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 116 (was 4,720 before the 4.1 command extraction; enforced by `ratchets.sh` R6e) |
 | `src/server/gameserver/gm/ConsoleCommands.cpp` | 1,595 (the 61 `*command` sub-command bodies, one function per name; enforced by `ratchets.sh` R6f) |
 | `src/server/gameserver/Slayer.cpp` | 3,593 (was 4,046 before the 4.3 hoists; enforced by `ratchets.sh` R6h) |

@@ -500,6 +500,7 @@ set(GAMESERVER_MAIN_SOURCES
     SkillParentInfo.cpp
     InitAllStat.cpp
     SlayerStat.cpp
+    VampireStat.cpp
     PrecedenceTable.cpp
     VariableManager.cpp
     CombatInfoManager.cpp

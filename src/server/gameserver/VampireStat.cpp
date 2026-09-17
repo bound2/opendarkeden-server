@@ -1,7 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
-// Filename    : InitAllStat.cpp
-// Written by  : excel96
-// Description :
+// FileName 	: VampireStat.cpp
+// Description	: Vampire stat computation: the castle skills, the all-stat recalculation and the item, option and blood bible contributions to it.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "AbilityBalance.h"
@@ -87,169 +86,11 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// 공통
-//
-//////////////////////////////////////////////////////////////////////////////
-void PlayerCreature::applyBloodBibleSign() {
-    int openNum = getBloodBibleSignOpenNum();
-    getBloodBibleSign()->setOpenNum(openNum);
-    //	int openNum = getBloodBibleSign()->getOpenNum();
-
-    int applyCount = 0;
-    vector<ItemType_t>::iterator bItr = getBloodBibleSign()->getList().begin();
-    for (; bItr != getBloodBibleSign()->getList().end(); ++bItr) {
-        if (applyCount >= openNum)
-            break;
-        BloodBibleBonus* pBonus = g_pBloodBibleBonusManager->getBloodBibleBonus(*bItr);
-        if (pBonus != NULL) {
-            OptionTypeList optionTypes = pBonus->getOptionTypeList();
-            OptionTypeListConstItor optionItr;
-            //			cout << getName() << "에게 " << pBonus->getName() << " 을 적용합니다." << endl;
-            ++applyCount;
-
-            for (optionItr = optionTypes.begin(); optionItr != optionTypes.end(); optionItr++) {
-                computeOptionStat(*optionItr);
-            }
-        }
-    }
-}
-
-//////////////////////////////////////////////////////////////////////////////
-//
-// 몬스터
-//
-//////////////////////////////////////////////////////////////////////////////
-void Monster::initAllStat(void)
-
-{
-    __BEGIN_TRY
-
-    const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(m_MonsterType);
-
-    Creature::CreatureClass CClass = getCreatureClass();
-    BASIC_ATTR attr;
-
-    m_Resist[MAGIC_DOMAIN_NO_DOMAIN] = 0;
-    m_Resist[MAGIC_DOMAIN_POISON] = 50;
-    m_Resist[MAGIC_DOMAIN_ACID] = 0;
-    m_Resist[MAGIC_DOMAIN_CURSE] = 0;
-    m_Resist[MAGIC_DOMAIN_BLOOD] = 0;
-
-    ////////////////////////////////////////////////////////////
-    // 제일 먼저 기본 능력치를 초기화시키고...
-    ////////////////////////////////////////////////////////////
-    m_STR = pMonsterInfo->getSTR();
-    m_DEX = pMonsterInfo->getDEX();
-    m_INT = pMonsterInfo->getINT();
-
-    ////////////////////////////////////////////////////////////
-    // 기본 능력에 영향을 주는 이펙트를 검사한다.
-    ////////////////////////////////////////////////////////////
-    attr.nSTR = m_STR;
-    attr.nDEX = m_DEX;
-    attr.nINT = m_INT;
-    attr.nLevel = pMonsterInfo->getLevel();
-
-    ////////////////////////////////////////////////////////////
-    // 부가적인 능력치들을 다시 계산한다.
-    ////////////////////////////////////////////////////////////
-    m_HP[ATTR_MAX] = computeHP(CClass, &attr, pMonsterInfo->getEnhanceHP());
-    m_ToHit = computeToHit(CClass, &attr, pMonsterInfo->getEnhanceToHit());
-    m_Defense = computeDefense(CClass, &attr, pMonsterInfo->getEnhanceDefense());
-    m_Protection = computeProtection(CClass, &attr, pMonsterInfo->getEnhanceProtection());
-    m_Damage[ATTR_CURRENT] = computeMinDamage(CClass, &attr, pMonsterInfo->getEnhanceMinDamage());
-    m_Damage[ATTR_MAX] = computeMaxDamage(CClass, &attr, pMonsterInfo->getEnhanceMaxDamage());
-
-
-    // #ifdef __XMAS_EVENT_CODE__
-    //  원래 크리스마스 이벤트로 기획된 것이지만, 앞으로 계속 사용될 것으로
-    //  예정된다.
-    if (m_MonsterType == 358 || m_MonsterType == 359 || m_MonsterType == 360 || m_MonsterType == 361)
-        m_HP[ATTR_MAX] = m_HP[ATTR_MAX] * 10;
-    // #endif
-
-    ////////////////////////////////////////////////////////////
-    // 부가적인 능력치들을 직접 수정하는 이펙트를 검사한다.
-    ////////////////////////////////////////////////////////////
-    if (isFlag(Effect::EFFECT_CLASS_DOOM)) {
-        EffectDoom* pDoom = dynamic_cast<EffectDoom*>(findEffect(Effect::EFFECT_CLASS_DOOM));
-        if (pDoom != NULL) {
-            int DefensePenalty = getPercentValue(m_Defense, pDoom->getDefensePenalty());
-            int ProtectionPenalty = getPercentValue(m_Protection, pDoom->getProtectionPenalty());
-
-            m_Defense = max(0, m_Defense - DefensePenalty);
-            m_Protection = max(0, m_Protection - ProtectionPenalty);
-        }
-    }
-    if (isFlag(Effect::EFFECT_CLASS_SEDUCTION)) {
-        EffectSeduction* pSeduction = dynamic_cast<EffectSeduction*>(findEffect(Effect::EFFECT_CLASS_SEDUCTION));
-        if (pSeduction != NULL) {
-            int ToHitPenalty = getPercentValue(m_ToHit, pSeduction->getToHitPenalty());
-            int DamagePenalty1 = getPercentValue(m_Damage[ATTR_CURRENT], pSeduction->getDamagePenalty());
-            int DamagePenalty2 = getPercentValue(m_Damage[ATTR_MAX], pSeduction->getDamagePenalty());
-
-            m_ToHit = max(0, m_ToHit - ToHitPenalty);
-            m_Damage[ATTR_CURRENT] = max(0, m_Damage[ATTR_CURRENT] - DamagePenalty1);
-            m_Damage[ATTR_MAX] = max(0, m_Damage[ATTR_MAX] - DamagePenalty2);
-        }
-    }
-    /*	if (isFlag(Effect::EFFECT_CLASS_PARALYZE))
-        {
-            EffectParalyze* pParalyze = dynamic_cast<EffectParalyze*>(findEffect(Effect::EFFECT_CLASS_PARALYZE));
-            if (pParalyze != NULL)
-            {
-                int DefensePenalty = getPercentValue(m_Defense, pParalyze->getDefensePenalty());
-                m_Defense = max(0, m_Defense - DefensePenalty);
-            }
-        }*/
-    if (isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF)) {
-        EffectTransformToWolf* pTransformToWolf =
-            dynamic_cast<EffectTransformToWolf*>(findEffect(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF));
-        if (pTransformToWolf != NULL) {
-            int ToHitBonus = getPercentValue(m_ToHit, 20);
-            int MinDamageBonus = getPercentValue(m_Damage[ATTR_CURRENT], 20);
-            int MaxDamageBonus = getPercentValue(m_Damage[ATTR_MAX], 20);
-            int DefensePenalty = getPercentValue(m_Defense, 50);
-            int ProtectionPenalty = getPercentValue(m_Protection, 50);
-
-            m_ToHit = min(VAMPIRE_MAX_TOHIT, m_ToHit + ToHitBonus);
-            m_Damage[ATTR_CURRENT] = min(VAMPIRE_MAX_DAMAGE, m_Damage[ATTR_CURRENT] + MinDamageBonus);
-            m_Damage[ATTR_MAX] = min(VAMPIRE_MAX_DAMAGE, m_Damage[ATTR_MAX] + MaxDamageBonus);
-            m_Defense = max(0, m_Defense - DefensePenalty);
-            m_Protection = max(0, m_Protection - ProtectionPenalty);
-        }
-    }
-    if (isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT)) {
-        EffectTransformToBat* pTransformToBat =
-            dynamic_cast<EffectTransformToBat*>(findEffect(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT));
-        if (pTransformToBat != NULL) {
-            int DefensePenalty = getPercentValue(m_Defense, 25);
-            int ProtectionPenalty = getPercentValue(m_Protection, 25);
-
-            m_Defense = max(0, m_Defense - DefensePenalty);
-            m_Protection = max(0, m_Protection - ProtectionPenalty);
-        }
-    }
-    if (isFlag(Effect::EFFECT_CLASS_BLUNTING)) {
-        EffectBlunting* pBlunting = dynamic_cast<EffectBlunting*>(findEffect(Effect::EFFECT_CLASS_BLUNTING));
-        if (pBlunting != NULL) {
-            int DefensePenalty = pBlunting->getDefensePenalty();
-            m_Defense = max(0, m_Defense - DefensePenalty);
-        }
-    }
-
-
-    __END_CATCH
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-//
-// 아우스터스
+// 뱀파이어
 //
 //////////////////////////////////////////////////////////////////////////////
 
-void Ousters::initCastleSkill() {
+void Vampire::initCastleSkill() {
     __BEGIN_TRY
 
     removeAllCastleSkill();
@@ -273,11 +114,10 @@ void Ousters::initCastleSkill() {
 
         Turn_t Delay = pSkillInfo->getMaxDelay();
 
-        OustersCastleSkillSlot* pCastleSkillSlot = new OustersCastleSkillSlot();
+        VampireCastleSkillSlot* pCastleSkillSlot = new VampireCastleSkillSlot();
 
         pCastleSkillSlot->setName(m_Name);
         pCastleSkillSlot->setSkillType(CastleSkillType);
-        pCastleSkillSlot->setExpLevel(1);
         pCastleSkillSlot->setInterval(Delay);
         pCastleSkillSlot->setRunTime();
 
@@ -287,7 +127,7 @@ void Ousters::initCastleSkill() {
     __END_CATCH
 }
 
-void Ousters::initAllStat(int numPartyMember)
+void Vampire::initAllStat(int numPartyMember)
 
 {
     __BEGIN_TRY
@@ -296,10 +136,16 @@ void Ousters::initAllStat(int numPartyMember)
     Creature::CreatureClass CClass = getCreatureClass();
 
     m_Resist[MAGIC_DOMAIN_NO_DOMAIN] = 0;
-    m_Resist[MAGIC_DOMAIN_POISON] = 0;
+    m_Resist[MAGIC_DOMAIN_POISON] = 50;
     m_Resist[MAGIC_DOMAIN_ACID] = 0;
     m_Resist[MAGIC_DOMAIN_CURSE] = 0;
     m_Resist[MAGIC_DOMAIN_BLOOD] = 0;
+
+    m_Mastery[MAGIC_DOMAIN_NO_DOMAIN] = 0;
+    m_Mastery[MAGIC_DOMAIN_POISON] = 0;
+    m_Mastery[MAGIC_DOMAIN_ACID] = 0;
+    m_Mastery[MAGIC_DOMAIN_CURSE] = 0;
+    m_Mastery[MAGIC_DOMAIN_BLOOD] = 0;
 
     // BloodBible 관련 보너스 수치들 초기화
     m_ConsumeMPRatio = 0;
@@ -324,40 +170,21 @@ void Ousters::initAllStat(int numPartyMember)
     attr.nSTR = m_STR[ATTR_CURRENT];
     attr.nDEX = m_DEX[ATTR_CURRENT];
     attr.nINT = m_INT[ATTR_CURRENT];
-    attr.pWeapon = getWearItem(WEAR_RIGHTHAND);
+    attr.pWeapon = NULL;
     attr.nLevel = m_Level;
 
     m_HPStealRatio = 0;
-    m_MPStealRatio = 0;
-
     m_HPStealAmount = 0;
-    m_MPStealAmount = 0;
-
     m_HPRegen = 0;
-    m_MPRegen = 0;
     m_Luck = m_BaseLuck;
     //	cout << getName() << "의 기본 행운 : " << m_Luck << endl;
-
-    m_FireDamage = 0;
-    m_WaterDamage = 0;
-    m_EarthDamage = 0;
-
-    m_SilverResist = 0;
-
-    m_ElementalFire = 0;
-    m_ElementalWater = 0;
-    m_ElementalEarth = 0;
-    m_ElementalWind = 0;
-
-    m_PassiveRatio = 0;
+    m_HPRegenBonus = 0;
 
     ////////////////////////////////////////////////////////////
     // 부가적인 능력치들을 다시 계산한다.
     ////////////////////////////////////////////////////////////
     m_HP[ATTR_MAX] = computeHP(CClass, &attr);
     m_HP[ATTR_BASIC] = 0;
-    m_MP[ATTR_MAX] = computeMP(CClass, &attr);
-    m_MP[ATTR_BASIC] = 0;
     m_ToHit[ATTR_CURRENT] = computeToHit(CClass, &attr);
     m_ToHit[ATTR_MAX] = 0;
     m_Defense[ATTR_CURRENT] = computeDefense(CClass, &attr);
@@ -384,17 +211,44 @@ void Ousters::initAllStat(int numPartyMember)
         DragonEyeHPBonus = m_HP[ATTR_MAX];
     }
 
+    // 전쟁 보너스
+    // 지금은 전쟁 승패에 관계없이 어느쪽이든 보너스가 적용될 수 있다. by sigi
+    // if ( g_pCombatInfoManager->isVampireBonus() )
+    int HPBonus = 0;
+    {
+        int bonusRatio = g_pVariableManager->getCombatVampireHPBonusRatio();
+        // g_pCombatInfoManager->getVampireHPModify();
+
+        if (bonusRatio > 0) {
+            HPBonus = getPercentValue(m_HP[ATTR_MAX], bonusRatio);
+        }
+    }
+
     //////////////////////////////////////////////////////////////////////////////
     // 일단 기어 체크 변수를 초기화해서 모든 기어를 안 입은 것으로 간주하고 시작한다.
     //////////////////////////////////////////////////////////////////////////////
-    bool pOldRealWearingCheck[OUSTERS_WEAR_MAX]; // by sigi. 2002.10.31
-    for (int i = 0; i < OUSTERS_WEAR_MAX; i++) {
+    bool pOldRealWearingCheck[VAMPIRE_WEAR_MAX]; // by sigi. 2002.10.31
+    for (int i = 0; i < VAMPIRE_WEAR_MAX; i++) {
         pOldRealWearingCheck[i] = m_pRealWearingCheck[i];
         m_pRealWearingCheck[i] = false;
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    // Blood Bible 각각의 보너스 옵션을 받는다.
+    // 성을 소유한 종족은 보너스 옵션을 받게 된다
+    //////////////////////////////////////////////////////////////////////////////
+    // Blood Bible 각각의 보너스 옵션을 받는 걸로 고쳤다.
+    /*	if (m_pZone->isHolyLand() )
+        {
+            const list<OptionType_t>& optionType = g_pHolyLandRaceBonus->getVampireOptionTypeList();
+            list<OptionType_t>::const_iterator itr;
+            for (itr=optionType.begin(); itr!=optionType.end(); itr++)
+            {
+                computeOptionStat( *itr );
+            }
+        }
+    */
+    //////////////////////////////////////////////////////////////////////////////
+    // Blood Bilbe 각각의 보너스 옵션을 받는다.
     //////////////////////////////////////////////////////////////////////////////
     /*	if ( m_pZone->isHolyLand() && !g_pWarSystem->hasActiveRaceWar() )
         {
@@ -402,7 +256,7 @@ void Ousters::initAllStat(int numPartyMember)
             BloodBibleBonusHashMapConstItor itr;
             for (itr=bloodBibleBonus.begin(); itr!=bloodBibleBonus.end(); itr++)
             {
-                if ( itr->second->getRace() == RACE_OUSTERS )
+                if ( itr->second->getRace() == RACE_VAMPIRE )
                 {
                     OptionTypeList optionTypes = itr->second->getOptionTypeList();
                     OptionTypeListConstItor optionItr;
@@ -423,7 +277,7 @@ void Ousters::initAllStat(int numPartyMember)
         SweeperBonusHashMapConstItor endItr = sweeperBonuses.end();
 
         for (; itr != endItr; itr++) {
-            if (itr->second->getRace() == RACE_OUSTERS &&
+            if (itr->second->getRace() == RACE_VAMPIRE &&
                 itr->second->getLevel() == g_pLevelWarZoneInfoManager->getCreatureLevelGrade(this)) {
                 OptionTypeList optionTypes = itr->second->getOptionTypeList();
                 OptionTypeListConstItor optionItr;
@@ -460,29 +314,13 @@ void Ousters::initAllStat(int numPartyMember)
             computeOptionStat(m_pPetInfo->getPetOption());
     }
 
-    if (isFlag(Effect::EFFECT_CLASS_GROUND_BLESS)) {
-        EffectGroundBless* pEffect = dynamic_cast<EffectGroundBless*>(findEffect(Effect::EFFECT_CLASS_GROUND_BLESS));
-
-        if (pEffect != NULL) {
-            int bonus = pEffect->getBonus();
-            m_STR[ATTR_CURRENT] += bonus;
-            m_DEX[ATTR_CURRENT] += bonus;
-            m_INT[ATTR_CURRENT] += bonus;
-            m_STR[ATTR_MAX] += bonus;
-            m_DEX[ATTR_MAX] += bonus;
-            m_INT[ATTR_MAX] += bonus;
-
-            computeStatOffset();
-        }
-    }
-
     //////////////////////////////////////////////////////////////////////////////
     // for 가 두번인 이유는 아이템으로 올라간 능력치에 의해서
     // 입을 수 있게 되는 아이템을 체크하기 위해서이다.
     //////////////////////////////////////////////////////////////////////////////
-    for (int j = 0; j < OUSTERS_WEAR_MAX; j++) {
+    for (int j = 0; j < VAMPIRE_WEAR_MAX; j++) {
         int wearCount = 0;
-        for (int i = 0; i < OUSTERS_WEAR_MAX; i++) {
+        for (int i = 0; i < VAMPIRE_WEAR_MAX; i++) {
             Item* pItem = m_pWearItem[i];
             // 현재 포인트에 아이템이 있고
             // 그것에 대한 체크를 아직 하지 않았다면...
@@ -533,8 +371,8 @@ void Ousters::initAllStat(int numPartyMember)
     // 일단 위에서 다 입었는데..
     // 능력치에 따라서 복장이 적용이 안되는 아이템은 복장 정보를 없앤다.
     // by sigi. 2002.10.30
-    for (int i = 0; i < OUSTERS_WEAR_MAX; i++)
-    // int i=WEAR_COAT;
+    // for (int i=0; i<VAMPIRE_WEAR_MAX; i++)
+    int i = WEAR_BODY;
     {
         if (m_pRealWearingCheck[i]) {
             // by sigi. 2002.10.31
@@ -570,27 +408,7 @@ void Ousters::initAllStat(int numPartyMember)
     //////////////////////////////////////////////////////////////////////////////
     // HP, MP 스틸 확률을 계산해 둔다.
     //////////////////////////////////////////////////////////////////////////////
-    if (hasRankBonus(RankBonus::RANK_BONUS_LIFE_ABSORB)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_LIFE_ABSORB);
-        Assert(pRankBonus != NULL);
-
-        int StealBonus = pRankBonus->getPoint();
-
-        m_HPStealAmount += StealBonus;
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_SOUL_ABSORB)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_SOUL_ABSORB);
-        Assert(pRankBonus != NULL);
-
-        int StealBonus = pRankBonus->getPoint();
-
-        m_MPStealAmount += StealBonus;
-    }
-
     m_HPStealRatio = computeStealRatio(CClass, m_HPStealAmount, &attr);
-    m_MPStealRatio = computeStealRatio(CClass, m_MPStealAmount, &attr);
-    // cout << getName() << " HPSteal : " << (int)m_HPStealAmount << endl;
 
     //////////////////////////////////////////////////////////////////////////////
     // 부가적인 능력치를 직접 수정하는 이펙트를 검사한다.
@@ -617,6 +435,85 @@ void Ousters::initAllStat(int numPartyMember)
             m_Damage[ATTR_MAX] = max(0, m_Damage[ATTR_MAX] - DamagePenalty2);
         }
     }
+    /*	if (isFlag(Effect::EFFECT_CLASS_PARALYZE))
+        {
+            EffectParalyze* pParalyze = dynamic_cast<EffectParalyze*>(findEffect(Effect::EFFECT_CLASS_PARALYZE));
+            if (pParalyze != NULL)
+            {
+                int DefensePenalty = getPercentValue(m_Defense[ATTR_CURRENT], pParalyze->getDefensePenalty());
+                m_Defense[ATTR_CURRENT] = max(0, m_Defense[ATTR_CURRENT] - DefensePenalty);
+            }
+        }*/
+    if (isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF)) {
+        EffectTransformToWolf* pTransformToWolf =
+            dynamic_cast<EffectTransformToWolf*>(findEffect(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF));
+        if (pTransformToWolf != NULL) {
+            int PenaltyRatio = (isFlag(Effect::EFFECT_CLASS_HOWL)) ? 10 : 30;
+            int ToHitBonus = getPercentValue(m_ToHit[ATTR_CURRENT], 20);
+            int MinDamageBonus = decore::wolfDamageBonus(
+                m_DEX[ATTR_CURRENT], m_STR[ATTR_CURRENT]); // getPercentValue(m_Damage[ATTR_CURRENT], 20);
+            int MaxDamageBonus = decore::wolfDamageBonus(
+                m_DEX[ATTR_CURRENT], m_STR[ATTR_CURRENT]); // getPercentValue(m_Damage[ATTR_MAX], 20);
+            int DefensePenalty = getPercentValue(m_Defense[ATTR_CURRENT], PenaltyRatio);       // 50);
+            int ProtectionPenalty = getPercentValue(m_Protection[ATTR_CURRENT], PenaltyRatio); // 50);
+
+            m_ToHit[ATTR_CURRENT] = min(VAMPIRE_MAX_TOHIT, m_ToHit[ATTR_CURRENT] + ToHitBonus);
+            m_Damage[ATTR_CURRENT] = min(VAMPIRE_MAX_DAMAGE, m_Damage[ATTR_CURRENT] + MinDamageBonus);
+            m_Damage[ATTR_MAX] = min(VAMPIRE_MAX_DAMAGE, m_Damage[ATTR_MAX] + MaxDamageBonus);
+            m_Defense[ATTR_CURRENT] = max(0, m_Defense[ATTR_CURRENT] - DefensePenalty);
+            m_Protection[ATTR_CURRENT] = max(0, m_Protection[ATTR_CURRENT] - ProtectionPenalty);
+        }
+    } else if (isFlag(Effect::EFFECT_CLASS_HOWL)) {
+        Effect* pEffect = findEffect(Effect::EFFECT_CLASS_HOWL);
+        if (pEffect != NULL)
+            pEffect->setDeadline(0);
+    }
+
+    if (isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WERWOLF)) {
+        EffectTransformToWerwolf* pTransformToWerwolf =
+            dynamic_cast<EffectTransformToWerwolf*>(findEffect(Effect::EFFECT_CLASS_TRANSFORM_TO_WERWOLF));
+        if (pTransformToWerwolf != NULL) {
+            int ToHitBonus = getPercentValue(m_ToHit[ATTR_CURRENT], 20);
+            int MinDamageBonus = decore::werwolfDamageBonus(
+                m_DEX[ATTR_CURRENT], m_STR[ATTR_CURRENT]); // getPercentValue(m_Damage[ATTR_CURRENT], 20);
+            int MaxDamageBonus = decore::werwolfDamageBonus(
+                m_DEX[ATTR_CURRENT], m_STR[ATTR_CURRENT]); // getPercentValue(m_Damage[ATTR_MAX], 20);
+            int ResistBonus = 9;
+
+            m_ToHit[ATTR_CURRENT] = min(VAMPIRE_MAX_TOHIT, m_ToHit[ATTR_CURRENT] + ToHitBonus);
+            m_Damage[ATTR_CURRENT] = min(VAMPIRE_MAX_DAMAGE, m_Damage[ATTR_CURRENT] + MinDamageBonus);
+            m_Damage[ATTR_MAX] = min(VAMPIRE_MAX_DAMAGE, m_Damage[ATTR_MAX] + MaxDamageBonus);
+
+            m_Resist[MAGIC_DOMAIN_POISON] += ResistBonus;
+            m_Resist[MAGIC_DOMAIN_ACID] += ResistBonus;
+            m_Resist[MAGIC_DOMAIN_CURSE] += ResistBonus;
+            m_Resist[MAGIC_DOMAIN_BLOOD] += ResistBonus;
+        }
+    }
+    if (isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT)) {
+        EffectTransformToBat* pTransformToBat =
+            dynamic_cast<EffectTransformToBat*>(findEffect(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT));
+        if (pTransformToBat != NULL) {
+            int DefensePenalty = getPercentValue(m_Defense[ATTR_CURRENT], 25);
+            int ProtectionPenalty = getPercentValue(m_Protection[ATTR_CURRENT], 25);
+
+            m_Defense[ATTR_CURRENT] = max(0, m_Defense[ATTR_CURRENT] - DefensePenalty);
+            m_Protection[ATTR_CURRENT] = max(0, m_Protection[ATTR_CURRENT] - ProtectionPenalty);
+        }
+    }
+    if (isFlag(Effect::EFFECT_CLASS_EXTREME)) {
+        EffectExtreme* pExtreme = dynamic_cast<EffectExtreme*>(findEffect(Effect::EFFECT_CLASS_EXTREME));
+        if (pExtreme != NULL) {
+            //			int DamageBonus = 4 + ((m_STR[ATTR_CURRENT]-20)/50);
+            int DamageBonus = decore::extremeDamageBonus(m_STR[ATTR_CURRENT]);
+            int ToHitBonus = decore::extremeToHitBonus(m_STR[ATTR_CURRENT], m_DEX[ATTR_CURRENT]);
+
+            m_Damage[ATTR_CURRENT] = max(0, m_Damage[ATTR_CURRENT] + DamageBonus);
+            m_Damage[ATTR_MAX] = max(0, m_Damage[ATTR_MAX] + DamageBonus);
+            m_ToHit[ATTR_CURRENT] = min(VAMPIRE_MAX_TOHIT, m_ToHit[ATTR_CURRENT] + ToHitBonus);
+        }
+    }
+
     if (isFlag(Effect::EFFECT_CLASS_DEATH)) {
         EffectDeath* pDeath = dynamic_cast<EffectDeath*>(findEffect(Effect::EFFECT_CLASS_DEATH));
         if (pDeath != NULL) {
@@ -626,98 +523,38 @@ void Ousters::initAllStat(int numPartyMember)
             }
         }
     }
-    if (isFlag(Effect::EFFECT_CLASS_EVADE)) {
-        EffectEvade* pEffect = dynamic_cast<EffectEvade*>(findEffect(Effect::EFFECT_CLASS_EVADE));
 
-        if (pEffect != NULL) {
-            if (attr.pWeapon != NULL && attr.pWeapon->getItemClass() == Item::ITEM_CLASS_OUSTERS_CHAKRAM)
-                m_Defense[ATTR_CURRENT] += pEffect->getBonus();
-            else
-                pEffect->setDeadline(0);
+    if (isFlag(Effect::EFFECT_CLASS_MEPHISTO)) {
+        EffectMephisto* pMephisto = dynamic_cast<EffectMephisto*>(findEffect(Effect::EFFECT_CLASS_MEPHISTO));
+        if (pMephisto != NULL) {
+            int bonusPercent = 100 + pMephisto->getBonus();
+
+            m_ToHit[ATTR_CURRENT] = min(VAMPIRE_MAX_TOHIT, m_ToHit[ATTR_CURRENT] * bonusPercent / 100);
+            m_Defense[ATTR_CURRENT] = min(VAMPIRE_MAX_DEFENSE, m_Defense[ATTR_CURRENT] * bonusPercent / 100);
+            m_Protection[ATTR_CURRENT] = min(VAMPIRE_MAX_PROTECTION, m_Protection[ATTR_CURRENT] * bonusPercent / 100);
         }
     }
 
-    if (isFlag(Effect::EFFECT_CLASS_CROSS_GUARD)) {
-        EffectCrossGuard* pEffect = dynamic_cast<EffectCrossGuard*>(findEffect(Effect::EFFECT_CLASS_CROSS_GUARD));
+    // by sigi. 2002.6.19
+    // isEffect를 isFlag로 바꿈. 2003.3.27 by Sequoia
+    if (isFlag(Effect::EFFECT_CLASS_CASKET)) {
+        EffectSummonCasket* pCasket = dynamic_cast<EffectSummonCasket*>(findEffect(Effect::EFFECT_CLASS_CASKET));
+        if (pCasket != NULL) {
+            // pCasket->getType()에 따라서 다를 수도 있지..
+            // by sigi. 2002.12.3. 20 --> 30
+            int DefenseBonus = getPercentValue(m_Defense[ATTR_CURRENT], 30);
+            int ProtectionBonus = getPercentValue(m_Protection[ATTR_CURRENT], 30);
 
-        if (pEffect != NULL) {
-            if (attr.pWeapon != NULL && attr.pWeapon->getItemClass() == Item::ITEM_CLASS_OUSTERS_CHAKRAM)
-                m_Protection[ATTR_CURRENT] += pEffect->getBonus();
-            else
-                pEffect->setDeadline(0);
+            m_Defense[ATTR_CURRENT] = max(0, m_Defense[ATTR_CURRENT] + DefenseBonus);
+            m_Protection[ATTR_CURRENT] = max(0, m_Protection[ATTR_CURRENT] + ProtectionBonus);
         }
     }
-
     if (isFlag(Effect::EFFECT_CLASS_BLUNTING)) {
         EffectBlunting* pBlunting = dynamic_cast<EffectBlunting*>(findEffect(Effect::EFFECT_CLASS_BLUNTING));
         if (pBlunting != NULL) {
-            if (attr.pWeapon != NULL && attr.pWeapon->getItemClass() == Item::ITEM_CLASS_OUSTERS_CHAKRAM) {
-                int DefensePenalty = pBlunting->getDefensePenalty();
-                m_Defense[ATTR_CURRENT] = max(0, m_Defense[ATTR_CURRENT] - DefensePenalty);
-            } else
-                pBlunting->setDeadline(0);
+            int DefensePenalty = pBlunting->getDefensePenalty();
+            m_Defense[ATTR_CURRENT] = max(0, m_Defense[ATTR_CURRENT] - DefensePenalty);
         }
-    }
-
-    /*	if ( isFlag( Effect::EFFECT_CLASS_HANDS_OF_FIRE ) )
-        {
-            //cout << getName() << " 핸즈오브파이어 붙었당" << endl;
-            EffectHandsOfFire* pEffect =
-       dynamic_cast<EffectHandsOfFire*>(findEffect(Effect::EFFECT_CLASS_HANDS_OF_FIRE));
-
-            if ( pEffect != NULL )
-            {
-                if ( attr.pWeapon == NULL || attr.pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_WRISTLET )
-                    pEffect->setDeadline(0);
-                else
-                {
-                    m_FireDamage += pEffect->getBonus();
-                    //cout << getName() << " FireDamage : " << m_FireDamage << endl;
-                }
-            }
-        }*/
-
-    if (isFlag(Effect::EFFECT_CLASS_RING_OF_FLARE)) {
-        EffectRingOfFlare* pEffect = dynamic_cast<EffectRingOfFlare*>(findEffect(Effect::EFFECT_CLASS_RING_OF_FLARE));
-
-        if (pEffect != NULL) {
-            if (attr.pWeapon == NULL || attr.pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_WRISTLET)
-                pEffect->setDeadline(0);
-        }
-    }
-
-    if (isFlag(Effect::EFFECT_CLASS_WATER_BARRIER)) {
-        EffectWaterBarrier* pEffect = dynamic_cast<EffectWaterBarrier*>(findEffect(Effect::EFFECT_CLASS_WATER_BARRIER));
-
-        if (pEffect != NULL) {
-            if (attr.pWeapon == NULL || attr.pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_WRISTLET)
-                pEffect->setDeadline(0);
-        }
-    }
-
-    /*	if ( isFlag( Effect::EFFECT_CLASS_GNOMES_WHISPER ) )
-        {
-            EffectGnomesWhisper* pEffect =
-       dynamic_cast<EffectGnomesWhisper*>(findEffect(Effect::EFFECT_CLASS_GNOMES_WHISPER));
-
-            if ( pEffect != NULL )
-            {
-                if ( attr.pWeapon == NULL || attr.pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_WRISTLET )
-                    pEffect->setDeadline(0);
-            }
-        }*/
-
-    if (isFlag(Effect::EFFECT_CLASS_SUMMON_SYLPH)) {
-        int ProtectionBonus = decore::summonSylphProtectionBonus(getLevel());
-        int ResistBonus = decore::summonSylphResistBonus(getLevel());
-
-        m_Protection[ATTR_CURRENT] += ProtectionBonus;
-
-        m_Resist[MAGIC_DOMAIN_NO_DOMAIN] += ResistBonus;
-        m_Resist[MAGIC_DOMAIN_POISON] += ResistBonus;
-        m_Resist[MAGIC_DOMAIN_ACID] += ResistBonus;
-        m_Resist[MAGIC_DOMAIN_CURSE] += ResistBonus;
-        m_Resist[MAGIC_DOMAIN_BLOOD] += ResistBonus;
     }
 
     if (isFlag(Effect::EFFECT_CLASS_INTIMATE_GRAIL)) {
@@ -731,81 +568,36 @@ void Ousters::initAllStat(int numPartyMember)
         }
     }
 
-    //////////////////////////////////////////////////////////////////////////////
-    // 패시브 기술을 계산한다.
-    //////////////////////////////////////////////////////////////////////////////
-    OustersSkillSlot* pHideSight = getSkill(SKILL_HIDE_SIGHT);
-    if (pHideSight != NULL && attr.pWeapon != NULL &&
-        attr.pWeapon->getItemClass() == Item::ITEM_CLASS_OUSTERS_CHAKRAM) {
-        SkillLevel_t level = pHideSight->getExpLevel();
-
-        m_ToHit[ATTR_CURRENT] += decore::hideSightToHitBonus(level);
-    }
-
 
     ///////////////////////////////////////////////////////////////////////////////
     // 계급 보너스를 계산한다.
     ///////////////////////////////////////////////////////////////////////////////
-    if (hasRankBonus(RankBonus::RANK_BONUS_WOOD_SKIN)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_WOOD_SKIN);
-        Assert(pRankBonus != NULL);
-
-        int ProtectionBonus = pRankBonus->getPoint();
-
-        m_Protection[ATTR_CURRENT] = min(OUSTERS_MAX_PROTECTION, m_Protection[ATTR_CURRENT] + ProtectionBonus);
-        m_Protection[ATTR_MAX] = min(OUSTERS_MAX_PROTECTION, m_Protection[ATTR_MAX] + ProtectionBonus);
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_WIND_SENSE)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_WIND_SENSE);
-        Assert(pRankBonus != NULL);
-
-        int DefenseBonus = pRankBonus->getPoint();
-
-        m_Defense[ATTR_CURRENT] = min(OUSTERS_MAX_DEFENSE, m_Defense[ATTR_CURRENT] + DefenseBonus);
-        m_Defense[ATTR_MAX] = min(OUSTERS_MAX_DEFENSE, m_Defense[ATTR_MAX] + DefenseBonus);
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_HOMING_EYE)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_HOMING_EYE);
-        Assert(pRankBonus != NULL);
-
-        int ToHitBonus = pRankBonus->getPoint();
-
-        m_ToHit[ATTR_CURRENT] = min(OUSTERS_MAX_TOHIT, m_ToHit[ATTR_CURRENT] + ToHitBonus);
-        m_ToHit[ATTR_MAX] = min(OUSTERS_MAX_TOHIT, m_ToHit[ATTR_MAX] + ToHitBonus);
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_LIFE_ENERGY)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_LIFE_ENERGY);
+    if (hasRankBonus(RankBonus::RANK_BONUS_IMMORTAL_BLOOD)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_IMMORTAL_BLOOD);
         Assert(pRankBonus != NULL);
 
         int HPBonus = pRankBonus->getPoint();
 
-        m_HP[ATTR_MAX] = min(OUSTERS_MAX_HP, m_HP[ATTR_MAX] + HPBonus);
+        m_HP[ATTR_MAX] = min(VAMPIRE_MAX_HP, m_HP[ATTR_MAX] + HPBonus);
     }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_SOUL_ENERGY)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_SOUL_ENERGY);
+    if (hasRankBonus(RankBonus::RANK_BONUS_BEHEMOTH_SKIN)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_BEHEMOTH_SKIN);
         Assert(pRankBonus != NULL);
 
-        int MPBonus = pRankBonus->getPoint();
+        int DefenseBonus = pRankBonus->getPoint();
 
-        m_MP[ATTR_MAX] = min(OUSTERS_MAX_MP, m_MP[ATTR_MAX] + MPBonus);
+        m_Defense[ATTR_CURRENT] = min(VAMPIRE_MAX_DEFENSE, m_Defense[ATTR_CURRENT] + DefenseBonus);
     }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_STONE_MAUL)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_STONE_MAUL);
+    if (hasRankBonus(RankBonus::RANK_BONUS_SAFE_ROBE)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_SAFE_ROBE);
         Assert(pRankBonus != NULL);
 
-        int DamageBonus = pRankBonus->getPoint();
+        int ProtectionBonus = pRankBonus->getPoint();
 
-        m_Damage[ATTR_CURRENT] = min(OUSTERS_MAX_DAMAGE, m_Damage[ATTR_CURRENT] + DamageBonus);
-        m_Damage[ATTR_MAX] = min(OUSTERS_MAX_DAMAGE, m_Damage[ATTR_MAX] + DamageBonus);
+        m_Protection[ATTR_CURRENT] = min(VAMPIRE_MAX_PROTECTION, m_Protection[ATTR_CURRENT] + ProtectionBonus);
     }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_SWIFT_ARM)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_SWIFT_ARM);
+    if (hasRankBonus(RankBonus::RANK_BONUS_CROW_WING)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_CROW_WING);
         Assert(pRankBonus != NULL);
 
         int AttackSpeedBonus = pRankBonus->getPoint();
@@ -813,367 +605,180 @@ void Ousters::initAllStat(int numPartyMember)
         m_AttackSpeed[ATTR_CURRENT] += AttackSpeedBonus;
         m_AttackSpeed[ATTR_MAX] += AttackSpeedBonus;
     }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_FIRE_ENDOW)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_FIRE_ENDOW);
+    if (hasRankBonus(RankBonus::RANK_BONUS_URANUS_BLESS)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_URANUS_BLESS);
         Assert(pRankBonus != NULL);
 
-        int FireDamageBonus = pRankBonus->getPoint();
+        int HPRegenBonus = pRankBonus->getPoint();
 
-        m_FireDamage += FireDamageBonus;
+        m_HPRegenBonus += HPRegenBonus;
     }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_WATER_ENDOW)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_WATER_ENDOW);
+    if (hasRankBonus(RankBonus::RANK_BONUS_ACID_INQUIRY)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_ACID_INQUIRY);
         Assert(pRankBonus != NULL);
 
-        int WaterDamageBonus = pRankBonus->getPoint();
-
-        m_WaterDamage += WaterDamageBonus;
+        m_Resist[MAGIC_DOMAIN_ACID] += getPercentValue(m_Resist[MAGIC_DOMAIN_ACID], pRankBonus->getPoint());
+        ;
     }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_EARTH_ENDOW)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_EARTH_ENDOW);
+    if (hasRankBonus(RankBonus::RANK_BONUS_BLOODY_INQUIRY)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_BLOODY_INQUIRY);
         Assert(pRankBonus != NULL);
 
-        int EarthDamageBonus = pRankBonus->getPoint();
-
-        m_EarthDamage += EarthDamageBonus;
+        m_Resist[MAGIC_DOMAIN_BLOOD] += getPercentValue(m_Resist[MAGIC_DOMAIN_BLOOD], pRankBonus->getPoint());
+        ;
     }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_ANTI_ACID_SKIN)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_ANTI_ACID_SKIN);
+    if (hasRankBonus(RankBonus::RANK_BONUS_CURSE_INQUIRY)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_CURSE_INQUIRY);
         Assert(pRankBonus != NULL);
 
-        int ResistBonus = pRankBonus->getPoint();
-
-        m_Resist[MAGIC_DOMAIN_ACID] += ResistBonus;
+        m_Resist[MAGIC_DOMAIN_CURSE] += getPercentValue(m_Resist[MAGIC_DOMAIN_CURSE], pRankBonus->getPoint());
+        ;
     }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_ANTI_BLOODY_SKIN)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_ANTI_BLOODY_SKIN);
+    if (hasRankBonus(RankBonus::RANK_BONUS_POISON_INQUIRY)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_POISON_INQUIRY);
         Assert(pRankBonus != NULL);
 
-        int ResistBonus = pRankBonus->getPoint();
-
-        m_Resist[MAGIC_DOMAIN_BLOOD] += ResistBonus;
+        m_Resist[MAGIC_DOMAIN_POISON] += getPercentValue(m_Resist[MAGIC_DOMAIN_POISON], pRankBonus->getPoint());
+        ;
     }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_ANTI_CURSE_SKIN)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_ANTI_CURSE_SKIN);
+    if (hasRankBonus(RankBonus::RANK_BONUS_INQUIRY_MASTERY)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_INQUIRY_MASTERY);
         Assert(pRankBonus != NULL);
 
-        int ResistBonus = pRankBonus->getPoint();
-
-        m_Resist[MAGIC_DOMAIN_CURSE] += ResistBonus;
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_ANTI_POISON_SKIN)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_ANTI_POISON_SKIN);
-        Assert(pRankBonus != NULL);
-
-        int ResistBonus = pRankBonus->getPoint();
-
-        m_Resist[MAGIC_DOMAIN_POISON] += ResistBonus;
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_ANTI_SILVER_DAMAGE_SKIN)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_ANTI_SILVER_DAMAGE_SKIN);
-        Assert(pRankBonus != NULL);
-
-        int ResistBonus = pRankBonus->getPoint();
-
-        m_SilverResist += ResistBonus;
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_BLESS_OF_NATURE)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_BLESS_OF_NATURE);
-        Assert(pRankBonus != NULL);
-
-        int MPAmount = pRankBonus->getPoint();
-
-        m_ConsumeMPRatio -= MPAmount;
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_MYSTIC_RULE)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_MYSTIC_RULE);
-        Assert(pRankBonus != NULL);
-
-        int LuckBonus = pRankBonus->getPoint();
-
-        m_Luck += LuckBonus;
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_POWER_OF_SPIRIT)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_POWER_OF_SPIRIT);
-        Assert(pRankBonus != NULL);
-
-        int ProtectionBonus = getPercentValue(m_Protection[ATTR_CURRENT], pRankBonus->getPoint());
-
-        m_Protection[ATTR_CURRENT] = min(OUSTERS_MAX_PROTECTION, m_Protection[ATTR_CURRENT] + ProtectionBonus);
-        m_Protection[ATTR_MAX] = min(OUSTERS_MAX_PROTECTION, m_Protection[ATTR_MAX] + ProtectionBonus);
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_WIND_OF_SPIRIT)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_WIND_OF_SPIRIT);
-        Assert(pRankBonus != NULL);
-
-        int DefenseBonus = getPercentValue(m_Defense[ATTR_CURRENT], pRankBonus->getPoint());
-
-        m_Defense[ATTR_CURRENT] = min(OUSTERS_MAX_DEFENSE, m_Defense[ATTR_CURRENT] + DefenseBonus);
-        m_Defense[ATTR_MAX] = min(OUSTERS_MAX_DEFENSE, m_Defense[ATTR_MAX] + DefenseBonus);
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_PIXIES_EYES)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_PIXIES_EYES);
-        Assert(pRankBonus != NULL);
-
-        int ToHitBonus = getPercentValue(m_ToHit[ATTR_CURRENT], pRankBonus->getPoint());
-
-        m_ToHit[ATTR_CURRENT] = min(OUSTERS_MAX_TOHIT, m_ToHit[ATTR_CURRENT] + ToHitBonus);
-        m_ToHit[ATTR_MAX] = min(OUSTERS_MAX_TOHIT, m_ToHit[ATTR_MAX] + ToHitBonus);
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_GROUND_OF_SPIRIT)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_GROUND_OF_SPIRIT);
-        Assert(pRankBonus != NULL);
-
-        int MPBonus = getPercentValue(m_MP[ATTR_CURRENT], pRankBonus->getPoint());
-        // edit by Coffee 2007-5-20 錦攣침쥣轟掘MP BUG
-        m_MPStealAmount += MPBonus;
-        m_MPStealRatio = computeStealRatio(CClass, m_MPStealAmount, &attr);
-        // m_MP[ATTR_CURRENT]  = min(OUSTERS_MAX_MP, m_MP[ATTR_CURRENT] + MPBonus);
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_FIRE_OF_SPIRIT)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_FIRE_OF_SPIRIT);
-        Assert(pRankBonus != NULL);
-
-        int CriticalRatioBonus = getPercentValue(m_CriticalRatio[ATTR_CURRENT], pRankBonus->getPoint());
-
-        m_CriticalRatio[ATTR_CURRENT] = m_CriticalRatio[ATTR_CURRENT] + CriticalRatioBonus;
-        m_CriticalRatio[ATTR_MAX] = m_CriticalRatio[ATTR_MAX] + CriticalRatioBonus;
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_SALAMANDERS_KNOWLEDGE)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_SALAMANDERS_KNOWLEDGE);
-        Assert(pRankBonus != NULL);
-
-        m_ElementalFire += pRankBonus->getPoint();
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_UNDINES_KNOWLEDGE)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_UNDINES_KNOWLEDGE);
-        Assert(pRankBonus != NULL);
-
-        m_ElementalWater += pRankBonus->getPoint();
-    }
-
-    if (hasRankBonus(RankBonus::RANK_BONUS_GNOMES_KNOWLEDGE)) {
-        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_GNOMES_KNOWLEDGE);
-        Assert(pRankBonus != NULL);
-
-        m_ElementalEarth += pRankBonus->getPoint();
-    }
-
-    // -_- %로 적용되는 스킬은 마지막에 적용시킨다.
-    if (isFlag(Effect::EFFECT_CLASS_SHARP_CHAKRAM)) {
-        EffectSharpChakram* pEffect = dynamic_cast<EffectSharpChakram*>(findEffect(Effect::EFFECT_CLASS_SHARP_CHAKRAM));
-
-        if (pEffect != NULL) {
-            int bonus = pEffect->getBonus();
-            m_ToHit[ATTR_CURRENT] += getPercentValue(m_ToHit[ATTR_CURRENT], bonus);
-        }
-    }
-    if (isFlag(Effect::EFFECT_CLASS_REACTIVE_ARMOR)) {
-        EffectReactiveArmor* pEffect =
-            dynamic_cast<EffectReactiveArmor*>(findEffect(Effect::EFFECT_CLASS_REACTIVE_ARMOR));
-
-        if (pEffect != NULL) {
-            bool unaffect = false;
-            if (getSkill(SKILL_REACTIVE_ARMOR) != NULL) {
-                SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_REACTIVE_ARMOR);
-                if (pSkillInfo != NULL && !satisfySkillRequire(pSkillInfo)) {
-                    unaffect = true;
-                }
-            }
-
-            if (unaffect) {
-                pEffect->setDeadline(0);
-            } else {
-                int bonus = pEffect->getBonus();
-                m_Protection[ATTR_CURRENT] += bonus;
-                m_Defense[ATTR_CURRENT] += bonus;
-            }
+        for (int i = 0; i < MAGIC_DOMAIN_MAX; i++) {
+            m_Resist[i] += getPercentValue(m_Resist[i], pRankBonus->getPoint());
+            ;
         }
     }
 
-    // HP,MP의 현재치를 HP,MP의 최고치를 넘는 경우
-    // 현재치를 최고치값으로 set
-    /*    if (m_HP[ATTR_CURRENT] > m_HP[ATTR_MAX])
-        {
-            m_HP[ATTR_CURRENT] = m_HP[ATTR_MAX];
-        }
-        if (m_MP[ATTR_CURRENT] > m_MP[ATTR_MAX])
-        {
-            m_MP[ATTR_CURRENT] = m_MP[ATTR_MAX];
-        }
-    */
-    // 패시브 스킬 초기화
-    bool bCanUsePassive = false;
-    if (hasSkill(SKILL_FIRE_OF_SOUL_STONE) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_FIRE_OF_SOUL_STONE);
-        Assert(pSkillInfo != NULL);
+    if (hasRankBonus(RankBonus::RANK_BONUS_ACID_MASTERY)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_ACID_MASTERY);
+        Assert(pRankBonus != NULL);
 
-        if (satisfySkillRequire(pSkillInfo)) {
-            bCanUsePassive = true;
-
-            m_PassiveSkillMap[SKILL_FIRE_OF_SOUL_STONE].first = true;
-            m_PassiveSkillMap[SKILL_FIRE_OF_SOUL_STONE].second = decore::fireOfSoulStonePoint(getSTR(), getDEX());
-        }
+        m_Mastery[MAGIC_DOMAIN_ACID] += pRankBonus->getPoint();
     }
+    if (hasRankBonus(RankBonus::RANK_BONUS_BLOODY_MASTERY)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_BLOODY_MASTERY);
+        Assert(pRankBonus != NULL);
 
-    if (!bCanUsePassive) {
-        m_PassiveSkillMap[SKILL_FIRE_OF_SOUL_STONE].first = false;
-        m_PassiveSkillMap[SKILL_FIRE_OF_SOUL_STONE].second = 0;
+        m_Mastery[MAGIC_DOMAIN_BLOOD] += pRankBonus->getPoint();
     }
+    if (hasRankBonus(RankBonus::RANK_BONUS_CURSE_MASTERY)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_CURSE_MASTERY);
+        Assert(pRankBonus != NULL);
 
-    bCanUsePassive = false;
-    if (hasSkill(SKILL_ICE_OF_SOUL_STONE) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_ICE_OF_SOUL_STONE);
-        Assert(pSkillInfo != NULL);
+        m_Mastery[MAGIC_DOMAIN_CURSE] += pRankBonus->getPoint();
+    }
+    if (hasRankBonus(RankBonus::RANK_BONUS_POISON_MASTERY)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_POISON_MASTERY);
+        Assert(pRankBonus != NULL);
 
-        if (satisfySkillRequire(pSkillInfo)) {
-            bCanUsePassive = true;
+        m_Mastery[MAGIC_DOMAIN_POISON] += pRankBonus->getPoint();
+    }
+    if (hasRankBonus(RankBonus::RANK_BONUS_SKILL_MASTERY)) {
+        RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_SKILL_MASTERY);
+        Assert(pRankBonus != NULL);
 
-            m_PassiveSkillMap[SKILL_ICE_OF_SOUL_STONE].first = true;
-            m_PassiveSkillMap[SKILL_ICE_OF_SOUL_STONE].second = decore::iceOfSoulStonePoint(getDEX());
+        for (int i = 0; i < MAGIC_DOMAIN_MAX; i++) {
+            m_Mastery[i] += getPercentValue(m_Mastery[i], pRankBonus->getPoint());
+            ;
         }
     }
 
-    if (!bCanUsePassive) {
-        m_PassiveSkillMap[SKILL_ICE_OF_SOUL_STONE].first = false;
-        m_PassiveSkillMap[SKILL_ICE_OF_SOUL_STONE].second = 0;
-    }
+    // DEX 에 따른 HPRegenBonus 포인트
+    m_HPRegenBonus += decore::vampireDexHPRegenBonus(m_DEX[ATTR_BASIC]);
 
-    bCanUsePassive = false;
-    if (hasSkill(SKILL_SAND_OF_SOUL_STONE) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_SAND_OF_SOUL_STONE);
-        Assert(pSkillInfo != NULL);
+    // 파티의 크기에 따라서 능력치가 변할 수 있다.
 
-        if (satisfySkillRequire(pSkillInfo)) {
-            bCanUsePassive = true;
-
-            m_PassiveSkillMap[SKILL_SAND_OF_SOUL_STONE].first = true;
-            m_PassiveSkillMap[SKILL_SAND_OF_SOUL_STONE].second = decore::sandOfSoulStonePoint(getSTR(), getDEX());
-        }
-    }
-
-    if (!bCanUsePassive) {
-        m_PassiveSkillMap[SKILL_SAND_OF_SOUL_STONE].first = false;
-        m_PassiveSkillMap[SKILL_SAND_OF_SOUL_STONE].second = 0;
-    }
-
-    bCanUsePassive = false;
-    if (hasSkill(SKILL_BLOCK_HEAD) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_BLOCK_HEAD);
-        Assert(pSkillInfo != NULL);
-
-        if (satisfySkillRequire(pSkillInfo)) {
-            bCanUsePassive = true;
-
-            m_PassiveSkillMap[SKILL_BLOCK_HEAD].first = true;
-            m_PassiveSkillMap[SKILL_BLOCK_HEAD].second = decore::blockHeadPoint(getDEX());
-        }
-    }
-
-    if (!bCanUsePassive) {
-        m_PassiveSkillMap[SKILL_BLOCK_HEAD].first = false;
-        m_PassiveSkillMap[SKILL_BLOCK_HEAD].second = 0;
-    }
-
-    bCanUsePassive = false;
-    if (hasSkill(SKILL_BLESS_FIRE) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_BLESS_FIRE);
-        Assert(pSkillInfo != NULL);
-
-        if (satisfySkillRequire(pSkillInfo)) {
-            bCanUsePassive = true;
-
-            m_PassiveSkillMap[SKILL_BLESS_FIRE].first = true;
-            m_PassiveSkillMap[SKILL_BLESS_FIRE].second = decore::blessFirePoint(getSTR(), getDEX());
-        }
-    }
-
-    if (!bCanUsePassive) {
-        m_PassiveSkillMap[SKILL_BLESS_FIRE].first = false;
-        m_PassiveSkillMap[SKILL_BLESS_FIRE].second = 0;
-    }
-
-    bCanUsePassive = false;
-    if (hasSkill(SKILL_WATER_SHIELD) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_WATER_SHIELD);
-        Assert(pSkillInfo != NULL);
-
-        if (satisfySkillRequire(pSkillInfo)) {
-            bCanUsePassive = true;
-
-            m_PassiveSkillMap[SKILL_WATER_SHIELD].first = true;
-            m_PassiveSkillMap[SKILL_WATER_SHIELD].second = 0;
-        }
-    }
-
-    if (!bCanUsePassive) {
-        m_PassiveSkillMap[SKILL_WATER_SHIELD].first = false;
-        m_PassiveSkillMap[SKILL_WATER_SHIELD].second = 0;
-    }
-
-    bCanUsePassive = false;
-    if (hasSkill(SKILL_SAND_CROSS) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_SAND_CROSS);
-        Assert(pSkillInfo != NULL);
-
-        if (satisfySkillRequire(pSkillInfo)) {
-            bCanUsePassive = true;
-
-            m_PassiveSkillMap[SKILL_SAND_CROSS].first = true;
-            m_PassiveSkillMap[SKILL_SAND_CROSS].second = decore::sandCrossPoint(getSTR(), getDEX());
-        }
-    }
-
-    if (!bCanUsePassive) {
-        m_PassiveSkillMap[SKILL_SAND_CROSS].first = false;
-        m_PassiveSkillMap[SKILL_SAND_CROSS].second = 0;
-    }
-
-    m_PassiveRatio = getElementalSum();
-
-    for (int i = WEAR_STONE1; i <= WEAR_STONE3; ++i) {
-        Item* pItem = getWearItem((WearPart)i);
-
-        if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_OUSTERS_STONE)
-            continue;
-        OustersStone* pOustersStone = dynamic_cast<OustersStone*>(pItem);
-        Assert(pOustersStone != NULL);
-
-        m_PassiveRatio += pOustersStone->getElemental();
+    // 전쟁 보너스 적용
+    if (HPBonus > 0) {
+        m_HP[ATTR_MAX] = min(VAMPIRE_MAX_HP, m_HP[ATTR_MAX] + HPBonus);
     }
 
     if (RaceWarHPBonus > 0) {
-        m_HP[ATTR_MAX] = min(OUSTERS_MAX_HP, m_HP[ATTR_MAX] + RaceWarHPBonus);
+        m_HP[ATTR_MAX] = min(VAMPIRE_MAX_HP, m_HP[ATTR_MAX] + RaceWarHPBonus);
     }
 
     if (DragonEyeHPBonus > 0) {
-        m_HP[ATTR_MAX] = min(OUSTERS_MAX_HP, m_HP[ATTR_MAX] + DragonEyeHPBonus);
+        m_HP[ATTR_MAX] = min(VAMPIRE_MAX_HP, m_HP[ATTR_MAX] + DragonEyeHPBonus);
     }
+
+    // HP의 현재치를 HP의 최고치를 넘는 경우
+    // 현재치를 최고치값으로 set
+    if (m_HP[ATTR_CURRENT] > m_HP[ATTR_MAX]) {
+        m_HP[ATTR_CURRENT] = m_HP[ATTR_MAX];
+        /*
+        if (m_pZone)
+        {
+            GCStatusCurrentHP gcStatusCurrentHP;
+            gcStatusCurrentHP.setObjectID(m_ObjectID);
+            gcStatusCurrentHP.setCurrentHP (m_HP[ATTR_CURRENT]);
+            m_pZone->broadcastPacket(m_X, m_Y, &gcStatusCurrentHP);
+        }
+        */
+    }
+
+    //////////////////////////////////////////////////////////////////////////////
+    // 패시브 기술을 계산한다.
+    //////////////////////////////////////////////////////////////////////////////
+    VampireSkillSlot* pNailMastery = getSkill(SKILL_NAIL_MASTERY);
+    if (pNailMastery != NULL) {
+        int DamageBonus = decore::nailMasteryDamageBonus(getLevel());
+
+        m_Damage[ATTR_CURRENT] = max(0, m_Damage[ATTR_CURRENT] + DamageBonus);
+        m_Damage[ATTR_MAX] = max(0, m_Damage[ATTR_MAX] + DamageBonus);
+    }
+
 
     initCastleSkill();
 
-    //	cout << "불 : " << m_ElementalFire << endl;
-    //	cout << "물 : " << m_ElementalWater << endl;
-    //	cout << "대지 : " << m_ElementalEarth << endl;
+    if (isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT)) {
+        m_Resist[MAGIC_DOMAIN_NO_DOMAIN] = 0;
+        m_Resist[MAGIC_DOMAIN_POISON] = 50;
+        m_Resist[MAGIC_DOMAIN_ACID] = 0;
+        m_Resist[MAGIC_DOMAIN_CURSE] = 0;
+        m_Resist[MAGIC_DOMAIN_BLOOD] = 0;
+    }
 
     //	cout << getName() << "의 Luck : " << m_Luck << endl;
+
+    /*
+    // 파티 인원수가 넘어오지 않은 경우는 다시 계산한다.
+    if (numPartyMember == -1)
+    {
+        if (m_PartyID != 0)
+        {
+            LocalPartyManager* pLPM = getLocalPartyManager();
+            Assert(pLPM != NULL);
+
+            numPartyMember = pLPM->getAdjacentMemberSize(m_PartyID, this);
+        }
+    }
+
+    if (numPartyMember > 1)
+    {
+        uint ToHitBonus      = 0;
+        uint DefenseBonus    = 0;
+        uint ProtectionBonus = 0;
+        uint DamageBonus     = 0;
+
+        switch (numPartyMember)
+        {
+            case 2: ToHitBonus +=  2; DefenseBonus += 1; ProtectionBonus += 1; DamageBonus += 1; break;
+            case 3: ToHitBonus +=  4; DefenseBonus += 2; ProtectionBonus += 2; DamageBonus += 1; break;
+            case 4: ToHitBonus +=  6; DefenseBonus += 3; ProtectionBonus += 3; DamageBonus += 2; break;
+            case 5: ToHitBonus +=  8; DefenseBonus += 4; ProtectionBonus += 4; DamageBonus += 2; break;
+            case 6: ToHitBonus += 10; DefenseBonus += 5; ProtectionBonus += 5; DamageBonus += 3; break;
+            default: break;
+        }
+
+        m_ToHit[ATTR_CURRENT]      += ToHitBonus;
+        m_Defense[ATTR_CURRENT]    += DefenseBonus;
+        m_Protection[ATTR_CURRENT] += ProtectionBonus;
+        m_Damage[ATTR_CURRENT]     += DamageBonus;
+        m_Damage[ATTR_MAX]         += DamageBonus;
+    }
+    */
 
     /*	cout << getName() << ":" << endl;
         for ( int i=0; i<MAGIC_DOMAIN_MAX; ++i )
@@ -1189,7 +794,7 @@ void Ousters::initAllStat(int numPartyMember)
     __END_CATCH
 }
 
-int Ousters::getBloodBibleSignOpenNum() const {
+int Vampire::getBloodBibleSignOpenNum() const {
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayer);
 
     int openNumLimit = 6;
@@ -1202,7 +807,7 @@ int Ousters::getBloodBibleSignOpenNum() const {
     if (!g_pWarSystem->canApplyBloodBibleSign())
         return 0;
 
-    return decore::oustersBloodBibleSignOpenNum(fame, openNumLimit);
+    return decore::vampireBloodBibleSignOpenNum(fame, openNumLimit);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1225,7 +830,7 @@ int Ousters::getBloodBibleSignOpenNum() const {
 // MAX     = Max 데미지
 // BASIC   = 아이템에 의한 변화 수치
 //////////////////////////////////////////////////////////////////////////////
-void Ousters::computeStatOffset()
+void Vampire::computeStatOffset()
 
 {
     __BEGIN_TRY
@@ -1242,9 +847,6 @@ void Ousters::computeStatOffset()
     // 아이템 또는 마법 수치를 더한다.
     m_HP[ATTR_MAX] = computeHP(CClass, &cur_attr);
     m_HP[ATTR_MAX] += m_HP[ATTR_BASIC];
-
-    m_MP[ATTR_MAX] = computeMP(CClass, &cur_attr);
-    m_MP[ATTR_MAX] += m_MP[ATTR_BASIC];
 
     m_ToHit[ATTR_CURRENT] = computeToHit(CClass, &cur_attr);
     m_ToHit[ATTR_CURRENT] += m_ToHit[ATTR_MAX];
@@ -1270,13 +872,12 @@ void Ousters::computeStatOffset()
     __END_CATCH
 }
 
-void Ousters::computeItemStat(Item* pItem)
+void Vampire::computeItemStat(Item* pItem)
 
 {
     __BEGIN_TRY
 
-    //	if (isOustersWeapon(pItem->getItemClass()))
-    if (pItem->getItemClass() == Item::ITEM_CLASS_OUSTERS_CHAKRAM) {
+    if (isVampireWeapon(pItem->getItemClass())) {
         // 무기라면 무기가 가지는 속도 파라미터를 더한다.
         ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
         m_AttackSpeed[ATTR_CURRENT] += pItemInfo->getSpeed();
@@ -1288,42 +889,6 @@ void Ousters::computeItemStat(Item* pItem)
             dynamic_cast<CoreZapInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
         if (pItemInfo != NULL) {
             computeOptionClassStat(pItemInfo->getOptionClass(), pItem->getGrade());
-        }
-    }
-
-    Elemental_t point = 0;
-    ElementalType type = ELEMENTAL_MAX;
-
-    if (pItem->getItemClass() == Item::ITEM_CLASS_OUSTERS_WRISTLET) {
-        OustersWristlet* pWristlet = dynamic_cast<OustersWristlet*>(pItem);
-        Assert(pWristlet != NULL);
-
-        point = pWristlet->getElemental();
-        type = pWristlet->getElementalType();
-    } else if (pItem->getItemClass() == Item::ITEM_CLASS_OUSTERS_STONE) {
-        OustersStone* pStone = dynamic_cast<OustersStone*>(pItem);
-        Assert(pStone != NULL);
-
-        point = pStone->getElemental();
-        type = pStone->getElementalType();
-    }
-
-    if (point != 0 && type != ELEMENTAL_MAX) {
-        switch (type) {
-        case ELEMENTAL_FIRE:
-            m_ElementalFire += point;
-            break;
-        case ELEMENTAL_WATER:
-            m_ElementalWater += point;
-            break;
-        case ELEMENTAL_EARTH:
-            m_ElementalEarth += point;
-            break;
-        case ELEMENTAL_WIND:
-            m_ElementalWind += point;
-            break;
-        default:
-            break;
         }
     }
 
@@ -1357,10 +922,14 @@ void Ousters::computeItemStat(Item* pItem)
     __END_CATCH
 }
 
-void Ousters::computeOptionStat(Item* pItem)
+void Vampire::computeOptionStat(Item* pItem)
 
 {
     __BEGIN_TRY
+
+    // Option Type을 받아온다.
+    // OptionType_t  OptionType    = pItem->getOptionType();
+    // computeOptionStat( OptionType );
 
     // 부가적인 옵션들
     const list<OptionType_t>& optionType = pItem->getOptionTypeList();
@@ -1380,7 +949,7 @@ void Ousters::computeOptionStat(Item* pItem)
     __END_CATCH
 }
 
-void Ousters::computeOptionClassStat(OptionClass OClass, int PlusPoint) {
+void Vampire::computeOptionClassStat(OptionClass OClass, int PlusPoint) {
     switch (OClass) {
     case OPTION_STR:
         m_STR[ATTR_CURRENT] += PlusPoint;
@@ -1402,20 +971,18 @@ void Ousters::computeOptionClassStat(OptionClass OClass, int PlusPoint) {
         m_HP[ATTR_BASIC] += PlusPoint;
         break;
     case OPTION_MP:
-        m_MP[ATTR_MAX] += PlusPoint;
-        m_MP[ATTR_BASIC] += PlusPoint;
+        m_HP[ATTR_MAX] += PlusPoint;
+        m_HP[ATTR_BASIC] += PlusPoint;
         break;
+    // 뱀파이어는 MP흡수옵션이 붙은 아이템도 HP흡수로 처리해준다.
+    // 2003. 1. 17. Sequoia
     case OPTION_HP_STEAL:
+    case OPTION_MP_STEAL:
         m_HPStealAmount += PlusPoint;
         break;
-    case OPTION_MP_STEAL:
-        m_MPStealAmount += PlusPoint;
-        break;
     case OPTION_HP_REGEN:
-        m_HPRegen += PlusPoint;
-        break;
     case OPTION_MP_REGEN:
-        m_MPRegen += PlusPoint;
+        m_HPRegen += PlusPoint;
         break;
     case OPTION_TOHIT:
         m_ToHit[ATTR_CURRENT] += PlusPoint;
@@ -1507,19 +1074,19 @@ void Ousters::computeOptionClassStat(OptionClass OClass, int PlusPoint) {
         m_MagicDamageReduce += PlusPoint;
         break;
 
-
     default:
         break;
     }
 }
 
-void Ousters::computeOptionStat(OptionType_t OptionType)
+void Vampire::computeOptionStat(OptionType_t OptionType)
 
 {
     __BEGIN_TRY
 
     OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(OptionType);
     computeOptionClassStat(pOptionInfo->getClass(), pOptionInfo->getPlusPoint());
+
     /*	OptionClass   OClass        = pOptionInfo->getClass();
 
         switch (OClass)
@@ -1544,20 +1111,18 @@ void Ousters::computeOptionStat(OptionType_t OptionType)
                 m_HP[ATTR_BASIC] += pOptionInfo->getPlusPoint();
                 break;
             case OPTION_MP:
-                m_MP[ATTR_MAX]   += pOptionInfo->getPlusPoint();
-                m_MP[ATTR_BASIC] += pOptionInfo->getPlusPoint();
+                m_HP[ATTR_MAX]   += pOptionInfo->getPlusPoint();
+                m_HP[ATTR_BASIC] += pOptionInfo->getPlusPoint();
                 break;
+            // 뱀파이어는 MP흡수옵션이 붙은 아이템도 HP흡수로 처리해준다.
+            // 2003. 1. 17. Sequoia
             case OPTION_HP_STEAL:
+            case OPTION_MP_STEAL:
                 m_HPStealAmount += pOptionInfo->getPlusPoint();
                 break;
-            case OPTION_MP_STEAL:
-                m_MPStealAmount += pOptionInfo->getPlusPoint();
-                break;
             case OPTION_HP_REGEN:
-                m_HPRegen += pOptionInfo->getPlusPoint();
-                break;
             case OPTION_MP_REGEN:
-                m_MPRegen += pOptionInfo->getPlusPoint();
+                m_HPRegen += pOptionInfo->getPlusPoint();
                 break;
             case OPTION_TOHIT:
                 m_ToHit[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
@@ -1645,12 +1210,12 @@ void Ousters::computeOptionStat(OptionType_t OptionType)
 
             default:
                 break;
-        }*/
-
+        }
+    */
     __END_CATCH
 }
 
-void Ousters::addModifyInfo(const OUSTERS_RECORD& prev, ModifyInfo& pkt) const
+void Vampire::addModifyInfo(const VAMPIRE_RECORD& prev, ModifyInfo& pkt) const
 
 {
     __BEGIN_TRY
@@ -1681,11 +1246,6 @@ void Ousters::addModifyInfo(const OUSTERS_RECORD& prev, ModifyInfo& pkt) const
     if (prev.pHP[ATTR_MAX] != m_HP[ATTR_MAX])
         pkt.addShortData(MODIFY_MAX_HP, m_HP[ATTR_MAX]);
 
-    if (prev.pMP[ATTR_CURRENT] != m_MP[ATTR_CURRENT])
-        pkt.addShortData(MODIFY_CURRENT_MP, m_MP[ATTR_CURRENT]);
-    if (prev.pMP[ATTR_MAX] != m_MP[ATTR_MAX])
-        pkt.addShortData(MODIFY_MAX_MP, m_MP[ATTR_MAX]);
-
     if (prev.pDamage[ATTR_CURRENT] != m_Damage[ATTR_CURRENT])
         pkt.addShortData(MODIFY_MIN_DAMAGE, m_Damage[ATTR_CURRENT]);
     if (prev.pDamage[ATTR_MAX] != m_Damage[ATTR_MAX])
@@ -1709,7 +1269,7 @@ void Ousters::addModifyInfo(const OUSTERS_RECORD& prev, ModifyInfo& pkt) const
     __END_CATCH
 }
 
-void Ousters::sendModifyInfo(const OUSTERS_RECORD& prev) const
+void Vampire::sendModifyInfo(const VAMPIRE_RECORD& prev) const
 
 {
     __BEGIN_TRY
@@ -1727,9 +1287,9 @@ void Ousters::sendModifyInfo(const OUSTERS_RECORD& prev) const
     __END_CATCH
 }
 
-void Ousters::initAllStatAndSend() {
-    OUSTERS_RECORD prev;
-    getOustersRecord(prev);
+void Vampire::initAllStatAndSend() {
+    VAMPIRE_RECORD prev;
+    getVampireRecord(prev);
     initAllStat();
     sendModifyInfo(prev);
 }
