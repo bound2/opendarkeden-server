@@ -150,7 +150,7 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
 
                 // What if the incoming item and the item already there have exactly the same coordinates?
                 if (bisSame) {
-                    // If the count goes past 9, add only up to 9 and leave the rest on the mouse.
+                    // If the count goes past the stack limit, add only up to it and leave the rest on the mouse.
                     if (pItem->getNum() + pPrevItem->getNum() > MaxStack) {
                         ItemNum_t CurrentNum = pPrevItem->getNum();
                         ItemNum_t AddNum = pItem->getNum();

@@ -165,8 +165,8 @@ void GuildWar::executeEnd()
     //----------------------------------------------------------------------------
     // Restore the safe zone inside the castle
     //----------------------------------------------------------------------------
-    // This function is called by the WarSystem, which runs on the same thread as ClientManager, so
-    // the Zone that holds the castle has to be locked.
+    // Called by the WarSystem on the ClientManager thread; the castle's zone is
+    // not locked here, so this runs against the zone thread's tick.
     ZoneID_t guardShrineZoneID = de::gameContext().castleShrines().getGuardShrineZoneID(m_CastleZoneID);
     Zone* pZone = getZoneByZoneID(guardShrineZoneID);
     Assert(pZone != NULL);

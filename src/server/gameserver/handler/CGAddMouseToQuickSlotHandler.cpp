@@ -120,7 +120,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
 
 
                         Success = true;
-                    } else // When the count does not go past 9.
+                    } else // When the count does not go past the stack limit.
                     {
                         pSlayer->deleteItemFromExtraInventorySlot();
                         pPrevItem->setNum(pPrevItem->getNum() + pItem->getNum());

@@ -68,10 +68,10 @@ void PKTPowerPointHandler::execute(MPlayer* pPlayer, MPacket* pPacket) {
     // Save the power points
     // The maximum PowerJjang points applied per transfer.
     // If the PowerJjang server has 60 points stored, all 60 are received, and
-    // the maximum applied per transfer is 20,
-    // only 20 are applied and the other 40 are thrown away.
+    // the maximum applied per transfer is 40,
+    // only 40 are applied and the other 20 are thrown away.
     // So the user loses all 60 points on the PowerJjang server
-    // while only 20 accumulate in the DarkEden DB.
+    // while only 40 accumulate in the DarkEden DB.
     static int MaxPowerPoint = 40;
 
     // Apply the maximum PowerJjang points per transfer
