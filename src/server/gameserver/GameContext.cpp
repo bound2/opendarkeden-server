@@ -33,6 +33,11 @@ DatabaseManager& GameContext::databases() const {
     return *m_pDatabaseManager;
 }
 
+DefaultOptionSetInfoManager& GameContext::optionSets() const {
+    Assert(m_pDefaultOptionSetInfoManager != nullptr);
+    return *m_pDefaultOptionSetInfoManager;
+}
+
 DynamicZoneFactoryManager& GameContext::dynamicZoneFactories() const {
     Assert(m_pDynamicZoneFactoryManager != nullptr);
     return *m_pDynamicZoneFactoryManager;
@@ -71,6 +76,11 @@ StringPool& GameContext::strings() const {
 VariableManager& GameContext::variables() const {
     Assert(m_pVariableManager != nullptr);
     return *m_pVariableManager;
+}
+
+VolumeInfoManager& GameContext::volumeInfos() const {
+    Assert(m_pVolumeInfoManager != nullptr);
+    return *m_pVolumeInfoManager;
 }
 
 WeatherInfoManager& GameContext::weatherInfos() const {

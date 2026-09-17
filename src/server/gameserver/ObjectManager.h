@@ -17,10 +17,12 @@
 
 class ActionFactoryManager;
 class ConditionFactoryManager;
+class DefaultOptionSetInfoManager;
 class DynamicZoneFactoryManager;
 class MonsterNameManager;
 class ScriptManager;
 class ShopTemplateManager;
+class VolumeInfoManager;
 class WeatherInfoManager;
 
 class ObjectManager {
@@ -39,10 +41,12 @@ private:
     // global.
     ActionFactoryManager* m_pActionFactoryManager = nullptr;
     ConditionFactoryManager* m_pConditionFactoryManager = nullptr;
+    DefaultOptionSetInfoManager* m_pDefaultOptionSetInfoManager = nullptr;
     DynamicZoneFactoryManager* m_pDynamicZoneFactoryManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
+    VolumeInfoManager* m_pVolumeInfoManager = nullptr;
     WeatherInfoManager* m_pWeatherInfoManager = nullptr;
 };
 

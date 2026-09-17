@@ -18,6 +18,7 @@
 #include "GCChangeShape.h"
 #include "GCModifyInformation.h"
 #include "GCRemoveEffect.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "HolyLandRaceBonus.h"
 #include "ItemInfo.h"
@@ -322,7 +323,6 @@ void Slayer::initAllStat(int numPartyMember) {
         // m_Defense[ATTR_CURRENT]  = min(SLAYER_MAX_DEFENSE, m_Defense[ATTR_CURRENT] + LivenessDefenseBonus);
     }
 
-
     ////	// 전쟁 보너스
     // 지금은 전쟁 승패에 관계없이 어느쪽이든 보너스가 적용될 수 있다. by sigi
     // if ( g_pCombatInfoManager->isSlayerBonus() )
@@ -406,7 +406,7 @@ void Slayer::initAllStat(int numPartyMember) {
     //////////////////////////////////////////////////////////////////////////////
     forward_list<DefaultOptionSetType_t>::iterator itr = m_DefaultOptionSet.begin();
     for (; itr != m_DefaultOptionSet.end(); itr++) {
-        DefaultOptionSetInfo* pDefaultOptionSetInfo = g_pDefaultOptionSetInfoManager->getDefaultOptionSetInfo((*itr));
+        DefaultOptionSetInfo* pDefaultOptionSetInfo = de::gameContext().optionSets().getDefaultOptionSetInfo((*itr));
         if (pDefaultOptionSetInfo != NULL) {
             const list<OptionType_t>& optionList = pDefaultOptionSetInfo->getOptionTypeList();
             list<OptionType_t>::const_iterator citr;
@@ -2166,7 +2166,7 @@ void Vampire::initAllStat(int numPartyMember)
     //////////////////////////////////////////////////////////////////////////////
     forward_list<DefaultOptionSetType_t>::iterator itr = m_DefaultOptionSet.begin();
     for (; itr != m_DefaultOptionSet.end(); itr++) {
-        DefaultOptionSetInfo* pDefaultOptionSetInfo = g_pDefaultOptionSetInfoManager->getDefaultOptionSetInfo((*itr));
+        DefaultOptionSetInfo* pDefaultOptionSetInfo = de::gameContext().optionSets().getDefaultOptionSetInfo((*itr));
         if (pDefaultOptionSetInfo != NULL) {
             const list<OptionType_t>& optionList = pDefaultOptionSetInfo->getOptionTypeList();
             list<OptionType_t>::const_iterator citr;
@@ -3492,7 +3492,7 @@ void Ousters::initAllStat(int numPartyMember)
     //////////////////////////////////////////////////////////////////////////////
     forward_list<DefaultOptionSetType_t>::iterator itr = m_DefaultOptionSet.begin();
     for (; itr != m_DefaultOptionSet.end(); itr++) {
-        DefaultOptionSetInfo* pDefaultOptionSetInfo = g_pDefaultOptionSetInfoManager->getDefaultOptionSetInfo((*itr));
+        DefaultOptionSetInfo* pDefaultOptionSetInfo = de::gameContext().optionSets().getDefaultOptionSetInfo((*itr));
         if (pDefaultOptionSetInfo != NULL) {
             const list<OptionType_t>& optionList = pDefaultOptionSetInfo->getOptionTypeList();
             list<OptionType_t>::const_iterator citr;

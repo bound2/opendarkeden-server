@@ -11,6 +11,21 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## ObjectManager created a volume info manager it never deleted (2026-09-17)
+
+- **`g_pVolumeInfoManager` was `new`ed in `ObjectManager`'s constructor and
+  named nowhere in its destructor.** Every other manager the constructor
+  creates is freed there, so the manager leaked for the life of the process;
+  it is now an `ObjectManager` member, deleted in the position that mirrors
+  its creation, between the item factory and the item loader manager. (Its
+  own destructor still frees none of the `VolumeInfo` entries `init()`
+  allocates, which is a second leak, left as it is.) The same sweep dropped
+  the duplicate `SAFE_DELETE` of `g_pOptionInfoManager` and of
+  `g_pSkillDomainInfoManager`, each written twice in that destructor: the
+  macro nulls what it frees, so the second call did nothing, but it read as
+  a delete of a live pointer.
+  > **Status:** fixed (refactor/game-context-4)
+
 ## A flag manager could wake up believing a flag war was already on (2026-09-17)
 
 - **`FlagManager::m_bHasFlagWar` was never initialised.** The constructor
