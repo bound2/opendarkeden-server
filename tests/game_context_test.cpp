@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[30];
+char g_managerStorage[36];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -179,6 +179,38 @@ TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
     EXPECT_EQ(&context.vampireExp(), pVampEXPInfoManager);
 }
 
+TEST(GameContextTest, ClientSessionManagersAreReadBack) {
+    de::GameContext context;
+
+    ClientManager* pClientManager = standIn<ClientManager>(30);
+    ConnectionInfoManager* pConnectionInfoManager = standIn<ConnectionInfoManager>(31);
+    GameServerGroupInfoManager* pGameServerGroupInfoManager = standIn<GameServerGroupInfoManager>(32);
+
+    context.setClientManager(pClientManager);
+    context.setConnectionInfoManager(pConnectionInfoManager);
+    context.setGameServerGroupInfoManager(pGameServerGroupInfoManager);
+
+    EXPECT_EQ(&context.clients(), pClientManager);
+    EXPECT_EQ(&context.connectionInfos(), pConnectionInfoManager);
+    EXPECT_EQ(&context.gameServerGroups(), pGameServerGroupInfoManager);
+}
+
+TEST(GameContextTest, CharacterLoadingManagersAreReadBack) {
+    de::GameContext context;
+
+    CastleSkillInfoManager* pCastleSkillInfoManager = standIn<CastleSkillInfoManager>(33);
+    ItemLoaderManager* pItemLoaderManager = standIn<ItemLoaderManager>(34);
+    TimeChecker* pTimeChecker = standIn<TimeChecker>(35);
+
+    context.setCastleSkillInfoManager(pCastleSkillInfoManager);
+    context.setItemLoaderManager(pItemLoaderManager);
+    context.setTimeChecker(pTimeChecker);
+
+    EXPECT_EQ(&context.castleSkills(), pCastleSkillInfoManager);
+    EXPECT_EQ(&context.itemLoaders(), pItemLoaderManager);
+    EXPECT_EQ(&context.timeChecker(), pTimeChecker);
+}
+
 TEST(GameContextTest, ReregisteringReplacesTheManager) {
     de::GameContext context;
 
@@ -196,8 +228,11 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     // something the caller could test.
     EXPECT_THROW(context.actionFactories(), AssertionError);
     EXPECT_THROW(context.castleShrines(), AssertionError);
+    EXPECT_THROW(context.castleSkills(), AssertionError);
+    EXPECT_THROW(context.clients(), AssertionError);
     EXPECT_THROW(context.conditionFactories(), AssertionError);
     EXPECT_THROW(context.config(), AssertionError);
+    EXPECT_THROW(context.connectionInfos(), AssertionError);
     EXPECT_THROW(context.darkLights(), AssertionError);
     EXPECT_THROW(context.databases(), AssertionError);
     EXPECT_THROW(context.directiveSets(), AssertionError);
@@ -205,8 +240,10 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.dynamicZoneFactories(), AssertionError);
     EXPECT_THROW(context.dynamicZoneInfos(), AssertionError);
     EXPECT_THROW(context.eventQuestLoot(), AssertionError);
+    EXPECT_THROW(context.gameServerGroups(), AssertionError);
     EXPECT_THROW(context.goodsInfos(), AssertionError);
     EXPECT_THROW(context.itemFactories(), AssertionError);
+    EXPECT_THROW(context.itemLoaders(), AssertionError);
     EXPECT_THROW(context.monsterNames(), AssertionError);
     EXPECT_THROW(context.optionSets(), AssertionError);
     EXPECT_THROW(context.oustersExp(), AssertionError);
@@ -217,6 +254,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.skillDomains(), AssertionError);
     EXPECT_THROW(context.skillProps(), AssertionError);
     EXPECT_THROW(context.strings(), AssertionError);
+    EXPECT_THROW(context.timeChecker(), AssertionError);
     EXPECT_THROW(context.vampireExp(), AssertionError);
     EXPECT_THROW(context.variables(), AssertionError);
     EXPECT_THROW(context.volumeInfos(), AssertionError);
