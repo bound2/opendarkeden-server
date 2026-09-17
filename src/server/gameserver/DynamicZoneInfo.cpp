@@ -17,9 +17,6 @@ DynamicZoneInfo::DynamicZoneInfo() {
 
 DynamicZoneInfo::~DynamicZoneInfo() {}
 
-// global variable
-DynamicZoneInfoManager* g_pDynamicZoneInfoManager = NULL;
-
 ///////////////////////////////////////////////////////////
 // class DynamicZoneInfoManager
 ///////////////////////////////////////////////////////////

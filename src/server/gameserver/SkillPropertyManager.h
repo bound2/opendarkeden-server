@@ -91,7 +91,4 @@ private:
     vector<SkillProperty*> m_SkillProperties;
 };
 
-// Global Variable Definition
-extern SkillPropertyManager* g_pSkillPropertyManager;
-
 #endif // __SKILL_PROPERTY_MANAGER_H__

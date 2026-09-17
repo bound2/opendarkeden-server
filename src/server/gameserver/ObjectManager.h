@@ -16,13 +16,29 @@
 //////////////////////////////////////////////////////////////////////////////
 
 class ActionFactoryManager;
+class CastleShrineInfoManager;
 class ConditionFactoryManager;
+class DarkLightInfoManager;
 class DefaultOptionSetInfoManager;
+class DirectiveSetManager;
+class DragonEyeManager;
 class DynamicZoneFactoryManager;
+class DynamicZoneInfoManager;
+class EventQuestLootingManager;
+class GoodsInfoManager;
 class MonsterNameManager;
+class OustersEXPInfoManager;
+class RankBonusInfoManager;
 class ScriptManager;
 class ShopTemplateManager;
+class SkillDomainInfoManager;
+class SkillPropertyManager;
+class TelephoneCenter;
+class UniqueItemManager;
+class VampEXPInfoManager;
+class VisionInfoManager;
 class VolumeInfoManager;
+class WayPointManager;
 class WeatherInfoManager;
 
 class ObjectManager {
@@ -36,17 +52,33 @@ public:
     void save();
 
 private:
-    // Managers this class creates and deletes, reached through
-    // de::GameContext, which it registers them on, rather than through a
-    // global.
+    // Managers this class creates and deletes. The ones a subsystem
+    // outside this file reads are registered on de::GameContext; the
+    // rest are reached only from here.
     ActionFactoryManager* m_pActionFactoryManager = nullptr;
+    CastleShrineInfoManager* m_pCastleShrineInfoManager = nullptr;
     ConditionFactoryManager* m_pConditionFactoryManager = nullptr;
+    DarkLightInfoManager* m_pDarkLightInfoManager = nullptr;
     DefaultOptionSetInfoManager* m_pDefaultOptionSetInfoManager = nullptr;
+    DirectiveSetManager* m_pDirectiveSetManager = nullptr;
+    DragonEyeManager* m_pDragonEyeManager = nullptr;
     DynamicZoneFactoryManager* m_pDynamicZoneFactoryManager = nullptr;
+    DynamicZoneInfoManager* m_pDynamicZoneInfoManager = nullptr;
+    EventQuestLootingManager* m_pEventQuestLootingManager = nullptr;
+    GoodsInfoManager* m_pGoodsInfoManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;
+    OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
+    RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
+    SkillDomainInfoManager* m_pSkillDomainInfoManager = nullptr;
+    SkillPropertyManager* m_pSkillPropertyManager = nullptr;
+    TelephoneCenter* m_pTelephoneCenter = nullptr;
+    UniqueItemManager* m_pUniqueItemManager = nullptr;
+    VampEXPInfoManager* m_pVampEXPInfoManager = nullptr;
+    VisionInfoManager* m_pVisionInfoManager = nullptr;
     VolumeInfoManager* m_pVolumeInfoManager = nullptr;
+    WayPointManager* m_pWayPointManager = nullptr;
     WeatherInfoManager* m_pWeatherInfoManager = nullptr;
 };
 

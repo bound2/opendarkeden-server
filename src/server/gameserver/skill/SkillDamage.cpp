@@ -60,6 +60,7 @@
 #include "GCSystemMessage.h"
 #include "GDRLairManager.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
 #include "HitRoll.h"
@@ -845,7 +846,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
     GCStatusCurrentHP gcTargetHP;
     GCStatusCurrentHP gcAttackerHP;
 
-    SkillProperty* pSkillProperty = g_pSkillPropertyManager->getSkillProperty(SkillType);
+    SkillProperty* pSkillProperty = de::gameContext().skillProps().getSkillProperty(SkillType);
     bool bPhysicDamage = pSkillProperty->isPhysic();
     bool bMagicDamage = pSkillProperty->isMagic();
 

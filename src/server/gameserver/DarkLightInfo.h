@@ -81,7 +81,4 @@ private:
 };
 
 
-// global variable declaration
-extern DarkLightInfoManager* g_pDarkLightInfoManager;
-
 #endif

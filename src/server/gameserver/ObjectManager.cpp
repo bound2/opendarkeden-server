@@ -69,9 +69,6 @@
 // 2003. 1. 20. by bezz, Sequoia
 #include "CastleInfoManager.h"
 
-// by sigi. 2002.10.21
-// #include "LuckInfo.h"
-
 // by sigi. 2002.10.30
 #include "LogNameManager.h"
 
@@ -158,17 +155,17 @@ ObjectManager::ObjectManager()
     m_pShopTemplateManager = new ShopTemplateManager();
     g_pOptionInfoManager = new OptionInfoManager();
     g_pItemMineInfoManager = new ItemMineInfoManager();
-    g_pDirectiveSetManager = new DirectiveSetManager();
+    m_pDirectiveSetManager = new DirectiveSetManager();
     m_pMonsterNameManager = new MonsterNameManager();
     g_pZoneGroupManager = new ZoneGroupManager();
     g_pTimeManager = new TimeManager();
-    g_pDarkLightInfoManager = new DarkLightInfoManager();
-    g_pVisionInfoManager = new VisionInfoManager();
+    m_pDarkLightInfoManager = new DarkLightInfoManager();
+    m_pVisionInfoManager = new VisionInfoManager();
     m_pWeatherInfoManager = new WeatherInfoManager();
     g_pMonsterInfoManager = new MonsterInfoManager();
     g_pSkillHandlerManager = new SkillHandlerManager();
     g_pSkillInfoManager = new SkillInfoManager();
-    g_pSkillDomainInfoManager = new SkillDomainInfoManager();
+    m_pSkillDomainInfoManager = new SkillDomainInfoManager();
     // g_pSkillParentInfoManager   = new SkillParentInfoManager ();
     g_pPCFinder = new PCFinder();
 
@@ -182,13 +179,16 @@ ObjectManager::ObjectManager()
     context.setItemFactoryManager(g_pItemFactoryManager);
     context.setVolumeInfoManager(m_pVolumeInfoManager);
     context.setShopTemplateManager(m_pShopTemplateManager);
+    context.setDirectiveSetManager(m_pDirectiveSetManager);
     context.setMonsterNameManager(m_pMonsterNameManager);
     context.setZoneGroupManager(g_pZoneGroupManager);
+    context.setDarkLightInfoManager(m_pDarkLightInfoManager);
     context.setWeatherInfoManager(m_pWeatherInfoManager);
+    context.setSkillDomainInfoManager(m_pSkillDomainInfoManager);
     context.setPCFinder(g_pPCFinder);
 
     g_pParkingCenter = new ParkingCenter();
-    g_pTelephoneCenter = new TelephoneCenter();
+    m_pTelephoneCenter = new TelephoneCenter();
     m_pPublicScriptManager = new ScriptManager();
     context.setPublicScriptManager(m_pPublicScriptManager);
     // g_pSkillParentInfoManager   = new SkillParentInfoManager();
@@ -199,8 +199,10 @@ ObjectManager::ObjectManager()
     //	g_pDEXBalanceInfoManager    = new DEXBalanceInfoManager();
     //	g_pSTRBalanceInfoManager    = new STRBalanceInfoManager();
     //	g_pINTBalanceInfoManager    = new INTBalanceInfoManager();
-    g_pVampEXPInfoManager = new VampEXPInfoManager();
-    g_pOustersEXPInfoManager = new OustersEXPInfoManager();
+    m_pVampEXPInfoManager = new VampEXPInfoManager();
+    context.setVampEXPInfoManager(m_pVampEXPInfoManager);
+    m_pOustersEXPInfoManager = new OustersEXPInfoManager();
+    context.setOustersEXPInfoManager(m_pOustersEXPInfoManager);
     g_pPriceManager = new PriceManager();
     g_pEffectLoaderManager = new EffectLoaderManager();
     // 다른 작업을 위해서 임시로 막아둠.
@@ -209,11 +211,12 @@ ObjectManager::ObjectManager()
     //	g_pGuildVoteManager         = new GuildVoteManager();
     g_pResurrectLocationManager = new ResurrectLocationManager();
     g_pAlignmentManager = new AlignmentManager();
-    g_pWayPointManager = new WayPointManager();
+    m_pWayPointManager = new WayPointManager();
+    context.setWayPointManager(m_pWayPointManager);
     g_pGlobalPartyManager = new GlobalPartyManager();
     g_pGameWorldInfoManager = new GameWorldInfoManager();
     g_pCombatInfoManager = new CombatInfoManager();
-    g_pUniqueItemManager = new UniqueItemManager();
+    m_pUniqueItemManager = new UniqueItemManager();
 
     // by sigi. 2002.8.31
     //	g_pRankEXPInfoManager[RANK_TYPE_SLAYER]	= new RankEXPInfoManager();
@@ -225,22 +228,23 @@ ObjectManager::ObjectManager()
     // 2003. 1. 20. by bezz,Sequoia
     g_pCastleInfoManager = new CastleInfoManager();
 
-    //	g_pLuckInfoManager = new LuckInfoManager();
-
-    g_pRankBonusInfoManager = new RankBonusInfoManager();
+    m_pRankBonusInfoManager = new RankBonusInfoManager();
+    context.setRankBonusInfoManager(m_pRankBonusInfoManager);
 
     //	g_pHolyLandRaceBonus	= new HolyLandRaceBonus();
 
     g_pWarSystem = new WarSystem();
 
     g_pShrineInfoManager = new ShrineInfoManager();
-    g_pCastleShrineInfoManager = new CastleShrineInfoManager();
+    m_pCastleShrineInfoManager = new CastleShrineInfoManager();
+    context.setCastleShrineInfoManager(m_pCastleShrineInfoManager);
 
     g_pHolyLandManager = new HolyLandManager();
 
     g_pBloodBibleBonusManager = new BloodBibleBonusManager();
 
-    g_pSkillPropertyManager = new SkillPropertyManager();
+    m_pSkillPropertyManager = new SkillPropertyManager();
+    context.setSkillPropertyManager(m_pSkillPropertyManager);
 
     g_pCoupleManager = new CoupleManager();
     g_pPKZoneInfoManager = new PKZoneInfoManager();
@@ -248,8 +252,10 @@ ObjectManager::ObjectManager()
     g_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
     g_pCastleSkillInfoManager = new CastleSkillInfoManager();
 
-    g_pGoodsInfoManager = new GoodsInfoManager();
-    g_pEventQuestLootingManager = new EventQuestLootingManager();
+    m_pGoodsInfoManager = new GoodsInfoManager();
+    context.setGoodsInfoManager(m_pGoodsInfoManager);
+    m_pEventQuestLootingManager = new EventQuestLootingManager();
+    context.setEventQuestLootingManager(m_pEventQuestLootingManager);
 
     // g_pQuestInfoManager = new QuestInfoManager();
     // g_pRewardClassInfoManager = new RewardClassInfoManager();
@@ -260,9 +266,11 @@ ObjectManager::ObjectManager()
 
     g_pLevelWarZoneInfoManager = new LevelWarZoneInfoManager();
     g_pSweeperBonusManager = new SweeperBonusManager();
-    g_pDragonEyeManager = new DragonEyeManager();
+    m_pDragonEyeManager = new DragonEyeManager();
+    context.setDragonEyeManager(m_pDragonEyeManager);
     g_pTimeChecker = new TimeChecker();
-    g_pDynamicZoneInfoManager = new DynamicZoneInfoManager();
+    m_pDynamicZoneInfoManager = new DynamicZoneInfoManager();
+    context.setDynamicZoneInfoManager(m_pDynamicZoneInfoManager);
     g_pDynamicZoneManager = new DynamicZoneManager();
     m_pDynamicZoneFactoryManager = new DynamicZoneFactoryManager();
     context.setDynamicZoneFactoryManager(m_pDynamicZoneFactoryManager);
@@ -281,18 +289,18 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pPublicScriptManager);
     SAFE_DELETE(g_pPCFinder);
     SAFE_DELETE(g_pParkingCenter);
-    SAFE_DELETE(g_pTelephoneCenter);
+    SAFE_DELETE(m_pTelephoneCenter);
     SAFE_DELETE(g_pItemMineInfoManager);
     SAFE_DELETE(g_pOptionInfoManager);
     SAFE_DELETE(g_pSkillInfoManager);
-    SAFE_DELETE(g_pSkillDomainInfoManager);
+    SAFE_DELETE(m_pSkillDomainInfoManager);
     SAFE_DELETE(g_pMonsterInfoManager);
     SAFE_DELETE(g_pItemInfoManager);
     SAFE_DELETE(m_pWeatherInfoManager);
-    SAFE_DELETE(g_pVisionInfoManager);
-    SAFE_DELETE(g_pDarkLightInfoManager);
+    SAFE_DELETE(m_pVisionInfoManager);
+    SAFE_DELETE(m_pDarkLightInfoManager);
     SAFE_DELETE(g_pTimeManager);
-    SAFE_DELETE(g_pDirectiveSetManager);
+    SAFE_DELETE(m_pDirectiveSetManager);
     SAFE_DELETE(m_pMonsterNameManager);
     SAFE_DELETE(g_pZoneInfoManager);
     SAFE_DELETE(g_pZoneGroupManager);
@@ -307,37 +315,36 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pShopTemplateManager);
     SAFE_DELETE(g_pEffectLoaderManager);
     SAFE_DELETE(g_pPriceManager);
-    SAFE_DELETE(g_pVampEXPInfoManager);
-    SAFE_DELETE(g_pOustersEXPInfoManager);
+    SAFE_DELETE(m_pVampEXPInfoManager);
+    SAFE_DELETE(m_pOustersEXPInfoManager);
     SAFE_DELETE(g_pGuildManager);
     //	SAFE_DELETE(g_pGuildRegistrationManager);
     //	SAFE_DELETE(g_pGuildVoteManager);
     SAFE_DELETE(g_pResurrectLocationManager);
     SAFE_DELETE(g_pAlignmentManager);
-    SAFE_DELETE(g_pWayPointManager);
+    SAFE_DELETE(m_pWayPointManager);
     SAFE_DELETE(g_pGlobalPartyManager);
     SAFE_DELETE(g_pGameWorldInfoManager);
     SAFE_DELETE(g_pVariableManager);
     SAFE_DELETE(g_pCombatInfoManager);
-    SAFE_DELETE(g_pUniqueItemManager);
+    SAFE_DELETE(m_pUniqueItemManager);
     // by sigi. 2002.8.31
     //	SAFE_DELETE(g_pRankEXPInfoManager[RANK_TYPE_SLAYER]);
     //	SAFE_DELETE(g_pRankEXPInfoManager[RANK_TYPE_VAMPIRE]);
     //	SAFE_DELETE(g_pRankEXPInfoManager[RANK_TYPE_OUSTERS]);
     SAFE_DELETE(g_pMasterLairInfoManager);
     SAFE_DELETE(g_pCastleInfoManager);
-    //	SAFE_DELETE(g_pLuckInfoManager);
-    SAFE_DELETE(g_pRankBonusInfoManager);
+    SAFE_DELETE(m_pRankBonusInfoManager);
     //	SAFE_DELETE(g_pHolyLandRaceBonus);
     SAFE_DELETE(g_pWarSystem);
     SAFE_DELETE(g_pShrineInfoManager);
-    SAFE_DELETE(g_pCastleShrineInfoManager);
+    SAFE_DELETE(m_pCastleShrineInfoManager);
 
     SAFE_DELETE(g_pHolyLandManager);
 
     SAFE_DELETE(g_pBloodBibleBonusManager);
 
-    SAFE_DELETE(g_pSkillPropertyManager);
+    SAFE_DELETE(m_pSkillPropertyManager);
 
     SAFE_DELETE(g_pCoupleManager);
     SAFE_DELETE(g_pPKZoneInfoManager);
@@ -345,8 +352,8 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(g_pGameServerGroupInfoManager);
     SAFE_DELETE(g_pCastleSkillInfoManager);
 
-    SAFE_DELETE(g_pGoodsInfoManager);
-    SAFE_DELETE(g_pEventQuestLootingManager);
+    SAFE_DELETE(m_pGoodsInfoManager);
+    SAFE_DELETE(m_pEventQuestLootingManager);
 
     // SAFE_DELETE(g_pQuestInfoManager);
     // SAFE_DELETE(g_pRewardClassInfoManager);
@@ -356,10 +363,10 @@ ObjectManager::~ObjectManager()
 
     SAFE_DELETE(g_pLevelWarZoneInfoManager);
     SAFE_DELETE(g_pSweeperBonusManager);
-    SAFE_DELETE(g_pDragonEyeManager);
+    SAFE_DELETE(m_pDragonEyeManager);
     SAFE_DELETE(g_pTimeChecker);
 
-    SAFE_DELETE(g_pDynamicZoneInfoManager);
+    SAFE_DELETE(m_pDynamicZoneInfoManager);
     SAFE_DELETE(g_pDynamicZoneManager);
     SAFE_DELETE(m_pDynamicZoneFactoryManager);
 
@@ -401,7 +408,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : ShopTemplate Initialization Success\n");
 
     printf("ObjectManager::init() : DirectiveSetManager Initialization Start\n");
-    g_pDirectiveSetManager->init();
+    m_pDirectiveSetManager->init();
     printf("ObjectManager::init() : DirectiveSetManager Initialization Success\n");
 
     printf("ObjectManager::init() : MonsterNameManager Initialization Start\n");
@@ -451,7 +458,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : ItemLoaderManager Initialization Success\n");
 
     printf("ObjectManager::init() : DarkLightInfoManager Initialization Start\n");
-    g_pDarkLightInfoManager->init();
+    m_pDarkLightInfoManager->init();
     printf("ObjectManager::init() : DarkLightInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : MonsterInfoManager Initialization Start\n");
@@ -501,7 +508,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : ShrineInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : CastleShrineInfoManager Initialization Start\n");
-    g_pCastleShrineInfoManager->init();
+    m_pCastleShrineInfoManager->init();
     printf("ObjectManager::init() : CastleShrineInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : WeatherInfoManager Initialization Start\n");
@@ -510,7 +517,7 @@ void ObjectManager::init()
 
     // WayPointManager 도 필살로 Zone이 모두 로딩된 다음에 불려야 된다.
     printf("ObjectManager::load() : WayPointManager Initialization Start\n");
-    g_pWayPointManager->load();
+    m_pWayPointManager->load();
     printf("ObjectManager::load() : WayPointManager Initialization Success\n");
 
     printf("ObjectManager::load() : LevelWarZoneInfoManager Initialization Start\n");
@@ -522,7 +529,7 @@ void ObjectManager::init()
     printf("ObjectManager::load() : LevelNickInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : DragonEyeManagerManager Initialization Start\n");
-    g_pDragonEyeManager->init(); // 아이템 인포가 로딩된 뒤.
+    m_pDragonEyeManager->init(); // 아이템 인포가 로딩된 뒤.
     printf("ObjectManager::load() : DragonEyeManagerManager Initialization Success\n");
 
     printf("ObjectManager::init() : TimeChecker Initialization Start\n");
@@ -578,7 +585,7 @@ void ObjectManager::load()
 
 
     printf("ObjectManager::init() : SkillDomainInfoManager Initialization Start\n");
-    g_pSkillDomainInfoManager->init();
+    m_pSkillDomainInfoManager->init();
     printf("ObjectManager::init() : SkillDomainInfoManager Initialization Success\n");
 
 
@@ -603,11 +610,11 @@ void ObjectManager::load()
     printf("ObjectManager::init() : INT Exp Table Initialization Success\n");
 
     printf("ObjectManager::init() : VampExpInfoManager Initialization Start\n");
-    g_pVampEXPInfoManager->init();
+    m_pVampEXPInfoManager->init();
     printf("ObjectManager::init() : VampExpInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : OustersEXPInfoManager Initialization Start\n");
-    g_pOustersEXPInfoManager->init();
+    m_pOustersEXPInfoManager->init();
     printf("ObjectManager::init() : OustersEXPInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : AdvancementClassExpTable Initialization Start\n");
@@ -615,7 +622,7 @@ void ObjectManager::load()
     printf("ObjectManager::init() : AdvancementClassExpTable Initialization Success\n");
 
     printf("ObjectManager::init() : VisionInfoManager Initialization Start\n");
-    g_pVisionInfoManager->init();
+    m_pVisionInfoManager->init();
     printf("ObjectManager::init() : VisionInfoManager Initialization Success\n");
 
     //	printf("ObjectManager::init() : GuildRegistrationManager Initialization Start\n");
@@ -635,7 +642,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : CombatInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : UniqueItemManager Initialization Start\n");
-    g_pUniqueItemManager->init();
+    m_pUniqueItemManager->init();
     printf("ObjectManager::load() : UniqueItemManager Initialization Success\n");
 
     // by sigi. 2002.8.31
@@ -650,16 +657,12 @@ void ObjectManager::load()
     RankExpTable::s_RankExpTables[RANK_TYPE_OUSTERS].load();
     printf("ObjectManager::load() : RankExpTables Initialization Success\n");
 
-    //	printf("ObjectManager::load() : UniqueItemManager Initialization Start\n");
-    //	g_pLuckInfoManager->init();
-    //	printf("ObjectManager::load() : UniqueItemManager Initialization Success\n");
-
     printf("ObjectManager::load() : LogNameManager Initialization Start\n");
     LogNameManager::getInstance().init();
     printf("ObjectManager::load() : LogNameManager Initialization Success\n");
 
     printf("ObjectManager::load() : RankBonusInfoManager Initialization Start\n");
-    g_pRankBonusInfoManager->load();
+    m_pRankBonusInfoManager->load();
     printf("ObjectManager::load() : RankBonusInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : WarSystem Initialization Start\n");
@@ -687,11 +690,11 @@ void ObjectManager::load()
     printf("ObjectManager::load() : CastleSkillInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : GoodsInfoManager Initialization Start\n");
-    g_pGoodsInfoManager->load();
+    m_pGoodsInfoManager->load();
     printf("ObjectManager::load() : GoodsInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : EventQuestLootingManager Initialization Start\n");
-    g_pEventQuestLootingManager->load();
+    m_pEventQuestLootingManager->load();
     printf("ObjectManager::load() : EventQuestLootingManager Initialization Success\n");
 
     printf("ObjectManager::load() : FlagManager Initialization Start\n");
@@ -743,7 +746,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : SiegeManager Initialization Success\n");
 
     printf("ObjectManager::load() : DynamicZoneInfoManager Initialization Start\n");
-    g_pDynamicZoneInfoManager->init();
+    m_pDynamicZoneInfoManager->init();
     printf("ObjectManager::load() : DynamicZoneInfoManager Initialization Success\n");
 
     // DynamicZoneInfoManager init 후에 호출
@@ -760,7 +763,7 @@ void ObjectManager::load()
     g_pQuestInfoManager->load();
     printf("ObjectManager::load() : QuestInfoManager Initialization Success\n");
     printf("ObjectManager::load() : DarkLightInfoManager Loading Start\n");
-    g_pDarkLightInfoManager->load();
+    m_pDarkLightInfoManager->load();
     printf("ObjectManager::load() : DarkLightInfoManager Loading Success\n");
 
     printf("ObjectManager::load() : MonsterInfoManager Loading Start\n");

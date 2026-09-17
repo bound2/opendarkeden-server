@@ -23,19 +23,32 @@
 #define __GAME_CONTEXT_H__
 
 class ActionFactoryManager;
+class CastleShrineInfoManager;
 class ConditionFactoryManager;
+class DarkLightInfoManager;
 class DatabaseManager;
 class DefaultOptionSetInfoManager;
+class DirectiveSetManager;
+class DragonEyeManager;
 class DynamicZoneFactoryManager;
+class DynamicZoneInfoManager;
+class EventQuestLootingManager;
+class GoodsInfoManager;
 class ItemFactoryManager;
 class MonsterNameManager;
+class OustersEXPInfoManager;
 class PCFinder;
 class Properties;
+class RankBonusInfoManager;
 class ScriptManager;
 class ShopTemplateManager;
+class SkillDomainInfoManager;
+class SkillPropertyManager;
 class StringPool;
+class VampEXPInfoManager;
 class VariableManager;
 class VolumeInfoManager;
+class WayPointManager;
 class WeatherInfoManager;
 class ZoneGroupManager;
 class ZoneInfoManager;
@@ -52,11 +65,17 @@ public:
     void setActionFactoryManager(ActionFactoryManager* pActionFactoryManager) {
         m_pActionFactoryManager = pActionFactoryManager;
     }
+    void setCastleShrineInfoManager(CastleShrineInfoManager* pCastleShrineInfoManager) {
+        m_pCastleShrineInfoManager = pCastleShrineInfoManager;
+    }
     void setConditionFactoryManager(ConditionFactoryManager* pConditionFactoryManager) {
         m_pConditionFactoryManager = pConditionFactoryManager;
     }
     void setConfig(Properties* pConfig) {
         m_pConfig = pConfig;
+    }
+    void setDarkLightInfoManager(DarkLightInfoManager* pDarkLightInfoManager) {
+        m_pDarkLightInfoManager = pDarkLightInfoManager;
     }
     void setDatabaseManager(DatabaseManager* pDatabaseManager) {
         m_pDatabaseManager = pDatabaseManager;
@@ -64,8 +83,23 @@ public:
     void setDefaultOptionSetInfoManager(DefaultOptionSetInfoManager* pDefaultOptionSetInfoManager) {
         m_pDefaultOptionSetInfoManager = pDefaultOptionSetInfoManager;
     }
+    void setDirectiveSetManager(DirectiveSetManager* pDirectiveSetManager) {
+        m_pDirectiveSetManager = pDirectiveSetManager;
+    }
+    void setDragonEyeManager(DragonEyeManager* pDragonEyeManager) {
+        m_pDragonEyeManager = pDragonEyeManager;
+    }
     void setDynamicZoneFactoryManager(DynamicZoneFactoryManager* pDynamicZoneFactoryManager) {
         m_pDynamicZoneFactoryManager = pDynamicZoneFactoryManager;
+    }
+    void setDynamicZoneInfoManager(DynamicZoneInfoManager* pDynamicZoneInfoManager) {
+        m_pDynamicZoneInfoManager = pDynamicZoneInfoManager;
+    }
+    void setEventQuestLootingManager(EventQuestLootingManager* pEventQuestLootingManager) {
+        m_pEventQuestLootingManager = pEventQuestLootingManager;
+    }
+    void setGoodsInfoManager(GoodsInfoManager* pGoodsInfoManager) {
+        m_pGoodsInfoManager = pGoodsInfoManager;
     }
     void setItemFactoryManager(ItemFactoryManager* pItemFactoryManager) {
         m_pItemFactoryManager = pItemFactoryManager;
@@ -73,23 +107,41 @@ public:
     void setMonsterNameManager(MonsterNameManager* pMonsterNameManager) {
         m_pMonsterNameManager = pMonsterNameManager;
     }
+    void setOustersEXPInfoManager(OustersEXPInfoManager* pOustersEXPInfoManager) {
+        m_pOustersEXPInfoManager = pOustersEXPInfoManager;
+    }
     void setPCFinder(PCFinder* pPCFinder) {
         m_pPCFinder = pPCFinder;
     }
     void setPublicScriptManager(ScriptManager* pPublicScriptManager) {
         m_pPublicScriptManager = pPublicScriptManager;
     }
+    void setRankBonusInfoManager(RankBonusInfoManager* pRankBonusInfoManager) {
+        m_pRankBonusInfoManager = pRankBonusInfoManager;
+    }
     void setShopTemplateManager(ShopTemplateManager* pShopTemplateManager) {
         m_pShopTemplateManager = pShopTemplateManager;
     }
+    void setSkillDomainInfoManager(SkillDomainInfoManager* pSkillDomainInfoManager) {
+        m_pSkillDomainInfoManager = pSkillDomainInfoManager;
+    }
+    void setSkillPropertyManager(SkillPropertyManager* pSkillPropertyManager) {
+        m_pSkillPropertyManager = pSkillPropertyManager;
+    }
     void setStringPool(StringPool* pStringPool) {
         m_pStringPool = pStringPool;
+    }
+    void setVampEXPInfoManager(VampEXPInfoManager* pVampEXPInfoManager) {
+        m_pVampEXPInfoManager = pVampEXPInfoManager;
     }
     void setVariableManager(VariableManager* pVariableManager) {
         m_pVariableManager = pVariableManager;
     }
     void setVolumeInfoManager(VolumeInfoManager* pVolumeInfoManager) {
         m_pVolumeInfoManager = pVolumeInfoManager;
+    }
+    void setWayPointManager(WayPointManager* pWayPointManager) {
+        m_pWayPointManager = pWayPointManager;
     }
     void setWeatherInfoManager(WeatherInfoManager* pWeatherInfoManager) {
         m_pWeatherInfoManager = pWeatherInfoManager;
@@ -102,38 +154,64 @@ public:
     }
 
     ActionFactoryManager& actionFactories() const;
+    CastleShrineInfoManager& castleShrines() const;
     ConditionFactoryManager& conditionFactories() const;
     Properties& config() const;
+    DarkLightInfoManager& darkLights() const;
     DatabaseManager& databases() const;
     DefaultOptionSetInfoManager& optionSets() const;
+    DirectiveSetManager& directiveSets() const;
+    DragonEyeManager& dragonEyes() const;
     DynamicZoneFactoryManager& dynamicZoneFactories() const;
+    DynamicZoneInfoManager& dynamicZoneInfos() const;
+    EventQuestLootingManager& eventQuestLoot() const;
+    GoodsInfoManager& goodsInfos() const;
     ItemFactoryManager& itemFactories() const;
     MonsterNameManager& monsterNames() const;
+    OustersEXPInfoManager& oustersExp() const;
     PCFinder& playerCreatures() const;
     ScriptManager& publicScripts() const;
+    RankBonusInfoManager& rankBonuses() const;
     ShopTemplateManager& shopTemplates() const;
+    SkillDomainInfoManager& skillDomains() const;
+    SkillPropertyManager& skillProps() const;
     StringPool& strings() const;
+    VampEXPInfoManager& vampireExp() const;
     VariableManager& variables() const;
     VolumeInfoManager& volumeInfos() const;
+    WayPointManager& wayPoints() const;
     WeatherInfoManager& weatherInfos() const;
     ZoneGroupManager& zoneGroups() const;
     ZoneInfoManager& zoneInfos() const;
 
 private:
     ActionFactoryManager* m_pActionFactoryManager = nullptr;
+    CastleShrineInfoManager* m_pCastleShrineInfoManager = nullptr;
     ConditionFactoryManager* m_pConditionFactoryManager = nullptr;
     Properties* m_pConfig = nullptr;
+    DarkLightInfoManager* m_pDarkLightInfoManager = nullptr;
     DatabaseManager* m_pDatabaseManager = nullptr;
     DefaultOptionSetInfoManager* m_pDefaultOptionSetInfoManager = nullptr;
+    DirectiveSetManager* m_pDirectiveSetManager = nullptr;
+    DragonEyeManager* m_pDragonEyeManager = nullptr;
     DynamicZoneFactoryManager* m_pDynamicZoneFactoryManager = nullptr;
+    DynamicZoneInfoManager* m_pDynamicZoneInfoManager = nullptr;
+    EventQuestLootingManager* m_pEventQuestLootingManager = nullptr;
+    GoodsInfoManager* m_pGoodsInfoManager = nullptr;
     ItemFactoryManager* m_pItemFactoryManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;
+    OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
+    RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
+    SkillDomainInfoManager* m_pSkillDomainInfoManager = nullptr;
+    SkillPropertyManager* m_pSkillPropertyManager = nullptr;
     StringPool* m_pStringPool = nullptr;
+    VampEXPInfoManager* m_pVampEXPInfoManager = nullptr;
     VariableManager* m_pVariableManager = nullptr;
     VolumeInfoManager* m_pVolumeInfoManager = nullptr;
+    WayPointManager* m_pWayPointManager = nullptr;
     WeatherInfoManager* m_pWeatherInfoManager = nullptr;
     ZoneGroupManager* m_pZoneGroupManager = nullptr;
     ZoneInfoManager* m_pZoneInfoManager = nullptr;

@@ -137,6 +137,4 @@ private:
     DomainInfo** m_DomainInfoLists[SKILL_DOMAIN_MAX];
 };
 
-extern SkillDomainInfoManager* g_pSkillDomainInfoManager;
-
 #endif

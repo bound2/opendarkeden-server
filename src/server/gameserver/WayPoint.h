@@ -96,8 +96,5 @@ private:
     void addWayPoint(WayPoint* pWayPoint);
 };
 
-// global varible
-extern WayPointManager* g_pWayPointManager;
-
 
 #endif

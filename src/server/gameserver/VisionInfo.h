@@ -104,7 +104,4 @@ private:
     //	VisionInfo *** m_pVisionInfos;
 };
 
-// global variable declaration
-extern VisionInfoManager* g_pVisionInfoManager;
-
 #endif

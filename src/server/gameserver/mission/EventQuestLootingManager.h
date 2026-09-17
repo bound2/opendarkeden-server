@@ -48,6 +48,4 @@ private:
     map<MonsterType_t, vector<EventQuestLootingInfo*>> m_MonsterLootingInfo;
 };
 
-extern EventQuestLootingManager* g_pEventQuestLootingManager;
-
 #endif // __EVENT_QUEST_LOOTING_MANAGER_H__

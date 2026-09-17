@@ -186,6 +186,3 @@ string RankBonusInfoManager::toString() const
 
     __END_CATCH
 }
-
-// Global Variable definition
-RankBonusInfoManager* g_pRankBonusInfoManager = NULL;

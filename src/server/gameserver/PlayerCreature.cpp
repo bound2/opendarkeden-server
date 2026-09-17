@@ -20,6 +20,7 @@
 #include "GCRankBonusInfo.h"
 #include "GCSystemMessage.h"
 #include "GCTimeLimitItemInfo.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
 #include "GoodsInventory.h"
@@ -812,7 +813,7 @@ bool PlayerCreature::learnRankBonus(DWORD type)
     try {
         HashMapRankBonusConstItor itr = m_RankBonuses.begin();
 
-        RankBonusInfo* pRankBonusInfo = g_pRankBonusInfoManager->getRankBonusInfo(type);
+        RankBonusInfo* pRankBonusInfo = de::gameContext().rankBonuses().getRankBonusInfo(type);
 
         bool bValidRace = isSlayer() && pRankBonusInfo->getRace() == 0 ||
                           isVampire() && pRankBonusInfo->getRace() == 1 ||
@@ -830,7 +831,7 @@ bool PlayerCreature::learnRankBonus(DWORD type)
             if (pRankBonusInfo->getRank() == pLearnedRankBonus->getRank()) {
                 DWORD type = pLearnedRankBonus->getType();
 
-                RankBonusInfo* pLearnedRankBonusInfo = g_pRankBonusInfoManager->getRankBonusInfo(type);
+                RankBonusInfo* pLearnedRankBonusInfo = de::gameContext().rankBonuses().getRankBonusInfo(type);
 
                 if (pRankBonusInfo->getRace() == pLearnedRankBonusInfo->getRace()) {
                     return false;
@@ -882,7 +883,7 @@ void PlayerCreature::loadRankBonus()
     for (size_t i = 0; i < types.size(); ++i) {
         DWORD rankBonusType = types[i];
 
-        RankBonusInfo* pRankBonusInfo = g_pRankBonusInfoManager->getRankBonusInfo(rankBonusType);
+        RankBonusInfo* pRankBonusInfo = de::gameContext().rankBonuses().getRankBonusInfo(rankBonusType);
 
         if (getRace() == pRankBonusInfo->getRace()) {
             RankBonus* pRankBonus = new RankBonus();

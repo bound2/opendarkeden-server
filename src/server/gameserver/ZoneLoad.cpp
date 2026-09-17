@@ -213,7 +213,7 @@ void Zone::init()
 
     switch (m_ZoneType) {
     case ZONE_NORMAL_FIELD:
-        pDIInfo = g_pDarkLightInfoManager->getCurrentDarkLightInfo(this);
+        pDIInfo = de::gameContext().darkLights().getCurrentDarkLightInfo(this);
         m_DarkLevel = pDIInfo->getDarkLevel();
         m_LightLevel = pDIInfo->getLightLevel();
         break;
@@ -233,7 +233,7 @@ void Zone::init()
         m_LightLevel = 14;
         break;
     default:
-        pDIInfo = g_pDarkLightInfoManager->getCurrentDarkLightInfo(this);
+        pDIInfo = de::gameContext().darkLights().getCurrentDarkLightInfo(this);
         m_DarkLevel = pDIInfo->getDarkLevel();
         m_LightLevel = pDIInfo->getLightLevel();
         break;

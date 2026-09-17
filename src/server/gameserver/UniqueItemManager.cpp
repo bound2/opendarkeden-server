@@ -11,8 +11,6 @@
 #include "repository/ItemRepository.h"
 
 
-UniqueItemManager* g_pUniqueItemManager = NULL;
-
 //----------------------------------------------------------------------
 // init
 //----------------------------------------------------------------------

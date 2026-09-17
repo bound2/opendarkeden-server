@@ -35,6 +35,4 @@ private:
     // Ratio_t*	m_Ratios[Item::ITEM_CLASS_MAX];
 };
 
-extern UniqueItemManager* g_pUniqueItemManager;
-
 #endif // __UNIQUE_ITEM_MANAGER_H__

@@ -14,6 +14,7 @@
 
 #include "Corpse.h"
 #include "GCCreateItem.h"
+#include "GameContext.h"
 #include "GoodsInfoManager.h"
 #include "Inventory.h"
 #include "ItemFactoryManager.h"
@@ -2668,7 +2669,7 @@ void remainMoneyTraceLog(const string& preOwner, const string& owner, ItemTraceL
 
 // Web ¿¡¼­ »ê ¾ÆÀÌÅÛÀ» ¸¸µå´Â ÇÔ¼ö
 Item* createItemByGoodsID(DWORD goodsID) {
-    GoodsInfo* pGoodsInfo = g_pGoodsInfoManager->getGoodsInfo(goodsID);
+    GoodsInfo* pGoodsInfo = de::gameContext().goodsInfos().getGoodsInfo(goodsID);
     if (pGoodsInfo == NULL) {
         filelog("buyItemBug.txt", "buyID(%d) ¿¡ ÇØ´çÇÏ´Â »óÇ°ÀÌ ¾ø½À´Ï´Ù.", (int)goodsID);
         return NULL;

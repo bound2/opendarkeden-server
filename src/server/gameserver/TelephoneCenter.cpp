@@ -75,6 +75,3 @@ Slayer* TelephoneCenter::getSlayer(PhoneNumber_t PhoneNumber) const {
 
     __END_CATCH
 }
-
-// global variable definition
-TelephoneCenter* g_pTelephoneCenter = NULL;

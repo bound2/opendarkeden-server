@@ -20,6 +20,7 @@
 #include "GCAddEffectToTile.h"
 #include "GCDeleteInventoryItem.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "HolyLandManager.h"
 #include "Inventory.h"
 #include "ItemInfoManager.h"
@@ -576,7 +577,7 @@ bool dropRelicToZone(Creature* pCreature, bool bSendPacket)
     // 죽을 때 DragonEye 를 가지고 있다면 원래 위치로 빽~
     ///////////////////////////////////////////////////////////////////
     if (pCreature->isFlag(Effect::EFFECT_CLASS_DRAGON_EYE)) {
-        g_pDragonEyeManager->warpToDefaultPosition(pCreature);
+        de::gameContext().dragonEyes().warpToDefaultPosition(pCreature);
 
         Effect* pEffect = pCreature->findEffect(Effect::EFFECT_CLASS_DRAGON_EYE);
         if (pEffect != NULL) {

@@ -20,6 +20,7 @@
 #include "GCNoticeEvent.h"
 #include "GCSystemMessage.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "LevelWarManager.h"
 #include "LevelWarZoneInfoManager.h"
@@ -50,7 +51,8 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
     static map<Level_t, Price_t> sPriceMap;
 
     try {
-        int targetDynamicZoneType = g_pDynamicZoneInfoManager->getDynamicZoneTypeByZoneID(pPacket->getZoneID());
+        int targetDynamicZoneType =
+            de::gameContext().dynamicZoneInfos().getDynamicZoneTypeByZoneID(pPacket->getZoneID());
         if (targetDynamicZoneType != DYNAMIC_ZONE_MAX) {
             executeEnterQuestZone(pPacket, pPlayer, targetDynamicZoneType);
         }
@@ -236,7 +238,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
 
                 // 웨이포인트 매니저를 통해서 클라이언트가 보내온
                 // 웨이포인트가 정상적인 웨이포인트인지를 검증한다.
-                if (!g_pWayPointManager->isValidWayPoint(id, x, y, pCreature->getRace())) {
+                if (!de::gameContext().wayPoints().isValidWayPoint(id, x, y, pCreature->getRace())) {
                     // 뭔가를 해야하지 않을까?
                     bCancel = true;
 

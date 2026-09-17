@@ -102,7 +102,4 @@ private:
     RankBonusInfo** m_RankBonusInfoList;
 };
 
-// Global Variable Definition
-extern RankBonusInfoManager* g_pRankBonusInfoManager;
-
 #endif // __SKILL_INFO_MANAGER_H__

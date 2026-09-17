@@ -86,6 +86,4 @@ private:
     HashMapShrineSet m_ShrineSets;
 };
 
-extern CastleShrineInfoManager* g_pCastleShrineInfoManager;
-
 #endif // __SHRINE_INFO_MANAGER_H__

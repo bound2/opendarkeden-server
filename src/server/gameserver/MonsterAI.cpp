@@ -10,6 +10,7 @@
 #include "Effect.h"
 #include "EffectManager.h"
 #include "GCSay.h"
+#include "GameContext.h"
 #include "MasterLairManager.h"
 #include "Monster.h"
 #include "MonsterInfo.h"
@@ -152,7 +153,7 @@ MonsterAI::MonsterAI(Monster* pMonster, uint type)
     m_BlockedDir = DIR_NONE;
     m_WallCount = 0;
 
-    m_pDirectiveSet = g_pDirectiveSetManager->getDirectiveSet(type);
+    m_pDirectiveSet = de::gameContext().directiveSets().getDirectiveSet(type);
 
     m_pCondChecker[DIRECTIVE_COND_ENEMY_RANGE_MELEE] = checkEnemyRangeMelee;
     m_pCondChecker[DIRECTIVE_COND_ENEMY_RANGE_MISSILE] = checkEnemyRangeMissile;

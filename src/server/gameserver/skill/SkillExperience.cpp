@@ -60,6 +60,7 @@
 #include "GCSystemMessage.h"
 #include "GDRLairManager.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
 #include "HitRoll.h"
@@ -306,7 +307,7 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
                 pPC->sendCurrentQuestInfo();
             }
 
-            if (g_pEventQuestLootingManager->killed(pPC, pMonster))
+            if (de::gameContext().eventQuestLoot().killed(pPC, pMonster))
                 pTable->setQuestHostName(pPC->getName());
 
             if (pMonster->getQuestItem() == NULL && g_pVariableManager->getVariable(EVENT_NEW_YEAR_2005) != 0) {
@@ -1815,7 +1816,8 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
             NewDomainLevel = CurDomainLevel + 1;
 
             // µµ¸ÞÀÎ ÀÎÆ÷ ¸Þ´ÏÁ®¸¦ ¸¸µé¾î¼­ ¸ñÇ¥ °æÇèÄ¡¸¦ ¼ÂÆÃÇÏ°í ·¹º§À» Àç ¼³Á¤ ÇÑ´Ù.
-            NewGoalExp = g_pSkillDomainInfoManager->getDomainInfo((SkillDomain)Domain, NewDomainLevel)->getGoalExp();
+            NewGoalExp =
+                de::gameContext().skillDomains().getDomainInfo((SkillDomain)Domain, NewDomainLevel)->getGoalExp();
 
             pSlayer->setGoalExp(Domain, NewGoalExp);
             pSlayer->setSkillDomainLevel(Domain, NewDomainLevel);
@@ -1900,9 +1902,11 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
 
             // ´Ù¿î µµ¸ÞÀÎÀÇ ¸ñÇ¥ °æÇèÄ¡¸¦ Ã£¾Æ¿Â´Ù.
             // ´Ù¿î µµ¸ÞÀÎÀÇ ´©Àû °æÇèÄ¡¸¦ Ã£¾Æ¿Â´Ù.
-            Exp_t DownDomainGoalExp =
-                g_pSkillDomainInfoManager->getDomainInfo((SkillDomain)DownDomainType, DownDomainLevel)->getGoalExp();
-            //			Exp_t DownDomainSumExp  = g_pSkillDomainInfoManager->getDomainInfo((SkillDomain)DownDomainType,
+            Exp_t DownDomainGoalExp = de::gameContext()
+                                          .skillDomains()
+                                          .getDomainInfo((SkillDomain)DownDomainType, DownDomainLevel)
+                                          ->getGoalExp();
+            //			Exp_t DownDomainSumExp  = de::gameContext().skillDomains().getDomainInfo((SkillDomain)DownDomainType,
             // DownDomainLevel)->getAccumExp();
 
             // ´Ù¿î ±×·¹ÀÌµåµÈ ¸ñÇ¥ °æÇèÄ¡·Î Àç ¼ÂÆÃÇÑ´Ù.
@@ -2227,8 +2231,8 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
         pVampire->setBonus(bonus);
         _ModifyInfo.addShortData(MODIFY_BONUS_POINT, bonus);
 
-        //		VampEXPInfo* pBeforeExpInfo = g_pVampEXPInfoManager->getVampEXPInfo(curLevel-1);
-        VampEXPInfo* pNextExpInfo = g_pVampEXPInfoManager->getVampEXPInfo(curLevel);
+        //		VampEXPInfo* pBeforeExpInfo = de::gameContext().vampireExp().getVampEXPInfo(curLevel-1);
+        VampEXPInfo* pNextExpInfo = de::gameContext().vampireExp().getVampEXPInfo(curLevel);
         Exp_t NextGoalExp = pNextExpInfo->getGoalExp();
 
         pVampire->setGoalExp(NextGoalExp);
@@ -2376,8 +2380,8 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
         curLevel++;
         pOusters->setLevel(curLevel);
 
-        //		OustersEXPInfo* pBeforeExpInfo = g_pOustersEXPInfoManager->getOustersEXPInfo(curLevel-1);
-        OustersEXPInfo* pNextExpInfo = g_pOustersEXPInfoManager->getOustersEXPInfo(curLevel);
+        //		OustersEXPInfo* pBeforeExpInfo = de::gameContext().oustersExp().getOustersEXPInfo(curLevel-1);
+        OustersEXPInfo* pNextExpInfo = de::gameContext().oustersExp().getOustersEXPInfo(curLevel);
         Exp_t NextGoalExp = pNextExpInfo->getGoalExp();
 
         // add bonus point
@@ -2692,7 +2696,7 @@ Exp_t computeSkillPointBonus(SkillDomainType_t Domain, SkillLevel_t DomainLevel,
 
     ItemType_t itemType = pWeapon->getItemType();
     ItemType_t bestItemType =
-        g_pSkillDomainInfoManager->getDomainInfo((SkillDomain)Domain, DomainLevel)->getBestItemType();
+        de::gameContext().skillDomains().getDomainInfo((SkillDomain)Domain, DomainLevel)->getBestItemType();
 
     Exp_t newPoint;
 

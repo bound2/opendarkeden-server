@@ -164,6 +164,3 @@ string GoodsInfoManager::toString() const
 
     __END_CATCH
 }
-
-// Global Variable definition
-GoodsInfoManager* g_pGoodsInfoManager = NULL;
