@@ -57,7 +57,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
-| R1 | `g_p*` global-singleton extern declarations | 63 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` (332→331 on 2026-09-10 with the never-built `EventMonsterNameManager.h`, which redeclared `g_pMonsterNameManager`; 331→327 on 2026-09-10 with the never-built `EventBall.h` (two) and the commented-out `EffectBloodyWallLoader` and `EffectGrayDarknessLoader` declarations; a `default*Repository()` accessor is a function, not a global, so extractions do not move this number; 327→325 on 2026-09-13 with the never-built `item/SubInventory.h` (two); 325→319 on 2026-09-17 with six globals that were declared and never created (`g_pCombatSystemManager`, `g_pItemNumberManager`, `g_pHolyLandRaceBonus`, `g_pObjectRegistry`, `g_pSkillParentInfoManager`, `g_pZonePlayerManager`); 319→315 on 2026-09-17 with the four quest scripting managers, whose only readers were `quest/` and the composition root, and which `ObjectManager` now owns and registers on `de::GameContext`; the remaining nine of the 325→306 span went with the sources no target compiled; 306→285 on 2026-09-17 with the twenty-one `g_pEffect*Loader` globals that were declared and defined but never created and never read; 285→269 on 2026-09-17 with the sixteen `g_pEffect*Loader` globals `EffectLoaderManager` did create, which it now reaches through the `m_pEffectLoaders` table it was already filling; 269→266 on 2026-09-17 with `g_pMonsterNameManager`, `g_pWeatherInfoManager` and `g_pDynamicZoneFactoryManager`, which `ObjectManager` now owns and registers on `de::GameContext`; 266→265 on 2026-09-17 with `g_pBillingPlayerManager`, which went with the billing module; 265→178 on 2026-09-17 with the eighty-seven `g_p*Loader` item globals `ItemLoaderManager` created, which it now reaches through the `m_pItemLoaders` table it was already filling; 178→176 on 2026-09-17 with `g_pVolumeInfoManager` and `g_pDefaultOptionSetInfoManager`, which `ObjectManager` now owns and registers on `de::GameContext`; 176→89 on 2026-09-17 with the eighty-seven per-item-class `g_p<Class>InfoManager` globals `ItemInfoManager` created, which it now reaches through the `m_InfoClassManagers` table it was already filling; 89→88 on 2026-09-17 with `g_pLuckInfoManager`, whose class, global and bodies all sat inside a comment block; 88→72 on 2026-09-17 with sixteen managers `ObjectManager` creates that at most five files read — thirteen of them registered on `de::GameContext`, three that nothing outside `ObjectManager.cpp` reads left as plain members; 72→63 on 2026-09-17 with nine more: `g_pItemLoaderManager`, `g_pCastleSkillInfoManager`, `g_pTimeChecker` and `g_pGameServerGroupInfoManager`, four managers `ObjectManager` creates that at most five files read; `g_pObjectManager`, `g_pThreadManager` and `g_pClientManager`, which `GameServer` creates and now holds as members; `g_pConnectionInfoManager`, which `IncomingPlayerManager` creates and holds; and `g_pGameServer`, which only its own `main()` read and which is now a local there) |
+| R1 | `g_p*` global-singleton extern declarations | 61 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` (332→331 on 2026-09-10 with the never-built `EventMonsterNameManager.h`, which redeclared `g_pMonsterNameManager`; 331→327 on 2026-09-10 with the never-built `EventBall.h` (two) and the commented-out `EffectBloodyWallLoader` and `EffectGrayDarknessLoader` declarations; a `default*Repository()` accessor is a function, not a global, so extractions do not move this number; 327→325 on 2026-09-13 with the never-built `item/SubInventory.h` (two); 325→319 on 2026-09-17 with six globals that were declared and never created (`g_pCombatSystemManager`, `g_pItemNumberManager`, `g_pHolyLandRaceBonus`, `g_pObjectRegistry`, `g_pSkillParentInfoManager`, `g_pZonePlayerManager`); 319→315 on 2026-09-17 with the four quest scripting managers, whose only readers were `quest/` and the composition root, and which `ObjectManager` now owns and registers on `de::GameContext`; the remaining nine of the 325→306 span went with the sources no target compiled; 306→285 on 2026-09-17 with the twenty-one `g_pEffect*Loader` globals that were declared and defined but never created and never read; 285→269 on 2026-09-17 with the sixteen `g_pEffect*Loader` globals `EffectLoaderManager` did create, which it now reaches through the `m_pEffectLoaders` table it was already filling; 269→266 on 2026-09-17 with `g_pMonsterNameManager`, `g_pWeatherInfoManager` and `g_pDynamicZoneFactoryManager`, which `ObjectManager` now owns and registers on `de::GameContext`; 266→265 on 2026-09-17 with `g_pBillingPlayerManager`, which went with the billing module; 265→178 on 2026-09-17 with the eighty-seven `g_p*Loader` item globals `ItemLoaderManager` created, which it now reaches through the `m_pItemLoaders` table it was already filling; 178→176 on 2026-09-17 with `g_pVolumeInfoManager` and `g_pDefaultOptionSetInfoManager`, which `ObjectManager` now owns and registers on `de::GameContext`; 176→89 on 2026-09-17 with the eighty-seven per-item-class `g_p<Class>InfoManager` globals `ItemInfoManager` created, which it now reaches through the `m_InfoClassManagers` table it was already filling; 89→88 on 2026-09-17 with `g_pLuckInfoManager`, whose class, global and bodies all sat inside a comment block; 88→72 on 2026-09-17 with sixteen managers `ObjectManager` creates that at most five files read — thirteen of them registered on `de::GameContext`, three that nothing outside `ObjectManager.cpp` reads left as plain members; 72→63 on 2026-09-17 with nine more: `g_pItemLoaderManager`, `g_pCastleSkillInfoManager`, `g_pTimeChecker` and `g_pGameServerGroupInfoManager`, four managers `ObjectManager` creates that at most five files read; `g_pObjectManager`, `g_pThreadManager` and `g_pClientManager`, which `GameServer` creates and now holds as members; `g_pConnectionInfoManager`, which `IncomingPlayerManager` creates and holds; and `g_pGameServer`, which only its own `main()` read and which is now a local there; 63→61 on 2026-09-17 with `g_pLoginServer` and `g_pSharedServer`, each read only by its own `main()` and now a local there) |
 | R2 | Files with inline SQL in gameserver root | 0 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29; 7→0 on 2026-09-10, the last two live sites into `PlayRecordRepository::logPlayerTrade` and the new `SMSMessageRepository`, `CreatureUtil.cpp`'s commented-out `addOlympicStat` body deleted, and four never-built stale copies deleted with it. The root is clean; new SQL there fails the ratchet.) |
 | R3 | Files with inline SQL outside `database/` and any `repository/` | 0 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (18→11 on 2026-09-10 with the seven gameserver-root files R2 counted; 11→0 the same day with the never-built `EventBall.cpp`, the `*notice` command that held the last live statement, and the nine files whose only `executeQuery` sat inside a comment block. `gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
@@ -1224,29 +1224,29 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   interfaces) explicitly; the old `g_p*` externs become shims into it until
   their last caller is converted. Ratchet R1.
   > **Status:** in progress — `src/server/gameserver/GameContext.h` is a
-  > registry of non-owning pointers to thirty managers, each registered by
-  > the code that creates it — `GameServer`'s constructor for the config and
-  > the database manager, `ObjectManager`'s for the world ones — and read
-  > back through an accessor that asserts it is there, a null one being a
-  > startup-order bug, not a condition to branch on. Ownership is untouched:
-  > the same `new` and `SAFE_DELETE` sites, except that a manager no global
-  > names any more is an `ObjectManager` member, registered on the context
+  > registry of non-owning pointers to thirty-six managers, each registered
+  > by the code that creates it — `GameServer`'s constructor,
+  > `ObjectManager`'s and `IncomingPlayerManager`'s — and read back through
+  > an accessor that asserts it is there, a null one being a startup-order
+  > bug, not a condition to branch on. Ownership is untouched: the same
+  > `new` and `SAFE_DELETE` sites, except that a manager no global names any
+  > more is a member of the class that creates it, registered on the context
   > only if something outside that file reads it. `ctf/` and `quest/` are the
   > converted subsystems: `FlagManager`, `FlagWar`/`NewbieFlagWar`,
   > `ActionFactoryManager`, `Trigger` and `TriggerParser` take the context in
-  > their constructors, and every `Action` is handed it by its factory.
-  > `de::gameContext()` is the shim the creation sites and the unconverted
-  > callers reach it through; a converted subsystem never calls it.
-  > `game_context_tests` builds a context over stand-in pointers with nothing
-  > of the gameserver linked, which is what the forward-declaration-only
-  > header buys. R1: 325 → 72. An `extern` line goes when nothing creates the
-  > global, when the manager that owns it can reach its objects through a
-  > table it already fills (`EffectLoaderManager`, `ItemLoaderManager`,
+  > their constructors and every `Action` gets it from its factory; none of
+  > them calls `de::gameContext()`, the shim the creation sites and the
+  > unconverted callers use. `game_context_tests` builds a context over
+  > stand-in pointers with nothing of the gameserver linked, which is what
+  > the forward-declaration-only header buys. R1: 325 → 61. An `extern` line
+  > goes when nothing creates the global, when its owner reaches its objects
+  > through a table it already fills (`EffectLoaderManager`,
   > `ItemInfoManager`, whose `m_InfoClassManagers` slot no context accessor
   > could key, the nested `Item::ItemClass` not being forward-declarable), or
-  > when its last caller is converted. Next: `g_pItemInfoManager`, read from
-  > a hundred and thirty files; the managers `ObjectManager` creates that
-  > more than five files read; `g_pFlagManager`, read from fifteen files.
+  > when its last caller is converted — for a server object, its own
+  > `main()`, which holds it as a local. Next: `g_pItemInfoManager` and
+  > `g_pFlagManager`; `g_pPacketValidator` fits none of the rules — each of
+  > the three servers creates one of its own.
   - Owner: R1 ratchet test.
 
 
