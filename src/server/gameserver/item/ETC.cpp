@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-ETCInfoManager* g_pETCInfoManager = NULL;
-
 ItemID_t ETC::m_ItemIDRegistry = 0;
 Mutex ETC::m_Mutex;
 
@@ -116,7 +113,7 @@ VolumeWidth_t ETC::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pETCInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_ETC, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -130,7 +127,7 @@ VolumeHeight_t ETC::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pETCInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_ETC, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -144,7 +141,7 @@ Weight_t ETC::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pETCInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_ETC, m_ItemType)->getWeight();
 
     __END_CATCH
 }

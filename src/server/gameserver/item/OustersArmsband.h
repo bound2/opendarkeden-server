@@ -163,7 +163,6 @@ public:
 };
 
 // global variable declaration
-extern OustersArmsbandInfoManager* g_pOustersArmsbandInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

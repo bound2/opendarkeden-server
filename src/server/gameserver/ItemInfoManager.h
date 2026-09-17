@@ -51,6 +51,11 @@ public:
     string toString() const;
 
 private:
+    void addInfoClassManager(Item::ItemClass itemClass, InfoClassManager* pInfoClassManager);
+
+    // The info managers this manager creates and owns, one slot per item class.
+    // init() fills every slot; the rest of the server reaches a single class's
+    // infos through getInfoManager() / getItemInfo().
     InfoClassManager* m_InfoClassManagers[Item::ITEM_CLASS_MAX];
 
     uint m_ItemIDSuccessor; // ItemID를 발급받을 때의 증가치(서버의 숫자)

@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-BeltInfoManager* g_pBeltInfoManager = NULL;
-
 ItemID_t Belt::m_ItemIDRegistry = 0;
 Mutex Belt::m_Mutex;
 
@@ -44,7 +41,8 @@ Belt::Belt(ItemType_t itemType, const list<OptionType_t>& optionType)
     setItemType(itemType);
     setOptionType(optionType);
 
-    BeltInfo* pBeltInfo = dynamic_cast<BeltInfo*>(g_pBeltInfoManager->getItemInfo(getItemType()));
+    BeltInfo* pBeltInfo =
+        dynamic_cast<BeltInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BELT, getItemType()));
 
     m_pInventory = new Inventory(pBeltInfo->getPocketCount(), 1);
 
@@ -264,7 +262,8 @@ PocketNum_t Belt::getPocketCount(void) const
 {
     __BEGIN_TRY
 
-    BeltInfo* pBeltInfo = dynamic_cast<BeltInfo*>(g_pBeltInfoManager->getItemInfo(getItemType()));
+    BeltInfo* pBeltInfo =
+        dynamic_cast<BeltInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BELT, getItemType()));
     Assert(pBeltInfo != NULL);
     return pBeltInfo->getPocketCount();
 
@@ -378,10 +377,11 @@ void BeltLoader::load(Creature* pCreature)
             pBelt->setObjectID(rows[r].objectID);
             pBelt->setItemType(rows[r].itemType);
 
-            if (g_pBeltInfoManager->getItemInfo(pBelt->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BELT, pBelt->getItemType())->isUnique())
                 pBelt->setUnique();
 
-            BeltInfo* pBeltInfo = dynamic_cast<BeltInfo*>(g_pBeltInfoManager->getItemInfo(pBelt->getItemType()));
+            BeltInfo* pBeltInfo =
+                dynamic_cast<BeltInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BELT, pBelt->getItemType()));
             Inventory* pBeltInventory = new Inventory(pBeltInfo->getPocketCount(), 1);
 
             pBelt->setInventory(pBeltInventory);

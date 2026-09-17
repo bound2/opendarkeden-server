@@ -120,7 +120,6 @@ public:
 };
 
 // global variable declaration
-extern HolyWaterInfoManager* g_pHolyWaterInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class HolyWaterFactory

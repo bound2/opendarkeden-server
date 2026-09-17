@@ -142,7 +142,6 @@ public:
 };
 
 // global variable declaration
-extern NecklaceInfoManager* g_pNecklaceInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

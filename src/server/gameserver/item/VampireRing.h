@@ -141,7 +141,6 @@ public:
 };
 
 // global variable declaration
-extern VampireRingInfoManager* g_pVampireRingInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

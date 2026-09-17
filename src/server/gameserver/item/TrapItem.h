@@ -109,7 +109,6 @@ public:
     virtual void load();
 };
 
-extern TrapItemInfoManager* g_pTrapItemInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class TrapItemFactory

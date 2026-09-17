@@ -18,8 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-EventStarInfoManager* g_pEventStarInfoManager = NULL;
-
 ItemID_t EventStar::m_ItemIDRegistry = 0;
 Mutex EventStar::m_Mutex;
 
@@ -106,7 +104,7 @@ VolumeWidth_t EventStar::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pEventStarInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_EVENT_STAR, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -116,7 +114,7 @@ VolumeHeight_t EventStar::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pEventStarInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_EVENT_STAR, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -126,7 +124,7 @@ Weight_t EventStar::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pEventStarInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_EVENT_STAR, m_ItemType)->getWeight();
 
     __END_CATCH
 }

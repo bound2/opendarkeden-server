@@ -7,6 +7,7 @@
 
 #include "CoupleRing.h"
 #include "ItemInfo.h"
+#include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "StringStream.h"
 #include "VampireCoupleRing.h"
@@ -42,10 +43,10 @@ ItemInfo* CoupleRingBase::getItemInfo(ItemType_t itemType, Race_t race)
 
     switch (race) {
     case RACE_SLAYER:
-        return g_pCoupleRingInfoManager->getItemInfo(itemType);
+        return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COUPLE_RING, itemType);
         break;
     case RACE_VAMPIRE:
-        return g_pVampireCoupleRingInfoManager->getItemInfo(itemType);
+        return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_COUPLE_RING, itemType);
         break;
     default:
         Assert(false);

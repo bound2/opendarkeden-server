@@ -19,8 +19,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-EventETCInfoManager* g_pEventETCInfoManager = NULL;
-
 ItemID_t EventETC::m_ItemIDRegistry = 0;
 Mutex EventETC::m_Mutex;
 
@@ -107,7 +105,7 @@ VolumeWidth_t EventETC::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pEventETCInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_EVENT_ETC, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -117,7 +115,7 @@ VolumeHeight_t EventETC::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pEventETCInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_EVENT_ETC, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -127,7 +125,7 @@ Weight_t EventETC::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pEventETCInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_EVENT_ETC, m_ItemType)->getWeight();
 
     __END_CATCH
 }

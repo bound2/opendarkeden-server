@@ -132,7 +132,6 @@ public:
 };
 
 // global variable declaration
-extern CodeSheetInfoManager* g_pCodeSheetInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

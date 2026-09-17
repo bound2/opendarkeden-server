@@ -142,8 +142,6 @@ public:
     virtual void load();
 };
 
-extern VampirePortalItemInfoManager* g_pVampirePortalItemInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class VampirePortalItemFactory

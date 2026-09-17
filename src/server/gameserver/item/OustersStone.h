@@ -161,7 +161,6 @@ public:
 };
 
 // global variable declaration
-extern OustersStoneInfoManager* g_pOustersStoneInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

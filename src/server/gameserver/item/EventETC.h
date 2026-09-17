@@ -117,7 +117,6 @@ public:
     virtual void load();
 };
 
-extern EventETCInfoManager* g_pEventETCInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class EventETCFactory

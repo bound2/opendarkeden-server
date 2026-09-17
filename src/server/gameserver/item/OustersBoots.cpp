@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-OustersBootsInfoManager* g_pOustersBootsInfoManager = NULL;
-
 ItemID_t OustersBoots::m_ItemIDRegistry = 0;
 Mutex OustersBoots::m_Mutex;
 
@@ -280,7 +277,8 @@ void OustersBootsLoader::load(Creature* pCreature)
             pOustersBoots->setObjectID(rows[r].objectID);
             pOustersBoots->setItemType(rows[r].itemType);
 
-            if (g_pOustersBootsInfoManager->getItemInfo(pOustersBoots->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_BOOTS, pOustersBoots->getItemType())
+                    ->isUnique())
                 pOustersBoots->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

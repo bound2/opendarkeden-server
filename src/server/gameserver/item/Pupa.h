@@ -164,7 +164,6 @@ public:
 };
 
 // global variable declaration
-extern PupaInfoManager* g_pPupaInfoManager;
 
 
 //--------------------------------------------------------------------------------

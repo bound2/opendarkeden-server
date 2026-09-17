@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-OustersCircletInfoManager* g_pOustersCircletInfoManager = NULL;
-
 ItemID_t OustersCirclet::m_ItemIDRegistry = 0;
 Mutex OustersCirclet::m_Mutex;
 
@@ -280,7 +277,8 @@ void OustersCircletLoader::load(Creature* pCreature)
             pOustersCirclet->setObjectID(rows[r].objectID);
             pOustersCirclet->setItemType(rows[r].itemType);
 
-            if (g_pOustersCircletInfoManager->getItemInfo(pOustersCirclet->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_CIRCLET, pOustersCirclet->getItemType())
+                    ->isUnique())
                 pOustersCirclet->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

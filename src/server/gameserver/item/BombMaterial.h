@@ -101,8 +101,6 @@ public:
     virtual void load();
 };
 
-extern BombMaterialInfoManager* g_pBombMaterialInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class BombMaterialFactory

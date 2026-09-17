@@ -116,7 +116,6 @@ public:
 };
 
 // global variable declaration
-extern SkullInfoManager* g_pSkullInfoManager;
 
 
 //--------------------------------------------------------------------------------

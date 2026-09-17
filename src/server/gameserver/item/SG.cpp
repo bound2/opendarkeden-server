@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-SGInfoManager* g_pSGInfoManager = NULL;
-
 ItemID_t SG::m_ItemIDRegistry = 0;
 Mutex SG::m_Mutex;
 
@@ -350,7 +347,7 @@ void SGLoader::load(Creature* pCreature)
             pSG->setObjectID(rows[r].objectID);
             pSG->setItemType(rows[r].itemType);
 
-            if (g_pSGInfoManager->getItemInfo(pSG->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SG, pSG->getItemType())->isUnique())
                 pSG->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

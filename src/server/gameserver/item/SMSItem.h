@@ -77,7 +77,6 @@ public:
     virtual void load();
 };
 
-extern SMSItemInfoManager* g_pSMSItemInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class SMSItemFactory

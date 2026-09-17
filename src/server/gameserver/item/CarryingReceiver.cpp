@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-CarryingReceiverInfoManager* g_pCarryingReceiverInfoManager = NULL;
-
 ItemID_t CarryingReceiver::m_ItemIDRegistry = 0;
 Mutex CarryingReceiver::m_Mutex;
 
@@ -206,7 +203,8 @@ void CarryingReceiverLoader::load(Creature* pCreature)
             pCarryingReceiver->setObjectID(rows[r].objectID);
             pCarryingReceiver->setItemType(rows[r].itemType);
 
-            if (g_pCarryingReceiverInfoManager->getItemInfo(pCarryingReceiver->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CARRYING_RECEIVER, pCarryingReceiver->getItemType())
+                    ->isUnique())
                 pCarryingReceiver->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

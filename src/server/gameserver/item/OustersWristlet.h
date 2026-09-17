@@ -193,8 +193,6 @@ public:
     virtual void load();
 };
 
-extern OustersWristletInfoManager* g_pOustersWristletInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class OustersWristletFactory

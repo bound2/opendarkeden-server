@@ -18,9 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-BloodBibleInfoManager* g_pBloodBibleInfoManager = NULL;
-
 ItemID_t BloodBible::m_ItemIDRegistry = 0;
 Mutex BloodBible::m_Mutex;
 
@@ -136,7 +133,7 @@ VolumeWidth_t BloodBible::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pBloodBibleInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BLOOD_BIBLE, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -150,7 +147,7 @@ VolumeHeight_t BloodBible::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pBloodBibleInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BLOOD_BIBLE, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -164,7 +161,7 @@ Weight_t BloodBible::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pBloodBibleInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BLOOD_BIBLE, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -178,7 +175,7 @@ Defense_t BloodBible::getDefenseBonus() const
 {
     __BEGIN_TRY
 
-    return g_pBloodBibleInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BLOOD_BIBLE, m_ItemType)->getDefenseBonus();
 
     __END_CATCH
 }
@@ -187,7 +184,7 @@ Protection_t BloodBible::getProtectionBonus() const
 {
     __BEGIN_TRY
 
-    return g_pBloodBibleInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BLOOD_BIBLE, m_ItemType)->getProtectionBonus();
 
     __END_CATCH
 }

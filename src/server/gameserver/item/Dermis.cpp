@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-DermisInfoManager* g_pDermisInfoManager = NULL;
-
 ItemID_t Dermis::m_ItemIDRegistry = 0;
 Mutex Dermis::m_Mutex;
 
@@ -204,7 +201,7 @@ void DermisLoader::load(Creature* pCreature)
             pDermis->setObjectID(rows[r].objectID);
             pDermis->setItemType(rows[r].itemType);
 
-            if (g_pDermisInfoManager->getItemInfo(pDermis->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_DERMIS, pDermis->getItemType())->isUnique())
                 pDermis->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-MittenInfoManager* g_pMittenInfoManager = NULL;
-
 ItemID_t Mitten::m_ItemIDRegistry = 0;
 Mutex Mitten::m_Mutex;
 
@@ -208,7 +205,7 @@ void MittenLoader::load(Creature* pCreature)
             pMitten->setObjectID(rows[r].objectID);
             pMitten->setItemType(rows[r].itemType);
 
-            if (g_pMittenInfoManager->getItemInfo(pMitten->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MITTEN, pMitten->getItemType())->isUnique())
                 pMitten->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

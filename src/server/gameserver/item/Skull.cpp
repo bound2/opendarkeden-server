@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-SkullInfoManager* g_pSkullInfoManager = NULL;
-
 ItemID_t Skull::m_ItemIDRegistry = 0;
 Mutex Skull::m_Mutex;
 
@@ -120,7 +117,7 @@ VolumeWidth_t Skull::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pSkullInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SKULL, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -134,7 +131,7 @@ VolumeHeight_t Skull::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pSkullInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SKULL, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -148,7 +145,7 @@ Weight_t Skull::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pSkullInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SKULL, m_ItemType)->getWeight();
 
     __END_CATCH
 }

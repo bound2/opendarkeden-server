@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-ShieldInfoManager* g_pShieldInfoManager = NULL;
-
 ItemID_t Shield::m_ItemIDRegistry = 0;
 Mutex Shield::m_Mutex;
 
@@ -278,7 +275,7 @@ void ShieldLoader::load(Creature* pCreature)
             pShield->setObjectID(rows[r].objectID);
             pShield->setItemType(rows[r].itemType);
 
-            if (g_pShieldInfoManager->getItemInfo(pShield->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SHIELD, pShield->getItemType())->isUnique())
                 pShield->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-FasciaInfoManager* g_pFasciaInfoManager = NULL;
-
 ItemID_t Fascia::m_ItemIDRegistry = 0;
 Mutex Fascia::m_Mutex;
 
@@ -204,7 +201,7 @@ void FasciaLoader::load(Creature* pCreature)
             pFascia->setObjectID(rows[r].objectID);
             pFascia->setItemType(rows[r].itemType);
 
-            if (g_pFasciaInfoManager->getItemInfo(pFascia->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_FASCIA, pFascia->getItemType())->isUnique())
                 pFascia->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

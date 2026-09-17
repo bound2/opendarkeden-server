@@ -140,7 +140,6 @@ public:
 };
 
 // global variable declaration
-extern TrouserInfoManager* g_pTrouserInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

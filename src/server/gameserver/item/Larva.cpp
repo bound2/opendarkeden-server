@@ -19,9 +19,6 @@
 #include "ZoneGroupManager.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-LarvaInfoManager* g_pLarvaInfoManager = NULL;
-
 ItemID_t Larva::m_ItemIDRegistry = 0;
 Mutex Larva::m_Mutex;
 
@@ -135,7 +132,7 @@ VolumeWidth_t Larva::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pLarvaInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -149,7 +146,7 @@ VolumeHeight_t Larva::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pLarvaInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -163,7 +160,7 @@ Weight_t Larva::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pLarvaInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -173,7 +170,7 @@ int Larva::getHPAmount(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pLarvaInfoManager->getItemInfo(m_ItemType));
+    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getHPAmount();
 
     __END_CATCH
@@ -184,7 +181,7 @@ int Larva::getMPAmount(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pLarvaInfoManager->getItemInfo(m_ItemType));
+    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getMPAmount();
 
     __END_CATCH
@@ -195,7 +192,7 @@ int Larva::getHPDelay(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pLarvaInfoManager->getItemInfo(m_ItemType));
+    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getHPDelay();
 
     __END_CATCH
@@ -206,7 +203,7 @@ int Larva::getMPDelay(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pLarvaInfoManager->getItemInfo(m_ItemType));
+    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getMPDelay();
 
     __END_CATCH
@@ -217,7 +214,7 @@ int Larva::getHPQuantity(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pLarvaInfoManager->getItemInfo(m_ItemType));
+    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getHPQuantity();
 
     __END_CATCH
@@ -228,7 +225,7 @@ int Larva::getMPQuantity(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pLarvaInfoManager->getItemInfo(m_ItemType));
+    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getMPQuantity();
 
     __END_CATCH
@@ -239,7 +236,7 @@ int Larva::getHPRecoveryUnit(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pLarvaInfoManager->getItemInfo(m_ItemType));
+    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getHPRecoveryUnit();
 
     __END_CATCH
@@ -250,7 +247,7 @@ int Larva::getMPRecoveryUnit(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pLarvaInfoManager->getItemInfo(m_ItemType));
+    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getMPRecoveryUnit();
 
     __END_CATCH

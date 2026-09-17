@@ -99,7 +99,6 @@ public:
 };
 
 // global variable declaration
-extern WaterInfoManager* g_pWaterInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class WaterFactory

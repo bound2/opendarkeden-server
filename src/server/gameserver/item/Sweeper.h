@@ -140,7 +140,6 @@ public:
 };
 
 // global variable declaration
-extern SweeperInfoManager* g_pSweeperInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

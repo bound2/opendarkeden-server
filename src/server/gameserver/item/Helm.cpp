@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-HelmInfoManager* g_pHelmInfoManager = NULL;
-
 ItemID_t Helm::m_ItemIDRegistry = 0;
 Mutex Helm::m_Mutex;
 
@@ -277,7 +274,7 @@ void HelmLoader::load(Creature* pCreature)
             pHelm->setObjectID(rows[r].objectID);
             pHelm->setItemType(rows[r].itemType);
 
-            if (g_pHelmInfoManager->getItemInfo(pHelm->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_HELM, pHelm->getItemType())->isUnique())
                 pHelm->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

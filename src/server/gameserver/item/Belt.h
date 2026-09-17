@@ -161,8 +161,6 @@ public:
     virtual void load();
 };
 
-extern BeltInfoManager* g_pBeltInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class BeltFactory

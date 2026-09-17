@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-MaceInfoManager* g_pMaceInfoManager = NULL;
-
 ItemID_t Mace::m_ItemIDRegistry = 0;
 Mutex Mace::m_Mutex;
 
@@ -208,7 +205,7 @@ MP_t Mace::getMPBonus() const
 {
     __BEGIN_TRY
 
-    return g_pMaceInfoManager->getItemInfo(getItemType())->getMPBonus();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MACE, getItemType())->getMPBonus();
 
     __END_CATCH
 }
@@ -313,7 +310,7 @@ void MaceLoader::load(Creature* pCreature)
             pMace->setObjectID(rows[r].objectID);
             pMace->setItemType(rows[r].itemType);
 
-            if (g_pMaceInfoManager->getItemInfo(pMace->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MACE, pMace->getItemType())->isUnique())
                 pMace->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

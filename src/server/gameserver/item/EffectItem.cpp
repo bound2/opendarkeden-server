@@ -18,8 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-EffectItemInfoManager* g_pEffectItemInfoManager = NULL;
-
 ItemID_t EffectItem::m_ItemIDRegistry = 0;
 Mutex EffectItem::m_Mutex;
 

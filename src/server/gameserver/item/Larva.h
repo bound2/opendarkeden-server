@@ -164,7 +164,6 @@ public:
 };
 
 // global variable declaration
-extern LarvaInfoManager* g_pLarvaInfoManager;
 
 
 //--------------------------------------------------------------------------------

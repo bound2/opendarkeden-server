@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGRelicToObject.h"
+#include "ItemInfoManager.h"
 
 #ifdef __GAME_SERVER__
 #include <stdio.h>
@@ -256,7 +257,8 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
     ItemType_t relicIndex = pItem->getItemType();
 
     // RelicInfo를 얻는다.
-    const RelicInfo* pRelicInfo = dynamic_cast<RelicInfo*>(g_pRelicInfoManager->getItemInfo(relicIndex));
+    const RelicInfo* pRelicInfo =
+        dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
 
     if (pRelicInfo == NULL) {
         filelog("relic.log", "no such relic index(%d)", relicIndex);
@@ -675,7 +677,7 @@ void CGRelicToObjectHandler::executeSweeper(CGRelicToObject* pPacket, Player* pP
     Item* pTableItem = pZone->getItem(pPacket->getObjectID());
 
     const SweeperInfo* pSweeperInfo =
-        dynamic_cast<SweeperInfo*>(g_pSweeperInfoManager->getItemInfo(pItem->getItemType()));
+        dynamic_cast<SweeperInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, pItem->getItemType()));
 
     // 그런 item이 없거나
     // 시체가 아니거나

@@ -18,8 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-LuckyBagInfoManager* g_pLuckyBagInfoManager = NULL;
-
 ItemID_t LuckyBag::m_ItemIDRegistry = 0;
 Mutex LuckyBag::m_Mutex;
 
@@ -106,7 +104,7 @@ VolumeWidth_t LuckyBag::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pLuckyBagInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LUCKY_BAG, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -116,7 +114,7 @@ VolumeHeight_t LuckyBag::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pLuckyBagInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LUCKY_BAG, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -126,7 +124,7 @@ Weight_t LuckyBag::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pLuckyBagInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LUCKY_BAG, m_ItemType)->getWeight();
 
     __END_CATCH
 }

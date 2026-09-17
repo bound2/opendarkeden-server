@@ -105,7 +105,6 @@ public:
     virtual void load();
 };
 
-extern EffectItemInfoManager* g_pEffectItemInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class EffectItemFactory

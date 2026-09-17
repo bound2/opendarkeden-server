@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-MoneyInfoManager* g_pMoneyInfoManager = NULL;
-
 ItemID_t Money::m_ItemIDRegistry = 0;
 Mutex Money::m_Mutex;
 
@@ -116,7 +113,7 @@ VolumeWidth_t Money::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pMoneyInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MONEY, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -130,7 +127,7 @@ VolumeHeight_t Money::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pMoneyInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MONEY, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -144,7 +141,7 @@ Weight_t Money::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pMoneyInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MONEY, m_ItemType)->getWeight();
 
     __END_CATCH
 }

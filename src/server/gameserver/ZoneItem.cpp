@@ -104,6 +104,7 @@
 #include "Item.h"
 #include "ItemFactoryManager.h"
 #include "ItemInfo.h"
+#include "ItemInfoManager.h"
 #include "LevelWarManager.h"
 #include "LevelWarZoneInfoManager.h"
 #include "LogClient.h"
@@ -759,7 +760,8 @@ bool Zone::addRelicItem(int relicIndex)
 
     // cout << "[addRelicItem] ZoneID=" << (int)m_ZoneID << ", relicIndex=" << relicIndex << endl;
 
-    const RelicInfo* pRelicInfo = dynamic_cast<RelicInfo*>(g_pRelicInfoManager->getItemInfo(relicIndex));
+    const RelicInfo* pRelicInfo =
+        dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
 
     int cx = pRelicInfo->x;
     int cy = pRelicInfo->y;

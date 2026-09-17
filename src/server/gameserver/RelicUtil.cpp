@@ -22,6 +22,7 @@
 #include "GCSystemMessage.h"
 #include "HolyLandManager.h"
 #include "Inventory.h"
+#include "ItemInfoManager.h"
 #include "Player.h"
 #include "PlayerCreature.h"
 #include "StringPool.h"
@@ -231,7 +232,8 @@ bool deleteRelicEffect(Corpse* pCorpse, Item* pItem)
 
     switch (pItem->getItemClass()) {
     case Item::ITEM_CLASS_RELIC: {
-        const RelicInfo* pRelicInfo = dynamic_cast<RelicInfo*>(g_pRelicInfoManager->getItemInfo(pItem->getItemType()));
+        const RelicInfo* pRelicInfo =
+            dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, pItem->getItemType()));
         Assert(pRelicInfo != NULL);
 
         if (pRelicInfo->relicType == RELIC_TYPE_SLAYER)
@@ -381,7 +383,8 @@ bool deleteRelicEffect(Creature* pCreature, Item* pItem)
     Effect::EffectClass effectClass;
 
     if (pItem->getItemClass() == Item::ITEM_CLASS_RELIC) {
-        const RelicInfo* pRelicInfo = dynamic_cast<RelicInfo*>(g_pRelicInfoManager->getItemInfo(pItem->getItemType()));
+        const RelicInfo* pRelicInfo =
+            dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, pItem->getItemType()));
         Assert(pRelicInfo != NULL);
 
         if (pRelicInfo->relicType == RELIC_TYPE_SLAYER)
@@ -431,7 +434,8 @@ bool addRelicEffect(Creature* pCreature, Item* pItem)
     ItemType_t itemtype = pItem->getItemType();
 
     if (itemclass == Item::ITEM_CLASS_RELIC) {
-        const RelicInfo* pRelicInfo = dynamic_cast<RelicInfo*>(g_pRelicInfoManager->getItemInfo(itemtype));
+        const RelicInfo* pRelicInfo =
+            dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, itemtype));
 
         if (pRelicInfo->relicType == RELIC_TYPE_SLAYER) {
             effectClassSend = effectClass = Effect::EFFECT_CLASS_HAS_SLAYER_RELIC;
@@ -672,7 +676,7 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
         try {
             int relicIndex = pItem->getItemType();
             const RelicInfo* pRelicInfo =
-                dynamic_cast<RelicInfo*>(g_pRelicInfoManager->getItemInfo(pItem->getItemType()));
+                dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, pItem->getItemType()));
 
             deleteRelicEffect(pCorpse, pItem);
 
@@ -708,8 +712,8 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
     case Item::ITEM_CLASS_BLOOD_BIBLE: {
         // deleteRelicEffect( pCorpse, pItem );
 
-        const BloodBibleInfo* pBloodBibleInfo =
-            dynamic_cast<BloodBibleInfo*>(g_pBloodBibleInfoManager->getItemInfo(pItem->getItemType()));
+        const BloodBibleInfo* pBloodBibleInfo = dynamic_cast<BloodBibleInfo*>(
+            g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BLOOD_BIBLE, pItem->getItemType()));
 
         //			StringStream msg;
         //			msg << "피의 성서 조각(" << pBloodBibleInfo->getName() << ")이 나왔습니다.";
@@ -746,8 +750,8 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
     case Item::ITEM_CLASS_CASTLE_SYMBOL: {
         // deleteRelicEffect( pCorpse, pItem );
 
-        const CastleSymbolInfo* pCastleSymbolInfo =
-            dynamic_cast<const CastleSymbolInfo*>(g_pCastleSymbolInfoManager->getItemInfo(pItem->getItemType()));
+        const CastleSymbolInfo* pCastleSymbolInfo = dynamic_cast<const CastleSymbolInfo*>(
+            g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CASTLE_SYMBOL, pItem->getItemType()));
 
         if (pCastleSymbolInfo != NULL) {
             //				StringStream msg;

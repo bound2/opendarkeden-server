@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-WaterInfoManager* g_pWaterInfoManager = NULL;
-
 ItemID_t Water::m_ItemIDRegistry = 0;
 Mutex Water::m_Mutex;
 
@@ -115,7 +112,7 @@ VolumeWidth_t Water::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pWaterInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_WATER, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -129,7 +126,7 @@ VolumeHeight_t Water::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pWaterInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_WATER, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -143,7 +140,7 @@ Weight_t Water::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pWaterInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_WATER, m_ItemType)->getWeight();
 
     __END_CATCH
 }

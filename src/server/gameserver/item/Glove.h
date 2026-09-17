@@ -157,7 +157,6 @@ public:
 };
 
 // global variable declaration
-extern GloveInfoManager* g_pGloveInfoManager;
 
 
 //--------------------------------------------------------------------------------

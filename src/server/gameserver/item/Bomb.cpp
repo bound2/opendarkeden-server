@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-BombInfoManager* g_pBombInfoManager = NULL;
-
 ItemID_t Bomb::m_ItemIDRegistry = 0;
 Mutex Bomb::m_Mutex;
 
@@ -120,7 +117,7 @@ VolumeWidth_t Bomb::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pBombInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -134,7 +131,7 @@ VolumeHeight_t Bomb::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pBombInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -148,7 +145,7 @@ Weight_t Bomb::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pBombInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -158,7 +155,7 @@ Damage_t Bomb::getMinDamage() const
 {
     __BEGIN_TRY
 
-    return g_pBombInfoManager->getItemInfo(m_ItemType)->getMinDamage();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getMinDamage();
 
     __END_CATCH
 }
@@ -168,7 +165,7 @@ Damage_t Bomb::getMaxDamage() const
 {
     __BEGIN_TRY
 
-    return g_pBombInfoManager->getItemInfo(m_ItemType)->getMaxDamage();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getMaxDamage();
 
     __END_CATCH
 }

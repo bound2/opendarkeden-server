@@ -115,8 +115,6 @@ public:
     virtual void load();
 };
 
-extern SlayerPortalItemInfoManager* g_pSlayerPortalItemInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class SlayerPortalItemFactory

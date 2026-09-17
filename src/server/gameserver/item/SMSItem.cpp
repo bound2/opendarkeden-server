@@ -18,8 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-SMSItemInfoManager* g_pSMSItemInfoManager = NULL;
-
 ItemID_t SMSItem::m_ItemIDRegistry = 0;
 Mutex SMSItem::m_Mutex;
 

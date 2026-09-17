@@ -139,8 +139,6 @@ public:
     virtual void load();
 };
 
-extern BraceletInfoManager* g_pBraceletInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class BraceletFactory

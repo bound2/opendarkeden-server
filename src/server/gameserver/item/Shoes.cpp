@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-ShoesInfoManager* g_pShoesInfoManager = NULL;
-
 ItemID_t Shoes::m_ItemIDRegistry = 0;
 Mutex Shoes::m_Mutex;
 
@@ -274,7 +271,7 @@ void ShoesLoader::load(Creature* pCreature)
             pShoes->setObjectID(rows[r].objectID);
             pShoes->setItemType(rows[r].itemType);
 
-            if (g_pShoesInfoManager->getItemInfo(pShoes->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SHOES, pShoes->getItemType())->isUnique())
                 pShoes->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

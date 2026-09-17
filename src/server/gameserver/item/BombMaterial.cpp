@@ -16,10 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-
-// global variable declaration
-BombMaterialInfoManager* g_pBombMaterialInfoManager = NULL;
-
 ItemID_t BombMaterial::m_ItemIDRegistry = 0;
 Mutex BombMaterial::m_Mutex;
 
@@ -118,7 +114,7 @@ VolumeWidth_t BombMaterial::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pBombMaterialInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB_MATERIAL, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -132,7 +128,7 @@ VolumeHeight_t BombMaterial::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pBombMaterialInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB_MATERIAL, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -146,7 +142,7 @@ Weight_t BombMaterial::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pBombMaterialInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB_MATERIAL, m_ItemType)->getWeight();
 
     __END_CATCH
 }

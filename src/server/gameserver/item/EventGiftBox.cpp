@@ -17,8 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-EventGiftBoxInfoManager* g_pEventGiftBoxInfoManager = NULL;
-
 ItemID_t EventGiftBox::m_ItemIDRegistry = 0;
 Mutex EventGiftBox::m_Mutex;
 
@@ -101,7 +99,7 @@ VolumeWidth_t EventGiftBox::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pEventGiftBoxInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_EVENT_GIFT_BOX, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -111,7 +109,7 @@ VolumeHeight_t EventGiftBox::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pEventGiftBoxInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_EVENT_GIFT_BOX, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -121,7 +119,7 @@ Weight_t EventGiftBox::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pEventGiftBoxInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_EVENT_GIFT_BOX, m_ItemType)->getWeight();
 
     __END_CATCH
 }

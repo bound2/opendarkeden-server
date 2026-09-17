@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-OustersStoneInfoManager* g_pOustersStoneInfoManager = NULL;
-
 ItemID_t OustersStone::m_ItemIDRegistry = 0;
 Mutex OustersStone::m_Mutex;
 
@@ -202,7 +199,7 @@ Protection_t OustersStone::getProtectionBonus() const
 ElementalType OustersStone::getElementalType(void) const {
     __BEGIN_TRY
 
-    return g_pOustersStoneInfoManager->getItemInfo(getItemType())->getElementalType();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_STONE, getItemType())->getElementalType();
 
     __END_CATCH
 }
@@ -214,7 +211,7 @@ ElementalType OustersStone::getElementalType(void) const {
 Elemental_t OustersStone::getElemental(void) const {
     __BEGIN_TRY
 
-    return g_pOustersStoneInfoManager->getItemInfo(getItemType())->getElemental();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_STONE, getItemType())->getElemental();
 
     __END_CATCH
 }
@@ -306,7 +303,8 @@ void OustersStoneLoader::load(Creature* pCreature)
             pOustersStone->setObjectID(rows[r].objectID);
             pOustersStone->setItemType(rows[r].itemType);
 
-            if (g_pOustersStoneInfoManager->getItemInfo(pOustersStone->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_STONE, pOustersStone->getItemType())
+                    ->isUnique())
                 pOustersStone->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

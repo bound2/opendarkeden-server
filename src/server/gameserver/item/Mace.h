@@ -185,8 +185,6 @@ public:
     virtual void load();
 };
 
-extern MaceInfoManager* g_pMaceInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class MaceFactory

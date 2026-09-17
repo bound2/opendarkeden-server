@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-KeyInfoManager* g_pKeyInfoManager = NULL;
-
 ItemID_t Key::m_ItemIDRegistry = 0;
 Mutex Key::m_Mutex;
 
@@ -159,7 +156,7 @@ VolumeWidth_t Key::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pKeyInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_KEY, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -173,7 +170,7 @@ VolumeHeight_t Key::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pKeyInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_KEY, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -187,7 +184,7 @@ Weight_t Key::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pKeyInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_KEY, m_ItemType)->getWeight();
 
     __END_CATCH
 }

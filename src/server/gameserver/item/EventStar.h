@@ -139,7 +139,6 @@ public:
     virtual void load();
 };
 
-extern EventStarInfoManager* g_pEventStarInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class EventStarFactory

@@ -138,8 +138,6 @@ public:
     virtual void load();
 };
 
-extern CoatInfoManager* g_pCoatInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class CoatFactory

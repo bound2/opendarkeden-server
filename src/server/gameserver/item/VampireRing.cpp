@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-VampireRingInfoManager* g_pVampireRingInfoManager = NULL;
-
 ItemID_t VampireRing::m_ItemIDRegistry = 0;
 Mutex VampireRing::m_Mutex;
 
@@ -277,7 +274,7 @@ void VampireRingLoader::load(Creature* pCreature)
             pVampireRing->setObjectID(rows[r].objectID);
             pVampireRing->setItemType(rows[r].itemType);
 
-            if (g_pVampireRingInfoManager->getItemInfo(pVampireRing->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_RING, pVampireRing->getItemType())->isUnique())
                 pVampireRing->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

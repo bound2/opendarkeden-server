@@ -174,8 +174,6 @@ public:
     virtual void load();
 };
 
-extern VampireWeaponInfoManager* g_pVampireWeaponInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class VampireWeaponFactory

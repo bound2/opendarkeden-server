@@ -102,7 +102,6 @@ public:
     virtual void load();
 };
 
-extern PetItemInfoManager* g_pPetItemInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class PetItemFactory

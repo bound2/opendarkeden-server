@@ -20,8 +20,6 @@
 ItemID_t OustersSummonItem::m_ItemIDRegistry = 0;
 Mutex OustersSummonItem::m_Mutex;
 
-OustersSummonItemInfoManager* g_pOustersSummonItemInfoManager = NULL;
-
 //////////////////////////////////////////////////////////////////////////////
 // class OustersSummonItem member methods
 //////////////////////////////////////////////////////////////////////////////
@@ -97,7 +95,7 @@ VolumeWidth_t OustersSummonItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pOustersSummonItemInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_SUMMON_ITEM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -107,7 +105,7 @@ VolumeHeight_t OustersSummonItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pOustersSummonItemInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_SUMMON_ITEM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -117,7 +115,7 @@ Weight_t OustersSummonItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pOustersSummonItemInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_SUMMON_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -141,8 +139,8 @@ int OustersSummonItem::getMaxCharge(void) const
 {
     __BEGIN_TRY
 
-    OustersSummonItemInfo* pInfo =
-        dynamic_cast<OustersSummonItemInfo*>(g_pOustersSummonItemInfoManager->getItemInfo(m_ItemType));
+    OustersSummonItemInfo* pInfo = dynamic_cast<OustersSummonItemInfo*>(
+        g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_SUMMON_ITEM, m_ItemType));
     Assert(pInfo != NULL);
     return pInfo->getMaxCharge();
 

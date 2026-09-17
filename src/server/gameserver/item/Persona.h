@@ -105,7 +105,6 @@ public:
 };
 
 // global variable declaration
-extern PersonaInfoManager* g_pPersonaInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

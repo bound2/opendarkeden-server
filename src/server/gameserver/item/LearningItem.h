@@ -100,7 +100,6 @@ public:
 };
 
 // global variable declaration
-extern LearningItemInfoManager* g_pLearningItemInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

@@ -18,8 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-MixingItemInfoManager* g_pMixingItemInfoManager = NULL;
-
 ItemID_t MixingItem::m_ItemIDRegistry = 0;
 Mutex MixingItem::m_Mutex;
 
@@ -106,7 +104,7 @@ VolumeWidth_t MixingItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pMixingItemInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MIXING_ITEM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -116,7 +114,7 @@ VolumeHeight_t MixingItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pMixingItemInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MIXING_ITEM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -126,7 +124,7 @@ Weight_t MixingItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pMixingItemInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MIXING_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }

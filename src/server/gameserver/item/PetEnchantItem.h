@@ -124,7 +124,6 @@ public:
     virtual void load();
 };
 
-extern PetEnchantItemInfoManager* g_pPetEnchantItemInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class PetEnchantItemFactory

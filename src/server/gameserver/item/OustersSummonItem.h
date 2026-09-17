@@ -123,8 +123,6 @@ public:
     virtual void load();
 };
 
-extern OustersSummonItemInfoManager* g_pOustersSummonItemInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class OustersSummonItemFactory

@@ -20,9 +20,6 @@
 #include "ZoneGroupManager.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-ComposMeiInfoManager* g_pComposMeiInfoManager = NULL;
-
 ItemID_t ComposMei::m_ItemIDRegistry = 0;
 Mutex ComposMei::m_Mutex;
 
@@ -181,7 +178,8 @@ int ComposMei::getHPAmount(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(g_pComposMeiInfoManager->getItemInfo(getItemType()));
+    ComposMeiInfo* pInfo =
+        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getHPAmount();
 
     __END_CATCH
@@ -192,7 +190,8 @@ int ComposMei::getMPAmount(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(g_pComposMeiInfoManager->getItemInfo(getItemType()));
+    ComposMeiInfo* pInfo =
+        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getMPAmount();
 
     __END_CATCH
@@ -203,7 +202,8 @@ int ComposMei::getHPDelay(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(g_pComposMeiInfoManager->getItemInfo(getItemType()));
+    ComposMeiInfo* pInfo =
+        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getHPDelay();
 
     __END_CATCH
@@ -214,7 +214,8 @@ int ComposMei::getMPDelay(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(g_pComposMeiInfoManager->getItemInfo(getItemType()));
+    ComposMeiInfo* pInfo =
+        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getMPDelay();
 
     __END_CATCH
@@ -225,7 +226,8 @@ int ComposMei::getHPQuantity(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(g_pComposMeiInfoManager->getItemInfo(getItemType()));
+    ComposMeiInfo* pInfo =
+        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getHPQuantity();
 
     __END_CATCH
@@ -236,7 +238,8 @@ int ComposMei::getMPQuantity(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(g_pComposMeiInfoManager->getItemInfo(getItemType()));
+    ComposMeiInfo* pInfo =
+        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getMPQuantity();
 
     __END_CATCH
@@ -247,7 +250,8 @@ int ComposMei::getHPRecoveryUnit(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(g_pComposMeiInfoManager->getItemInfo(getItemType()));
+    ComposMeiInfo* pInfo =
+        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getHPRecoveryUnit();
 
     __END_CATCH
@@ -258,7 +262,8 @@ int ComposMei::getMPRecoveryUnit(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(g_pComposMeiInfoManager->getItemInfo(getItemType()));
+    ComposMeiInfo* pInfo =
+        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getMPRecoveryUnit();
 
     __END_CATCH

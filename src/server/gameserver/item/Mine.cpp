@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-MineInfoManager* g_pMineInfoManager = NULL;
-
 ItemID_t Mine::m_ItemIDRegistry = 0;
 Mutex Mine::m_Mutex;
 
@@ -124,7 +121,7 @@ VolumeWidth_t Mine::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pMineInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MINE, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -138,7 +135,7 @@ VolumeHeight_t Mine::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pMineInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MINE, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -152,7 +149,7 @@ Weight_t Mine::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pMineInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MINE, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -162,7 +159,7 @@ Damage_t Mine::getMinDamage() const
 {
     __BEGIN_TRY
 
-    return g_pMineInfoManager->getItemInfo(m_ItemType)->getMinDamage();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MINE, m_ItemType)->getMinDamage();
 
     __END_CATCH
 }
@@ -172,7 +169,7 @@ Damage_t Mine::getMaxDamage() const
 {
     __BEGIN_TRY
 
-    return g_pMineInfoManager->getItemInfo(m_ItemType)->getMaxDamage();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MINE, m_ItemType)->getMaxDamage();
 
     __END_CATCH
 }

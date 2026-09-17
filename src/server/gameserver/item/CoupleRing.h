@@ -135,7 +135,6 @@ public:
     virtual void load();
 };
 
-extern CoupleRingInfoManager* g_pCoupleRingInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class CoupleRingFactory

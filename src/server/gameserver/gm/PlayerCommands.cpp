@@ -561,7 +561,7 @@ void opfun(GamePlayer* pGamePlayer, string msg, int i) {
         int ItemNum = value2;
 
         ItemType = max(0, ItemType);
-        ItemType = min((int)g_pMineInfoManager->getInfoCount() - 1, ItemType);
+        ItemType = min((int)g_pItemInfoManager->getItemCount(Item::ITEM_CLASS_MINE) - 1, ItemType);
 
         ItemNum = max(1, ItemNum);
         ItemNum = min(36, ItemNum);

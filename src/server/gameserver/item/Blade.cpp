@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-BladeInfoManager* g_pBladeInfoManager = NULL;
-
 ItemID_t Blade::m_ItemIDRegistry = 0;
 Mutex Blade::m_Mutex;
 
@@ -299,7 +296,7 @@ void BladeLoader::load(Creature* pCreature)
             pBlade->setObjectID(rows[r].objectID);
             pBlade->setItemType(rows[r].itemType);
 
-            if (g_pBladeInfoManager->getItemInfo(pBlade->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BLADE, pBlade->getItemType())->isUnique())
                 pBlade->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

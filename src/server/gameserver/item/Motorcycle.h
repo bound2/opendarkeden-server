@@ -155,7 +155,6 @@ public:
 };
 
 // global variable declaration
-extern MotorcycleInfoManager* g_pMotorcycleInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

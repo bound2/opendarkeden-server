@@ -18,8 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-DyePotionInfoManager* g_pDyePotionInfoManager = NULL;
-
 ItemID_t DyePotion::m_ItemIDRegistry = 0;
 Mutex DyePotion::m_Mutex;
 

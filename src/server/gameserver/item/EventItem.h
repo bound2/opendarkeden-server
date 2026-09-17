@@ -95,7 +95,6 @@ public:
     virtual void load();
 };
 
-extern EventItemInfoManager* g_pEventItemInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class EventItemFactory

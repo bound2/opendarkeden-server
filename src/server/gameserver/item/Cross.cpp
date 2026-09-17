@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-CrossInfoManager* g_pCrossInfoManager = NULL;
-
 ItemID_t Cross::m_ItemIDRegistry = 0;
 Mutex Cross::m_Mutex;
 
@@ -209,7 +206,7 @@ MP_t Cross::getMPBonus() const
 {
     __BEGIN_TRY
 
-    return g_pCrossInfoManager->getItemInfo(getItemType())->getMPBonus();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CROSS, getItemType())->getMPBonus();
 
     __END_CATCH
 }
@@ -314,7 +311,7 @@ void CrossLoader::load(Creature* pCreature)
             pCross->setObjectID(rows[r].objectID);
             pCross->setItemType(rows[r].itemType);
 
-            if (g_pCrossInfoManager->getItemInfo(pCross->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CROSS, pCross->getItemType())->isUnique())
                 pCross->setUnique();
 
             Storage storage = (Storage)rows[r].storage;
