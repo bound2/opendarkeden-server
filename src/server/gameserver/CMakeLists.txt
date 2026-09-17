@@ -435,6 +435,7 @@ set(GAMESERVER_MAIN_SOURCES
     CreatureManager.cpp
     DarkLightInfo.cpp
     Corpse.cpp
+    GameContext.cpp
     GamePlayer.cpp
     GameServer.cpp
     IncomingPlayerManager.cpp

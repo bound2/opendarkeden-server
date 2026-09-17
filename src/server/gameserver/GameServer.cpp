@@ -14,12 +14,14 @@
 #include "BillingPlayerManager.h"
 #include "ClientManager.h"
 #include "DatabaseManager.h"
+#include "GameContext.h"
 #include "GameServerInfoManager.h"
 #include "LogClient.h"
 #include "LoginServerManager.h"
 #include "ObjectManager.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
+#include "Properties.h"
 #include "SharedServerManager.h"
 #include "SystemAPI.h"
 #include "ThreadManager.h"
@@ -43,8 +45,13 @@ GameServer::GameServer()
     __BEGIN_TRY
 
     try {
+        // The configuration is loaded before the server object exists, so it
+        // is registered first; every manager below registers as it is created.
+        de::gameContext().setConfig(g_pConfig);
+
         // create database manager
         g_pDatabaseManager = new DatabaseManager();
+        de::gameContext().setDatabaseManager(g_pDatabaseManager);
 
         // create object manager
         g_pObjectManager = new ObjectManager();
