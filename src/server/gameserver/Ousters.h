@@ -614,8 +614,6 @@ public:
     bool canLearnSkill(SkillType_t skill);
 
 public:
-    virtual bool isWithinFreePlayLimit() const;
-
     void initPetQuestTarget();
     int getBloodBibleSignOpenNum() const;
 

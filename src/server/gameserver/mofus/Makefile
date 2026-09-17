@@ -20,7 +20,6 @@ SERVDIR  = $(SRCDIR)/server
 DBDIR    = $(SERVDIR)/database
 GSDIR    = $(SERVDIR)/gameserver
 LSDIR    = $(SERVDIR)/loginserver
-BILLDIR  = $(GSDIR)/billing
 MYSQLDIR = /usr/local/lib/mysql
 
 

@@ -59,7 +59,6 @@ void oplog(GamePlayer* pPlayer, std::string msg, int i);
 // Relays the message to the other game servers: the same world only, or all
 // of them.
 void opworld(GamePlayer* pPlayer, std::string msg, int i, bool bSameWorldOnly);
-void opbillingdisconnect();
 // The two reports the client sends as chat: both name the creature as well,
 // because the row they write carries the character name beside the account.
 void opbugreport(Creature* pCreature, GamePlayer* pPlayer, std::string msg, int i);

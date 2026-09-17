@@ -9,7 +9,6 @@
 
 #include <list>
 
-#include "BillingPlayerManager.h"
 #include "CastleInfoManager.h"
 #include "ClientManager.h"
 #include "CombatInfoManager.h"
@@ -1318,8 +1317,6 @@ void opworld(GamePlayer* pGamePlayer, string msg, int i, bool bSameWorldOnly) {
 
     __END_DEBUG_EX __END_CATCH
 }
-
-void opbillingdisconnect() {}
 
 void opbugreport(Creature* pCreature, GamePlayer* pGamePlayer, string msg, int i) {
     size_t j = msg.find_first_of(' ', i + 1);

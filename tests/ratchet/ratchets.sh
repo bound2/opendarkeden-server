@@ -34,7 +34,7 @@ check_ratchet() {
 
 # --- R1: g_p* global-singleton extern declarations -------------------------
 R1=$(grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R1 "global singleton externs" 266 "$R1"
+check_ratchet R1 "global singleton externs" 265 "$R1"
 
 # --- R2: files with inline SQL in the gameserver root ----------------------
 R2=$(grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h 2>/dev/null | wc -l)
@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5473 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5437 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -82,7 +82,7 @@ check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5473 "$R5"
 # SkillFormula.cpp computeOutput extraction (the doc's 08-29 numbers
 # predate the clang-format-18 pass and are superseded).
 R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
-check_ratchet R6a "SkillUtil.cpp lines" 6642 "$R6a"
+check_ratchet R6a "SkillUtil.cpp lines" 6626 "$R6a"
 R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
 check_ratchet R6b "InitAllStat.cpp lines" 4787 "$R6b"
 R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)
@@ -114,11 +114,11 @@ check_ratchet R6g "Zone.cpp lines" 1472 "$R6g"
 # enum, a skill slot class or a persistence record type that is per-race, so
 # they shrink again only when one of those types is reconciled.
 R6h=$(wc -l < src/server/gameserver/Slayer.cpp 2>/dev/null || echo missing)
-check_ratchet R6h "Slayer.cpp lines" 3597 "$R6h"
+check_ratchet R6h "Slayer.cpp lines" 3593 "$R6h"
 R6i=$(wc -l < src/server/gameserver/Vampire.cpp 2>/dev/null || echo missing)
-check_ratchet R6i "Vampire.cpp lines" 2316 "$R6i"
+check_ratchet R6i "Vampire.cpp lines" 2312 "$R6i"
 R6j=$(wc -l < src/server/gameserver/Ousters.cpp 2>/dev/null || echo missing)
-check_ratchet R6j "Ousters.cpp lines" 2187 "$R6j"
+check_ratchet R6j "Ousters.cpp lines" 2183 "$R6j"
 
 # --- R7: pre-C++17 dynamic exception specifications ------------------------
 # The migration also normalized real `throw(expr)` expressions to `throw expr`

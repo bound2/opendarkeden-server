@@ -12,7 +12,6 @@
 #include <fstream>
 #include <list>
 
-#include "BillingPlayerManager.h"
 #include "CastleInfoManager.h"
 #include "CreatureUtil.h"
 #include "EffectGhost.h"
@@ -193,7 +192,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     string payPlayDate;
     uint payPlayHours;
     uint payPlayFlag;
-    int billingUserKey = 0; // by sigi. 2002.11.18
     string familyPayPlayDate;
 
 
@@ -262,12 +260,10 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         payPlayDate = session.payPlayDate;
         payPlayHours = session.payPlayHours;
         payPlayFlag = session.payPlayFlag;
-        billingUserKey = session.billingUserKey;
         familyPayPlayDate = session.familyPayPlayDate;
 
         pGamePlayer->setServerGroupID(GID);
         pGamePlayer->setSpecialEventCount(scount);
-        pGamePlayer->setBillingUserKey(billingUserKey);
 
         if (logon != "LOGOFF") {
             char str[80];

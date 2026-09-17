@@ -20,7 +20,6 @@ COREDIR = ../../Core
 SERVDIR = ..
 DBDIR   = ../database
 MYSQLDIR = /usr/local/lib/mysql
-BILLINGDIR = ../gameserver/billing
 
 #----------------------------------------------------------------------
 # General Rules
@@ -29,11 +28,11 @@ BILLINGDIR = ../gameserver/billing
 
 CC       = g++
 DEFS     = -D__LINUX__ -D_REENTRANT -D__LOGIN_SERVER__
-INCLUDES = -I$(STLDIR) -I$(COREDIR) -I$(SERVDIR) -I$(DBDIR) -I$(DBINCDIR) -I$(BILLINGDIR) -I.
+INCLUDES = -I$(STLDIR) -I$(COREDIR) -I$(SERVDIR) -I$(DBDIR) -I$(DBINCDIR) -I.
 CCFLAGS  = -Wall -c -g  
 #CCFLAGS  = -Wall -c -g 
-# LIBS     = -L$(LIBDIR) -lLoginServerDatabase -lLoginServerPackets -lServerCore -lCore -lLoginServerBilling -lcpsso
-LIBS     = -L$(LIBDIR) -lLoginServerDatabase -lLoginServerPackets -lServerCore -lCore -lLoginServerBilling
+# LIBS     = -L$(LIBDIR) -lLoginServerDatabase -lLoginServerPackets -lServerCore -lCore -lcpsso
+LIBS     = -L$(LIBDIR) -lLoginServerDatabase -lLoginServerPackets -lServerCore -lCore
 # SYSLIBS  = -L$(MYSQLDIR) -static -lmysqlclient -lpthread -lnsl -lz
 SYSLIBS  = -L$(MYSQLDIR) -lmysqlclient -lpthread -lnsl -lz -ldl
 

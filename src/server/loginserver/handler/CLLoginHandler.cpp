@@ -65,7 +65,6 @@
 #include "PasswordHash.h"
 #include "Properties.h"
 #include "UserInfoManager.h"
-#include "gameserver/billing/BillingPlayerManager.h"
 #include "repository/LoginAccountRepository.h"
 #include "types/ServerType.h"
 

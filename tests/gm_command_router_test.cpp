@@ -112,7 +112,6 @@ std::vector<Expected> expectedOperatorCommands() {
         {"grant", 5, Permission::God, "opgrant"},
         {"command", 7, Permission::God, "opcommand"},
         {"fun", 3, Permission::God, "opfun"},
-        {"billing disconnect", 18, Permission::God, "opbillingdisconnect"},
         {"recall", 6, Permission::God, "oprecall"},
         {"user", 4, Permission::God, "opuser"},
         {"set", 3, Permission::God, "opset"},
@@ -225,9 +224,6 @@ void opcommand(GamePlayer*, std::string msg, int i) {
 }
 void opfun(GamePlayer*, std::string msg, int i) {
     record("opfun", msg, i);
-}
-void opbillingdisconnect() {
-    record("opbillingdisconnect", "", 0);
 }
 void oprecall(GamePlayer*, std::string msg, int i) {
     record("oprecall", msg, i);

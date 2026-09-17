@@ -89,7 +89,6 @@
 #include "VariableManager.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
-#include "billing/BillingInfo.h"
 #include "mission/EventQuestLootingManager.h"
 #include "mission/MonsterKillQuestStatus.h"
 #include "mission/QuestManager.h"
@@ -113,12 +112,6 @@ public:
             return false;
     }
 };
-
-void checkFreeLevelLimit(PlayerCreature* pPC)
-
-    {__BEGIN_TRY
-
-         __END_CATCH}
 
 //////////////////////////////////////////////////////////////////////////////
 // À¯·áÈ­Á¸ °æÇèÄ¡ »Ç³ª½º
@@ -4833,7 +4826,6 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
             // ·¹º§¾÷ ÀÌÆåÆ®µµ º¸¿©ÁØ´Ù. by sigi. 2002.11.9
             sendEffectLevelUp(pSlayer);
 
-            checkFreeLevelLimit(pSlayer);
             pSlayer->whenQuestLevelUpgrade();
 
             // cout << "·¹º§¾÷ÇØ¼­ ÀÌÆåÆ®µµ Âï¾îÁá½À´Ï´Ù." << endl;
@@ -5012,10 +5004,6 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
         // ·¹º§¾÷ ÀÌÆåÆ®µµ º¸¿©ÁØ´Ù. by sigi. 2002.11.9
         sendEffectLevelUp(pVampire);
 
-        // by sigi. 2002.11.19
-        // À¯·á »ç¿ëÀÚ°¡ ¾Æ´Ï°Å³ª
-        // ¹«·á »ç¿ë±â°£ÀÌ ³²¾ÆÀÖÁö ¾ÊÀ¸¸é(È¤Àº ´É·ÂÄ¡ over) Â¥¸¥´Ù.
-        checkFreeLevelLimit(pVampire);
         pVampire->whenQuestLevelUpgrade();
 
         // GrandMasterÀÎ °æ¿ì´Â Effect¸¦ ºÙ¿©ÁØ´Ù.
@@ -5179,10 +5167,6 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
         // ·¹º§¾÷ ÀÌÆåÆ®µµ º¸¿©ÁØ´Ù. by sigi. 2002.11.9
         sendEffectLevelUp(pOusters);
 
-        // by sigi. 2002.11.19
-        // À¯·á »ç¿ëÀÚ°¡ ¾Æ´Ï°Å³ª
-        // ¹«·á »ç¿ë±â°£ÀÌ ³²¾ÆÀÖÁö ¾ÊÀ¸¸é(È¤Àº ´É·ÂÄ¡ over) Â¥¸¥´Ù.
-        checkFreeLevelLimit(pOusters);
         pOusters->whenQuestLevelUpgrade();
 
         // GrandMasterÀÎ °æ¿ì´Â Effect¸¦ ºÙ¿©ÁØ´Ù.

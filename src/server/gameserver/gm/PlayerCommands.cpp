@@ -510,9 +510,7 @@ void oppay(GamePlayer* pGamePlayer, string msg, int i) {
 
     char str[80];
 
-    if (pGamePlayer->isBillingPlayAvaiable()) {
-        strcpy(str, "[Billing] �ѵ�½��Աϵͳ�����ڽ�����Ϸ��....");
-    } else if (pGamePlayer->isPayPlaying()) {
+    if (pGamePlayer->isPayPlaying()) {
         Timeval currentTime;
         getCurrentTime(currentTime);
         Timeval payTime = pGamePlayer->getPayPlayTime(currentTime);

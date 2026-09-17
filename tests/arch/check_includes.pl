@@ -71,7 +71,7 @@ while (<$kf>) {
 close $kf;
 
 my @core_dirs = map { "src/server/gameserver/$_" }
-    qw(skill item quest war mission couple ctf mofus exchange billing);
+    qw(skill item quest war mission couple ctf mofus exchange);
 
 # C1: forbidden include basenames for core files.
 my %core_forbidden = map { $_ => 1 } qw(

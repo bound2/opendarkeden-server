@@ -18,6 +18,7 @@
 #include "GameServerManager.h"
 #include "GameWorldInfoManager.h"
 #include "ItemDestroyer.h"
+#include "LogClient.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
 #include "ServerShutdown.h"
@@ -25,8 +26,6 @@
 #include "ZoneGroupInfoManager.h"
 #include "ZoneInfoManager.h"
 #include "database/DatabaseManager.h"
-// #include "gameserver/billing/BillingPlayerManager.h"
-#include "LogClient.h"
 
 //////////////////////////////////////////////////////////////////////
 //

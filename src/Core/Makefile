@@ -20,7 +20,6 @@ LSDIR   = $(SERVDIR)/loginserver
 SSDIR   = $(SERVDIR)/sharedserver
 SKILLDIR= $(GSDIR)/skill
 ITEMDIR = $(GSDIR)/item
-BILLINGDIR = $(GSDIR)/billing
 
 #----------------------------------------------------------------------
 # Core Library
@@ -618,7 +617,7 @@ SRCS = $(CORE_SRCS) $(LC_PACKET_SRC) $(LG_PACKET_SRC) $(CL_PACKET_SRC) $(GL_PACK
 
 CC       = g++
 DEFS     = -D__LINUX__ -D_REENTRANT
-INCLUDES = -I./loki -I$(SERVDIR) -I$(DBDIR) -I$(GSDIR) -I$(SKILLDIR) -I$(ITEMDIR) -I$(BILLINGDIR) -I.
+INCLUDES = -I./loki -I$(SERVDIR) -I$(DBDIR) -I$(GSDIR) -I$(SKILLDIR) -I$(ITEMDIR) -I.
 CCFLAGS  = -Wall -c -g  
 
 # .cpp.o : 

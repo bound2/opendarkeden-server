@@ -2278,10 +2278,6 @@ bool Vampire::removeShape(Item::ItemClass IClass, bool bSendPacket) {
     return bisChange;
 }
 
-bool Vampire::isWithinFreePlayLimit() const {
-    return m_Level <= g_pVariableManager->getVariable(FREE_PLAY_VAMPIRE_LEVEL);
-}
-
 
 void Vampire::initPetQuestTarget() {
     int minClass = 1, maxClass = 1;

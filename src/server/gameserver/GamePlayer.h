@@ -23,7 +23,6 @@
 #include "SocketEncryptOutputStream.h"
 #include "Timeval.h"
 #include "Types.h"
-#include "billing/BillingPlayerInfo.h"
 #include "skill/Skill.h"
 
 // #include "gameguard/CSAuth.h"
@@ -45,7 +44,7 @@
 
 class Creature;
 
-class GamePlayer : public Player, public PaySystem, public BillingPlayerInfo {
+class GamePlayer : public Player, public PaySystem {
 public:
     // 저장해 놓을 이전 패킷의 개수
     const static BYTE nPacketHistorySize = 10;
@@ -195,11 +194,6 @@ public:
     }
 
 public:
-    void setBillingSession() {
-        BillingPlayerInfo::setBillingSession(this);
-    }
-    bool sendBillingLogin();
-
     // 패킷 암호화 관련
     // by sigi. 2002.11.27
     void setEncryptCode();
@@ -221,13 +215,6 @@ public:
     void logoutPayPlay(const string& playerID, bool bClear = false, bool bDecreaseTime = true);
 
     bool isPayPlaying() const;
-
-    bool isMetroFreePlayer() const {
-        return m_bMetroFreePlayer;
-    }
-    void setMetroFreePlayer(bool bMetroFreePlayer = true) {
-        m_bMetroFreePlayer = bMetroFreePlayer;
-    }
 
     int getItemRatioBonusPoint(void) const {
         return m_ItemRatioBonusPoint;
@@ -294,9 +281,6 @@ private:
     GCReconnectLogin* m_pReconnectPacket;
 
     bool m_bFreePass;
-
-    // 빌링 시스템에 연결하지 않고 유료 플레이 하기
-    bool m_bMetroFreePlayer;
 
     // 각 사용자별 아이템 획득 보너스 확률
     int m_ItemRatioBonusPoint;

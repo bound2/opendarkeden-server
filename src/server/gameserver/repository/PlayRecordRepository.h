@@ -85,10 +85,6 @@ public:
     // Statement. True with the count when the read-back answered (it always
     // does after the REPLACE).
     virtual bool addLotto(const std::string& playerID, BYTE type, uint num, int& count) = 0;
-    // INSERT INTO UnderworldEvent (WorldID, ServerID, PlayerID, CharacterID,
-    // KillTime=now()). Nothing calls it.
-    virtual void insertUnderworldKill(int worldID, int serverID, const std::string& playerID,
-                                      const std::string& characterName) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in

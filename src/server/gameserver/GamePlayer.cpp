@@ -11,8 +11,6 @@
 #include <fstream>
 
 #include "Assert.h"
-#include "BillingInfo.h"
-#include "BillingPlayerManager.h"
 #include "CGConnect.h"
 #include "Creature.h"
 #include "EventKick.h"
@@ -120,8 +118,6 @@ GamePlayer::GamePlayer(Socket* pSocket)
     m_bKickForLogin = false;
 
     m_bFreePass = false;
-
-    m_bMetroFreePlayer = false;
 
     //	if ( m_bPCRoomPlay )
     //		m_ItemRatioBonusPoint = g_pVariableManager->getPCRoomItemRatioBonusPercent();
@@ -1262,40 +1258,6 @@ void GamePlayer::saveSpecialEventCount(void) {
     __BEGIN_TRY
 
     defaultSessionRepository().saveSpecialEventCount(m_SpecialEventCount, m_ID);
-
-    __END_CATCH
-}
-
-bool GamePlayer::sendBillingLogin() {
-    __BEGIN_TRY
-
-    if (!m_ID.empty() && m_ID != "NONE") {
-        Timeval currentTime;
-        getCurrentTime(currentTime);
-
-        if (currentTime > m_BillingNextLoginRequestTime) {
-            g_pBillingPlayerManager->sendPayLogin(this);
-
-            Timeval afterTime;
-            getCurrentTime(afterTime);
-
-            // Log the call when it takes more than a second.
-            if (afterTime.tv_sec > currentTime.tv_sec + 1) {
-                filelog("billingLoginTime.txt", "PlayerID : %s, CallTime : %d sec, Try : %d", m_ID.c_str(),
-                        (int)(afterTime.tv_sec - currentTime.tv_sec), m_BillingLoginRequestCount);
-            }
-
-            // Remember how many times PayLogin was requested.
-            m_BillingLoginRequestCount++;
-
-            // Check again after 60 seconds.
-            m_BillingNextLoginRequestTime.tv_sec = currentTime.tv_sec + 60;
-        }
-
-        return true;
-    }
-
-    return false;
 
     __END_CATCH
 }

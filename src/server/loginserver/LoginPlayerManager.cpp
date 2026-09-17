@@ -21,7 +21,6 @@
 #include "ReconnectLoginInfoManager.h"
 #include "Socket.h"
 #include "SocketAPI.h"
-#include "gameserver/billing/BillingInfo.h"
 #include "repository/LoginAccountRepository.h"
 
 

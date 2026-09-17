@@ -946,23 +946,6 @@ void PlayerCreature::increaseRankExp(RankExp_t Point) {
     }
 }
 
-bool PlayerCreature::isBillingPlayAvaiable()
-
-{
-    __BEGIN_TRY
-
-    if (m_pPlayer == NULL)
-        return false;
-
-    GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayer);
-    Assert(pGamePlayer != NULL);
-
-    return pGamePlayer->isBillingPlayAvaiable();
-
-    __END_CATCH
-}
-
-
 bool PlayerCreature::isPayPlayAvaiable()
 
 {
@@ -978,16 +961,6 @@ bool PlayerCreature::isPayPlayAvaiable()
     __END_CATCH
 }
 
-
-bool PlayerCreature::canPlayFree()
-
-{
-    __BEGIN_TRY
-
-    return isWithinFreePlayLimit();
-
-    __END_CATCH
-}
 
 void PlayerCreature::loadGoods()
 
