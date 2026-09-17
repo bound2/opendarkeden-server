@@ -1219,8 +1219,30 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   `GameContext` owning the managers; converted subsystems take it (or narrow
   interfaces) explicitly; the old `g_p*` externs become shims into it until
   their last caller is converted. Ratchet R1.
-  > **Status:** not started
+  > **Status:** in progress — `src/server/gameserver/GameContext.h` is a
+  > registry of non-owning pointers to eight managers (`Properties`,
+  > `DatabaseManager`, `ItemFactoryManager`, `PCFinder`, `StringPool`,
+  > `VariableManager`, `ZoneGroupManager`, `ZoneInfoManager`), each
+  > registered by the code that creates it — `GameServer`'s constructor for
+  > the config and the database manager, `ObjectManager`'s for the world
+  > ones — and read back through an accessor that asserts the manager is
+  > there, a null one being a startup-order bug rather than a condition to
+  > branch on. Ownership is untouched: the same `new` and `SAFE_DELETE`
+  > sites. `ctf/` is the first converted subsystem — `FlagManager` takes the
+  > context, `FlagWar`/`NewbieFlagWar` take their `FlagManager` and the
+  > context, and none of the three files reads a global any more.
+  > `de::gameContext()` is the shim the creation sites and the unconverted
+  > callers reach the context through; a converted subsystem is handed the
+  > context and never calls it. `game_context_tests` builds a context over
+  > stand-in pointers with nothing of the gameserver linked, which is what
+  > the forward-declaration-only header buys and what makes a subsystem
+  > holding a `GameContext&` testable at all. R1 is unmoved at 325: an
+  > `extern` line only goes when a global's *last* caller is converted, and
+  > all four the ctf files read still have callers elsewhere (sixteen files
+  > for `g_pFlagManager` alone). The slices that move R1 are the subsystems
+  > whose own manager is read nowhere else.
   - Owner: R1 ratchet test.
+
 
 **Phase exit criteria:** no hard gate — this phase *is* the ratchets trending
 down. Review checkpoint: when R2 hits 0, close 3.2 and re-baseline R3.
