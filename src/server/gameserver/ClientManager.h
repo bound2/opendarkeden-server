@@ -54,7 +54,4 @@ private:
     EventManager m_EventManager;
 };
 
-// glabal variable declaration
-extern ClientManager* g_pClientManager;
-
 #endif

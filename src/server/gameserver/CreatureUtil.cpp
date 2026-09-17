@@ -34,6 +34,7 @@
 #include "GCNotifyWin.h"
 #include "GCPetInfo.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameWorldInfoManager.h"
 #include "Inventory.h"
@@ -2085,8 +2086,9 @@ void deletePC(PlayerCreature* pPC) {
 
 bool isAffectExp2X() {
     if (g_pVariableManager->getVariable(TIME_PERIOD_EXP_2X) != 0) {
-        if (g_pTimeChecker->isInPeriod(TIME_PERIOD_AFTER_SCHOOL) ||
-            g_pTimeChecker->isInPeriod(TIME_PERIOD_AFTER_WORK) || g_pTimeChecker->isInPeriod(TIME_PERIOD_MIDNIGHT)) {
+        TimeChecker& timeChecker = de::gameContext().timeChecker();
+        if (timeChecker.isInPeriod(TIME_PERIOD_AFTER_SCHOOL) || timeChecker.isInPeriod(TIME_PERIOD_AFTER_WORK) ||
+            timeChecker.isInPeriod(TIME_PERIOD_MIDNIGHT)) {
             return true;
         }
     }

@@ -24,6 +24,7 @@
 #include "GCModifyInformation.h"
 #include "GCNoticeEvent.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "NPC.h"
 #include "NPCManager.h"
@@ -532,7 +533,7 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
         // Apply the Holy Land Race Bonus to players immediately.
         EventRefreshHolyLandPlayer* pEvent = new EventRefreshHolyLandPlayer(NULL);
         pEvent->setDeadline(0);
-        g_pClientManager->addEvent(pEvent);
+        de::gameContext().clients().addEvent(pEvent);
 
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setType(SYSTEM_MESSAGE_HOLY_LAND);
@@ -1211,7 +1212,7 @@ SkillType_t CastleInfoManager::getCastleSkillType(ZoneID_t zoneID, GuildID_t gui
             return SKILL_MAX;
         }
 
-        return g_pCastleSkillInfoManager->getSkillType(zoneID);
+        return de::gameContext().castleSkills().getSkillType(zoneID);
     }
 
     return SKILL_MAX;

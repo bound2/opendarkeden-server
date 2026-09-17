@@ -70,6 +70,4 @@ private:
 };
 
 
-extern TimeChecker* g_pTimeChecker;
-
 #endif

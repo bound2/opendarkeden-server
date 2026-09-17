@@ -36,6 +36,7 @@
 #include "GCSystemMessage.h"
 #include "GDRLairManager.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GoodsInventory.h"
 #include "Guild.h"
@@ -150,8 +151,7 @@ void opBalanceZoneGroup(GamePlayer* pGamePlayer, const string& value1, GCSystemM
     if (value1 == "default")
         defaultZoneGroup = true;
 
-    // balancing
-    g_pClientManager->setBalanceZoneGroup(0, true, defaultZoneGroup);
+    de::gameContext().clients().setBalanceZoneGroup(0, true, defaultZoneGroup);
 
     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_ZONE_GROUP_BALANCING));
 }

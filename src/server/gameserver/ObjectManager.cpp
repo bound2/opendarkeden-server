@@ -151,7 +151,7 @@ ObjectManager::ObjectManager()
     g_pItemInfoManager = new ItemInfoManager();
     g_pItemFactoryManager = new ItemFactoryManager();
     m_pVolumeInfoManager = new VolumeInfoManager();
-    g_pItemLoaderManager = new ItemLoaderManager();
+    m_pItemLoaderManager = new ItemLoaderManager();
     m_pShopTemplateManager = new ShopTemplateManager();
     g_pOptionInfoManager = new OptionInfoManager();
     g_pItemMineInfoManager = new ItemMineInfoManager();
@@ -178,6 +178,7 @@ ObjectManager::ObjectManager()
     context.setVariableManager(g_pVariableManager);
     context.setItemFactoryManager(g_pItemFactoryManager);
     context.setVolumeInfoManager(m_pVolumeInfoManager);
+    context.setItemLoaderManager(m_pItemLoaderManager);
     context.setShopTemplateManager(m_pShopTemplateManager);
     context.setDirectiveSetManager(m_pDirectiveSetManager);
     context.setMonsterNameManager(m_pMonsterNameManager);
@@ -249,8 +250,10 @@ ObjectManager::ObjectManager()
     g_pCoupleManager = new CoupleManager();
     g_pPKZoneInfoManager = new PKZoneInfoManager();
     //	g_pFameLimitInfoManager = new FameLimitInfoManager();
-    g_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
-    g_pCastleSkillInfoManager = new CastleSkillInfoManager();
+    m_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
+    context.setGameServerGroupInfoManager(m_pGameServerGroupInfoManager);
+    m_pCastleSkillInfoManager = new CastleSkillInfoManager();
+    context.setCastleSkillInfoManager(m_pCastleSkillInfoManager);
 
     m_pGoodsInfoManager = new GoodsInfoManager();
     context.setGoodsInfoManager(m_pGoodsInfoManager);
@@ -268,7 +271,8 @@ ObjectManager::ObjectManager()
     g_pSweeperBonusManager = new SweeperBonusManager();
     m_pDragonEyeManager = new DragonEyeManager();
     context.setDragonEyeManager(m_pDragonEyeManager);
-    g_pTimeChecker = new TimeChecker();
+    m_pTimeChecker = new TimeChecker();
+    context.setTimeChecker(m_pTimeChecker);
     m_pDynamicZoneInfoManager = new DynamicZoneInfoManager();
     context.setDynamicZoneInfoManager(m_pDynamicZoneInfoManager);
     g_pDynamicZoneManager = new DynamicZoneManager();
@@ -308,7 +312,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(g_pSkillHandlerManager);
     SAFE_DELETE(g_pItemFactoryManager);
     SAFE_DELETE(m_pVolumeInfoManager);
-    SAFE_DELETE(g_pItemLoaderManager);
+    SAFE_DELETE(m_pItemLoaderManager);
     //	SAFE_DELETE(g_pSTRBalanceInfoManager);
     //	SAFE_DELETE(g_pDEXBalanceInfoManager);
     //	SAFE_DELETE(g_pINTBalanceInfoManager);
@@ -349,8 +353,8 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(g_pCoupleManager);
     SAFE_DELETE(g_pPKZoneInfoManager);
     //	SAFE_DELETE(g_pFameLimitInfoManager);
-    SAFE_DELETE(g_pGameServerGroupInfoManager);
-    SAFE_DELETE(g_pCastleSkillInfoManager);
+    SAFE_DELETE(m_pGameServerGroupInfoManager);
+    SAFE_DELETE(m_pCastleSkillInfoManager);
 
     SAFE_DELETE(m_pGoodsInfoManager);
     SAFE_DELETE(m_pEventQuestLootingManager);
@@ -364,7 +368,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(g_pLevelWarZoneInfoManager);
     SAFE_DELETE(g_pSweeperBonusManager);
     SAFE_DELETE(m_pDragonEyeManager);
-    SAFE_DELETE(g_pTimeChecker);
+    SAFE_DELETE(m_pTimeChecker);
 
     SAFE_DELETE(m_pDynamicZoneInfoManager);
     SAFE_DELETE(g_pDynamicZoneManager);
@@ -454,7 +458,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : ItemFactory Initialization Success\n");
 
     printf("ObjectManager::init() : ItemLoaderManager Initialization Start\n");
-    g_pItemLoaderManager->init();
+    m_pItemLoaderManager->init();
     printf("ObjectManager::init() : ItemLoaderManager Initialization Success\n");
 
     printf("ObjectManager::init() : DarkLightInfoManager Initialization Start\n");
@@ -533,7 +537,7 @@ void ObjectManager::init()
     printf("ObjectManager::load() : DragonEyeManagerManager Initialization Success\n");
 
     printf("ObjectManager::init() : TimeChecker Initialization Start\n");
-    g_pTimeChecker->init(); // 아무때나 Loading 해도 됨
+    m_pTimeChecker->init(); // 아무때나 Loading 해도 됨
     printf("ObjectManager::init() : TimeChecker Initialization Success\n");
 
 
@@ -682,11 +686,11 @@ void ObjectManager::load()
     //	printf("ObjectManager::load() : FameLimitInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : GameServerGroupInfoManager Initialization Start\n");
-    g_pGameServerGroupInfoManager->init();
+    m_pGameServerGroupInfoManager->init();
     printf("ObjectManager::load() : GameServerGroupInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : CastleSkillInfoManager Initialization Start\n");
-    g_pCastleSkillInfoManager->load();
+    m_pCastleSkillInfoManager->load();
     printf("ObjectManager::load() : CastleSkillInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : GoodsInfoManager Initialization Start\n");
@@ -799,6 +803,3 @@ void ObjectManager::save()
 
     __END_CATCH
 }
-
-// global variable definition
-ObjectManager* g_pObjectManager = NULL;

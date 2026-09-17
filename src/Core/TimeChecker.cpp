@@ -104,6 +104,3 @@ bool TimeChecker::isInPeriod(int type) {
 
     return m_pTimePeriods[type]->isInPeriod();
 }
-
-
-TimeChecker* g_pTimeChecker = NULL;

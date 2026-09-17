@@ -8,6 +8,7 @@
 
 #include "Assert.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "IncomingPlayerManager.h"
 #include "Properties.h"
 #include "ServerShutdown.h"
@@ -25,8 +26,6 @@
 #include "ParkingCenter.h"
 #include "WarSystem.h"
 #include "ctf/FlagManager.h"
-
-ClientManager* g_pClientManager = NULL;
 
 //////////////////////////////////////////////////////////////////////////////
 // constructor
@@ -178,7 +177,7 @@ void ClientManager::run()
         g_pIncomingPlayerManager->heartbeat();
 
         // vstime.start();
-        g_pConnectionInfoManager->heartbeat();
+        de::gameContext().connectionInfos().heartbeat();
         // file << "ConnectionInfoManagerHeartbeat:" << vstime.elapsed() << endl;
 
         // file.close();

@@ -150,6 +150,3 @@ string CastleSkillInfoManager::toString() const
 
     __END_CATCH
 }
-
-// Global Variable definition
-CastleSkillInfoManager* g_pCastleSkillInfoManager = NULL;

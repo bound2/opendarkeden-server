@@ -17,6 +17,7 @@
 
 class ActionFactoryManager;
 class CastleShrineInfoManager;
+class CastleSkillInfoManager;
 class ConditionFactoryManager;
 class DarkLightInfoManager;
 class DefaultOptionSetInfoManager;
@@ -25,7 +26,9 @@ class DragonEyeManager;
 class DynamicZoneFactoryManager;
 class DynamicZoneInfoManager;
 class EventQuestLootingManager;
+class GameServerGroupInfoManager;
 class GoodsInfoManager;
+class ItemLoaderManager;
 class MonsterNameManager;
 class OustersEXPInfoManager;
 class RankBonusInfoManager;
@@ -34,6 +37,7 @@ class ShopTemplateManager;
 class SkillDomainInfoManager;
 class SkillPropertyManager;
 class TelephoneCenter;
+class TimeChecker;
 class UniqueItemManager;
 class VampEXPInfoManager;
 class VisionInfoManager;
@@ -57,6 +61,7 @@ private:
     // rest are reached only from here.
     ActionFactoryManager* m_pActionFactoryManager = nullptr;
     CastleShrineInfoManager* m_pCastleShrineInfoManager = nullptr;
+    CastleSkillInfoManager* m_pCastleSkillInfoManager = nullptr;
     ConditionFactoryManager* m_pConditionFactoryManager = nullptr;
     DarkLightInfoManager* m_pDarkLightInfoManager = nullptr;
     DefaultOptionSetInfoManager* m_pDefaultOptionSetInfoManager = nullptr;
@@ -65,7 +70,9 @@ private:
     DynamicZoneFactoryManager* m_pDynamicZoneFactoryManager = nullptr;
     DynamicZoneInfoManager* m_pDynamicZoneInfoManager = nullptr;
     EventQuestLootingManager* m_pEventQuestLootingManager = nullptr;
+    GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
     GoodsInfoManager* m_pGoodsInfoManager = nullptr;
+    ItemLoaderManager* m_pItemLoaderManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;
     OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
@@ -74,6 +81,7 @@ private:
     SkillDomainInfoManager* m_pSkillDomainInfoManager = nullptr;
     SkillPropertyManager* m_pSkillPropertyManager = nullptr;
     TelephoneCenter* m_pTelephoneCenter = nullptr;
+    TimeChecker* m_pTimeChecker = nullptr;
     UniqueItemManager* m_pUniqueItemManager = nullptr;
     VampEXPInfoManager* m_pVampEXPInfoManager = nullptr;
     VisionInfoManager* m_pVisionInfoManager = nullptr;
@@ -81,8 +89,5 @@ private:
     WayPointManager* m_pWayPointManager = nullptr;
     WeatherInfoManager* m_pWeatherInfoManager = nullptr;
 };
-
-// global variable declaration
-extern ObjectManager* g_pObjectManager;
 
 #endif

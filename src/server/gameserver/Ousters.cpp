@@ -10,6 +10,7 @@
 #include "CreatureUtil.h"
 #include "EffectLoaderManager.h"
 #include "FlagSet.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemInfoManager.h"
 #include "ItemLoaderManager.h"
@@ -128,7 +129,6 @@ Ousters::Ousters()
     getCurrentTime(m_MPRegenTime);
 
     // Reset save counters.
-    //	m_RankExpSaveCount		= 0;
     //	m_RankExpSaveCount		= 0;
     m_ExpSaveCount = 0;
     m_FameSaveCount = 0;
@@ -431,7 +431,7 @@ void Ousters::loadItem(bool checkTimeLimit)
     m_pInventory = new Inventory(10, 6);
     m_pInventory->setOwner(getName());
 
-    g_pItemLoaderManager->load(this);
+    de::gameContext().itemLoaders().load(this);
 
     PlayerCreature::loadGoods();
 
@@ -840,7 +840,7 @@ void Ousters::removeCastleSkill(SkillType_t SkillType)
 {
     __BEGIN_TRY
 
-    if (g_pCastleSkillInfoManager->getZoneID(SkillType) == 0)
+    if (de::gameContext().castleSkills().getZoneID(SkillType) == 0)
         return;
 
     unordered_map<SkillType_t, OustersSkillSlot*>::iterator itr = m_SkillSlot.find(SkillType);
@@ -866,7 +866,7 @@ void Ousters::removeAllCastleSkill()
     while (itr != m_SkillSlot.end()) {
         if (itr->second != NULL) {
             OustersSkillSlot* pSkillSlot = itr->second;
-            if (g_pCastleSkillInfoManager->getZoneID(pSkillSlot->getSkillType()) == 0) {
+            if (de::gameContext().castleSkills().getZoneID(pSkillSlot->getSkillType()) == 0) {
                 ++itr;
                 continue;
             }

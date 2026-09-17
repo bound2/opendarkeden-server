@@ -18,6 +18,7 @@
 #include "GCDeleteInventoryItem.h"
 #include "GCRemoveEffect.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GlobalItemPosition.h"
 #include "GlobalItemPositionLoader.h"
 #include "HolyLandManager.h"
@@ -310,7 +311,7 @@ void ShrineInfoManager::reloadOwner()
         EventRefreshHolyLandPlayer* pEvent = new EventRefreshHolyLandPlayer(NULL);
         pEvent->setDeadline(0);
 
-        g_pClientManager->addEvent_LOCKED(pEvent);
+        de::gameContext().clients().addEvent_LOCKED(pEvent);
     }
 
     __END_CATCH

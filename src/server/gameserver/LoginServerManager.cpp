@@ -15,6 +15,7 @@
 #include "DB.h"
 #include "Datagram.h"
 #include "DatagramPacket.h"
+#include "GameContext.h"
 #include "LogClient.h"
 #include "PacketDispatcher.h"
 #include "Properties.h"
@@ -189,7 +190,7 @@ void LoginServerManager::run() {
             // 타임 체커 업데이트
             // ClientManager 에서는 사용자 가 ClientManager 에 들어가지 않을 경우
             // 돌지 않으므로 여기에 추가
-            g_pTimeChecker->heartbeat();
+            de::gameContext().timeChecker().heartbeat();
         }
     } catch (Throwable& t) {
         filelog("LOGINSERVERMANAGER.log", "LoginServerManager::run() 4 : %s", t.toString().c_str());

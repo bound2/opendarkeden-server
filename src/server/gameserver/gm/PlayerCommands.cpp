@@ -14,6 +14,7 @@
 #include "EffectMute.h"
 #include "GCAddEffect.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerGroupInfoManager.h"
 #include "ItemInfoManager.h"
@@ -346,7 +347,8 @@ void opfind(GamePlayer* pGamePlayer, string msg, int i) {
 
     if (found) {
         ServerID_t ServerID = serverID;
-        string ServerName = g_pGameServerGroupInfoManager->getGameServerGroupInfo(ServerID, WorldID)->getGroupName();
+        GameServerGroupInfoManager& groups = de::gameContext().gameServerGroups();
+        string ServerName = groups.getGameServerGroupInfo(ServerID, WorldID)->getGroupName();
 
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_PLAYER_IN_GAMESERVER), Name.c_str(), ServerName.c_str());

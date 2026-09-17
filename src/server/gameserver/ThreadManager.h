@@ -62,8 +62,4 @@ private:
     ThreadPool* m_pZoneGroupThreadPool;
 };
 
-
-// global variable declaration
-extern ThreadManager* g_pThreadManager;
-
 #endif
