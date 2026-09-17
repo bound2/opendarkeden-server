@@ -235,21 +235,8 @@ Outcome<LoginAccepted, LoginRejection> decideLogin(const LoginRequest& request, 
     if (account.access != "ALLOW")
         return Result::Rejected(refusal(LoginRejectReason::AccessNotAllowed, true));
 
-#ifdef __PAY_SYSTEM_LOGIN__
-    if (!session.loginPayPlay(account.payType, account.payPlayDate, account.payPlayHours, account.payPlayFlag,
-                              request.connectIP, accepted.playerID)) {
-        // The account has not paid.
-        return Result::Rejected(refusal(LoginRejectReason::NotPayAccount, true));
-    }
-#elif defined(__PAY_SYSTEM_FREE_LIMIT__)
-    if (session.loginPayPlay(account.payType, account.payPlayDate, account.payPlayHours, account.payPlayFlag,
-                             request.connectIP, accepted.playerID)) {
-        // Admitted either way.
-    }
-#else
     session.setPayPlayValue(account.payType, account.payPlayDate, account.payPlayHours, account.payPlayFlag,
                             account.familyPayPlayDate);
-#endif
 
     // An account already in a game cannot log in again. LOGON refuses
     // outright; GAME is taken over only from the address that holds it.
@@ -284,8 +271,6 @@ Outcome<LoginAccepted, LoginRejection> decideLogin(const LoginRequest& request, 
     if (request.useNetMarbleAdultFlag)
         accepted.adult = request.netMarbleAdultFlag;
 
-#ifndef __CONNECT_BILLING_SYSTEM__
-
     if (account.payType == 0) {
         accepted.lastDays = 0xfffe;
     } else {
@@ -317,7 +302,6 @@ Outcome<LoginAccepted, LoginRejection> decideLogin(const LoginRequest& request, 
         accepted.grantPremiumWeek = true;
         accepted.lastDays = 0xfffd;
     }
-#endif
 
     accepted.next = LoginNextStep::LoginOK;
     return Result::Ok(std::move(accepted));

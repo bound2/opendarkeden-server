@@ -116,41 +116,9 @@ public:
 
 void checkFreeLevelLimit(PlayerCreature* pPC)
 
-{
-    __BEGIN_TRY
+    {__BEGIN_TRY
 
-    //	static const char MsgLevelLimitOver[] = "¹«·á·Î »ç¿ëÇÒ ¼ö ÀÖ´Â ·¹º§ Á¦ÇÑ¿¡ µµ´ÞÇØ¼­";
-
-    // by sigi. 2002.11.19
-    // À¯·á »ç¿ëÀÚ°¡ ¾Æ´Ï°Å³ª
-    // ¹«·á »ç¿ë±â°£ÀÌ ³²¾ÆÀÖÁö ¾ÊÀ¸¸é(È¤Àº ´É·ÂÄ¡ over) Â¥¸¥´Ù.
-    // ¾Öµåºô ºô¸µ ½Ã½ºÅÛÀº »ç¿ëÇÏÁö ¾Ê°í »ç¿ëÀÚ Á¦ÇÑÀº ÇÏ´Â °æ¿ì. by sigi. 2003.2.21
-#if defined(__PAY_SYSTEM_FREE_LIMIT__)
-
-    if (!pPC->isPayPlayAvaiable()) {
-        GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPC->getPlayer());
-
-        pGamePlayer->kickPlayer(30, KICK_MESSAGE_EXPIRE_FREEPLAY);
-
-        // pGamePlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
-        /*		EventKick* pEventKick = new EventKick(pGamePlayer);
-                pEventKick->setDeadline(30*10);
-                pGamePlayer->addEvent(pEventKick);
-                // ¸î ÃÊÈÄ¿¡ Â©¸°´Ù..°í º¸³»ÁØ´Ù.
-                //pEventKick->setMessage( MsgLevelLimitOver );
-                //pEventKick->sendMessage();
-
-                // ¸î ÃÊÈÄ¿¡ Â©¸°´Ù..°í º¸³»ÁØ´Ù.
-                GCKickMessage gcKickMessage;
-                gcKickMessage.setType( KICK_MESSAGE_EXPIRE_FREEPLAY );
-                gcKickMessage.setSeconds( 30 );
-                pGamePlayer->sendPacket( &gcKickMessage );
-        */
-    }
-#endif
-
-    __END_CATCH
-}
+         __END_CATCH}
 
 //////////////////////////////////////////////////////////////////////////////
 // À¯·áÈ­Á¸ °æÇèÄ¡ »Ç³ª½º
@@ -347,12 +315,6 @@ Damage_t computeSlayerDamage(Slayer* pSlayer, Creature* pTargetCreature, bool bC
         Protection_t Protection = pTargetMonster->getProtection();
         Protection = (Protection_t)getPercentValue(Protection, MonsterTimebandFactor[timeband]);
 
-#ifdef __UNDERWORLD__
-        if (pTargetMonster->isUnderworld() || pTargetMonster->getMonsterType() == 599) {
-            Protection = pTargetMonster->getProtection();
-        }
-#endif
-
         FinalDamage = computeFinalDamage(MinDamage, MaxDamage, RealDamage, Protection, bCritical);
     } else {
         // NPC¶ó´Â ¸»ÀÎ°¡...
@@ -421,12 +383,6 @@ Damage_t computeVampireDamage(Vampire* pVampire, Creature* pTargetCreature, bool
         Protection_t Protection = pTargetMonster->getProtection();
         Protection = (Protection_t)getPercentValue(Protection, MonsterTimebandFactor[timeband]);
 
-#ifdef __UNDERWORLD__
-        if (pTargetMonster->isUnderworld() || pTargetMonster->getMonsterType() == 599) {
-            Protection = pTargetMonster->getProtection();
-        }
-#endif
-
         FinalDamage = computeFinalDamage(MinDamage, MaxDamage, RealDamage, Protection, bCritical);
     } else {
         // NPC¶ó´Â ¸»ÀÎ°¡...
@@ -493,12 +449,6 @@ Damage_t computeOustersDamage(Ousters* pOusters, Creature* pTargetCreature, bool
         Protection_t Protection = pTargetMonster->getProtection();
         Protection = (Protection_t)getPercentValue(Protection, MonsterTimebandFactor[timeband]);
 
-#ifdef __UNDERWORLD__
-        if (pTargetMonster->isUnderworld() || pTargetMonster->getMonsterType() == 599) {
-            Protection = pTargetMonster->getProtection();
-        }
-#endif
-
         FinalDamage = computeFinalDamage(MinDamage, MaxDamage, RealDamage, Protection, bCritical);
     } else {
         // NPC¶ó´Â ¸»ÀÎ°¡...
@@ -555,12 +505,6 @@ Damage_t computeMonsterDamage(Monster* pMonster, Creature* pTargetCreature, bool
 
         Protection_t Protection = pTargetMonster->getProtection();
         Protection = (Protection_t)getPercentValue(Protection, MonsterTimebandFactor[timeband]);
-
-#ifdef __UNDERWORLD__
-        if (pTargetMonster->isUnderworld() || pTargetMonster->getMonsterType() == 599) {
-            Protection = pTargetMonster->getProtection();
-        }
-#endif
 
         FinalDamage = computeFinalDamage(MinDamage, MaxDamage, RealDamage, Protection, bCritical);
     } else {
@@ -747,18 +691,6 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
     if (pAttacker == NULL || pDeadCreature == NULL || !pAttacker->isPC() || pDeadCreature->isAlive()) {
         return;
     }
-
-#ifdef __UNDERWORLD__
-    if (pDeadCreature->isMonster()) {
-        Monster* pMonster = dynamic_cast<Monster*>(pDeadCreature);
-        Assert(pMonster != NULL);
-
-        if (pMonster->isUnderworld()) {
-            pMonster->setUnderworld(false);
-            giveUnderworldGift(pAttacker);
-        }
-    }
-#endif
 
     if (pDeadCreature->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pDeadCreature);
@@ -2071,14 +2003,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 
         if (pSlayer->isFlag(Effect::EFFECT_CLASS_AIR_SHIELD_1) && pSkillProperty != NULL && pSkillProperty->isMelee()) {
             bool isUnderworld = false;
-
-#ifdef __UNDERWORLD__
-            if (pAttacker != NULL && pAttacker->isMonster()) {
-                Monster* pMonster = dynamic_cast<Monster*>(pAttacker);
-                if (pMonster != NULL && (pMonster->isUnderworld() || pMonster->getMonsterType() == 599))
-                    isUnderworld = true;
-            }
-#endif
 
             if (!isUnderworld) {
                 EffectAirShield* pEffect =

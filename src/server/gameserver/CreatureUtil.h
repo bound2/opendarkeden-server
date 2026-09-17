@@ -95,10 +95,6 @@ bool dropFlagToZone(Creature* pPC, bool bSendPacket = true);
 void disableFlags(Creature* pCreature, Zone* pZone, SkillType_t SkillType);
 bool canEnterBeginnerZone(Creature* pCreature);
 
-#ifdef __UNDERWORLD__
-void giveUnderworldGift(Creature* pCreature);
-#endif
-
 void disableFlags(Creature* pCreature, Zone* pZone, SkillType_t SkillType);
 bool dropSweeperToZone(Creature* pPC, bool bSendPacket = true);
 

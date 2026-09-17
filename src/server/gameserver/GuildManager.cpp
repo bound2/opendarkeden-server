@@ -579,9 +579,6 @@ bool GuildManager::hasWarSchedule(GuildID_t guildID)
 
 #ifdef __GAME_SERVER__
 
-    // The __OLD_GUILD_WAR__ single-slot variant that lived here is gone: the
-    // macro is commented out in Types.h and defined nowhere, so only the
-    // five-slot read ever compiled.
     if (defaultGuildRepository().countWarSchedulesOfAttacker((int)guildID) > 0) {
         bHasWarSchedule = true;
     }

@@ -513,11 +513,7 @@ bool HitRoll::isSuccessFlare(Creature* pTargetCreature, int SkillLevel) {
 
         //
         // by sigi. 2002.10.30
-        if (pMonster->isMaster()
-#ifdef __UNDERWORLD__
-            || pMonster->isUnderworld() || pMonster->getMonsterType() == 599
-#endif
-        ) {
+        if (pMonster->isMaster()) {
             return false;
         }
 
@@ -563,11 +559,7 @@ bool HitRoll::isSuccessRebuke(Slayer* pSlayer, SkillSlot* pSkillSlot, Creature* 
     // 마스터 (바토리, 테페즈)는 잠들지 않는다.
     if (pDefender->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pDefender);
-        if (pMonster->isMaster()
-#ifdef __UNDERWORLD__
-            || pMonster->isUnderworld() || pMonster->getMonsterType() == 599
-#endif
-        )
+        if (pMonster->isMaster())
             return false;
     }
 

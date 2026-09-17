@@ -11,16 +11,12 @@
 
 
 // include files
-#include "StringStream.h"
-#include "Types.h"
-
-#if __WINDOWS__
-#pragma warning(disable : 4786)
-#endif
-
 #include <list>
 
 #include <source_location>
+
+#include "StringStream.h"
+#include "Types.h"
 
 
 //////////////////////////////////////////////////////////////////////

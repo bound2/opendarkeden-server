@@ -2491,14 +2491,6 @@ void Slayer::heartbeat(const Timeval& currentTime)
 {
     __BEGIN_DEBUG
 
-    /*#ifdef __ACTIVE_QUEST__
-        // by sigi. 2002.12.3
-        if (m_pQuestManager!=NULL)
-        {
-            m_pQuestManager->heartbeat();
-        }
-    #endif*/
-
     PlayerCreature::heartbeat(currentTime);
 
     // 여기서 Prayer와 Meditation에 관련된 MP 리젠을 해준다.

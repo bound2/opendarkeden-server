@@ -69,11 +69,6 @@ GameServer::GameServer()
         // create shared server manager
         g_pSharedServerManager = new SharedServerManager();
 
-        // create billing player manager
-#ifdef __CONNECT_BILLING_SYSTEM__
-        g_pBillingPlayerManager = new BillingPlayerManager();
-#endif
-
 #ifdef __MOFUS__
         g_pMPlayerManager = new MPlayerManager();
         g_pMPacketManager = new MPacketManager();
@@ -114,9 +109,6 @@ GameServer::~GameServer()
     SAFE_DELETE(g_pPacketFactoryManager);
     SAFE_DELETE(g_pLoginServerManager);
     SAFE_DELETE(g_pSharedServerManager);
-#ifdef __CONNECT_BILLING_SYSTEM__
-    SAFE_DELETE(g_pBillingPlayerManager);
-#endif
 #ifdef __MOFUS__
     SAFE_DELETE(g_pMPlayerManager);
     SAFE_DELETE(g_pMPacketManager);
@@ -171,12 +163,6 @@ void GameServer::init()
     g_pSharedServerManager->init();
     cout << "GameServer::init() : SharedServerManager Initialization Success..." << endl;
 
-#ifdef __CONNECT_BILLING_SYSTEM__
-    // shared server 와의 통신 준비에 들어간다.
-    g_pBillingPlayerManager->init();
-    cout << "GameServer::init() : BillingPlayerManager Initialization Success..." << endl;
-#endif
-
 #ifdef __MOFUS__
     g_pMPacketManager->init();
     cout << "GameServer::init() : MPacketManager Initialization Success..." << endl;
@@ -217,11 +203,6 @@ void GameServer::start()
 
     cout << ">>> STARTING SHARED SERVER MANAGER..." << endl;
     g_pSharedServerManager->start();
-
-#ifdef __CONNECT_BILLING_SYSTEM__
-    cout << ">>> STARTING BILLING PLAYER MANAGER..." << endl;
-    g_pBillingPlayerManager->start();
-#endif
 
 #ifdef __MOFUS__
     g_pMPlayerManager->start();
@@ -286,9 +267,6 @@ void GameServer::stop()
     // Request every auxiliary stop before any join. All shared dependencies
     // remain alive until BOTH auxiliary and zone workers have finished.
     std::vector<ManagedThread*> workers{g_pLoginServerManager, g_pSharedServerManager, &GDRLairManager::Instance()};
-#ifdef __CONNECT_BILLING_SYSTEM__
-    workers.push_back(g_pBillingPlayerManager);
-#endif
 #ifdef __MOFUS__
     workers.push_back(g_pMPlayerManager);
 #endif

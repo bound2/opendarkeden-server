@@ -13,9 +13,7 @@
 #include "Exception.h"
 #include "Types.h"
 
-#if __WINDOWS__
-#include <WinSock.h>
-#elif defined(__LINUX__) || defined(__APPLE__)
+#if defined(__LINUX__) || defined(__APPLE__)
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>

@@ -15,11 +15,7 @@
 #define BUILD_INFO "<Version Information>\n+Add ----- \n-Delete -----\nFix -----\n"
 
 
-#if defined(__WINDOWS__)
-// 4786 - STL�� �ɺ����� ���̰� 255�� �Ѿ ��
-#pragma warning(disable : 4786)
-#include <Windows.h>
-#elif defined(__LINUX__) || defined(__APPLE__)
+#if defined(__LINUX__) || defined(__APPLE__)
 #include <sys/types.h>
 #endif
 
@@ -49,9 +45,6 @@ typedef unsigned __int64 ulonglong;
 #if defined(__LINUX__) || defined(__APPLE__)
 const char separatorChar = '/';
 const string separator = "/";
-#elif defined(__WINDOWS__)
-const char separatorChar = '\\';
-const string separator = "\\";
 #endif
 
 

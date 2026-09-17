@@ -780,11 +780,6 @@ void ObjectManager::load()
     printf("ObjectManager::load() : PublicScriptManager Loading Success\n");
     */
 
-    // by sigi. 2002.12.3
-    /*#ifdef __ACTIVE_QUEST__
-        MonsterKillQuestFactory::initMonsterTypeInfos();
-    #endif*/
-
     __END_CATCH
 }
 

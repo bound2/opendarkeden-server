@@ -6695,10 +6695,9 @@ TEST_F(PlayRecordMySQL, GoldMedalInsertFailsOnTheShippedSchema) {
     EXPECT_THROW(defaultPlayRecordRepository().insertGoldMedal("it-acct"), DatabaseError);
 }
 
-// CreatureUtil's underworld kill record (its only caller sits under
-// __UNDERWORLD__, which no build defines, so this tier is the only thing
-// that runs the statement): the two ids, the account and the character,
-// KillTime server-side.
+// The underworld kill record (no caller is left in the tree, so this tier
+// is the only thing that runs the statement): the two ids, the account and
+// the character, KillTime server-side.
 TEST_F(PlayRecordMySQL, UnderworldKillIsRecordedWithItsIdsAndNames) {
     defaultPlayRecordRepository().insertUnderworldKill(2, 3, "it-acct", "it-char");
     const std::string where = " FROM UnderworldEvent WHERE PlayerID = 'it-acct'";

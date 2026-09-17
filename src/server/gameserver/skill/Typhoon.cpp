@@ -55,11 +55,7 @@ void Typhoon::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
                 Monster* pMonster = dynamic_cast<Monster*>(pCreature);
 
                 // delay설정 ( + 1초 )
-                if (!pMonster->isMaster()
-#ifdef __UNDERWORLD__
-                    && !pMonster->isUnderworld() && pMonster->getMonsterType() != 599
-#endif
-                ) {
+                if (!pMonster->isMaster()) {
                     Timeval delay;
                     delay.tv_sec = 1;
                     delay.tv_usec = 0; // 500000;

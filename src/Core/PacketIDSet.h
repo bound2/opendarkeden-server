@@ -16,9 +16,6 @@
 #if defined(__LINUX__) || defined(__APPLE__)
 #include <unordered_set>
 typedef unordered_set<PacketID_t> PACKET_ID_SET;
-#elif __WINDOWS__
-#include <set>
-typedef set<PacketID_t> PACKET_ID_SET;
 #endif
 
 //----------------------------------------------------------------------

@@ -10,9 +10,6 @@ template <typename Key, typename Value> using hash_map = unordered_map<Key, Valu
 #elif defined(__LINUX__)
 #include <ext/hash_map>
 using __gnu_cxx::hash_map;
-#elif defined(__WINDOWS__)
-#include <hash_map>
-using stdext::hash_map;
 #endif
 
 #endif // __HASH_MAP_H__

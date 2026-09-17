@@ -41,23 +41,7 @@ bool ConditionEnterCastle::isSatisfied(Creature* pCreature1, Creature* pCreature
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pCreature2->getPlayer());
     Assert(pGamePlayer != NULL);
 
-#if defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-    // 이미 유료존에 있는 경우라면... 관계없겠지.
-    // 패밀리 요금 적용중일 경우
-    if (pGamePlayer->isPayPlaying() || pGamePlayer->isFamilyFreePass()) {
-        bPayPlay = true;
-    } else {
-        // 일단 zone 요금 체크
-        string connectIP = pGamePlayer->getSocket()->getHost();
-
-        if (pGamePlayer->loginPayPlay(connectIP, pGamePlayer->getID())) {
-            sendPayInfo(pGamePlayer);
-            bPayPlay = true;
-        }
-    }
-#else
     bPayPlay = true;
-#endif
 
     // 돈 낸 사람만 castle 에 들어갈 수 있다.
     if (bPayPlay) {

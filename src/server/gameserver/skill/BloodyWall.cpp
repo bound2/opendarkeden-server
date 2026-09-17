@@ -382,17 +382,9 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         ZoneCoord_t myY = pMonster->getY();
 
         // 마스터는 무조건~~
-        bool bRangeCheck = pMonster->isMaster()
-#ifdef __UNDERWORLD__
-                           || pMonster->isUnderworld() || pMonster->getMonsterType() == 599
-#endif
-                           || verifyDistance(pMonster, X, Y, pSkillInfo->getRange());
+        bool bRangeCheck = pMonster->isMaster() || verifyDistance(pMonster, X, Y, pSkillInfo->getRange());
 
-        bool bHitRoll = pMonster->isMaster()
-#ifdef __UNDERWORLD__
-                        || pMonster->isUnderworld() || pMonster->getMonsterType() == 599
-#endif
-                        || HitRoll::isSuccessMagic(pMonster, pSkillInfo);
+        bool bHitRoll = pMonster->isMaster() || HitRoll::isSuccessMagic(pMonster, pSkillInfo);
 
         bool bTileCheck = false;
         VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);

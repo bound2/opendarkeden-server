@@ -210,11 +210,7 @@ bool WarSystem::addWar(War* pWar)
     // 진행 중인 전쟁 리스트에 추가시켜준다.
     // heartbeat()에서 제거시켜준다.
     if (pWar->getWarType() == WAR_GUILD) {
-#ifndef __OLD_GUILD_WAR__
         SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-#else
-        GuildWar* pSiegeWar = dynamic_cast<GuildWar*>(pWar);
-#endif
         Assert(pSiegeWar != NULL);
 
         // 성지에 있는 유저의 상태를 Refresh 해준다.
@@ -396,11 +392,7 @@ Work* WarSystem::heartbeat()
 
         // 대체로는 War::executeEnd()에서 할 것이다.
         if (pWar->getWarType() == WAR_GUILD) {
-#ifndef __OLD_GUILD_WAR__
             SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-#else
-            GuildWar* pSiegeWar = dynamic_cast<GuildWar*>(pWar);
-#endif
             Assert(pSiegeWar != NULL);
 
             // 진행 중인 전쟁 리스트에서 제거시켜준다.
@@ -579,11 +571,7 @@ WarSchedule* WarSystem::getActiveWarSchedule_LOCKED(ZoneID_t zoneID)
         }
 
         if (pWar->getWarType() == WAR_GUILD) {
-#ifndef __OLD_GUILD_WAR__
             SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-#else
-            GuildWar* pSiegeWar = dynamic_cast<GuildWar*>(pWar);
-#endif
             Assert(pSiegeWar != NULL);
 
             if (pSiegeWar->getCastleZoneID() == zoneID) {
@@ -613,11 +601,7 @@ War* WarSystem::getActiveWar(ZoneID_t zoneID) const
             continue;
 
         if (pWar->getWarType() == WAR_GUILD) {
-#ifndef __OLD_GUILD_WAR__
             SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-#else
-            GuildWar* pSiegeWar = dynamic_cast<GuildWar*>(pWar);
-#endif
             Assert(pSiegeWar != NULL);
 
             if (pSiegeWar->getCastleZoneID() == zoneID) {

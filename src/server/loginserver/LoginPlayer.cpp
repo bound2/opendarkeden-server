@@ -331,11 +331,6 @@ void LoginPlayer::disconnect(bool bDisconnected) {
         try {
             defaultLoginAccountRepository().markLoggedOff(m_ID);
 
-#if defined(__PAY_SYSTEM_LOGIN__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-            bool bClear = false;        // drop the paid-play state entirely
-            bool bDecreaseTime = false; // the login server does not count play time down
-            logoutPayPlay(m_ID, bClear, bDecreaseTime);
-#endif
         } catch (const DatabaseError& error) {
             // A SQL failure arrives as END_DB's DatabaseError carrying the
             // line it wrote to DBError.log; rethrown as the Error the callers
@@ -381,11 +376,6 @@ void LoginPlayer::disconnect_nolog(bool bDisconnected) {
         try {
             defaultLoginAccountRepository().markLoggedOff(m_ID);
 
-#if defined(__PAY_SYSTEM_LOGIN__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-            bool bClear = false;        // drop the paid-play state entirely
-            bool bDecreaseTime = false; // the login server does not count play time down
-            logoutPayPlay(m_ID, bClear, bDecreaseTime);
-#endif
         } catch (const DatabaseError& error) {
             // A SQL failure arrives as END_DB's DatabaseError carrying the
             // line it wrote to DBError.log; rethrown as the Error the callers

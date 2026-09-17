@@ -43,13 +43,6 @@ void CGRequestGuildListHandler::execute(CGRequestGuildList* pPacket, Player* pPl
     Creature* pCreature = pGamePlayer->getCreature();
     Assert(pCreature != NULL);
 
-#ifdef __OLD_GUILD_WAR__
-    GCSystemMessage gcSM;
-    gcSM.setMessage("아직 지원되지 않는 기능입니다.");
-    pGamePlayer->sendPacket(&gcSM);
-    return;
-#endif
-
     GuildType_t tmpGuildType = pPacket->getGuildType();
 
     // 대기길드 이면

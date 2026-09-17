@@ -77,19 +77,7 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
 
     // The external billing gate that used to answer SELECT_PC_CANNOT_PLAY and
     // SELECT_PC_NOT_BILLING_CHECK is switched off, so nothing produces those
-    // two codes and the free-play cap below is the only account-state check
-    // left.
-#ifdef __PAY_SYSTEM_FREE_LIMIT__
-    // An account that is not paying plays under the level caps.
-    if (!pLoginPlayer->isPayPlaying()) {
-        static int slayerSum = g_pConfig->getPropertyInt("FreePlaySlayerDomainSum");
-        static int vampireLevel = g_pConfig->getPropertyInt("FreePlayVampireLevel");
-
-        request.checkFreePlayLimit = true;
-        request.freePlaySlayerDomainSum = slayerSum;
-        request.freePlayVampireLevel = vampireLevel;
-    }
-#endif
+    // two codes and no account state is checked here.
 
     GlobalSelectPCTopology topology;
 

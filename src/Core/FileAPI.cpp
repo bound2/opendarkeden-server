@@ -15,11 +15,7 @@
 #include "Assert.h"
 
 
-#if __WINDOWS__
-#include <fcntl.h>  // for _open()/_close()/_read()/_write()...
-#include <io.h>     // for _open()
-#include <string.h> // for memcpy()
-#elif defined(__LINUX__) || defined(__APPLE__)
+#if defined(__LINUX__) || defined(__APPLE__)
 #include <errno.h>  // for errno
 #include <fcntl.h>  // for fcntl()
 #include <unistd.h> // for fcntl()
@@ -44,8 +40,6 @@ int FileAPI::open_ex(const char* filename, int flags) {
 
 #if defined(__LINUX__) || defined(__APPLE__)
     int fd = open(filename, flags);
-#elif __WINDOWS__
-    int fd = _open(filename, flags);
 #endif
     if (fd < 0) {
 #if defined(__LINUX__) || defined(__APPLE__)
@@ -89,8 +83,6 @@ int FileAPI::open_ex(const char* filename, int flags) {
         default:
             throw UnknownError(strerror(errno), errno);
         } // end of switch
-#elif __WINDOWS__
-        // ...
 #endif
     }
 
@@ -106,8 +98,6 @@ int FileAPI::open_ex(const char* filename, int flags, int mode) {
 
 #if defined(__LINUX__) || defined(__APPLE__)
     int fd = open(filename, flags, mode);
-#elif __WINDOWS__
-    int fd = _open(filename, flags, mode);
 #endif
 
     if (fd < 0) {
@@ -154,8 +144,6 @@ int FileAPI::open_ex(const char* filename, int flags, int mode) {
         default:
             throw UnknownError(strerror(errno), errno);
         } // end of switch
-#elif __WINDOWS__
-        // ...
 #endif
     }
 
@@ -189,8 +177,6 @@ uint FileAPI::read_ex(int fd, void* buf, uint len) {
 
 #if defined(__LINUX__) || defined(__APPLE__)
     int result = read(fd, buf, len);
-#elif __WINDOWS__
-    int result = _read(fd, buf, len);
 #endif
 
     if (result < 0) {
@@ -216,8 +202,6 @@ uint FileAPI::read_ex(int fd, void* buf, uint len) {
         default:
             throw UnknownError(strerror(errno), errno);
         }
-#elif __WINDOWS__
-        // ...
 #endif
     } else if (result == 0) {
         throw EOFException();
@@ -252,8 +236,6 @@ uint FileAPI::write_ex(int fd, const void* buf, uint len) {
 
 #if defined(__LINUX__) || defined(__APPLE__)
     int result = write(fd, buf, len);
-#elif __WINDOWS__
-    int result = _write(fd, buf, len);
 #endif
 
     if (result < 0) {
@@ -281,8 +263,6 @@ uint FileAPI::write_ex(int fd, const void* buf, uint len) {
         default:
             throw UnknownError(strerror(errno), errno);
         }
-#elif __WINDOWS__
-        //...
 #endif
     }
 
@@ -321,7 +301,6 @@ void FileAPI::close_ex(int fd) {
         default:
             throw UnknownError(strerror(errno), errno);
         }
-#elif __WINDOWS__
 #endif
     }
 
@@ -370,8 +349,6 @@ int FileAPI::fcntl_ex(int fd, int cmd) {
         }
     }
     return result;
-#elif __WINDOWS__
-    throw UnsupportedError();
 #endif
 
     __END_CATCH
@@ -422,8 +399,6 @@ int FileAPI::fcntl_ex(int fd, int cmd, long arg) {
         }
     }
     return result;
-#elif __WINDOWS__
-    throw UnsupportedError();
 #endif
 
     __END_CATCH
@@ -453,8 +428,6 @@ bool FileAPI::getfilenonblocking_ex(int fd) {
 #if defined(__LINUX__) || defined(__APPLE__)
     int flags = fcntl_ex(fd, F_GETFL, 0);
     return flags | O_NONBLOCK;
-#elif __WINDOWS__
-    throw UnsupportedError();
 #endif
 
     __END_CATCH
@@ -492,8 +465,6 @@ void FileAPI::setfilenonblocking_ex(int fd, bool on) {
         flags &= ~O_NONBLOCK;
 
     fcntl_ex(fd, F_SETFL, flags);
-#elif __WINDOWS__
-    throw UnsupportedError();
 #endif
 
     __END_CATCH
@@ -535,8 +506,6 @@ void FileAPI::ioctl_ex(int fd, int request, void* argp) {
             throw UnknownError(strerror(errno), errno);
         }
     }
-#elif __WINDOWS__
-    throw UnsupportedError();
 #endif
 
     __END_CATCH
@@ -567,8 +536,6 @@ void FileAPI::setfilenonblocking_ex2(int fd, bool on) {
 #if defined(__LINUX__) || defined(__APPLE__)
     ulong arg = (on == true ? 1 : 0);
     ioctl_ex(fd, FIONBIO, &arg);
-#elif __WINDOWS__
-    throw UnsupportedError();
 #endif
 
     __END_CATCH
@@ -603,8 +570,6 @@ uint FileAPI::availablefile_ex(int fd) {
     uint arg = 0;
     ioctl_ex(fd, FIONREAD, &arg);
     return arg;
-#elif __WINDOWS__
-    throw UnsupportedError();
 #endif
 
     __END_CATCH
@@ -622,8 +587,6 @@ int FileAPI::dup_ex(int fd) {
 
 #if defined(__LINUX__) || defined(__APPLE__)
     int newfd = dup(fd);
-#elif __WINDOWS__
-    int newfd = _dup(fd);
 #endif
 
     if (newfd < 0) {
@@ -638,7 +601,6 @@ int FileAPI::dup_ex(int fd) {
         default:
             throw UnknownError(strerror(errno), errno);
         } // end of switch
-#elif __WINDOWS__
 #endif
     }
 
@@ -670,10 +632,6 @@ long FileAPI::lseek_ex(int fd, long offset, int whence) {
         default:
             throw UnknownError(strerror(errno), errno);
         }
-    }
-#elif __WINDOWS__
-    long result = _lseek(fd, offset, whence);
-    if (result < 0) {
     }
 #endif
 

@@ -17,7 +17,6 @@
 #if defined(__LINUX__) || defined(__APPLE__)
 #include <arpa/inet.h> // for inet_ntoa()
 #include <sys/socket.h>
-#elif __WINDOWS__
 #endif
 
 //////////////////////////////////////////////////

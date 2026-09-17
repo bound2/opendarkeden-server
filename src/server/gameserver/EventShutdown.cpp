@@ -11,14 +11,9 @@
 #include "VariableManager.h"
 #include "ZoneGroupManager.h"
 #include "ZonePlayerManager.h"
-#include "signal.h"
-
-#ifdef __CONNECT_BILLING_SYSTEM__
-#include "billing/BillingPlayerManager.h"
-#endif
-
 #include "repository/ItemObjectRepository.h"
 #include "repository/SystemAvailabilityRepository.h"
+#include "signal.h"
 //////////////////////////////////////////////////////////////////////////////
 // class EventShutdown member methods
 //////////////////////////////////////////////////////////////////////////////
@@ -46,11 +41,6 @@ void EventShutdown::activate()
     } catch (Throwable& t) {
         // 무시
     }
-
-#ifdef __CONNECT_BILLING_SYSTEM__
-    // 모든 빌링 정보를 삭제한다.
-    g_pBillingPlayerManager->sendPayInit();
-#endif
 
     // 프로세스 종료. 꺄꺄~ 죽어라~~ 꺄꺄~
     if (g_pVariableManager->isKillDaemonCtl() == 1) {

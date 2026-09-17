@@ -78,21 +78,6 @@ void ActionWarpLevelWarZone::execute(Creature* pCreature1, Creature* pCreature2)
         pos.y = 111;
     }
 
-#if defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-    Zone* pZone = getZoneByZoneID(pos.id);
-    Assert(pZone != NULL);
-
-    LevelWarManager* pLevelWarManager = pZone->getLevelWarManager();
-    Assert(pLevelWarManager != NULL);
-
-    if (!pLevelWarManager->hasWar() && !g_pVariableManager->canEnterLevelWarZoneFree() &&
-        !pGamePlayer->isPayPlaying() && !pLevelWarManager->canEnterFreeUser()) {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER_LEVEL_WAR_ZONE));
-        pGamePlayer->sendPacket(&gcSystemMessage);
-        return;
-    }
-#endif
-
     if (pCreature1 != NULL)
         pPC->getGQuestManager()->illegalWarp();
     transportCreature(pCreature2, pos.id, pos.x, pos.y, false);

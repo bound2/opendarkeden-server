@@ -161,19 +161,11 @@ void CommonBillingPacket::read(SocketInputStream& iStream) {
     memcpy(&t,			pBuffer,  4); pBuffer+= 4;	Remain_Time = ntohl(t);	// Remain_Time
     */
 
-#ifdef __COUT_BILLING_SYSTEM__
-    cout << "[read] " << toString().c_str() << endl;
-#endif
-
     __END_CATCH
 }
 
 void CommonBillingPacket::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
-
-#ifdef __COUT_BILLING_SYSTEM__
-    cout << "[write] " << toString().c_str() << endl;
-#endif
 
     /*
     int t;

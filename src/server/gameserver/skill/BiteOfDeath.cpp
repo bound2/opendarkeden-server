@@ -71,11 +71,7 @@ void BiteOfDeath::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
             Monster* pTargetMonster = dynamic_cast<Monster*>(pTargetCreature);
             Assert(pTargetMonster != NULL);
 
-            if (pTargetMonster->isMaster()
-#ifdef __UNDERWORLD__
-                || pTargetMonster->isUnderworld() || pTargetMonster->getMonsterType() == 599
-#endif
-            ) {
+            if (pTargetMonster->isMaster()) {
                 bMaster = true;
             }
         }

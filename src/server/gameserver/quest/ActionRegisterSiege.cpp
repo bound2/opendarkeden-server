@@ -52,8 +52,6 @@ void ActionRegisterSiege::execute(Creature* pCreature1, Creature* pCreature2)
 {
     __BEGIN_TRY
 
-#ifndef __OLD_GUILD_WAR__
-
     Assert(pCreature1 != NULL);
     Assert(pCreature2 != NULL);
     Assert(pCreature1->isNPC());
@@ -189,8 +187,6 @@ void ActionRegisterSiege::execute(Creature* pCreature1, Creature* pCreature2)
     gcNPCResponse.setCode(NPC_RESPONSE_WAR_REGISTRATION_OK);
     pPC->getPlayer()->sendPacket(&gcNPCResponse);
     return;
-
-#endif
 
     __END_CATCH
 }

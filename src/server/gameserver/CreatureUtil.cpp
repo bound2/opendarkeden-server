@@ -1899,55 +1899,6 @@ bool canEnterBeginnerZone(Creature* pCreature) {
     return false;
 }
 
-#ifdef __UNDERWORLD__
-void giveUnderworldGift(Creature* pCreature) {
-    if (!pCreature->isPC())
-        return;
-
-    string PlayerName;
-
-    if (pCreature->isSlayer()) {
-        Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-        Assert(pSlayer != NULL);
-        PlayerName = pSlayer->getName();
-    } else if (pCreature->isVampire()) {
-        Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-        Assert(pVampire != NULL);
-        PlayerName = pVampire->getName();
-    } else if (pCreature->isOusters()) {
-        Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
-        Assert(pOusters != NULL);
-        PlayerName = pOusters->getName();
-    } else
-        return;
-
-    Player* pPlayer = pCreature->getPlayer();
-    Assert(pPlayer != NULL);
-
-    string PlayerID = pPlayer->getID();
-
-    filelog("Underworld.log", "[%s:%s] 언더월드 예매권에 당첨되었습니다.", PlayerID.c_str(), PlayerName.c_str());
-
-    try {
-        defaultPlayRecordRepository().insertUnderworldKill(g_pConfig->getPropertyInt("WorldID"),
-                                                           g_pConfig->getPropertyInt("ServerID"), PlayerID, PlayerName);
-    } catch (Throwable& t) {
-        filelog("Underworld.log", "DB에 업데이트를 실패했습니다. : %s", t.toString().c_str());
-    }
-
-    GCNotifyWin gcNW;
-    gcNW.setGiftID(101);
-    gcNW.setName(PlayerName);
-
-    g_pZoneGroupManager->broadcast(&gcNW);
-
-    char ggCommand[200];
-    string worldName = g_pGameWorldInfoManager->getGameWorldInfo(g_pConfig->getPropertyInt("WorldID"))->getName();
-    sprintf(ggCommand, "*allworld *command NotifyWin %s(%s) %u", PlayerName.c_str(), worldName.c_str(), 101);
-    de::gm::opworld(NULL, ggCommand, 0, false);
-}
-#endif
-
 bool dropSweeperToZone(PlayerCreature* pPC, Item* pItem)
 
 {

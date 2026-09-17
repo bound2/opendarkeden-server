@@ -86,8 +86,7 @@ public:
     // does after the REPLACE).
     virtual bool addLotto(const std::string& playerID, BYTE type, uint num, int& count) = 0;
     // INSERT INTO UnderworldEvent (WorldID, ServerID, PlayerID, CharacterID,
-    // KillTime=now()). Its one caller sits under __UNDERWORLD__, which no
-    // build defines.
+    // KillTime=now()). Nothing calls it.
     virtual void insertUnderworldKill(int worldID, int serverID, const std::string& playerID,
                                       const std::string& characterName) = 0;
 };

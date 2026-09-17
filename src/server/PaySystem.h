@@ -50,16 +50,10 @@ enum FamilyPayPartyType {
 #define PAY_PLAY_FLAG_ZONE 0x0001
 
 
-// Pay-system modes. Exactly one of these was defined on the commercial
-// service. With none defined, GamePlayer::isPayPlaying() returns true for
-// everyone ("if there is no Pay defines, all users are pay player") and the
+// GamePlayer::isPayPlaying() answers true for every player, so the
 // pay/premium gates - zone entry, premium-zone item rules such as
-// Slayer::isRealWearing() refusing a multi-option weapon, portal and potion
-// use - all pass. This server has no billing backend, so none is defined.
-//
-// #define __PAY_SYSTEM_ZONE__		// apply the pay system to zone entry
-// #define __PAY_SYSTEM_LOGIN__		// apply the pay system at login
-// #define __PAY_SYSTEM_FREE_LIMIT__	// non-paying users get the built-in free service
+// Slayer::isRealWearing() refusing a multi-option weapon, portal and
+// potion use - all pass. This server has no billing backend.
 
 
 //////////////////////////////////////////////////////////////////////////////

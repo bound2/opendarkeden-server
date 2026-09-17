@@ -54,19 +54,7 @@ decideReconnectLogin(const ReconnectRequest& request, LoginAccountRepository& re
     if (account.access != "ALLOW")
         return Result::Rejected(refusal(ReconnectRejectReason::AccessNotAllowed));
 
-#ifdef __PAY_SYSTEM_LOGIN__
-    if (!session.loginPayPlay(account.payType, account.payPlayDate, account.payPlayHours, account.payPlayFlag,
-                              request.connectIP, request.playerID)) {
-        return Result::Rejected(refusal(ReconnectRejectReason::NotPayAccount));
-    }
-#elif defined(__PAY_SYSTEM_FREE_LIMIT__)
-    if (session.loginPayPlay(account.payType, account.payPlayDate, account.payPlayHours, account.payPlayFlag,
-                             request.connectIP, request.playerID)) {
-        // Admitted either way.
-    }
-#else
     session.setPayPlayValue(account.payType, account.payPlayDate, account.payPlayHours, account.payPlayFlag);
-#endif
 
     return Result::Ok(accepted);
 }

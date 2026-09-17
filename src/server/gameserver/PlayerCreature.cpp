@@ -973,39 +973,7 @@ bool PlayerCreature::isPayPlayAvaiable()
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayer);
 
-#ifdef __CONNECT_BILLING_SYSTEM__
-    if (pGamePlayer->isPayPlaying()) {
-        // A wholly free account.
-        if (pGamePlayer->getPayType() == PAY_TYPE_FREE)
-            return true;
-
-        // Otherwise play is free up to the race's own limit.
-        if (isWithinFreePlayLimit()) {
-            return true;
-        }
-    }
-
-    return false;
-
-// Limiting the player without the billing integration.
-#elif defined(__PAY_SYSTEM_FREE_LIMIT__)
-
-    if (!pGamePlayer->isPayPlaying()) {
-        // Play is free up to the race's own limit.
-        if (isWithinFreePlayLimit()) {
-            return true;
-        }
-
-        return false;
-    }
-
-    return true;
-
-#else
-
     return pGamePlayer->isPayPlaying();
-
-#endif
 
     __END_CATCH
 }
@@ -1048,90 +1016,6 @@ void PlayerCreature::loadGoods()
     __END_CATCH
 }
 
-
-/*void	PlayerCreature::loadQuest()
-
-{
-    __BEGIN_TRY
-
-#ifdef __ACTIVE_QUEST__
-
-    SimpleQuestLoader::getInstance()->load( this );
-
-#endif
-
-    __END_CATCH
-}
-
-bool    PlayerCreature::addQuest(Quest* pQuest)
-
-{
-    __BEGIN_TRY
-
-#ifdef __ACTIVE_QUEST__
-    if (m_pQuestManager==NULL)
-    {
-        m_pQuestManager = new QuestManager;
-    }
-
-    if (m_pQuestManager->addQuest( pQuest ))
-    {
-        return true;
-    }
-
-#endif
-    __END_CATCH
-
-    SAFE_DELETE(pQuest);
-
-    return false;
-}
-
-bool    PlayerCreature::checkEvent(QuestEvent* pQuestEvent)
-
-{
-    __BEGIN_TRY
-
-#ifdef __ACTIVE_QUEST__
-
-    if (m_pQuestManager!=NULL)
-    {
-        Quest* pCompleteQuest = m_pQuestManager->checkEvent( pQuestEvent );
-
-        if (pCompleteQuest!=NULL)
-        {
-            //cout << "[Complete] " << pCompleteQuest->toString().c_str() << endl;
-            return true;
-        }
-    }
-
-#endif
-
-    return false;
-
-    __END_CATCH
-}
-
-Quest*  PlayerCreature::removeCompleteQuest()
-
-{
-    __BEGIN_TRY
-
-#ifdef __ACTIVE_QUEST__
-
-    if (m_pQuestManager!=NULL)
-    {
-        Quest* pQuest = m_pQuestManager->removeCompleteQuest();
-
-        return pQuest;
-    }
-
-#endif
-
-    __END_CATCH
-
-    return NULL;
-}*/
 /*
 bool PlayerCreature::deleteItemNameInfoList( ObjectID_t objectID )
 

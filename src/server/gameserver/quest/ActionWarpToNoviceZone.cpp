@@ -97,36 +97,6 @@ void ActionWarpToNoviceZone::execute(Creature* pNPC, Creature* pCreature)
     // Zone* pZone = pCreature->getZone();
 
 
-#if defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-    try {
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZoneID);
-
-        // 유료존인데 유료사용자가 아니면...
-        if (pZoneInfo == NULL || pZoneInfo->isPayPlay() && !pGamePlayer->isPayPlaying()) {
-            string connectIP = pGamePlayer->getSocket()->getHost();
-
-            // 유료 서비스 사용이 가능한가?
-            if (pGamePlayer->loginPayPlay(connectIP, pGamePlayer->getID())) {
-                sendPayInfo(pGamePlayer);
-            } else {
-                // 유료 서비스 사용 불가인 경우
-                GCSystemMessage gcSystemMessage;
-
-                if (g_pConfig->getPropertyInt("IsNetMarble") == 0) {
-                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER_PAY_ZONE));
-                } else {
-                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER));
-                }
-
-                pGamePlayer->sendPacket(&gcSystemMessage);
-
-                bTransport = false;
-            }
-        }
-    } catch (NoSuchElementException&) {
-    }
-#endif
-
     if (bTransport) {
         transportCreature(pCreature, ZoneID, X, Y, true);
     } else {

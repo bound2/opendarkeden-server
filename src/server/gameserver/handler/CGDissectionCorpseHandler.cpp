@@ -173,12 +173,6 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                     // if (pItem->getItemClass() != Item::ITEM_CLASS_CASTLE_SYMBOL ) return;
 
                     // 성에서는 방어측일 경우 클릭할 수 없다.
-#ifndef __OLD_GUILD_WAR__
-#else
-                    if (g_pCastleShrineInfoManager->isDefenderOfGuardShrine(pPC, pMonsterCorpse))
-                        return;
-#endif
-
                     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
                     if (pCastleInfo->getRace() != pPC->getRace())
                         return;

@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5482 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5474 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -82,11 +82,11 @@ check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5482 "$R5"
 # SkillFormula.cpp computeOutput extraction (the doc's 08-29 numbers
 # predate the clang-format-18 pass and are superseded).
 R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
-check_ratchet R6a "SkillUtil.cpp lines" 6718 "$R6a"
+check_ratchet R6a "SkillUtil.cpp lines" 6642 "$R6a"
 R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
 check_ratchet R6b "InitAllStat.cpp lines" 4787 "$R6b"
 R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)
-check_ratchet R6c "HitRoll.cpp lines" 736 "$R6c"
+check_ratchet R6c "HitRoll.cpp lines" 728 "$R6c"
 R6d=$(wc -l < src/server/gameserver/skill/SkillFormula.cpp 2>/dev/null || echo missing)
 check_ratchet R6d "SkillFormula.cpp lines" 820 "$R6d"
 # R6e added with the 4.1 GM-command extraction: the 33 command bodies and
@@ -114,9 +114,9 @@ check_ratchet R6g "Zone.cpp lines" 1474 "$R6g"
 # enum, a skill slot class or a persistence record type that is per-race, so
 # they shrink again only when one of those types is reconciled.
 R6h=$(wc -l < src/server/gameserver/Slayer.cpp 2>/dev/null || echo missing)
-check_ratchet R6h "Slayer.cpp lines" 3605 "$R6h"
+check_ratchet R6h "Slayer.cpp lines" 3597 "$R6h"
 R6i=$(wc -l < src/server/gameserver/Vampire.cpp 2>/dev/null || echo missing)
-check_ratchet R6i "Vampire.cpp lines" 2324 "$R6i"
+check_ratchet R6i "Vampire.cpp lines" 2316 "$R6i"
 R6j=$(wc -l < src/server/gameserver/Ousters.cpp 2>/dev/null || echo missing)
 check_ratchet R6j "Ousters.cpp lines" 2187 "$R6j"
 
@@ -210,9 +210,9 @@ check_ratchet R12 "throw messages carrying non-ASCII text" 0 "$R12"
 # invariant worth holding, because which headers share a binary changes.
 #
 # Measured on each header's FIRST #ifndef, which is its guard, rather than on
-# every `^#ifndef` line: the tree also tests feature macros that way, and
-# __OLD_GUILD_WAR__ is tested in four headers, so a line-based count could
-# never reach zero. The awk resets `seen` at FNR==1 so `find -exec ... +`
+# every `^#ifndef` line: the tree also tests ordinary macros that way
+# (Core/Types.h tests __XMAS_EVENT_CODE__ before defining it), so a
+# line-based count could never reach zero. The awk resets `seen` at FNR==1 so `find -exec ... +`
 # batching stays per-file, and strips the CR of the CRLF working tree before
 # comparing. The list is materialised first so an empty one (a broken find,
 # a moved src/) fails loudly instead of passing as zero duplicates.
@@ -238,29 +238,50 @@ else
     fi
 fi
 rm -f "$guards"
-# --- R14: never-defined region macros --------------------------------------
-# __THAILAND_SERVER__ and __CHINA_SERVER__ selected a Thailand or a China
-# build. Nothing defines them -- not cmake/, a CMakeLists.txt, a Makefile, a
-# Dockerfile or a workflow -- so a block behind one never reached the
-# compiler and the #ifndef/#else branch beside it was the only code the
-# servers ran. A translation-unit-local #define arms them again, and one did:
-# it gave that one TU a SystemAvailabilitiesManager with an extra member and
-# a layout no other TU shared. Counted with the two: the misspellings
-# __CHAINA_SERVER__ and __THIALAND_SERVER__, which appeared inside the same
-# conditions, and __INTERNATIONAL_SERVER__, a dead #elif in the same
-# Encrypter.h chain. __NETMARBLE_SERVER__ (a portal build: a terms-of-use
-# byte on the end of LCPCList, DELETE instead of INACTIVE in the character
-# purge, the #define that would arm __CONNECT_BILLING_SYSTEM__) and
-# __TEST_SERVER__ (a test build: fame*10 in the Blood Bible ladders, an auth
-# timer on connect, a level-150 class-exp gift) are defined by nothing
-# either. Three of the __NETMARBLE_SERVER__ blocks called
+# --- R14: mentions of macros nothing defines -------------------------------
+# A macro no build defines -- not cmake/, a CMakeLists.txt, a Makefile, a
+# Dockerfile or a workflow -- makes the block behind it dead text: it never
+# reached the compiler, so the #else/#ifndef branch beside it was the only
+# code the servers ran, while the block kept reading as live code and
+# drifting out of sync with the headers it names. A translation-unit-local
+# #define arms one again, and one did: it gave that TU a
+# SystemAvailabilitiesManager with an extra member and a layout no other TU
+# shared.
+#
+# The region builds went first. __THAILAND_SERVER__ and __CHINA_SERVER__
+# selected a Thailand or a China build; counted with them are the
+# misspellings __CHAINA_SERVER__ and __THIALAND_SERVER__, which appeared
+# inside the same conditions, and __INTERNATIONAL_SERVER__, a dead #elif in
+# the same Encrypter.h chain. __NETMARBLE_SERVER__ was a portal build (a
+# terms-of-use byte on the end of LCPCList, DELETE instead of INACTIVE in the
+# character purge) and __TEST_SERVER__ a test build (fame*10 in the Blood
+# Bible ladders, an auth timer on connect, a level-150 class-exp gift).
+# Three of the __NETMARBLE_SERVER__ blocks called
 # LoginPlayer::setAgree/isAgree, which no header declares, so they could not
-# have compiled had it been defined. Comments count too -- a comment
-# describing one of these branches describes code that is not there, so it
-# states what the code does instead.
-R14=$(LC_ALL=C grep -rhE '__(THAILAND|THIALAND|CHINA|CHAINA|INTERNATIONAL|NETMARBLE|TEST)_SERVER__' \
+# have compiled had it been defined.
+#
+# The feature macros followed: __OLD_GUILD_WAR__ (guild union and tax
+# handlers that only answered "not supported yet", and a one-attacker war
+# schedule where the live read takes five), __CONNECT_BILLING_SYSTEM__ and
+# __COUT_BILLING_SYSTEM__ (the external billing link and its console trace),
+# __PAY_SYSTEM_ZONE__ / __PAY_SYSTEM_LOGIN__ / __PAY_SYSTEM_FREE_LIMIT__
+# (the paid-zone, paid-login and free-play-limit gates -- with none of them
+# defined GamePlayer::isPayPlaying() answers true for every player and each
+# gate passes), __UNDERWORLD__ (an underworld monster flag, its protection
+# rule and its prize), __ACTIVE_QUEST__ (an NPC quest board),
+# __ACTIVE_SERVICE_DEADLINE__ (a date past which the session's encrypt code
+# was to be corrupted) and __WINDOWS__ (the Windows arm of the platform
+# switch; __LINUX__ comes from the top-level CMakeLists.txt and __APPLE__
+# from the compiler, so that arm was the only dead one).
+#
+# Deliberately not counted: the instrumentation toggles a developer switches
+# on by hand (__PROFILE_*, __FULL_PROFILE__, __DEBUG_OUTPUT__,
+# __OUTPUT_INIT__). Comments count -- a comment describing one of these
+# branches describes code that is not there, so it states what the code does
+# instead.
+R14=$(LC_ALL=C grep -rhE '__((THAILAND|THIALAND|CHINA|CHAINA|INTERNATIONAL|NETMARBLE|TEST)_SERVER|OLD_GUILD_WAR|CONNECT_BILLING_SYSTEM|COUT_BILLING_SYSTEM|PAY_SYSTEM_(ZONE|LOGIN|FREE_LIMIT)|UNDERWORLD|ACTIVE_QUEST|ACTIVE_SERVICE_DEADLINE|WINDOWS)__' \
     src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R14 "never-defined region-macro mentions" 0 "$R14"
+check_ratchet R14 "mentions of macros nothing defines" 0 "$R14"
 
 # --- R15: src/**/*.cpp that no target compiles -----------------------------
 # A source no target names is never compiled, so nothing it says is true of a

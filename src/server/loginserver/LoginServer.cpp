@@ -68,13 +68,6 @@ LoginServer::LoginServer() {
     // create GameWorldInfoManager
     g_pGameWorldInfoManager = new GameWorldInfoManager();
 
-    // login 서버에서는 빌링을 빼기로 한다.
-    // 애드빌 요청. by bezz 2003.04.22
-    // #ifdef __CONNECT_BILLING_SYSTEM__
-    //  create GameWorldInfoManager
-    // g_pBillingPlayerManager = new BillingPlayerManager();
-    // #endif
-
     __END_CATCH
 }
 
@@ -141,16 +134,6 @@ LoginServer::~LoginServer() noexcept(false) {
         g_pGameWorldInfoManager = NULL;
     }
 
-    // login 서버에서는 빌링을 빼기로 한다.
-    // 애드빌 요청. by bezz 2003.04.22
-    // #ifdef __CONNECT_BILLING_SYSTEM__
-    // if ( g_pBillingPlayerManager != NULL ) {
-    // delete g_pBillingPlayerManager;
-    // g_pBillingPlayerManager = NULL;
-    //}
-    // #endif
-
-
     __END_CATCH
 }
 
@@ -183,14 +166,6 @@ void LoginServer::init() {
     // 서버간 통신 매니저를 초기화한다.
     g_pGameServerManager->init();
 
-    // login 서버에서는 빌링을 빼기로 한다.
-    // 애드빌 요청. by bezz 2003.04.22
-    // #ifdef __CONNECT_BILLING_SYSTEM__
-    //  빌링 서버 접속 준비
-    // g_pBillingPlayerManager->init();
-    // #endif
-
-
     // 만반의 준비가 끝이 나면 이제 클라이언트매니저를 초기화함으로써,
     // 네트워킹에 대비한다.
     g_pClientManager->init();
@@ -209,12 +184,6 @@ void LoginServer::start() {
 
     // 서버간 통신 매니저를 시작한다.
     g_pGameServerManager->start();
-
-    // login 서버에서는 빌링을 빼기로 한다.
-    // 애드빌 요청. by bezz 2003.04.22
-    // #ifdef __CONNECT_BILLING_SYSTEM__
-    // g_pBillingPlayerManager->start();
-    // #endif
 
     //
     // 클라이언트 매니저를 시작한다.
@@ -264,12 +233,6 @@ void LoginServer::stop() {
         cerr << "GameServerManager: unknown worker failure" << endl;
     }
     m_Stopped = true;
-
-    // login 서버에서는 빌링을 빼기로 한다.
-    // 애드빌 요청. by bezz 2003.04.22
-    // #ifdef __CONNECT_BILLING_SYSTEM__
-    // g_pBillingPlayerManager->stop();
-    // #endif
 
     __END_CATCH
 }

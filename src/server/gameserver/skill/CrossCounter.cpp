@@ -246,11 +246,7 @@ bool CheckCrossCounter(Creature* pAttacker, Creature* pTargetCreature, Damage_t 
                 // pMonster->addEnemy(pTargetSlayer);
 
                 // 마스터는 딜레이없다.
-                if (!pMonster->isMaster()
-#ifdef __UNDERWORLD__
-                    && !pMonster->isUnderworld() && pMonster->getMonsterType() != 599
-#endif
-                ) {
+                if (!pMonster->isMaster()) {
                     Timeval NextTurn = pMonster->getNextTurn();
                     Timeval DelayTurn;
                     DelayTurn.tv_sec = 0;
