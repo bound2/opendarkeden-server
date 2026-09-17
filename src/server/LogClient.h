@@ -27,8 +27,8 @@ enum LogType {
     LOG_LOGINSERVER = 40,       // login server message
     LOG_LOGINSERVER_ERROR = 50, // login server error message
 
-    LOG_SHAREDSERVER = 60,       // login server message
-    LOG_SHAREDSERVER_ERROR = 70, // login server error message
+    LOG_SHAREDSERVER = 60,       // shared server message
+    LOG_SHAREDSERVER_ERROR = 70, // shared server error message
 
     LOG_CGCONNECT = 80, // login to the game server
 

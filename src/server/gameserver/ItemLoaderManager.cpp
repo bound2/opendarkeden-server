@@ -464,5 +464,3 @@ string ItemLoaderManager::toString() const
 
     __END_CATCH
 }
-
-ItemLoaderManager* g_pItemLoaderManager = NULL;

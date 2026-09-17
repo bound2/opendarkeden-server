@@ -23,6 +23,16 @@ CastleShrineInfoManager& GameContext::castleShrines() const {
     return *m_pCastleShrineInfoManager;
 }
 
+CastleSkillInfoManager& GameContext::castleSkills() const {
+    Assert(m_pCastleSkillInfoManager != nullptr);
+    return *m_pCastleSkillInfoManager;
+}
+
+ClientManager& GameContext::clients() const {
+    Assert(m_pClientManager != nullptr);
+    return *m_pClientManager;
+}
+
 ConditionFactoryManager& GameContext::conditionFactories() const {
     Assert(m_pConditionFactoryManager != nullptr);
     return *m_pConditionFactoryManager;
@@ -31,6 +41,11 @@ ConditionFactoryManager& GameContext::conditionFactories() const {
 Properties& GameContext::config() const {
     Assert(m_pConfig != nullptr);
     return *m_pConfig;
+}
+
+ConnectionInfoManager& GameContext::connectionInfos() const {
+    Assert(m_pConnectionInfoManager != nullptr);
+    return *m_pConnectionInfoManager;
 }
 
 DarkLightInfoManager& GameContext::darkLights() const {
@@ -73,6 +88,11 @@ EventQuestLootingManager& GameContext::eventQuestLoot() const {
     return *m_pEventQuestLootingManager;
 }
 
+GameServerGroupInfoManager& GameContext::gameServerGroups() const {
+    Assert(m_pGameServerGroupInfoManager != nullptr);
+    return *m_pGameServerGroupInfoManager;
+}
+
 GoodsInfoManager& GameContext::goodsInfos() const {
     Assert(m_pGoodsInfoManager != nullptr);
     return *m_pGoodsInfoManager;
@@ -81,6 +101,11 @@ GoodsInfoManager& GameContext::goodsInfos() const {
 ItemFactoryManager& GameContext::itemFactories() const {
     Assert(m_pItemFactoryManager != nullptr);
     return *m_pItemFactoryManager;
+}
+
+ItemLoaderManager& GameContext::itemLoaders() const {
+    Assert(m_pItemLoaderManager != nullptr);
+    return *m_pItemLoaderManager;
 }
 
 MonsterNameManager& GameContext::monsterNames() const {
@@ -126,6 +151,11 @@ SkillPropertyManager& GameContext::skillProps() const {
 StringPool& GameContext::strings() const {
     Assert(m_pStringPool != nullptr);
     return *m_pStringPool;
+}
+
+TimeChecker& GameContext::timeChecker() const {
+    Assert(m_pTimeChecker != nullptr);
+    return *m_pTimeChecker;
 }
 
 VampEXPInfoManager& GameContext::vampireExp() const {

@@ -44,7 +44,4 @@ private:
     mutable Mutex m_Mutex;
 };
 
-// global variable declaration
-extern ConnectionInfoManager* g_pConnectionInfoManager;
-
 #endif

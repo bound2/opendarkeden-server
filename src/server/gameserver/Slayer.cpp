@@ -25,6 +25,7 @@
 #include "CreatureUtil.h"
 #include "EffectLoaderManager.h"
 #include "FlagSet.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemInfoManager.h"
 #include "OptionInfo.h"
@@ -539,8 +540,7 @@ void Slayer::loadItem(bool checkTimeLimit)
     m_pInventory = new Inventory(10, 6);
     m_pInventory->setOwner(getName());
 
-    // 아이템을 로드한다.
-    g_pItemLoaderManager->load(this);
+    de::gameContext().itemLoaders().load(this);
 
     // 구매한 아이템을 로드한다.
     PlayerCreature::loadGoods();
@@ -1091,7 +1091,7 @@ void Slayer::removeCastleSkill(SkillType_t SkillType)
     __BEGIN_TRY
 
     // 성지 스킬만 지울 수 있다.
-    if (g_pCastleSkillInfoManager->getZoneID(SkillType) == 0)
+    if (de::gameContext().castleSkills().getZoneID(SkillType) == 0)
         return;
 
     unordered_map<SkillType_t, SkillSlot*>::iterator itr = m_SkillSlot.find(SkillType);
@@ -1118,7 +1118,7 @@ void Slayer::removeAllCastleSkill()
     while (itr != m_SkillSlot.end()) {
         if (itr->second != NULL) {
             SkillSlot* pSkillSlot = itr->second;
-            if (g_pCastleSkillInfoManager->getZoneID(pSkillSlot->getSkillType()) == 0) {
+            if (de::gameContext().castleSkills().getZoneID(pSkillSlot->getSkillType()) == 0) {
                 // 성지스킬이 아니면 다음껄로 넘어간다.
                 ++itr;
                 continue;

@@ -131,6 +131,8 @@ int main(int argc, char* argv[]) {
     //
     // Create the login server object, initialize it and activate it.
     //
+    LoginServer* pLoginServer = NULL;
+
     try {
         struct rlimit rl;
         rl.rlim_cur = RLIM_INFINITY;
@@ -138,14 +140,14 @@ int main(int argc, char* argv[]) {
         setrlimit(RLIMIT_CORE, &rl);
 
         // Create the login server object.
-        g_pLoginServer = new LoginServer();
+        pLoginServer = new LoginServer();
 
         // Initialize the login server object.
-        g_pLoginServer->init();
+        pLoginServer->init();
 
         // Activate the login server object.
         if (!ServerShutdown::isRequested())
-            g_pLoginServer->start();
+            pLoginServer->start();
     } catch (Throwable& e) {
         // In case the server ends before logging is up
         ofstream ofile("../log/instant.log", ios::out);
@@ -172,8 +174,8 @@ int main(int argc, char* argv[]) {
     ServerShutdown::request();
     bool drained = true;
     try {
-        if (g_pLoginServer != NULL)
-            g_pLoginServer->stop();
+        if (pLoginServer != NULL)
+            pLoginServer->stop();
     } catch (Throwable& error) {
         drained = false;
         ServerShutdown::fail();

@@ -24,7 +24,10 @@
 
 class ActionFactoryManager;
 class CastleShrineInfoManager;
+class CastleSkillInfoManager;
+class ClientManager;
 class ConditionFactoryManager;
+class ConnectionInfoManager;
 class DarkLightInfoManager;
 class DatabaseManager;
 class DefaultOptionSetInfoManager;
@@ -33,8 +36,10 @@ class DragonEyeManager;
 class DynamicZoneFactoryManager;
 class DynamicZoneInfoManager;
 class EventQuestLootingManager;
+class GameServerGroupInfoManager;
 class GoodsInfoManager;
 class ItemFactoryManager;
+class ItemLoaderManager;
 class MonsterNameManager;
 class OustersEXPInfoManager;
 class PCFinder;
@@ -45,6 +50,7 @@ class ShopTemplateManager;
 class SkillDomainInfoManager;
 class SkillPropertyManager;
 class StringPool;
+class TimeChecker;
 class VampEXPInfoManager;
 class VariableManager;
 class VolumeInfoManager;
@@ -68,11 +74,20 @@ public:
     void setCastleShrineInfoManager(CastleShrineInfoManager* pCastleShrineInfoManager) {
         m_pCastleShrineInfoManager = pCastleShrineInfoManager;
     }
+    void setCastleSkillInfoManager(CastleSkillInfoManager* pCastleSkillInfoManager) {
+        m_pCastleSkillInfoManager = pCastleSkillInfoManager;
+    }
+    void setClientManager(ClientManager* pClientManager) {
+        m_pClientManager = pClientManager;
+    }
     void setConditionFactoryManager(ConditionFactoryManager* pConditionFactoryManager) {
         m_pConditionFactoryManager = pConditionFactoryManager;
     }
     void setConfig(Properties* pConfig) {
         m_pConfig = pConfig;
+    }
+    void setConnectionInfoManager(ConnectionInfoManager* pConnectionInfoManager) {
+        m_pConnectionInfoManager = pConnectionInfoManager;
     }
     void setDarkLightInfoManager(DarkLightInfoManager* pDarkLightInfoManager) {
         m_pDarkLightInfoManager = pDarkLightInfoManager;
@@ -98,11 +113,17 @@ public:
     void setEventQuestLootingManager(EventQuestLootingManager* pEventQuestLootingManager) {
         m_pEventQuestLootingManager = pEventQuestLootingManager;
     }
+    void setGameServerGroupInfoManager(GameServerGroupInfoManager* pGameServerGroupInfoManager) {
+        m_pGameServerGroupInfoManager = pGameServerGroupInfoManager;
+    }
     void setGoodsInfoManager(GoodsInfoManager* pGoodsInfoManager) {
         m_pGoodsInfoManager = pGoodsInfoManager;
     }
     void setItemFactoryManager(ItemFactoryManager* pItemFactoryManager) {
         m_pItemFactoryManager = pItemFactoryManager;
+    }
+    void setItemLoaderManager(ItemLoaderManager* pItemLoaderManager) {
+        m_pItemLoaderManager = pItemLoaderManager;
     }
     void setMonsterNameManager(MonsterNameManager* pMonsterNameManager) {
         m_pMonsterNameManager = pMonsterNameManager;
@@ -131,6 +152,9 @@ public:
     void setStringPool(StringPool* pStringPool) {
         m_pStringPool = pStringPool;
     }
+    void setTimeChecker(TimeChecker* pTimeChecker) {
+        m_pTimeChecker = pTimeChecker;
+    }
     void setVampEXPInfoManager(VampEXPInfoManager* pVampEXPInfoManager) {
         m_pVampEXPInfoManager = pVampEXPInfoManager;
     }
@@ -155,8 +179,11 @@ public:
 
     ActionFactoryManager& actionFactories() const;
     CastleShrineInfoManager& castleShrines() const;
+    CastleSkillInfoManager& castleSkills() const;
+    ClientManager& clients() const;
     ConditionFactoryManager& conditionFactories() const;
     Properties& config() const;
+    ConnectionInfoManager& connectionInfos() const;
     DarkLightInfoManager& darkLights() const;
     DatabaseManager& databases() const;
     DefaultOptionSetInfoManager& optionSets() const;
@@ -165,8 +192,10 @@ public:
     DynamicZoneFactoryManager& dynamicZoneFactories() const;
     DynamicZoneInfoManager& dynamicZoneInfos() const;
     EventQuestLootingManager& eventQuestLoot() const;
+    GameServerGroupInfoManager& gameServerGroups() const;
     GoodsInfoManager& goodsInfos() const;
     ItemFactoryManager& itemFactories() const;
+    ItemLoaderManager& itemLoaders() const;
     MonsterNameManager& monsterNames() const;
     OustersEXPInfoManager& oustersExp() const;
     PCFinder& playerCreatures() const;
@@ -176,6 +205,7 @@ public:
     SkillDomainInfoManager& skillDomains() const;
     SkillPropertyManager& skillProps() const;
     StringPool& strings() const;
+    TimeChecker& timeChecker() const;
     VampEXPInfoManager& vampireExp() const;
     VariableManager& variables() const;
     VolumeInfoManager& volumeInfos() const;
@@ -187,8 +217,11 @@ public:
 private:
     ActionFactoryManager* m_pActionFactoryManager = nullptr;
     CastleShrineInfoManager* m_pCastleShrineInfoManager = nullptr;
+    CastleSkillInfoManager* m_pCastleSkillInfoManager = nullptr;
+    ClientManager* m_pClientManager = nullptr;
     ConditionFactoryManager* m_pConditionFactoryManager = nullptr;
     Properties* m_pConfig = nullptr;
+    ConnectionInfoManager* m_pConnectionInfoManager = nullptr;
     DarkLightInfoManager* m_pDarkLightInfoManager = nullptr;
     DatabaseManager* m_pDatabaseManager = nullptr;
     DefaultOptionSetInfoManager* m_pDefaultOptionSetInfoManager = nullptr;
@@ -197,8 +230,10 @@ private:
     DynamicZoneFactoryManager* m_pDynamicZoneFactoryManager = nullptr;
     DynamicZoneInfoManager* m_pDynamicZoneInfoManager = nullptr;
     EventQuestLootingManager* m_pEventQuestLootingManager = nullptr;
+    GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
     GoodsInfoManager* m_pGoodsInfoManager = nullptr;
     ItemFactoryManager* m_pItemFactoryManager = nullptr;
+    ItemLoaderManager* m_pItemLoaderManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;
     OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
@@ -208,6 +243,7 @@ private:
     SkillDomainInfoManager* m_pSkillDomainInfoManager = nullptr;
     SkillPropertyManager* m_pSkillPropertyManager = nullptr;
     StringPool* m_pStringPool = nullptr;
+    TimeChecker* m_pTimeChecker = nullptr;
     VampEXPInfoManager* m_pVampEXPInfoManager = nullptr;
     VariableManager* m_pVariableManager = nullptr;
     VolumeInfoManager* m_pVolumeInfoManager = nullptr;

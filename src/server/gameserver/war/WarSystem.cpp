@@ -12,6 +12,7 @@
 #include "GCSystemMessage.h"
 #include "GCWarList.h"
 #include "GCWarScheduleList.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GuildWar.h"
 #include "GuildWarInfo.h"
@@ -216,7 +217,7 @@ bool WarSystem::addWar(War* pWar)
         // Refresh the state of the users in the holy land.
         EventRefreshHolyLandPlayer* pEvent = new EventRefreshHolyLandPlayer(NULL);
         pEvent->setDeadline(0);
-        g_pClientManager->addEvent(pEvent);
+        de::gameContext().clients().addEvent(pEvent);
 
         __ENTER_CRITICAL_SECTION(m_MutexActiveWars)
 
@@ -229,7 +230,7 @@ bool WarSystem::addWar(War* pWar)
         // Refresh the state of the users in the holy land.
         EventRefreshHolyLandPlayer* pEvent = new EventRefreshHolyLandPlayer(NULL);
         pEvent->setDeadline(0);
-        g_pClientManager->addEvent(pEvent);
+        de::gameContext().clients().addEvent(pEvent);
 
         // Broadcast the blood bible positions across Adam's holy land.
         g_pShrineInfoManager->broadcastBloodBibleStatus();
@@ -354,7 +355,7 @@ Work* WarSystem::heartbeat()
                 // Refresh the state of the users in the holy land.
                 EventRefreshHolyLandPlayer* pEvent = new EventRefreshHolyLandPlayer(NULL);
                 pEvent->setDeadline(0);
-                g_pClientManager->addEvent(pEvent);
+                de::gameContext().clients().addEvent(pEvent);
 
                 GCNoticeEvent gcNE;
                 gcNE.setCode(NOTICE_EVENT_RACE_WAR_IN_20);
@@ -411,7 +412,7 @@ Work* WarSystem::heartbeat()
             // Refresh the state of the users in the holy land.
             EventRefreshHolyLandPlayer* pEvent = new EventRefreshHolyLandPlayer(NULL);
             pEvent->setDeadline(0);
-            g_pClientManager->addEvent(pEvent);
+            de::gameContext().clients().addEvent(pEvent);
 
             m_b20Minutes = false;
         }

@@ -149,6 +149,8 @@ int main(int argc, char* argv[]) {
     //
     // °ÔÀÓ ¼­¹ö °´Ã¼¸¦ »ý¼ºÇÏ°í ÃÊ±âÈ­ÇÑ ÈÄ È°¼ºÈ­½ÃÅ²´Ù.
     //
+    GameServer* pGameServer = NULL;
+
     try {
         struct rlimit rl;
         rl.rlim_cur = RLIM_INFINITY;
@@ -156,18 +158,18 @@ int main(int argc, char* argv[]) {
         setrlimit(RLIMIT_CORE, &rl);
 
         // °ÔÀÓ ¼­¹ö °´Ã¼¸¦ »ý¼ºÇÑ´Ù.
-        g_pGameServer = new GameServer();
+        pGameServer = new GameServer();
 
         cout << ">>> GAME SERVER INSTANCE CREATED..." << endl;
 
         // °ÔÀÓ ¼­¹ö °´Ã¼¸¦ ÃÊ±âÈ­ÇÑ´Ù.
-        g_pGameServer->init();
+        pGameServer->init();
 
         cout << ">>> GAME SERVER INITIALIZATION SUCCESS..." << endl;
 
         // °ÔÀÓ ¼­¹ö °´Ã¼¸¦ È°¼ºÈ­½ÃÅ²´Ù.
         if (!ServerShutdown::isRequested())
-            g_pGameServer->start();
+            pGameServer->start();
     } catch (Throwable& e) {
         // ·Î±×°¡ ÀÌ·ïÁö±â Àü¿¡ ¼­¹ö°¡ ³¡³¯ °æ¿ì¸¦ ´ëºñÇØ¼­
         ofstream ofile("../log/instant.log", ios::out);
@@ -188,8 +190,8 @@ int main(int argc, char* argv[]) {
     ServerShutdown::request();
     bool drained = true;
     try {
-        if (g_pGameServer != NULL)
-            g_pGameServer->stop();
+        if (pGameServer != NULL)
+            pGameServer->stop();
     } catch (Throwable& error) {
         drained = false;
         ServerShutdown::fail();

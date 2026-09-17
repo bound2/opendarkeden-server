@@ -15,6 +15,7 @@
 #include "Corpse.h"
 #include "EventShutdown.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "StringPool.h"
 #include "Zone.h"
 #include "ZoneGroupManager.h"
@@ -207,7 +208,7 @@ void EffectShutDown::unaffect()
     EventShutdown* pEventShutdown = new EventShutdown(NULL);
     pEventShutdown->setDeadline(0);
 
-    g_pClientManager->addEvent(pEventShutdown);
+    de::gameContext().clients().addEvent(pEventShutdown);
 
     __END_CATCH
 }

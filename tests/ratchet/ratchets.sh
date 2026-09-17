@@ -34,7 +34,7 @@ check_ratchet() {
 
 # --- R1: g_p* global-singleton extern declarations -------------------------
 R1=$(grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R1 "global singleton externs" 72 "$R1"
+check_ratchet R1 "global singleton externs" 61 "$R1"
 
 # --- R2: files with inline SQL in the gameserver root ----------------------
 R2=$(grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h 2>/dev/null | wc -l)
@@ -449,7 +449,7 @@ rm -f "$r16_inc" "$r16_dead"
 # working tree out of the count, which [^[:print:]] would not, and LC_ALL=C
 # keeps the range byte-wise where a locale would read it as characters.
 R17=$(LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R17 "source lines carrying non-ASCII bytes" 14197 "$R17"
+check_ratchet R17 "source lines carrying non-ASCII bytes" 14195 "$R17"
 
 # --- R18: commented-out code inside /* */ blocks ---------------------------
 # Code that was switched off years ago says nothing true about the running
@@ -525,7 +525,7 @@ if ! [[ "$r18_files" =~ ^[0-9]+$ ]] || [ "$r18_files" -lt 3000 ]; then
     echo "[FAIL] R18 commented-out code: only '$r18_files' files scanned (find or perl broken?)"
     fail=1
 else
-    check_ratchet R18 "commented-out code lines in /* */ blocks" 5281 "$R18"
+    check_ratchet R18 "commented-out code lines in /* */ blocks" 5279 "$R18"
 fi
 
 # --- Removed dead services must not return --------------------------------

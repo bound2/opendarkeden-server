@@ -42,6 +42,4 @@ private:
     ItemLoader* m_pItemLoaders[Item::ITEM_CLASS_MAX] = {};
 };
 
-extern ItemLoaderManager* g_pItemLoaderManager;
-
 #endif

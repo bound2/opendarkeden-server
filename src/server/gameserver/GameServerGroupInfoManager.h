@@ -71,7 +71,4 @@ private:
 };
 
 
-// global variable declaration
-extern GameServerGroupInfoManager* g_pGameServerGroupInfoManager;
-
 #endif

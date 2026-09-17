@@ -14,8 +14,8 @@
 #include "Zone.h"
 #include "repository/WarInfoRepository.h"
 
-// Monday, Wednesday and Friday after dt, 8 pm (~9 pm)
-// Sunday after dt, 7 pm (~9 pm)
+// Days from each weekday to the next war of each kind, then the start hours;
+// the tables below are the schedule, not a fixed evening.
 const int NextWarDay[2][8] = {
     {0, 1, 7, 6, 5, 4, 3, 2}, // guild war
     //{ 0, 2, 1, 0, 3, 2, 1, 0 }	// RaceWar Sun,Mon,Tue,Wed,Thu,Fri,Sat,Sun

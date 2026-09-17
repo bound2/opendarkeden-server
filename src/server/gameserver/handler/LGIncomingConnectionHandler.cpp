@@ -16,6 +16,7 @@
 #include "ConnectionInfoManager.h"
 #include "GLIncomingConnectionError.h"
 #include "GLIncomingConnectionOK.h"
+#include "GameContext.h"
 #include "LogDef.h"
 #include "LoginServerManager.h"
 
@@ -97,7 +98,7 @@ void LGIncomingConnectionHandler::execute(LGIncomingConnection* pPacket)
 
     try {
         // Add it to the CIM.
-        g_pConnectionInfoManager->addConnectionInfo(pConnectionInfo);
+        de::gameContext().connectionInfos().addConnectionInfo(pConnectionInfo);
 
         // by sigi. 2002.12.7
         FILELOG_INCOMING_CONNECTION("connectionInfo.log", "Add [%s:%s] %s (%u)", pPacket->getPlayerID().c_str(),

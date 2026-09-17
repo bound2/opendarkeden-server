@@ -76,7 +76,4 @@ private:
     HashMapCastleSkillInfo m_CastleSkillInfos;
 };
 
-// Global Variable Definition
-extern CastleSkillInfoManager* g_pCastleSkillInfoManager;
-
 #endif // __CASTLE_SKILL_INFO_H__

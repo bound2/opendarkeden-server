@@ -48,7 +48,4 @@ private:
     bool m_Stopped = false;
 };
 
-// global variable declaration
-extern SharedServer* g_pSharedServer;
-
 #endif

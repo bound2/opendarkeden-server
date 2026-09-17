@@ -25,6 +25,7 @@
 #include "GCSystemMessage.h"
 #include "GCUpdateInfo.h"
 #include "GSGuildMemberLogOn.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -102,7 +103,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     // A cracker has to match the key value and the character name within a time limit to connect.
     try {
         ConnectionInfo* pConnectionInfo =
-            g_pConnectionInfoManager->getConnectionInfo(pGamePlayer->getSocket()->getHost());
+            de::gameContext().connectionInfos().getConnectionInfo(pGamePlayer->getSocket()->getHost());
 
         // Authenticate the key value.
         if (pPacket->getKey() != pConnectionInfo->getKey()) {
@@ -133,7 +134,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                                         pGamePlayer->getSocket()->getHost().c_str());
 
             // Delete it first.
-            g_pConnectionInfoManager->deleteConnectionInfo(pConnectionInfo->getClientIP());
+            de::gameContext().connectionInfos().deleteConnectionInfo(pConnectionInfo->getClientIP());
             throw InvalidProtocolException("session already expired");
         }
 
@@ -144,7 +145,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
         // Authenticated, so delete the ConnectionInfo.
         try {
-            g_pConnectionInfoManager->deleteConnectionInfo(pConnectionInfo->getClientIP());
+            de::gameContext().connectionInfos().deleteConnectionInfo(pConnectionInfo->getClientIP());
         } catch (NoSuchElementException& nsee) {
             FILELOG_INCOMING_CONNECTION("connectionInfoDelete.log", "DeleteNoSuch [%s:%s] %s (%u)",
                                         pConnectionInfo->getPlayerID().c_str(), pConnectionInfo->getPCName().c_str(),

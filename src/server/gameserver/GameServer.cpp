@@ -53,14 +53,14 @@ GameServer::GameServer()
         de::gameContext().setDatabaseManager(g_pDatabaseManager);
 
         // create object manager
-        g_pObjectManager = new ObjectManager();
+        m_pObjectManager = new ObjectManager();
 
         // create packet factory manager , packet validator
         g_pPacketFactoryManager = new PacketFactoryManager();
         g_pPacketValidator = new PacketValidator();
 
         // create thread manager
-        g_pThreadManager = new ThreadManager();
+        m_pThreadManager = new ThreadManager();
 
         // create login server manager
         g_pLoginServerManager = new LoginServerManager();
@@ -74,7 +74,8 @@ GameServer::GameServer()
 #endif
 
         // create client manager
-        g_pClientManager = new ClientManager();
+        m_pClientManager = new ClientManager();
+        de::gameContext().setClientManager(m_pClientManager);
 
         // create login server manager
         g_pGameServerInfoManager = new GameServerInfoManager();
@@ -101,9 +102,9 @@ GameServer::~GameServer()
     stop();
     // Zone workers must stop while their zone and database dependencies are
     // still alive.
-    SAFE_DELETE(g_pThreadManager);
-    SAFE_DELETE(g_pClientManager);
-    SAFE_DELETE(g_pObjectManager);
+    SAFE_DELETE(m_pThreadManager);
+    SAFE_DELETE(m_pClientManager);
+    SAFE_DELETE(m_pObjectManager);
     SAFE_DELETE(g_pPacketValidator);
     SAFE_DELETE(g_pPacketFactoryManager);
     SAFE_DELETE(g_pLoginServerManager);
@@ -138,13 +139,13 @@ void GameServer::init()
     cout << "GameServer::init() : DatabaseManager Initialization Success..." << endl;
 
     // 데이타베이스매니저를 통해서 오브젝트매니저를 초기화한다.
-    g_pObjectManager->init();
-    g_pObjectManager->load();
+    m_pObjectManager->init();
+    m_pObjectManager->load();
     cout << "GameServer::init() : ObjectManager Initialization Success..." << endl;
 
     // 오브젝트 매니저를 기반으로 쓰레드매니저를 초기화한다.
     // (특히 ZoneThreadPool은 ZoneGroupManager가 먼저 초기화되어야 한다.
-    g_pThreadManager->init();
+    m_pThreadManager->init();
     cout << "GameServer::init() : ThreadManager Initialization Success..." << endl;
 
     // 클라이언트매니저를 초기화하기 전에, 패킷팩토리매니저/패킷발리데이터를 초기화한다.
@@ -175,7 +176,7 @@ void GameServer::init()
 
     // 만반의 준비가 끝이 나면 이제 클라이언트매니저를 초기화함으로써,
     // 네트워킹에 대비한다.
-    g_pClientManager->init();
+    m_pClientManager->init();
     cout << "GameServer::init() : ClientManager Initialization Success..." << endl;
 
     // 초기화가 끝이 나면, 콘솔 출력을 멈추고 백그라운드로 들어간다.
@@ -195,7 +196,7 @@ void GameServer::start()
     __BEGIN_TRY
 
     cout << ">>> STARTING THREAD MANAGER..." << endl;
-    g_pThreadManager->start();
+    m_pThreadManager->start();
 
     cout << ">>> STARTING LOGIN SERVER MANAGER..." << endl;
     g_pLoginServerManager->start();
@@ -228,7 +229,7 @@ void GameServer::start()
     log(LOG_SYSTEM, "", "", "Game Server Started");
 
     try {
-        g_pClientManager->start();
+        m_pClientManager->start();
 
     } catch (Throwable& t) {
         filelog("GameServerError.txt", "%s", t.toString().c_str());
@@ -262,7 +263,7 @@ void GameServer::stop()
     // 받지 않도록 한다.
     //
     ServerShutdown::request();
-    g_pClientManager->stop();
+    m_pClientManager->stop();
     // Request every auxiliary stop before any join. All shared dependencies
     // remain alive until BOTH auxiliary and zone workers have finished.
     std::vector<ManagedThread*> workers{g_pLoginServerManager, g_pSharedServerManager, &GDRLairManager::Instance()};
@@ -280,7 +281,7 @@ void GameServer::stop()
     // stop을 실행할때 적절하게 잘 되어야 한다.
     //
     //
-    g_pThreadManager->stop();
+    m_pThreadManager->stop();
     for (auto* worker : workers) {
         worker->join();
         try {
@@ -300,7 +301,7 @@ void GameServer::stop()
     // 이제 모든 사용자들의 접속이 종료되었으므로, 남은 존 및 여러 가지 게임
     // 환경들을 데이타베이스로 저장하도록 한다.
     //
-    // g_pObjectManager->save();
+    // m_pObjectManager->save();
 
     __END_CATCH
 }
@@ -350,8 +351,3 @@ void GameServer::goBackground()
 
     __END_CATCH
 }
-
-//////////////////////////////////////////////////////////////////////////////
-// global variable declaration
-//////////////////////////////////////////////////////////////////////////////
-GameServer* g_pGameServer = NULL;

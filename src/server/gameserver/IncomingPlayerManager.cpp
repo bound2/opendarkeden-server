@@ -17,6 +17,7 @@
 #include "GCUpdateInfo.h"
 #include "GLIncomingConnection.h"
 #include "GLKickVerify.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "LogClient.h"
 #include "LogDef.h"
@@ -77,7 +78,8 @@ IncomingPlayerManager::IncomingPlayerManager()
         throw Error(nsee.toString());
     }
 
-    g_pConnectionInfoManager = new ConnectionInfoManager();
+    m_pConnectionInfoManager = new ConnectionInfoManager();
+    de::gameContext().setConnectionInfoManager(m_pConnectionInfoManager);
 
     __END_CATCH
 }
@@ -92,7 +94,7 @@ IncomingPlayerManager::~IncomingPlayerManager() noexcept(false)
 {
     __BEGIN_TRY
 
-    SAFE_DELETE(g_pConnectionInfoManager);
+    SAFE_DELETE(m_pConnectionInfoManager);
 
     __END_CATCH_NO_RETHROW
 }
@@ -782,7 +784,7 @@ bool IncomingPlayerManager::acceptNewConnection()
         // toString()에서 CI == NULL 이 발생하기도 한다. -_-; 주의 요망..
 
         // 이 안에서 예외가 발생하면 짜른다.
-        g_pConnectionInfoManager->getConnectionInfo(client->getHost());
+        m_pConnectionInfoManager->getConnectionInfo(client->getHost());
         m_CheckValue = 11;
 
         // 클라이언트 소켓을 파라미터로 사용해서 플레이어 객체를 생성한다.

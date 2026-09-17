@@ -19,6 +19,7 @@
 #include "GCNoticeEvent.h"
 #include "GCSystemMessage.h"
 #include "GGCommand.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
 #include "Guild.h"
@@ -360,7 +361,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
             return;
 
         g_pVariableManager->setZoneGroupBalancingMinute(minute);
-        g_pClientManager->setBalanceZoneGroup(minute);
+        de::gameContext().clients().setBalanceZoneGroup(minute);
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_SET_ZONE_GROUP_BALANCING_TIME), set_value.c_str());
         //	    message << "the ZoneGroupBalancing period was set to " << set_value << " minutes.";
@@ -795,7 +796,7 @@ void opview(GamePlayer* pGamePlayer, string msg, int i) {
         message << "ZoneGroupBalancingʱ��: " << g_pVariableManager->getZoneGroupBalancingMinute() << "��";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "zone_group_next_balancing_time") {
-        const Timeval& tv = g_pClientManager->getBalanceZoneGroupTime();
+        const Timeval& tv = de::gameContext().clients().getBalanceZoneGroupTime();
         Timeval currentTime;
         getCurrentTime(currentTime);
         message << "�´�ZoneGroupBalancingʱ��: " << (tv.tv_sec - currentTime.tv_sec) / 60 << "�ֺ�";
@@ -1091,7 +1092,7 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
     }
 
     if (pEvent != NULL) {
-        g_pClientManager->addEvent(pEvent);
+        de::gameContext().clients().addEvent(pEvent);
     }
 
     // Send the system message only to oneself

@@ -16,6 +16,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 class ClientManager;
+class ObjectManager;
 class ThreadManager;
 
 class GameServer {
@@ -34,9 +35,12 @@ private:
     bool m_Stopped = false; // Lifecycle operations are owned by the main thread.
     void sysinit();
     void goBackground();
-};
 
-// global variable
-extern GameServer* g_pGameServer;
+    // Managers this class creates and deletes. The client manager is
+    // registered on de::GameContext; the other two are reached only from here.
+    ClientManager* m_pClientManager = nullptr;
+    ObjectManager* m_pObjectManager = nullptr;
+    ThreadManager* m_pThreadManager = nullptr;
+};
 
 #endif

@@ -124,6 +124,10 @@ private:
     int m_CheckValue; // by sigi. for debugging. 2002.11.11
 
     mutable Mutex m_MutexOut;
+
+    // Created and deleted here, registered on de::GameContext for the
+    // connect handlers that look a client's IP up.
+    ConnectionInfoManager* m_pConnectionInfoManager = nullptr;
 };
 
 // external variable declaration
