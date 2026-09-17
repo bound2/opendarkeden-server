@@ -2,7 +2,7 @@
 //
 // Filename    : LoginPlayerManager.h
 // Written by  : reiot@ewestsoft.com
-// Description : 로그인 서버용 로그인 플레이어 매니저
+// Description : Login player manager for the login server
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -21,7 +21,7 @@ class LoginPlayer;
 //
 // class LoginPlayerManager;
 //
-// 로그인 서버에 접속한 모든 플레이어들을 관리한다.
+// Manages every player connected to the login server.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -34,43 +34,43 @@ public:
     ~LoginPlayerManager() noexcept;
 
 public:
-    // 클라이언트 매니저를 초기화한다.
+    // Initialize the client manager.
     void init();
 
     // accept new connection
     void acceptNewConnection();
 
-    // select() 시스템콜을 사용해서 I/O Multiplexing을 한다.
+    // Uses the select() system call for I/O multiplexing.
     void select();
 
-    // 접속한 모든 사용자의 입력을 입력 버퍼로 복사한다.
+    // Copy the input of every connected user into the input buffer.
     void processInputs();
 
-    // 접속한 모든 사용자의 출력을 클라이언트로 전송한다.
+    // Send the output of every connected user to the client.
     void processOutputs();
 
-    // 접속한 모든 사용자의 패킷을 처리한다.
+    // Process the packets of every connected user.
     void processCommands();
 
-    // OOB 데이타를 처리한다. ^^;
+    // Handle OOB data.
     void processExceptions();
 
 public:
-    // 로그인 서버에 접속한 모든 플레이어들에게 특정 패킷을 전달한다.
+    // Deliver a given packet to every player connected to the login server.
     void broadcastPacket(Packet* pPacket);
 
-    // 특정 아이디의 플레이어에게 특정 패킷을 전달한다.
+    // Deliver a given packet to the player with a given id.
     void sendPacket(const string& id, Packet* pPacket);
 
-    // 플레이어 객체를 추가한다.
+    // Add a player object.
     void addPlayer(Player* pPlayer);
     void addPlayer_NOLOCKED(Player* pPlayer);
 
-    // 플레이어 객체를 삭제한다.
+    // Delete the player object.
     void deletePlayer(SOCKET fd);
     void deletePlayer_NOLOCKED(SOCKET fd);
 
-    // 플레이어 객체에 접근한다.
+    // Access a player object.
     LoginPlayer* getPlayer(const string& PCName) const;
     LoginPlayer* getPlayer_NOLOCKED(const string& PCName) const;
 
@@ -86,34 +86,34 @@ public:
     string toString() const;
 
 private:
-    // 서버 소켓
+    // Server socket
     ServerSocket* m_pServerSocket;
 
-    // 서버 소켓 디스크립터 ( for fast reference )
+    // Server socket descriptor ( for fast reference )
     SOCKET m_ServerFD;
 
-    // 소속된 플레이어들의 소켓 디스크립터의 집합이다.
-    // m_XXXXFDs[0]은 저장용이며, m_XXXFDs[1]이 실제로 select()의 파라미터로 사용된다.
-    // 즉 select()하기 전에 [0] -> [1] 로 복사가 이루어져야 한다.
+    // The set of socket descriptors of the players that belong here.
+    // m_XXXXFDs[0] is the stored copy; m_XXXFDs[1] is what select() actually gets.
+    // That is, [0] -> [1] must be copied before calling select().
     fd_set m_ReadFDs[2];
     fd_set m_WriteFDs[2];
     fd_set m_ExceptFDs[2];
 
-    // select에 사용되는 시간
+    // Time used by select
     Timeval m_Timeout[2];
 
     // min_fd , max_fd
-    // select()후 iterating 할 때 속도 증가를 위해서 사용한다.
-    // 또한 select()의 첫번째 파라미터를 계산하기 위해서 사용한다.
+    // Used to speed the iteration after select() up.
+    // Also used to compute select()'s first parameter.
     SOCKET m_MinFD;
     SOCKET m_MaxFD;
 
-    // 로그인 서버의 메인 루프는 단일 쓰레드로 구현된다.
-    // 따라서, mutex 를 사용하지 않아도 될 것처럼 보이지만..
-    // 게임서버로부터 데이터그램을 받아서 처리하는 루틴은
-    // 독립적인 쓰레드로 구현된다. 즉, 이 쓰레드가 LPM의
-    // 플레이어 배열을 manipulate할 때 경쟁조건이 발생할
-    // 가능성이 높다. - -;
+    // The login server's main loop is single threaded,
+    // so it looks as though no mutex were needed..
+    // but the routine that receives and handles datagrams from the game servers
+    // runs as its own thread. That thread can manipulate LPM's
+    // player array, so a race condition is quite
+    // likely.
     mutable Mutex m_Mutex;
 };
 

@@ -17,9 +17,9 @@
 //
 // class ZoneGroupInfo;
 //
-// 로그인 서버용 존 그룹 정보 객체이다.
+// Zone group information object for the login server.
 //
-// 어떤 존그룹이 어떤 서버에 의해서 처리되는지만 다룬다.
+// Only covers which zone group is served by which server.
 //
 //----------------------------------------------------------------------
 
@@ -51,10 +51,10 @@ public:
     }
 
 private:
-    // 존그룹 아이디
+    // Zone group id
     ZoneGroupID_t m_ZoneGroupID;
 
-    // 게임 서버
+    // Game server
     ServerID_t m_ServerID;
 };
 

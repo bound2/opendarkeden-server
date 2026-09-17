@@ -22,17 +22,17 @@ UserInfoManager::UserInfoManager() noexcept {}
 //----------------------------------------------------------------------
 UserInfoManager::~UserInfoManager() noexcept {
     try {
-        // hashmap ���� �� pair �� second, �� UserInfo ��ü���� �����ϰ�
-        // pair ��ü�� �״�� �д�. (UserInfo�� ���� �����Ǿ� �ִٴ� �Ϳ�
-        // �����϶�. �� �ʻ������ �ؾ� �Ѵ�. �ϱ�, ZGIM�� destruct �ȴٴ� ����
-        // �α��� ������ �˴ٿ�ȴٴ� ���� �ǹ��ϴϱ�.. - -; )
+        // Delete only the second of each pair in the hash map, i.e. the
+        // UserInfo objects, and leave the pairs themselves. (Note that
+        // they live on the heap, so they must be deleted explicitly. ZGIM being
+        // destructed means the login server is shutting down anyway.)
         for (int i = 1; i < m_MaxWorldID; i++) {
             for (HashMapUserInfo::iterator itr = m_UserInfos[i].begin(); itr != m_UserInfos[i].end(); itr++) {
                 delete itr->second;
                 itr->second = NULL;
             }
 
-            // ���� �ؽ��ʾȿ� �ִ� ��� pair ���� �����Ѵ�.
+            // Now erase every pair in the hash map.
             m_UserInfos[i].clear();
         }
 
@@ -124,10 +124,10 @@ void UserInfoManager::deleteUserInfo(ZoneGroupID_t ServerGroupID, WorldID_t Worl
     HashMapUserInfo::iterator itr = m_UserInfos[WorldID].find(ServerGroupID);
 
     if (itr != m_UserInfos[WorldID].end()) {
-        // UserInfo �� �����Ѵ�.
+        // Delete the UserInfo.
         delete itr->second;
 
-        // pair�� �����Ѵ�.
+        // Erase the pair.
         m_UserInfos[WorldID].erase(itr);
 
     } else { // not found
@@ -184,7 +184,7 @@ string UserInfoManager::toString() const noexcept(false) {
             //--------------------------------------------------
             // *OPTIMIZATION*
             //
-            // for_each()�� ����� ��
+            // Could use for_each()
             //--------------------------------------------------
             for (HashMapUserInfo::const_iterator itr = m_UserInfos[i].begin(); itr != m_UserInfos[i].end(); itr++)
                 msg << itr->second->toString();

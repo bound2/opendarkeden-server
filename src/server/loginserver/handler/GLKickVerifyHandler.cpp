@@ -22,8 +22,8 @@
 //
 // GLKickVerifyHander::execute()
 //
-// 게임 서버가 로그인 서버로부터 GLKickVerify 패킷을 받게 되면,
-// ReconnectLoginInfo를 새로 추가하게 된다.
+// When the game server receives a GLKickVerify packet from the login server,
+// a new ReconnectLoginInfo is added.
 //
 //----------------------------------------------------------------------
 void GLKickVerifyHandler::execute(GLKickVerify* pPacket)
@@ -42,9 +42,9 @@ void GLKickVerifyHandler::execute(GLKickVerify* pPacket)
         Player* pPlayer = ((PlayerManager*)g_pLoginPlayerManager)->getPlayer(pPacket->getID());
         LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
-        if (pLoginPlayer != NULL) // NoSuch 사용하기 때문에 일단은 안해도 되지만..
+        if (pLoginPlayer != NULL) // not strictly needed since NoSuch is used..
         {
-            // 캐릭터 이름이 같아야 한다.
+            // The character names must match.
             const string& name1 = pLoginPlayer->getLastCharacterName();
             const string& name2 = pPacket->getPCName();
 
@@ -56,13 +56,13 @@ void GLKickVerifyHandler::execute(GLKickVerify* pPacket)
                 //				}
                 //				cout << "-_-" << endl;
             } else {
-                // 딴 사람이다. 신경 쓸거 없다.
+                // A different person. Nothing to worry about.
             }
         }
 
         g_pLoginPlayerManager->unlock();
 
-    } catch (Throwable&) { // (NoSuchException&) { // 의미없겠지.
+    } catch (Throwable&) { // (NoSuchException&) { // would be pointless.
         g_pLoginPlayerManager->unlock();
     }
 

@@ -17,9 +17,9 @@
 //
 // class ZoneInfo;
 //
-// 로그인 서버용 존 정보 객체이다.
+// Zone information object for the login server.
 //
-// 어떤 존이 어떤 존 그룹에 속하는지만 다룬다.
+// Only covers which zone belongs to which zone group.
 //
 //----------------------------------------------------------------------
 
@@ -49,10 +49,10 @@ public:
     }
 
 private:
-    // 존 아이디
+    // Zone id
     ZoneID_t m_ZoneID;
 
-    // 존 그룹 아이디
+    // Zone group id
     ZoneGroupID_t m_ZoneGroupID;
 };
 

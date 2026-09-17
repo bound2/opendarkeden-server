@@ -50,7 +50,7 @@ public:
     void sendPacket(string host, uint port, DatagramPacket* pPacket);
 
 private:
-    // UDP 서버 소켓
+    // UDP server socket
     DatagramSocket* m_pDatagramSocket;
 };
 

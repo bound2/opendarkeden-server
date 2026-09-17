@@ -2,7 +2,7 @@
 //
 // Filename    : LoginPlayer.h
 // Written by  : reiot@ewestsoft.com
-// Description : 게임 서버용 플레이어 클래스
+// Description : Player class for the game server
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -26,22 +26,22 @@ class LCPCList;
 //
 // class LoginPlayer
 //
-// 게임 서버용 플레이어 클래스
+// Player class for the game server
 //
-// Player 클래스를 상속받아서, 게임 서버에서만 사용되는 Mutex 및
-// Creature 관련 데이터 및 메쏘드, PreviousPacket 관련 데이터 및
-// 메소드들을 추가했다.
+// Inherits the Player class and adds the Mutex used only on the game server,
+// the Creature-related data and methods and the PreviousPacket-related
+// data and methods.
 //
-// 특히 processOutput() 및 sendPacket()은 Race Condition 이 발생될 수
-// 있으므로, Mutex 로 보호되어야 한다. ( MODE-IV의 경우이며, MODE-I, II
-// 의 경우에는 processInput(), processCommand() 모두 Mutex 로 보호해야
-// 한다.)
+// processOutput() and sendPacket() in particular can hit a race condition,
+// so they must be protected by a Mutex. (That is the MODE-IV case; for MODE-I
+// and MODE-II both processInput() and processCommand() must be protected by a
+// Mutex.)
 //
 //////////////////////////////////////////////////////////////////////
 
 class LoginPlayer : public Player, public PaySystem {
 public:
-    // 저장해놓을 이전 패킷의 개수
+    // Number of previous packets to keep
     static const uint nPacketHistory = 10;
 
     static const uint maxFailure = 3;
@@ -66,7 +66,7 @@ public:
     virtual void sendPacket(Packet* packet);
 
     // disconnect
-    // 정식 로그아웃의 경우 disconnect(LOGOUT)
+    // A proper logout is disconnect(LOGOUT)
     virtual void disconnect(bool bDisconnected = DISCONNECTED);
     virtual void disconnect_nolog(bool bDisconnected = DISCONNECTED);
 
@@ -76,11 +76,11 @@ public:
 
 public:
     // return recent N-th packet
-    // 최근 전송된 N 번째 패킷을 리턴한다.
+    // Return the N-th most recently sent packet.
     Packet* getOldPacket(uint prev = 0);
 
     // return recent packet which has packetID
-    // 특정 ID를 가진 패킷 중 가장 최근의 패킷을 리턴한다.
+    // Return the most recent packet with a given ID.
     Packet* getOldPacket(PacketID_t packetID);
 
     // get/set player's status
@@ -91,7 +91,7 @@ public:
         m_PlayerStatus = playerStatus;
     }
 
-    // 실패한 회수
+    // Number of failures
     uint getFailureCount() const {
         return m_FailureCount;
     }
@@ -113,7 +113,7 @@ public:
     }
     void setExpireTimeForKickCharacter();
 
-    // 현재 월드의 ID
+    // ID of the current world
     WorldID_t getWorldID() const {
         return m_WorldID;
     }
@@ -121,7 +121,7 @@ public:
         m_WorldID = WorldID;
     }
 
-    // 현재 서버의 ID
+    // ID of the current server
     WorldID_t getGroupID() const {
         return m_ServerGroupID;
     }
@@ -129,7 +129,7 @@ public:
         m_ServerGroupID = ServerGroupID;
     }
 
-    // 현재 서버의 ID
+    // ID of the current server
     uint getLastSlot() const {
         return m_LastSlot;
     }
@@ -137,7 +137,7 @@ public:
         m_LastSlot = lastSlot;
     }
 
-    // WorldID, GroupID가 설정되었나?
+    // Have WorldID and GroupID been set?
     bool isSetWorldGroupID() const {
         return m_bSetWorldGroupID;
     }
@@ -145,7 +145,7 @@ public:
         m_bSetWorldGroupID = bSet;
     }
 
-    // 마지막으로 접속한 캐릭터의 이름
+    // Name of the character that connected last
     const string& getLastCharacterName() const {
         return m_LastCharacterName;
     }
@@ -205,33 +205,33 @@ private:
     // expire time
     Timeval m_ExpireTime;
 
-    // 캐릭터 등록(CLRegisterPlayer) 또는 로그인(CLLogin)에 실패한 회수
+    // Number of failed character registrations (CLRegisterPlayer) or logins (CLLogin)
     uint m_FailureCount;
 
     // mutex
     mutable Mutex m_Mutex;
 
-    // 현재 월드 ID
+    // Current world ID
     bool m_bSetWorldGroupID;
     WorldID_t m_WorldID;
     ServerGroupID_t m_ServerGroupID;
     uint m_LastSlot;
     string m_LastCharacterName;
 
-    // LoginPlayerData때문에.. T_T;
+    // Because of LoginPlayerData.
     string m_SSN;
     string m_Zipcode;
 
     bool m_isAdult;
 
-    // '이미 접속 중'인 경우 캐릭터 강제 접속 해제 대기 시간
+    // Time to wait for the forced disconnect in the 'already connected' case
     uint m_KickCharacterCount;
     Timeval m_ExpireTimeForKickCharacter;
 
-    // 다른 곳에서 검증(넷마블)을 받았다고 하고.. FreePass를 받는다. - -; by sigi. 2002.10.23
+    // Treated as verified elsewhere (Netmarble), so a FreePass is granted.
     bool m_bFreePass;
 
-    // 웹 로그인 모드
+    // Web login mode
     bool m_bWebLogin;
 
     // m_gameServerIP is set in CLSelectPCHandler.

@@ -18,8 +18,8 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// 클라이언트가 서버의 리스트를 달라고 요청해오면, 로그인 서버는 DB로부터
-// 서버들의 정보를 로딩해서 LCWorldList 패킷에 담아서 전송한다.
+// When a client asks for the list of servers, the login server loads the
+// servers' information from the DB and sends it in an LCWorldList packet.
 //////////////////////////////////////////////////////////////////////////////
 void CLGetWorldListHandler::execute(CLGetWorldList* pPacket, Player* pPlayer)
 
@@ -53,7 +53,7 @@ void CLGetWorldListHandler::execute(CLGetWorldList* pPacket, Player* pPlayer)
 
             aWorldInfo[i] = pWorldInfo;
 
-            // 트랜실(2) 빼기
+            // Excluding Transylvania (2)
             // if (i==2) pWorldInfo->setStat(WORLD_CLOSE);
 
             // cout << "AddWorld : " << pWorldInfo->getName() << endl;

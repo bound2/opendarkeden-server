@@ -7,7 +7,7 @@
 
 // The loginserver's character deletion (CLDeletePCHandler): the ownership
 // check on the Slayer row, the Slayer row's retirement, the DeleteChar
-// record, and the purge of the character's remaining rows — the Vampire
+// record, and the purge of the character's remaining rows -- the Vampire
 // and Ousters rows, RankBonusData, 87 <Class>Object tables and GQuestSave,
 // CoupleInfo by either partner column, fourteen Effect* tables and
 // EnemyErase, FlagSet, TimeLimitItems, EventQuestAdvance and
@@ -74,7 +74,7 @@ public:
 
     // The Vampire and Ousters rows of that name AND slot set INACTIVE
     // (DELETE under the flags), then every other row of that name in the
-    // tables listed above — 112 statements in the default build, in a
+    // tables listed above -- 112 statements in the default build, in a
     // fixed order, on one Statement, with no transaction: a failure
     // part-way leaves the earlier deletes done. Does not touch Slayer.
     virtual void purgeCharacterRows(WorldID_t worldID, const std::string& name, Slot slot) = 0;

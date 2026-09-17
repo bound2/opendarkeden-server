@@ -30,14 +30,14 @@
 const int defaultLoginPlayerInputStreamSize = 1024;
 const int defaultLoginPlayerOutputStreamSize = 4096;
 
-static int maxIdleSec = 60 * 15; // 15 분동안 입력을 하지 않으면 자동 접속 종료된당.
+static int maxIdleSec = 60 * 15; // disconnect automatically after 15 idle minutes.
 
-// '이미 접속 중'문제를 해결하기 위한.. 시간 체크
-static uint maxWaitForKickCharacter = 3;      // GameServer의 응답을 5초간 기다린다.
-static uint maxWaitForKickCharacterCount = 3; // GameServer가 반응이 없으면 3회 응답을 시도한다.
+// Time check that works around the 'already connected' problem.
+static uint maxWaitForKickCharacter = 3;      // seconds to wait for the GameServer's answer.
+static uint maxWaitForKickCharacterCount = 3; // retry 3 times when the GameServer does not answer.
 
 
-// CLLoginHandler.cpp에 있는 함수다.
+// Function in CLLoginHandler.cpp.
 void addLoginPlayerData(const string& ID, const string& ip, const string& SSN, const string& zipcode);
 
 
@@ -70,7 +70,7 @@ LoginPlayer::LoginPlayer(Socket* pSocket)
 
     Assert(m_PacketHistory.empty());
 
-    // 로그인 플레이어가 생성될 때, 현재 시간을 최종 입력 시간으로 간주한다.
+    // When a login player is created, the current time counts as its last input time.
     getCurrentTime(m_ExpireTime);
     m_ExpireTime.tv_sec += maxIdleSec;
 
@@ -97,8 +97,8 @@ LoginPlayer::LoginPlayer(Socket* pSocket)
 LoginPlayer::~LoginPlayer() noexcept {
     __BEGIN_TRY
 
-    // 그 어떤 플레이어 객체가 삭제될 때에도, 그 상태는 로그아웃이어야 한다.
-    // 즉 어떤 플레이어를 접속 종료 시키려면, 그 상태를 로그아웃으로 만들어야 한다.
+    // Whenever any player object is deleted, its status must be logout.
+    // That is, to disconnect a player its status must be set to logout.
     Assert(m_PlayerStatus == LPS_END_SESSION);
 
     // delete all previous packets
@@ -113,8 +113,8 @@ LoginPlayer::~LoginPlayer() noexcept {
 
 //////////////////////////////////////////////////////////////////////
 //
-// '이미 접속 중'인 경우. 캐릭터의 강제 접속 해제를 위해서
-// 대기하는 시간 설정.
+// For the 'already connected' case. Sets the time to wait for the
+// character to be disconnected by force.
 //
 //////////////////////////////////////////////////////////////////////
 void LoginPlayer::setExpireTimeForKickCharacter() {
@@ -133,18 +133,18 @@ void LoginPlayer::processCommand(bool Option) {
 
     //	static Timeval currentTime;
 
-    // '이미 접속 중'인 경우.. 강제 접속 해제를 시킬려고 할 때.
+    // For the 'already connected' case, when forcing a disconnect.
     if (m_PlayerStatus == LPS_WAITING_FOR_GL_KICK_VERIFY) {
         Timeval currentTime;
         getCurrentTime(currentTime);
 
-        // timeout 체크
+        // timeout check
         if (currentTime >= m_ExpireTimeForKickCharacter) {
-            // 다시 KickCharcter를 보내본다.
+            // Send KickCharacter again.
             sendLGKickCharacter();
 
-            // 반응이 없는 경우 여러번 시도를 해본다.
-            // 한계에 도달하면.. GameServer가 죽었다고 판단하고 LoginOK를 보낸다.
+            // Retry several times when there is no answer.
+            // Once the limit is reached, assume the GameServer is dead and send LoginOK.
             if (++m_KickCharacterCount >= maxWaitForKickCharacterCount) {
                 sendLCLoginOK();
             }
@@ -154,19 +154,19 @@ void LoginPlayer::processCommand(bool Option) {
     }
 
     try {
-        // 헤더를 임시저장할 버퍼 생성
+        // Create a buffer to hold the header temporarily
         char header[szPacketHeader];
         PacketID_t packetID;
         PacketSize_t packetSize;
         Packet* pPacket;
 
-        // 입력버퍼에 들어있는 완전한 패킷들을 모조리 처리한다.
+        // Process every complete packet sitting in the input buffer.
         while (true) {
-            // 입력스트림에서 패킷헤더크기만큼 읽어본다.
-            // 만약 지정한 크기만큼 스트림에서 읽을 수 없다면,
-            // Insufficient 예외가 발생하고, 루프를 빠져나간다.
+            // Read as many bytes as the packet header from the input stream.
+            // If the requested number of bytes cannot be read from the stream,
+            // an Insufficient exception is thrown and the loop is left.
             if (!m_pInputStream->peek(header, szPacketHeader)) {
-                // 입력이 아무 것도 없었다면, 입력제한 시간을 초과했는지 체크한다.
+                // If there was no input at all, check whether the input timeout expired.
                 Timeval currentTime;
                 getCurrentTime(currentTime);
                 if (currentTime >= m_ExpireTime)
@@ -174,8 +174,8 @@ void LoginPlayer::processCommand(bool Option) {
                 break;
             }
 
-            // 패킷아이디 및 패킷크기를 알아낸다.
-            // 이때 패킷크기는 헤더를 포함한다.
+            // Work out the packet id and the packet size.
+            // The packet size includes the header here.
             memcpy(&packetID, &header[0], szPacketID);
             memcpy(&packetSize, &header[szPacketID], szPacketSize);
 
@@ -195,58 +195,58 @@ void LoginPlayer::processCommand(bool Option) {
                 << packetID << ") " << szPacketHeader + packetSize << "/" << m_pInputStream->length() << eos;
             cout << msg.toString() << endl;
 
-            // 패킷 아이디가 이상하면 프로토콜 에러로 간주한다.
+            // A strange packet id counts as a protocol error.
             if (packetID >= Packet::PACKET_MAX)
-                // 디버깅을 위해서 에러를 구체적으로 표시해둔다.
+                // Spell the error out for debugging.
                 throw InvalidProtocolException("too large packet id");
 
             try {
-                // 패킷의 순서가 valid 한지 체크한다.
+                // Check that the packet order is valid.
                 if (!g_pPacketValidator->isValidPacketID(getPlayerStatus(), packetID)) {
                     // DEBUG by tiancaiamao
                     cout << "player status: " << getPlayerStatus() << " receive packet: " << packetID << endl;
                     throw InvalidProtocolException("invalid packet order");
                 }
 
-                // 패킷 크기가 너무 크면 프로토콜 에러로 간주한다.
+                // A packet size that is too large counts as a protocol error.
                 if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID))
                     throw InvalidProtocolException("too large packet size");
 
-                // 입력버퍼내에 패킷크기만큼의 데이타가 들어있는지 확인한다.
-                // 최적화시 break 를 사용하면 된다. (여기서는 일단 exception을 쓸 것이다.)
+                // Check that the input buffer holds as many bytes as the packet size.
+                // break could be used when optimizing. (an exception is used here for now.)
                 if (m_pInputStream->length() < szPacketHeader + packetSize)
                     //	throw InsufficientDataException();
                     break;
 
-                // 최종입력시간을 갱신한다.
-                // 최종입력시간은 패킷 하나가 완전하게 도착한 시간을 의미한다.
+                // Update the last input time.
+                // The last input time is when one complete packet arrived.
                 getCurrentTime(m_ExpireTime);
                 m_ExpireTime.tv_sec += maxIdleSec;
 
-                // 여기까지 왔다면 입력버퍼에는 완전한 패킷 하나 이상이 들어있다는 뜻이다.
-                // 패킷팩토리매니저로부터 패킷아이디를 사용해서 패킷 스트럭처를 생성하면 된다.
-                // 패킷아이디가 잘못될 경우는 패킷팩토리매니저에서 처리한다.
+                // Getting here means the input buffer holds at least one complete packet.
+                // The packet structure can be created from the packet factory manager with the packet id.
+                // A wrong packet id is handled by the packet factory manager.
                 pPacket = g_pPacketFactoryManager->createPacket(packetID);
 
-                // 이제 이 패킷스트럭처를 초기화한다.
-                // 패킷하위클래스에 정의된 read()가 virtual 메커니즘에 의해서 호출되어
-                // 자동적으로 초기화된다.
+                // Now initialize this packet structure.
+                // The read() defined in the packet subclass is called through the virtual
+                // mechanism, so it is initialized automatically.
                 m_pInputStream->readPacket(pPacket);
 
                 Timeval start, end;
                 getCurrentTime(start);
 
-                // 이제 이 패킷스트럭처를 가지고 패킷핸들러를 수행하면 된다.
-                // 패킷아이디가 잘못될 경우는 패킷핸들러매니저에서 처리한다.
+                // Now the packet handler can be run with this packet structure.
+                // A wrong packet id is handled by the packet handler manager.
                 PacketDispatcher::dispatch(pPacket, this);
 
                 getCurrentTime(end);
                 g_PacketProfileManager.addAccuTime(pPacket->getPacketName(), start, end);
 
-                // 현재 패킷을 패킷 히스토리의 맨 뒤에 넣는다.
+                // Put the current packet at the end of the packet history.
                 m_PacketHistory.push_back(pPacket);
 
-                // 패킷을 nPacketHistory 개만큼만 저장한다.
+                // Keep only nPacketHistory packets.
                 while (m_PacketHistory.size() > nPacketHistory) {
                     Packet* oldPacket = m_PacketHistory.front();
                     delete oldPacket;
@@ -254,41 +254,41 @@ void LoginPlayer::processCommand(bool Option) {
                 }
 
             } catch (IgnorePacketException&) {
-                // PacketValidator 에서 패킷을 무시하라고 했으니,
-                // 입력스트림에서 모두 지워버리고 실행하지 않도록 한다.
+                // The PacketValidator said to ignore the packet, so
+                // drop it from the input stream and do not execute it.
 
-                // 패킷 크기가 너무 크면 프로토콜 에러로 간주한다.
+                // A packet size that is too large counts as a protocol error.
                 if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID))
                     throw InvalidProtocolException("too large packet size");
 
-                // 입력버퍼내에 패킷크기만큼의 데이타가 들어있는지 확인한다.
-                // 최적화시 break 를 사용하면 된다. (여기서는 일단 exception을 ?것이다.)
+                // Check that the input buffer holds as many bytes as the packet size.
+                // break could be used when optimizing. (an exception is used here for now.)
                 if (m_pInputStream->length() < szPacketHeader + packetSize)
                     throw InsufficientDataException();
 
-                // 데이타가 모두 도착했으면, 그 크기만큼 무시하고,
-                // 다른 패킷을 처리하도록 한다....
+                // Once all the data has arrived, skip that many bytes and
+                // move on to the next packet....
                 m_pInputStream->skip(szPacketHeader + packetSize);
 
-                // 무시된 패킷은, expire 에 영향을 주지 않게 된다.
-                // 즉 유효한 패킷만이 짤리지 않게 해준다.
-                // 또한 히스토리에도 들어가지 않는다.
+                // An ignored packet does not affect expiry.
+                // That is, only a valid packet is kept from being cut off.
+                // It does not go into the history either.
             }
         }
 
     } catch (InsufficientDataException& ide) {
-        // 입력이 아무 것도 없었다면, 입력제한 시간을 초과했는지 체크한다.
+        // If there was no input at all, check whether the input timeout expired.
         Timeval currentTime;
         getCurrentTime(currentTime);
         if (currentTime >= m_ExpireTime)
             throw DisconnectException("Connection closed after a period with no input.");
 
     } catch (InvalidProtocolException& ipe) {
-        // 접속을 강제종료시켜야 한다. 무슨 방법으로??
+        // The connection has to be closed by force. By what means??
         throw;
 
     } catch (DisconnectException& de) {
-        // 패킷 처리에서 발생한 어떤 문제로 연결을 종료해야 한다.
+        // Some problem in packet processing means the connection must be closed.
         throw;
     }
 
@@ -303,29 +303,29 @@ void LoginPlayer::disconnect(bool bDisconnected) {
     __BEGIN_TRY
 
     if (bDisconnected == UNDISCONNECTED) {
-        // 클라이언트에게 GCDisconnect 패킷을 전송한다.
+        // Send a GCDisconnect packet to the client.
         // GCDisconnect lcDisconnect;
         // sendPacket( lcDisconnect );
 
-        // 출력 버퍼에 남아있는 데이타를 전송한다.
+        // Send whatever data is left in the output buffer.
         m_pOutputStream->flush();
     }
 
-    // 소켓 연결을 닫는다.
+    // Close the socket connection.
     m_pSocket->close();
 
-    // '이미 접속 중'인 경우, 캐릭터 강제 접속 해제를 기다리는 상황.
+    // The 'already connected' case, waiting for the character to be kicked.
     if (m_PlayerStatus == LPS_WAITING_FOR_GL_KICK_VERIFY) {
         m_ID = "NONE";
     }
 
-    // 플레이어의 상태를 로그아웃으로 만든다.
+    // Set the player's status to logout.
     Assert(m_PlayerStatus != LPS_END_SESSION);
     m_PlayerStatus = LPS_END_SESSION;
 
-    // 아이디가 설정되었다는 뜻은, 로그인이 이루어졌다는 뜻이다.
-    // '이미 접속 중'인 경우에..
-    // 캐릭 접속 해제를 기다리는 경우는 ID가 설정될 수 있으므로 아니다
+    // Having an id set means the login went through.
+    // In the 'already connected' case..
+    // Not while waiting for the character to be kicked, since the ID may be set then
     if (m_ID != "NONE") {
         try {
             defaultLoginAccountRepository().markLoggedOff(m_ID);
@@ -342,35 +342,35 @@ void LoginPlayer::disconnect(bool bDisconnected) {
 }
 //--------------------------------------------------------------------------------
 // disconnect player no log
-// DB 에 로그를 쌓지 않게 한다.
+// Keep the log out of the DB.
 //--------------------------------------------------------------------------------
 void LoginPlayer::disconnect_nolog(bool bDisconnected) {
     __BEGIN_TRY
 
     if (bDisconnected == UNDISCONNECTED) {
-        // 클라이언트에게 GCDisconnect 패킷을 전송한다.
+        // Send a GCDisconnect packet to the client.
         // GCDisconnect lcDisconnect;
         // sendPacket( lcDisconnect );
 
-        // 출력 버퍼에 남아있는 데이타를 전송한다.
+        // Send whatever data is left in the output buffer.
         m_pOutputStream->flush();
     }
 
-    // 소켓 연결을 닫는다.
+    // Close the socket connection.
     m_pSocket->close();
 
-    // '이미 접속 중'인 경우, 캐릭터 강제 접속 해제를 기다리는 상황.
+    // The 'already connected' case, waiting for the character to be kicked.
     if (m_PlayerStatus == LPS_WAITING_FOR_GL_KICK_VERIFY) {
         m_ID = "NONE";
     }
 
-    // 플레이어의 상태를 로그아웃으로 만든다.
+    // Set the player's status to logout.
     Assert(m_PlayerStatus != LPS_END_SESSION);
     m_PlayerStatus = LPS_END_SESSION;
 
-    // 아이디가 설정되었다는 뜻은, 로그인이 이루어졌다는 뜻이다.
-    // '이미 접속 중'인 경우에..
-    // 캐릭 접속 해제를 기다리는 경우는 ID가 설정될 수 있으므로 아니다
+    // Having an id set means the login went through.
+    // In the 'already connected' case..
+    // Not while waiting for the character to be kicked, since the ID may be set then
     if (m_ID != "NONE") {
         try {
             defaultLoginAccountRepository().markLoggedOff(m_ID);
@@ -389,10 +389,10 @@ void LoginPlayer::disconnect_nolog(bool bDisconnected) {
 
 //--------------------------------------------------------------------------------
 //
-// 원래는 로그인플레이어매니저 외에는 로그인플레이어에 동시에 접속하는
-// 쓰레드는 존재하지 않을 계획이었지만, 게임서버매니저가 동시에 쓰레드로
-// 돌아가면서 로그인 플레이어에 접근할 가능성이 생겨버렸다. - -; 그래서,
-// 아래와 같이 mutex 로 보호되는 버전을 급조했다.
+// Originally no thread other than the login player manager was meant to touch
+// a login player at the same time, but the game server manager runs as its own
+// thread and can now reach the login player as well. So
+// the mutex-protected version below was put together.
 //
 //--------------------------------------------------------------------------------
 void LoginPlayer::sendPacket(Packet* pPacket) {
@@ -412,11 +412,11 @@ void LoginPlayer::sendPacket(Packet* pPacket) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// 최근 N 번째의 패킷을 리턴한다.
+// Return the N-th most recent packet.
 //
-// N == 0 일 경우, 가장 최근의 패킷을 리턴하게 된다.
+// N == 0 returns the most recent packet.
 //
-// 최대 nPacketHistory - 1 까지 지정할 수 있다.
+// Up to nPacketHistory - 1 can be given.
 //
 //////////////////////////////////////////////////////////////////////
 Packet* LoginPlayer::getOldPacket(uint prev) {
@@ -434,7 +434,7 @@ Packet* LoginPlayer::getOldPacket(uint prev) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// 특정 패킷아이디를 가진 가장 최근의 패킷을 리턴한다.
+// Return the most recent packet with a given packet id.
 //
 //////////////////////////////////////////////////////////////////////
 Packet* LoginPlayer::getOldPacket(PacketID_t packetID) {
@@ -463,13 +463,13 @@ Packet* LoginPlayer::getOldPacket(PacketID_t packetID) {
 //
 // send LGKickCharacter
 //
-// GameServer로 '이미 접속중'인 캐릭터를 제거해달라고 메세지를 보낸다.
+// Ask the GameServer to remove the character that is 'already connected'.
 //
 //////////////////////////////////////////////////////////////////////////////
 void LoginPlayer::sendLGKickCharacter() {
     cout << "send LGKickCharacter" << endl;
 
-    // Game서버로 캐릭터를 제거해달라는 message를 보낸다.
+    // Send the Game server a message asking it to remove the character.
     LGKickCharacter lgKickCharacter;
 
     string characterName = getLastCharacterName();
@@ -479,8 +479,8 @@ void LoginPlayer::sendLGKickCharacter() {
     uint gameServerPort;
 
     //----------------------------------------------------------------------
-    // DB에서 이 player가 최근에 접속한
-    // WorldID, ServerID, LastSlot을 얻어내자.
+    // Get from the DB the WorldID, ServerID and LastSlot this player
+    // last connected with.
     //----------------------------------------------------------------------
     if (!isSetWorldGroupID()) {
         int currentWorldID = 0;
@@ -528,9 +528,9 @@ void LoginPlayer::sendLGKickCharacter() {
     }
 
     //----------------------------------------------------------------------
-    // GameServer의 정보를 알아낸다.
+    // Find out the GameServer's information.
     //
-    // 해당 World 에 모든 Server 에 보낸다
+    // Send it to every Server in that World
     //----------------------------------------------------------------------
     for (int i = 0; i < g_pGameServerInfoManager->getMaxServerGroupID(); i++) {
         serverGroupID = i;
@@ -549,18 +549,18 @@ void LoginPlayer::sendLGKickCharacter() {
             }
         } catch (NoSuchElementException&) {
             cout << "No GameServerInfo" << endl;
-            // LoginError(이미 접속 중)
+            // LoginError (already connected)
             //		LCLoginError lcLoginError;
             //		lcLoginError.setErrorID(ALREADY_CONNECTED);
             //		sendPacket(&lcLoginError);
             //		setPlayerStatus(LPS_BEGIN_SESSION);
 
-            setID("NONE"); // disconnect에서 LOGOFF로 설정되지 않게 하기 위해서
+            setID("NONE"); // so that disconnect does not set it to LOGOFF
 
             return;
         }
 
-        lgKickCharacter.setID(getSocket()->getSOCKET()); // SocketFD. 검색을 위해서
+        lgKickCharacter.setID(getSocket()->getSOCKET()); // SocketFD. For the lookup
         lgKickCharacter.setPCName(characterName);
 
         cout << "( " << gameServerIP.c_str() << ", " << gameServerPort << " )" << endl;
@@ -576,9 +576,9 @@ void LoginPlayer::sendLGKickCharacter() {
 //
 // send LCLoginOK
 //
-// Player table의 LogOn을 'LOGON'으로 바꾸고
-// client에게 LCLoginOK를 보낸다.
-// PlayerStatus는 LPS_WAITING_FOR_CL_GET_PC_LIST로 설정.
+// Set Player table LogOn to 'LOGON' and
+// send LCLoginOK to the client.
+// PlayerStatus is set to LPS_WAITING_FOR_CL_GET_PC_LIST.
 //
 //////////////////////////////////////////////////////////////////////
 void LoginPlayer::sendLCLoginOK() {
