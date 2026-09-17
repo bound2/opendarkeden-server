@@ -9,34 +9,12 @@
 #include "GCSystemAvailabilities.h"
 #include "Types.h"
 
-#if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__)
-#define SYSTEM_ASSERT(KIND)                                          \
-    SystemAvailabilitiesManager::AssertAvailable(                    \
-        SystemAvailabilitiesManager::KIND,                           \
-        string() + std::source_location::current().function_name() + \
-            " : 잘못된 클라이언트를 사용했거나 클라이언트와 서버의 정보가 맞지 않습니다.")
-#define SYSTEM_RETURN_IF_NOT(KIND)                                                                     \
-    if (!SystemAvailabilitiesManager::getInstance()->isAvailable(SystemAvailabilitiesManager::KIND)) { \
-        filelog("SystemAvailabilities.log",                                                            \
-                (string() + std::source_location::current().function_name() +                          \
-                 " : 잘못된 클라이언트를 사용했거나 클라이언트와 서버의 정보가 맞지 않습니다.")        \
-                    .c_str());                                                                         \
-        return;                                                                                        \
-    }
-#define SEND_SYSTEM_AVAILABILITIES(PLAYER) \
-    PLAYER->sendPacket(SystemAvailabilitiesManager::getInstance()->getAvailabilitiesPacket())
-#else
 #define SYSTEM_ASSERT(X) (void)(0)
 #define SYSTEM_RETURN_IF_NOT(X) (void)(0)
 #define SEND_SYSTEM_AVAILABILITIES(X) (void)(0)
-#endif
 
 const int OpenDegreeID = 999;
 const int SkillLimitID = 888;
-
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-const int ItemLevelLimitID = 777;
-#endif
 
 class SystemAvailabilitiesManager {
 public:
@@ -100,11 +78,6 @@ public:
     int getSkillLevelLimit() const {
         return m_SkillLevelLimit;
     }
-#if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__)
-    int getItemLevelLimit() const {
-        return m_ItemLevelLimit;
-    }
-#endif
 
 private:
     bitset<SYSTEM_MAX> m_SystemFlags;
@@ -113,10 +86,6 @@ private:
 
     int m_ZoneOpenDegree;
     int m_SkillLevelLimit;
-
-#if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__)
-    int m_ItemLevelLimit;
-#endif
 
     SystemAvailabilitiesManager() {
         m_SystemFlags.reset();

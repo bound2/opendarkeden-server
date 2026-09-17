@@ -1072,19 +1072,15 @@ struct PetItemObjectRow {
 // each table's exact column order and count. The id is INT_MAX in both
 // the ItemID and ObjectID positions — a sentinel, not a real object.
 //
-// That path does not compile into the shipped gameserver: it sits
-// behind the "#else" of a
-// "#if !defined(__THAILAND_SERVER__) && !defined(__CHINA_SERVER__)",
-// and the build defines neither.
+// No caller in the shipped gameserver.
 enum DummyObjectTable { DUMMY_OBJECT_LARVA, DUMMY_OBJECT_SKULL, DUMMY_OBJECT_POTION, DUMMY_OBJECT_TABLE_MAX };
 
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
 
-    // EventShutdown's egg-dummy-DB teardown; see DummyObjectTable above
-    // for why these three are positional and why they never compile into
-    // the shipped gameserver.
+    // The egg-dummy-DB teardown; see DummyObjectTable above for why
+    // these three are positional. No caller.
     virtual void insertDummySentinelRow(DummyObjectTable table) = 0;
 
     // <Class>::create — the INSERT with the ItemFlag column fed the create type.

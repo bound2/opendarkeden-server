@@ -188,17 +188,6 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
         }
 
         CurrentServerGroupID = (ServerGroupID_t)std::move(outcome).events().serverGroupID;
-
-        // The Thailand build refuses an unapproved account inside the
-        // guarded hours. Not compiled here, and its permission variable is
-        // never read from the account row, so it does not build either.
-#ifdef __THAILAND_SERVER__
-        if (strPermission != "ALLOW" && onChildGuardTimeArea(g_pConfig->getPropertyInt("CHILDGUARD_START_TIME"),
-                                                             g_pConfig->getPropertyInt("CHILDGUARD_END_TIME"),
-                                                             g_pConfig->getProperty("CHILDGUARD"))) {
-            throw DisconnectException("Player Permission is DENY (child guard) running. ");
-        }
-#endif
     } catch (const DatabaseError& error) {
         // A SQL failure arrives as END_DB's DatabaseError carrying the line
         // it wrote to DBError.log; the reason travels with the disconnect.
@@ -226,36 +215,3 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
 
     __END_DEBUG_EX __END_CATCH
 }
-#ifdef __THAILAND_SERVER__
-bool CLReconnectLoginHandler::onChildGuardTimeArea(int pm, int am, string enable) {
-    bool returnValue = false;
-    tm Timem;
-    time_t daytime = time(0);
-    localtime_r(&daytime, &Timem);
-
-    int Hour = Timem.tm_hour;
-    int Min = Timem.tm_min;
-
-    int timeValue = (Hour * 100) + Min;
-    bool bSwitch = (enable == "ENABLE" || enable == "enable" || enable == "Enable");
-
-    if ((timeValue >= pm && timeValue <= am) && bSwitch) {
-        returnValue = true;
-    } else if ((timeValue <= pm && timeValue <= am) && bSwitch) {
-        if (am > 1200)
-            returnValue = false;
-        else
-            returnValue = true;
-    } else if ((timeValue <= pm && timeValue <= am) && bSwitch) {
-        returnValue = false;
-    } else if ((timeValue >= pm && timeValue >= am) && bSwitch) {
-        if (am > 1200)
-            returnValue = false;
-        else
-            returnValue = true;
-    }
-
-
-    return returnValue;
-}
-#endif

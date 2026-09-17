@@ -241,15 +241,6 @@ public:
 
     void logLoginoutDateTime();
 
-#ifdef __THAILAND_SERVER__
-    bool getPermission(void) const {
-        return m_bPermission;
-    }
-    void setPermission(bool permission) {
-        m_bPermission = permission;
-    }
-#endif
-
 
 private:
     void setPCRoomLottoStartTime();
@@ -322,9 +313,6 @@ private:
     VSDateTime m_LoginDateTime;
 
 
-#ifdef __THAILAND_SERVER__
-    bool m_bPermission;
-#endif
     // add by Coffee 2007-7-15 藤속룐관념죗쇱꿎
 private:
     BYTE m_Sequence;

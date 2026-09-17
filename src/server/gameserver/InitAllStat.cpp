@@ -314,11 +314,7 @@ void Slayer::initAllStat(int numPartyMember) {
         int level = m_SkillDomainLevels[SKILL_DOMAIN_GUN];
         int grade = (int)g_pSkillInfoManager->getGradeByDomainLevel(level);
 
-#ifdef __CHINA_SERVER__
-        decore::LivenessBonus bonus = decore::livenessBonusChina(grade);
-#else
         decore::LivenessBonus bonus = decore::livenessBonus(grade, level);
-#endif
         HPBonusPercent = bonus.hpPercent;
         LivenessDefenseBonus = bonus.defenseBonus;
 

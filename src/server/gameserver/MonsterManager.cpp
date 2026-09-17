@@ -1539,10 +1539,6 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                         it.ItemType = getUpgradeItemType(it.ItemClass, it.ItemType, upgradeCount);
                     }
 
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-                    it.ItemType = getItemTypeByItemLimit(it.ItemClass, it.OptionType);
-#endif
-
                     pItem = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
                     Assert(pItem != NULL);
                     if (pItem->getItemClass() == Item::ITEM_CLASS_RESURRECT_ITEM)
@@ -1582,10 +1578,6 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                 if (pTreasure->getRandomItem(&it, g_pVariableManager->getItemProbRatio() + itemBonusPercent)) {
                     // by sigi. 2002.10.21
                     // upgradeItemTypeByLuck(luckLevel, it);
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-
-                    it.ItemType = getItemTypeByItemLimit(it.ItemClass, it.ItemType);
-#endif
                     pItem = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
                     Assert(pItem != NULL);
                     if (pItem->getItemClass() == Item::ITEM_CLASS_RESURRECT_ITEM)
@@ -1714,10 +1706,6 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                                 // end
                             }
 
-#if defined(__THAILAND_SERVER__) || defined(__CHAINA_SERVER__)
-                            it.ItemType = getItemTypeByItemLimit(it.ItemClass, it.ItemType);
-#endif
-
                             pItem = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
                             Assert(pItem != NULL);
                             if (pItem->getItemClass() == Item::ITEM_CLASS_RESURRECT_ITEM)
@@ -1741,9 +1729,6 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                         if (pTreasure->getRandomItem(&it, g_pVariableManager->getItemProbRatio() + itemBonusPercent)) {
                             // by sigi. 2002.10.21
                             // upgradeItemTypeByLuck(luckLevel, it);
-#if defined(__CHAINA_SERVER__) || defined(__THAILAND_SERVER__)
-                            it.ItemType = getItemTypeByItemLimit(it.ItemClass, it.ItemType);
-#endif
                             pItem = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
                             Assert(pItem != NULL);
                             if (pItem->getItemClass() == Item::ITEM_CLASS_RESURRECT_ITEM)

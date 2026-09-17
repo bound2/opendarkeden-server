@@ -307,7 +307,6 @@ void CGLearnSkillHandler::execute(CGLearnSkill* pPacket, Player* pPlayer)
     case SKILL_WATER_SHIELD:
     case SKILL_SAND_CROSS:
     case SKILL_METEOR_STORM:
-#ifndef __CHINA_SERVER__
     // 2004.04.29
     case SKILL_FABULOUS_SOUL:
     case SKILL_WILL_OF_IRON:
@@ -374,8 +373,7 @@ void CGLearnSkillHandler::execute(CGLearnSkill* pPacket, Player* pPlayer)
     case SKILL_Fire_Meteor:
     case SKILL_Big_Rockfall:
     case SKILL_Rapid_Freeze:
-// #endif
-#endif
+        // #endif
         break;
     ////////////////////////////////////////////////////////////
     // Áö¿øµÇÁö ¾Ê´Â ±â¼ú

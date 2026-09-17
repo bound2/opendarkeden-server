@@ -8,14 +8,9 @@
 
 #include <stdio.h>
 
-#include <unordered_set>
-
-// Enable Exchange System functions
-#ifndef __THAILAND_SERVER__
-#define __THAILAND_SERVER__
-#endif
-
 #include <fstream>
+
+#include <unordered_set>
 
 #include "Corpse.h"
 #include "GCCreateItem.h"
@@ -52,12 +47,6 @@
 #include "item/SR.h"
 #include "item/SlayerPortalItem.h"
 #include "repository/ItemRepository.h"
-
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-
-#include "SystemAvailabilitiesManager.h"
-
-#endif // __THAILAND_SERVER__
 
 //////////////////////////////////////////////////////////////////////////////
 // ½×ÀÏ ¼ö ÀÖ´Â ¾ÆÀÌÅÛÀÎ°¡?
@@ -2901,35 +2890,6 @@ Item* fitToPC(Item* pItem, PlayerCreature* pPC) {
     return pItem;
 }
 
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-
-ItemType_t getItemTypeByItemLimit(Item::ItemClass itemClass, ItemType_t itemType) {
-    static ItemType_t limitItemType = (ItemType_t)SystemAvailabilitiesManager::getInstance()->getItemLevelLimit();
-    ItemType_t rItemType = itemType;
-
-    //  cout << "Original itemType : " << itemType << " , SystemItemLimit : " << limitItemType << endl;
-
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(itemClass, rItemType);
-
-    // ¿¹¿Ü»çÇ×. ¾ÆÀÌÅÛ ·¹º§ÀÌ ¾ø´Â ¾ÆÀÌÅÛÀÏ °æ¿ì ÆÐ½º
-    if (pItemInfo->getItemLevel() == 99 || pItemInfo->getItemLevel() == 255) {
-        return true;
-    }
-
-    int counter = 0; // ¸¸¾àÀÇ ¸¸¾àÀ» À§ÇÑ Ä«¿îÅÍ. ¹«ÇÑ·çÇÁ°¡ µÎ·Á¿ö~
-
-    // cout << "i. ItemLevel : " << pItemInfo->getItemLevel() << endl;
-
-    while (limitItemType <= pItemInfo->getItemLevel() && counter++ < 10) {
-        rItemType = getDowngradeItemType(itemClass, rItemType);
-        pItemInfo = g_pItemInfoManager->getItemInfo(itemClass, rItemType);
-    }
-
-    //  cout << "o. ItemLevel : " << pItemInfo->getItemLevel() << endl;
-    //  cout << "Return itemType : " << rItemType << endl;
-    return rItemType;
-}
-
 //////////////////////////////////////////////////////////////////////////////
 // Exchange System: Point-only trade item check functions
 //////////////////////////////////////////////////////////////////////////////
@@ -3009,5 +2969,3 @@ bool isPointOnlyTradeItem(Item* pItem) {
 
     return false;
 }
-
-#endif // __THAILAND_SERVER__

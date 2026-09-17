@@ -750,35 +750,11 @@ public:
         return m_Variables[EVENT_GIFT_BOX] != 0;
     }
 
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-
-    bool isRemoveAllGame() const {
-        return m_fRemoveAllGame != 0;
-    }
-    void setRemoveAllGame(bool flag) {
-        m_fRemoveAllGame = flag;
-    }
-
-    bool isEggDummyDB() const {
-        return m_fEggDummyDB != 0;
-    }
-    void setEggDummyDB(bool flag) {
-        m_fEggDummyDB = flag;
-    }
-#endif
-
     // data members
 private:
     VARIABLE m_Variables;
 
     VARIABLE_NAME m_VariableNames;
-
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-
-    bool m_fRemoveAllGame;
-    bool m_fEggDummyDB;
-
-#endif
 };
 
 extern VariableManager* g_pVariableManager;

@@ -112,9 +112,7 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
         Monster* pMonsterDefender = dynamic_cast<Monster*>(pDefender);
         Defense = pMonsterDefender->getDefense();
         Defense = (Defense_t)getPercentValue(Defense, MonsterTimebandFactor[timeband]);
-#ifndef __CHINA_SERVER__
         isMonster = true;
-#endif
     } else {
         // 현재 크리쳐의 클래스는 Slayer, Vampire, Monster, NPC 뿐인데...
         // 이까지 왔다는 말은 방어자가 NPC라는 말이지.
@@ -125,21 +123,7 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
     int RandValue = Random(0, 100);
     int Result = 0;
 
-#ifdef __CHINA_SERVER__
-    if (ToHit >= Defense) {
-        // ToHit above Defense: the chance to land is quite high.
-        Result = min(90, (int)(((ToHit - Defense) / 1.5) + 60) + ToHitBonus);
-    } else {
-        // ToHit below Defense: the chance to land drops sharply.
-        if (isMonster) {
-            Result = max(10, (int)(60 - ((Defense - ToHit) / 1.5) + ToHitBonus));
-        } else {
-            Result = max(20, (int)(60 - ((Defense - ToHit) / 1.5) + ToHitBonus));
-        }
-    }
-#else
     Result = decore::meleeHitRatio(ToHit, Defense, ToHitBonus, isMonster);
-#endif
 
     // cout << ToHit << " --> " << Defense << " : " << RandValue << "<=" << Result
     //		<< (RandValue <= Result? "Success" : "Fail") << endl;
@@ -206,20 +190,12 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
     if (ToHit >= Defense)
     {
         // 투힛이 디펜스보다 높은 경우에는 맞출 확률이 꽤...높다.
-#ifdef __CHINA_SERVER__
-        Result = min(90, (int)(((ToHit - Defense) / 1.5) + 60) + ToHitBonus);
-#else
         Result = min(95, (int)(((ToHit - Defense) / 3) + 50) + ToHitBonus/2);
-#endif
     }
     else
     {
         // 투힛이 디펜스보다 낮은 경우에는 맞출 확률이 많이 떨어진다.
-#ifdef __CHINA_SERVER__
-        Result = max(20, (int)(60 - ((Defense - ToHit) / 1.5) + ToHitBonus));
-#else
         Result = max(5, (int)(50 - ((Defense - ToHit) / 3) + ToHitBonus/2));
-#endif
     }
 
     if (RandValue <= Result) return true;
@@ -237,17 +213,8 @@ bool HitRoll::isSuccessMagic(Slayer* pSlayer, SkillInfo* pSkillInfo, SkillSlot* 
     Assert(pSkillSlot != NULL);
 
     int RandValue = Random(1, 100);
-#ifdef __CHINA_SERVER__
-    int SuccessRatio =
-        (int)(45 - pSkillInfo->getLevel() / 2 + (int)((pSlayer->getINT() + pSkillSlot->getExpLevel()) / 2.5));
-
-    // Slayer self skills succeed at least half the time.
-    if (isSlayerSelfSkill(pSkillSlot->getSkillType()))
-        SuccessRatio = max(50, SuccessRatio);
-#else
     int SuccessRatio = decore::slayerMagicRatio(pSkillInfo->getLevel(), pSlayer->getINT(), pSkillSlot->getExpLevel(),
                                                 isSlayerSelfSkill(pSkillSlot->getSkillType()));
-#endif
 
     if (RandValue < SuccessRatio)
         return true;
@@ -480,12 +447,7 @@ bool HitRoll::isSuccessCurse(int MagicLevel, Resist_t resist) {
     // curse_prob = 110이고, 저주는 항상 성공하게 된다.
     // MagicLevel이 30이고, 저항이 100이라면...
     // curse_prob = 30이고, 마법은 70% 확률로 실패하게 된다.
-#ifdef __CHINA_SERVER__
-    int prob_penalty = (int)(MagicLevel - resist);
-    int curse_prob = 65 + prob_penalty;
-#else
     int curse_prob = decore::curseRatio(MagicLevel, resist);
-#endif
     int randomValue = rand() % 100;
 
     // 아, 씨바. 저주 걸렸다.

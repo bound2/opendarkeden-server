@@ -10,12 +10,6 @@
 
 #include "PCSlayerInfo.h"
 
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-// The regional charset filter (tis620 for Thailand, gb2312 for China);
-// defined with the rest of the regional code in CLCreatePCHandler.cpp.
-bool isAllowString(string str);
-#endif
-
 namespace {
 
 // Names a player may not take. Substring matches, so "GMaster" is
@@ -111,12 +105,6 @@ decideCreatePC(const CreatePCRequest& request, LoginCharacterRepository& reposit
     // the same code as a taken name.
     if (!isAvailableID(request.name.c_str()))
         return Result::Rejected(CreatePCRejection::ReservedName);
-
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-    // Only characters the regional charset allows may appear in a name.
-    if (!isAllowString(request.name))
-        return Result::Rejected(CreatePCRejection::DisallowedCharacters);
-#endif
 
     // The name must be free.
     if (repository.slayerNameExists(request.worldID, request.name))

@@ -113,11 +113,6 @@ public:
         return m_ZGID;
     }
 
-#if defined(__THAILAND_SERVER__)
-    // add by inthesky for THAILAND ChildGuard rule
-    bool onChildGuardTimeArea(int pm, int am, bool bSwitch);
-#endif
-
 private:
     // 소속된 플레이어들의 소켓 디스크립터의 집합이다.
     // m_XXXXFDs[0]은 저장용이며, m_XXXFDs[1]이 실제로 select()의 파라미터로 사용된다.
@@ -145,16 +140,6 @@ private:
     list<PairFilterStream> m_BroadcastQueue;
 
     ZoneGroupID_t m_ZGID;
-
-#if defined(__THAILAND_SERVER__)
-    // add by inthesky for THAILAND ChildGuard Rule
-    bool m_bChildGuard;
-    int m_nChildGuardStartTime;
-    int m_nChildGuardEndTime;
-    int m_nChildGuardKickTime;
-    int m_nChildGuardCheckTerm;
-    Timeval m_tmChildGuardCheckTerm;
-#endif
 };
 
 // external variable declaration

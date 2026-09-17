@@ -345,10 +345,4 @@ void deleteFlagEffect(Corpse* pFlagPole, Item* pFlag);
 
 Item* fitToPC(Item* pItem, PlayerCreature* pPC);
 
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-
-ItemType_t getItemTypeByItemLimit(Item::ItemClass itemClass, ItemType_t itemType);
-
-#endif // __THAILAND_SERVER__
-
 #endif

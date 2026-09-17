@@ -40,13 +40,6 @@
 #include "ZoneGroup.h"
 #include "repository/MessageRepository.h"
 
-#ifdef __THAILAND_SERVER__
-
-#include "Properties.h"
-#include "TimeChecker.h"
-
-#endif
-
 // #define __FULL_PROFILE__
 
 #ifndef __FULL_PROFILE__
@@ -81,33 +74,6 @@ ZonePlayerManager::ZonePlayerManager()
     // 나중에는 이 주기 역시 옵션으로 처리하도록 하자.
     m_Timeout[0].tv_sec = 0;
     m_Timeout[0].tv_usec = 0;
-    /*
-    #if defined(__THAILAND_SERVER__)
-
-        // add by inthesky for THAILAND ChildGuard rule
-        string strChildGuardSwitch = g_pConfig->getProperty("CHILDGUARD");
-
-        cout << "ChildGuard Policy : " << strChildGuardSwitch << endl;
-
-        if(strChildGuardSwitch == "Enable" || strChildGuardSwitch == "ENABLE" || strChildGuardSwitch == "enable")
-        {
-            m_bChildGuard   = true;
-        }
-        else m_bChildGuard      = false;
-
-        m_nChildGuardStartTime  = g_pConfig->getPropertyInt("CHILDGUARD_START_TIME");
-        m_nChildGuardEndTime    = g_pConfig->getPropertyInt("CHILDGUARD_END_TIME");
-        m_nChildGuardKickTime   = g_pConfig->getPropertyInt("CHILDGUARD_REMAIN_TIME");
-
-        m_nChildGuardCheckTerm  = g_pConfig->getPropertyInt("CHILDGUARD_CHECKTERM");
-        getCurrentTime(m_tmChildGuardCheckTerm);
-        m_tmChildGuardCheckTerm.tv_sec += m_nChildGuardCheckTerm;
-
-        cout << "ChildGuard TimeArea : "<<(int)m_nChildGuardStartTime << " - " << (int)m_nChildGuardEndTime << endl;
-        cout << "ChildGuard CheckTerm : "<<(int)m_nChildGuardCheckTerm << "/sec" << endl;
-
-    #endif
-    */
     __END_CATCH
 }
 
@@ -731,41 +697,6 @@ void ZonePlayerManager::processCommands() {
 
 #endif
                         }
-
-                        /*
-                        #if defined(__THIALAND_SERVER__)
-                        // add by inthesky for THAILAND ChildGuard rule
-                        Timeval cTime;
-                        getCurrentTime(cTime);
-
-                        if(cTime > m_tmChildGuardCheckTerm )    // m_nChildGuardCheckTerm 시간마다 한번씩만 체크
-                        {
-                            //cout << "check time : 30sec.."<<endl;
-                            bool bChildGuardArea = onChildGuardTimeArea(m_nChildGuardStartTime, m_nChildGuardEndTime,
-                        m_bChildGuard);
-
-                            //if(bChildGuardArea)   cout << "ChildGuard Area : Yes" << endl;
-                            //else                  cout << "ChildGuard Area : No" << endl;
-
-                            //if(pTempPlayer->getPermission())      cout << "Player Permission : ALLOW"<<endl;
-                            //else                                  cout << "Player Permission : DENY"<<endl;
-
-                            if( bChildGuardArea && !pTempPlayer->getPermission() )
-                            {
-                                pTempPlayer->kickPlayer( m_nChildGuardKickTime, KICK_MESSAGE_CHILDGUARD );
-                            }
-
-                            m_tmChildGuardCheckTerm = cTime;
-                            m_tmChildGuardCheckTerm.tv_sec += m_nChildGuardCheckTerm;
-                        }
-                        #endif
-                        */
-#ifdef __THAILAND_SERVER__
-                        // child guard check !
-                        if (!pTempPlayer->getPermission() && g_pTimeChecker->isInPeriod(TIME_PERIOD_CHILD_GUARD)) {
-                            pTempPlayer->kickPlayer(30, KICK_MESSAGE_CHILDGUARD);
-                        }
-#endif
 
                         // 패밀리 요금제 적용이 끝났다면, 다시 체크하지 않게 하기위에 타입을 바꿔준다.
                         if (pTempPlayer->isFamilyFreePassEnd()) {
@@ -1607,49 +1538,6 @@ bool checkZonePlayerManager(GamePlayer* pGamePlayer, ZonePlayerManager* pZPM, co
 
     return true;
 }
-#if defined(__THAILAND_SERVER__)
-// 태국용이다. 미성년자 접속을 막기 위한 코드이다.
-// 현재 시간중 (시*100+분) 값을 이용해서 차단중인 시간대 인지 아닌지를 구별한다.
-//
-// 예를들어 오전 6시 30분의 경우 630 이란 값이
-// 오후 11시 15분일경우 2315 가 된다.
-//
-// 입력 - am : 이 시간 이전은 제한되는 시간대이다.
-//        pm : 이 시간 이후는 제한되는 시간대이다.
-//
-//
-// 출력 - true : 제한시간대이다.
-//        false : 제한시간대가 아니다.
-bool ZonePlayerManager::onChildGuardTimeArea(int pm, int am, bool bSwitch) {
-    bool returnValue = false;
-    tm Timem;
-    time_t daytime = time(0);
-    localtime_r(&daytime, &Timem);
-
-    int Hour = Timem.tm_hour;
-    int Min = Timem.tm_min;
-
-    int timeValue = (Hour * 100) + Min;
-
-    if ((timeValue >= pm && timeValue <= am) && bSwitch) {
-        returnValue = true;
-    } else if ((timeValue <= pm && timeValue <= am) && bSwitch) {
-        if (am > 1200)
-            returnValue = false;
-        else
-            returnValue = true;
-    } else if ((timeValue <= pm && timeValue <= am) && bSwitch) {
-        returnValue = false;
-    } else if ((timeValue >= pm && timeValue >= am) && bSwitch) {
-        if (am > 1200)
-            returnValue = false;
-        else
-            returnValue = true;
-    }
-
-    return returnValue;
-}
-#endif
 
 // external variable definition
 ZonePlayerManager* g_pZonePlayerManager = NULL;

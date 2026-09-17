@@ -28,12 +28,6 @@
 // #include "gameserver/billing/BillingPlayerManager.h"
 #include "LogClient.h"
 
-#ifdef __THAILAND_SERVER__
-
-#include "TimeChecker.h"
-
-#endif
-
 //////////////////////////////////////////////////////////////////////
 //
 // constructor
@@ -80,11 +74,6 @@ LoginServer::LoginServer() {
     //  create GameWorldInfoManager
     // g_pBillingPlayerManager = new BillingPlayerManager();
     // #endif
-
-#ifdef __THAILAND_SERVER__
-
-    g_pTimeChecker = new TimeChecker();
-#endif
 
     __END_CATCH
 }
@@ -161,14 +150,6 @@ LoginServer::~LoginServer() noexcept(false) {
     //}
     // #endif
 
-#ifdef __THAILAND_SERVER__
-    if (g_pTimeChecker != NULL) {
-        delete g_pTimeChecker;
-        g_pTimeChecker = NULL;
-    }
-
-#endif
-
 
     __END_CATCH
 }
@@ -208,11 +189,6 @@ void LoginServer::init() {
     //  빌링 서버 접속 준비
     // g_pBillingPlayerManager->init();
     // #endif
-
-#ifdef __THAILAND_SERVER__
-    // for Thailand ChildGuard System
-    g_pTimeChecker->init();
-#endif
 
 
     // 만반의 준비가 끝이 나면 이제 클라이언트매니저를 초기화함으로써,

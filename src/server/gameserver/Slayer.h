@@ -32,21 +32,6 @@
 #include "skill/Skill.h"
 #include "skill/SkillSlot.h"
 
-#ifdef __CHINA_SERVER__
-#define SLAYER_BOUND_LEVEL 100
-#define SLAYER_BOUND_ATTR 200
-#define SLAYER_BOUND_ATTR_SUM 300
-#define SLAYER_BOUND_ONE_EXP_ATTR 200
-#define SLAYER_BOUND_SUB_ATTR 50
-#define SLAYER_MAX_LEVEL 150
-#define SLAYER_MAX_ATTR 295
-#define SLAYER_MAX_ATTR_SUM 435
-#define SLAYER_ONE_EXP_ATTR 400
-#define SLAYER_MAX_DOMAIN_LEVEL 150
-#define SLAYER_MAX_SUB_ATTR 70
-
-#define SLAYER_MAX_RANK 50
-#else
 // 슬레이어는 도메인 레벨이 BOUND_LEVEL에 도달하기 전까지는
 // 능력치가 BOUND_ATTR 이하로, 능력치 총합이 BOUND_ATTR_SUM 이하로 제한된다.
 // BOUND_LEVEL이 넘은 뒤에는 MAX_ATTR과 MAX_ATTR_SUM으로 제한된다.
@@ -65,7 +50,6 @@
 #define SLAYER_MAX_SUB_ATTR 80
 
 #define SLAYER_MAX_RANK 50
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // 장비를 입고 벗을 때 장비 입고 벗기 전의 능력치를

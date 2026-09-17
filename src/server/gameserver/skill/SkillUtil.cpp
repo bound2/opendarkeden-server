@@ -599,24 +599,11 @@ Damage_t computeMagicDamage(Creature* pTargetCreature, int Damage, SkillType_t S
         //		cout << "after mastery " << Resist << endl;
     }
 
-#ifdef __CHINA_SERVER__
-    if (bVampire)
-        Resist = (int)(Resist / 1.2);
-
-    // ÀúÇ×·Â¿¡ µû¶ó µ¥¹ÌÁö¸¦ °¡°¨ÇÑ´Ù.
-    int penalty = (int)(MagicLevel / 5.0 - Resist);
-    penalty = min(penalty, 100);
-    penalty = max(penalty, -100);
-
-    Damage = getPercentValue(Damage, 100 + penalty);
-    return (Damage_t)max(0, (int)Damage);
-#else
     float penalty = 1.5 * (Resist - (MagicLevel / 5.0)) / (Resist - (MagicLevel / 5.0) + 100.0);
     penalty = max(penalty, -0.2f);
     Damage = (int)(Damage * (1.0 - penalty));
 
     return (Damage_t)max(0, (int)Damage);
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1956,11 +1943,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
                 }
             }
 
-#ifdef __CHINA_SERVER__
-            Result = max(0, (int)pSlayer->getMP(ATTR_CURRENT) - (int)(Damage * 2.5));
-#else
             Result = max(0, (int)pSlayer->getMP(ATTR_CURRENT) - (int)(Damage * 2));
-#endif
 
             pSlayer->setMP(Result, ATTR_CURRENT);
             bSendTargetMP = true;

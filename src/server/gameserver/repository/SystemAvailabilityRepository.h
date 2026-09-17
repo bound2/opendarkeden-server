@@ -9,17 +9,9 @@
 // boot, and the six rows the egg-dummy-DB shutdown path deletes on its
 // way out.
 //
-// Neither caller reaches this on the shipped gameserver.
-// SystemAvailabilitiesManager::load calls it only under
-// "#if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__)" and
-// otherwise marks every system available; EventShutdown's deletes sit
-// behind the "#else" of
-// "#if !defined(__THAILAND_SERVER__) && !defined(__CHINA_SERVER__)". The
-// gameserver build defines neither macro. (ItemUtil.cpp #defines
-// __THAILAND_SERVER__ itself before including
-// SystemAvailabilitiesManager.h, which gives that one TU a manager with
-// an extra member and a different layout from every other TU's; neither
-// caller lives there.)
+// Neither operation has a caller: SystemAvailabilitiesManager::load
+// marks every system available without reading a row, and nothing
+// deletes one.
 
 // One row of the boot-time read, which is a "SELECT *": the positional
 // getInt(1)/getInt(2) depend on SystemKind and Available being the first

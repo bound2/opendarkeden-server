@@ -37,7 +37,7 @@ struct PlayerSessionRow {
     int payPlayFlag;
     int billingUserKey;
     std::string familyPayPlayDate;
-    // __THAILAND_SERVER__ only; empty elsewhere.
+    // Never selected; always empty.
     std::string birthday;
 };
 
@@ -54,10 +54,6 @@ public:
     // --- the account row (dist connection) ---------------------------------
     // False unless EXACTLY one row; the caller treats none and several
     // alike (logs to connectDB_BUG.txt and throws ProtocolException).
-    //
-    // Under __THAILAND_SERVER__ the statement selects an eleventh column,
-    // Birthday, used to set the adult permission. In every other build the
-    // column is not selected and birthday is left empty.
     virtual bool loadPlayerSession(const std::string& playerID, PlayerSessionRow& row) = 0;
     // LogOn='GAME', but only for a row still in 'LOGOFF'. Returns whether a
     // row was affected; the caller reads false as "someone else got there

@@ -60,19 +60,6 @@ void ActionSelectQuest::execute(Creature* pCreature1, Creature* pCreature2)
     Player* pPlayer = pCreature2->getPlayer();
     Assert(pPlayer != NULL);
 
-#ifdef __CHINA_SERVER__
-    // 중국에는 막아놓기다.
-    GCNPCResponse gcNPCResponse;
-    gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
-    pPlayer->sendPacket(&gcNPCResponse);
-
-    GCSystemMessage gcSM;
-    gcSM.setMessage(g_pStringPool->getString(STRID_NOT_SUPPORT));
-    pPlayer->sendPacket(&gcSM);
-
-    return;
-#endif
-
     if (!pPC->getQuestManager()->canStartMoreQuest()) {
         GCNPCResponse gcNPCResponse;
         gcNPCResponse.setCode(NPC_RESPONSE_QUEST);

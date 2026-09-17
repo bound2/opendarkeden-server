@@ -54,16 +54,11 @@ bool decideAdult(const LoginRequest& request, const std::string& ssn, const VSDa
     if (strstr(ssn.c_str(), "-") != NULL)
         return isAdultByBirthday(ssn.substr(0, 6), now);
 
-        // China.
-#ifdef __CHINA_SERVER__
-    return true;
-#else
     if (ssn.size() == 15)
         return isAdultByBirthday(ssn.substr(6, 12), now);
     if (ssn.size() == 18)
         return isAdultByBirthday(ssn.substr(8, 14), now);
     return false;
-#endif
 }
 
 } // namespace
@@ -291,10 +286,6 @@ Outcome<LoginAccepted, LoginRejection> decideLogin(const LoginRequest& request, 
 
 #ifndef __CONNECT_BILLING_SYSTEM__
 
-#ifdef __CHINA_SERVER__
-    accepted.lastDays = 0xffff;
-#else
-
     if (account.payType == 0) {
         accepted.lastDays = 0xfffe;
     } else {
@@ -326,7 +317,6 @@ Outcome<LoginAccepted, LoginRejection> decideLogin(const LoginRequest& request, 
         accepted.grantPremiumWeek = true;
         accepted.lastDays = 0xfffd;
     }
-#endif
 #endif
 
     accepted.next = LoginNextStep::LoginOK;
