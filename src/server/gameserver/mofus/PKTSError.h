@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Filename : PKTSError.h
-// Desc		: 온라인 서버에서 처리 에러에 대한 결과를 보내기 위해서 사용된다.
+// Desc		: used by the online server to report a handling error result.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __PKT_SERROR_H__
@@ -10,18 +10,18 @@
 #include "Assert.h"
 #include "MPacket.h"
 
-// 에러 코드
+// error code
 enum MSERR_CODE {
-    MSERR_MATCH = 0x01, // 회원을 확인했으나 정보가 서로 매치 되지
-                        // 않을 경우 ( 즉 요청자와 파워짱 정보가
-                        // 일치 되지 않을 경우 )
+    MSERR_MATCH = 0x01, // the member was found but the information does not
+                        // match ( that is, the requester and the PowerJjang
+                        // information do not agree )
 };
 
-// 패킷 구조
+// packet layout
 struct _PKT_SERROR {
-    int nSize;  // 패킷 전체의 크기
-    int nCode;  // 패킷 코드
-    int nError; // 에러 코드
+    int nSize;  // the size of the whole packet
+    int nCode;  // packet code
+    int nError; // error code
 };
 
 const int szPKTSError = sizeof(_PKT_SERROR);
@@ -29,36 +29,36 @@ const int szPKTSError = sizeof(_PKT_SERROR);
 // class PKTSError
 class PKTSError : public _PKT_SERROR, public MPacket {
 public:
-    // 생성자
+    // constructor
     PKTSError();
 
 public:
-    // 패킷 아이디를 반환한다.
+    // Returns the packet id.
     MPacketID_t getID() const;
 
-    // 패킷의 크기를 반환한다.
+    // Returns the packet's size.
     MPacketSize_t getSize() const {
         return szPKTSError - szMPacketSize;
     }
 
-    // 새로운 패킷을 생성해서 반환
+    // Creates a new packet and returns it
     MPacket* create() {
         MPacket* pPacket = new PKTSError;
         Assert(pPacket != NULL);
         return pPacket;
     }
 
-    // 입력 스트림으로부터 데이터를 읽어서 패킷을 초기화 한다.
+    // Reads data from the input stream and initialises the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력 스트림으로 패킷의 바이너리 이미지를 보낸다.
+    // Sends the packet's binary image to the output stream.
     void write(SocketOutputStream& oStream);
 
     // debug message
     string toString() const;
 
 public:
-    // 에러 코드 설정
+    // Set the error code
     void setErrorCode(int errorCode) {
         nError = errorCode;
     }

@@ -62,7 +62,7 @@ public:
     // Where is this account, and is it in game? False when the account has
     // no row, leaving both out-parameters untouched.
     virtual bool loadPlayerLocation(const std::string& playerID, int& serverGroupID, std::string& logOn) = 0;
-    // LogOn='LOGOFF', LastLogoutDate=now() — only for a row still in 'GAME'.
+    // LogOn='LOGOFF', LastLogoutDate=now() -- only for a row still in 'GAME'.
     // Does not report whether a row was affected.
     virtual void markPlayerLoggedOff(const std::string& playerID) = 0;
     // The accounts this world/server group left in 'GAME' (boot-time sweep).

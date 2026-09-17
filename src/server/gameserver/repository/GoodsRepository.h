@@ -10,7 +10,7 @@
 // sees it: plain data, no SQL types.
 struct GoodsRecord {
     // GoodsListObject.ID (a bigint), carried as the string the DB returned
-    // — the delivery flow only ever hands it back to takeOne() and logs.
+    // -- the delivery flow only ever hands it back to takeOne() and logs.
     std::string id;
     DWORD goodsID;
     int num;
@@ -18,7 +18,7 @@ struct GoodsRecord {
 
 // The GoodsListObject table: items bought on the game's website, waiting
 // to be picked up in-game. Reached through
-// the second per-thread connection — see the connection quirk on the
+// the second per-thread connection -- see the connection quirk on the
 // MySQL implementation.
 class GoodsRepository {
 public:
@@ -32,7 +32,7 @@ public:
     // taken once the count runs out. False when no row matched the id.
     // A row already at Num=0 does NOT report false: the decrement of the
     // UNSIGNED column raises ER_DATA_OUT_OF_RANGE, the row is left
-    // untouched, and the error escapes as an exception — see the MySQL
+    // untouched, and the error escapes as an exception -- see the MySQL
     // implementation's quirk notes.
     virtual bool takeOne(const std::string& id) = 0;
 };

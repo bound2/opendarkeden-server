@@ -19,8 +19,8 @@
 // three count probes nor the partner read does. A character with
 // pairings in two races therefore still reads as coupled after the
 // pairing of their own race is removed. Nothing in the couple flow
-// creates such a pair — WaitForMeet::canMakeCouple rejects a different
-// race and a matching sex before makeCouple, which then Asserts both —
+// creates such a pair -- WaitForMeet::canMakeCouple rejects a different
+// race and a matching sex before makeCouple, which then Asserts both --
 // and the schema does not prevent one: CoupleInfo's only UNIQUE key is
 // its AUTO_INCREMENT ID.
 //

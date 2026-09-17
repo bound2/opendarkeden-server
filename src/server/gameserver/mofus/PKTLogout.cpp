@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Filename : PKTLogout.cpp
-// Desc		: 접소을 종료함을 통지한다.
+// Desc		: reports that the connection is closing.
 /////////////////////////////////////////////////////////////////////////////
 
 // include files
@@ -8,12 +8,12 @@
 
 #include "MPacketID.h"
 
-// 생성자
+// constructor
 PKTLogout::PKTLogout() {
     nSize = szPKTLogout - szMPacketSize;
 }
 
-// 입력 스트림으로부터 데이터를 읽어서 패킷을 초기화 한다.
+// Reads data from the input stream and initialises the packet.
 void PKTLogout::read(SocketInputStream& iStream) {
     iStream.read((char*)this, szPKTLogout);
 
@@ -22,7 +22,7 @@ void PKTLogout::read(SocketInputStream& iStream) {
     //	nCode		= ntohl( nCode );
 }
 
-// 출력 스트림으로 패킷의 바이너리 이미지를 보낸다.
+// Sends the packet's binary image to the output stream.
 void PKTLogout::write(SocketOutputStream& oStream) {
     nCode = getID();
 

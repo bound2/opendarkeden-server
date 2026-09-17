@@ -12,9 +12,9 @@ namespace {
 //    rather than failing.
 //  - OwnerID is a CHARACTER NAME (see the header), interpolated raw.
 //  - THE INSERT CAN FAIL ON AN ORDINARY PATH, and END_DB writes
-//    DBError.log every time it does. A save of ZERO points is reachable —
+//    DBError.log every time it does. A save of ZERO points is reachable --
 //    PKTPowerPointHandler clamps with min(points, 40) and points can be 0
-//    — and the driver connects without CLIENT_FOUND_ROWS, so
+//    -- and the driver connects without CLIENT_FOUND_ROWS, so
 //    mysql_affected_rows reports rows CHANGED. "Point = Point + 0"
 //    changes nothing, the caller reads that as "no row" and inserts, and
 //    OwnerID is the PRIMARY KEY, so the insert raises on a duplicate key.

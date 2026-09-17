@@ -16,7 +16,7 @@ public:
     virtual ~MonsterKillQuestStatus() {}
 
     // virtual bool	isSuccess()  { return m_CurrentNum >= m_GoalNum; }
-    //  ( !m_IsChief || isChief ) 는 m_IsChief 이면 isChief 이어야 한다. 라는 말과 같다.
+    //  ( !m_IsChief || isChief ) says the same as: if m_IsChief then isChief must hold.
     bool killed(SpriteType_t targetSType, bool isChief);
     bool isTarget(SpriteType_t sType, bool isChief) {
         return (!m_IsChief || isChief) && m_TargetMonsterSpriteType == sType;

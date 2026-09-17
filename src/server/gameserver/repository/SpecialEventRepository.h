@@ -12,7 +12,7 @@
 //
 // These two statements do not run on the thread's DARKEDEN connection.
 // They ask for g_pDatabaseManager->getConnection((int)(long)Thread::self())
-// — the int overload, which keys on WorldID, not thread id (the note in
+// -- the int overload, which keys on WorldID, not thread id (the note in
 // DatabaseManager.h, translated from Korean: "the main DB server's world
 // id is agreed to be 0, and queries to it pass 0"). The gameserver never
 // fills m_WorldConnections, so the lookup falls through to
@@ -27,7 +27,7 @@ class SpecialEventRepository {
 public:
     virtual ~SpecialEventRepository() {}
 
-    // "SELECT Count FROM SpecialEvent WHERE Name='%s'" — false when the
+    // "SELECT Count FROM SpecialEvent WHERE Name='%s'" -- false when the
     // account has no row, the int through getInt otherwise.
     virtual bool loadCount(const std::string& accountID, int& count) = 0;
 

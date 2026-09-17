@@ -13,7 +13,7 @@ namespace {
 //  - LevelWarHistory has no primary or unique key (two non-unique
 //    indexes only); its INSERT writes the "Old" sweeper columns at war
 //    start and the UPDATE fills the "new" ones at war end, keyed on
-//    (Level, LevelWarID) — a start time formatted as text by the caller.
+//    (Level, LevelWarID) -- a start time formatted as text by the caller.
 //    A restart between the two leaves a half row.
 //  - SweeperOwnerInfo's UPDATE keys on SweeperType alone (the table's
 //    PK); the reads filter by ZoneID.
@@ -21,7 +21,7 @@ namespace {
 //    and filled in at war end. GuildWarHistory's start is an INSERT
 //    IGNORE keyed on its WarID and its end updates WHERE WarID;
 //    RaceWarHistory's start is a PLAIN INSERT and its end updates WHERE
-//    RaceWarID — a start time the caller formatted as text — so a
+//    RaceWarID -- a start time the caller formatted as text -- so a
 //    repeated start leaves a second row there where the guild war drops
 //    it, and the update then rewrites both.
 //  - The RaceWarPCLimit totals arrive through getInt on a SUM() column;

@@ -15,7 +15,7 @@
 // DarkLightInfo, CastleSkillInfo, CastleShrineInfo, LogUserInfo) and the
 // option tables OptionInfoManager loads (OptionInfo, OptionClassInfo,
 // RareEnchantInfo, PetEnchantOptionRatioInfo). Every field is typed to
-// the driver getter used for it (getInt → int, getString → std::string);
+// the driver getter used for it (getInt -> int, getString -> std::string);
 // callers narrow from there.
 //
 // The MAX probes the loaders use to size their arrays are exposed as
@@ -242,7 +242,7 @@ public:
     virtual std::vector<BloodBibleBonusRow> loadBloodBibleBonuses() = 0;
 
     // The names of one list, in the order the ORDER-BY-less SELECT
-    // returns them (the manager indexes them by position — the
+    // returns them (the manager indexes them by position -- the
     // optimizer's choice, not a contract).
     virtual std::vector<std::string> loadMonsterNames(MonsterNameList list) = 0;
 

@@ -7,7 +7,7 @@
 #include "Types.h"
 
 // The BloodBibleSignObject table. The gameserver only ever READS it: no
-// code path in this tree inserts, updates, or deletes rows — sign grants
+// code path in this tree inserts, updates, or deletes rows -- sign grants
 // arrive from outside the server process. The interface is read-only on
 // purpose.
 class BloodBibleSignRepository {

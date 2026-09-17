@@ -10,7 +10,7 @@
 #include "MPacketID.h"
 #include "Mofus.h"
 
-// send 패킷
+// send packets
 #include "PKTConnectAsk.h"
 #include "PKTLogout.h"
 #include "PKTReceiveOK.h"
@@ -18,7 +18,7 @@
 #include "PKTSError.h"
 #include "PKTUserInfo.h"
 
-// receive 패킷
+// receive packets
 #include "PKTConnectAccept.h"
 #include "PKTConnectAcceptHandler.h"
 #include "PKTError.h"
@@ -27,13 +27,13 @@
 #include "PKTPowerPointHandler.h"
 
 
-// 패킷 ID 등록을 간단히 하기 위한 매크로
+// macro that keeps registering a packet ID short
 #define REGISTER_SEND_PACKET_ID(PACKET, PACKET_ID) \
     MPacketID_t PACKET::getID() const {            \
         return PACKET_ID;                          \
     }
 
-// 패킷 핸들러 ID 등록을 간단히 하기 위한 매크로
+// macro that keeps registering a packet handler ID short
 #define REGISTER_RECV_PACKET_ID(PACKET, PACKET_ID) \
     MPacketID_t PACKET::getID() const {            \
         return PACKET_ID;                          \
@@ -42,7 +42,7 @@
         return PACKET_ID;                          \
     }
 
-// 보내기용 패킷ID 등록
+// register the outgoing packet IDs
 REGISTER_SEND_PACKET_ID(PKTConnectAsk, PTC_CONNECT_ASK)
 REGISTER_SEND_PACKET_ID(PKTLogout, PTC_LOGOUT)
 REGISTER_SEND_PACKET_ID(PKTUserInfo, PTC_USERINFO)
@@ -50,13 +50,13 @@ REGISTER_SEND_PACKET_ID(PKTReceiveOK, PTC_RECEIVE_OK)
 REGISTER_SEND_PACKET_ID(PKTResult, PTC_RESULT)
 REGISTER_SEND_PACKET_ID(PKTSError, PTC_ERROR)
 
-// 받기용 패킷 ID 등록 및 핸들러 ID 등록
+// register the incoming packet IDs and the handler IDs
 REGISTER_RECV_PACKET_ID(PKTConnectAccept, PTS_CONNECT_ACCEPT)
 REGISTER_RECV_PACKET_ID(PKTPowerPoint, PTS_POWERPOINT)
 REGISTER_RECV_PACKET_ID(PKTError, PTS_ERROR)
 
 
-// 내부 구현 데이터
+// internal implementation data
 struct MPacketManager::IMPL {
     MPacket* pCreators[PTC_MAX];
     MPacketHandler* pHandlers[PTC_MAX];
@@ -64,27 +64,27 @@ struct MPacketManager::IMPL {
     IMPL();
     ~IMPL();
 
-    // 패킷 생성자를 추가한다.
+    // Adds a packet creator.
     void addCreator(MPacket* pPacket);
 
-    // 패킷 핸들러를 추가한다.
+    // Adds a packet handler.
     void addHandler(MPacketHandler* pHandler);
 };
 
 
-// 생성자
+// constructor
 MPacketManager::MPacketManager() : m_pImpl(new IMPL) {
     Assert(m_pImpl != NULL);
 }
 
-// 소멸자
+// destructor
 MPacketManager::~MPacketManager() {
     SAFE_DELETE(m_pImpl);
 }
 
-// 초기화
+// initialization
 void MPacketManager::init() {
-    // 핸들러 및 크리에이터 추가
+    // add the handlers and the creators
     m_pImpl->addCreator(new PKTConnectAccept);
     m_pImpl->addHandler(new PKTConnectAcceptHandler);
     m_pImpl->addCreator(new PKTPowerPoint);
@@ -93,19 +93,19 @@ void MPacketManager::init() {
     m_pImpl->addHandler(new PKTErrorHandler);
 }
 
-// 패킷 생성자를 추가한다.
+// Adds a packet creator.
 void MPacketManager::addCreator(MPacket* pPacket) {
     Assert(pPacket != NULL);
     m_pImpl->addCreator(pPacket);
 }
 
-// 패킷 핸들러를 추가한다.
+// Adds a packet handler.
 void MPacketManager::addHandler(MPacketHandler* pHandler) {
     Assert(pHandler != NULL);
     m_pImpl->addHandler(pHandler);
 }
 
-// 새로운 패킷을 생성해서 반환한다.
+// Creates a new packet and returns it.
 MPacket* MPacketManager::createPacket(MPacketID_t ID) const {
     if (ID < 0 || ID >= PTC_MAX) {
         filelog(MOFUS_ERROR_FILE, "MPacketManager::createPacket() out of ID");
@@ -115,7 +115,7 @@ MPacket* MPacketManager::createPacket(MPacketID_t ID) const {
     return m_pImpl->pCreators[ID]->create();
 }
 
-// 패킷을 실행한다.
+// Runs the packet.
 void MPacketManager::execute(MPlayer* pPlayer, MPacket* pPacket) {
     Assert(pPlayer != NULL);
     Assert(pPacket != NULL);
@@ -135,14 +135,14 @@ void MPacketManager::execute(MPlayer* pPlayer, MPacket* pPacket) {
     m_pImpl->pHandlers[ID]->execute(pPlayer, pPacket);
 }
 
-// 패킷을 실행한다.
+// Runs the packet.
 bool MPacketManager::hasHandler(MPacketID_t ID) const {
-    // 일단 범위 확인
+    // First check the range
     if (ID < 0 || ID >= PTC_MAX) {
         return false;
     }
 
-    // 핸들러가 있는지 확인
+    // Check that a handler is there
     if (m_pImpl->pHandlers[ID] == NULL) {
         return false;
     }
@@ -150,7 +150,7 @@ bool MPacketManager::hasHandler(MPacketID_t ID) const {
     return true;
 }
 
-// 패킷의 크기를 반환한다.
+// Returns the packet's size.
 MPacketSize_t MPacketManager::getPacketSize(MPacketID_t ID) const {
     if (ID < 0 || ID >= PTC_MAX) {
         filelog(MOFUS_ERROR_FILE, "MPacketManager::createPacket() out of ID");
@@ -160,49 +160,49 @@ MPacketSize_t MPacketManager::getPacketSize(MPacketID_t ID) const {
     return m_pImpl->pCreators[ID]->getSize();
 }
 
-// 생성자
+// constructor
 MPacketManager::IMPL::IMPL() {
-    // 각 배열을 초기화한다.
+    // Initialize each array.
     for (MPacketID_t i = 0; i < PTC_MAX; ++i) {
         pCreators[i] = NULL;
         pHandlers[i] = NULL;
     }
 }
 
-// 소멸자
+// destructor
 MPacketManager::IMPL::~IMPL() {
-    // 패킷 생성자 및 핸들러를 지운다.
+    // Delete the packet creators and handlers.
     for (MPacketID_t i = 0; i < PTC_MAX; ++i) {
         SAFE_DELETE(pCreators[i]);
         SAFE_DELETE(pHandlers[i]);
     }
 }
 
-// 패킷 생성자를 추가한다.
+// Adds a packet creator.
 void MPacketManager::IMPL::addCreator(MPacket* pPacket) {
     Assert(pPacket != NULL);
 
-    // 중복 검사
+    // Duplicate check
     if (pCreators[pPacket->getID()] != NULL) {
         filelog(MOFUS_ERROR_FILE, "MPacketManager::IMPL::addCreator() dup creator");
         Assert(false);
     }
 
-    // 생성자를 추가한다.
+    // Add the creator.
     pCreators[pPacket->getID()] = pPacket;
 }
 
-// 패킷 핸들러를 추가한다.
+// Adds a packet handler.
 void MPacketManager::IMPL::addHandler(MPacketHandler* pHandler) {
     Assert(pHandler != NULL);
 
-    // 중복 검사
+    // Duplicate check
     if (pHandlers[pHandler->getID()] != NULL) {
         filelog(MOFUS_ERROR_FILE, "MPacketManager::IMPL::addHandler() dup handler");
         Assert(false);
     }
 
-    // 핸들러를 추가한다.
+    // Add the handler.
     pHandlers[pHandler->getID()] = pHandler;
 }
 

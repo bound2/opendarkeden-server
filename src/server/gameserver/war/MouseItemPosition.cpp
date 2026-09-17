@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////
-// MouseItemPosition 클래스 구현
+// MouseItemPosition class implementation
 ///////////////////////////////////////////////////////////////////
 
 #include "MouseItemPosition.h"
@@ -82,11 +82,11 @@ Zone* MouseItemPosition::getZone()
 {
     __BEGIN_TRY
 
-    // 구해놓은게 있으면 그걸로 리턴한다.
+    // Return the one already obtained, if there is one.
     if (m_bSetZone)
         return m_pZone;
 
-    // 구해놓은게 없으면 새로 구한다.
+    // If there is none, obtain a new one.
     Creature* pTargetCreature = findCreature();
 
     return getZoneByCreature(pTargetCreature);

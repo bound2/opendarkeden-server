@@ -16,7 +16,7 @@
 // (RaceWarPCList), the siege-war reinforcement registry
 // (ReinforceRegisterInfo), the scheduled wars (WarScheduleInfo) and the
 // master lairs (MasterLairInfo). All on the DARKEDEN connection. Reads
-// are typed to the driver getter used (getInt → int, getString →
+// are typed to the driver getter used (getInt -> int, getString ->
 // std::string).
 
 // ShrineInfo's row, 20 columns in SELECT order.
@@ -71,7 +71,7 @@ struct CastleRow {
     std::string zoneIDList;
 };
 
-// CastleInfoManager::save — the mutable castle state.
+// CastleInfoManager::save -- the mutable castle state.
 struct CastleStateRecord {
     int guildID;
     std::string name;
@@ -109,7 +109,7 @@ struct RaceWarLimitRow {
     int currentNum;
 };
 
-// RaceWarLimiter::clearPCList's row. `race` is read from column 1 — the
+// RaceWarLimiter::clearPCList's row. `race` is read from column 1 -- the
 // Name column. See the note above loadRaceWarPCList().
 struct RaceWarPCListRow {
     std::string name;
@@ -256,12 +256,12 @@ public:
     // empties the table; the two statements are separate here and the
     // caller's log loop sits between them.
     //
-    // WARNING — the row's `race` is getInt(COLUMN 1), which is Name, not
+    // WARNING -- the row's `race` is getInt(COLUMN 1), which is Name, not
     // Race. getInt is atoi, so the value is 0 for any name that does not
     // begin with a digit or sign, and the caller's per-race tally is
     // wrong. The caller indexes a three-element array with it: a name
     // parsing to 0, 1 or 2 lands in the wrong bucket, and one parsing to
-    // 3 or more — or to a negative, atoi honouring a leading sign — writes
+    // 3 or more -- or to a negative, atoi honouring a leading sign -- writes
     // outside the array altogether.
     virtual std::vector<RaceWarPCListRow> loadRaceWarPCList() = 0;
     virtual void deleteRaceWarPCList() = 0;
@@ -312,7 +312,7 @@ public:
     // serverID is g_pConfig->getPropertyInt("ServerID"); both ints render
     // through "%u".
     virtual std::vector<WarScheduleRow> loadWarSchedules(int serverID, int zoneID) = 0;
-    // The first ACCEPT registration of a war id, with NO server id — unlike
+    // The first ACCEPT registration of a war id, with NO server id -- unlike
     // loadWaitingReinforceGuild, which is server-scoped and reads
     // Status='WAIT'. False when there is none, and the caller then leaves
     // the war's reinforce guild alone.

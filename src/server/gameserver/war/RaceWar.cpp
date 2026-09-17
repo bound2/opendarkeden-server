@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////
-// 전쟁에 대한 전반적인 정보 및 전쟁 시작 및 종료시 처리루틴 구현
+// General war information and the routines run when a war starts and ends
 ///////////////////////////////////////////////////////////////////
 
 #include "RaceWar.h"
@@ -48,10 +48,10 @@ RaceWar::~RaceWar() {}
 // executeStart
 //
 //--------------------------------------------------------------------------------
-// 전쟁이 시작하는 시점에서 처리해야 될 것들
+// What has to be handled when a war starts
 //
-// (!) Zone에 붙어있는 WarScheduler에서 실행되는 부분이므로
-//     자신의 Zone(성)에 대한 처리는 lock이 필요없다.
+// (!) This runs in the WarScheduler attached to the Zone, so
+//     handling its own Zone (the castle) needs no lock.
 //--------------------------------------------------------------------------------
 void RaceWar::executeStart()
 
@@ -60,24 +60,24 @@ void RaceWar::executeStart()
 
     sendWarStartMessage();
 
-    // 종족전에서는 보너스를 끈다.
+    // In a race war the bonus is turned off.
     //	g_pHolyLandRaceBonus->clear();
 
-    // 전쟁 중에는 NPC가 사라진다.
+    // NPCs disappear during a war.
     // g_pCastleInfoManager->deleteAllNPCs();
 
-    // 전쟁 중에는 성 안에서 마구 싸운다~
+    // During a war, fighting inside the castle is free
     g_pCastleInfoManager->releaseAllSafeZone();
 
-    // 수호성단 보호막이 모두 사라진다.
+    // Every guardian shrine shield disappears.
     g_pShrineInfoManager->removeAllShrineShield();
 
-    // 아담의 성지 전역에 피의 성서 위치를 보내준다.
-    // 이거 이제 WarSystem::addWar 안에서 불러준다.
+    // Broadcast the blood bible positions across Adam's holy land.
+    // This is now called inside WarSystem::addWar.
     // g_pShrineInfoManager->broadcastBloodBibleStatus();
     //	g_pHolyLandManager->sendBloodBibleStatus();
 
-    // 아담의 성지 전역에 시간을 고정한다.
+    // Fix the time across Adam's holy land.
     g_pHolyLandManager->fixTimeband(g_pVariableManager->getVariable(RACE_WAR_TIMEBAND));
 
     g_pHolyLandManager->killAllMonsters();
@@ -85,15 +85,15 @@ void RaceWar::executeStart()
     RegenZoneManager::getInstance()->putTryingPosition();
     RegenZoneManager::getInstance()->broadcastStatus();
 
-    // 드래곤 아이 아이템을 초기 위치에 둔다.
+    // Put the dragon eye items at their initial positions.
     de::gameContext().dragonEyes().addAllDragonEyesToZone();
 
-    // hasActiveRaceWar()가 설정되는 타이밍 때문에..
-    // WarSystem::addWar()에서 실행한다.
-    // 종족 전쟁에 참가하지 않는 사람들을 내보낸다.
+    // Because of the timing at which hasActiveRaceWar() is set..
+    // it runs in WarSystem::addWar().
+    // Send out everyone not taking part in the race war.
     // g_pHolyLandManager->remainRaceWarPlayers();
 
-    // RaceWarHistory Table 에 기록
+    // Record in the RaceWarHistory Table
     recordRaceWarStart();
 
     __END_CATCH
@@ -151,7 +151,7 @@ void RaceWar::recordRaceWarStart()
 // executeEnd
 //
 //--------------------------------------------------------------------------------
-// 전쟁이 끝나는 시점에서 처리해야 될 것들
+// What has to be handled when a war ends
 //--------------------------------------------------------------------------------
 void RaceWar::executeEnd()
 
@@ -159,19 +159,19 @@ void RaceWar::executeEnd()
     __BEGIN_TRY
 
     //----------------------------------------------------------------------------
-    // 전쟁 끝났다는 걸 알린다.
+    // Report that the war has ended.
     //----------------------------------------------------------------------------
     sendWarEndMessage();
 
     //----------------------------------------------------------------------------
-    // 종족전인 경우 처리
+    // Handling for a race war
     //----------------------------------------------------------------------------
-    // 전쟁 신청금 쌓인거는 어떻게 할까? 무시 _-_;
-    // 종족전에서는 꺼진 보너스를 다시 켠다.
+    // What about the piled-up war application fee? Ignored
+    // In a race war the bonus that was turned off is turned back on.
     //	g_pHolyLandRaceBonus->refresh();
 
     //----------------------------------------------------------------------------
-    // 피의 성서 조각을 되돌려준다.
+    // Give the blood bible fragments back.
     //----------------------------------------------------------------------------
     g_pShrineInfoManager->returnAllBloodBible();
 
@@ -183,30 +183,30 @@ void RaceWar::executeEnd()
 
     // g_pCastleInfoManager->loadAllNPCs();
 
-    // 아담의 성지 전역에 피의 성서 위치를 보내준다.
+    // Broadcast the blood bible positions across Adam's holy land.
     // g_pHolyLandManager->sendBloodBibleStatus();
     g_pShrineInfoManager->broadcastBloodBibleStatus();
 
-    // 아담의 성지 전역에 고정했던 시간을 다시 돌린다.
+    // Let the time that was fixed across Adam's holy land run again.
     g_pHolyLandManager->resumeTimeband();
 
-    // 전쟁 참가자 리스트를 모두 제거한다.
+    // Remove every entry from the war participant list.
     RaceWarLimiter::clearPCList();
 
-    // 참가자 숫자를 0으로 바꾼다.
+    // Set the participant count back to 0.
     RaceWarLimiter::getInstance()->clearCurrent();
     RegenZoneManager::getInstance()->deleteTryingPosition();
     RegenZoneManager::getInstance()->reload();
 
-    // 캐릭터들의 Flag도 모두 제거한다.
+    // Remove the Flag from every character too.
     g_pZoneGroupManager->removeFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET);
 
     de::gm::opworld(NULL, "*world *load blood_bible_owner", 0, true);
 
-    // 드래곤 아이 아이템을 없앤다.
+    // Remove the dragon eye items.
     de::gameContext().dragonEyes().removeAllDragonEyes();
 
-    // RaceWarHistory Table 에 기록
+    // Record in the RaceWarHistory Table
     recordRaceWarEnd();
 
     __END_CATCH
@@ -238,7 +238,7 @@ void RaceWar::recordRaceWarEnd()
     defaultWarInfoRepository().updateRaceWarBloodBibles(slayerNew, vampireNew, oustersNew,
                                                         getWarStartTime().toStringforWeb());
 
-    // script 돌리기 ㅡ.,ㅡ system 함수를 쓰게 될 줄이야 !_!
+    // running a script -- who would have thought the system function would be used
     char cmd[100];
     sprintf(cmd, "/home/darkeden/vs/bin/script/recordRaceWarHistory.py %s %d %d ",
             getWarStartTime().toStringforWeb().c_str(), g_pConfig->getPropertyInt("Dimension"),
@@ -261,7 +261,7 @@ string RaceWar::getWarName() const
 }
 
 //--------------------------------------------------------------------------------
-// 전쟁 끝날 때
+// When the war ends
 //--------------------------------------------------------------------------------
 void RaceWar::sendWarEndMessage() const
 
@@ -270,7 +270,7 @@ void RaceWar::sendWarEndMessage() const
 
     War::sendWarEndMessage();
 
-    // 안전지대 해제 확인? 패킷
+    // The packet that confirms the safe zone release?
     GCNoticeEvent gcNoticeEvent;
     gcNoticeEvent.setCode(NOTICE_EVENT_RACE_WAR_OVER);
     g_pZoneGroupManager->broadcast(&gcNoticeEvent);

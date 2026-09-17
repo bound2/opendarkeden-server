@@ -4,7 +4,7 @@
 namespace {
 
 // MySQL implementation of RankBonusRepository. Quirks:
-//  - OwnerID is the character *name* (varchar(10)), not a numeric id —
+//  - OwnerID is the character *name* (varchar(10)), not a numeric id --
 //    denormalized; a character rename orphans these rows.
 //  - The table has NO primary or unique key, only KEY (OwnerID, Type):
 //    the plain INSERT can never hit a duplicate error, and re-learning a

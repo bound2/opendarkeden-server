@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////
-// 전쟁에 대한 전반적인 정보 및 전쟁 시작 및 종료시 처리루틴 구현
+// General war information and the routines run when a war starts and ends
 ///////////////////////////////////////////////////////////////////
 
 #include "GuildWar.h"
@@ -48,10 +48,10 @@ GuildWar::~GuildWar() {}
 // executeStart
 //
 //--------------------------------------------------------------------------------
-// 전쟁이 시작하는 시점에서 처리해야 될 것들
+// What has to be handled when a war starts
 //
-// (!) Zone에 붙어있는 WarScheduler에서 실행되는 부분이므로
-//     자신의 Zone(성)에 대한 처리는 lock이 필요없다.
+// (!) This runs in the WarScheduler attached to the Zone, so
+//     handling its own Zone (the castle) needs no lock.
 //--------------------------------------------------------------------------------
 void GuildWar::executeStart()
 
@@ -60,26 +60,26 @@ void GuildWar::executeStart()
 
     sendWarStartMessage();
 
-    // 성 안의 안전지대를 끈다.
+    // Turn off the safe zone inside the castle.
     ZoneID_t guardShrineZoneID = de::gameContext().castleShrines().getGuardShrineZoneID(m_CastleZoneID);
     Zone* pZone = getZoneByZoneID(guardShrineZoneID);
     Assert(pZone != NULL);
 
     /*
-    // NPC를 모두 지운다.
+    // Delete every NPC.
     pZone->deleteNPCs( RACE_SLAYER );
     pZone->deleteNPCs( RACE_VAMPIRE );
 
     pZone->releaseSafeZone();
     */
 
-    // 이 부분은 나중에~~ CastleInfo로 넣는게 낫겠다.
+    // This part would be better moved into CastleInfo later.
     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
     Assert(pCastleInfo != NULL);
 
     GuildID_t OwnerGuildID = pCastleInfo->getGuildID();
 
-    // 공용성이 아닌 경우만 몬스터를 없애준다.
+    // Monsters are removed only when the castle is not a common one.
     if (OwnerGuildID != SlayerCommon && OwnerGuildID != VampireCommon) {
         const list<ZoneID_t>& zoneIDs = pCastleInfo->getZoneIDList();
 
@@ -88,7 +88,7 @@ void GuildWar::executeStart()
             ZoneID_t targetZoneID = *itr;
             Zone* pTargetZone = getZoneByZoneID(targetZoneID);
 
-            // 성이 아니고.. 던전 맵인 경우..
+            // Not the castle but a dungeon map..
             if (targetZoneID != m_CastleZoneID) {
                 pTargetZone->killAllMonsters();
             }
@@ -97,7 +97,7 @@ void GuildWar::executeStart()
 
     de::gameContext().castleShrines().removeShrineShield(pZone);
 
-    // GuildWarHistory Table 에 기록
+    // Record in the GuildWarHistory Table
     recordGuildWarStart();
 
     __END_CATCH
@@ -110,7 +110,7 @@ void GuildWar::recordGuildWarStart()
 
     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
 
-    // NULL 일리도 없지만 혹시나 하는 맘에 -_-;
+    // It cannot be NULL, but just in case
     if (pCastleInfo == NULL)
         return;
 
@@ -128,7 +128,7 @@ void GuildWar::recordGuildWarStart()
 // executeEnd
 //
 //--------------------------------------------------------------------------------
-// 전쟁이 끝나는 시점에서 처리해야 될 것들
+// What has to be handled when a war ends
 //--------------------------------------------------------------------------------
 void GuildWar::executeEnd()
 
@@ -136,12 +136,12 @@ void GuildWar::executeEnd()
     __BEGIN_TRY
 
     //----------------------------------------------------------------------------
-    // 전쟁 끝났다는 걸 알린다.
+    // Report that the war has ended.
     //----------------------------------------------------------------------------
     sendWarEndMessage();
 
     //----------------------------------------------------------------------------
-    // 성 주인 변경
+    // Change the castle owner
     //----------------------------------------------------------------------------
     if (m_bModifyCastleOwner) {
         g_pCastleInfoManager->modifyCastleOwner(m_CastleZoneID, m_WinnerRace, m_WinnerGuildID);
@@ -152,21 +152,21 @@ void GuildWar::executeEnd()
             de::gm::opworld(NULL, sCommand, 0, true);
         }
     } else {
-        // WinnerGuildID 를 지금 주인으로 셋팅해준다
+        // Set WinnerGuildID to the current owner
         CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
         m_WinnerGuildID = pCastleInfo->getGuildID();
     }
 
     //----------------------------------------------------------------------------
-    // 성 상징을 되돌려준다.
+    // Give the castle symbol back.
     //----------------------------------------------------------------------------
     de::gameContext().castleShrines().returnAllCastleSymbol(m_CastleZoneID);
 
     //----------------------------------------------------------------------------
-    // 성 안 안전지대 복구
+    // Restore the safe zone inside the castle
     //----------------------------------------------------------------------------
-    // 이 함수는 ClientManager와 같은 스레드에서 돌아가는 WarSystem에서 불러주므로
-    // 성이 포함된 Zone의 락을 걸어줘야 된다.
+    // This function is called by the WarSystem, which runs on the same thread as ClientManager, so
+    // the Zone that holds the castle has to be locked.
     ZoneID_t guardShrineZoneID = de::gameContext().castleShrines().getGuardShrineZoneID(m_CastleZoneID);
     Zone* pZone = getZoneByZoneID(guardShrineZoneID);
     Assert(pZone != NULL);
@@ -189,14 +189,14 @@ void GuildWar::executeEnd()
     de::gameContext().castleShrines().addShrineShield(pZone);
 
     //----------------------------------------------------------------------------
-    // 전쟁 신청금을 성에 쌓는다.
-    // (우선 전쟁 결과에 따라서 성의 주인이 바뀌었다고 가정한다.)
+    // The war application fee is piled onto the castle.
+    // (it is assumed the castle owner changed with the war result.)
     //----------------------------------------------------------------------------
     g_pCastleInfoManager->increaseTaxBalance(m_CastleZoneID, m_RegistrationFee);
     m_RegistrationFee = 0;
-    // tinysave("전쟁신청금=0") <-- 할 필요 있을까?
+    // tinysave("war application fee=0") <-- is that needed?
 
-    // GuildWarHistory Table 에 기록
+    // Record in the GuildWarHistory Table
     recordGuildWarEnd();
 
     __END_CATCH
@@ -210,7 +210,7 @@ void GuildWar::recordGuildWarEnd()
     defaultWarInfoRepository().updateGuildWarWinner((int)m_WinnerGuildID,
                                                     g_pGuildManager->getGuildName(m_WinnerGuildID), (int)getWarID());
 
-    // script 돌리기 ㅡ.,ㅡ system 함수를 쓰게 될 줄이야 !_!
+    // running a script -- who would have thought the system function would be used
     char cmd[100];
     sprintf(cmd, "/home/darkeden/vs/bin/script/recordGuildWarHistory.py %d %d %d ", (int)getWarID(),
             g_pConfig->getPropertyInt("Dimension"), g_pConfig->getPropertyInt("WorldID"));
@@ -258,7 +258,7 @@ string GuildWar::getWarName() const
 //	isModifyCastleOwner( PlayerCreature* pPC )
 //
 //--------------------------------------------------------------------------------
-// 성의 주인이 바뀌는 경우
+// The case where the castle owner changes
 //--------------------------------------------------------------------------------
 bool GuildWar::isModifyCastleOwner(PlayerCreature* pPC)
 
@@ -270,14 +270,14 @@ bool GuildWar::isModifyCastleOwner(PlayerCreature* pPC)
     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
     Assert(pCastleInfo != NULL);
 
-    // 공용성 : 공격길드 --> 공격길드성
-    // 공용성 : 일반 --> 원래 자리로
-    // 길드성 : 공격길드 --> 공격길드성
-    // 길드성 : 수비길드 --> 원래 자리로
-    // 길드성 : 일반 --> 공용성
+    // common castle : attacking guild --> the attacking guild's castle
+    // common castle : ordinary --> back to the original place
+    // guild castle : attacking guild --> the attacking guild's castle
+    // guild castle : defending guild --> back to the original place
+    // guild castle : ordinary --> common castle
 
-    // 길드전쟁인 경우 : 전쟁 신청한 길드이거나
-    // 					 길드성인 경우는 일반인
+    // in a guild war : the guild that applied for the war, or
+    // 					 an ordinary player when it is a guild castle
     if (pPC->getGuildID() == m_ChallangerGuildID ||
         (!pCastleInfo->isCommon() && pPC->getCommonGuildID() == pPC->getGuildID())) {
         return true;
@@ -294,7 +294,7 @@ bool GuildWar::isModifyCastleOwner(PlayerCreature* pPC)
 // getWinnerGuildID( PlayerCreature* pPC )
 //
 //--------------------------------------------------------------------------------
-// 전쟁에 승리한 길드의 GuildID를 넘겨준다.
+// Hands back the GuildID of the guild that won the war.
 //--------------------------------------------------------------------------------
 GuildID_t GuildWar::getWinnerGuildID(PlayerCreature* pPC)
 
@@ -303,9 +303,9 @@ GuildID_t GuildWar::getWinnerGuildID(PlayerCreature* pPC)
 
     Assert(pPC != NULL);
 
-    // 길드전쟁인 경우 : 전쟁신청 길드와 pPC의 길드가 같으면 pPC의 GuildID
-    // 					 아니면 원래 성주인의 길드ID와 같으면 원래 성주인 GuildID
-    //					 아니면 COMMON_GUILD_ID
+    // in a guild war : pPC's GuildID when the applying guild is pPC's guild
+    // 					 otherwise the original castle owner's GuildID when it matches that
+    //					 otherwise COMMON_GUILD_ID
     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
     Assert(pCastleInfo != NULL);
 
@@ -325,7 +325,7 @@ bool GuildWar::endWar(PlayerCreature* pPC)
 
     Assert(pPC != NULL);
 
-    // < 성 주인 변경 >
+    // < castle owner change >
     if (isModifyCastleOwner(pPC)) {
         m_WinnerRace = pPC->getRace();
         m_WinnerGuildID = getWinnerGuildID(pPC);
@@ -340,7 +340,7 @@ bool GuildWar::endWar(PlayerCreature* pPC)
 }
 
 //--------------------------------------------------------------------------------
-// 전쟁 끝날 때
+// When the war ends
 //--------------------------------------------------------------------------------
 void GuildWar::sendWarEndMessage() const
 
@@ -349,7 +349,7 @@ void GuildWar::sendWarEndMessage() const
 
     War::sendWarEndMessage();
 
-    // 안전지대 해제 확인? 패킷
+    // The packet that confirms the safe zone release?
     GCNoticeEvent gcNoticeEvent;
     gcNoticeEvent.setCode(NOTICE_EVENT_WAR_OVER);
     gcNoticeEvent.setParameter(m_CastleZoneID);
@@ -386,7 +386,7 @@ void GuildWar::makeWarInfo(WarInfo* pWarInfo) const
     Assert(pGuildWarInfo != NULL);
 
     //---------------------------------------------------
-    // 현재 성 주인 구하기
+    // Get the current castle owner
     //---------------------------------------------------
     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(getCastleZoneID());
     if (pCastleInfo == NULL) {
@@ -397,11 +397,11 @@ void GuildWar::makeWarInfo(WarInfo* pWarInfo) const
     GuildID_t ownGuildID = pCastleInfo->getGuildID();
     GuildID_t challangerGuildID = getChallangerGuildID();
 
-    pGuildWarInfo->addJoinGuild(ownGuildID);        // 현재 성 주인
-    pGuildWarInfo->addJoinGuild(challangerGuildID); // 성에 공격하는 길드
+    pGuildWarInfo->addJoinGuild(ownGuildID);        // the current castle owner
+    pGuildWarInfo->addJoinGuild(challangerGuildID); // the guild attacking the castle
     pGuildWarInfo->setCastleID(getCastleZoneID());
 
-    // 공격 길드 이름
+    // The attacking guild's name
     static const string commonSlayerGuild("없음");
     static const string commonVampireGuild("없음");
 

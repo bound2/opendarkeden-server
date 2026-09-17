@@ -32,7 +32,7 @@ void MiniGameQuestStatus::executeWhenFail() {
     PlayerCreature* pPC = getOwnerPC();
     Assert(pPC != NULL);
 
-    // 실패하면 죽는다.
+    // Failing it kills you.
     if (pPC->isSlayer()) {
         dynamic_cast<Slayer*>(pPC)->setHP(0);
     } else if (pPC->isVampire()) {

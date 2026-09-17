@@ -210,7 +210,7 @@ void oprefreshguildunion(GamePlayer* pGamePlayer, string msg, int i, bool bSameW
         ggCommand.setCommand( command );
 
 
-        // �� server�� ������.
+        // Send it to each server.
         HashMapGameServerInfo** pGameServerInfos = g_pGameServerInfoManager->getGameServerInfos();
 
 
@@ -236,7 +236,7 @@ void oprefreshguildunion(GamePlayer* pGamePlayer, string msg, int i, bool bSameW
 
                         if (pGameServerInfo->getWorldID()==myWorldID)
                         {
-                            // ���� ������ �ƴ� ��쿡��..(������ ó�������Ƿ�)
+                            // Only when it is not the current server.. (handled above)
                             if (pGameServerInfo->getGroupID()==myServerID)
                             {
                             }
@@ -247,7 +247,7 @@ void oprefreshguildunion(GamePlayer* pGamePlayer, string msg, int i, bool bSameW
                                                                     &ggCommand );
                             }
                         }
-                        // �ٸ� World�� ���. ���� world���� �Ѹ��°� �ƴ϶��..
+                        // For another World. Unless it is broadcast to this world only..
                         else if (!bSameWorldOnly)
                         {
                             g_pLoginServerManager->sendPacket( pGameServerInfo->getIP(),

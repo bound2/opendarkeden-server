@@ -6,14 +6,14 @@
 
 // Read-only access to the level/exp BALANCE tables: the per-level exp
 // ladders the gameserver loads once at boot and indexes
-// by level — STR/DEX/INT (STRBalanceInfo, DEXBalanceInfo,
+// by level -- STR/DEX/INT (STRBalanceInfo, DEXBalanceInfo,
 // INTBalanceInfo), the vampire and ousters level ladders
 // (VampEXPBalanceInfo, OustersEXPBalanceInfo), the rank ladders
 // (RankEXPInfo, one per RankType), the skill-domain ladders
 // (SkillDomainInfo, one per DomainType), the fame limits (FameLimitInfo,
 // one per DomainType), and the pet ladders (PetExpInfo,
 // PetAttrBalanceInfo, PetAttrInfo). Every field is typed to the driver
-// getter used for it (getInt → int); callers narrow (Level_t, Exp_t,
+// getter used for it (getInt -> int); callers narrow (Level_t, Exp_t,
 // SkillBonus_t, PetLevel_t, ...) from there.
 //
 // The level-indexed loaders (the five ladders, the rank, domain and
@@ -109,7 +109,7 @@ public:
     virtual std::vector<PetAttrBalanceRow> loadPetAttrBalance() = 0;
     virtual std::vector<PetAttrRatioRow> loadPetAttrRatios() = 0;
 
-    // SomethingGrowingUp.h's ExpTable::load — "SELECT %s, %s, %s FROM %s %s"
+    // SomethingGrowingUp.h's ExpTable::load -- "SELECT %s, %s, %s FROM %s %s"
     // with the level, goal and accumulated-exp column names, the table and
     // a trailing condition. The identifiers are the ExpTable subclasses'
     // constants, never user text.

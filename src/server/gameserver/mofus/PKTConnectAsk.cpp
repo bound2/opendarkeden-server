@@ -1,19 +1,19 @@
 /////////////////////////////////////////////////////////////////////////////
 // Filename : PKTConnectAsk.cpp
-// Desc		: 온라인 게임 서버가 파워짱 서버에 자사의 게임 코드와 함께
-// 			  접속을 요청한다.
+// Desc		: the online game server asks the PowerJjang server to connect,
+// 			  sending its own game code with the request.
 /////////////////////////////////////////////////////////////////////////////
 
 // include files
 #include "PKTConnectAsk.h"
 
-// 생성자
+// constructor
 PKTConnectAsk::PKTConnectAsk() {
     nSize = szPKTConnectAsk - szMPacketSize;
     nOnGameCode = 10;
 }
 
-// 입력 스트림으로부터 데이터를 읽어서 패킷을 초기화 한다.
+// Reads data from the input stream and initialises the packet.
 void PKTConnectAsk::read(SocketInputStream& iStream) {
     iStream.read((char*)this, szPKTConnectAsk);
 
@@ -23,7 +23,7 @@ void PKTConnectAsk::read(SocketInputStream& iStream) {
     //	nOnGameCode	= ntohl( nOnGameCode );
 }
 
-// 출력 스트림으로 패킷의 바이너리 이미지를 보낸다.
+// Sends the packet's binary image to the output stream.
 void PKTConnectAsk::write(SocketOutputStream& oStream) {
     nCode = getID();
 

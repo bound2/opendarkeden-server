@@ -58,7 +58,7 @@ void FlagWar::executeReady() {
 
     m_Context.zoneGroups().broadcast(&gcNE);
 
-    // 5분있다가 시작하자
+    // Start in 5 minutes
     m_FlagManager.addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(300)));
 
     __END_CATCH
@@ -119,8 +119,8 @@ void FlagWar::executeStart() {
     addFlags();
     //	addFlagsRandom( 1122, 20 );
 
-    // 랜덤하게 존을 선택해서 100개의 깃발을 생성한다.
-    // 2시간 하자
+    // Pick a zone at random and create 100 flags.
+    // Let it run for 2 hours
     m_FlagManager.addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(getWarTime())));
     m_FlagManager.startFlagWar();
 
@@ -138,7 +138,7 @@ void FlagWar::executeFinish() {
 
     m_Context.zoneGroups().broadcast(&gcNE);
 
-    // 3분있다가 아템 터친다.
+    // The items burst in 3 minutes.
     m_FlagManager.addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(180)));
     m_FlagManager.endFlagWar();
 
@@ -148,7 +148,7 @@ void FlagWar::executeFinish() {
 void FlagWar::executeEnd() {
     __BEGIN_TRY
 
-    // 생성했던 깃발들을 쫓아가서 다 지워뿐다.
+    // Chase down every flag that was created and erase it.
     vector<ItemID_t>::iterator itr = m_Flags.begin();
     vector<ItemID_t>::iterator endItr = m_Flags.end();
 
@@ -158,8 +158,8 @@ void FlagWar::executeEnd() {
         if (pItemPosition == NULL)
             continue;
 
-        // popItem은 아템을 해당 위치에서 뽑아내므로 지워버려도 된다.
-        // 이건 FlagManager 가 도는 스레드에서 불러지므로 안에서 락걸어줘야 된다.
+        // popItem takes the item out of its position, so it may be deleted.
+        // This is called from the thread FlagManager runs on, so the lock has to be taken inside.
         Item* pItem = pItemPosition->popItem(true);
         if (pItem != NULL) {
             pItem->destroy();
@@ -172,7 +172,7 @@ void FlagWar::executeEnd() {
     m_FlagManager.resetFlagCounts();
     m_Flags.clear();
 
-    // 다음을 기약하자
+    // Until next time
     m_FlagManager.addSchedule(new Schedule(this, getNextFlagWarTime()));
 
     /*	ZoneCoord_t	ZoneX, ZoneY;
@@ -240,7 +240,7 @@ VSDateTime FlagWar::getNextFlagWarTime() {
         }
     }
 
-    // cout << nextWarDateTime.toString() << "에 깃발 전쟁 시작함당~" << endl;
+    // cout << nextWarDateTime.toString() << " the flag war starts" << endl;
     filelog("FlagWar.log", "%s에 깃발 뺏기 이벤트 시작", nextWarDateTime.toString().c_str());
 
     return nextWarDateTime;

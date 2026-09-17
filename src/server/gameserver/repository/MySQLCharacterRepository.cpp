@@ -6,12 +6,12 @@ namespace {
 // MySQL implementation of the character-row repository.
 //  - Vampire saveExps writes SilverDamage ONLY when it is non-zero: the
 //    ",SilverDamage = %d" fragment is composed into a %s slot, so a zero
-//    value leaves the column untouched — this save cannot reset a
+//    value leaves the column untouched -- this save cannot reset a
 //    vampire's silver damage. Ousters writes it unconditionally. Slayer
 //    has no SilverDamage at all.
 //  - tinysave's SET fragment is caller-composed raw SQL (sprintf'd
 //    "Column=value" strings), applied verbatim. Slayer's WHERE spells the
-//    column NAME, the others Name — cosmetic, MySQL column identifiers
+//    column NAME, the others Name -- cosmetic, MySQL column identifiers
 //    are case-insensitive.
 //  - The `Rank` backticks are LOAD-BEARING on MySQL 8: RANK became a
 //    reserved word in 8.0.2, and this project supports 5.7 or 8. The
@@ -21,7 +21,7 @@ namespace {
 //    nothing here checks it.
 //  - Character names are interpolated raw (no escaping).
 //  - The load SELECTs are POSITIONAL: the loaders read column N of the
-//    result, so the column list's order is the contract — including
+//    result, so the column list's order is the contract -- including
 //    `Rank` (see above), the un-spaced "Sex,MasterEffectColor" token and
 //    the INTE spelling (INT is a MySQL type keyword).
 //  - The loaders apply the record after the load returns, so the race

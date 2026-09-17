@@ -11,16 +11,16 @@
 // (NPC), the NPC dialogue scripts (Script), the NPC trigger scripts
 // (Triggers; the sister table ZoneTriggers is ZoneInfoRepository's), the
 // monster-AI directive sets (DirectiveSet) and the tunable variables
-// (AttrInfo — also written back by VariableManager::setVariable on every
+// (AttrInfo -- also written back by VariableManager::setVariable on every
 // call: the GM `opset` path and the defaults set at init()/load()). Rows
-// are typed to the driver getter used for each column (getInt → int,
-// getBYTE → BYTE, getString → std::string).
+// are typed to the driver getter used for each column (getInt -> int,
+// getBYTE -> BYTE, getString -> std::string).
 //
 // The MAX probes are exposed as bools: MAX() over an empty table is one
 // NULL row, and the probe answers false rather than handing back a NULL
 // field.
 
-// MonsterInfoManager::load — the 35 columns of its SELECT, in order.
+// MonsterInfoManager::load -- the 35 columns of its SELECT, in order.
 struct MonsterInfoRow {
     int monsterType;
     int spriteType;
@@ -59,7 +59,7 @@ struct MonsterInfoRow {
     int skullType;
 };
 
-// MonsterInfoManager::reload — its own 32-column SELECT: MonsterSummonInfo
+// MonsterInfoManager::reload -- its own 32-column SELECT: MonsterSummonInfo
 // inline, no Chief / HasTreasure / MonsterClass / SkullType.
 struct MonsterReloadRow {
     int monsterType;
@@ -101,7 +101,7 @@ struct MonsterSummonRow {
     std::string summonInfo;
 };
 
-// SkillInfoManager::load — the 26 columns of its SELECT. Domain and
+// SkillInfoManager::load -- the 26 columns of its SELECT. Domain and
 // MagicDomain came through getBYTE; the last six columns were read only
 // for Ousters-domain skills (the row carries them for every skill).
 struct SkillBalanceRow {

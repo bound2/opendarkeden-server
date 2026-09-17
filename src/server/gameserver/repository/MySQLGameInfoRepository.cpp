@@ -14,7 +14,7 @@ namespace {
 //    (it opens a new SkillParentInfo whenever the type changes); the
 //    name managers index names by arrival position. Both are the
 //    optimizer's choice, not a contract (see
-//    MySQLSkillSaveRepository.cpp) — a clustered scan of a keyless
+//    MySQLSkillSaveRepository.cpp) -- a clustered scan of a keyless
 //    InnoDB table returns insertion order today.
 //  - Names and option lists come back through getString ("" for NULL).
 const char* const MONSTER_NAME_QUERIES[MONSTER_NAME_LIST_MAX] = {
@@ -207,7 +207,7 @@ public:
     // GoodsListInfo's "Limited+0" (the enum ordinal) and "Kind<>'SET'"
     // filter, NicknameIndex's inline 'LEVEL' filter. GoodsListInfo is
     // read on the dist connection, as GoodsInfoManager did (the same
-    // DARKEDEN schema — see MySQLGoodsRepository.cpp).
+    // DARKEDEN schema -- see MySQLGoodsRepository.cpp).
 
     vector<WeatherRow> loadWeather() {
         vector<WeatherRow> rows;

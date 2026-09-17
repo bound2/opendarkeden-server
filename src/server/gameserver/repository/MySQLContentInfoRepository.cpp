@@ -11,7 +11,7 @@ namespace {
 //  - The MAX probes return false on the NULL an empty table yields (see
 //    MySQLBalanceInfoRepository.cpp).
 //  - Domain and MagicDomain come back through getBYTE, the other integers
-//    through getInt, text through getString ("" for NULL — MonsterInfo's
+//    through getInt, text through getString ("" for NULL -- MonsterInfo's
 //    text columns and Script's are nullable). getInt is atoi(getField())
 //    and crashes on a NULL: 21 of MonsterInfo's integer columns are
 //    nullable and the loaders read every row unconditionally. The shipped
@@ -333,7 +333,7 @@ public:
         END_DB(pStmt)
     }
 
-    // quest/TriggerManager::load(name) — the NPC's Triggers rows.
+    // quest/TriggerManager::load(name) -- the NPC's Triggers rows.
     vector<NPCTriggerRow> loadNPCTriggers(const string& npcName) {
         vector<NPCTriggerRow> rows;
         Statement* pStmt = NULL;

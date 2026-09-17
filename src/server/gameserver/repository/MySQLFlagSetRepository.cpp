@@ -9,7 +9,7 @@ namespace {
 //    the INSERT IGNORE form and is a silent no-op then.
 //  - FlagData is varchar(24) and nullable; load() returns the text
 //    through getString, which turns a NULL into "" (Result::getString's
-//    NULL guard) — the FlagSet decoder then treats every bit as off.
+//    NULL guard) -- the FlagSet decoder then treats every bit as off.
 //  - Names are interpolated raw.
 class MySQLFlagSetRepository : public FlagSetRepository {
 public:

@@ -10,15 +10,15 @@
 
 // The three learned-skill tables: SkillSave (slayer), VampireSkillSave
 // and OustersSkillSave. One row per
-// (OwnerID, SkillType); the tables are KEYLESS — a non-unique index only
-// — so nothing stops a second row for the same skill, and the loaders
+// (OwnerID, SkillType); the tables are KEYLESS -- a non-unique index only
+// -- so nothing stops a second row for the same skill, and the loaders
 // have to cope (the vampire/ousters loaders skip a type they already
 // hold; the slayer loader does not, but Slayer::addSkill drops the
-// duplicate slot itself — first row wins either way).
+// duplicate slot itself -- first row wins either way).
 //
 // Two record families per table:
 //  - the *Row structs are what load() returns: every field typed to the
-//    driver getter used for it (getInt → int); the race class narrows
+//    driver getter used for it (getInt -> int); the race class narrows
 //    when it hands the value to a slot setter;
 //  - the *Record structs are what the slot classes persist: every field
 //    typed to the slot MEMBER it came from.
@@ -28,7 +28,7 @@
 
 // --- what load() returns ---------------------------------------------------
 
-// SkillSave: nextTime is selected but no loader has ever consumed it —
+// SkillSave: nextTime is selected but no loader has ever consumed it --
 // the slot's run time is recomputed from "now + delay" on load. Surfaced
 // so the row is complete; ignore it like the loaders do.
 struct SlayerSkillRow {
@@ -40,7 +40,7 @@ struct SlayerSkillRow {
     int nextTime;
 };
 
-// VampireSkillSave: no level or exp — vampire skills do not level.
+// VampireSkillSave: no level or exp -- vampire skills do not level.
 struct VampireSkillRow {
     int skillType;
     int delay;
@@ -89,7 +89,7 @@ public:
     virtual ~SkillSaveRepository() {}
 
     // Every row the owner has, in the order the ORDER-BY-less SELECT
-    // returns them — see the MySQL implementation for what that order
+    // returns them -- see the MySQL implementation for what that order
     // actually is.
     virtual std::vector<SlayerSkillRow> loadSlayerSkills(const std::string& ownerName) = 0;
     virtual std::vector<VampireSkillRow> loadVampireSkills(const std::string& ownerName) = 0;
@@ -101,7 +101,7 @@ public:
     virtual void insertVampireSkill(const std::string& ownerName, const VampireSkillRecord& record) = 0;
     virtual void insertOustersSkill(const std::string& ownerName, const OustersSkillRecord& record) = 0;
 
-    // The slot's save(): the columns that change after learning — level,
+    // The slot's save(): the columns that change after learning -- level,
     // exp and delay for a slayer skill, delay alone for a vampire skill,
     // level and delay for an ousters skill. CastingTime and NextTime are
     // written once, at insert, and never updated.
@@ -111,7 +111,7 @@ public:
     virtual void updateOustersSkill(const std::string& ownerName, SkillType_t skillType, ExpLevel_t skillLevel,
                                     Turn_t delay) = 0;
 
-    // OustersSkillSlot::destroy — the only race whose slots can be
+    // OustersSkillSlot::destroy -- the only race whose slots can be
     // unlearned one at a time. Removes every row of that type (keyless
     // table: duplicates go together).
     virtual void deleteOustersSkill(const std::string& ownerName, SkillType_t skillType) = 0;

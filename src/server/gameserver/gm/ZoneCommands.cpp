@@ -92,10 +92,10 @@ void opwarp(GamePlayer* pGamePlayer, string msg, int i) {
 
     int ZoneID = 0;
 
-    // ZoneName�� ���� �̸��� ���� �ְ�, ���� ID�� ���� �ִ�.
-    // ZoneInfo�� NULL�� �ƴ϶�� ���� �� ���ڿ��� ���� �̸��̶�� ���̰�,
-    // Zoneinfo�� NULL�̶�� ���� �� ���ڿ��� ���� ID�̶�� ���̴�.
-    // (���� ������� �Է� �Ǽ��� �ְ�����, �̴� �����Ѵ�.)
+    // ZoneName can hold a zone name or a zone ID.
+    // A non-NULL ZoneInfo means the string was a zone name,
+    // and a NULL ZoneInfo means the string was a zone ID.
+    // (a typo is possible, but that is ignored.)
     ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfoByName(ZoneName);
     if (pZoneInfo != NULL) {
         ZoneID = pZoneInfo->getZoneID();
@@ -104,8 +104,8 @@ void opwarp(GamePlayer* pGamePlayer, string msg, int i) {
     }
 
     if (pCreature->isPC() && ZoneX < 256 && ZoneY < 256) {
-        // �����Ƽ� ������ �׷� ���� �ִ����� üũ�Ѵ�.
-        // ���ٸ� �����Ѵ�.
+        // Check that such a zone really exists.
+        // Return if there is none.
         try {
             Zone* pZone = getZoneByZoneID(ZoneID);
             // evade warning
@@ -114,7 +114,7 @@ void opwarp(GamePlayer* pGamePlayer, string msg, int i) {
             return;
         }
 
-        // �׷� ���� �ִٴ� ���� Ȯ�εǾ��ٸ� �̵���Ų��.
+        // Once the zone is confirmed to exist, move there.
         try {
             transportCreature(pCreature, ZoneID, ZoneX, ZoneY, false);
         } catch (Throwable& t) {
@@ -169,7 +169,7 @@ void oprecall(GamePlayer* pGamePlayer, string msg, int i) {
 
         // cout << "Name : (" <<  Name << ")" << endl;
 
-        // NoSuch����. by sigi. 2002.5.2
+        // NoSuch removed.
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
         pTCreature = g_pPCFinder->getCreature_LOCKED(Name);
@@ -180,7 +180,7 @@ void oprecall(GamePlayer* pGamePlayer, string msg, int i) {
 
         // if (pTCreature != NULL)
         {
-            // �������� PCFinder���� ã�ƿ� Creature�� const�̴�.
+            // Careful: the Creature found through the PCFinder is const.
             Zone* pTargetZone = pTCreature->getZone();
 
             Assert(pTargetZone != NULL);
@@ -188,7 +188,7 @@ void oprecall(GamePlayer* pGamePlayer, string msg, int i) {
             Creature* pTargetCreature = NULL;
             // try
             //{
-            //  NoSuch����. by sigi. 2002.5.2
+            //  NoSuch removed.
             pTargetCreature = pTargetZone->getCreature(pTCreature->getObjectID());
             //}
             // catch (NoSuchElementException)
@@ -196,12 +196,12 @@ void oprecall(GamePlayer* pGamePlayer, string msg, int i) {
             //}
 
             if (pTargetCreature != NULL) {
-                // ���� �׾��ִ� ���� ������ �� �� ����.
+                // A creature that is currently dead cannot be moved.
                 if (pTargetCreature->isEffect(Effect::EFFECT_CLASS_COMA)) {
                     return;
                 }
 
-                // ��ȯ���� ���� ��ǥ.
+                // The coordinates to summon to.
                 ZoneID_t ZoneNum = pCreature->getZoneID();
                 Coord_t ZoneX = pCreature->getX();
                 Coord_t ZoneY = pCreature->getY();
@@ -291,11 +291,11 @@ void opsummon(GamePlayer* pGamePlayer, string msg, int i) {
 
     //	cout << MonsterName << endl;
 
-    // SpriteType�� �ƴϰ� MonsterType�� ������ ���
+    // When a MonsterType is given instead of a SpriteType
     if (o != string::npos && p != string::npos) {
         MonsterType = atoi(msg.substr(o + 1, p - o - 1).c_str());
     } else if (strstr(MonsterName.c_str(), "ġ��") != NULL) {
-        // ġ������ ��ȯ�ϱ� ��.��; by DEW
+        // Summoning a chief monster
         MonsterType = g_pMonsterInfoManager->getChiefMonsterTypeByName(MonsterName);
     } else {
         SpriteType = g_pMonsterInfoManager->getSpriteTypeByName(MonsterName);
@@ -307,7 +307,7 @@ void opsummon(GamePlayer* pGamePlayer, string msg, int i) {
 
     MonsterNum = atoi(msg.substr(k + 1, msg.size() - k - 1).c_str());
 
-    // 1~30 ����
+    // clamp to 1~30
     MonsterNum = max(1, MonsterNum);
     MonsterNum = min(30, MonsterNum);
 
@@ -337,13 +337,13 @@ void opsummon(GamePlayer* pGamePlayer, string msg, int i) {
     Coord_t ZoneY = pCreature->getY();
 
     try {
-        // �Ϲ� ���̶�� ���͸� �����Ѵ�.
+        // Summon the monster when it is an ordinary zone.
         if (!(pZone->getZoneLevel() & SAFE_ZONE)) {
             filelog("summon.txt", "[%s] ZoneID=%d, %s", pCreature->getName().c_str(), pCreature->getZone()->getZoneID(),
                     msg.c_str());
 
-            // monsterInfo�� �ִ°��� ���°��� üũ�ϱ� ���ؼ�..
-            // ������ NoSuchElementException�� ���.
+            // To check whether the monsterInfo exists or not..
+            // It throws a NoSuchElementException when there is none.
             if (SpriteType != 0) {
                 g_pMonsterInfoManager->getMonsterTypeBySprite(SpriteType);
                 addMonstersToZone(pZone, ZoneX, ZoneY, SpriteType, MonsterType, MonsterNum, summonInfo);

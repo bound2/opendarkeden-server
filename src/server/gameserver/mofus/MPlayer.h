@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Filename : MPlayer.h
-// Desc		: 모퍼스 통신 객체
+// Desc		: mofus communication object
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __MPLAYER_H__
@@ -43,7 +43,7 @@ public:
     void process();
 
     ///////////////////////////////////////////////
-    // send 함수
+    // send functions
     ///////////////////////////////////////////////
     void sendConnectAsk();
     void sendLogout();
@@ -63,11 +63,11 @@ public:
     // set errorcode
     void setErrorCode(int errorCode);
 
-    // 작업 끝
+    // work finished
     void setEnd(bool bEnd = true);
 
 private:
-    // 처리할 작업
+    // the work to handle
     MJob* m_pJob;
 };
 

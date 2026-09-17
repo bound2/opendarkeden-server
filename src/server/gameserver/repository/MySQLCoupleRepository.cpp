@@ -11,7 +11,7 @@ namespace {
 //
 // There is no bounds check: a Sex outside {FEMALE, MALE} would read past
 // the array ([2]) or before it ([1 - 2] = [-1]). No PlayerCreature can
-// hold such a value — the DB-load path feeds a string to the three race
+// hold such a value -- the DB-load path feeds a string to the three race
 // classes, which accept only Sex2String[MALE]/[FEMALE] and throw
 // InvalidProtocolException otherwise, and the create packet derives the
 // sex from a single bit.

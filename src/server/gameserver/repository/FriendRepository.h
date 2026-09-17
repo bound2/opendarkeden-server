@@ -34,8 +34,8 @@
 
 // A HAZARD IN THIS INTERFACE, stated because nothing catches it. The
 // two insert methods take (friendName, ownerName); every other method
-// takes the owner first. That mirrors the statements — the INSERT names
-// (Friend_Name, Owner_Name) while every WHERE names Owner_Name first —
+// takes the owner first. That mirrors the statements -- the INSERT names
+// (Friend_Name, Owner_Name) while every WHERE names Owner_Name first --
 // but it means the insert pair and the delete pair are NOT parameter
 // compatible, and every parameter here is a const std::string&, so a
 // transposition compiles silently and writes or deletes the wrong

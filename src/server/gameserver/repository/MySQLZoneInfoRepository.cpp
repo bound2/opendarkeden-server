@@ -8,7 +8,7 @@ namespace {
 //    unordered variant (ZoneGroupManager::load wants deterministic
 //    bootstrap order; the load-balancer's makeDefaultLoadInfo and
 //    ThreadManager::init do not care). The unordered variants' row order
-//    is the optimizer's choice — both tables have a primary key on the
+//    is the optimizer's choice -- both tables have a primary key on the
 //    selected column, so a clustered scan returns key order today.
 //  - ZoneInfoManager's SELECT spells SMPFilename/SSIFilename where the
 //    schema has SmpFileName/SsiFileName; MySQL resolves column names

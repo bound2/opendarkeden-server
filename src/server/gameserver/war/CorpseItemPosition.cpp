@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////
-// CorpseItemPosition 클래스 구현
+// CorpseItemPosition class implementation
 ///////////////////////////////////////////////////////////////////
 
 #include "CorpseItemPosition.h"
@@ -127,7 +127,7 @@ Item* CorpseItemPosition::getItem_CORE(Zone* pZone, bool isDel)
                     gcAddEffectToTile.setObjectID(pMonsterCorpse->getObjectID());
                     gcAddEffectToTile.setEffectID(effectClass);
                     gcAddEffectToTile.setXY(pMonsterCorpse->getX(), pMonsterCorpse->getY());
-                    gcAddEffectToTile.setDuration(10); // 별 의미 없다 그냥 1초
+                    gcAddEffectToTile.setDuration(10); // no real meaning, just 1 second
 
                     pZone->broadcastPacket(pMonsterCorpse->getX(), pMonsterCorpse->getY(), &gcAddEffectToTile);
                 }

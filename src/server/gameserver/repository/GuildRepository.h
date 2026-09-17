@@ -12,8 +12,8 @@
 // plus the guild-scoped reads of the war tables (CastleInfo,
 // WarScheduleInfo, ReinforceRegisterInfo) GuildManager makes before a
 // guild may register a war or be dissolved. All on the DARKEDEN
-// connection. Reads are typed to the driver getter used (getInt → int,
-// getString → std::string).
+// connection. Reads are typed to the driver getter used (getInt -> int,
+// getString -> std::string).
 
 // Which spelling of the union handlers' two shared statements to send.
 // The deny handler backticks every identifier where the two quit
@@ -40,7 +40,7 @@ enum GuildMemberDeleteSpelling {
     GUILD_MEMBER_DELETE_SPELLING_MAX
 };
 
-// GuildMember::load — the four columns it reads back.
+// GuildMember::load -- the four columns it reads back.
 struct GuildMemberRow {
     int guildID;
     std::string name;
@@ -57,7 +57,7 @@ struct GuildMemberListRow {
     int logOn;
 };
 
-// Guild::load — eight columns, the Intro excluded.
+// Guild::load -- eight columns, the Intro excluded.
 struct GuildRow {
     std::string name;
     int type;
@@ -69,7 +69,7 @@ struct GuildRow {
     std::string date;
 };
 
-// GuildManager::load — ten columns, Intro included.
+// GuildManager::load -- ten columns, Intro included.
 struct GuildListRow {
     int id;
     std::string name;
@@ -103,7 +103,7 @@ struct UnionRow {
     int masterGuildID;
 };
 
-// GuildUnionOfferManager::makeOfferList — OfferType+0 (the enum ordinal),
+// GuildUnionOfferManager::makeOfferList -- OfferType+0 (the enum ordinal),
 // the offering guild, and DATE_FORMAT(OfferTime, '%y%m%d') read as an int.
 struct UnionOfferRow {
     int offerType;
@@ -140,7 +140,7 @@ public:
     // different set of columns in a different order, so each is its own
     // method. All three answer false when the name has no GuildMember row.
     // rank comes through getInt (atoi over the field text) and expireDate
-    // through getString, which maps a SQL NULL to "" — the callers test
+    // through getString, which maps a SQL NULL to "" -- the callers test
     // expireDate.size() == 7 and parse it positionally.
 
     // SELECT `Rank`, ExpireDate.
@@ -148,10 +148,10 @@ public:
     // SELECT GuildID, `Rank`, ExpireDate.
     virtual bool loadMemberGuildRankExpireDate(const std::string& name, int& guildID, int& rank,
                                                std::string& expireDate) = 0;
-    // SELECT GuildID, ExpireDate,`Rank` — three columns, of which only
+    // SELECT GuildID, ExpireDate,`Rank` -- three columns, of which only
     // ExpireDate is handed back.
     virtual bool loadMemberExpireDate(const std::string& name, std::string& expireDate) = 0;
-    // GuildMember::expire / leave — a GuildRank enumerator through "%d" and
+    // GuildMember::expire / leave -- a GuildRank enumerator through "%d" and
     // the caller's "%03d%02d%02d" date text.
     virtual void setMemberRankAndExpireDate(int rank, const std::string& expireDate, const std::string& name) = 0;
     virtual void saveMemberIntro(const std::string& intro, const std::string& name) = 0;
@@ -195,7 +195,7 @@ public:
     // The first (UnionID, OwnerGuildID) row of a guild; false when none.
     virtual bool loadUnionOfGuild(GuildID_t guildID, int& unionID, int& ownerGuildID) = 0;
     virtual bool loadUnionMaster(int unionID, int& masterGuildID) = 0;
-    // "WHERE UnionID='%u'" — the quoted numeric key.
+    // "WHERE UnionID='%u'" -- the quoted numeric key.
     virtual int countUnionMembers(uint unionID) = 0;
     // The union handlers' own copy of that count, spelled with a
     // lowercase count() rather than COUNT(). Deliberately NOT an overload

@@ -4,7 +4,7 @@
 #include <string>
 
 // The FlagSet table: one row per character holding its flag bits as a
-// '0'/'1' text (FlagData, varchar(24) — FLAG_SIZE_MAX bits). The FlagSet
+// '0'/'1' text (FlagData, varchar(24) -- FLAG_SIZE_MAX bits). The FlagSet
 // class owns the bit<->text encoding; this repository moves the text.
 //
 // The row is normally created by the loginserver at character creation
@@ -16,11 +16,11 @@ class FlagSetRepository {
 public:
     virtual ~FlagSetRepository() {}
 
-    // FlagSet::create — a fresh row with the given text.
+    // FlagSet::create -- a fresh row with the given text.
     virtual void insert(const std::string& ownerName, const std::string& flagData) = 0;
 
     // FlagSet::load's fallback when the owner has no row: an INSERT
-    // IGNORE of an EMPTY FlagData — the primary key makes it a no-op if
+    // IGNORE of an EMPTY FlagData -- the primary key makes it a no-op if
     // a row appeared meanwhile.
     virtual void insertEmptyIfMissing(const std::string& ownerName) = 0;
 

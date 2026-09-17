@@ -19,21 +19,21 @@
 //    read back.
 //  - REMAIN tables (RemainTime): the three force scrolls. RemainTime is
 //    the REMAINING duration in turns at the moment of the write, so a
-//    loaded scroll restarts with the time it had left — logged-out time
+//    loaded scroll restarts with the time it had left -- logged-out time
 //    does not count against it, unlike the deadline effects.
 //  - EnemyErase: a deadline table with an EnemyName column and one row
 //    per enemy (the DELETE keys on OwnerID AND EnemyName; the UPDATE
-//    does not, and rewrites every row of the owner — see the MySQL
+//    does not, and rewrites every row of the owner -- see the MySQL
 //    implementation).
-//  - PER-CREATURE tables: the deadline core plus their own columns —
+//  - PER-CREATURE tables: the deadline core plus their own columns --
 //    EffectBloodDrain (Level), EffectFlare and EffectLight (OldSight),
 //    EffectYellowPoisonToCreature (Level and OldSight). Their loaders
 //    read BOTH timestamps and recompute the remaining turns from the
 //    year-time difference as well as the day-time one, where the
-//    deadline loaders read DayTime alone — except EffectBloodDrain's,
+//    deadline loaders read DayTime alone -- except EffectBloodDrain's,
 //    which reads DayTime alone too.
 // Every table is keyless (an OwnerID index only) EXCEPT
-// EffectKillAftermath, which has OwnerID as its primary key — a second
+// EffectKillAftermath, which has OwnerID as its primary key -- a second
 // create() for the same owner accumulates a duplicate row on the twelve
 // keyless tables and raises ER_DUP_ENTRY on that one. EffectLight is
 // keyless in the strongest sense: its CREATE TABLE carries no index at
@@ -73,7 +73,7 @@ struct EnemyEraseRow {
 // The four per-creature effect tables: the deadline core plus their own
 // columns. All four are keyless, so a second create() for the same owner
 // leaves a duplicate row behind, and every load consumes whatever rows it
-// finds — the loaders build one effect object per row.
+// finds -- the loaders build one effect object per row.
 enum CreatureEffectTable {
     CREATURE_EFFECT_BLOOD_DRAIN,
     CREATURE_EFFECT_FLARE,

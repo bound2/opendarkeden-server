@@ -10,7 +10,7 @@ namespace {
 //    DELETE takes them all.
 //  - Zone::addPC loads, sends, then deletes: a failing DELETE escapes
 //    after the messages have already been sent.
-//  - Receiver and message text are interpolated raw — the message is a
+//  - Receiver and message text are interpolated raw -- the message is a
 //    string-pool entry, not player input.
 class MySQLMessageRepository : public MessageRepository {
 public:

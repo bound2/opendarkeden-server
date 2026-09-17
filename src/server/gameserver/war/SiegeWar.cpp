@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////
-// 전쟁에 대한 전반적인 정보 및 전쟁 시작 및 종료시 처리루틴 구현
+// General war information and the routines run when a war starts and ends
 ///////////////////////////////////////////////////////////////////
 
 #include "SiegeWar.h"
@@ -85,10 +85,10 @@ bool SiegeWar::addChallengerGuild(GuildID_t gID) {
 // executeStart
 //
 //--------------------------------------------------------------------------------
-// 전쟁이 시작하는 시점에서 처리해야 될 것들
+// What has to be handled when a war starts
 //
-// (!) Zone에 붙어있는 WarScheduler에서 실행되는 부분이므로
-//     자신의 Zone(성)에 대한 처리는 lock이 필요없다.
+// (!) This runs in the WarScheduler attached to the Zone, so
+//     handling its own Zone (the castle) needs no lock.
 //--------------------------------------------------------------------------------
 void SiegeWar::executeStart()
 
@@ -98,7 +98,7 @@ void SiegeWar::executeStart()
     sendWarStartMessage();
     clearReinforceRegisters();
 
-    // 이 부분은 나중에~~ CastleInfo로 넣는게 낫겠다.
+    // This part would be better moved into CastleInfo later.
     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
     Assert(pCastleInfo != NULL);
 
@@ -109,19 +109,19 @@ void SiegeWar::executeStart()
         if ( !pCastleInfo->isCommon() )
         {
             SiegeManager::Instance().recallGuild( m_CastleZoneID, siegeZoneID, OwnerGuildID, 1, 200 );
-            filelog("WarLog.txt", "%d 길드가 성 주인입니다.", OwnerGuildID);
+            filelog("WarLog.txt", "guild %d owns the castle.", OwnerGuildID);
         }
 
         if ( m_ReinforceGuildID != 0 )
         {
             SiegeManager::Instance().recallGuild( m_CastleZoneID, siegeZoneID, m_ReinforceGuildID, 2, 200 );
-            filelog("WarLog.txt", "%d 길드가 수성 지원측입니다.", m_ReinforceGuildID);
+            filelog("WarLog.txt", "guild %d reinforces the defence.", m_ReinforceGuildID);
         }
 
         for ( int i=0; i<m_ChallangerGuildCount; ++i )
         {
             if ( m_ChallangerGuildID[i] != 0 ) SiegeManager::Instance().recallGuild( m_CastleZoneID, siegeZoneID,
-       m_ChallangerGuildID[i], 3+i, 200 ); filelog("WarLog.txt", "%d 길드가 공격 %d번측입니다.", m_ChallangerGuildID[i],
+       m_ChallangerGuildID[i], 3+i, 200 ); filelog("WarLog.txt", "guild %d is attacker number %d.", m_ChallangerGuildID[i],
        i);
         }*/
 
@@ -134,7 +134,7 @@ void SiegeWar::executeStart()
 // executeEnd
 //
 //--------------------------------------------------------------------------------
-// 전쟁이 끝나는 시점에서 처리해야 될 것들
+// What has to be handled when a war ends
 //--------------------------------------------------------------------------------
 void SiegeWar::executeEnd()
 
@@ -142,7 +142,7 @@ void SiegeWar::executeEnd()
     __BEGIN_TRY
 
     //----------------------------------------------------------------------------
-    // 전쟁 끝났다는 걸 알린다.
+    // Report that the war has ended.
     //----------------------------------------------------------------------------
     sendWarEndMessage();
 
@@ -176,7 +176,7 @@ void SiegeWar::executeEnd()
                     GameServerInfo* pGameServerInfo = itr->second;
 
                     if (pGameServerInfo->getWorldID() == myWorldID) {
-                        // 현재 서버가 아닌 경우에만..(위에서 처리했으므로)
+                        // Only when it is not the current server.. (handled above)
                         if (pGameServerInfo->getGroupID() == myServerID) {
                         } else if (pGameServerInfo->getCastleFollowingServerID() == myServerID) {
                             g_pLoginServerManager->sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(),
@@ -189,18 +189,18 @@ void SiegeWar::executeEnd()
             }
         }
     } else {
-        // WinnerGuildID 를 지금 주인으로 셋팅해준다
+        // Set WinnerGuildID to the current owner
         CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
         m_WinnerGuildID = pCastleInfo->getGuildID();
     }
 
     //----------------------------------------------------------------------------
-    // 전쟁 신청금을 성에 쌓는다.
-    // (우선 전쟁 결과에 따라서 성의 주인이 바뀌었다고 가정한다.)
+    // The war application fee is piled onto the castle.
+    // (it is assumed the castle owner changed with the war result.)
     //----------------------------------------------------------------------------
     g_pCastleInfoManager->increaseTaxBalance(m_CastleZoneID, m_RegistrationFee);
     m_RegistrationFee = 0;
-    // tinysave("전쟁신청금=0") <-- 할 필요 있을까?
+    // tinysave("war application fee=0") <-- is that needed?
 
     ZoneID_t siegeZoneID = SiegeManager::Instance().getSiegeZoneID(m_CastleZoneID);
     Assert(siegeZoneID != 0);
@@ -226,7 +226,7 @@ string SiegeWar::getWarName() const
 //	isModifyCastleOwner( PlayerCreature* pPC )
 //
 //--------------------------------------------------------------------------------
-// 성의 주인이 바뀌는 경우
+// The case where the castle owner changes
 //--------------------------------------------------------------------------------
 bool SiegeWar::isModifyCastleOwner(PlayerCreature* pPC)
 
@@ -259,7 +259,7 @@ bool SiegeWar::isModifyCastleOwner(PlayerCreature* pPC)
 // getWinnerGuildID( PlayerCreature* pPC )
 //
 //--------------------------------------------------------------------------------
-// 전쟁에 승리한 길드의 GuildID를 넘겨준다.
+// Hands back the GuildID of the guild that won the war.
 //--------------------------------------------------------------------------------
 GuildID_t SiegeWar::getWinnerGuildID(PlayerCreature* pPC)
 
@@ -268,9 +268,9 @@ GuildID_t SiegeWar::getWinnerGuildID(PlayerCreature* pPC)
 
     Assert(pPC != NULL);
 
-    // 길드전쟁인 경우 : 전쟁신청 길드와 pPC의 길드가 같으면 pPC의 GuildID
-    // 					 아니면 원래 성주인의 길드ID와 같으면 원래 성주인 GuildID
-    //					 아니면 COMMON_GUILD_ID
+    // in a guild war : pPC's GuildID when the applying guild is pPC's guild
+    // 					 otherwise the original castle owner's GuildID when it matches that
+    //					 otherwise COMMON_GUILD_ID
     //	CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo( m_CastleZoneID );
     //	Assert( pCastleInfo!=NULL );
 
@@ -286,7 +286,7 @@ bool SiegeWar::endWar(PlayerCreature* pPC)
 
     Assert(pPC != NULL);
 
-    // < 성 주인 변경 >
+    // < castle owner change >
     if (isModifyCastleOwner(pPC)) {
         m_WinnerRace = pPC->getRace();
         m_WinnerGuildID = getWinnerGuildID(pPC);
@@ -301,7 +301,7 @@ bool SiegeWar::endWar(PlayerCreature* pPC)
 }
 
 //--------------------------------------------------------------------------------
-// 전쟁 끝날 때
+// When the war ends
 //--------------------------------------------------------------------------------
 void SiegeWar::sendWarEndMessage() const
 
@@ -310,7 +310,7 @@ void SiegeWar::sendWarEndMessage() const
 
     War::sendWarEndMessage();
 
-    // 안전지대 해제 확인? 패킷
+    // The packet that confirms the safe zone release?
     GCNoticeEvent gcNoticeEvent;
     gcNoticeEvent.setCode(NOTICE_EVENT_WAR_OVER);
     gcNoticeEvent.setParameter(m_CastleZoneID);
@@ -351,7 +351,7 @@ void SiegeWar::makeWarInfo(WarInfo* pWarInfo) const
     Assert(pGuildWarInfo != NULL);
 
     //---------------------------------------------------
-    // 현재 성 주인 구하기
+    // Get the current castle owner
     //---------------------------------------------------
     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(getCastleZoneID());
     if (pCastleInfo == NULL) {
@@ -361,14 +361,14 @@ void SiegeWar::makeWarInfo(WarInfo* pWarInfo) const
 
     GuildID_t ownGuildID = pCastleInfo->getGuildID();
 
-    pGuildWarInfo->addJoinGuild(ownGuildID); // 현재 성 주인
+    pGuildWarInfo->addJoinGuild(ownGuildID); // the current castle owner
 
     for (uint i = 0; i < m_ChallangerGuildCount; ++i)
         pGuildWarInfo->addJoinGuild(m_ChallangerGuildID[i]);
 
     pGuildWarInfo->setCastleID(getCastleZoneID());
 
-    // 공격 길드 이름
+    // The attacking guild's name
     static const string commonGuild("없음");
 
     string attackGuildName;

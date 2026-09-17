@@ -48,7 +48,7 @@ public:
     // MAX(mid) over this server's ids: the rows whose id starts with the
     // three digits and is keySize characters long. False when the read
     // answered no row; on true maxID carries the id as the driver
-    // returned it — MAX() over no matching row is one NULL, which the
+    // returned it -- MAX() over no matching row is one NULL, which the
     // driver hands back as an empty string, so the caller accepts the
     // value only at exactly keySize characters.
     virtual bool loadMaxMessageID(int dimensionDigit, int worldDigit, int serverDigit, int keySize,

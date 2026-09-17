@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Filename : PKTConnectAccept.h
-// Desc		: 정상적으로 접속되었음을 패킷으로 알려준다.
+// Desc		: reports through a packet that the connection succeeded.
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __PKT_CONNECT_ACCEPT_H__
@@ -10,10 +10,10 @@
 #include "Assert.h"
 #include "MPacket.h"
 
-// 패킷 구조
+// packet layout
 struct _PKT_CONNECT_ACCEPT {
-    int nSize; // 패킷 전체의 크리
-    int nCode; // 패킷 코드
+    int nSize; // the size of the whole packet
+    int nCode; // packet code
 };
 
 const int szPKTConnectAccept = sizeof(_PKT_CONNECT_ACCEPT);
@@ -21,29 +21,29 @@ const int szPKTConnectAccept = sizeof(_PKT_CONNECT_ACCEPT);
 // class PKTConnectAccept
 class PKTConnectAccept : public _PKT_CONNECT_ACCEPT, public MPacket {
 public:
-    // 생성자
+    // constructor
     PKTConnectAccept();
 
 public:
-    // 패킷 아이디를 반환한다.
+    // Returns the packet id.
     MPacketID_t getID() const;
 
-    // 패킷의 크기를 반환한다.
+    // Returns the packet's size.
     MPacketSize_t getSize() const {
         return szPKTConnectAccept - szMPacketSize;
     }
 
-    // 새로운 패킷을 생성해서 반환한다.
+    // Creates a new packet and returns it.
     MPacket* create() {
         MPacket* pPacket = new PKTConnectAccept;
         Assert(pPacket != NULL);
         return pPacket;
     }
 
-    // 입력 스트림으로부터 데이터를 읽어서 패킷을 초기화 한다.
+    // Reads data from the input stream and initialises the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력 스트림으로 패킷의 바이너리 이미지를 보낸다.
+    // Sends the packet's binary image to the output stream.
     void write(SocketOutputStream& oStream);
 
     // debug message

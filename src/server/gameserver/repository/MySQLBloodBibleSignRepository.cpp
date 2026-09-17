@@ -4,7 +4,7 @@
 namespace {
 
 // MySQL implementation of BloodBibleSignRepository. Quirks:
-//  - OwnerID is the character *name* (varchar(10)) — denormalized; a
+//  - OwnerID is the character *name* (varchar(10)) -- denormalized; a
 //    character rename orphans these rows.
 //  - ItemType is a tinyint widened into ItemType_t (WORD) on read.
 //  - Duplicate ItemType rows are possible (the key is the auto-increment

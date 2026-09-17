@@ -5,14 +5,14 @@ namespace {
 
 // MySQL implementation of SMSAddressRepository. Quirks:
 //  - (eID, OwnerID) is the PRIMARY KEY: insert() raises ER_DUP_ENTRY
-//    (1062) for a repeated id — the class checks its in-memory map
+//    (1062) for a repeated id -- the class checks its in-memory map
 //    first, so the row conflict only shows when memory and table drift.
 //  - The table also has a Time column (datetime, defaulting to a fixed
 //    2004 date) that nothing on the server reads or writes.
 //  - The load has no ORDER BY; the class rebuilds a hash map from the
 //    rows and derives its next id from the maximum, so order is
 //    immaterial.
-//  - Every text — owner, names, number — is interpolated raw.
+//  - Every text -- owner, names, number -- is interpolated raw.
 class MySQLSMSAddressRepository : public SMSAddressRepository {
 public:
     vector<SMSAddressRow> load(const string& ownerName) {

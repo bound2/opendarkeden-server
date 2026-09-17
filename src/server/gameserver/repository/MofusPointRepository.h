@@ -12,17 +12,17 @@
 //
 // Both are keyed by CHARACTER NAME: every caller passes getName(), and
 // MJob's account id (m_UserID) never reaches these methods. The column
-// widths disagree — MofusPowerPoint.OwnerID is varchar(30), MofusLog.OwnerID
-// varchar(20) — so a name over 20 characters would be truncated in the
+// widths disagree -- MofusPowerPoint.OwnerID is varchar(30), MofusLog.OwnerID
+// varchar(20) -- so a name over 20 characters would be truncated in the
 // log but not the balance; names are varchar(10) elsewhere, so neither
 // is reachable. Nothing deletes MofusLog; the loginserver erases a
 // deleted character's balance.
 //
-// Every mofus call site deliberately SWALLOWS SQL errors ("SQL 에러는
-// 무시한다" — ignore SQL errors) and carries on with a zero balance: the
+// Every mofus call site deliberately SWALLOWS SQL errors (the legacy
+// comment there says to ignore them) and carries on with a zero balance: the
 // mofus link is an external service, and the game must not fall over
 // when its bookkeeping does. That swallow lives at the call sites, not
-// here — these methods raise like every other repository method
+// here -- these methods raise like every other repository method
 // (END_DB's DatabaseError), and Mofus.cpp catches.
 class MofusPointRepository {
 public:

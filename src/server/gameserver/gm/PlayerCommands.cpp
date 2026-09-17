@@ -48,7 +48,7 @@ void opkick(GamePlayer* pGamePlayer, string msg, int i) {
 
     Creature* pTargetCreature = NULL;
 
-    // NoSuch����. by sigi. 2002.5.2
+    // NoSuch removed.
     __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
     pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
@@ -88,7 +88,7 @@ void opmute(GamePlayer* pGamePlayer, string msg, int i) {
     }
 
     Creature* pTargetCreature = NULL;
-    // NoSuch����. by sigi. 2002.5.2
+    // NoSuch removed.
     __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
     pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
@@ -149,23 +149,23 @@ void opdenychat(GamePlayer* pGamePlayer, string msg, int i) {
     Creature* pTargetCreature = NULL;
 
     if (level == 1) {
-        // level1 = 1�ð�
+        // level1 = 1 hour
         time = 1 * 60;
     } else if (level == 2) {
-        // level2 = 6�ð�
+        // level2 = 6 hours
         time = 6 * 60;
     } else if (level == 3) {
-        // level3 = 12�ð�
+        // level3 = 12 hours
         time = 12 * 60;
     } else if (level == 4) {
-        // level4 = 24�ð�
+        // level4 = 24 hours
         time = 24 * 60;
     } else if (level == 5) {
-        // level5 = 168�ð�
+        // level5 = 168 hours
         time = 168 * 60;
     }
 
-    // NoSuch����. by sigi. 2002.5.2
+    // NoSuch removed.
     __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
     pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
@@ -216,7 +216,7 @@ void opfreezing(GamePlayer* pGamePlayer, string msg, int i) {
 
     Creature* pTargetCreature = NULL;
 
-    // NoSuch����. by sigi. 2002.5.2
+    // NoSuch removed.
     __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
     pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
@@ -266,7 +266,7 @@ void opinfo(GamePlayer* pGamePlayer, string msg, int i) {
     string Name = msg.substr(j + 1, msg.size() - j - 1).c_str();
 
     Creature* pTargetCreature = NULL;
-    // NoSuch����. by sigi. 2002.5.2
+    // NoSuch removed.
     __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
     pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
@@ -357,7 +357,7 @@ void opfind(GamePlayer* pGamePlayer, string msg, int i) {
 
     } else {
         //		StringStream msg;
-        //		msg <<  Name << " ���� ������ ���Դϴ�.";
+        //		msg <<  Name << " is not on this game server.";
 
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_PLAYER_NOT_IN_GAMESERVER), Name.c_str());
@@ -371,8 +371,8 @@ void opfind(GamePlayer* pGamePlayer, string msg, int i) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ���� �̸� �����.. ������~ ����..
-// GCSystemMessage�� 256�ڰ� �Ѱ�ϱ� �����ϱ�. by sigi. 2003.3.22
+// Prints the credits
+// GCSystemMessage tops out at 256 characters, so keep it short.
 //////////////////////////////////////////////////////////////////////////////
 void opcredit(GamePlayer* pGamePlayer, string msg, int i) {
     __BEGIN_TRY
@@ -382,22 +382,9 @@ void opcredit(GamePlayer* pGamePlayer, string msg, int i) {
 
     static unordered_map<string, string> Credits;
 
-    // �ϵ��ڵ����� �����ϱ�... ������  by sigi.
+    // Kept hard-coded for now...
     if (Credits.empty()) {
         Credits["��С��"] = "�ͻ���,������(2005~)";
-        // Credits["��â��"] = "�����ھ�(1999.9~2000.9), ��ȹ(2001.3~2002.3)";
-        // Credits["��ǿ�"] = "����, ��ȹ(1999.9~2002.3)";
-        // Credits["������"] = "Ŭ���̾�ƮUI, ��(1999.9~2001.1)";
-        // Credits["�����"] = "����, DB(1999.9~2000.?)";
-        // Credits["�輺��"] = "����, DB(2000.10~2002.3)";
-        // Credits["������"] = "Ŭ���̾�Ʈ����(1999.9~2002.3), ����(2002.4~2003.3).�� û���̿�~T_T; unuis@hanmail.net";
-        // Credits["������"] = "Ŭ���̾�ƮUI, ��(2001.2~2002.3), Ŭ���̾�Ʈ����(2002.3~2003.3)";
-        // Credits["��ȫâ"] = "����, DB(2002.1~2002.12)";
-        // Credits["������"] = "����(2002.4~)";
-        // Credits["�����"] = "Ŭ���̾�ƮUI, ��(2002.6~2003.1), Ŭ���̾�Ʈ����(2003.1~)";
-        // Credits["�����"] = "DB, �������(2002.6~)";
-        // Credits["��¸�"] = "����(2002.11~)";
-        // Credits["ȫ���"] = "����(2002.12~)";
     }
 
     size_t j = msg.find_first_of(' ', i + 1);
@@ -433,7 +420,7 @@ void opuser(GamePlayer* pGamePlayer, string msg, int i) {
         return;
     }
     //	StringStream msg;
-    //	msg << "���� ���� ������ : " << GroupCount << "��";
+    //	msg << "current number of players : " << GroupCount << " players";
 
     char msg[100];
     sprintf(msg, g_pStringPool->c_str(STRID_CURRENT_NUMBER_OF_PLAYER), GroupCount);
@@ -472,7 +459,7 @@ void optrace(GamePlayer* pGamePlayer, string msg, int i) {
 
     Creature* pTargetCreature = NULL;
 
-    // NoSuch����. by sigi. 2002.5.2
+    // NoSuch removed.
     __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
     if (isNPCTrace) {
@@ -573,7 +560,7 @@ void opfun(GamePlayer* pGamePlayer, string msg, int i) {
         if (!pCreature->isSlayer())
         {
             GCSystemMessage gcSystemMessage;
-            gcSystemMessage.setMessage("slayer �ƴϸ� �ȵȴ�~");
+            gcSystemMessage.setMessage("it has to be a slayer");
             pGamePlayer->sendPacket (&gcSystemMessage);
             return;
         }
@@ -647,7 +634,7 @@ void opgrant(GamePlayer* pGamePlayer, string msg, int i) {
     //{
     pTargetCreature = pZone->getCreature(Name);
 
-    // NoSuch����. by sigi. 2002.5.2
+    // NoSuch removed.
     if (pTargetCreature != NULL) {
         if (pTargetCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);

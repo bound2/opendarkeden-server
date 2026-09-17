@@ -40,7 +40,7 @@ struct FlagPoleRow {
 //
 // It receives none on a default deployment: ActiveFlagWar is 0 in both
 // shipped gameserver.conf files, and ClientManager only ticks
-// FlagManager when it is on. So the roll-up is dead twice over —
+// FlagManager when it is on. So the roll-up is dead twice over --
 // unreachable by configuration, and refused by the server if an
 // operator or a GM turns the flag war on.
 //

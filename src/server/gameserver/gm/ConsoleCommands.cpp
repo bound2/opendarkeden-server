@@ -150,7 +150,7 @@ void opBalanceZoneGroup(GamePlayer* pGamePlayer, const string& value1, GCSystemM
     if (value1 == "default")
         defaultZoneGroup = true;
 
-    // ���~
+    // balancing
     g_pClientManager->setBalanceZoneGroup(0, true, defaultZoneGroup);
 
     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_ZONE_GROUP_BALANCING));
@@ -168,7 +168,7 @@ void opRegenMasterLair(GamePlayer* pGamePlayer, const string& value1, GCSystemMe
     Assert(pZone != NULL);
 
     if (pZone->isMasterLair()) {
-        // ���~
+        // balancing
         MasterLairManager* pMasterLairManager = pZone->getMasterLairManager();
         Assert(pMasterLairManager != NULL);
 
@@ -356,9 +356,9 @@ void opClearInventory(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
                     Item* pItem = pInventory->getItem(i, j);
 
                     if (pItem != NULL) {
-                        // ���谡 �ƴϸ� �����.
+                        // Delete it unless it is a key or a relic.
                         if (pItem->getItemClass() != Item::ITEM_CLASS_KEY && !isRelicItem(pItem)) {
-                            // ����ũ �������� ��� ������ ���δ�.
+                            // Leave a log for a unique item.
                             if (pItem->isUnique()) {
                                 // UniqueItemManager::deleteItem( pItem->getItemClass(), pItem->getItemType() );
                                 filelog("uniqueItem.txt", "[ClearInventory] %s", pItem->toString().c_str());
@@ -368,7 +368,7 @@ void opClearInventory(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
                             pItem->whenPCLost(pPC);
                             pItem->destroy();
 
-                            // ItemTrace Log �� �����
+                            // Leave an ItemTrace Log
                             if (pItem != NULL && pItem->isTraceItem()) {
                                 remainTraceLog(pItem, pCreature->getName(), "GOD", ITEM_LOG_DELETE, DETAIL_OPCLEAR);
                             }
@@ -380,7 +380,7 @@ void opClearInventory(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
             } // end of for
         }
 
-        // inventory���� ��Ŷ�� ���.. -_-;
+        // Re-send the inventory packets.
         transportCreature(pCreature, pCreature->getZone()->getZoneID(), pCreature->getX(), pCreature->getY(), false);
     } catch (Throwable& t) {
         gcSystemMessage.setMessage(t.toString().c_str());
@@ -422,17 +422,17 @@ void opSetCastleOwner(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
     bSendPacket = false;
 
     if (pZone->isCastle()) {
-        // *command setCastleOwner SlayerCommon �� �Ѿ�� ��� Slayer ���뼺
+        // *command setCastleOwner SlayerCommon makes it a Slayer common castle
         if (value1 == "SlayerCommon") {
             g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_SLAYER, 99);
         }
-        // *command setCastleOwner VampireCommon �� �Ѿ�� ��� Vampire ���뼺
+        // *command setCastleOwner VampireCommon makes it a Vampire common castle
         else if (value1 == "VampireCommon") {
             g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_VAMPIRE, 0);
         } else if (value1 == "OustersCommon") {
             g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_OUSTERS, 66);
         }
-        // *command setCastleOwner ĳ�����̸� �� �Ѿ�� ��� �� ĳ������ ��强
+        // *command setCastleOwner <character name> makes it that character's guild castle
         else {
             GuildID_t guildID;
             Race_t race;
@@ -475,7 +475,7 @@ void opSetCastleOwnerGuild(GamePlayer* pGamePlayer, const string& value1, GCSyst
     } else if (pZone != NULL && pZone->isCastle() && guildID == 99) {
         g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_SLAYER, 99);
     }
-    // *command setCastleOwner VampireCommon �� �Ѿ�� ��� Vampire ���뼺
+    // *command setCastleOwner VampireCommon makes it a Vampire common castle
     else if (pZone != NULL && pZone->isCastle() && guildID == 0) {
         g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_VAMPIRE, 0);
     } else if (pZone != NULL && pZone->isCastle() && guildID == 66) {
@@ -485,7 +485,7 @@ void opSetCastleOwnerGuild(GamePlayer* pGamePlayer, const string& value1, GCSyst
 
 // *command showWarList
 void opShowWarList(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage, bool& bSendPacket) {
-    // ���� �������� ������ ����� �����ش�.
+    // Send the list of wars in progress.
 
     g_pWarSystem->broadcastWarList(pGamePlayer);
     bSendPacket = false;
@@ -534,13 +534,13 @@ void opRemoveWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
 
     if (g_pWarSystem->removeWar(zoneID)) {
         //			StringStream msg;
-        //			msg << "[" << (int)zoneID << "] �� ������ �����߽��ϴ�.";
+        //			msg << "[" << (int)zoneID << "] the guild war was removed.";
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_GUILD_WAR_REMOVED), (int)zoneID);
         gcSystemMessage.setMessage(msg);
     } else {
         //			StringStream msg;
-        //			msg << "[" << (int)zoneID << "] ���� �������� ������ �����ϴ�.";
+        //			msg << "[" << (int)zoneID << "] there is no guild war in progress.";
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_NO_GUILD_WAR_IN_ACTIVE), (int)zoneID);
         gcSystemMessage.setMessage(msg);
@@ -553,11 +553,11 @@ void opRemoveRaceWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMess
                      bool& bSendPacket) {
     if (g_pWarSystem->removeRaceWar()) {
         //			StringStream msg;
-        //			msg << "���� ������ �����߽��ϴ�.";
+        //			msg << "the race war was removed.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_RACE_WAR_REMOVED));
     } else {
         //			StringStream msg;
-        //			msg << "�������� ���� ������ �����ϴ�.";
+        //			msg << "there is no race war in progress.";
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_RACE_WAR_IN_ACTIVE));
     }
     bSendPacket = true;
@@ -719,17 +719,17 @@ void opHeal(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSy
         Zone* pZone = pCreature->getZone();
 
         if (pCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
-            // Ÿ���� ����Ʈ �Ŵ������� �ڸ� ����Ʈ�� �����Ѵ�.
+            // Delete the coma effect from the target's effect manager.
             pCreature->deleteEffect(Effect::EFFECT_CLASS_COMA);
             pCreature->removeFlag(Effect::EFFECT_CLASS_COMA);
 
-            // �ڸ� ����Ʈ�� ���ư��ٰ� �˷��ش�.
+            // Tell the others that the coma effect is gone.
             GCRemoveEffect gcRemoveEffect;
             gcRemoveEffect.setObjectID(pCreature->getObjectID());
             gcRemoveEffect.addEffectList((EffectID_t)Effect::EFFECT_CLASS_COMA);
             pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-            // ����Ʈ ������ �ٽ� �����ش�.
+            // Send the effect information again.
             pCreature->getEffectManager()->sendEffectInfo(pCreature, pZone, pCreature->getX(), pCreature->getY());
         }
 
@@ -770,7 +770,7 @@ void opHeal(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSy
         }
 
         if (hp != 0) {
-            // ������ ü���� ä�����ٴ� ����� �˸���.
+            // Report that the HP was filled.
             GCStatusCurrentHP gcStatusCurrentHP;
             gcStatusCurrentHP.setObjectID(pCreature->getObjectID());
             gcStatusCurrentHP.setCurrentHP(hp);
@@ -814,7 +814,7 @@ void opSetGold(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& g
 
         pGamePlayer->sendPacket(&gcMI);
 
-        // ���α� ���� �׼��� ���α� �����
+        // Leave a money log when the amount warrants one
         if (gold >= g_pVariableManager->getMoneyTraceLogLimit()) {
             if (gold > 2000000000)
                 gold = 2000000000;
@@ -953,15 +953,15 @@ void opFirecraker(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage
         if (!isAbleToUseTileSkill(pCreature) ||
             (pZone->getZoneLevel(pCreature->getX(), pCreature->getY()) & COMPLETE_SAFE_ZONE) ||
             atoi(value1.c_str()) < 0 || atoi(value1.c_str()) > 13) {
-            // �� -_-a
+            // firecracker
         } else {
             Effect::EffectClass effectClass = FirecrackerEffects[atoi(value1.c_str())];
-            // ����Ʈ�� ���� ��ε�ĳ���� �Ѵ�.
+            // Build the effect and broadcast it.
             GCAddEffectToTile gcAddEffectToTile;
             gcAddEffectToTile.setObjectID(pCreature->getObjectID());
             gcAddEffectToTile.setEffectID(effectClass);
             gcAddEffectToTile.setXY(pCreature->getX(), pCreature->getY());
-            gcAddEffectToTile.setDuration(10); // �� �ǹ� ���� �׳� 1��
+            gcAddEffectToTile.setDuration(10); // no real meaning, just 1 second
 
             pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcAddEffectToTile);
             bSendPacket = false;
@@ -1429,7 +1429,7 @@ void opGuildRecall(GamePlayer* pGamePlayer, const string& value1, GCSystemMessag
         if (pTargetCreature == NULL)
             continue;
 
-        // ��ȯ���� ���� ��ǥ.
+        // The coordinates to summon to.
         ZoneID_t ZoneNum = pCreature->getZoneID();
         Coord_t ZoneX = pCreature->getX();
         Coord_t ZoneY = pCreature->getY();
