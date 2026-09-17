@@ -509,7 +509,6 @@ set(GAMESERVER_MAIN_SOURCES
     MasterLairInfoManager.cpp
     MasterLairManager.cpp
     MonsterSummonInfo.cpp
-    LuckInfo.cpp
     LogNameManager.cpp
     RankBonusInfo.cpp
     RankBonus.cpp

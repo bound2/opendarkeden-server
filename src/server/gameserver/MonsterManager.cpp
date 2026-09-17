@@ -32,7 +32,6 @@
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "LogClient.h"
-#include "LuckInfo.h"
 #include "MasterLairInfoManager.h"
 #include "Monster.h"
 #include "MonsterCorpse.h"
@@ -59,6 +58,9 @@
 #define __MONSTER_FIGHTING__
 extern bool isPotentialEnemy(Monster* pMonster, Creature* pCreature);
 extern void countResurrectItem();
+
+// The highest luck level a drop's item-type or option-type upgrade roll uses.
+const int MAX_LUCK_LEVEL = 140;
 
 // #define __PROFILE_MONSTER__
 
@@ -1867,13 +1869,6 @@ int MonsterManager::upgradeItemTypeByLuck(int luckLevel, Creature::CreatureClass
 
     //	cout << "ratio : " << ratio << endl;
     //	cout << "value : " << value << endl;
-
-    /*	const LuckInfo& luckInfo = g_pLuckInfoManager->getLuckInfo(luckLevel);
-
-        int upgradeCount = luckInfo.getUpgradeItemTypeCount();
-
-        if (upgradeCount==0)
-            return;*/
 
     //	cout << "before : " << it.ItemClass << "/" << (int)it.ItemType << endl;
     if (ratio > 0 && value < ratio) {
