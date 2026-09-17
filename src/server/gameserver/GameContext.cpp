@@ -13,6 +13,16 @@
 
 namespace de {
 
+ActionFactoryManager& GameContext::actionFactories() const {
+    Assert(m_pActionFactoryManager != nullptr);
+    return *m_pActionFactoryManager;
+}
+
+ConditionFactoryManager& GameContext::conditionFactories() const {
+    Assert(m_pConditionFactoryManager != nullptr);
+    return *m_pConditionFactoryManager;
+}
+
 Properties& GameContext::config() const {
     Assert(m_pConfig != nullptr);
     return *m_pConfig;
@@ -31,6 +41,16 @@ ItemFactoryManager& GameContext::itemFactories() const {
 PCFinder& GameContext::playerCreatures() const {
     Assert(m_pPCFinder != nullptr);
     return *m_pPCFinder;
+}
+
+ScriptManager& GameContext::publicScripts() const {
+    Assert(m_pPublicScriptManager != nullptr);
+    return *m_pPublicScriptManager;
+}
+
+ShopTemplateManager& GameContext::shopTemplates() const {
+    Assert(m_pShopTemplateManager != nullptr);
+    return *m_pShopTemplateManager;
 }
 
 StringPool& GameContext::strings() const {

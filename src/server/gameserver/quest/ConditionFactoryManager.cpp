@@ -251,6 +251,3 @@ string ConditionFactoryManager::toString() const
 
     __END_CATCH
 }
-
-// global variable declaration
-ConditionFactoryManager* g_pConditionFactoryManager = NULL;

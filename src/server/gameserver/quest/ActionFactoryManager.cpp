@@ -121,9 +121,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 // constructor
 ////////////////////////////////////////////////////////////////////////////////
-ActionFactoryManager::ActionFactoryManager()
+ActionFactoryManager::ActionFactoryManager(de::GameContext& context)
 
-    : m_Factories(NULL), m_Size(Action::ACTION_MAX) {
+    : m_Context(context), m_Factories(NULL), m_Size(Action::ACTION_MAX) {
     __BEGIN_TRY
 
     Assert(m_Size > 0);
@@ -332,7 +332,10 @@ Action* ActionFactoryManager::createAction(ActionType_t actionType) const
         throw Error(msg.toString());
     }
 
-    return m_Factories[actionType]->createAction();
+    Action* pAction = m_Factories[actionType]->createAction();
+    pAction->setContext(m_Context);
+
+    return pAction;
 
     __END_CATCH
 }
@@ -413,6 +416,3 @@ string ActionFactoryManager::toString() const
 
     __END_CATCH
 }
-
-// global variable declaration
-ActionFactoryManager* g_pActionFactoryManager = NULL;

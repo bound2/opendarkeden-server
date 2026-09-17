@@ -16,9 +16,13 @@
 // class ActionFactoryManager
 //////////////////////////////////////////////////////////////////////////////
 
+namespace de {
+class GameContext;
+}
+
 class ActionFactoryManager {
 public:
-    ActionFactoryManager();
+    explicit ActionFactoryManager(de::GameContext& context);
     ~ActionFactoryManager();
 
 public:
@@ -30,10 +34,9 @@ public:
     string toString() const;
 
 private:
+    de::GameContext& m_Context;
     ActionFactory** m_Factories;
     ushort m_Size;
 };
-
-extern ActionFactoryManager* g_pActionFactoryManager;
 
 #endif

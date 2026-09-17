@@ -24,7 +24,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[8];
+char g_managerStorage[12];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -63,6 +63,25 @@ TEST(GameContextTest, AccessorReturnsTheRegisteredManager) {
     EXPECT_EQ(&context.zoneInfos(), pZoneInfoManager);
 }
 
+TEST(GameContextTest, QuestScriptingManagersAreReadBack) {
+    de::GameContext context;
+
+    ActionFactoryManager* pActionFactoryManager = standIn<ActionFactoryManager>(8);
+    ConditionFactoryManager* pConditionFactoryManager = standIn<ConditionFactoryManager>(9);
+    ScriptManager* pPublicScriptManager = standIn<ScriptManager>(10);
+    ShopTemplateManager* pShopTemplateManager = standIn<ShopTemplateManager>(11);
+
+    context.setActionFactoryManager(pActionFactoryManager);
+    context.setConditionFactoryManager(pConditionFactoryManager);
+    context.setPublicScriptManager(pPublicScriptManager);
+    context.setShopTemplateManager(pShopTemplateManager);
+
+    EXPECT_EQ(&context.actionFactories(), pActionFactoryManager);
+    EXPECT_EQ(&context.conditionFactories(), pConditionFactoryManager);
+    EXPECT_EQ(&context.publicScripts(), pPublicScriptManager);
+    EXPECT_EQ(&context.shopTemplates(), pShopTemplateManager);
+}
+
 TEST(GameContextTest, ReregisteringReplacesTheManager) {
     de::GameContext context;
 
@@ -78,10 +97,14 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     // Reading a manager the startup code has not registered yet is a
     // startup-order bug, so every accessor asserts rather than returning
     // something the caller could test.
+    EXPECT_THROW(context.actionFactories(), AssertionError);
+    EXPECT_THROW(context.conditionFactories(), AssertionError);
     EXPECT_THROW(context.config(), AssertionError);
     EXPECT_THROW(context.databases(), AssertionError);
     EXPECT_THROW(context.itemFactories(), AssertionError);
     EXPECT_THROW(context.playerCreatures(), AssertionError);
+    EXPECT_THROW(context.publicScripts(), AssertionError);
+    EXPECT_THROW(context.shopTemplates(), AssertionError);
     EXPECT_THROW(context.strings(), AssertionError);
     EXPECT_THROW(context.variables(), AssertionError);
     EXPECT_THROW(context.zoneGroups(), AssertionError);

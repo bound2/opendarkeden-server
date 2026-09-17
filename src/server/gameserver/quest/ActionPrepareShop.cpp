@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "Creature.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemFactoryManager.h"
 #include "LogClient.h"
@@ -116,7 +117,7 @@ void ActionPrepareShop::execute(Creature* pCreature1, Creature* pCreature2)
     // MinItemType : 0, MaxItemType : 2 --> 3가지
     for (list<ShopTemplateID_t>::const_iterator itr = m_List.begin(); itr != m_List.end(); itr++) {
         // 템플릿 리스트에서 하나를 뽑아온다.
-        pTemplate = g_pShopTemplateManager->getTemplate((*itr));
+        pTemplate = context().shopTemplates().getTemplate((*itr));
 
         Assert(pTemplate != NULL);
 
@@ -151,7 +152,7 @@ void ActionPrepareShop::execute(Creature* pCreature1, Creature* pCreature2)
         // 아까 저장해 놓았던 샵 템플릿 ID 리스트에서 하나씩을 뽑아와서
         // 상점 아이템을 생성한다.
         for (list<ShopTemplateID_t>::const_iterator itr = IDList[i].begin(); itr != IDList[i].end(); itr++) {
-            pTemplate = g_pShopTemplateManager->getTemplate((*itr));
+            pTemplate = context().shopTemplates().getTemplate((*itr));
             itemClass = pTemplate->getItemClass();
             minItemType = pTemplate->getMinItemType();
             maxItemType = pTemplate->getMaxItemType();

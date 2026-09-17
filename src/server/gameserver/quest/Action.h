@@ -8,6 +8,7 @@
 #ifndef __ACTION_H__
 #define __ACTION_H__
 
+#include "Assert.h"
 #include "Exception.h"
 #include "PropertyBuffer.h"
 #include "Types.h"
@@ -15,6 +16,10 @@
 //////////////////////////////////////////////////////////////////////////////
 // class Action
 //////////////////////////////////////////////////////////////////////////////
+
+namespace de {
+class GameContext;
+}
 
 class Creature;
 
@@ -203,6 +208,21 @@ public:
     virtual void read(PropertyBuffer& buffer) = 0;
     virtual void execute(Creature* pCreature1, Creature* pCreature2 = NULL) = 0;
     virtual string toString() const = 0;
+
+    // The factory that creates an action hands it the context the
+    // action reads its managers from.
+    void setContext(de::GameContext& context) {
+        m_pContext = &context;
+    }
+
+protected:
+    de::GameContext& context() const {
+        Assert(m_pContext != nullptr);
+        return *m_pContext;
+    }
+
+private:
+    de::GameContext* m_pContext = nullptr;
 };
 
 #endif

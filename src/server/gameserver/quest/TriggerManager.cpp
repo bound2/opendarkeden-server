@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "Properties.h"
 #include "ScriptManager.h"
 #include "TriggerParser.h"
@@ -58,7 +59,7 @@ void TriggerManager::load(const string& name)
     vector<NPCTriggerRow> rows = defaultContentInfoRepository().loadNPCTriggers(name);
 
     for (vector<NPCTriggerRow>::const_iterator it = rows.begin(); it != rows.end(); ++it) {
-        Trigger* pTrigger = new Trigger();
+        Trigger* pTrigger = new Trigger(de::gameContext());
 
         pTrigger->setTriggerID(it->triggerID);
 
@@ -97,7 +98,7 @@ void TriggerManager::load(ZoneID_t zoneid, int left, int top, int right, int bot
     vector<ZoneTriggerRow> rows = defaultZoneInfoRepository().loadZoneTriggers((int)zoneid, left, top, right, bottom);
 
     for (vector<ZoneTriggerRow>::const_iterator it = rows.begin(); it != rows.end(); ++it) {
-        Trigger* pTrigger = new Trigger();
+        Trigger* pTrigger = new Trigger(de::gameContext());
 
         pTrigger->setTriggerID(it->triggerID);
 

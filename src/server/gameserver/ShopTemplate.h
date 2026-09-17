@@ -122,7 +122,4 @@ private:
     unordered_map<ShopTemplateID_t, ShopTemplate*> m_Entries; // hash map of script
 };
 
-// global variable declaration
-extern ShopTemplateManager* g_pShopTemplateManager;
-
 #endif

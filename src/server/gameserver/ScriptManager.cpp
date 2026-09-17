@@ -178,6 +178,3 @@ string ScriptManager::toString() const
 
     __END_CATCH
 }
-
-// global variable definition
-ScriptManager* g_pPublicScriptManager = NULL;

@@ -98,6 +98,7 @@
 #include "GDRLairManager.h"
 #include "GGCommand.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
 #include "GuildManager.h"
@@ -671,7 +672,7 @@ void Zone::load(bool bOutput)
                             // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
-                            Trigger* pTrigger = new Trigger();
+                            Trigger* pTrigger = new Trigger(de::gameContext());
 
                             pTrigger->setTriggerID(0); // 의미없다.
 
@@ -714,7 +715,7 @@ void Zone::load(bool bOutput)
                             // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
-                            Trigger* pTrigger = new Trigger();
+                            Trigger* pTrigger = new Trigger(de::gameContext());
 
                             pTrigger->setTriggerID(0); // 의미없다.
 
@@ -764,7 +765,7 @@ void Zone::load(bool bOutput)
                             // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
-                            Trigger* pTrigger = new Trigger();
+                            Trigger* pTrigger = new Trigger(de::gameContext());
 
                             pTrigger->setTriggerID(0); // 의미없다.
 
@@ -809,7 +810,7 @@ void Zone::load(bool bOutput)
                             // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
-                            Trigger* pTrigger = new Trigger();
+                            Trigger* pTrigger = new Trigger(de::gameContext());
 
                             pTrigger->setTriggerID(0); // 의미없다.
                             pTrigger->setTriggerType("QUEST");
@@ -847,7 +848,7 @@ void Zone::load(bool bOutput)
                             // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
-                            Trigger* pTrigger = new Trigger();
+                            Trigger* pTrigger = new Trigger(de::gameContext());
 
                             pTrigger->setTriggerID(0); // 의미없다.
 
@@ -1459,7 +1460,7 @@ void Zone::reload(bool bOutput)
                             // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
-                            Trigger* pTrigger = new Trigger();
+                            Trigger* pTrigger = new Trigger(de::gameContext());
 
                             pTrigger->setTriggerID(0); // 의미없다.
 
@@ -1501,7 +1502,7 @@ void Zone::reload(bool bOutput)
                             // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
-                            Trigger* pTrigger = new Trigger();
+                            Trigger* pTrigger = new Trigger(de::gameContext());
 
                             pTrigger->setTriggerID(0); // 의미없다.
 
