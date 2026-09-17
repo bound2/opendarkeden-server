@@ -18,9 +18,9 @@
 //
 // class CGConnect;
 //
-// 클라이언트가 서버에게 보내는 연결 패킷이다.
-// 서버간 이동에 사용되며, 이전 서버가 준 Key 를 새 서버에게 전송해서
-// 인증을 받는다. 또한, 새 서버에서 사용할 크리처 아이디를 담고 있다.
+// The connect packet the client sends to the server.
+// It is used when moving between servers: the Key the previous server handed
+// out is sent to the new server for authentication. It also carries the creature id to use.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -28,10 +28,10 @@ class CGConnect : public Packet {
 public:
     CGConnect(){};
     ~CGConnect(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -91,7 +91,7 @@ private:
     // Slayer or Vampire?
     PCType m_PCType;
 
-    // PC의 이름
+    // Name of the PC
     string m_PCName;
 
     BYTE m_MacAddress[6];

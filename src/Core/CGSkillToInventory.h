@@ -85,7 +85,7 @@ public:
 private:
     SkillType_t m_SkillType; // SkillType
     ObjectID_t m_ObjectID;   // ObjectID
-    // 보조 인벤토리 아이템의 오브젝트 아이디. 0이면 메인 인벤토리에서 사용
+    // Object id of the sub inventory item. 0 means it is used from the main inventory
     ObjectID_t m_InventoryItemObjectID;
     CoordInven_t m_X;       // Coord X
     CoordInven_t m_Y;       // Coord Y

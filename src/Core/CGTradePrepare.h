@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : CGTradePrepare.h
-// Written By  : 김성민
 // Description :
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -11,23 +10,23 @@
 #include "PacketFactory.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// 교환 코드
+// Exchange code
 ////////////////////////////////////////////////////////////////////////////////
 
 enum {
-    // 제일 처음 교환을 원하는 플레이어가 이 코드로 패킷을 날린다.
+    // The player who first wants to exchange sends the packet with this code.
     CG_TRADE_PREPARE_CODE_REQUEST = 0,
 
-    // 제일 처음 교환을 요청한 플레이어가 취소를 했다.
+    // The player who first asked for the exchange cancelled it.
     CG_TRADE_PREPARE_CODE_CANCEL,
 
-    // 교환을 요청받은 플레이어가 교환에 응할 경우
+    // When the player asked for an exchange accepts it
     CG_TRADE_PREPARE_CODE_ACCEPT,
 
-    // 교환을 요청받은 플레이어가 교환에 응하지 않을 경우
+    // When the player asked for an exchange does not accept it
     CG_TRADE_PREPARE_CODE_REJECT,
 
-    // 교환을 요청받은 플레이어가 지금 교환을 할 수 없는 경우
+    // When the player asked for an exchange cannot exchange right now
     CG_TRADE_PREPARE_CODE_BUSY,
 
     CG_TRADE_PREPARE_CODE_MAX
@@ -72,8 +71,8 @@ public:
     }
 
 private:
-    ObjectID_t m_TargetObjectID; // 교환을 원하는 상대방의 OID
-    BYTE m_Code;                 // 교환 코드
+    ObjectID_t m_TargetObjectID; // OID of the partner to exchange with
+    BYTE m_Code;                 // Exchange code
 };
 
 

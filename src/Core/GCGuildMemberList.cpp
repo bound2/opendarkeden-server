@@ -27,14 +27,14 @@ GCGuildMemberList::~GCGuildMemberList()
 {
     __BEGIN_TRY
 
-    // 길드 리스트의 모든 객체를 삭제
+    // Delete every object in the guild list
     clearGuildMemberInfoList();
 
     __END_CATCH_NO_RETHROW
 }
 
 //////////////////////////////////////////////////////////////////////
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void GCGuildMemberList::read(SocketInputStream& iStream)
 
@@ -61,7 +61,7 @@ void GCGuildMemberList::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void GCGuildMemberList::write(SocketOutputStream& oStream) const
 
@@ -89,7 +89,7 @@ void GCGuildMemberList::clearGuildMemberInfoList()
 {
     __BEGIN_TRY
 
-    // GuildMemberInfoList 를 삭제한다
+    // Delete the GuildMemberInfoList
     while (!m_GuildMemberInfoList.empty()) {
         GuildMemberInfo* pGuildMemberInfo = m_GuildMemberInfoList.front();
         m_GuildMemberInfoList.pop_front();

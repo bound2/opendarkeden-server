@@ -94,7 +94,7 @@ public:
 
     // get packet's body size
     // *OPTIMIZATION HINT*
-    // const static GCDropItemToZonePacketSize 를 정의, 리턴하라.
+    // Define and return const static GCDropItemToZonePacketSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : CGTradeMoney.h
-// Written By  : 김성민
 // Description :
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -11,14 +10,14 @@
 #include "PacketFactory.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// 교환 코드
+// Exchange code
 ////////////////////////////////////////////////////////////////////////////////
 
 enum {
-    // 교환할 돈의 액수를 늘린다.
+    // Increases the amount of money to exchange.
     CG_TRADE_MONEY_INCREASE = 0,
 
-    // 교환할 돈의 액수를 줄인다.
+    // Decreases the amount of money to exchange.
     CG_TRADE_MONEY_DECREASE
 };
 
@@ -68,9 +67,9 @@ public:
     }
 
 private:
-    ObjectID_t m_TargetObjectID; // 교환을 원하는 상대방의 ObjectID
-    Gold_t m_Gold;               // 원하는 액수
-    BYTE m_Code;                 // 코드
+    ObjectID_t m_TargetObjectID; // ObjectID of the partner to exchange with
+    Gold_t m_Gold;               // Amount wanted
+    BYTE m_Code;                 // Code
 };
 
 

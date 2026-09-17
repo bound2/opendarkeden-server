@@ -32,10 +32,10 @@ public:
     // destructor
     ~GCHolyLandBonusInfo();
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -119,7 +119,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCSystemMessagePacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static GCSystemMessagePacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

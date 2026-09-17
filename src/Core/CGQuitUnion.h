@@ -24,16 +24,16 @@
 class CGQuitUnion : public Packet {
 public:
     enum {
-        QUIT_NORMAL = 0, // 절차에 따라 신청
-        QUIT_QUICK,      // 일방적으로 탈퇴
+        QUIT_NORMAL = 0, // Apply through the proper procedure
+        QUIT_QUICK,      // Leave unilaterally
         QUIT_MAX
     };
     CGQuitUnion(){};
     ~CGQuitUnion(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 

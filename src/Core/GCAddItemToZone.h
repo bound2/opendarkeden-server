@@ -173,10 +173,10 @@ public:
     }
 
 protected:
-    // Item의 ObjectID
+    // ObjectID of the Item
     ObjectID_t m_ObjectID;
 
-    // Zone의 X, Y 좌표
+    // X and Y coordinates in the Zone
     Coord_t m_X;
     Coord_t m_Y;
 

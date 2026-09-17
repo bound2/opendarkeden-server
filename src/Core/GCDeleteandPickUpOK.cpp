@@ -2,8 +2,8 @@
 //
 // Filename    : GCDeleteandPickUpOK.cc
 // Written By  : elca@ewestsoft.com
-// Description : CGMove가 날아 왓을때 자기 자신에게 OK 사인을 날리기
-//               위한 패킷 클래스 함수 정의
+// Description : Function definitions of the packet class that sends an OK
+//               sign back to the sender when CGMove arrives
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -12,7 +12,7 @@
 
 
 //////////////////////////////////////////////////////////////////////
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void GCDeleteandPickUpOK::read(SocketInputStream& iStream)
 
@@ -26,7 +26,7 @@ void GCDeleteandPickUpOK::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void GCDeleteandPickUpOK::write(SocketOutputStream& oStream) const
 

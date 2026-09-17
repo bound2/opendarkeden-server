@@ -2,8 +2,8 @@
 // Filename    : ExtraSlotInfo.h
 // Written By  : elca
 // Description :
-// 플레이어의 마우스에 달려있는 아이템에 대한 정보를 가지고 전송되는
-// 패킷이다.
+// Packet sent carrying information about the item hanging on the player's
+// mouse cursor.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EXTRA_SLOT_INFO_H__

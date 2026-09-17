@@ -38,8 +38,8 @@ void CLLogin::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    // 넷마블의 Cpsso 관련된 코드는 서버의 Write 에서는 고치지 않는다  (쓰이지 않으므로 ;;)
-    // Client 에서만 알아서 처리해서 보내주도록 한다.
+    // The netmarble Cpsso code is not fixed up in the server's Write  (it is not used ;;)
+    // Only the client handles it and sends it on.
     de::wire::writeString(oStream, m_ID, {1, 30}, "ID");
 
     de::wire::writeString(oStream, m_Password, {1, 30}, "Password");

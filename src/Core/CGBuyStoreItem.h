@@ -1,10 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : CGBuyStoreItem.h
-// Written By  : 김성민
 // Description :
-// 플레이어가 상점 NPC의 진열창을 보고, 물건을 구입하고자 할 때
-// 보내는 패킷이다. 서버는 플레이어에게 충분한 돈과 인벤토리에
-// 자리가 있는지 검증한 후, 플레이어에게 아이템을 넘긴다.
+// Sent when a player looks at a shop NPC's display window and wants to buy
+// an item. The server checks that the player has enough money and enough
+// room in the inventory, then hands the item over to the player.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef __CG_BUY_STORE_ITEM_H__

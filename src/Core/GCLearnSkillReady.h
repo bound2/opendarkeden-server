@@ -2,7 +2,7 @@
 //
 // Filename    :  GCLearnSkillReady.h
 // Written By  :  elca@ewestsoft.com
-// Description :  Å
+// Description :  Declaration of the GCLearnSkillReady packet class
 //
 //
 //////////////////////////////////////////////////////////////////////
@@ -32,10 +32,10 @@ public:
 
 
 public:
-    // ÀÔ·Â½ºÆ®¸²(¹öÆÛ)À¸·ÎºÎÅÍ µ¥ÀÌÅ¸¸¦ ÀÐ¾î¼­ ÆÐÅ¶À» ÃÊ±âÈ­ÇÑ´Ù.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // Ãâ·Â½ºÆ®¸²(¹öÆÛ)À¸·Î ÆÐÅ¶ÀÇ ¹ÙÀÌ³Ê¸® ÀÌ¹ÌÁö¸¦ º¸³½´Ù.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -65,7 +65,7 @@ public:
     }
 
 private:
-    // ½ºÅ³ Å¸ÀÔ
+    // Skill type
     SkillDomainType_t m_SkillDomainType = 0;
 };
 

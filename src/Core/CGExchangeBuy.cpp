@@ -22,7 +22,7 @@ void CGExchangeBuy::read(SocketInputStream& iStream) {
     m_ListingID = (int64_t)listingID;
 
     // Read idempotency key with a BYTE length prefix.
-    // NOTE: never call iStream.read(m_IdempotencyKey) — the raw template
+    // NOTE: never call iStream.read(m_IdempotencyKey) -- the raw template
     // overload would overwrite the std::string object itself with wire bytes.
     // The else-branch is required so read() fully overwrites the packet's
     // state, i.e. is a true mirror of write().
@@ -60,7 +60,7 @@ void CGExchangeBuy::write(SocketOutputStream& oStream) const {
     // Write idempotency key with a BYTE length prefix (the length byte is
     // always written, even when the key is empty).
     // NOTE: oStream.write(m_IdempotencyKey) would emit raw bytes with no
-    // length prefix — a receiver could not frame it.
+    // length prefix -- a receiver could not frame it.
     //
     // The clamp to kMaxIdempotencyKey must be identical here and in
     // getPacketSize(). The size field on the wire is the number of bytes this

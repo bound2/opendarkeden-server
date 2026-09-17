@@ -18,8 +18,8 @@
 //
 // class GCFakeMove;
 //
-// 게임 서버에서 특정 사용자가 움직였다는 정보를 클라이언트로 보내줄
-// 때 사용하는 패킷 객체이다.(ObjectID,X,Y,DIR) 을 포함한다.
+// Packet object used when the game server tells the client that a particular
+// user has moved. It holds (ObjectID,X,Y,DIR).
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -33,10 +33,10 @@ public:
 
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -47,7 +47,7 @@ public:
 
     // get packet's body size
     // *OPTIMIZATION HINT*
-    // const static GCFakeMovePacketSize 를 정의, 리턴하라.
+    // Define and return const static GCFakeMovePacketSize.
     PacketSize_t getPacketSize() const {
         return szObjectID + 2 * szCoord;
     }
@@ -85,8 +85,8 @@ public:
 
 
 private:
-    ObjectID_t m_ObjectID = 0;    // 크리처 아이디
-    Coord_t m_ToX = 0, m_ToY = 0; // 도착좌표
+    ObjectID_t m_ObjectID = 0;    // Creature id
+    Coord_t m_ToX = 0, m_ToY = 0; // Destination coordinates
 };
 
 
@@ -121,7 +121,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GCFakeMovePacketSize 를 정의, 리턴하라.
+    // Define and return const static GCFakeMovePacketSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

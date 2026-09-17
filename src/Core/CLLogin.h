@@ -17,18 +17,18 @@
 //
 // class CLLogin;
 //
-// 클라이언트가 로그인 서버에게 최초에 전송하는 패킷이다.
-// 아이디와 패스워드가 암호화되어 있다.
+// The first packet the client sends to the login server.
+// The id and the password are encrypted.
 //
 //--------------------------------------------------------------------------------
 
-// 최대 MAC ADDRESS 길이
+// Maximum MAC ADDRESS length
 #define MAX_LENGTH_MAC 6
 
 
 class CLLogin : public Packet {
 public:
-    // The MAC bytes have no setter — read() is what fills them — and write()
+    // The MAC bytes have no setter -- read() is what fills them -- and write()
     // emits all six either way, so a constructed instance starts them at zero.
     CLLogin() : m_bNetmarble(false), m_bAdult(false), m_cMacAddress{}, m_LoginMode(LOGIN_MODE_NORMAL) {
         m_strMacAddress = "";
@@ -36,10 +36,10 @@ public:
     virtual ~CLLogin(){};
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -109,14 +109,14 @@ public:
     }
 
 private:
-    // 플레이어 아이디
+    // Player id
     string m_ID;
 
-    // 플레이어 패스워드
+    // Player password
     string m_Password;
 
-    // 보내고 받는 건 아니지만 정보를 가지고 있을 필요가 있어서 멤버 변수 추가
-    // Size 계산은 하지 않는다. (넷마블의 Cpsso 방식의 인증 정보에 들어 있는 내용 보관)
+    // Not sent or received, but added as a member because the information is needed
+    // Its size is not counted. (Holds what the netmarble Cpsso authentication carries)
     bool m_bNetmarble;
     bool m_bAdult;
 
@@ -157,7 +157,7 @@ public:
     }
 
     // get packet's max body size
-    // szID + ID(<=30) + szPassword + password(<=30) + mac(6) + loginMode —
+    // szID + ID(<=30) + szPassword + password(<=30) + mac(6) + loginMode --
     // read() rejects longer strings; the old netmarble sso layout (szint +
     // 2048) is no longer read.
     PacketSize_t getPacketMaxSize() const override {

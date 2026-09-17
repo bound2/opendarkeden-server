@@ -1,9 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : CGStashList.h
-// Written By  : 김성민
 // Description :
-// 클라이언트가 보관함 안에 들어있는 아이템의 리스트를 요구할 때 쓰이는
-// 패킷이다.
+// Packet the client uses to ask for the list of the items held in the
+// stash.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef __CG_STASH_LIST_H__
@@ -45,7 +44,7 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID = 0; // 플레이어 크리쳐의 object id
+    ObjectID_t m_ObjectID = 0; // Object id of the player creature
 };
 
 

@@ -2,7 +2,7 @@
 // Filename    : CGRequestIP.cpp
 // Written By  :
 // Description :
-// 서버에 원하는 사람의 IP 요청
+// Asks the server for the IP of the wanted person
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGRequestIP.h"

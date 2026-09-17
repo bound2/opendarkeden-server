@@ -42,7 +42,7 @@ public:
     }
 
 private:
-    ObjectID_t m_EffectObjectID = 0; // 선택한 이펙트의 오브젝트 ID
+    ObjectID_t m_EffectObjectID = 0; // Object ID of the selected effect
 };
 
 

@@ -2,7 +2,7 @@
 // Filename    : GCGQuestStatusInfo.h
 // Written By  : elca@ewestsoft.com
 // Description :
-// 기술이 성공했을때 보내는 패킷을 위한 클래스 정의
+// Class definition for the packet sent when a skill succeeds
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GC_GGQUEST_STATUS_INFO_H__
@@ -21,7 +21,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class GCGQuestStatusInfo;
-// 게임서버에서 클라이언트로 자신의 기술이 성공을 알려주기 위한 클래스
+// Class the game server uses to tell the client that its own skill succeeded
 //////////////////////////////////////////////////////////////////////////////
 
 class GCGQuestStatusInfo : public Packet {

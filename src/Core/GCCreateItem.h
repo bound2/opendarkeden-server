@@ -145,17 +145,17 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID;           // 오브젝트 ID
-    BYTE m_ItemClass;                // 아이템 클래스
-    ItemType_t m_ItemType;           // 아이템 타입
-    list<OptionType_t> m_OptionType; // 옵션 타입
-    Durability_t m_Durability;       // 내구성
-    Silver_t m_Silver;               // 은 도금량
-    Grade_t m_Grade;                 // 아이템 등급
-    EnchantLevel_t m_EnchantLevel;   // 인챈트 레벨
-    ItemNum_t m_ItemNum;             // 아이템의 숫자
-    CoordInven_t m_InvenX;           // 인벤토리 X 좌표
-    CoordInven_t m_InvenY;           // 인벤토리 Y 좌표
+    ObjectID_t m_ObjectID;           // Object ID
+    BYTE m_ItemClass;                // Item class
+    ItemType_t m_ItemType;           // Item type
+    list<OptionType_t> m_OptionType; // Option type
+    Durability_t m_Durability;       // Durability
+    Silver_t m_Silver;               // Silver plating amount
+    Grade_t m_Grade;                 // Item grade
+    EnchantLevel_t m_EnchantLevel;   // Enchant level
+    ItemNum_t m_ItemNum;             // Number of items
+    CoordInven_t m_InvenX;           // Inventory X coordinate
+    CoordInven_t m_InvenY;           // Inventory Y coordinate
 };
 
 

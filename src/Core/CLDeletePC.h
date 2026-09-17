@@ -18,7 +18,7 @@
 //
 // class CLDeletePC;
 //
-// 특정 슬랏의 PC 를 삭제하는 패킷이다.
+// Packet that deletes the PC in a given slot.
 //
 //----------------------------------------------------------------------
 
@@ -26,10 +26,10 @@ class CLDeletePC : public Packet {
 public:
     CLDeletePC(){};
     virtual ~CLDeletePC(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -82,7 +82,7 @@ private:
     // Slot
     Slot m_Slot;
 
-    // 주민등록번호
+    // Resident registration number
     string m_SSN;
 };
 

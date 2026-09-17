@@ -17,7 +17,7 @@
 //
 // class GCAddSlayerCorpse;
 //
-// 슬레이어의 시체 정보를 담아서 클라이언트에 전송한다.
+// Carries the slayer's corpse information and sends it to the client.
 //
 //----------------------------------------------------------------------
 
@@ -32,10 +32,10 @@ public:
 
 
 public:
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -79,10 +79,10 @@ public:
     }
 
 private:
-    // 슬레이어의 외모 정보
+    // Slayer's appearance information
     PCSlayerInfo3 m_SlayerInfo;
 
-    // 보물 숫자
+    // Number of treasures
     BYTE m_TreasureCount;
 };
 
@@ -118,7 +118,7 @@ public:
 
     // get packet's body size
     // *OPTIMIZATION HINT*
-    // const static GCAddSlayerCorpsePacketSize 를 정의, 리턴하라.
+    // Define and return const static GCAddSlayerCorpsePacketSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

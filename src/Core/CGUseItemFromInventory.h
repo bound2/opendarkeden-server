@@ -2,8 +2,8 @@
 // Filename    : CGUseItemFromInventory.h
 // Written By  : excel96
 // Description :
-// 인벤토리 안의 아이템을 사용할 때, 클라이언트가 X, Y 및 ObjectID를
-// 보내면 아이템 클래스에 따라서, 서버가 이에 맞는 코드를 처리한다.
+// When an item in the inventory is used, the client sends X, Y and the ObjectID;
+// the server then runs the code that matches the item's class.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __CG_USE_ITEM_FROM_INVENTORY_H__
@@ -64,11 +64,11 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID; // 아이템의 object id
-    // 보조 인벤토리 아이템의 오브젝트 아이디. 0이면 메인 인벤토리에서 사용
+    ObjectID_t m_ObjectID; // Object id of the item
+    // Object id of the sub inventory item. 0 means it is used from the main inventory
     ObjectID_t m_InventoryItemObjectID;
-    CoordInven_t m_InvenX; // 아이템의 인벤토리 좌표 X
-    CoordInven_t m_InvenY; // 아이템의 인벤토리 좌표 Y
+    CoordInven_t m_InvenX; // Inventory X coordinate of the item
+    CoordInven_t m_InvenY; // Inventory Y coordinate of the item
 };
 
 

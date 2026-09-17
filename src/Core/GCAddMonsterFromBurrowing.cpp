@@ -27,7 +27,7 @@ GCAddMonsterFromBurrowing::~GCAddMonsterFromBurrowing() noexcept
 }
 
 //////////////////////////////////////////////////////////////////////
-// �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void GCAddMonsterFromBurrowing::read(SocketInputStream& iStream)
 
@@ -58,7 +58,7 @@ void GCAddMonsterFromBurrowing::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////
-// ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void GCAddMonsterFromBurrowing::write(SocketOutputStream& oStream) const
 

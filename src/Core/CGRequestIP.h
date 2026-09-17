@@ -13,9 +13,9 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class CGRequestIP;
-// client에서 server로 누군가의 IP를 요청하는데
-// 누군가가 근처에 있다면 objectID로 요청하고
-// 아니면.. 캐릭터 이름으로 요청한다.
+// The client asks the server for someone's IP:
+// when that someone is nearby it asks by objectID,
+// otherwise.. it asks by character name.
 //////////////////////////////////////////////////////////////////////////////
 
 class CGRequestIP : public Packet {

@@ -2,7 +2,7 @@
 //
 // Filename    :  GCLearnSkillFailed.h
 // Written By  :  elca@ewestsoft.com
-// Description :  Å
+// Description :  Declaration of the GCLearnSkillFailed packet class
 //
 //
 //////////////////////////////////////////////////////////////////////
@@ -29,10 +29,10 @@ public:
 
 
 public:
-    // ÀÔ·Â½ºÆ®¸²(¹öÆÛ)À¸·ÎºÎÅÍ µ¥ÀÌÅ¸¸¦ ÀÐ¾î¼­ ÆÐÅ¶À» ÃÊ±âÈ­ÇÑ´Ù.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // Ãâ·Â½ºÆ®¸²(¹öÆÛ)À¸·Î ÆÐÅ¶ÀÇ ¹ÙÀÌ³Ê¸® ÀÌ¹ÌÁö¸¦ º¸³½´Ù.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -72,8 +72,8 @@ public:
 
 private:
     SkillType_t m_SkillType = 0;
-    BYTE m_Desc = 0; // ±â¼úÀ» ¹è¿ì´Â µ¥ ½ÇÆÐÇÑ ÀÌÀ¯ÀÌ´Ù.
-                     // ÀÚ¼¼ÇÑ ³»¿ëÀº CGLearnSkillHandler¸¦ Âü°íÇÏµµ·Ï.
+    BYTE m_Desc = 0; // The reason why learning the skill failed.
+                     // See CGLearnSkillHandler for the details.
 };
 
 

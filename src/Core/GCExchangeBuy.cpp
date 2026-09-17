@@ -22,7 +22,7 @@ void GCExchangeBuy::read(SocketInputStream& iStream) {
     m_Success = (success != 0);
 
     // Read message with a BYTE length prefix.
-    // NOTE: never call iStream.read(m_Message) — the raw template overload
+    // NOTE: never call iStream.read(m_Message) -- the raw template overload
     // would overwrite the std::string object itself with wire bytes.
     // The else-branch is required so read() fully overwrites the packet's
     // state, i.e. is a true mirror of write().
@@ -54,7 +54,7 @@ void GCExchangeBuy::write(SocketOutputStream& oStream) const {
     // Write message with a BYTE length prefix (the length byte is always
     // written, even when the message is empty).
     // NOTE: oStream.write(m_Message) would emit raw bytes with no length
-    // prefix — a receiver could not frame it.
+    // prefix -- a receiver could not frame it.
     //
     // The clamp to kMaxMessage must be identical here and in getPacketSize().
     // The size field on the wire is the number of bytes this function actually

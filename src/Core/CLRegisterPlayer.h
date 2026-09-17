@@ -17,8 +17,8 @@
 //
 // class CLRegisterPlayer;
 //
-// 클라이언트가 로그인 서버에게 최초에 전송하는 패킷이다.
-// 아이디와 패스워드가 암호화되어 있다. 아직은 아니당..
+// The first packet the client sends to the login server.
+// The id and the password are encrypted. Not yet, though..
 //
 //--------------------------------------------------------------------------------
 
@@ -26,10 +26,10 @@ class CLRegisterPlayer : public Packet {
 public:
     CLRegisterPlayer(){};
     virtual ~CLRegisterPlayer(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -40,21 +40,21 @@ public:
 
     // get packet's body size
     PacketSize_t getPacketSize() const {
-        // 최적화시 미리 계산된 상수를 사용하도록 한다.
-        return de::wire::stringWireSize(m_ID)          // 아이디
-               + de::wire::stringWireSize(m_Password)  // 암호
-               + de::wire::stringWireSize(m_Name)      // 이름
-               + szBYTE                                // 성별
-               + de::wire::stringWireSize(m_SSN)       // 주민등록번호
-               + de::wire::stringWireSize(m_Telephone) // 전화번호
-               + de::wire::stringWireSize(m_Cellular)  // 휴대폰번호
-               + de::wire::stringWireSize(m_ZipCode)   // 우편번호
-               + de::wire::stringWireSize(m_Address)   // 주소
-               + szBYTE                                // 국가코드
-               + de::wire::stringWireSize(m_Email)     // 전자메일
-               + de::wire::stringWireSize(m_Homepage)  // 홈페이지
-               + de::wire::stringWireSize(m_Profile)   // 자기소개글
-               + szBYTE;                               // 공개여부
+        // When optimizing, use the precomputed constant.
+        return de::wire::stringWireSize(m_ID)          // Id
+               + de::wire::stringWireSize(m_Password)  // Password
+               + de::wire::stringWireSize(m_Name)      // Name
+               + szBYTE                                // Sex
+               + de::wire::stringWireSize(m_SSN)       // Resident registration number
+               + de::wire::stringWireSize(m_Telephone) // Telephone number
+               + de::wire::stringWireSize(m_Cellular)  // Mobile phone number
+               + de::wire::stringWireSize(m_ZipCode)   // Zip code
+               + de::wire::stringWireSize(m_Address)   // Address
+               + szBYTE                                // Country code
+               + de::wire::stringWireSize(m_Email)     // Email
+               + de::wire::stringWireSize(m_Homepage)  // Homepage
+               + de::wire::stringWireSize(m_Profile)   // Profile text
+               + szBYTE;                               // Whether it is public
     }
 
     // get packet name
@@ -68,8 +68,8 @@ public:
 public:
     //----------------------------------------------------------------------
     // *CAUTION*
-    // 각 setXXX()들은 최대 길이를 체크해서 truncate 하지만, 최소길이는
-    // 체크하지 않는다. 최소 길이는 read()/write() 에서 체크된다.
+    // Each setXXX() checks the maximum length and truncates, but does not check
+    // the minimum. The minimum length is checked in read()/write().
     //----------------------------------------------------------------------
 
     // get/set player's id
@@ -186,34 +186,34 @@ public:
 
 private:
     //--------------------------------------------------
-    // 플레이어 기본 정보
+    // Player's basic information
     //--------------------------------------------------
-    string m_ID;        // 아이디
-    string m_Password;  // 패스워드
+    string m_ID;        // Id
+    string m_Password;  // Password
                         //--------------------------------------------------
-                        // 플레이어 개인 정보
+                        // Player's personal information
                         //--------------------------------------------------
-    string m_Name;      // 이름
-    Sex m_Sex;          // 성별
-    string m_SSN;       // 주민등록번호
+    string m_Name;      // Name
+    Sex m_Sex;          // Sex
+    string m_SSN;       // Resident registration number
                         //--------------------------------------------------
-                        // 플레이어 연락처/주소
+                        // Player's contact details and address
                         //--------------------------------------------------
-    string m_Telephone; // 전화번호
-    string m_Cellular;  // 핸드폰
-    string m_ZipCode;   // 우편번호
-    string m_Address;   // 주소
-    Nation m_Nation;    // 국가 코드
+    string m_Telephone; // Telephone number
+    string m_Cellular;  // Mobile phone
+    string m_ZipCode;   // Zip code
+    string m_Address;   // Address
+    Nation m_Nation;    // Country code
                         //--------------------------------------------------
-                        // 플레이어 전자정보
+                        // Player's electronic details
                         //--------------------------------------------------
-    string m_Email;     // 전자메일
-    string m_Homepage;  // 홈페이지
+    string m_Email;     // Email
+    string m_Homepage;  // Homepage
                         //--------------------------------------------------
-                        // 기타
+                        // Other
                         //--------------------------------------------------
-    string m_Profile;   // 하고픈말
-    bool m_bPublic;     // 공개 여부
+    string m_Profile;   // What the player wants to say
+    bool m_bPublic;     // Whether it is public
 };
 
 
@@ -229,21 +229,21 @@ class CLRegisterPlayerFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_CL_REGISTER_PLAYER;
     static constexpr std::string_view kName = "CLRegisterPlayer";
-    // 최적화시 미리 계산된 상수를 사용하도록 한다.
-    static constexpr PacketSize_t kMaxSize{szBYTE + maxIDLength          // 아이디
-                                           + szBYTE + maxPasswordLength  // 패스워드
-                                           + szBYTE + maxNameLength      // 이름
-                                           + szBYTE                      // 성별
-                                           + szBYTE + maxSSNLength       // 주민등록번호
-                                           + szBYTE + maxTelephoneLength // 전화번호
-                                           + szBYTE + maxCellularLength  // 휴대폰번호
-                                           + szBYTE + maxZipCodeLength   // 우편번호
-                                           + szBYTE + maxAddressLength   // 주소
-                                           + szBYTE                      // 국가코드
-                                           + szBYTE + maxEmailLength     // 전자메일
-                                           + szBYTE + maxHomepageLength  // 홈페이지
-                                           + szBYTE + maxProfileLength   // 자기소개
-                                           + szBYTE};                    // 공개여부
+    // When optimizing, use the precomputed constant.
+    static constexpr PacketSize_t kMaxSize{szBYTE + maxIDLength          // Id
+                                           + szBYTE + maxPasswordLength  // Password
+                                           + szBYTE + maxNameLength      // Name
+                                           + szBYTE                      // Sex
+                                           + szBYTE + maxSSNLength       // Resident registration number
+                                           + szBYTE + maxTelephoneLength // Telephone number
+                                           + szBYTE + maxCellularLength  // Mobile phone number
+                                           + szBYTE + maxZipCodeLength   // Zip code
+                                           + szBYTE + maxAddressLength   // Address
+                                           + szBYTE                      // Country code
+                                           + szBYTE + maxEmailLength     // Email
+                                           + szBYTE + maxHomepageLength  // Homepage
+                                           + szBYTE + maxProfileLength   // Profile
+                                           + szBYTE};                    // Whether it is public
 
     // create packet
     Packet* createPacket() override {

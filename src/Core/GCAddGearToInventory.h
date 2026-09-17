@@ -2,8 +2,8 @@
 // Filename    : GCAddGearToInventory.h
 // Written By  : crazydog
 // Description :
-// Skill ShieldStrike�� ���� �߻�. shield�� ����â���� inventory��
-// ������.
+// Raised by the ShieldStrike skill. Moves the shield from the equipment
+// window into the inventory.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GC_ADD_GEAR_TO_INVENTORY_H__

@@ -13,12 +13,12 @@ void CLRegisterPlayer::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    // 플레이어 기본 정보 (ID - Password)
+    // Player's basic information (ID - Password)
     de::wire::readString(iStream, m_ID, {minIDLength, maxIDLength}, "ID");
 
     de::wire::readString(iStream, m_Password, {minPasswordLength, maxPasswordLength}, "Password");
 
-    // 플레이어 개인 정보 (Name - Sex - SSN)
+    // Player's personal information (Name - Sex - SSN)
     de::wire::readString(iStream, m_Name, {1, maxNameLength}, "Name");
 
     BYTE sex;
@@ -33,7 +33,7 @@ void CLRegisterPlayer::read(SocketInputStream& iStream)
 
     de::wire::readString(iStream, m_SSN, {1, maxSSNLength}, "SSN");
 
-    // 플레이어 연락처 (Telephone - Cellular - ZipCode - Address - Nation)
+    // Player's contact details (Telephone - Cellular - ZipCode - Address - Nation)
     de::wire::readString(iStream, m_Telephone, {1, maxTelephoneLength}, "Telephone");
 
     de::wire::readString(iStream, m_Cellular, {1, maxCellularLength}, "Cellular");
@@ -46,12 +46,12 @@ void CLRegisterPlayer::read(SocketInputStream& iStream)
     iStream.read(nation);
     m_Nation = (Nation)nation;
 
-    // 플레이어 전자 정보 (Email - Homepage)
+    // Player's electronic details (Email - Homepage)
     de::wire::readString(iStream, m_Email, {1, maxEmailLength}, "Email");
 
     de::wire::readString(iStream, m_Homepage, {1, maxHomepageLength}, "Homepage");
 
-    // 기타 (Profile - Public)
+    // Other (Profile - Public)
     de::wire::readString(iStream, m_Profile, {1, maxProfileLength}, "Profile");
 
     iStream.read(m_bPublic);
@@ -64,19 +64,19 @@ void CLRegisterPlayer::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    // 플레이어 기본 정보 (ID - Password)
+    // Player's basic information (ID - Password)
     de::wire::writeString(oStream, m_ID, {minIDLength, maxIDLength}, "ID");
 
     de::wire::writeString(oStream, m_Password, {minPasswordLength, maxPasswordLength}, "Password");
 
-    // 플레이어 개인 정보 (Name - Sex - SSN)
+    // Player's personal information (Name - Sex - SSN)
     de::wire::writeString(oStream, m_Name, {1, maxNameLength}, "Name");
 
     oStream.write((BYTE)m_Sex);
 
     de::wire::writeString(oStream, m_SSN, {1, maxSSNLength}, "SSN");
 
-    // 플레이어 연락처 (Telephone - Cellular - ZipCode - Address - Nation)
+    // Player's contact details (Telephone - Cellular - ZipCode - Address - Nation)
     de::wire::writeString(oStream, m_Telephone, {1, maxTelephoneLength}, "Telephone");
 
     de::wire::writeString(oStream, m_Cellular, {1, maxCellularLength}, "Cellular");
@@ -87,12 +87,12 @@ void CLRegisterPlayer::write(SocketOutputStream& oStream) const
 
     oStream.write((BYTE)m_Nation);
 
-    // 플레이어 전자 정보 (Email - Homepage)
+    // Player's electronic details (Email - Homepage)
     de::wire::writeString(oStream, m_Email, {1, maxEmailLength}, "Email");
 
     de::wire::writeString(oStream, m_Homepage, {1, maxHomepageLength}, "Homepage");
 
-    // 기타 (Profile - Public)
+    // Other (Profile - Public)
     de::wire::writeString(oStream, m_Profile, {1, maxProfileLength}, "Profile");
 
     oStream.write(m_bPublic);
