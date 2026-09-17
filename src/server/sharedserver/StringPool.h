@@ -3,8 +3,8 @@
 // Desc     : ���������� ���Ǵ� string ���� pool
 ////////////////////////////////////////////////////////////////////
 
-#ifndef __STRING_POOL_H__
-#define __STRING_POOL_H__
+#ifndef __SHARED_SERVER_STRING_POOL_H__
+#define __SHARED_SERVER_STRING_POOL_H__
 
 #include <string>
 
@@ -53,4 +53,4 @@ private:
 
 extern StringPool* g_pStringPool;
 
-#endif // __STRING_POOL_H__
+#endif // __SHARED_SERVER_STRING_POOL_H__

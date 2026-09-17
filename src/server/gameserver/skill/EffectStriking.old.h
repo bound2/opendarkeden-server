@@ -4,8 +4,8 @@
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __EFFECT_STRIKING__
-#define __EFFECT_STRIKING__
+#ifndef __EFFECT_STRIKING_OLD_H__
+#define __EFFECT_STRIKING_OLD_H__
 
 #include "Effect.h"
 #include "EffectLoader.h"
@@ -43,4 +43,4 @@ private:
     Damage_t m_incDamage;
 };
 
-#endif // __EFFECT_STRIKING__
+#endif // __EFFECT_STRIKING_OLD_H__

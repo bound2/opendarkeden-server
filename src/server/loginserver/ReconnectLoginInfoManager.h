@@ -6,8 +6,8 @@
 //
 //----------------------------------------------------------------------
 
-#ifndef __CONNECTION_INFO_MANAGER_H__
-#define __CONNECTION_INFO_MANAGER_H__
+#ifndef __RECONNECT_LOGIN_INFO_MANAGER_H__
+#define __RECONNECT_LOGIN_INFO_MANAGER_H__
 
 // include files
 #include <unordered_map>

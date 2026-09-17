@@ -1,5 +1,5 @@
-#ifndef __EVENT_QUEST_LOOTING_MANAGER_H__
-#define __EVENT_QUEST_LOOTING_MANAGER_H__
+#ifndef __EVENT_QUESTR_LOOTING_MANAGER_H__
+#define __EVENT_QUESTR_LOOTING_MANAGER_H__
 
 #include <map>
 #include <vector>
@@ -46,4 +46,4 @@ private:
     map<MonsterType_t, vector<EventQuestLootingInfo*>> m_MonsterLootingInfo;
 };
 
-#endif // __EVENT_QUEST_LOOTING_MANAGER_H__
+#endif // __EVENT_QUESTR_LOOTING_MANAGER_H__

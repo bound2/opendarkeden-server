@@ -4,8 +4,8 @@
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __GAME_SERVER_INFO_MANAGER_H__
-#define __GAME_SERVER_INFO_MANAGER_H__
+#ifndef __SHARED_SERVER_GAME_SERVER_INFO_MANAGER_H__
+#define __SHARED_SERVER_GAME_SERVER_INFO_MANAGER_H__
 
 #include <unordered_map>
 

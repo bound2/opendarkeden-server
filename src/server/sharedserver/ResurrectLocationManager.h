@@ -6,8 +6,8 @@
 // 있는 맵이다.
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __RESURRECTMANAGER_H__
-#define __RESURRECTMANAGER_H__
+#ifndef __SHARED_SERVER_RESURRECT_LOCATION_MANAGER_H__
+#define __SHARED_SERVER_RESURRECT_LOCATION_MANAGER_H__
 
 #include <unordered_map>
 

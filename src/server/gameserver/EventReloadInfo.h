@@ -4,8 +4,8 @@
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __EVENTRESURRECT_H__
-#define __EVENTRESURRECT_H__
+#ifndef __EVENT_RELOAD_INFO_H__
+#define __EVENT_RELOAD_INFO_H__
 
 #include "Event.h"
 #include "Zone.h"
