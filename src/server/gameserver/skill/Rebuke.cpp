@@ -13,7 +13,7 @@
 #include "GCStatusCurrentHP.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void Rebuke::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -51,7 +51,7 @@ void Rebuke::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffect
         if (bManaCheck && bTimeCheck && bRangeCheck) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToSelfOK1);
 
-            // 지속 시간을 계산한다.
+            // Compute the duration.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             computeOutput(input, output);
@@ -92,9 +92,9 @@ void Rebuke::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffect
                         Creature* pTargetCreature = (*itr);
                         Assert(pTargetCreature != NULL);
 
-                        // 안전지대 체크
+                        // Safe zone check
                         // 2003.1.10 by bezz, Sequoia
-                        // NPC도 체크
+                        // NPCs are checked too
                         // 2003.3.14 by Sequoia
                         if (pTargetCreature->isNPC() || !checkZoneLevelToHitTarget(pTargetCreature) ||
                             !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA))
@@ -102,7 +102,7 @@ void Rebuke::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffect
 
                         if (HitRoll::isSuccessRebuke(pSlayer, pSkillSlot, pTargetCreature)) {
                             HP_t RemainHP = 0;
-                            // 맞는 넘한테 데미지를 주고 남은 HP 를 구한다.
+                            // Damages the target that was hit and reads its remaining HP.
                             if (pTargetCreature->isVampire()) {
                                 GCModifyInformation gcMI;
                                 setDamage(pTargetCreature, output.Damage, pSlayer, SkillType, &gcMI);
@@ -117,14 +117,14 @@ void Rebuke::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffect
                                 RemainHP = pMonster->getHP(ATTR_CURRENT);
                             }
 
-                            // 이미 SLEEP 이펙트가 걸려있으면 먼저 걸려있던 이펙트를 삭제한다.
+                            // Deletes the existing SLEEP effect if the target already has one.
                             if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_SLEEP)) {
                                 pTargetCreature->deleteEffect(Effect::EFFECT_CLASS_SLEEP);
                             }
 
                             EffectSleep* pEffect = new EffectSleep(pTargetCreature);
 
-                            // 맞는 넘한테 SLEEP 이펙트를 걸어준다.
+                            // Puts the SLEEP effect on the target that was hit.
                             pEffect->setDeadline(output.Duration);
                             pTargetCreature->addEffect(pEffect);
                             pTargetCreature->setFlag(Effect::EFFECT_CLASS_SLEEP);
@@ -137,8 +137,8 @@ void Rebuke::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffect
 
                             bHit = true;
 
-                            // 성향을 올린다.
-                            // 타겟이 슬레이어이면 먼가 문제가 있다.
+                            // Raises the alignment.
+                            // A Slayer target would mean something is wrong.
                             if (!pTargetCreature->isSlayer()) {
                                 if (maxEnemyLevel < pTargetCreature->getLevel())
                                     maxEnemyLevel = pTargetCreature->getLevel();
@@ -148,7 +148,7 @@ void Rebuke::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffect
                     }
                 }
 
-            // 경험치를 올린다.
+            // Raises experience.
             if (bHit) {
                 SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
                 Exp_t ExpUp = 10 * (Grade + 1);

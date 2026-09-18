@@ -10,7 +10,7 @@
 #include "SimpleMissileSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void PoisonStrike::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                            CEffectID_t CEffectID)
@@ -37,7 +37,7 @@ void PoisonStrike::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // Knowledge of Poison 이 있다면 hit bonus 10
+    // Knowledge of Poison grants a to-hit bonus.
     int HitBonus = 0;
     if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_POISON)) {
         RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_POISON);
@@ -53,7 +53,7 @@ void PoisonStrike::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 오브젝트 핸들러
+// Monster object handler
 //////////////////////////////////////////////////////////////////////////////
 void PoisonStrike::execute(Monster* pMonster, Creature* pEnemy)
 

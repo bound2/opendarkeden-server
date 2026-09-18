@@ -18,15 +18,15 @@
 static BYTE getDirection_Halo(int originX, int originY, int destX, int destY) {
     int stepX = destX - originX, stepY = destY - originY;
 
-    // 0일 때 check
-    float k = (stepX == 0) ? 0 : (float)(stepY) / stepX; // 기울기
+    // Check for zero.
+    float k = (stepX == 0) ? 0 : (float)(stepY) / stepX; // Slope
 
 
     //--------------------------------------------------
-    // 방향을 정해야 한다.
+    // Determine the direction.
     //--------------------------------------------------
     if (stepY == 0) {
-        // X축
+        // X axis
         // - -;;
         if (stepX == 0)
             return DOWN;
@@ -34,13 +34,13 @@ static BYTE getDirection_Halo(int originX, int originY, int destX, int destY) {
             return RIGHT;
         else
             return LEFT;
-    } else if (stepY < 0) // UP쪽으로
+    } else if (stepY < 0) // Upward
     {
-        // y축 위
+        // Upward along the y axis
         if (stepX == 0) {
             return UP;
         }
-        // 1사분면
+        // First quadrant
         else if (stepX > 0) {
             if (k < -HALO_BASIS_DIRECTION_HIGH)
                 return UP;
@@ -49,7 +49,7 @@ static BYTE getDirection_Halo(int originX, int originY, int destX, int destY) {
             else
                 return RIGHT;
         }
-        // 2사분면
+        // Second quadrant
         else {
             if (k > HALO_BASIS_DIRECTION_HIGH)
                 return UP;
@@ -59,13 +59,13 @@ static BYTE getDirection_Halo(int originX, int originY, int destX, int destY) {
                 return LEFT;
         }
     }
-    // 아래쪽
+    // Downward
     else {
-        // y축 아래
+        // Downward along the y axis
         if (stepX == 0) {
             return DOWN;
         }
-        // 4사분면
+        // Fourth quadrant
         else if (stepX > 0) {
             if (k > HALO_BASIS_DIRECTION_HIGH)
                 return DOWN;
@@ -74,7 +74,7 @@ static BYTE getDirection_Halo(int originX, int originY, int destX, int destY) {
             else
                 return RIGHT;
         }
-        // 3사분면
+        // Third quadrant
         else {
             if (k < -HALO_BASIS_DIRECTION_HIGH)
                 return DOWN;
@@ -88,7 +88,7 @@ static BYTE getDirection_Halo(int originX, int originY, int destX, int destY) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void Halo::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                    CEffectID_t CEffectID)

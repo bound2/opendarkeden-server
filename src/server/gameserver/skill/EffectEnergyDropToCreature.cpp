@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectEnergyDropToCreature.cpp
-// Written by  : 장홍창
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -56,18 +55,18 @@ void EffectEnergyDropToCreature::affect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 이펙트 사용자를 가져온다.
-    // !! 이미 존을 나갔을 수 있으므로 NULL 이 될 수 있다.
+    // Get the creature that cast this effect.
+    // It may be NULL: the creature may already have left the zone.
     // by bezz. 2003.1.4
     Creature* pCastCreature = pZone->getCreature(m_UserObjectID);
 
-    // EffectEnergyDropToCreature은 AcidStorm, PoisonStorm, BloodyStorm위를 지나갈때 붙는다.
-    // 이는 3번의 연속 데미지를 주고 사라진다.
+    // EffectEnergyDropToCreature attaches when walking over AcidStorm, PoisonStorm or BloodyStorm.
+    // It deals damage three times in a row and then disappears.
 
     Damage_t DropDamage = m_Point;
 
     if (!(pZone->getZoneLevel() & COMPLETE_SAFE_ZONE)
-        // 무적상태 체크. by sigi. 2002.9.5
+        // Invincibility check.
         && canAttack(pCastCreature, pCreature) && !pCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
         if (pCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -96,10 +95,9 @@ void EffectEnergyDropToCreature::affect(Creature* pCreature)
             setDamage(pMonster, DropDamage, pCastCreature, SKILL_ENERGY_DROP);
         }
 
-        // m_CasterName이 pCreature를 죽인 경우의 KillCount 처리
+        // Handles the kill count when the caster kills pCreature.
         // by sigi. 2002.9.9
-        // set damage를 불러서 처리한다.
-        // by bezz. 2002.12.31 다시 주석 처리
+        // Handled by the setDamage call.
     }
 
     setNextTime(m_Tick);
@@ -131,7 +129,7 @@ void EffectEnergyDropToCreature::unaffect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 이펙트가 사라졌다고 알려준다.
+    // Tells clients that the effect is gone.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_ENERGY_DROP_TO_CREATURE);

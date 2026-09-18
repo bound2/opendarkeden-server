@@ -2,7 +2,7 @@
 // Filename    : EffectProtectionFromCurse.h
 // Written by  : excel96
 // Description :
-// ProtectionFromCurse에 의해서 생성되는 산성 데미지 약화 이펙트이다.
+// Effect created by ProtectionFromCurse that raises curse resistance.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_PROTECTION_FROM_CURSE__

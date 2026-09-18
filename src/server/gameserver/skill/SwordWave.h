@@ -33,7 +33,7 @@ public:
     void computeOutput(const SkillInput& input, SkillOutput& output);
 
 protected:
-    POINT m_pSwordWaveMask[8][3]; // 각 방향에 따른 타격 마스크
+    POINT m_pSwordWaveMask[8][3]; // Hit mask for each direction
 };
 
 // global variable declaration

@@ -93,7 +93,7 @@
 #include "mission/QuestManager.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// °ø°ÝÀÚ¿Í ÇÇ°ø°ÝÀÚ »çÀÌÀÇ ÆÄ¶ó¹ÌÅÍ¸¦ °è»êÇØ ÃÖÁ¾ µ¥¹ÌÁö¸¦ »êÃâÇÑ´Ù.
+// Computes the final damage from the parameters of the attacker and the target.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computeDamage(Creature* pCreature, Creature* pTargetCreature) {
     Assert(pCreature != NULL);
@@ -120,7 +120,7 @@ Damage_t computeDamage(Creature* pCreature, Creature* pTargetCreature) {
             Assert(pMonster != NULL);
             Damage = computeMonsterDamage(pMonster, pTargetCreature, bCriticalHit);
         } else {
-            // NPC¶ó´Â ¸»ÀÎ°¡...
+            // Anything else is an NPC, so no damage.
             return 0;
         }
     } catch (Throwable& t) {
@@ -131,7 +131,7 @@ Damage_t computeDamage(Creature* pCreature, Creature* pTargetCreature) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// °ø°ÝÀÚÀÇ ¼ø¼ö µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+// Computes the attacker's pure damage.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computePureDamage(Creature* pCreature) {
     Damage_t Damage = 0;
@@ -156,7 +156,7 @@ Damage_t computePureDamage(Creature* pCreature) {
         Assert(pMonster != NULL);
         Damage = computePureMonsterDamage(pMonster);
     } else {
-        // NPC¶ó´Â ¸»ÀÎ°¡...
+        // Anything else is an NPC, so no damage.
         return 0;
     }
 
@@ -164,9 +164,9 @@ Damage_t computePureDamage(Creature* pCreature) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// °ø°ÝÀÚ¿Í ÇÇ°ø°ÝÀÚ »çÀÌÀÇ ÆÄ¶ó¹ÌÅÍ¸¦ °è»êÇØ ÃÖÁ¾ µ¥¹ÌÁö¸¦ »êÃâÇÑ´Ù.
-// À§ÀÇ ÇÔ¼ö¿Í °°À¸³ª, ÀÌ ÇÔ¼ö¸¦ ºÎ¸¦ °æ¿ì¿¡´Â ³»ºÎÀûÀ¸·Î Å©¸®Æ¼ÄÃ
-// È÷Æ®¿Í °ü·ÃµÈ ºÎºÐÀÌ Ã³¸®µÈ´Ù.
+// Computes the final damage from the parameters of the attacker and the target.
+// Same as the function above, except that this one also handles the
+// critical hit part internally.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computeDamage(Creature* pCreature, Creature* pTargetCreature, int CriticalBonus, bool& bCritical) {
     Assert(pCreature != NULL);
@@ -194,7 +194,7 @@ Damage_t computeDamage(Creature* pCreature, Creature* pTargetCreature, int Criti
             Assert(pMonster != NULL);
             Damage = computeMonsterDamage(pMonster, pTargetCreature, bCriticalHit);
         } else {
-            // NPC¶ó´Â ¸»ÀÎ°¡...
+            // Anything else is an NPC, so no damage.
             return 0;
         }
     } catch (Throwable& t) {
@@ -203,7 +203,7 @@ Damage_t computeDamage(Creature* pCreature, Creature* pTargetCreature, int Criti
 
     bCritical = bCriticalHit;
 
-    // Å©¸®Æ¼ÄÃ È÷Æ®ÀÌ°í, ¸Â´Â ³ðÀÌ ¸ó½ºÅÍ¶ó¸é 150%ÀÇ µ¥¹ÌÁö¸¦ ÁÖ°Ô µÈ´Ù.
+    // A critical hit against a monster deals 150% damage.
     if (bCritical && pTargetCreature->isMonster()) {
         Damage = getPercentValue(Damage, 150);
     }
@@ -212,7 +212,7 @@ Damage_t computeDamage(Creature* pCreature, Creature* pTargetCreature, int Criti
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¿ø·¡ µ¥¹ÌÁö¿¡¼­ ÇÁ·ÎÅØ¼ÇÀ» Á¦¿ÜÇÑ ÃÖÁ¾ µ¥¹ÌÁö¸¦ ¸®ÅÏÇÑ´Ù.
+// Returns the final damage, the original damage less protection.
 //////////////////////////////////////////////////////////////////////////////
 double computeFinalDamage(Damage_t minDamage, Damage_t maxDamage, Damage_t realDamage, Protection_t Protection,
                           bool bCritical) {
@@ -222,7 +222,7 @@ double computeFinalDamage(Damage_t minDamage, Damage_t maxDamage, Damage_t realD
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î °ø°ÝÀÚ¿Í ÇÇ°ø°ÝÀÚ »çÀÌÀÇ µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+// Computes the damage between a Slayer attacker and the target.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computeSlayerDamage(Slayer* pSlayer, Creature* pTargetCreature, bool bCritical) {
     Assert(pSlayer != NULL);
@@ -232,20 +232,20 @@ Damage_t computeSlayerDamage(Slayer* pSlayer, Creature* pTargetCreature, bool bC
     uint timeband = getZoneTimeband(pSlayer->getZone());
     double FinalDamage = 0;
 
-    // ÀÏ´Ü ¸Ç¼ÕÀÇ µ¥¹ÌÁö¸¦ ¹Þ¾Æ¿Â´Ù.
+    // Start from the bare-handed damage.
     Damage_t MinDamage = pSlayer->getDamage(ATTR_CURRENT);
     Damage_t MaxDamage = pSlayer->getDamage(ATTR_MAX);
 
-    // ¹«±â¸¦ µé°í ÀÖ´Ù¸é, min, max¿¡ ¹«±âÀÇ min, max¸¦ °è»êÇØ ÁØ´Ù.
+    // If a weapon is held, add the weapon's min and max to min and max.
     if (pItem != NULL && pSlayer->isRealWearingEx(Slayer::WEAR_RIGHTHAND)) {
-        // ½ºÆ®¶óÀÌÅ· µ¥¹ÌÁö¸¦ °è»êÇÏ´Â ºÎºÐÀ» Slayer::initAllStat() ºÎºÐÀ¸·Î
-        // ¿Å±â¸é¼­ ±×°÷¿¡¼­ m_Damage[]¸¦ ¼¼ÆÃÇØ ¹ö¸®±â ¶§¹®¿¡, ¿©±â¼­ ´õÇÒ
-        // ÇÊ¿ä°¡ ¾ø¾îÁ³´Ù. -- 2002.01.17 ±è¼º¹Î
+        // Slayer::initAllStat() computes the striking damage and sets
+        // m_Damage[] there, so it does not have to be added again
+        // here.
         MinDamage += pItem->getMinDamage();
         MaxDamage += pItem->getMaxDamage();
     }
 
-    // ½ÇÁ¦ ·£´ý µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+    // Computes the actual random damage.
     Damage_t RealDamage = max(1, Random(MinDamage, MaxDamage));
 
     if (pTargetCreature->isSlayer()) {
@@ -279,17 +279,17 @@ Damage_t computeSlayerDamage(Slayer* pSlayer, Creature* pTargetCreature, bool bC
 
         FinalDamage = computeFinalDamage(MinDamage, MaxDamage, RealDamage, Protection, bCritical);
     } else {
-        // NPC¶ó´Â ¸»ÀÎ°¡...
+        // Anything else is an NPC, so no damage.
         return 0;
     }
 
-    // AbilityBalance.cpp¿¡¼­ ÇÑ´Ù.
+    // The balance adjustment is done in AbilityBalance.cpp.
 
     return (Damage_t)FinalDamage;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¹ìÆÄÀÌ¾î °ø°ÝÀÚ¿Í ÇÇ°ø°ÝÀÚ »çÀÌÀÇ µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+// Computes the damage between a Vampire attacker and the target.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computeVampireDamage(Vampire* pVampire, Creature* pTargetCreature, bool bCritical) {
     Assert(pVampire != NULL);
@@ -300,16 +300,16 @@ Damage_t computeVampireDamage(Vampire* pVampire, Creature* pTargetCreature, bool
     Damage_t MaxDamage = pVampire->getDamage(ATTR_MAX);
     uint timeband = getZoneTimeband(pVampire->getZone());
 
-    // vampire ¹«±â¿¡ ÀÇÇÑ µ¥¹ÌÁö
+    // Damage from the Vampire's weapon
     Item* pItem = pVampire->getWearItem(Vampire::WEAR_RIGHTHAND);
 
-    // ¹«±â¸¦ µé°í ÀÖ´Ù¸é, min, max¿¡ ¹«±âÀÇ min, max¸¦ °è»êÇØ ÁØ´Ù.
+    // If a weapon is held, add the weapon's min and max to min and max.
     if (pItem != NULL && pVampire->isRealWearingEx(Vampire::WEAR_RIGHTHAND)) {
         MinDamage += pItem->getMinDamage();
         MaxDamage += pItem->getMaxDamage();
     }
 
-    // ½ÇÁ¦ ·£´ý µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+    // Computes the actual random damage.
     Damage_t RealDamage = max(1, Random(MinDamage, MaxDamage));
 
     RealDamage = (Damage_t)getPercentValue(RealDamage, VampireTimebandFactor[timeband]);
@@ -345,17 +345,17 @@ Damage_t computeVampireDamage(Vampire* pVampire, Creature* pTargetCreature, bool
 
         FinalDamage = computeFinalDamage(MinDamage, MaxDamage, RealDamage, Protection, bCritical);
     } else {
-        // NPC¶ó´Â ¸»ÀÎ°¡...
+        // Anything else is an NPC, so no damage.
         return 0;
     }
 
-    // AbilityBalance.cpp¿¡¼­ ÇÑ´Ù.
+    // The balance adjustment is done in AbilityBalance.cpp.
 
     return (Damage_t)FinalDamage;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¾Æ¿ì½ºÅÍ½º °ø°ÝÀÚ¿Í ÇÇ°ø°ÝÀÚ »çÀÌÀÇ µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+// Computes the damage between an Ousters attacker and the target.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computeOustersDamage(Ousters* pOusters, Creature* pTargetCreature, bool bCritical) {
     Assert(pOusters != NULL);
@@ -366,16 +366,16 @@ Damage_t computeOustersDamage(Ousters* pOusters, Creature* pTargetCreature, bool
     Damage_t MaxDamage = pOusters->getDamage(ATTR_MAX);
     uint timeband = getZoneTimeband(pOusters->getZone());
 
-    // Ousters ¹«±â¿¡ ÀÇÇÑ µ¥¹ÌÁö
+    // Damage from the Ousters weapon
     Item* pItem = pOusters->getWearItem(Ousters::WEAR_RIGHTHAND);
 
-    // ¹«±â¸¦ µé°í ÀÖ´Ù¸é, min, max¿¡ ¹«±âÀÇ min, max¸¦ °è»êÇØ ÁØ´Ù.
+    // If a weapon is held, add the weapon's min and max to min and max.
     if (pItem != NULL && pOusters->isRealWearingEx(Ousters::WEAR_RIGHTHAND)) {
         MinDamage += pItem->getMinDamage();
         MaxDamage += pItem->getMaxDamage();
     }
 
-    // ½ÇÁ¦ ·£´ý µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+    // Computes the actual random damage.
     Damage_t RealDamage = max(1, Random(MinDamage, MaxDamage));
 
     if (pTargetCreature->isSlayer()) {
@@ -409,17 +409,17 @@ Damage_t computeOustersDamage(Ousters* pOusters, Creature* pTargetCreature, bool
 
         FinalDamage = computeFinalDamage(MinDamage, MaxDamage, RealDamage, Protection, bCritical);
     } else {
-        // NPC¶ó´Â ¸»ÀÎ°¡...
+        // Anything else is an NPC, so no damage.
         return 0;
     }
 
-    // AbilityBalance.cpp¿¡¼­ ÇÑ´Ù.
+    // The balance adjustment is done in AbilityBalance.cpp.
 
     return (Damage_t)FinalDamage;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¸ó½ºÅÍ °ø°ÝÀÚ¿Í ÇÇ°ø°ÝÀÚ »çÀÌÀÇ µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+// Computes the damage between a monster attacker and the target.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computeMonsterDamage(Monster* pMonster, Creature* pTargetCreature, bool bCritical) {
     Assert(pMonster != NULL);
@@ -464,7 +464,7 @@ Damage_t computeMonsterDamage(Monster* pMonster, Creature* pTargetCreature, bool
 
         FinalDamage = computeFinalDamage(MinDamage, MaxDamage, RealDamage, Protection, bCritical);
     } else {
-        // NPC¶ó´Â ¸»ÀÎ°¡?
+        // Anything else is an NPC, so no damage.
         return 0;
     }
 
@@ -472,7 +472,7 @@ Damage_t computeMonsterDamage(Monster* pMonster, Creature* pTargetCreature, bool
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// resistance¸¦ °í·ÁÇÑ ¸¶¹ý µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+// Computes magic damage with resistance taken into account.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computeMagicDamage(Creature* pTargetCreature, int Damage, SkillType_t SkillType, bool bVampire,
                             Creature* pAttacker) {
@@ -505,7 +505,7 @@ Damage_t computeMagicDamage(Creature* pTargetCreature, int Damage, SkillType_t S
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¸®½ºÆ²¸´À» °í·ÁÇÑ ¾Æ¿ì½ºÅÍÁî ¸¶¹ý µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+// Computes Ousters magic damage with the wristlet taken into account.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computeOustersMagicDamage(Ousters* pOusters, Creature* pTargetCreature, int Damage, SkillType_t SkillType) {
     Assert(pOusters != NULL);
@@ -522,19 +522,19 @@ Damage_t computeOustersMagicDamage(Ousters* pOusters, Creature* pTargetCreature,
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Å¸°Ù¿¡°Ô ¹ÌÄ¡´Â Àº µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+// Computes the silver damage dealt to the target.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computeSlayerSilverDamage(Creature* pCreature, int Damage, ModifyInfo* pMI) {
     Assert(pCreature != NULL);
 
-    // ½½·¹ÀÌ¾î°¡ ¾Æ´Ï¶ó¸é Àº µ¥¹ÌÁö°¡ ³ª¿Ã ÀÌÀ¯°¡ ¾ø´Ù.
+    // Only a Slayer has any reason to deal silver damage.
     if (pCreature->isSlayer() == false)
         return 0;
 
     Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
     Assert(pSlayer != NULL);
 
-    // ¹«±â°¡ ÀÖ´ÂÁö °Ë»çÇÏ°í, ¾ø´Ù¸é 0À» ¸®ÅÏÇÑ´Ù.
+    // Checks for a weapon and returns 0 when there is none.
     Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
     if (pWeapon == NULL)
         return 0;
@@ -542,7 +542,7 @@ Damage_t computeSlayerSilverDamage(Creature* pCreature, int Damage, ModifyInfo* 
     Damage_t silverDamage = 0;
 
     if (isMeleeWeapon(pWeapon)) {
-        // ¼ºÁ÷ÀÚ ¹«±âÀÏ °æ¿ì¿¡´Â, ±âº»ÀûÀ¸·Î 10%ÀÇ Àº µ¥¹ÌÁö¸¦ ÁØ´Ù.
+        // A cleric weapon deals 10% silver damage by default.
         if (isClericWeapon(pWeapon)) {
             silverDamage = max(1, (int)(Damage * 0.1));
             silverDamage = min((int)silverDamage, (int)pWeapon->getSilver());
@@ -554,10 +554,10 @@ Damage_t computeSlayerSilverDamage(Creature* pCreature, int Damage, ModifyInfo* 
                     pMI->addShortData(MODIFY_SILVER_DURABILITY, pWeapon->getSilver());
             }
 
-            // ±âº»À¸·Î µé¾î°¡´Â 10%ÀÇ Àº µ¥¹ÌÁö
+            // The base 10% silver damage
             silverDamage += max(1, (int)(Damage * 0.1));
         }
-        // ¼ºÁ÷ÀÚ ¹«±â°¡ ¾Æ´Ò °æ¿ì¿¡´Â, Àº µµ±ÝÀ» ÇßÀ» ¶§¸¸ Àº µ¥¹ÌÁö¸¦ ÁØ´Ù.
+        // A weapon that is not a cleric weapon deals silver damage only when it is silver-plated.
         else {
             silverDamage = max(1, (int)(Damage * 0.1));
             silverDamage = min((int)silverDamage, (int)pWeapon->getSilver());
@@ -570,9 +570,9 @@ Damage_t computeSlayerSilverDamage(Creature* pCreature, int Damage, ModifyInfo* 
             }
         }
     } else if (isArmsWeapon(pWeapon) && pWeapon->getSilver() > 0) {
-        // ÃÑ °è¿­ÀÇ ¹«±â¶ó¸é, Àº Åº¾ËÀÌ ³ª°¡´Â °ÍÀÌ¹Ç·Î,
-        // ¹«±â ÀÚÃ¼ÀÇ ÀºÀ» ÁÙÀÌ¸é ¾È µÈ´Ù. ÀÌ°ÍÀº ¿ÜºÎ¿¡¼­,
-        // Áï ÃÑ¾ËÀ» ÁÙÀÌ´Â ºÎºÐ¿¡¼­ Ã³¸®ÇÏ±â·Î ÇÑ´Ù.
+        // A gun fires silver bullets, so the weapon's own silver must
+        // not be reduced. That is handled outside, in the code that
+        // consumes the bullets.
         silverDamage = max(1, (int)(Damage * 0.1));
     }
 
@@ -623,7 +623,7 @@ void computeCriticalBonus(Ousters* pOusters, SkillType_t skillType, Damage_t& Da
 HP_t setCounterDamage(Creature* pAttacker, Creature* pTarget, Damage_t counterDamage, bool& bBroadcastAttackerHP,
                       bool& bSendAttackerHP) {
     HP_t Result2 = 0;
-    // ¾ÈÀüÁö´ë Ã¼Å©
+    // Safe zone check
     // 2003.1.10 by bezz, Sequoia
     if (pAttacker != NULL && checkZoneLevelToHitTarget(pAttacker)) {
         if (pAttacker->isSlayer()) {
@@ -641,11 +641,11 @@ HP_t setCounterDamage(Creature* pAttacker, Creature* pTarget, Damage_t counterDa
             bBroadcastAttackerHP = true;
             bSendAttackerHP = true;
 
-            // Mephisto ÀÌÆåÆ® °É·ÁÀÖÀ¸¸é HP 30% ÀÌÇÏÀÏ¶§ Ç®¸°´Ù.
+            // The Mephisto effect is cleared once HP drops low.
             if (pVampireAttacker->isFlag(Effect::EFFECT_CLASS_MEPHISTO)) {
                 HP_t maxHP = pVampireAttacker->getHP(ATTR_MAX);
 
-                // 33% ... ÄÉÄÉ..
+                // A third, not 30%.
                 if (Result2 * 3 < maxHP) {
                     Effect* pEffect = pVampireAttacker->findEffect(Effect::EFFECT_CLASS_MEPHISTO);
                     if (pEffect != NULL) {
@@ -668,7 +668,7 @@ HP_t setCounterDamage(Creature* pAttacker, Creature* pTarget, Damage_t counterDa
             pMonsterAttacker->setHP(Result2, ATTR_CURRENT);
             pMonsterAttacker->setDamaged(true);
 
-            // ¸ó½ºÅÍ°¡ ¿ª µ¥¹ÌÁö¸¦ ¹ÞÀ» °æ¿ì¿¡µµ »þÇÁ½Çµå ¾²°í °ø°Ý¹ÞÀº ½½·¹ÀÌ¾î¿¡°Ô ¿ì¼±±ÇÀÌ ÁÖ¾îÁø´Ù.
+            // Counter damage on a monster gives precedence to the Slayer whose Sharp Shield reflected it.
             pMonsterAttacker->addPrecedence(pTarget->getName(), pTarget->getPartyID(), counterDamage);
             pMonsterAttacker->setLastHitCreatureClass(pTarget->getCreatureClass());
 
@@ -676,15 +676,15 @@ HP_t setCounterDamage(Creature* pAttacker, Creature* pTarget, Damage_t counterDa
             if (pMonsterAttacker->getHP(ATTR_CURRENT) * 3 < pMonsterAttacker->getHP(ATTR_MAX)) {
                 PrecedenceTable* pTable = pMonsterAttacker->getPrecedenceTable();
 
-                // HP°¡ 3ºÐÀÇ 1 ÀÌÇÏÀÎ »óÅÂ¶ó°í ¹«Á¶°Ç °è»êÀ» ÇÏ¸é,
-                // ¸ÅÅÏ¸¶´Ù ÀÇ¹Ì°¡ ¾ø´Â °è»êÀ» °è¼Ó ÇÏ°Ô µÇ¹Ç·Î,
-                // ÇÑ¹ø °è»êÀ» ÇÏ°í ³ª¸é, Á×±â Àü±îÁö´Â ´Ù½Ã °è»êÇÏÁö ¾Êµµ·Ï
-                // ÇÃ·¡±×¸¦ ¼¼ÆÃÇØ ÁØ´Ù. ÀÌ ÇÃ·¡±×¸¦ ÀÌ¿ëÇÏ¿© ÇÊ¿ä¾ø´Â °è»êÀ» ÁÙÀÎ´Ù.
+                // Computing unconditionally whenever HP is below a third
+                // would repeat meaningless work every turn, so once the
+                // computation has run a flag is set and it does not run
+                // again before the monster dies, sparing the useless work.
                 if (pTable->getComputeFlag() == false) {
-                    // °è»êÀ» ÇØÁØ´Ù.
+                    // Computes the table.
                     pTable->compute();
 
-                    // È£½ºÆ®ÀÇ ÀÌ¸§°ú ÆÄÆ¼ ID¸¦ ÀÌ¿ëÇÏ¿©, ÀÌÆåÆ®¸¦ °É¾îÁØ´Ù.
+                    // Applies the effect using the host's name and party ID.
                     EffectPrecedence* pEffectPrecedence = new EffectPrecedence(pMonsterAttacker);
                     pEffectPrecedence->setDeadline(100);
                     pEffectPrecedence->setHostName(pTable->getHostName());
@@ -786,7 +786,7 @@ bool canBlockByGrayDarkness(SkillType_t skillType) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Á÷Á¢ÀûÀ¸·Î µ¥¹ÌÁö¸¦ ¼¼ÆÃÇÑ´Ù.
+// Applies damage directly.
 //////////////////////////////////////////////////////////////////////////////
 HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, SkillType_t SkillType, ModifyInfo* pMI,
                ModifyInfo* pAttackerMI, bool canKillTarget, bool canSteal) {
@@ -794,8 +794,8 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 
     if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE) ||
         pTargetCreature->isFlag(Effect::EFFECT_CLASS_TENDRIL) || pTargetCreature->isDead()) {
-        //  return°ªÀ¸·Î ÇöÀç HP¸¦ ³Ñ°ÜÁà¾ß Á¤»óÀÌ°ÚÁö¸¸
-        //  return°ªÀ» »ç¿ëÇÏ´Â ºÎºÐÀÌ ¾ø¾î¼­ ÀÏ´Ü ¹«½ÃÇÑ´Ù.
+        //  Returning the current HP would be the correct thing to do,
+        //  but nothing uses the return value, so it is ignored.
         //  by sigi. 2002.9.5
         return 0;
     }
@@ -804,7 +804,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
     Zone* pZone = pTargetCreature->getZone();
     Assert(pZone != NULL);
 
-    // Áúµå·¹ ·¹¾î¿¡¼­
+    // In the Gilles de Rais lair, one PC cannot damage another.
     if (pZone->getZoneID() == 1412 || pZone->getZoneID() == 1413) {
         if (pTargetCreature->isPC() && pAttacker != NULL && pAttacker->isPC())
             return 0;
@@ -823,12 +823,12 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 
     Damage_t OriginalDamage = Damage;
 
-    bool bBroadcastTargetHP = false;   // ÇÇ°ø°ÝÀÚÀÇ HP¸¦ ºê·ÎµåÄ³½ºÆÃÇÏ³ª?
-    bool bSendTargetHP = false;        // ÇÇ°ø°ÝÀÚÀÇ HP¸¦ º¸³»ÁÖ³ª?
-    bool bSendTargetMP = false;        // ÇÇ°ø°ÝÀÚÀÇ MP¸¦ º¸³»ÁÖ³ª?
-    bool bBroadcastAttackerHP = false; // °ø°ÝÀÚÀÇ HP¸¦ ºê·ÎµåÄ³½ºÆÃÇÏ³ª?
-    bool bSendAttackerHP = false;      // °ø°ÝÀÚÀÇ HP¸¦ º¸³»ÁÖ³ª?
-    bool bSendAttackerMP = false;      // °ø°ÝÀÚÀÇ MP¸¦ º¸³»ÁÖ³ª?
+    bool bBroadcastTargetHP = false;   // Broadcast the target's HP?
+    bool bSendTargetHP = false;        // Send the target's HP?
+    bool bSendTargetMP = false;        // Send the target's MP?
+    bool bBroadcastAttackerHP = false; // Broadcast the attacker's HP?
+    bool bSendAttackerHP = false;      // Send the attacker's HP?
+    bool bSendAttackerMP = false;      // Send the attacker's MP?
 
     GCStatusCurrentHP gcTargetHP;
     GCStatusCurrentHP gcAttackerHP;
@@ -861,8 +861,8 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         }
     }
 
-    // ¾Æ¸¶°Ôµ· ÀÌÆåÆ®°¡ °É·ÁÀÖÀ» °æ¿ì ¼öÁ¤±¸½½(?)ÀÇ HP¸¦ ±ð¾ÆÁÖ°í Å¸°ÙÀº °ø°Ý¹ÞÁö ¾Ê´Â´Ù.
-    // SKILL_ARMAGEDDONÀÏ °æ¿ì ¾Æ¸¶°Ôµ· ÀÌÆåÆ® ÀÚÃ¼ÀÇ µ¥¹ÌÁöÀÌ¹Ç·Î ±×³É Å¸°ÙÀ» °ø°ÝÇÏ´Â ÂÊÀ¸·Î ³Ñ¾î°£´Ù.
+    // Under the Armageddon effect the crystal orb takes the HP loss and the target is not attacked.
+    // For SKILL_ARMAGEDDON the damage is the effect itself, so it goes on to attack the target.
 
     if (pTargetCreature != NULL && pTargetCreature->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
@@ -871,7 +871,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
                 return 0;
     }
 
-    // ½ºÆ®¶óÀÌÅ·ÀÌ °É·ÁÀÖÀ¸¸é ¸¶¹ý µ¥¹ÌÁö »½Æ¢±â
+    // Striking inflates magic damage.
     if (pAttacker != NULL && pSkillProperty->isMagic() && pAttacker->isFlag(Effect::EFFECT_CLASS_STRIKING)) {
         EffectStriking* pEffect = dynamic_cast<EffectStriking*>(pAttacker->findEffect(Effect::EFFECT_CLASS_STRIKING));
         if (pEffect != NULL) {
@@ -887,15 +887,15 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         }
     }
 
-    // Denial Magic ÀÌ °É·ÁÀÖÀ» °æ¿ì ¸¶¹ýµ¥¹ÌÁöÀÎÁö Ã¼Å©ÇØ¼­ ¹èÂ²´Ù.
+    // Denial Magic checks whether the damage is magic and refuses it.
     if (pTargetCreature != NULL && pTargetCreature->isFlag(Effect::EFFECT_CLASS_DENIAL_MAGIC) &&
         pSkillProperty->isMagic()) {
-        // ±âº»½ºÅ³Àº SkillInfo °¡ ¾ø´Ù.
+        // Basic skills have no SkillInfo.
         if (SkillType >= SKILL_DOUBLE_IMPACT) {
-            // ¹ìÆÄÀÌ¾îÀÇ ¸¶¹ýµ¥¹ÌÁö¸¸ ¸·¾ÆÁØ´Ù.
+            // Blocks only Vampire magic damage.
             if (pSkillInfo->getDomainType() == SKILL_DOMAIN_VAMPIRE ||
                 pSkillInfo->getDomainType() == SKILL_DOMAIN_OUSTERS) {
-                // ¼º°øÀûÀ¸·Î ¸·¾ÒÀ» °æ¿ì ÀÌÆåÆ®¸¦ ¸ÚÁö°Ô ³¯·ÁÁØ´Ù.
+                // On a successful block, sends the effect.
                 GCAddEffect gcAddEffect;
                 gcAddEffect.setObjectID(pTargetCreature->getObjectID());
                 gcAddEffect.setEffectID(Effect::EFFECT_CLASS_DENIAL_MAGIC_DAMAGED);
@@ -904,16 +904,16 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
                 pTargetCreature->getZone()->broadcastPacket(pTargetCreature->getX(), pTargetCreature->getY(),
                                                             &gcAddEffect);
 
-                // ¹èÂ°Áö ¸»°í µ¥¹ÌÁö 60%...... ¤Ì.¤Ð
+                // Not a full block: the damage is cut by 60%.
                 Damage = max(1, (int)(Damage * 0.4));
             }
         }
     }
 
-    // Water Barrier °¡ °É·ÁÀÖÀ» °æ¿ì ÃÑ½½ °ø°Ý¿¡ ´ëÇØ¼­¸¸ µ¥¹ÌÁö¸¦ ÁÙ¿©ÁØ´Ù.
+    // Water Barrier reduces the damage only for gun attacks.
     if (pTargetCreature != NULL && pTargetCreature->isFlag(Effect::EFFECT_CLASS_WATER_BARRIER) &&
         !pSkillProperty->isMelee()) {
-        // ±âº»½ºÅ³Àº SkillInfo °¡ ¾ø´Ù.
+        // Basic skills have no SkillInfo.
         if (canBlockByWaterBarrier(SkillType)) {
             EffectWaterBarrier* pEWB =
                 dynamic_cast<EffectWaterBarrier*>(pTargetCreature->findEffect(Effect::EFFECT_CLASS_WATER_BARRIER));
@@ -928,7 +928,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         }
     }
 
-    // Water Shield °¡ °É¸± ¼ö ÀÖ´Â °æ¿ì ¹°¸® °ø°Ý¿¡ ´ëÇØ¼­´Â µ¥¹ÌÁö¸¦ ÁÖÁö ¾Ê´Â´Ù
+    // When Water Shield can be up, physical attacks deal no damage.
     if (pTargetCreature != NULL && pSkillProperty->isPhysic()) {
         if (pTargetCreature->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pTargetCreature);
@@ -1009,10 +1009,10 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
     }
 
     ////////////////////////////////////////////////////////////////////
-    // Target Creature ¿¡ ÀÌÆåÆ®¸¦ Ã³¸®ÇÑ´Ù.
+    // Handles the effects on the target creature.
     ////////////////////////////////////////////////////////////////////
     if (pTargetCreature != NULL) {
-        // SLEEP ÀÌÆåÆ®°¡ °É·Á ÀÖ´Ù¸é ÀÌÆåÆ®¸¦ »èÁ¦ÇÑ´Ù.
+        // Removes the SLEEP effect when it is applied.
         if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_SLEEP) && SkillType != SKILL_REBUKE) {
             EffectSleep* pEffect = dynamic_cast<EffectSleep*>(pTargetCreature->findEffect(Effect::EFFECT_CLASS_SLEEP));
             Assert(pEffect != NULL);
@@ -1028,9 +1028,9 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 
         gcAttackerHP.setObjectID(AOID);
 
-        // ¾ðÁ¨°¡ ÃÖÀûÈ­¸¦ ÇÏ°Ô µÈ´Ù¸é.. -_-;
-        // Creature¿¡´Ù°¡ Penalty°ü·Ã memberµéÀ» ³Ö´Â°Ô ³ªÀ» °ÍÀÌ´Ù.
-        // Hymn°É·ÁÀÖ´Ù¸é damage penalty% ¹Þ´Â´Ù.
+        // If this is ever optimized, the penalty-related members would
+        // be better placed on Creature.
+        // Hymn applies a damage penalty percentage.
         if (pAttacker->isFlag(Effect::EFFECT_CLASS_HYMN)) {
             EffectHymn* pHymn =
                 dynamic_cast<EffectHymn*>(pAttacker->getEffectManager()->findEffect(Effect::EFFECT_CLASS_HYMN));
@@ -1042,7 +1042,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             Slayer* pAttackSlayer = dynamic_cast<Slayer*>(pAttacker);
             Assert(pAttackSlayer != NULL);
 
-            // ¼¿ÇÁ½ºÅ³µé °æÇèÄ¡ ÁÖ±â --;;
+            // Gives skill experience for the self skills.
             if (canGiveSkillExp(pAttackSlayer, SKILL_DOMAIN_SWORD, SkillType)) {
                 if (pAttackSlayer->isFlag(Effect::EFFECT_CLASS_DANCING_SWORD) && (rand() % 2) != 0)
                     giveSkillExp(pAttackSlayer, SKILL_DANCING_SWORD, *pAttackerMI);
@@ -1076,7 +1076,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             }
         }
 
-        // Blood Bible º¸³Ê½º¸¦ Àû¿ëÇÑ´Ù.
+        // Applies the Blood Bible bonus.
         if (pAttacker->isPC()) {
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pAttacker);
             Damage_t MagicBonusDamage = pPC->getMagicBonusDamage();
@@ -1092,25 +1092,25 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
     }
 
     ////////////////////////////////////////////////////////////
-    // ¸ÕÀú hp, mp stealÀ» Ã³¸®ÇÑ´Ù.
+    // Handles HP and MP steal first.
     ////////////////////////////////////////////////////////////
     if (pAttacker != NULL && canSteal) //(SkillType != SKILL_PROMINENCE && SkillType != SKILL_HELLFIRE)
     {
         Steal_t HPStealAmount = pAttacker->getHPStealAmount();
         Steal_t MPStealAmount = pAttacker->getMPStealAmount();
 
-        // HP ½ºÆ¿À» Ã¼Å©ÇÑ´Ù.
+        // Checks the HP steal.
         if (HPStealAmount != 0 && (rand() % 100) < pAttacker->getHPStealRatio()) {
             if (pAttacker->isSlayer()) {
                 if (pAttacker->isAlive()) {
                     Slayer* pSlayer = dynamic_cast<Slayer*>(pAttacker);
 
-                    // ÇöÀçÀÇ HP¿¡´Ù ½ºÆ¿ÇÑ ¾çÀ» ´õÇÏ°í,
-                    // ¸Æ½º¸¦ ³ÑÁö´Â ¾Ê´ÂÁö Ã¼Å©¸¦ ÇÑ´Ù.
+                    // Adds the stolen amount to the current HP and
+                    // checks that it does not exceed the max.
                     hp = pSlayer->getHP(ATTR_CURRENT) + (int)HPStealAmount;
                     hp = min(hp, pSlayer->getHP(ATTR_MAX));
 
-                    // HP¸¦ ¼¼ÆÃÇÏ°í, ÇÃ·¡±×¸¦ ÄÒ´Ù.
+                    // Sets the HP and turns the flags on.
                     pSlayer->setHP(hp, ATTR_CURRENT);
                     bBroadcastAttackerHP = true;
                     bSendAttackerHP = true;
@@ -1118,26 +1118,26 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             } else if (pAttacker->isVampire()) {
                 Vampire* pVampire = dynamic_cast<Vampire*>(pAttacker);
 
-                // ÇöÀçÀÇ HP¿¡´Ù ½ºÆ¿ÇÑ ¾çÀ» ´õÇÏ°í,
-                // ¸Æ½º¸¦ ³ÑÁö´Â ¾Ê´ÂÁö Ã¼Å©¸¦ ÇÑ´Ù.
+                // Adds the stolen amount to the current HP and
+                // checks that it does not exceed the max.
                 hp = pVampire->getHP(ATTR_CURRENT) + (int)HPStealAmount;
                 hp = min(hp, pVampire->getHP(ATTR_MAX));
 
-                // HP¸¦ ¼¼ÆÃÇÏ°í, ÇÃ·¡±×¸¦ ÄÒ´Ù.
+                // Sets the HP and turns the flags on.
                 pVampire->setHP(hp, ATTR_CURRENT);
                 bBroadcastAttackerHP = true;
                 bSendAttackerHP = true;
             } else if (pAttacker->isOusters()) {
-                // Á×Àº³Ñ HP¿Ã·ÁÁÖÁö¸»ÀÚ
+                // Does not raise the HP of a dead attacker.
                 if (pAttacker->isAlive()) {
                     Ousters* pOusters = dynamic_cast<Ousters*>(pAttacker);
 
-                    // ÇöÀçÀÇ HP¿¡´Ù ½ºÆ¿ÇÑ ¾çÀ» ´õÇÏ°í,
-                    // ¸Æ½º¸¦ ³ÑÁö´Â ¾Ê´ÂÁö Ã¼Å©¸¦ ÇÑ´Ù.
+                    // Adds the stolen amount to the current HP and
+                    // checks that it does not exceed the max.
                     hp = pOusters->getHP(ATTR_CURRENT) + (int)HPStealAmount;
                     hp = min(hp, pOusters->getHP(ATTR_MAX));
 
-                    // HP¸¦ ¼¼ÆÃÇÏ°í, ÇÃ·¡±×¸¦ ÄÒ´Ù.
+                    // Sets the HP and turns the flags on.
                     pOusters->setHP(hp, ATTR_CURRENT);
                     bBroadcastAttackerHP = true;
                     bSendAttackerHP = true;
@@ -1146,14 +1146,14 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
                 Assert(false);
         }
 
-        // MP ½ºÆ¿À» Ã¼Å©ÇÑ´Ù.
+        // Checks the MP steal.
         if (MPStealAmount != 0 && (rand() % 100) < pAttacker->getMPStealRatio()) {
-            // ½½·¹ÀÌ¾î¿Í ¾Æ¿ì½ºÅÍ½ºÀÏ °æ¿ì MP ½ºÆ¿À» Ã³¸®ÇÑ´Ù.
+            // Handles MP steal for a Slayer or an Ousters.
             if (pAttacker->isSlayer()) {
                 Slayer* pSlayer = dynamic_cast<Slayer*>(pAttacker);
 
-                // ÇöÀçÀÇ MP¿¡´Ù ½ºÆ¿ÇÑ ¾çÀ» ´õÇÏ°í,
-                // ¸Æ½º¸¦ ³ÑÁö´Â ¾Ê´ÂÁö Ã¼Å©¸¦ ÇÑ´Ù.
+                // Adds the stolen amount to the current MP and
+                // checks that it does not exceed the max.
                 mp = pSlayer->getMP(ATTR_CURRENT) + (int)MPStealAmount;
                 mp = min(mp, pSlayer->getMP(ATTR_MAX));
 
@@ -1164,8 +1164,8 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
                 Ousters* pOusters = dynamic_cast<Ousters*>(pAttacker);
 
                 if (pOusters->getMP(ATTR_CURRENT) < pOusters->getMP(ATTR_MAX)) {
-                    // ÇöÀçÀÇ MP¿¡´Ù ½ºÆ¿ÇÑ ¾çÀ» ´õÇÏ°í,
-                    // ¸Æ½º¸¦ ³ÑÁö´Â ¾Ê´ÂÁö Ã¼Å©¸¦ ÇÑ´Ù.
+                    // Adds the stolen amount to the current MP and
+                    // checks that it does not exceed the max.
                     mp = pOusters->getMP(ATTR_CURRENT) + (int)MPStealAmount;
                     mp = min(mp, pOusters->getMP(ATTR_MAX));
 
@@ -1217,10 +1217,10 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
     }
 
     ////////////////////////////////////////////////////////////
-    // ¸Â´Â ³ðÀÌ ½½·¹ÀÌ¾îÀÏ °æ¿ì
+    // The target is a Slayer.
     ////////////////////////////////////////////////////////////
     if (pTargetCreature->isSlayer()) {
-        // ¾Æ¿ì½ºÅÍÁî°¡ ¹ìÆÄÀÌ¾î¸¦ Á×ÀÎ °æ¿ì
+        // An Ousters killed a Vampire.
         Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);
         bool bSetDamage = false;
 
@@ -1233,11 +1233,11 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             Result2 = setCounterDamage(pAttacker, pSlayer, counterDamage, bBroadcastAttackerHP, bSendAttackerHP);
         }
 
-        // AuraShield È¿°ú·Î HP´ë½Å MP°¡ ¼Ò¸ðµÇ´Â °æ¿ì°¡ ÀÖ´Ù.
-        // ¸¶½ºÅÍ ·¹¾î¿¡¼­ ¶ß´Â ±×¶ó¿îµå ¾îÅÃ(¶¥¿¡¼­ Æ¢¾î³ª¿À´Â ºÒ±âµÕ) ¸ÂÀ¸¸é ¿À¶ó½Çµå ¹«½ÃÇÏ°í HP ´â°Ô ÇÑ´Ù.
+        // The Aura Shield effect can consume MP instead of HP.
+        // The ground attack in the master lair (a pillar of fire) ignores Aura Shield and burns HP.
         // 2003. 1.16. Sequoia
         if (pSlayer->isFlag(Effect::EFFECT_CLASS_AURA_SHIELD) && SkillType != SKILL_GROUND_ATTACK) {
-            // °ø°ÝÀÚ¿¡°Ô µ¥¹ÌÁö¸¦ µ¹·ÁÁà¾ß ÇÑ´Ù.
+            // Damage has to be returned to the attacker.
             if (pAttacker != NULL) {
                 Damage_t counterDamage = 0;
 
@@ -1245,7 +1245,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
                     (EffectAuraShield*)(pSlayer->findEffect(Effect::EFFECT_CLASS_AURA_SHIELD));
                 Assert(pEffectAuraShield != NULL);
 
-                // Ä«¿îÅÍ µ¥¹ÌÁö´Â ¿ø·¡ µ¥¹ÌÁöÀÇ 10ºÐÀÇ 1ÀÌ´Ù.
+                // The counter damage is a tenth of the original damage.
                 counterDamage = max(1, getPercentValue(Damage, 10));
 
                 if (pAttacker->isVampire()) {
@@ -1277,14 +1277,14 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             pSlayer->setMP(Result, ATTR_CURRENT);
             bSendTargetMP = true;
 
-            // Result°¡ 0ÀÎ °æ¿ì, ¸¶³ª°¡ ´Ù ´â¾Ò´Ü ¸»ÀÌ´Ù.
-            // ±×·¯¹Ç·Î effect¸¦ »èÁ¦ÇØ ÁØ´Ù.
+            // A Result of 0 means the mana has run out, so the
+            // effect is removed.
             if (Result == 0) {
                 Effect* pEffect = pSlayer->findEffect(Effect::EFFECT_CLASS_AURA_SHIELD);
                 if (pEffect != NULL)
                     pEffect->setDeadline(0);
 
-                // ±â¼úÀ» ´Ù½Ã ¾µ ¼ö ÀÖµµ·Ï ±â¼ú µô·¹ÀÌ¸¦ ³¯·ÁÁØ´Ù.
+                // Clears the skill delay so the skill can be used again.
                 SkillSlot* pSkillSlot = pSlayer->hasSkill(SKILL_AURA_SHIELD);
                 if (pSkillSlot != NULL) {
                     pSkillSlot->setRunTime(0, false);
@@ -1294,11 +1294,11 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         }
 
         // by Sequoia 2002.12.26
-        // Melee ¾îÅÃÀÇ °æ¿ì µ¥¹ÌÁö°¡ ÁÙ¾îµé°í ¶§¸° ³Ñ¿¡°Ô µ¥¹ÌÁö¸¦ ÁØ´Ù.
-        // switch ·Î µÈ °É isMeleeSkill À» »ç¿ëÇÏ´Â ÄÚµå·Î ¹Ù²Û´Ù. 2003. 1. 1.
+        // A melee attack deals reduced damage and damages the attacker back.
+        // Melee is decided by the skill property rather than by a switch.
         if (pSlayer->isFlag(Effect::EFFECT_CLASS_SHARP_SHIELD_1) && pSkillProperty != NULL &&
             pSkillProperty->isMelee() && pAttacker != NULL) {
-            // Sharp Shield °¡ ÀÖÀ¸¸é ¹Ð¸® ¾îÅÃÀÇ µ¥¹ÌÁö´Â ¹ÝÀÌ´Ù.
+            // With Sharp Shield the melee attack deals half damage.
             Damage = max(0, (int)Damage - ((int)OriginalDamage >> 1));
 
             EffectSharpShield* pEffect =
@@ -1329,7 +1329,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         Tile& rTile = pZone->getTile(TX, TY);
 
         if (rTile.getEffect(Effect::EFFECT_CLASS_MAGIC_ELUSION) != NULL
-            // Magic Elusion ÀÌ °É·ÁÀÖÀ» ¶§, ¹ìÆÄÀÌ¾î°¡ »ç¿ëÇÑ ¸¶¹ý ·¹ÀÎÁö °ø°Ý¿¡ ´ëÇØ µ¥¹ÌÁö¸¦ 50% ÁÙ¿©ÁØ´Ù.
+            // Magic Elusion halves the damage of a ranged magic attack by a Vampire.
             && (!pSkillProperty->isMelee() && pSkillProperty->isMagic()) && pAttacker != NULL &&
             pAttacker->isVampire()) {
             Damage /= 2;
@@ -1345,7 +1345,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
                 Damage -= min(Damage - 1, (int)pSlayer->getPhysicDamageReduce());
             }
 
-            // AuraShield°¡ ¾øÀ¸´Ï, ±×³É ¸öÀ¸·Î ¸Â¾Æ¾ß ÇÑ´Ù.
+            // There is no Aura Shield, so the hit lands on HP.
             if (canKillTarget)
                 Result = max(0, (int)pSlayer->getHP(ATTR_CURRENT) - (int)Damage);
             else
@@ -1358,7 +1358,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         }
     }
     ////////////////////////////////////////////////////////////
-    // ¸Â´Â ³ðÀÌ ¹ìÆÄÀÌ¾îÀÏ °æ¿ì
+    // The target is a Vampire.
     ////////////////////////////////////////////////////////////
     else if (pTargetCreature->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pTargetCreature);
@@ -1367,18 +1367,18 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         Tile& rTile = pZone->getTile(TX, TY);
 
         if (rTile.getEffect(Effect::EFFECT_CLASS_GRAY_DARKNESS) != NULL && canBlockByGrayDarkness(SkillType)) {
-            // ±×·¹ÀÌ ´ÙÅ©´Ï½º ¾È¿¡¼­ µ¥¹ÌÁö 30%°¨¼Ò
+            // Inside Gray Darkness the damage is reduced by 30%.
             Damage = (Damage_t)(Damage * 0.7);
         }
 
         if (pAttacker != NULL && pAttacker->isSlayer()) {
-            // °ø°ÝÀÚ°¡ ½½·¹ÀÌ¾î¶ó¸é µ¥¹ÌÁö¿¡ Àº µ¥¹ÌÁö°¡ Ãß°¡µÉ ¼ö°¡ ÀÖ´Ù.
+            // A Slayer attacker can add silver damage to the damage.
             silverDamage = computeSlayerSilverDamage(pAttacker, Damage, pAttackerMI);
         }
 
-        // Àº µ¥¹ÌÁö´Â Ãß°¡ µ¥¹ÌÁöÀÌ´Ù.
+        // Silver damage is extra damage.
         Damage += silverDamage;
-        // add by Coffee 2007-3-4 ½£¼¼ÄÜ ÉÁÒ«Ö®½£ ¹àÒøÉËº¦
+        // Shine Sword counts the whole damage as silver damage.
         if (SkillType == SKILL_SHINE_SWORD && silverDamage != 0) {
             silverDamage = Damage;
         }
@@ -1402,11 +1402,11 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 
         pVampire->setHP(Result, ATTR_CURRENT);
 
-        // Mephisto ÀÌÆåÆ® °É·ÁÀÖÀ¸¸é HP 30% ÀÌÇÏÀÏ¶§ Ç®¸°´Ù.
+        // The Mephisto effect is cleared once HP drops low.
         if (pVampire->isFlag(Effect::EFFECT_CLASS_MEPHISTO)) {
             HP_t maxHP = pVampire->getHP(ATTR_MAX);
 
-            // 33% ... ÄÉÄÉ..
+            // A third, not 30%.
             if (currentHP * 3 < maxHP) {
                 Effect* pEffect = pVampire->findEffect(Effect::EFFECT_CLASS_MEPHISTO);
                 if (pEffect != NULL) {
@@ -1429,7 +1429,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         }
     }
     ////////////////////////////////////////////////////////////
-    // ¸Â´Â ³ðÀÌ ¾Æ¿ì½ºÅÍ½ºÀÏ °æ¿ì
+    // The target is an Ousters.
     ////////////////////////////////////////////////////////////
     else if (pTargetCreature->isOusters()) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pTargetCreature);
@@ -1445,7 +1445,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             }
         }
 
-        // Divine Shield ·Î ÀÎÇØ ¸¶¹ý µ¥¹ÌÁö°¡ ÀÏºÎ MP·Î Èí¼öµÈ´Ù.
+        // Divine Shield absorbs part of the magic damage into MP.
         if (pOusters->isFlag(Effect::EFFECT_CLASS_DIVINE_SPIRITS) && pSkillProperty->isMagic()) {
             EffectDivineSpirits* pEffect =
                 dynamic_cast<EffectDivineSpirits*>(pOusters->findEffect(Effect::EFFECT_CLASS_DIVINE_SPIRITS));
@@ -1469,7 +1469,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             if (pFrozenArmor != NULL) {
                 Damage -= getPercentValue(Damage, pFrozenArmor->getBonus());
                 if (pAttacker != NULL) {
-                    // ÀÌÆÑÆ® Å¬·¡½º¸¦ ¸¸µé¾î ºÙÀÎ´Ù.
+                    // Creates the effect class and attaches it.
                     EffectIceFieldToCreature* pEffect = new EffectIceFieldToCreature(pAttacker, true);
                     pEffect->setDeadline(pFrozenArmor->getTargetDuration());
                     pAttacker->addEffect(pEffect);
@@ -1486,15 +1486,15 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         }
 
         if (pAttacker != NULL && pAttacker->isSlayer()) {
-            // °ø°ÝÀÚ°¡ ½½·¹ÀÌ¾î¶ó¸é µ¥¹ÌÁö¿¡ Àº µ¥¹ÌÁö°¡ Ãß°¡µÉ ¼ö°¡ ÀÖ´Ù.
-            // ¾Æ¿ì½ºÅÍ½º´Â Àº µ¥¹ÌÁö¸¦ 1.5¹è ¹Þ´Â´Ù.
+            // A Slayer attacker can add silver damage to the damage.
+            // An Ousters takes 1.5 times the silver damage.
             silverDamage = (Silver_t)(computeSlayerSilverDamage(pAttacker, Damage, pAttackerMI) * 1.5);
             silverDamage = max(0, getPercentValue(silverDamage, 100 - pOusters->getSilverResist()));
         }
 
-        // Àº µ¥¹ÌÁö´Â Ãß°¡ µ¥¹ÌÁöÀÌ´Ù.
+        // Silver damage is extra damage.
         Damage += silverDamage;
-        // add by Coffee 2007-3-4 ½£¼¼ÄÜ ÉÁÒ«Ö®½£ ¹àÒøÉËº¦
+        // Shine Sword counts the whole damage as silver damage.
         if (SkillType == SKILL_SHINE_SWORD && silverDamage != 0) {
             silverDamage = Damage;
         }
@@ -1526,18 +1526,18 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         }
     }
     ////////////////////////////////////////////////////////////
-    // ¸Â´Â ³ðÀÌ ¸ó½ºÅÍÀÏ °æ¿ì
+    // The target is a monster.
     ////////////////////////////////////////////////////////////
     else if (pTargetCreature->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
         Silver_t silverDamage = 0;
 
         if (pAttacker != NULL && pAttacker->isSlayer()) {
-            // °ø°ÝÀÚ°¡ ½½·¹ÀÌ¾î¶ó¸é µ¥¹ÌÁö¿¡ Àº µ¥¹ÌÁö°¡ Ãß°¡µÉ ¼ö°¡ ÀÖ´Ù.
+            // A Slayer attacker can add silver damage to the damage.
             silverDamage = computeSlayerSilverDamage(pAttacker, Damage, pAttackerMI);
         }
 
-        // Àº µ¥¹ÌÁö´Â Ãß°¡ µ¥¹ÌÁöÀÌ´Ù.
+        // Silver damage is extra damage.
         Damage += silverDamage;
 
         if (canKillTarget)
@@ -1586,26 +1586,26 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         pMonster->setDamaged(true);
 
         if (pAttacker != NULL && pAttacker->isPC()) {
-            // ¸Â´Â ³ðÀÌ ¸ó½ºÅÍÀÌ°í, °ø°ÝÀÚ°¡ »ç¶÷ÀÌ¶ó¸é,
-            // µ¥¹ÌÁö¿¡ µû¶ó¼­ º¯ÇÏ´Â ¿ì¼±±Ç Å×ÀÌºíÀ» °»½ÅÇØ ÁÖ¾î¾ß ÇÑ´Ù.
+            // When the target is a monster and the attacker is a PC,
+            // the precedence table, which follows the damage, is updated.
             pMonster->addPrecedence(pAttacker->getName(), pAttacker->getPartyID(), Damage);
             pMonster->setLastHitCreatureClass(pAttacker->getCreatureClass());
         }
 
-        // ¸ó½ºÅÍ°¡ ¾ÆÁ÷ Á×Áö´Â ¾Ê¾ÒÁö¸¸, ÈíÇ÷ÀÌ °¡´ÉÇÑ »óÅÂ¶ó¸é,
-        // ¸¸¾à ¿ì¼±±Ç °è»êÀ» ÇÏÁö ¾Ê¾Ò´Ù¸é °è»êÀ» ÇØÁØ´Ù.
+        // While the monster is not dead yet but can be blood drained,
+        // the precedence is computed if it has not been computed yet.
         if (pMonster->getHP(ATTR_CURRENT) * 3 < pMonster->getHP(ATTR_MAX)) {
             PrecedenceTable* pTable = pMonster->getPrecedenceTable();
 
-            // HP°¡ 3ºÐÀÇ 1 ÀÌÇÏÀÎ »óÅÂ¶ó°í ¹«Á¶°Ç °è»êÀ» ÇÏ¸é,
-            // ¸ÅÅÏ¸¶´Ù ÀÇ¹Ì°¡ ¾ø´Â °è»êÀ» °è¼Ó ÇÏ°Ô µÇ¹Ç·Î,
-            // ÇÑ¹ø °è»êÀ» ÇÏ°í ³ª¸é, Á×±â Àü±îÁö´Â ´Ù½Ã °è»êÇÏÁö ¾Êµµ·Ï
-            // ÇÃ·¡±×¸¦ ¼¼ÆÃÇØ ÁØ´Ù. ÀÌ ÇÃ·¡±×¸¦ ÀÌ¿ëÇÏ¿© ÇÊ¿ä¾ø´Â °è»êÀ» ÁÙÀÎ´Ù.
+            // Computing unconditionally whenever HP is below a third
+            // would repeat meaningless work every turn, so once the
+            // computation has run a flag is set and it does not run
+            // again before the monster dies, sparing the useless work.
             if (pTable->getComputeFlag() == false) {
-                // °è»êÀ» ÇØÁØ´Ù.
+                // Computes the table.
                 pTable->compute();
 
-                // È£½ºÆ®ÀÇ ÀÌ¸§°ú ÆÄÆ¼ ID¸¦ ÀÌ¿ëÇÏ¿©, ÀÌÆåÆ®¸¦ °É¾îÁØ´Ù.
+                // Applies the effect using the host's name and party ID.
                 EffectPrecedence* pEffectPrecedence = new EffectPrecedence(pMonster);
                 pEffectPrecedence->setDeadline(100);
                 pEffectPrecedence->setHostName(pTable->getHostName());
@@ -1618,7 +1618,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         if (pMonster->getMonsterType() == 722 && pAttacker != NULL &&
             !pAttacker->isFlag(Effect::EFFECT_CLASS_BLINDNESS)) {
             if ((rand() % 100) < 30) {
-                // Áúµå·¹ ¼®»óÀÌÁö·Õ
+                // The Gilles de Rais statue blinds its attacker.
                 EffectBlindness* pEffect = new EffectBlindness(pAttacker);
                 pEffect->setDamage(50);
                 pEffect->setNextTime(0);
@@ -1638,9 +1638,9 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 
 
     ////////////////////////////////////////////////////////////
-    // º¯°æµÈ »çÇ×À» ÇÃ·¡±×¿¡ µû¶ó¼­ º¸³»ÁØ´Ù.
+    // Sends the changes according to the flags.
     ////////////////////////////////////////////////////////////
-    if (bBroadcastTargetHP && pTargetCreature != NULL) // ¸Â´Â ³ðÀÇ hp°¡ ÁÙ¾úÀ¸´Ï, ºê·Îµå Ä³½ºÆÃÇØÁØ´Ù.
+    if (bBroadcastTargetHP && pTargetCreature != NULL) // The target's HP dropped, so broadcast it.
     {
         if (pTargetCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);
@@ -1660,7 +1660,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         pZone->broadcastPacket(TX, TY, &gcTargetHP, pTargetCreature);
     }
 
-    if (bSendTargetHP && pTargetCreature != NULL) // ¸Â´Â ´ç»çÀÚ¿¡°Ô HP°¡ ÁÙ¾ú´Ù°í ¾Ë·ÁÁØ´Ù.
+    if (bSendTargetHP && pTargetCreature != NULL) // Tells the target itself that its HP dropped.
     {
         if (pTargetCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);
@@ -1678,7 +1678,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             Assert(false);
     }
 
-    if (bSendTargetMP && pTargetCreature != NULL) // ¸Â´Â ´ç»çÀÚ¿¡°Ô MP°¡ ÁÙ¾ú´Ù°í ¾Ë·ÁÁØ´Ù.
+    if (bSendTargetMP && pTargetCreature != NULL) // Tells the target itself that its MP dropped.
     {
         if (pTargetCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);
@@ -1704,7 +1704,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             Assert(false);
     }
 
-    if (bBroadcastAttackerHP && pAttacker != NULL) // ¶§¸®´Â ³ðÀÇ HP°¡ ÁÙ¾úÀ¸´Ï, ºê·ÎµåÄ³½ºÆÃÇØÁØ´Ù.
+    if (bBroadcastAttackerHP && pAttacker != NULL) // The attacker's HP dropped, so broadcast it.
     {
         if (pAttacker->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pAttacker);
@@ -1724,7 +1724,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         pZone->broadcastPacket(AX, AY, &gcAttackerHP, pAttacker);
     }
 
-    if (bSendAttackerHP && pAttacker != NULL) // ¶§¸®´Â ³ð¿¡°Ô HP°¡ ÁÙ¾ú´Ù°í ¾Ë·ÁÁØ´Ù.
+    if (bSendAttackerHP && pAttacker != NULL) // Tells the attacker that its HP dropped.
     {
         if (pAttacker->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pAttacker);
@@ -1742,7 +1742,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             Assert(false);
     }
 
-    if (bSendAttackerMP && pAttacker != NULL) // ¶§¸®´Â ³ð¿¡°Ô MP°¡ ÁÙ¾ú´Ù°í ¾Ë·ÁÁØ´Ù.
+    if (bSendAttackerMP && pAttacker != NULL) // Tells the attacker that its MP dropped.
     {
         if (pAttacker->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pAttacker);
@@ -1756,7 +1756,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             Assert(false);
     }
 
-    // Á×ÀÎ °æ¿ìÀÇ KillCount Áõ°¡. by sigi. 2002.8.31
+    // Increases the kill count when the target dies.
     if (pTargetCreature->isDead()) {
         affectKillCount(pAttacker, pTargetCreature);
     }
@@ -1765,13 +1765,13 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¾ÆÀÌÅÛ ³»±¸µµ¸¦ ¶³¾î¶ß¸°´Ù.
+// Reduces item durability.
 //////////////////////////////////////////////////////////////////////////////
 void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInfo* pSkillInfo, ModifyInfo* pMI1,
                         ModifyInfo* pMI2) {
     WORD Point = (pSkillInfo) ? (pSkillInfo->getConsumeMP() / 3) : 1;
 
-    // ¶³¾î¶ß¸± ³»±¸µµ°¡ 0ÀÌ¶ó¸é °Á ¸®ÅÏÇØ¾ßÁã...
+    // Nothing to do when the durability to take off is 0.
     if (Point == 0)
         return;
 
@@ -1784,8 +1784,8 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
     ulong value = 0;
 
     ////////////////////////////////////////////////////////////////
-    // °ø°ÝÇÏ´Â ÀÚÀÇ ¹«±â ³»±¸µµ ¶³¾îÆ®¸².
-    // ¹«±â µé°í ÀÖ´Â ÀÚ´Â ¹«Á¶°Ç ½½·¹ÀÌ¾î ¾Æ´Ñ°¡...
+    // Reduces the durability of the attacker's weapon.
+    // Presumably only a Slayer holds a weapon.
     ////////////////////////////////////////////////////////////////
     if (pCreature != NULL) {
         if (pCreature->isSlayer()) {
@@ -1794,7 +1794,7 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
             slot = Slayer::WEAR_RIGHTHAND;
             pWeapon = pSlayer->getWearItem((Slayer::WearPart)slot);
 
-            // ¹«±â¸¦ µé°í ÀÖ´Ù¸é ¶³¾î¶ß¸°´Ù.
+            // Reduces it when a weapon is held.
             if (pWeapon != NULL && canDecreaseDurability(pWeapon))
             //				&& !pWeapon->isUnique())
             {
@@ -1802,7 +1802,7 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
                 durDiff = Point;
                 Result = max(0, CurDur - durDiff);
 
-                if (Result == 0) // ¹«±â°¡ ³»±¸µµ°¡ 0ÀÌ¶ó¸é ÆÄ±«ÇÑ´Ù.
+                if (Result == 0) // Destroys the weapon when its durability reaches 0.
                 {
                     GCRemoveFromGear gcRemoveFromGear;
                     gcRemoveFromGear.setSlotID(slot);
@@ -1811,14 +1811,14 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
                     Player* pPlayer = pSlayer->getPlayer();
                     pPlayer->sendPacket(&gcRemoveFromGear);
 
-                    // ·Î±×
+                    // Log
                     log(LOG_DESTROY_ITEM, pCreature->getName(), "", pWeapon->toString());
 
-                    // ¶³¾îÁø ³»±¸¼ºÀ» ÀúÀåÇÑ´Ù.
+                    // Saves the reduced durability.
                     pWeapon->setDurability(Result);
                     pWeapon->save(pCreature->getName(), STORAGE_GEAR, 0, slot, 0);
 
-                    // DB¿¡¼­ »èÁ¦ÇÑ´Ù.
+                    // Deletes it from the database.
                     pWeapon->destroy();
                     SAFE_DELETE(pWeapon);
                 } else {
@@ -1831,7 +1831,7 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
                     value = (DWORD)(slot) << 24 | (DWORD)(Result);
                     pMI1->addLongData(MODIFY_DURABILITY, value);
 
-                    // ¶³¾îÁø ³»±¸¼ºÀ» ÀúÀåÇÑ´Ù.
+                    // Saves the reduced durability.
                 }
             } // if (pWeapon != NULL)
         } // if (pCreature->isSlayer())
@@ -1841,13 +1841,13 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
             slot = Vampire::WEAR_RIGHTHAND;
             pWeapon = pVampire->getWearItem((Vampire::WearPart)slot);
 
-            // ¹«±â¸¦ µé°í ÀÖ´Ù¸é ¶³¾î¶ß¸°´Ù.
+            // Reduces it when a weapon is held.
             if (pWeapon != NULL && canDecreaseDurability(pWeapon)) {
                 CurDur = pWeapon->getDurability();
                 durDiff = Point;
                 Result = max(0, CurDur - durDiff);
 
-                if (Result == 0) // ¹«±â°¡ ³»±¸µµ°¡ 0ÀÌ¶ó¸é ÆÄ±«ÇÑ´Ù.
+                if (Result == 0) // Destroys the weapon when its durability reaches 0.
                 {
                     GCRemoveFromGear gcRemoveFromGear;
                     gcRemoveFromGear.setSlotID(slot);
@@ -1856,14 +1856,14 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
                     Player* pPlayer = pVampire->getPlayer();
                     pPlayer->sendPacket(&gcRemoveFromGear);
 
-                    // ·Î±×
+                    // Log
                     log(LOG_DESTROY_ITEM, pCreature->getName(), "", pWeapon->toString());
 
-                    // ¶³¾îÁø ³»±¸¼ºÀ» ÀúÀåÇÑ´Ù.
+                    // Saves the reduced durability.
                     pWeapon->setDurability(Result);
                     pWeapon->save(pCreature->getName(), STORAGE_GEAR, 0, slot, 0);
 
-                    // DB¿¡¼­ »èÁ¦ÇÑ´Ù.
+                    // Deletes it from the database.
                     pWeapon->destroy();
                     SAFE_DELETE(pWeapon);
                 } else {
@@ -1884,13 +1884,13 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
             slot = Ousters::WEAR_RIGHTHAND;
             pWeapon = pOusters->getWearItem((Ousters::WearPart)slot);
 
-            // ¹«±â¸¦ µé°í ÀÖ´Ù¸é ¶³¾î¶ß¸°´Ù.
+            // Reduces it when a weapon is held.
             if (pWeapon != NULL && canDecreaseDurability(pWeapon)) {
                 CurDur = pWeapon->getDurability();
                 durDiff = Point;
                 Result = max(0, CurDur - durDiff);
 
-                if (Result == 0) // ¹«±â°¡ ³»±¸µµ°¡ 0ÀÌ¶ó¸é ÆÄ±«ÇÑ´Ù.
+                if (Result == 0) // Destroys the weapon when its durability reaches 0.
                 {
                     GCRemoveFromGear gcRemoveFromGear;
                     gcRemoveFromGear.setSlotID(slot);
@@ -1899,14 +1899,14 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
                     Player* pPlayer = pOusters->getPlayer();
                     pPlayer->sendPacket(&gcRemoveFromGear);
 
-                    // ·Î±×
+                    // Log
                     log(LOG_DESTROY_ITEM, pCreature->getName(), "", pWeapon->toString());
 
-                    // ¶³¾îÁø ³»±¸¼ºÀ» ÀúÀåÇÑ´Ù.
+                    // Saves the reduced durability.
                     pWeapon->setDurability(Result);
                     pWeapon->save(pCreature->getName(), STORAGE_GEAR, 0, slot, 0);
 
-                    // DB¿¡¼­ »èÁ¦ÇÑ´Ù.
+                    // Deletes it from the database.
                     pWeapon->destroy();
                     SAFE_DELETE(pWeapon);
                 } else {
@@ -1924,10 +1924,10 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
     } // if (pCreature != NULL)
 
     ////////////////////////////////////////////////////////////////
-    // °ø°Ý´çÇÏ´Â ÀÚÀÇ ¹æ¾î±¸ DurabilityÀ» ¶³¾îÆ®¸² ·£´ýÇÏ°Ô
+    // Randomly reduces the durability of the armor of the creature under attack.
     ////////////////////////////////////////////////////////////////
     if (pTargetCreature != NULL) {
-        // ¾î´À ½½¶ù¿¡ ÀÖ´Â ±â¾îÀÇ ³»±¸µµ¸¦ ¶³¾î¶ß¸±Áö °áÁ¤ÇÑ´Ù.
+        // Decides which slot's gear has its durability reduced.
         if (pTargetCreature->isSlayer()) {
             slot = Random(0, Slayer::WEAR_MAX - 1);
             pGear = dynamic_cast<Slayer*>(pTargetCreature)->getWearItem((Slayer::WearPart)slot);
@@ -1939,14 +1939,14 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
             pGear = dynamic_cast<Ousters*>(pTargetCreature)->getWearItem((Ousters::WearPart)slot);
         }
 
-        // ¼±ÅÃµÈ ½½¶ù¿¡ ¾ÆÀÌÅÛÀ» ÀåÂøÇÏ°í ÀÖ´Ù¸é
-        // vampire amuletÀº ¾È ´â´Â´Ù.
+        // When an item is worn in the chosen slot.
+        // A vampire amulet does not wear down.
         if (pGear != NULL && canDecreaseDurability(pGear))
         //			&& !pGear->isUnique()
         //			&& pGear->getItemClass()!=Item::ITEM_CLASS_VAMPIRE_AMULET)
         {
-            // ¼±ÅÃµÈ ½½¶ù¿¡ Á¸ÀçÇÏ´Â ¾ÆÀÌÅÛÀÌ ¾ç¼Õ ¹«±â¶ó¸é,
-            // ½½¶ùÀ» ¹«Á¶°Ç ¿À¸¥ÂÊÀ¸·Î ¹Ù²Ù¾îÁØ´Ù.
+            // When the item in the chosen slot is a two-handed weapon,
+            // the slot is forced to the right hand.
             if (isTwohandWeapon(pGear)) {
                 if (pTargetCreature->isSlayer())
                     slot = Slayer::WEAR_RIGHTHAND;
@@ -1992,10 +1992,10 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
                     pPlayer->sendPacket(&gcRemoveFromGear);
                 }
 
-                // ·Î±×
+                // Log
                 log(LOG_DESTROY_ITEM, pTargetCreature->getName(), "", pGear->toString());
 
-                // ÆÄ±«
+                // Destroy
                 pGear->save(pTargetCreature->getName(), STORAGE_GEAR, 0, slot, 0);
                 pGear->destroy();
                 SAFE_DELETE(pGear);
@@ -2010,37 +2010,37 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
 
                 pMI2->addLongData(MODIFY_DURABILITY, value);
 
-                // ¶³¾îÁø ³»±¸¼ºÀ» ÀúÀåÇÑ´Ù.
+                // Saves the reduced durability.
             }
         }
     }
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Å¸°ÙÀ» ¸ÂÃâ °¡´É¼ºÀÌ ÀÖ´Â°¡?
+// Is there any chance of hitting the target?
 //////////////////////////////////////////////////////////////////////////////
 bool canHit(Creature* pAttacker, Creature* pDefender, SkillType_t SkillType, SkillLevel_t SkillLevel) {
-    // ¹«Àû »óÅÂ
+    // Invulnerable state
 
-    // ½ºÅ³ÀÇ Á¾·ù¿¡ ¹«°üÇÏ°Ô, ¸ÂÃâ ¼ö ¾ø´Â »óÅÂ¸¦ Ã¼Å©ÇÑ´Ù.
+    // Checks the states that prevent a hit, regardless of the skill.
     if (pAttacker->isSlayer()) {
-        // Á¾Á· °Ë»çµµ ÇÒ ¼ö ÀÖÁö¸¸,
-        // ¼Óµµ ¹®Á¦·Î µÉ ¼ö ÀÖ´Â ÇÑ Ã¼Å©¸¦ Àû°Ô ÇÏ±â À§ÇØ¼­ »ý·«Çß´Ù.
+        // A race check could be done here, but it is left out to keep
+        // the number of checks down for speed.
 
-        // Attacker ÀÇ Revealer ÀÌÆåÆ®¸¦ °¡Á®¿Â´Ù.
+        // Fetches the attacker's Revealer effect.
         EffectRevealer* pEffectRevealer = NULL;
         if (pAttacker->isFlag(Effect::EFFECT_CLASS_REVEALER)) {
             pEffectRevealer = dynamic_cast<EffectRevealer*>(pAttacker->findEffect(Effect::EFFECT_CLASS_REVEALER));
             Assert(pEffectRevealer);
         }
 
-        // ÇÏÀÌµåÇÏ°í ÀÖÀ¸¸é, Detect hidden ¸¶¹ýÀÌ °É·ÁÀÖ¾î¾ß º¼ ¼ö ÀÖ´Ù.
+        // A hidden defender is visible only with the Detect Hidden magic.
         if (pDefender->isFlag(Effect::EFFECT_CLASS_HIDE)) {
             if (!pAttacker->isFlag(Effect::EFFECT_CLASS_DETECT_HIDDEN) &&
                 !(pEffectRevealer != NULL && pEffectRevealer->canSeeHide(pDefender)))
                 return false;
         }
-        // Åõ¸íÈ­ »óÅÂ¶ó¸é, Detect invisibility ¸¶¹ýÀÌ °É·ÁÀÖ¾î¾ß º¼ ¼ö ÀÖ´Ù.
+        // An invisible defender is visible only with the Detect Invisibility magic.
         if (pDefender->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
             if (!pAttacker->isFlag(Effect::EFFECT_CLASS_DETECT_INVISIBILITY) &&
                 !(pEffectRevealer != NULL && pEffectRevealer->canSeeInvisibility(pDefender)))
@@ -2048,10 +2048,10 @@ bool canHit(Creature* pAttacker, Creature* pDefender, SkillType_t SkillType, Ski
         }
     }
 
-    // ½ºÅ³ÀÇ Å¸ÀÔ¿¡ µû¶ó ¸ÂÃâ ¼ö ÀÖ´ÂÁö °Ë»çÇÑ´Ù.
-    // ±âº» °ø°ÝÀº ½ºÅ³ ÀÎÆ÷°¡ ¾ø±â ¶§¹®¿¡ ¿©±â¼­ Ã¼Å©ÇÑ´Ù.
+    // Checks whether the skill type can hit.
+    // Basic attacks have no skill info, so they are checked here.
     switch (SkillType) {
-    // ÀÏ¹Ý ¹Ð¸® °ø°ÝÀÌ³ª, ÈíÇ÷Àº ³¯¾Æ´Ù´Ï´Â »ó´ë¿¡°Ô´Â ºÒ°¡´ÉÇÏ´Ù.
+    // A normal melee attack or a blood drain cannot reach a flying target.
     case SKILL_ATTACK_MELEE:
     case SKILL_BLOOD_DRAIN:
         if (pDefender != NULL) {
@@ -2060,7 +2060,7 @@ bool canHit(Creature* pAttacker, Creature* pDefender, SkillType_t SkillType, Ski
         }
         return true;
 
-    // ÃÑÀ¸·Î ÇÏ´Â °ø°ÝÀº ³¯¾Æ´Ù´Ï´Â »ó´ë¿¡°Ôµµ °¡´ÉÇÏ´Ù.
+    // A gun attack can reach a flying target as well.
     case SKILL_ATTACK_ARMS:
         return true;
 
@@ -2068,7 +2068,7 @@ bool canHit(Creature* pAttacker, Creature* pDefender, SkillType_t SkillType, Ski
         break;
     }
 
-    // ½ºÅ³ Å¸ÀÔ°ú »ó´ëÀÇ ÇöÀç ¹«ºê¸ðµå¿¡ µû¶ó, °ø°ÝÀÇ °¡´É ¿©ºÎ¸¦ ¸®ÅÏÇÑ´Ù.
+    // Returns whether the attack is possible for the skill type and the target's move mode.
     SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
     Assert(pSkillInfo != NULL);
 
@@ -2086,14 +2086,14 @@ bool canHit(Creature* pAttacker, Creature* pDefender, SkillType_t SkillType, Ski
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// °Å¸®¿¡ µû¸¥ SG, SRÀÇ º¸³Ê½º¸¦ °è»êÇÑ´Ù.
+// Computes the SG and SR bonus by distance.
 //////////////////////////////////////////////////////////////////////////////
 int computeArmsWeaponSplashSize(Item* pWeapon, int ox, int oy, int tx, int ty) {
     Assert(pWeapon != NULL);
     Item::ItemClass IClass = pWeapon->getItemClass();
     int Splash = 0;
 
-    // SGÀÏ °æ¿ì¿¡¸¸ ½ºÇÃ·¡½Ã È¿°ú°¡ Á¸ÀçÇÑ´Ù.
+    // Only an SG has a splash effect.
     if (IClass == Item::ITEM_CLASS_SG) {
         switch (getDistance(ox, oy, tx, ty)) {
         case 1:
@@ -2197,11 +2197,11 @@ int computeArmsWeaponToHitBonus(Item* pWeapon, int ox, int oy, int tx, int ty) {
     return ToHitBonus;
 }
 
-// HP¸¦ ÁÙÀÌ´Â ÇÔ¼ö
+// Reduces HP.
 // by sigi. 2002.9.10
 void decreaseHP(Zone* pZone, Creature* pCreature, int Damage, ObjectID_t attackerObjectID) {
     if (!(pZone->getZoneLevel() & COMPLETE_SAFE_ZONE)
-        // ¹«Àû»óÅÂ Ã¼Å©. by sigi. 2002.9.5
+        // Invincibility check.
         && !pCreature->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE)) {
         if (pCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -2217,7 +2217,7 @@ void decreaseHP(Zone* pZone, Creature* pCreature, int Damage, ObjectID_t attacke
                 gcMI.addShortData(MODIFY_CURRENT_HP, RemainHP);
                 pSlayer->getPlayer()->sendPacket(&gcMI);
 
-                // º¯ÇÑ HP¸¦ ºê·ÎµåÄ³½ºÆÃÇØÁØ´Ù.
+                // Broadcasts the changed HP.
                 GCStatusCurrentHP pkt;
                 pkt.setObjectID(pSlayer->getObjectID());
                 pkt.setCurrentHP(RemainHP);
@@ -2237,7 +2237,7 @@ void decreaseHP(Zone* pZone, Creature* pCreature, int Damage, ObjectID_t attacke
                 gcMI.addShortData(MODIFY_CURRENT_HP, RemainHP);
                 pVampire->getPlayer()->sendPacket(&gcMI);
 
-                // º¯ÇÑ HP¸¦ ºê·ÎµåÄ³½ºÆÃÇØÁØ´Ù.
+                // Broadcasts the changed HP.
                 GCStatusCurrentHP pkt;
                 pkt.setObjectID(pVampire->getObjectID());
                 pkt.setCurrentHP(RemainHP);
@@ -2257,7 +2257,7 @@ void decreaseHP(Zone* pZone, Creature* pCreature, int Damage, ObjectID_t attacke
                 gcMI.addShortData(MODIFY_CURRENT_HP, RemainHP);
                 pOusters->getPlayer()->sendPacket(&gcMI);
 
-                // º¯ÇÑ HP¸¦ ºê·ÎµåÄ³½ºÆÃÇØÁØ´Ù.
+                // Broadcasts the changed HP.
                 GCStatusCurrentHP pkt;
                 pkt.setObjectID(pOusters->getObjectID());
                 pkt.setCurrentHP(RemainHP);
@@ -2273,7 +2273,7 @@ void decreaseHP(Zone* pZone, Creature* pCreature, int Damage, ObjectID_t attacke
 
                 pMonster->setHP(RemainHP, ATTR_CURRENT);
 
-                // º¯ÇÑ HP¸¦ ºê·ÎµåÄ³½ºÆÃÇØÁØ´Ù.
+                // Broadcasts the changed HP.
                 GCStatusCurrentHP pkt;
                 pkt.setObjectID(pMonster->getObjectID());
                 pkt.setCurrentHP(RemainHP);
@@ -2281,7 +2281,7 @@ void decreaseHP(Zone* pZone, Creature* pCreature, int Damage, ObjectID_t attacke
             }
         }
 
-        // attackerObjectID°¡ pCreature¸¦ Á×ÀÎ °æ¿ìÀÇ KillCount Ã³¸®
+        // Handles the kill count when attackerObjectID killed pCreature.
         // by sigi. 2002.9.9
         if (attackerObjectID != 0 && pCreature->isDead()) {
             Creature* pAttacker = pZone->getCreature(attackerObjectID);
@@ -2294,31 +2294,31 @@ void decreaseHP(Zone* pZone, Creature* pCreature, int Damage, ObjectID_t attacke
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î °ø°ÝÀÚÀÇ ¼ø¼ö µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+// Computes the pure damage of a Slayer attacker.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computePureSlayerDamage(Slayer* pSlayer) {
     Assert(pSlayer != NULL);
 
     Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
 
-    // ÀÏ´Ü ¸Ç¼ÕÀÇ µ¥¹ÌÁö¸¦ ¹Þ¾Æ¿Â´Ù.
+    // Start from the bare-handed damage.
     Damage_t MinDamage = pSlayer->getDamage(ATTR_CURRENT);
     Damage_t MaxDamage = pSlayer->getDamage(ATTR_MAX);
 
-    // ¹«±â¸¦ µé°í ÀÖ´Ù¸é, min, max¿¡ ¹«±âÀÇ min, max¸¦ °è»êÇØ ÁØ´Ù.
+    // If a weapon is held, add the weapon's min and max to min and max.
     if (pItem != NULL && pSlayer->isRealWearingEx(Slayer::WEAR_RIGHTHAND)) {
         MinDamage += pItem->getMinDamage();
         MaxDamage += pItem->getMaxDamage();
     }
 
-    // ½ÇÁ¦ ·£´ý µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+    // Computes the actual random damage.
     Damage_t RealDamage = max(1, Random(MinDamage, MaxDamage));
 
     return RealDamage;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¹ìÆÄÀÌ¾î °ø°ÝÀÚÀÇ ¼ø¼ö µ¥ºñÁö¸¦ °è»êÇÑ´Ù.
+// Computes the pure damage of a Vampire attacker.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computePureVampireDamage(Vampire* pVampire) {
     Assert(pVampire != NULL);
@@ -2327,16 +2327,16 @@ Damage_t computePureVampireDamage(Vampire* pVampire) {
     Damage_t MaxDamage = pVampire->getDamage(ATTR_MAX);
     uint timeband = getZoneTimeband(pVampire->getZone());
 
-    // vampire ¹«±â¿¡ ÀÇÇÑ µ¥¹ÌÁö
+    // Damage from the Vampire's weapon
     Item* pItem = pVampire->getWearItem(Vampire::WEAR_RIGHTHAND);
 
-    // ¹«±â¸¦ µé°í ÀÖ´Ù¸é, min, max¿¡ ¹«±âÀÇ min, max¸¦ °è»êÇØ ÁØ´Ù.
+    // If a weapon is held, add the weapon's min and max to min and max.
     if (pItem != NULL && pVampire->isRealWearingEx(Vampire::WEAR_RIGHTHAND)) {
         MinDamage += pItem->getMinDamage();
         MaxDamage += pItem->getMaxDamage();
     }
 
-    // ½ÇÁ¦ ·£´ý µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+    // Computes the actual random damage.
     Damage_t RealDamage = max(1, Random(MinDamage, MaxDamage));
 
     RealDamage = (Damage_t)getPercentValue(RealDamage, VampireTimebandFactor[timeband]);
@@ -2345,7 +2345,7 @@ Damage_t computePureVampireDamage(Vampire* pVampire) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¾Æ¿ì½ºÅÍ½º °ø°ÝÀÚÀÇ ¼ø¼ö µ¥ºñÁö¸¦ °è»êÇÑ´Ù.
+// Computes the pure damage of an Ousters attacker.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computePureOustersDamage(Ousters* pOusters) {
     Assert(pOusters != NULL);
@@ -2353,23 +2353,23 @@ Damage_t computePureOustersDamage(Ousters* pOusters) {
     Damage_t MinDamage = pOusters->getDamage(ATTR_CURRENT);
     Damage_t MaxDamage = pOusters->getDamage(ATTR_MAX);
 
-    // vampire ¹«±â¿¡ ÀÇÇÑ µ¥¹ÌÁö
+    // Damage from the Vampire's weapon
     Item* pItem = pOusters->getWearItem(Ousters::WEAR_RIGHTHAND);
 
-    // ¹«±â¸¦ µé°í ÀÖ´Ù¸é, min, max¿¡ ¹«±âÀÇ min, max¸¦ °è»êÇØ ÁØ´Ù.
+    // If a weapon is held, add the weapon's min and max to min and max.
     if (pItem != NULL && pOusters->isRealWearingEx(Ousters::WEAR_RIGHTHAND)) {
         MinDamage += pItem->getMinDamage();
         MaxDamage += pItem->getMaxDamage();
     }
 
-    // ½ÇÁ¦ ·£´ý µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+    // Computes the actual random damage.
     Damage_t RealDamage = max(1, Random(MinDamage, MaxDamage));
 
     return RealDamage;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¸ó½ºÅÍ °ø°ÝÀÚÀÇ ¼ø¼ö µ¥¹ÌÁö¸¦ °è»êÇÑ´Ù.
+// Computes the pure damage of a monster attacker.
 //////////////////////////////////////////////////////////////////////////////
 Damage_t computePureMonsterDamage(Monster* pMonster) {
     Assert(pMonster != NULL);
@@ -2420,7 +2420,7 @@ Damage_t computeElementalCombatSkill(Ousters* pOusters, Creature* pTargetCreatur
         if (!bMaster && !pTargetCreature->isFlag(Effect::EFFECT_CLASS_ICE_OF_SOUL_STONE) &&
             (rand() % 100) < min(23, ratio * 2 / 3)) {
             Turn_t duration = pOusters->getPassiveBonus(SKILL_ICE_OF_SOUL_STONE);
-            // ÀÌÆÑÆ® Å¬·¡½º¸¦ ¸¸µé¾î ºÙÀÎ´Ù.
+            // Creates the effect class and attaches it.
             EffectIceOfSoulStone* pEffect = new EffectIceOfSoulStone(pTargetCreature);
             pEffect->setDeadline(duration);
             pTargetCreature->addEffect(pEffect);
@@ -2497,7 +2497,7 @@ Damage_t computeElementalCombatSkill(Ousters* pOusters, Creature* pTargetCreatur
         if (!bMaster && !pTargetCreature->isFlag(Effect::EFFECT_CLASS_BLOCK_HEAD) &&
             (rand() % 100) < min(15, ratio / 2)) {
             Turn_t duration = pOusters->getPassiveBonus(SKILL_BLOCK_HEAD);
-            // ÀÌÆÑÆ® Å¬·¡½º¸¦ ¸¸µé¾î ºÙÀÎ´Ù.
+            // Creates the effect class and attaches it.
             EffectBlockHead* pEffect = new EffectBlockHead(pTargetCreature);
             pEffect->setDeadline(duration);
             pTargetCreature->addEffect(pEffect);

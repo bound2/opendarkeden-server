@@ -27,7 +27,7 @@ EffectHydroConvergence::EffectHydroConvergence(Creature* pCreature)
     m_UserOID = 0;
     m_Damage = 0;
     m_Duration = 0;
-    m_AttackNum = 0; // ÊÜµ½¹¥»÷´ÎÊý
+    m_AttackNum = 0; // Number of hits taken
     m_TrageSaveHP = 0;
     if (!pCreature->isDead() && !pCreature->isOusters()) {
         if (pCreature->isSlayer()) {
@@ -74,10 +74,10 @@ void EffectHydroConvergence::affect()
             CurrentHP = pMonsterAttacker->getHP();
         }
         if (CurrentHP < m_TrageSaveHP) {
-            // Ôö¼ÓÆäËü¹¥»÷´ÎÊý
+            // Count another hit taken.
             m_AttackNum++;
         }
-        // ´´½¨ÉËº¦
+        // Apply the damage.
         affect(pCreature);
         if (pCreature->isSlayer())
             CurrentHP = pSlayer->getHP();
@@ -85,7 +85,7 @@ void EffectHydroConvergence::affect()
             CurrentHP = pVampire->getHP();
         if (pCreature->isMonster())
             CurrentHP = pMonsterAttacker->getHP();
-        // ¼ÇÂ¼µ±Ç°HP
+        // Record the current HP.
         m_TrageSaveHP = CurrentHP;
         if (m_AttackNum >= 5) {
             setDuration(0);
@@ -171,8 +171,8 @@ void EffectHydroConvergence::unaffect()
 
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
-    // ¶ÁÈ¡5*5·¶Î§ÄÚ¶ÔÏó,²¢´´½¨ÉËº¦
-    // ´´½¨Ä¿±êÉËº¦
+    // Take the objects within a 5*5 range and damage them.
+    // Damage the target.
     affect(pCreature);
 
     int cx = pCreature->getX();
@@ -201,7 +201,7 @@ void EffectHydroConvergence::unaffect()
                     continue;
                 if (pTargetCreature->isFlag(getEffectClass()))
                     continue;
-                // ´´½¨ÉËº¦
+                // Apply the damage.
                 affect(pTargetCreature);
             }
         }

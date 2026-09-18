@@ -76,7 +76,7 @@ void EffectLight::unaffect(Creature* pCreature)
 
         pPlayer->sendPacket(&_GCModifyInformation);
 
-        // 이펙트가 사라졌다고 알려준다.
+        // Tells clients that the effect is gone.
         GCRemoveEffect gcRemoveEffect;
         gcRemoveEffect.setObjectID(pSlayer->getObjectID());
         gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_LIGHT);

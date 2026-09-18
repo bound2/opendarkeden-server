@@ -52,7 +52,7 @@ void EffectRingOfFlare::affect()
     Item* pWeapon = pOusters->getWearItem(Ousters::WEAR_RIGHTHAND);
     if (pWeapon == NULL || pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_WRISTLET ||
         !pOusters->isRealWearingEx(Ousters::WEAR_RIGHTHAND)) {
-        // 중간에 리스틀릿을 빼버리면 이펙트도 사라진다.
+        // Removing the wristlet ends the effect.
         setDeadline(0);
         return;
     }
@@ -79,7 +79,7 @@ void EffectRingOfFlare::affect()
             if (!rect.ptInRect(X, Y))
                 continue;
 
-            // 타일안에 존재하는 오브젝트를 가져온다.
+            // Fetches the objects on the tile.
             Tile& tile = pZone->getTile(X, Y);
 
             if (tile.hasCreature(Creature::MOVE_MODE_WALKING)) {
@@ -88,8 +88,8 @@ void EffectRingOfFlare::affect()
 
                 GCModifyInformation gcAttackerMI;
 
-                // 자신은 맞지 않는다. 무적도 안 맞는다. 슬레이어도 안 맞느다.
-                // 안전지대 체크
+                // The target itself, invulnerable creatures, Slayers and NPCs are not hit.
+                // Safe zone check
                 // 2003.1.10 by bezz, Sequoia
                 if (pCreature == m_pTarget || !canAttack(pCastCreature, pCreature) ||
                     pCreature->isFlag(Effect::EFFECT_CLASS_COMA) || pCreature->isOusters() ||
@@ -103,9 +103,9 @@ void EffectRingOfFlare::affect()
 
                     pCreature->getPlayer()->sendPacket(&gcMI);
 
-                    // 맞는 동작을 보여준다.
+                    // Shows the hit animation.
                     GCSkillToObjectOK2 gcSkillToObjectOK2;
-                    gcSkillToObjectOK2.setObjectID(1); // 의미 없다.
+                    gcSkillToObjectOK2.setObjectID(1); // Unused
                     gcSkillToObjectOK2.setSkillType(SKILL_ATTACK_MELEE);
                     gcSkillToObjectOK2.setDuration(0);
                     pCreature->getPlayer()->sendPacket(&gcSkillToObjectOK2);
@@ -125,7 +125,7 @@ void EffectRingOfFlare::affect()
 
                 pZone->broadcastPacket(X, Y, &gcSkillToObjectOK4, pCreature);
 
-                // 죽었으면 경험치준다. 음.....
+                // Grant experience if the target died.
                 if (pCastCreature != NULL) {
                     if (pCreature->isDead() && pCastCreature->isOusters()) {
                         Ousters* pCastOusters = dynamic_cast<Ousters*>(pCastCreature);
@@ -158,7 +158,7 @@ void EffectRingOfFlare::unaffect(Creature* pCreature)
     Assert(pCreature != NULL);
     Assert(pCreature->isOusters());
 
-    // 플래그를 끈다.
+    // Turns off the flag.
     pCreature->removeFlag(Effect::EFFECT_CLASS_RING_OF_FLARE);
 
     Zone* pZone = pCreature->getZone();
@@ -167,7 +167,7 @@ void EffectRingOfFlare::unaffect(Creature* pCreature)
     Ousters* pTargetOusters = dynamic_cast<Ousters*>(pCreature);
     Assert(pTargetOusters != NULL);
 
-    // 이펙트를 삭제하라고 알려준다.
+    // Tells clients to remove the effect.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(getSendEffectClass());

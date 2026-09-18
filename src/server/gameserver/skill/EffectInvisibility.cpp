@@ -95,7 +95,7 @@ void EffectInvisibility::unaffect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone);
 
-    // true면 내부에서 effectManager의 effect를 삭제한다.
+    // A true argument makes it delete the effect from the effect manager.
     addVisibleCreature(pZone, pCreature, false);
 
 

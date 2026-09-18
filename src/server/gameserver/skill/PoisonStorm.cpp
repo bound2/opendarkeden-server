@@ -18,7 +18,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void PoisonStorm::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                           CEffectID_t CEffectID)
@@ -37,7 +37,7 @@ void PoisonStorm::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
 
@@ -54,7 +54,7 @@ void PoisonStorm::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 타일 핸들러
+// Vampire tile handler
 //////////////////////////////////////////////////////////////////////////////
 void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireSkillSlot* pVampireSkillSlot,
                           CEffectID_t CEffectID)
@@ -83,7 +83,7 @@ void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
         ZoneCoord_t myX = pVampire->getX();
         ZoneCoord_t myY = pVampire->getY();
 
-        // Knowledge of Poison 이 있다면 hit bonus 10
+        // Knowledge of Poison gives a hit bonus of 10.
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_POISON)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_POISON);
@@ -116,7 +116,7 @@ void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
             SkillOutput output;
             computeOutput(input, output);
 
-            // Disruption Storm 이 있다면 데미지 20% 증가
+            // Disruption Storm increases the damage by its rank bonus percent.
             if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_DISRUPTION_STORM)) {
                 RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_DISRUPTION_STORM);
                 Assert(pRankBonus != NULL);
@@ -126,7 +126,7 @@ void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
 
             Range_t Range = 3;
 
-            // 기존에 같은 이펙트가 타일에 있다면 지우고 새로 설정한다.
+            // If the same effect is already on the tile, delete it and set a new one.
             Tile& tile = pZone->getTile(X, Y);
             Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_POISON_STORM);
             if (pOldEffect != NULL) {
@@ -134,7 +134,7 @@ void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
                 pZone->deleteEffect(effectID);
             }
 
-            // 이펙트 오브젝트를 생성해서 타일에 붙인다.
+            // Create the effect object and attach it to the tile.
             EffectPoisonStorm* pEffect = new EffectPoisonStorm(pZone, X, Y);
             pEffect->setDeadline(output.Duration);
             pEffect->setNextTime(0);
@@ -154,9 +154,9 @@ void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
             tile.addEffect(pEffect);
 
 
-            // 이펙트 범위내의 모든 Creature에게 effect를 붙여준다.
-            // Vampire가 기술을 사용한 경우 같은 Vampire에게는
-            // 해당하지 않는다.
+            // Attach the effect to every creature within the effect's range.
+            // When a Vampire uses the skill, other Vampires are
+            // not affected.
             bool bEffected = false;
             Creature* pTargetCreature;
 
@@ -167,7 +167,7 @@ void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
             int oX, oY;
             int edge = 1;
 
-            // Wide Storm 이 있다면 범위가 5*5 로 수정. skill type 을 수정한다.
+            // Wide Storm widens the range to 5*5 and changes the skill type.
             if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_WIDE_STORM)) {
                 RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_WIDE_STORM);
                 Assert(pRankBonus != NULL);
@@ -183,13 +183,13 @@ void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
                     int tileX = X + oX;
                     int tileY = Y + oY;
 
-                    // 만약 이펙트를 추가하려는 곳이 Zone에 속해 있지 않다면 넘어간다.
+                    // Skip the tile if it does not belong to the zone.
                     if (!rect.ptInRect(tileX, tileY))
                         continue;
 
                     Tile& tile = pZone->getTile(tileX, tileY);
 
-                    // 해당 타일에 이펙트를 추가할 수 없다면 넘어간다.
+                    // Skip the tile if an effect cannot be added to it.
                     if (!tile.canAddEffect())
                         continue;
 
@@ -216,7 +216,7 @@ void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
                                 cList.push_back(pTargetCreature);
 
                                 if (bCanSee) {
-                                    // 공격을 당한 사람에게
+                                    // For the creature that was hit
                                     _GCSkillToTileOK2.setObjectID(pVampire->getObjectID());
                                     _GCSkillToTileOK2.setSkillType(SkillType);
                                     _GCSkillToTileOK2.setX(X);
@@ -231,14 +231,14 @@ void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
                                 Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
                                 pMonster->addEnemy(pVampire);
 
-                                // 마지막 때린 애가 뱀파이어라고 설정한다. by sigi. 2002.6.21
+                                // Record the Vampire as the last creature class to hit it.
                                 pMonster->setLastHitCreatureClass(Creature::CREATURE_CLASS_VAMPIRE);
                             }
                         }
                     } // if(pTargetCreature!= NULL)
                 }
 
-            // 기술을 사용한 사람들에게
+            // For the skill user
             _GCSkillToTileOK1.setSkillType(SkillType);
             _GCSkillToTileOK1.setCEffectID(CEffectID);
             _GCSkillToTileOK1.setX(X);
@@ -246,19 +246,19 @@ void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
             _GCSkillToTileOK1.setDuration(output.Duration);
             _GCSkillToTileOK1.setRange(Range);
 
-            // 기술을 쓴 사람만 볼 수 있는 사람들에게
+            // For those who can see only the skill user
             _GCSkillToTileOK3.setSkillType(SkillType);
             _GCSkillToTileOK3.setX(X);
             _GCSkillToTileOK3.setY(Y);
 
-            // 기술을 당한 사람만 볼 수 있는 사람들에게
+            // For those who can see only the target
             _GCSkillToTileOK4.setSkillType(SkillType);
             _GCSkillToTileOK4.setX(X);
             _GCSkillToTileOK4.setY(Y);
             _GCSkillToTileOK4.setDuration(output.Duration);
             _GCSkillToTileOK4.setRange(Range);
 
-            // 기술을 쓴 사람과 당한 사람을 모두 볼 수 있는 사람들에게
+            // For those who can see both the skill user and the target
             _GCSkillToTileOK5.setObjectID(pVampire->getObjectID());
             _GCSkillToTileOK5.setSkillType(SkillType);
             _GCSkillToTileOK5.setX(X);
@@ -266,19 +266,19 @@ void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
             _GCSkillToTileOK5.setDuration(output.Duration);
             _GCSkillToTileOK5.setRange(Range);
 
-            // 기술을 사용한 사람에게 packet 전달
+            // Send the packet to the skill user.
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // 기술을 쓸 사람과 당한 사람을 모두 볼 수 있는 사람들에게 broadcasing
+            // Broadcast to those who can see both the skill user and the target.
             cList = pZone->broadcastSkillPacket(myX, myY, X, Y, &_GCSkillToTileOK5, cList);
 
-            // 기술을 쓴 사람을 볼 수 있는 사람들에게 broadcasting
+            // Broadcast to those who can see the skill user.
             pZone->broadcastPacket(myX, myY, &_GCSkillToTileOK3, cList);
 
-            // 기술을 당한 사람을 볼 수 있는 사람들에게 broadcasting
+            // Broadcast to those who can see the target.
             pZone->broadcastPacket(X, Y, &_GCSkillToTileOK4, cList);
 
-            // 기술 delay setting
+            // Set the skill delay.
             pVampireSkillSlot->setRunTime(output.Delay);
         } else {
             executeSkillFailNormal(pVampire, getSkillType(), NULL);
@@ -292,7 +292,7 @@ void PoisonStorm::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 타일 핸들러
+// Monster tile handler
 //////////////////////////////////////////////////////////////////////////////
 void PoisonStorm::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
@@ -338,7 +338,7 @@ void PoisonStorm::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
             Range_t Range = 3;
 
-            // 기존에 같은 이펙트가 타일에 있다면 지우고 새로 설정한다.
+            // If the same effect is already on the tile, delete it and set a new one.
             Tile& tile = pZone->getTile(X, Y);
             Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_POISON_STORM);
             if (pOldEffect != NULL) {
@@ -346,7 +346,7 @@ void PoisonStorm::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
                 pZone->deleteEffect(effectID);
             }
 
-            // 이펙트 오브젝트를 생성해서 타일에 붙인다.
+            // Create the effect object and attach it to the tile.
             EffectPoisonStorm* pEffect = new EffectPoisonStorm(pZone, X, Y);
             pEffect->setDeadline(output.Duration);
             pEffect->setNextTime(0);
@@ -365,9 +365,9 @@ void PoisonStorm::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             tile.addEffect(pEffect);
 
 
-            // 이펙트 범위내의 모든 Creature에게 effect를 붙여준다.
-            // Vampire가 기술을 사용한 경우 같은 Vampire에게는
-            // 해당하지 않는다.
+            // Attach the effect to every creature within the effect's range.
+            // When a Vampire uses the skill, other Vampires are
+            // not affected.
             bool bEffected = false;
             Creature* pTargetCreature;
 
@@ -413,7 +413,7 @@ void PoisonStorm::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
                                 cList.push_back(pTargetCreature);
 
                                 if (bCanSee) {
-                                    // 공격을 당한 사람에게
+                                    // For the creature that was hit
                                     _GCSkillToTileOK2.setObjectID(pMonster->getObjectID());
                                     _GCSkillToTileOK2.setSkillType(SkillType);
                                     _GCSkillToTileOK2.setX(X);
@@ -432,19 +432,19 @@ void PoisonStorm::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
                     } // if(pTargetCreature!= NULL)
                 }
 
-            // 기술을 쓴 사람만 볼 수 있는 사람들에게
+            // For those who can see only the skill user
             _GCSkillToTileOK3.setSkillType(SkillType);
             _GCSkillToTileOK3.setX(myX);
             _GCSkillToTileOK3.setY(myY);
 
-            // 기술을 당한 사람만 볼 수 있는 사람들에게
+            // For those who can see only the target
             _GCSkillToTileOK4.setSkillType(SkillType);
             _GCSkillToTileOK4.setX(X);
             _GCSkillToTileOK4.setY(Y);
             _GCSkillToTileOK4.setDuration(output.Duration);
             _GCSkillToTileOK4.setRange(Range);
 
-            // 기술을 쓴 사람과 당한 사람을 모두 볼 수 있는 사람들에게
+            // For those who can see both the skill user and the target
             _GCSkillToTileOK5.setObjectID(pMonster->getObjectID());
             _GCSkillToTileOK5.setSkillType(SkillType);
             _GCSkillToTileOK5.setX(X);
@@ -452,13 +452,13 @@ void PoisonStorm::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             _GCSkillToTileOK5.setDuration(output.Duration);
             _GCSkillToTileOK5.setRange(Range);
 
-            // 기술을 쓸 사람과 당한 사람을 모두 볼 수 있는 사람들에게 broadcasing
+            // Broadcast to those who can see both the skill user and the target.
             cList = pZone->broadcastSkillPacket(myX, myY, X, Y, &_GCSkillToTileOK5, cList);
 
-            // 기술을 쓴 사람을 볼 수 있는 사람들에게 broadcasting
+            // Broadcast to those who can see the skill user.
             pZone->broadcastPacket(myX, myY, &_GCSkillToTileOK3, cList);
 
-            // 기술을 당한 사람을 볼 수 있는 사람들에게 broadcasting
+            // Broadcast to those who can see the target.
             pZone->broadcastPacket(X, Y, &_GCSkillToTileOK4, cList);
 
         } else {

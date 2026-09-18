@@ -18,7 +18,7 @@
 #include "ZoneUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 타일 핸들러
+// Monster tile handler
 //////////////////////////////////////////////////////////////////////////////
 void IceHail::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
@@ -46,7 +46,7 @@ void IceHail::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             Tile& tile = pZone->getTile(X, Y);
             if (tile.canAddEffect())
                 bTileCheck = true;
-            // 머시 그라운드 있음 추가 못한당.
+            // Cannot be added where Mercy Ground is present.
         }
 
         Range_t Range = 5;
@@ -55,12 +55,12 @@ void IceHail::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         ZoneCoord_t myY = pMonster->getY();
 
         if (bHitRoll && bTileCheck) {
-            // 데미지와 지속 시간을 계산한다.
+            // Compute the damage and the duration.
             SkillInput input(pMonster);
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 오브젝트를 생성한다.
+            // Create the effect object.
             EffectIceHail* pEffect = new EffectIceHail(pZone, X, Y);
             pEffect->setDeadline(output.Duration);
             pEffect->setDamage(output.Damage);
@@ -69,11 +69,11 @@ void IceHail::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             pEffect->setRange(2);
             pEffect->setCasterID(pMonster->getObjectID());
 
-            // 타일에 붙은 이펙트는 OID를 받아야 한다.
+            // An effect attached to a tile must be assigned an object ID.
             ObjectRegistry& objectregister = pZone->getObjectRegistry();
             objectregister.registerObject(pEffect);
 
-            // 존 및 타일에다가 이펙트를 추가한다.
+            // Add the effect to the zone and the tile.
             pZone->addEffect(pEffect);
             pZone->getTile(X, Y).addEffect(pEffect);
 

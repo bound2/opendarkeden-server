@@ -17,7 +17,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터즈 오브젝트 핸들러
+// Ousters object handler
 //////////////////////////////////////////////////////////////////////////////
 void Prominence::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                          CEffectID_t CEffectID)
@@ -44,8 +44,8 @@ void Prominence::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
 
-        // NPC는 공격할 수가 없다.
-        if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        if (pTargetCreature == NULL // The zone returns NULL when the target is gone.
             || !canAttack(pOusters, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType(), Grade);
             return;
@@ -61,7 +61,7 @@ void Prominence::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터즈 타일 핸들러
+// Ousters tile handler
 //////////////////////////////////////////////////////////////////////////////
 void Prominence::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersSkillSlot* pOustersSkillSlot,
                          CEffectID_t CEffectID)
@@ -105,7 +105,7 @@ void Prominence::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // 데미지와 지속 시간을 계산한다.
+        // Compute the damage and the duration.
         SkillInput input(pOusters, pOustersSkillSlot);
         SkillOutput output;
         computeOutput(input, output);
@@ -139,7 +139,7 @@ void Prominence::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
                     if (!tile.canAddEffect())
                         continue;
 
-                    // 머시 그라운드 있음 추가 못한당.
+                    // Cannot be added where mercy ground is present.
                     if (tile.getEffect(Effect::EFFECT_CLASS_MERCY_GROUND) != NULL)
                         continue;
                     if (tile.getEffect(Effect::EFFECT_CLASS_TRYING_POSITION) != NULL)
@@ -150,7 +150,7 @@ void Prominence::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
                         continue;
 
 
-                    // 같은 이펙트가 이미 존재한다면 삭제한다.
+                    // Deletes the same effect if it already exists.
                     Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_PROMINENCE);
                     if (pOldEffect != NULL) {
                         ObjectID_t effectID = pOldEffect->getObjectID();
@@ -159,7 +159,7 @@ void Prominence::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
 
                     checkMine(pZone, oX, oY);
 
-                    // 이펙트 오브젝트를 생성한다.
+                    // Creates the effect object.
                     EffectProminence* pEffect = new EffectProminence(pZone, oX, oY);
                     pEffect->setUserObjectID(pOusters->getObjectID());
                     pEffect->setDeadline(output.Duration);
@@ -176,11 +176,11 @@ void Prominence::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
                             pEffect->setSendEffectClass(Effect::EFFECT_CLASS_PROMINENCE_3);
                     }
 
-                    // 타일에 붙은 이펙트는 OID를 받아야 한다.
+                    // An effect attached to a tile has to be given an object ID.
                     ObjectRegistry& objectregister = pZone->getObjectRegistry();
                     objectregister.registerObject(pEffect);
 
-                    // 존 및 타일에다가 이펙트를 추가한다.
+                    // Adds the effect to the zone and to the tile.
                     pZone->addEffect(pEffect);
                     tile.addEffect(pEffect);
 

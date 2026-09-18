@@ -65,7 +65,7 @@ void EffectBlazeWalk::affect(Creature* pCreature)
 
     if (!(pZone->getZoneLevel() & COMPLETE_SAFE_ZONE) && !pCreature->isDead() &&
         !pCreature->isFlag(Effect::EFFECT_CLASS_COMA)
-        // 무적상태 체크. by sigi. 2002.9.5
+        // Invincibility check.
         && canAttack(pAttacker, pCreature)) {
         GCModifyInformation gcMI, gcAttackerMI;
         setDamage(pCreature, m_Point, pAttacker, m_SkillType, &gcMI, &gcAttackerMI);

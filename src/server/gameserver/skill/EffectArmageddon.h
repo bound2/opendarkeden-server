@@ -62,10 +62,10 @@ public:
     }
 
 private:
-    ObjectID_t m_UserObjectID; // 시전자 Object ID
+    ObjectID_t m_UserObjectID; // Caster object ID
 
-    HP_t m_HP;         // 체력
-    Damage_t m_Damage; // 데미지
+    HP_t m_HP;         // HP
+    Damage_t m_Damage; // Damage
     Turn_t m_Delay;    // Tick
 };
 

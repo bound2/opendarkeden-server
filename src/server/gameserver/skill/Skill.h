@@ -10,7 +10,7 @@
 #include "Types.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// ½ºÅ³ °ü·Ã »ó¼öµé...
+// Skill-related constants
 //////////////////////////////////////////////////////////////////////////////
 
 const int ATTR_SAVE_DIVIDER = 100;
@@ -31,31 +31,31 @@ const int MONSTER_DUSK_FACTOR = 75;
 const int MONSTER_NIGHT_FACTOR = 100;
 
 const int VampireTimebandFactor[4] = {
-    125, // »õº®
-    100, // ³·
-    125, // Àú³á
-    150  // ¹ã
+    125, // Dawn
+    100, // Day
+    125, // Dusk
+    150  // Night
 };
 
 const int MonsterTimebandFactor[4] = {
-    75, // »õº®
-    50, // ³·
-    75, // Àú³á
-    100 // ¹ã
+    75, // Dawn
+    50, // Day
+    75, // Dusk
+    100 // Night
 };
 
 const int AttrExpTimebandFactor[4] = {
-    100, // »õº®
-    100, // ³·
-    100, // Àú³á
-    150  // ¹ã
+    100, // Dawn
+    100, // Day
+    100, // Dusk
+    150  // Night
 };
 
 const int DomainExpTimebandFactor[4] = {
-    100, // »õº®
-    100, // ³·
-    100, // Àú³á
-    150  // ¹ã
+    100, // Dawn
+    100, // Day
+    100, // Dusk
+    150  // Night
 };
 
 // The SkillTypes enum and its name table are wire vocabulary shared

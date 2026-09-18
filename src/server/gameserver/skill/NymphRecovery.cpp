@@ -14,7 +14,7 @@
 #include "GCStatusCurrentHP.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void NymphRecovery::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                             CEffectID_t CEffectID)
@@ -49,7 +49,7 @@ void NymphRecovery::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouster
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !pTargetCreature->isOusters()) {
             executeSkillFailException(pOusters, getSkillType(), Grade);
             return;
@@ -75,10 +75,10 @@ void NymphRecovery::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouster
                         pTargetOusters->getMP(ATTR_MAX) > pTargetOusters->getMP();
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bSatisfyRequire && bHPCheck) {
-            // 마나를 줄인다.
+            // Reduces mana.
             decreaseMana(pOusters, RequiredMP, _GCSkillToObjectOK1);
 
-            // 이펙트의 효과와 지속시간을 계산한다.
+            // Compute the effect value and the duration.
             SkillInput input(pOusters, pOustersSkillSlot);
             SkillOutput output;
             input.TargetType = SkillInput::TARGET_OTHER;
@@ -107,7 +107,7 @@ void NymphRecovery::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouster
                 }
             }
 
-            // 패킷을 준비해서 보낸다.
+            // Prepare the packet and send it.
             _GCSkillToObjectOK1.setSkillType(SkillType);
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);
@@ -151,7 +151,7 @@ void NymphRecovery::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouster
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void NymphRecovery::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot, CEffectID_t CEffectID)
 
@@ -201,7 +201,7 @@ void NymphRecovery::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bSatisfyRequire && bHPCheck) {
             decreaseMana(pOusters, RequiredMP, _GCSkillToSelfOK1);
 
-            // 이펙트의 효과와 지속시간을 계산한다.
+            // Compute the effect value and the duration.
             SkillInput input(pOusters, pOustersSkillSlot);
             SkillOutput output;
             input.TargetType = SkillInput::TARGET_SELF;
@@ -230,7 +230,7 @@ void NymphRecovery::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
                 }
             }
 
-            // 패킷을 준비해서 보낸다.
+            // Prepare the packet and send it.
             ZoneCoord_t myX = pOusters->getX();
             ZoneCoord_t myY = pOusters->getY();
 

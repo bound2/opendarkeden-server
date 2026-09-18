@@ -26,7 +26,7 @@ public:
         return EFFECT_CLASS_CONTINUAL_BLOODY_WALL;
     }
 
-    // OBJECT_PRIORITY_NONE 라는 뜻은, 타일에 들어가서는 안된다는 뜻이다.
+    // OBJECT_PRIORITY_NONE means it must not be placed on a tile.
 
     virtual void affect();
 

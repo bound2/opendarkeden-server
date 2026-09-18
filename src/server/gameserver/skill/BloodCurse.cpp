@@ -17,7 +17,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodCurse::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                          CEffectID_t CEffectID)
@@ -35,8 +35,8 @@ void BloodCurse::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        if (pTargetCreature == NULL // The zone returns NULL when the target is gone.
             || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
             return;
@@ -52,7 +52,7 @@ void BloodCurse::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 타일 핸들러
+// Vampire tile handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodCurse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireSkillSlot* pVampireSkillSlot,
                          CEffectID_t CEffectID)
@@ -78,7 +78,7 @@ void BloodCurse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // Knowledge of Innate 가 있다면 hit bonus 10
+        // Knowledge of Innate gives a hit bonus of 10.
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE);
@@ -106,9 +106,9 @@ void BloodCurse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
             decreaseMana(pVampire, RequiredMP, _GCSkillToTileOK1);
 
             Tile& tile = pZone->getTile(X, Y);
-            Range_t Range = 1; // 항상 1이다.
+            Range_t Range = 1; // Always 1.
 
-            // 같은 이펙트가 이미 존재한다면 삭제한다.
+            // Delete the same effect if one is already present.
             Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_BLOOD_CURSE);
             if (pOldEffect != NULL) {
                 ObjectID_t effectID = pOldEffect->getObjectID();
@@ -117,28 +117,28 @@ void BloodCurse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
 
             checkMine(pZone, X, Y);
 
-            // 데미지와 지속 시간을 계산한다.
+            // Compute the damage and the duration.
             SkillInput input(pVampire);
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 오브젝트를 생성한다.
+            // Create the effect object.
             EffectBloodCurse* pEffect = new EffectBloodCurse(pZone, X, Y, true);
             pEffect->setUserObjectID(pVampire->getObjectID());
             pEffect->setDamage(output.Damage);
             pEffect->setNextTime(output.Duration);
 
-            // 우선권 시스템을 위하여 이름과 파티 아이디를 넣는다.
+            // Store the name and party id for the priority system.
 
-            // 타일에 붙은 이펙트는 OID를 받아야 한다.
+            // An effect attached to a tile must be assigned an object ID.
             ObjectRegistry& objectregister = pZone->getObjectRegistry();
             objectregister.registerObject(pEffect);
 
-            // 존 및 타일에다가 이펙트를 추가한다.
+            // Add the effect to the zone and the tile.
             pZone->addEffect(pEffect);
             tile.addEffect(pEffect);
 
-            // 타일 위에 크리쳐가 있다면 바로 영향을 주도록 한다.
+            // Apply the effect immediately if a creature is on the tile.
             bool bEffected = false;
             Creature* pTargetCreature = NULL;
 
@@ -238,7 +238,7 @@ void BloodCurse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 타일 핸들러
+// Monster tile handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodCurse::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
@@ -276,36 +276,36 @@ void BloodCurse::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             }
 
             Tile& tile = pZone->getTile(X, Y);
-            Range_t Range = 1; // 항상 1이다.
+            Range_t Range = 1; // Always 1.
 
-            // 같은 이펙트가 이미 존재한다면 삭제한다.
+            // Delete the same effect if one is already present.
             Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_BLOOD_CURSE);
             if (pOldEffect != NULL) {
                 ObjectID_t effectID = pOldEffect->getObjectID();
                 pZone->deleteEffect(effectID);
             }
 
-            // 데미지와 지속 시간을 계산한다.
+            // Compute the damage and the duration.
             SkillInput input(pMonster);
             input.SkillLevel = pMonster->getLevel();
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 오브젝트를 생성한다.
+            // Create the effect object.
             EffectBloodCurse* pEffect = new EffectBloodCurse(pZone, X, Y);
             pEffect->setNextTime(output.Duration);
             pEffect->setUserObjectID(pMonster->getObjectID());
             pEffect->setDamage(output.Damage);
 
-            // 타일에 붙은 이펙트는 OID를 받아야 한다.
+            // An effect attached to a tile must be assigned an object ID.
             ObjectRegistry& objectregister = pZone->getObjectRegistry();
             objectregister.registerObject(pEffect);
 
-            // 존 및 타일에다가 이펙트를 추가한다.
+            // Add the effect to the zone and the tile.
             pZone->addEffect(pEffect);
             tile.addEffect(pEffect);
 
-            // 타일 위에 크리쳐가 있다면 바로 영향을 주도록 한다.
+            // Apply the effect immediately if a creature is on the tile.
             bool bEffected = false;
             Creature* pTargetCreature = NULL;
 

@@ -11,13 +11,13 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 생성자
-// 마스크를 초기화한다.
+// Constructor
+// Initializes the mask.
 //////////////////////////////////////////////////////////////////////////////
 PlayingWithFire::PlayingWithFire() {
     __BEGIN_TRY
 
-    // 주위 8타일
+    // The surrounding 8 tiles
     m_pPlayingWithFireMask[0].set(1, 1);
     m_pPlayingWithFireMask[1].set(-1, -1);
     m_pPlayingWithFireMask[2].set(0, -1);
@@ -31,11 +31,11 @@ PlayingWithFire::PlayingWithFire() {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 셀프 핸들러
+// Vampire self handler
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 셀프 핸들러
+// Monster self handler
 //////////////////////////////////////////////////////////////////////////////
 void PlayingWithFire::execute(Monster* pMonster)
 
@@ -66,12 +66,12 @@ void PlayingWithFire::execute(Monster* pMonster)
 
         if (bRangeCheck && bMoveModeCheck) {
             //--------------------------------------------------------
-            // Critical Ground 기술을 보이게 한다.
+            // Make the Critical Ground skill visible.
             //--------------------------------------------------------
 
 
             //--------------------------------------------------------
-            // 주위에 knockback되는맞는 애들을 체크해준다.
+            // Check which surrounding creatures are hit and knocked back.
             //--------------------------------------------------------
             SkillInput input(pMonster);
             SkillOutput output;
@@ -96,7 +96,7 @@ void PlayingWithFire::execute(Monster* pMonster)
                     param.addMask(i, j, 100);
 
 
-            // 강제로 맞는 애들을 knockback 시킨다.
+            // Knock back the creatures that are hit.
             bool bForceKnockback = true;
             g_SimpleTileMeleeSkill.execute(pMonster, x, y, param, result, 0, bForceKnockback);
         } else {

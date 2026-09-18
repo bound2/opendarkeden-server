@@ -42,7 +42,7 @@ void EffectHeavenGround::affect()
     __BEGIN_TRY
 
     Assert(m_pZone != NULL);
-    //  »ñÈ¡Ê¹ÓÃ¼¼ÄÜµÄÈËÎï
+    //  Get the creature that cast the skill.
     Creature* pCastCreature = m_pZone->getCreature(m_UserObjectID);
 
     if (pCastCreature == NULL) {
@@ -51,10 +51,10 @@ void EffectHeavenGround::affect()
         return;
     }
 
-    // È¡³öµØÍ¼
+    // Get the tile.
     Tile& tile = m_pZone->getTile(m_X, m_Y);
 
-    // »ñÈ¡µØÍ¼ÎïÆ·Á´±í
+    // Get the tile's object list.
     const forward_list<Object*>& oList = tile.getObjectList();
     forward_list<Object*>::const_iterator itr = oList.begin();
     for (; itr != oList.end(); itr++) {
@@ -67,22 +67,22 @@ void EffectHeavenGround::affect()
             Creature* pCreature = dynamic_cast<Creature*>(pObject);
             Assert(pCreature != NULL);
 
-            // ¼ì²âµ±Ç°¶ÔÏóÊÇ·ñ¿É¹¥»÷
+            // Check whether the current target can be attacked.
             if (!canAttack(pCastCreature, pCreature) || pCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_ACID) ||
                 pCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
                 continue;
             }
 
-            // ¼ì²âµØÍ¼µÈ¼¶
+            // Check the zone level.
             if (!checkZoneLevelToHitTarget(pCreature))
                 continue;
-            // ´´½¨ÉËº¦
+            // Compute the damage.
             int AcidDamage = computeMagicDamage(pCreature, m_Damage, SKILL_HEAVEN_GROUND, m_bSlayer, pCastCreature);
-            // ¿ÕÖÐµÄ²»¹¥»÷
+            // Flying targets are not attacked.
             if (pCreature->getMoveMode() != Creature::MOVE_MODE_FLYING) {
                 GCModifyInformation gcAttackerMI;
                 GCModifyInformation gcDefenderMI;
-                // Èç¹ûÊÇÈËÀà,Ôò²»»áÔì³ÉÉËº¦
+                // A human target takes no damage.
                 if (pCreature->isSlayer()) {
                     continue;
                 } else if (pCreature->isVampire()) {
@@ -111,17 +111,17 @@ void EffectHeavenGround::affect()
 
                 bool modifiedAttacker = false;
 
-                // Á×¾úÀ¸¸é °æÇèÄ¡ÁØ´Ù. À½.....
+                // Grants experience when the target dies.
                 // 						//computeAlignmentChange(pCreature, AcidDamage, pSlayer, &gcDefenderMI,
                 // 						//decreaseDurability(pSlayer, pCreature, NULL, &gcAttackerMI, &gcDefenderMI);
                 //
-                // 						// Å¸°ÙÀÌ ½½·¹ÀÌ¾î°¡ ¾Æ´Ñ °æ¿ì¿¡¸¸ °æÇèÄ¡¸¦ ¿Ã·ÁÁØ´Ù.
+                // 						// Experience is granted only when the target is not a Slayer.
                 // // 							//shareAttrExp(pSlayer, AcidDamage , 1, 1, 8, _GCSkillToObjectOK1);
                 // // 							increaseDomainExp(pSlayer, SKILL_HEAVEN_GROUND, pSkillInfo->getPoint(),
                 // // 							increaseSkillExp(pSlayer, SKILL_HEAVEN_GROUND,  pSkillSlot, pSkillInfo,
                 // // 							increaseAlignment(pSlayer, pCreature, gcAttackerMI);
 
-                // ¼ºÇâ °è»êÇÏ±â
+                // Compute the alignment change.
                 if (pCastCreature != NULL && pCastCreature->isPC() && pCreature->isPC()) {
                     computeAlignmentChange(pCreature, AcidDamage, pCastCreature, &gcDefenderMI, &gcAttackerMI);
                     modifiedAttacker = true;

@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectCureCriticalWounds.h
 // Written by  : elca@ewestsoft.com
-// Description : 성직마법 CureCriticalWounds의 Effect를 처리해주기 위한 클래스이다.
+// Description : Class that handles the Effect of the clerical magic CureCriticalWounds.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_CURE_CRITICAL_WOUNDS__

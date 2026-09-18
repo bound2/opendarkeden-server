@@ -58,20 +58,20 @@ void EffectPoison::affect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 스킬 사용자를 가져온다.
-    // !! 이미 존을 나갔을 수 있으므로 NULL이 될 수 있다.
+    // Get the skill user.
+    // It may be NULL: the creature may already have left the zone.
     // by bezz. 2003.1.4
     Creature* pCastCreature = pZone->getCreature(m_UserObjectID);
 
-    // EffectPoison이 크리쳐에게 걸리게 되는 경우에는 현재로서는
-    // GreenPoison에 의해 타일 위에 생긴
-    // EffectGreenPoison 위를 플레이어가 지나갈 때 뿐이다.
-    // EffectGreenPoison 내부에서 저항을 고려해서 데미지를 세팅한 다음
-    // EffectPoison을 붙이므로, 내부에서 한번 더 계산하면 안된다.
+    // EffectPoison currently reaches a creature only when the player walks
+    // over the EffectGreenPoison that GreenPoison leaves on a tile.
+    // EffectGreenPoison already sets the damage with resistance applied
+    // before it attaches EffectPoison, so the damage must not be computed
+    // a second time here.
     Damage_t PoisonDamage = m_Point;
 
     if (!(pZone->getZoneLevel() & COMPLETE_SAFE_ZONE)
-        // 무적상태 체크. by sigi. 2002.9.5
+        // Invincibility check.
         && canAttack(pCastCreature, pCreature)) {
         if (pCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -97,7 +97,7 @@ void EffectPoison::affect(Creature* pCreature)
             ::setDamage(pMonster, PoisonDamage, pCastCreature, SKILL_GREEN_POISON);
         }
 
-        // m_CasterName이 pCreature를 죽인 경우의 KillCount 처리
+        // Handles the kill count when the caster kills pCreature.
         // by sigi. 2002.9.9
     }
 
@@ -130,7 +130,7 @@ void EffectPoison::unaffect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 이펙트가 사라졌다고 알려준다.
+    // Tells clients that the effect is gone.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_POISON);

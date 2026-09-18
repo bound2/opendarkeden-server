@@ -16,7 +16,7 @@
 #include "GCSkillToTileOK5.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 타일 핸들러
+// Slayer tile handler
 //////////////////////////////////////////////////////////////////////////////
 void ContinualLight::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot,
                              CEffectID_t CEffectID)
@@ -77,7 +77,7 @@ void ContinualLight::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skil
 
             int oX = 0, oY = 0;
 
-            list<Creature*> cList; // 당하는 분들 list
+            list<Creature*> cList; // List of affected creatures
             for (oY = -output.Range; oY <= output.Range; oY++) {
                 for (oX = -output.Range; oX <= output.Range; oX++) {
                     int tileX = X + oX;
@@ -88,13 +88,13 @@ void ContinualLight::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skil
                         EffectDarkness* pEffect = (EffectDarkness*)(tile.getEffect(Effect::EFFECT_CLASS_DARKNESS));
                         bool success = false;
 
-                        // 이 타일에 다크니스가 존재한다면...
+                        // If Darkness is present on this tile.
                         if (pEffect != NULL) {
                             bool Remove = false;
 
-                            // 성공할 확률
-                            // min(0) - max(150) 에서
-                            // min(25) - max(75) 로 조정  2002.7.9 장홍창
+                            // Success chance,
+                            // adjusted from min(0) - max(150)
+                            // to min(25) - max(75).
                             int ratio = min(max(25, SkillLevel - pEffect->getLevel() / 3), 75);
 
                             if (rand() % 100 < ratio)
@@ -117,13 +117,13 @@ void ContinualLight::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skil
                         EffectGrayDarkness* pGrayEffect =
                             (EffectGrayDarkness*)(tile.getEffect(Effect::EFFECT_CLASS_GRAY_DARKNESS));
 
-                        // 이 타일에 다크니스가 존재한다면...
+                        // If Darkness is present on this tile.
                         if (pGrayEffect != NULL) {
                             bool Remove = false;
 
-                            // 성공할 확률
-                            // min(0) - max(150) 에서
-                            // min(25) - max(75) 로 조정  2002.7.9 장홍창
+                            // Success chance,
+                            // adjusted from min(0) - max(150)
+                            // to min(25) - max(75).
                             int ratio = min(max(20, SkillLevel - (int)(pGrayEffect->getLevel() / 2.8)), 70);
 
                             if (rand() % 100 < ratio)
@@ -133,7 +133,7 @@ void ContinualLight::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skil
                                 ObjectID_t effectObjectID = pGrayEffect->getObjectID();
                                 pZone->deleteEffect(effectObjectID);
 
-                                // 타일에 걸어다니는 크리쳐가 존재한다면 포인터를 받아온다.
+                                // Get the walking creature on the tile, if there is one.
                                 //
 
                                 GCDeleteEffectFromTile gcDeleteEffectFromTile;
@@ -147,7 +147,7 @@ void ContinualLight::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skil
                         }
 
                         if (success) {
-                            // 타일에 걸어다니는 크리쳐가 존재한다면 포인터를 받아온다.
+                            // Get the walking creature on the tile, if there is one.
                             Creature* pTargetCreature = NULL;
                             if (tile.hasCreature(Creature::MOVE_MODE_WALKING))
                                 pTargetCreature = tile.getCreature(Creature::MOVE_MODE_WALKING);
@@ -160,7 +160,7 @@ void ContinualLight::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skil
                 }
             }
 
-            // 경험치를 올려준다.
+            // Raises experience.
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToTileOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToTileOK1);

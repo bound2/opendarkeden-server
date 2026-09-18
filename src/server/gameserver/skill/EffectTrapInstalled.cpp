@@ -81,7 +81,7 @@ void EffectTrapInstalled::affect(Creature* pCreature)
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pCastSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
 
-            // 걸릴때 경험치 주기
+            // Give experience when the trap is triggered.
             shareAttrExp(pCastSlayer, ExpUp, 1, 8, 1, gcAttackerMI);
             increaseDomainExp(pCastSlayer, DomainType, pSkillInfo->getPoint(), gcAttackerMI);
             increaseSkillExp(pCastSlayer, DomainType, pSkillSlot, pSkillInfo, gcAttackerMI);

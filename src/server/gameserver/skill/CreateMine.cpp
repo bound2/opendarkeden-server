@@ -46,8 +46,8 @@ void CreateMine::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
         Assert(pZone != NULL);
         Assert(pInventory != NULL);
 
-        // 지뢰를 만들 대상이 널이거나, 폭탄 재료가 아니거나,
-        // OID가 틀리다면 사용할 수 없다.
+        // The skill cannot be used when the item to turn into a mine is NULL,
+        // or the object id does not match.
         Item* pBombMaterial = pInventory->getItem(X, Y);
         if (pBombMaterial == NULL || pBombMaterial->getItemClass() != Item::ITEM_CLASS_BOMB_MATERIAL ||
             pBombMaterial->getObjectID() != InvenObjectID) {
@@ -59,20 +59,20 @@ void CreateMine::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
         if (X == TargetX && Y == TargetY)
             bSamePosition = true;
 
-        // 대상 위치와 타겟 위치가 같게 날아오는 경우는
-        // 지뢰로 변환하고자 하는 폭탄재료의 숫자가 1인 경우이다.
-        // (이전의 폭탄 재료를 삭제하고, 같은 위치에 지뢰를 생성한다는 의미이다.)
-        // 1이 아니라면 리턴해야한다.
+        // The source and target positions are the same only when the
+        // means the bomb material being converted has a count of one.
+        // (It means the old bomb material is deleted and a mine is created in the same slot.)
+        // If the count is not 1, return.
         if (bSamePosition && pBombMaterial->getNum() != 1) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
         }
 
-        // 아이템 타입과 이에 대응되는 지뢰의 타입을 구한다.
+        // Look up the item type and the mine type that matches it.
         ItemType_t MaterialType = pBombMaterial->getItemType();
         int MineType = MaterialType2MineTypeMap[MaterialType];
         if (MineType == -1) {
-            // 지뢰 재료가 아니라, 폭탄 재료라면, 스킬 실패다.
+            // The skill fails when the material is bomb material rather than mine material.
             executeSkillFailException(pSlayer, getSkillType());
             return;
         }
@@ -102,17 +102,17 @@ void CreateMine::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
             list<OptionType_t> optionNULL;
             Item* pMine = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MINE, MineType, optionNULL);
 
-            // 물병의 갯수를 줄여준다.
-            // 이 함수 안에서 물병의 갯수가 자동적으로 하나 줄어들고,
-            // 만일 1개인 물병이었다면 인벤토리 및 DB에서 삭제되게 된다.
+            // Decrease the bottle count.
+            // Inside this function the bottle count drops by one automatically,
+            // and a last remaining bottle is deleted from the inventory and the DB.
             decreaseItemNum(pBombMaterial, pInventory, pSlayer->getName(), STORAGE_INVENTORY, 0, X, Y);
 
             Item* pPrevMine = pInventory->getItem(TargetX, TargetY);
 
-            // 기존의 지뢰 객체가 있다는 말은 쌓아야 한다는 말이다.
+            // An existing mine object means the new mine has to be stacked onto it.
             if (pPrevMine != NULL) {
                 if (canStack(pPrevMine, pMine) == false) {
-                    // 같은 타입의 지뢰가 아닐 때인데... 이런 경우가 어떻게 하면 생길까...
+                    // The mines are of different types, which should not normally happen.
                     SAFE_DELETE(pMine);
 
                     executeSkillFailException(pSlayer, getSkillType());
@@ -120,25 +120,25 @@ void CreateMine::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
                     return;
                 }
 
-                // 갯수를 하나 증가시키고 저장한다.
+                // Increase the count by one and save.
                 pPrevMine->setNum(pPrevMine->getNum() + 1);
                 pPrevMine->save(pSlayer->getName(), STORAGE_INVENTORY, 0, TargetX, TargetY);
 
-                // 위부분의 decreaseItemNum() 함수 부분에서 아이템 숫자를 감소시키므로,
-                // 여기서 다시 인벤토리의 아이템 숫자를 증가시킨다.
+                // The decreaseItemNum() call above decreased the item count, so the
+                // inventory item count is increased again here.
                 pInventory->increaseNum();
 
-                // 방금 만들어진 지뢰는 기존의 지뢰에 더해졌으므로 삭제한다.
+                // The new mine was merged into the existing one, so delete it.
                 SAFE_DELETE(pMine);
 
                 _GCSkillToInventoryOK1.setObjectID(pPrevMine->getObjectID());
             }
-            // 기존의 지뢰 객체가 없다는 말은 지뢰 객체를 DB에 생성해야 한다는 말이다.
+            // No existing mine object means a new one has to be created in the database.
             else {
                 ObjectRegistry& OR = pZone->getObjectRegistry();
                 OR.registerObject(pMine);
 
-                // 지뢰를 Inventory로 집어 넣고 DB에다가 생성한다.
+                // Put the mine into the inventory and create it in the database.
                 pInventory->addItem(TargetX, TargetY, pMine);
                 pMine->setNum(1);
                 pMine->create(pSlayer->getName(), STORAGE_INVENTORY, 0, TargetX, TargetY);
@@ -146,7 +146,7 @@ void CreateMine::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
                 _GCSkillToInventoryOK1.setObjectID(pMine->getObjectID());
             }
 
-            // 패킷을 보낸다.
+            // Send the packet.
             _GCSkillToInventoryOK1.setSkillType(SkillType);
             _GCSkillToInventoryOK1.setItemType(MineType);
             _GCSkillToInventoryOK1.setCEffectID(0);
@@ -168,12 +168,11 @@ void CreateMine::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
 
             pSkillSlot->setRunTime(output.Delay);
         } else {
-            //  지뢰 만들기 같은 경우에는, 실패했을 때 딜레이가 없기 때문에,
-            //  클라이언트에게서 패킷이 상당히 빠르게 연속적으로 날아온다.
-            //  이 때, 실패 패킷을 브로드 캐스팅하게 되면, 옆에 있는 사람이 보기에는
-            //  캐스팅 동작이 매우 빠르게 연속적으로 표시된다. (스피드핵 쓰는 것처럼...)
-            //  그래서 이 부분에서 브로드캐스팅을 하지 않고, 본인에게만 패킷을 날려준다.
-            //  2002-02-06 김성민
+            //  Creating a mine has no delay on failure, so packets
+            //  very rapid succession. Broadcasting the failure packet would make
+            //  bystanders see the casting animation repeat extremely fast, as if a
+            //  speed hack were in use. So nothing is broadcast here and the packet
+            //  goes only to the caster.
             executeSkillFailException(pSlayer, getSkillType());
         }
     } catch (Throwable& t) {

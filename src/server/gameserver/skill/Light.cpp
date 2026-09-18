@@ -12,7 +12,7 @@
 #include "GCSkillToSelfOK2.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void Light::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -47,7 +47,7 @@ void Light::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToSelfOK1);
 
-            // 기술이 유지되는 시간은 숙련도에 따라서 달라진다.
+            // The time the skill lasts varies with proficiency.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             computeOutput(input, output);
@@ -55,14 +55,14 @@ void Light::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
             Sight_t CurrentSight = pSlayer->getSight();
             Sight_t oldSight = CurrentSight;
 
-            // 혹시라도 옛날 이펙트가 남아있다면 삭제한다.
+            // Deletes an older effect if one is still attached.
             if (pSlayer->isEffect(Effect::EFFECT_CLASS_LIGHT)) {
                 EffectLight* pOldEffectLight = (EffectLight*)pSlayer->findEffect(Effect::EFFECT_CLASS_LIGHT);
                 CurrentSight = pOldEffectLight->getOldSight();
                 pSlayer->deleteEffect(Effect::EFFECT_CLASS_LIGHT);
             }
 
-            // 이펙트를 만들어 붙인다.
+            // Creates the effect and attaches it.
             EffectLight* pEffectLight = new EffectLight(pSlayer);
             pEffectLight->setDeadline(output.Duration);
             pEffectLight->setOldSight(CurrentSight);
@@ -70,7 +70,7 @@ void Light::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
             pSlayer->addEffect(pEffectLight);
 
 
-            // 시야처리..
+            // Updates the sight.
             Sight_t MinSight = pSkillInfo->getMinDamage();
             Sight_t MaxSight = pSkillInfo->getMaxDamage();
             Sight_t NewSight = MinSight + (MaxSight - MinSight) * SkillLevel / 100;
@@ -102,7 +102,7 @@ void Light::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
 
             pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &_GCSkillToSelfOK2, pSlayer);
 
-            // 이펙트가 붙었다고 알려준다.
+            // Notifies that the effect has been attached.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pSlayer->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_LIGHT);

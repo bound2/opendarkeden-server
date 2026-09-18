@@ -96,7 +96,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ÀÎÆ®¿¡ µû¶ó ¸¶³ª ¼Ò¸ð·®ÀÌ º¯ÇÏ´Â ¹ìÆÄÀÌ¾î ¸¶¹ýÀÇ ¸¶³ª ¼Ò¸ð·®À» °è»êÇÑ´Ù.
+// Computes the mana cost of a Vampire spell, which varies with INT.
 //////////////////////////////////////////////////////////////////////////////
 MP_t decreaseConsumeMP(Vampire* pVampire, SkillInfo* pSkillInfo) {
     Assert(pVampire != NULL);
@@ -108,7 +108,7 @@ MP_t decreaseConsumeMP(Vampire* pVampire, SkillInfo* pSkillInfo) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ±â¼úÀ» »ç¿ëÇÏ±â À§ÇÑ ÃæºÐÇÑ ¸¶³ª¸¦ °¡Áö°í ÀÖ´Â°¡?
+// Does the caster have enough mana to use the skill?
 //////////////////////////////////////////////////////////////////////////////
 bool hasEnoughMana(Creature* pCaster, int RequiredMP) {
     if (pCaster->isSlayer()) {
@@ -119,12 +119,12 @@ bool hasEnoughMana(Creature* pCaster, int RequiredMP) {
             RequiredMP += getPercentValue(RequiredMP, decreaseRatio);
         }
 
-        // Sacrifice¸¦ ¾´ »óÅÂ¶ó¸é ¸¶³ª°¡ ¸ðÀÚ¶óµµ HP·Î ´ë½ÅÇÒ ¼ö ÀÖ´Ù.
+        // With Sacrifice active, HP can stand in when mana runs short.
         if (pSlayer->isFlag(Effect::EFFECT_CLASS_SACRIFICE)) {
             int margin = RequiredMP - pSlayer->getMP(ATTR_CURRENT);
 
-            // ¿ä±¸Ä¡¿¡¼­ ÇöÀç ¼öÄ¡¸¦ »« °ªÀÌ 0ÀÌ»óÀÌ¶ó¸é ,
-            // ¿ä±¸Ä¡°¡ ´õ Å©´Ù´Â ¸»ÀÌ´Ù. ÀÌ ¼öÄ¡´Â HP¿¡¼­ Á¦°ÅÇÑ´Ù.
+            // If the requirement minus the current MP is above zero,
+            // the requirement is the larger, and the difference comes out of HP.
             if (margin > 0) {
                 margin = (int)pSlayer->getHP(ATTR_CURRENT) * 2 - (int)margin;
                 if (margin > 0)
@@ -139,9 +139,9 @@ bool hasEnoughMana(Creature* pCaster, int RequiredMP) {
     } else if (pCaster->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pCaster);
 
-        // ¹ìÆÄÀÌ¾î´Â HP°¡ °ð MPÀÌ±â ¶§¹®¿¡ ¸¶³ª¸¦ »ç¿ëÇÏ°í,
-        // Á×¾î¹ö¸®¸é °ï¶õÇÏ´Ù. ±×·¯¹Ç·Î ±â¼úÀ» »ç¿ëÇÏ°í ³ª¼­
-        // HP´Â 1 ÀÌ»óÀÌ¾î¾ß ÇÑ´Ù. ±×·¡¼­ >= ´ë½Å >¸¦ »ç¿ëÇÑ´Ù.
+        // A Vampire's HP is also its MP, so spending mana
+        // must not kill it. After a skill is used the
+        // HP has to be at least 1, so > is used instead of >=.
 
         int decreaseRatio = pVampire->getConsumeMPRatio();
         if (decreaseRatio != 0) {
@@ -161,9 +161,8 @@ bool hasEnoughMana(Creature* pCaster, int RequiredMP) {
         if (pOusters->getMP(ATTR_CURRENT) >= (MP_t)RequiredMP)
             return true;
     } else if (pCaster->isMonster()) {
-        // ¸ó½ºÅÍ´Â ¹«ÇÑ ¸¶³ª µÇ°Ú´Ù. À½È±È±
-        // ³ªÁß¿¡¶óµµ ¸ó½ºÅÍ¿¡ ¸¶¹ý Ä«¿îÆ®³ª ¹¹ ±×·² °ÍÀÌ »ý±æÁöµµ ¸ð¸£Áö.
-        // comment by ±è¼º¹Î
+        // Monsters have unlimited mana.
+        // A spell count for monsters may be added later.
         return true;
     } else {
         cerr << "hasEnoughMana() : Invalid Creature Class" << endl;
@@ -175,9 +174,9 @@ bool hasEnoughMana(Creature* pCaster, int RequiredMP) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ÁÖ¾îÁø Æ÷ÀÎÆ®¸¸Å­ÀÇ ¸¶³ª¸¦ ÁÙÀÎ´Ù.
-// ´Ü ½½·¹ÀÌ¾î °°Àº °æ¿ì¿¡´Â Sacrifice °°Àº ÀÌÆåÆ®°¡ ºÙ¾îÀÖÀ¸¸é,
-// ¸¶³ª°¡ ¸ðÀÚ¶ö °æ¿ì, HP°¡ ´âÀ» ¼öµµ ÀÖ´Ù.
+// Reduces mana by the given number of points.
+// For a Slayer carrying an effect such as Sacrifice,
+// HP may be spent as well when mana runs short.
 //////////////////////////////////////////////////////////////////////////////
 int decreaseMana(Creature* pCaster, int MP, ModifyInfo& info) {
     Assert(pCaster != NULL);
@@ -191,7 +190,7 @@ int decreaseMana(Creature* pCaster, int MP, ModifyInfo& info) {
     if (pCaster->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pCaster);
 
-        // Magic Brain ÀÌ ÀÖ´Ù¸é MP ¼Ò¸ð·® 25% °¨¼Ò
+        // Magic Brain reduces MP consumption by its rank bonus percentage.
         if (pSlayer->hasRankBonus(RankBonus::RANK_BONUS_MAGIC_BRAIN)) {
             RankBonus* pRankBonus = pSlayer->getRankBonus(RankBonus::RANK_BONUS_MAGIC_BRAIN);
             Assert(pRankBonus != NULL);
@@ -199,22 +198,22 @@ int decreaseMana(Creature* pCaster, int MP, ModifyInfo& info) {
             MP -= getPercentValue(MP, pRankBonus->getPoint());
         }
 
-        // Blood Bible º¸³Ê½º Àû¿ë
+        // Applies the Blood Bible bonus.
         int decreaseRatio = pSlayer->getConsumeMPRatio();
         if (decreaseRatio != 0) {
-            // decreaseRatio °ª ÀÚÃ¼°¡ ¸¶ÀÌ³Ê½º °ªÀÌ´Ù.
+            // The decreaseRatio value is itself negative.
             MP += getPercentValue(MP, decreaseRatio);
         }
 
-        // sacrifice¸¦ ¾´ »óÅÂ¶ó¸é ¸ÕÀú MP¿¡¼­ ±ï°í, ¸ðÀÚ¶ó¸é HPµµ ±ï´Â´Ù.
+        // With Sacrifice active, MP is drained first and HP covers the rest.
         if (pSlayer->isFlag(Effect::EFFECT_CLASS_SACRIFICE)) {
             int margin = (int)MP - (int)pSlayer->getMP(ATTR_CURRENT);
 
-            // ¸¶ÁøÀÌ 0º¸´Ù Å©´Ù´Â ¸»Àº ¿ä±¸Ä¡º¸´Ù ÇöÀç MP°¡ Àû´Ù´Â ¸»ÀÌ´Ù.
+            // A margin above zero means the current MP is below the requirement.
             if (margin > 0) {
-                // MP¸¦ ±ï°í...
+                // Drains the MP to zero...
                 pSlayer->setMP(0, ATTR_CURRENT);
-                // HPµµ ±ï´Â´Ù.
+                // and drains HP as well.
                 RemainHP = max(0, (int)(pSlayer->getHP(ATTR_CURRENT) - margin / 2));
                 pSlayer->setHP(RemainHP, ATTR_CURRENT);
 
@@ -223,13 +222,13 @@ int decreaseMana(Creature* pCaster, int MP, ModifyInfo& info) {
                 return CONSUME_BOTH;
             }
 
-            // sacrifice¸¦ ¾²Áö ¾ÊÀº »óÅÂ¶ó¸é °Á MP¿¡¼­ ±ï´Â´Ù.
+            // The MP covers the cost, so it all comes out of MP.
             RemainMP = max(0, ((int)pSlayer->getMP(ATTR_CURRENT) - (int)MP));
             pSlayer->setMP(RemainMP, ATTR_CURRENT);
 
             info.addShortData(MODIFY_CURRENT_MP, pSlayer->getMP(ATTR_CURRENT));
             return CONSUME_MP;
-        } else // sacrifice¸¦ ¾²Áö ¾ÊÀº »óÅÂ¶ó¸é °Á MP¿¡¼­ ±ï´Â´Ù.
+        } else // Without Sacrifice, the cost simply comes out of MP.
         {
             RemainMP = max(0, ((int)pSlayer->getMP(ATTR_CURRENT) - (int)MP));
             pSlayer->setMP(RemainMP, ATTR_CURRENT);
@@ -240,7 +239,7 @@ int decreaseMana(Creature* pCaster, int MP, ModifyInfo& info) {
     } else if (pCaster->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pCaster);
 
-        // Wisdom of Blood °¡ ÀÖ´Ù¸é HP ¼Ò¸ð·® 10% °¨¼Ò
+        // Wisdom of Blood reduces HP consumption by its rank bonus percentage.
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_WISDOM_OF_BLOOD)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_WISDOM_OF_BLOOD);
             Assert(pRankBonus != NULL);
@@ -248,10 +247,10 @@ int decreaseMana(Creature* pCaster, int MP, ModifyInfo& info) {
             MP -= getPercentValue(MP, pRankBonus->getPoint());
         }
 
-        // Blood Bible º¸³Ê½º Àû¿ë
+        // Applies the Blood Bible bonus.
         int decreaseRatio = pVampire->getConsumeMPRatio();
         if (decreaseRatio != 0) {
-            // decreaseRatio °ª ÀÚÃ¼°¡ ¸¶ÀÌ³Ê½º °ªÀÌ´Ù.
+            // The decreaseRatio value is itself negative.
             MP += getPercentValue(MP, decreaseRatio);
         }
 
@@ -259,11 +258,11 @@ int decreaseMana(Creature* pCaster, int MP, ModifyInfo& info) {
         RemainHP = max(0, ((int)currentHP - (int)MP));
         pVampire->setHP(RemainHP, ATTR_CURRENT);
 
-        // Mephisto ÀÌÆåÆ® °É·ÁÀÖÀ¸¸é HP 30% ÀÌÇÏÀÏ¶§ Ç®¸°´Ù.
+        // The Mephisto effect is cleared once HP drops low.
         if (pVampire->isFlag(Effect::EFFECT_CLASS_MEPHISTO)) {
             HP_t maxHP = pVampire->getHP(ATTR_MAX);
 
-            // 33% ... ÄÉÄÉ..
+            // A third, not 30%.
             if (currentHP * 3 < maxHP) {
                 Effect* pEffect = pVampire->findEffect(Effect::EFFECT_CLASS_MEPHISTO);
                 if (pEffect != NULL) {
@@ -279,10 +278,10 @@ int decreaseMana(Creature* pCaster, int MP, ModifyInfo& info) {
     } else if (pCaster->isOusters()) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pCaster);
 
-        // Blood Bible º¸³Ê½º Àû¿ë
+        // Applies the Blood Bible bonus.
         int decreaseRatio = pOusters->getConsumeMPRatio();
         if (decreaseRatio != 0) {
-            // decreaseRatio °ª ÀÚÃ¼°¡ ¸¶ÀÌ³Ê½º °ªÀÌ´Ù.
+            // The decreaseRatio value is itself negative.
             MP += getPercentValue(MP, decreaseRatio);
         }
 
@@ -292,9 +291,8 @@ int decreaseMana(Creature* pCaster, int MP, ModifyInfo& info) {
         info.addShortData(MODIFY_CURRENT_MP, pOusters->getMP(ATTR_CURRENT));
         return CONSUME_MP;
     } else if (pCaster->isMonster()) {
-        // ¸ó½ºÅÍ´Â ¹«ÇÑ ¸¶³ª µÇ°Ú´Ù. À½È±È±
-        // ³ªÁß¿¡¶óµµ ¸ó½ºÅÍ¿¡ ¸¶¹ý Ä«¿îÆ®³ª ¹¹ ±×·² °ÍÀÌ »ý±æÁöµµ ¸ð¸£Áö.
-        // comment by ±è¼º¹Î
+        // Monsters have unlimited mana.
+        // A spell count for monsters may be added later.
         cerr << "decreaseMana() : Monster don't have Mana" << endl;
         Assert(false);
     } else {
@@ -306,20 +304,20 @@ int decreaseMana(Creature* pCaster, int MP, ModifyInfo& info) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î¿ë ½ºÅ³ÀÇ »çÁ¤°Å¸®¸¦ °è»êÇÑ´Ù.
+// Computes the range of a Slayer skill.
 //////////////////////////////////////////////////////////////////////////////
 Range_t computeSkillRange(SkillSlot* pSkillSlot, SkillInfo* pSkillInfo) {
     Assert(pSkillSlot != NULL);
     Assert(pSkillInfo != NULL);
 
-    // SkillÀÇ Min/Max Range ¸¦ ¹Þ¾Æ¿Â´Ù.
+    // Reads the skill's min and max range.
     Range_t SkillMinPoint = pSkillInfo->getMinRange();
     Range_t SkillMaxPoint = pSkillInfo->getMaxRange();
 
-    // Skill LevelÀ» ¹Þ¾Æ¿Â´Ù.
+    // Reads the skill level.
     SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
-    // SkillÀÇ Range¸¦ °è»êÇÑ´Ù.
+    // Computes the skill's range.
     Range_t Range = (int)(SkillMinPoint + (SkillMaxPoint - SkillMinPoint) * (double)(SkillLevel * 0.01));
 
     return Range;
@@ -327,7 +325,7 @@ Range_t computeSkillRange(SkillSlot* pSkillSlot, SkillInfo* pSkillInfo) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î¿ë ½ºÅ³ÀÇ ½ÇÇà½Ã°£À» °ËÁõÇÑ´Ù.
+// Verifies the run time of a Slayer skill.
 //////////////////////////////////////////////////////////////////////////////
 bool verifyRunTime(SkillSlot* pSkillSlot) {
     Assert(pSkillSlot != NULL);
@@ -345,7 +343,7 @@ bool verifyRunTime(SkillSlot* pSkillSlot) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ¹ìÆÄÀÌ¾î¿ë ½ºÅ³ÀÇ ½ÇÇà½Ã°£À» °ËÁõÇÑ´Ù.
+// Verifies the run time of a Vampire skill.
 //////////////////////////////////////////////////////////////////////////////
 bool verifyRunTime(VampireSkillSlot* pSkillSlot) {
     Assert(pSkillSlot != NULL);
@@ -363,7 +361,7 @@ bool verifyRunTime(VampireSkillSlot* pSkillSlot) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ¾Æ¿ì½ºÅÍ½º¿ë ½ºÅ³ÀÇ ½ÇÇà½Ã°£À» °ËÁõÇÑ´Ù.
+// Verifies the run time of an Ousters skill.
 //////////////////////////////////////////////////////////////////////////////
 bool verifyRunTime(OustersSkillSlot* pSkillSlot) {
     Assert(pSkillSlot != NULL);
@@ -381,7 +379,7 @@ bool verifyRunTime(OustersSkillSlot* pSkillSlot) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// °¢ Á¸ÀÇ PK Á¤Ã¥¿¡ µû¶ó, PK°¡ µÇ´À³Ä ¾È µÇ´À³Ä¸¦ Á¤ÇÑ´Ù.
+// Decides whether PK is allowed, following each zone's PK policy.
 //////////////////////////////////////////////////////////////////////////////
 bool verifyPK(Creature* pAttacker, Creature* pDefender) {
     Zone* pZone = pDefender->getZone();
@@ -394,11 +392,11 @@ bool verifyPK(Creature* pAttacker, Creature* pDefender) {
         }
 
         if (pDefender->getCreatureClass() == pAttacker->getCreatureClass() && pAttacker->isPC()) {
-            // Á¸ ·¹º§ÀÌ PK°¡ ¾È µÇ´Â °÷ÀÌ¶ó¸é °ø°ÝÇÒ ¼ö ¾ø´Ù.
+            // A zone level that forbids PK blocks the attack.
             if (pZone->getZoneLevel() == NO_PK_ZONE)
                 return false;
 
-            // °°Àº ÆÄÆ¼¿ø³¢¸®´Â °ø°ÝÇÒ ¼ö ¾ø´Ù.
+            // Members of the same party cannot attack each other.
             int PartyID1 = pAttacker->getPartyID();
             int PartyID2 = pDefender->getPartyID();
             if (PartyID1 != 0 && PartyID1 == PartyID2)
@@ -416,8 +414,8 @@ bool verifyPK(Creature* pAttacker, Creature* pDefender) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ±â¼úÀ» »ç¿ëÇÒ ¼ö ÀÖ´Â Á¸ÀÎ°¡?
-// (¼¿ÇÁ ±â¼úÀÏ °æ¿ì, Á¸ ·¹º§À» Ã¼Å©ÇÏ´Â ÇÔ¼ö´Ù...)
+// Is this a zone where the skill may be used?
+// (For a self skill, this checks the zone level.)
 //////////////////////////////////////////////////////////////////////////////
 bool checkZoneLevelToUseSkill(Creature* pCaster) {
     Assert(pCaster != NULL);
@@ -432,7 +430,7 @@ bool checkZoneLevelToUseSkill(Creature* pCaster) {
     ZoneCoord_t cy = pCaster->getY();
     ZoneLevel_t ZoneLevel = pZone->getZoneLevel(cx, cy);
 
-    // ¾ÈÀüÁö´ë¿¡¼­´Â ¼¿ÇÁ ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // Self skills cannot be used in a safe zone.
     if ((ZoneLevel & SAFE_ZONE)) // && pZone->isHolyLand() )
         return false;
 
@@ -443,7 +441,7 @@ bool checkZoneLevelToUseSkill(Creature* pCaster) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// X, Y¿¡ ¼­ ÀÖ´Â Å©¸®ÃÄ°¡ ÀÓÀÇÀÇ ±â¼ú¿¡ ¿µÇâÀ» ¹Þ´ÂÁö Ã¼Å©ÇÏ´Â ÇÔ¼ö´Ù.
+// Checks whether the creature standing at X, Y can be affected by a skill.
 //////////////////////////////////////////////////////////////////////////////
 bool checkZoneLevelToHitTarget(Creature* pTargetCreature) {
     Assert(pTargetCreature != NULL);
@@ -455,16 +453,16 @@ bool checkZoneLevelToHitTarget(Creature* pTargetCreature) {
     ZoneCoord_t ty = pTargetCreature->getY();
     ZoneLevel_t ZoneLevel = pZone->getZoneLevel(tx, ty);
 
-    // ½½·¹ÀÌ¾î ¾ÈÀüÁö´ë¿¡¼­ ½½·¹ÀÌ¾î´Â ±â¼ú¿¡ ¸ÂÁö ¾Ê´Â´Ù.
+    // A Slayer is not hit by skills in a Slayer safe zone.
     if ((ZoneLevel & SLAYER_SAFE_ZONE) && pTargetCreature->isSlayer())
         return false;
-    // ¹ìÆÄÀÌ¾î ¾ÈÀüÁö´ë¿¡¼­ ¹ìÆÄÀÌ¾î´Â ±â¼ú¿¡ ¸ÂÁö ¾Ê´Â´Ù.
+    // A Vampire is not hit by skills in a Vampire safe zone.
     else if ((ZoneLevel & VAMPIRE_SAFE_ZONE) && pTargetCreature->isVampire())
         return false;
-    // ¾Æ¿ì½ºÅÍÁî ¾ÈÀüÁö´ë¿¡¼­ ¾Æ¿ì½ºÅÍÁî´Â ±â¼ú¿¡ ¸ÂÁö ¾Ê´Â´Ù.
+    // Ousters are not hit by skills in an Ousters safe zone.
     else if ((ZoneLevel & OUSTERS_SAFE_ZONE) && pTargetCreature->isOusters())
         return false;
-    // ÅëÇÕ ¾ÈÀüÁö´ë¿¡¼­´Â ´©±¸µµ ¸ÂÁö ¾Ê´Â´Ù.
+    // Nobody is hit in a complete safe zone.
     else if (ZoneLevel & COMPLETE_SAFE_ZONE)
         return false;
 
@@ -473,9 +471,9 @@ bool checkZoneLevelToHitTarget(Creature* pTargetCreature) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ±â¼ú ½ÇÆÐ½Ã ÆÐÅ¶À» ³¯¸°´Ù.
-// ÀÏ¹ÝÀûÀÎ ½ÇÆÐ (È÷Æ®·Ñ ½ÇÆÐÇß´Ù´ø°¡, ¸¶³ª°¡ ¾ø´Ù´ø°¡...)ÀÏ °æ¿ì,
-// º»ÀÎ°ú ±×°ÍÀ» º¸´Â ÀÌµé¿¡°Ô ÆÐÅ¶À» ³¯¸°´Ù.
+// Sends a packet when a skill fails.
+// For an ordinary failure (a missed hit roll, not enough mana, and so on),
+// the packet goes to the caster and to everyone who can see it.
 //////////////////////////////////////////////////////////////////////////////
 void executeSkillFailNormal(Creature* pCreature, SkillType_t SkillType, Creature* pTargetCreature, BYTE Grade) {
     Assert(pCreature != NULL);
@@ -492,10 +490,10 @@ void executeSkillFailNormal(Creature* pCreature, SkillType_t SkillType, Creature
     gcSkillFailed2.setObjectID(pCreature->getObjectID());
     gcSkillFailed2.setGrade(Grade);
 
-    // ObjectSkillÀÏ °æ¿ì, »ó´ë¹æÀÇ OID°¡ Á¸ÀçÇÑ´Ù¸é ÆÐÅ¶¿¡´Ù ½Ç¾î¼­ º¸³»ÁØ´Ù.
-    // ¼¿ÇÁ ½ºÅ³ÀÌ³ª Å¸ÀÏ ½ºÅ³ÀÎ °æ¿ì¿¡´Â NULL·Î parameter°¡ ³Ñ¾î¿À´Â °ÍÀÌ Á¤»óÀÌ´Ù.
-    // (Å¬¶óÀÌ¾ðÆ®¿¡¼­´Â ¼¿ÇÁ³ª Å¸ÀÏ ½ºÅ³ÀÌ ½ÇÆÐÇØ¼­ ³¯¾Æ¿À´Â GCSkillFailed2ÀÏ °æ¿ì¿¡´Â,
-    // TargetObjectID¸¦ ÀÐÁöµµ ¾Ê´Â´Ù.)
+    // For an object skill the target's object id, when present, is carried in the packet.
+    // For a self or tile skill NULL is normally passed instead.
+    // (On a GCSkillFailed2 sent for a failed self or tile skill the client
+    // does not even read TargetObjectID.)
     if (pTargetCreature != NULL) {
         gcSkillFailed2.setTargetObjectID(pTargetCreature->getObjectID());
     } else {
@@ -509,18 +507,18 @@ void executeSkillFailNormal(Creature* pCreature, SkillType_t SkillType, Creature
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ±â¼ú ½ÇÆÐ½Ã ÆÐÅ¶À» ³¯¸°´Ù.
-// ½ºÅ³ÀÇ °á°ú¸¦ 2¹ø ³¯·ÁÁà¾ß µÈ´Ù.
-// ¶ó¹Ù ¸¸µé±â¿¡ ´ëÇÑ °Í ÇÏ³ª ÇÏ°í
-// Èí¿µ¿¡ °üÇÑ °Í ÇÏ³ª.
-// ±×·¡¼­ Ã³À½¿¡ Á¶°Ç Ã¼Å©ÇÏ´Ù°¡ ½ÇÆÐÇÒ °æ¿ì¿¡
-// SkillFail ÆÐÅ¶À» 2¹ø º¸³»ÁØ´Ù.
+// Sends a packet when a skill fails.
+// The skill result has to be sent twice:
+// once for creating the larva,
+// once for the soul absorption.
+// So when the opening condition check fails,
+// the SkillFail packet is sent twice.
 //////////////////////////////////////////////////////////////////////////////
 void executeAbsorbSoulSkillFail(Creature* pCreature, SkillType_t SkillType, ObjectID_t TargetObjectID, bool bBroadcast,
                                 bool bSendTwice) {
     Assert(pCreature != NULL);
 
-    // Å¬¶óÀÌ¾ðÆ®¿¡ ¶ôÀÌ °É·ÁÀÖÀ¸¸é ½ºÅ³ »ç¿ëÇÑ º»ÀÎ¿¡°Ô´Â °ËÁõ ÆÐÅ¶À» 2¹ø º¸³»Áà¾ß µÈ´Ù.
+    // While the client is locked, the caster needs the acknowledgement packet twice.
     if (pCreature->isPC()) {
         GCSkillFailed1 gcSkillFailed1;
         gcSkillFailed1.setSkillType(SkillType);
@@ -543,9 +541,9 @@ void executeAbsorbSoulSkillFail(Creature* pCreature, SkillType_t SkillType, Obje
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ±â¼ú ½ÇÆÐ½Ã ÆÐÅ¶À» ³¯¸°´Ù.
-// ÀÏ¹ÝÀûÀÎ ½ÇÆÐ (È÷Æ®·Ñ ½ÇÆÐÇß´Ù´ø°¡, ¸¶³ª°¡ ¾ø´Ù´ø°¡...)ÀÏ °æ¿ì,
-// º»ÀÎ°ú ±×°ÍÀ» º¸´Â ÀÌµé¿¡°Ô ÆÐÅ¶À» ³¯¸°´Ù.
+// Sends a packet when a skill fails.
+// For an ordinary failure (a missed hit roll, not enough mana, and so on),
+// the packet goes to the caster and to everyone who can see it.
 //////////////////////////////////////////////////////////////////////////////
 void executeSkillFailNormalWithGun(Creature* pCreature, SkillType_t SkillType, Creature* pTargetCreature,
                                    BYTE RemainBullet) {
@@ -562,10 +560,10 @@ void executeSkillFailNormalWithGun(Creature* pCreature, SkillType_t SkillType, C
     gcSkillFailed2.setSkillType(SkillType);
     gcSkillFailed2.setObjectID(pCreature->getObjectID());
 
-    // ObjectSkillÀÏ °æ¿ì, »ó´ë¹æÀÇ OID°¡ Á¸ÀçÇÑ´Ù¸é ÆÐÅ¶¿¡´Ù ½Ç¾î¼­ º¸³»ÁØ´Ù.
-    // ¼¿ÇÁ ½ºÅ³ÀÌ³ª Å¸ÀÏ ½ºÅ³ÀÎ °æ¿ì¿¡´Â NULL·Î parameter°¡ ³Ñ¾î¿À´Â °ÍÀÌ Á¤»óÀÌ´Ù.
-    // (Å¬¶óÀÌ¾ðÆ®¿¡¼­´Â ¼¿ÇÁ³ª Å¸ÀÏ ½ºÅ³ÀÌ ½ÇÆÐÇØ¼­ ³¯¾Æ¿À´Â GCSkillFailed2ÀÏ °æ¿ì¿¡´Â,
-    // TargetObjectID¸¦ ÀÐÁöµµ ¾Ê´Â´Ù.)
+    // For an object skill the target's object id, when present, is carried in the packet.
+    // For a self or tile skill NULL is normally passed instead.
+    // (On a GCSkillFailed2 sent for a failed self or tile skill the client
+    // does not even read TargetObjectID.)
     if (pTargetCreature != NULL) {
         gcSkillFailed2.setTargetObjectID(pTargetCreature->getObjectID());
     } else {
@@ -579,9 +577,9 @@ void executeSkillFailNormalWithGun(Creature* pCreature, SkillType_t SkillType, C
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ±â¼ú ½ÇÆÐ½Ã ÆÐÅ¶À» ³¯¸°´Ù.
-// ¿¹¿ÜÀûÀÎ ½ÇÆÐ (NPC¸¦ °ø°ÝÇß´Ù´ø°¡...)
-// º»ÀÎ¿¡°Ô¸¸ ÆÐÅ¶À» ³¯¸°´Ù.
+// Sends a packet when a skill fails.
+// For an exceptional failure (attacking an NPC, and so on),
+// the packet goes only to the caster.
 //////////////////////////////////////////////////////////////////////////////
 void executeSkillFailException(Creature* pCreature, SkillType_t SkillType, BYTE Grade) {
     if (pCreature != NULL && pCreature->isPC()) {
@@ -610,28 +608,28 @@ ElementalType getElementalTypeFromString(const string& type) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// °ø°ÝÇÒ ¼ö ÀÖ´Â°¡?
-// ¹«Àû »óÅÂ³ª non PK ¸¦ À§ÇØ¼­ °ø°ÝÇÒ ¼ö ÀÖ´ÂÁö¸¦ Ã¼Å©ÇÑ´Ù.
+// Can the attack proceed?
+// Checks invulnerability and the non-PK setting.
 //////////////////////////////////////////////////////////////////////////////
 bool canAttack(Creature* pAttacker, Creature* pDefender) {
     Assert(pDefender != NULL);
 
-    // ¹«Àû »óÅÂ Ã¼Å©
+    // Invulnerability check
     if (pDefender->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE))
         return false;
 
-    // Attacker °¡ NULL ÀÌ¸é °Á true
-    // Á¨Àå ¸Õ°¡ ±ò²ûÇÏ°Ô °íÄ¡±â ¹Ù¶÷ Effect¿¡¼­ Ã¼Å©ÇÒ¶§ Attacker °¡ NULL ÀÌ µÉ ¼ö ÀÖ´Ù.
+    // A NULL attacker is simply allowed.
+    // The attacker can be NULL when the check comes from an effect.
     if (pAttacker == NULL)
         return true;
 
-    // °ÔÀÓ¼­¹ö¿¡ PK ¼³Á¤ÀÌ µÇ¾ú´Â°¡?
+    // Is this game server configured as non-PK?
     static bool bNonPK =
         g_pGameServerInfoManager
             ->getGameServerInfo(1, g_pConfig->getPropertyInt("ServerID"), g_pConfig->getPropertyInt("WorldID"))
             ->isNonPKServer();
 
-    // non PK Ã¼Å©
+    // non-PK check
     if (bNonPK && pAttacker->isPC() && pDefender->isPC())
         return false;
 
@@ -640,7 +638,7 @@ bool canAttack(Creature* pAttacker, Creature* pDefender) {
 
 //////////////////////////////////////////////////////////////////////////
 // add by Coffee 2007-6-9
-// Ôö¼ÓÐÂ¼¼ÄÜÈý×åÊ¹ÓÃÐÂ¼¼ÄÜ ¿Û³ý¼¼ÄÜ¿¨ÑéÖ¤
+// Consumes the caster's race-specific skill card, failing if none is held.
 //////////////////////////////////////////////////////////////////////////
 bool useSkillCrad(Creature* pCreature) {
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pCreature->getPlayer());
@@ -648,7 +646,7 @@ bool useSkillCrad(Creature* pCreature) {
 
     CoordInven_t InvenX = 0;
     CoordInven_t InvenY = 0;
-    ItemType_t fitItem = 0; // ËÄÒ¶²Ý
+    ItemType_t fitItem = 0; // Skill card item type
     if (pCreature->isSlayer()) {
         fitItem = 5;
     } else if (pCreature->isVampire()) {

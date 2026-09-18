@@ -27,7 +27,7 @@
 GreenStalker g_GreenStalker;
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void GreenStalker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                            CEffectID_t CEffectID)
@@ -47,8 +47,8 @@ void GreenStalker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
             return;
@@ -64,7 +64,7 @@ void GreenStalker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // Knowledge of Poison 이 있다면 hit bonus 10
+        // Knowledge of Poison gives a hit bonus of 10.
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_POISON)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_POISON);
@@ -95,7 +95,7 @@ void GreenStalker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 오브젝트를 생성해서 붙인다.
+            // Create the effect object and attach it.
             EffectGreenStalker* pEffectGreenStalker = new EffectGreenStalker(pTargetCreature);
             pEffectGreenStalker->setDamage(output.Damage);
             pEffectGreenStalker->setLevel(pSkillInfo->getLevel() / 2);
@@ -108,7 +108,7 @@ void GreenStalker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
             pTargetCreature->addEffect(pEffectGreenStalker);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_GREEN_STALKER);
 
-            // 이펙트가 붙었으니, 붙었다고 브로드캐스팅해준다.
+            // The effect is attached, so broadcast that.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pTargetCreature->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_GREEN_STALKER);
@@ -182,7 +182,7 @@ void GreenStalker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 오브젝트 핸들러
+// Monster object handler
 //////////////////////////////////////////////////////////////////////////////
 void GreenStalker::execute(Monster* pMonster, Creature* pEnemy)
 
@@ -223,7 +223,7 @@ void GreenStalker::execute(Monster* pMonster, Creature* pEnemy)
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 오브젝트를 생성해서 붙인다.
+            // Create the effect object and attach it.
             EffectGreenStalker* pEffectGreenStalker = new EffectGreenStalker(pEnemy);
             pEffectGreenStalker->setDamage(output.Damage);
             pEffectGreenStalker->setLevel(pSkillInfo->getLevel() / 2);
@@ -234,7 +234,7 @@ void GreenStalker::execute(Monster* pMonster, Creature* pEnemy)
             pEnemy->addEffect(pEffectGreenStalker);
             pEnemy->setFlag(Effect::EFFECT_CLASS_GREEN_STALKER);
 
-            // 이펙트가 붙었으니, 붙었다고 브로드캐스팅해준다.
+            // The effect is attached, so broadcast that.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pEnemy->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_GREEN_STALKER);

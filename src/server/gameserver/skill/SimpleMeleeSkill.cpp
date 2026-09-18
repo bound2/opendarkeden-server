@@ -34,8 +34,8 @@ void SimpleMeleeSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skill
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, param.SkillType);
             return;
@@ -43,8 +43,8 @@ void SimpleMeleeSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skill
 
         result.pTargetCreature = pTargetCreature;
 
-        // 만일 이 기술이 특별한 무기가 있어야만 시전할 수 있는 기술이라면...
-        // 그 게열의 무기를 들고 있는지를 체크해서 아니라면 실패다.
+        // If this skill can only be cast with a particular weapon,
+        // check that such a weapon is held and fail otherwise.
         bool bIncreaseDomainExp = true;
         if (param.ItemClass != Item::ITEM_CLASS_MAX) {
             Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
@@ -67,15 +67,15 @@ void SimpleMeleeSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skill
         Damage_t Damage = 0;
 
         if (param.bAdd) {
-            // 파라미터로 전달된 데미지 값이 더해지는 데미지라면,
-            // 일반 데미지를 계산 후, 데미지를 더해야 한다.
-            // 파라미터로 전달된 데미지 값이 직접적으로 쓰이는 데미지라면,
-            // 이 부분까지 들어오지 않으므로, 밑의 부분까지 0으로 전달된다.
+            // If the damage passed in the parameter is added damage,
+            // the normal damage is computed first and then added to it.
+            // If the parameter damage is used directly instead,
+            // control never reaches here and 0 is carried down below.
             Damage += computeDamage(pSlayer, pTargetCreature, SkillLevel / 5, bCriticalHit);
         }
 
         if (param.bMagicDamage) {
-            // 만일 스킬 데미지가 마법 데미지라면, 마법 데미지 계산 함수를 이용해 계산을 해준다.
+            // If the skill damage is magic damage, compute it with the magic damage function.
             Damage += computeMagicDamage(pTargetCreature, param.SkillDamage, param.SkillType);
         } else {
             Damage += param.SkillDamage;
@@ -95,30 +95,30 @@ void SimpleMeleeSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skill
             bHitRoll = HitRoll::isSuccess(pSlayer, pTargetCreature, SkillLevel / 2);
         }
 
-        // 도 계열의 기술은 맞지 않더라도 7%의 데미지를 가진다 - by bezz
+        // Blade skills deal 7% damage even on a miss.
         if (param.ItemClass == Item::ITEM_CLASS_BLADE && !bHitRoll) {
             Damage = getPercentValue(Damage, 7);
             bHitRoll = true;
         }
 
-        // 마나가 있어야 하고, 시간과 거리 체크에 성공하고,
-        // hitroll에 성공하고, 크로스 카운터가 걸려있지 않다면, 성공이다.
+        // Succeeds when there is enough mana, the time and range checks pass,
+        // the hit roll succeeds and no cross counter is active.
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bCanHit && bPK) {
             CheckCrossCounter(pSlayer, pTargetCreature, Damage, pSkillInfo->getRange());
 
             decreaseMana(pSlayer, RequiredMP, _GCSkillToObjectOK1);
 
-            // 데미지를 주고, 내구도를 떨어뜨린다.
+            // Apply the damage and reduce durability.
             setDamage(pTargetCreature, Damage, pSlayer, param.SkillType, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
             computeAlignmentChange(pTargetCreature, Damage, pSlayer, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
             decreaseDurability(pSlayer, pTargetCreature, pSkillInfo, &_GCSkillToObjectOK1, &_GCSkillToObjectOK2);
 
-            // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+            // A critical hit knocks the target back.
             if (bCriticalHit) {
                 knockbackCreature(pZone, pTargetCreature, pSlayer->getX(), pSlayer->getY());
             }
 
-            // 슬레이어가 아닌 경우에만 경험치가 올라간다.
+            // Experience rises only when the target is not a Slayer.
             if (!pTargetCreature->isSlayer()) {
                 if (bIncreaseDomainExp) {
                     shareAttrExp(pSlayer, Damage, param.STRMultiplier, param.DEXMultiplier, param.INTMultiplier,
@@ -131,7 +131,7 @@ void SimpleMeleeSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skill
                 increaseAlignment(pSlayer, pTargetCreature, _GCSkillToObjectOK1);
             }
 
-            // 패킷을 준비하고, 보낸다.
+            // Prepares the packet and sends it.
             _GCSkillToObjectOK1.setSkillType(param.SkillType);
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);
@@ -183,12 +183,12 @@ void SimpleMeleeSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skill
                     }
 
                     if ((rand() % 100) < Ratio) {
-                        // 스턴 당해뿌따!
+                        // The target is stunned.
                         _GCSkillToObjectOK1.setGrade(1);
                         _GCSkillToObjectOK2.setGrade(1);
                         _GCSkillToObjectOK5.setGrade(1);
                     }
-                } else // 몬스터일 경우
+                } else // When the target is a monster
                 {
                     _GCSkillToObjectOK1.setGrade(1);
                     _GCSkillToObjectOK2.setGrade(1);
@@ -244,8 +244,8 @@ void SimpleMeleeSkill::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vam
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, param.SkillType);
             return;
@@ -262,15 +262,15 @@ void SimpleMeleeSkill::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vam
         Damage_t Damage = 0;
 
         if (param.bAdd) {
-            // 파라미터로 전달된 데미지 값이 더해지는 데미지라면,
-            // 일반 데미지를 계산 후, 데미지를 더해야 한다.
-            // 파라미터로 전달된 데미지 값이 직접적으로 쓰이는 데미지라면,
-            // 이 부분까지 들어오지 않으므로, 밑의 부분까지 0으로 전달된다.
+            // If the damage passed in the parameter is added damage,
+            // the normal damage is computed first and then added to it.
+            // If the parameter damage is used directly instead,
+            // control never reaches here and 0 is carried down below.
             Damage += computeDamage(pVampire, pTargetCreature, 0, bCriticalHit);
         }
 
         if (param.bMagicDamage) {
-            // 만일 스킬 데미지가 마법 데미지라면, 마법 데미지 계산 함수를 이용해 계산을 해준다.
+            // If the skill damage is magic damage, compute it with the magic damage function.
             Damage += computeMagicDamage(pTargetCreature, param.SkillDamage, param.SkillType, true, pVampire);
         } else {
             Damage += param.SkillDamage;
@@ -293,20 +293,20 @@ void SimpleMeleeSkill::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vam
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bCanHit && bPK) {
             CheckCrossCounter(pVampire, pTargetCreature, Damage);
 
-            // 마나를 깍는다.
+            // Consume the mana.
             decreaseMana(pVampire, RequiredMP, _GCSkillToObjectOK1);
 
-            // 데미지를 가하고, 아이템 내구도를 떨어뜨린다.
+            // Deal the damage and reduce item durability.
             setDamage(pTargetCreature, Damage, pVampire, param.SkillType, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
             computeAlignmentChange(pTargetCreature, Damage, pVampire, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
             decreaseDurability(pVampire, pTargetCreature, pSkillInfo, &_GCSkillToObjectOK1, &_GCSkillToObjectOK2);
 
-            // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+            // A critical hit knocks the target back.
             if (bCriticalHit) {
                 knockbackCreature(pZone, pTargetCreature, pVampire->getX(), pVampire->getY());
             }
 
-            // 이번 공격으로 상대가 죽었다면 경험치가 올라간다.
+            // Experience goes up if this attack killed the target.
             if (pTargetCreature->isDead()) {
                 int exp = computeCreatureExp(pTargetCreature, KILL_EXP);
                 shareVampExp(pVampire, exp, _GCSkillToObjectOK1);
@@ -314,7 +314,7 @@ void SimpleMeleeSkill::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vam
 
             increaseAlignment(pVampire, pTargetCreature, _GCSkillToObjectOK1);
 
-            // 패킷을 보낸다.
+            // Send the packet.
             _GCSkillToObjectOK1.setSkillType(param.SkillType);
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);
@@ -380,8 +380,8 @@ void SimpleMeleeSkill::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ous
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pOusters, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, param.SkillType, param.Grade);
             return;
@@ -407,15 +407,15 @@ void SimpleMeleeSkill::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ous
         Damage_t Damage = 0;
 
         if (param.bAdd) {
-            // 파라미터로 전달된 데미지 값이 더해지는 데미지라면,
-            // 일반 데미지를 계산 후, 데미지를 더해야 한다.
-            // 파라미터로 전달된 데미지 값이 직접적으로 쓰이는 데미지라면,
-            // 이 부분까지 들어오지 않으므로, 밑의 부분까지 0으로 전달된다.
+            // If the damage passed in the parameter is added damage,
+            // the normal damage is computed first and then added to it.
+            // If the parameter damage is used directly instead,
+            // control never reaches here and 0 is carried down below.
             Damage += computeDamage(pOusters, pTargetCreature, 0, bCriticalHit);
         }
 
         if (param.bMagicDamage) {
-            // 만일 스킬 데미지가 마법 데미지라면, 마법 데미지 계산 함수를 이용해 계산을 해준다.
+            // If the skill damage is magic damage, compute it with the magic damage function.
             Damage += computeOustersMagicDamage(pOusters, pTargetCreature, param.SkillDamage, param.SkillType);
         } else {
             Damage += param.SkillDamage;
@@ -451,20 +451,20 @@ void SimpleMeleeSkill::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ous
                 Damage += computeElementalCombatSkill(pOusters, pTargetCreature, _GCSkillToObjectOK1);
             CheckCrossCounter(pOusters, pTargetCreature, Damage);
 
-            // 마나를 깍는다.
+            // Consume the mana.
             decreaseMana(pOusters, RequiredMP, _GCSkillToObjectOK1);
 
-            // 데미지를 가하고, 아이템 내구도를 떨어뜨린다.
+            // Deal the damage and reduce item durability.
             setDamage(pTargetCreature, Damage, pOusters, param.SkillType, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
             computeAlignmentChange(pTargetCreature, Damage, pOusters, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
             decreaseDurability(pOusters, pTargetCreature, pSkillInfo, &_GCSkillToObjectOK1, &_GCSkillToObjectOK2);
 
-            // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+            // A critical hit knocks the target back.
             if (bCriticalHit) {
                 knockbackCreature(pZone, pTargetCreature, pOusters->getX(), pOusters->getY());
             }
 
-            // 이번 공격으로 상대가 죽었다면 경험치가 올라간다.
+            // Experience goes up if this attack killed the target.
             if (pTargetCreature->isDead()) {
                 int exp = computeCreatureExp(pTargetCreature, 100, pOusters);
                 shareOustersExp(pOusters, exp, _GCSkillToObjectOK1);
@@ -472,7 +472,7 @@ void SimpleMeleeSkill::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ous
 
             increaseAlignment(pOusters, pTargetCreature, _GCSkillToObjectOK1);
 
-            // 패킷을 보낸다.
+            // Send the packet.
             _GCSkillToObjectOK1.setSkillType(param.SkillType);
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);
@@ -552,15 +552,15 @@ void SimpleMeleeSkill::execute(Monster* pMonster, Creature* pEnemy, const SIMPLE
         Damage_t Damage = 0;
 
         if (param.bAdd) {
-            // 파라미터로 전달된 데미지 값이 더해지는 데미지라면,
-            // 일반 데미지를 계산 후, 데미지를 더해야 한다.
-            // 파라미터로 전달된 데미지 값이 직접적으로 쓰이는 데미지라면,
-            // 이 부분까지 들어오지 않으므로, 밑의 부분까지 0으로 전달된다.
+            // If the damage passed in the parameter is added damage,
+            // the normal damage is computed first and then added to it.
+            // If the parameter damage is used directly instead,
+            // control never reaches here and 0 is carried down below.
             Damage += computeDamage(pMonster, pEnemy, 0, bCriticalHit);
         }
 
         if (param.bMagicDamage) {
-            // 만일 스킬 데미지가 마법 데미지라면, 마법 데미지 계산 함수를 이용해 계산을 해준다.
+            // If the skill damage is magic damage, compute it with the magic damage function.
             Damage += computeMagicDamage(pEnemy, param.SkillDamage, param.SkillType);
         } else {
             Damage += param.SkillDamage;
@@ -576,20 +576,20 @@ void SimpleMeleeSkill::execute(Monster* pMonster, Creature* pEnemy, const SIMPLE
             bHitRoll = HitRoll::isSuccess(pMonster, pEnemy);
         }
 
-        // 기술성공률 검증.
+        // Verify the skill success rate.
         if (bRangeCheck && bHitRoll && bCanHit) {
             CheckCrossCounter(pMonster, pEnemy, Damage);
 
-            // 데미지를 가하고, 아이템 내구도를 떨어뜨린다.
+            // Deal the damage and reduce item durability.
             setDamage(pEnemy, Damage, pMonster, param.SkillType, &_GCSkillToObjectOK2);
             decreaseDurability(pMonster, pEnemy, pSkillInfo, NULL, &_GCSkillToObjectOK2);
 
-            // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+            // A critical hit knocks the target back.
             if (bCriticalHit) {
                 knockbackCreature(pZone, pEnemy, pMonster->getX(), pMonster->getY());
             }
 
-            // 패킷을 보낸다.
+            // Send the packet.
             _GCSkillToObjectOK2.setObjectID(pMonster->getObjectID());
             _GCSkillToObjectOK2.setSkillType(param.SkillType);
             _GCSkillToObjectOK2.setDuration(0);

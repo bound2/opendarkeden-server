@@ -42,7 +42,7 @@ public:
     }
 
 private:
-    Level_t m_Level; // 스킬 레벨
+    Level_t m_Level; // Skill level
 };
 
 #endif // __EFFECT_BURNING_SOL_CHARGE__

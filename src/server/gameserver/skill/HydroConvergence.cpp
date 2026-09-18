@@ -16,7 +16,7 @@
 #include "GCSkillToObjectOK6.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터즈 오브젝트 핸들러
+// Ousters object handler
 //////////////////////////////////////////////////////////////////////////////
 void HydroConvergence::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                                CEffectID_t CEffectID)
@@ -36,8 +36,8 @@ void HydroConvergence::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ous
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pOusters, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType(), Grade);
             return;
@@ -68,7 +68,7 @@ void HydroConvergence::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ous
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(getSkillType());
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 3;
-        // 헌뇜杰唐MP
+        // MP required for the skill.
 
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
         bool bTimeCheck = verifyRunTime(pOustersSkillSlot);

@@ -15,7 +15,7 @@
 #include "GCSkillToObjectOK6.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void DeleoEfficio::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pSkillSlot,
                            CEffectID_t CEffectID)
@@ -36,9 +36,9 @@ void DeleoEfficio::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수 없다.
-        // 저주 면역. by sigi. 2002.9.13
-        // NoSuch제거. by sigi. 2002.5.2
+        // NPCs cannot be attacked.
+        // It also fails if the target is immune to curses.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType());
             return;

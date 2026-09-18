@@ -9,7 +9,7 @@
 
 #include "SkillHandler.h"
 
-#define REGENERATION_DELAY 30 // 3초 마다 회복..
+#define REGENERATION_DELAY 30 // Recovers every 3 seconds
 
 //////////////////////////////////////////////////////////////////////////////
 // class Regeneration;

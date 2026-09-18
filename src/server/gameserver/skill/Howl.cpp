@@ -23,8 +23,8 @@ void Howl::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CEffe
 
     Assert(pVampire != NULL);
 
-    // 패킷 핸들러에서 직접 수행하는 기술 핸들러이기 때문에
-    // 스킬 핸들러가 널이다.
+    // The skill handler is null because this handler runs
+    // directly from the packet handler.
 
     try {
         Player* pPlayer = pVampire->getPlayer();

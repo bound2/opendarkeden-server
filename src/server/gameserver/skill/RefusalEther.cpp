@@ -22,7 +22,7 @@
 RefusalEther::RefusalEther(){};
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void RefusalEther::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                            CEffectID_t CEffectID)
@@ -48,7 +48,7 @@ void RefusalEther::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pOusters, getSkillType(), Grade);
             return;
@@ -64,7 +64,7 @@ void RefusalEther::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 타일 핸들러
+// Vampire tile handler
 //////////////////////////////////////////////////////////////////////////////
 void RefusalEther::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersSkillSlot* pOustersSkillSlot,
                            CEffectID_t CEffectID)
@@ -111,7 +111,7 @@ void RefusalEther::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Oust
         ZoneCoord_t myX = pOusters->getX();
         ZoneCoord_t myY = pOusters->getY();
 
-        // 이펙트의 지속시간을 계산한다.
+        // Computes the effect duration.
         SkillInput input(pOusters, pOustersSkillSlot);
         SkillOutput output;
         computeOutput(input, output);

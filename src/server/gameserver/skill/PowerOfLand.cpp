@@ -17,7 +17,7 @@
 #include "GCSkillToTileOK6.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void PowerOfLand::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -35,7 +35,7 @@ void PowerOfLand::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, getSkillType());
 
@@ -52,8 +52,8 @@ void PowerOfLand::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 타일 핸들러
-//  슬레이어가 Wide Lightning Skill을 Tile에 사용했을때 사용하는 Handler
+// Slayer tile handler
+// Handler used when a Slayer uses the skill on a tile
 //////////////////////////////////////////////////////////////////////////////
 void PowerOfLand::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -86,8 +86,8 @@ void PowerOfLand::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
         bool bTimeCheck = verifyRunTime(pSkillSlot);
         bool bRangeCheck = verifyDistance(pSlayer, X, Y, pSkillInfo->getRange());
 
-        // 일단 기술은 성공하는 것으로 하고 데미지를 계산할때(EffectTileStorm::affect())
-        // 크리쳐 별로 다신 계산하는 걸로 한다.
+        // The skill is treated as a success, and the damage is computed
+        // per creature in EffectTileStorm::affect().
         // 2003.1.8 by bezz
 
         bool bTileCheck = false;
@@ -122,7 +122,7 @@ void PowerOfLand::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
             pZone->addEffect(pEffect);
             tile.addEffect(pEffect);
 
-            // 기술을 사용한 사람들에게
+            // For the skill user
             _GCSkillToTileOK1.setSkillType(SkillType);
             _GCSkillToTileOK1.setCEffectID(CEffectID);
             _GCSkillToTileOK1.setX(X);
@@ -130,20 +130,20 @@ void PowerOfLand::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
             _GCSkillToTileOK1.setDuration(output.Duration);
             _GCSkillToTileOK1.setRange(Range);
 
-            // 기술을 쓴 사람만 볼 수 있는 사람들에게
+            // For those who can see only the skill user
             _GCSkillToTileOK3.setObjectID(pSlayer->getObjectID());
             _GCSkillToTileOK3.setSkillType(SkillType);
             _GCSkillToTileOK3.setX(X);
             _GCSkillToTileOK3.setY(Y);
 
-            // 기술을 당한 사람만 볼 수 있는 사람들에게
+            // For those who can see only the target
             _GCSkillToTileOK4.setSkillType(SkillType);
             _GCSkillToTileOK4.setX(X);
             _GCSkillToTileOK4.setY(Y);
             _GCSkillToTileOK4.setDuration(output.Duration);
             _GCSkillToTileOK4.setRange(Range);
 
-            // 기술을 쓴 사람과 당한 사람을 모두 볼 수 있는 사람들에게
+            // For those who can see both the skill user and the target
             _GCSkillToTileOK5.setObjectID(pSlayer->getObjectID());
             _GCSkillToTileOK5.setSkillType(SkillType);
             _GCSkillToTileOK5.setX(X);
@@ -151,23 +151,23 @@ void PowerOfLand::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
             _GCSkillToTileOK5.setDuration(output.Duration);
             _GCSkillToTileOK5.setRange(Range);
 
-            // 기술을 사용한 사람에게 packet 전달
+            // Send the packet to the skill user.
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // 기술을 쓸 사람과 당한 사람을 모두 볼 수 있는 사람들에게 broadcasing
-            // broadcasting후 5번OK를 받은 사람을 기록한다.
-            // 여기에 기록된 사람은 차후 broadcasting에서 제외된다.
+            // Broadcast to those who can see both the skill user and the target.
+            // Record who received the OK5 packet after broadcasting.
+            // Those recorded here are excluded from later broadcasts.
             list<Creature*> cList;
             cList.push_back(pSlayer);
             cList = pZone->broadcastSkillPacket(myX, myY, X, Y, &_GCSkillToTileOK5, cList);
 
-            // 기술을 쓴 사람을 볼 수 있는 사람들에게 broadcasting
+            // Broadcast to those who can see the skill user.
             pZone->broadcastPacket(myX, myY, &_GCSkillToTileOK3, cList);
 
-            // 기술을 당한 사람을 볼 수 있는 사람들에게 broadcasting
+            // Broadcast to those who can see the target.
             pZone->broadcastPacket(X, Y, &_GCSkillToTileOK4, cList);
 
-            // 기술 delay setting
+            // Set the skill delay.
             pSkillSlot->setRunTime(output.Delay);
 
         } else {

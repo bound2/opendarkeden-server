@@ -12,7 +12,7 @@
 #include "GCStatusCurrentHP.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 타일 핸들러
+// Vampire tile handler
 //////////////////////////////////////////////////////////////////////////////
 void RapidGliding::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireSkillSlot* pVampireSkillSlot,
                            CEffectID_t CEffectID)
@@ -31,8 +31,8 @@ void RapidGliding::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
 
-        // NoSuch제거. by sigi. 2002.5.2
-        // NPC는 공격할 수가 없다.
+        // A missing target fails the skill instead of throwing.
+        // An NPC cannot be attacked.
 
         GCSkillToTileOK1 _GCSkillToTileOK1;
         GCSkillToTileOK5 _GCSkillToTileOK5;
@@ -57,7 +57,7 @@ void RapidGliding::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
         bool bPassLine = isPassLine(pZone, pVampire->getX(), pVampire->getY(), X, Y);
 
         if (bManaCheck && bTimeCheck && bRangeCheck && !bEffected && bPassLine) {
-            // 빠르게 PC를 움직여준다.
+            // Moves the PC quickly.
             if (pZone->moveFastPC(pVampire, pVampire->getX(), pVampire->getY(), X, Y, getSkillType())) {
                 decreaseMana(pVampire, RequiredMP, _GCSkillToTileOK1);
 
@@ -75,10 +75,10 @@ void RapidGliding::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
                 _GCSkillToTileOK5.setRange(0);
                 _GCSkillToTileOK5.setDuration(0);
 
-                // 자신에게 바뀐 HP를 알려준다.
+                // Tells the player their own HP changed.
                 pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-                // 주위에 HP가 바꼈다고 알린다.
+                // Tells nearby creatures that the HP changed.
                 GCStatusCurrentHP gcStatusCurrentHP;
                 gcStatusCurrentHP.setObjectID(pVampire->getObjectID());
                 gcStatusCurrentHP.setCurrentHP(pVampire->getHP());
@@ -100,7 +100,7 @@ void RapidGliding::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
     __END_CATCH
 }
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void RapidGliding::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                            CEffectID_t CEffectID)
@@ -120,8 +120,8 @@ void RapidGliding::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
-        // NPC는 공격할 수가 없다.
+        // A missing target fails the skill instead of throwing.
+        // An NPC cannot be attacked.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pVampire, getSkillType());
             return;

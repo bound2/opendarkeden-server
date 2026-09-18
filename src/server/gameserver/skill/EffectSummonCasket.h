@@ -42,7 +42,7 @@ public:
     }
 
 private:
-    int m_Type; // casket 종류
+    int m_Type; // Casket type
 };
 
 #endif // __EFFECT_SUMMON_CASKET__

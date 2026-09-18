@@ -10,7 +10,7 @@
 #include "SimpleMeleeSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodyNail::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                          CEffectID_t CEffectID)
@@ -37,7 +37,7 @@ void BloodyNail::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // Tiger Nail 이 있다면 데미지 10% 증가
+    // Tiger Nail raises the damage by its rank bonus percentage.
     if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_TIGER_NAIL)) {
         RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_TIGER_NAIL);
         Assert(pRankBonus != NULL);
@@ -45,7 +45,7 @@ void BloodyNail::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         param.SkillDamage += getPercentValue(param.SkillDamage, pRankBonus->getPoint());
     }
 
-    // Knowledge of Blood 가 있다면 hit bonus 10
+    // Knowledge of Blood gives a hit bonus of 10.
     int HitBonus = 0;
     if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_BLOOD)) {
         RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_BLOOD);
@@ -61,7 +61,7 @@ void BloodyNail::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 오브젝트 핸들러
+// Monster object handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodyNail::execute(Monster* pMonster, Creature* pEnemy)
 

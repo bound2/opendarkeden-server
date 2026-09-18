@@ -18,7 +18,7 @@
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void Whitsuntide::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -36,7 +36,7 @@ void Whitsuntide::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, getSkillType());
 
@@ -53,8 +53,8 @@ void Whitsuntide::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 타일 핸들러
-//  뱀파이어가 Vigor Drop Skill을 Tile에 사용했을때 사용하는 Handler
+// Vampire tile handler
+//  Handler used when the skill is used on a tile
 //////////////////////////////////////////////////////////////////////////////
 void Whitsuntide::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -157,19 +157,18 @@ void Whitsuntide::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
                             pTargetSlayer->setFlag(Effect::EFFECT_CLASS_WHITSUNTIDE);
                             pTargetSlayer->addEffect(pEffect);
 
-                            // 이펙트를 붙였으니, 능력치를 재계산한다.
+                            // The effect was attached, so recalculate the stats.
                             SLAYER_RECORD prev;
                             pTargetSlayer->getSlayerRecord(prev);
                             pTargetSlayer->initAllStat();
                             pTargetSlayer->sendRealWearingInfo();
                             pTargetSlayer->addModifyInfo(prev, _GCSkillToTileOK2);
 
-                            // 이펙트 정보를 다시 보내준다. by sigi. 2002.11.14
+                            // Send the effect information again.
                             pTargetSlayer->getEffectManager()->sendEffectInfo(
                                 pTargetSlayer, pZone, pTargetSlayer->getX(), pTargetSlayer->getY());
 
-                            // 부활 아르바이드를 방지하기 위해서 Aftermath 이펙트를 붙인다.
-                            // 2002.11.19 장홍창
+                            // Attach the Aftermath effect to prevent resurrection abuse.
                             if (pTargetSlayer->isFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH)) {
                                 Effect* pEffect = pTargetSlayer->findEffect(Effect::EFFECT_CLASS_KILL_AFTERMATH);
                                 EffectKillAftermath* pEffectKillAftermath = dynamic_cast<EffectKillAftermath*>(pEffect);
@@ -187,7 +186,7 @@ void Whitsuntide::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
                             HP_t CurrentHP = getPercentValue(pTargetSlayer->getHP(ATTR_MAX), output.Damage);
                             pTargetSlayer->setHP(CurrentHP, ATTR_CURRENT);
 
-                            // 주위에 체력이 채워졌다는 사실을 알린다.
+                            // Tell the surroundings that HP was restored.
                             GCStatusCurrentHP gcStatusCurrentHP;
                             gcStatusCurrentHP.setObjectID(pTargetSlayer->getObjectID());
                             gcStatusCurrentHP.setCurrentHP(pTargetSlayer->getHP(ATTR_CURRENT));
@@ -213,47 +212,47 @@ void Whitsuntide::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
                 increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToTileOK1);
             }
 
-            // 기술을 사용한 사람들에게
+            // For the skill user
             _GCSkillToTileOK1.setSkillType(SkillType);
             _GCSkillToTileOK1.setCEffectID(CEffectID);
             _GCSkillToTileOK1.setX(X);
             _GCSkillToTileOK1.setY(Y);
             _GCSkillToTileOK1.setDuration(output.Duration);
 
-            // 기술을 쓴 사람만 볼 수 있는 사람들에게
+            // For those who can see only the skill user
             _GCSkillToTileOK3.setObjectID(pSlayer->getObjectID());
             _GCSkillToTileOK3.setSkillType(SkillType);
             _GCSkillToTileOK3.setX(X);
             _GCSkillToTileOK3.setY(Y);
 
-            // 기술을 당한 사람만 볼 수 있는 사람들에게
+            // For those who can see only the target
             _GCSkillToTileOK4.setSkillType(SkillType);
             _GCSkillToTileOK4.setX(X);
             _GCSkillToTileOK4.setY(Y);
             _GCSkillToTileOK4.setDuration(output.Duration);
 
-            // 기술을 쓴 사람과 당한 사람을 모두 볼 수 있는 사람들에게
+            // For those who can see both the skill user and the target
             _GCSkillToTileOK5.setObjectID(pSlayer->getObjectID());
             _GCSkillToTileOK5.setSkillType(SkillType);
             _GCSkillToTileOK5.setX(X);
             _GCSkillToTileOK5.setY(Y);
             _GCSkillToTileOK5.setDuration(output.Duration);
 
-            // 기술을 사용한 사람에게 packet 전달
+            // Send the packet to the skill user.
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // 기술을 쓸 사람과 당한 사람을 모두 볼 수 있는 사람들에게 broadcasing
-            // broadcasting후 5번OK를 받은 사람을 기록한다.
-            // 여기에 기록된 사람은 차후 broadcasting에서 제외된다.
+            // Broadcast to those who can see both the skill user and the target.
+            // Record who received the OK5 packet after broadcasting.
+            // Those recorded here are excluded from later broadcasts.
             cList = pZone->broadcastSkillPacket(myX, myY, X, Y, &_GCSkillToTileOK5, cList);
 
-            // 기술을 쓴 사람을 볼 수 있는 사람들에게 broadcasting
+            // Broadcast to those who can see the skill user.
             pZone->broadcastPacket(myX, myY, &_GCSkillToTileOK3, cList);
 
-            // 기술을 당한 사람을 볼 수 있는 사람들에게 broadcasting
+            // Broadcast to those who can see the target.
             pZone->broadcastPacket(X, Y, &_GCSkillToTileOK4, cList);
 
-            // 기술 delay setting
+            // Set the skill delay.
             pSkillSlot->setRunTime(output.Delay);
 
         } else {

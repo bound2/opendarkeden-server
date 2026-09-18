@@ -15,7 +15,7 @@
 #include "GCStatusCurrentHP.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void Liberty::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                       CEffectID_t CEffectID)
@@ -42,7 +42,7 @@ void Liberty::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkill
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !pTargetCreature->isOusters()) {
             executeSkillFailException(pOusters, getSkillType());
             return;
@@ -83,10 +83,10 @@ void Liberty::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkill
         bool bHitRoll2 = (rand() % 100) < Ratio;
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bHitRoll2 && bSatisfyRequire && bHPCheck) {
-            // 마나를 줄인다.
+            // Reduces mana.
             decreaseMana(pOusters, RequiredMP, _GCSkillToObjectOK1);
 
-            // 이펙트의 효과와 지속시간을 계산한다.
+            // Compute the effect value and the duration.
             SkillInput input(pOusters, pOustersSkillSlot);
             SkillOutput output;
             input.TargetType = SkillInput::TARGET_OTHER;
@@ -94,7 +94,7 @@ void Liberty::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkill
 
             pEffect->setDeadline(0);
 
-            // 패킷을 준비해서 보낸다.
+            // Prepare the packet and send it.
             _GCSkillToObjectOK1.setSkillType(SkillType);
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);

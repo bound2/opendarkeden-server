@@ -47,15 +47,15 @@ void EffectBloodyWall::affect()
 
     Assert(m_pZone != NULL);
 
-    // 이펙트를 사용한 크리쳐를 가져온다.
-    // !! 이미 존을 나갔을 수도 있으므로 NULL이 될 수 있다.
+    // Fetches the creature that used the effect.
+    // It may be NULL: the creature may already have left the zone.
     // by bezz. 2003.1.4
     Creature* pCastCreature = m_pZone->getCreature(m_CasterID);
 
-    // 현재 이펙트가 붙어있는 타일을 받아온다.
+    // Get the tile this effect is attached to.
     Tile& tile = m_pZone->getTile(m_X, m_Y);
 
-    // 타일 안에 존재하는 오브젝트들을 검색한다.
+    // Walk the objects on the tile.
     const forward_list<Object*>& oList = tile.getObjectList();
     forward_list<Object*>::const_iterator itr = oList.begin();
     for (; itr != oList.end(); itr++) {
@@ -68,19 +68,19 @@ void EffectBloodyWall::affect()
             Creature* pCreature = dynamic_cast<Creature*>(pObject);
             Assert(pCreature != NULL);
 
-            // 무적상태 체크. by sigi. 2002.9.5
-            // 산 면역. by sigi. 2002.9.13
-            // 자기 자신이면 안 맞는다.
-            // 안전지대 체크
+            // Check for invulnerability.
+            // Acid immunity.
+            // The caster itself is not hit.
+            // Safe zone check.
             // 2003.1.10 by bezz, Sequoia
             if (!canAttack(pCastCreature, pCreature) || pCreature->isFlag(Effect::EFFECT_CLASS_COMA) ||
                 pCreature->getObjectID() == m_CasterID || !checkZoneLevelToHitTarget(pCreature)) {
                 continue;
             }
 
-            // 같은 조직(--;)이면 안 맞는다.
+            // A creature of the same class is not hit.
             if (m_CreatureClass == pCreature->getCreatureClass() && !isForce()) {
-                // vampire 끼리는 안 맞는다.
+                // Vampires do not hit each other.
                 if (m_CreatureClass == Creature::CREATURE_CLASS_VAMPIRE) {
                     continue; // by sigi. 2003.1.14
                 } else if (m_CreatureClass == Creature::CREATURE_CLASS_MONSTER) {
@@ -109,14 +109,14 @@ void EffectBloodyWall::affect()
                     Assert(pPlayer != NULL);
                     pPlayer->sendPacket(&gcMI);
 
-                    // knockback체크
-                    bool bKnockback = rand() % 100 < 50; // 20%의 확률로 knockback
+                    // Knockback check
+                    bool bKnockback = rand() % 100 < 50; // 50% chance of knockback
                     if (bKnockback) {
                         int x = pCreature->getX() + rand() % 3 - 1;
                         int y = pCreature->getY() + rand() % 3 - 1;
                         knockbackCreature(m_pZone, pCreature, x, y);
-                        // Tile의 oList를 바뀌게 하므로 더 체크하지 않는다.
-                        // 한 타일에서 하나가 knockback되면 뒤에 체크할 애들은 안 맞아도 관계없지~
+                        // This changes the Tile's oList, so stop checking here.
+                        // Once one creature on a tile is knocked back, the rest can be skipped.
                         break;
                     }
                 } else if (pCreature->isVampire()) {
@@ -129,14 +129,14 @@ void EffectBloodyWall::affect()
                     Assert(pPlayer != NULL);
                     pPlayer->sendPacket(&gcMI);
 
-                    // knockback체크
-                    bool bKnockback = rand() % 100 < 50; // 20%의 확률로 knockback
+                    // Knockback check
+                    bool bKnockback = rand() % 100 < 50; // 50% chance of knockback
                     if (bKnockback) {
                         int x = pCreature->getX() + rand() % 3 - 1;
                         int y = pCreature->getY() + rand() % 3 - 1;
                         knockbackCreature(m_pZone, pCreature, x, y);
-                        // Tile의 oList를 바뀌게 하므로 더 체크하지 않는다.
-                        // 한 타일에서 하나가 knockback되면 뒤에 체크할 애들은 안 맞아도 관계없지~
+                        // This changes the Tile's oList, so stop checking here.
+                        // Once one creature on a tile is knocked back, the rest can be skipped.
                         break;
                     }
                 } else if (pCreature->isOusters()) {
@@ -149,14 +149,14 @@ void EffectBloodyWall::affect()
                     Assert(pPlayer != NULL);
                     pPlayer->sendPacket(&gcMI);
 
-                    // knockback체크
-                    bool bKnockback = rand() % 100 < 50; // 20%의 확률로 knockback
+                    // Knockback check
+                    bool bKnockback = rand() % 100 < 50; // 50% chance of knockback
                     if (bKnockback) {
                         int x = pCreature->getX() + rand() % 3 - 1;
                         int y = pCreature->getY() + rand() % 3 - 1;
                         knockbackCreature(m_pZone, pCreature, x, y);
-                        // Tile의 oList를 바뀌게 하므로 더 체크하지 않는다.
-                        // 한 타일에서 하나가 knockback되면 뒤에 체크할 애들은 안 맞아도 관계없지~
+                        // This changes the Tile's oList, so stop checking here.
+                        // Once one creature on a tile is knocked back, the rest can be skipped.
                         break;
                     }
                 } else if (pCreature->isMonster()) {
@@ -168,19 +168,19 @@ void EffectBloodyWall::affect()
                         pMonster->addEnemy(pCastCreature);
                     }
 
-                    // knockback체크
-                    bool bKnockback = rand() % 100 < 50; // 20%의 확률로 knockback
+                    // Knockback check
+                    bool bKnockback = rand() % 100 < 50; // 50% chance of knockback
                     if (bKnockback) {
                         int x = pCreature->getX() + rand() % 3 - 1;
                         int y = pCreature->getY() + rand() % 3 - 1;
                         knockbackCreature(m_pZone, pCreature, x, y);
-                        // Tile의 oList를 바뀌게 하므로 더 체크하지 않는다.
-                        // 한 타일에서 하나가 knockback되면 뒤에 체크할 애들은 안 맞아도 관계없지~
+                        // This changes the Tile's oList, so stop checking here.
+                        // Once one creature on a tile is knocked back, the rest can be skipped.
                         break;
                     }
                 }
 
-                // 상대가 죽었다면 경험치를 올려준다.
+                // Raises experience if the target died.
                 if (pCreature->isDead()) {
                     if (pCastCreature != NULL && pCastCreature->isVampire()) {
                         Vampire* pVampire = dynamic_cast<Vampire*>(pCastCreature);
@@ -194,9 +194,9 @@ void EffectBloodyWall::affect()
                     }
                 }
 
-                // m_CasterName이 pCreature를 죽인 경우의 KillCount 처리
+                // KillCount handling for when m_CasterName kills pCreature.
                 // by sigi. 2002.8.31
-                // setDamage 를 호출하여 해결한다. 주석처리
+                // Handled by the setDamage call.
                 // by bezz. 2003.1.3
             }
         }

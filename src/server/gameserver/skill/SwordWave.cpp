@@ -9,20 +9,20 @@
 #include "SimpleTileMeleeSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 생성자.. 타일 마스크를 초기화한다.
+// Constructor. Initializes the tile mask.
 //////////////////////////////////////////////////////////////////////////////
 SwordWave::SwordWave() {
     __BEGIN_TRY
 
-    // 마스크를 초기화시킨다.
-    // 한 방향의 3개 타일 순서는 클라이언트 이펙트 출력 순서에 맞춘다.
+    // Initialize the mask.
+    // The order of the three tiles in one direction matches the client effect order.
     //
     // (-1,-1)(0,-1)(1,-1)
     // (-1, 0)(0, 0)(1, 0)
     // (-1, 1)(0, 1)(1, 1)
     //
-    // 각 방향에 따라 어느 타일이 명중 대상이냐를
-    // 생각하면 마스크를 이해하기 쉽다.
+    // The mask is easiest to read by asking which tiles are hit
+    // for each direction.
 
     m_pSwordWaveMask[LEFT][0].set(-1, 1);
     m_pSwordWaveMask[LEFT][1].set(-1, -1);
@@ -60,7 +60,7 @@ SwordWave::SwordWave() {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void SwordWave::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -77,7 +77,7 @@ void SwordWave::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pSlayer, getSkillType());
             return;

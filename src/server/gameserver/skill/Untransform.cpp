@@ -37,12 +37,12 @@ void Untransform::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
             gcOK1.setSkillType(SKILL_UN_TRANSFORM);
             pSlayer->getPlayer()->sendPacket(&gcOK1);
 
-            // EffectSummonSylph에 unaffect에서 다 해준다.
+            // EffectSummonSylph::unaffect does all of this.
 
-            // 존에 이펙트 없앴다고 보내주고
+            // Sends to the zone that the effect was removed
             //
             //
-            //			// 디펜 프텍 다시 계산해서 보내주고
+            //			// Recalculates defense and protection and sends them
 
         } else {
             GCSkillFailed1 gcFail;
@@ -50,7 +50,7 @@ void Untransform::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
             pSlayer->getPlayer()->sendPacket(&gcFail);
         }
     } catch (Throwable& t) {
-        //		클라이언트에서 -_- 이런 거 보내지 말란다 흑 ㅠㅠ
+        //		The client asks not to be sent this.
     }
 
 
@@ -103,12 +103,12 @@ void Untransform::execute(Ousters* pOusters)
             gcOK1.setSkillType(SKILL_UN_TRANSFORM);
             pOusters->getPlayer()->sendPacket(&gcOK1);
 
-            // EffectSummonSylph에 unaffect에서 다 해준다.
+            // EffectSummonSylph::unaffect does all of this.
 
-            // 존에 이펙트 없앴다고 보내주고
+            // Sends to the zone that the effect was removed
             //
             //
-            //			// 디펜 프텍 다시 계산해서 보내주고
+            //			// Recalculates defense and protection and sends them
 
         } else {
             GCSkillFailed1 gcFail;
@@ -116,7 +116,7 @@ void Untransform::execute(Ousters* pOusters)
             pOusters->getPlayer()->sendPacket(&gcFail);
         }
     } catch (Throwable& t) {
-        //		클라이언트에서 -_- 이런 거 보내지 말란다 흑 ㅠㅠ
+        //		The client asks not to be sent this.
     }
 
 

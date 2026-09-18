@@ -31,7 +31,7 @@
 #include "repository/SessionRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -50,16 +50,16 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 
         Creature* pFromCreature = pZone->getCreature(TargetObjectID);
 
-        // 뱀파이어만 건드릴 수가 있다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // Only a Vampire can be targeted.
+        // A missing target fails the skill instead of throwing.
         if (pFromCreature == NULL || !pFromCreature->isVampire()) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
         }
 
-        GCSkillToObjectOK1 _GCSkillToObjectOK1; // 스킬 쓴 넘에게...
-        GCMorph1 _GCMorph1;                     // 변신 당사자에게..
-        GCMorphSlayer2 _GCMorphSlayer2;         // 변신 구경꾼들에게..
+        GCSkillToObjectOK1 _GCSkillToObjectOK1; // To the one who used the skill.
+        GCMorph1 _GCMorph1;                     // To the one being transformed.
+        GCMorphSlayer2 _GCMorphSlayer2;         // To the onlookers of the transformation.
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
@@ -72,27 +72,27 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             dropFlagToZone(pFromCreature);
 
             //////////////////////////////////////////////////////////////////////
-            // 각종 존 레벨 정보를 삭제해야 한다.
+            // Zone level information of every kind has to be deleted.
             //////////////////////////////////////////////////////////////////////
 
-            // 파티 초대 중이라면 정보를 삭제해 준다.
+            // Clear the invite information if a party invite is pending.
             PartyInviteInfoManager* pPIIM = pZone->getPartyInviteInfoManager();
             Assert(pPIIM != NULL);
             pPIIM->cancelInvite(pFromCreature);
 
-            // 파티 관련 정보를 삭제해 준다.
+            // Delete the party related information.
             int PartyID = pFromCreature->getPartyID();
             if (PartyID != 0) {
-                // 먼저 로컬에서 삭제하고...
+                // Delete it from the local manager first.
                 LocalPartyManager* pLPM = pZone->getLocalPartyManager();
                 Assert(pLPM != NULL);
                 pLPM->deletePartyMember(PartyID, pFromCreature);
 
-                // 글로벌에서도 삭제해 준다.
+                // Delete it from the global manager too.
                 deleteAllPartyInfo(pFromCreature);
             }
 
-            // 트레이드 중이었다면 트레이드 관련 정보를 삭제해준다.
+            // Cancel the trade information if a trade was in progress.
             TradeManager* pTM = pZone->getTradeManager();
             Assert(pTM != NULL);
             pTM->cancelTrade(pFromCreature);
@@ -103,18 +103,18 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             Slayer* pNewSlayer = new Slayer;
             Vampire* pVampire = dynamic_cast<Vampire*>(pFromCreature);
 
-            // DB에서 혹시 남아있을 지 모르는 흡혈 정보를 삭제해준다.
+            // Delete any blood drain information still left in the database.
             defaultEffectSaveRepository().deleteCreatureEffect(CREATURE_EFFECT_BLOOD_DRAIN, pFromCreature->getName());
 
             pNewSlayer->setName(pFromCreature->getName());
 
-            // 크리쳐 안의 플레이어 포인터와 플레이어 안의 크리쳐 포인터를 갱신한다.
+            // Update the player pointer in the creature and the creature pointer in the player.
             Player* pFromPlayer = pFromCreature->getPlayer();
             pNewSlayer->setPlayer(pFromPlayer);
             GamePlayer* pFromGamePlayer = dynamic_cast<GamePlayer*>(pFromPlayer);
             pFromGamePlayer->setCreature(pNewSlayer);
 
-            // load하면 load한 zone에서 objectID를 받으므로 다시 설정한다. by sigi. 2002.6.4
+            // load() takes an object id from the zone it loads in, so set it again.
             pNewSlayer->load();
             pNewSlayer->setZone(pZone);
             pNewSlayer->setObjectID(pFromCreature->getObjectID());
@@ -124,13 +124,13 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             ZoneCoord_t y = pFromCreature->getY();
             Dir_t dir = pFromCreature->getDir();
 
-            // 곧 pFromCreature 즉, 원래의 뱀파이어 객체는 지워질 것이므로,
-            // PCFinder에 들어가 있는 값은 쓰레기 값이 될 것이다.
-            // 그러므로 뱀파이어 포인터를 지워주고, 새로운 슬레이어 포인터를 더한다.
+            // pFromCreature, the original Vampire object, is about to be deleted,
+            // so the value held in PCFinder would become garbage.
+            // Therefore remove the Vampire pointer and add the new Slayer pointer.
             g_pPCFinder->deleteCreature(pFromCreature->getName());
             g_pPCFinder->addCreature(pNewSlayer);
 
-            // 길드 현재 접속 멤버 리스트에서 삭제한다.
+            // Remove it from the guild's list of currently connected members.
             if (pVampire->getGuildID() != 0) {
                 Guild* pGuild = g_pGuildManager->getGuild(pVampire->getGuildID());
                 if (pGuild != NULL) {
@@ -143,19 +143,19 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 
                     g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
-                    // 디비에 업데이트 한다.
+                    // Update the database.
                     defaultSessionRepository().markGuildMemberLoggedOff(pVampire->getName());
                 } else
                     filelog("GuildMissing.log", "[NoSuchGuild] GuildID : %d, Name : %s\n", (int)pVampire->getGuildID(),
                             pVampire->getName().c_str());
             }
 
-            // 인벤토리 교체.
+            // Swap the inventory.
             Inventory* pInventory = pVampire->getInventory();
             pNewSlayer->setInventory(pInventory);
             pVampire->setInventory(NULL);
 
-            // 보관함 교체
+            // Swap the stash
             pNewSlayer->deleteStash();
             pNewSlayer->setStash(pVampire->getStash());
             pNewSlayer->setStashNum(pVampire->getStashNum());
@@ -163,7 +163,7 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             pVampire->setStash(NULL);
 
 
-            // 플래그 셋 교체
+            // Swap the flag set
             pNewSlayer->deleteFlagSet();
             pNewSlayer->setFlagSet(pVampire->getFlagSet());
             pVampire->setFlagSet(NULL);
@@ -171,24 +171,24 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             Item* pItem = NULL;
             _TPOINT point;
 
-            // 입고 있는 아이템들을 인벤토리 또는 바닥으로 옮긴다.
+            // Move the worn items into the inventory or onto the ground.
             for (int part = 0; part < (int)Vampire::VAMPIRE_WEAR_MAX; part++) {
                 pItem = pVampire->getWearItem((Vampire::WearPart)part);
                 if (pItem != NULL) {
-                    // 먼저 기어에서 삭제하고...
+                    // Remove it from the gear first.
                     if (isTwohandWeapon(pItem)) {
                         Assert(((Vampire::WearPart)part == Vampire::WEAR_RIGHTHAND) ||
                                ((Vampire::WearPart)part == Vampire::WEAR_LEFTHAND));
                         Assert(pVampire->getWearItem(Vampire::WEAR_RIGHTHAND) ==
                                pVampire->getWearItem(Vampire::WEAR_LEFTHAND));
-                        // 양손 아템.
+                        // Two-handed item.
                         pVampire->deleteWearItem(Vampire::WEAR_RIGHTHAND);
                         pVampire->deleteWearItem(Vampire::WEAR_LEFTHAND);
                     } else {
                         pVampire->deleteWearItem((Vampire::WearPart)part);
                     }
 
-                    // 인벤토리에 자리가 있으면 인벤토리에 더하고...
+                    // If the inventory has room, add it there.
                     if (pInventory->getEmptySlot(pItem, point)) {
                         pInventory->addItem(point.x, point.y, pItem);
                         pItem->save(pNewSlayer->getName(), STORAGE_INVENTORY, 0, point.x, point.y);
@@ -198,7 +198,7 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
                         pItem->destroy();
                         SAFE_DELETE(pItem);
                     }
-                    // 자리가 없으면 바닥에 떨어뜨린다.
+                    // Drop it on the ground when there is no room.
                     else {
                         ZoneCoord_t ZoneX = pVampire->getX();
                         ZoneCoord_t ZoneY = pVampire->getY();
@@ -210,14 +210,14 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
                         if (pt.x != -1) {
                             pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
 
-                            // ItemTraceLog 를 남긴다
+                            // Write an ItemTraceLog entry
                             if (pItem != NULL && pItem->isTraceItem()) {
                                 char zoneName[15];
                                 sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
                                 remainTraceLog(pItem, pFromCreature->getName(), zoneName, ITEM_LOG_MOVE, DETAIL_DROP);
                             }
                         } else {
-                            // ItemTraceLog 를 남긴다
+                            // Write an ItemTraceLog entry
                             if (pItem != NULL && pItem->isTraceItem()) {
                                 remainTraceLog(pItem, pFromCreature->getName(), "GOD", ITEM_LOG_DELETE, DETAIL_DROP);
                             }
@@ -233,7 +233,7 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             if (pItem != NULL) {
                 pVampire->deleteItemFromExtraInventorySlot();
 
-                // 인벤토리에 자리가 있으면 인벤토리에 더하고...
+                // If the inventory has room, add it there.
                 if (pInventory->getEmptySlot(pItem, point)) {
                     pInventory->addItem(point.x, point.y, pItem);
                     pItem->save(pNewSlayer->getName(), STORAGE_INVENTORY, 0, point.x, point.y);
@@ -243,7 +243,7 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
                     pItem->destroy();
                     SAFE_DELETE(pItem);
                 }
-                // 자리가 없으면 바닥에 떨어뜨린다.
+                // Drop it on the ground when there is no room.
                 else {
                     TPOINT pt;
                     ZoneCoord_t ZoneX = pVampire->getX();
@@ -254,14 +254,14 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
                     if (pt.x != -1) {
                         pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
 
-                        // ItemTraceLog 를 남긴다
+                        // Write an ItemTraceLog entry
                         if (pItem != NULL && pItem->isTraceItem()) {
                             char zoneName[15];
                             sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
                             remainTraceLog(pItem, pFromCreature->getName(), zoneName, ITEM_LOG_MOVE, DETAIL_DROP);
                         }
                     } else {
-                        // ItemTraceLog 를 남긴다
+                        // Write an ItemTraceLog entry
                         if (pItem != NULL && pItem->isTraceItem()) {
                             remainTraceLog(pItem, pFromCreature->getName(), "GOD", ITEM_LOG_DELETE, DETAIL_DROP);
                         }
@@ -272,16 +272,16 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
                 }
             }
 
-            // 퀘스트 아이템 정보를 다시 로드한다.
+            // Reload the quest item information.
             pNewSlayer->loadTimeLimitItem();
 
-            // 뱀파이어 가지고 있던 돈을 슬레이어로 옮겨준다.
-            // 뱀파이어가 가지고 있던 돈은 슬레이어로 옮겨가지 않는다.
-            // 새로운 슬레이어의 돈을 0으로 세팅한다.
+            // Move the money the Vampire held to the Slayer.
+            // The money the Vampire held does not carry over to the Slayer.
+            // Set the new Slayer's money to 0.
             pNewSlayer->setGoldEx(0);
             pNewSlayer->setStashGoldEx(0);
 
-            // 스킬 정보를 전송한다.
+            // Send the skill information.
             pNewSlayer->sendSlayerSkillInfo();
 
 
@@ -323,7 +323,7 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             pSkillSlot->setRunTime(0);
 
             EffectRestore* pEffectRestore = new EffectRestore(pNewSlayer);
-            pEffectRestore->setDeadline(60 * 60 * 24 * 7 * 10); // 7일
+            pEffectRestore->setDeadline(60 * 60 * 24 * 7 * 10); // 7 days
             pNewSlayer->addEffect(pEffectRestore);
             pNewSlayer->setFlag(Effect::EFFECT_CLASS_RESTORE);
             pEffectRestore->create(pNewSlayer->getName());
@@ -339,7 +339,7 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// NPC 오브젝트 핸들러
+// NPC object handler
 //////////////////////////////////////////////////////////////////////////////
 void Restore::execute(NPC* pNPC, Creature* pFromCreature)
 
@@ -354,40 +354,40 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
         Zone* pZone = pNPC->getZone();
         Assert(pZone != NULL);
 
-        // 뱀파이어만 건드릴 수가 있다.
+        // Only a Vampire can be targeted.
         if (!pFromCreature->isVampire()) {
             return;
         }
 
-        GCMorph1 _GCMorph1;             // 변신 당사자에게..
-        GCMorphSlayer2 _GCMorphSlayer2; // 변신 구경꾼들에게..
+        GCMorph1 _GCMorph1;             // To the one being transformed.
+        GCMorphSlayer2 _GCMorphSlayer2; // To the onlookers of the transformation.
 
 
         bool bHitRoll = true;
 
         if (bHitRoll) {
             //////////////////////////////////////////////////////////////////////
-            // 각종 존 레벨 정보를 삭제해야 한다.
+            // Zone level information of every kind has to be deleted.
             //////////////////////////////////////////////////////////////////////
 
-            // 파티 초대 중이라면 정보를 삭제해 준다.
+            // Clear the invite information if a party invite is pending.
             PartyInviteInfoManager* pPIIM = pZone->getPartyInviteInfoManager();
             Assert(pPIIM != NULL);
             pPIIM->cancelInvite(pFromCreature);
 
-            // 파티 관련 정보를 삭제해 준다.
+            // Delete the party related information.
             int PartyID = pFromCreature->getPartyID();
             if (PartyID != 0) {
-                // 먼저 로컬에서 삭제하고...
+                // Delete it from the local manager first.
                 LocalPartyManager* pLPM = pZone->getLocalPartyManager();
                 Assert(pLPM != NULL);
                 pLPM->deletePartyMember(PartyID, pFromCreature);
 
-                // 글로벌에서도 삭제해 준다.
+                // Delete it from the global manager too.
                 deleteAllPartyInfo(pFromCreature);
             }
 
-            // 트레이드 중이었다면 트레이드 관련 정보를 삭제해준다.
+            // Cancel the trade information if a trade was in progress.
             TradeManager* pTM = pZone->getTradeManager();
             Assert(pTM != NULL);
             pTM->cancelTrade(pFromCreature);
@@ -398,13 +398,13 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
             Slayer* pNewSlayer = new Slayer;
             Vampire* pVampire = dynamic_cast<Vampire*>(pFromCreature);
 
-            // DB에서 혹시 남아있을 지 모르는 흡혈 정보를 삭제해준다.
+            // Delete any blood drain information still left in the database.
             defaultEffectSaveRepository().deleteCreatureEffect(CREATURE_EFFECT_BLOOD_DRAIN, pFromCreature->getName());
 
             pNewSlayer->setName(pFromCreature->getName());
             pNewSlayer->setPlayer(pFromCreature->getPlayer());
             pNewSlayer->load();
-            // load하면 load한 zone에서 objectID를 받으므로 다시 설정한다. by sigi. 2002.6.4
+            // load() takes an object id from the zone it loads in, so set it again.
             pNewSlayer->setZone(pZone);
             pNewSlayer->setObjectID(pFromCreature->getObjectID());
             pNewSlayer->setMoveMode(Creature::MOVE_MODE_WALKING);
@@ -415,18 +415,18 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
 
             pNewSlayer->setXYDir(x, y, dir);
 
-            // 크리쳐 안의 플레이어 포인터와 플레이어 안의 크리쳐 포인터를 갱신한다.
+            // Update the player pointer in the creature and the creature pointer in the player.
             Player* pFromPlayer = pFromCreature->getPlayer();
             GamePlayer* pFromGamePlayer = dynamic_cast<GamePlayer*>(pFromPlayer);
             pFromGamePlayer->setCreature(pNewSlayer);
 
-            // 곧 pFromCreature 즉, 원래의 뱀파이어 객체는 지워질 것이므로,
-            // PCFinder에 들어가 있는 값은 쓰레기 값이 될 것이다.
-            // 그러므로 뱀파이어 포인터를 지워주고, 새로운 슬레이어 포인터를 더한다.
+            // pFromCreature, the original Vampire object, is about to be deleted,
+            // so the value held in PCFinder would become garbage.
+            // Therefore remove the Vampire pointer and add the new Slayer pointer.
             g_pPCFinder->deleteCreature(pFromCreature->getName());
             g_pPCFinder->addCreature(pNewSlayer);
 
-            // 길드 현재 접속 멤버 리스트에서 삭제한다.
+            // Remove it from the guild's list of currently connected members.
             if (pVampire->getGuildID() != 0) {
                 Guild* pGuild = g_pGuildManager->getGuild(pVampire->getGuildID());
                 if (pGuild != NULL)
@@ -436,19 +436,19 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
                             pVampire->getName().c_str());
             }
 
-            // 인벤토리 교체.
+            // Swap the inventory.
             Inventory* pInventory = pVampire->getInventory();
             pNewSlayer->setInventory(pInventory);
             pVampire->setInventory(NULL);
 
-            // 보관함 교체
+            // Swap the stash
             pNewSlayer->deleteStash();
             pNewSlayer->setStash(pVampire->getStash());
             pNewSlayer->setStashNum(pVampire->getStashNum());
             pNewSlayer->setStashStatus(false);
             pVampire->setStash(NULL);
 
-            // 플래그 셋 교체
+            // Swap the flag set
             pNewSlayer->deleteFlagSet();
             pNewSlayer->setFlagSet(pVampire->getFlagSet());
             pVampire->setFlagSet(NULL);
@@ -456,24 +456,24 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
             Item* pItem = NULL;
             _TPOINT point;
 
-            // 입고 있는 아이템들을 인벤토리 또는 바닥으로 옮긴다.
+            // Move the worn items into the inventory or onto the ground.
             for (int part = 0; part < (int)Vampire::VAMPIRE_WEAR_MAX; part++) {
                 pItem = pVampire->getWearItem((Vampire::WearPart)part);
                 if (pItem != NULL) {
-                    // 먼저 기어에서 삭제하고...
+                    // Remove it from the gear first.
                     if (isTwohandWeapon(pItem)) {
                         Assert(((Vampire::WearPart)part == Vampire::WEAR_RIGHTHAND) ||
                                ((Vampire::WearPart)part == Vampire::WEAR_LEFTHAND));
                         Assert(pVampire->getWearItem(Vampire::WEAR_RIGHTHAND) ==
                                pVampire->getWearItem(Vampire::WEAR_LEFTHAND));
-                        // 양손 아템.
+                        // Two-handed item.
                         pVampire->deleteWearItem(Vampire::WEAR_RIGHTHAND);
                         pVampire->deleteWearItem(Vampire::WEAR_LEFTHAND);
                     } else {
                         pVampire->deleteWearItem((Vampire::WearPart)part);
                     }
 
-                    // 인벤토리에 자리가 있으면 인벤토리에 더하고...
+                    // If the inventory has room, add it there.
                     if (pInventory->getEmptySlot(pItem, point)) {
                         pInventory->addItem(point.x, point.y, pItem);
                         pItem->save(pNewSlayer->getName(), STORAGE_INVENTORY, 0, point.x, point.y);
@@ -483,7 +483,7 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
                         pItem->destroy();
                         SAFE_DELETE(pItem);
                     }
-                    // 자리가 없으면 바닥에 떨어뜨린다.
+                    // Drop it on the ground when there is no room.
                     else {
                         ZoneCoord_t ZoneX = pVampire->getX();
                         ZoneCoord_t ZoneY = pVampire->getY();
@@ -495,14 +495,14 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
                         if (pt.x != -1) {
                             pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
 
-                            // ItemTraceLog 를 남긴다
+                            // Write an ItemTraceLog entry
                             if (pItem != NULL && pItem->isTraceItem()) {
                                 char zoneName[15];
                                 sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
                                 remainTraceLog(pItem, pFromCreature->getName(), zoneName, ITEM_LOG_MOVE, DETAIL_DROP);
                             }
                         } else {
-                            // ItemTraceLog 를 남긴다
+                            // Write an ItemTraceLog entry
                             if (pItem != NULL && pItem->isTraceItem()) {
                                 remainTraceLog(pItem, pFromCreature->getName(), "GOD", ITEM_LOG_DELETE, DETAIL_DROP);
                             }
@@ -518,7 +518,7 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
             if (pItem != NULL) {
                 pVampire->deleteItemFromExtraInventorySlot();
 
-                // 인벤토리에 자리가 있으면 인벤토리에 더하고...
+                // If the inventory has room, add it there.
                 if (pInventory->getEmptySlot(pItem, point)) {
                     pInventory->addItem(point.x, point.y, pItem);
                     pItem->save(pNewSlayer->getName(), STORAGE_INVENTORY, 0, point.x, point.y);
@@ -528,7 +528,7 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
                     pItem->destroy();
                     SAFE_DELETE(pItem);
                 }
-                // 자리가 없으면 바닥에 떨어뜨린다.
+                // Drop it on the ground when there is no room.
                 else {
                     TPOINT pt;
                     ZoneCoord_t ZoneX = pVampire->getX();
@@ -539,14 +539,14 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
                     if (pt.x != -1) {
                         pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
 
-                        // ItemTraceLog 를 남긴다
+                        // Write an ItemTraceLog entry
                         if (pItem != NULL && pItem->isTraceItem()) {
                             char zoneName[15];
                             sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
                             remainTraceLog(pItem, pFromCreature->getName(), zoneName, ITEM_LOG_MOVE, DETAIL_DROP);
                         }
                     } else {
-                        // ItemTraceLog 를 남긴다
+                        // Write an ItemTraceLog entry
                         if (pItem != NULL && pItem->isTraceItem()) {
                             remainTraceLog(pItem, pFromCreature->getName(), "GOD", ITEM_LOG_DELETE, DETAIL_DROP);
                         }
@@ -559,13 +559,13 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
 
             pNewSlayer->loadTimeLimitItem();
 
-            // 뱀파이어 가지고 있던 돈을 슬레이어로 옮겨준다.
-            // 슬레이어돈을 초기화한다.
+            // Move the money the Vampire held to the Slayer.
+            // Reset the Slayer's money.
             pNewSlayer->setGoldEx(0);
             pNewSlayer->setStashGoldEx(0);
 
 
-            // 스킬 정보를 전송한다.
+            // Send the skill information.
             pNewSlayer->sendSlayerSkillInfo();
 
             _GCMorph1.setPCInfo2(pNewSlayer->getSlayerInfo2());
@@ -592,11 +592,11 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
             SAFE_DELETE(pFromCreature);
 
 
-            // 시야 update..
+            // Update the field of view.
             pZone->updateHiddenScan(pNewSlayer);
 
             EffectRestore* pEffectRestore = new EffectRestore(pNewSlayer);
-            pEffectRestore->setDeadline(60 * 60 * 24 * 7 * 10); // 7일
+            pEffectRestore->setDeadline(60 * 60 * 24 * 7 * 10); // 7 days
             pNewSlayer->addEffect(pEffectRestore);
             pNewSlayer->setFlag(Effect::EFFECT_CLASS_RESTORE);
             pEffectRestore->create(pNewSlayer->getName());

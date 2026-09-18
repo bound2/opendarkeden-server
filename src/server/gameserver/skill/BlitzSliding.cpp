@@ -16,7 +16,7 @@
 #include "GCStatusCurrentHP.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void BlitzSliding::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -35,8 +35,8 @@ void BlitzSliding::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
-        // NPC는 공격할 수가 없다.
+        // A missing target fails the skill instead of throwing.
+        // An NPC cannot be attacked.
         if (pTargetCreature == NULL || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -44,7 +44,7 @@ void BlitzSliding::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
 
         bool bIncreaseDomainExp = pSlayer->isRealWearingEx(Slayer::WEAR_RIGHTHAND);
 
-        // 무장하고 있는 무기가 널이거나, 검이 아니라면 기술을 사용할 수 없다.
+        // The skill cannot be used when the equipped weapon is null or not a sword.
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL) {
             executeSkillFailException(pSlayer, getSkillType());
@@ -73,7 +73,7 @@ void BlitzSliding::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
         bool bEffected = pSlayer->hasRelicItem();
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bCanHit && bPK && !bEffected) {
-            // 빠르게 PC를 움직여준다.
+            // Moves the PC quickly.
             if (pZone->moveFastPC(pSlayer, pSlayer->getX(), pSlayer->getY(), pTargetCreature->getX(),
                                   pTargetCreature->getY(), getSkillType())) {
                 decreaseMana(pSlayer, RequiredMP, _GCSkillToObjectOK1);
@@ -84,14 +84,14 @@ void BlitzSliding::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
 
                 bool bCriticalHit = false;
 
-                // 데미지를 준다.
+                // Deals damage.
                 Damage_t BasicDamage = computeDamage(pSlayer, pTargetCreature, SkillLevel / 5, bCriticalHit);
                 Damage_t Damage = BasicDamage + output.Damage;
                 setDamage(pTargetCreature, Damage, pSlayer, SkillType, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
                 computeAlignmentChange(pTargetCreature, Damage, pSlayer, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
                 decreaseDurability(pSlayer, pTargetCreature, pSkillInfo, &_GCSkillToObjectOK1, &_GCSkillToObjectOK2);
 
-                // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+                // On a critical hit, knocks the target back.
                 if (bCriticalHit) {
                     knockbackCreature(pZone, pTargetCreature, pSlayer->getX(), pSlayer->getY());
                 }
@@ -116,7 +116,7 @@ void BlitzSliding::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
                 pTargetCreature->setFlag(Effect::EFFECT_CLASS_BLAZE_WALK);
                 pTargetCreature->addEffect(pEffect);
 
-                // 패킷을 준비하고 보낸다.
+                // Prepares and sends the packets.
                 _GCSkillToObjectOK1.setSkillType(SkillType);
                 _GCSkillToObjectOK1.setCEffectID(CEffectID);
                 _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);

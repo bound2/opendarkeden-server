@@ -32,9 +32,9 @@ EffectContinualBloodyWall::EffectContinualBloodyWall(Zone* pZone)
     m_Duration = 10;
     m_Damage = 1000;
 
-    setNextTime(10); // 1초 후 시작
+    setNextTime(10); // Starts after 1 second
 
-    // 서버 전용 Effect이다. by sigi. 2002.11.14
+    // This is a server-only effect.
     m_bBroadcastingEffect = false;
 
     __END_CATCH
@@ -135,7 +135,7 @@ void EffectContinualBloodyWallLoader::load(Zone* pZone)
         pEffect->setDuration(value2);
         pEffect->setDamage(value3);
 
-        // 존 및 타일에다가 이펙트를 추가한다.
+        // Register the effect and add it to the zone.
         pZone->registerObject(pEffect);
         pZone->addEffect(pEffect);
     }

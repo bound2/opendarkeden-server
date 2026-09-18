@@ -2,8 +2,8 @@
 // Filename    : EffectSoulChain.cpp
 // Written by  : elca
 // Description :
-// 군인기술 Sniping 또는 뱀파이어 기술 Invisibility로 인해서
-// 현재 점점 희미해져가고 있는(사라지고 있는) 크리쳐에 붙는 이펙트이다.
+// Effect attached to a creature that is fading out because of the soldier
+// skill Sniping or the Vampire skill Invisibility.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "EffectSoulChain.h"
@@ -53,7 +53,7 @@ void EffectSoulChain::unaffect(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    // 이펙트 플레그가 없다면 죽었다거나 하는 문제로 transport 하지 않겠다는걸 의미한다.
+    // A missing effect flag means the caster died and will not be transported.
     if (!pCreature->isFlag(Effect::EFFECT_CLASS_SOUL_CHAIN))
         return;
 
@@ -73,13 +73,13 @@ void EffectSoulChain::unaffect(Creature* pCreature)
     ZoneCoord_t y = pCreature->getY();
     pCreature->removeFlag(Effect::EFFECT_CLASS_SOUL_CHAIN);
 
-    // Effect 가 없어졌음을 알린다.
+    // Announces that the effect is gone.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_SOUL_CHAIN);
     pZone->broadcastPacket(x, y, &gcRemoveEffect);
 
-    // Target 을 체크해서 전송이 가능하면 전송한다.
+    // Checks the target and transports when the transport is possible.
     bool bValid = false;
 
     if (pPC->hasRelicItem() || pPC->isFlag(Effect::EFFECT_CLASS_HAS_FLAG) ||
@@ -93,15 +93,15 @@ void EffectSoulChain::unaffect(Creature* pCreature)
         if (pTargetCreature != NULL) {
             Zone* pTargetZone = pTargetCreature->getZone();
             if (pTargetZone != NULL) {
-                // 마스터 레어로는 이동할 수 없다.
+                // Moving to a master lair is not allowed.
                 if (!pTargetZone->isMasterLair() &&
                     !GDRLairManager::Instance().isGDRLairZone(pTargetZone->getZoneID())) {
-                    // 유료 서비스 이용이 가능한가?
+                    // Is the pay service available?
                     if (pGamePlayer->loginPayPlay(pGamePlayer->getSocket()->getHost(), pGamePlayer->getID()) ||
                         pGamePlayer->isFamilyFreePass() ||
                         !(g_pZoneInfoManager->getZoneInfo(pTargetZone->getZoneID())->isPayPlay())) {
-                        // 야전사령부, 시외곽지역, 이벤트경기장, 이벤트OX 존으로는 갈 수 없다.
-                        // 테메리에 성지로도 갈 수 없다.
+                        // The field headquarters, outskirts, event arena and event OX zones are off limits.
+                        // The Temerie sanctuary is off limits as well.
                         if (pTargetZone->getZoneID() != 2101 && pTargetZone->getZoneID() != 2102 &&
                             pTargetZone->getZoneID() != 1005 && pTargetZone->getZoneID() != 1006 &&
                             pTargetZone->getZoneID() != 1122 && pTargetZone->getZoneID() != 1131 &&

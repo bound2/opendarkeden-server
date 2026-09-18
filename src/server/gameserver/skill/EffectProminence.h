@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectProminence.h
 // Written by  : elca@ewestsoft.com
-// Description : 성직마법 Prominence의 Effect를 처리해주기 위한 클래스이다.
+// Description : Class that handles the Effect of the clerical magic Prominence.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_PROMINENCE__

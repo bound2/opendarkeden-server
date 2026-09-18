@@ -18,7 +18,7 @@
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void SoulRebirth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                           CEffectID_t CEffectID)
@@ -38,7 +38,7 @@ void SoulRebirth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // 아우스터즈만 되살릴 수 있다.
+        // Only Ousters can be resurrected.
         if (pTargetCreature == NULL || !pTargetCreature->isOusters() ||
             (g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0)) {
             executeSkillFailException(pOusters, getSkillType());
@@ -48,7 +48,7 @@ void SoulRebirth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
         Ousters* pTargetOusters = dynamic_cast<Ousters*>(pTargetCreature);
         Assert(pTargetOusters != NULL);
 
-        // 타겟에게 코마 이펙트가 걸려있지 않거나, 죽은 상태가 아니라면 쓸 수 없다.
+        // Cannot be used unless the target is dead and under the coma effect.
         if (!pTargetOusters->isFlag(Effect::EFFECT_CLASS_COMA) || !pTargetOusters->isDead()) {
             executeSkillFailException(pOusters, getSkillType());
             return;
@@ -107,11 +107,11 @@ void SoulRebirth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bCanSoulRebirth && bCheckRatio) {
             decreaseMana(pOusters, RequiredMP, _GCSkillToObjectOK1);
 
-            // 타겟의 이펙트 매니저에서 코마 이펙트를 삭제한다.
+            // Delete the coma effect from the target's effect manager.
             pTargetCreature->deleteEffect(Effect::EFFECT_CLASS_COMA);
             pTargetCreature->removeFlag(Effect::EFFECT_CLASS_COMA);
 
-            // 코마 이펙트가 날아갔다고 알려준다.
+            // Announce that the coma effect is gone.
             GCRemoveEffect gcRemoveEffect;
             gcRemoveEffect.setObjectID(pTargetOusters->getObjectID());
             gcRemoveEffect.addEffectList((EffectID_t)Effect::EFFECT_CLASS_COMA);
@@ -132,11 +132,11 @@ void SoulRebirth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
                 pEffectKillAftermath->create(pTargetOusters->getName());
             }
 
-            // 대상의 체력을 10%만 채운다.
+            // Restore only 10% of the target's HP.
             HP_t CurrentHP = getPercentValue(pTargetOusters->getHP(ATTR_MAX), HealRatio);
             pTargetOusters->setHP(CurrentHP, ATTR_CURRENT);
 
-            // 주위에 체력이 채워졌다는 사실을 알린다.
+            // Tell nearby players that the HP was restored.
             GCStatusCurrentHP gcStatusCurrentHP;
             gcStatusCurrentHP.setObjectID(pTargetOusters->getObjectID());
             gcStatusCurrentHP.setCurrentHP(pTargetOusters->getHP(ATTR_CURRENT));

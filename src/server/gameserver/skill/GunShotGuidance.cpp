@@ -19,7 +19,7 @@
 #include "ItemUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void GunShotGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -35,8 +35,8 @@ void GunShotGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillS
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        if (pTargetCreature == NULL // The zone returns NULL when the target is gone.
             || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -52,7 +52,7 @@ void GunShotGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillS
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 타일 핸들러
+// Slayer tile handler
 //////////////////////////////////////////////////////////////////////////////
 void GunShotGuidance::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot,
                               CEffectID_t CEffectID)
@@ -67,7 +67,7 @@ void GunShotGuidance::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Ski
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        // 총을 들고 있는지 확인한다.
+        // Check that a gun is equipped.
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || isArmsWeapon(pItem) == false) {
             executeSkillFailException(pSlayer, getSkillType());
@@ -100,21 +100,21 @@ void GunShotGuidance::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Ski
         if (bManaCheck && bTimeCheck && bRangeCheck && !bEffected && bTileCheck) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToTileOK1);
 
-            // 데미지와 지속 시간을 계산한다.
-            SkillInput input(pSlayer, pSkillSlot); // pSkillSlot 추가 by Sequoia 2002.12.28
+            // Compute the damage and the duration.
+            SkillInput input(pSlayer, pSkillSlot); // The skill slot supplies the exp level
             SkillOutput output;
             computeOutput(input, output);
 
             Tile& tile = pZone->getTile(X, Y);
 
-            // 같은 이펙트가 이미 존재한다면 삭제한다.
+            // Delete the same effect if one is already present.
             Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_GUN_SHOT_GUIDANCE_POINT);
             if (pOldEffect != NULL) {
                 ObjectID_t effectID = pOldEffect->getObjectID();
                 pZone->deleteEffect(effectID);
             }
 
-            // 이펙트 오브젝트를 생성한다.
+            // Create the effect object.
             EffectGunShotGuidanceAim* pEffect = new EffectGunShotGuidanceAim(pSlayer, pZone, X, Y);
             pEffect->setDamage(output.Damage);
             pEffect->setDeadline(output.Duration);
@@ -160,7 +160,7 @@ void GunShotGuidance::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Ski
             pZone->broadcastPacket(myX, myY, &_GCSkillToTileOK3, cList);
             pZone->broadcastPacket(X, Y, &_GCSkillToTileOK4, cList);
 
-            // GunShotGuidanceAim 이펙트를 브로드캐스팅 한다.
+            // Broadcast the GunShotGuidanceAim effect.
             GCAddEffect gcAddAimEffect;
             gcAddAimEffect.setObjectID(pSlayer->getObjectID());
             gcAddAimEffect.setEffectID(Effect::EFFECT_CLASS_GUN_SHOT_GUIDANCE_AIM);
@@ -168,7 +168,7 @@ void GunShotGuidance::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Ski
             pZone->broadcastPacket(myX, myY, &gcAddAimEffect);
 
             ///////////////////////////////////////////////////////////////////
-            // GunShotGuidancePoint 이펙트를 만들어서 붙이고 브로드캐스팅 한다.
+            // Create the GunShotGuidancePoint effect, attach it and broadcast it.
             ///////////////////////////////////////////////////////////////////
             EffectGunShotGuidancePoint* pPointEffect = new EffectGunShotGuidancePoint(pZone, X, Y);
             pPointEffect->setDeadline(output.Duration);
@@ -227,19 +227,19 @@ void GunShotGuidance::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y) {
             ZoneCoord_t myX = pMonster->getX();
             ZoneCoord_t myY = pMonster->getY();
 
-            // 같은 이펙트가 이미 존재한다면 삭제한다.
+            // Delete the same effect if one is already present.
             Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_GUN_SHOT_GUIDANCE_POINT);
             if (pOldEffect != NULL) {
                 ObjectID_t effectID = pOldEffect->getObjectID();
                 pZone->deleteEffect(effectID);
             }
 
-            // 데미지와 지속 시간을 계산한다.
+            // Compute the damage and the duration.
             SkillInput input(pMonster);
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 오브젝트를 생성한다.
+            // Create the effect object.
             EffectGunShotGuidanceAim* pEffect = new EffectGunShotGuidanceAim(pMonster, pZone, X, Y);
             pEffect->setDeadline(output.Duration);
             pEffect->setDamage(output.Damage);
@@ -273,7 +273,7 @@ void GunShotGuidance::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y) {
             pZone->broadcastPacket(myX, myY, &_GCSkillToTileOK3, cList);
             pZone->broadcastPacket(X, Y, &_GCSkillToTileOK4, cList);
 
-            // GunShotGuidanceAim 이펙트를 브로드캐스팅 한다.
+            // Broadcast the GunShotGuidanceAim effect.
             GCAddEffect gcAddAimEffect;
             gcAddAimEffect.setObjectID(pMonster->getObjectID());
             gcAddAimEffect.setEffectID(Effect::EFFECT_CLASS_GUN_SHOT_GUIDANCE_AIM);

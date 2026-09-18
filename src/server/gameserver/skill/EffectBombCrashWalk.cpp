@@ -51,11 +51,11 @@ void EffectBombCrashWalk::affect()
 
     Assert(m_pZone != NULL);
 
-    // ����ڸ� �����´�.
-    // !! �̹� ���� ������ �� �����Ƿ� NULL�� �� �� �ִ�.
+    // Get the skill user.
+    // !! It can be NULL because the caster may already have left the zone.
     // by bezz. 2003.1.4
     Creature* pCastCreature = m_pZone->getCreature(m_UserObjectID);
-    // ĳ���Ͱ� ������ �����Ѵ�.
+    // Return if the caster is gone.
     if (pCastCreature == NULL)
         return;
 
@@ -94,8 +94,8 @@ void EffectBombCrashWalk::affect()
     Level_t maxEnemyLevel = 0;
     uint EnemyNum = 0;
 
-    // ���� ����Ʈ�� �پ��ִ� Ÿ���� �޾ƿ´�.
-    // �߽�Ÿ�� + ���÷��� Ÿ��
+    // Collect the tiles the effect covers.
+    // The center tile plus the splash tiles.
     for (int oX = -diff; oX <= diff; oX++)
         for (int oY = -diff; oY <= diff; oY++) {
             int tileX = m_X + oX;
@@ -127,18 +127,18 @@ void EffectBombCrashWalk::affect()
 
 
                     if (bPK && bZoneLevelCheck && bHitRoll) {
-                        // ���� �������� ��ų ������ ���ʽ��� ���� ���� �������� ���Ѵ�.
+                        // Compute the final damage from the base damage plus the skill bonus.
                         bool bCriticalHit = false;
                         Damage_t FinalDamage = 0;
                         FinalDamage += computeDamage(pSlayer, pTargetCreature, SkillLevel / 2, bCriticalHit);
                         FinalDamage += m_Damage;
 
-                        // ��...�� ũ�� �߰� ����...�ʻ� ��� �ڵ�
+                        // Scale the damage by the tile's place in the blast pattern.
                         int DamageModifier = BombCrashWalkDamageModify[oX + 2][oY + 2];
                         Damage_t TileDamage = getPercentValue(FinalDamage, DamageModifier);
 
                         if (pTargetCreature != NULL && !pTargetCreature->isSlayer()) {
-                            // �����˺�
+                            // Deal the damage.
                             if (pTargetCreature->isPC()) {
                                 GCModifyInformation gcMI;
                                 ::setDamage(pTargetCreature, TileDamage, pSlayer, m_SkillType, &gcMI);
@@ -151,8 +151,8 @@ void EffectBombCrashWalk::affect()
 
                                 pMonster->addEnemy(pSlayer);
                             }
-                            // add by Coffee ����Ŀ������˺���Ч��
-                            // ����Ƿ�ɹ���
+                            // Add the blast's stun effect.
+                            // Roll the chance of being stunned.
                             bool bAttackCheck = false;
                             int rn = Random(10, 100);
                             if (rn > 70 && iMode == 0)
@@ -193,7 +193,7 @@ void EffectBombCrashWalk::affect()
 
                                 if (TileDamage > maxDamage)
                                     maxDamage = TileDamage;
-                                // ֪ͨʹ�ü�����
+                                // Notify the skill user.
                                 Player* pPlayer = pSlayer->getPlayer();
                                 pPlayer->sendPacket(&_GCSkillToObjectOK1);
                                 _GCSkillToObjectOK1.setSkillType(m_SkillType);
@@ -202,14 +202,14 @@ void EffectBombCrashWalk::affect()
                                 _GCSkillToObjectOK1.setDuration(delay);
 
                                 if (pTargetCreature->isPC()) {
-                                    // ֪ͨ����������
+                                    // Notify the target.
                                     _GCSkillToObjectOK2.setObjectID(pSlayer->getObjectID());
                                     _GCSkillToObjectOK2.setSkillType(m_SkillType);
                                     _GCSkillToObjectOK2.setDuration(delay);
 
                                     pTargetCreature->getPlayer()->sendPacket(&_GCSkillToObjectOK2);
                                 }
-                                // ����ȫ�������㲥��Ϣ
+                                // Broadcast the message to everyone nearby.
                                 _GCSkillToObjectOK4.setTargetObjectID(pTargetCreature->getObjectID());
                                 _GCSkillToObjectOK4.setSkillType(m_SkillType);
                                 _GCSkillToObjectOK4.setDuration(delay);
@@ -230,7 +230,7 @@ void EffectBombCrashWalk::affect()
         pSlayer->getPlayer()->sendPacket(&gcMI);
     }
 
-    // ������ ����!!
+    // Count down the storm time.
     m_StormTime--;
     if (m_StormTime <= 0)
         setDeadline(0);

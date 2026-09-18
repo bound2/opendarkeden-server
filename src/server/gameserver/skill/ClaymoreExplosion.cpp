@@ -11,8 +11,8 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 생성자
-// 마스크를 초기화한다.
+// Constructor
+// Initializes the mask.
 //////////////////////////////////////////////////////////////////////////////
 ClaymoreExplosion::ClaymoreExplosion() {
     __BEGIN_TRY
@@ -24,13 +24,13 @@ ClaymoreExplosion::ClaymoreExplosion() {
             m_pClaymoreExplosionMask[index++].set(j, i);
         }
 
-    // 주위 8타일
+    // The surrounding 8 tiles
 
     __END_CATCH
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 셀프 핸들러
+// Monster self handler
 //////////////////////////////////////////////////////////////////////////////
 void ClaymoreExplosion::execute(Monster* pMonster)
 
@@ -52,7 +52,7 @@ void ClaymoreExplosion::execute(Monster* pMonster)
 
         if (bRangeCheck) {
             //--------------------------------------------------------
-            // 주위에 knockback되는맞는 애들을 체크해준다.
+            // Check which surrounding creatures are hit and knocked back.
             //--------------------------------------------------------
             SkillInput input(pMonster);
             SkillOutput output;
@@ -76,7 +76,7 @@ void ClaymoreExplosion::execute(Monster* pMonster)
                 param.addMask(m_pClaymoreExplosionMask[i].x, m_pClaymoreExplosionMask[i].y, 100);
             }
 
-            // 강제로 맞는 애들을 knockback 시킨다.
+            // Knock back the creatures that are hit.
             g_SimpleTileMeleeSkill.execute(pMonster, x, y, param, result, 0, false);
             GCAddEffectToTile gcAE;
             gcAE.setXY(x, y);

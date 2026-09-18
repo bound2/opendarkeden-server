@@ -54,7 +54,7 @@ void EffectBurningSolCharging::affect(Creature* pCreature)
     setNextTime(delay[m_Level]);
 
 
-    // 이펙트를 삭제하라고 알려준다.
+    // Tells clients to remove the effect.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(getSendEffectClass());
@@ -94,13 +94,13 @@ void EffectBurningSolCharging::unaffect(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    // 플래그를 끈다.
+    // Turns off the flag.
     pCreature->removeFlag(Effect::EFFECT_CLASS_BURNING_SOL_CHARGE_1);
 
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 이펙트를 삭제하라고 알려준다.
+    // Tells clients to remove the effect.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(getSendEffectClass());

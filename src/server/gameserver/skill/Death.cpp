@@ -20,7 +20,7 @@
 #include "Reflection.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -39,9 +39,9 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수 없다.
-        // 저주 면역. by sigi. 2002.9.13
-        // NoSuch제거. by sigi. 2002.5.2
+        // NPCs cannot be attacked.
+        // It also fails if the target is immune to curses.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_CURSE) ||
             !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
@@ -58,7 +58,7 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
         SkillType_t SkillType = pSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // Knowledge of Curse 가 있다면 hit bonus 10
+        // Hit bonus when Knowledge of Curse is present
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_CURSE)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_CURSE);
@@ -92,7 +92,7 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
             SkillOutput output;
             computeOutput(input, output);
 
-            // pTargetCreature가 저주마법을 반사하는 경우
+            // The target reflects curse magic back at the caster.
             if (CheckReflection(pVampire, pTargetCreature, getSkillType())) {
                 pTargetCreature = (Creature*)pVampire;
                 TargetObjectID = pVampire->getObjectID();
@@ -107,7 +107,7 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
             if (output.Duration < 20)
                 output.Duration = 20;
 
-            // 이펙트 오브젝트를 생성해 붙인다.
+            // Create the effect object and attach it.
             EffectDeath* pEffect = new EffectDeath(pTargetCreature);
             pEffect->setDeadline(output.Duration);
             pEffect->setLevel(pSkillInfo->getLevel() / 2);
@@ -115,7 +115,7 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
             pTargetCreature->addEffect(pEffect);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_DEATH);
 
-            // 능력치를 계산해서 보내준다.
+            // Computes the stats and sends them.
             if (pTargetCreature->isSlayer()) {
                 Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
 
@@ -186,10 +186,10 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
             _GCSkillToObjectOK6.setSkillType(SkillType);
             _GCSkillToObjectOK6.setDuration(output.Duration);
 
-            if (bCanSeeCaster) // 10은 땜빵 수치다.
+            if (bCanSeeCaster) // 10 is a stopgap value.
             {
                 computeAlignmentChange(pTargetCreature, 10, pVampire, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
-            } else // 10은 땜빵 수치다.
+            } else // 10 is a stopgap value.
             {
                 computeAlignmentChange(pTargetCreature, 10, pVampire, &_GCSkillToObjectOK6, &_GCSkillToObjectOK1);
             }
@@ -241,7 +241,7 @@ void Death::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSl
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 오브젝트 핸들러
+// Monster object handler
 //////////////////////////////////////////////////////////////////////////////
 void Death::execute(Monster* pMonster, Creature* pEnemy)
 
@@ -265,7 +265,7 @@ void Death::execute(Monster* pMonster, Creature* pEnemy)
         if (pMonster->isMaster()) {
             int x = pMonster->getX();
             int y = pMonster->getY();
-            int Splash = 3 + rand() % 5; // 3~7 마리
+            int Splash = 3 + rand() % 5; // 3-7 creatures
             int range = 2;               // 5x5
             list<Creature*> creatureList;
             getSplashVictims(pMonster->getZone(), x, y, Creature::CREATURE_CLASS_MAX, creatureList, Splash, range);
@@ -325,7 +325,7 @@ void Death::executeMonster(Zone* pZone, Monster* pMonster, Creature* pEnemy)
         SkillOutput output;
         computeOutput(input, output);
 
-        // pTargetCreature가 저주마법을 반사하는 경우
+        // When the target reflects the curse magic.
         if (CheckReflection(pMonster, pEnemy, getSkillType())) {
             pEnemy = (Creature*)pMonster;
         }
@@ -339,7 +339,7 @@ void Death::executeMonster(Zone* pZone, Monster* pMonster, Creature* pEnemy)
         if (output.Duration < 20)
             output.Duration = 20;
 
-        // 이펙트 오브젝트를 생성해 붙인다.
+        // Creates the effect object and attaches it.
         EffectDeath* pEffect = new EffectDeath(pEnemy);
         pEffect->setDeadline(output.Duration);
         pEffect->setLevel(pSkillInfo->getLevel() / 2);
@@ -347,7 +347,7 @@ void Death::executeMonster(Zone* pZone, Monster* pMonster, Creature* pEnemy)
         pEnemy->setFlag(Effect::EFFECT_CLASS_DEATH);
         pEnemy->addEffect(pEffect);
 
-        // 능력치를 계산해서 보내준다.
+        // Computes the stats and sends them.
         if (pEnemy->isSlayer()) {
             Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pEnemy);
 

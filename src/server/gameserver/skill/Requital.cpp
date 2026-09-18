@@ -15,7 +15,7 @@
 #include "GCSkillToSelfOK2.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void Requital::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -47,20 +47,20 @@ void Requital::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToSelfOK1);
 
-            // 경험치를 올려준다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToSelfOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
 
-            // 이펙트의 효과와 지속시간을 계산한다.
+            // Compute the effect value and the duration.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             input.TargetType = SkillInput::TARGET_SELF;
             computeOutput(input, output);
 
-            // 이펙트를 생성해서 붙인다
+            // Create the effect and attach it
             EffectRequital* pRequital = new EffectRequital(pSlayer);
             pRequital->setDeadline(output.Duration);
             pRequital->setReflection(output.Damage);
@@ -72,7 +72,7 @@ void Requital::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
             pSlayer->initAllStat();
             pSlayer->addModifyInfo(prev, _GCSkillToSelfOK1);
 
-            // 패킷을 준비해서 보낸다.
+            // Prepare the packet and send it.
             ZoneCoord_t myX = pSlayer->getX();
             ZoneCoord_t myY = pSlayer->getY();
 
@@ -87,7 +87,7 @@ void Requital::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
             pPlayer->sendPacket(&_GCSkillToSelfOK1);
             pZone->broadcastPacket(myX, myY, &_GCSkillToSelfOK2, pSlayer);
 
-            // 이펙트가 붙었다고 알려준다.
+            // Notifies that the effect has been attached.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pSlayer->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_REQUITAL);

@@ -21,7 +21,6 @@ void SkyFire::execute(Slayer* pSlayer, ObjectID_t targetObjectID, SkillSlot* pSk
 
     Creature* pTargetCreature = pZone->getCreature(targetObjectID);
 
-    // NoSuch제거. by sigi. 2002.5.2
     if (pTargetCreature == NULL) {
         executeSkillFailException(pSlayer, getSkillType());
         return;
@@ -65,7 +64,7 @@ void SkyFire::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* 
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // 목표위치+4방향
+    // The target tile and the area around it.
 
     g_SimpleTileMissileSkill.execute(pSlayer, X, Y, pSkillSlot, param, result);
 

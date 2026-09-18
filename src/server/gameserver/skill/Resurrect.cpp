@@ -18,7 +18,7 @@
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void Resurrect::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -37,8 +37,8 @@ void Resurrect::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // 슬레이어만을 되살릴 수 있다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // Only a Slayer can be resurrected.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !pTargetCreature->isSlayer() ||
             (g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0)) {
             executeSkillFailException(pSlayer, getSkillType());
@@ -48,7 +48,7 @@ void Resurrect::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
         Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
         Assert(pTargetSlayer != NULL);
 
-        // 타겟에게 코마 이펙트가 걸려있지 않거나, 죽은 상태가 아니라면 쓸 수 없다.
+        // Cannot be used unless the target is dead and under the coma effect.
         if (!pTargetSlayer->isFlag(Effect::EFFECT_CLASS_COMA) || !pTargetSlayer->isDead()) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -90,22 +90,21 @@ void Resurrect::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
             SkillOutput output;
             computeOutput(input, output);
 
-            // 타겟의 이펙트 매니저에서 코마 이펙트를 삭제한다.
+            // Delete the coma effect from the target's effect manager.
             pTargetCreature->deleteEffect(Effect::EFFECT_CLASS_COMA);
             pTargetCreature->removeFlag(Effect::EFFECT_CLASS_COMA);
 
-            // 코마 이펙트가 날아갔다고 알려준다.
+            // Announce that the coma effect is gone.
             GCRemoveEffect gcRemoveEffect;
             gcRemoveEffect.setObjectID(pTargetSlayer->getObjectID());
             gcRemoveEffect.addEffectList((EffectID_t)Effect::EFFECT_CLASS_COMA);
             pZone->broadcastPacket(targetX, targetY, &gcRemoveEffect);
 
-            // 이펙트 정보를 다시 보내준다. by sigi. 2002.11.14
+            // Send the effect info again.
             pTargetSlayer->getEffectManager()->sendEffectInfo(pTargetSlayer, pZone, pTargetSlayer->getX(),
                                                               pTargetSlayer->getY());
 
-            // 부활 아르바이드를 방지하기 위해서 Aftermath 이펙트를 붙인다.
-            // 2002.11.19 장홍창
+            // Attach the Aftermath effect to prevent resurrect farming.
             if (pTargetSlayer->isFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH)) {
                 Effect* pEffect = pTargetSlayer->findEffect(Effect::EFFECT_CLASS_KILL_AFTERMATH);
                 EffectKillAftermath* pEffectKillAftermath = dynamic_cast<EffectKillAftermath*>(pEffect);
@@ -118,18 +117,18 @@ void Resurrect::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
                 pEffectKillAftermath->create(pTargetSlayer->getName());
             }
 
-            // 대상의 체력을 10%만 채운다.
+            // Restore only 10% of the target's HP.
             HP_t CurrentHP = getPercentValue(pTargetSlayer->getHP(ATTR_MAX), 10);
             pTargetSlayer->setHP(CurrentHP, ATTR_CURRENT);
             pTargetSlayer->setMP(0, ATTR_CURRENT);
 
-            // 주위에 체력이 채워졌다는 사실을 알린다.
+            // Tell nearby players that the HP was restored.
             GCStatusCurrentHP gcStatusCurrentHP;
             gcStatusCurrentHP.setObjectID(pTargetSlayer->getObjectID());
             gcStatusCurrentHP.setCurrentHP(pTargetSlayer->getHP(ATTR_CURRENT));
             pZone->broadcastPacket(targetX, targetY, &gcStatusCurrentHP);
 
-            // 경험치를 올려준다.
+            // Raises experience.
             shareAttrExp(pSlayer, pSkillInfo->getPoint(), 1, 1, 8, _GCSkillToObjectOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToObjectOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToObjectOK1);

@@ -79,19 +79,19 @@ Turn_t VampireSkillSlot::getRemainTurn(Timeval currentTime) const {
 }
 
 void VampireSkillSlot::setRunTime() {
-    // 현재 시간을 받아온다.
+    // Get the current time.
     getCurrentTime(m_runTime);
 
-    // 다음 쓸 수 있는 시간을 세팅한다.
+    // Set the time at which it can be used again.
     m_runTime.tv_sec += m_Interval / 10;
     m_runTime.tv_usec += (m_Interval % 10) * 100000;
 }
 
 void VampireSkillSlot::setRunTime(Turn_t delay) {
-    // 현재 시간을 받아온다.
+    // Get the current time.
     getCurrentTime(m_runTime);
 
-    // 다음 쓸 수 있는 시간을 세팅한다.
+    // Set the time at which it can be used again.
     m_runTime.tv_sec += delay / 10;
     m_runTime.tv_usec += (delay % 10) * 100000;
 
@@ -113,7 +113,7 @@ void VampireSkillSlot::setRunTime(Turn_t delay) {
         case SKILL_HOWL:
             break;
         default:
-            save(m_Name); // 달리진 딜레이를 세이브한다.
+            save(m_Name); // Save the changed delay.
             break;
         }
     }

@@ -11,7 +11,7 @@
 #include "GCSkillToSelfOK2.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프
+// Slayer self
 //////////////////////////////////////////////////////////////////////////////
 void Eternity::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -63,7 +63,7 @@ void Eternity::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
 
             decreaseMana(pSlayer, RequiredMP, _GCSkillToSelfOK1);
 
-            // 이펙트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectEternity* pEffect = new EffectEternity(pSlayer);
             pEffect->setDeadline(output.Duration);
             pEffect->setHPPenalty(output.Damage);
@@ -73,16 +73,16 @@ void Eternity::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
             pZone->registerObject(pEffect);
             pZone->addEffect(pEffect);
 
-            pComa->setDeadline(output.Duration + 10); // 11초. 스킬 발동 전에 부활위치로 튕기는거 방지
+            pComa->setDeadline(output.Duration + 10); // Prevents a bounce to the resurrect point.
 
-            // 경험치를 올린다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToSelfOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
 
-            // 패킷을 만들어 보낸다.
+            // Build the packet and send it.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(output.Duration);
@@ -98,7 +98,7 @@ void Eternity::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
             executeSkillFailNormal(pSlayer, getSkillType(), NULL);
         }
 
-        pSkillSlot->setRunTime(20); // 2초
+        pSkillSlot->setRunTime(20); // 2 seconds
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
     }

@@ -16,7 +16,7 @@
 
 class EffectPeace : public Effect {
 public:
-    // pCreature(나)가 pPeaceCreature한테 peace상태를 유지한다.
+    // pCreature keeps a peace state toward pPeaceCreature.
     EffectPeace(Creature* pCreature, ObjectID_t PeaceCreatureID);
 
 public:

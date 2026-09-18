@@ -25,7 +25,7 @@ void SweepVice::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pSlayer, getSkillType());
 

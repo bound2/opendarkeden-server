@@ -45,15 +45,15 @@ void EffectHellFire::affect()
 
     Assert(m_pZone != NULL);
 
-    // 이펙트를 사용한 크리쳐를 가져온다.
-    // !! 이미 존을 나갔을 수도 있으므로 NULL이 될 수 있다.
+    // Fetches the creature that used the effect.
+    // It may be NULL: the creature may already have left the zone.
     // by bezz. 2003.1.4
     Creature* pCastCreature = m_pZone->getCreature(m_CasterID);
 
-    // 현재 이펙트가 붙어있는 타일을 받아온다.
+    // Get the tile this effect is attached to.
     Tile& tile = m_pZone->getTile(m_X, m_Y);
 
-    // 타일 안에 존재하는 오브젝트들을 검색한다.
+    // Walk the objects on the tile.
     const forward_list<Object*>& oList = tile.getObjectList();
     forward_list<Object*>::const_iterator itr = oList.begin();
     for (; itr != oList.end(); itr++) {
@@ -66,24 +66,24 @@ void EffectHellFire::affect()
             Creature* pCreature = dynamic_cast<Creature*>(pObject);
             Assert(pCreature != NULL);
 
-            // 무적상태 체크. by sigi. 2002.9.5
-            // 산 면역. by sigi. 2002.9.13
-            // 자기 자신이면 안 맞는다.
-            // 안전지대 체크
+            // Check for invulnerability.
+            // Acid immunity.
+            // The caster itself is not hit.
+            // Safe zone check.
             // 2003.1.10 by bezz, Sequoia
             if (!canAttack(pCastCreature, pCreature) || pCreature->isFlag(Effect::EFFECT_CLASS_COMA) ||
                 pCreature->getObjectID() == m_CasterID || !checkZoneLevelToHitTarget(pCreature)) {
                 continue;
             }
 
-            // 같은 조직(--;)이면 안 맞는다.
+            // A creature of the same class is not hit.
             if (pCreature->isOusters() && !isForce()) {
                 continue;
             }
 
             if (pCreature->getMoveMode() != Creature::MOVE_MODE_FLYING &&
                 !pCreature->isFlag(Effect::EFFECT_CLASS_HELLFIRE_TO_ENEMY)) {
-                // 이팩트 클래스를 만들어 붙인다.
+                // Creates the effect class and attaches it.
                 EffectHellFireToEnemy* pEffect = new EffectHellFireToEnemy(pCreature);
                 pEffect->setCasterOID(m_CasterID);
                 pEffect->setDeadline(m_Duration);

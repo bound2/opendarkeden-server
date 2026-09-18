@@ -73,7 +73,7 @@ void EffectObservingEye::unaffect(Creature* pCreature)
 
 
     Assert(pCreature != NULL);
-    Assert(pCreature->isSlayer()); // 슬레이어말고는 걸리지 않는다.
+    Assert(pCreature->isSlayer()); // Only a Slayer can be affected.
 
     pCreature->removeFlag(Effect::EFFECT_CLASS_OBSERVING_EYE);
 
@@ -93,7 +93,7 @@ void EffectObservingEye::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_OBSERVING_EYE);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // 이 이펙트로 보고 있었던 크리쳐들을 삭제한다.
+    // Removes the creatures that were visible through this effect.
     pZone->updateInvisibleScan(pCreature);
 
     GCOtherModifyInfo gcOtherModifyInfo;
@@ -134,7 +134,7 @@ bool EffectObservingEye::canSeeInvisibility(Creature* pTarget) const
 
         level = pMonster->getLevel();
     } else {
-        // 뱀파이어나 몬스터가 아니면 못본걸로 한다.
+        // Anything that is not a Vampire or a monster counts as not seen.
         return false;
     }
 

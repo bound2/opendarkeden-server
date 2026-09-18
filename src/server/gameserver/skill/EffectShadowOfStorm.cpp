@@ -44,7 +44,7 @@ void EffectShadowOfStorm::checkPosition() {
             if (!isValidZoneCoord(m_pZone, tx, ty))
                 continue;
             Tile& tile = m_pZone->getTile(tx, ty);
-            // 타일 안에 존재하는 오브젝트들을 검색한다.
+            // Walk the objects on the tile.
             const forward_list<Object*>& oList = tile.getObjectList();
             forward_list<Object*>::const_iterator itr = oList.begin();
             for (; itr != oList.end(); itr++) {
@@ -77,8 +77,8 @@ void EffectShadowOfStorm::affect()
 
     Assert(m_pZone != NULL);
 
-    // 이펙트 사용자를 가져온다.
-    // 존에 없을 수 있으므로 NULL 이 될 수 있다.
+    // Get the creature that cast this effect.
+    // It may have left the zone, so this can be NULL.
     Creature* pCastCreature = m_pZone->getCreature(m_UserObjectID);
 
     for (int i = -2; i <= 2; ++i)
@@ -89,10 +89,10 @@ void EffectShadowOfStorm::affect()
             if (!isValidZoneCoord(m_pZone, tx, ty))
                 continue;
 
-            // 현재 이펙트가 붙어있는 타일을 받아온다.
+            // Fetches the tile the effect covers.
             Tile& tile = m_pZone->getTile(tx, ty);
 
-            // 타일 안에 존재하는 오브젝트들을 검색한다.
+            // Walk the objects on the tile.
             const forward_list<Object*>& oList = tile.getObjectList();
             forward_list<Object*>::const_iterator itr = oList.begin();
             for (; itr != oList.end(); itr++) {
@@ -105,8 +105,8 @@ void EffectShadowOfStorm::affect()
                     Creature* pCreature = dynamic_cast<Creature*>(pObject);
                     Assert(pCreature != NULL);
 
-                    // 무적상태 체크. by sigi. 2002.9.5
-                    // 산 면역. by sigi. 2002.9.13
+                    // Check for invulnerability.
+                    // Checks acid immunity.
                     if (pCastCreature != NULL &&
                         (!canAttack(pCastCreature, pCreature) || pCreature->isFlag(Effect::EFFECT_CLASS_COMA) ||
                          !canHit(pCastCreature, pCreature, SKILL_SHADOW_OF_STORM))) {
@@ -114,7 +114,7 @@ void EffectShadowOfStorm::affect()
                     }
 
                     // 2003.1.10 by Sequoia
-                    // 안전지대 체크
+                    // Safe zone check
                     if (!checkZoneLevelToHitTarget(pCreature))
                         continue;
 
@@ -162,9 +162,9 @@ void EffectShadowOfStorm::affect()
                             ::setDamage(pMonster, damage, pCastCreature, SKILL_SHADOW_OF_STORM, NULL, &gcAttackerMI,
                                         true, false);
                         } else
-                            continue; // 아우스터즈나 NPC 상대로... -_-
+                            continue; // Ousters and NPCs take no damage.
 
-                        // 죽었으면 경험치준다. 음.....
+                        // Grants experience if the target died.
                         if (pCastCreature != NULL) {
                             if (pCreature->isDead() && pCastCreature->isOusters()) {
                                 Ousters* pCastOusters = dynamic_cast<Ousters*>(pCastCreature);
@@ -175,7 +175,7 @@ void EffectShadowOfStorm::affect()
                             }
                         }
 
-                        // 성향 계산하기
+                        // Alignment computation
 
                         if (gcAttackerMI.getShortCount() != 0 || gcAttackerMI.getLongCount() != 0)
                             pCastCreature->getPlayer()->sendPacket(&gcAttackerMI);

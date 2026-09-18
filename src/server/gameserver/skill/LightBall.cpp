@@ -10,7 +10,7 @@
 #include "SimpleMissileSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void LightBall::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -36,7 +36,7 @@ void LightBall::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // Holy Smashing 이 있다면 데미지 증가
+    // Holy Smashing increases the damage.
     if (pSlayer->hasRankBonus(RankBonus::RANK_BONUS_HOLY_SMASHING)) {
         RankBonus* pRankBonus = pSlayer->getRankBonus(RankBonus::RANK_BONUS_HOLY_SMASHING);
         Assert(pRankBonus != NULL);

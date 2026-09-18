@@ -16,8 +16,8 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 생성자
-// 마스크를 초기화한다.
+// Constructor
+// Initializes the mask.
 //////////////////////////////////////////////////////////////////////////////
 SummonMonsters::SummonMonsters() {
     __BEGIN_TRY
@@ -25,11 +25,11 @@ SummonMonsters::SummonMonsters() {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 셀프 핸들러
+// Vampire self handler
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 셀프 핸들러
+// Monster self handler
 //////////////////////////////////////////////////////////////////////////////
 void SummonMonsters::execute(Monster* pMonster)
 
@@ -59,7 +59,7 @@ void SummonMonsters::execute(Monster* pMonster)
         if (bRangeCheck) // && bMoveModeCheck)
         {
             //--------------------------------------------------------
-            // 주위에 knockback되는맞는 애들을 체크해준다.
+            // Check which surrounding creatures are hit and knocked back.
             //--------------------------------------------------------
 
             SUMMON_INFO2 summonInfo;
@@ -67,16 +67,16 @@ void SummonMonsters::execute(Monster* pMonster)
             bool hasInfo = pMonster->getMonsterSummonInfo(summonInfo);
 
             if (!hasInfo || summonInfo.pMonsters == NULL) {
-                //  소환할 몹이 없는 경우다. -_-;
+                // There is nothing to summon.
                 executeSkillFailNormal(pMonster, getSkillType(), NULL);
 
-                // 마스터 레어에서 마스터가 몹을 소환할려고 한 경우
+                // The master tried to summon in the master lair.
                 if (pZone->isMasterLair() && pMonster->isMaster()) {
                     MasterLairManager* pMasterLairManager = pZone->getMasterLairManager();
                     Assert(pMasterLairManager != NULL);
 
-                    // 더 이상 소환할게 없다면..
-                    // 마스터가 직접 나서서 싸워야겠지..
+                    // When there is nothing left to summon,
+                    // the master steps out to fight on its own.
                     pMasterLairManager->setMasterReady();
                 }
             }
@@ -84,7 +84,7 @@ void SummonMonsters::execute(Monster* pMonster)
             if (pMonster->isMaster() && pZone->isMasterLair()) {
                 MasterLairManager* pMasterLairManager = pZone->getMasterLairManager();
                 Assert(pMasterLairManager != NULL);
-                // minion combat에서는 지정된 좌표에 소환한다.
+                // Minion combat summons at the configured coordinates.
 
                 MasterLairInfo* pInfo = de::gameContext().masterLairInfos().getMasterLairInfo(pZone->getZoneID());
                 Assert(pInfo != NULL);
@@ -101,19 +101,19 @@ void SummonMonsters::execute(Monster* pMonster)
                         pZone->broadcastPacket(pMonster->getX(), pMonster->getY(), &gcSay);
                 }
 
-                // 마스터 레어에서는 소환된 몬스터들이 아템 안 준다.
+                // Monsters summoned in the master lair drop no items.
                 // by sigi. 2002.11.21
                 summonInfo.hasItem = false;
             }
 
             summonInfo.scanEnemy = true;
             summonInfo.clanType = SUMMON_INFO::CLAN_TYPE_GROUP;
-            summonInfo.clanID = pMonster->getClanType(); // 주인의 clan을 따른다.
+            summonInfo.clanID = pMonster->getClanType(); // Follows the owner's clan.
             summonInfo.X = x;
             summonInfo.Y = y;
             summonInfo.regenType = REGENTYPE_PORTAL;
 
-            // 몬스터를 존에 추가한다.
+            // Add the monster to the zone.
             addMonstersToZone(pZone, summonInfo);
 
             GCSkillToTileOK5 _GCSkillToTileOK5;

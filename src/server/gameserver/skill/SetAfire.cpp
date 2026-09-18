@@ -18,7 +18,7 @@
 #include "Zone.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void SetAfire::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                        CEffectID_t CEffectID)
@@ -37,8 +37,8 @@ void SetAfire::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
             return;
@@ -85,14 +85,14 @@ void SetAfire::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
 
             CheckCrossCounter(pVampire, pTargetCreature, Damage);
 
-            // 마나를 깍는다.
+            // Consume the mana.
             decreaseMana(pVampire, RequiredMP, _GCSkillToObjectOK1);
 
-            // 데미지를 가하고, 아이템 내구도를 떨어뜨린다.
+            // Deal the damage and reduce item durability.
 
-            // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+            // A critical hit knocks the target back.
 
-            // 이번 공격으로 상대가 죽었다면 경험치가 올라간다.
+            // Experience goes up if this attack killed the target.
             EffectSetAfire* pEffect = new EffectSetAfire(pTargetCreature);
             pEffect->setDamage(Damage);
             pEffect->setTick(3);
@@ -104,7 +104,7 @@ void SetAfire::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
 
             increaseAlignment(pVampire, pTargetCreature, _GCSkillToObjectOK1);
 
-            // 패킷을 보낸다.
+            // Send the packet.
             _GCSkillToObjectOK1.setSkillType(getSkillType());
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);

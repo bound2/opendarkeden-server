@@ -44,7 +44,7 @@ void EffectIceHail::affect()
 
     Assert(m_pZone != NULL);
 
-    // 시전자를 가져온다.
+    // Gets the caster.
     Creature* pCastCreature = m_pZone->getCreature(m_CasterID);
     if (pCastCreature == NULL)
         return;

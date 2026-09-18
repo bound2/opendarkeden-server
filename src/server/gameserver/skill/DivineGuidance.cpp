@@ -15,7 +15,7 @@
 #include "GCSkillToSelfOK2.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void DivineGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -34,13 +34,13 @@ void DivineGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSl
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature)) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
         }
 
-        // 이펙트의 효과와 지속시간을 계산한다.
+        // Computes the strength and the duration of the effect.
         SkillInput input(pSlayer, pSkillSlot);
         SkillOutput output;
         if (pTargetCreature->isPC()) {
@@ -69,11 +69,11 @@ void DivineGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSl
         bool bPK = verifyPK(pSlayer, pTargetCreature);
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected && bPK) {
-            // 마나를 줄인다.
+            // Reduces mana.
             decreaseMana(pSlayer, RequiredMP, _GCSkillToObjectOK1);
 
             if (!pTargetCreature->isSlayer()) {
-                // 경험치를 올려준다.
+                // Raises experience.
                 //
                 if (bIncreaseDomainExp) {
                     increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToObjectOK1,
@@ -83,7 +83,7 @@ void DivineGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSl
                 increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToObjectOK1);
             }
 
-            // 이펙트를 생성해서 붙인다.
+            // Creates the effect and attaches it.
             EffectDivineGuidance* pEffect = new EffectDivineGuidance(pTargetCreature);
             Assert(pEffect != NULL);
             pEffect->setDeadline(output.Duration);
@@ -95,7 +95,7 @@ void DivineGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSl
             pTargetCreature->addEffect(pEffect);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_DIVINE_GUIDANCE);
 
-            // 패킷을 준비해서 보낸다.
+            // Prepare the packet and send it.
             _GCSkillToObjectOK1.setSkillType(SkillType);
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);

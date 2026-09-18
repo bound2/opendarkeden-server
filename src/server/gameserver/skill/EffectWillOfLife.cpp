@@ -92,7 +92,7 @@ void EffectWillOfLife::unaffect(Creature* pCreature)
 
     Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
 
-    // 이펙트가 사라졌다고 알려준다.
+    // Tells clients that the effect is gone.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pVampire->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_WILL_OF_LIFE);

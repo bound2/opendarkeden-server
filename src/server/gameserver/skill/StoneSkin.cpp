@@ -18,7 +18,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void StoneSkin::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CEffectID_t CEffectID)
 
@@ -42,7 +42,7 @@ void StoneSkin::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // Knowledge of Curse 가 있다면 hit bonus 10
+        // Hit bonus when Knowledge of Curse is present
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE);
@@ -61,28 +61,28 @@ void StoneSkin::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected) {
             decreaseMana(pVampire, RequiredMP, _GCSkillToSelfOK1);
 
-            // 스킬 레벨에 따라 데미지 보너스가 달라진다.
+            // The damage bonus varies with the skill level.
             SkillInput input(pVampire);
             SkillOutput output;
             input.SkillLevel = pVampire->getSTR() + pVampire->getDEX() + pVampire->getINT();
             input.DomainLevel = pVampire->getLevel();
             computeOutput(input, output);
 
-            // 이펙트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectStoneSkin* pEffect = new EffectStoneSkin(pVampire);
             pEffect->setDeadline(output.Duration);
             pEffect->setBonus(output.Damage);
             pVampire->addEffect(pEffect);
             pVampire->setFlag(Effect::EFFECT_CLASS_STONE_SKIN);
 
-            // 이로 인하여 바뀌는 능력치를 보낸다.
+            // Send the stats that this changes.
             VAMPIRE_RECORD prev;
             pVampire->getVampireRecord(prev);
             pVampire->initAllStat();
             pVampire->sendRealWearingInfo();
             pVampire->sendModifyInfo(prev);
 
-            // 패킷을 만들어 보낸다.
+            // Build the packet and send it.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(output.Duration);
@@ -95,7 +95,7 @@ void StoneSkin::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, 
 
             pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &_GCSkillToSelfOK2, pVampire);
 
-            // 이펙트가 붙었다고 알려준다.
+            // Notifies that the effect has been attached.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pVampire->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_STONE_SKIN);

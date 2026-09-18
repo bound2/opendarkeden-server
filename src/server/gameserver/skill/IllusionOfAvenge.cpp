@@ -15,7 +15,7 @@
 #include "SkillUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void IllusionOfAvenge::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -75,7 +75,7 @@ void IllusionOfAvenge::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID
 
                     Tile& tile = pZone->getTile(tileX, tileY);
 
-                    // 타일에 있는 크리처들을 리스트로 만든다.
+                    // Builds a list of the creatures on the tile.
                     list<Creature*> targetList;
                     if (tile.hasCreature(Creature::MOVE_MODE_WALKING)) {
                         Creature* pCreature = tile.getCreature(Creature::MOVE_MODE_WALKING);
@@ -102,15 +102,15 @@ void IllusionOfAvenge::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID
 
                                 Vampire* pVampire = dynamic_cast<Vampire*>(pTargetCreature);
 
-                                // 데미지를 적용시킨다.
+                                // Applies the damage.
                                 GCModifyInformation gcMI;
                                 ::setDamage(pVampire, output.Damage, pSlayer, pSkillSlot->getSkillType(), &gcMI);
 
-                                // HP 가 변했다고 당사자에게 보낸다.
+                                // Tells the target that its HP changed.
                                 pTargetPlayer->sendPacket(&gcMI);
 
                                 GCSkillToObjectOK2 gcSkillToObjectOK2;
-                                gcSkillToObjectOK2.setObjectID(1); // 의미 없다.
+                                gcSkillToObjectOK2.setObjectID(1); // Unused
                                 gcSkillToObjectOK2.setSkillType(SKILL_ATTACK_MELEE);
                                 gcSkillToObjectOK2.setDuration(14);
                             } else if (pTargetCreature->isMonster()) {
@@ -126,14 +126,14 @@ void IllusionOfAvenge::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID
                             pZone->broadcastPacket(pTargetCreature->getX(), pTargetCreature->getY(),
                                                    &gcSkillToObjectOK4);
 
-                            // 성향을 올린다.
+                            // Raises the alignment.
                             increaseAlignment(pSlayer, pTargetCreature, _GCSkillToSelfOK1);
                         }
                     }
                 }
 
 
-            // 패킷을 만들어 보낸다.
+            // Build the packet and send it.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(14);
@@ -142,14 +142,14 @@ void IllusionOfAvenge::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID
             _GCSkillToSelfOK2.setSkillType(SkillType);
             _GCSkillToSelfOK2.setDuration(14);
 
-            // 기술을 사용한 사람에게 packet 전달
+            // Send the packet to the skill user.
             pPlayer->sendPacket(&_GCSkillToSelfOK1);
             pZone->broadcastPacket(X, Y, &_GCSkillToSelfOK2, pSlayer);
         } else {
             executeSkillFailNormal(pSlayer, getSkillType(), NULL);
         }
 
-        // 기술 delay setting
+        // Skill delay setting
         if (bTimeCheck)
             pSkillSlot->setRunTime(output.Delay);
     } catch (Throwable& t) {

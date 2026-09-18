@@ -2,7 +2,7 @@
 // Filename    : EffectProtectionFromPoison.h
 // Written by  : excel96
 // Description :
-// ProtectionFromPoison에 의해서 생성되는 독데미지 약화 이펙트이다.
+// Effect created by ProtectionFromPoison that raises poison resistance.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_PROTECTION_FROM_POISON__

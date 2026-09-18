@@ -66,7 +66,7 @@ private:
     Turn_t m_Tick;              // EffectPoisonStorm turn;
     int m_Level;                // EffectPoisonStorm level;
     Duration_t m_Duration;      // EffectPoisonStorm Duration;
-    Duration_t m_StormDuration; // PoisonStorm Effect 지속 시간
+    Duration_t m_StormDuration; // PoisonStorm effect duration
     ObjectID_t m_UserObjectID;
     bool m_bVampire;
 };

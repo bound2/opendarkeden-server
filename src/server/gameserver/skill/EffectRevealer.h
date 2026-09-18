@@ -37,7 +37,7 @@ public:
 
     string toString() const;
 
-    // 볼 수 있는 레벨 계산
+    // Level that decides what can be seen
 public:
     void setSkillLevel(ExpLevel_t level) {
         m_SkillLevel = level;

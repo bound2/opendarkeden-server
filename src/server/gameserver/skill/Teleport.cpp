@@ -12,7 +12,7 @@
 #include "GCStatusCurrentHP.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 타일 핸들러
+// Vampire tile handler
 //////////////////////////////////////////////////////////////////////////////
 void Teleport::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersSkillSlot* pOustersSkillSlot,
                        CEffectID_t CEffectID)
@@ -31,8 +31,8 @@ void Teleport::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
 
-        // NoSuch제거. by sigi. 2002.5.2
-        // NPC는 공격할 수가 없다.
+        // A missing target fails the skill instead of throwing.
+        // An NPC cannot be attacked.
 
         GCSkillToTileOK1 _GCSkillToTileOK1;
         GCSkillToTileOK5 _GCSkillToTileOK5;
@@ -56,7 +56,7 @@ void Teleport::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
                          pOusters->isFlag(Effect::EFFECT_CLASS_HAS_SWEEPER);
 
         if (bManaCheck && bTimeCheck && bRangeCheck && !bEffected) {
-            // 빠르게 PC를 움직여준다.
+            // Moves the PC quickly.
             if (pZone->moveFastPC(pOusters, pOusters->getX(), pOusters->getY(), X, Y, getSkillType())) {
                 decreaseMana(pOusters, RequiredMP, _GCSkillToTileOK1);
 
@@ -74,7 +74,7 @@ void Teleport::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
                 _GCSkillToTileOK5.setRange(0);
                 _GCSkillToTileOK5.setDuration(0);
 
-                // 자신에게 바뀐 MP를 알려준다.
+                // Tell the caster about the changed MP.
                 pPlayer->sendPacket(&_GCSkillToTileOK1);
                 pZone->broadcastPacket(pOusters->getX(), pOusters->getY(), &_GCSkillToTileOK5, pOusters);
 
@@ -93,7 +93,7 @@ void Teleport::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
     __END_CATCH
 }
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void Teleport::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                        CEffectID_t CEffectID)
@@ -113,8 +113,8 @@ void Teleport::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
-        // NPC는 공격할 수가 없다.
+        // A missing target fails the skill instead of throwing.
+        // An NPC cannot be attacked.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pOusters, getSkillType());
             return;

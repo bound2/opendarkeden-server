@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectHydroConvergence.h
 // Written by  : elca@ewestsoft.com
-// Description : 성직마법 HydroConvergence의 Effect를 처리해주기 위한 클래스이다.
+// Description : Class that handles the Effect of the clerical magic HydroConvergence.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_HYDRO_CONVERGENCE__

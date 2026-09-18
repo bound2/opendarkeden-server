@@ -76,8 +76,8 @@ void EffectHarpoonBomb::crash(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y) {
                     Creature* pCreature = dynamic_cast<Creature*>(pObject);
                     Assert(pCreature != NULL);
 
-                    // ÀÚ½ÅÀº ¸ÂÁö ¾Ê´Â´Ù
-                    // ¹«Àû»óÅÂ Ã¼Å©. by sigi. 2002.9.5
+                    // The caster is not hit.
+                    // Checks for the invulnerable state.
                     if (pCreature->getObjectID() == m_UserObjectID || !canAttack(pCastCreature, pCreature) ||
                         pCreature->isFlag(Effect::EFFECT_CLASS_COMA) || !checkZoneLevelToHitTarget(pCreature) ||
                         pCreature->isDead() || pCreature->isSlayer()) {
@@ -121,9 +121,9 @@ void EffectHarpoonBomb::crash(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y) {
                             pMonster->addEnemy(pCastCreature);
                     }
 
-                    // userÇÑÅ×´Â ¸Â´Â ¸ð½ÀÀ» º¸¿©ÁØ´Ù.
+                    // Shows the hit to the user.
                     if (pCreature->isPC()) {
-                        gcSkillToObjectOK2.setObjectID(1); // ÀÇ¹Ì ¾ø´Ù.
+                        gcSkillToObjectOK2.setObjectID(1); // Unused value.
                         gcSkillToObjectOK2.setSkillType(SKILL_ATTACK_MELEE);
                         gcSkillToObjectOK2.setDuration(0);
                         pCreature->getPlayer()->sendPacket(&gcSkillToObjectOK2);

@@ -16,7 +16,7 @@
 #include "ItemUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트
+// Slayer object
 //////////////////////////////////////////////////////////////////////////////
 void HarpoonBomb::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -35,7 +35,7 @@ void HarpoonBomb::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC() ||
             pTargetCreature->isDead()) {
             executeSkillFailException(pSlayer, getSkillType());
@@ -48,9 +48,9 @@ void HarpoonBomb::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         GCAttackArmsOK4 _GCAttackArmsOK4;
         GCAttackArmsOK5 _GCAttackArmsOK5;
 
-        // 들고 있는 무기가 없거나, 총 계열 무기가 아니라면 기술을 쓸 수 없다.
-        // 총 계열 무기 중에서도 SG나 SR은 HarpoonBomb를 쓸 수가 없다.
-        // SG, SR 도 이제 쓸 수 있다.
+        // The skill needs a gun-type weapon in the right hand.
+        // Among gun weapons, SG and SR cannot use HarpoonBomb.
+        // SG and SR can use it now too.
         // 2003. 1. 14  by bezz
         Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pWeapon == NULL || isArmsWeapon(pWeapon) == false)
@@ -72,7 +72,7 @@ void HarpoonBomb::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         SkillOutput output;
         computeOutput(input, output);
 
-        // 페널티 값을 계산한다.
+        // Computes the penalty value.
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);
         bool bTimeCheck = verifyRunTime(pSkillSlot);
@@ -81,12 +81,12 @@ void HarpoonBomb::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         bool bHitRoll = HitRoll::isSuccess(pSlayer, pTargetCreature);
         bool bPK = verifyPK(pSlayer, pTargetCreature);
 
-        // 총알 숫자는 무조건 떨어뜨린다.
+        // The bullet count always drops.
         Bullet_t RemainBullet = 0;
         if (bBulletCheck) {
-            // 총알 숫자를 떨어뜨리고, 저장하고, 남은 총알 숫자를 받아온다.
+            // Drops the bullet count and reads back the remaining bullets.
             decreaseBullet(pWeapon);
-            // 한발쓸때마다 저장할 필요 없다. by sigi. 2002.5.9
+            // The weapon is not saved on every shot.
             RemainBullet = getRemainBullet(pWeapon);
         }
 
@@ -98,18 +98,18 @@ void HarpoonBomb::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 
             bool bCriticalHit = false;
 
-            // 데미지를 계산하고, quickfire 페널티를 가한다.
-            // output.Damage가 음수이기 때문에, %값을 구해 더하면 결국 빼는 것이 된다.
+            // Computes the damage and applies the quickfire penalty.
+            // output.Damage is negative, so adding its percentage subtracts damage.
             int Damage = computeDamage(pSlayer, pTargetCreature, SkillLevel / 5, bCriticalHit);
             Damage += getPercentValue(Damage, output.Damage);
             Damage = max(0, Damage);
 
 
-            // 데미지를 세팅한다.
+            // Applies the damage.
             setDamage(pTargetCreature, Damage, pSlayer, SkillType, &_GCAttackArmsOK2, &_GCAttackArmsOK1);
             computeAlignmentChange(pTargetCreature, Damage, pSlayer, &_GCAttackArmsOK2, &_GCAttackArmsOK1);
 
-            // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+            // A critical hit knocks the target back.
             if (bCriticalHit) {
                 knockbackCreature(pZone, pTargetCreature, pSlayer->getX(), pSlayer->getY());
             }
@@ -162,7 +162,7 @@ void HarpoonBomb::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
                 pMonster->addEnemy(pSlayer);
             }
 
-            // 공격자와 상대의 아이템 내구성 떨어트림.
+            // Drop the durability of the attacker's and the target's items.
             decreaseDurability(pSlayer, pTargetCreature, NULL, &_GCAttackArmsOK1, &_GCAttackArmsOK2);
 
             ZoneCoord_t targetX = pTargetCreature->getX();

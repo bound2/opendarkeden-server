@@ -21,7 +21,6 @@ void WildTyphoon::execute(Slayer* pSlayer, ObjectID_t targetObjectID, SkillSlot*
 
     Creature* pTargetCreature = pZone->getCreature(targetObjectID);
 
-    // NoSuch제거. by sigi. 2002.5.2
     if (pTargetCreature == NULL) {
         executeSkillFailException(pSlayer, getSkillType());
         return;
@@ -62,7 +61,7 @@ void WildTyphoon::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // 목표위치+4방향
+    // The target tile and the area around it.
     param.addMask(0 + dir_advance[dir][0], 0 + dir_advance[dir][1], 100);
     param.addMask(-1 + dir_advance[dir][0], -1 + dir_advance[dir][1], 100);
     param.addMask(0 + dir_advance[dir][0], -1 + dir_advance[dir][1], 100);
@@ -81,13 +80,13 @@ void WildTyphoon::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
     for (; itr != endItr; ++itr) {
         Creature* pCreature = *itr;
         if (pCreature != NULL) {
-            // 몬스터인 경우만 delay를 추가한다.
-            // player들은 client에서 처리하게 되어있다.
+            // Only monsters get a delay added.
+            // Players are handled on the client.
             int stunRatio = pSlayer->getSTR() / 5;
             if (pCreature->isMonster() && (rand() % 100) < stunRatio) {
                 Monster* pMonster = dynamic_cast<Monster*>(pCreature);
 
-                // delay설정 ( + 2초 )
+                // Set the delay ( + 2 seconds )
                 if (!pMonster->isMaster()) {
                     Timeval delay;
                     delay.tv_sec = 2;

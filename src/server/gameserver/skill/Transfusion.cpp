@@ -21,7 +21,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                           CEffectID_t CEffectID)
@@ -40,11 +40,11 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL ||
             pTargetCreature->isNPC()
-            // HIDE 인 놈은 되살려내면 이상하게 된다. 일단 막아놓음.
+            // Reviving a hidden creature misbehaves, so it is blocked.
             // 2003. 1. 17. DEW
             || pTargetCreature->isFlag(Effect::EFFECT_CLASS_HIDE) ||
             (g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0 &&
@@ -67,7 +67,7 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // Knowledge of Innate 가 있다면 hit bonus 10
+        // Knowledge of Innate gives a hit bonus of 10.
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE);
@@ -76,7 +76,7 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
             HitBonus = pRankBonus->getPoint();
         }
 
-        // 15%를 사용
+        // Uses 15%.
         int CurrentHP = pVampire->getHP(ATTR_CURRENT);
         int RequiredMP = CurrentHP * 12 / 100; // decreaseConsumeMP(pVampire, pSkillInfo);
         int RecoverHP = CurrentHP * 12 / 100;
@@ -87,13 +87,13 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 
         Range_t Range = 1;
 
-        // 상대방의 HP가 Full이 아니고
-        // 자신의 HP가 30이상
+        // The target's HP is not full and
+        // the caster's own HP is at least 30.
         if (pVampire->getHP(ATTR_CURRENT) >= 30) {
             if (pTargetCreature->isVampire()) {
                 Vampire* pTargetVampire = dynamic_cast<Vampire*>(pTargetCreature);
 
-                // 현재HP+SilverDamage < MaxHP 여야 한다.
+                // Requires current HP + SilverDamage < MaxHP.
                 if (pTargetVampire->getHP(ATTR_CURRENT) + pTargetVampire->getSilverDamage() <
                     pTargetVampire->getHP(ATTR_MAX))
                     bHPCheck = true;
@@ -104,12 +104,12 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
             decreaseMana(pVampire, RequiredMP, _GCSkillToTileOK1);
 
 
-            // 데미지와 지속 시간을 계산한다.
+            // Compute the damage and the duration.
             SkillInput input(pVampire);
             SkillOutput output;
             computeOutput(input, output);
 
-            // TargetCreature의 HP를 채운다
+            // Refill the target creature's HP.
             if (pTargetCreature->isVampire()) {
                 Vampire* pTargetVampire = dynamic_cast<Vampire*>(pTargetCreature);
 
@@ -119,28 +119,28 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 
                 pTargetVampire->setHP(newHP);
 
-                // HP가 30%가 되면(33% -_-;) 살아나게 된다.
+                // The target revives once HP reaches a third of maximum.
                 if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
                     if (newHP * 3 >= maxHP) {
                         EffectComa* pEffectComa = (EffectComa*)(pTargetCreature->findEffect(Effect::EFFECT_CLASS_COMA));
                         Assert(pEffectComa != NULL);
 
                         if (pEffectComa->canResurrect()) {
-                            // 타겟의 이펙트 매니저에서 코마 이펙트를 삭제한다.
+                            // Delete the coma effect from the target's effect manager.
                             pTargetCreature->deleteEffect(Effect::EFFECT_CLASS_COMA);
                             pTargetCreature->removeFlag(Effect::EFFECT_CLASS_COMA);
 
-                            // 코마 이펙트가 날아갔다고 알려준다.
+                            // Notify that the coma effect is gone.
                             GCRemoveEffect gcRemoveEffect;
                             gcRemoveEffect.setObjectID(pTargetCreature->getObjectID());
                             gcRemoveEffect.addEffectList((EffectID_t)Effect::EFFECT_CLASS_COMA);
                             pZone->broadcastPacket(pTargetCreature->getX(), pTargetCreature->getY(), &gcRemoveEffect);
 
-                            // 이펙트 정보를 다시 보내준다. by sigi. 2002.11.14
+                            // Send the effect information again.
                             pTargetCreature->getEffectManager()->sendEffectInfo(
                                 pTargetCreature, pZone, pTargetCreature->getX(), pTargetCreature->getY());
 
-                            // EffectKillAftermath 를 붙인다.
+                            // Attach EffectKillAftermath.
                             if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH)) {
                                 Effect* pEffect = pTargetCreature->findEffect(Effect::EFFECT_CLASS_KILL_AFTERMATH);
                                 EffectKillAftermath* pEffectKillAftermath = dynamic_cast<EffectKillAftermath*>(pEffect);
@@ -156,13 +156,13 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
                     }
                 }
 
-                // 주위에 체력이 채워졌다는 사실을 알린다.
+                // Notify nearby players that HP has been restored.
                 GCStatusCurrentHP gcStatusCurrentHP;
                 gcStatusCurrentHP.setObjectID(pTargetVampire->getObjectID());
                 gcStatusCurrentHP.setCurrentHP(pTargetVampire->getHP(ATTR_CURRENT));
                 pZone->broadcastPacket(X, Y, &gcStatusCurrentHP);
 
-                // 자신의 에너지가 줄어든것도 보여주자
+                // Also show that the caster's own HP dropped.
                 gcStatusCurrentHP.setObjectID(pVampire->getObjectID());
                 gcStatusCurrentHP.setCurrentHP(pVampire->getHP(ATTR_CURRENT));
                 pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &gcStatusCurrentHP);
@@ -230,7 +230,7 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 타일 핸들러
+// Vampire tile handler
 //////////////////////////////////////////////////////////////////////////////
 void Transfusion::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireSkillSlot* pVampireSkillSlot,
                           CEffectID_t CEffectID)

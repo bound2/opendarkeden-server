@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectProtectionFromCurse.cpp
 // Written by  : excel96
-// Description : ProtectionFromCurse에 의해서 생성되는 산성 데미지 약화 이펙트이다.
+// Description : Effect created by ProtectionFromCurse that raises curse resistance.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "EffectProtectionFromCurse.h"
@@ -73,7 +73,7 @@ void EffectProtectionFromCurse::unaffect()
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 이펙트가 사라졌다고 알려준다.
+    // Tells clients that the effect is gone.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_PROTECTION_FROM_CURSE);
@@ -107,4 +107,6 @@ string EffectProtectionFromCurse::toString() const {
 //////////////////////////////////////////////////////////////////////////////
 void EffectProtectionFromCurseLoader::load(Creature* pCreature)
 
-    {__BEGIN_TRY __END_CATCH}
+{
+    __BEGIN_TRY __END_CATCH
+}

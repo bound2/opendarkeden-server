@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : HeavenGround.cpp
-// SkillName   : ÌìÉñ½µÁÙ ÈËÀàÒ½Éú¼¼ÄÜ
+// SkillName   : Heaven Ground, a Slayer healing skill
 // Written by  :
 // Description :
 //////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@
 #include "GCSkillToTileOK6.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î ¿ÀºêÁ§Æ® ÇÚµé·¯
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void HeavenGround::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -36,7 +36,7 @@ void HeavenGround::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuchÁ¦°Å. by sigi. 2002.5.2
+        // A missing, unattackable or NPC target fails the skill.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -52,7 +52,7 @@ void HeavenGround::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î Å¸ÀÏ ÇÚµé·¯
+// Slayer tile handler
 //////////////////////////////////////////////////////////////////////////////
 void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -97,7 +97,7 @@ void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
         bool bUseSkill = false;
         bUseSkill = true;
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bTileCheck && bUseSkill) {
-            // ÀÌÆåÆ®ÀÇ Áö¼Ó½Ã°£À» °è»êÇÑ´Ù.
+            // Compute the effect's duration.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             computeOutput(input, output);
@@ -107,18 +107,18 @@ void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
             int oX, oY;
 
             list<Creature*> cList;
-            // 5 * 5 ·¶Î§
+            // 5 * 5 area
             for (oY = -2; oY <= 2; oY++)
                 for (oX = -2; oX <= 2; oX++) {
                     int tileX = X + oX;
                     int tileY = Y + oY;
-                    // ¼ì²âÊÇ·ñ´óÓÚµØÍ¼´óÐ¡
+                    // Check that the tile is inside the map.
                     if (rect.ptInRect(tileX, tileY)) {
                         Tile& tile = pZone->getTile(tileX, tileY);
 
                         if (tile.canAddEffect()) {
                             if (tile.getEffect(Effect::EFFECT_CLASS_MERCY_GROUND) != NULL ||
-                                tile.getEffect(Effect::EFFECT_CLASS_SUMMON_CLAY) != NULL) // ÈÊ´È´óµØ slayer
+                                tile.getEffect(Effect::EFFECT_CLASS_SUMMON_CLAY) != NULL) // Mercy ground, Slayer
                             {
                                 executeSkillFailNormal(pSlayer, getSkillType(), NULL);
                                 return;
@@ -130,9 +130,9 @@ void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                                 pZone->deleteEffect(effectID); // fix me
                             }
 
-                            // È¥³ýµ±Ç°½Úµã´øÓÐÉËº¦µÄÐ§¹û
+                            // Remove the damaging effects on this tile.
                             Effect* pDeleteEffect = NULL;
-                            // µØÓü»ðº£ Oust
+                            // Hellfire sea, Ousters
                             pDeleteEffect = tile.getEffect(Effect::EFFECT_CLASS_PROMINENCE);
                             if (pDeleteEffect != NULL) {
                                 ObjectID_t effectObjectID = pDeleteEffect->getObjectID();
@@ -145,7 +145,7 @@ void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                                 gcDeleteEffectFromTile.setEffectID(Effect::EFFECT_CLASS_PROMINENCE);
                                 pZone->broadcastPacket(tileX, tileY, &gcDeleteEffectFromTile);
                             }
-                            // ËáÐÔÕÓÔó vamp
+                            // Acid swamp, Vampire
                             pDeleteEffect = tile.getEffect(Effect::EFFECT_CLASS_ACID_SWAMP);
                             if (pDeleteEffect != NULL) {
                                 ObjectID_t effectObjectID = pDeleteEffect->getObjectID();
@@ -158,7 +158,7 @@ void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                                 pDeleteEffect->setDeadline(1);
                                 cout << "DeleteEffect[" << "Effect::EFFECT_CLASS_ACID_SWAMP" << "]" << endl;
                             }
-                            // ÑªÇ½     vamp
+                            // Blood wall, Vampire
                             pDeleteEffect = tile.getEffect(Effect::EFFECT_CLASS_BLOODY_WALL);
                             if (pDeleteEffect != NULL) {
                                 ObjectID_t effectObjectID = pDeleteEffect->getObjectID();
@@ -170,7 +170,7 @@ void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                                 gcDeleteEffectFromTile.setEffectID(Effect::EFFECT_CLASS_BLOODY_WALL);
                                 pZone->broadcastPacket(tileX, tileY, &gcDeleteEffectFromTile);
                             }
-                            // Ó«ÂÌÖ®¶¾ vamp
+                            // Green poison, Vampire
                             pDeleteEffect = tile.getEffect(Effect::EFFECT_CLASS_GREEN_POISON);
                             if (pDeleteEffect != NULL) {
                                 ObjectID_t effectObjectID = pDeleteEffect->getObjectID();
@@ -182,7 +182,7 @@ void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                                 gcDeleteEffectFromTile.setEffectID(Effect::EFFECT_CLASS_GREEN_POISON);
                                 pZone->broadcastPacket(tileX, tileY, &gcDeleteEffectFromTile);
                             }
-                            // µØÓü»ð   oust
+                            // Hellfire, Ousters
                             pDeleteEffect = tile.getEffect(Effect::EFFECT_CLASS_HELLFIRE);
                             if (pDeleteEffect != NULL) {
                                 ObjectID_t effectObjectID = pDeleteEffect->getObjectID();
@@ -203,7 +203,7 @@ void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                     }
                 }
 
-            // ½ÇÆÐÇÏ¸é ¸¶³ª°¡ ÁÙ¸é ¾È µÇ¹Ç·Î ¿©±â¼­ ÁÙ¿©ÁØ´Ù.
+            // Mana must not be consumed on failure, so it is decreased here.
             decreaseMana(pSlayer, RequiredMP, _GCSkillToTileOK1);
 
             for (oY = -2; oY <= 2; oY++)
@@ -213,11 +213,11 @@ void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                     if (rect.ptInRect(tileX, tileY)) {
                         Tile& tile = pZone->getTile(tileX, tileY);
 
-                        // ÇöÀç Å¸ÀÏ¿¡´Ù ÀÌÆåÆ®¸¦ Ãß°¡ÇÒ ¼ö ÀÖ´Ù¸é...
+                        // If the effect can be added to the current tile...
                         {
-                            // ÀÌÆåÆ® Å¬·¡½º¸¦ »ý¼ºÇÑ´Ù.
+                            // Create the effect class.
                             EffectHeavenGround* pEffect = new EffectHeavenGround(pZone, tileX, tileY);
-                            // ÉèÖÃÐ§¹ûÉËº¦
+                            // Set the effect damage.
                             pEffect->setUserObjectID(pSlayer->getObjectID());
                             pEffect->setDamage(output.Damage);
                             pEffect->setTick(output.Tick);
@@ -226,7 +226,7 @@ void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                             pEffect->setLevel(pSkillInfo->getLevel() / 2);
                             pEffect->setDeadline(output.Duration);
 
-                            // ×¢²á¼¼ÄÜÐ§¹û
+                            // Register the skill effect.
                             pZone->registerObject(pEffect);
                             pZone->addEffect(pEffect);
                             tile.addEffect(pEffect);
@@ -310,8 +310,8 @@ void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
 
             list<Creature*> watcherList = pZone->getWatcherList(myX, myY, pSlayer);
 
-            // watcherList¿¡¼­ cList¿¡ ¼ÓÇÏÁö ¾Ê°í, caster(pSlayer)¸¦ º¼ ¼ö ¾ø´Â °æ¿ì´Â
-            // OK4¸¦ º¸³»°í.. cList¿¡ Ãß°¡ÇÑ´Ù.
+            // Watchers that are not in cList and cannot see the caster are sent
+            // OK4 and added to cList.
             for (list<Creature*>::const_iterator itr = watcherList.begin(); itr != watcherList.end(); itr++) {
                 bool bBelong = false;
                 for (list<Creature*>::const_iterator tItr = cList.begin(); tItr != cList.end(); tItr++)

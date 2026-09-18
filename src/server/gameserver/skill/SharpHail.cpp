@@ -17,7 +17,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터즈 오브젝트 핸들러
+// Ousters object handler
 //////////////////////////////////////////////////////////////////////////////
 void SharpHail::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                         CEffectID_t CEffectID)
@@ -36,8 +36,8 @@ void SharpHail::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSki
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
 
-        // NPC는 공격할 수가 없다.
-        if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        if (pTargetCreature == NULL // The zone returns NULL when the target is gone.
             || !canAttack(pOusters, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType(), 0);
             return;
@@ -53,7 +53,7 @@ void SharpHail::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSki
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터즈 타일 핸들러
+// Ousters tile handler
 //////////////////////////////////////////////////////////////////////////////
 void SharpHail::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersSkillSlot* pOustersSkillSlot,
                         CEffectID_t CEffectID)
@@ -89,7 +89,7 @@ void SharpHail::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ousters
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // 데미지와 지속 시간을 계산한다.
+        // Compute the damage and the duration.
         SkillInput input(pOusters, pOustersSkillSlot);
         SkillOutput output;
         computeOutput(input, output);
@@ -133,7 +133,7 @@ void SharpHail::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ousters
                     if (pTargetCreature)
                         Damage += computeDamage(pOusters, pTargetCreature, 0, bCriticalHit);
 
-                    // 이펙트 오브젝트를 생성한다.
+                    // Creates the effect object.
                     EffectSharpHail* pEffect = new EffectSharpHail(pZone, oX, oY);
                     pEffect->setUserObjectID(pOusters->getObjectID());
                     pEffect->setDeadline(output.Duration);
@@ -145,11 +145,11 @@ void SharpHail::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ousters
                     pEffect->setLevel(pOustersSkillSlot->getExpLevel());
 
 
-                    // 타일에 붙은 이펙트는 OID를 받아야 한다.
+                    // An effect attached to a tile has to be given an object ID.
                     ObjectRegistry& objectregister = pZone->getObjectRegistry();
                     objectregister.registerObject(pEffect);
 
-                    // 존 및 타일에다가 이펙트를 추가한다.
+                    // Adds the effect to the zone and to the tile.
                     pZone->addEffect(pEffect);
                     tile.addEffect(pEffect);
                 }

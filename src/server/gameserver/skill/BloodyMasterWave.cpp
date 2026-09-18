@@ -9,8 +9,8 @@
 #include "SimpleTileMissileSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 생성자
-// 마스크를 초기화한다.
+// Constructor
+// Initializes the mask.
 //////////////////////////////////////////////////////////////////////////////
 BloodyMasterWave::BloodyMasterWave() {
     __BEGIN_TRY
@@ -48,7 +48,7 @@ BloodyMasterWave::BloodyMasterWave() {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 셀프
+// Vampire self
 //////////////////////////////////////////////////////////////////////////////
 void BloodyMasterWave::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CEffectID_t CEffectID)
 
@@ -71,7 +71,7 @@ void BloodyMasterWave::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkil
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodyMasterWave::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                                CEffectID_t CEffectID)
@@ -84,7 +84,7 @@ void BloodyMasterWave::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vam
     Assert(pVampireSkillSlot != NULL);
 
     try {
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
 
         execute(pVampire, pVampire->getX(), pVampire->getY(), pVampireSkillSlot, CEffectID);
     } catch (Throwable& t) {
@@ -96,7 +96,7 @@ void BloodyMasterWave::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vam
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 타일 핸들러
+// Vampire tile handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodyMasterWave::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireSkillSlot* pVampireSkillSlot,
                                CEffectID_t CEffectID)
@@ -127,7 +127,7 @@ void BloodyMasterWave::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, 
         param.addMask(m_pBloodyMasterWaveMask[i].x, m_pBloodyMasterWaveMask[i].y, 100);
     }
 
-    // 강제로 knockback시킬 확률
+    // Chance to force a knockback
     bool bForceKnockback = rand() % 100 < output.ToHit;
 
     g_SimpleTileMissileSkill.execute(pVampire, pVampire->getX(), pVampire->getY(), pVampireSkillSlot, param, result, 0,
@@ -138,7 +138,7 @@ void BloodyMasterWave::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 타일 핸들러
+// Monster tile handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodyMasterWave::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
@@ -170,7 +170,7 @@ void BloodyMasterWave::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
     bool bForceKnockback = false;
 
-    // 마스터는 강제로 knockback시킨다.
+    // A master always forces a knockback.
     if (pMonster->isMaster()) {
         bForceKnockback = true;
     }

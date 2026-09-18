@@ -19,7 +19,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void WillOfLife::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CEffectID_t CEffectID)
 
@@ -42,7 +42,7 @@ void WillOfLife::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot,
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
 
-        // 스킬 레벨에 따라 데미지 보너스가 달라진다.
+        // The damage bonus varies with the skill level.
         SkillInput input(pVampire);
         SkillOutput output;
         computeOutput(input, output);
@@ -57,7 +57,7 @@ void WillOfLife::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot,
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected) {
             decreaseMana(pVampire, RequiredMP, _GCSkillToSelfOK1);
 
-            // 이펙트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectWillOfLife* pEffect = new EffectWillOfLife(pVampire);
             pEffect->setDeadline(output.Duration);
             pEffect->setBonus(output.Damage);
@@ -65,7 +65,7 @@ void WillOfLife::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot,
             pVampire->addEffect(pEffect);
             pVampire->setFlag(Effect::EFFECT_CLASS_WILL_OF_LIFE);
 
-            // 패킷을 만들어 보낸다.
+            // Build the packet and send it.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(output.Duration);
@@ -84,7 +84,7 @@ void WillOfLife::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot,
             pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &_GCSkillToSelfOK2, pVampire);
             pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &gcStatusCurrentHP);
 
-            // 이펙트가 붙었다고 알려준다.
+            // Notifies that the effect has been attached.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pVampire->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_WILL_OF_LIFE);

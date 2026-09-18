@@ -20,7 +20,7 @@
 #include "Reflection.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void ReputoFactum::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pSkillSlot,
                            CEffectID_t CEffectID)
@@ -41,9 +41,9 @@ void ReputoFactum::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수 없다.
-        // 저주 면역. by sigi. 2002.9.13
-        // NoSuch제거. by sigi. 2002.5.2
+        // NPCs cannot be attacked.
+        // It also fails if the target is immune to curses.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || pTargetCreature->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE) // by sigi. 2002.10.30
             || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType());
@@ -89,7 +89,7 @@ void ReputoFactum::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
 
             bool bCanSeeCaster = canSee(pTargetCreature, pOusters);
 
-            // 이펙트 오브젝트를 생성해 붙인다.
+            // Create the effect object and attach it.
             EffectReputoFactum* pEffect = new EffectReputoFactum(pTargetCreature);
             pEffect->setDeadline(output.Duration);
             pTargetCreature->addEffect(pEffect);

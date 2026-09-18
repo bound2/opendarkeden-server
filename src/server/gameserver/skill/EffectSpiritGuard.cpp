@@ -98,15 +98,15 @@ void EffectSpiritGuard::affect(Creature* pCastCreature)
             if (!rect.ptInRect(X, Y))
                 continue;
 
-            // 타일안에 존재하는 오브젝트를 가져온다.
+            // Fetches the objects on the tile.
             Tile& tile = pZone->getTile(X, Y);
 
             if (tile.hasCreature(Creature::MOVE_MODE_WALKING)) {
                 Creature* pCreature = tile.getCreature(Creature::MOVE_MODE_WALKING);
                 Assert(pCreature != NULL);
 
-                // 자신은 맞지 않는다. 무적도 안 맞는다. 슬레이어도 안 맞느다.
-                // 안전지대 체크
+                // The target itself, invulnerable creatures, Slayers and NPCs are not hit.
+                // Safe zone check
                 // 2003.1.10 by bezz, Sequoia
                 if (pCreature == m_pTarget || !canAttack(pCastCreature, pCreature) ||
                     pCreature->isFlag(Effect::EFFECT_CLASS_COMA) || pCreature->isSlayer() || pCreature->isNPC() ||
@@ -126,9 +126,9 @@ void EffectSpiritGuard::affect(Creature* pCastCreature)
 
                     pCreature->getPlayer()->sendPacket(&gcMI);
 
-                    // 맞는 동작을 보여준다.
+                    // Shows the hit animation.
                     GCSkillToObjectOK2 gcSkillToObjectOK2;
-                    gcSkillToObjectOK2.setObjectID(1); // 의미 없다.
+                    gcSkillToObjectOK2.setObjectID(1); // Unused
                     gcSkillToObjectOK2.setSkillType(SKILL_ATTACK_MELEE);
                     gcSkillToObjectOK2.setDuration(0);
                     pCreature->getPlayer()->sendPacket(&gcSkillToObjectOK2);
@@ -185,7 +185,7 @@ void EffectSpiritGuard::unaffect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // Effect를 없애고 알린다.
+    // Removes the effect and announces it.
     pCreature->removeFlag(Effect::EFFECT_CLASS_SPIRIT_GUARD_1);
 
     GCRemoveEffect gcRemoveEffect;

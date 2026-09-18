@@ -18,7 +18,7 @@
 #include "LogClient.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
 
@@ -36,11 +36,11 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        // 면역 상태. by sigi. 2002.9.13
-        // 무적상태 체크. by sigi.2002.9.5
-        // 죽은 애는 피 빨 수 없다. by Sequoia.2003. 3. 20
-        if (pTargetCreature == NULL // NoSuch 제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // Immune state.
+        // Invulnerability check.
+        // A dead target cannot be drained.
+        if (pTargetCreature == NULL // A missing target fails the skill.
             || pTargetCreature->isNPC() || pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_BLOOD_DRAIN) ||
             !canAttack(pVampire, pTargetCreature) || pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA) ||
             pTargetCreature->isDead()) {
@@ -62,16 +62,16 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
         bool bPK = verifyPK(pVampire, pTargetCreature);
 
         if (bHitRoll && bCanHit && bTimeCheck && bRangeCheck && bPK) {
-            // 슬레이어일 경우에만 이펙트 오브젝트를 생성한다.
+            // Create the effect object only for a Slayer.
             if (pTargetCreature->isSlayer()) {
                 EffectBloodDrain* pEffectBloodDrain = new EffectBloodDrain(pTargetCreature);
                 pEffectBloodDrain->setLevel(pVampire->getLevel());
-                pEffectBloodDrain->setDeadline(BLOODDRAIN_DURATION); // 3일??
+                pEffectBloodDrain->setDeadline(BLOODDRAIN_DURATION); // Three game days.
                 pTargetCreature->addEffect(pEffectBloodDrain);
                 pEffectBloodDrain->create(pTargetCreature->getName());
                 _GCBloodDrainOK2.addShortData(MODIFY_EFFECT_STAT, Effect::EFFECT_CLASS_BLOOD_DRAIN);
 
-                // 타겟이 뭐든 플래그는 건다.
+                // Set the flag whatever the target is.
                 pTargetCreature->setFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
 
                 Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
@@ -81,25 +81,25 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
                 pTargetSlayer->sendRealWearingInfo();
                 pTargetSlayer->addModifyInfo(prev, _GCBloodDrainOK2);
 
-                // 로그를 남긴다.
+                // Write a log entry.
                 log(LOG_BLOODDRAINED, pTargetCreature->getName(), pVampire->getName());
             }
-            // 아우스터즈의 경우엔..... -_-; 제한시간 없는 이펙트를 생성한다. 엄밀히 말해 제한시간이 없는 건 아니지만..
+            // For Ousters, create an effect with no time limit, though strictly speaking it is not unlimited.
             //
-            //				// 타겟이 뭐든 플래그는 건다.
+            //				// Set the flag whatever the target is.
             //
             //
             //
 
-            // 타겟이 뭐든 플래그는 건다.
+            // Set the flag whatever the target is.
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
 
-            // 올릴 경험치량을 계산한다.
+            // Compute the experience to award.
             Exp_t Exp = computeCreatureExp(pTargetCreature, BLOODDRAIN_EXP);
 
             int targetLevel = 0;
             int targetMaxHP = 0;
-            // 페임을 올려준다.
+            // Raise fame.
             if (pTargetCreature->isSlayer()) {
                 Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
                 targetLevel = pTargetSlayer->getHighestSkillDomainLevel();
@@ -128,20 +128,20 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
 
             shareVampExp(pVampire, Exp, _GCBloodDrainOK1);
 
-            // 흡혈을 하게 되면 흡혈한 사람의 체력이 올라간다.
-            // Mephisto이펙트가 걸려있으면 HP는 안 올라간다.
+            // Draining blood raises the drainer's HP.
+            // HP does not rise while the Mephisto effect is active.
             if (!pVampire->isFlag(Effect::EFFECT_CLASS_MEPHISTO)) {
                 HP_t HealPoint = (Exp == 0 ? computeBloodDrainHealPoint(pTargetCreature, BLOODDRAIN_EXP) : Exp);
                 HP_t CurrentHP = pVampire->getHP();
                 HP_t MaxHP = pVampire->getHP(ATTR_MAX);
                 HP_t NewHP = min((int)MaxHP, (int)CurrentHP + (int)HealPoint);
 
-                // 은 데미지 관련 처리를 해 준다.
+                // Handles the silver damage.
                 Silver_t newSilverDamage = max(0, (int)pVampire->getSilverDamage() - (int)HealPoint);
                 pVampire->saveSilverDamage(newSilverDamage);
                 _GCBloodDrainOK1.addShortData(MODIFY_SILVER_DAMAGE, newSilverDamage);
 
-                // 뱀파이어의 HP를 세팅한다.
+                // Sets the Vampire HP.
                 pVampire->setHP(NewHP);
 
                 GCStatusCurrentHP gcStatusCurrentHP;
@@ -152,8 +152,8 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
                 _GCBloodDrainOK1.addShortData(MODIFY_CURRENT_HP, NewHP);
             }
 
-            // 흡혈을 당한 애는 HP가 줄어든다.
-            // 대상이 내 레벨보다 높다면.. MaxHP의 10~15% damage
+            // The drained target loses HP.
+            // If the target's level is higher than mine, damage is 10-15% of its max HP.
             // by sigi. 2002.9.14
             int drainDamage = 0;
             int myLevel = pVampire->getLevel();
@@ -161,7 +161,7 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
             if (targetLevel > myLevel) {
                 drainDamage = targetMaxHP * (rand() % 6 + 10) / 100;
             } else {
-                // 레벨 5차이마다 1%씩 더~
+                // 1% more for every 5 levels of difference.
                 int damagePercent = min(30, (rand() % 6 + 10 + (myLevel - targetLevel)));
                 drainDamage = targetMaxHP * damagePercent / 100;
             }
@@ -169,7 +169,7 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
             if (drainDamage > 0) {
                 EffectDecreaseHP* pEffect = new EffectDecreaseHP(pTargetCreature);
                 pEffect->setPoint(drainDamage);
-                pEffect->setDeadline(20); // 2초 후
+                pEffect->setDeadline(20); // After 2 seconds.
                 pEffect->setUserObjectID(pVampire->getObjectID());
                 pTargetCreature->addEffect(pEffect);
                 pTargetCreature->setFlag(Effect::EFFECT_CLASS_DECREASE_HP);
@@ -177,10 +177,10 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
 
             pVampire->getGQuestManager()->blooddrain();
 
-            // 흡혈시에도 성향 바뀜
+            // Alignment changes on a blood drain too.
             // by sigi. 2002.12.16
-            // EffectDecreaseHP에서 HP가 닳아서 0이 되어야하는 경우가 있어서
-            // EffectDecreaseHP::unaffect()로 옮긴다.
+            // HP can be worn down to zero in EffectDecreaseHP, so this is
+            // moved into EffectDecreaseHP::unaffect().
 
             _GCBloodDrainOK1.setObjectID(TargetObjectID);
 
@@ -242,11 +242,11 @@ void BloodDrain::execute(Monster* pMonster, Creature* pEnemy)
             addVisibleCreature(pZone, pMonster, true);
         }
 
-        // 마스터 : 광역 흡혈 - -;
+        // Master: area blood drain.
         if (pMonster->isMaster()) {
             int x = pMonster->getX();
             int y = pMonster->getY();
-            int Splash = 3 + rand() % 5; // 3~7 마리
+            int Splash = 3 + rand() % 5; // 3-7 creatures
             int range = 5;               // 11 x 11
             list<Creature*> creatureList;
             getSplashVictims(pMonster->getZone(), x, y, Creature::CREATURE_CLASS_MAX, creatureList, Splash, range);
@@ -261,7 +261,7 @@ void BloodDrain::execute(Monster* pMonster, Creature* pEnemy)
                 }
             }
         }
-        // 일반 몹 : 한 마리
+        // Ordinary monster: a single target.
         else {
             if (executeMonster(pMonster, pEnemy)) {
                 bSuccess = true;
@@ -273,10 +273,10 @@ void BloodDrain::execute(Monster* pMonster, Creature* pEnemy)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // 성공이든 실패든 몬스터에게 딜레이는 걸어준다.
+    // Apply the delay to the monster whether it succeeded or failed.
     Timeval NextTurn = pMonster->getNextTurn();
     Timeval DelayTurn;
-    DelayTurn.tv_sec = (bSuccess ? 4 : 1); // 성공과 실패의 delay를 다르게 한다. by sigi. 2002.9.14
+    DelayTurn.tv_sec = (bSuccess ? 4 : 1); // Success and failure use different delays.
     DelayTurn.tv_usec = 500000;
     pMonster->addAccuDelay(DelayTurn);
 
@@ -291,9 +291,9 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
 
     bool isMaster = pMonster->isMaster();
 
-    // 죽었으면 흡혈 못하고..
-    // 마스터는 아무나 다 빤다 - -;
-    // 대상이 죽었으면 못 빤다.
+    // A dead monster cannot drain.
+    // A master drains anyone.
+    // A dead target cannot be drained.
     if (pMonster->isDead() || pMonster->isFlag(Effect::EFFECT_CLASS_COMA) ||
         !pMonster->isEnemyToAttack(pEnemy) && !isMaster || pEnemy->isDead() ||
         pEnemy->isFlag(Effect::EFFECT_CLASS_COMA)) {
@@ -307,24 +307,24 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
     GCBloodDrainOK2 _GCBloodDrainOK2;
     GCBloodDrainOK3 _GCBloodDrainOK3;
 
-    // 마스터는 체력 100% 라도 문다.
-    int HPMultiplier = (isMaster ? 1 : 3); // 현재 HP가 1/1,  1/3
+    // A master bites even at 100% HP.
+    int HPMultiplier = (isMaster ? 1 : 3); // Current HP of 1/1 or 1/3.
     bool bHitRoll = HitRoll::isSuccessBloodDrain(pMonster, pEnemy, HPMultiplier);
     bool bCanHit = canHit(pMonster, pEnemy, SKILL_BLOOD_DRAIN);
-    // 마스터는 거리에 관계없이 문다~
+    // A master bites regardless of distance.
     bool bRangeCheck = isMaster || verifyDistance(pMonster, pEnemy, 1);
 
-    // 흡혈 면역 상태. by sigi. 2002.9.13
+    // Blood drain immunity.
     bool bEffected = pEnemy->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_BLOOD_DRAIN);
 
     if (bHitRoll && bCanHit && bRangeCheck && !bEffected) {
         if (pEnemy->isSlayer()) {
             // Set EffectBloodDrain
-            // 마스터면 안건다.
+            // A master does not apply it.
             if (!isMaster) {
                 EffectBloodDrain* pEffectBloodDrain = new EffectBloodDrain(pEnemy);
                 pEffectBloodDrain->setLevel(pMonster->getLevel());
-                pEffectBloodDrain->setDeadline(BLOODDRAIN_DURATION); // 게임시간으로 3일 정도
+                pEffectBloodDrain->setDeadline(BLOODDRAIN_DURATION); // About three days of game time.
                 pEnemy->addEffect(pEffectBloodDrain);
                 pEffectBloodDrain->create(pEnemy->getName());
                 _GCBloodDrainOK2.addShortData(MODIFY_EFFECT_STAT, Effect::EFFECT_CLASS_BLOOD_DRAIN);
@@ -339,10 +339,10 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
                 pTargetSlayer->addModifyInfo(prev, _GCBloodDrainOK2);
             }
 
-            // 로그를 남긴다.
+            // Write a log entry.
             log(LOG_BLOODDRAINED, pEnemy->getName(), "게임 내의 몬스터");
         }
-        // 아우스터즈의 경우엔..... -_-; 제한시간 없는 이펙트를 생성한다. 엄밀히 말해 제한시간이 없는 건 아니지만..
+        // For Ousters, create an effect with no time limit, though strictly speaking it is not unlimited.
         //
         //
         //
@@ -352,8 +352,8 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
         _GCBloodDrainOK3.setObjectID(pMonster->getObjectID());
         _GCBloodDrainOK3.setTargetObjectID(pEnemy->getObjectID());
 
-        // 타겟이 뭐든 플래그는 건다.
-        // 마스터면 안건다.
+        // Set the flag whatever the target is.
+        // A master does not apply it.
         if (!isMaster) {
             pEnemy->setFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         }
@@ -389,14 +389,14 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
         } else if (pEnemy->isMonster()) {
             Monster* pEnemyMonster = dynamic_cast<Monster*>(pEnemy);
 
-            // 흡혈당하는 몬스터한테 딜레이 걸어준다.
+            // Apply a delay to the monster being drained.
             Timeval DelayTurn;
             DelayTurn.tv_sec = 4;
             DelayTurn.tv_usec = 500000;
             pEnemyMonster->addAccuDelay(DelayTurn);
 
             if ((pMonster->isMaster()) && pMonster->getClanType() == pEnemyMonster->getClanType()) {
-                // 같은 clan의 마스터이면 피 상납이라고 볼 수 있을까 -_-;
+                // A master of the same clan takes the blood as tribute, so no enmity is added.
             } else {
                 pEnemyMonster->addEnemy(pMonster);
             }
@@ -405,22 +405,22 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
             targetMaxHP = pEnemyMonster->getHP(ATTR_MAX);
         }
 
-        // 자신이나 상대방 중.. HP가 많은 쪽의 15~25%
+        // 15-25% of the larger max HP of self and target.
         HP_t maxHP = max((int)pMonster->getHP(ATTR_MAX), targetMaxHP);
         HP_t drainHP = maxHP * (rand() % 11 + 15) / 100; // 15~25%
 
-        // 한번에 1000이상 안 찬다.
+        // At most 1000 is recovered at once.
         if (pMonster->getMonsterType() >= 717)
             drainHP = min((int)drainHP, 2000);
         else
             drainHP = min((int)drainHP, 1000);
 
-        // 몬스터의 HP를 올려준다.
+        // Raise the monster's HP.
         HP_t CurrentHP = pMonster->getHP();
         HP_t MaxHP = pMonster->getHP(ATTR_MAX);
         HP_t NewHP = min((int)MaxHP, (int)CurrentHP + (int)drainHP);
 
-        // 뱀파이어의 HP를 세팅한다.
+        // Set the Vampire's HP.
         pMonster->setHP(NewHP);
 
         GCStatusCurrentHP gcStatusCurrentHP;
@@ -428,8 +428,8 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
         gcStatusCurrentHP.setCurrentHP(NewHP);
         pZone->broadcastPacket(pMonster->getX(), pMonster->getY(), &gcStatusCurrentHP);
 
-        // 흡혈 당한 애의 HP를 줄인다.
-        // 대상이 내 레벨보다 높다면.. MaxHP의 10~15% damage
+        // Reduce the drained target's HP.
+        // If the target's level is higher than mine, damage is 10-15% of its max HP.
         // by sigi. 2002.9.14
         int drainDamage = 0;
         int myLevel = pMonster->getLevel();
@@ -437,7 +437,7 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
         if (targetLevel > myLevel) {
             drainDamage = targetMaxHP * (rand() % 6 + 10) / 100;
         } else {
-            // 레벨 5차이마다 1%씩 더~
+            // 1% more for every 5 levels of difference.
             int damagePercent = min(30, (rand() % 6 + 10 + (myLevel - targetLevel)));
             drainDamage = targetMaxHP * damagePercent / 100;
         }
@@ -445,19 +445,19 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
         if (drainDamage > 0) {
             EffectDecreaseHP* pEffect = new EffectDecreaseHP(pEnemy);
             pEffect->setPoint(drainDamage);
-            pEffect->setDeadline(20); // 2초 후
+            pEffect->setDeadline(20); // After 2 seconds.
             pEffect->setUserObjectID(pMonster->getObjectID());
             pEnemy->addEffect(pEffect);
             pEnemy->setFlag(Effect::EFFECT_CLASS_DECREASE_HP);
         }
 
-        // 흡혈 모습 보이게..
+        // Show the blood drain to onlookers.
         list<Creature*> cList;
         cList.push_back(pEnemy);
         cList.push_back(pMonster);
         pZone->broadcastPacket(pMonster->getX(), pMonster->getY(), &_GCBloodDrainOK3, cList);
 
-        // 흡혈 성공
+        // Blood drain succeeded.
         return true;
     }
 

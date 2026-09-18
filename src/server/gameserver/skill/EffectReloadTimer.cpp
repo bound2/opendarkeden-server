@@ -88,19 +88,19 @@ void EffectReloadTimer::unaffect(Creature* pCreature)
     Inventory* pInventory = NULL;
     bool bSuccess = false;
 
-    // 일단 성공하든 실패하든 플래그는 제거시킨다.
+    // Remove the flag whether the reload succeeds or fails.
     pSlayer->removeFlag(Effect::EFFECT_CLASS_RELOAD_TIMER);
 
     if (pArmsItem != NULL) {
         if (isArmsWeapon(pArmsItem)) {
             if (m_bFromInventory) {
-                // 인벤토리에서 직접 리로드하는 경우라면,
-                // 인벤토리 내부에서 아이템을 찾는다.
+                // When reloading directly from the inventory,
+                // find the item inside the inventory.
                 pInventory = pSlayer->getInventory();
                 pItem = pInventory->getItem(m_invenX, m_invenY);
             } else {
-                // 벨트에서 리로드하는 경우라면
-                // 벨트 내부에서 아이템을 찾는다.
+                // When reloading from the belt,
+                // find the item inside the belt.
                 if (pSlayer->isWear(Slayer::WEAR_BELT)) {
                     pBelt = pSlayer->getWearItem(Slayer::WEAR_BELT);
                     pInventory = ((Belt*)pBelt)->getInventory();
@@ -114,27 +114,27 @@ void EffectReloadTimer::unaffect(Creature* pCreature)
 
             ObjectID_t ItemObjectID = pItem->getObjectID();
 
-            // 아이템이 있는지 그 아이템의 ObjectID가 일치하는지 체크한다.
+            // Check that the item is there and that its ObjectID matches.
             if (ItemObjectID == m_ObjectID && pItem->getItemClass() == Item::ITEM_CLASS_MAGAZINE) {
                 BulletNum = reloadArmsItem(pArmsItem, pItem);
 
-                // 리로드가 정상적으로 되었다면 저장해 준다.
+                // Save it if the reload went through.
                 if (BulletNum != 0) {
-                    // 아이템 저장 최적화
+                    // Item save optimization
                     // by sigi. 2002.5.16
                     char pField[80];
                     sprintf(pField, "BulletCount=%d, Silver=%d", pArmsItem->getBulletCount(), pArmsItem->getSilver());
                     pArmsItem->tinysave(pField);
 
-                    // 탄창의 갯수가 2개 이상이라면...
+                    // If there are two or more magazines...
                     if (pItem->getNum() > 1) {
-                        // 아이템의 갯수를 줄이고,
-                        // 인벤토리 내부의 총 갯수 및 무게를 줄인다.
+                        // reduce the item count, and
+                        // reduce the inventory's total count and weight.
                         pItem->setNum(pItem->getNum() - 1);
                         pInventory->decreaseItemNum();
                         pInventory->decreaseWeight(pItem->getWeight());
 
-                        // 줄어든 아이템의 갯수를 저장한다.
+                        // Save the reduced item count.
                         if (m_bFromInventory) {
                             sprintf(pField, "Num=%d", pItem->getNum());
                             pItem->tinysave(pField);
@@ -143,7 +143,7 @@ void EffectReloadTimer::unaffect(Creature* pCreature)
                             pItem->tinysave(pField);
                         }
                     }
-                    // 탄창의 갯수가 1개라면 삭제해줘야 한다.
+                    // If there is only one magazine, it has to be deleted.
                     else {
                         if (m_bFromInventory)
                             pInventory->deleteItem(m_invenX, m_invenY);

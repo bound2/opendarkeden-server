@@ -89,7 +89,7 @@ check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5204 "$R5"
 # skill-failure packets and the elemental lookups. Under the 2,000-line phase
 # exit criterion, so the ratchet is a pin rather than a god-file baseline now.
 R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
-check_ratchet R6a "SkillUtil.cpp lines" 687 "$R6a"
+check_ratchet R6a "SkillUtil.cpp lines" 685 "$R6a"
 # R6b shrinks as InitAllStat.cpp's per-race stat code leaves it: the Slayer,
 # Vampire and Ousters members -- the castle skills, the all-stat
 # recalculation and the item, option and blood bible contributions to it --
@@ -433,16 +433,15 @@ rm -f "$r16_inc" "$r16_dead"
 # as Latin-1 and re-encoded as UTF-8, which reads as runs of accented Latin
 # letters; and U+FFFD runs, where the text itself is gone and only the code
 # beside it still says what the comment meant. Comments are translated tree
-# by tree: src/domain, src/server/database, src/server/loginserver,
-# src/server/sharedserver, the whole of src/Core, the files directly under
-# src/server, the gameserver's handler, war, gm, repository, mission,
-# couple, ctf, packetfill and mofus trees, and the files directly under
-# src/server/gameserver are done; what is left is the gameserver's skill,
-# quest and item trees. String literals -- log lines, GM messages, the
-# reserved-name table -- are left for a pass of their own, because changing
-# one changes what the server says rather than how the source reads; the 493
-# that remain in the finished trees, 482 of them in those gameserver trees,
-# are all this count holds there.
+# by tree, and the last of them -- the gameserver's skill, quest and item
+# trees -- is done, so no comment carries legacy text any more. String
+# literals -- log lines, GM messages, the reserved-name table -- are left for
+# a pass of their own, because changing one changes what the server says
+# rather than how the source reads: 578 of the 581 lines this count still
+# holds are string literals, 88 in the gameserver's skill (14), quest (72)
+# and item (2) trees and 490 in the rest of the tree. The other three are
+# English comments in src/server/repository that spell an em dash or an
+# arrow.
 #
 # Line-based, and the byte class is spelled the way R12 spells it: exclude
 # everything from \x01 to \x7f, so what is left is a byte with the high bit
@@ -450,7 +449,7 @@ rm -f "$r16_inc" "$r16_dead"
 # working tree out of the count, which [^[:print:]] would not, and LC_ALL=C
 # keeps the range byte-wise where a locale would read it as characters.
 R17=$(LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R17 "source lines carrying non-ASCII bytes" 7050 "$R17"
+check_ratchet R17 "source lines carrying non-ASCII bytes" 581 "$R17"
 
 # --- R18: commented-out code inside /* */ blocks ---------------------------
 # Code that was switched off years ago says nothing true about the running

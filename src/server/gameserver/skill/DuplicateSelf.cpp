@@ -17,25 +17,25 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 생성자
-// 마스크를 초기화한다.
+// Constructor
+// Initializes the mask.
 //////////////////////////////////////////////////////////////////////////////
 DuplicateSelf::DuplicateSelf() {
     __BEGIN_TRY
 
-    // 머.. 답답하믄 테이블로 빼든지.. -_-;
-    m_DuplicateMonsterTypes[432] = 435; // 바토리 분신
-    m_DuplicateMonsterTypes[434] = 436; // 테페즈 분신
+    // Hard-coded pairs; move them into a table if that becomes awkward.
+    m_DuplicateMonsterTypes[432] = 435; // Bathory clone
+    m_DuplicateMonsterTypes[434] = 436; // Tepes clone
 
     __END_CATCH
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 셀프 핸들러
+// Vampire self handler
 //////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 셀프 핸들러
+// Monster self handler
 //////////////////////////////////////////////////////////////////////////////
 void DuplicateSelf::execute(Monster* pMonster)
 
@@ -47,7 +47,7 @@ void DuplicateSelf::execute(Monster* pMonster)
 
     unordered_map<MonsterType_t, MonsterType_t>::const_iterator itr = m_DuplicateMonsterTypes.find(MType);
 
-    // 분신할 MonsterType이 없으면 분신 모하지..
+    // Without a clone MonsterType there is nothing to duplicate.
     if (itr == m_DuplicateMonsterTypes.end()) {
         return;
     }
@@ -86,9 +86,9 @@ void DuplicateSelf::execute(Monster* pMonster)
             pZone->broadcastPacket(x, y, &_GCSkillToTileOK5);
 
             //--------------------------------------------------------
-            // 주위에 knockback되는맞는 애들을 체크해준다.
+            // Check which surrounding creatures are hit and knocked back.
             //--------------------------------------------------------
-            // 몬스터를 존에 추가한다.
+            // Add the monster to the zone.
             SUMMON_INFO summonInfo;
             summonInfo.scanEnemy = true;
             summonInfo.hasItem = false;
@@ -112,7 +112,7 @@ void DuplicateSelf::execute(Monster* pMonster)
                 }
             }
 
-            // 잔상을 보여준다.
+            // Show the afterimages.
             list<Monster*>::const_iterator iMonster = summonedMonsters.begin();
 
             for (; iMonster != summonedMonsters.end(); iMonster++) {
@@ -125,8 +125,8 @@ void DuplicateSelf::execute(Monster* pMonster)
                 pZone->broadcastPacket(x, y, &gcFakeMove);
             }
 
-            // 괜히 몬스터도 어딘가로 이동해본다.
-            // 50번 시도..
+            // Move the monster itself somewhere as well.
+            // Up to 50 attempts.
             for (int i = 0; i < 50; i++) {
                 int X = max(0, min((int)pZone->getWidth() - 1, (x - 8 + rand() % 11)));
                 int Y = max(0, min((int)pZone->getHeight() - 1, (y - 8 + rand() % 11)));

@@ -22,7 +22,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void HolyBlast::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -53,7 +53,7 @@ void HolyBlast::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void HolyBlast::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -125,8 +125,8 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        // 만일 이 기술이 특별한 무기가 있어야 시전할 수 있는 기술이라면...
-        // 그 계열의 무기를 들고 있는지를 체크해서 아니라면 실패다.
+        // If this skill requires a specific weapon to cast,
+        // check the equipped weapon class and fail if it does not match.
         if (param.ItemClass != Item::ITEM_CLASS_MAX) {
             Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
             if (pItem == NULL || pItem->getItemClass() != param.ItemClass) {
@@ -157,18 +157,18 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
         bool bRangeCheck = verifyDistance(pSlayer, X, Y, pSkillInfo->getRange());
 
         if (bManaCheck && bTimeCheck && bRangeCheck) {
-            // 마나를 떨어뜨린다.
+            // Consume the mana.
             decreaseMana(pSlayer, RequiredMP, _GCSkillToTileOK1);
 
-            // 좌표와 방향을 구한다.
+            // Work out the coordinates and the direction.
             ZoneCoord_t myX = pSlayer->getX();
             ZoneCoord_t myY = pSlayer->getY();
             Dir_t dir = calcDirection(myX, myY, X, Y);
             Damage_t Damage = 0;
             Damage_t MaxDamage = 0;
             Damage_t TotalDamage = 0;
-            // SkillFomula에서 구해지는건 공격damage다. - -;
-            // 그래서 임시로...
+            // The skill formula yields attack damage, not a heal amount,
+            // so the heal point is computed here instead.
             uint HealPoint = 30 + param.Level / 8; // param.SkillDamage;
             uint RealHealPoint = 0;
             bool bCriticalHit = false;
@@ -187,20 +187,20 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
                 Creature* pTargetCreature = (*itr);
                 Assert(pTargetCreature != NULL);
 
-                if (pTargetCreature != pSlayer) // 본인이 아닌 경우
+                if (pTargetCreature != pSlayer) // Targets other than the caster
                 {
                     bool bSameRaceCheck = pTargetCreature->isSlayer();
                     bool bZoneLevelCheck = checkZoneLevelToHitTarget(pTargetCreature);
 
-                    // 같은 종족이면 치료한다.
+                    // Heal a creature of the same race.
                     if (bSameRaceCheck && bZoneLevelCheck) {
-                        // 힐받은 애는 cList에 추가하지 않는다.
-                        // cList에는 맞는 애덜만 넣어주고
-                        // 얘네들은 CURE_EFFECT를 보여준다.
+                        // Healed creatures are not added to cList.
+                        // Only the creatures that are hit go into cList,
+                        // and the healed ones are shown CURE_EFFECT.
 
                         EffectBloodDrain* pEffectBloodDrain = NULL;
 
-                        bool bHPCheck = false; // 크리쳐를 체크할때 마다 새로 세팅해야하지 않을까? 2002.05.31 by bezz
+                        bool bHPCheck = false; // Reset for each creature checked.
 
                         if (!pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
                             Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
@@ -227,7 +227,7 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
                             bool bHitRoll = HitRoll::isSuccessMagic(pSlayer, pSkillInfo, pSkillSlot);
 
                             if (bHitRoll && bHPCheck && pTargetCreature->isAlive()) {
-                                // 힐 효과 broadcast
+                                // Broadcast the heal effect.
                                 _GCSkillToSelfOK1.setSkillType(SKILL_CURE_EFFECT);
                                 _GCSkillToSelfOK1.setDuration(0);
                                 pTargetSlayer->getPlayer()->sendPacket(&_GCSkillToSelfOK1);
@@ -239,16 +239,16 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
                                                        pTargetSlayer);
 
 
-                                // 흡혈당한 상태라면 흡혈 상태를 날려준다.
+                                // Clear the blood drain state if the target is under it.
                                 if (pEffectBloodDrain != NULL && pEffectBloodDrain->getLevel() < param.Level) {
-                                    // 흡혈 아르바이트를 방지하기 위한 후유증 이펙트를 붙여준다.
+                                    // Attach an aftermath effect to prevent blood drain farming.
                                     if (pTargetSlayer->isFlag(Effect::EFFECT_CLASS_AFTERMATH)) {
                                         Effect* pEffect = pTargetSlayer->findEffect(Effect::EFFECT_CLASS_AFTERMATH);
                                         EffectAftermath* pEffectAftermath = dynamic_cast<EffectAftermath*>(pEffect);
-                                        pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                                        pEffectAftermath->setDeadline(5 * 600); // Lasts 5 minutes.
                                     } else {
                                         EffectAftermath* pEffectAftermath = new EffectAftermath(pTargetSlayer);
-                                        pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                                        pEffectAftermath->setDeadline(5 * 600); // Lasts 5 minutes.
                                         pTargetSlayer->addEffect(pEffectAftermath);
                                         pTargetSlayer->setFlag(Effect::EFFECT_CLASS_AFTERMATH);
                                         pEffectAftermath->create(pTargetSlayer->getName());
@@ -276,11 +276,11 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
                                                            &gcRemoveEffect);
                                 }
 
-                                // HP를 세팅한다.
+                                // Set the HP.
                                 HP_t CurrentHP = pTargetSlayer->getHP(ATTR_CURRENT);
                                 HP_t MaxHP = pTargetSlayer->getHP(ATTR_MAX);
 
-                                // 실제 회복 수치를 계산한다.
+                                // Compute the actual amount healed.
                                 if (CurrentHP + HealPoint <= MaxHP) {
                                     RealHealPoint = max(0, (int)HealPoint);
                                 } else {
@@ -294,7 +294,7 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
                         }
 
                     }
-                    // 다른 종족이면 공격한다.
+                    // Attack a creature of another race.
                     else {
                         bool bPK = verifyPK(pSlayer, pTargetCreature);
                         bool bRaceCheck = pTargetCreature->isVampire() || pTargetCreature->isMonster();
@@ -317,10 +317,10 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
                             MaxDamage = max(Damage, MaxDamage);
                             TotalDamage += Damage;
 
-                            // 페널티는 기본적으로 100이다.
+                            // The penalty defaults to 100.
                             Damage = getPercentValue(Damage, 100); // penalty);
 
-                            // 맞은 애들 지정
+                            // Record the creatures that were hit.
                             ObjectID_t targetObjectID = pTargetCreature->getObjectID();
                             cList.push_back(pTargetCreature);
 
@@ -328,7 +328,7 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
                             _GCSkillToTileOK2.addCListElement(targetObjectID);
                             _GCSkillToTileOK5.addCListElement(targetObjectID);
 
-                            // 일단 맞는 놈이 받을 패킷은 널 상태로 한 채로, 데미지를 준다.
+                            // Apply the damage with the target's own packet left NULL.
                             setDamage(pTargetCreature, Damage, pSlayer, param.SkillType, NULL, &_GCSkillToTileOK1);
                             computeAlignmentChange(pTargetCreature, Damage, pSlayer, NULL, &_GCSkillToTileOK1);
 
@@ -357,7 +357,7 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
                 }
             }
 
-            // 공격자의 아이템 내구성을 떨어뜨린다.
+            // Wear down the attacker's item durability.
             decreaseDurability(pSlayer, NULL, pSkillInfo, &_GCSkillToTileOK1, NULL);
 
             _GCSkillToTileOK1.setSkillType(param.SkillType);
@@ -383,7 +383,7 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
+            // Send the packet to everyone affected by this skill.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
                 Assert(pTargetCreature != NULL);
@@ -391,7 +391,7 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
                 if (pTargetCreature->isPC()) {
                     _GCSkillToTileOK2.clearList();
 
-                    // HP의 변경사항을 패킷에다 기록한다.
+                    // Record the HP change in the packet.
                     HP_t targetHP = 0;
                     if (pTargetCreature->isSlayer()) {
                         targetHP = (dynamic_cast<Slayer*>(pTargetCreature))->getHP(ATTR_CURRENT);
@@ -403,13 +403,13 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
 
                     _GCSkillToTileOK2.addShortData(MODIFY_CURRENT_HP, targetHP);
 
-                    // 아이템의 내구력을 떨어뜨린다.
+                    // Wear down the target's item durability.
                     decreaseDurability(NULL, pTargetCreature, pSkillInfo, NULL, &_GCSkillToTileOK2);
 
-                    // 패킷을 보내준다.
+                    // Send the packet.
                     pTargetCreature->getPlayer()->sendPacket(&_GCSkillToTileOK2);
                 } else if (pTargetCreature->isMonster()) {
-                    // 당근 적으로 인식한다.
+                    // The monster takes the caster as an enemy.
                     Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
                     pMonster->addEnemy(pSlayer);
                 }

@@ -46,8 +46,8 @@ void EffectMeteorStrike::affect()
 
     Assert(m_pZone != NULL);
 
-    // 이펙트를 건 크리쳐를 가져온다.
-    // !! 존을 떠났을 수도 있으므로 NULL 이 될 수 있다.
+    // Gets the creature that cast the effect.
+    // It may have left the zone, so this can be NULL.
     Creature* pCastCreature = m_pZone->getCreature(m_UserObjectID);
     if (m_bPlayer) {
         if (pCastCreature == NULL) {
@@ -58,8 +58,8 @@ void EffectMeteorStrike::affect()
 
     VSRect rect(0, 0, m_pZone->getWidth() - 1, m_pZone->getHeight() - 1);
 
-    // 현재 이펙트가 붙어있는 타일을 받아온다.
-    // 중심타일 + 스플래쉬 타일
+    // Get the tile this effect is attached to.
+    // Center tile plus the splash tiles.
     for (int x = -2; x <= 2; x++) {
         for (int y = -2; y <= 2; y++) {
             int X = m_X + x;
@@ -72,13 +72,13 @@ void EffectMeteorStrike::affect()
             int Damage = 0;
             int splash = max(abs(x), abs(y));
 
-            // 가운데는 100%
+            // The center takes 100%.
 
             if (splash >= 3)
                 splash = 2;
             Damage = getPercentValue(m_Damage, m_SplashRatio[splash]);
 
-            // 타일 안에 존재하는 오브젝트들을 검색한다.
+            // Walk the objects on the tile.
             const forward_list<Object*>& oList = tile.getObjectList();
             forward_list<Object*>::const_iterator itr = oList.begin();
             for (; itr != oList.end(); itr++) {
@@ -91,8 +91,8 @@ void EffectMeteorStrike::affect()
                     Creature* pCreature = dynamic_cast<Creature*>(pObject);
                     Assert(pCreature != NULL);
 
-                    // 자신은 맞지 않는다
-                    // 무적상태 체크. by sigi. 2002.9.5
+                    // The caster itself is not hit.
+                    // Check for invulnerability.
                     if (pCreature->getObjectID() == m_UserObjectID || !canAttack(pCastCreature, pCreature) ||
                         pCreature->isFlag(Effect::EFFECT_CLASS_COMA) || !checkZoneLevelToHitTarget(pCreature)) {
                         continue;
@@ -115,7 +115,7 @@ void EffectMeteorStrike::affect()
 
 
                     } else if (pCreature->isVampire()) {
-                        // 뱀파이어가 사용했을 경우 뱀파이어는 중심 타일을 제외하고는 맞지 않는다.
+                        // A Vampire cast by a player does not hit Vampires at all.
                         if (m_bPlayer) // && splash != 0 )
                             continue;
 
@@ -139,7 +139,7 @@ void EffectMeteorStrike::affect()
                             pMonster->addEnemy(pCastCreature);
                     }
 
-                    // 상대가 죽었다면 경험치를 올려준다.
+                    // Grant experience if the target died.
                     if (pCreature->isDead()) {
                         if (pCastCreature != NULL && pCastCreature->isVampire()) {
                             Vampire* pVampire = dynamic_cast<Vampire*>(pCastCreature);
@@ -154,9 +154,9 @@ void EffectMeteorStrike::affect()
                         }
                     }
 
-                    // user한테는 맞는 모습을 보여준다.
+                    // Show the target player the hit animation.
                     if (pCreature->isPC()) {
-                        gcSkillToObjectOK2.setObjectID(1); // 의미 없다.
+                        gcSkillToObjectOK2.setObjectID(1); // Has no meaning.
                         gcSkillToObjectOK2.setSkillType(SKILL_ATTACK_MELEE);
                         gcSkillToObjectOK2.setDuration(0);
                         pCreature->getPlayer()->sendPacket(&gcSkillToObjectOK2);

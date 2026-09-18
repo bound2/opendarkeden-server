@@ -18,7 +18,7 @@
 #include "SimpleMissileSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void CauseCriticalWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot,
                                   CEffectID_t CEffectID)
@@ -38,9 +38,9 @@ void CauseCriticalWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC 를 공격할 수 없다
-        // 면역이거나.. by sigi. 2002.9.13
-        // NoSuch제거. by sigi. 2002.5.5
+        // NPCs cannot be attacked.
+        // A target immune to paralyze is rejected.
+        // A missing target is rejected too.
         if (pTargetCreature == NULL || pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_PARALYZE) ||
             !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, getSkillType());
@@ -54,7 +54,7 @@ void CauseCriticalWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
 
         Tile& rTile = pZone->getTile(pTargetCreature->getX(), pTargetCreature->getY());
 
-        // 스킬 사용이 가능한지 체크한다
+        // Check whether the skill can be used.
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);
         bool bTimeCheck = verifyRunTime(pSkillSlot);
@@ -79,12 +79,12 @@ void CauseCriticalWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
             ZoneCoord_t targetX = pTargetCreature->getX();
             ZoneCoord_t targetY = pTargetCreature->getY();
 
-            // 스킬의 damage, delay, duration을 계산
+            // Compute the skill's damage, delay, and duration.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             computeOutput(input, output);
 
-            // Soul Smashing 이 있다면 데미지 10% 증가
+            // Soul Smashing adds its rank bonus to the damage.
             if (pSlayer->hasRankBonus(RankBonus::RANK_BONUS_SOUL_SMASHING)) {
                 RankBonus* pRankBonus = pSlayer->getRankBonus(RankBonus::RANK_BONUS_SOUL_SMASHING);
                 Assert(pRankBonus != NULL);
@@ -92,18 +92,18 @@ void CauseCriticalWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
                 output.Damage += pRankBonus->getPoint();
             }
 
-            // 마나를 줄인다
+            // Decrease the mana.
             decreaseMana(pSlayer, RequiredMP, _GCSkillToObjectOK1);
 
-            // 데미지를 가하고, 내구도를 떨어뜨린다. 공격대상이 슬레이어가 아니므로 alignment, PK 체크할 필요가 없다
+            // Deal the damage and drop durability; alignment is adjusted along with it.
             setDamage(pTargetCreature, output.Damage, pSlayer, SkillType, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
             computeAlignmentChange(pTargetCreature, output.Damage, pSlayer, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
             decreaseDurability(pSlayer, pTargetCreature, NULL, &_GCSkillToObjectOK1, &_GCSkillToObjectOK2);
 
-            // 타겟이 슬레이어가 아닌 경우에만
-            // 경험치를 올린다
-            // Effect를 붙인다
-            // Effect를 브로드 캐스팅 한다
+            // Only when the target is not a Slayer:
+            // raise the experience,
+            // attach the effect,
+            // and broadcast the effect.
             if (!pTargetCreature->isSlayer()) {
                 SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
                 Exp_t ExpUp = 10 * (Grade + 1);
@@ -113,53 +113,53 @@ void CauseCriticalWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
                 increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToObjectOK1);
                 increaseAlignment(pSlayer, pTargetCreature, _GCSkillToObjectOK1);
 
-                // Effect를 생성해서 붙인다
+                // Create the effect and attach it.
                 EffectCauseCriticalWounds* pEffectCauseCriticalWounds = new EffectCauseCriticalWounds(pTargetCreature);
                 pEffectCauseCriticalWounds->setDeadline(output.Duration);
                 pTargetCreature->addEffect(pEffectCauseCriticalWounds);
                 pTargetCreature->setFlag(Effect::EFFECT_CLASS_CAUSE_CRITICAL_WOUNDS);
 
-                // Effect 를 브로드 캐스팅 한다
+                // Broadcast the effect.
                 GCAddEffect gcAddEffect;
                 gcAddEffect.setObjectID(pTargetCreature->getObjectID());
                 gcAddEffect.setEffectID(Effect::EFFECT_CLASS_CAUSE_CRITICAL_WOUNDS);
                 gcAddEffect.setDuration(output.Duration);
                 pZone->broadcastPacket(targetX, targetY, &gcAddEffect);
-            } else // 슬레이어 일 경우
+            } else // The target is a Slayer.
             {
-                // 슬레이어 일 경우 Duration을 0으로 세팅한다. 마비는 하지 않고 데미지만 적용한다.
+                // A Slayer target gets duration 0: no paralysis, damage only.
                 output.Duration = 0;
             }
 
             bool bCanSeePrayer = canSee(pTargetCreature, pSlayer);
 
-            // 스킬을 사용한 사람에게
+            // For the skill user
             _GCSkillToObjectOK1.setSkillType(SkillType);
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);
             _GCSkillToObjectOK1.setDuration(output.Duration);
 
-            // 스킬의 대상자에게
+            // For the skill's target
             _GCSkillToObjectOK2.setObjectID(pSlayer->getObjectID());
             _GCSkillToObjectOK2.setSkillType(SkillType);
             _GCSkillToObjectOK2.setDuration(output.Duration);
 
-            // 스킬을 사용한 사람만 볼 수 있는 사람에게
+            // For those who can see only the skill user
             _GCSkillToObjectOK3.setObjectID(pSlayer->getObjectID());
             _GCSkillToObjectOK3.setSkillType(SkillType);
             _GCSkillToObjectOK3.setTargetXY(targetX, targetY);
 
-            // 스킬의 대상자만 불 수 있는 사람에게
+            // For those who can see only the target
             _GCSkillToObjectOK4.setSkillType(SkillType);
             _GCSkillToObjectOK4.setTargetObjectID(TargetObjectID);
 
-            // 스킬 사용자와 대상자 모두 볼 수 있는 사람에게
+            // For those who can see both the skill user and the target
             _GCSkillToObjectOK5.setObjectID(pSlayer->getObjectID());
             _GCSkillToObjectOK5.setTargetObjectID(TargetObjectID);
             _GCSkillToObjectOK5.setSkillType(SkillType);
             _GCSkillToObjectOK5.setDuration(output.Duration);
 
-            // 스킬 대상자가 스킬 사용자를 볼 수 없을 때
+            // For when the target cannot see the skill user
             _GCSkillToObjectOK6.setXY(prayerX, prayerY);
             _GCSkillToObjectOK6.setSkillType(SkillType);
             _GCSkillToObjectOK6.setDuration(output.Duration);

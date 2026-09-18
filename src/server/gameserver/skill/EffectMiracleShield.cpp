@@ -77,7 +77,7 @@ void EffectMiracleShield::unaffect(Creature* pCreature)
     pSlayer->sendRealWearingInfo();
     pSlayer->sendModifyInfo(prev);
 
-    // 이펙트가 사라졌다고 알려준다.
+    // Tells clients that the effect is gone.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pSlayer->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_MIRACLE_SHIELD);

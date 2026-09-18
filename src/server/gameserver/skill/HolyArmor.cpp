@@ -13,7 +13,7 @@
 #include "GCStatusCurrentHP.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프
+// Slayer self
 //////////////////////////////////////////////////////////////////////////////
 void HolyArmor::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -31,7 +31,7 @@ void HolyArmor::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        // 무장하고 있는 무기가 널이거나, 검이 아니라면 기술을 쓸 수 없다.
+        // The skill cannot be used if no weapon is equipped or it is not a sword.
 
         GCSkillToSelfOK1 _GCSkillToSelfOK1;
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
@@ -60,21 +60,21 @@ void HolyArmor::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectHolyArmor* pEffect = new EffectHolyArmor(pSlayer);
             pEffect->setDeadline(output.Duration);
             pEffect->setDefBonus(output.Damage);
             pSlayer->addEffect(pEffect);
             pSlayer->setFlag(Effect::EFFECT_CLASS_HOLY_ARMOR);
 
-            // 이로 인하여 바뀌는 능력치를 보낸다.
+            // Send the stats that this changes.
             SLAYER_RECORD prev;
             pSlayer->getSlayerRecord(prev);
             pSlayer->initAllStat();
             pSlayer->sendRealWearingInfo();
             pSlayer->sendModifyInfo(prev);
 
-            // 경험치를 올린다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
 
@@ -82,7 +82,7 @@ void HolyArmor::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
 
-            // 패킷을 만들어 보낸다.
+            // Build the packet and send it.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(output.Duration);

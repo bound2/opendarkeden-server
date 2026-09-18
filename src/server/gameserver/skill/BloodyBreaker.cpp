@@ -18,8 +18,8 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 생성자
-// 마스크를 초기화한다.
+// Constructor
+// Initializes the mask.
 //////////////////////////////////////////////////////////////////////////////
 BloodyBreaker::BloodyBreaker() {
     __BEGIN_TRY
@@ -77,7 +77,7 @@ BloodyBreaker::BloodyBreaker() {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodyBreaker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                             CEffectID_t CEffectID)
@@ -95,7 +95,7 @@ void BloodyBreaker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pVampire, getSkillType());
 
@@ -112,7 +112,7 @@ void BloodyBreaker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 타일 핸들러
+// Vampire tile handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireSkillSlot* pVampireSkillSlot,
                             CEffectID_t CEffectID)
@@ -122,7 +122,7 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
 
     SkillType_t SkillType = getSkillType();
 
-    // Knowledge of Blood 가 있다면 hit bonus 10
+    // Knowledge of Blood gives a hit bonus of 10.
     int HitBonus = 0;
     if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_BLOOD)) {
         RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_BLOOD);
@@ -138,7 +138,7 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
 
         Dir_t Dir = getDirectionToPosition(pVampire->getX(), pVampire->getY(), X, Y);
 
-        // 강제로 knockback시킬 확률
+        // Chance of a forced knockback.
 
         Player* pPlayer = pVampire->getPlayer();
         Zone* pZone = pVampire->getZone();
@@ -164,25 +164,25 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
         bool bRangeCheck = verifyDistance(pVampire, X, Y, pSkillInfo->getRange());
 
         if (bManaCheck && bTimeCheck && bRangeCheck) {
-            // 마나를 떨어뜨린다.
+            // Consume the mana.
             decreaseMana(pVampire, RequiredMP, _GCSkillToTileOK1);
 
-            // 좌표와 방향을 구한다.
+            // Work out the coordinates and the direction.
             ZoneCoord_t myX = pVampire->getX();
             ZoneCoord_t myY = pVampire->getY();
             Dir_t dir = calcDirection(myX, myY, X, Y);
 
             list<Creature*> cList;
 
-            // knockback 때문에 recursive 하게 데미지를 먹는 경우가 있다.
-            // 그래서 제일 먼쪽에 있는 마스크부터 체크한다.
+            // Knockback can make a creature take damage recursively.
+            // So check the mask starting from the farthest tile.
             for (int i = 21; i >= 0; i--) {
                 int tileX = myX + m_pBloodyBreakerMask[Dir][i].x;
                 int tileY = myY + m_pBloodyBreakerMask[Dir][i].y;
 
-                // 현재 타일이 존 내부이고, 안전지대가 아니라면 맞을 가능성이 있다.
+                // A tile inside the zone that is not a safe zone can be hit.
                 if (rect.ptInRect(tileX, tileY)) {
-                    // 타일을 받아온다.
+                    // Get the tile.
                     Tile& tile = pZone->getTile(tileX, tileY);
 
                     list<Creature*> targetList;
@@ -247,13 +247,13 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
                                 _GCSkillToTileOK2.addCListElement(targetObjectID);
                                 _GCSkillToTileOK5.addCListElement(targetObjectID);
 
-                                // 일단 맞는 놈이 받을 패킷은 널 상태로 한 채로, 데미지를 준다.
+                                // Apply the damage, leaving the target's packet null for now.
                                 setDamage(pTargetCreature, Damage, pVampire, SkillType, NULL, &_GCSkillToTileOK1);
                                 computeAlignmentChange(pTargetCreature, Damage, pVampire, NULL, &_GCSkillToTileOK1);
 
                                 increaseAlignment(pVampire, pTargetCreature, _GCSkillToTileOK1);
 
-                                // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+                                // On a critical hit, push the target back.
                                 if (bForceKnockback) {
                                     knockbackCreature(pZone, pTargetCreature, pVampire->getX(), pVampire->getY());
                                 }
@@ -269,7 +269,7 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
             }
 
 
-            // 공격자의 아이템 내구성을 떨어뜨린다.
+            // Wear down the attacker's item durability.
             decreaseDurability(pVampire, NULL, pSkillInfo, &_GCSkillToTileOK1, NULL);
 
             _GCSkillToTileOK1.setSkillType(SkillType);
@@ -295,7 +295,7 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
+            // Send the packet to everyone affected by this skill.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
                 Assert(pTargetCreature != NULL);
@@ -303,7 +303,7 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
                 if (pTargetCreature->isPC()) {
                     _GCSkillToTileOK2.clearList();
 
-                    // HP의 변경사항을 패킷에다 기록한다.
+                    // Record the HP change in the packet.
                     HP_t targetHP = 0;
                     if (pTargetCreature->isSlayer()) {
                         targetHP = (dynamic_cast<Slayer*>(pTargetCreature))->getHP(ATTR_CURRENT);
@@ -315,13 +315,13 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
 
                     _GCSkillToTileOK2.addShortData(MODIFY_CURRENT_HP, targetHP);
 
-                    // 아이템의 내구력을 떨어뜨린다.
+                    // Wear down the target's item durability.
                     decreaseDurability(NULL, pTargetCreature, pSkillInfo, NULL, &_GCSkillToTileOK2);
 
-                    // 패킷을 보내준다.
+                    // Send the packet.
                     pTargetCreature->getPlayer()->sendPacket(&_GCSkillToTileOK2);
                 } else if (pTargetCreature->isMonster()) {
-                    // 당근 적으로 인식한다.
+                    // The monster takes the caster as an enemy.
                     Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
                     pMonster->addEnemy(pVampire);
                 }

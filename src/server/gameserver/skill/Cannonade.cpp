@@ -32,12 +32,12 @@ void Cannonade::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y) {
         ZoneCoord_t myX = pMonster->getX();
         ZoneCoord_t myY = pMonster->getY();
 
-        // 데미지와 지속 시간을 계산한다.
+        // Compute the damage and the duration.
         SkillInput input(pMonster);
         SkillOutput output;
         computeOutput(input, output);
 
-        // 이펙트 오브젝트를 생성한다.
+        // Create the effect object.
         EffectCannonade* pEffect = new EffectCannonade(pMonster, pZone, X, Y);
         pEffect->setDeadline(output.Duration);
         pEffect->setDamage(output.Damage);

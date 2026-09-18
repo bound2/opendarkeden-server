@@ -18,7 +18,7 @@
 #include "GCSkillToSelfOK2.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void GroundBless::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot, CEffectID_t CEffectID)
 
@@ -60,7 +60,7 @@ void GroundBless::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected && bSatisfyRequire) {
             decreaseMana(pOusters, RequiredMP, _GCSkillToSelfOK1);
 
-            // 지속 시간을 계산한다.
+            // Compute the duration.
             SkillInput input(pOusters, pOustersSkillSlot);
             SkillOutput output;
 
@@ -70,7 +70,7 @@ void GroundBless::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
 
             computeOutput(input, output);
 
-            // 이팩트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectGroundBless* pEffect = new EffectGroundBless(pOusters);
             pEffect->setDeadline(output.Duration);
             pEffect->setBonus(output.Damage);
@@ -131,9 +131,9 @@ void GroundBless::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수 없다.
-        // 저주 면역. by sigi. 2002.9.13
-        // NoSuch제거. by sigi. 2002.5.2
+        // NPCs cannot be attacked.
+        // It also fails if the target is immune to curses.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !pTargetCreature->isOusters()) {
             executeSkillFailException(pOusters, getSkillType());
             return;
@@ -171,7 +171,7 @@ void GroundBless::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
 
             bool bCanSeeCaster = canSee(pTargetCreature, pOusters);
 
-            // 이펙트 오브젝트를 생성해 붙인다.
+            // Create the effect object and attach it.
             EffectGroundBless* pEffect = new EffectGroundBless(pTargetCreature);
             pEffect->setDeadline(output.Duration);
             pEffect->setBonus(output.Damage);

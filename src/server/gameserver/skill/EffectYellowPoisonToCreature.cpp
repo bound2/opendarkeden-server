@@ -57,19 +57,19 @@ void EffectYellowPoisonToCreature::unaffect(Creature* pCreature)
         Zone* pZone = pCreature->getZone();
         Player* pPlayer = pCreature->getPlayer();
 
-        // Light등의 마법으로 인하여 시야가 밝아져 있을 수 있으므로..
-        // OldSight가 현재의 Sight보다 어두우면 Setting 하지 않는다.
+        // Sight may have been brightened by magic such as Light,
+        // so OldSight is not applied when it is darker than the current sight.
         Sight_t NewSight = 13;
         pCreature->setSight(NewSight);
 
-        // 클라이언트에 Vision 정보를 전송한다.
+        // Sends the vision information to the client.
         GCModifyInformation _GCModifyInformation;
         _GCModifyInformation.addShortData(MODIFY_VISION, NewSight);
         pPlayer->sendPacket(&_GCModifyInformation);
 
         pCreature->removeFlag(Effect::EFFECT_CLASS_YELLOW_POISON_TO_CREATURE);
 
-        // Yellow Poison의 효과가 풀릴때 Update Scan은 물론 밝기의 조절까지 해준다.
+        // When Yellow Poison wears off, the scan is updated and the brightness adjusted.
 
         GCChangeDarkLight gcChangeDarkLight;
         gcChangeDarkLight.setDarkLevel(pZone->getDarkLevel());
@@ -78,9 +78,9 @@ void EffectYellowPoisonToCreature::unaffect(Creature* pCreature)
         pPlayer->sendPacket(&gcChangeDarkLight);
 
 
-        // 풀릴때 Sight를 저장해준다.
+        // Saves the sight when it wears off.
 
-        // 이펙트가 사라졌다고 알려준다.
+        // Tells clients that the effect is gone.
         GCRemoveEffect gcRemoveEffect;
         gcRemoveEffect.setObjectID(pCreature->getObjectID());
         gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_YELLOW_POISON_TO_CREATURE);

@@ -31,7 +31,7 @@
 const uint CureAllBloodDrainLevel = 75;
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -64,8 +64,8 @@ void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
-        // 슬레이어 외에는 치료할 수가 없다.
+        // A missing target fails the skill instead of throwing.
+        // Only a Slayer can be cured.
         if (pTargetCreature == NULL || pTargetCreature->isSlayer() == false) {
             executeSkillFailException(pSlayer, param.SkillType);
             return;
@@ -83,13 +83,13 @@ void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 
         bool bHPCheck = false;
 
-        // 체력이 닳거나, 흡혈을 당한 상태여야 한다.
+        // The target must have lost HP or be under blood drain.
         Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
         Assert(pTargetSlayer != NULL);
 
         EffectBloodDrain* pEffectBloodDrain = NULL;
 
-        bool bEffected = false; // 아무 저주나 걸려 있으면 켠다.
+        bool bEffected = false; // Set when any curse is present.
 
         if (pTargetSlayer->getHP(ATTR_CURRENT) < pTargetSlayer->getHP(ATTR_MAX)) {
             bHPCheck = true;
@@ -120,7 +120,7 @@ void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
         EffectParalyze* pEffectParalyze = NULL;
         EffectSeduction* pEffectSeduction = NULL;
 
-        // 저주 계열 해소
+        // Cure the curse effects.
         if (pTargetCreature->isEffect(Effect::EFFECT_CLASS_DOOM)) {
             pEffectDoom = (EffectDoom*)pTargetCreature->findEffect(Effect::EFFECT_CLASS_DOOM);
             Assert(pEffectDoom != NULL);
@@ -154,11 +154,11 @@ void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             bHPCheck = true;
         }
 
-        // 독 계열 해소
-        bool bGreenPoison = false;    // GreenPoison을 치료할까의 여부
-        bool bYellowPoison = false;   // YellowPoison을 치료할까의 여부
-        bool bDarkBluePoison = false; // DarkBluePoison을 치료할까의 여부
-        bool bGreenStalker = false;   // GreenStalker를 치료할까의 여부
+        // Cure the poison effects.
+        bool bGreenPoison = false;    // Whether to cure GreenPoison
+        bool bYellowPoison = false;   // Whether to cure YellowPoison
+        bool bDarkBluePoison = false; // Whether to cure DarkBluePoison
+        bool bGreenStalker = false;   // Whether to cure GreenStalker
 
         EffectPoison* pEffectPoison = NULL;
         EffectYellowPoisonToCreature* pEffectYellowPoisonToCreature = NULL;
@@ -208,21 +208,21 @@ void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 
             uint HealPoint = param.SkillDamage;
 
-            // 각각의 저주를 삭제하고,
-            // 패킷에다 이펙트 삭제하라고 더한다.
+            // Clear each curse and
+            // add it to the packet as an effect to remove.
             GCRemoveEffect gcRemoveEffect;
             gcRemoveEffect.setObjectID(pTargetCreature->getObjectID());
 
-            // 흡혈당한 상태라면 흡혈 상태를 날려준다.
+            // Clear the blood drain state if the target is under it.
             if (pEffectBloodDrain != NULL && pEffectBloodDrain->getLevel() < CureAllBloodDrainLevel) {
-                // 흡혈 아르바이트를 방지하기 위한 후유증 이펙트를 붙여준다.
+                // Attach an aftermath effect to prevent blood drain farming.
                 if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_AFTERMATH)) {
                     Effect* pEffect = pTargetCreature->findEffect(Effect::EFFECT_CLASS_AFTERMATH);
                     EffectAftermath* pEffectAftermath = dynamic_cast<EffectAftermath*>(pEffect);
-                    pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                    pEffectAftermath->setDeadline(5 * 600); // Lasts 5 minutes.
                 } else {
                     EffectAftermath* pEffectAftermath = new EffectAftermath(pTargetCreature);
-                    pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                    pEffectAftermath->setDeadline(5 * 600); // Lasts 5 minutes.
                     pTargetCreature->addEffect(pEffectAftermath);
                     pTargetCreature->setFlag(Effect::EFFECT_CLASS_AFTERMATH);
                     pEffectAftermath->create(pTargetCreature->getName());
@@ -261,8 +261,8 @@ void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
                 gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_SEDUCTION);
             }
 
-            // 각각의 독마다 치료를 하고,
-            // 패킷에다 이펙트 삭제하라고 더한다.
+            // Cure each poison and
+            // add it to the packet as an effect to remove.
             if (bGreenPoison) {
                 pEffectPoison->setDeadline(0);
                 pTargetCreature->removeFlag(Effect::EFFECT_CLASS_POISON);
@@ -288,11 +288,11 @@ void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
                 pZone->broadcastPacket(pTargetCreature->getX(), pTargetCreature->getY(), &gcRemoveEffect);
             }
 
-            // 다른 사람을 치료한다.
+            // Heal the other creature.
             HP_t CurrentHP = pTargetSlayer->getHP(ATTR_CURRENT);
             HP_t MaxHP = pTargetSlayer->getHP(ATTR_MAX);
 
-            // 실제 회복 수치를 계산한다.
+            // Compute the actual amount healed.
             int RealHealPoint = 0;
             if (CurrentHP + HealPoint <= MaxHP) {
                 RealHealPoint = max((unsigned int)0, HealPoint);
@@ -300,17 +300,17 @@ void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
                 RealHealPoint = max(0, MaxHP - CurrentHP);
             }
 
-            // 경험치를 올려준다.
+            // Raises experience.
             shareAttrExp(pSlayer, RealHealPoint, param.STRMultiplier, param.DEXMultiplier, param.INTMultiplier,
                          _GCSkillToObjectOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToObjectOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToObjectOK1);
 
-            // HP를 셋팅한다.
+            // Set the HP.
             CurrentHP = min((int)(MaxHP), (int)(CurrentHP + HealPoint));
             pTargetSlayer->setHP(CurrentHP, ATTR_CURRENT);
 
-            // 치료가 되었으니 HP를 브로드캐스팅한다.
+            // Broadcast the HP now that the target is healed.
             GCStatusCurrentHP gcStatusCurrentHP;
             gcStatusCurrentHP.setObjectID(TargetObjectID);
             gcStatusCurrentHP.setCurrentHP(CurrentHP);
@@ -374,7 +374,7 @@ void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void CureAll::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -418,7 +418,7 @@ void CureAll::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
 
         EffectBloodDrain* pEffectBloodDrain = NULL;
 
-        bool bEffected = false; // 아무 저주나 걸려 있으면 켠다.
+        bool bEffected = false; // Set when any curse is present.
         if (pSlayer->getHP(ATTR_CURRENT) < pSlayer->getHP(ATTR_MAX)) {
             bHPCheck = true;
         }
@@ -442,7 +442,7 @@ void CureAll::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
         EffectParalyze* pEffectParalyze = NULL;
         EffectSeduction* pEffectSeduction = NULL;
 
-        // 저주 계열 해소
+        // Cure the curse effects.
         if (pSlayer->isEffect(Effect::EFFECT_CLASS_DOOM)) {
             pEffectDoom = (EffectDoom*)pSlayer->findEffect(Effect::EFFECT_CLASS_DOOM);
             Assert(pEffectDoom != NULL);
@@ -476,11 +476,11 @@ void CureAll::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
             bHPCheck = true;
         }
 
-        // 독 계열 해소
-        bool bGreenPoison = false;    // GreenPoison을 치료할까의 여부
-        bool bYellowPoison = false;   // YellowPoison을 치료할까의 여부
-        bool bDarkBluePoison = false; // DarkBluePoison을 치료할까의 여부
-        bool bGreenStalker = false;   // GreenStalker를 치료할까의 여부
+        // Cure the poison effects.
+        bool bGreenPoison = false;    // Whether to cure GreenPoison
+        bool bYellowPoison = false;   // Whether to cure YellowPoison
+        bool bDarkBluePoison = false; // Whether to cure DarkBluePoison
+        bool bGreenStalker = false;   // Whether to cure GreenStalker
 
         EffectPoison* pEffectPoison = NULL;
         EffectYellowPoisonToCreature* pEffectYellowPoisonToCreature = NULL;
@@ -531,16 +531,16 @@ void CureAll::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
 
             uint HealPoint = param.SkillDamage;
 
-            // 흡혈당한 상태라면 흡혈 상태를 날려준다.
+            // Clear the blood drain state if the target is under it.
             if (pEffectBloodDrain != NULL && pEffectBloodDrain->getLevel() < param.Level) {
-                // 흡혈 아르바이트를 방지하기 위한 후유증 이펙트를 붙여준다.
+                // Attach an aftermath effect to prevent blood drain farming.
                 if (pSlayer->isFlag(Effect::EFFECT_CLASS_AFTERMATH)) {
                     Effect* pEffect = pSlayer->findEffect(Effect::EFFECT_CLASS_AFTERMATH);
                     EffectAftermath* pEffectAftermath = dynamic_cast<EffectAftermath*>(pEffect);
-                    pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                    pEffectAftermath->setDeadline(5 * 600); // Lasts 5 minutes.
                 } else {
                     EffectAftermath* pEffectAftermath = new EffectAftermath(pSlayer);
-                    pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                    pEffectAftermath->setDeadline(5 * 600); // Lasts 5 minutes.
                     pSlayer->addEffect(pEffectAftermath);
                     pSlayer->setFlag(Effect::EFFECT_CLASS_AFTERMATH);
                     pEffectAftermath->create(pSlayer->getName());
@@ -562,8 +562,8 @@ void CureAll::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
                 pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &gcRemoveEffect);
             }
 
-            // 각각의 저주를 삭제하고,
-            // 패킷에다 이펙트 삭제하라고 더한다.
+            // Clear each curse and
+            // add it to the packet as an effect to remove.
             GCRemoveEffect gcRemoveEffect;
             gcRemoveEffect.setObjectID(pSlayer->getObjectID());
 
@@ -588,8 +588,8 @@ void CureAll::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
                 gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_SEDUCTION);
             }
 
-            // 각각의 독마다 치료를 하고,
-            // 패킷에다 이펙트 삭제하라고 더한다.
+            // Cure each poison and
+            // add it to the packet as an effect to remove.
             if (bGreenPoison) {
                 pEffectPoison->setDeadline(0);
                 pSlayer->removeFlag(Effect::EFFECT_CLASS_POISON);
@@ -616,18 +616,18 @@ void CureAll::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
             }
 
 
-            // HP를 세팅한다.
+            // Set the HP.
             HP_t CurrentHP = pSlayer->getHP(ATTR_CURRENT);
             HP_t MaxHP = pSlayer->getHP(ATTR_MAX);
 
-            // 실제 회복 수치를 계산한다.
+            // Compute the actual amount healed.
             int RealHealPoint = 0;
             if (CurrentHP + HealPoint <= MaxHP) {
                 RealHealPoint = max((unsigned int)0, HealPoint);
             } else {
                 RealHealPoint = max(0, MaxHP - CurrentHP);
             }
-            // 경험치를 올려준다.
+            // Raises experience.
             shareAttrExp(pSlayer, RealHealPoint, param.STRMultiplier, param.DEXMultiplier, param.INTMultiplier,
                          _GCSkillToSelfOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
@@ -636,7 +636,7 @@ void CureAll::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
             CurrentHP = min((int)MaxHP, (int)(CurrentHP + HealPoint));
             pSlayer->setHP(CurrentHP, ATTR_CURRENT);
 
-            // HP를 브로드캐스팅한다.
+            // Broadcast the HP.
             GCStatusCurrentHP gcStatusCurrentHP;
             gcStatusCurrentHP.setObjectID(pSlayer->getObjectID());
             gcStatusCurrentHP.setCurrentHP(CurrentHP);

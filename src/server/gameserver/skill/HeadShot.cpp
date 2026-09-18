@@ -19,7 +19,7 @@
 #include "ItemUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -40,8 +40,8 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -55,10 +55,10 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         GCSkillToObjectOK4 _GCSkillToObjectOK4;
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
-        // 무장하고 있는 무기가 널이거나, 총이 아니거나, SR이라면 이 기술을 쓸 수 없다.
+        // The skill cannot be used if the equipped weapon is null, is not a gun, or is an SR.
         Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pWeapon == NULL || !isArmsWeapon(pWeapon))
-        // SR도 사용가능하게 한다. by sigi. 2002.12.3
+        // An SR can be used as well.
         //|| pWeapon->getItemClass() == Item::ITEM_CLASS_SR)
         {
             executeSkillFailException(pSlayer, getSkillType());
@@ -73,18 +73,18 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);
         bool bTimeCheck = verifyRunTime(pSkillSlot);
-        bool bRangeCheck = verifyDistance(pSlayer, pTargetCreature, pSkillInfo->getRange()); // 사정거리 3으로 고정
+        bool bRangeCheck = verifyDistance(pSlayer, pTargetCreature, pSkillInfo->getRange()); // Range fixed at 3
         bool bBulletCheck = (getRemainBullet(pWeapon) > 0) ? true : false;
 
-        // 총알 숫자는 무조건 떨어뜨린다.
+        // The bullet count always drops.
         Bullet_t RemainBullet = 0;
         if (bBulletCheck) {
             decreaseBullet(pWeapon);
-            // 한발쓸때마다 저장할 필요 없다. by sigi. 2002.5.9
+            // The weapon is not saved on every shot.
             RemainBullet = getRemainBullet(pWeapon);
         }
 
-        // 데미지, 투힛 보너스, 좌표와 방향을 구한다.
+        // Work out the damage, the to-hit bonus, and the coordinates and direction.
         int ToHitBonus = 0;
         int DamageBonus = 0;
         ZoneCoord_t myX = pSlayer->getX();
@@ -95,14 +95,14 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 
         int Splash = computeArmsWeaponSplashSize(pWeapon, myX, myY, targetX, targetY);
 
-        // 거리에 따른 데미지 보너스를 계산한다.
+        // Compute the damage bonus for the distance.
         SkillInput input(pSlayer, pSkillSlot);
         SkillOutput output;
         input.Range = getDistance(pSlayer->getX(), pSlayer->getY(), pTargetCreature->getX(), pTargetCreature->getY());
         computeOutput(input, output);
 
         ////////////////////////////////////////////////////////////////////////////////
-        // SG가 아닌 다른 총일 경우
+        // For a gun other than an SG
         ////////////////////////////////////////////////////////////////////////////////
         if (Splash == 0) {
             ToHitBonus = computeArmsWeaponToHitBonus(pWeapon, myX, myY, targetX, targetY);
@@ -121,13 +121,13 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
                 setDamage(pTargetCreature, Damage, pSlayer, SkillType, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
                 computeAlignmentChange(pTargetCreature, Damage, pSlayer, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
 
-                // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+                // On a critical hit, knocks the target back.
                 if (bCriticalHit) {
                     knockbackCreature(pZone, pTargetCreature, pSlayer->getX(), pSlayer->getY());
                 }
 
                 if (!pTargetCreature->isSlayer()) {
-                    // 경험치를 올려준다.
+                    // Raise the experience.
                     if (bIncreaseDomainExp) {
                         shareAttrExp(pSlayer, Damage, 1, 8, 1, _GCSkillToObjectOK1);
                         increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToObjectOK1,
@@ -137,10 +137,10 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
                     increaseAlignment(pSlayer, pTargetCreature, _GCSkillToObjectOK1);
                 }
 
-                // 총알 수를 떨어뜨리고, 세이브하고, 남은 총알을 받고, 내구력을 떨어뜨린다.
+                // Drop the bullet count, save it, read the remaining bullets, wear down durability.
                 decreaseDurability(pSlayer, pTargetCreature, pSkillInfo, &_GCSkillToObjectOK1, &_GCSkillToObjectOK2);
 
-                // 총이 아직까지 남아있다면, 총알 숫자를 떨어뜨리라고, 클라이언트에게 알려준다.
+                // If the gun is still there, tell the client to drop the bullet count.
                 if (pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND) != NULL)
                     _GCSkillToObjectOK1.addShortData(MODIFY_BULLET, RemainBullet);
 
@@ -196,7 +196,7 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
             }
         }
         ////////////////////////////////////////////////////////////////////////////////
-        // SG일 경우 헤드샷 말고도 데미지가...
+        // For an SG there is damage beyond the head shot...
         ////////////////////////////////////////////////////////////////////////////////
         else {
             if (bManaCheck && bTimeCheck && bRangeCheck && bBulletCheck) {
@@ -208,8 +208,8 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 
                 decreaseMana(pSlayer, RequiredMP, _GCSkillToTileOK1);
 
-                Damage_t Damage = 0; // 마지막으로 입힌 데미지를 저장하기 위한 변수
-                bool bHit = false;   // 한 명이라도 맞았는가를 저장하기 위한 변수
+                Damage_t Damage = 0; // Holds the last damage dealt
+                bool bHit = false;   // Holds whether at least one creature was hit
 
                 Level_t maxEnemyLevel = 0;
                 uint EnemyNum = 0;
@@ -237,8 +237,8 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
                         Damage =
                             computeDamage(pSlayer, pEnemy, SkillLevel / 5, bCriticalHit) + output.Damage + DamageBonus;
 
-                        // 메인 타겟을 제외하고는, 스플래시 데미지를 입는데,
-                        // 스플래시 데미지는 일반 데미지의 50%이다.
+                        // Everyone except the main target takes splash damage, which
+                        // is 50% of the normal damage.
                         if (pTargetCreature != pEnemy) {
                             Damage = Damage / 2;
                         }
@@ -254,12 +254,12 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 
                         increaseAlignment(pSlayer, pEnemy, _GCSkillToTileOK1);
 
-                        // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+                        // A critical hit knocks the target back.
                         if (bCriticalHit) {
                             knockbackCreature(pZone, pEnemy, myX, myY);
                         }
 
-                        // 슬레이어가 아닌 경우에만 hit한 걸로 간주한다.
+                        // Only a non-Slayer counts as a hit.
                         if (!pEnemy->isSlayer()) {
                             bHit = true;
                             if (maxEnemyLevel < pEnemy->getLevel())
@@ -269,7 +269,7 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
                     }
                 }
 
-                // 하나라도 맞았을 경우에만 경험치를 올려준다.
+                // Raise the experience only if at least one target was hit.
                 if (bHit) {
                     shareAttrExp(pSlayer, Damage, 1, 8, 1, _GCSkillToTileOK1);
                     increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToTileOK1, maxEnemyLevel,
@@ -278,7 +278,7 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
                     increaseAlignment(pSlayer, pTargetCreature, _GCSkillToTileOK1);
                 }
 
-                // 총알 숫자를 줄이고, 총알 숫자를 저장하고, 남은 총알 숫자를 받은 다음에 내구력을 떨어뜨린다.
+                // Report the remaining bullet count, then drop the durability.
                 _GCSkillToTileOK1.addShortData(MODIFY_BULLET, RemainBullet);
 
                 decreaseDurability(pSlayer, NULL, pSkillInfo, &_GCSkillToTileOK1, NULL);
@@ -317,7 +317,7 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 
                 pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-                // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
+                // Send the packet to every creature affected by this skill.
                 for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                     Creature* pVictim = *itr;
                     Assert(pVictim != NULL);

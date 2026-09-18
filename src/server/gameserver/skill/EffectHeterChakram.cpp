@@ -40,9 +40,9 @@ void EffectHeterChakram::affect()
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     setNextTime(10);
-    // 			// Ôö¼ÓÆäËü¹¥»÷´ÎÊý
+    // 			// Increases the number of other attacks
     // 			//m_TrageSaveHP = CurrentHP;
-    // ´´½¨ÉËº¦
+    // Deals the damage.
     affect(pCreature);
 
     //	}
@@ -125,10 +125,10 @@ void EffectHeterChakram::unaffect()
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
 
-    // ´´½¨Ä¿±êÉËº¦
+    // Damage the target.
     affect(pCreature);
 
-    //  ¶ÁÈ¡5*5·¶Î§ÄÚ¶ÔÏó,²¢´´½¨ÉËº¦
+    //  Reads the objects within the 5x5 area and deals damage to them.
 
 
     int cx = pCreature->getX();
@@ -155,7 +155,7 @@ void EffectHeterChakram::unaffect()
                 Creature* pTargetCreature = dynamic_cast<Creature*>(pObject);
                 if (pTargetCreature == NULL || pTargetCreature->isOusters() || pTargetCreature == pCreature)
                     continue;
-                //  ´´½¨ÉËº¦
+                //  Deals the damage.
                 affect(pTargetCreature);
             }
         }
