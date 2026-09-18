@@ -8,6 +8,7 @@
 
 #include "GCSay.h"
 #include "GCSkillToTileOK5.h"
+#include "GameContext.h"
 #include "MasterLairInfoManager.h"
 #include "MasterLairManager.h"
 #include "MonsterSummonInfo.h"
@@ -85,7 +86,7 @@ void SummonMonsters::execute(Monster* pMonster)
                 Assert(pMasterLairManager != NULL);
                 // minion combat에서는 지정된 좌표에 소환한다.
 
-                MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(pZone->getZoneID());
+                MasterLairInfo* pInfo = de::gameContext().masterLairInfos().getMasterLairInfo(pZone->getZoneID());
                 Assert(pInfo != NULL);
 
                 if (!pMasterLairManager->isMasterReady()) {

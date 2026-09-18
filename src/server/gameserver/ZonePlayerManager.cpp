@@ -12,6 +12,7 @@
 
 #include "Assert.h"
 #include "CGLogout.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "LogClient.h"
@@ -417,7 +418,7 @@ void ZonePlayerManager::processCommands() {
                                 // If the player is in a party, refresh the family pay state.
                                 int PartyID = pCreature->getPartyID();
                                 if (PartyID != 0) {
-                                    g_pGlobalPartyManager->refreshFamilyPay(PartyID);
+                                    de::gameContext().parties().refreshFamilyPay(PartyID);
                                 }
 
                                 PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
@@ -918,7 +919,7 @@ void ZonePlayerManager::heartbeat()
 
         Assert(pGamePlayer != NULL);
 
-        g_pIncomingPlayerManager->pushPlayer(pGamePlayer);
+        de::gameContext().incomingPlayers().pushPlayer(pGamePlayer);
     }
 
     // Process the broadcast packet queue.

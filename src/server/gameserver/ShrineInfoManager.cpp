@@ -132,7 +132,7 @@ void ShrineSet::setOwnerRace(Race_t race)
 {
     __BEGIN_TRY
 
-    g_pBloodBibleBonusManager->setBloodBibleBonusRace(m_ShrineID, race);
+    de::gameContext().bloodBibleBonuses().setBloodBibleBonusRace(m_ShrineID, race);
 
     m_OwnerRace = race;
     saveBloodBibleOwner();

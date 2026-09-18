@@ -48,7 +48,4 @@ private:
     HashMapDynamicZoneGroup m_DynamicZoneGroups;
 };
 
-// global variable
-extern DynamicZoneManager* g_pDynamicZoneManager;
-
 #endif

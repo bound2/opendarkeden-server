@@ -37,8 +37,9 @@ ClientManager::ClientManager()
     __BEGIN_TRY
 
     // create incoming player manager
-    g_pIncomingPlayerManager = new IncomingPlayerManager();
-    Assert(g_pIncomingPlayerManager != NULL);
+    m_pIncomingPlayerManager = new IncomingPlayerManager();
+    Assert(m_pIncomingPlayerManager != NULL);
+    de::gameContext().setIncomingPlayerManager(m_pIncomingPlayerManager);
 
     // Schedule the next ZoneGroup balancing time.
     getCurrentTime(m_BalanceZoneGroupTime);
@@ -61,7 +62,7 @@ ClientManager::~ClientManager()
     __BEGIN_TRY
 
     // Delete incoming player manager
-    SAFE_DELETE(g_pIncomingPlayerManager);
+    SAFE_DELETE(m_pIncomingPlayerManager);
 
     __END_CATCH_NO_RETHROW
 }
@@ -75,7 +76,7 @@ void ClientManager::init()
     __BEGIN_TRY
 
     // initialize incoming player manager
-    g_pIncomingPlayerManager->init();
+    m_pIncomingPlayerManager->init();
 
     __END_CATCH
 }
@@ -127,19 +128,19 @@ void ClientManager::run()
             setCurrentTime();
 
             // vstime.start();
-            g_pIncomingPlayerManager->select();
+            m_pIncomingPlayerManager->select();
             // file << "IncomingPlayerManagerSelect:" << vstime.elapsed() << endl;
 
             // vstime.restart();
-            g_pIncomingPlayerManager->processExceptions();
+            m_pIncomingPlayerManager->processExceptions();
             // file << "IncomingPlayerManagerException:" << vstime.elapsed() << endl;
 
             // vstime.restart();
-            g_pIncomingPlayerManager->processInputs();
+            m_pIncomingPlayerManager->processInputs();
             // file << "IncomingPlayerManagerInput:" << vstime.elapsed() << endl;
 
             // vstime.restart();
-            g_pIncomingPlayerManager->processOutputs();
+            m_pIncomingPlayerManager->processOutputs();
             // file << "IncomingPlayerManagerOutput:" << vstime.elapsed() << endl;
         } catch (TimeoutException&) {
             // If select() times out, there is nothing to do.
@@ -151,7 +152,7 @@ void ClientManager::run()
         }
 
         // vstime.start();
-        g_pIncomingPlayerManager->processCommands();
+        m_pIncomingPlayerManager->processCommands();
         // file << "IncomingPlayerManagerCommands:" << vstime.elapsed() << endl;
 
         /*
@@ -174,7 +175,7 @@ void ClientManager::run()
 
         // Track current time; every 30 seconds purge expired ConnectionInfo in ConnectionInfoManager.
 
-        g_pIncomingPlayerManager->heartbeat();
+        m_pIncomingPlayerManager->heartbeat();
 
         // vstime.start();
         de::gameContext().connectionInfos().heartbeat();

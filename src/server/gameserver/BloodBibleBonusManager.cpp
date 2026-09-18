@@ -182,6 +182,3 @@ string BloodBibleBonusManager::toString() const
 
     __END_CATCH
 }
-
-// Global Variable definition
-BloodBibleBonusManager* g_pBloodBibleBonusManager = NULL;

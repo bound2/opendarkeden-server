@@ -9,6 +9,7 @@
 #ifdef __GAME_SERVER__
 #include "Assert1.h"
 #include "GCPartySay.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Party.h"
 #endif
@@ -36,7 +37,7 @@ void CGPartySayHandler::execute(CGPartySay* pPacket, Player* pPlayer)
         gcPartySay.setColor(pPacket->getColor());
         gcPartySay.setMessage(pPacket->getMessage());
 
-        Party* pParty = g_pGlobalPartyManager->getParty(pCreature->getPartyID());
+        Party* pParty = de::gameContext().parties().getParty(pCreature->getPartyID());
         if (pParty != NULL) {
             pParty->broadcastPacket(&gcPartySay);
         }

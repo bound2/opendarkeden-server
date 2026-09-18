@@ -13,6 +13,8 @@
 #include "Timeval.h"
 #include "Types.h"
 
+class IncomingPlayerManager;
+
 //////////////////////////////////////////////////////////////////////////////
 // class ClientManager;
 //////////////////////////////////////////////////////////////////////////////
@@ -49,6 +51,10 @@ private:
     Timeval m_BalanceZoneGroupTime; // test -_-;
     bool m_bForceZoneGroupBalancing;
     bool m_bDefaultZoneGroupBalancing;
+
+    // Created and deleted here, registered on de::GameContext for the
+    // handlers that reach a client still in the pre-zone phase.
+    IncomingPlayerManager* m_pIncomingPlayerManager = nullptr;
 
     mutable Mutex m_Mutex;
     EventManager m_EventManager;

@@ -12,6 +12,7 @@
 #include "GCShopBought.h"
 #include "GCShopSellFail.h"
 #include "GCShopSellOK.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemFactoryManager.h"
 #include "ItemInfo.h"
@@ -133,7 +134,8 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
     Inventory* pInventory = pPC->getInventory();
     Item* pItem = pInventory->getItemWithObjectID(ITEMOID);
     ItemNum_t itemNumber = pItem->getNum();
-    Price_t itemPrice = g_pPriceManager->getPrice(pItem, pNPC->getMarketCondBuy(), SHOP_RACK_NORMAL, pPC) * itemNumber;
+    Price_t itemPrice =
+        de::gameContext().prices().getPrice(pItem, pNPC->getMarketCondBuy(), SHOP_RACK_NORMAL, pPC) * itemNumber;
 
     // Remove the item from the player's inventory.
     pInventory->deleteItem(ITEMOID);
@@ -373,8 +375,8 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
                             SAFE_DELETE(pItem);
 
                             // The motorcycle price, not the key price, has to be paid.
-                            Price_t itemPrice =
-                                g_pPriceManager->getPrice(pItemOnTile, pNPC->getMarketCondBuy(), SHOP_RACK_NORMAL, pPC);
+                            Price_t itemPrice = de::gameContext().prices().getPrice(
+                                pItemOnTile, pNPC->getMarketCondBuy(), SHOP_RACK_NORMAL, pPC);
 
                             // Increase the player's money.
                             pPC->increaseGoldEx(itemPrice);
@@ -461,7 +463,8 @@ void CGShopRequestSellHandler::executeOpAllSkull(CGShopRequestSell* pPacket, Pla
 
                 // by sigi. 2002.9.4
                 itemPrice +=
-                    g_pPriceManager->getPrice(pItem, pNPC->getMarketCondBuy(), SHOP_RACK_NORMAL, pPC) * pItem->getNum();
+                    de::gameContext().prices().getPrice(pItem, pNPC->getMarketCondBuy(), SHOP_RACK_NORMAL, pPC) *
+                    pItem->getNum();
 
                 // Delete the item from the inventory and the DB.
                 pInventory->deleteItem(x, y);

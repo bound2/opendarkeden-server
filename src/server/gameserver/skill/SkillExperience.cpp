@@ -633,7 +633,8 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
         // °¨¼ÒÇÏ´Â °ÍÀÎÁö Áõ°¡ÇÏ´Â °ÍÀÎÁö ¾Ë¾ÆµÐ´Ù.
         bool bdecrease = false;
         if (pTargetPC->isDead()) {
-            ModifyAlignment = g_pAlignmentManager->getMultiplier(AttackAlignment, TargetAlignment); // Damage* 2
+            ModifyAlignment =
+                de::gameContext().alignments().getMultiplier(AttackAlignment, TargetAlignment); // Damage* 2
 
             if (ModifyAlignment < 0) {
                 ModifyAlignment = ModifyAlignment * 10;
@@ -692,7 +693,8 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
         EffectManager* pTargetEffectManager = pTargetPC->getEffectManager();
 
         // ¼ºÇâ¿¡ °ü°è ¾øÀÌ Á¤´ç¹æÀ§¿¡ ÇØ´çµÇÁö ¾Ê´Â »ç¶÷À» ¶§¸®¸é ¹«Á¶°Ç »ó´ë¹æ¿¡°Ô Á¤´ç¹æÀ§ ±ÇÇÑÀ» ÁØ´Ù.
-        if (!pAttackPC->hasEnemy(TargetName) && g_pAlignmentManager->getAlignmentType(TargetAlignment) >= NEUTRAL) {
+        if (!pAttackPC->hasEnemy(TargetName) &&
+            de::gameContext().alignments().getAlignmentType(TargetAlignment) >= NEUTRAL) {
             GCAddInjuriousCreature gcAddInjuriousCreature;
             gcAddInjuriousCreature.setName(AttackName);
             pTargetPC->getPlayer()->sendPacket(&gcAddInjuriousCreature);
@@ -726,7 +728,7 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
         // ¼±°øÀÚÀÇ ¸®½ºÆ®¿¡ ¹æ¾îÀÚÀÇ ÀÌ¸§ÀÌ ÀÖ°í, ÀÚ½ÅÀÇ ¼ºÇâÀÌ Good ¶Ç´Â Neutral ÀÌ¶ó¸é Á¤´ç¹æÀ§·Î ÀÎÁ¤ÇÏ°í, ¼ºÇâÀÌ
         // ¶³¾îÁöÁö´Â ¾Ê°Ô ÇÑ´Ù.
         if (!(bdecrease && pAttackPC->hasEnemy(TargetName) &&
-              g_pAlignmentManager->getAlignmentType(AttackAlignment) >= NEUTRAL)) {
+              de::gameContext().alignments().getAlignmentType(AttackAlignment) >= NEUTRAL)) {
             // ¿Ã¶ó°¡µç ³»·Á°¡µç ¸ÕÀú ¼ÂÆÃÀ» ÇØ ³õ¾Æ¾ß ÇÑ´ç.
             // ¸ÕÀú ¼ÂÆÃÀ» ÇØ ³õ´Â´Ù.
             if (pAttackerMI && ModifyAlignment != 0) {
@@ -1032,8 +1034,8 @@ void increaseAlignment(Creature* pCreature, Creature* pEnemy, ModifyInfo& mi) {
     }
 
     // ¼ºÇâ ´Ü°è°¡ ¹Ù²î¸é ´Ù¸¥ »ç¶÷µé¿¡°Ôµµ ¾Ë·ÁÁà¾ß ÇÑ´Ù.  by sigi. 2002.1.6
-    Alignment beforeAlignment = g_pAlignmentManager->getAlignmentType(OldAlignValue);
-    Alignment afterAlignment = g_pAlignmentManager->getAlignmentType(NewAlignValue);
+    Alignment beforeAlignment = de::gameContext().alignments().getAlignmentType(OldAlignValue);
+    Alignment afterAlignment = de::gameContext().alignments().getAlignmentType(NewAlignValue);
 
     if (beforeAlignment != afterAlignment) {
         GCOtherModifyInfo gcOtherModifyInfo;

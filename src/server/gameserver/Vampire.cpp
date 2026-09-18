@@ -651,7 +651,7 @@ bool Vampire::load()
     //----------------------------------------------------------------------
     // Load the effects.
     //----------------------------------------------------------------------
-    g_pEffectLoaderManager->load(this);
+    de::gameContext().effectLoaders().load(this);
 
     //----------------------------------------------------------------------
     // Attach the effect for a GrandMaster.

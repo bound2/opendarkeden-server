@@ -512,7 +512,7 @@ int computeCreatureExp(Creature* pCreature, int percent, Ousters* pOusters)
         }
 
         // When a slayer is blood-drained, swap the BLOODDRAIN and KILL exp values.
-        if (g_pCombatInfoManager->isCombat()) {
+        if (de::gameContext().combatInfo().isCombat()) {
             if (percent == BLOODDRAIN_EXP)
                 percent = KILL_EXP;
             else if (percent == KILL_EXP)
@@ -621,7 +621,7 @@ int computeBloodDrainHealPoint(Creature* pCreature, int percent)
         exp = 1;
 
         // When a slayer is blood-drained, swap the BLOODDRAIN and KILL exp values.
-        if (g_pCombatInfoManager->isCombat()) {
+        if (de::gameContext().combatInfo().isCombat()) {
             if (percent == BLOODDRAIN_EXP)
                 percent = KILL_EXP;
             else if (percent == KILL_EXP)

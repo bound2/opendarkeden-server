@@ -96,6 +96,7 @@
 #include "GDRLairManager.h"
 #include "GGCommand.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
 #include "GuildManager.h"
@@ -421,7 +422,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
         // Pillar of fire.
         if (isMasterLair() && m_pMasterLairManager != NULL) {
-            MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(getZoneID());
+            MasterLairInfo* pInfo = de::gameContext().masterLairInfos().getMasterLairInfo(getZoneID());
             Assert(pInfo != NULL);
 
             if (m_pMasterLairManager->getCurrentEvent() == MasterLairManager::EVENT_WAITING_PLAYER) {
@@ -476,7 +477,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
                 pPC->getPlayer()->sendPacket(RegenZoneManager::getInstance()->getStatusPacket());
             } else {
                 GCHolyLandBonusInfo gcHolyLandBonusInfo;
-                g_pBloodBibleBonusManager->makeHolyLandBonusInfo(gcHolyLandBonusInfo);
+                de::gameContext().bloodBibleBonuses().makeHolyLandBonusInfo(gcHolyLandBonusInfo);
                 pCreature->getPlayer()->sendPacket(&gcHolyLandBonusInfo);
             }
         }

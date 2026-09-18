@@ -681,7 +681,7 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
 
             deleteRelicEffect(pCorpse, pItem);
 
-            g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_NULL);
+            de::gameContext().combatInfo().setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_NULL);
 
             char msg[50];
             sprintf(msg, g_pStringPool->c_str(STRID_RELIC_FROM_RELIC_TABLE), pRelicInfo->getName().c_str());
@@ -697,7 +697,7 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
 
             // The relic left the relic table, so the
             // bonuses and penalties are recomputed.
-            g_pCombatInfoManager->computeModify();
+            de::gameContext().combatInfo().computeModify();
         } catch (Throwable& t) {
             cout << t.toString().c_str() << endl;
             throw;

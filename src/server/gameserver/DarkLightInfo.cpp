@@ -7,6 +7,7 @@
 #include "DarkLightInfo.h"
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "GameTime.h"
 #include "TimeManager.h"
 #include "Zone.h"
@@ -179,7 +180,7 @@ const DarkLightInfo* DarkLightInfoManager::getCurrentDarkLightInfo(Zone* pZone) 
     }
 
     // Get the game time from the global time manager.
-    GameTime gametime = g_pTimeManager->getGameTime();
+    GameTime gametime = de::gameContext().worldTime().getGameTime();
 
     return getDarkLightInfo(gametime.getMonth(), gametime.getHour(), gametime.getMinute());
 
@@ -197,7 +198,7 @@ DarkLightInfo* DarkLightInfoManager::getCurrentDarkLightInfo(Zone* pZone)
     }
 
     // Get the game time from the global time manager.
-    GameTime gametime = g_pTimeManager->getGameTime();
+    GameTime gametime = de::gameContext().worldTime().getGameTime();
 
     return getDarkLightInfo(gametime.getMonth(), gametime.getHour(), gametime.getMinute());
 

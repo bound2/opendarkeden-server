@@ -25,6 +25,7 @@
 #include "GCDeleteObject.h"
 #include "GCSay.h"
 #include "GDRLairManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemFactoryManager.h"
 #include "ItemGradeManager.h"
@@ -923,7 +924,7 @@ void MonsterManager::killCreature(Creature* pDeadCreature)
 
     // A master says a line as it dies.
     if (pDeadMonster->isMaster()) {
-        MasterLairInfo* pMasterLairInfo = g_pMasterLairInfoManager->getMasterLairInfo(pZone->getZoneID());
+        MasterLairInfo* pMasterLairInfo = de::gameContext().masterLairInfos().getMasterLairInfo(pZone->getZoneID());
 
         if (pMasterLairInfo != NULL && pMasterLairInfo->getMasterMonsterType() == pDeadMonster->getMonsterType()) {
             GCSay gcSay;

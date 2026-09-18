@@ -551,7 +551,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                   (pCreature->getZoneID() == 3003) || (pCreature->getZoneID() == 1013); // add by sonic 2006.10.30
     bool isEventZone = EventZoneInfoManager::Instance().getEventZoneInfo(pCreature->getZoneID()) != NULL;
     bool isBeginnerZone = pCreature->getZoneID() == 1122 && !canEnterBeginnerZone(pCreature);
-    bool isDynamicZone = g_pDynamicZoneManager->isDynamicZone(pCreature->getZoneID());
+    bool isDynamicZone = de::gameContext().dynamicZones().isDynamicZone(pCreature->getZoneID());
 
     if (pCreature->isPC()) //&& pCreature->isPLAYER() )
     {

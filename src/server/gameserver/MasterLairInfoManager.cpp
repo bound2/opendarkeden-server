@@ -467,7 +467,3 @@ string MasterLairInfoManager::toString() const
 
     __END_CATCH
 }
-
-
-// global variable definition
-MasterLairInfoManager* g_pMasterLairInfoManager = NULL;

@@ -154,11 +154,11 @@ ObjectManager::ObjectManager()
     m_pItemLoaderManager = new ItemLoaderManager();
     m_pShopTemplateManager = new ShopTemplateManager();
     g_pOptionInfoManager = new OptionInfoManager();
-    g_pItemMineInfoManager = new ItemMineInfoManager();
+    m_pItemMineInfoManager = new ItemMineInfoManager();
     m_pDirectiveSetManager = new DirectiveSetManager();
     m_pMonsterNameManager = new MonsterNameManager();
     g_pZoneGroupManager = new ZoneGroupManager();
-    g_pTimeManager = new TimeManager();
+    m_pTimeManager = new TimeManager();
     m_pDarkLightInfoManager = new DarkLightInfoManager();
     m_pVisionInfoManager = new VisionInfoManager();
     m_pWeatherInfoManager = new WeatherInfoManager();
@@ -180,9 +180,11 @@ ObjectManager::ObjectManager()
     context.setVolumeInfoManager(m_pVolumeInfoManager);
     context.setItemLoaderManager(m_pItemLoaderManager);
     context.setShopTemplateManager(m_pShopTemplateManager);
+    context.setItemMineInfoManager(m_pItemMineInfoManager);
     context.setDirectiveSetManager(m_pDirectiveSetManager);
     context.setMonsterNameManager(m_pMonsterNameManager);
     context.setZoneGroupManager(g_pZoneGroupManager);
+    context.setTimeManager(m_pTimeManager);
     context.setDarkLightInfoManager(m_pDarkLightInfoManager);
     context.setWeatherInfoManager(m_pWeatherInfoManager);
     context.setSkillDomainInfoManager(m_pSkillDomainInfoManager);
@@ -204,19 +206,24 @@ ObjectManager::ObjectManager()
     context.setVampEXPInfoManager(m_pVampEXPInfoManager);
     m_pOustersEXPInfoManager = new OustersEXPInfoManager();
     context.setOustersEXPInfoManager(m_pOustersEXPInfoManager);
-    g_pPriceManager = new PriceManager();
-    g_pEffectLoaderManager = new EffectLoaderManager();
+    m_pPriceManager = new PriceManager();
+    context.setPriceManager(m_pPriceManager);
+    m_pEffectLoaderManager = new EffectLoaderManager();
+    context.setEffectLoaderManager(m_pEffectLoaderManager);
     // Temporarily disabled for other work.
     g_pGuildManager = new GuildManager();
     //	g_pGuildRegistrationManager = new GuildRegistrationManager();
     //	g_pGuildVoteManager         = new GuildVoteManager();
     g_pResurrectLocationManager = new ResurrectLocationManager();
-    g_pAlignmentManager = new AlignmentManager();
+    m_pAlignmentManager = new AlignmentManager();
+    context.setAlignmentManager(m_pAlignmentManager);
     m_pWayPointManager = new WayPointManager();
     context.setWayPointManager(m_pWayPointManager);
-    g_pGlobalPartyManager = new GlobalPartyManager();
+    m_pGlobalPartyManager = new GlobalPartyManager();
+    context.setGlobalPartyManager(m_pGlobalPartyManager);
     g_pGameWorldInfoManager = new GameWorldInfoManager();
-    g_pCombatInfoManager = new CombatInfoManager();
+    m_pCombatInfoManager = new CombatInfoManager();
+    context.setCombatInfoManager(m_pCombatInfoManager);
     m_pUniqueItemManager = new UniqueItemManager();
 
     // by sigi. 2002.8.31
@@ -225,7 +232,8 @@ ObjectManager::ObjectManager()
     //	g_pRankEXPInfoManager[RANK_TYPE_OUSTERS] = new RankEXPInfoManager();
 
     // by sigi. 2002.9.2
-    g_pMasterLairInfoManager = new MasterLairInfoManager();
+    m_pMasterLairInfoManager = new MasterLairInfoManager();
+    context.setMasterLairInfoManager(m_pMasterLairInfoManager);
     // 2003. 1. 20. by bezz,Sequoia
     g_pCastleInfoManager = new CastleInfoManager();
 
@@ -242,12 +250,14 @@ ObjectManager::ObjectManager()
 
     g_pHolyLandManager = new HolyLandManager();
 
-    g_pBloodBibleBonusManager = new BloodBibleBonusManager();
+    m_pBloodBibleBonusManager = new BloodBibleBonusManager();
+    context.setBloodBibleBonusManager(m_pBloodBibleBonusManager);
 
     m_pSkillPropertyManager = new SkillPropertyManager();
     context.setSkillPropertyManager(m_pSkillPropertyManager);
 
-    g_pCoupleManager = new CoupleManager();
+    m_pCoupleManager = new CoupleManager();
+    context.setCoupleManager(m_pCoupleManager);
     g_pPKZoneInfoManager = new PKZoneInfoManager();
     //	g_pFameLimitInfoManager = new FameLimitInfoManager();
     m_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
@@ -275,7 +285,8 @@ ObjectManager::ObjectManager()
     context.setTimeChecker(m_pTimeChecker);
     m_pDynamicZoneInfoManager = new DynamicZoneInfoManager();
     context.setDynamicZoneInfoManager(m_pDynamicZoneInfoManager);
-    g_pDynamicZoneManager = new DynamicZoneManager();
+    m_pDynamicZoneManager = new DynamicZoneManager();
+    context.setDynamicZoneManager(m_pDynamicZoneManager);
     m_pDynamicZoneFactoryManager = new DynamicZoneFactoryManager();
     context.setDynamicZoneFactoryManager(m_pDynamicZoneFactoryManager);
 
@@ -294,7 +305,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(g_pPCFinder);
     SAFE_DELETE(g_pParkingCenter);
     SAFE_DELETE(m_pTelephoneCenter);
-    SAFE_DELETE(g_pItemMineInfoManager);
+    SAFE_DELETE(m_pItemMineInfoManager);
     SAFE_DELETE(g_pOptionInfoManager);
     SAFE_DELETE(g_pSkillInfoManager);
     SAFE_DELETE(m_pSkillDomainInfoManager);
@@ -303,7 +314,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pWeatherInfoManager);
     SAFE_DELETE(m_pVisionInfoManager);
     SAFE_DELETE(m_pDarkLightInfoManager);
-    SAFE_DELETE(g_pTimeManager);
+    SAFE_DELETE(m_pTimeManager);
     SAFE_DELETE(m_pDirectiveSetManager);
     SAFE_DELETE(m_pMonsterNameManager);
     SAFE_DELETE(g_pZoneInfoManager);
@@ -317,26 +328,26 @@ ObjectManager::~ObjectManager()
     //	SAFE_DELETE(g_pDEXBalanceInfoManager);
     //	SAFE_DELETE(g_pINTBalanceInfoManager);
     SAFE_DELETE(m_pShopTemplateManager);
-    SAFE_DELETE(g_pEffectLoaderManager);
-    SAFE_DELETE(g_pPriceManager);
+    SAFE_DELETE(m_pEffectLoaderManager);
+    SAFE_DELETE(m_pPriceManager);
     SAFE_DELETE(m_pVampEXPInfoManager);
     SAFE_DELETE(m_pOustersEXPInfoManager);
     SAFE_DELETE(g_pGuildManager);
     //	SAFE_DELETE(g_pGuildRegistrationManager);
     //	SAFE_DELETE(g_pGuildVoteManager);
     SAFE_DELETE(g_pResurrectLocationManager);
-    SAFE_DELETE(g_pAlignmentManager);
+    SAFE_DELETE(m_pAlignmentManager);
     SAFE_DELETE(m_pWayPointManager);
-    SAFE_DELETE(g_pGlobalPartyManager);
+    SAFE_DELETE(m_pGlobalPartyManager);
     SAFE_DELETE(g_pGameWorldInfoManager);
     SAFE_DELETE(g_pVariableManager);
-    SAFE_DELETE(g_pCombatInfoManager);
+    SAFE_DELETE(m_pCombatInfoManager);
     SAFE_DELETE(m_pUniqueItemManager);
     // by sigi. 2002.8.31
     //	SAFE_DELETE(g_pRankEXPInfoManager[RANK_TYPE_SLAYER]);
     //	SAFE_DELETE(g_pRankEXPInfoManager[RANK_TYPE_VAMPIRE]);
     //	SAFE_DELETE(g_pRankEXPInfoManager[RANK_TYPE_OUSTERS]);
-    SAFE_DELETE(g_pMasterLairInfoManager);
+    SAFE_DELETE(m_pMasterLairInfoManager);
     SAFE_DELETE(g_pCastleInfoManager);
     SAFE_DELETE(m_pRankBonusInfoManager);
     //	SAFE_DELETE(g_pHolyLandRaceBonus);
@@ -346,11 +357,11 @@ ObjectManager::~ObjectManager()
 
     SAFE_DELETE(g_pHolyLandManager);
 
-    SAFE_DELETE(g_pBloodBibleBonusManager);
+    SAFE_DELETE(m_pBloodBibleBonusManager);
 
     SAFE_DELETE(m_pSkillPropertyManager);
 
-    SAFE_DELETE(g_pCoupleManager);
+    SAFE_DELETE(m_pCoupleManager);
     SAFE_DELETE(g_pPKZoneInfoManager);
     //	SAFE_DELETE(g_pFameLimitInfoManager);
     SAFE_DELETE(m_pGameServerGroupInfoManager);
@@ -371,7 +382,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pTimeChecker);
 
     SAFE_DELETE(m_pDynamicZoneInfoManager);
-    SAFE_DELETE(g_pDynamicZoneManager);
+    SAFE_DELETE(m_pDynamicZoneManager);
     SAFE_DELETE(m_pDynamicZoneFactoryManager);
 
     __END_CATCH_NO_RETHROW
@@ -420,7 +431,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : MonsterNameManager Initialization Success\n");
 
     printf("ObjectManager::init() : TimeManager Initialization Start\n");
-    g_pTimeManager->init();
+    m_pTimeManager->init();
     printf("ObjectManager::init() : TimeManager Initialization Success\n");
 
     printf("ObjectManager::init() : PublicScriptManager Initialization Start\n");
@@ -441,7 +452,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : ItemInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : ItemMineInfoManager Initialization Start\n");
-    g_pItemMineInfoManager->load();
+    m_pItemMineInfoManager->load();
     printf("ObjectManager::init() : ItemMineInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : WarID Initialization Start\n");
@@ -476,7 +487,7 @@ void ObjectManager::init()
         printf("ObjectManager::load() : RewardClassInfoManager Initialization Success\n");*/
 
     printf("ObjectManager::init() : EffectLoaderManager Initialization Start\n");
-    g_pEffectLoaderManager->init();
+    m_pEffectLoaderManager->init();
     printf("ObjectManager::init() : EffectLoaderManager Initialization Success\n");
 
     printf("ObjectManager::init() : ZoneInfoManager Initialization Start\n");
@@ -485,7 +496,7 @@ void ObjectManager::init()
 
     // by sigi. 2002.9.2
     printf("ObjectManager::load() : MasterLairInfoManager Initialization Start\n");
-    g_pMasterLairInfoManager->init(); // load after ZoneInfo and MonsterManager, before Zone
+    m_pMasterLairInfoManager->init(); // load after ZoneInfo and MonsterManager, before Zone
     printf("ObjectManager::load() : MasterLairInfoManager Initialization Success\n");
 
     // by bezz,Sequoia. 2003. 1. 20.
@@ -502,7 +513,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : ZoneGroupManager Initialization Success\n");
 
     printf("ObjectManager::load() : BloodBibleBonusManager Initialization Start\n");
-    g_pBloodBibleBonusManager->init();
+    m_pBloodBibleBonusManager->init();
     printf("ObjectManager::load() : BloodBibleBonusManager Initialization Success\n");
 
     // ShrineInfoManager must be called only after every Zone has been loaded.
@@ -642,7 +653,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : GameWorldInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : CombatInfoManager Initialization Start\n");
-    g_pCombatInfoManager->initModify();
+    m_pCombatInfoManager->initModify();
     printf("ObjectManager::load() : CombatInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : UniqueItemManager Initialization Start\n");
@@ -755,7 +766,7 @@ void ObjectManager::load()
 
     // Called after DynamicZoneInfoManager init
     printf("ObjectManager::load() : DynamicZoneManager Initialization Start\n");
-    g_pDynamicZoneManager->init();
+    m_pDynamicZoneManager->init();
     printf("ObjectManager::load() : DynamicZoneManager Initialization Success\n");
 
     printf("ObjectManager::load() : DynamicZoneFactoryManager Initialization Start\n");

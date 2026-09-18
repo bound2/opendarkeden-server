@@ -11,6 +11,7 @@
 
 #ifdef __GAME_SERVER__
 #include "Assert.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "LogDef.h"
@@ -37,7 +38,7 @@ void LGIncomingConnectionErrorHandler::execute(LGIncomingConnectionError* pPacke
         // Note that redirecting to input is impossible, because at the moment of the
         // redirection there is no way to know that a packet arrived cut off in the input buffer.
         try {
-        GamePlayer* pGamePlayer = g_pIncomingPlayerManager->getPlayer(pPacket->getPlayerID());
+        GamePlayer* pGamePlayer = de::gameContext().incomingPlayers().getPlayer(pPacket->getPlayerID());
 
         Assert(pGamePlayer->getPlayerStatus() == GPS_AFTER_SENDING_GL_INCOMING_CONNECTION);
 

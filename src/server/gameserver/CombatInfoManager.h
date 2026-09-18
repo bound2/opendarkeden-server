@@ -86,6 +86,4 @@ private:
     bool m_bCombat;
 };
 
-extern CombatInfoManager* g_pCombatInfoManager;
-
 #endif

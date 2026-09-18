@@ -13,6 +13,7 @@
 #include "GCCreateItem.h"
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -75,7 +76,7 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
     // 이 사람의 인벤토리에 축구공이 충분한지 살핀다.
 
 
-    g_pPriceManager->getBallPrice(m_GoalAmount, star);
+    context().prices().getBallPrice(m_GoalAmount, star);
 
     if (!pInventory->hasEnoughStar(star)) {
         GCSystemMessage gcSystemMessage;

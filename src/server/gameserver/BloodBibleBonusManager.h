@@ -75,7 +75,4 @@ private:
     BloodBibleBonusHashMap m_BloodBibleBonuses;
 };
 
-// Global Variable Definition
-extern BloodBibleBonusManager* g_pBloodBibleBonusManager;
-
 #endif // __SKILL_INFO_MANAGER_H__

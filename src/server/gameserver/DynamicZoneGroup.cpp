@@ -111,7 +111,7 @@ DynamicZone* DynamicZoneGroup::getAvailableDynamicZone() {
         pDynamicZone = de::gameContext().dynamicZoneFactories().createDynamicZone(m_DynamicZoneType);
 
         pDynamicZone->setTemplateZoneID(m_TemplateZoneID);
-        pDynamicZone->setZoneID(g_pDynamicZoneManager->getNewDynamicZoneID());
+        pDynamicZone->setZoneID(de::gameContext().dynamicZones().getNewDynamicZoneID());
         pDynamicZone->setStatus(DYNAMIC_ZONE_STATUS_RUNNING);
         addDynamicZone(pDynamicZone);
     }

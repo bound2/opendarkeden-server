@@ -22,9 +22,6 @@
 #include "item/SlayerPortalItem.h"
 #include "item/VampirePortalItem.h"
 
-// global variable definition
-PriceManager* g_pPriceManager = NULL;
-
 // constants
 const uint PORTAL_ITEM_CHARGE_PRICE = 5000;
 const uint SUMMON_ITEM_CHARGE_PRICE = 1000;

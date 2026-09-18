@@ -28,6 +28,4 @@ public:
     void removeCoupleForce(PlayerCreature* pPC1);
 };
 
-extern CoupleManager* g_pCoupleManager;
-
 #endif // __COUPLE_MANAGER_H__

@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGRelicToObject.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 
 #ifdef __GAME_SERVER__
@@ -363,7 +364,7 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
         EffectRelicTable* pTableEffect = NULL;
         if (bSlayer) {
             // Set the relic's owner.
-            g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_SLAYER);
+            de::gameContext().combatInfo().setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_SLAYER);
 
             // Find the effect.
             Effect* pEffect = pCorpse->getEffectManager().findEffect(Effect::EFFECT_CLASS_SLAYER_RELIC_TABLE);
@@ -373,7 +374,7 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
             Assert(pTableEffect != NULL);
         } else {
             // Set the relic's owner.
-            g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
+            de::gameContext().combatInfo().setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
 
             // Find the effect.
             Effect* pEffect = pCorpse->getEffectManager().findEffect(Effect::EFFECT_CLASS_VAMPIRE_RELIC_TABLE);
@@ -408,19 +409,19 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
 
             if (bSlayer) {
                 gcSystemMessage.setMessage(g_pStringPool->getString(STRID_COMBAT_SLAYER_WIN));
-                g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_SLAYER);
+                de::gameContext().combatInfo().setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_SLAYER);
             } else {
                 gcSystemMessage.setMessage(g_pStringPool->getString(STRID_COMBAT_VAMPIRE_WIN));
-                g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
+                de::gameContext().combatInfo().setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
             }
 
             // The war has ended.
-            g_pCombatInfoManager->setCombat(false);
+            de::gameContext().combatInfo().setCombat(false);
 
             // Send the message to every user.
             g_pZoneGroupManager->broadcast(&gcSystemMessage);
 
-            g_pCombatInfoManager->computeModify();
+            de::gameContext().combatInfo().computeModify();
         }
     } else {
         GCCannotAdd _GCCannotAdd;

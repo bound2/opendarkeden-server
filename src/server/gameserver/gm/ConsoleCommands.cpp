@@ -1508,7 +1508,7 @@ void opAddDynamicZone(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
                       bool& bSendPacket) {
     int DynamicZoneType = atoi(trim(value1).c_str());
 
-    DynamicZoneGroup* pDynamicZoneGroup = g_pDynamicZoneManager->getDynamicZoneGroup(DynamicZoneType);
+    DynamicZoneGroup* pDynamicZoneGroup = de::gameContext().dynamicZones().getDynamicZoneGroup(DynamicZoneType);
     if (pDynamicZoneGroup == NULL) {
         gcSystemMessage.setMessage("No dynamic zone group of that type.");
         return;

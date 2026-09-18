@@ -33,7 +33,4 @@ public:
     string toString() const;
 };
 
-// global variable definition
-extern AlignmentManager* g_pAlignmentManager;
-
 #endif // __ALIGNMENT_MANAGER_H__

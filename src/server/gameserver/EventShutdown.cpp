@@ -6,6 +6,7 @@
 
 #include "EventShutdown.h"
 
+#include "GameContext.h"
 #include "IncomingPlayerManager.h"
 #include "VariableManager.h"
 #include "ZoneGroupManager.h"
@@ -36,7 +37,7 @@ void EventShutdown::activate()
             pZonePlayerManager->clearPlayers();
         }
 
-        g_pIncomingPlayerManager->clearPlayers();
+        de::gameContext().incomingPlayers().clearPlayers();
     } catch (Throwable& t) {
         // Ignore
     }

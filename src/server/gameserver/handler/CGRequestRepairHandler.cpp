@@ -6,6 +6,7 @@
 #include "CGRequestRepair.h"
 
 #ifdef __GAME_SERVER__
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemInfo.h"
 #include "ItemInfoManager.h"
@@ -148,7 +149,7 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
     // Save the previous durability.
     Durability_t oldDurability = pItem->getDurability();
 
-    repairPrice = g_pPriceManager->getRepairPrice(pItem);
+    repairPrice = de::gameContext().prices().getRepairPrice(pItem);
 
     if (repairPrice > playerMoney) {
         response.setCode(NPC_RESPONSE_REPAIR_FAIL_MONEY);
@@ -282,7 +283,7 @@ void CGRequestRepairHandler::executeMotorcycle(CGRequestRepair* pPacket, Player*
                     ItemID_t motorcycleID = pItemOnTile->getItemID();
 
                     if (targetID == motorcycleID) {
-                        Price_t repairPrice = g_pPriceManager->getRepairPrice(pItemOnTile);
+                        Price_t repairPrice = de::gameContext().prices().getRepairPrice(pItemOnTile);
 
                         if (repairPrice > playerMoney) {
                             response.setCode(NPC_RESPONSE_REPAIR_FAIL_MONEY);
@@ -352,7 +353,7 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
                     // For the right hand, when the weapon held is two-handed...
                     // it does not have to be counted in the repair price.
                 } else {
-                    repairPrice += g_pPriceManager->getRepairPrice(pItem);
+                    repairPrice += de::gameContext().prices().getRepairPrice(pItem);
                 }
             }
         }
@@ -409,7 +410,7 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
                 if (i == Vampire::WEAR_RIGHTHAND && isTwohandWeapon(pItem)) {
                     // A two-handed weapon is repaired on one side only.
                 } else {
-                    repairPrice += g_pPriceManager->getRepairPrice(pItem);
+                    repairPrice += de::gameContext().prices().getRepairPrice(pItem);
                 }
             }
         }
@@ -464,7 +465,7 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
                 if (i == Ousters::WEAR_RIGHTHAND && isTwohandWeapon(pItem)) {
                     // A two-handed weapon is repaired on one side only.
                 } else {
-                    repairPrice += g_pPriceManager->getRepairPrice(pItem);
+                    repairPrice += de::gameContext().prices().getRepairPrice(pItem);
                 }
             }
         }

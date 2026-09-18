@@ -67,7 +67,4 @@ private:
     time_t m_BaseRealTime;
 };
 
-// global variable declaration
-extern TimeManager* g_pTimeManager;
-
 #endif

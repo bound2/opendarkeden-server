@@ -11,6 +11,7 @@
 #include "Creature.h"
 #include "FlagSet.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "NPC.h"
 #include "PlayerCreature.h"
@@ -53,7 +54,7 @@ void ActionCheckPartnerName::execute(Creature* pCreature1, Creature* pCreature2)
     char buffer[256];
     string partnerName;
 
-    if (!pPC->getFlagSet()->isOn(FLAGSET_IS_COUPLE) || !g_pCoupleManager->getPartnerName(pPC, partnerName)) {
+    if (!pPC->getFlagSet()->isOn(FLAGSET_IS_COUPLE) || !context().couples().getPartnerName(pPC, partnerName)) {
         sprintf(buffer, "%s", g_pStringPool->getString(STRID_NOT_COUPLE).c_str());
     } else {
         sprintf(buffer, g_pStringPool->getString(STRID_COUPLE_IS).c_str(), partnerName.c_str());

@@ -10,6 +10,7 @@
 #include "BloodBibleBonusManager.h"
 #include "Creature.h"
 #include "GCBloodBibleList.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "NPC.h"
 #include "PlayerCreature.h"
@@ -56,7 +57,7 @@ void ActionSelectBloodBible::execute(Creature* pCreature1, Creature* pCreature2)
     Assert(pPlayer != NULL);
 
     GCBloodBibleList gcPacket;
-    g_pBloodBibleBonusManager->getBloodBibleByRace(pPC->getRace(), back_inserter(gcPacket.getList()));
+    context().bloodBibleBonuses().getBloodBibleByRace(pPC->getRace(), back_inserter(gcPacket.getList()));
     pPlayer->sendPacket(&gcPacket);
 
     __END_CATCH

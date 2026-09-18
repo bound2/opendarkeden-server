@@ -98,5 +98,3 @@ void CoupleManager::removeCoupleForce(PlayerCreature* pPC1) {
 
     __END_CATCH
 }
-
-CoupleManager* g_pCoupleManager = NULL;

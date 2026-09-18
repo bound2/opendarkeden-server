@@ -14,6 +14,7 @@
 #include "GCUseOK.h"
 #include "GQuestInventory.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -93,7 +94,7 @@ void CGUseItemFromGQuestInventoryHandler::execute(CGUseItemFromGQuestInventory* 
     int ID = baseID[(int)pPC->getRace()] + iType - 13;
     cout << "ID : " << ID << endl;
 
-    Item* pItem = g_pItemMineInfoManager->getRandomItem(ID, ID);
+    Item* pItem = de::gameContext().itemMineInfos().getRandomItem(ID, ID);
     pItem = fitToPC(pItem, pPC);
 
     if (pItem == NULL) {

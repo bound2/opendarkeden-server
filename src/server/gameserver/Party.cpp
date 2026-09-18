@@ -23,6 +23,7 @@
 #include "GCPartyLeave.h"
 #include "GCStatusCurrentHP.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Item.h"
 #include "Ousters.h"
@@ -40,11 +41,6 @@
 #include "skill/EffectHolyArmor.h"
 #include "skill/EffectRevealer.h"
 #include "skill/SkillUtil.h"
-
-//////////////////////////////////////////////////////////////////////////////
-// global varible
-//////////////////////////////////////////////////////////////////////////////
-GlobalPartyManager* g_pGlobalPartyManager = NULL;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -3029,7 +3025,7 @@ void deleteAllPartyInfo(Creature* pCreature)
     // tell the other party members.
     if (PartyID != 0) {
         // Delete from the global party and notify the members.
-        g_pGlobalPartyManager->deletePartyMember(PartyID, pCreature);
+        de::gameContext().parties().deletePartyMember(PartyID, pCreature);
 
         // Delete the information from the local party manager of the current zone.
         // Zone::deleteCreature() already removes a creature, inside

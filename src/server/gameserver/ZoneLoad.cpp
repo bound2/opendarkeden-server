@@ -1723,7 +1723,7 @@ void Zone::loadEffect()
         }
     }
 
-    g_pEffectLoaderManager->load(this);
+    de::gameContext().effectLoaders().load(this);
 
     if (m_ZoneID == 3002) {
         EffectContinualGroundAttack* pEffect =

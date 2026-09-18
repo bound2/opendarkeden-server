@@ -24,6 +24,7 @@
 #include "GCShopBuyFail.h"
 #include "GCShopBuyOK.h"
 #include "GCShopSold.h"
+#include "GameContext.h"
 #include "GuildManager.h"
 #include "SystemAvailabilitiesManager.h"
 #include "Utility.h"
@@ -190,9 +191,9 @@ void CGShopRequestBuyHandler::executeNormal(CGShopRequestBuy* pPacket, Player* p
 
     // A Mysterious item is priced differently.
     if (bMysteriousRack) {
-        itemMoney = g_pPriceManager->getMysteriousPrice(pItem->getItemClass(), pCreature);
+        itemMoney = de::gameContext().prices().getMysteriousPrice(pItem->getItemClass(), pCreature);
     } else {
-        itemMoney = g_pPriceManager->getPrice(pItem, pNPC->getMarketCondSell(), shopType, pPC) * itemNum;
+        itemMoney = de::gameContext().prices().getPrice(pItem, pNPC->getMarketCondSell(), shopType, pPC) * itemNum;
     }
 
     if (pNPC->getTaxingCastleZoneID() != 0) {
@@ -433,7 +434,7 @@ void CGShopRequestBuyHandler::executeMotorcycle(CGShopRequestBuy* pPacket, Playe
         return;
 
     Item* pItem = pNPC->getShopItem(shopType, shopIndex);
-    Price_t itemMoney = g_pPriceManager->getPrice(pItem, pNPC->getMarketCondSell(), shopType, pPC);
+    Price_t itemMoney = de::gameContext().prices().getPrice(pItem, pNPC->getMarketCondSell(), shopType, pPC);
     Item::ItemClass IClass;
     ItemType_t IType;
 
@@ -637,7 +638,7 @@ void CGShopRequestBuyHandler::executeEvent(CGShopRequestBuy* pPacket, Player* pP
     XMAS_STAR star;
 
     // Get the event price of the event item.
-    g_pPriceManager->getStarPrice(pItem, star);
+    de::gameContext().prices().getStarPrice(pItem, star);
 
 
     // For a potion or a magazine the item count is set first, and then...

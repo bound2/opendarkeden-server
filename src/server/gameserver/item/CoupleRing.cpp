@@ -11,6 +11,7 @@
 #include "Belt.h"
 #include "DB.h"
 #include "FlagSet.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -224,7 +225,7 @@ void CoupleRingLoader::load(Creature* pCreature)
         pPC->getFlagSet()->turnOff(FLAGSET_IS_COUPLE);
         pPC->getFlagSet()->save(pPC->getName());
 
-        g_pCoupleManager->removeCoupleForce(pPC);
+        de::gameContext().couples().removeCoupleForce(pPC);
     }
 
     for (size_t r = 0; r < rows.size(); r++) {
@@ -249,9 +250,9 @@ void CoupleRingLoader::load(Creature* pCreature)
             pCoupleRing->setPartnerItemID(rows[r].partnerItemID);
 
             // 파트너 아이템이 없거나 더 이상 커플이 아니면 아이템을 지워준다.
-            if (pPC != NULL &&
-                (!g_pCoupleManager->isCouple(pPC, pCoupleRing->getName()) || !pCoupleRing->hasPartnerItem())) {
-                g_pCoupleManager->removeCoupleForce(pPC, pCoupleRing->getName());
+            if (pPC != NULL && (!de::gameContext().couples().isCouple(pPC, pCoupleRing->getName()) ||
+                                !pCoupleRing->hasPartnerItem())) {
+                de::gameContext().couples().removeCoupleForce(pPC, pCoupleRing->getName());
                 char sql[30];
                 sprintf(sql, "Storage = 10");
                 pCoupleRing->tinysave(sql);

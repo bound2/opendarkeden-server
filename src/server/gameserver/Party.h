@@ -263,8 +263,6 @@ protected:
     int m_PartyIDRegistry; // Party ID generator
 };
 
-extern GlobalPartyManager* g_pGlobalPartyManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // Global functions for convenience.

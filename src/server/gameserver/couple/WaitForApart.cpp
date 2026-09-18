@@ -10,6 +10,7 @@
 #include "GCNPCResponse.h"
 #include "GCRemoveFromGear.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "ItemFactoryManager.h"
 #include "ItemNameInfo.h"
 #include "PacketUtil.h"
@@ -32,7 +33,7 @@ uint WaitForApart::waitPartner(PlayerCreature* pTargetPC) {
     if (pWaitingPC == NULL)
         return COUPLE_MESSAGE_LOGOFF;
 
-    if (!g_pCoupleManager->isCouple(pTargetPC, pWaitingPC)) {
+    if (!de::gameContext().couples().isCouple(pTargetPC, pWaitingPC)) {
         return COUPLE_MESSAGE_NOT_COUPLE;
     }
 
@@ -58,7 +59,7 @@ uint WaitForApart::acceptPartner(PlayerCreature* pRequestedPC) {
     if (pWaitingPC == NULL)
         return COUPLE_MESSAGE_LOGOFF;
 
-    if (!g_pCoupleManager->isCouple(pRequestedPC, pWaitingPC))
+    if (!de::gameContext().couples().isCouple(pRequestedPC, pWaitingPC))
         return COUPLE_MESSAGE_NOT_COUPLE;
 
     if (!hasCoupleItem(pRequestedPC)) {
@@ -78,7 +79,7 @@ uint WaitForApart::acceptPartner(PlayerCreature* pRequestedPC) {
     Assert(removeCoupleItem(pWaitingPC));
 
     // Record the parting with the couple manager
-    g_pCoupleManager->removeCouple(pRequestedPC, pWaitingPC);
+    de::gameContext().couples().removeCouple(pRequestedPC, pWaitingPC);
 
     // The couple is broken, so give the Flag back.
     pRequestedPC->getFlagSet()->turnOff(FLAGSET_IS_COUPLE);

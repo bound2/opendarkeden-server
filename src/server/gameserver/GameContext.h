@@ -23,11 +23,15 @@
 #define __GAME_CONTEXT_H__
 
 class ActionFactoryManager;
+class AlignmentManager;
+class BloodBibleBonusManager;
 class CastleShrineInfoManager;
 class CastleSkillInfoManager;
 class ClientManager;
+class CombatInfoManager;
 class ConditionFactoryManager;
 class ConnectionInfoManager;
+class CoupleManager;
 class DarkLightInfoManager;
 class DatabaseManager;
 class DefaultOptionSetInfoManager;
@@ -35,14 +39,21 @@ class DirectiveSetManager;
 class DragonEyeManager;
 class DynamicZoneFactoryManager;
 class DynamicZoneInfoManager;
+class DynamicZoneManager;
+class EffectLoaderManager;
 class EventQuestLootingManager;
 class GameServerGroupInfoManager;
+class GlobalPartyManager;
 class GoodsInfoManager;
+class IncomingPlayerManager;
 class ItemFactoryManager;
 class ItemLoaderManager;
+class ItemMineInfoManager;
+class MasterLairInfoManager;
 class MonsterNameManager;
 class OustersEXPInfoManager;
 class PCFinder;
+class PriceManager;
 class Properties;
 class RankBonusInfoManager;
 class ScriptManager;
@@ -51,6 +62,7 @@ class SkillDomainInfoManager;
 class SkillPropertyManager;
 class StringPool;
 class TimeChecker;
+class TimeManager;
 class VampEXPInfoManager;
 class VariableManager;
 class VolumeInfoManager;
@@ -71,6 +83,12 @@ public:
     void setActionFactoryManager(ActionFactoryManager* pActionFactoryManager) {
         m_pActionFactoryManager = pActionFactoryManager;
     }
+    void setAlignmentManager(AlignmentManager* pAlignmentManager) {
+        m_pAlignmentManager = pAlignmentManager;
+    }
+    void setBloodBibleBonusManager(BloodBibleBonusManager* pBloodBibleBonusManager) {
+        m_pBloodBibleBonusManager = pBloodBibleBonusManager;
+    }
     void setCastleShrineInfoManager(CastleShrineInfoManager* pCastleShrineInfoManager) {
         m_pCastleShrineInfoManager = pCastleShrineInfoManager;
     }
@@ -80,6 +98,9 @@ public:
     void setClientManager(ClientManager* pClientManager) {
         m_pClientManager = pClientManager;
     }
+    void setCombatInfoManager(CombatInfoManager* pCombatInfoManager) {
+        m_pCombatInfoManager = pCombatInfoManager;
+    }
     void setConditionFactoryManager(ConditionFactoryManager* pConditionFactoryManager) {
         m_pConditionFactoryManager = pConditionFactoryManager;
     }
@@ -88,6 +109,9 @@ public:
     }
     void setConnectionInfoManager(ConnectionInfoManager* pConnectionInfoManager) {
         m_pConnectionInfoManager = pConnectionInfoManager;
+    }
+    void setCoupleManager(CoupleManager* pCoupleManager) {
+        m_pCoupleManager = pCoupleManager;
     }
     void setDarkLightInfoManager(DarkLightInfoManager* pDarkLightInfoManager) {
         m_pDarkLightInfoManager = pDarkLightInfoManager;
@@ -110,20 +134,38 @@ public:
     void setDynamicZoneInfoManager(DynamicZoneInfoManager* pDynamicZoneInfoManager) {
         m_pDynamicZoneInfoManager = pDynamicZoneInfoManager;
     }
+    void setDynamicZoneManager(DynamicZoneManager* pDynamicZoneManager) {
+        m_pDynamicZoneManager = pDynamicZoneManager;
+    }
+    void setEffectLoaderManager(EffectLoaderManager* pEffectLoaderManager) {
+        m_pEffectLoaderManager = pEffectLoaderManager;
+    }
     void setEventQuestLootingManager(EventQuestLootingManager* pEventQuestLootingManager) {
         m_pEventQuestLootingManager = pEventQuestLootingManager;
     }
     void setGameServerGroupInfoManager(GameServerGroupInfoManager* pGameServerGroupInfoManager) {
         m_pGameServerGroupInfoManager = pGameServerGroupInfoManager;
     }
+    void setGlobalPartyManager(GlobalPartyManager* pGlobalPartyManager) {
+        m_pGlobalPartyManager = pGlobalPartyManager;
+    }
     void setGoodsInfoManager(GoodsInfoManager* pGoodsInfoManager) {
         m_pGoodsInfoManager = pGoodsInfoManager;
+    }
+    void setIncomingPlayerManager(IncomingPlayerManager* pIncomingPlayerManager) {
+        m_pIncomingPlayerManager = pIncomingPlayerManager;
     }
     void setItemFactoryManager(ItemFactoryManager* pItemFactoryManager) {
         m_pItemFactoryManager = pItemFactoryManager;
     }
     void setItemLoaderManager(ItemLoaderManager* pItemLoaderManager) {
         m_pItemLoaderManager = pItemLoaderManager;
+    }
+    void setItemMineInfoManager(ItemMineInfoManager* pItemMineInfoManager) {
+        m_pItemMineInfoManager = pItemMineInfoManager;
+    }
+    void setMasterLairInfoManager(MasterLairInfoManager* pMasterLairInfoManager) {
+        m_pMasterLairInfoManager = pMasterLairInfoManager;
     }
     void setMonsterNameManager(MonsterNameManager* pMonsterNameManager) {
         m_pMonsterNameManager = pMonsterNameManager;
@@ -133,6 +175,9 @@ public:
     }
     void setPCFinder(PCFinder* pPCFinder) {
         m_pPCFinder = pPCFinder;
+    }
+    void setPriceManager(PriceManager* pPriceManager) {
+        m_pPriceManager = pPriceManager;
     }
     void setPublicScriptManager(ScriptManager* pPublicScriptManager) {
         m_pPublicScriptManager = pPublicScriptManager;
@@ -154,6 +199,9 @@ public:
     }
     void setTimeChecker(TimeChecker* pTimeChecker) {
         m_pTimeChecker = pTimeChecker;
+    }
+    void setTimeManager(TimeManager* pTimeManager) {
+        m_pTimeManager = pTimeManager;
     }
     void setVampEXPInfoManager(VampEXPInfoManager* pVampEXPInfoManager) {
         m_pVampEXPInfoManager = pVampEXPInfoManager;
@@ -178,12 +226,16 @@ public:
     }
 
     ActionFactoryManager& actionFactories() const;
+    AlignmentManager& alignments() const;
+    BloodBibleBonusManager& bloodBibleBonuses() const;
     CastleShrineInfoManager& castleShrines() const;
     CastleSkillInfoManager& castleSkills() const;
     ClientManager& clients() const;
+    CombatInfoManager& combatInfo() const;
     ConditionFactoryManager& conditionFactories() const;
     Properties& config() const;
     ConnectionInfoManager& connectionInfos() const;
+    CoupleManager& couples() const;
     DarkLightInfoManager& darkLights() const;
     DatabaseManager& databases() const;
     DefaultOptionSetInfoManager& optionSets() const;
@@ -191,14 +243,21 @@ public:
     DragonEyeManager& dragonEyes() const;
     DynamicZoneFactoryManager& dynamicZoneFactories() const;
     DynamicZoneInfoManager& dynamicZoneInfos() const;
+    DynamicZoneManager& dynamicZones() const;
+    EffectLoaderManager& effectLoaders() const;
     EventQuestLootingManager& eventQuestLoot() const;
     GameServerGroupInfoManager& gameServerGroups() const;
+    GlobalPartyManager& parties() const;
     GoodsInfoManager& goodsInfos() const;
+    IncomingPlayerManager& incomingPlayers() const;
     ItemFactoryManager& itemFactories() const;
     ItemLoaderManager& itemLoaders() const;
+    ItemMineInfoManager& itemMineInfos() const;
+    MasterLairInfoManager& masterLairInfos() const;
     MonsterNameManager& monsterNames() const;
     OustersEXPInfoManager& oustersExp() const;
     PCFinder& playerCreatures() const;
+    PriceManager& prices() const;
     ScriptManager& publicScripts() const;
     RankBonusInfoManager& rankBonuses() const;
     ShopTemplateManager& shopTemplates() const;
@@ -206,6 +265,7 @@ public:
     SkillPropertyManager& skillProps() const;
     StringPool& strings() const;
     TimeChecker& timeChecker() const;
+    TimeManager& worldTime() const;
     VampEXPInfoManager& vampireExp() const;
     VariableManager& variables() const;
     VolumeInfoManager& volumeInfos() const;
@@ -216,12 +276,16 @@ public:
 
 private:
     ActionFactoryManager* m_pActionFactoryManager = nullptr;
+    AlignmentManager* m_pAlignmentManager = nullptr;
+    BloodBibleBonusManager* m_pBloodBibleBonusManager = nullptr;
     CastleShrineInfoManager* m_pCastleShrineInfoManager = nullptr;
     CastleSkillInfoManager* m_pCastleSkillInfoManager = nullptr;
     ClientManager* m_pClientManager = nullptr;
+    CombatInfoManager* m_pCombatInfoManager = nullptr;
     ConditionFactoryManager* m_pConditionFactoryManager = nullptr;
     Properties* m_pConfig = nullptr;
     ConnectionInfoManager* m_pConnectionInfoManager = nullptr;
+    CoupleManager* m_pCoupleManager = nullptr;
     DarkLightInfoManager* m_pDarkLightInfoManager = nullptr;
     DatabaseManager* m_pDatabaseManager = nullptr;
     DefaultOptionSetInfoManager* m_pDefaultOptionSetInfoManager = nullptr;
@@ -229,14 +293,21 @@ private:
     DragonEyeManager* m_pDragonEyeManager = nullptr;
     DynamicZoneFactoryManager* m_pDynamicZoneFactoryManager = nullptr;
     DynamicZoneInfoManager* m_pDynamicZoneInfoManager = nullptr;
+    DynamicZoneManager* m_pDynamicZoneManager = nullptr;
+    EffectLoaderManager* m_pEffectLoaderManager = nullptr;
     EventQuestLootingManager* m_pEventQuestLootingManager = nullptr;
     GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
+    GlobalPartyManager* m_pGlobalPartyManager = nullptr;
     GoodsInfoManager* m_pGoodsInfoManager = nullptr;
+    IncomingPlayerManager* m_pIncomingPlayerManager = nullptr;
     ItemFactoryManager* m_pItemFactoryManager = nullptr;
     ItemLoaderManager* m_pItemLoaderManager = nullptr;
+    ItemMineInfoManager* m_pItemMineInfoManager = nullptr;
+    MasterLairInfoManager* m_pMasterLairInfoManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;
     OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
+    PriceManager* m_pPriceManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
@@ -244,6 +315,7 @@ private:
     SkillPropertyManager* m_pSkillPropertyManager = nullptr;
     StringPool* m_pStringPool = nullptr;
     TimeChecker* m_pTimeChecker = nullptr;
+    TimeManager* m_pTimeManager = nullptr;
     VampEXPInfoManager* m_pVampEXPInfoManager = nullptr;
     VariableManager* m_pVariableManager = nullptr;
     VolumeInfoManager* m_pVolumeInfoManager = nullptr;

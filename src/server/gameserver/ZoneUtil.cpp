@@ -48,6 +48,7 @@
 #include "GCUnburrowOK.h"
 #include "GCUntransformFail.h"
 #include "GCUntransformOK.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
 #include "IncomingPlayerManager.h"
@@ -2463,7 +2464,7 @@ void makeZoneIDList(const string& zoneIDs, list<ZoneID_t>& zoneIDList)
 
 uint getZoneTimeband(Zone* pZone) {
     if (pZone == NULL) {
-        return g_pTimeManager->getTimeband();
+        return de::gameContext().worldTime().getTimeband();
     }
 
     return pZone->getTimeband();

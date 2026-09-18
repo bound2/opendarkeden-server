@@ -69,7 +69,7 @@ void ActionEnterQuestZone::execute(Creature* pNPC, Creature* pCreature)
 
         if (targetDynamicZoneType != DYNAMIC_ZONE_MAX) {
             // Dynamic 존일 경우
-            DynamicZoneGroup* pDynamicZoneGroup = g_pDynamicZoneManager->getDynamicZoneGroup(targetDynamicZoneType);
+            DynamicZoneGroup* pDynamicZoneGroup = context().dynamicZones().getDynamicZoneGroup(targetDynamicZoneType);
             Assert(pDynamicZoneGroup != NULL);
 
             DynamicZone* pDynamicZone = pDynamicZoneGroup->getAvailableDynamicZone();

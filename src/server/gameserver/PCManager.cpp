@@ -17,6 +17,7 @@
 #include "CreatureUtil.h"
 #include "Event.h"
 #include "EventResurrect.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "HolyLandManager.h"
 #include "IncomingPlayerManager.h"
@@ -246,7 +247,8 @@ void PCManager::processCreatures()
                         // A normal user with SumAttr over 40 may drop items on death.
                         if (SumAttr > 40 && pSlayer->getCompetence() == 3) {
                             Alignment_t alignment = pSlayer->getAlignment();
-                            ItemNum_t DropItemNum = g_pAlignmentManager->getDropItemNum(alignment, pSlayer->isPK());
+                            ItemNum_t DropItemNum =
+                                de::gameContext().alignments().getDropItemNum(alignment, pSlayer->isPK());
 
                             // Drop the worn unique items, up to DropItemNum
                             // of them.
@@ -383,7 +385,8 @@ void PCManager::processCreatures()
                         // Drop money and items according to alignment.
                         if (pVampire->getLevel() > 10 && pVampire->getCompetence() == 3) {
                             Alignment_t alignment = pVampire->getAlignment();
-                            ItemNum_t DropItemNum = g_pAlignmentManager->getDropItemNum(alignment, pVampire->isPK());
+                            ItemNum_t DropItemNum =
+                                de::gameContext().alignments().getDropItemNum(alignment, pVampire->isPK());
 
                             // Drop the worn unique items, up to DropItemNum
                             // of them.
@@ -501,7 +504,8 @@ void PCManager::processCreatures()
                         // Drop money and items according to alignment.
                         if (pOusters->getLevel() > 10 && pOusters->getCompetence() == 3) {
                             Alignment_t alignment = pOusters->getAlignment();
-                            ItemNum_t DropItemNum = g_pAlignmentManager->getDropItemNum(alignment, pOusters->isPK());
+                            ItemNum_t DropItemNum =
+                                de::gameContext().alignments().getDropItemNum(alignment, pOusters->isPK());
 
                             // Drop the worn unique items, up to DropItemNum
                             // of them.
@@ -912,7 +916,7 @@ void PCManager::processCreatures()
         if (m_bRefreshHolyLandPlayer && !g_pWarSystem->hasActiveRaceWar()) {
             // Broadcast the blood bible bonus information across Adam's holy land.
             GCHolyLandBonusInfo gcHolyLandBonusInfo;
-            g_pBloodBibleBonusManager->makeHolyLandBonusInfo(gcHolyLandBonusInfo);
+            de::gameContext().bloodBibleBonuses().makeHolyLandBonusInfo(gcHolyLandBonusInfo);
             g_pHolyLandManager->broadcast(&gcHolyLandBonusInfo);
         }
 

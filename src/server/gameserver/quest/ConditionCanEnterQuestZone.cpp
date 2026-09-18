@@ -32,7 +32,8 @@ bool ConditionCanEnterQuestZone::isSatisfied(Creature* pCreature1, Creature* pCr
     int targetDynamicZoneType = de::gameContext().dynamicZoneInfos().getDynamicZoneTypeByZoneID(m_QuestZoneID);
 
     if (targetDynamicZoneType != DYNAMIC_ZONE_MAX) {
-        DynamicZoneGroup* pDynamicZoneGroup = g_pDynamicZoneManager->getDynamicZoneGroup(targetDynamicZoneType);
+        DynamicZoneGroup* pDynamicZoneGroup =
+            de::gameContext().dynamicZones().getDynamicZoneGroup(targetDynamicZoneType);
         Assert(pDynamicZoneGroup != NULL);
 
         bDynamicZoneAvailable = pDynamicZoneGroup->canEnter();
