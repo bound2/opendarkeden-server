@@ -210,7 +210,6 @@ ObjectManager::ObjectManager()
     context.setPriceManager(m_pPriceManager);
     m_pEffectLoaderManager = new EffectLoaderManager();
     context.setEffectLoaderManager(m_pEffectLoaderManager);
-    // Temporarily disabled for other work.
     g_pGuildManager = new GuildManager();
     //	g_pGuildRegistrationManager = new GuildRegistrationManager();
     //	g_pGuildVoteManager         = new GuildVoteManager();
