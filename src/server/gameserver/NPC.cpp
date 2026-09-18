@@ -194,8 +194,7 @@ void NPC::act(const Timeval& currentTime)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // If the current time is greater than the next turn, it has to wait a little longer.
-    // Otherwise, take an action.
+    // Do nothing until the next turn time has been reached.
     if (currentTime < m_NextTurn)
         return;
 

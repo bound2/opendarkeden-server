@@ -346,7 +346,7 @@ void MasterLairManager::processEventWaitingPlayer()
     // When the waiting time is over,
     // the master starts summoning monsters.
     if (currentTime >= m_EventTime) {
-        // Tell everyone the master lair is open.
+        // Tell everyone the master lair is closed.
         //		ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( m_pZone->getZoneID() );
         //		Assert(pZoneInfo!=NULL);
 
@@ -378,7 +378,7 @@ void MasterLairManager::processEventWaitingPlayer()
 
         // Announce once a minute.
         if (remainSec != m_EventValue && remainSec != 0 && remainSec % 60 == 0) {
-            // Tell everyone the master lair is open.
+            // Tell everyone how many minutes are left before the master lair closes.
             //			ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( m_pZone->getZoneID() );
             //			Assert(pZoneInfo!=NULL);
 

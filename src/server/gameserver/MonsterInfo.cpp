@@ -187,14 +187,14 @@ MonsterInfo::~MonsterInfo()
 void MonsterInfo::setRegenType(RegenType rt, int percent) {
     m_RegenType[rt] = percent;
 
-    // Changing the REGENTYPE_NORMAL probability so the total came to 100% was
+    // Changing the REGENTYPE_HIDE probability so the total came to 100% was
     // considered, but it did not seem to be worth it.
 }
 
 //---------------------------------------------------------------------------
 // select RegenType
 //---------------------------------------------------------------------------
-// Check the Hide and Portal probabilities first; if it is neither, it is Normal.
+// Check the Portal, Invisible and Bat probabilities in order; whatever is left is Hide.
 //---------------------------------------------------------------------------
 RegenType MonsterInfo::selectRegenType() const {
     // To gain a little speed,

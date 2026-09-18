@@ -1732,9 +1732,8 @@ bool checkImWalkingWall(Monster* pMonster, Creature* pEnemy) {
 bool checkTimingBloodDrain(Monster* pMonster, Creature* pEnemy) {
     Assert(pMonster != NULL);
 
-    // Blood drain applies even when the monster is not a slayer.
     if (pEnemy == NULL
-        // Do not drain blood from a target that is not a Slayer.
+        // Do not drain blood from an NPC.
         || pEnemy->isNPC()
         // Do not drain blood from a target that has already been drained.
         || pEnemy->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN)
@@ -1959,8 +1958,7 @@ bool checkMasterNotReady(Monster* pMonster, Creature* pEnemy) {
     MasterLairManager* pMasterLairManager = pZone->getMasterLairManager();
     Assert(pMasterLairManager != NULL);
 
-    // Summoning is possible when the master is not yet fighting and
-    // the zone holds no monster other than the master.
+    // Summoning is possible while the lair's master is not ready yet.
     return !pMasterLairManager->isMasterReady();
 }
 
@@ -2003,8 +2001,8 @@ bool checkImInBadPosition(Monster* pMonster, Creature* pEnemy) {
 //----------------------------------------------------------------------
 // Can a weaker enemy be found?
 //
-// If pEnemy's HP is 100 or more and its HP percentage is 60% or more,
-// look for another, weaker enemy.
+// If a nearby PC has a lower strength value than the current enemy,
+// that PC becomes the monster's only enemy.
 //----------------------------------------------------------------------
 bool checkFindWeakEnemy(Monster* pMonster, Creature* pEnemy) {
     // For now

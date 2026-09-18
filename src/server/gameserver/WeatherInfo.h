@@ -69,7 +69,7 @@ public:
     string toString() const;
 
 private:
-    // Two-dimensional array of WeatherInfo
+    // WeatherInfo for each month
     WeatherInfo m_WeatherInfos[12];
 };
 
