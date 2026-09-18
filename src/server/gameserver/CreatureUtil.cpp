@@ -800,9 +800,8 @@ bool isAbleToUseSelfSkill(Creature* pCreature, SkillType_t SkillType) {
         return false;
     }
 
-    // In wolf form only Howl and Eat Corpse can be used.
+    // In wolf form every skill request is rejected: the guard below is true for any skill type.
     if (pCreature->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF)) {
-        // Untransform is also allowed in wolf form.
         if (SkillType != SKILL_HOWL || SkillType != SKILL_EAT_CORPSE || SkillType != SKILL_UN_TRANSFORM)
         // end  edit
         // if (SkillType != SKILL_HOWL && SkillType != SKILL_EAT_CORPSE && SkillType != SKILL_UN_TRANSFORM)
@@ -873,9 +872,8 @@ bool isAbleToUseObjectSkill(Creature* pCreature, SkillType_t SkillType) {
         pCreature->isFlag(Effect::EFFECT_CLASS_TRAPPED) || pCreature->isFlag(Effect::EFFECT_CLASS_EXPLOSION_WATER))
         return false;
 
-    // In wolf form only Howl and Eat Corpse can be used.
+    // In wolf form every skill request is rejected: the guard below is true for any skill type.
     if (pCreature->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF)) {
-        // Melee attack is also allowed in wolf form.
         if (SkillType != SKILL_HOWL || SkillType != SKILL_EAT_CORPSE || SkillType != SKILL_ATTACK_MELEE)
         // end  edit
         // if (SkillType != SKILL_HOWL && SkillType != SKILL_EAT_CORPSE && SkillType != SKILL_ATTACK_MELEE)
@@ -935,9 +933,8 @@ bool isAbleToUseTileSkill(Creature* pCreature, SkillType_t SkillType) {
         pCreature->isFlag(Effect::EFFECT_CLASS_TRAPPED) || pCreature->isFlag(Effect::EFFECT_CLASS_EXPLOSION_WATER))
         return false;
 
-    // In wolf form only Howl and Eat Corpse can be used.
+    // In wolf form every skill request is rejected: the guard below is true for any skill type.
     if (pCreature->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF)) {
-        // In wolf form only Howl and Eat Corpse are allowed.
         // if (SkillType != SKILL_HOWL && SkillType != SKILL_EAT_CORPSE)
         if (SkillType != SKILL_HOWL || SkillType != SKILL_EAT_CORPSE)
         // end  edit
@@ -1001,9 +998,8 @@ bool isAbleToUseInventorySkill(Creature* pCreature, BYTE X, BYTE Y, BYTE TX, BYT
         pCreature->isFlag(Effect::EFFECT_CLASS_TRAPPED) || pCreature->isFlag(Effect::EFFECT_CLASS_EXPLOSION_WATER))
         return false;
 
-    // In wolf form only Howl and Eat Corpse can be used.
+    // In wolf form every skill request is rejected: the guard below is true for any skill type.
     if (pCreature->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF)) {
-        // In wolf form only Howl and Eat Corpse are allowed.
         // if (SkillType != SKILL_HOWL && SkillType != SKILL_EAT_CORPSE)
         if (SkillType != SKILL_HOWL || SkillType != SKILL_EAT_CORPSE)
         // end  edit
@@ -1823,7 +1819,7 @@ bool dropFlagToZone(Creature* pCreature, bool bSendPacket) {
     Inventory* pInventory = pPC->getInventory();
     Assert(pInventory != NULL);
 
-    // Look for a relic item in the inventory.
+    // Look for a flag item in the inventory.
     for (CoordInven_t y = 0; y < pInventory->getHeight(); y++) {
         for (CoordInven_t x = 0; x < pInventory->getWidth(); x++) {
             Item* pItem = pInventory->getItem(x, y);
@@ -1957,7 +1953,7 @@ bool dropSweeperToZone(Creature* pCreature, bool bSendPacket) {
     Inventory* pInventory = pPC->getInventory();
     Assert(pInventory != NULL);
 
-    // Look for a relic item in the inventory.
+    // Look for a sweeper item in the inventory.
     for (CoordInven_t y = 0; y < pInventory->getHeight(); y++) {
         for (CoordInven_t x = 0; x < pInventory->getWidth(); x++) {
             Item* pItem = pInventory->getItem(x, y);

@@ -192,7 +192,7 @@ public:
     void moveCreatureBroadcast(Creature* pCreature, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t x2, ZoneCoord_t y2,
                                bool bSendMove = true, bool bKnockback = false);
 
-    // Broadcast to the surroundings that the PC moved from P(x1,y1) to Q(x2,y2).
+    // Move the PC to Q(x2,y2) with a skill and broadcast the move to the surroundings.
     bool moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t x2, ZoneCoord_t y2,
                     SkillType_t skillType);
     bool moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t x2, ZoneCoord_t y2,
@@ -632,7 +632,7 @@ private:
     bool m_bHolyLand;
     bool m_bCastleZone;
 
-    // At war?
+    // Does the zone have a relic table?
     bool m_bHasRelicTable;
 
     // Relic table related information

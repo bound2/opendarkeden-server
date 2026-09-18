@@ -111,9 +111,6 @@ protected:
     // Extra information kept on the corpse.
     int m_Level; // Level
     Exp_t m_Exp; // Experience gained for killing this creature
-
-    // Stores whether the monster is a Relic.
-    // If it is a Relic, the monster's corpse must not disappear.
 };
 
 //////////////////////////////////////////////////////////////////////////////

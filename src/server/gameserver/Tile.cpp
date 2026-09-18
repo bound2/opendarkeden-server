@@ -387,7 +387,7 @@ Creature* Tile::getCreature(Creature::MoveMode mode) {
 }
 
 //////////////////////////////////////////////////////////////
-// Add an item to the tile. Throws a Dup exception if the tile already holds an item.
+// Add an item to the tile. The tile must not already hold an item.
 // (There is one item per tile.)
 //////////////////////////////////////////////////////////////
 void Tile::addItem(Item* pItem)
@@ -611,7 +611,7 @@ Effect* Tile::getEffect(Effect::EffectClass effectClass)
             Effect* pEffect = NULL;
             if ((*itr)->getObjectClass() == Object::OBJECT_CLASS_EFFECT) {
                 if (effectClass == ((Effect*)(*itr))->getEffectClass()) {
-                    // An object with that id was found.
+                    // The effect of that class was found.
                     pEffect = dynamic_cast<Effect*>(*itr);
                     return pEffect;
                 }
@@ -776,7 +776,7 @@ void Tile::deleteTerrain()
 
     Assert(isTerrain());
 
-    // Turn on the Terrain flag.
+    // Clear the Terrain flag.
     FLAG_CLEAR(m_wFlags, TILE_TERRAIN);
 
     // Clear the option.
@@ -846,7 +846,7 @@ void Tile::addObject(Object* pObject) {
     */
 
     for (; current != m_Objects.end(); before = current, current++) {
-        // The object list is sorted in descending order.
+        // The object list is sorted in ascending order.
         // So loop until the ObjectPriority of the object being inserted is
         // smaller than the ObjectPriority the iterator currently points at.
 
@@ -975,9 +975,9 @@ void Tile::deleteObject(ObjectPriority objectPriority) {
 
             return;
         } else if (objectPriority < (*current)->getObjectPriority()) {
-            // The list is sorted in descending order of object tp, so if the
+            // The list is sorted in ascending order of object tp, so if the
             // iterator's tp is greater than the tp being looked for,
-            // no object with that id exists.
+            // no object with that priority exists.
             // ex> in [0] - [3] - [4], the iterator points at [3] while the tp sought is 2.
             break;
         }
@@ -1020,12 +1020,12 @@ Object* Tile::getObject(ObjectPriority objectPriority) const {
 
     for (forward_list<Object*>::const_iterator itr = m_Objects.begin(); itr != m_Objects.end(); itr++) {
         if (objectPriority == (*itr)->getObjectPriority()) {
-            // An object with that id was found.
+            // An object with that priority was found.
             return *itr;
         } else if (objectPriority < (*itr)->getObjectPriority()) {
-            // The list is sorted in descending order of object tp, so if the
+            // The list is sorted in ascending order of object tp, so if the
             // iterator's tp is greater than the tp being looked for,
-            // no object with that id exists.
+            // no object with that priority exists.
             // ex> in [0] - [3] - [4], the iterator points at [3] while the tp sought is 2.
             break;
         }

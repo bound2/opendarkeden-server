@@ -341,8 +341,8 @@ TPOINT findSuitablePositionForEffect(Zone* pZone, ZoneCoord_t cx, ZoneCoord_t cy
 // Check whether a creature with the given move mode can be added at a position.
 //
 // Zone*              pZone : pointer to the zone
-// ZoneCoord_t        x     : x coordinate to transform at
-// ZoneCoord_t        y     : y coordinate to transform at
+// ZoneCoord_t        x     : x coordinate to check
+// ZoneCoord_t        y     : y coordinate to check
 // Creature::MoveMode MMode : the creature's move mode
 //////////////////////////////////////////////////////////////////////////////
 bool canAddCreature(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Creature::MoveMode MMode)
@@ -388,8 +388,8 @@ bool canBurrow(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y)
 // Check whether unburrowing is possible at a position.
 //
 // Zone*       pZone : pointer to the zone
-// ZoneCoord_t x     : x coordinate to burrow at
-// ZoneCoord_t y     : y coordinate to burrow at
+// ZoneCoord_t x     : x coordinate to unburrow at
+// ZoneCoord_t y     : y coordinate to unburrow at
 //////////////////////////////////////////////////////////////////////////////
 bool canUnburrow(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y)
 
@@ -1023,7 +1023,7 @@ void addInvisibleCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t cx, Zone
 //
 // Zone*       pZone     : pointer to the zone
 // Creature*   pCreature : the creature that was invisible
-// bool        bForce    : did it become visible by force?
+// bool        bForced   : did it become visible by force?
 //////////////////////////////////////////////////////////////////////////////
 void addVisibleCreature(Zone* pZone, Creature* pCreature, bool bForced)
 
@@ -1280,11 +1280,11 @@ void addSnipingModeCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t cx, Zo
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Add a creature that was invisible and is now visible.
+// Add a creature that left sniping mode.
 //
 // Zone*       pZone     : pointer to the zone
-// Creature*   pCreature : the creature that was invisible
-// bool        bForce    : did it become visible by force?
+// Creature*   pCreature : the creature that was in sniping mode
+// bool        bForced   : did it leave sniping mode by force?
 //////////////////////////////////////////////////////////////////////////////
 void addUnSnipingModeCreature(Zone* pZone, Creature* pCreature, bool bForced)
 
@@ -1649,8 +1649,7 @@ bool checkMine(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y)
 
     Item* pItem = rTile.getItem();
 
-    // The mine does not explode if the item on the ground is not an
-    // installed mine, or if the creature is not a walking creature.
+    // The mine only explodes when the item on the ground is an installed mine.
     if (pItem->getItemClass() != Item::ITEM_CLASS_MINE)
         return false;
     if (pItem->isFlag(Effect::EFFECT_CLASS_INSTALL) == false)
@@ -2258,7 +2257,7 @@ bool enterMasterLair(Zone* pZone, Creature* pCreature)
 }
 
 void getNewbieTransportZoneInfo(Slayer* pSlayer, ZONE_COORD& zoneInfo) {
-    // If the attribute sum is 40 and the zone is the field headquarters, send the player elsewhere.
+    // Pick the newbie transport destination from the slayer's highest skill domain.
     zoneInfo.x = 30;
     zoneInfo.y = 42;
 
@@ -2373,11 +2372,7 @@ bool addCorpseToZone(Corpse* pCorpse, Zone* pZone, ZoneCoord_t cx, ZoneCoord_t c
     Assert(pCorpse != NULL);
     Assert(pZone != NULL);
 
-    // Delete the creature from the tile and the monster manager.
-
-    // Add the corpse to the tile.
-
-    // Add the corpse.
+    // Put the corpse into the zone as an item.
     TPOINT pt = pZone->addItem(pCorpse, cx, cy);
     if (pt.x == -1) {
         SAFE_DELETE(pCorpse);
