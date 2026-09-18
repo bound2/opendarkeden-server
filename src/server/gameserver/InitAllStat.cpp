@@ -87,7 +87,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// 공통
+// Common
 //
 //////////////////////////////////////////////////////////////////////////////
 void PlayerCreature::applyBloodBibleSign() {
@@ -114,7 +114,7 @@ void PlayerCreature::applyBloodBibleSign() {
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// 몬스터
+// Monster
 //
 //////////////////////////////////////////////////////////////////////////////
 void Monster::initAllStat(void)
@@ -134,14 +134,14 @@ void Monster::initAllStat(void)
     m_Resist[MAGIC_DOMAIN_BLOOD] = 0;
 
     ////////////////////////////////////////////////////////////
-    // 제일 먼저 기본 능력치를 초기화시키고...
+    // First initialize the basic attributes.
     ////////////////////////////////////////////////////////////
     m_STR = pMonsterInfo->getSTR();
     m_DEX = pMonsterInfo->getDEX();
     m_INT = pMonsterInfo->getINT();
 
     ////////////////////////////////////////////////////////////
-    // 기본 능력에 영향을 주는 이펙트를 검사한다.
+    // Check the effects that modify the basic attributes.
     ////////////////////////////////////////////////////////////
     attr.nSTR = m_STR;
     attr.nDEX = m_DEX;
@@ -149,7 +149,7 @@ void Monster::initAllStat(void)
     attr.nLevel = pMonsterInfo->getLevel();
 
     ////////////////////////////////////////////////////////////
-    // 부가적인 능력치들을 다시 계산한다.
+    // Recompute the derived attributes.
     ////////////////////////////////////////////////////////////
     m_HP[ATTR_MAX] = computeHP(CClass, &attr, pMonsterInfo->getEnhanceHP());
     m_ToHit = computeToHit(CClass, &attr, pMonsterInfo->getEnhanceToHit());
@@ -159,13 +159,13 @@ void Monster::initAllStat(void)
     m_Damage[ATTR_MAX] = computeMaxDamage(CClass, &attr, pMonsterInfo->getEnhanceMaxDamage());
 
 
-    //  원래 크리스마스 이벤트로 기획된 것이지만, 앞으로 계속 사용될 것으로
-    //  예정된다.
+    //  Originally designed for the Christmas event, but it is expected to stay
+    //  in use.
     if (m_MonsterType == 358 || m_MonsterType == 359 || m_MonsterType == 360 || m_MonsterType == 361)
         m_HP[ATTR_MAX] = m_HP[ATTR_MAX] * 10;
 
     ////////////////////////////////////////////////////////////
-    // 부가적인 능력치들을 직접 수정하는 이펙트를 검사한다.
+    // Check the effects that modify the derived attributes directly.
     ////////////////////////////////////////////////////////////
     if (isFlag(Effect::EFFECT_CLASS_DOOM)) {
         EffectDoom* pDoom = dynamic_cast<EffectDoom*>(findEffect(Effect::EFFECT_CLASS_DOOM));

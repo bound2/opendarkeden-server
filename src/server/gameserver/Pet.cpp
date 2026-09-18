@@ -32,7 +32,7 @@ Pet* Pet::makePet(PlayerCreature* pOwner, PetInfo* pPetInfo) {
     Assert(pPet != NULL);
     getCurrentTime(pPet->m_SkillDelay);
 
-    // 1/10초 단위 딜레이
+    // Delay in units of 1/10 second
     int delay = pPet->getDelay();
 
     pPet->m_SkillDelay.tv_sec += delay / 10;
@@ -47,7 +47,7 @@ void Pet::heartbeat(const Timeval& currentTime) {
 
     if (m_SkillDelay < currentTime) {
         if (useSkill()) {
-            // 1/10초 단위 딜레이
+            // Delay in units of 1/10 second
             int delay = getDelay();
 
             m_SkillDelay = currentTime;
@@ -182,13 +182,13 @@ bool Pixie::useSkill() {
         return false;
     }
 
-    //	cout << "타겟 확인" << endl;
+    //	cout << "target check" << endl;
 
     Range_t range = getRange();
     if (!verifyDistance(pOwner, X, Y, range))
         return false;
 
-    //	cout << "거리 확인" << endl;
+    //	cout << "range check" << endl;
 
     int HealPoint;
 
@@ -200,7 +200,7 @@ bool Pixie::useSkill() {
 
     HealPoint = HealPoint * getPetInfo()->getPetLevel() * 3 / 500;
 
-    //	cout << "힐 포인트 : " << HealPoint << endl;
+    //	cout << "heal point : " << HealPoint << endl;
 
     GCPetUseSkill gcPetUseSkill;
     gcPetUseSkill.setAttacker(pOwner->getObjectID());

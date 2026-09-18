@@ -21,7 +21,7 @@ public:
     ExpTable() : m_Records(MaxLevel) {}
     virtual ~ExpTable() {}
 
-    // DB 관련 함수들
+    // DB related functions
     virtual void load();
     virtual const string getDBTableName() const = 0;
     virtual const string getDBGoalExpFieldName() const {
@@ -37,7 +37,7 @@ public:
         return "";
     }
 
-    // 쿼리하기
+    // Queries
     GoalExpType getGoalExp(LevelType level) const {
         Assert(level <= MaxLevel && level >= MinLevel);
         return m_Records[level].m_GoalExp;
@@ -103,7 +103,7 @@ public:
     bool levelUp();
     bool levelDown();
 
-    // 꼭 필요할때만 씁시다.
+    // Use this only when it is really necessary.
     bool SET_LEVEL(LevelType level);
 
 private:

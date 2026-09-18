@@ -2,8 +2,8 @@
 // Filename    : PlayerCreature.h
 // Written by  : excel96
 // Description :
-// Slayer 및 Vampire 클래스의 인터페이스 중 공통되는 부분을 모아놓은
-// 클래스다. abstract 클래스이므로, 바로 선언하면 안 될 것이당.
+// Class that collects the parts common to the Slayer and Vampire class
+// interfaces. It is abstract, so it must not be instantiated directly.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __PLAYER_CREATURE_H__
@@ -66,7 +66,7 @@ typedef HashMapRankBonus::const_iterator HashMapRankBonusConstItor;
 
 class PlayerCreature : public Creature {
     ////////////////////////////////////////////////////////////
-    // 생성자 및 소멸자
+    // Constructor and destructor
     ////////////////////////////////////////////////////////////
 public:
     PlayerCreature(ObjectID_t objectID = 0, Player* pPlayer = NULL);
@@ -77,7 +77,7 @@ public:
     //	virtual void tinysave(const char* field) const  = 0;
 
     ////////////////////////////////////////////////////////////
-    // OID 등록 관련 메쏘드
+    // OID registration methods
     ////////////////////////////////////////////////////////////
 protected:
     // Which race table this character's rows live in.
@@ -93,7 +93,7 @@ public:
     virtual void registerGoodsInventory(ObjectRegistry& OR);
 
     //////////////////////////////////////////////////////////////
-    // 시간제한 아이템 관련 함수
+    // Time-limited item functions
     //////////////////////////////////////////////////////////////
 public:
     bool wasteIfTimeLimitExpired(Item* pItem);
@@ -107,13 +107,13 @@ public:
     void loadTimeLimitItem();
 
     //////////////////////////////////////////////////////////////
-    // 구매 상품 아이템 관련 함수
+    // Purchased goods item functions
     //////////////////////////////////////////////////////////////
 public:
     void loadGoods();
 
     //////////////////////////////////////////////////////////////
-    // 퀘스트 매니저 관련 함수
+    // Quest manager functions
     //////////////////////////////////////////////////////////////
 public:
     QuestManager* getQuestManager() const {
@@ -125,7 +125,7 @@ public:
     virtual void whenQuestLevelUpgrade();
 
     ////////////////////////////////////////////////////////////
-    // 인벤토리 관련 메쏘드
+    // Inventory methods
     ////////////////////////////////////////////////////////////
 public:
     virtual Inventory* getInventory() const {
@@ -156,7 +156,7 @@ public:
     }
 
     ////////////////////////////////////////////////////////////
-    // 보관함 관련 메쏘드
+    // Stash methods
     ////////////////////////////////////////////////////////////
 public:
     virtual Stash* getStash(void) const {
@@ -196,7 +196,7 @@ public:
 
 
     ////////////////////////////////////////////////////////////
-    // 가비지 관련 메쏘드
+    // Garbage methods
     ////////////////////////////////////////////////////////////
 public:
     void addItemToGarbage(Item* pItem) {
@@ -216,7 +216,7 @@ public:
     }
 
     ////////////////////////////////////////////////////////////
-    // 아이템 검색 함수
+    // Item search functions
     ////////////////////////////////////////////////////////////
 public:
     // The colour the client should paint an item's shape in.
@@ -241,7 +241,7 @@ public:
 
 
     ////////////////////////////////////////////////////////////
-    // 플래그 셋 관련 함수
+    // Flag set functions
     ////////////////////////////////////////////////////////////
 public:
     FlagSet* getFlagSet(void) const {
@@ -254,7 +254,7 @@ public:
 
 
     ////////////////////////////////////////////////////////////
-    // 기타 함수
+    // Other functions
     ////////////////////////////////////////////////////////////
 public:
     const string& getName() const {
@@ -287,20 +287,20 @@ public:
     virtual void setResurrectZoneID(ZoneID_t id) = 0;
     virtual void setResurrectZoneIDEx(ZoneID_t id);
 
-    // virtual Race_t getRace() const = 0; - Creature로 올렸다.
+    // virtual Race_t getRace() const = 0; - moved up to Creature.
     virtual GuildID_t getCommonGuildID() const = 0;
 
     virtual IP_t getIP(void) const;
 
 
     ////////////////////////////////////////////////////////////
-    // 성향 시스템 관련
+    // Alignment system
     ////////////////////////////////////////////////////////////
     // enemy specific methods
     void addEnemy(const string& Name);
     void deleteEnemy(const string& Name);
 
-    // 이 특정 사용자가 이미 선공을 하였는가?
+    // Has this particular user already struck first?
     bool hasEnemy(const string& Name) const;
     uint getMaxEnemies() const;
 
@@ -347,7 +347,7 @@ public:
     void saveAlignment(Alignment_t alignment);
 
     ////////////////////////////////////////////////////////////
-    // Rank Bonus 관련
+    // Rank bonus
     ////////////////////////////////////////////////////////////
     void loadRankBonus();
     bool hasRankBonus(RankBonus::RankBonusType type) {
@@ -401,30 +401,30 @@ public:
     virtual bool canSee(Object* pObject) const;
 
     ////////////////////////////////////////////////////////////
-    // 멤버 데이터
+    // Member data
     ////////////////////////////////////////////////////////////
 protected:
-    Inventory* m_pInventory;              // 인벤토리 포인터
-    InventorySlot* m_pExtraInventorySlot; // 마우스 포인터
+    Inventory* m_pInventory;              // Inventory pointer
+    InventorySlot* m_pExtraInventorySlot; // Mouse pointer
 
-    GoodsInventory* m_pGoodsInventory; // 구매 아이템 인벤토리
+    GoodsInventory* m_pGoodsInventory; // Purchased item inventory
 
-    Stash* m_pStash;     // 보관함 포인터
-    BYTE m_StashNum;     // 보관함의 숫자
+    Stash* m_pStash;     // Stash pointer
+    BYTE m_StashNum;     // Number of stashes
     string m_Name;       // PC name
     Gold_t m_Gold = 0;   // money carried by the character
-    Gold_t m_StashGold;  // 보관함 안의 돈 액수
-    bool m_bStashStatus; // 보관함 아이템 OID 등록 여부
+    Gold_t m_StashGold;  // Amount of money in the stash
+    bool m_bStashStatus; // Whether the stash items' OIDs are registered
 
-    Garbage m_Garbage; // 가비지...
+    Garbage m_Garbage; // Garbage
 
-    FlagSet* m_pFlagSet; // 플래그 집합
+    FlagSet* m_pFlagSet; // Flag set
 
-    // 먼저 선공한 사람들의 이름을 저장한다.
-    // ObjectID를 저장할 수도 있으나, 죽어서 다시 오면 정당방위가 인정되지 않기 때문에 이름으로 저장해준다.
+    // Stores the names of the people who struck first.
+    // ObjectIDs could be stored, but self-defense would not be recognized after a death and return, so names are used.
     list<string> m_Enemies;
 
-    // PK를 당했느냐 아니냐를 구분한다.
+    // Records whether the character was PKed or not.
     bool m_isPK;
 
     // GuildID
@@ -442,17 +442,17 @@ protected:
     TimeLimitItemManager* m_pTimeLimitItemManager;
 
     Item* m_pQuestItem;
-    vector<Item*> m_PetStash; // pet 보관함
+    vector<Item*> m_PetStash; // Pet stash
 
 public:
     /////////////////////////////////////////////////////////
-    // pet 보관하에 관련된 method
+    // Methods related to the pet stash
     /////////////////////////////////////////////////////////
     Item* getPetStashItem(int idx);
     void addPetStashItem(int idx, Item* pPetItem);
 
     /////////////////////////////////////////////////////////
-    // BloodBible 관련 보너스 수치들
+    // BloodBible-related bonus values
     /////////////////////////////////////////////////////////
 public:
     int getConsumeMPRatio() const {
@@ -523,7 +523,7 @@ protected:
 
     //	list<ItemNameInfo*> 	m_ItemNameInfoList;
 
-    // 사용자의 당첨 여부를 기록하기 위해 어쩔 수 없이 여기 추가해야 될듯
+    // Added here to record whether the user won.
 
 public:
     DWORD getLottoRewardID() const {
@@ -582,7 +582,7 @@ protected:
     list<PetItem*> m_PetItems;
     Pet* m_pPet;
 
-    // 2차 펫 퀘스트 관련
+    // Second pet quest
 public:
     SpriteType_t getTargetMonsterSType() const {
         return m_TargetMonster;
@@ -595,7 +595,7 @@ protected:
     DWORD m_TargetNum;
     DWORD m_TimeLimit;
 
-    // SMS 관련
+    // SMS
 public:
     SMSAddressBook* getAddressBook() const {
         return m_pSMSAddressBook;
@@ -668,7 +668,7 @@ public:
     }
 
 protected:
-    // 파워짱 포인트
+    // Power points
     int m_PowerPoint;
 
 public:

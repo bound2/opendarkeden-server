@@ -23,12 +23,12 @@ class MonsterAI;
 struct SUMMON_INFO2;
 
 class Monster : public Creature {
-    // 생성자/소멸자
+    // Constructor / destructor
 public:
     Monster(MonsterType_t monsterType);
     virtual ~Monster();
 
-    // 하위 클래스 상속 함수
+    // Functions inherited from the base class
 public:
     virtual CreatureClass getCreatureClass() const {
         return CREATURE_CLASS_MONSTER;
@@ -50,7 +50,7 @@ public:
 
     // AI specific methods
 public:
-    // AI 코드가 수행되는 메인 메쏘드이다.
+    // The main method in which the AI code runs.
     void act(const Timeval& currentTime);
     void actDeadAction(void);
 
@@ -62,12 +62,12 @@ public:
     Creature* getPrimaryEnemy() const;
     ObjectID_t getEnemy(EnemyPriority enemyPriority = ENEMY_PRIMARY) const;
 
-    // Enemy 리스트에서 로그아웃한 PC 를 삭제한다.
+    // Remove logged-out PCs from the enemy list.
     void verifyEnemies();
 
     bool isRealEnemy(Creature* pEnemy);
 
-    // 이 몬스터에게 적이 하나이상 지정되어 있는가?
+    // Does this monster have at least one enemy?
     bool hasEnemy() const {
         return m_Enemies.size() > 0;
     }
@@ -77,7 +77,7 @@ public:
         return m_Enemies;
     }
 
-    // 선제 공격 Enemy판별. by sigi. 2002.9.23
+    // Enemy check for a pre-emptive attack.
     bool isEnemyToAttack(Creature* pCreature) const;
     bool isEnemyToAttack(Slayer* pSlayer) const;
     bool isEnemyToAttack(Vampire* pVampire) const;
@@ -283,7 +283,7 @@ public:
         m_LastHitCreatureClass = CClass;
     }
 
-    // 몬스터 이벤트 몬스터인지 세팅하는 부분
+    // Whether this monster is an event monster.
     bool getEventMonsterFlag(void) const {
         return m_isEventMonster;
     }
@@ -334,15 +334,15 @@ public:
         m_bMaster = bMaster;
     }
 
-    // 몹에서 아이템 나올까? by sigi. 2002.9.2
+    // Does this monster drop items?
     bool hasTreasure() const {
         return m_bTreasure;
     }
     void setTreasure(bool bTreasure = true) {
         m_bTreasure = m_bTreasure && bTreasure;
-    } // 원래 Treasure가 있는 애들만 Treasure가 있어야 된다.
+    } // Only monsters that already had treasure may keep it.
 
-    // 몬스터가 소환하는 몬스터의 종류. by sigi. 2002.9.2
+    // The kinds of monster this monster summons.
     bool getMonsterSummonInfo(SUMMON_INFO2& summonInfo);
     bool hasNextMonsterSummonInfo();
     int getMonsterSummonStep() const {
@@ -409,52 +409,52 @@ private:
     bool m_isEventMonster;
     bool m_bChief;
 
-    // Exp : 몬스터를 죽였을 때 받는 경험치는?
+    // Exp : the experience granted for killing this monster.
     Exp_t m_Exp;
 
-    // 사기 - 몬스터가 전투에 얼마나 충실히 임하는가?
+    // Morale -- how committed the monster is to the fight.
     Moral_t m_Moral;
 
-    // 처리 딜레이 - 몬스터의 상태에 따라서, 처리 딜레이는 달라져야 한다.
-    // 가령 이상한 마법에 걸렸다든지 하면, 처리 딜레이가 길어져서 몬스터가
-    // 반응이 느려질 것이다. 이는 개체 레벨이다.
+    // Processing delay -- it has to vary with the monster's state.
+    // A monster under some strange spell gets a longer delay and so
+    // reacts more slowly. This is per instance.
     Turn_t m_Delay;
     Turn_t m_AttackDelay;
     Timeval m_AccuDelay;
 
     // enemy list
     // *CAUTION*
-    // 쉽게 생각하면, Creture* 의 리스트로 구현할 수도 있겠지만,
-    // 이럴 경우, enemy 로 지정된 PC 가 로그아웃하는 경우, 자신을
-    // 적으로 지정한 몬스터를 찾아서 리스트에서 삭제해야 한다는
-    // 결론이 나온다. 따라서, OID 를 저장해야 하며, 이 값을 사용해서
-    // PC 등을 검색해야 한다.
+    // A list of Creature* would be the obvious implementation, but then,
+    // when a PC designated as an enemy logs out, every monster that named
+    // it as an enemy would have to be found and the entry deleted from its
+    // list. So the OID is stored instead, and that value is used to look
+    // the PC up.
     list<ObjectID_t> m_Enemies;
 
-    // 다음 액션 실행 시간
+    // Time of the next action.
     Timeval m_NextTurn;
 
     // MonsterAI class
     MonsterAI* m_pBrain;
 
-    // 은 도금 데미지
+    // Silver damage.
     Silver_t m_SilverDamage;
 
-    // 클랜 타입
+    // Clan type.
     ClanType_t m_ClanType;
 
-    // "먹자" 방지를 위한 우선권 테이블
+    // Precedence table that prevents loot stealing.
     PrecedenceTable m_PrecedenceTable;
 
-    // 이 몬스터에서 나오는 아이템에 대한 우선권을 가진 자의 이름과 파티 ID
+    // Name and party ID of whoever has precedence on this monster's drops.
     string m_HostName;
     int m_HostPartyID;
 
-    // 이 몬스터를 마지막으로 때린 종족의 크리쳐 클래스
-    // 이 몬스터가 죽었을 경우에, 생성하는 아이템을 결정하기 위한 것이다.
+    // Creature class of the race that hit this monster last.
+    // It decides which items are created when the monster dies.
     CreatureClass m_LastHitCreatureClass;
 
-    // 이 몬스터가 Relic을 가지고 있는가 아닌가?
+    // Does this monster carry a Relic?
     int m_RelicIndex;
 
     // #ifdef __XMAS_EVENT_CODE__
@@ -464,7 +464,7 @@ private:
     bool m_bScanEnemy;
     Timeval m_NextScanTurn;
 
-    // 몬스터의 적 인식타임
+    // The monster's enemy recognition time.
     bool m_bEnemyLimit;
     Timeval m_EnemyLimitTime;
     Creature* m_pOldEnemy;
@@ -472,12 +472,12 @@ private:
     // 2002.9.2
     bool m_bMaster;
     bool m_bTreasure;
-    int m_MonsterSummonStep; // 소환 단계
+    int m_MonsterSummonStep; // summon step
 
     // AttackOrder
     AttackOrder m_AttackOrder;
 
-    // 소환된 몹인 경우.. 혹은 아니더라도.. 주인의 정보
+    // Owner information, for summoned monsters and others.
     ObjectID_t m_OwnerObjectID;
 
     // 2002.10.14

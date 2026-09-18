@@ -16,7 +16,7 @@ class Vampire;
 
 //////////////////////////////////////////////////////////////////////////////
 // class VampireCorpse;
-// 뱀파이어가 죽었을 경우, 남기는 시체이다.
+// Corpse left behind when a Vampire dies.
 //////////////////////////////////////////////////////////////////////////////
 
 class VampireCorpse : public Corpse {
@@ -67,7 +67,7 @@ public:
     }
 
 protected:
-    PCVampireInfo3 m_VampireInfo; // 시체의 외모에 대한 정보
+    PCVampireInfo3 m_VampireInfo; // Information about the corpse's appearance
 };
 
 #endif

@@ -140,8 +140,8 @@ string MonsterNameManager::getRandomName(Monster* pMonster, bool event)
         return Name;
     }
 
-    // trial이 300번을 초과하면, 제대로 된 이름을 찾지 못했다는
-    // 말이니까, 아무 이름이나 붙여준다.
+    // If trial goes over 300 no proper name was found,
+    // so give it an arbitrary name.
     if (Name == "")
         Name == "무명씨";
 
@@ -176,21 +176,21 @@ string MonsterNameManager::getRandomName(Monster* pMonster)
         /*
         if (0 < MonsterLevel && MonsterLevel <= 33)
         {
-            // 하급 뱀파는 라스트 네임만 붙는다.
+            // A low-grade vampire gets only a last name.
             nFirstNameIndex  = -1;
             nMiddleNameIndex = -1;
             nLastNameIndex   = rand()%m_nLastNameCount;
         }
         else if (33 < MonsterLevel && MonsterLevel <= 66)
         {
-            // 중급 뱀파는 퍼스트와 라스트 네임만 붙는다.
+            // A mid-grade vampire gets only a first and a last name.
             nFirstNameIndex  = rand()%m_nFirstNameCount;
             nMiddleNameIndex = -1;
             nLastNameIndex   = rand()%m_nLastNameCount;
         }
         else
         {
-            // 고급 뱀파는 모든 이름이 다 붙는다.
+            // A high-grade vampire gets every name part.
             nFirstNameIndex  = rand()%m_nFirstNameCount;
             nMiddleNameIndex = rand()%m_nMiddleNameCount;
             nLastNameIndex   = rand()%m_nLastNameCount;
@@ -198,7 +198,7 @@ string MonsterNameManager::getRandomName(Monster* pMonster)
         */
 
         /*
-         * 존마다 유니크한 이름은 나중에다 붙는다네...
+         * Names unique per zone are assigned later.
          *
         ulonglong NameKey = 0;
 
@@ -228,8 +228,8 @@ string MonsterNameManager::getRandomName(Monster* pMonster)
         return Name;
     }
 
-    // trial이 300번을 초과하면, 제대로 된 이름을 찾지 못했다는
-    // 말이니까, 아무 이름이나 붙여준다.
+    // If trial goes over 300 no proper name was found,
+    // so give it an arbitrary name.
     if (Name == "")
         Name == "무명씨";
 

@@ -20,7 +20,7 @@ bool increasePetExp(PetInfo* pPetInfo, PetExp_t exp, ModifyInfo* pMI) {
     lastLevel = pPetInfo->getPetLevel();
     nextLevel = lastLevel + 1;
 
-    //	cout << pPetInfo->getPetType() << " 펫에 경험치를 줍니다. : " << exp << endl;
+    //	cout << pPetInfo->getPetType() << " pet gains experience : " << exp << endl;
 
     if (pMI != NULL)
         pMI->addLongData(MODIFY_PET_EXP, petExp);
@@ -39,7 +39,7 @@ bool increasePetExp(PetInfo* pPetInfo, PetExp_t exp, ModifyInfo* pMI) {
                                          ->getPetTypeInfo(pPetInfo->getPetType())
                                          ->getPetCreatureType(pPetInfo->getPetLevel()));
 
-        //		cout << (int)pPetInfo->getPetLevel() << "레벨업한 펫의 크리쳐 타입 " <<
+        //		cout << (int)pPetInfo->getPetLevel() << " level pet, creature type " <<
         //(int)pPetInfo->getPetCreatureType() << endl;
 
         if (pPetInfo->getPetAttr() != 0xff) {
@@ -98,32 +98,32 @@ PetExp_t computePetExp(Level_t myLevel, Level_t monsterLevel, PetInfo* pPetInfo,
 }
 
 void refreshHP(PetInfo* pPetInfo, uint Ratio) {
-    //	cout << "펫 먹이 비율 : " << Ratio << endl;
+    //	cout << "Pet feed ratio : " << Ratio << endl;
     VSDateTime current = VSDateTime::currentDateTime();
     int lastSec = pPetInfo->getLastFeedTime().secsTo(current);
-    //	cout << "밥먹은지 " << lastSec << "초 지났습니다." << endl;
+    //	cout << "Last fed " << lastSec << " seconds ago." << endl;
     if (lastSec <= 0)
         return;
 
     int lastMin = (lastSec / 60) + 1;
-    //	cout << "밥먹은지 " << lastMin << "분 지났습니다." << endl;
+    //	cout << "Last fed " << lastMin << " minutes ago." << endl;
     int spendFood = getPercentValue(lastMin, Ratio);
 
     //	if ( pPetInfo->getPetLevel() == 50 ) spendFood = max(1, spendFood/10);
     if (pPetInfo->getPetHP() < spendFood)
         spendFood = pPetInfo->getPetHP();
     if (spendFood == 0) {
-        //		cout << "죽어서 밥 못먹습니다. -_-" << endl;
+        //		cout << "Dead, so it cannot eat." << endl;
         return;
     }
 
-    //	cout << spendFood << "만큼 밥먹습니다." << endl;
+    //	cout << spendFood << " worth of food eaten." << endl;
 
     pPetInfo->setPetHP(pPetInfo->getPetHP() - spendFood);
 
     if (pPetInfo->getPetHP() == 0) {
         spendFood /= (Ratio / 100.0);
-        //		cout << "먹은 시간 : " << spendFood << endl;
+        //		cout << "Feed time : " << spendFood << endl;
         pPetInfo->setFeedTime(pPetInfo->getLastFeedTime().addDays(spendFood / 1440).addSecs((spendFood % 1440) * 60));
     } else
         pPetInfo->setFeedTime(current);

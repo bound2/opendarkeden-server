@@ -90,12 +90,12 @@ int getStrongValue(Creature* pCreature) {
     } else
         return 0;
 
-    // pCreature HP가 120이상
+    // pCreature HP is 120 or above
     if (currentHP >= 120) {
         strongValue += 200;
     }
 
-    // HP percentage가 60% 이상이라면
+    // If the HP percentage is 60% or above
     if (currentHP * 100 >= maxHP * 60) {
         strongValue += 200;
     }
@@ -130,7 +130,7 @@ TPOINT randPos(int ox, int oy, int threshold, Zone* pZone)
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 생성자/소멸자
+// Constructor / destructor
 //////////////////////////////////////////////////////////////////////////////
 
 MonsterAI::MonsterAI(Monster* pMonster, uint type)
@@ -219,7 +219,7 @@ void MonsterAI::addDirective(Directive* pDirective)
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 조건 함수
+// Condition functions
 //////////////////////////////////////////////////////////////////////////////
 
 bool MonsterAI::checkCondition(int condition, Creature* pEnemy)
@@ -242,12 +242,12 @@ bool MonsterAI::checkDirective(Directive* pDirective, Creature* pEnemy)
     if (pDirective == NULL)
         return false;
 
-    // 컨디션 리스트를 얻어내고...
+    // Get the condition list.
     list<int>& conditionList = pDirective->getConditions();
     bool rValue = true;
 
-    // 조건 중에 하나라도 만족하지 않는 것이 있다면,
-    // false를 리턴한다.
+    // If any one of the conditions is not satisfied,
+    // return false.
     list<int>::iterator itr = conditionList.begin();
     for (; itr != conditionList.end(); itr++) {
         if (checkCondition(*itr, pEnemy) == false) {
@@ -262,7 +262,7 @@ bool MonsterAI::checkDirective(Directive* pDirective, Creature* pEnemy)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 보통의 움직임
+// Normal movement
 //////////////////////////////////////////////////////////////////////////////
 
 bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, ZoneCoord_t& ny, Dir_t& ndir)
@@ -274,7 +274,7 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
     Dir_t curDir = m_pBody->getDir();
 
     ////////////////////////////////////////////////////////////
-    // 목적지점으로 향하는 최선의 방향을 찾는다.
+    // Find the best direction toward the destination.
     ////////////////////////////////////////////////////////////
     if (m_pBody->getX() < ex) {
         if (m_pBody->getY() < ey)
@@ -305,17 +305,17 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
 
     int diffLevel = 0;
 
-    // 방향과 방향 사이의 차이를 나타낸다. diffLevel == 1 에서, diff == 0 이기 위해서
-    // 0 으로 초기화해야 한다. 그렇지 않으면, garbage 값으로 인해 오류가 나게 된다.
+    // Difference between two directions. It must be initialized to 0 so that diff == 0
+    // when diffLevel == 1; otherwise a garbage value causes an error.
     int diff = 0;
 
-    // 다음 방향이 발견되었는가?
+    // Has the next direction been found?
     bool found = false;
 
-    // 우선 bestDir 부터 체크해본다. unsigned type 이 되어서는 안된다.
+    // Check bestDir first. This must not be an unsigned type.
     ndir = bestDir;
 
-    // 다음 좌표
+    // Next coordinates
     nx = m_pBody->getX() + dirMoveMask[ndir].x;
     ny = m_pBody->getY() + dirMoveMask[ndir].y;
 
@@ -325,11 +325,11 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
 
     const Dir_t DIR_MAX_1 = DIR_MAX - 1;
 
-    // bestDir 방향이 막혀 있다면, previous Dir 방향을 기준으로 +- 하면서 체크한다.
-    // 이때 존의 경계를 넘어서는지 체크를 해야 한다.
+    // If bestDir is blocked, check by stepping +/- around the previous direction.
+    // The zone boundary must be checked while doing so.
     bool bCanMove = m_pBody->canMove(nx, ny);
 
-    // 마스터인 경우에는 바닥에 안 좋은게 없어야 한다. - -; by sigi. 2002.9.12
+    // For a master, the ground must have nothing harmful on it.
     /*
     if (bCanMove && m_pBody->isMaster())
     {
@@ -348,32 +348,32 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
     if (!bCanMove) {
         bBlocked[ndir] = true;
 
-        // best direction이 벽이라면 다음부터 벽타기를 한다.
-        // 박쥐나 hide중이 아니어야 한다.
+        // If the best direction is a wall, wall-following starts from here on.
+        // Must not be a bat and must not be hiding.
         if (!m_pBody->isBlockedByCreature(nx, ny) && !m_pBody->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT) &&
             !m_pBody->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-            setMoveRule(MOVE_RULE_RIGHTWALL); // 여기껀 별 의미없다.
+            setMoveRule(MOVE_RULE_RIGHTWALL); // The value here does not matter.
             m_BlockedDir = bestDir;
 
-            // 이번 턴에는 그냥 갈 방향을 결정하면 된다.
+            // For this turn it is enough to decide which direction to go.
         }
 
         while (true) {
-            // 최초일 경우, diffLevel == 1 이 된다. 이는 m_pBody->getDir() 방향을 체크하라는 뜻이다.
+            // On the first pass diffLevel == 1, which means check the m_pBody->getDir() direction.
             diffLevel++;
 
-            // 적절한 방향을 찾았거나, 더이상 찾을 수 없다면 끝낸다.
+            // Stop when a suitable direction is found or there is nothing left to search.
             if (found || diffLevel > 8)
                 break;
 
             ////////////////////////////////////////////////////////////
-            // diffLevel 을 2 로 나눈 값이 같다는 뜻은, 서로 대칭되는
-            // 방향이라는 뜻이다.  그 중 짝수를 만나면 최초로 diff 를
-            // 계산해서 한쪽 방향을 체크하며, 홀수를 만나면 이전 루프에서
-            // 반대편 방향이 체크되었다는 뜻이므로, 계산된 diff 의
-            // 음수를 사용해서 다른편 방향을 체크하면 되겠다.
+            // Two diffLevel values that are equal when divided by 2 denote directions
+            // symmetric to each other. On an even diffLevel, diff is computed for the
+            // first time and one side is checked; on an odd diffLevel the opposite side
+            // was already checked in the previous loop, so the negated diff is used to
+            // check the other side.
             ////////////////////////////////////////////////////////////
-            if ((diffLevel & 0x00000001) == 0) // % 2 인데.. 바꿨당.. ㅋㅋ by sigi
+            if ((diffLevel & 0x00000001) == 0) // Equivalent to % 2.
             {
                 // diff = (int)(diffLevel >> 1) * (bSelectLeft ? 1 : -1);
                 diff = diffLevel >> 1;
@@ -381,7 +381,7 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
                 Dir_t dir1 = (m_pBody->getDir() + diff) & DIR_MAX_1;
                 Dir_t dir2 = (m_pBody->getDir() + DIR_MAX - diff) & DIR_MAX_1;
 
-                // bestDir에 가까운 쪽을 먼저 선택해보자.
+                // Try the side closer to bestDir first.
                 if ((abs(ndir + DIR_MAX - dir1) & DIR_MAX_1) < (abs(ndir + DIR_MAX - dir2) & DIR_MAX_1)) {
                     ndir = dir1;
                 } else {
@@ -392,7 +392,7 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
                 ndir = m_pBody->getDir() + DIR_MAX - diff;
 
             ////////////////////////////////////////////////////////////
-            // ndir 이 overflow, underflow 할 경우 값을 보정해줘야 한다.
+            // ndir must be corrected when it overflows or underflows.
             // overflow  : -1 -> 7 , -2 -> 6 , -3 -> 5 , ...
             // underflow :  8 -> 0 ,  9 -> 1 , 10 -> 2 , ...
             ////////////////////////////////////////////////////////////
@@ -406,14 +406,14 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
             // }
             ndir &= DIR_MAX_1;
 
-            // 다음 좌표를 구한다.
+            // Compute the next coordinates.
             nx = m_pBody->getX() + dirMoveMask[ndir].x;
             ny = m_pBody->getY() + dirMoveMask[ndir].y;
 
-            // 다음 방향이 비었으면, 루프를 빠져나갈 수 있다.
-            // 이때 존의 경계를 넘어서는지 체크를 해야 한다.
+            // If the next direction is empty, the loop can be exited.
+            // The zone boundary must be checked while doing so.
             if (m_pBody->canMove(nx, ny)) {
-                // 마스터인 경우에는 바닥에 안 좋은게 없어야 한다. - -; by sigi. 2002.9.12
+                // For a master, the ground must have nothing harmful on it.
                 /*
                 if (m_pBody->isMaster())
                 {
@@ -437,12 +437,12 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
     } else
         found = true;
 
-    // 좌수/우수를 확실히 결정해준다.
+    // Decide definitively between left-hand and right-hand wall following.
     if (found && m_MoveRule != MOVE_RULE_NORMAL) {
         bool leftWall = bBlocked[(ndir + 2) & DIR_MAX_1];
         bool rightWall = bBlocked[(ndir + DIR_MAX - 2) & DIR_MAX_1];
 
-        // 둘 다 막혔으면 방향에 따라서.. 사바사바
+        // If both are blocked, choose according to the direction.
         if (leftWall && rightWall) {
             if (ndir > curDir && ndir < curDir + 4 || curDir > 4 && (ndir > curDir || ndir < curDir - 4)) {
                 setMoveRule(MOVE_RULE_RIGHTWALL);
@@ -454,19 +454,19 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
                 // " << m_pBody->getName() << endl;
             }
         }
-        // 좌수법 적용
+        // Apply the left-hand rule.
         else if (leftWall) {
             setMoveRule(MOVE_RULE_LEFTWALL);
             // cout << "set LeftWall : " << (int)curDir << " to " << (int)ndir << " - " << (int)m_BlockedDir << " - " <<
             // m_pBody->getName() << endl;
         }
-        // 우수법 적용
+        // Apply the right-hand rule.
         else if (rightWall) {
             setMoveRule(MOVE_RULE_RIGHTWALL);
             // cout << "set RightWall : " << (int)curDir << " to " << (int)ndir << " - " << (int)m_BlockedDir << " - "
             // << m_pBody->getName() << endl;
         }
-        // 벽이 없다면 벽타기 안한다.
+        // Do not wall-follow when there is no wall.
         else {
             setMoveRule(MOVE_RULE_NORMAL);
         }
@@ -478,7 +478,7 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 벽타고 이동하기
+// Moving along a wall
 //////////////////////////////////////////////////////////////////////////////
 
 bool MonsterAI::moveWall(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, ZoneCoord_t& ny, Dir_t& ndir, bool bLeft)
@@ -490,19 +490,19 @@ bool MonsterAI::moveWall(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, ZoneCo
     ////////////////////////////////////////////////////////////
     // search surrounding tiles
     ////////////////////////////////////////////////////////////
-    // 우선 목표 방향으로 가볼려고 한다.
+    // First try to go in the target direction.
     ndir = m_BlockedDir;
 
-    // 다음 좌표
+    // Next coordinates
     nx = m_pBody->getX() + dirMoveMask[ndir].x;
     ny = m_pBody->getY() + dirMoveMask[ndir].y;
 
     m_WallCount++;
 
-    // 목표한 방향으로 갈 수 있는 경우
+    // Whether the target direction can be entered
     bool bCanMove = m_pBody->canMove(nx, ny);
 
-    // 마스터인 경우에는 바닥에 안 좋은게 없어야 한다. - -; by sigi. 2002.9.12
+    // For a master, the ground must have nothing harmful on it.
     /*
     if (bCanMove && m_pBody->isMaster())
     {
@@ -523,7 +523,7 @@ bool MonsterAI::moveWall(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, ZoneCo
         Dir_t bestDir;
 
         ////////////////////////////////////////////////////////////
-        // (nx, ny)에서 목적지점으로 향하는 최선의 방향을 찾는다.
+        // Find the best direction from (nx, ny) toward the destination.
         ////////////////////////////////////////////////////////////
         if (nx < ex)
         {
@@ -548,11 +548,11 @@ bool MonsterAI::moveWall(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, ZoneCo
         ZoneCoord_t by = ny + dirMoveMask[bestDir].y;
         */
 
-        // 한 칸 이동했을때의
-        // best방향이 block이 되어있지 않은 경우에만 벽타기를 그만둔다.
+        // Stop wall-following only when the best direction after moving
+        // one tile is not blocked.
         // if (m_pBody->canMove(bx,by))
         {
-            // 벽타기를 그만둔다.
+            // Stop wall-following.
             // cout << "FindBest : " << (int)m_BlockedDir << " - " << m_pBody->getName() << endl;
             setMoveRule(MOVE_RULE_NORMAL);
         }
@@ -566,37 +566,37 @@ bool MonsterAI::moveWall(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, ZoneCo
     Dir_t dirInc, dirWallInc;
 
     if (bLeft) {
-        // 좌수법
+        // Left-hand rule
         dirInc = 7;     //	+DIR_MAX-1;
-        dirWallInc = 2; // 벽이 있어야하는 방향
+        dirWallInc = 2; // Direction the wall must be in
     } else {
-        // 우수법
+        // Right-hand rule
         dirInc = 1;
-        dirWallInc = 6; // +DIR_MAX-3 벽이 있어야하는 방향
+        dirWallInc = 6; // +DIR_MAX-3 Direction the wall must be in
     }
 
-    // 벽이 있어야하는 방향부터 체크
+    // Check starting from the direction the wall must be in.
     ndir = (m_pBody->getDir() + dirWallInc) & DIR_MAX_1;
 
     //----------------------------------------------------------
-    // 갈려는 방향으로 갈 수 있으면 가면 된다.
+    // If the intended direction is passable, just go there.
     //
-    // 갈 수 없는 이유가 맵에 의한 block이 아닌 경우이면
-    //        벽타기를 그만둔다.
+    // If it is impassable for a reason other than a map block,
+    //        stop wall-following.
     //----------------------------------------------------------
     for (int i = 0; i < DIR_MAX; i++) {
-        // 다음 좌표
+        // Next coordinates
         nx = m_pBody->getX() + dirMoveMask[ndir].x;
         ny = m_pBody->getY() + dirMoveMask[ndir].y;
 
         if (m_pBody->canMove(nx, ny)) {
-            // 무조건 가버리면 된다.
-            // 벽이 있어야 되는 위치
+            // Just go there unconditionally.
+            // Position where the wall has to be
             // Dir_t 		dirWall = (ndir + dirWallInc) & DIR_MAX_1;
             // ZoneCoord_t wallx 	= m_pBody->getX() + dirMoveMask[dirWall].x;
             // ZoneCoord_t wally 	= m_pBody->getY() + dirMoveMask[dirWall].y;
 
-            // 갈 수 없고 creature에 의한 block이 아니면 벽이다.
+            // Impassable and not blocked by a creature means it is a wall.
             // if (!m_pBody->canMove(wallx,wally)
             //	&& !m_pBody->isBlockedByCreature(wallx,wally))
             {
@@ -605,16 +605,16 @@ bool MonsterAI::moveWall(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, ZoneCo
                 return true;
             }
         }
-        // 다른 creature에 의해서 갈 수 없다면 벽타기를 그만둔다.
+        // If another creature blocks the way, stop wall-following.
         else if (m_pBody->isBlockedByCreature(nx, ny)) {
             break;
         }
 
-        // 다음 방향
+        // Next direction
         ndir = (ndir + dirInc) & DIR_MAX_1;
     }
 
-    // 벽타기로 아무곳도 갈 수 없다면 벽타기를 그만둔다.
+    // If wall-following cannot reach anywhere, stop wall-following.
     setMoveRule(MOVE_RULE_NORMAL);
 
     // cout << "Can't go Wall : " << m_pBody->getName() << endl;
@@ -624,7 +624,7 @@ bool MonsterAI::moveWall(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, ZoneCo
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 행동 함수 (공격 관련)
+// Action functions (attack related)
 //////////////////////////////////////////////////////////////////////////////
 
 bool MonsterAI::move(ZoneCoord_t ex, ZoneCoord_t ey)
@@ -632,44 +632,44 @@ bool MonsterAI::move(ZoneCoord_t ex, ZoneCoord_t ey)
 {
     Zone* pZone = m_pBody->getZone();
 
-    // 하이드 상태에서는 움직이면 곤란하다...
+    // Moving while hidden causes trouble.
     // if (m_pBody->isFlag(Effect::EFFECT_CLASS_HIDE))
     //{
     //	m_LastAction = LAST_ACTION_MOVE;
     //	return true;
     //}
 
-    // 이동할 위치,방향
+    // Position and direction to move to
     ZoneCoord_t nx, ny;
     Dir_t ndir;
 
-    // 이동 방법에 따라서 이동할 곳을 결정한다.
+    // Decide where to move according to the move rule.
     bool found = false;
     switch (m_MoveRule) {
-    // 보통의 이동
+    // Normal movement
     case MOVE_RULE_NORMAL:
         found = moveNormal(ex, ey, nx, ny, ndir);
         break;
 
-    // 좌수법
+    // Left-hand rule
     case MOVE_RULE_LEFTWALL:
-        found = moveWall(ex, ey, nx, ny, ndir, true); // true가 left방향이다.
+        found = moveWall(ex, ey, nx, ny, ndir, true); // true means the left direction.
         break;
 
-    // 우수법
+    // Right-hand rule
     case MOVE_RULE_RIGHTWALL:
-        found = moveWall(ex, ey, nx, ny, ndir, false); // false가 right방향이다.
+        found = moveWall(ex, ey, nx, ny, ndir, false); // false means the right direction.
         break;
 
     default:
         break;
     }
 
-    // 1. 다음 방향이 발견되었고,
-    // 2. 안전 지대가 아니라면...
+    // 1. The next direction was found, and
+    // 2. it is not a safe zone.
     if ((found) && !(pZone->getZoneLevel(nx, ny) & SAFE_ZONE)) {
-        // 내부에서 크리처의 좌표와 방향을 변경하며, 브로드캐스트를 알아서 해준다.
-        // 이미 Q(nx,ny)가 계산되어 있으므로 굳이 재계산할 필요는 없다.
+        // This changes the creature's coordinates and direction internally and broadcasts it.
+        // (nx, ny) is already computed, so there is no need to recompute it.
         pZone->moveCreature(m_pBody, nx, ny, ndir);
     }
 
@@ -693,8 +693,8 @@ bool MonsterAI::move(Creature* pEnemy, bool bRetreat)
     ZoneCoord_t ex = pEnemy->getX();
     ZoneCoord_t ey = pEnemy->getY();
 
-    // 도망을 칠 경우에는 적의 반대 좌표에 적이 있다고
-    // 생각하고, 움직이면 된다.
+    // When fleeing, act as though the enemy stood at the coordinates opposite
+    // the enemy, and move.
     if (bRetreat) {
         ////////////////////////////////////////////////////////////
         // (enemyX, enemyY)
@@ -703,8 +703,8 @@ bool MonsterAI::move(Creature* pEnemy, bool bRetreat)
         //
         //                           (ex, ey)
         //
-        // 적이 있는 포지션(enemyX, enemyY)에서
-        // 대각선 반대 방향으로 도망을 친다.
+        // Flee in the diagonally opposite direction from the position the enemy
+        // is at (enemyX, enemyY).
         ////////////////////////////////////////////////////////////
         int xOffset2 = xOffset << 1; // by sigi
         int yOffset2 = yOffset << 1; // by sigi
@@ -723,7 +723,7 @@ bool MonsterAI::move(Creature* pEnemy, bool bRetreat)
         else
             ey = enemyY - yOffset2;
 
-        setMoveRule(MOVE_RULE_NORMAL); // 정상적인 이동
+        setMoveRule(MOVE_RULE_NORMAL); // Normal movement
     }
 
     return move(ex, ey);
@@ -747,7 +747,7 @@ bool MonsterAI::flee(Creature* pEnemy)
         m_Panic--;
 
     if (m_Panic > 0) {
-        // 도망친다.
+        // Flee.
         move(pEnemy, true);
         return true;
     }
@@ -769,7 +769,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
     ZoneCoord_t ey = pEnemy->getY();
     Distance_t dist = m_pBody->getDistance(ex, ey);
 
-    // 어떤 행동을 취할 때는 그 행동을 취할 확률이 돌아온다.
+    // Each action is only taken with its own probability.
     if (rand() % 100 >= ratio)
         return SKILL_FAILED_RATIO;
 
@@ -782,25 +782,25 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
 
 
     //----------------------------------------------------------
-    // skill을 사용하기 불가능한 상태라면
-    // 일단 가능한 상태로 만들어야 한다.
-    // Directive에 넣어도 되지만, 모든 몹이 동일하기 때문에...
+    // If the state makes using a skill impossible,
+    // it must first be made possible.
+    // This could be put into Directive, but it is the same for every monster.
     //
-    // Slayer몹/Vampire몹으로 나뉘지 않을까.. 으흠 - -;
+    // It may need to be split into Slayer monsters and Vampire monsters.
     //----------------------------------------------------------
-    // Hide상태라면 튀어나와야 한다.
+    // If hidden, come out.
     if (m_pBody->isFlag(Effect::EFFECT_CLASS_HIDE)) {
         SkillType = SKILL_UN_BURROW;
     }
-    // 박쥐상태라면 다시 변신
+    // If in bat form, transform back.
     else if (m_pBody->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT)) {
         SkillType = SKILL_UN_TRANSFORM;
     }
-    // invisible상태라면 풀어야 한다.
+    // If invisible, the invisibility must be removed.
     else if (m_pBody->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
         SkillType = SKILL_UN_INVISIBILITY;
     }
-    // 늑대는 마법쓰면 안되는데.. - -;
+    // A wolf should not be able to cast magic.
 
     SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
     Assert(pSkillHandler != NULL);
@@ -811,7 +811,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
 
     switch (SkillType) {
     ////////////////////////////////////////////////////////////
-    // 근거리 기술들
+    // Melee skills
     ////////////////////////////////////////////////////////////
     case SKILL_ATTACK_MELEE:
     case SKILL_ACID_TOUCH:
@@ -828,7 +828,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
         pSkillHandler->execute(m_pBody, pEnemy);
         break;
     ////////////////////////////////////////////////////////////
-    // 장거리 기술들
+    // Ranged skills
     ////////////////////////////////////////////////////////////
     case SKILL_ATTACK_ARMS:
         if (dist > m_pBody->getMissileRange())
@@ -836,7 +836,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
         pSkillHandler->execute(m_pBody, pEnemy);
         break;
     ////////////////////////////////////////////////////////////
-    // 장거리 기술들 (with delay)
+    // Ranged skills (with delay)
     ////////////////////////////////////////////////////////////
     case SKILL_GREEN_POISON:
     case SKILL_YELLOW_POISON:
@@ -859,7 +859,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
     case SKILL_ACID_STORM:
     case SKILL_POISON_STORM:
     case SKILL_HALLUCINATION:
-    // 2003.04.13-14 몬스터가 사용할 수 있도록 추가.
+    // Added so that monsters can use these.
     case SKILL_METEOR_STRIKE:
     case SKILL_BLOODY_WALL:
     case SKILL_BLOODY_SNAKE:
@@ -873,7 +873,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
     case SKILL_ACID_ERUPTION:
     case SKILL_ICE_FIELD:
 
-    // 질드레 스킬
+    // Gilles de Rais skills
     case SKILL_WIDE_ICE_FIELD:
     case SKILL_GLACIER_1:
     case SKILL_GLACIER_2:
@@ -900,16 +900,16 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
         Assert(pSkillInfo != NULL);
 
         if (SkillType == SKILL_GUN_SHOT_GUIDANCE || SkillType == SKILL_ICE_LANCE || SkillType == SKILL_ICE_HAIL) {
-            // 바보
+            // No range check for these skills.
         } else if (dist > pSkillInfo->getRange())
             return SKILL_FAILED_RANGE;
         // cout << "useSkill: " << pSkillInfo->getName().c_str() << endl;
         pSkillHandler->execute(m_pBody, pEnemy);
         // cout << "useSkillOK: " << pSkillInfo->getName().c_str() << endl;
 
-        // 미사일 쏘는 속도가 너무 빠르기 때문에 지연시간을 세팅해 준다.
+        // Missiles fire too fast, so a delay is set.
         if (m_pBody->isMaster() || m_pBody->getMonsterType() == 599 || m_pBody->getMonsterType() == 764 ||
-            m_pBody->getMonsterType() == 765) // 마스터는 delay를 좀 줄인다. by sigi. 2002.9.13
+            m_pBody->getMonsterType() == 765) // Masters get a shorter delay.
         {
             delay.tv_sec = 0;
             delay.tv_usec = 700000;
@@ -925,7 +925,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
         m_pBody->addAccuDelay(delay);
         break;
     ////////////////////////////////////////////////////////////
-    // 셀프 기술들
+    // Self skills
     ////////////////////////////////////////////////////////////
     case SKILL_HIDE:
     case SKILL_UN_BURROW:
@@ -937,7 +937,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
     case SKILL_DUPLICATE_SELF:
         pSkillHandler->execute(m_pBody);
 
-        // delay설정
+        // Set the delay.
         delay.tv_sec = 1;
         delay.tv_usec = 500000;
         m_pBody->addAccuDelay(delay);
@@ -949,7 +949,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
 
         pSkillHandler->execute(m_pBody);
 
-        // delay설정
+        // Set the delay.
         delay.tv_sec = 1;
         delay.tv_usec = 500000;
         m_pBody->addAccuDelay(delay);
@@ -963,7 +963,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
         pSkillHandler->execute(m_pBody);
         // cout << "useSkillOK: " << pSkillInfo->getName().c_str() << endl;
 
-        // delay설정
+        // Set the delay.
         delay.tv_sec = 1;
         delay.tv_usec = 0;
         m_pBody->addAccuDelay(delay);
@@ -979,7 +979,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
         pSkillHandler->execute(m_pBody);
         // cout << "useSkillOK: " << pSkillInfo->getName().c_str() << endl;
 
-        // delay설정
+        // Set the delay.
         delay.tv_sec = 3;
         delay.tv_usec = 0;
         m_pBody->addAccuDelay(delay);
@@ -1010,7 +1010,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
 
 
     ////////////////////////////////////////////////////////////
-    // 지원되지 않는 기술
+    // Unsupported skill
     ////////////////////////////////////////////////////////////
     default:
         cerr << "MonsterAI::useSkill() : Try to use unavailable skill!" << endl;
@@ -1027,7 +1027,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 행동 패턴 선택 함수
+// Action pattern selection function
 //////////////////////////////////////////////////////////////////////////////
 
 void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
@@ -1037,23 +1037,23 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
 
     Assert(pEnemy != NULL); // by sigi
 
-    // 다이렉티브 리스트를 얻어낸다.
+    // Get the directive list.
     const list<Directive*>& directiveList = m_pDirectiveSet->getDirectives();
     int rValue = 0;
     int parameter = 0;
     int ratio = 0;
 
-    // 다이랙티브 리스트를 하나씩 검색하면서,
-    // 조건이 만족되는 것이 있는지 체크한다.
+    // Walk the directive list one entry at a time and check
+    // whether any of them has its conditions satisfied.
     list<Directive*>::const_iterator itr = directiveList.begin();
     for (; itr != directiveList.end(); itr++) {
         Directive* pDirective = *itr;
 
-        // 조건이 만족하는 다이렉티브가 있다면,
-        // 그에 해당하는 액션을 수행한다.
+        // If a directive's conditions are satisfied,
+        // perform the action it names.
         if (checkDirective(pDirective, pEnemy)) {
             switch (pDirective->getAction()) {
-            // 적에게 다가간다.
+            // Approach the enemy.
             case DIRECTIVE_ACTION_APPROACH:
                 __BEGIN_PROFILE_MONSTER("DIRECTIVE_ACTION_APPROACH");
                 approach(pEnemy);
@@ -1061,11 +1061,11 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
                 // cout << "[" << (int)currentTime.tv_sec << "." << (int)currentTime.tv_usec << "] approach" << endl;
                 break;
 
-            // 적으로부터 도망친다.
+            // Flee from the enemy.
             case DIRECTIVE_ACTION_FLEE:
                 __BEGIN_PROFILE_MONSTER("DIRECTIVE_ACTION_FLEE");
                 if (!flee(pEnemy)) {
-                    setMoveRule(MOVE_RULE_NORMAL); // 정상적인 이동
+                    setMoveRule(MOVE_RULE_NORMAL); // Normal movement
                     rValue = useSkill(pEnemy, SKILL_ATTACK_MELEE, 100);
                     if (rValue != 0)
                         approach(pEnemy);
@@ -1076,10 +1076,10 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
                 __END_PROFILE_MONSTER("DIRECTIVE_ACTION_FLEE");
                 break;
 
-            // 스킬을 사용한다. 적을 공격하거나, 셀프 기술...
+            // Use a skill: attack the enemy, or a self skill.
             case DIRECTIVE_ACTION_USE_SKILL:
                 __BEGIN_PROFILE_MONSTER("DIRECTIVE_ACTION_USE_SKILL");
-                // Block Head 걸려있을때는 스킬을 사용할 수 없다.
+                // Skills cannot be used while Block Head is applied.
                 if (m_pBody->isFlag(Effect::EFFECT_CLASS_BLOCK_HEAD) || m_pBody->isFlag(Effect::EFFECT_CLASS_TENDRIL))
                     continue;
                 parameter = pDirective->getParameter();
@@ -1097,28 +1097,28 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
                 // SkillTypes2String[parameter] << endl;
 
 
-                setMoveRule(MOVE_RULE_NORMAL); // 정상적인 이동
+                setMoveRule(MOVE_RULE_NORMAL); // Normal movement
 
                 break;
 
-            // 적을 포기한다.
+            // Give up on the enemy.
             case DIRECTIVE_ACTION_FORGET:
                 __BEGIN_PROFILE_MONSTER("DIRECTIVE_ACTION_FORGET");
                 // by sigi. 2002.10.7
                 if (!m_pBody->getEnemies().empty())
                     m_pBody->getEnemies().pop_front();
 
-                setMoveRule(MOVE_RULE_NORMAL); // 정상적인 이동
+                setMoveRule(MOVE_RULE_NORMAL); // Normal movement
                 // cout << "[" << (int)currentTime.tv_sec << "." << (int)currentTime.tv_usec << "] forget" << endl;
                 __END_PROFILE_MONSTER("DIRECTIVE_ACTION_FORGET");
 
                 break;
 
-            // 새로운 PrimaryEnemy를 찾아서 체크한다.
+            // Find a new PrimaryEnemy and check it.
             case DIRECTIVE_ACTION_CHANGE_ENEMY: {
                 ratio = pDirective->getParameter();
 
-                // 적을 안 바꾼다.
+                // Do not change the enemy.
                 if (rand() % 100 >= ratio) {
                     // cout << "[" << (int)currentTime.tv_sec << "." << (int)currentTime.tv_usec << "] !changeEnemy" <<
                     // endl;
@@ -1131,9 +1131,9 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
                 if (pNewEnemy != NULL) {
                     pEnemy = pNewEnemy;
                 } else {
-                    // 없다면.. checkFindWeakEnemy에서 delete하고
-                    // 새로운 적이 추가가 되지 않았다는 의미이다.
-                    // 기존의 적을 다시 추가한다.
+                    // If empty, checkFindWeakEnemy deleted the enemies and no new
+                    // enemy was added.
+                    // Re-add the original enemy.
                     // by sigi. 2002.10.7
                     if (m_pBody->getEnemies().empty()) {
                         m_pBody->addEnemy(pEnemy);
@@ -1142,16 +1142,16 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
 
                 __END_PROFILE_MONSTER("DIRECTIVE_ACTION_CHANGE_ENEMY");
 
-                // 다음 AI를 게속 진행한다.
+                // Continue on to the next AI step.
                 // cout << "[" << (int)currentTime.tv_sec << "." << (int)currentTime.tv_usec << "] changeEnemy" << endl;
                 continue;
             } break;
 
-            // 근처의 어딘가로 이동한다.
+            // Move somewhere nearby.
             case DIRECTIVE_ACTION_MOVE_RANDOM: {
                 ratio = pDirective->getParameter();
 
-                // 어딘가로 이동하지 않는다.
+                // Do not move anywhere.
                 if (rand() % 100 >= ratio) {
                     // cout << "[" << (int)currentTime.tv_sec << "." << (int)currentTime.tv_usec << "] !moveRandom" <<
                     // endl;
@@ -1171,7 +1171,7 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
 
                 __END_PROFILE_MONSTER("DIRECTIVE_ACTION_MOVE_RANDOM_GET_SAFE_TILE");
 
-                // 자리가 없다면.. 걍 포기 - -;
+                // If there is no free spot, give up.
                 if (p.x == -1) {
                     /// cout << "[" << (int)currentTime.tv_sec << "." << (int)currentTime.tv_usec << "] moveRandom : no
                     /// position" << endl;
@@ -1190,7 +1190,7 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
                 // cout << "[" << (int)currentTime.tv_sec << "." << (int)currentTime.tv_usec << "] moveRandom" << endl;
             } break;
 
-            // 잠시 대기한다.
+            // Wait for a while.
             case DIRECTIVE_ACTION_WAIT: {
                 __BEGIN_PROFILE_MONSTER("DIRECTIVE_ACTION_WAIT");
                 Timeval delay;
@@ -1249,7 +1249,7 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
 
     __BEGIN_PROFILE_MONSTER("MAI_POST_DEAL");
 
-    // 이번 턴에 어떤 행동을 했느냐에 따라 행동 지연 시간을 세팅해준다.
+    // Set the action delay according to which action was taken this turn.
     switch (m_LastAction) {
     case LAST_ACTION_NONE:
     case LAST_ACTION_MOVE:
@@ -1260,10 +1260,10 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
         break;
     }
 
-    // 행동 변수를 새로 세팅해 준다.
+    // Reset the action variable.
     m_LastAction = LAST_ACTION_NONE;
 
-    // 도망에 관한 변수를 확률적으로 새로 세팅해준다.
+    // Reset the flee-related variable at random.
     if ((rand() & 0x0000007F) > 64) //%100 > 50)
     {
         if (m_bDamaged) {
@@ -1278,21 +1278,21 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
     __END_CATCH
 }
 
-// 죽을 때의 행동을 취한다.
+// Take the action performed on death.
 void MonsterAI::actDeadAction(Creature* pEnemy)
 
 {
     __BEGIN_TRY
 
-    // MonsterAI의 한계로 인해,
-    // 적이 없을 경우에 행할 수 있는 액션에는 한계가 있다.
+    // Because of MonsterAI's limits, the actions that can be performed
+    // when there is no enemy are limited.
     if (pEnemy != NULL) {
-        // 다이렉티브 리스트를 얻어낸다.
+        // Get the directive list.
         const list<Directive*>& directiveList = m_pDirectiveSet->getDeadDirectives();
         bool bContinue = true;
 
-        // 다이랙티브 리스트를 하나씩 검색하면서,
-        // 조건이 만족되는 것이 있는지 체크한다.
+        // Walk the directive list one entry at a time and check
+        // whether any of them has its conditions satisfied.
         list<Directive*>::const_iterator itr = directiveList.begin();
         for (; itr != directiveList.end() && bContinue; itr++) {
             Directive* pDirective = *itr;
@@ -1319,7 +1319,7 @@ void MonsterAI::actDeadAction(Creature* pEnemy)
                         break;
                     }
                 } else {
-                    // 기술 사용이 확률 체크로 인해 실패했다면 다음 액션으로 넘어간다.
+                    // If the skill failed its probability check, move on to the next action.
                     continue;
                 }
             } else if (pDirective->getAction() == DIRECTIVE_ACTION_SAY) {
@@ -1341,7 +1341,7 @@ void MonsterAI::setDelay(const Timeval& currentTime)
 {
     __BEGIN_TRY
 
-    // 기존에 구한 시간을 이용한다. 계산 줄일려고. - -; by sigi. 2002.5.6
+    // Reuse the time obtained earlier, to save computation.
     // Timeval currentTime;
     // getCurrentTime(currentTime);
 
@@ -1403,7 +1403,7 @@ void MonsterAI::setAttackDelay(const Timeval& currentTime)
 {
     __BEGIN_TRY
 
-    // 기존에 구한 시간을 이용한다. 계산 줄일려고. - -; by sigi. 2002.5.6
+    // Reuse the time obtained earlier, to save computation.
     // Timeval currentTime;
     // getCurrentTime(currentTime);
 
@@ -1732,19 +1732,19 @@ bool checkImWalkingWall(Monster* pMonster, Creature* pEnemy) {
 bool checkTimingBloodDrain(Monster* pMonster, Creature* pEnemy) {
     Assert(pMonster != NULL);
 
-    // 몬스터가 slayer가 아니라도 흡혈하게 수정. by sigi. 2002.9.14
+    // Blood drain applies even when the monster is not a slayer.
     if (pEnemy == NULL
-        // Slayer가 아니면 흡혈하지 않는다.
+        // Do not drain blood from a target that is not a Slayer.
         || pEnemy->isNPC()
-        // 이미 흡혈당했으면 흡혈하지 않는다.
+        // Do not drain blood from a target that has already been drained.
         || pEnemy->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN)
-        // 무적. 흡혈 면역. by sigi. 2002.9.14
+        // Invulnerable, or immune to blood drain.
         || pEnemy->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE) ||
         pEnemy->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_BLOOD_DRAIN)) {
         return false;
     }
 
-    // 흡혈거리가 되는지 확인한다.
+    // Check whether the target is within blood drain range.
     Distance_t dist = pMonster->getDistance(pEnemy->getX(), pEnemy->getY());
     if (dist > pMonster->getMeleeRange())
         return false;
@@ -1770,17 +1770,17 @@ bool checkTimingBloodDrain(Monster* pMonster, Creature* pEnemy) {
         EnemyMaxHP = pMonster->getHP(ATTR_MAX);
     }
 
-    // HP가 1/5이상 남았으면 흡혈하지 않는다.
+    // Do not drain blood while 1/5 or more of HP remains.
     if (EnemyCurHP * 5 >= EnemyMaxHP)
         return false;
 
-    // 마침내... 흡혈한다~
+    // Finally, drain blood.
     return true;
 }
 
 bool checkTimingMasterBloodDrain(Monster* pMonster, Creature* pEnemy) {
-    // 20% 체크
-    // 계산 자체가 빡시므로..
+    // 20% check
+    // The computation itself is expensive.
     // if (rand()%100 > 10)
     //	return false;
 
@@ -1792,7 +1792,7 @@ bool checkTimingMasterBloodDrain(Monster* pMonster, Creature* pEnemy) {
 
     int masterHPPercent = pMonster->getHP(ATTR_CURRENT) * 100 / pMonster->getHP(ATTR_MAX);
 
-    // 흡혈 확률
+    // Blood drain probability
     // int startHPPercent 	= 70,	startBDPercent 	= 10;
     // int endHPPercent 	= 30, 	endBDPercent 	= 30;
     int startHPPercent = g_pVariableManager->getMasterBloodDrainStartHP();
@@ -1800,18 +1800,18 @@ bool checkTimingMasterBloodDrain(Monster* pMonster, Creature* pEnemy) {
     int endHPPercent = g_pVariableManager->getMasterBloodDrainEndHP();
     int endBDPercent = g_pVariableManager->getMasterBloodDrainEndBD();
 
-    // HP가 70% 이상이면 흡혈하지 않는다.
+    // Do not drain blood when HP is 70% or more.
     if (masterHPPercent >= startHPPercent)
         return false;
 
     int ratio = rand() % 100;
 
-    // HP가 30% 이하이면.. 30%의 확률로 흡혈한다.
+    // At 30% HP or less, drain blood with a 30% probability.
     if (masterHPPercent <= endHPPercent) {
         return ratio < endBDPercent;
     }
 
-    // HP가 30~70%이면 10~30%의 확률로 흡혈한다.
+    // Between 30% and 70% HP, drain blood with a 10% to 30% probability.
     int maxBDPercent = max(startBDPercent, endBDPercent);
     int gapHPPercent = startHPPercent - endHPPercent;
     int gapBDPercent = abs(endBDPercent - startBDPercent);
@@ -1828,13 +1828,13 @@ bool checkTimingMasterBloodDrain(Monster* pMonster, Creature* pEnemy) {
     }
     */
 
-    // 아무나 흡혈할 수 있으므로.. - -;
+    // Anyone at all can be drained.
     // return true;
 
     /*
     int x = pEnemy->getX();
     int y = pEnemy->getY();
-    int Splash = 30; // 그냥 30마리만 체크한다.
+    int Splash = 30; // Check only 30 creatures.
     int range = 3; // 7x7   //5;	// 11x11
     list<Creature*> creatureList;
     getSplashVictims(pMonster->getZone(), x, y, Creature::CREATURE_CLASS_MAX, creatureList, Splash, range);
@@ -1847,9 +1847,9 @@ bool checkTimingMasterBloodDrain(Monster* pMonster, Creature* pEnemy) {
 
         if (pMonster!=pTargetCreature
             && pTargetCreature->isNPC()
-            // 이미 흡혈당했으면 흡혈하지 않는다. 마스터가 이런거 따지겠나 싶어서 뺏다.
+            // Skipping an already drained target is left out; a master does not check that.
             //&& pTargetCreature->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN)
-            // 무적. 흡혈 면역. by sigi. 2002.9.14
+            // Invulnerable, or immune to blood drain.
             && pTargetCreature->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE)
             && pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_BLOOD_DRAIN))
         {
@@ -1875,7 +1875,7 @@ bool checkTimingMasterBloodDrain(Monster* pMonster, Creature* pEnemy) {
                 EnemyMaxHP = pMonster->getHP(ATTR_MAX);
             }
 
-            // 체력 50% 미만은 흡혈당한다
+            // A target below 50% HP gets drained.
             if (EnemyCurHP*2 < EnemyMaxHP)
                 return true;
         }
@@ -1890,16 +1890,16 @@ bool checkTimingMasterBloodDrain(Monster* pMonster, Creature* pEnemy) {
 // bool checkMasterSummonTiming(Monster* pMonster, Creature* pEnemy)
 //
 //----------------------------------------------------------------------
-// 소환 기술을 쓰게 할려고 하는데..
-// 현재 존이 마스터 레어이고..
-// 다른 몹이 없어야 한다.
+// Conditions for using the summon skill:
+// the current zone must be a master lair, and
+// there must be no other monsters.
 //----------------------------------------------------------------------
 bool checkMasterSummonTiming(Monster* pMonster, Creature* pEnemy) {
     // cout << "checkMasterSummonTiming: ";
 
     Assert(pMonster != NULL);
 
-    // 마스터가 아니면 소용없다.
+    // Pointless if this is not a master.
     if (!pMonster->isMaster())
     //|| !pMonster->hasNextMonsterSummonInfo())
     {
@@ -1907,11 +1907,11 @@ bool checkMasterSummonTiming(Monster* pMonster, Creature* pEnemy) {
         return false;
     }
 
-    // 마스터가 있는 존이 마스터레어인지 확인한다.
+    // Check whether the zone the master is in is a master lair.
     Zone* pZone = pMonster->getZone();
     Assert(pZone != NULL);
 
-    // 마스터 레어가 아니면 의미없다.
+    // Meaningless if it is not a master lair.
     if (!pZone->isMasterLair()) {
         // cout << "not MasterLair" << endl;
         return false;
@@ -1920,8 +1920,8 @@ bool checkMasterSummonTiming(Monster* pMonster, Creature* pEnemy) {
     MasterLairManager* pMasterLairManager = pZone->getMasterLairManager();
     Assert(pMasterLairManager != NULL);
 
-    // 아직 마스터가 싸우는 상태가 아니고
-    // 존에 마스터 이외의 몬스터가 없는 경우 소환할 수 있다.
+    // Summoning is possible when the master is not yet fighting and
+    // the zone holds no monster other than the master.
     bool bSummonTiming = !pMasterLairManager->isMasterReady() && pZone->getMonsterManager()->getSize() <= 1;
 
     /*
@@ -1942,16 +1942,16 @@ bool checkMasterSummonTiming(Monster* pMonster, Creature* pEnemy) {
 bool checkMasterNotReady(Monster* pMonster, Creature* pEnemy) {
     Assert(pMonster != NULL);
 
-    // 마스터가 아니면 소용없다.
+    // Pointless if this is not a master.
     if (!pMonster->isMaster()) {
         return false;
     }
 
-    // 마스터가 있는 존이 마스터레어인지 확인한다.
+    // Check whether the zone the master is in is a master lair.
     Zone* pZone = pMonster->getZone();
     Assert(pZone != NULL);
 
-    // 마스터 레어가 아니면 의미없다.
+    // Meaningless if it is not a master lair.
     if (!pZone->isMasterLair()) {
         return false;
     }
@@ -1959,8 +1959,8 @@ bool checkMasterNotReady(Monster* pMonster, Creature* pEnemy) {
     MasterLairManager* pMasterLairManager = pZone->getMasterLairManager();
     Assert(pMasterLairManager != NULL);
 
-    // 아직 마스터가 싸우는 상태가 아니고
-    // 존에 마스터 이외의 몬스터가 없는 경우 소환할 수 있다.
+    // Summoning is possible when the master is not yet fighting and
+    // the zone holds no monster other than the master.
     return !pMasterLairManager->isMasterReady();
 }
 
@@ -1969,9 +1969,9 @@ bool checkMasterNotReady(Monster* pMonster, Creature* pEnemy) {
 // bool checkImInBadPosition(Monster* pMonster, Creature* pEnemy)
 //
 //----------------------------------------------------------------------
-// 현재 위치가 안 좋은 곳인가?
+// Is the current position a bad one?
 //
-// pMonster가 있는 타일에 AcidSwamp이 뿌려져 있는 경우
+// True when AcidSwamp is spread over the tile pMonster stands on.
 //----------------------------------------------------------------------
 bool checkImInBadPosition(Monster* pMonster, Creature* pEnemy) {
     Assert(pMonster != NULL);
@@ -1981,10 +1981,10 @@ bool checkImInBadPosition(Monster* pMonster, Creature* pEnemy) {
 
     Tile& rTile = pZone->getTile(pMonster->getX(), pMonster->getY());
 
-    // 무적 상태가 아니고
+    // Not invulnerable, and
     if (!pMonster->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE)
 
-        // Acid 면역이 아니고 바닥에 AcidSwap이 깔려있다면 안 좋지. - -;
+        // not immune to acid while AcidSwamp lies on the ground.
         && (!pMonster->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_ACID) &&
                 rTile.getEffect(Effect::EFFECT_CLASS_ACID_SWAMP) != NULL
 
@@ -2001,13 +2001,13 @@ bool checkImInBadPosition(Monster* pMonster, Creature* pEnemy) {
 // bool checkFindWeakEnemy(Monster* pMonster, Creature* pEnemy)
 //
 //----------------------------------------------------------------------
-// 더 약한 적을 찾을 수 있나?
+// Can a weaker enemy be found?
 //
-// pEnemy의 HP가 100이상이고 HP percentage가 60% 이상이라면
-// 다른 약한 적을 함 찾아본다.
+// If pEnemy's HP is 100 or more and its HP percentage is 60% or more,
+// look for another, weaker enemy.
 //----------------------------------------------------------------------
 bool checkFindWeakEnemy(Monster* pMonster, Creature* pEnemy) {
-    // 일단
+    // For now
     // return false;
 
     try {
@@ -2024,11 +2024,11 @@ bool checkFindWeakEnemy(Monster* pMonster, Creature* pEnemy) {
         if (strongValue == 0)
             return false;
 
-        // 현재 적은 좀 쎄다..라고 판단을 하고. --;
-        // 새로운 약한 적을 찾는다.
+        // Judge the current enemy to be too strong and
+        // look for a new, weaker enemy.
         Creature* pWeakestCreature = NULL;
 
-        // 주위 검색
+        // Search the surroundings.
         ZoneCoord_t cx = pMonster->getX();
         ZoneCoord_t cy = pMonster->getY();
         ;
@@ -2037,7 +2037,7 @@ bool checkFindWeakEnemy(Monster* pMonster, Creature* pEnemy) {
         ZoneCoord_t endx = 0;
         ZoneCoord_t endy = 0;
 
-        // 몬스터 시야 범위에서 찾는다.
+        // Search within the monster's sight range.
         Sight_t sight = pMonster->getSight();
 
         endx = min(pZone->getWidth() - 1, cx + sight + 1);
@@ -2047,7 +2047,7 @@ bool checkFindWeakEnemy(Monster* pMonster, Creature* pEnemy) {
             for (iy = max(0, cy - sight - 1); iy <= endy; iy++) {
                 Tile& rTile = pZone->getTile(ix, iy);
 
-                // 타일에 크리처가 있는 경우에만
+                // Only when the tile holds a creature
                 if (rTile.hasCreature()) {
                     const forward_list<Object*>& objectList = rTile.getObjectList();
 
@@ -2057,13 +2057,13 @@ bool checkFindWeakEnemy(Monster* pMonster, Creature* pEnemy) {
                         Creature* pCreature = dynamic_cast<Creature*>(*itr);
                         Assert(pCreature != NULL);
 
-                        // pMonster, pEnemy가 아니라면..
-                        // Player라면 공격하게 된다.
+                        // Neither pMonster nor pEnemy:
+                        // a Player becomes a target.
                         if (pCreature != pMonster && pCreature != pEnemy && pCreature->isPC() &&
                             pMonster->isRealEnemy(pCreature)) {
                             int checkStrongValue = getStrongValue(pCreature);
 
-                            // 더 약한넘을 pWeakestCreature로 임명~한다
+                            // Appoint the weaker one as pWeakestCreature.
                             if (checkStrongValue < strongValue) {
                                 pWeakestCreature = pCreature;
                                 strongValue = checkStrongValue;
@@ -2074,7 +2074,7 @@ bool checkFindWeakEnemy(Monster* pMonster, Creature* pEnemy) {
             }
         }
 
-        // 젤 약한넘을 찾은 경우..
+        // If the weakest one was found
         if (pWeakestCreature != NULL) {
             pMonster->deleteAllEnemy();
             pMonster->addEnemy(pWeakestCreature);
@@ -2084,7 +2084,7 @@ bool checkFindWeakEnemy(Monster* pMonster, Creature* pEnemy) {
         }
 
     } catch (Throwable& t) {
-        // 모든 exception을 무시한다.
+        // Ignore every exception.
         filelog("monsterAIBug.txt", "%s", t.toString().c_str());
     }
 
@@ -2104,17 +2104,17 @@ bool checkEnemyNotHallucination(Monster* pMonster, Creature* pEnemy) {
 bool checkTimingDuplicateSelf(Monster* pMonster, Creature* pEnemy) {
     Assert(pMonster != NULL);
 
-    // 마스터가 아니면 소용없다.
+    // Pointless if this is not a master.
     if (!pMonster->isMaster()) {
         return false;
     }
 
-    // 마스터가 있는 존이 마스터레어인지 확인한다.
+    // Check whether the zone the master is in is a master lair.
     Zone* pZone = pMonster->getZone();
     Assert(pZone != NULL);
 
     /*
-    // 마스터 레어가 아니면 의미없다.
+    // Meaningless if it is not a master lair.
     if (!pZone->isMasterLair())
     {
         return false;
@@ -2124,12 +2124,12 @@ bool checkTimingDuplicateSelf(Monster* pMonster, Creature* pEnemy) {
     HP_t currentHP = pMonster->getHP(ATTR_CURRENT);
     HP_t maxHP = pMonster->getHP(ATTR_MAX);
 
-    // HP가 70%가 넘으면 사용안한다.
+    // Not used when HP is above 70%.
     if (currentHP * 100 / maxHP > 70) {
         return false;
     }
 
-    // 12마리 이상이면 더 소환 안한다.
+    // No more summoning at more than 12 monsters.
     if (pZone->getMonsterManager()->getSize() > 12) {
         return false;
     }
@@ -2142,7 +2142,7 @@ bool checkTimingDuplicateSelf(Monster* pMonster, Creature* pEnemy) {
 // bool checkPossibleSummonMonsters(Monster* pMonster, Creature* pEnemy)
 //
 //----------------------------------------------------------------------
-// 소환 기술을 쓰게 할려고 하는데..
+// Conditions for using the summon skill.
 //----------------------------------------------------------------------
 bool checkPossibleSummonMonsters(Monster* pMonster, Creature* pEnemy) {
     // cout << "checkMasterSummonTiming: ";

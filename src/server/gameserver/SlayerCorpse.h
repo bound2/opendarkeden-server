@@ -16,7 +16,7 @@ class Slayer;
 
 //////////////////////////////////////////////////////////////////////////////
 // class SlayerCorpse;
-// 슬레이어가 죽었을 경우, 남기는 시체이다.
+// Corpse left behind when a Slayer dies.
 //////////////////////////////////////////////////////////////////////////////
 
 class SlayerCorpse : public Corpse {
@@ -67,7 +67,7 @@ public:
     }
 
 protected:
-    PCSlayerInfo3 m_SlayerInfo; // 시체의 외모에 대한 정보
+    PCSlayerInfo3 m_SlayerInfo; // Information about the corpse's appearance
 };
 
 #endif

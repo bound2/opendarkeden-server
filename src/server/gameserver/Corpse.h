@@ -13,7 +13,7 @@
 #include "Types.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 시체 타입
+// Corpse type
 //////////////////////////////////////////////////////////////////////////////
 enum CorpseType { SLAYER_CORPSE = 0, VAMPIRE_CORPSE, NPC_CORPSE, MONSTER_CORPSE, OUSTERS_CORPSE };
 
@@ -99,21 +99,21 @@ public:
     }
 
 protected:
-    list<Item*> m_Treasures; // 보물의 리스트
-    BYTE m_TreasureCount;    // 보물의 숫자
+    list<Item*> m_Treasures; // List of treasures
+    BYTE m_TreasureCount;    // Number of treasures
 
-    // 성물 보관대를 위한 필살 좌표 넣기
-    // 그 외에는 좌표가 제대로 설정 안될 수 있으므로 사용금지
+    // Coordinates forced in for the relic table.
+    // Do not use otherwise: the coordinates may not be set correctly.
     ZoneCoord_t m_X, m_Y;
 
     Zone* m_pZone;
 
-    // 시체에 별 내용이 다 들어가는군 ;;;
-    int m_Level; // 레벨 -_-;
-    Exp_t m_Exp; // 이넘 죽이고 얻은 경험치;
+    // Extra information kept on the corpse.
+    int m_Level; // Level
+    Exp_t m_Exp; // Experience gained for killing this creature
 
-    // 몬스터가 Relic인지 아닌지를 저장하는 변수
-    // 만약 Relic이라면, 몬스터의 시체가 사라지지 않도록 해야 한다.
+    // Stores whether the monster is a Relic.
+    // If it is a Relic, the monster's corpse must not disappear.
 };
 
 //////////////////////////////////////////////////////////////////////////////

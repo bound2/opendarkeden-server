@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GuildManager.h
-// Written By  : 김성민
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -19,8 +18,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class GuildManager
-// 현재 활동중인 길드와 등록 대기중인 길드를 메모리에 map 형태로 가지고 있고,
-// 새로운 길드의 등록/삭제를 담당한다.
+// Keeps the active guilds and the guilds waiting for registration in maps in
+// memory, and handles registering and deleting guilds.
 //
 //////////////////////////////////////////////////////////////////////////////
 
@@ -99,14 +98,14 @@ public:
 
     string getGuildName(GuildID_t guildID);
 
-    // 길드가 성을 가졌나?
+    // Does the guild own a castle?
     bool hasCastle(GuildID_t guildID);
     bool hasCastle(GuildID_t guildID, ServerID_t& serverID, ZoneID_t& zoneID);
 
-    // 길드가 전쟁신청을 했나?
+    // Has the guild applied for a war?
     bool hasWarSchedule(GuildID_t guildID);
 
-    // 현재 진행중인 전쟁이 있는가?
+    // Is there a war in progress?
     bool hasActiveWar(GuildID_t guidlID);
 
 public: // debug
@@ -116,7 +115,7 @@ public: // debug
     ///// Member data /////
 
 protected:
-    unordered_map<GuildID_t, Guild*> m_Guilds; // 길드 포인터 맵
+    unordered_map<GuildID_t, Guild*> m_Guilds; // Map of guild pointers
     // Guilds taken out of the map -- by deleteGuild(), or by the whole-table
     // clear() that the sharedserver resync triggers -- are parked here until
     // the destructor rather than deleted: getGuild() returns its Guild* after releasing m_Mutex, so a
@@ -127,7 +126,7 @@ protected:
     // human-paced events, so this leaks nothing that matters.
     std::vector<Guild*> m_RetiredGuilds;
 
-    Timeval m_WaitMemberClearTime; // heartbeat 에서 Wait 중인 길드멤버 정리 시간
+    Timeval m_WaitMemberClearTime; // When heartbeat clears out waiting guild members
 
     // mutex
     mutable Mutex m_Mutex;

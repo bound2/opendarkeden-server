@@ -21,11 +21,11 @@
 // constants
 //////////////////////////////////////////////////////////////////////////////
 
-#define DEFAULT_SIGHT 13      // 원래시야
-#define DARKNESS_SIGHT 0      // Darkness에 의한 시야
-#define YELLOW_POISON_SIGHT 3 // Yellow Poison에 의한 시야
-#define LIGHTNESS_SIGHT 13    // Lightness에 의한 시야
-#define FLARE_SIGHT 3         // Flare에 의한 시야
+#define DEFAULT_SIGHT 13      // Original sight
+#define DARKNESS_SIGHT 0      // Sight under Darkness
+#define YELLOW_POISON_SIGHT 3 // Sight under Yellow Poison
+#define LIGHTNESS_SIGHT 13    // Sight under Lightness
+#define FLARE_SIGHT 3         // Sight under Flare
 
 
 const string MoveMode2String[] = {"MOVE_MODE_WALKING", "MOVE_MODE_FLYING", "MOVE_MODE_BURROWING"};
@@ -47,7 +47,7 @@ class LocalPartyManager;
 
 class Creature : public Object {
 public:
-    // Creature를 바로 상속받는 클래스들을 여기에 정의한다.
+    // The classes that inherit directly from Creature are defined here.
     enum CreatureClass {
         CREATURE_CLASS_SLAYER = 0, // PC Slayer
         CREATURE_CLASS_VAMPIRE,    // PC Vampire
@@ -76,8 +76,8 @@ public:
     virtual void save() const = 0; // save to DB
 
 public:
-    // 크리처에서 플레이어로 접근한다.
-    // 현재 크리처에 대해서 isPC()를 체크해보고 true 인 경우에만 호출해야 한다.
+    // Accesses the player from the creature.
+    // Only call this after checking isPC() on the creature and finding it true.
     Player* getPlayer() const {
         Assert(m_pPlayer != NULL);
         return m_pPlayer;
@@ -163,16 +163,16 @@ public:
 
 public:
     ////////////////////////////////////////////////////////////
-    // Creature가 가지고 있는 아이템들 역시 Zone에 등록되어야 한다.
-    // 이를 위해서는 소유 아이템들이 Zone레벨에서 visible해야 하는데,
-    // 그렇지 못하다. 그렇다고, Zone에서 Creature의 소유 아이템들을
-    // iteration 하는 메쏘드를 제공하는 것도 어색하다.
-    // 따라서, Creature에 등록 메쏘드를 두고 여기서 Zone에 접근해서
-    // 스스로를 등록하도록 한 것이다.
+    // The items a Creature holds must be registered with the Zone too.
+    // That would require the owned items to be visible at the Zone level,
+    // which they are not, and having the Zone provide a method that
+    // iterates a Creature's owned items would be awkward.
+    // So the registration method lives on Creature, which reaches the
+    // Zone from here and registers itself.
     ////////////////////////////////////////////////////////////
     virtual void registerObject() = 0;
 
-    // 크리처에 대한 특정 좌표의 시야 상태를 리턴한다.
+    // Returns the vision state of a given coordinate for the creature.
     VisionState getVisionState(ZoneCoord_t x, ZoneCoord_t y);
     VisionState getVisionState(Coord_t x, Coord_t y, Sight_t sight);
 
@@ -222,10 +222,10 @@ public:
 
     ////////////////////////////////////////////////////////////
     // *CAUTION*
-    // 쿼리 결과를 저장할 때, 2개 이상의 값을 동시에 지정하는 set 메쏘드는 사용하지 말 것!
-    //(함수 호출이 뒤에서 부터 이루어진다는 사실을 유념할 것!)
-    //  ex> setXY(pResult->getInt(++i), pResult->getInt(++i)); 는 실제로 setXY(y,x)
-    //      를 실행하게 된당... -_-;
+    // When storing a query result, do not use a set method that takes two or more values at once!
+    //(Remember that the argument calls are made back to front!)
+    //  ex> setXY(pResult->getInt(++i), pResult->getInt(++i)); actually runs
+    //      setXY(y,x).
     ////////////////////////////////////////////////////////////
     void setXY(ZoneCoord_t x, ZoneCoord_t y) {
         m_X = x;
@@ -237,7 +237,7 @@ public:
         m_Dir = dir;
     }
 
-    //(nx,ny)로 움직일 수 있는가?
+    // Can it move to (nx,ny)?
     bool canMove(ZoneCoord_t nx, ZoneCoord_t ny) const;
     bool isBlockedByCreature(ZoneCoord_t nx, ZoneCoord_t ny) const;
 
@@ -273,7 +273,7 @@ public:
     // get distance
     Distance_t getDistance(ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t x2, ZoneCoord_t y2) const;
 
-    // P(x1,y1)과 나의 위치사이의 거리를 측정한다.
+    // Measures the distance between P(x1,y1) and my position.
     Distance_t getDistance(ZoneCoord_t x1, ZoneCoord_t y1) const;
 
     // get/set EffectInfo
@@ -391,27 +391,27 @@ public:
     }
 
 protected:
-    Player* m_pPlayer;                       // Player 에 대한 포인터(Mob 과 NPC 일 경우 NULL)
+    Player* m_pPlayer;                       // Pointer to the Player (NULL for a Mob or an NPC)
     MoveMode m_MoveMode;                     // Move Mode
-    Zone* m_pZone;                           // 현재 존에 대한 포인터
-    ZoneCoord_t m_X;                         // 존 x 좌표
-    ZoneCoord_t m_Y;                         // 존 y 좌표
-    Dir_t m_Dir;                             // 현재 방향
-    ZoneCoord_t m_ViewportWidth;             // 뷰 포트
-    ZoneCoord_t m_ViewportUpperHeight;       // 뷰 포트
-    ZoneCoord_t m_ViewportLowerHeight;       // 뷰 포트
+    Zone* m_pZone;                           // Pointer to the current zone
+    ZoneCoord_t m_X;                         // Zone x coordinate
+    ZoneCoord_t m_Y;                         // Zone y coordinate
+    Dir_t m_Dir;                             // Current direction
+    ZoneCoord_t m_ViewportWidth;             // Viewport
+    ZoneCoord_t m_ViewportUpperHeight;       // Viewport
+    ZoneCoord_t m_ViewportLowerHeight;       // Viewport
     EffectManager* m_pEffectManager;         // effect manager point
     bitset<Effect::EFFECT_CLASS_MAX> m_Flag; // effect flag
     Sight_t m_Sight;                         // current sight
     int m_PartyID;                           // partyid
-    Resist_t m_Resist[MAGIC_DOMAIN_MAX];     // 마법 저항력
+    Resist_t m_Resist[MAGIC_DOMAIN_MAX];     // Magic resistance
 
-    // 새로 들어갈 존, 부활할 존. by sigi. 2002.5.11
-    Zone* m_pNewZone;   // 현재 존에 대한 포인터
-    ZoneCoord_t m_NewX; // 존 x 좌표
-    ZoneCoord_t m_NewY; // 존 y 좌표
+    // The zone to enter next, the zone to resurrect in.
+    Zone* m_pNewZone;   // Pointer to the current zone
+    ZoneCoord_t m_NewX; // Zone x coordinate
+    ZoneCoord_t m_NewY; // Zone y coordinate
 
-    // 디버그용
+    // For debugging
     CreatureClass m_CClass;
     string m_Owner;
     bool m_bDeriveDestructed;

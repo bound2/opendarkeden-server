@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : AbilityBalance.cpp
-// Written By  : 김성민
 // Description :
 // Per-creature stat derivation. The actual formulas live as pure
 // functions in de-core (src/domain/Formulas.cpp), where they are unit
@@ -60,7 +59,7 @@ int domainLevelOf(decore::WeaponFamily family, BASIC_ATTR* pAttr) {
 // only ever touched pAttr->pWeapon inside the CREATURE_CLASS_SLAYER branch.
 // That is load-bearing: BASIC_ATTR is a bare POD, and several call sites
 // (Monster's constructor, Monster::initAllStat, Vampire/Ousters
-// computeStatOffset) fill in only nSTR/nDEX/nINT/nLevel — their pWeapon and
+// computeStatOffset) fill in only nSTR/nDEX/nINT/nLevel -- their pWeapon and
 // pDomainLevel[] are uninitialized stack. Reading them off the Slayer path
 // is a wild-pointer virtual call, so the weapon data is gathered only when
 // the caller's class actually consumes it.

@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : MonsterInfo.cpp
-// Written By  : 김성민
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -24,11 +23,11 @@
 #include "repository/ContentInfoRepository.h"
 
 int DefaultClanID[CLAN_MAX] = {
-    0, // CLAN_NONE,							// 어디에도 속하지 않는 애덜.. 0
-    1, // CLAN_VAMPIRE_MONSTER,				// 떠돌이 뱀파 몬스터 -_-;     1
-    2, // CLAN_VAMPIRE_BATHORY_MONSTER,		// 바토리 소속 몬스터          2
-    3, // CLAN_VAMPIRE_TEPEZ_MONSTER,			// 테페즈 소속 몬스터          3
-    4, // CLAN_SLAYER_MONSTER,				// 슬레이어 몬스터 - -;;       4
+    0, // CLAN_NONE,                    // Belongs to no clan          0
+    1, // CLAN_VAMPIRE_MONSTER,         // Wandering vampire monster   1
+    2, // CLAN_VAMPIRE_BATHORY_MONSTER, // Bathory clan monster        2
+    3, // CLAN_VAMPIRE_TEPEZ_MONSTER,   // Tepez clan monster          3
+    4, // CLAN_SLAYER_MONSTER,          // Slayer monster              4
 };
 
 extern int DefaultClanID[CLAN_MAX];
@@ -172,7 +171,7 @@ MonsterInfo::~MonsterInfo()
 {
     __BEGIN_TRY
 
-    // 이거는 MonsterInfo에서 관리한다.
+    // This is managed by MonsterInfo.
     // SAFE_DELETE(m_pSlayerTreasureList);
     // SAFE_DELETE(m_pVampireTreasureList);
 
@@ -188,24 +187,24 @@ MonsterInfo::~MonsterInfo()
 void MonsterInfo::setRegenType(RegenType rt, int percent) {
     m_RegenType[rt] = percent;
 
-    // REGENTYPE_NORMAL의 확률을 바꿔서 100%로 맞출려고 했지만
-    // 별 의미가 없을 듯 하여.. - -;  by sigi
+    // Changing the REGENTYPE_NORMAL probability so the total came to 100% was
+    // considered, but it did not seem to be worth it.
 }
 
 //---------------------------------------------------------------------------
 // select RegenType
 //---------------------------------------------------------------------------
-// Hide와 Portal의 확률을 먼저 체크해본후 둘 다 아니면.. Normal이다. by sigi
+// Check the Hide and Portal probabilities first; if it is neither, it is Normal.
 //---------------------------------------------------------------------------
 RegenType MonsterInfo::selectRegenType() const {
-    // 속도 약간 높힐려고
-    // 100분률이 아니고 128분률이다 - -;
+    // To gain a little speed,
+    // this is out of 128 rather than out of 100.
     int dice = rand() & 0x0000007F; // rand()%100;
 
     int acc = 0;
     const int REGENTYPE_MAX_1 = REGENTYPE_MAX - 1;
     for (int i = 0; i < REGENTYPE_MAX_1; i++) {
-        // 각 확률별로 누적시켜서 잘~ 체크
+        // Accumulate each probability and check against it.
         acc += m_RegenType[i];
         if (dice < acc) {
             return (RegenType)i;
@@ -447,9 +446,9 @@ void MonsterInfo::addDefaultEffects(Creature* pCreature) const {
 
         pCreature->setFlag(effectClass);
 
-        // 실제로 effect를 붙여준다.
-        // 다른 곳에서 effect를 참조하기 때문이다. by sigi. 2002.10.25
-        // 근데.. 다른 곳에서 assert(isSlayer())해놓은게 좀 있어서 일단 제거. by sigi. 2002.10.28
+        // Actually attach the effect,
+        // because other places refer to it.
+        // Removed for now, because some other places assert(isSlayer()).
         /*
         switch (effectClass)
         {
@@ -775,7 +774,7 @@ void MonsterInfoManager::reload(MonsterType_t monsterType)
     int startType = 0;
     int endType = m_MaxMonsterType;
 
-    // 전부 다 loading하는게 아니라면 특정 MonsterType을 설정한다.
+    // If not loading everything, set a specific MonsterType.
     if (!bLoadAll) {
         startType = monsterType;
         endType = monsterType + 1;
@@ -827,7 +826,7 @@ void MonsterInfoManager::reload(MonsterType_t monsterType)
                             pInfo->setVampireTreasureList(pVampireTreasureList);
                             pInfo->setOustersTreasureList(pOustersTreasureList);
 
-                            // 검증한다.
+                            // Verify.
         //					cout << "MonsterType:" << pInfo->getMonsterType()
         //						<< ",MonsterName:" << pInfo->getEName()
         //						<< ",SlayerTreasure:" << pInfo->getSlayerTreasureList()->getTreasures().size()
@@ -890,7 +889,7 @@ const MonsterInfo* MonsterInfoManager::getMonsterInfo(MonsterType_t monsterType)
         throw NoSuchElementException();
     }
 
-    // 일단 위에서 한번 체크가 되면 [] 를 써도 된다.
+    // Once it has been checked above, [] may be used.
     return m_MonsterInfos[monsterType];
 
     __END_CATCH

@@ -10,8 +10,8 @@
 #include "Monster.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 파라미터로 몬스터 객체를 받으면, 몬스터의 타입, 좌표, 방향을 저장한
-// 후 몬스터의 인벤토리 안에 들어있던 아이템을 그래도 가지고 온다.
+// Given a monster object as the parameter, stores the monster's type, coordinates
+// and direction, then carries over the items held in the monster's inventory.
 //////////////////////////////////////////////////////////////////////////////
 MonsterCorpse::MonsterCorpse(Monster* pMonster)
 

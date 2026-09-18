@@ -63,7 +63,7 @@ void NicknameBook::load() {
             pLevelNickname->setNicknameIndex( level/10 );
             setNicknameInfo( 1, pLevelNickname );
 
-            cout << "닉네임 번호 : " << level/10 << endl;
+            cout << "Nickname number : " << level/10 << endl;
         }*/
 
     if (m_pOwner->getLevel() >= 10) {

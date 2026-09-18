@@ -73,7 +73,7 @@ CreatureManager::~CreatureManager()
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 크리처 매니저에 새 크리처 객체를 등록한다.
+// Register a new creature object in the creature manager.
 //////////////////////////////////////////////////////////////////////////////
 void CreatureManager::addCreature(Creature* pCreature) {
     __BEGIN_TRY
@@ -92,7 +92,7 @@ void CreatureManager::addCreature(Creature* pCreature) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 크리처 매니저에 들어있는 특정 크리처 객체를 삭제한다.
+// Delete a specific creature object from the creature manager.
 //////////////////////////////////////////////////////////////////////////////
 void CreatureManager::deleteCreature(ObjectID_t objectID){
     __BEGIN_TRY
@@ -104,15 +104,15 @@ void CreatureManager::deleteCreature(ObjectID_t objectID){
 
 if (itr == m_Creatures.end()) {
     // throw NoSuchElementException();
-    //  대충(-_-;) 살펴본 결과 외부에서 NoSuchElementException()에 대한
-    //  특별한 처리를 하는게 없었다.
-    //  오히려.. 처리가 안된게 있어서 문제가 되는 부분도 있었다.
-    //   EventMorph에서 Zone::deletePC()에서 NoSuch..가 뜨는 경우가 있다면..
-    //  암튼 속도 문제로 인해서 제거
+    //  A rough look showed that nothing outside does anything special
+    //  with NoSuchElementException().
+    //  Some places were even broken because it was not handled.
+    //   If NoSuch.. ever shows up in Zone::deletePC() from EventMorph..
+    //  Removed anyway because of the speed cost.
     return; // by sigi 2002.5.2
 }
 
-// 단지 unordered_map 의 노드만을 삭제할 뿐, 크리처 자체는 삭제하지 않는다.
+// Only the unordered_map node is erased; the creature itself is not deleted.
 m_Creatures.erase(itr);
 }
 // catch (Throwable & t)
@@ -127,7 +127,7 @@ __END_CATCH
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 크리처 매니저에 들어있는 특정 크리처 객체를 리턴한다.
+// Return a specific creature object from the creature manager.
 //////////////////////////////////////////////////////////////////////////////
 Creature* CreatureManager::getCreature(ObjectID_t objectID) const {
     __BEGIN_TRY
@@ -145,7 +145,7 @@ Creature* CreatureManager::getCreature(ObjectID_t objectID) const {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 크리처 매니저에 들어있는 특정 크리처 객체를 리턴한다.
+// Return a specific creature object from the creature manager.
 //////////////////////////////////////////////////////////////////////////////
 Creature* CreatureManager::getCreature(const string& Name) const {
     __BEGIN_TRY
@@ -164,7 +164,7 @@ Creature* CreatureManager::getCreature(const string& Name) const {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 크리처 매니저에 종속된 몬스터/NPC 들의 AI에 의한 액션을 실행한다.
+// Run the AI actions of the monsters and NPCs owned by the creature manager.
 //////////////////////////////////////////////////////////////////////////////
 void CreatureManager::processCreatures()
 
@@ -201,7 +201,7 @@ void CreatureManager::processCreatures()
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 죽은 크리처를 처리한다.
+// Handle a dead creature.
 //////////////////////////////////////////////////////////////////////////////
 void CreatureManager::killCreature(Creature* pDeadCreature)
 
@@ -276,10 +276,10 @@ void CreatureManager::broadcastDarkLightPacket(Packet* pPacket1, Packet* pPacket
                 bool bYellowPoisonEffected = pTargetCreature->isFlag(Effect::EFFECT_CLASS_YELLOW_POISON_TO_CREATURE);
                 bool bLightnessEffected = pTargetCreature->isFlag(Effect::EFFECT_CLASS_LIGHTNESS);
 
-                // 주석처리 by sigi
+                // Commented out
                 // bool bDarknessEffected = (tile.getEffect(Effect::EFFECT_CLASS_DARKNESS) == NULL) ? false : true;
 
-                if (!bYellowPoisonEffected && !bLightnessEffected) // && !bDarknessEffected)  // 주석처리 by sigi
+                if (!bYellowPoisonEffected && !bLightnessEffected) // && !bDarknessEffected)  // Commented out
                 {
                     Player* pPlayer = pTargetCreature->getPlayer();
                     Assert(pPlayer != NULL);

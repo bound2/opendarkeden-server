@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
 // Filename    : GuildManager.cpp
-// Written By  : 김성민
 // Description :
 ////////////////////////////////////////////////////////////////////////
 
@@ -58,7 +57,7 @@ GuildManager::~GuildManager()
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    // 모든 길드 객체들을 메모리에서 삭제한다.
+    // Delete every guild object from memory.
     unordered_map<GuildID_t, Guild*>::iterator itr = m_Guilds.begin();
     for (; itr != m_Guilds.end(); itr++) {
         Guild* pGuild = itr->second;
@@ -122,7 +121,7 @@ void GuildManager::load()
                 addGuild_NOBLOCKED(pGuild);
                 /*
                 #ifdef __GAME_SERVER__
-                                // 길드가 Active 이고 이 게임 서버에 아지트가 존재한다면 아지트 Zone을 만든다.
+                                // If the guild is Active and its hideout is on this server, create the hideout Zone.
                                 if ( pGuild->getServerGroupID() == g_pConfig->getPropertyInt("ServerID") && state ==
                 Guild::GUILD_STATE_ACTIVE )
                                 {
@@ -246,7 +245,7 @@ void GuildManager::deleteGuild(GuildID_t id) {
     list<CastleInfo*> pGuildCastleInfoList = g_pCastleInfoManager->getGuildCastleInfos(id);
 
     if (!pGuildCastleInfoList.empty()) {
-        // 성을 갖고 있는 길드다.. 공용성으로 바꿔줘야 된다.
+        // The guild owns a castle, so it has to be turned into a public castle.
         list<CastleInfo*>::iterator itr = pGuildCastleInfoList.begin();
         for (; itr != pGuildCastleInfoList.end(); itr++) {
             if ((*itr)->getRace() == RACE_SLAYER)
@@ -275,7 +274,7 @@ void GuildManager::deleteGuild(GuildID_t id) {
         }
     }
 
-    // GuildUnion 정보를 지워준다
+    // Clear the GuildUnion information
 /*	{
 
         // UnionManager->deleteGuild(xx);
@@ -300,7 +299,7 @@ Guild* GuildManager::getGuild(GuildID_t id)
 {
     __BEGIN_TRY
 
-    // 리턴 할 길드 포인터
+    // Guild pointer to return
     Guild* pGuild;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -326,7 +325,7 @@ Guild* GuildManager::getGuild_NOBLOCKED(GuildID_t id)
 {
     __BEGIN_TRY
 
-    // 리턴 할 길드 포인터
+    // Guild pointer to return
     Guild* pGuild;
 
     unordered_map<GuildID_t, Guild*>::iterator itr = m_Guilds.find(id);
@@ -454,7 +453,7 @@ void GuildManager::heartbeat()
     getCurrentTime(currentTime);
 
     ////////////////////////////////////////////////////////
-    // 길드 가입 신청 대기 시간이 넘어간 멤버를 지운다.
+    // Remove members whose guild join request has waited past the time limit.
     ////////////////////////////////////////////////////////
     if (currentTime > m_WaitMemberClearTime) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -472,7 +471,7 @@ void GuildManager::heartbeat()
             list<string>::const_iterator itr2 = mList.begin();
 
             for (; itr2 != mList.end(); itr2++) {
-                // 가입이 취소되었음을 게임서버에 알린다.
+                // Tell the game server that the join was cancelled.
                 SGExpelGuildMemberOK sgExpelGuildMemberOK;
                 sgExpelGuildMemberOK.setGuildID(pGuild->getID());
                 sgExpelGuildMemberOK.setName(*itr2);
@@ -482,7 +481,7 @@ void GuildManager::heartbeat()
             }
         }
 
-        m_WaitMemberClearTime.tv_sec = currentTime.tv_sec + 3600; // 1시간 주기
+        m_WaitMemberClearTime.tv_sec = currentTime.tv_sec + 3600; // Once an hour
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
     }
@@ -522,7 +521,7 @@ bool GuildManager::isGuildMaster(GuildID_t guildID, PlayerCreature* pPC)
 #endif
 }
 
-// 길드가 성을 가졌나?
+// Does the guild own a castle?
 bool GuildManager::hasCastle(GuildID_t guildID)
 
 {
@@ -543,7 +542,7 @@ bool GuildManager::hasCastle(GuildID_t guildID)
     __END_CATCH
 }
 
-// 길드가 성을 가졌나?
+// Does the guild own a castle?
 bool GuildManager::hasCastle(GuildID_t guildID, ServerID_t& serverID, ZoneID_t& zoneID)
 
 {
@@ -569,7 +568,7 @@ bool GuildManager::hasCastle(GuildID_t guildID, ServerID_t& serverID, ZoneID_t& 
     __END_CATCH
 }
 
-// 길드가 전쟁신청을 했나?
+// Has the guild applied for a war?
 bool GuildManager::hasWarSchedule(GuildID_t guildID)
 
 {

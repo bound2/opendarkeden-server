@@ -28,14 +28,14 @@
 #include "skill/VampireSkillSlot.h"
 
 #define VAMPIRE_MAX_LEVEL 150     // abcd
-#define VAMPIRE_MAX_RANK 50       // 계급 max
-#define BONUS_POINTS_PER_LEVEL1 3 // 레벨업시 주어지는 능력치 point
-#define BONUS_POINTS_PER_LEVEL2 2 // 레벨업시 주어지는 능력치 point
-#define BONUS_POINTS_PER_LEVEL3 1 // 레벨업시 주어지는 능력치 point
+#define VAMPIRE_MAX_RANK 50       // max rank
+#define BONUS_POINTS_PER_LEVEL1 3 // ability points granted on level up
+#define BONUS_POINTS_PER_LEVEL2 2 // ability points granted on level up
+#define BONUS_POINTS_PER_LEVEL3 1 // ability points granted on level up
 
 ////////////////////////////////////////////////////////////////////////////////
-// 장비를 입고 벗을 때 장비 입고 벗기 전의 능력치를
-// 저장해 두기 위한 버퍼(?) 클래스
+// Buffer class that stores the stats from before a piece of equipment
+// was put on or taken off.
 ////////////////////////////////////////////////////////////////////////////////
 
 class VAMPIRE_RECORD {
@@ -60,11 +60,11 @@ public:
 
 class Vampire : public PlayerCreature {
     ////////////////////////////////////////////////////
-    // 클래스 내부 상수 선언
+    // Class-internal constant declarations
     ////////////////////////////////////////////////////
 public:
 public:
-    // 장착 부위
+    // Wear parts
     enum WearPart {
         WEAR_NECK,
         WEAR_BODY,
@@ -92,14 +92,14 @@ public:
     };
 
     ////////////////////////////////////////////////////
-    // 생성자/소멸자
+    // Constructor / destructor
     ////////////////////////////////////////////////////
 public:
     Vampire();
     virtual ~Vampire();
 
     ////////////////////////////////////////////////////
-    // 하위 클래스(Creature) 상속 함수
+    // Functions inherited from Creature
     ////////////////////////////////////////////////////
 public:
     virtual CreatureClass getCreatureClass() const {
@@ -133,14 +133,14 @@ public:
 
 
     //////////////////////////////////////////////////////////////
-    // 시간제한 아이템 관련 함수
+    // Time-limited item functions
     //////////////////////////////////////////////////////////////
 public:
     void checkItemTimeLimit();
     void updateEventItemTime(DWORD time);
 
     ////////////////////////////////////////////////////
-    // 상태 관련 함수(Dead or Alive!)
+    // State functions (Dead or Alive)
     ////////////////////////////////////////////////////
 public:
     bool isAlive() const {
@@ -152,7 +152,7 @@ public:
 
 
     ////////////////////////////////////////////////////
-    // 겉모습 관련 함수(이름, 권한, 성별, 머리, 피부)
+    // Appearance functions (name, competence, sex, hair, skin)
     ////////////////////////////////////////////////////
 public:
     void setName(const string& name) {
@@ -205,7 +205,7 @@ public:
     }
 
     ////////////////////////////////////////////////////
-    // 능력치 관련 함수(STR, DEX, INT)
+    // Ability functions (STR, DEX, INT)
     ////////////////////////////////////////////////////
 public:
     Alignment_t getAlignment() const {
@@ -237,7 +237,7 @@ public:
     }
 
     ////////////////////////////////////////////////////
-    // 능력치 관련 함수(HP)
+    // Ability functions (HP)
     ////////////////////////////////////////////////////
 public:
     HP_t getHP(AttrType attrType = ATTR_CURRENT) const {
@@ -252,7 +252,7 @@ public:
     }
 
     ////////////////////////////////////////////////////
-    // 능력치 관련 함수(Damage, Protect, Defense, ToHit)
+    // Ability functions (Damage, Protect, Defense, ToHit)
     ////////////////////////////////////////////////////
 public:
     Damage_t getDamage(AttrType attrType = ATTR_CURRENT) const {
@@ -272,7 +272,7 @@ public:
     }
 
     ////////////////////////////////////////////////////
-    // 경험치 관련 함수
+    // Experience functions
     ////////////////////////////////////////////////////
 public:
     //	Exp_t getExp() const  { return m_Exp; }
@@ -301,7 +301,7 @@ public:
         return getLevel();
     }
 
-    // 계급. by sigi. 2002.8.30
+    // Rank.
     /*	Rank_t  getRank() const  { return m_Rank; }
     //	void    setRank(Rank_t rank)  { m_Rank = rank; }
         RankExp_t   getRankExp() const  { return m_RankExp; }
@@ -318,7 +318,7 @@ public:
     }
 
     ////////////////////////////////////////////////////
-    // 스킬 관련 함수
+    // Skill functions
     ////////////////////////////////////////////////////
 public:
     void addSkill(SkillType_t SkillType);
@@ -335,7 +335,7 @@ public:
 
 
     ////////////////////////////////////////////////////
-    // 아이템 착/탈 관련 함수
+    // Item wear/unwear functions
     ////////////////////////////////////////////////////
 public:
     bool isWear(WearPart Part) {
@@ -371,7 +371,7 @@ public:
     void getShapeInfo(DWORD& flag, Color_t color[PCVampireInfo::VAMPIRE_COLOR_MAX]) const;
 
     ////////////////////////////////////////////////////
-    // 아이템 착/탈시 능력치 수정 관련 함수
+    // Functions that adjust the stats when an item is worn or removed
     ////////////////////////////////////////////////////
 public:
     void initAllStat(int numPartyMember = -1);
@@ -389,7 +389,7 @@ private:
 
 
     //////////////////////////////////////////////////////////////
-    // 아이템 검색 함수
+    // Item lookup functions
     //////////////////////////////////////////////////////////////
 public:
     virtual Item* findItemOID(ObjectID_t id) {
@@ -421,7 +421,7 @@ public:
     }
 
     ////////////////////////////////////////////////////
-    // 인포 관련 함수
+    // Info functions
     ////////////////////////////////////////////////////
 public:
     PCVampireInfo2* getVampireInfo2();
@@ -431,7 +431,7 @@ public:
 
 
     ////////////////////////////////////////////////////
-    // 기타 함수
+    // Miscellaneous functions
     ////////////////////////////////////////////////////
 public:
     void setInMagics(const string& blob) {}
@@ -550,7 +550,7 @@ public:
     /////////////////////////////////////////////////////////////////////
 
 private:
-    // 권한
+    // Competence
     BYTE m_Competence;
     BYTE m_CompetenceShape;
 
@@ -587,7 +587,7 @@ private:
     // level
     Level_t m_Level;
 
-    // 계급. by sigi. 2002.8.30
+    // Rank.
     //	Rank_t 		m_Rank;
     //	RankExp_t 	m_RankExp;
     //	RankExp_t 	m_RankGoalExp;
@@ -620,20 +620,20 @@ private:
     // mutable Thread Mutex
     mutable Mutex m_Mutex;
 
-    // 부활존 관련
+    // Resurrection zone
     ZoneID_t m_ResurrectZoneID;
 
-    // 은 도금 데미지 관련
+    // Silver damage
     Silver_t m_SilverDamage;
 
-    // HP 스틸
+    // HP steal
     Steal_t m_HPStealAmount;
     Steal_t m_HPStealRatio;
 
-    // HP 재생
+    // HP regeneration
     Regen_t m_HPRegen;
 
-    // HP 재생 보너스 포인트. 초당 올라가는 보너스 포인트
+    // HP regeneration bonus points, gained per second
     Regen_t m_HPRegenBonus;
 
     Luck_t m_Luck;
@@ -642,7 +642,7 @@ private:
 
     ClanType_t m_ClanType;
 
-    // 각종 경험치 세이브 카운트
+    // Save counts for the various experience values
     //	WORD m_RankExpSaveCount;
     WORD m_ExpSaveCount;
     WORD m_FameSaveCount;

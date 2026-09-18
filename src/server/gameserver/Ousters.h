@@ -29,16 +29,16 @@
 class SkillInfo;
 
 #define OUSTERS_MAX_LEVEL 150 // abcd
-#define OUSTERS_MAX_RANK 50   // 계급 max
+#define OUSTERS_MAX_RANK 50   // Max rank
 #define OUSTERS_MAX_SUM 492
 #define OUSTERS_MAX_ATTR 472
-#define BONUS_POINTS_PER_LEVEL1 3 // 레벨업시 주어지는 능력치 point
-#define BONUS_POINTS_PER_LEVEL2 2 // 레벨업시 주어지는 능력치 point
-#define BONUS_POINTS_PER_LEVEL3 1 // 레벨업시 주어지는 능력치 point
+#define BONUS_POINTS_PER_LEVEL1 3 // Attribute points granted on level up
+#define BONUS_POINTS_PER_LEVEL2 2 // Attribute points granted on level up
+#define BONUS_POINTS_PER_LEVEL3 1 // Attribute points granted on level up
 
 ////////////////////////////////////////////////////////////////////////////////
-// 장비를 입고 벗을 때 장비 입고 벗기 전의 능력치를
-// 저장해 두기 위한 버퍼(?) 클래스
+// Buffer class that stores the attributes as they were before
+// equipment was put on or taken off.
 ////////////////////////////////////////////////////////////////////////////////
 
 class OUSTERS_RECORD {
@@ -65,10 +65,10 @@ public:
 
 class Ousters : public PlayerCreature {
     ////////////////////////////////////////////////////
-    // 클래스 내부 상수 선언
+    // Class-internal constant declarations
     ////////////////////////////////////////////////////
 public:
-    // 장착 부위
+    // Wear parts
     enum WearPart {
         WEAR_CIRCLET,
         WEAR_COAT,
@@ -96,14 +96,14 @@ public:
     };
 
     ////////////////////////////////////////////////////
-    // 생성자/소멸자
+    // Constructor / destructor
     ////////////////////////////////////////////////////
 public:
     Ousters();
     virtual ~Ousters();
 
     ////////////////////////////////////////////////////
-    // 하위 클래스(Creature) 상속 함수
+    // Functions inherited from the base class (Creature)
     ////////////////////////////////////////////////////
 public:
     virtual CreatureClass getCreatureClass() const {
@@ -136,14 +136,14 @@ public:
     }
 
     //////////////////////////////////////////////////////////////
-    // 시간제한 아이템 관련 함수
+    // Time-limited item functions
     //////////////////////////////////////////////////////////////
 public:
     void checkItemTimeLimit();
     void updateEventItemTime(DWORD time);
 
     ////////////////////////////////////////////////////
-    // 상태 관련 함수(Dead or Alive!)
+    // State functions (Dead or Alive!)
     ////////////////////////////////////////////////////
 public:
     bool isAlive() const {
@@ -155,7 +155,7 @@ public:
 
 
     ////////////////////////////////////////////////////
-    // 겉모습 관련 함수(이름, 권한, 성별, 머리, 피부)
+    // Appearance functions (name, competence, sex, hair, skin)
     ////////////////////////////////////////////////////
 public:
     void setName(const string& name) {
@@ -200,7 +200,7 @@ public:
     }
 
     ////////////////////////////////////////////////////
-    // 능력치 관련 함수(STR, DEX, INT)
+    // Attribute functions (STR, DEX, INT)
     ////////////////////////////////////////////////////
 public:
     Alignment_t getAlignment() const {
@@ -232,7 +232,7 @@ public:
     }
 
     ////////////////////////////////////////////////////
-    // 능력치 관련 함수(HP)
+    // Attribute functions (HP)
     ////////////////////////////////////////////////////
 public:
     HP_t getHP(AttrType attrType = ATTR_CURRENT) const {
@@ -258,7 +258,7 @@ public:
     }
 
     ////////////////////////////////////////////////////
-    // 능력치 관련 함수(Damage, Protect, Defense, ToHit)
+    // Attribute functions (Damage, Protect, Defense, ToHit)
     ////////////////////////////////////////////////////
 public:
     Damage_t getDamage(AttrType attrType = ATTR_CURRENT) const {
@@ -278,7 +278,7 @@ public:
     }
 
     ////////////////////////////////////////////////////
-    // 경험치 관련 함수
+    // Experience functions
     ////////////////////////////////////////////////////
 public:
     //	Exp_t getExp() const  { return m_Exp; }
@@ -307,7 +307,7 @@ public:
         return getLevel();
     }
 
-    // 계급. by sigi. 2002.8.30
+    // Rank.
     /*	Rank_t  getRank() const  { return m_Rank; }
         void    setRank(Rank_t rank)  { m_Rank = rank; }
         RankExp_t   getRankExp() const  { return m_RankExp; }
@@ -333,7 +333,7 @@ public:
     SkillBonus_t getSumOfUsedSkillBonus() const;
 
     ////////////////////////////////////////////////////
-    // 스킬 관련 함수
+    // Skill functions
     ////////////////////////////////////////////////////
 public:
     void addSkill(SkillType_t SkillType);
@@ -348,7 +348,7 @@ public:
 
 
     ////////////////////////////////////////////////////
-    // 아이템 착/탈 관련 함수
+    // Item equip / unequip functions
     ////////////////////////////////////////////////////
 public:
     bool isWear(WearPart Part) {
@@ -382,7 +382,7 @@ public:
     void getShapeInfo(DWORD& flag, Color_t color[PCOustersInfo::OUSTERS_COLOR_MAX]) const;
 
     ////////////////////////////////////////////////////
-    // 아이템 착/탈시 능력치 수정 관련 함수
+    // Attribute adjustment on item equip / unequip
     ////////////////////////////////////////////////////
 public:
     void initAllStat(int numPartyMember = -1);
@@ -400,7 +400,7 @@ private:
 
 
     //////////////////////////////////////////////////////////////
-    // 아이템 검색 함수
+    // Item search functions
     //////////////////////////////////////////////////////////////
 public:
     virtual Item* findItemOID(ObjectID_t id) {
@@ -432,7 +432,7 @@ public:
     }
 
     ////////////////////////////////////////////////////
-    // 인포 관련 함수
+    // Info functions
     ////////////////////////////////////////////////////
 public:
     PCOustersInfo2* getOustersInfo2();
@@ -442,7 +442,7 @@ public:
 
 
     ////////////////////////////////////////////////////
-    // 기타 함수
+    // Other functions
     ////////////////////////////////////////////////////
 public:
     void heartbeat(const Timeval& currentTime);
@@ -560,7 +560,7 @@ public:
     void saveInitialRank(void);
 
     //////////////////////////////
-    // 정령 속성 관련 함수
+    // Elemental attribute functions
     //////////////////////////////
     Elemental_t getElementalFire() const {
         return m_ElementalFire;
@@ -579,7 +579,7 @@ public:
     }
 
     //////////////////////////////
-    // 정령 공격 보너스
+    // Elemental attack bonus
     //////////////////////////////
     Damage_t getFireDamage() const {
         return m_FireDamage;
@@ -598,7 +598,7 @@ public:
     bool satisfySkillRequire(SkillInfo* pSkillInfo);
 
     //////////////////////////////
-    // 정령 속성 관련 함수
+    // Elemental attribute functions
     //////////////////////////////
     bool isPassiveAvailable(SkillType_t type) {
         return m_PassiveSkillMap.find(type) != m_PassiveSkillMap.end() && m_PassiveSkillMap[type].first;
@@ -621,7 +621,7 @@ public:
     /////////////////////////////////////////////////////////////////////
 
 private:
-    // 권한
+    // Competence
     BYTE m_Competence;
     BYTE m_CompetenceShape;
 
@@ -660,7 +660,7 @@ private:
     // level
     Level_t m_Level;
 
-    // 계급. by sigi. 2002.8.30
+    // Rank.
     //	Rank_t 		m_Rank;
     //	RankExp_t 	m_RankExp;
     //	RankExp_t 	m_RankGoalExp;
@@ -691,44 +691,44 @@ private:
     // mutable Thread Mutex
     mutable Mutex m_Mutex;
 
-    // 부활존 관련
+    // Resurrection zone
     ZoneID_t m_ResurrectZoneID;
 
-    // 은 도금 데미지 관련
+    // Silver plating damage
     Silver_t m_SilverDamage;
 
-    // HP 스틸
+    // HP steal
     Steal_t m_HPStealAmount;
     Steal_t m_HPStealRatio;
 
-    // MP 스틸
+    // MP steal
     Steal_t m_MPStealAmount;
     Steal_t m_MPStealRatio;
 
-    // HP, MP 재생
+    // HP and MP regeneration
     Regen_t m_HPRegen;
     Regen_t m_MPRegen;
 
     Luck_t m_Luck;
 
-    // 정령 속성
+    // Elemental attributes
     Elemental_t m_ElementalFire;
     Elemental_t m_ElementalWater;
     Elemental_t m_ElementalEarth;
     Elemental_t m_ElementalWind;
 
-    // 정력 공격 보너스 포인트
+    // Elemental attack bonus points
     Damage_t m_FireDamage;
     Damage_t m_WaterDamage;
     Damage_t m_EarthDamage;
 
-    // 은 저항
+    // Silver resistance
     Resist_t m_SilverResist;
 
     unordered_map<SkillType_t, pair<bool, uint>> m_PassiveSkillMap;
     int m_PassiveRatio;
 
-    // 각종 경험치 세이브 카운트
+    // Save counters for the various experience values
     //	WORD m_RankExpSaveCount;
     WORD m_ExpSaveCount;
     WORD m_FameSaveCount;

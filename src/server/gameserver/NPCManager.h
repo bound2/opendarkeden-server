@@ -23,7 +23,7 @@ public:
     ~NPCManager();
 
 public:
-    void load(ZoneID_t zoneID, int race = 0xFF); // 0xFF이면 ALL.. -_-;
+    void load(ZoneID_t zoneID, int race = 0xFF); // 0xFF means ALL.
     void processCreatures();
     string toString() const;
 };

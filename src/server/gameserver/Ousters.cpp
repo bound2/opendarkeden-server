@@ -769,7 +769,7 @@ void Ousters::addSkill(SkillType_t SkillType)
         pOustersSkillSlot->setName(m_Name);
         pOustersSkillSlot->setSkillType(SkillType);
         // A freshly learned skill starts with no run-time lock and a zero
-        // interval — the seeded MaxDelay leaked to the client as a sticky
+        // interval -- the seeded MaxDelay leaked to the client as a sticky
         // per-cast cooldown via the skill-info refresh; the first
         // successful cast installs the real formula delay. See
         // Vampire::addSkill for the full story.
