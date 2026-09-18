@@ -9,7 +9,7 @@
 // binaries; the gameserver's GamePlayer and the loginserver's LoginPlayer
 // derive from PaySystem): the account's pay-play columns on Player
 // (PayType, PayPlayDate, PayPlayHours, PayPlayFlag, FamilyPayPlayDate)
-// and the PC-room tables — the room a client IP belongs to (PCRoomInfo
+// and the PC-room tables: the room a client IP belongs to (PCRoomInfo
 // through PCRoomIPInfo), the room's occupants (PCRoomUserInfo) and its
 // monthly minutes (PCRoomPayList).
 //
@@ -18,7 +18,7 @@
 // process default connection in the loginserver and the world-default
 // connection in the other two binaries (the name is ignored).
 //
-// Reads are typed to the driver getter used: getInt → int, getString →
+// Reads are typed to the driver getter used: getInt to int, getString to
 // std::string. The callers cast to PayType, ObjectID_t and VSDateTime.
 // The client IP and the account id are interpolated raw. The two
 // PayPlayHours decrements pass an unsigned count through "%d".
