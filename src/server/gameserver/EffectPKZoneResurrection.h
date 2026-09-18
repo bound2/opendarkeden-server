@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectPKZoneResurrection.h
 // Written by  :
-// Description : Defense reduction effect caused by PKZoneResurrection
+// Description : Resurrection marker on a creature in a PK zone.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_PK_ZONE_RESURRECTION__

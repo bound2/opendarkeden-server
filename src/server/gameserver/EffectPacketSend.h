@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectPacketSend.h
 // Written by  :
-// Description : Defense reduction effect caused by PacketSend
+// Description : Broadcasts a stored packet around a zone position when it expires.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_PACKET_SEND__
