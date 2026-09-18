@@ -319,6 +319,26 @@ add_test(NAME game_context_tests COMMAND game_context_tests
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(game_context_tests PROPERTIES TIMEOUT 30)
 
+# The loginserver's own context registry (docs/RESTRUCTURING.md task 3.5),
+# built over stand-in pointers: this links the context's translation unit
+# and de-kernel (for Assert) and nothing of the loginserver -- which is the
+# property that makes a subsystem holding a LoginContext& testable. A
+# failing Assert appends to assertion_failed.log in the working directory,
+# hence the build-tree WORKING_DIRECTORY (same reason as scheduler_tests).
+add_executable(login_context_tests EXCLUDE_FROM_ALL
+    login_context_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/LoginContext.cpp
+)
+target_include_directories(login_context_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver
+)
+target_link_libraries(login_context_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests login_context_tests)
+add_test(NAME login_context_tests COMMAND login_context_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(login_context_tests PROPERTIES TIMEOUT 30)
+
 add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)
 target_include_directories(shutdown_probe PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
 target_link_libraries(shutdown_probe PRIVATE Threads::Threads)
