@@ -9,8 +9,8 @@
 #include "StringStream.h"
 
 ZoneInfo::ZoneInfo() {
-    m_bMasterLair = false; // 이건 MasterLairInfoManager에서 설정한다.
-    m_bCastle = false;     // 이건 CastleInfoManager에서 설정한다.
+    m_bMasterLair = false; // This one is set by MasterLairInfoManager.
+    m_bCastle = false;     // This one is set by CastleInfoManager.
 }
 
 ZoneInfo::~ZoneInfo() {}

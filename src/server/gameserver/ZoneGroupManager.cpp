@@ -49,7 +49,7 @@ ZoneGroupManager::ZoneGroupManager()
         SAFE_DELETE(pZoneGroup);
     }
 
-    // 해쉬맵안에 있는 모든 pair 들을 삭제한다.
+    // Delete every pair held in the hash map.
     m_ZoneGroups.clear();
 
     __END_CATCH_NO_RETHROW
@@ -74,7 +74,7 @@ void ZoneGroupManager::init()
 //
 // load data from database
 //
-// 데이타베이스에 연결해서 ZoneGroup 을 로드해온다.
+// Connect to the database and load the ZoneGroups.
 //
 //--------------------------------------------------------------------------------
 void ZoneGroupManager::load()
@@ -164,10 +164,10 @@ void ZoneGroupManager::addZoneGroup(ZoneGroup* pZoneGroup)
     unordered_map<ZoneGroupID_t, ZoneGroup*>::iterator itr = m_ZoneGroups.find(pZoneGroup->getZoneGroupID());
 
     if (itr != m_ZoneGroups.end())
-        // 똑같은 아이디가 이미 존재한다는 소리다. - -;
+        // The same id already exists.
         throw Error("duplicated zone id");
 
-    // itr 이 가리키는
+    // Store the zone group under its id.
     m_ZoneGroups[pZoneGroup->getZoneGroupID()] = pZoneGroup;
 
     __END_CATCH
@@ -187,7 +187,7 @@ ZoneGroup* ZoneGroupManager::getZoneGroupByGroupID(ZoneGroupID_t ZoneGroupID) co
         pZoneGroup = itr->second;
 
     } else {
-        // 그런 존 아이디를 찾을 수 없었을 때
+        // No such zone id could be found.
         StringStream msg;
         msg << "ZoneGroupID : " << ZoneGroupID;
         throw NoSuchElementException(msg.toString());
@@ -208,13 +208,13 @@ void ZoneGroupManager::deleteZoneGroup(ZoneGroupID_t zoneID) {
     unordered_map<ZoneGroupID_t, ZoneGroup*>::iterator itr = m_ZoneGroups.find(zoneID);
 
     if (itr != m_ZoneGroups.end()) {
-        // 존을 삭제한다.
+        // Delete the zone.
         SAFE_DELETE(itr->second);
 
-        // pair를 삭제한다.
+        // Erase the pair.
         m_ZoneGroups.erase(itr);
     } else {
-        // 그런 존 아이디를 찾을 수 없었을 때
+        // No such zone id could be found.
         StringStream msg;
         msg << "ZoneGroupID : " << zoneID;
         throw NoSuchElementException(msg.toString());
@@ -238,7 +238,7 @@ ZoneGroup* ZoneGroupManager::getZoneGroup(ZoneGroupID_t zoneID) const {
         pZoneGroup = itr->second;
 
     } else {
-        // 그런 존 아이디를 찾을 수 없었을 때
+        // No such zone id could be found.
         StringStream msg;
         msg << "ZoneGroupID : " << zoneID;
         throw NoSuchElementException(msg.toString());
@@ -297,7 +297,7 @@ void ZoneGroupManager::outputLoadValue()
         const std::shared_ptr<const ZoneGroup::ZoneMap> zones = pZoneGroup->getZones();
         unordered_map<ZoneID_t, Zone*>::const_iterator iZone;
 
-        // 각 Zone의 loadValue를 구한다.
+        // Compute the loadValue of each Zone.
         int totalLoad = 0;
         for (iZone = zones->begin(); iZone != zones->end(); iZone++) {
             Zone* pZone = iZone->second;
@@ -321,11 +321,11 @@ void ZoneGroupManager::outputLoadValue()
 // make Balanced LoadInfo
 //---------------------------------------------------------------------------
 //
-// bForce : balacing할 필요가 없다고 판단되는 경우에도
-//          강제로 ZoneGroup을 balancing할 경우에 사용된다.
+// bForce : balances the ZoneGroups by force even when balancing
+//          is judged to be unnecessary.
 //
-// Zone마다의 10초간의 loop 처리 회수를 load값으로 한다.
-// 계산에 편의를 위해서 실제 load는 다음과 같의 정의한다.
+// The load value is the number of loop iterations a Zone ran in 10 seconds.
+// For convenience of computation the actual load is defined as follows.
 //
 //     load = (loadLimit - load)*loadMultiplier;
 //
@@ -333,13 +333,13 @@ void ZoneGroupManager::outputLoadValue()
 bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
 
 {
-    const int maxGroup = m_ZoneGroups.size(); // zoneGroup 수
-    const int loadLimit = 500; // load 값 제한 - sleep에 의해서 제한돼서 루프 처리회수 500이 최고다.
-    const int stableLoad = 120; // 안정적인 load - 이 정도면 balancing이 필요없다고 생각되는 수준
-    // 일정 값 이상이어야지 balancing이 의미있다.
+    const int maxGroup = m_ZoneGroups.size(); // number of zone groups
+    const int loadLimit = 500;                // load cap -- sleeping limits the loop count, so 500 is the maximum.
+    const int stableLoad = 120;               // stable load -- at this level balancing is considered unnecessary
+    // Balancing is only meaningful above a certain gap.
     const int minLoadGap =
-        20; // load balancing을 하기 위한 load 차이 - 최고~최저의 차이가 일정 값 이상이어야지 balancing이 의미있다.
-    const int averageLoadPercent = 90; // 한 group의 load % 제한. 100으로 해도 되겠지만 90정도가 괜찮은거 같다.
+        20; // load gap needed to balance -- balancing is meaningful only when max minus min exceeds it.
+    const int averageLoadPercent = 90; // per-group load % cap; 100 would do, but 90 works out better.
 
     int i;
 
@@ -347,12 +347,12 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
 
     unordered_map<ZoneGroupID_t, ZoneGroup*>::const_iterator itr;
 
-    // 전체 load
+    // Total load
     int totalLoad = 0;
 
 
     //------------------------------------------------------------------
-    // ZoneGroup마다 loadValue 조사
+    // Survey the loadValue of each ZoneGroup
     //------------------------------------------------------------------
     int maxLoadValue = 0;
     int minLoadValue = loadLimit;
@@ -362,7 +362,7 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
         const std::shared_ptr<const ZoneGroup::ZoneMap> zones = pZoneGroup->getZones();
         unordered_map<ZoneID_t, Zone*>::const_iterator iZone;
 
-        // 각 Zone의 loadValue를 구한다.
+        // Compute the loadValue of each Zone.
         for (iZone = zones->begin(); iZone != zones->end(); iZone++) {
             Zone* pZone = iZone->second;
 
@@ -373,13 +373,13 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
             maxLoadValue = max(maxLoadValue, load);
             minLoadValue = min(minLoadValue, load);
 
-            // 숫자 적은게 느린 거다.
-            // 계산의 편의를 위해서 숫자를 뒤집?는다. --> 큰 숫자 부하가 큰 걸로 바꾼다.
-            // player숫자를 부하가중치로 사용한다.
-            // playerLoad = 1 ~ 20정도?
+            // A smaller number means a slower zone.
+            // The number is inverted for convenience --> a larger number now means a larger load.
+            // The player count is used as the load weight.
+            // playerLoad is roughly 1 to 20.
             int playerLoad = pZone->getPCCount() / 10;
             playerLoad = max(1, playerLoad);
-            load = (loadLimit - load) * playerLoad; // 부하 가중치
+            load = (loadLimit - load) * playerLoad; // load weighting
 
             LoadInfo* pInfo = new LoadInfo;
             pInfo->id = pZone->getZoneID();
@@ -387,7 +387,7 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
             pInfo->groupID = -1;
             pInfo->load = load;
 
-            // 부하와 zoneID로 이루어진 key
+            // Key made up of the load and the zone id
             DWORD key = (load << 8) | pInfo->id;
 
             loadInfos[key] = pInfo;
@@ -398,25 +398,25 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
 
     //------------------------------------------------------------------
     //
-    // balancing이 필요한지 확인
+    // Check whether balancing is needed
     //
     //------------------------------------------------------------------
     if (!bForce) {
         int loadBoundary = stableLoad;
 
-        // 부하 한계 수치보다 작거나
-        // min~max 부하 수치 차이가 일정수치 이하이면
-        // load balancing할 필요가 없다.
+        // If the load is below the load boundary, or the gap between
+        // the minimum and maximum load is at most the threshold,
+        // there is no need to load balance.
         if (minLoadValue >= loadBoundary || maxLoadValue - minLoadValue <= minLoadGap) {
-            // load를 다시 조사해야 한다.
+            // The load has to be surveyed again.
             for (itr = m_ZoneGroups.begin(); itr != m_ZoneGroups.end(); itr++) {
                 ZoneGroup* pZoneGroup = itr->second;
 
-                // loadValue를 초기화 시켜준다.
+                // Reset the loadValue.
                 const std::shared_ptr<const ZoneGroup::ZoneMap> zones = pZoneGroup->getZones();
                 unordered_map<ZoneID_t, Zone*>::const_iterator iZone;
 
-                // 각 Zone의 loadValue를 구한다.
+                // Compute the loadValue of each Zone.
                 for (iZone = zones->begin(); iZone != zones->end(); iZone++) {
                     Zone* pZone = iZone->second;
 
@@ -428,23 +428,23 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
         }
     }
 
-    // 평균 load
-    // average를 90%로 잡은 경우
+    // Average load,
+    // with the average taken as 90%.
     int avgLoad = totalLoad * averageLoadPercent / maxGroup / 100;
 
-    // 새로운 그룹의 load를 계산하기 위해서
+    // Prepare to compute the load of the new groups.
     groups.reserve(maxGroup);
     for (i = 0; i < maxGroup; i++) {
         groups[i] = 0;
     }
 
-    // balancing하기 전의 상태 출력
+    // Print the state before balancing.
 
     //------------------------------------------------------------------
     //
     // load balancing
     //
-    // 약간의 변화를 준? FirstFit 사용.
+    // Uses a slightly modified FirstFit.
     //------------------------------------------------------------------
     LOAD_INFOS::const_iterator iInfo = loadInfos.begin();
 
@@ -453,7 +453,7 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
     for (; iInfo != loadInfos.end(); iInfo++) {
         LoadInfo* pInfo = iInfo->second;
 
-        // 들어갈 새 group을 찾는다.
+        // Find the new group to go into.
         int newGroupID = -1;
         for (int k = 0; k < maxGroup; k++) {
             int groupLoad = groups[index];
@@ -471,7 +471,7 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
                 index = 0;
         }
 
-        // 적절한 group을 못 찾았으면 젤 값이 적은 group에 넣는다.
+        // If no suitable group was found, use the group with the smallest load.
         if (newGroupID == -1) {
             newGroupID = 0;
             for (int k = 1; k < maxGroup; k++) {
@@ -481,8 +481,8 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
             }
         }
 
-        // newGroupID에다가 Info를 추가한다.
-        pInfo->groupID = newGroupID + 1; // 1을 증가시켜줘야 한다. -_-;
+        // Add the Info to newGroupID.
+        pInfo->groupID = newGroupID + 1; // group ids are 1-based, so add one.
         groups[newGroupID] += pInfo->load;
     }
 
@@ -492,7 +492,7 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
 //---------------------------------------------------------------------------
 // make DefaultLoadInfo
 //---------------------------------------------------------------------------
-// DB에 설정된 기본 ZoneGroup으로 설정한다.
+// Set the ZoneGroups to the defaults configured in the DB.
 //---------------------------------------------------------------------------
 bool ZoneGroupManager::makeDefaultLoadInfo(LOAD_INFOS& loadInfos)
 
@@ -548,13 +548,13 @@ bool ZoneGroupManager::makeDefaultLoadInfo(LOAD_INFOS& loadInfos)
 // balance ZoneGroup ( bForce )
 //---------------------------------------------------------------------------
 //
-// bForce : balacing할 필요가 없다고 판단되는 경우에도
-//          강제로 ZoneGroup을 balancing할 경우에 사용된다.
+// bForce : balances the ZoneGroups by force even when balancing
+//          is judged to be unnecessary.
 //
-// bDefault : DB에서 지정되어 있는 값으로 ZoneGroup을 설정한다.
+// bDefault : sets the ZoneGroups to the values specified in the DB.
 //
-// Zone마다의 10초간의 loop 처리 회수를 load값으로 한다.
-// 계산에 편의를 위해서 실제 load는 다음과 같의 정의한다.
+// The load value is the number of loop iterations a Zone ran in 10 seconds.
+// For convenience of computation the actual load is defined as follows.
 //
 //     load = (loadLimit - load)*loadMultiplier;
 //
@@ -642,7 +642,7 @@ int ZoneGroupManager::getPlayerNum() const
     for (; itr != m_ZoneGroups.end(); itr++) {
         ZoneGroup* pZoneGroup = itr->second;
 
-        // lock 걸 필요 없다
+        // No lock is needed.
         numPC += pZoneGroup->getZonePlayerManager()->size();
     }
 

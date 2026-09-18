@@ -125,7 +125,7 @@ void DynamicZoneAlterOfBlood::heartbeat() {
 bool DynamicZoneAlterOfBlood::checkPC() {
     Assert(m_pZone != NULL);
 
-    // PC ¼ö Ã¼Å©
+    // Check the number of PCs.
     uint size = m_pZone->getPCManager()->getSize();
 
     return size != 0;
@@ -135,7 +135,7 @@ bool DynamicZoneAlterOfBlood::addOffering() {
     Assert(m_pZone != NULL);
 
     for (int i = 0; i < 5; ++i) {
-        // Á¦¹°À» »ý¼ºÇÏ¿© Ãß°¡ÇÑ´Ù. Á¦¹°Àº ³ú°¡ ¾ø´Â ¸ó½ºÅÍ´Ù
+        // Create and add an offering. An offering is a monster with no brain.
         Monster* pMonster = new Monster(OfferingTemplate[m_Race].MonsterType);
         Assert(pMonster != NULL);
 
@@ -203,7 +203,7 @@ bool DynamicZoneAlterOfBlood::clearOffering() {
 }
 
 bool DynamicZoneAlterOfBlood::openGateToOut() {
-    // Äù½ºÆ®¸¦ ÁøÇà½ÃÅ²´Ù.
+    // Advance the quest.
     unordered_map<ObjectID_t, Creature*>::const_iterator itr = m_pZone->getPCManager()->getCreatures().begin();
     unordered_map<ObjectID_t, Creature*>::const_iterator endItr = m_pZone->getPCManager()->getCreatures().end();
 
@@ -246,7 +246,7 @@ bool DynamicZoneAlterOfBlood::openGateToOut() {
 }
 
 void DynamicZoneAlterOfBlood::processEntering() {
-    // Äù½ºÆ® Á¸¿¡ µé¾î¿ÔÀ½À» ¾Ë¸°´Ù
+    // Announce that the quest zone has been entered.
     unordered_map<ObjectID_t, Creature*>::const_iterator itr = m_pZone->getPCManager()->getCreatures().begin();
     unordered_map<ObjectID_t, Creature*>::const_iterator endItr = m_pZone->getPCManager()->getCreatures().end();
 

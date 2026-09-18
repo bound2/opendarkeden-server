@@ -53,27 +53,27 @@ class LevelWarManager;
 class DynamicZone;
 
 //////////////////////////////////////////////////////////////////////////////
-// Á¸ÀÇ Å¸ÀÔ
+// Zone type
 //////////////////////////////////////////////////////////////////////////////
 enum ZoneType {
-    ZONE_NORMAL_FIELD,          // ÀÏ¹Ý ÇÊµå
-    ZONE_NORMAL_DUNGEON,        // ÀÏ¹Ý ´øÀü
-    ZONE_SLAYER_GUILD,          // ½½·¹ÀÌ¾î ±æµå
+    ZONE_NORMAL_FIELD,          // Normal field
+    ZONE_NORMAL_DUNGEON,        // Normal dungeon
+    ZONE_SLAYER_GUILD,          // Slayer guild
     ZONE_RESERVED_SLAYER_GUILD, // ...
-    ZONE_PC_VAMPIRE_LAIR,       // PC ¹ìÆÄÀÌ¾î ·¹¾î
-    ZONE_NPC_VAMPIRE_LAIR,      // NPC ¹ìÆÄÀÌ¾î ·¹¾î
+    ZONE_PC_VAMPIRE_LAIR,       // PC vampire lair
+    ZONE_NPC_VAMPIRE_LAIR,      // NPC vampire lair
     ZONE_NPC_HOME,              // ...
     ZONE_NPC_SHOP,              // ...
     ZONE_RANDOM_MAP,            // -_-;
-    ZONE_CASTLE,                // ¼º
+    ZONE_CASTLE,                // Castle
 };
 
 //////////////////////////////////////////////////////////////////////////////
-// Á¸ÀÇ Á¢±Ù¸ðµå
+// Zone access mode
 //////////////////////////////////////////////////////////////////////////////
 enum ZoneAccessMode {
-    PUBLIC = 0, // ¾Æ¹«³ª µé¾î¿Ã ¼ö ÀÖ´Â Á¸ÀÌ´Ù.
-    PRIVATE     // ÁöÁ¤µÈ »ç¶÷¸¸ÀÌ µé¾î¿Ã ¼ö ÀÖ´Â Á¸ÀÌ´Ù.(±æµåÁ¸,·¹¾î µî)
+    PUBLIC = 0, // Anyone may enter this zone.
+    PRIVATE     // Only designated people may enter (guild zone, lair and so on).
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -147,7 +147,7 @@ public:
     void movePC(Creature* pCreature, ZoneCoord_t nx, ZoneCoord_t ny, Dir_t dir);
     void moveCreature(Creature* pCreature, ZoneCoord_t nx, ZoneCoord_t ny, Dir_t dir);
 
-    // ¸ó½ºÅÍ°¡ ÁÖº¯À» ½ºÄµÇÑ´Ù.
+    // The monster scans its surroundings.
     void monsterScan(Monster* pMonster, ZoneCoord_t x, ZoneCoord_t y, Dir_t dir);
 
     void broadcastPacket(Packet* pPacket, Creature* owner = NULL);
@@ -162,47 +162,47 @@ public:
     list<Creature*> broadcastSkillPacket(ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t x2, ZoneCoord_t y2,
                                          Packet* pPacket, list<Creature*> creatureList, bool bConcernDarkness = true);
 
-    //(x,y) Å¸ÀÏ À§¿¡ ÀÖ´Â PC ¿¡°Ô ÁÖº¯ Á¤º¸¸¦ ÀÐ¾î¼­ Àü¼ÛÇÑ´Ù. pPacket ÀÌ NULL ÀÌ ¾Æ´Ï¶ó¸é, µ¿½Ã¿¡ ºê·ÎµåÄ³½ºÆ®µµ
-    // ´ã´çÇÑ´Ù.
+    //(x,y) Read the surroundings of the PC on that tile and send them. If pPacket is not NULL, also
+    // broadcast it.
     void scan(Creature* pPC, ZoneCoord_t x, ZoneCoord_t y, Packet* pPacket);
 
-    // ±×°÷À» º¼ ¼ö ÀÖ´Â ³Ñµé(Player)ÀÇ list¸¦ µ¹·ÁÁØ´Ù.ª
+    // Returns the list of players who can see that spot.
     list<Creature*> getWatcherList(ZoneCoord_t, ZoneCoord_t, Creature* pTargetCreature = NULL);
 
-    // ¸®Á¨µÈ ¸ó½ºÅÍ°¡ ÁÖº¯ÀÇ PC µé¿¡°Ô GCAddXXX ÆÐÅ¶À» ºê·ÎµåÄ³½ºÆ®ÇÏ¸é¼­µ¿½Ã¿¡ ±×µéÀ» ÀáÀçÀûÀÎ ÀûÀ¸·Î ÀÎ½ÄÇÏµµ·Ï ÇÑ´Ù.
+    // A regenerated monster broadcasts GCAddXXX packets to nearby PCs and marks them as potential enemies.
     void scanPC(Creature* pCreature);
 
-    // Á¦ÀÚ¸®¿¡¼­ hidden creature¿¡ ´ëÇÑ update°¡ ÇÊ¿äÇÑ °æ¿ì.
+    // Used when a hidden creature needs an update without the creature moving.
     void updateHiddenScan(Creature* pCreature);
 
-    // Á¦ÀÚ¸®¿¡¼­ install mine¿¡ ´ëÇÑ update°¡ ÇÊ¿äÇÑ °æ¿ì.
+    // Used when an installed mine needs an update without the creature moving.
     void updateMineScan(Creature* pCreature);
 
-    // Á¦ÀÚ¸®¿¡¼­ invisible creature¿¡ ´ëÇÑ update°¡ ÇÊ¿äÇÑ °æ¿ì.
+    // Used when an invisible creature needs an update without the creature moving.
     void updateInvisibleScan(Creature* pCreature);
 
-    // Á¦ÀÚ¸®¿¡¼­ hide,invisible creature¿¡ ´ëÇÑ update°¡ ÇÊ¿äÇÑ °æ¿ì.
+    // Used when hidden and invisible creatures need an update without the creature moving.
     void updateDetectScan(Creature* pCreature);
 
-    // PC °¡ P(x1,y1)¿¡¼­ Q(x2,y2)·Î ÀÌµ¿ÇßÀ½À» ÁÖº¯¿¡ ºê·ÎµåÄ³½ºÆ®ÇÑ´Ù.
+    // Broadcast to the surroundings that the PC moved from P(x1,y1) to Q(x2,y2).
     void movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t x2, ZoneCoord_t y2,
                          bool bSendMove = true, bool bKnockback = false);
 
-    // !PC °¡ P(x1,y1)¿¡¼­ Q(x2,y2)·Î ÀÌµ¿ÇßÀ½À» ÁÖº¯¿¡ ºê·ÎµåÄ³½ºÆ®ÇÑ´Ù.
+    // Broadcast to the surroundings that the non-PC creature moved from P(x1,y1) to Q(x2,y2).
     void moveCreatureBroadcast(Creature* pCreature, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t x2, ZoneCoord_t y2,
                                bool bSendMove = true, bool bKnockback = false);
 
-    // PC °¡ P(x1,y1)¿¡¼­ Q(x2,y2)·Î ÀÌµ¿ÇßÀ½À» ÁÖº¯¿¡ ºê·ÎµåÄ³½ºÆ®ÇÑ´Ù.
+    // Broadcast to the surroundings that the PC moved from P(x1,y1) to Q(x2,y2).
     bool moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t x2, ZoneCoord_t y2,
                     SkillType_t skillType);
     bool moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t x2, ZoneCoord_t y2,
                          SkillType_t skillType);
 
-    // ÀüÀï½Ã ¼º ¾ÈÀº ¾ÈÀüÁö´ë°¡ µÇ¾ú´Ù°¡ ¸»¾Ò´Ù°¡ ÇÑ´Ù. Á¸À» ¼¼ÀÌÇÁÁ¸ÀÌ ¾Æ´Ï°Ô ¸¸µé°Å³ª ¿ø»óº¹±¸½ÃÅ®´Ù.
+    // During a war the castle interior turns into a safe zone and back; clear or restore the safe zone.
     void releaseSafeZone();
     void resetSafeZone();
 
-    // ¿ÀºêÁ§Æ® µî·Ï
+    // Register an object
     void registerObject(Object* pObject) {
         getObjectRegistry().registerObject(pObject);
     }
@@ -210,7 +210,7 @@ public:
 public:
     void heartbeat();
 
-    // ÀÌ¸§, Å©¸®Ã³ Å¬·¡½º, OID µîÀ» ÀÌ¿ëÇØ¼­ Á¸¿¡ Á¸ÀçÇÏ´Â Å©¸®ÃÄ °´Ã¼¿¡ Á¢±Ù
+    // Access creature objects in the zone by name, creature class, OID and so on
     Creature* getCreature(const string& Name) const;  // NoSuchElementException, Error);
     Creature* getCreature(ObjectID_t objectID) const; // NoSuchElementException, Error);
     Creature* getCreature(Creature::CreatureClass creatureClass, ObjectID_t objectID) const;
@@ -389,7 +389,7 @@ public:
     void addNPCInfo(NPCInfo* pInfo);
     bool removeNPCInfo(NPC* pNPC);
 
-    // Á¸ ÀüÃ¼ÀÇ NPC¿¡°Ô MarketConditionÀ» ¼³Á¤ÇÑ´Ù. default(100, 25)
+    // Set the MarketCondition on every NPC in the zone. default(100, 25)
     // void setNPCMarketCondition(MarketCond_t NPCSell, MarketCond_t NPCBuy) ;
 
     void addVampirePortal(ZoneCoord_t cx, ZoneCoord_t cy, Vampire* pVampire, const ZONE_COORD& ZoneCoord);
@@ -413,11 +413,11 @@ public:
     }
 
 
-    // pPC°¡ pMonster¸¦ º¼¶§ Monster´Â ¾î¶® packetÀ¸·Î addµÇ´Â°¡?
-    // pPC°¡ NULLÀÎ °æ¿ì ´Ù º¸ÀÌ´Â »óÅÂ¶ó°í °¡Á¤ÇÑ´Ù.
+    // Which packet is pMonster added with when pPC sees it?
+    // If pPC is NULL, assume everything is visible.
     Packet* createMonsterAddPacket(Monster* pMonster, Creature* pPC) const;
 
-    // ¸÷ »ý¼º ÁÂÇ¥
+    // Monster spawn coordinates
     const BPOINT& getRandomMonsterRegenPosition() const;
     const BPOINT& getRandomEmptyTilePosition() const;
 
@@ -454,7 +454,7 @@ public:
 #endif
 
 public:
-    // À¯·áÈ­
+    // Pay play
     bool isPayPlay() const {
         return m_bPayPlay;
     }
@@ -511,7 +511,7 @@ public:
         m_bCastleZone = bCastleZone;
     }
 
-    // Relicº¸°ü´ë¸¦ °®°í ÀÖ³ª?
+    // Does the zone have a relic table?
     bool hasRelicTable() const {
         return m_bHasRelicTable;
     }
@@ -522,7 +522,7 @@ public:
     bool addRelicItem(int relicIndex);
     bool deleteRelicItem();
 
-    // Holy Land Race Bonus º¯È­¿¡ µû¸¥ ÇÃ·¹ÀÌ¾î refresh
+    // Refresh players when the Holy Land race bonus changes
     void setRefreshHolyLandPlayer(bool bRefresh) {
         m_pPCManager->setRefreshHolyLandPlayer(bRefresh);
     }
@@ -554,24 +554,24 @@ public:
     // member data
     ////////////////////////////////////////////////////////////
 private:
-    // Á¸ÀÇ ±âº» ÀûÀÎ Á¤º¸
-    ZoneID_t m_ZoneID;       // zone id
-    ZoneGroup* m_pZoneGroup; // parent zone group
-    ZoneType m_ZoneType;     // Á¸ Å¸ÀÔ(Á¸ Å¸ÀÔÀÌ ¹Ù®î¸é DB¿¡ ÀúÀåµÇ¾î¾ß ÇÑ´Ù.)
-    ZoneLevel_t m_ZoneLevel; // Á¸ÀÇ ·¹º§.
-    ZoneAccessMode m_ZoneAccessMode; // Á¸¿¡ ´ëÇÑ Á¢±Ù ¸ðµå { PUBLIC | PRIVATE }
-    string m_OwnerID; // Á¸ ¼ÒÀ¯ÀÚ ¾ÆÀÌµð(½½·¹ÀÌ¾î ±æµå ¾ÆÀÌµð È¤Àº ¹ìÆÄÀÌ¾î ¸¶½ºÅÍ ¾ÆÀÌµð)
-    DarkLevel_t m_DarkLevel;   // Á¸ÀÇ ¾îµÓ±â
-    LightLevel_t m_LightLevel; // Á¸ÀÇ ºûÀÇ Å©±â
-    ZoneCoord_t m_Width;       // Á¸ÀÇ °¡·Î Å©±â
-    ZoneCoord_t m_Height;      // Á¸ÀÇ ¼¼·Î Å©±â
-    Tile** m_pTiles;           // Å¸ÀÏÀÇ ÀÌÂ÷¿ø ¹è¿­
-    ZoneLevel_t** m_ppLevel;   // Á¸ ·¹º§ÀÇ ÀÌÂ÷¿ø ¹è¿­
-    Sector** m_pSectors;       // ¼½ÅÍÀÇ ÀÌÂ÷¿ø ¹è¿­
-    int m_SectorWidth;         // ¼½ÅÍÀÇ Å©±â
-    int m_SectorHeight;        // ¼½ÅÍÀÇ Å©±â
+    // Basic zone information
+    ZoneID_t m_ZoneID;               // zone id
+    ZoneGroup* m_pZoneGroup;         // parent zone group
+    ZoneType m_ZoneType;             // Zone type (a changed zone type must be saved to the DB.)
+    ZoneLevel_t m_ZoneLevel;         // Zone level.
+    ZoneAccessMode m_ZoneAccessMode; // Access mode for the zone { PUBLIC | PRIVATE }
+    string m_OwnerID;                // Zone owner id (slayer guild id or vampire master id)
+    DarkLevel_t m_DarkLevel;         // Zone darkness
+    LightLevel_t m_LightLevel;       // Zone light level
+    ZoneCoord_t m_Width;             // Zone width
+    ZoneCoord_t m_Height;            // Zone height
+    Tile** m_pTiles;                 // Two-dimensional array of tiles
+    ZoneLevel_t** m_ppLevel;         // Two-dimensional array of zone levels
+    Sector** m_pSectors;             // Two-dimensional array of sectors
+    int m_SectorWidth;               // Sector size
+    int m_SectorHeight;              // Sector size
 
-    // °¢Á¾ ¸Å´ÏÀúµé
+    // The various managers
     PCManager* m_pPCManager;           // PC Manager
     NPCManager* m_pNPCManager;         // NPC Manager
     MonsterManager* m_pMonsterManager; // Monster Manager
@@ -583,27 +583,27 @@ private:
     EffectManager* m_pLockedEffectManager;  // effect manager
     EffectScheduleManager* m_pEffectScheduleManager;
     list<NPCInfo*> m_NPCInfos;         // npc infos
-    WeatherManager* m_pWeatherManager; // Á¸ÀÇ ³¯¾¾
+    WeatherManager* m_pWeatherManager; // Zone weather
 
-    // Á¸¿¡ ÃâÇöÇÏ´Â NPC ½ºÇÁ¶óÀÌÆ® Å¸ÀÔÀÇ ¸®½ºÆ®
+    // List of NPC sprite types appearing in the zone
     BYTE m_NPCCount;
     NPCType_t m_NPCTypes[maxNPCPerZone];
 
-    // Á¸¿¡ ÃâÇöÇÏ´Â ¸ó½ºÅÍ ½ºÇÁ¶óÀÌÆ® Å¸ÀÔÀÇ ¸®½ºÆ®
+    // List of monster sprite types appearing in the zone
     BYTE m_MonsterCount;
     MonsterType_t m_MonsterTypes[maxMonsterPerZone];
 
     // object registery
     ObjectRegistry m_ObjectRegistry;
 
-    // Á¸¿¡ »õ·Î µé¾î°¥ PCµéÀÇ Å¥
+    // Queue of PCs about to enter the zone
     queue<Creature*> m_PCQueue;
     list<Creature*> m_PCListQueue;
 
-    // zone¹Ù´Ú¿¡ ¶³¾îÁø item hashmap
+    // Hash map of items dropped on the zone floor
     unordered_map<ObjectID_t, Item*> m_Items;
 
-    // Monster AI¸¦ À§ÇØ Á¸ÀÇ ¿µ¿ªÀ» ±¸ºÐÁö¾î ³õÀº »ç°¢Çüµé...
+    // Rectangles dividing the zone area up for monster AI
     VSRect m_OuterRect;
     VSRect m_InnerRect;
     VSRect m_CoreRect;
@@ -612,7 +612,7 @@ private:
     PartyInviteInfoManager* m_pPartyInviteInfoManager;
     TradeManager* m_pTradeManager;
 
-    // ¸÷ »ý¼º ÁÂÇ¥¸¦ À§ÇÑ Á¤º¸.
+    // Information for the monster spawn coordinates.
     vector<BPOINT> m_MonsterRegenPositions;
     vector<BPOINT> m_EmptyTilePositions;
 
@@ -620,11 +620,11 @@ private:
     mutable Mutex m_Mutex;
     mutable Mutex m_MutexEffect;
 
-    // À¯·áÈ­ °ü·Ã
+    // Pay-play related
     bool m_bPayPlay;
     bool m_bPremiumZone;
 
-    // ±âÅ¸ Á¤º¸
+    // Other information
     bool m_bPKZone;
     bool m_bNoPortalZone;
     bool m_bMasterLair;
@@ -632,10 +632,10 @@ private:
     bool m_bHolyLand;
     bool m_bCastleZone;
 
-    // ÀüÀï Áß?
+    // At war?
     bool m_bHasRelicTable;
 
-    // Relic Table °ü·Ã Á¤º¸
+    // Relic table related information
     ObjectID_t m_RelicTableOID;
     ZoneCoord_t m_RelicTableX;
     ZoneCoord_t m_RelicTableY;
@@ -643,10 +643,10 @@ private:
     Timeval m_LoadValueStartTime;
     DWORD m_LoadValue;
 
-    // ¸¶½ºÅÍ ·¹¾î. by sigi.2002.9.2
+    // Master lair.
     MasterLairManager* m_pMasterLairManager;
 
-    // ÀüÀï °ü¸® by sigi. 2003.1.24
+    // War management
     WarScheduler* m_pWarScheduler;
 
     LevelWarManager* m_pLevelWarManager;
@@ -666,7 +666,7 @@ private:
     uchar m_EncryptCode;
 #endif
 
-    DynamicZone* m_pDynamicZone; // ÀÎ´ø Á¤º¸
+    DynamicZone* m_pDynamicZone; // Instance dungeon info
 };
 
 #endif

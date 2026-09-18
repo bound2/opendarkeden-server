@@ -2,7 +2,7 @@
 // Filename    : WayPoint.cpp
 // Written by  : excel96
 // Description :
-// 슬레이어용 개인 포탈을 위한 웨이포인트의 집합을 관리하는 클래스 모듈
+// Class module that manages the set of way points for the Slayer's personal portal
 //////////////////////////////////////////////////////////////////////////////
 
 #include "WayPoint.h"

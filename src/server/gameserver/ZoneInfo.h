@@ -175,27 +175,27 @@ public:
     string toString() const;
 
 private:
-    ZoneID_t m_ZoneID;               // 존 아이디
-    ZoneGroupID_t m_ZoneGroupID;     // 존 그룹 아이디
-    ZoneType m_ZoneType;             // 존 타입
-    ZoneLevel_t m_ZoneLevel;         // 존 레벨(0 - 10)
-    ZoneAccessMode m_ZoneAccessMode; // 존 접근 모드
-    bool m_bPayPlay;                 // 유료화 존? = 돈 내야 들어갈 수 있는 곳
-    bool m_bPremiumZone;             // 프리미엄 서비스가 되는 존
-    string m_OwnerID;                // 존 소유자 아이디
-    string m_SMPFilename;            // SMP 파일 이름
-    string m_SSIFilename;            // SSI 파일 이름
-    string m_FullName;               // 존 이름
-    string m_ShortName;              // 짧은 이름
+    ZoneID_t m_ZoneID;               // Zone id
+    ZoneGroupID_t m_ZoneGroupID;     // Zone group id
+    ZoneType m_ZoneType;             // Zone type
+    ZoneLevel_t m_ZoneLevel;         // Zone level (0 - 10)
+    ZoneAccessMode m_ZoneAccessMode; // Zone access mode
+    bool m_bPayPlay;                 // Pay zone? = a place you must pay to enter
+    bool m_bPremiumZone;             // Zone covered by the premium service
+    string m_OwnerID;                // Zone owner id
+    string m_SMPFilename;            // SMP file name
+    string m_SSIFilename;            // SSI file name
+    string m_FullName;               // Zone name
+    string m_ShortName;              // Short name
 
-    bool m_bPKZone;       // 성향 안 떨어지는 존
-    bool m_bNoPortalZone; // portal로 이동이 불가능한 존
-    bool m_bMasterLair;   // 마스터 레어인가?
-    bool m_bCastle;       // Castle인가?
-    bool m_bHolyLand;     // 아담의 성지인가?
-    bool m_bAvailable;    // 나와야 되는 존인가?
+    bool m_bPKZone;       // Zone where alignment does not drop
+    bool m_bNoPortalZone; // Zone that cannot be reached by portal
+    bool m_bMasterLair;   // Is it a master lair?
+    bool m_bCastle;       // Is it a Castle?
+    bool m_bHolyLand;     // Is it Adam's holy land?
+    bool m_bAvailable;    // Is this zone meant to show up?
 
-    int m_OpenLevel; // 존의 공개 레벨. OpenDegree가 존의 공개 레벨보다 높아야 나온다.
+    int m_OpenLevel; // Open level of the zone. It appears only when OpenDegree is higher than this.
 };
 
 #endif

@@ -16,15 +16,15 @@
 
 class WeatherInfo {
 public:
-    // 확률값을 파라미터로 넘겨주면, 오늘의 날씨를 리턴한다.
+    // Given a probability value, returns today's weather.
     Weather getWeather(uint probability) const;
 
-    // 특정 날씨의 확률을 리턴한다.
+    // Returns the probability of a given weather.
     uint getProbability(Weather weather) const {
         return m_Probabilities[weather];
     }
 
-    // 특정 날씨의 확률을 지정한다.
+    // Sets the probability of a given weather.
     void setProbability(Weather weather, uint prob) {
         m_Probabilities[weather] = prob;
     }
@@ -40,7 +40,7 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 // class WeatherInfoManager;
 //
-// 월별 날씨 정보를 관리하는 매니저 클래스이다.
+// Manager class for the per-month weather info.
 ////////////////////////////////////////////////////////////////////////////////
 
 class WeatherInfoManager {
@@ -69,7 +69,7 @@ public:
     string toString() const;
 
 private:
-    // WeatherInfo의 이차원 배열
+    // Two-dimensional array of WeatherInfo
     WeatherInfo m_WeatherInfos[12];
 };
 

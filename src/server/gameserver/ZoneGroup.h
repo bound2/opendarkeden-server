@@ -96,7 +96,7 @@ public:
     Zone* getZone(ZoneID_t zoneID) const;
 
     // #ifdef __NO_COMBAT__
-    Zone* getCombatZone(ZoneID_t zoneID) const; // getZone과 같은 일을 수행하나 NULL을 리턴하는 것이 가능, 김경석
+    Zone* getCombatZone(ZoneID_t zoneID) const; // Same as getZone, but may return NULL
     // #endif
 
     //--------------------------------------------------
@@ -146,16 +146,16 @@ public:
 public:
     // Thread-ownership contract (see "Thread ownership" in CLAUDE.md):
     // zone-group state may only be touched while this group's mutex is
-    // held — the group's ZoneGroupThread holds it for its whole tick, and
+    // held -- the group's ZoneGroupThread holds it for its whole tick, and
     // any other thread (e.g. GDRLairManager) must take it explicitly.
     //
-    // Under DE_OWNERSHIP_CHECKS (defined only for Debug builds — this
+    // Under DE_OWNERSHIP_CHECKS (defined only for Debug builds -- this
     // project deliberately never defines NDEBUG, so gating on our own
     // macro is the only way the checks truly vanish from release),
     // lock()/unlock() record the holding thread and assertOwned() ABORTS
     // on a violation. abort(), not a throw: an AssertionError is a
     // Throwable, and the legacy catch(Throwable&) blocks on exactly these
-    // paths would swallow it — turning a detected race into a silently
+    // paths would swallow it -- turning a detected race into a silently
     // half-applied mutation (e.g. GamePlayer::disconnect's empty catch
     // would skip the character save). The check is armed by the
     // ZoneGroupThread when it starts; before that, single-threaded
@@ -163,8 +163,8 @@ public:
     //
     // Invariant that makes false FIRES impossible: m_LockHolder and
     // m_LockHolderValid are written only while the mutex is held (the
-    // mutex is non-recursive — Mutex::lock() throws on self-relock before
-    // the holder is written — so clearing on unlock is sound). A racing
+    // mutex is non-recursive -- Mutex::lock() throws on self-relock before
+    // the holder is written -- so clearing on unlock is sound). A racing
     // reader that does not hold the mutex may see stale values, but that
     // is precisely the caller that must fail.
     void lock() {
@@ -203,7 +203,7 @@ private:
     // zone group id
     ZoneGroupID_t m_ZoneGroupID;
 
-    // zone 의 해쉬맵. Published copy-on-write: readers on any thread load a
+    // Hash map of zones. Published copy-on-write: readers on any thread load a
     // snapshot without waiting on a writer; addZone()/removeZone()/deleteZone() replace it.
     // Pre-snapshot, a dynamic zone created on one zone thread was inserted
     // straight into the template zone's group -- generally another group --
@@ -228,7 +228,7 @@ private:
 
 #ifdef DE_OWNERSHIP_CHECKS
     // Debug-only ownership tracking (see lock()/unlock()/assertOwned()).
-    // pthread_t is opaque — compared with pthread_equal(), never ==, and a
+    // pthread_t is opaque -- compared with pthread_equal(), never ==, and a
     // separate valid flag stands in for the old "zero tid" sentinel POSIX
     // never promised. Members exist only in checking builds; ZoneGroup's
     // layout differs between configs, which is fine for a type never

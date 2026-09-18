@@ -29,11 +29,11 @@ public:
     virtual ~DynamicZone();
 
 public:
-    virtual void init() {}      // 다이나믹 존 초기화
-    virtual void heartbeat() {} // 다이나믹 존 하트비트
+    virtual void init() {}      // Dynamic zone initialization
+    virtual void heartbeat() {} // Dynamic zone heartbeat
 
 public:
-    // 새로 DynamicZone을 만들어서 ZoneGroup 에 추가한다.
+    // Create a new DynamicZone and add it to the ZoneGroup.
     void makeDynamicZone();
 
     ZoneID_t getTemplateZoneID() const {

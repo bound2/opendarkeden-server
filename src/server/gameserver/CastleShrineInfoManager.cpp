@@ -116,7 +116,7 @@ ZoneID_t CastleShrineInfoManager::getGuardShrineZoneID(ZoneID_t castleZoneID) co
 
     HashMapShrineSetConstItor itr = m_ShrineSets.begin();
 
-    // castleZoneID의 shrineID를 검색할수가 없어서 하나하나 비교한다. -_-;
+    // The shrineID for castleZoneID cannot be looked up, so compare them one by one.
     for (; itr != m_ShrineSets.end(); itr++) {
         CastleShrineSet* pShrineSet = itr->second;
 
@@ -168,7 +168,7 @@ Item* CastleShrineInfoManager::addShrineToZone(ShrineInfo& shrineInfo, ItemType_
 {
     __BEGIN_TRY
 
-    // 성단을 넣을 존을 가져온다.
+    // Get the zone the shrine goes into.
     Zone* pZone = getZoneByZoneID(shrineInfo.getZoneID());
     Assert(pZone != NULL);
 
@@ -211,7 +211,7 @@ Item* CastleShrineInfoManager::addShrineToZone(ShrineInfo& shrineInfo, ItemType_
     TPOINT tp = pZone->addItem(pShrine, shrineInfo.getX(), shrineInfo.getY(), true);
     Assert(tp.x != -1);
 
-    // 성의 상징을 추가할 필요가 있다면 추가한다.
+    // Add the castle symbol if it needs to be added.
     if (shrineInfo.getShrineType() == ShrineInfo::SHRINE_GUARD) {
         // if ( AddBible[ itemType ] )
         {
@@ -228,10 +228,10 @@ Item* CastleShrineInfoManager::addShrineToZone(ShrineInfo& shrineInfo, ItemType_
             pShrine->addTreasure(pItem);
         }
 
-        // 수호성단이라는걸 표시해둔다.
+        // Mark it as a guard shrine.
         pShrine->setFlag(Effect::EFFECT_CLASS_CASTLE_SHRINE_GUARD);
 
-        // 모든 수호성단에 Shield Effect 붙인다
+        // Attach the Shield Effect to every guard shrine.
         pShrine->setFlag(Effect::EFFECT_CLASS_SHRINE_SHIELD);
 
         EffectShrineShield* pEffect = new EffectShrineShield(pShrine);
@@ -240,11 +240,11 @@ Item* CastleShrineInfoManager::addShrineToZone(ShrineInfo& shrineInfo, ItemType_
 
         pShrine->getEffectManager().addEffect(pEffect);
     } else {
-        // 성지성단이라는걸 표시해둔다.
+        // Mark it as a holy shrine.
         pShrine->setFlag(Effect::EFFECT_CLASS_CASTLE_SHRINE_HOLY);
     }
 
-    // 성단 좌표를 새로 세팅한다.
+    // Set the shrine coordinates anew.
     shrineInfo.setX(tp.x);
     shrineInfo.setY(tp.y);
 
@@ -320,12 +320,12 @@ bool CastleShrineInfoManager::isMatchHolyShrine(Item* pItem, MonsterCorpse* pMon
     CastleShrineSet* pShrineSet = getShrineSet(shrineID);
 
     if (pShrineSet == NULL) {
-        // 이 성의 상징에 해당하는 Shrine Set이 없다.
+        // There is no Shrine Set for this castle symbol.
         return false;
     }
 
-    // 이 성의 상징에 해당하는 Shrine set의 성지성단의 MonsterType이
-    // 넘어온 MonsterCorpse의 MonsterType과 같고 ObjectID도 같으면 true
+    // True when the MonsterType of the holy shrine of the Shrine set for this castle
+    // symbol equals the MonsterType of the MonsterCorpse passed in and the ObjectID matches too.
     return pShrineSet->m_HolyShrine.getMonsterType() == pMonsterCorpse->getMonsterType() &&
            pShrineSet->m_HolyShrine.getObjectID() == pMonsterCorpse->getObjectID();
 
@@ -340,7 +340,7 @@ bool CastleShrineInfoManager::isDefenderOfGuardShrine(PlayerCreature* pPC, Monst
     Zone* pZone = pShrine->getZone();
     Assert(pZone != NULL);
 
-    // 성이 아니면 삑~
+    // Not a castle -- fail.
     /*
     if ( !pZone->isCastle() )
     {
@@ -366,7 +366,7 @@ bool CastleShrineInfoManager::isDefenderOfGuardShrine(PlayerCreature* pPC, Monst
     /*
     if ( pWar->getWarType() == WAR_RACE )
     {
-        // 종족 전쟁 중에는 성의 소유 종족과 같은 종족이면 defender 이다.
+        // During a race war a player of the same race as the castle owner is a defender.
         if ( pPC->getRace() == pCastleInfo->getRace() )
             return true;
     }
@@ -377,10 +377,10 @@ bool CastleShrineInfoManager::isDefenderOfGuardShrine(PlayerCreature* pPC, Monst
         Assert(pGuildWar != NULL);
 
         if (pCastleInfo->isCommon()) {
-            // 공용성인 경우는 공격길드만 아니면 defender이다.
+            // For a common castle anyone but the attacking guild is a defender.
             return pPC->getGuildID() != pGuildWar->getChallangerGuildID();
         } else {
-            // 동족 전쟁 중에는 공용성이 아닐 경우 성의 소유 길드가 defender 이다.
+            // In a same-race war, when the castle is not common the owning guild is the defender.
             if (pPC->getGuildID() == pCastleInfo->getGuildID())
                 return true;
         }
@@ -391,13 +391,13 @@ bool CastleShrineInfoManager::isDefenderOfGuardShrine(PlayerCreature* pPC, Monst
     __END_CATCH
 }
 
-// 이 종족이 성의 상징 조각을 들 수 있는가?
+// Can this race pick up a castle symbol fragment?
 bool CastleShrineInfoManager::canPickupCastleSymbol(Race_t race, CastleSymbol* pCastleSymbol) const
 
 {
     __BEGIN_TRY
 
-    // 일단 이 성의 상징 조각이 어느 전쟁에 소속되어 있는지 알아온다.
+    // First find out which war this castle symbol fragment belongs to.
     CastleShrineSet* pShrineSet = getShrineSet(pCastleSymbol->getItemType());
 
     if (pShrineSet == NULL) {
@@ -413,7 +413,7 @@ bool CastleShrineInfoManager::canPickupCastleSymbol(Race_t race, CastleSymbol* p
     War* pWar = g_pWarSystem->getActiveWar(castleZoneID);
 
     if (pWar == NULL) {
-        // 아싸 삑사리다~
+        // Unexpected state.
         filelog("WarError.log", "전쟁도 안하는데 성의 상징조각을 주울려고 한다. ItemType: %u",
                 (int)pCastleSymbol->getItemType());
         return false;
@@ -422,7 +422,7 @@ bool CastleShrineInfoManager::canPickupCastleSymbol(Race_t race, CastleSymbol* p
     /*
     if ( pWar->getWarType() == WAR_RACE )
     {
-        // 종족 전쟁이면 지나개나 다 줏는다.
+        // In a race war anybody may pick it up.
         return true;
     }
     else
@@ -431,7 +431,7 @@ bool CastleShrineInfoManager::canPickupCastleSymbol(Race_t race, CastleSymbol* p
         CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
 
         if (pCastleInfo == NULL) {
-            // 아싸 삑사리다~
+            // Unexpected state.
             filelog("WarError.log", "성이 아니다. ItemType: %u, ZoneID : %u", (int)pCastleSymbol->getItemType(),
                     (int)castleZoneID);
             return false;
@@ -440,7 +440,7 @@ bool CastleShrineInfoManager::canPickupCastleSymbol(Race_t race, CastleSymbol* p
         return (race == pCastleInfo->getRace());
     }
 
-    // 아싸 삑사리다~
+    // Unexpected state.
     filelog("WarError.log", "이상한 전쟁이다. WarType : %u", (int)pWar->getWarType());
 
     return false;
@@ -461,7 +461,7 @@ bool CastleShrineInfoManager::getMatchGuardShrinePosition(Item* pItem, ZoneItemP
     CastleShrineSet* pShrineSet = getShrineSet(shrineID);
 
     if (pShrineSet == NULL) {
-        // 이 성의 상징에 해당하는 Shrine Set이 없다.
+        // There is no Shrine Set for this castle symbol.
         return false;
     }
 
@@ -474,17 +474,17 @@ bool CastleShrineInfoManager::getMatchGuardShrinePosition(Item* pItem, ZoneItemP
     __END_CATCH
 }
 
-// putCastleSymbol ( 누군가 성지성단에 성의 상징을 놓았을때 ) 이 불려지면 bLock = false
-// returnAllCastleSymbol ( 시간이 다 되었을 때 ) 이 불려지면 bLock = true
-// true일 경우 다른 스레드 (WarSystem이 돌아가는 스레드)에서 불려지므로 내부에서 락을 걸어줘야 하고
-// false일 경우 성지성단이 있는 존과 같은 존그룹스레드에서 돌아가므로 내부에서 락을 걸어주지 않아야 한다.
+// Called from putCastleSymbol (someone placed the symbol on the holy shrine) with bLock = false,
+// and from returnAllCastleSymbol (the time ran out) with bLock = true.
+// When true it is called from another thread (the one the WarSystem runs on), so it must lock internally;
+// when false it runs on the zone group thread of the zone holding the shrine, so it must not lock.
 // 2003. 2. 5. by Sequoia
 bool CastleShrineInfoManager::returnCastleSymbol(ShrineID_t shrineID, bool bLock) const
 
 {
     __BEGIN_TRY
 
-    // shrineID와 관련된 CastleSymbol을 DB정보를 이용해서 찾는다.
+    // Find the CastleSymbol related to shrineID using the DB information.
     CastleShrineSet* pShrineSet = getShrineSet(shrineID);
 
     if (pShrineSet == NULL)
@@ -518,7 +518,7 @@ bool CastleShrineInfoManager::returnCastleSymbol(ShrineID_t shrineID, bool bLock
     __END_CATCH
 }
 
-// WarSystem에서만 부른다.
+// Called only from the WarSystem.
 bool CastleShrineInfoManager::returnAllCastleSymbol(ZoneID_t castleZoneID) const
 
 {
@@ -528,7 +528,7 @@ bool CastleShrineInfoManager::returnAllCastleSymbol(ZoneID_t castleZoneID) const
 
     HashMapShrineSetConstItor itr = m_ShrineSets.begin();
 
-    // castleZoneID의 shrineID를 검색할수가 없어서 하나하나 비교한다. -_-;
+    // The shrineID for castleZoneID cannot be looked up, so compare them one by one.
     for (; itr != m_ShrineSets.end(); itr++) {
         CastleShrineSet* pShrineSet = itr->second;
 
@@ -556,7 +556,7 @@ bool CastleShrineInfoManager::returnCastleSymbol(Zone* pZone, CastleSymbol* pCas
     Assert(pZone != NULL);
     Assert(pCastleSymbol != NULL);
 
-    // TargetZone, Shrine을 찾는다.
+    // Find the TargetZone and Shrine.
     ShrineID_t shrineID = pCastleSymbol->getItemType();
     CastleShrineSet* pShrineSet = getShrineSet(shrineID);
 
@@ -573,8 +573,8 @@ bool CastleShrineInfoManager::returnCastleSymbol(Zone* pZone, CastleSymbol* pCas
     pZone->transportItemToCorpse(pCastleSymbol, pTargetZone, CorpseObjectID);
 
     //	StringStream msg;
-    //	msg << "성의 상징 조각(" << GuardShrine.getName() << ")이 수호성단(" << GuardShrine.getName() << ")으로
-    // 돌아갔습니다.";
+    //	msg << "Castle symbol fragment (" << GuardShrine.getName() << ") returned to the guard
+    // shrine (" << GuardShrine.getName() << ").";
 
     char msg[200];
     sprintf(msg, g_pStringPool->c_str(STRID_RETURN_TO_GUARD_SHRINE_CASTLE_SYMBOL), GuardShrine.getName().c_str(),
@@ -604,10 +604,10 @@ bool CastleShrineInfoManager::putCastleSymbol(PlayerCreature* pPC, Item* pItem, 
     filelog("WarLog.txt", "%s가 성의 상징[%u]을 성지 성단[%s]에 넣었습니다.", pPC->getName().c_str(), (uint)shrineID,
             pCorpse->getName().c_str());
 
-    // 성의 상징이 들어간 성단으로부터 성의 상징이 날아서 돌아감을 나타내는 이펙트를 붙여준다.
+    // Attach the effect showing the castle symbol flying back from the shrine it was put into.
     //	sendCastleSymbolEffect( pCorpse, Effect::EFFECT_CLASS_SHRINE_HOLY_WARP );
 
-    // PC에게서 성의 상징을 빼앗아 성단 안에 넣는다.
+    // Take the castle symbol from the PC and put it inside the shrine.
     Assert(pItem->getObjectID() == pPC->getExtraInventorySlotItem()->getObjectID());
     pPC->deleteItemFromExtraInventorySlot();
 
@@ -630,17 +630,17 @@ bool CastleShrineInfoManager::putCastleSymbol(PlayerCreature* pPC, Item* pItem, 
     bool isCastle = g_pCastleInfoManager->getCastleZoneID(guardZoneID, castleZoneID);
     Assert(isCastle == true);
 
-    // 알맞은 성단에 넣으면 전쟁이 끝나고 수호성단으로 돌아가고
+    // Placing it in the matching shrine ends the war and returns it to the guard shrine,
     if (isMatchHolyShrine(pItem, pCorpse) && g_pWarSystem->isModifyCastleOwner(castleZoneID, pPC)) {
         g_pWarSystem->endWar(pPC, castleZoneID);
 
-        // 전쟁 끝나는 War::executeEnd에서 알아서 되돌려준다.
+        // War::executeEnd returns it when the war ends.
         //        returnCastleSymbol( shrineID, false );
 
         return true;
     }
 
-    // 다른 성단에 넣거나 전쟁이 끝날 상황이 아니면 수호성단으로 그냥 돌아간다
+    // Placed in another shrine, or with no war about to end, it simply returns to the guard shrine.
     returnCastleSymbol(shrineID, false);
 
     return false;
@@ -648,7 +648,7 @@ bool CastleShrineInfoManager::putCastleSymbol(PlayerCreature* pPC, Item* pItem, 
     __END_CATCH
 }
 
-// pZone은 guardZone이다.
+// pZone is the guardZone.
 bool CastleShrineInfoManager::removeShrineShield(Zone* pZone)
 
 {
@@ -659,7 +659,7 @@ bool CastleShrineInfoManager::removeShrineShield(Zone* pZone)
 
     ZoneID_t guardZoneID = pZone->getZoneID();
 
-    // castleZoneID의 shrineID를 검색할수가 없어서 하나하나 비교한다. -_-;
+    // The shrineID for castleZoneID cannot be looked up, so compare them one by one.
     for (; itr != m_ShrineSets.end(); itr++) {
         CastleShrineSet* pShrineSet = itr->second;
 
@@ -691,7 +691,7 @@ bool CastleShrineInfoManager::removeShrineShield(Zone* pZone)
     __END_CATCH
 }
 
-// pZone은 guardZone이다.
+// pZone is the guardZone.
 bool CastleShrineInfoManager::addShrineShield(Zone* pZone)
 
 {
@@ -712,7 +712,7 @@ bool CastleShrineInfoManager::addShrineShield(Zone* pZone)
     __END_CATCH
 }
 
-// pZone은 guardZone이다.
+// pZone is the guardZone.
 bool CastleShrineInfoManager::addShrineShield_LOCKED(Zone* pZone)
 
 {
@@ -723,7 +723,7 @@ bool CastleShrineInfoManager::addShrineShield_LOCKED(Zone* pZone)
 
     ZoneID_t guardZoneID = pZone->getZoneID();
 
-    // castleZoneID의 shrineID를 검색할수가 없어서 하나하나 비교한다. -_-;
+    // The shrineID for castleZoneID cannot be looked up, so compare them one by one.
     for (; itr != m_ShrineSets.end(); itr++) {
         CastleShrineSet* pShrineSet = itr->second;
 

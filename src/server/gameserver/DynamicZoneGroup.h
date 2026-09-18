@@ -63,7 +63,7 @@ protected:
 
 private:
     int m_DynamicZoneType;
-    ZoneID_t m_TemplateZoneID;         // 틀이 되는 존의 ID
+    ZoneID_t m_TemplateZoneID;         // ID of the zone used as the template
     HashMapDynamicZone m_DynamicZones; // guarded by m_Mutex after init
     uint m_MaxSize;
     mutable std::mutex m_Mutex;

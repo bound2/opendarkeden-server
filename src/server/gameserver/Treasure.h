@@ -144,7 +144,7 @@ public:
     int m_ItemTypeTotalRatio;
     vector<TreasureItemType*> m_TreasureItemTypes;
 
-    // Add By Sonic 2006.10.21  藤속寧몸딜괜橄昑離댕令긴좆
+    // Maximum value of the random option on a dropped item.
     void setRndItemOptionMax(int Value = 2) {
         m_OptionRatioMax = Value;
     }
@@ -173,11 +173,11 @@ public:
     //	XMLTree*	makeXMLTree() const;
 
 public:
-    int m_ItemRatio;           // 아이템 자체가 나올 확률
-    int m_OptionRatio;         // 나온 아이템에 옵션이 붙을 확률
-    int m_ItemClassTotalRatio; // 모든 아이템 클래스의 확률의 합
+    int m_ItemRatio;           // Chance that the item itself drops
+    int m_OptionRatio;         // Chance that a dropped item gets an option
+    int m_ItemClassTotalRatio; // Sum of the chances of every item class
     vector<TreasureItemClass*> m_TreasureItemClasses;
-    // Add By Sonic 2006.10.21  藤속寧몸딜괜橄昑離댕令긴좆
+    // Maximum value of the random option on a dropped item.
     void setRndItemOptionMax(int Value = 2) {
         m_OptionRatioMax = Value;
     }

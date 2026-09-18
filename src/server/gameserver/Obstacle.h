@@ -12,8 +12,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Obstacle Type
 //
-// 각 하위 장애물 종류마다 최대 256 가지가 존재한다.
-//(문이나 스위치, 함정이 256개를 넘어갈 수 있을까?)
+// Up to 256 kinds exist for each obstacle subtype.
+//(Could doors, switches or traps ever go past 256?)
 //////////////////////////////////////////////////////////////////////////////
 typedef BYTE ObstacleType_t;
 const uint szObstacleType = sizeof(ObstacleType_t);
@@ -21,9 +21,9 @@ const uint szObstacleType = sizeof(ObstacleType_t);
 //////////////////////////////////////////////////////////////////////////////
 // class Obstacle;
 //
-// 타일에 종속되는 객체로서,  크리처의 이동을 방해하면서 상태를 갖고
-// 있는 Object의 하위 클래스 객체이다. 문이나 함정, 스위치 같은 것들이
-// 여기에 속한다.
+// An Object subclass that belongs to a tile, blocks creature movement
+// and carries state. Doors, traps and switches are the sort of thing
+// that belongs here.
 //////////////////////////////////////////////////////////////////////////////
 
 class Obstacle : public Object {

@@ -122,7 +122,7 @@ void DarkLightInfoManager::load()
         m_DarkLightInfos[index] = pDIInfo;
     }
 
-    // 지정되지 않은 빈칸은 이전값을 사용해서 복사한다.
+    // Unspecified slots are filled by copying the previous value.
     Assert(m_DarkLightInfos[0] != NULL);
 
     for (uint i = 1; i < nDarkLightInfos; i++) {
@@ -173,12 +173,12 @@ const DarkLightInfo* DarkLightInfoManager::getCurrentDarkLightInfo(Zone* pZone) 
 {
     __BEGIN_TRY
 
-    // 존에 시간이 고정된 경우라면 적절한 DarkLight 정보를 리턴한다.
+    // If time is stopped in the zone, return the matching DarkLight info.
     if (pZone != NULL && pZone->isTimeStop()) {
         return m_DarkLightInfos[DLIndexByTimeband[pZone->getTimeband()]];
     }
 
-    // 글로벌 타임 매니저로부터 게임 시간을 받아온다.
+    // Get the game time from the global time manager.
     GameTime gametime = g_pTimeManager->getGameTime();
 
     return getDarkLightInfo(gametime.getMonth(), gametime.getHour(), gametime.getMinute());
@@ -191,12 +191,12 @@ DarkLightInfo* DarkLightInfoManager::getCurrentDarkLightInfo(Zone* pZone)
 {
     __BEGIN_TRY
 
-    // 존에 시간이 고정된 경우라면 적절한 DarkLight 정보를 리턴한다.
+    // If time is stopped in the zone, return the matching DarkLight info.
     if (pZone != NULL && pZone->isTimeStop()) {
         return m_DarkLightInfos[DLIndexByTimeband[pZone->getTimeband()]];
     }
 
-    // 글로벌 타임 매니저로부터 게임 시간을 받아온다.
+    // Get the game time from the global time manager.
     GameTime gametime = g_pTimeManager->getGameTime();
 
     return getDarkLightInfo(gametime.getMonth(), gametime.getHour(), gametime.getMinute());

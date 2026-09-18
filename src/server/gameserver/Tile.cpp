@@ -44,7 +44,7 @@ Tile::~Tile()
 {
     __BEGIN_TRY
 
-    // 소속된 모든 객체들을 삭제한다.
+    // Delete every object belonging to the tile.
     while (!m_Objects.empty()) {
         Object* pObj = m_Objects.front();
         SAFE_DELETE(pObj);
@@ -55,9 +55,9 @@ Tile::~Tile()
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 크리처를 리스트에 추가한다.
+// Add the creature to the list.
 //
-// return값은 그냥 이동인가(true), Portal을 activate 시킨건가(false)에 대한 값
+// The return value says whether this was a plain move (true) or activated a Portal (false).
 //////////////////////////////////////////////////////////////////////////////
 bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal) {
     __BEGIN_TRY
@@ -65,13 +65,13 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
 
     Assert(pCreature != NULL);
 
-    // 크리처의 MoveMode { WALKING | FLYING | BURROWING }을 가지고 온다.
+    // Get the creature's MoveMode { WALKING | FLYING | BURROWING }.
     Creature::MoveMode mode = pCreature->getMoveMode();
 
-    // 추가하려는 크리처와 같은 MoveMode에 해당하는 곳이 blocking되지 않아야 한다.
+    // The layer matching the added creature's MoveMode must not be blocked.
     Assert(!isBlocked(mode));
 
-    // 추가하려는 크리처와 같은 MoveMode를 가진 크리처가 타일내에 없어야 한다.
+    // No creature with the same MoveMode may already be on the tile.
     // Assert(! hasCreature(mode));
     if (hasCreature(mode)) {
         StringStream msg;
@@ -101,20 +101,20 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
         Assert(false);
     }
 
-    // 크리처를 리스트에 집어넣는다.
+    // Put the creature into the list.
     addObject(pCreature);
 
-    // 해당하는 크리처 플래그를 켠다.
+    // Turn on the matching creature flag.
     FLAG_SET(m_wFlags, TILE_WALKING_CREATURE + mode);
 
-    // 해당하는 blocking 플래그를 켠다.
+    // Turn on the matching blocking flag.
     FLAG_SET(m_wFlags, TILE_GROUND_BLOCKED + mode);
 
     Assert(isBlocked(mode));
     Assert(hasCreature(mode));
 
     if (bCheckPortal) {
-        // 만약 포탈이 있으면서, 크리처가 PC인 경우.. (몬스터와 NPC는 포탈 이동을 하지 않는다.)
+        // A portal is present and the creature is a PC. (Monsters and NPCs do not use portals.)
         if (hasPortal() && pCreature->isPC()) {
             Portal* pPortal = getPortal();
             if (pPortal->activate(pCreature))
@@ -131,14 +131,14 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
                                         || pPortal->getObjectType() == PORTAL_GUILD || pPortal->getObjectType() ==
                PORTAL_BATTLE)
                                 {
-                                    // 트리거드 포탈일 경우에는 트리거 조건을 만족시켰을 때만,
-                                    // portal exception을 던진다.
+                                    // For a triggered portal, throw the portal exception only when
+                                    // the trigger condition has been satisfied.
                                     if (pPortal->getPortalClass() == PORTAL_CLASS_TRIGGERED)
                                     {
                                         if (pPortal->activate(pSlayer))
                                         {
                                             //throw PortalException();
-                                            // PortalException제거. by sigi. 2002.5.6
+                                            // PortalException removed.
                                             return false;
                                         }
                                     }
@@ -149,7 +149,7 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
                                         if (pPortal->activate(pSlayer))
                                         {
                                             //throw PortalException();
-                                            // PortalException제거. by sigi. 2002.5.6
+                                            // PortalException removed.
                                             return false;
                                         }
                                     }
@@ -167,14 +167,14 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
                                         || pPortal->getObjectType() == PORTAL_GUILD || pPortal->getObjectType() ==
                PORTAL_BATTLE)
                                 {
-                                    // 트리거드 포탈일 경우에는 트리거 조건을 만족시켰을 때만,
-                                    // portal exception을 던진다.
+                                    // For a triggered portal, throw the portal exception only when
+                                    // the trigger condition has been satisfied.
                                     if (pPortal->getPortalClass() == PORTAL_CLASS_TRIGGERED)
                                     {
                                         if (pPortal->activate(pVampire))
                                         {
                                             //throw PortalException();
-                                            // PortalException제거. by sigi. 2002.5.6
+                                            // PortalException removed.
                                             return false;
                                         }
                                     }
@@ -183,7 +183,7 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
                                         if (pPortal->activate(pVampire))
                                         {
                                             //throw PortalException();
-                                            // PortalException제거. by sigi. 2002.5.6
+                                            // PortalException removed.
                                             return false;
                                         }
                                     }
@@ -201,14 +201,14 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
                                         || pPortal->getObjectType() == PORTAL_GUILD || pPortal->getObjectType() ==
                PORTAL_BATTLE)
                                 {
-                                    // 트리거드 포탈일 경우에는 트리거 조건을 만족시켰을 때만,
-                                    // portal exception을 던진다.
+                                    // For a triggered portal, throw the portal exception only when
+                                    // the trigger condition has been satisfied.
                                     if (pPortal->getPortalClass() == PORTAL_CLASS_TRIGGERED)
                                     {
                                         if (pPortal->activate(pOusters))
                                         {
                                             //throw PortalException();
-                                            // PortalException제거. by sigi. 2002.5.6
+                                            // PortalException removed.
                                             return false;
                                         }
                                     }
@@ -217,7 +217,7 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
                                         if (pPortal->activate(pOusters))
                                         {
                                             //throw PortalException();
-                                            // PortalException제거. by sigi. 2002.5.6
+                                            // PortalException removed.
                                             return false;
                                         }
                                     }
@@ -227,7 +227,7 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
         }
     }
 
-    // effect 검사.
+    // Check effects.
     if (hasEffect()) {
         if (bCheckEffect) {
             EffectGreenPoison* pEGP = (EffectGreenPoison*)getEffect(Effect::EFFECT_CLASS_GREEN_POISON);
@@ -240,7 +240,7 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
                 (pEYP = (EffectYellowPoison*)getEffect(Effect::EFFECT_CLASS_YELLOW_POISON))) {
                 pEYP->affectCreature(pCreature, true);
             }
-            // 무조건 적용되야 되는 거면 적용시킨다
+            // Apply it if it must be applied unconditionally.
             else if ((pEYP = (EffectYellowPoison*)getEffect(Effect::EFFECT_CLASS_YELLOW_POISON)) && pEYP->isForce()) {
                 pEYP->affectCreature(pCreature, true);
             }
@@ -262,7 +262,7 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
         }
     }
 
-    // PortalException제거. by sigi. 2002.5.6
+    // PortalException removed.
     return true;
 
     __END_DEBUG
@@ -270,24 +270,24 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
 }
 
 //////////////////////////////////////////////////////////////
-// 특정 ID를 가진 크리처를 리스트에서 삭제한다.
-// 최적화할 필요가 있다. (검색 + 삭제)
+// Delete the creature with the given ID from the list.
+// This needs optimization. (search + delete)
 //////////////////////////////////////////////////////////////
 void Tile::deleteCreature(ObjectID_t creatureID) {
     __BEGIN_TRY
     __BEGIN_DEBUG
 
     try {
-        // 현재 크리처로 인해 어딘가가 한군데 blocking 되어야 한다.
+        // The current creature must be blocking one of the layers.
         Assert(isGroundBlocked() || isAirBlocked() || isUndergroundBlocked());
 
-        // 현재 크리처가 어딘가에 존재해야 한다.
+        // The current creature must exist on one of the layers.
         // Assert(hasWalkingCreature() || hasFlyingCreature() || hasBurrowingCreature());
         Assert(hasCreature()); // by sigi. 2002.5.8
 
         Creature* pCreature = dynamic_cast<Creature*>(getObject(creatureID));
 
-        // 이펙트가 존재할 경우, 크리처에게서 없엔다.
+        // If an effect exists, remove it from the creature.
         /*
         if (hasEffect())
         {
@@ -296,7 +296,7 @@ void Tile::deleteCreature(ObjectID_t creatureID) {
         }
         */
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // NoSuchElementException removed.
         if (pCreature == NULL) {
             return;
         }
@@ -310,16 +310,16 @@ void Tile::deleteCreature(ObjectID_t creatureID) {
         }
 
 
-        // 노드를 삭제한다.
+        // Delete the node.
         deleteObject(creatureID);
 
-        // 해당하는 크리처 플래그를 끈다.
+        // Turn off the matching creature flag.
         FLAG_CLEAR(m_wFlags, TILE_WALKING_CREATURE + pCreature->getMoveMode());
 
-        // 해당하는 blocking 플래그를 끈다.
+        // Turn off the matching blocking flag.
         FLAG_CLEAR(m_wFlags, TILE_GROUND_BLOCKED + pCreature->getMoveMode());
     } catch (Throwable& t) {
-        // cerr << "Delete Creature 지롱.." << endl;
+        // cerr << "Delete Creature" << endl;
         // cerr << t.toString() << endl;
         filelog("tileError.txt", "Tile::deleteCreature - %s", t.toString().c_str());
     }
@@ -329,15 +329,15 @@ void Tile::deleteCreature(ObjectID_t creatureID) {
 }
 
 //////////////////////////////////////////////////////////////
-// 특정 위치(행위)의 크리처를 리스트에서 삭제한다.
+// Delete the creature of the given layer (move mode) from the list.
 //////////////////////////////////////////////////////////////
 void Tile::deleteCreature(Creature::MoveMode mode) {
     __BEGIN_TRY
 
-    // 현재 크리처로 인해 blocking 되어야 한다.
+    // The current creature must be blocking that layer.
     Assert(isBlocked(mode));
 
-    // 현재 크리처가 존재해야 한다.
+    // The current creature must exist.
     Assert(hasCreature(mode));
 
     if (hasEffect()) {
@@ -349,20 +349,20 @@ void Tile::deleteCreature(Creature::MoveMode mode) {
         }
     }
 
-    // 객체를 삭제한다.
+    // Delete the object.
     deleteObject(OBJECT_PRIORITY_WALKING_CREATURE + mode);
 
-    // 해당하는 크리처 플래그를 끈다.
+    // Turn off the matching creature flag.
     FLAG_CLEAR(m_wFlags, TILE_WALKING_CREATURE + mode);
 
-    // 해당하는 blocking 플래그를 끈다.
+    // Turn off the matching blocking flag.
     FLAG_CLEAR(m_wFlags, TILE_GROUND_BLOCKED + mode);
 
     __END_CATCH
 }
 
 //////////////////////////////////////////////////////////////
-// 특정 ID를 가진 크리처를 리턴한다.
+// Return the creature with the given ID.
 //////////////////////////////////////////////////////////////
 Creature* Tile::getCreature(ObjectID_t creatureID) {
     __BEGIN_TRY
@@ -375,7 +375,7 @@ Creature* Tile::getCreature(ObjectID_t creatureID) {
 }
 
 //////////////////////////////////////////////////////////////
-// 특정 위치(행위)의 크리처를 리턴한다.
+// Return the creature of the given layer (move mode).
 //////////////////////////////////////////////////////////////
 Creature* Tile::getCreature(Creature::MoveMode mode) {
     __BEGIN_TRY
@@ -387,8 +387,8 @@ Creature* Tile::getCreature(Creature::MoveMode mode) {
 }
 
 //////////////////////////////////////////////////////////////
-// 아이템을 타일에 추가한다. 이미 아이템이 타일에 있다면 Dup 예외를 던진다.
-// (아이템은 타일당 하나다.)
+// Add an item to the tile. Throws a Dup exception if the tile already holds an item.
+// (There is one item per tile.)
 //////////////////////////////////////////////////////////////
 void Tile::addItem(Item* pItem)
 
@@ -416,7 +416,7 @@ void Tile::addItem(Item* pItem)
 }
 
 //////////////////////////////////////////////////////////////
-// 아이템을 타일에서 삭제한다. 어차피 하나밖에 없으므로 특별히 지정할 필요가 없다.
+// Delete the item from the tile. There is only one, so nothing needs to be named.
 //////////////////////////////////////////////////////////////
 void Tile::deleteItem() {
     __BEGIN_TRY
@@ -424,7 +424,7 @@ void Tile::deleteItem() {
 
     // Assert(hasItem());
     if (!hasItem()) {
-        // cerr << "Tile::hasItem() : 아이템이 없습니다." << endl;
+        // cerr << "Tile::hasItem() : there is no item." << endl;
         return;
     }
 
@@ -437,7 +437,7 @@ void Tile::deleteItem() {
 }
 
 //////////////////////////////////////////////////////////////
-// 타일의 아이템을 리턴한다. 어차피 하나밖에 없으므로 특별히 지정할 필요가 없다.
+// Return the tile's item. There is only one, so nothing needs to be named.
 //////////////////////////////////////////////////////////////
 Item* Tile::getItem() {
     __BEGIN_TRY
@@ -452,7 +452,7 @@ Item* Tile::getItem() {
 }
 
 //////////////////////////////////////////////////////////////
-// 장애물을 타일에 추가한다.
+// Add an obstacle to the tile.
 //////////////////////////////////////////////////////////////
 void Tile::addObstacle(Obstacle* pObstacle)
 
@@ -480,7 +480,7 @@ void Tile::addObstacle(Obstacle* pObstacle)
 }
 
 //////////////////////////////////////////////////////////////
-// 장애물을 타일에서 삭제한다. 어차피 하나밖에 없으므로 특별히 지정할 필요가 없다.
+// Delete the obstacle from the tile. There is only one, so nothing needs to be named.
 //////////////////////////////////////////////////////////////
 void Tile::deleteObstacle() {
     __BEGIN_TRY
@@ -495,7 +495,7 @@ void Tile::deleteObstacle() {
 }
 
 //////////////////////////////////////////////////////////////
-// 타일의 장애물을 리턴한다. 어차피 하나밖에 없으므로 특별히 지정할 필요가 없다.
+// Return the tile's obstacle. There is only one, so nothing needs to be named.
 //////////////////////////////////////////////////////////////
 Obstacle* Tile::getObstacle() {
     __BEGIN_TRY
@@ -514,10 +514,10 @@ bool Tile::canAddEffect()
 }
 
 //////////////////////////////////////////////////////////////
-// 마법 효과를 타일에 추가한다.
-// 현재 타일에 크리처나 아이템이 존재한다면, 마법의 효과를 그
-// 크리처나 아이템에 부여한다.
-// 중복되는 마법에 대한 정책이 필요하다.... (같은 마법을 한자리에..)
+// Add a magic effect to the tile.
+// If a creature or item is on the tile, the magic's effect is
+// applied to that creature or item.
+// A policy for duplicate magic is needed.... (the same magic in one place..)
 //////////////////////////////////////////////////////////////
 void Tile::addEffect(Effect* pEffect)
 
@@ -532,7 +532,7 @@ void Tile::addEffect(Effect* pEffect)
 
     addObject(pEffect);
 
-    // 여기서 현재 타일에 속한 크리처나 아이템에게 효과를 미친다.
+    // This is where the effect is applied to the creature or item on the tile.
     // pEffect->affectTile();
 
     FLAG_SET(m_wFlags, TILE_EFFECT);
@@ -541,12 +541,12 @@ void Tile::addEffect(Effect* pEffect)
 }
 
 //////////////////////////////////////////////////////////////
-// 특정 ID를 가진 마법 효과를 타일에서 삭제한다.
-// 동시에 현재 타일의 크리처나 아이템에게 부여된 마법 효과 역시
-// 삭제해야 한다.
-// 마법 효과를 삭제할 때, 다른 마법이 남아있다면 TILE_EFFECT
-// 플래그를 끄지 않아야 한다!
-// 최적화할 필요성이 있다.. (search - unaffect - flag clear를 한번에..)
+// Delete the magic effect with the given ID from the tile.
+// The magic effect applied to the tile's creature or item must be
+// removed at the same time.
+// When deleting a magic effect, the TILE_EFFECT flag must not be
+// turned off while other magic remains!
+// This needs optimization.. (search - unaffect - flag clear in one pass..)
 //////////////////////////////////////////////////////////////
 void Tile::deleteEffect(ObjectID_t effectID) {
     __BEGIN_TRY
@@ -557,14 +557,14 @@ void Tile::deleteEffect(ObjectID_t effectID) {
     }
     //	Assert(hasEffect());
 
-    // 마법 효과가 하나 이상일 수 있으므로, deleteObject(OBJECT_PRIORITY_EFFECT) 을 사용할 수 없다.
+    // There can be more than one magic effect, so deleteObject(OBJECT_PRIORITY_EFFECT) cannot be used.
     deleteObject(effectID);
 
-    // 현재 타일에 미친 영향을 모두 날린다. 즉 크리처와 아이템에 부여된
-    // 마법 효과를 복구해야 한다.
+    // Undo every influence on the tile, that is, restore the magic
+    // effects applied to its creature and item.
     // effect->unaffectTile();
 
-    // 다른 마법이 없다면 플래그를 끈다.
+    // Turn the flag off if no other magic remains.
     /*
     try
     {
@@ -572,12 +572,12 @@ void Tile::deleteEffect(ObjectID_t effectID) {
     }
     catch (NoSuchElementException)
     {
-        // 마법이 없으므로 끈다.
+        // No magic remains, so turn it off.
         FLAG_CLEAR(m_wFlags , TILE_EFFECT);
     }
     */
 
-    // NoSuch제거. by sigi. 2002.5.2
+    // NoSuchElementException removed.
     if (getObject(OBJECT_PRIORITY_EFFECT) == NULL) {
         FLAG_CLEAR(m_wFlags, TILE_EFFECT);
     }
@@ -586,7 +586,7 @@ void Tile::deleteEffect(ObjectID_t effectID) {
 }
 
 //////////////////////////////////////////////////////////////
-// 특정 ID를 가진 마법 효과를 리턴한다.
+// Return the magic effect with the given ID.
 //////////////////////////////////////////////////////////////
 Effect* Tile::getEffect(ObjectID_t effectID) {
     __BEGIN_TRY
@@ -599,7 +599,7 @@ Effect* Tile::getEffect(ObjectID_t effectID) {
 }
 
 //////////////////////////////////////////////////////////////
-// EffectClass를 가진 마법 효과를 리턴한다.
+// Return the magic effect with the given EffectClass.
 //////////////////////////////////////////////////////////////
 Effect* Tile::getEffect(Effect::EffectClass effectClass)
 
@@ -611,7 +611,7 @@ Effect* Tile::getEffect(Effect::EffectClass effectClass)
             Effect* pEffect = NULL;
             if ((*itr)->getObjectClass() == Object::OBJECT_CLASS_EFFECT) {
                 if (effectClass == ((Effect*)(*itr))->getEffectClass()) {
-                    // 그런 id 를 가진 객체를 발견한 경우
+                    // An object with that id was found.
                     pEffect = dynamic_cast<Effect*>(*itr);
                     return pEffect;
                 }
@@ -626,7 +626,7 @@ Effect* Tile::getEffect(Effect::EffectClass effectClass)
 
 
 //////////////////////////////////////////////////////////////
-// 현재 타일을 건물로 설정한다.
+// Mark the current tile as a building.
 //////////////////////////////////////////////////////////////
 void Tile::addBuilding(BuildingID_t buildingID)
 
@@ -651,7 +651,7 @@ void Tile::addBuilding(BuildingID_t buildingID)
 }
 
 //////////////////////////////////////////////////////////////
-// 현재 타일에서 건물을 삭제한다. 어차피 하나이므로 특별히 지정할 필요는 없다.
+// Delete the building from the tile. There is only one, so nothing needs to be named.
 //////////////////////////////////////////////////////////////
 void Tile::deleteBuilding()
 
@@ -668,7 +668,7 @@ void Tile::deleteBuilding()
 }
 
 //////////////////////////////////////////////////////////////
-// 현재 타일에 해당하는 건물 아이디를 리턴한다.
+// Return the building id of the current tile.
 //////////////////////////////////////////////////////////////
 BuildingID_t Tile::getBuilding() const
 
@@ -683,7 +683,7 @@ BuildingID_t Tile::getBuilding() const
 }
 
 //////////////////////////////////////////////////////////////
-// 포탈을 타일에 추가한다.
+// Add a portal to the tile.
 //////////////////////////////////////////////////////////////
 void Tile::addPortal(Portal* pPortal)
 
@@ -692,8 +692,8 @@ void Tile::addPortal(Portal* pPortal)
 
     Assert(pPortal != NULL);
 
-    // 하늘을 날아다니는 크리처나 땅속에 숨어있는 크리처는 포탈의 영향을 받을 것인가? 말 것인가?
-    // 암튼 아무 것도 없는 빈 타일이어야 한다!!!!!!!!!!!!!!!!!!!!
+    // Should a flying creature or a burrowed creature be affected by a portal or not?
+    // In any case the tile must be completely empty!
     Assert(!hasWalkingCreature());
     Assert(!hasFlyingCreature());
     Assert(!hasBurrowingCreature());
@@ -712,7 +712,7 @@ void Tile::addPortal(Portal* pPortal)
 }
 
 //////////////////////////////////////////////////////////////
-// 포탈을 타일에서 삭제한다. 어차피 하나이므로 특별히 지정할 필요가 없다.
+// Delete the portal from the tile. There is only one, so nothing needs to be named.
 //////////////////////////////////////////////////////////////
 void Tile::deletePortal()
 
@@ -729,7 +729,7 @@ void Tile::deletePortal()
 }
 
 //////////////////////////////////////////////////////////////
-// 포탈 객체를 리턴한다.
+// Return the portal object.
 //////////////////////////////////////////////////////////////
 Portal* Tile::getPortal() const
 
@@ -744,30 +744,30 @@ Portal* Tile::getPortal() const
 }
 
 //////////////////////////////////////////////////////////////
-// terrain 을 타일에 추가한다.
+// Add a terrain to the tile.
 //////////////////////////////////////////////////////////////
 void Tile::addTerrain(TerrainID_t terrainID)
 
 {
     __BEGIN_TRY
 
-    // 현재 타일에 m_wOption 을 사용하는 객체인 장애물, 건물, 포탈
-    // 등이 있다면 에러당.. 즉 상위에서 체크해줘야 한다.
+    // If the tile already holds an obstacle, building or portal, which
+    // also use m_wOption, that is an error; the caller must check.
     Assert(!hasObstacle());
     Assert(!hasBuilding());
     Assert(!hasPortal());
 
-    // Terrain 플래그를 켠다.
+    // Turn on the Terrain flag.
     FLAG_SET(m_wFlags, TILE_TERRAIN);
 
-    // 옵션을 Terrain ID 로 설정한다.
+    // Set the option to the Terrain ID.
     m_wOption = terrainID;
 
     __END_CATCH
 }
 
 //////////////////////////////////////////////////////////////
-// terrain 을 타일에서 삭제한다.
+// Delete the terrain from the tile.
 //////////////////////////////////////////////////////////////
 void Tile::deleteTerrain()
 
@@ -776,17 +776,17 @@ void Tile::deleteTerrain()
 
     Assert(isTerrain());
 
-    // Terrain 플래그를 켠다.
+    // Turn on the Terrain flag.
     FLAG_CLEAR(m_wFlags, TILE_TERRAIN);
 
-    // 옵션을 클리어한다.
+    // Clear the option.
     m_wOption = 0;
 
     __END_CATCH
 }
 
 //////////////////////////////////////////////////////////////
-// terrain 아이디를 리턴한다.
+// Return the terrain id.
 //////////////////////////////////////////////////////////////
 TerrainID_t Tile::getTerrain() const
 
@@ -841,27 +841,27 @@ void Tile::addObject(Object* pObject) {
     forward_list<Object*>::iterator current = m_Objects.begin();
 
     /*
-    // 우선 섹터에 집어넣는다.
+    // First put it into the sector.
     m_pSector->addObject(pObject);
     */
 
     for (; current != m_Objects.end(); before = current, current++) {
-        // 객체 리스트는 내림차순으로 정렬되어 있다.
-        // 따라서, 삽입하려는 객체의 ObjectPriority가 현재 iterator가 가리키는
-        // 객체의 ObjectPriority보다 작을 때까지 루프를 돌려야 한다.
+        // The object list is sorted in descending order.
+        // So loop until the ObjectPriority of the object being inserted is
+        // smaller than the ObjectPriority the iterator currently points at.
 
         if (pObject->getObjectPriority() < (*current)->getObjectPriority()) {
             if (before == m_Objects.end()) {
-                // 객체의 타일 우선순위가 가장 작으므로 리스트의 맨 앞에 넣는다.
+                // The object has the smallest tile priority, so put it at the front of the list.
                 m_Objects.push_front(pObject);
             } else {
-                // 리스트의 가운데에 넣는다.
+                // Put it in the middle of the list.
                 // O(1) insertion
                 m_Objects.insert_after(before, pObject);
             }
             return;
         } else if (pObject->getObjectPriority() == (*current)->getObjectPriority()) {
-            // effect는 중복될 수 있다.
+            // Effects may be duplicated.
             if (pObject->getObjectPriority() == OBJECT_PRIORITY_EFFECT) {
                 if (before == m_Objects.end()) {
                     m_Objects.push_front(pObject);
@@ -879,15 +879,15 @@ void Tile::addObject(Object* pObject) {
         }
     }
 
-    // 위의 루프에서 적절한 위치를 찾지 못했을 경우는
-    // (1) 리스트에 객체가 하나도 없는 경우,
-    // (2) 리스트의 맨 뒤에 넣어야 되는 경우.. 가 있다.
+    // The loop above fails to find a place when
+    // (1) the list holds no object at all, or
+    // (2) the object has to go at the very end of the list.
     if (current == m_Objects.end()) {
         if (before == m_Objects.end()) {
-            // 리스트가 비어 있기 때문에, 리스트의 맨 앞에 넣는다.
+            // The list is empty, so put it at the front of the list.
             m_Objects.push_front(pObject);
         } else {
-            // OBJECT_PRIORITY가 가장 큰 객체이므로, 리스트의 맨 뒤에 넣는다.
+            // This object has the largest OBJECT_PRIORITY, so put it at the end of the list.
             // O(1) insertion
             m_Objects.insert_after(before, pObject);
         }
@@ -904,7 +904,7 @@ void Tile::deleteObject(ObjectID_t objectID) {
     __BEGIN_TRY
 
     /*
-    // 먼저 섹터에서 삭제한다.
+    // First delete it from the sector.
     m_pSector->deleteObject(objectID);
     */
 
@@ -914,7 +914,7 @@ void Tile::deleteObject(ObjectID_t objectID) {
     int i = 0;
     for (; current != m_Objects.end(); before = current++) {
         if (objectID == (*current)->getObjectID()) {
-            // 그런 id 를 가진 객체를 발견한 경우
+            // An object with that id was found.
             if (before == m_Objects.end()) {
                 // Delete first node
                 m_Objects.pop_front();
@@ -933,7 +933,7 @@ void Tile::deleteObject(ObjectID_t objectID) {
     /*
     if (before == m_Objects.end())
     {
-        cout << objectID << "아무것두 없당" << endl;
+        cout << objectID << "nothing at all" << endl;
     }
     else
     {
@@ -941,14 +941,14 @@ void Tile::deleteObject(ObjectID_t objectID) {
     }
     */
 
-    // NoSuch제거. by sigi. 2002.5.2
+    // NoSuchElementException removed.
     // throw NoSuchElementException("invalid object id");
 
     __END_CATCH
 }
 
 //////////////////////////////////////////////////////////////
-// 특정 Tile Priority를 가진 객체를 삭제한다.
+// Delete the object with the given Tile Priority.
 //////////////////////////////////////////////////////////////
 void Tile::deleteObject(ObjectPriority objectPriority) {
     __BEGIN_TRY
@@ -957,14 +957,14 @@ void Tile::deleteObject(ObjectPriority objectPriority) {
     forward_list<Object*>::iterator current = m_Objects.begin();
 
     /*
-    // 먼저 섹터에서 삭제하자...
+    // Delete it from the sector first...
     Object* pObject = getObject(objectPriority);
     m_pSector->deleteObject(pObject->getObjectID());
     */
 
     for (; current != m_Objects.end(); before = current++) {
         if (objectPriority == (*current)->getObjectPriority()) {
-            // 그런 tp 를 가진 객체를 발견한 경우
+            // An object with that tp was found.
             if (before == m_Objects.end()) {
                 // Delete first node
                 m_Objects.pop_front();
@@ -975,63 +975,63 @@ void Tile::deleteObject(ObjectPriority objectPriority) {
 
             return;
         } else if (objectPriority < (*current)->getObjectPriority()) {
-            // 리스트가 객체의 tp 의 내림차순으로 정렬되어 있으므로,
-            // 찾고자 하는 객체의 tp 보다 현재 iterator의 tp 가 크다면
-            // 그런 id 를 가진 객체는 존재하지 않는다.
-            // ex> [0] - [3] - [4] 에서 [3]을 iterator가 가리킬 때, 현재 tp 가 2인 경우
+            // The list is sorted in descending order of object tp, so if the
+            // iterator's tp is greater than the tp being looked for,
+            // no object with that id exists.
+            // ex> in [0] - [3] - [4], the iterator points at [3] while the tp sought is 2.
             break;
         }
     }
 
-    // NoSuch제거. by sigi. 2002.5.2
+    // NoSuchElementException removed.
     // throw NoSuchElementException("invalid object priority");
 
     __END_CATCH
 }
 //////////////////////////////////////////////////////////////
-// 현재 타일에서 특정 ID를 가진 오브젝트를 리턴한다.
-// 리스트를 모두 검색해야 한다.
+// Return the object with the given ID from the current tile.
+// The whole list has to be searched.
 //////////////////////////////////////////////////////////////
 Object* Tile::getObject(ObjectID_t objectID) const {
     __BEGIN_TRY
 
     for (forward_list<Object*>::const_iterator itr = m_Objects.begin(); itr != m_Objects.end(); itr++) {
         if (objectID == (*itr)->getObjectID()) {
-            // 그런 id 를 가진 객체를 발견한 경우
+            // An object with that id was found.
             return *itr;
         }
     }
 
-    // 그런 id 를 가진 객체는 존재하지 않는다.
-    // NoSuch제거. by sigi. 2002.5.2
+    // no object with that id exists.
+    // NoSuchElementException removed.
     // throw NoSuchElementException("invalid object id");
 
-    // warning 때문에.. - -;
+    // Present only to avoid a warning.
     return NULL;
 
     __END_CATCH
 }
 
 //////////////////////////////////////////////////////////////
-// 특정 Tile Priority 를 가진 객체를 리턴한다.
+// Return the object with the given Tile Priority.
 //////////////////////////////////////////////////////////////
 Object* Tile::getObject(ObjectPriority objectPriority) const {
     __BEGIN_TRY
 
     for (forward_list<Object*>::const_iterator itr = m_Objects.begin(); itr != m_Objects.end(); itr++) {
         if (objectPriority == (*itr)->getObjectPriority()) {
-            // 그런 id 를 가진 객체를 발견한 경우
+            // An object with that id was found.
             return *itr;
         } else if (objectPriority < (*itr)->getObjectPriority()) {
-            // 리스트가 객체의 tp 의 내림차순으로 정렬되어 있으므로,
-            // 찾고자 하는 객체의 tp 보다 현재 iterator의 tp 가 크다면
-            // 그런 id 를 가진 객체는 존재하지 않는다.
-            // ex> [0] - [3] - [4] 에서 [3]을 iterator가 가리킬 때, 현재 tp 가 2인 경우
+            // The list is sorted in descending order of object tp, so if the
+            // iterator's tp is greater than the tp being looked for,
+            // no object with that id exists.
+            // ex> in [0] - [3] - [4], the iterator points at [3] while the tp sought is 2.
             break;
         }
     }
 
-    // NoSuch제거. by sigi. 2002.5.2
+    // NoSuchElementException removed.
     // throw NoSuchElementException("invalid tile priority");
     return NULL;
 

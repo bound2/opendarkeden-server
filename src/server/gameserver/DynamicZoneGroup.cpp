@@ -50,7 +50,7 @@ void DynamicZoneGroup::addDynamicZone(DynamicZone* pDynamicZone) {
 bool DynamicZoneGroup::canEnter() {
     std::lock_guard lock(m_Mutex);
 
-    // 현재 있는 DynamicZone 중에서 가능한 넘을 찾는다.
+    // Find a usable one among the existing DynamicZones.
     HashMapDynamicZoneItor itr = m_DynamicZones.begin();
     HashMapDynamicZoneItor endItr = m_DynamicZones.end();
 
@@ -74,7 +74,7 @@ DynamicZone* DynamicZoneGroup::getAvailableDynamicZone() {
     {
         std::lock_guard lock(m_Mutex);
 
-        // 현재 있는 DynamicZone 중에서 가능한 넘을 찾는다.
+        // Find a usable one among the existing DynamicZones.
         HashMapDynamicZoneItor itr = m_DynamicZones.begin();
         HashMapDynamicZoneItor endItr = m_DynamicZones.end();
 
@@ -104,8 +104,8 @@ DynamicZone* DynamicZoneGroup::getAvailableDynamicZone() {
             }
         }
 
-        // 현재 있는 DynamicZone 중에는 가능한 넘이 없다.
-        // 새로 DynamicZone 을 만든다. Reserve it here -- RUNNING, so no one
+        // None of the existing DynamicZones is usable.
+        // Create a new DynamicZone. Reserve it here -- RUNNING, so no one
         // else picks it, and listed, so canEnter() counts it against
         // m_MaxSize -- and build it after the lock is gone.
         pDynamicZone = de::gameContext().dynamicZoneFactories().createDynamicZone(m_DynamicZoneType);

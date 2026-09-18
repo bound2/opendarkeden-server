@@ -183,17 +183,17 @@
 #define endProfileEx(name) ((void)0)
 #endif
 
-// 마스터 레어에서 시체/아이템이 바닥에서 사라지는 시간
-const Turn_t DELAY_MASTER_LAIR_DECAY_CORPSE = 200;       // 20초
-const Turn_t DELAY_MASTER_LAIR_DECAY_ITEM = 400;         // 40초
-const Turn_t DELAY_MASTER_LAIR_DECAY_MASTER_CORPSE = 50; // 5초
+// Time before corpses/items on the ground disappear in the master lair.
+const Turn_t DELAY_MASTER_LAIR_DECAY_CORPSE = 200;       // 20 seconds
+const Turn_t DELAY_MASTER_LAIR_DECAY_ITEM = 400;         // 40 seconds
+const Turn_t DELAY_MASTER_LAIR_DECAY_MASTER_CORPSE = 50; // 5 seconds
 
 //--------------------------------------------------------------------------------
-// 특정 위치에 아이템을 떨어뜨린다.
+// Drop an item at a given position.
 // Zone ::addItem()
-// 7x7 영역을 검사해서 빈칸이 존재하면 떨어뜨린다. 문제는 재수없는 경우 빈칸이
-// 존재하지 않을 경우인데.. 이때 예외를 던짐으로써 그 처리를 상위에게 맡기면
-// 될 듯...
+// Scans the 7x7 area and drops the item on a free square. If, unluckily, no free
+// square exists, an exception is thrown so that handling that case is left to the
+// caller.
 //--------------------------------------------------------------------------------
 TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCreature, Turn_t decayTurn,
                      ObjectID_t DropPetOID)
@@ -221,7 +221,7 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
     }
     pt = findSuitablePositionForItem(this, cx, cy, bAllowCreature, bAllowSafeZone, bDropForce);
 
-    // 놓을 위치를 찾아낸 경우
+    // A place to put it was found.
     if (pt.x != -1) {
         m_pTiles[pt.x][pt.y].addItem(pItem);
         addToItemList(pItem);
@@ -242,7 +242,7 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
                 makeGCAddSlayerCorpse(&gcAddSlayerCorpse, pSlayerCorpse);
                 broadcastPacket(pt.x, pt.y, &gcAddSlayerCorpse);
 
-                // 마스터 레어에서는 시체가 빨리 사라진다.
+                // Corpses disappear faster in the master lair.
                 if (isMasterLair())
                     DelayTime = DELAY_MASTER_LAIR_DECAY_CORPSE;
                 else
@@ -255,7 +255,7 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
                 makeGCAddVampireCorpse(&gcAddVampireCorpse, pVampireCorpse);
                 broadcastPacket(pt.x, pt.y, &gcAddVampireCorpse);
 
-                // 마스터 레어에서는 시체가 빨리 사라진다.
+                // Corpses disappear faster in the master lair.
                 if (isMasterLair())
                     DelayTime = DELAY_MASTER_LAIR_DECAY_CORPSE;
                 else
@@ -268,7 +268,7 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
                 makeGCAddOustersCorpse(&gcAddOustersCorpse, pOustersCorpse);
                 broadcastPacket(pt.x, pt.y, &gcAddOustersCorpse);
 
-                // 마스터 레어에서는 시체가 빨리 사라진다.
+                // Corpses disappear faster in the master lair.
                 if (isMasterLair())
                     DelayTime = DELAY_MASTER_LAIR_DECAY_CORPSE;
                 else
@@ -283,15 +283,15 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
 
                 isFlag = g_pFlagManager->isFlagPole(pMonsterCorpse);
 
-                // 마스터 레어에서는 시체가 빨리 사라진다.
+                // Corpses disappear faster in the master lair.
                 if (isMasterLair()) {
                     MonsterType_t mt = pMonsterCorpse->getMonsterType();
                     const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(mt);
                     Assert(pMonsterInfo != NULL);
 
-                    // 마스터 시체인 경우는 더 빨리 사라진다.
+                    // A master's corpse uses its own decay delay.
                     if (pMonsterInfo->isMaster()) {
-                        // 아이템이 없어서 더 빨리 사라지기 때문이다. * 10
+                        // Multiplied by 10 because it holds no items.
                         DelayTime = DELAY_MASTER_LAIR_DECAY_MASTER_CORPSE * 10;
                     } else {
                         DelayTime = DELAY_MASTER_LAIR_DECAY_CORPSE;
@@ -301,16 +301,16 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
 
                 sendRelicEffect(pMonsterCorpse, this, pt.x, pt.y);
 
-                // 이건 임시다. -_-;
-                // 원래 item에는 zone좌표가 들어가지 않는데
-                // 특별히 성물보관대에는 필요하기 때문에..
+                // This is temporary.
+                // An item normally does not carry zone coordinates, but
+                // the relic table needs them.
                 pMonsterCorpse->setX(pt.x);
                 pMonsterCorpse->setY(pt.y);
                 pMonsterCorpse->setZone(this);
 
                 isShrine = pMonsterCorpse->isShrine() && !g_pFlagManager->isFlagPole(pMonsterCorpse);
 
-                // Shrine인 경우 미니맵에 보여준다.
+                // A shrine is shown on the minimap.
                 if (isShrine) {
                     NPCInfo* pNPCInfo = new NPCInfo();
                     pNPCInfo->setName(pMonsterCorpse->getName());
@@ -324,36 +324,36 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
                 Assert(false);
             }
 
-            // 아이템이 들어가있지 않은 시체라면 딜레이 시간을 줄인다.
+            // A corpse holding no items gets a shorter delay.
             Corpse* pCorpse = dynamic_cast<Corpse*>(pItem);
             if (pCorpse->getTreasureCount() == 0) {
                 DelayTime = DelayTime / 10;
             }
-            // Relic인 경우에는 시간의 지연에 따라 아이템이 사라지지 않는다.
+            // A relic does not disappear as time passes.
             if (!isShrine && !isFlag && !pCorpse->isFlag(Effect::EFFECT_CLASS_SLAYER_RELIC_TABLE) &&
                 !pCorpse->isFlag(Effect::EFFECT_CLASS_VAMPIRE_RELIC_TABLE) &&
                 !pCorpse->isFlag(Effect::EFFECT_CLASS_SHRINE_GUARD) &&
                 !pCorpse->isFlag(Effect::EFFECT_CLASS_SHRINE_HOLY) && pCorpse->getTreasureCount() < 200) {
-                // 강제로 지정한 delay
+                // Explicitly requested delay.
                 if (decayTurn != 0)
                     DelayTime = decayTurn;
 
-                // 바닥에 떨어지는 아이템은 일정 시간이 지나면 사라지게 된다.
+                // An item dropped on the ground disappears after a while.
                 EffectDecayCorpse* pEffectDecayCorpse =
                     new EffectDecayCorpse(this, pt.x, pt.y, (Corpse*)pItem, DelayTime);
                 m_ObjectRegistry.registerObject(pEffectDecayCorpse);
                 addEffect(pEffectDecayCorpse);
             } else {
-                // 깃대인 경우엔 block되면 안된다.
+                // A flagpole must not block.
                 if (!isFlag) {
-                    // 성물 보관대는 아이템(시체)이지만
-                    // Block이 되어야 한다.
+                    // The relic table is an item (a corpse) but
+                    // it has to block.
                     Tile& rTile = getTile(pt.x, pt.y);
 
                     rTile.setBlocked(Creature::MOVE_MODE_WALKING);
                     rTile.setBlocked(Creature::MOVE_MODE_BURROWING);
 
-                    // 성물 보관대의 정보를 저장한다.
+                    // Store the relic table's position.
                     m_RelicTableOID = pCorpse->getObjectID();
                     m_RelicTableX = pt.x;
                     m_RelicTableY = pt.y;
@@ -366,16 +366,16 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
 
             broadcastPacket(pt.x, pt.y, &gcDropItemToZone);
 
-            // 모터사이클은 시간이 지나도 사라지지 않는다.
+            // A motorcycle does not disappear over time.
             if (IClass == Item::ITEM_CLASS_MOTORCYCLE) {
-                // transport인 경우를 대비해서 체크해제해야한다.
+                // Clear the check in case this is a transport.
                 MotorcycleBox* pMotorcycleBox = g_pParkingCenter->getMotorcycleBox(pItem->getItemID());
 
                 if (pMotorcycleBox != NULL) {
                     Motorcycle* pMotorcycle = pMotorcycleBox->getMotorcycle();
                     Assert(pMotorcycle != NULL);
 
-                    // 아이템 저장 최적화. by sigi. 2002.5.15
+                    // Optimized item save.
                     char pField[80];
                     sprintf(pField, "OwnerID='', Storage=%d, StorageID=%u, X=%d, Y=%d", STORAGE_ZONE, getZoneID(),
                             (int)pt.x, (int)pt.y);
@@ -389,28 +389,27 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
                     pMotorcycleBox->setTransport(false);
                 }
             } else if (isRelicItem(IClass)) {
-                // relic은 사라지지 않는다.
+                // A relic does not disappear.
                 addEffectRelicPosition(pItem, getZoneID(), pt);
                 char pField[80];
                 sprintf(pField, "OwnerID='', Storage=%d, StorageID=%u, X=%d, Y=%d", STORAGE_ZONE, getZoneID(), pt.x,
                         pt.y);
                 pItem->tinysave(pField);
             } else {
-                // 2002.10.30 장홍창
-                // 아이템 삭제 시간을 현행 10분에서 3분으로 줄인다.
+                // Items are removed after 3 minutes instead of 10.
                 Turn_t DelayTime = 1800;
 
-                // 마스터 레어에서는 아이템이 빨리 사라진다.
+                // Items disappear faster in the master lair.
                 if (isMasterLair()) {
                     DelayTime = DELAY_MASTER_LAIR_DECAY_ITEM;
                 }
 
                 if (!pItem->isFlagItem() && IClass != Item::ITEM_CLASS_SWEEPER) {
-                    // 강제로 지정한 delay
+                    // Explicitly requested delay.
                     if (decayTurn != 0)
                         DelayTime = decayTurn;
 
-                    // 바닥에 떨어지는 아이템은 일정 시간이 지나면 사라지게 된다.
+                    // An item dropped on the ground disappears after a while.
                     EffectDecayItem* pEffectDecayItem = new EffectDecayItem(this, pt.x, pt.y, (Item*)pItem, DelayTime);
                     pEffectDecayItem->setNextTime(999999);
                     m_ObjectRegistry.registerObject(pEffectDecayItem);
@@ -468,13 +467,13 @@ void Zone::deleteItem(Object* pObject, ZoneCoord_t x, ZoneCoord_t y)
     deleteFromItemList(pObject->getObjectID());
 
     //--------------------------------------------------
-    // 존에서 객체를 삭제한다.
+    // Delete the object from the zone.
     //--------------------------------------------------
     getTile(x, y).deleteItem();
 
 
     if (pObject->getObjectClass() == Object::OBJECT_CLASS_ITEM) {
-        // 성물 보관함일 경우 Block 을 해제해야 한다.
+        // A relic table's block must be cleared.
         Item* pItem = dynamic_cast<Item*>(pObject);
         Assert(pItem != NULL);
         if (pItem->getItemClass() == Item::ITEM_CLASS_CORPSE && pItem->getItemType() == MONSTER_CORPSE) {
@@ -487,7 +486,7 @@ void Zone::deleteItem(Object* pObject, ZoneCoord_t x, ZoneCoord_t y)
                 pCorpse->isFlag(Effect::EFFECT_CLASS_SHRINE_HOLY)) {
                 Tile& rTile = getTile(x, y);
 
-                // 블록 날리기
+                // Clear the block.
                 rTile.clearBlocked(Creature::MOVE_MODE_WALKING);
                 rTile.clearBlocked(Creature::MOVE_MODE_BURROWING);
             }
@@ -499,7 +498,7 @@ void Zone::deleteItem(Object* pObject, ZoneCoord_t x, ZoneCoord_t y)
     }
 
     //--------------------------------------------------
-    // 주변의 PC들에게 객체가 사라졌다는 사실을 브로드캐스트한다.
+    // Broadcast to nearby PCs that the object is gone.
     //--------------------------------------------------
 
 
@@ -521,9 +520,7 @@ void Zone::deleteFromItemList(ObjectID_t id) {
 
     unordered_map<ObjectID_t, Item*>::iterator itr = m_Items.find(id);
 
-    if (itr == m_Items.end())
-    //  NoSuch제거. by sigi. 2002.5.3
-    {
+    if (itr == m_Items.end()) {
         return;
     }
 
@@ -540,19 +537,19 @@ void Zone::addVampirePortal(ZoneCoord_t cx, ZoneCoord_t cy, Vampire* pVampire, c
     Assert(m_OuterRect.ptInRect(cx, cy));
     Assert(pVampire != NULL);
 
-    // 뱀파이어의 능력에 따라 들어갈 수 있는 인원과, 지속 시간을 계산한다.
-    // 존에 바로 추가되는 것이 아니므로, 약간의 딜레이를 추가해준다.
-    Duration_t duration = (60 + (pVampire->getINT(ATTR_CURRENT) - 20) / 3) * 10 + 20; // 0.1초 단위기 때문에...
+    // Compute how many can enter and how long it lasts from the vampire's stats.
+    // It is not added to the zone immediately, so a small delay is added.
+    Duration_t duration = (60 + (pVampire->getINT(ATTR_CURRENT) - 20) / 3) * 10 + 20; // the unit is 0.1 second
     int count = 3 + (pVampire->getINT(ATTR_CURRENT) - 20) / 10;
 
-    // 일단 이펙트 객체 자체를 생성한다.
+    // Create the effect object itself.
     EffectVampirePortal* pEffectVampirePortal = new EffectVampirePortal(this, cx, cy);
     pEffectVampirePortal->setDeadline(duration);
     pEffectVampirePortal->setOwnerID(pVampire->getName());
     pEffectVampirePortal->setZoneCoord(ZoneCoord.id, ZoneCoord.x, ZoneCoord.y);
     pEffectVampirePortal->setCount(count);
 
-    // 이펙트 스케쥴을 생성해서 더한다.
+    // Create and add the effect schedule.
     EffectSchedule* pEffectSchedule = new EffectSchedule;
     pEffectSchedule->setEffect(pEffectVampirePortal);
     pEffectSchedule->addWork(WORKCODE_ADD_VAMPIRE_PORTAL, NULL);
@@ -564,8 +561,8 @@ void Zone::addVampirePortal(ZoneCoord_t cx, ZoneCoord_t cy, Vampire* pVampire, c
 //-------------------------------------------------------------
 // deleteMotorcycle( x, y, pMotorcycle )
 //-------------------------------------------------------------
-// 바로 지우지 않고.. zone의 heartbeat할때 지우도록
-// EffectDecayItem을 붙여둔다.
+// Instead of deleting it right away, an EffectDecayItem is attached so that
+// the zone's heartbeat deletes it.
 //-------------------------------------------------------------
 void Zone::deleteMotorcycle(ZoneCoord_t cx, ZoneCoord_t cy, Motorcycle* pMotorcycle)
 
@@ -576,7 +573,7 @@ void Zone::deleteMotorcycle(ZoneCoord_t cx, ZoneCoord_t cy, Motorcycle* pMotorcy
     Assert(pMotorcycle != NULL);
 
     EffectDecayItem* pEffectDecayItem = new EffectDecayItem(this, cx, cy, (Item*)pMotorcycle, 0,
-                                                            false); // DB에서는 지우지 않는다.
+                                                            false); // Not deleted from the DB.
     pEffectDecayItem->setNextTime(999999);
     m_ObjectRegistry.registerObject(pEffectDecayItem);
     addEffect_LOCKING(pEffectDecayItem);
@@ -587,8 +584,8 @@ void Zone::deleteMotorcycle(ZoneCoord_t cx, ZoneCoord_t cy, Motorcycle* pMotorcy
 //-------------------------------------------------------------
 // transportItemToCorpse
 //-------------------------------------------------------------
-// 현재 존의 pItem을 pZone의 (cx, cy)로 옮긴다.
-// EffectTransportItem을 붙여서 옮긴다.
+// Move pItem from this zone to (cx, cy) of pZone.
+// The move is done by attaching an EffectTransportItem.
 //-------------------------------------------------------------
 void Zone::transportItemToCorpse(Item* pItem, Zone* pTargetZone, ObjectID_t corpseObjectID)
 
@@ -598,7 +595,7 @@ void Zone::transportItemToCorpse(Item* pItem, Zone* pTargetZone, ObjectID_t corp
     Assert(pItem != NULL);
 
     if (pTargetZone->getZoneGroup() == this->getZoneGroup()) {
-        //  같은 zone이면 바로 옮긴다.
+        //  Same zone group, so move it right away.
 
         Item* pCorpseItem = pTargetZone->getItem(corpseObjectID);
 
@@ -634,8 +631,8 @@ void Zone::transportItemToCorpse(Item* pItem, Zone* pTargetZone, ObjectID_t corp
 //-------------------------------------------------------------
 // transportItem
 //-------------------------------------------------------------
-// 현재 존의 pItem을 pZone의 (cx, cy)로 옮긴다.
-// EffectTransportItem을 붙여서 옮긴다.
+// Move pItem from this zone to (cx, cy) of pZone.
+// The move is done by attaching an EffectTransportItem.
 //-------------------------------------------------------------
 void Zone::transportItem(ZoneCoord_t x, ZoneCoord_t y, Item* pItem, Zone* pZone, ZoneCoord_t cx, ZoneCoord_t cy)
 
@@ -643,16 +640,15 @@ void Zone::transportItem(ZoneCoord_t x, ZoneCoord_t y, Item* pItem, Zone* pZone,
     __BEGIN_TRY
 
 
-    // 이거 잘못해놔가 다운돼다. ㅜ.ㅜ; by sigi
     Assert(m_OuterRect.ptInRect(x, y));
     Assert(pItem != NULL);
 
     if (pZone->getZoneGroup() == this->getZoneGroup()) {
-        //  같은 zone group 이면 바로 옮긴다.
+        //  Same zone group, so move it right away.
         deleteFromItemList(pItem->getObjectID());
         getTile(x, y).deleteItem();
 
-        // 아이템이 사라졌다는 패킷을 날린다.
+        // Send the packet saying the item is gone.
         GCDeleteObject gcDeleteObject;
         gcDeleteObject.setObjectID(pItem->getObjectID());
 
@@ -673,8 +669,8 @@ void Zone::transportItem(ZoneCoord_t x, ZoneCoord_t y, Item* pItem, Zone* pZone,
 //-------------------------------------------------------------
 // add Item To Corpse Delayed
 //-------------------------------------------------------------
-// 아이템을 추가하는데.. 다른 thread에서 해도 된다.
-// 다른 heartbeat에서 추가된다.
+// Adds an item; may be called from another thread.
+// The actual add happens in a later heartbeat.
 //-------------------------------------------------------------
 void Zone::addItemToCorpseDelayed(Item* pItem, ObjectID_t corpseItemID)
 
@@ -694,8 +690,8 @@ void Zone::addItemToCorpseDelayed(Item* pItem, ObjectID_t corpseItemID)
 //-------------------------------------------------------------
 // add Item Delayed
 //-------------------------------------------------------------
-// 아이템을 추가하는데.. 다른 thread에서 해도 된다.
-// 다른 heartbeat에서 추가된다.
+// Adds an item; may be called from another thread.
+// The actual add happens in a later heartbeat.
 //-------------------------------------------------------------
 void Zone::addItemDelayed(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCreature)
 
@@ -713,7 +709,7 @@ void Zone::addItemDelayed(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAll
     __END_CATCH
 }
 
-// 아직 테스트 안 해본 코드.
+// This code has not been tested yet.
 void Zone::deleteItemDelayed(Object* pObject, ZoneCoord_t x, ZoneCoord_t y)
 
 {
@@ -733,8 +729,8 @@ void Zone::deleteItemDelayed(Object* pObject, ZoneCoord_t x, ZoneCoord_t y)
 //-------------------------------------------------------------
 // add Relic Item
 //-------------------------------------------------------------
-// 아이템을 추가하는데.. 다른 thread에서 해도 된다.
-// 다른 heartbeat에서 추가된다.
+// Adds an item; may be called from another thread.
+// The actual add happens in a later heartbeat.
 //-------------------------------------------------------------
 bool Zone::addRelicItem(int relicIndex)
 
@@ -750,15 +746,15 @@ bool Zone::addRelicItem(int relicIndex)
 
     Assert(m_OuterRect.ptInRect(cx, cy));
 
-    // 이미 성물 보관대가 있는 경우
+    // A relic table already exists.
     if (m_bHasRelicTable) {
         return false;
-        // 현재 존의 성물 보관대를 찾는다. (addItem될때 Zone에 좌표 x,y를 기억해두자)
-        // 성물 보관대에 아무런 성물도 없다면 return
-        // 아니면, 자기 성물이 아닌 성물을 원래의 성물보관대에 넣는다.
-        // addItemDelayed를 사용해서 원래의 Zone에 추가해버리면 된다.
+        // Find this zone's relic table. (remember x, y in the Zone when addItem runs)
+        // Return if the relic table holds no relic.
+        // Otherwise put a relic that is not its own back into the original relic table.
+        // addItemDelayed can add it to the original zone.
     } else {
-        // Monster를 생성한다.
+        // Create the monster.
         Monster* pMonster = NULL;
         try {
             pMonster = new Monster(pRelicInfo->monsterType);
@@ -771,7 +767,7 @@ bool Zone::addRelicItem(int relicIndex)
         }
 
 
-        // MonsterCorpse를 생성한다. (성물 보관대)
+        // Create the MonsterCorpse (the relic table).
         MonsterCorpse* pMonsterCorpse = NULL;
         try {
             pMonsterCorpse = new MonsterCorpse(pMonster);
@@ -804,20 +800,20 @@ bool Zone::addRelicItem(int relicIndex)
             g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
         }
 
-        // Relic을 생성한다.
+        // Create the relic.
         list<OptionType_t> optionNULL;
         Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_RELIC, relicIndex, optionNULL);
         Assert(pItem != NULL);
 
 
-        // 이 Zone은 RelicTable을 갖고 있다고 표시한다.
+        // Mark this zone as holding a relic table.
         m_bHasRelicTable = true;
 
         pMonsterCorpse->addTreasure(pItem);
 
-        // 일단 relic은 DB에 생성한다.
-        // 대신 CGDissectionCorpseHandler에서 create하지 않는다.
-        // 보관대에서 꺼낼때마다 create되지 않게하기 위해서이다.
+        // The relic is created in the DB here.
+        // CGDissectionCorpseHandler therefore does not create it,
+        // so it is not created again every time it is taken out of the table.
         pItem->create("", STORAGE_CORPSE, pMonsterCorpse->getObjectID(), 0, 0);
 
         if (pRelicInfo->relicType == RELIC_TYPE_SLAYER) {
@@ -835,8 +831,8 @@ bool Zone::addRelicItem(int relicIndex)
         }
 
 
-        // 바로 Zone에 추가하면 안되므로(동기화 문제)
-        // Effect를 사용해서 추가하도록 한다.
+        // It must not be added to the zone directly (synchronization), so the add
+        // goes through an effect.
         EffectAddItem* pEffectAddItem = new EffectAddItem(this, cx, cy, pMonsterCorpse, 0, false);
         pEffectAddItem->setNextTime(999999);
         m_ObjectRegistry.registerObject(pEffectAddItem);
@@ -852,25 +848,25 @@ bool Zone::addRelicItem(int relicIndex)
 //-------------------------------------------------------------
 // delete Relic Item
 //-------------------------------------------------------------
-// 아이템을 삭제하는데.. 다른 thread에서 해도 된다.
-// 다른 heartbeat에서 삭제된다.
+// Deletes an item; may be called from another thread.
+// The actual delete happens in a later heartbeat.
 //-------------------------------------------------------------
 bool Zone::deleteRelicItem()
 
 {
     __BEGIN_TRY
 
-    // 성물 보관대가 없다면 리턴
+    // Return if there is no relic table.
     if (!m_bHasRelicTable) {
         return false;
     }
 
-    // 성물 보관대를 찾는다.
+    // Find the relic table.
     Item* pItem = dynamic_cast<Item*>(getTile(m_RelicTableX, m_RelicTableY).getObject(m_RelicTableOID));
     Assert(pItem != NULL);
 
-    // 바로 Zone에 추가하면 안되므로(동기화 문제)
-    // Effect를 사용해서 추가하도록 한다.
+    // It must not be removed from the zone directly (synchronization), so the
+    // delete goes through an effect.
     EffectDeleteItem* pEffectDeleteItem = new EffectDeleteItem(this, m_RelicTableX, m_RelicTableY, pItem, 0);
     pEffectDeleteItem->setNextTime(999999);
     m_ObjectRegistry.registerObject(pEffectDeleteItem);

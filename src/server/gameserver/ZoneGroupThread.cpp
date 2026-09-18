@@ -45,8 +45,8 @@ ZoneGroupThread::ZoneGroupThread(ZoneGroup* pZoneGroup)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 쓰레드 메쏘드들은 최상위로 사용되므로 __BEGIN_TRY와 __END_CATCH
-// 를 할 필요가 없다. 즉 모든 예외를 잡아서 처리해야 한다는 소리.
+// Thread methods are the outermost frame, so they need no __BEGIN_TRY and
+// __END_CATCH: every exception has to be caught and handled here.
 //////////////////////////////////////////////////////////////////////////////
 void ZoneGroupThread::run()
 
@@ -141,8 +141,8 @@ void ZoneGroupThread::run()
                 g_pDatabaseManager->executeDummyQuery(pConnection);
                 g_pDatabaseManager->executeDummyQuery(pDistConnection);
 
-                // 1시간 ~ 1시간 30분 사이에서 dummy query 시간을 설정한다.
-                // timeout이 되지 않게 하기 위해서이다.
+                // Schedule the dummy query between 1 hour and 1 hour 30 minutes out,
+                // so the connection does not time out.
                 dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
             }
 
@@ -158,8 +158,8 @@ void ZoneGroupThread::run()
                 NextTime.tv_sec = currentTime.tv_sec + 10;
                 NextTime.tv_usec = currentTime.tv_usec;
 
-                // 매턴마다 프로파일 데이터를 초기화해준다.
-                // 누적 데이터보다는 시간대에 따른 시간을 측정하기 위해서...
+                // Reset the profile data every turn,
+                // to measure times per period rather than accumulated totals.
                 initProfileEx();
             }
         }

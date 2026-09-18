@@ -257,7 +257,7 @@ void Zone::init()
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 존 파일에서 존 정보를 읽어서 로딩한다.
+// Read the zone information from the zone file and load it.
 //////////////////////////////////////////////////////////////////////////////
 void Zone::load(bool bOutput)
 
@@ -289,7 +289,7 @@ void Zone::load(bool bOutput)
         setMasterLair(pZoneInfo->isMasterLair());
         setHolyLand(pZoneInfo->isHolyLand());
 
-        // Holy Land 일 경우 HolyLandManager 에 추가
+        // A Holy Land is registered with the HolyLandManager.
         if (isHolyLand()) {
             g_pHolyLandManager->addHolyLand(this);
         }
@@ -301,7 +301,7 @@ void Zone::load(bool bOutput)
         }
 
 
-        // SMP 정보 파일을 연다.
+        // Open the SMP information file.
         string SMPFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSMPFilename();
         ifstream SMP(SMPFilename.c_str(), ios::in | ios::binary);
         if (!SMP) {
@@ -359,13 +359,13 @@ void Zone::load(bool bOutput)
 
         // DEBUG by tiancaiamao
 
-        // 타일을 2차원배열로 만들어 메모리를 할당한다.
+        // Allocate the tiles as a two-dimensional array.
         m_pTiles = new Tile*[m_Width];
         for (uint i = 0; i < m_Width; i++) {
             m_pTiles[i] = new Tile[m_Height];
         }
 
-        // 섹터를 2차원 배열로 만들어 메모리를 할당한다.
+        // Allocate the sectors as a two-dimensional array.
         m_SectorWidth = (int)ceil((float)m_Width / (float)SECTOR_SIZE);
         m_SectorHeight = (int)ceil((float)m_Height / (float)SECTOR_SIZE);
         m_pSectors = new Sector*[m_SectorWidth];
@@ -373,7 +373,7 @@ void Zone::load(bool bOutput)
             m_pSectors[x] = new Sector[m_SectorHeight];
         }
 
-        // 각각의 타일에다가 섹터 포인터를 세팅한다.
+        // Set the sector pointer on each tile.
         for (int x = 0; x < m_Width; x++) {
             for (int y = 0; y < m_Height; y++) {
                 int sx = x / SECTOR_SIZE;
@@ -385,7 +385,7 @@ void Zone::load(bool bOutput)
             }
         }
 
-        // 섹터끼리 연결을 한다.
+        // Link the sectors to each other.
         VSRect srect(0, 0, m_SectorWidth - 1, m_SectorHeight - 1);
         for (int x = 0; x < m_SectorWidth; x++) {
             for (int y = 0; y < m_SectorHeight; y++) {
@@ -400,7 +400,7 @@ void Zone::load(bool bOutput)
             }
         }
 
-        // MonsterAI를 위해 존의 영역을 구분지어놓은 사각형을 생성한다.
+        // Build the rectangles that divide the zone into regions for MonsterAI.
         m_OuterRect.set(0, 0, m_Width - 1, m_Height - 1);
         if (m_Width > 64 && m_Height > 64) {
             m_InnerRect.set(15, 15, m_Width - 15, m_Height - 15);
@@ -417,7 +417,7 @@ void Zone::load(bool bOutput)
                 BYTE flag = 0;
                 SMP.read((char*)&flag, szBYTE);
 
-                // 순서대로 지하, 지상, 공중 블록
+                // Underground, ground and air blocking, in that order.
                 if (flag & 0x01)
                     m_pTiles[x][y].setBlocked(Creature::MOVE_MODE_BURROWING);
                 if (flag & 0x02)
@@ -425,18 +425,18 @@ void Zone::load(bool bOutput)
                 if (flag & 0x04)
                     m_pTiles[x][y].setBlocked(Creature::MOVE_MODE_FLYING);
 
-                // 아무것도 없는 경우..
-                // 몹 생성을 위한 좌표정보를 만들어둔다.
+                // Nothing at all is here..
+                // Record the coordinate for monster spawning.
                 if (flag == 0 && m_InnerRect.ptInRect(x, y)) {
                     m_MonsterRegenPositions.push_back(BPOINT((BYTE)x, (BYTE)y));
                 }
 
-                // 마스터 레어인 경우: block이 하나라도 안 된 곳을 찾는다.
+                // For a master lair: find the places where at least one layer is not blocked.
                 if ((flag & 0x07) != 0x07 && (isMasterLair() || m_ZoneID == 3002)) {
                     m_EmptyTilePositions.push_back(BPOINT((BYTE)x, (BYTE)y));
                 }
 
-                // 포탈 정보
+                // Portal information.
                 if (flag & 0x80) {
                     BYTE type;
                     ZoneID_t targetZoneID;
@@ -452,7 +452,7 @@ void Zone::load(bool bOutput)
                         SMP.read((char*)&targetX, szBYTE);
                         SMP.read((char*)&targetY, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         NormalPortal* pNormalPortal = new NormalPortal();
                         pNormalPortal->setObjectType(PORTAL_NORMAL);
                         pNormalPortal->setZoneID(targetZoneID);
@@ -471,7 +471,7 @@ void Zone::load(bool bOutput)
                         SMP.read((char*)&targetX, szBYTE);
                         SMP.read((char*)&targetY, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         NormalPortal* pNormalPortal = new NormalPortal();
                         pNormalPortal->setObjectType(PORTAL_SLAYER);
                         pNormalPortal->setZoneID(targetZoneID);
@@ -492,7 +492,7 @@ void Zone::load(bool bOutput)
                         SMP.read((char*)&targetX, szBYTE);
                         SMP.read((char*)&targetY, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         NormalPortal* pNormalPortal = new NormalPortal();
                         pNormalPortal->setObjectType(PORTAL_VAMPIRE);
                         pNormalPortal->setZoneID(targetZoneID);
@@ -512,7 +512,7 @@ void Zone::load(bool bOutput)
                         BYTE size;
                         SMP.read((char*)&size, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         MultiPortal* pMultiPortal = new MultiPortal();
 
                         for (int i = 0; i < size; i++) {
@@ -522,7 +522,7 @@ void Zone::load(bool bOutput)
 
                             pMultiPortal->setObjectType(PORTAL_SLAYER);
 
-                            // 타겟 인포를 구성한다.
+                            // Build the target info.
                             PortalTargetInfo* pPortalTargetInfo = new PortalTargetInfo();
                             pPortalTargetInfo->setZoneID(targetZoneID);
                             pPortalTargetInfo->setX(targetX);
@@ -544,7 +544,7 @@ void Zone::load(bool bOutput)
                         SMP.read((char*)&targetX, szBYTE);
                         SMP.read((char*)&targetY, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         GuildPortal* pGuildPortal = new GuildPortal();
                         pGuildPortal->setObjectType(PORTAL_GUILD);
                         pGuildPortal->setZoneID(targetZoneID);
@@ -564,7 +564,7 @@ void Zone::load(bool bOutput)
                         SMP.read((char*)&targetX, szBYTE);
                         SMP.read((char*)&targetY, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         NormalPortal* pNormalPortal = new NormalPortal();
                         pNormalPortal->setObjectType(PORTAL_NORMAL);
                         pNormalPortal->setZoneID(targetZoneID);
@@ -583,7 +583,7 @@ void Zone::load(bool bOutput)
                         SMP.read((char*)&targetX, szBYTE);
                         SMP.read((char*)&targetY, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         NormalPortal* pNormalPortal = new NormalPortal();
                         pNormalPortal->setObjectType(PORTAL_OUSTERS);
                         pNormalPortal->setZoneID(targetZoneID);
@@ -603,9 +603,9 @@ void Zone::load(bool bOutput)
                         bAddPortal = false;
                     }
 
-                    // 포탈이 추가된 경우에
-                    // 목적지 존이 유료존이라면
-                    // TriggeredPortal을 설정해야 한다.
+                    // When a portal has been added and the destination zone is a
+                    // pay zone, a TriggeredPortal has to be
+                    // set up.
                     if (bAddPortal) {
                         ZoneInfo* pTargetZoneInfo = NULL;
                         try {
@@ -616,7 +616,7 @@ void Zone::load(bool bOutput)
 
                         Assert(pTargetZoneInfo != NULL);
 
-                        // 기존의 Portal을 지울까?
+                        // Should the existing Portal be deleted?
                         bool bDeleteOldPortal = false;
 
                         if ((pTargetZoneInfo->isPayPlay() && !pZoneInfo->isPayPlay()) ||
@@ -631,9 +631,9 @@ void Zone::load(bool bOutput)
 
                         Tile& rTile = m_pTiles[x][y];
 
-                        // 기존의 Portal을 지우는 경우
+                        // The case where the existing Portal is deleted.
                         if (bDeleteOldPortal) {
-                            // 기존에 있던 portal을 제거한다.
+                            // Remove the portal that was already there.
                             if (rTile.hasPortal()) {
                                 Portal* pOldPortal = rTile.getPortal();
                                 rTile.deletePortal();
@@ -642,24 +642,24 @@ void Zone::load(bool bOutput)
                             }
                         }
 
-                        // 포탈을 생성하고, 등록한다.
+                        // Create the portal and register it.
 
                         //----------------------------------------
-                        // 마스터 레어인 경우
+                        // For a master lair.
                         // by sigi. 2002.9.2
                         //----------------------------------------
                         if (pTargetZoneInfo->isMasterLair()) {
                             TriggeredPortal* pPortal = new TriggeredPortal();
                             getObjectRegistry().registerObject(pPortal);
 
-                            // 포탈 내용을 로드한다.
+                            // Load the portal contents.
                             pPortal->setObjectType(portalType);
 
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
 
-                            pTrigger->setTriggerID(0); // 의미없다.
+                            pTrigger->setTriggerID(0); // Not meaningful.
 
                             pTrigger->setTriggerType("QUEST");
 
@@ -677,25 +677,25 @@ void Zone::load(bool bOutput)
 
                             tm.addTrigger(pTrigger);
 
-                            // 타일에다 포탈을 붙인다.
+                            // Attach the portal to the tile.
                             rTile.addPortal(pPortal);
 
                         }
                         //----------------------------------------
-                        // 아담의 성지로 들어갈려고 할 때
+                        // When entering Adam's holy land.
                         //----------------------------------------
                         else if (pTargetZoneInfo->isHolyLand() && !pZoneInfo->isHolyLand()) {
                             TriggeredPortal* pPortal = new TriggeredPortal();
                             getObjectRegistry().registerObject(pPortal);
 
-                            // 포탈 내용을 로드한다.
+                            // Load the portal contents.
                             pPortal->setObjectType(portalType);
 
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
 
-                            pTrigger->setTriggerID(0); // 의미없다.
+                            pTrigger->setTriggerID(0); // Not meaningful.
 
                             pTrigger->setTriggerType("QUEST");
 
@@ -715,14 +715,14 @@ void Zone::load(bool bOutput)
 
                             tm.addTrigger(pTrigger);
 
-                            // 타일에다 포탈을 붙인다.
+                            // Attach the portal to the tile.
                             rTile.addPortal(pPortal);
 
                         }
                         //----------------------------------------
-                        // 성 밖에서 성 안으로 들어가는 경우
-                        // isCastleZone 은 성 안에 포함되는 존들인지 체크한다.
-                        // (성 던전도 성 안이다)
+                        // Entering the castle from outside it.
+                        // isCastleZone checks whether the zone is one of those inside the castle.
+                        // (The castle dungeon counts as inside the castle.)
                         // by bezz, Sequoia 2003. 1.20.
                         //----------------------------------------
                         else if (pTargetZoneInfo->isCastle() &&
@@ -730,14 +730,14 @@ void Zone::load(bool bOutput)
                             TriggeredPortal* pPortal = new TriggeredPortal();
                             getObjectRegistry().registerObject(pPortal);
 
-                            // 포탈 내용을 로드한다.
+                            // Load the portal contents.
                             pPortal->setObjectType(portalType);
 
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
 
-                            pTrigger->setTriggerID(0); // 의미없다.
+                            pTrigger->setTriggerID(0); // Not meaningful.
 
                             pTrigger->setTriggerType("QUEST");
 
@@ -755,12 +755,12 @@ void Zone::load(bool bOutput)
 
                             tm.addTrigger(pTrigger);
 
-                            // 타일에다 포탈을 붙인다.
+                            // Attach the portal to the tile.
                             rTile.addPortal(pPortal);
 
                         }
                         //----------------------------------------
-                        // 성 지하 던젼으로 들어가는 입구
+                        // The entrance into the castle's underground dungeon.
                         // by Sequoia
                         //----------------------------------------
                         else if (isCastle() &&
@@ -768,14 +768,14 @@ void Zone::load(bool bOutput)
                             TriggeredPortal* pPortal = new TriggeredPortal();
                             getObjectRegistry().registerObject(pPortal);
 
-                            // 포탈 내용을 로드한다.
+                            // Load the portal contents.
                             pPortal->setObjectType(portalType);
 
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
 
-                            pTrigger->setTriggerID(0); // 의미없다.
+                            pTrigger->setTriggerID(0); // Not meaningful.
                             pTrigger->setTriggerType("QUEST");
 
                             sprintf(str, "ConditionType : EnterCastleDungeon\n\t CastleZoneID : %d\n\t", m_ZoneID);
@@ -794,20 +794,20 @@ void Zone::load(bool bOutput)
                             rTile.addPortal(pPortal);
                         }
                         //----------------------------------------
-                        // 유료 존인 경우
+                        // For a pay zone.
                         //----------------------------------------
                         else if (pTargetZoneInfo->isPayPlay() && !pZoneInfo->isPayPlay()) {
                             TriggeredPortal* pPortal = new TriggeredPortal();
                             getObjectRegistry().registerObject(pPortal);
 
-                            // 포탈 내용을 로드한다.
+                            // Load the portal contents.
                             pPortal->setObjectType(portalType);
 
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
 
-                            pTrigger->setTriggerID(0); // 의미없다.
+                            pTrigger->setTriggerID(0); // Not meaningful.
 
                             pTrigger->setTriggerType("QUEST");
                             pTrigger->setConditions("ConditionType : CanEnterPayZone\n\t");
@@ -831,7 +831,7 @@ void Zone::load(bool bOutput)
 
                             tm.addTrigger(pTrigger);
 
-                            // 타일에다 포탈을 붙인다.
+                            // Attach the portal to the tile.
                             rTile.addPortal(pPortal);
                         }
                     }
@@ -875,21 +875,21 @@ void Zone::load(bool bOutput)
         }
         //*/
 
-        // Zone 정보를 세팅한다.
+        // Set the Zone information.
         m_ZoneType = pZoneInfo->getZoneType();
         m_ZoneLevel = pZoneInfo->getZoneLevel();
 
-        // 메모리 할당해주고...
+        // Allocate the memory...
         m_ppLevel = new ZoneLevel_t*[m_Width];
         for (uint i = 0; i < m_Width; i++)
             m_ppLevel[i] = new ZoneLevel_t[m_Height];
 
-        // 존 레벨을 디폴트 값으로 초기화시킨다.
+        // Initialize the zone level to its default value.
         for (ZoneCoord_t x = 0; x < m_Width; x++)
             for (ZoneCoord_t y = 0; y < m_Height; y++)
                 m_ppLevel[x][y] = m_ZoneLevel;
 
-        // SSI 정보 파일을 연다.
+        // Open the SSI information file.
         string SSIFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSSIFilename();
         ifstream SSI(SSIFilename.c_str(), ios::in | ios::binary);
         if (!SSI) {
@@ -931,21 +931,21 @@ void Zone::load(bool bOutput)
 
         SSI.close();
 
-        // 트리거드 포탈을 로드한다.
+        // Load the triggered portals.
         loadTriggeredPortal();
 
-        // 몬스터 로드하고....
+        // Load the monsters....
         m_pMonsterManager->load();
 
 
-        // 마스터 레어인 경우
+        // For a master lair.
         // by sigi. 2002.9.2
         if (pZoneInfo->isMasterLair()) {
             SAFE_DELETE(m_pMasterLairManager);
             m_pMasterLairManager = new MasterLairManager(this);
         }
 
-        // 성인 경우
+        // For a castle.
         // by sigi. 2003.1.24
         if (isCastle()) {
             SAFE_DELETE(m_pWarScheduler);
@@ -955,16 +955,16 @@ void Zone::load(bool bOutput)
             printf("[%d] Castle : WarScheduler->load\n", (int)getZoneID());
         }
 
-        // NPC 를 로딩한다.
+        // Load the NPCs.
         m_pNPCManager->load(m_ZoneID);
         //	}
 
         loadEffect();
 
-        // 게시판을 로드한다.
+        // Load the bulletin board.
         loadBulletinBoard(this);
 
-        // 스프라이트 갯수를 초기화한다.
+        // Initialize the sprite counts.
         initSpriteCount();
 
         SAFE_DELETE(version);
@@ -982,7 +982,7 @@ void Zone::load(bool bOutput)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 존 파일에서 존 정보를 읽어서 로딩한다.
+// Read the zone information from the zone file and load it.
 //////////////////////////////////////////////////////////////////////////////
 void Zone::reload(bool bOutput)
 
@@ -1013,7 +1013,7 @@ void Zone::reload(bool bOutput)
         setMasterLair(pZoneInfo->isMasterLair());
 
 
-        // SMP 정보 파일을 연다.
+        // Open the SMP information file.
         string SMPFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSMPFilename();
         ifstream SMP(SMPFilename.c_str(), ios::in | ios::binary);
         if (!SMP) {
@@ -1073,7 +1073,7 @@ void Zone::reload(bool bOutput)
 
 
         if (m_pSectors == NULL) {
-            // 섹터를 2차원 배열로 만들어 메모리를 할당한다.
+            // Allocate the sectors as a two-dimensional array.
             m_SectorWidth = (int)ceil((float)m_Width / (float)SECTOR_SIZE);
             m_SectorHeight = (int)ceil((float)m_Height / (float)SECTOR_SIZE);
             m_pSectors = new Sector*[m_SectorWidth];
@@ -1081,7 +1081,7 @@ void Zone::reload(bool bOutput)
                 m_pSectors[x] = new Sector[m_SectorHeight];
             }
 
-            // 섹터끼리 연결을 한다.
+            // Link the sectors to each other.
             VSRect srect(0, 0, m_SectorWidth - 1, m_SectorHeight - 1);
             for (int x = 0; x < m_SectorWidth; x++) {
                 for (int y = 0; y < m_SectorHeight; y++) {
@@ -1097,15 +1097,15 @@ void Zone::reload(bool bOutput)
             }
         }
 
-        // m_pTiles 가 이미 없다면...
+        // If m_pTiles does not exist yet...
         if (m_pTiles == NULL) {
-            // 타일을 2차원배열로 만들어 메모리를 할당한다.
+            // Allocate the tiles as a two-dimensional array.
             m_pTiles = new Tile*[m_Width];
             for (i = 0; i < m_Width; i++) {
                 m_pTiles[i] = new Tile[m_Height];
             }
 
-            // 각각의 타일에다가 섹터 포인터를 세팅한다.
+            // Set the sector pointer on each tile.
             for (int x = 0; x < m_Width; x++) {
                 for (int y = 0; y < m_Height; y++) {
                     int sx = x / SECTOR_SIZE;
@@ -1118,7 +1118,7 @@ void Zone::reload(bool bOutput)
             }
         }
 
-        // MonsterAI를 위해 존의 영역을 구분지어놓은 사각형을 생성한다.
+        // Build the rectangles that divide the zone into regions for MonsterAI.
         m_OuterRect.set(0, 0, m_Width - 1, m_Height - 1);
         if (m_Width > 64 && m_Height > 64) {
             m_InnerRect.set(15, 15, m_Width - 15, m_Height - 15);
@@ -1131,7 +1131,7 @@ void Zone::reload(bool bOutput)
         char str[80];
         char str2[80];
 
-        // 다시~
+        // Start over.
         m_MonsterRegenPositions.clear();
         m_EmptyTilePositions.clear();
 
@@ -1140,7 +1140,7 @@ void Zone::reload(bool bOutput)
                 BYTE flag = 0;
                 SMP.read((char*)&flag, szBYTE);
 
-                // 순서대로 지하, 지상, 공중 블록
+                // Underground, ground and air blocking, in that order.
                 if (flag & 0x01)
                     m_pTiles[x][y].setBlocked(Creature::MOVE_MODE_BURROWING);
                 if (flag & 0x02)
@@ -1148,18 +1148,18 @@ void Zone::reload(bool bOutput)
                 if (flag & 0x04)
                     m_pTiles[x][y].setBlocked(Creature::MOVE_MODE_FLYING);
 
-                // 아무것도 없는 경우..
-                // 몹 생성을 위한 좌표정보를 만들어둔다.
+                // Nothing at all is here..
+                // Record the coordinate for monster spawning.
                 if (flag == 0 && m_InnerRect.ptInRect(x, y)) {
                     m_MonsterRegenPositions.push_back(BPOINT((BYTE)x, (BYTE)y));
                 }
 
-                // 마스터 레어인 경우: block이 하나라도 안 된 곳을 찾는다.
+                // For a master lair: find the places where at least one layer is not blocked.
                 if ((flag & 0x07) != 0x07 && (isMasterLair() || m_ZoneID == 3002)) {
                     m_EmptyTilePositions.push_back(BPOINT((BYTE)x, (BYTE)y));
                 }
 
-                // 포탈 정보
+                // Portal information.
                 if (flag & 0x80) {
                     BYTE type;
                     ZoneID_t targetZoneID;
@@ -1170,7 +1170,7 @@ void Zone::reload(bool bOutput)
 
                     bool bAddPortal = true;
 
-                    // 이미 포탈이 있다면 기존의 포탈을 지워준다.
+                    // If a portal is already there, delete the existing one.
                     if (m_pTiles[x][y].hasPortal()) {
                         Portal* pPortal = m_pTiles[x][y].getPortal();
                         SAFE_DELETE(pPortal);
@@ -1182,7 +1182,7 @@ void Zone::reload(bool bOutput)
                         SMP.read((char*)&targetX, szBYTE);
                         SMP.read((char*)&targetY, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         NormalPortal* pNormalPortal = new NormalPortal();
                         pNormalPortal->setObjectType(PORTAL_NORMAL);
                         pNormalPortal->setZoneID(targetZoneID);
@@ -1201,7 +1201,7 @@ void Zone::reload(bool bOutput)
                         SMP.read((char*)&targetX, szBYTE);
                         SMP.read((char*)&targetY, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         NormalPortal* pNormalPortal = new NormalPortal();
                         pNormalPortal->setObjectType(PORTAL_SLAYER);
                         pNormalPortal->setZoneID(targetZoneID);
@@ -1222,7 +1222,7 @@ void Zone::reload(bool bOutput)
                         SMP.read((char*)&targetX, szBYTE);
                         SMP.read((char*)&targetY, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         NormalPortal* pNormalPortal = new NormalPortal();
                         pNormalPortal->setObjectType(PORTAL_VAMPIRE);
                         pNormalPortal->setZoneID(targetZoneID);
@@ -1242,7 +1242,7 @@ void Zone::reload(bool bOutput)
                         BYTE size;
                         SMP.read((char*)&size, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         MultiPortal* pMultiPortal = new MultiPortal();
 
                         for (int i = 0; i < size; i++) {
@@ -1252,7 +1252,7 @@ void Zone::reload(bool bOutput)
 
                             pMultiPortal->setObjectType(PORTAL_SLAYER);
 
-                            // 타겟 인포를 구성한다.
+                            // Build the target info.
                             PortalTargetInfo* pPortalTargetInfo = new PortalTargetInfo();
                             pPortalTargetInfo->setZoneID(targetZoneID);
                             pPortalTargetInfo->setX(targetX);
@@ -1274,7 +1274,7 @@ void Zone::reload(bool bOutput)
                         SMP.read((char*)&targetX, szBYTE);
                         SMP.read((char*)&targetY, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         GuildPortal* pGuildPortal = new GuildPortal();
                         pGuildPortal->setObjectType(PORTAL_GUILD);
                         pGuildPortal->setZoneID(targetZoneID);
@@ -1294,7 +1294,7 @@ void Zone::reload(bool bOutput)
                         SMP.read((char*)&targetX, szBYTE);
                         SMP.read((char*)&targetY, szBYTE);
 
-                        // 포탈을 생성해 준다.
+                        // Create the portal.
                         NormalPortal* pNormalPortal = new NormalPortal();
                         pNormalPortal->setObjectType(PORTAL_NORMAL);
                         pNormalPortal->setZoneID(targetZoneID);
@@ -1312,9 +1312,9 @@ void Zone::reload(bool bOutput)
                         bAddPortal = false;
                     }
 
-                    // 포탈이 추가된 경우에
-                    // 목적지 존이 유료존이라면
-                    // TriggeredPortal을 설정해야 한다.
+                    // When a portal has been added and the destination zone is a
+                    // pay zone, a TriggeredPortal has to be
+                    // set up.
                     if (bAddPortal) {
                         ZoneInfo* pTargetZoneInfo = NULL;
                         try {
@@ -1325,7 +1325,7 @@ void Zone::reload(bool bOutput)
 
                         Assert(pTargetZoneInfo != NULL);
 
-                        // 기존의 Portal을 지울까?
+                        // Should the existing Portal be deleted?
                         bool bDeleteOldPortal = false;
 
                         if ((pTargetZoneInfo->isPayPlay() && !pZoneInfo->isPayPlay()) ||
@@ -1341,9 +1341,9 @@ void Zone::reload(bool bOutput)
 
                         Tile& rTile = m_pTiles[x][y];
 
-                        // 기존의 Portal을 지우는 경우
+                        // The case where the existing Portal is deleted.
                         if (bDeleteOldPortal) {
-                            // 기존에 있던 portal을 제거한다.
+                            // Remove the portal that was already there.
                             if (rTile.hasPortal()) {
                                 Portal* pOldPortal = rTile.getPortal();
                                 rTile.deletePortal();
@@ -1352,24 +1352,24 @@ void Zone::reload(bool bOutput)
                             }
                         }
 
-                        // 포탈을 생성하고, 등록한다.
+                        // Create the portal and register it.
 
                         //----------------------------------------
-                        // 마스터 레어인 경우
+                        // For a master lair.
                         // by sigi. 2002.9.2
                         //----------------------------------------
                         if (pTargetZoneInfo->isMasterLair()) {
                             TriggeredPortal* pPortal = new TriggeredPortal();
                             getObjectRegistry().registerObject(pPortal);
 
-                            // 포탈 내용을 로드한다.
+                            // Load the portal contents.
                             pPortal->setObjectType(portalType);
 
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
 
-                            pTrigger->setTriggerID(0); // 의미없다.
+                            pTrigger->setTriggerID(0); // Not meaningful.
 
                             pTrigger->setTriggerType("QUEST");
 
@@ -1386,25 +1386,25 @@ void Zone::reload(bool bOutput)
 
                             tm.addTrigger(pTrigger);
 
-                            // 타일에다 포탈을 붙인다.
+                            // Attach the portal to the tile.
                             rTile.addPortal(pPortal);
 
                         }
                         //----------------------------------------
-                        // 유료존으로 들어가는 경우
+                        // Entering a pay zone.
                         //----------------------------------------
                         else if (pTargetZoneInfo->isPayPlay() && !pZoneInfo->isPayPlay()) {
                             TriggeredPortal* pPortal = new TriggeredPortal();
                             getObjectRegistry().registerObject(pPortal);
 
-                            // 포탈 내용을 로드한다.
+                            // Load the portal contents.
                             pPortal->setObjectType(portalType);
 
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
 
-                            pTrigger->setTriggerID(0); // 의미없다.
+                            pTrigger->setTriggerID(0); // Not meaningful.
 
                             pTrigger->setTriggerType("QUEST");
                             pTrigger->setConditions("ConditionType : PayPlay\n\t");
@@ -1418,7 +1418,7 @@ void Zone::reload(bool bOutput)
 
                             tm.addTrigger(pTrigger);
 
-                            // 타일에다 포탈을 붙인다.
+                            // Attach the portal to the tile.
                             rTile.addPortal(pPortal);
                         }
                     }
@@ -1462,27 +1462,27 @@ void Zone::reload(bool bOutput)
         }
         // */
 
-        // Zone 정보를 세팅한다.
+        // Set the Zone information.
         m_ZoneType = pZoneInfo->getZoneType();
         m_ZoneLevel = pZoneInfo->getZoneLevel();
 
-        // m_ppLevel 제거
+        // Release m_ppLevel.
         for (i = 0; i < m_Width; i++) {
             SAFE_DELETE_ARRAY(m_ppLevel[i]);
         }
         SAFE_DELETE_ARRAY(m_ppLevel);
 
-        // 메모리 할당해주고...
+        // Allocate the memory...
         m_ppLevel = new ZoneLevel_t*[m_Width];
         for (uint i = 0; i < m_Width; i++)
             m_ppLevel[i] = new ZoneLevel_t[m_Height];
 
-        // 존 레벨을 디폴트 값으로 초기화시킨다.
+        // Initialize the zone level to its default value.
         for (ZoneCoord_t x = 0; x < m_Width; x++)
             for (ZoneCoord_t y = 0; y < m_Height; y++)
                 m_ppLevel[x][y] = m_ZoneLevel;
 
-        // SSI 정보 파일을 연다.
+        // Open the SSI information file.
         string SSIFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSSIFilename();
         ifstream SSI(SSIFilename.c_str(), ios::in | ios::binary);
         if (!SSI) {
@@ -1524,15 +1524,15 @@ void Zone::reload(bool bOutput)
 
         SSI.close();
 
-        // 트리거드 포탈을 로드한다.
-        // reload에서는 무시
+        // Load the triggered portals.
+        // Skipped on reload.
 
-        // 몬스터 로드하고....
+        // Load the monsters....
         m_pMonsterManager->load();
 
-        // eventMonsterManager는 reload에서는 무시한다.
+        // eventMonsterManager is skipped on reload.
 
-        // 마스터 레어인 경우
+        // For a master lair.
         // by sigi. 2002.9.2
         if (pZoneInfo->isMasterLair()) {
             if (m_pMasterLairManager != NULL &&
@@ -1542,7 +1542,7 @@ void Zone::reload(bool bOutput)
             }
         }
 
-        // 성인 경우
+        // For a castle.
         // by sigi. 2003.1.24
         if (pZoneInfo->isCastle()) {
             if (m_pWarScheduler != NULL)
@@ -1553,10 +1553,10 @@ void Zone::reload(bool bOutput)
             }
         }
 
-        // reload할 때는 무시한다.
-        // NPC 를 로딩한다.
+        // Skipped on reload.
+        // Load the NPCs.
 
-        // 스프라이트 갯수를 초기화한다.
+        // Initialize the sprite counts.
         initSpriteCount();
     } catch (Throwable& t) {
         cout << t.toString() << endl;
@@ -1568,7 +1568,7 @@ void Zone::reload(bool bOutput)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 현재 존에 트리거드 포탈을 로드한다.
+// Load the triggered portals for the current zone.
 //////////////////////////////////////////////////////////////////////////////
 void Zone::loadTriggeredPortal()
 
@@ -1619,7 +1619,7 @@ void Zone::loadTriggeredPortal()
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 이 존에서 나타나는 NPC와 몬스터의 스프라이트갯수를 계산해둔다.
+// Count the NPC and monster sprites that appear in this zone.
 //////////////////////////////////////////////////////////////////////////////
 void Zone::initSpriteCount()
 
@@ -1629,13 +1629,13 @@ void Zone::initSpriteCount()
     m_NPCCount = 0;
     m_MonsterCount = 0;
 
-    // NPC 스프라이트 타입의 갯수를 계산한다.
+    // Count the NPC sprite types.
     const unordered_map<ObjectID_t, Creature*>& NPCMap = m_pNPCManager->getCreatures();
     for (unordered_map<ObjectID_t, Creature*>::const_iterator i = NPCMap.begin(); i != NPCMap.end(); i++) {
         NPC* pNPC = dynamic_cast<NPC*>(i->second);
         bool bAdd = true;
 
-        for (int j = 0; j < m_NPCCount; j++) // 현재 있는 몬스터 타입 중에서
+        for (int j = 0; j < m_NPCCount; j++) // among the monster types already present
         {
             if (pNPC->getSpriteType() == m_NPCTypes[j]) {
                 bAdd = false;
@@ -1649,7 +1649,7 @@ void Zone::initSpriteCount()
         }
     }
 
-    // 몬스터 스프라이트 타입의 갯수를 계산한다.
+    // Count the monster sprite types.
     const unordered_map<SpriteType_t, MonsterCounter*>& MONSTER = m_pMonsterManager->getMonsters();
     for (unordered_map<SpriteType_t, MonsterCounter*>::const_iterator i = MONSTER.begin(); i != MONSTER.end(); i++) {
         Assert(m_MonsterCount < maxMonsterPerZone); // by sigi

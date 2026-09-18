@@ -86,7 +86,7 @@ private:
 
     bool m_bCanEnterFreeUser;
 
-    VSDateTime m_StartTime; // 전쟁 시작 시간
+    VSDateTime m_StartTime; // War start time
 
     GCWarList m_GCWarList;
     mutable Mutex m_MutexWarList;

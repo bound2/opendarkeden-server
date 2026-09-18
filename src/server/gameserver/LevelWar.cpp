@@ -11,7 +11,7 @@ void LevelWar::execute() {
         executeEnd();
         break;
     default:
-        Assert(/*레벨워 상태가 이상함*/ false);
+        Assert(/*level war state is invalid*/ false);
     }
 
     __END_CATCH
@@ -35,7 +35,7 @@ void LevelWar::executeEnd() {
 
     m_State = READY;
 
-    // 이건 LevelWarManager 에서 해주도록 한다
+    // LevelWarManager is the one that does this
     // m_pManager->addSchedule( new Schedule( this, m_pManager->getNextLevelWarTime() ) );
 }
 

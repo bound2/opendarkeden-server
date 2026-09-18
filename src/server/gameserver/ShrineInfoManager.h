@@ -18,8 +18,8 @@ class GCBloodBibleStatus;
 class ShrineInfo {
 public:
     enum ShrineType {
-        SHRINE_GUARD, // 성에 있는 수호성단
-        SHRINE_HOLY   // 성 밖에 있는 성지성단
+        SHRINE_GUARD, // Guardian shrine inside the castle
+        SHRINE_HOLY   // Holy land shrine outside the castle
     };
 
 public:
@@ -80,11 +80,11 @@ public:
 private:
     MonsterType_t m_MonsterType;
     ShrineType m_ShrineType;
-    ZoneID_t m_ZoneID; // 존ID
+    ZoneID_t m_ZoneID; // Zone ID
     ZoneCoord_t m_X;
     ZoneCoord_t m_Y;
     ObjectID_t m_ObjectID;
-    string m_Name; // 성단 이름
+    string m_Name; // Shrine name
 };
 
 class ShrineSet {
@@ -154,15 +154,15 @@ public:
     bool saveBloodBibleOwner();
 
 private:
-    ShrineID_t m_ShrineID;           // Shrine ID. ItemType과 같아야 한다.
-    ShrineInfo m_SlayerGuardShrine;  // 슬레이어 성 안에 있는 Shrine
-    ShrineInfo m_VampireGuardShrine; // 뱀파이어 성 안에 있는 Shrine
-    ShrineInfo m_OustersGuardShrine; // 아우스터즈 성 안에 있는 Shrine
-    ShrineInfo m_HolyShrine;         // 아담의 성지에 있는 Shrine
-    ItemType_t m_ItemType;           // 성서 조각 ItemType
-    ItemID_t m_ItemID;               // 성서 조각 ItemID
-    Race_t m_OwnerRace;              // 최종적으로 차지했던 종족
-    GCBloodBibleStatus* m_pGCBBS;    // 피의 성서 위치 정보
+    ShrineID_t m_ShrineID;           // Shrine ID. Must be the same as ItemType.
+    ShrineInfo m_SlayerGuardShrine;  // Shrine inside the Slayer castle
+    ShrineInfo m_VampireGuardShrine; // Shrine inside the Vampire castle
+    ShrineInfo m_OustersGuardShrine; // Shrine inside the Ousters castle
+    ShrineInfo m_HolyShrine;         // Shrine in Adam's holy land
+    ItemType_t m_ItemType;           // ItemType of the bible fragment
+    ItemID_t m_ItemID;               // ItemID of the bible fragment
+    Race_t m_OwnerRace;              // Race that held it last
+    GCBloodBibleStatus* m_pGCBBS;    // Location information of the Blood Bible
 
     mutable Mutex m_Mutex;
 };
@@ -220,10 +220,10 @@ public:
     void addAllShrineShield();
     bool removeAllShrineShield();
 
-    // DB에 현재 Owner정보를 저장한다.
+    // Save the current owner information to the DB.
     bool saveBloodBibleOwner();
 
-    // 피의 성서 위치 정보를 등록한다.
+    // Register the location information of the Blood Bible.
     void registerBloodBibleStatus(ItemType_t m_Part, GCBloodBibleStatus* pGCBBS);
     void sendBloodBibleStatus(PlayerCreature* pPC);
 

@@ -199,7 +199,7 @@ public:
         m_pTarget->setY(y);
     }
 
-    // PC를 특정 위치로 이동시킨다.
+    // Move the PC to a specific position.
     bool activate(Creature* pCreature);
 
     // get debug string
@@ -252,7 +252,7 @@ public:
         m_pTarget->setY(y);
     }
 
-    // PC를 특정 위치로 이동시킨다.
+    // Move the PC to a specific position.
     bool activate(Creature* pCreature);
 
     // get debug string
@@ -288,14 +288,14 @@ public:
     }
     void getPortalTargetInfo(ZoneID_t ZoneID);
 
-    // PC를 특정 위치로 이동시킨다.
+    // Move the PC to a specific position.
     bool activate(Creature* pCreature, ZoneID_t ZoneID);
 
     // get debug string
     virtual string toString() const;
 
 private:
-    //  목표 좌표 Info
+    //  Target coordinate info
     list<PortalTargetInfo*> m_Targets;
 };
 

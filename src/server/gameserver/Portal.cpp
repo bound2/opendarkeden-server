@@ -254,20 +254,20 @@ bool GuildPortal::activate(Creature* pCreature)
 
     Guild* pGuild = g_pGuildManager->getGuild(pPlayerCreature->getGuildID());
 
-    // 소속된 길드가 없으면 걍 무시
+    // Ignore if the player has no guild.
     if (pGuild == NULL)
         return false;
 
-    // 소속된 길드의 아지트가 이 서버에 없으면 무시
+    // Ignore if the guild's hideout is not on this server.
     if (pGuild->getServerGroupID() != g_pConfig->getPropertyInt("ServerID"))
         return false;
 
-    // 길드의 상태가 active가 아니면 무시
+    // Ignore if the guild is not in the active state.
     if (pGuild->getState() != Guild::GUILD_STATE_ACTIVE)
         return false;
 
-    // Guild Portal 종류를 Slayer, Vampire 두가지로 바꿔야 하는데 시간이 없어서 그냥 Zone ID 를 보고 구별한다.
-    // 자기 종족의 길드 포탈인지 확인한다.
+    // The Guild Portal ought to come in Slayer and Vampire kinds; for now the Zone ID tells them apart.
+    // Check that the portal belongs to the player's own race.
     if ((pGuild->getRace() == Guild::GUILD_RACE_SLAYER && m_pTarget->getZoneID() == TEAM_ZONEID) ||
         (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE && m_pTarget->getZoneID() == CLAN_ZONEID)) {
         transportCreature(pCreature, pGuild->getZoneID(), m_pTarget->getX(), m_pTarget->getY(), true);
@@ -310,7 +310,7 @@ bool MultiPortal::activate(Creature* pCreature, ZoneID_t ZoneID)
     list<PortalTargetInfo*>::iterator itr = find_if(m_Targets.begin(), m_Targets.end(), isSameZoneID(ZoneID));
 
     if (itr == m_Targets.end()) {
-        // 못 찾았지렁.
+        // Not found.
         return false;
     }
 
@@ -356,9 +356,9 @@ bool TriggeredPortal::activate(Creature* pCreature)
     list<Trigger*>& triggers = m_TriggerManager.getTriggers();
     list<Trigger*>::iterator itr = triggers.begin();
 
-    // 사실 for를 반복하는 것은 무의미하다.
-    // 제일 첫번째 트리거에서 조건을 만족시키지 못하면,
-    // 카운터 액션이 실행되면서 리턴되어버리기 때문이다.
+    // Looping here is in fact pointless:
+    // if the very first trigger fails its condition, the counter action
+    // runs and the function returns.
     for (; itr != triggers.end(); itr++) {
         Trigger* pTrigger = *itr;
 
@@ -386,7 +386,7 @@ void TriggeredPortal::load(ZoneID_t zoneid, int left, int top, int right, int bo
     m_TriggerManager.load(zoneid, left, top, right, bottom);
 
     /*
-    // AtFirst 컨디션이 있으면, 실행하고, 삭제한다.
+    // If an AtFirst condition exists, run it and delete it.
     if (m_TriggerManager.hasCondition(Condition::CONDITION_AT_FIRST))
     {
         list<Trigger*>&          triggers = m_TriggerManager.getTriggers();
