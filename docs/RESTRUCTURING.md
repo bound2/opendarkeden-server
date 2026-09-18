@@ -1224,29 +1224,28 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   interfaces) explicitly; the old `g_p*` externs become shims into it until
   their last caller is converted. Ratchet R1.
   > **Status:** in progress — `src/server/gameserver/GameContext.h` is a
-  > registry of non-owning pointers to thirty-six managers, each registered
-  > by the code that creates it — `GameServer`'s constructor,
-  > `ObjectManager`'s and `IncomingPlayerManager`'s — and read back through
-  > an accessor that asserts it is there, a null one being a startup-order
-  > bug, not a condition to branch on. Ownership is untouched: the same
-  > `new` and `SAFE_DELETE` sites, except that a manager no global names any
-  > more is a member of the class that creates it, registered on the context
-  > only if something outside that file reads it. `ctf/` and `quest/` are the
-  > converted subsystems: `FlagManager`, `FlagWar`/`NewbieFlagWar`,
-  > `ActionFactoryManager`, `Trigger` and `TriggerParser` take the context in
-  > their constructors and every `Action` gets it from its factory; none of
-  > them calls `de::gameContext()`, the shim the creation sites and the
-  > unconverted callers use. `game_context_tests` builds a context over
-  > stand-in pointers with nothing of the gameserver linked, which is what
-  > the forward-declaration-only header buys. R1: 325 → 61. An `extern` line
-  > goes when nothing creates the global, when its owner reaches its objects
-  > through a table it already fills (`EffectLoaderManager`,
-  > `ItemInfoManager`, whose `m_InfoClassManagers` slot no context accessor
-  > could key, the nested `Item::ItemClass` not being forward-declarable), or
-  > when its last caller is converted — for a server object, its own
-  > `main()`, which holds it as a local. Next: `g_pItemInfoManager` and
-  > `g_pFlagManager`; `g_pPacketValidator` fits none of the rules — each of
-  > the three servers creates one of its own.
+  > registry of non-owning pointers to forty-eight managers, each registered
+  > by the code that creates it (`GameServer`, `ObjectManager`,
+  > `ClientManager`, `IncomingPlayerManager`), read back through an accessor
+  > that asserts it is there, a null one being a startup-order bug, not a
+  > condition to branch on. Ownership is untouched: the same `new` and
+  > `SAFE_DELETE` sites, except that a manager no global names is a member of
+  > the class that creates it, registered on the context only if something
+  > outside that file reads it. `ctf/` and `quest/` are the converted
+  > subsystems: `FlagManager`, `ActionFactoryManager`, `Trigger` and
+  > `TriggerParser` take the context in their constructors and every `Action`
+  > gets it from its factory; none calls `de::gameContext()`, the shim the
+  > creation sites and the unconverted callers use. `game_context_tests`
+  > builds a context over stand-in pointers with none of the gameserver
+  > linked, which the forward-declaration-only header is for. R1: 325 → 48. An
+  > `extern` line goes when nothing creates the global, when its owner reaches
+  > its objects through a table it already fills (`EffectLoaderManager`,
+  > `ItemInfoManager`, whose `m_InfoClassManagers` slot no accessor could key,
+  > `Item::ItemClass` not being forward-declarable), when its defining module
+  > owns it behind an open/read pair (`LogClient`), or when its last caller is
+  > converted — for a server object, its own `main()`, holding it as a local.
+  > Next: `g_pItemInfoManager` and `g_pFlagManager`; `g_pPacketValidator` fits
+  > none: each of the three servers creates one of its own.
   - Owner: R1 ratchet test.
 
 
