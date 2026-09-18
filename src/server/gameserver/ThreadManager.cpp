@@ -25,7 +25,7 @@ ThreadManager::ThreadManager()
     : m_pZoneGroupThreadPool(NULL) {
     __BEGIN_TRY
 
-    // 존쓰레드풀을 생성한다.
+    // Create the zone thread pool.
     m_pZoneGroupThreadPool = new ThreadPool();
 
     __END_CATCH
@@ -36,7 +36,7 @@ ThreadManager::ThreadManager()
 //
 // destructor
 //
-// Stop()이 되지 않았을 경우 실행시켜야 한다. State 개념을 도입할까?
+// Must be run when Stop() has not been called.
 //
 //--------------------------------------------------------------------------------
 ThreadManager::~ThreadManager()
@@ -52,13 +52,13 @@ ThreadManager::~ThreadManager()
 
 //--------------------------------------------------------------------------------
 //
-// 쓰레드 매니저를 초기화한다.
+// Initialize the thread manager.
 //
-// 하위 쓰레드풀에 쓰레드들을 생성, 등록시킨다.
+// Create and register threads in the sub thread pools.
 //
 // *CAUTION*
 //
-// 당연히, 쓰레드 매니저를 초기화하기 전에, 존그룹매니저를 초기화해야 한다.
+// The zone group manager must be initialized before the thread manager.
 //
 //--------------------------------------------------------------------------------
 void ThreadManager::init()
@@ -83,7 +83,7 @@ void ThreadManager::init()
 //
 // activate sub thread pools
 //
-// 하위 쓰레드 풀을 활성화시킨다.
+// Start the sub thread pools.
 //
 //--------------------------------------------------------------------------------
 void ThreadManager::start()
@@ -91,7 +91,7 @@ void ThreadManager::start()
 {
     __BEGIN_TRY
 
-    // Zone Thread Pool 을 활성화시킨다.
+    // Start the Zone Thread Pool.
     m_pZoneGroupThreadPool->start();
 
     __END_CATCH
@@ -102,7 +102,7 @@ void ThreadManager::start()
 //
 // deactivate sub thread pools
 //
-// 하위 쓰레드 풀을 종료시킨다.
+// Stop the sub thread pools.
 //
 //--------------------------------------------------------------------------------
 void ThreadManager::stop()

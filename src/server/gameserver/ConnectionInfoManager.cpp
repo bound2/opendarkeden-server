@@ -31,11 +31,11 @@ ConnectionInfoManager::ConnectionInfoManager()
 
     m_Mutex.setName("ConnectionInfoManager");
 
-    // 다음 heartbeat 시간을 설정한다.
+    // Set the time of the next heartbeat.
     getCurrentTime(m_NextHeartbeat);
     m_NextHeartbeat.tv_sec += 10;
 
-    // 30초후 사용자 숫자 들어간다.
+    // The user count goes in after 30 seconds.
     m_UpdateUserStatusTime.tv_sec = m_NextHeartbeat.tv_sec + 20;
 
     __END_CATCH
@@ -49,13 +49,13 @@ ConnectionInfoManager::~ConnectionInfoManager()
 {
     __BEGIN_TRY
 
-    // 모든 ConnectionInfo 를 삭제해야 한다.
+    // Every ConnectionInfo must be deleted.
     HashMapConnectionInfo::iterator itr = m_ConnectionInfos.begin();
     for (; itr != m_ConnectionInfos.end(); itr++) {
         SAFE_DELETE(itr->second);
     }
 
-    // 해쉬맵안에 있는 모든 pair 들을 삭제한다.
+    // Delete every pair in the hash map.
     m_ConnectionInfos.clear();
 
     __END_CATCH_NO_RETHROW
@@ -74,10 +74,10 @@ void ConnectionInfoManager::addConnectionInfo(ConnectionInfo* pConnectionInfo) {
     HashMapConnectionInfo::iterator itr = m_ConnectionInfos.find(pConnectionInfo->getClientIP());
 
     if (itr != m_ConnectionInfos.end()) {
-        // 똑같은 아이디가 이미 존재한다는 소리다. - -;
+        // An entry with the same id already exists.
         // throw DuplicatedException("duplicated connection info id");
 
-        // 기존에 있던 정보를 제거하고 새정보를 설정한다.
+        // Remove the existing information and set the new information.
         // by sigi. 2002.12.7
         // throw DuplicatedException("duplicated connection info id");
         ConnectionInfo* pOldConnectionInfo = itr->second;
@@ -114,10 +114,10 @@ void ConnectionInfoManager::deleteConnectionInfo(const string& clientIP) {
     if (itr != m_ConnectionInfos.end()) {
         Assert(itr->second != NULL);
 
-        // ConnectionInfo 를 삭제한다.
+        // Delete the ConnectionInfo.
         SAFE_DELETE(itr->second);
 
-        // pair를 삭제한다.
+        // Delete the pair.
         m_ConnectionInfos.erase(itr);
     } else {
         throw NoSuchElementException(clientIP);
@@ -155,7 +155,7 @@ ConnectionInfo* ConnectionInfoManager::getConnectionInfo(const string& clientIP)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// expire 된 Connection Info 객체를 삭제한다.
+// Delete expired Connection Info objects.
 //////////////////////////////////////////////////////////////////////////////
 void ConnectionInfoManager::heartbeat()
 
@@ -239,9 +239,9 @@ void ConnectionInfoManager::heartbeat()
             numPC += pZoneGroup->getZonePlayerManager()->size();
         }
 
-        // 넷마블용이면 DB에 저장.. by sigi. 2002.11.4
+        // Store in the DB when running for Netmarble.
         if (currentTime > m_UpdateUserStatusTime) {
-            // 1분 마다
+            // Every minute
             m_UpdateUserStatusTime.tv_sec = currentTime.tv_sec + 30;
 
             if (g_pConfig->getPropertyInt("IsNetMarble") == 1) {
@@ -252,7 +252,7 @@ void ConnectionInfoManager::heartbeat()
             }
         }
 
-        // 지금은 MonitorClient에서 이 값을 받아서 안쓴다.
+        // MonitorClient no longer takes this value and uses it.
         // g_pLoginServerManager->sendPacket(g_pConfig->getProperty("MonitorClientIP1") ,
         // g_pConfig->getPropertyInt("MonitorClient1UDPORT"), &gmServerInfo);
         // g_pLoginServerManager->sendPacket(g_pConfig->getProperty("MonitorClientIP2") ,
@@ -263,10 +263,10 @@ void ConnectionInfoManager::heartbeat()
         static int loginServerUDPPort = g_pConfig->getPropertyInt("LoginServerUDPPort");
         static int loginServerBaseUDPPort = g_pConfig->getPropertyInt("LoginServerBaseUDPPort");
 
-        // 기본
+        // Default
         g_pLoginServerManager->sendPacket(loginServerIP, loginServerUDPPort, &gmServerInfo);
 
-        // 여러가지 -_-;
+        // The other ports
         if (portNum > 1) {
             for (int j = 0; j < portNum; j++) {
                 g_pLoginServerManager->sendPacket(loginServerIP, loginServerBaseUDPPort + j, &gmServerInfo);

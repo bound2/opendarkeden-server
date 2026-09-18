@@ -141,8 +141,8 @@ void SMSServiceThread::run() {
         if (dummyQueryTime < currentTime) {
             defaultSMSMessageRepository().keepAlive();
 
-            // 1시간 ~ 1시간 30분 사이에서 dummy query 시간을 설정한다.
-            // timeout이 되지 않게 하기 위해서이다.
+            // Set the dummy query time between 1 hour and 1 hour 30 minutes.
+            // This is to keep the connection from timing out.
             dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
         }
 

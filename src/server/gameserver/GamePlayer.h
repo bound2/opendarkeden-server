@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GamePlayer.h
 // Written by  : reiot@ewestsoft.com
-// Description : 게임 서버용 플레이어 클래스
+// Description : player class for the game server
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GAME_PLAYER_H__
@@ -30,23 +30,23 @@
 //////////////////////////////////////////////////////////////////////////////
 // class GamePlayer
 //
-// 게임 서버용 플레이어 클래스
+// Player class for the game server.
 //
-// Player 클래스를 상속받아서, 게임 서버에서만 사용되는 Mutex 및
-// Creature 관련 데이터 및 메쏘드, PreviousPacket 관련 데이터 및
-// 메소드들을 추가했다.
+// It derives from Player and adds the Mutex, the Creature-related data and
+// methods, and the PreviousPacket data and methods, all of which are used
+// only by the game server.
 //
-// 특히 processOutput() 및 sendPacket()은 Race Condition 이 발생될 수
-// 있으므로, Mutex 로 보호되어야 한다.(MODE-IV의 경우이며, MODE-I, II
-// 의 경우에는 processInput(), processCommand() 모두 Mutex 로 보호해야
-// 한다.)
+// processOutput() and sendPacket() in particular can race, so they must be
+// protected by the Mutex. (That is the MODE-IV case; under MODE-I and
+// MODE-II, processInput() and processCommand() both have to be protected
+// by the Mutex as well.)
 //////////////////////////////////////////////////////////////////////////////
 
 class Creature;
 
 class GamePlayer : public Player, public PaySystem {
 public:
-    // 저장해 놓을 이전 패킷의 개수
+    // Number of previous packets kept.
     const static BYTE nPacketHistorySize = 10;
 
 public:
@@ -67,13 +67,13 @@ public:
     virtual void sendPacket(Packet* packet);
 
     // disconnect
-    // 정식 로그아웃의 경우 disconnect(LOGOUT)
+    // A normal logout calls disconnect(LOGOUT).
     virtual void disconnect(bool bDisconnected = DISCONNECTED);
 
     // get debug string
     virtual string toString() const;
 
-    // 스피드 체크
+    // Speed check.
     virtual bool verifySpeed(Packet* pPacket);
 
     // get creature pointer
@@ -97,11 +97,11 @@ public:
     }
 
     // return recent N-th packet
-    // 최근 전송된 N 번째 패킷을 리턴한다.
+    // Return the N-th most recent packet.
     Packet* getOldPacket(uint prev = 0);
 
     // return recent packet which has packetID
-    // 특정 ID를 가진 패킷 중 가장 최근의 패킷을 리턴한다.
+    // Return the most recent packet carrying the given ID.
     Packet* getOldPacket(PacketID_t packetID);
 
     // get player's status
@@ -119,7 +119,7 @@ public:
     Event* getEvent(Event::EventClass EClass);
     void deleteEvent(Event::EventClass EClass);
 
-    // 패널티 Status 관련 함수
+    // Penalty status functions
     // Set Flag
     void setPenaltyFlag(PenaltyType PenaltyFlag) {
         m_PenaltyFlag.set(PenaltyFlag);
@@ -145,7 +145,7 @@ public:
     void loadSpecialEventCount(void);
     void saveSpecialEventCount(void);
 
-public: // '이미 접속 중'인 경우. 강제 종료를 위해서. by sigi.
+public: // Forced disconnect for the 'already connected' case.
     bool isKickForLogin() const {
         return m_bKickForLogin;
     }
@@ -168,7 +168,6 @@ public: // '이미 접속 중'인 경우. 강제 종료를 위해서. by sigi.
     }
 
 public:
-    // 쩝.
     void setReconnectPacket(GCReconnectLogin* pPacket) {
         SAFE_DELETE(m_pReconnectPacket);
         m_pReconnectPacket = pPacket;
@@ -194,7 +193,7 @@ public:
     }
 
 public:
-    // 패킷 암호화 관련
+    // Packet encryption
     // by sigi. 2002.11.27
     void setEncryptCode();
 
@@ -202,7 +201,7 @@ public:
     void kickPlayer(uint nSeconds, uint KickMessageType);
 
     //////////////////////////////////////////////////
-    // PaySystem 관련
+    // PaySystem
     //////////////////////////////////////////////////
 public:
     bool loginPayPlay(PayType payType, const string& PayPlayDate, int PayPlayHours, uint payPlayFlag, const string& ip,
@@ -257,7 +256,7 @@ private:
 
     BYTE m_VerifyCount;
 
-    // 시간 검증 타임.
+    // Timestamps used to verify speed.
     Timeval m_SpeedVerify;
     Timeval m_MoveSpeedVerify;
     Timeval m_AttackSpeedVerify;
@@ -268,25 +267,25 @@ private:
 
     EventManager m_EventManager;
 
-    // 스페셜 이벤트 관련 카운터
-    // 해골 많이 줍기나, 뭐 그런 종류의 이벤트에 사용될 수 있는 카운터
+    // Counter for special events.
+    // Usable for events such as collecting lots of skulls.
     uint m_SpecialEventCount;
 
-    // '이미 접속 중'에서 강제 종료 시키는 경우
+    // Set when the 'already connected' case forces a disconnect.
     bool m_bKickForLogin;
     string m_KickRequestHost;
     uint m_KickRequestPort;
 
-    // GameServer --> LoginServer로 갈때 사용한다. 으헤헤. by sigi. 2002.6.19
+    // Used when going from the GameServer to the LoginServer.
     GCReconnectLogin* m_pReconnectPacket;
 
     bool m_bFreePass;
 
-    // 각 사용자별 아이템 획득 보너스 확률
+    // Per-player bonus chance for acquiring items.
     int m_ItemRatioBonusPoint;
 
-    Timeval m_PCRoomLottoStartTime; // PC 방 복권 계산용. 적용시작 시간
-    uint m_PCRoomLottoSumTime;      // PC 방 복권 계산용. 누적시간. logoutPayPlay시 저장용
+    Timeval m_PCRoomLottoStartTime; // PC room lottery: time the calculation started
+    uint m_PCRoomLottoSumTime;      // PC room lottery: accumulated time, saved on logoutPayPlay
 
     string m_PacketLogFileName;
     bool m_bPacketLog;
@@ -297,7 +296,7 @@ private:
     VSDateTime m_LoginDateTime;
 
 
-    // add by Coffee 2007-7-15 藤속룐관념죗쇱꿎
+    // Packet sequence check.
 private:
     BYTE m_Sequence;
 };

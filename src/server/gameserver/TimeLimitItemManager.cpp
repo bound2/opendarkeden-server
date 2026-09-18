@@ -41,10 +41,10 @@ void TimeLimitItemManager::load()
     __END_CATCH
 }
 
-// 아이템을 테이블과 비교해서 오브젝트 아이디를 등록해준다.
-// true 가 리턴될 경우 오브젝트 아이디가 등록된다.
-// false 가 리턴될 경우 오브젝트가 아이디가 등록되지 않으므로 m_ItemTimeLimits[pItem->ObjectID()] 는
-// 예외가 발생한다.
+// Compares the item against the table and registers its object id.
+// When true is returned the object id has been registered.
+// When false is returned it has not, so m_ItemTimeLimits[pItem->ObjectID()]
+// throws.
 bool TimeLimitItemManager::registerItem(Item* pItem)
 
 {
@@ -85,8 +85,8 @@ bool TimeLimitItemManager::checkTimeLimit(Item* pItem)
 
     if (itr == m_ItemTimeLimits.end()) {
         if (!registerItem(pItem)) {
-            // 시간제한 아이템이 아니다.
-            // 즉 시간제한 무제한이다. ㅎㅎ
+            // Not a time-limited item,
+            // so its lifetime is unlimited.
             return true;
         }
     }
@@ -95,7 +95,7 @@ bool TimeLimitItemManager::checkTimeLimit(Item* pItem)
     if (currentTime > m_ItemTimeLimits[objectID]) {
         cout << pItem->toString() << " 시간제한 초과 : " << currentTime.toString() << " > "
              << m_ItemTimeLimits[objectID].toString() << endl;
-        // 시간 제한이 지났다.
+        // The time limit has passed.
         return false;
     }
 
@@ -165,7 +165,7 @@ bool TimeLimitItemManager::updateItemTimeLimit(Item* pItem, DWORD time) {
     __END_CATCH
 }
 
-// 반드시 존에 아이템을 등록한 후에 호출해야 한다.
+// Must be called only after the item has been registered in the zone.
 void TimeLimitItemManager::addTimeLimitItem(Item* pItem, DWORD time)
 
 {
@@ -192,7 +192,7 @@ void TimeLimitItemManager::addTimeLimitItem(Item* pItem, DWORD time)
     __END_CATCH
 }
 
-// 메모리에 있는 애는 일단 아직 시간이 남은 넘이다.
+// An entry still in memory is one whose time has not run out yet.
 bool TimeLimitItemManager::changeStatus(Item* pItem, TimeLimitStatus status) {
     __BEGIN_TRY
 
@@ -220,7 +220,7 @@ bool TimeLimitItemManager::changeStatus(Item* pItem, TimeLimitStatus status) {
         filelog("QuestItem.log", "[%u,%u] : 시간제한 아이템을 테이블에서 지웠는데 메모리에 없습니다.",
                 (uint)pItem->getItemClass(), (uint)pItem->getItemID());
 
-    // 위험 -_- ObjectID..... 0이면 뻑난다. 아이템 팔 때는 존 안에 있을때만 부르니까 일단 0일 리가 없다.
+    // An ObjectID of 0 breaks this. Selling an item only happens inside a zone, so it cannot be 0 here.
     ItemTimeLimitMap::iterator itr2 = m_ItemTimeLimits.find(pItem->getObjectID());
 
     if (itr2 != m_ItemTimeLimits.end()) {

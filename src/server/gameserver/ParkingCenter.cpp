@@ -31,7 +31,7 @@ MotorcycleBox::~MotorcycleBox()
     __BEGIN_TRY
 
     if (m_pMotorcycle != NULL) {
-        // m_pZone의 동기화 문제로 인해서 수정했다.
+        // Deleted through m_pZone because of an m_pZone synchronization problem.
         // by sigi. 2002.5.3
         m_pZone->deleteMotorcycle(m_X, m_Y, m_pMotorcycle);
 
@@ -44,7 +44,7 @@ MotorcycleBox::~MotorcycleBox()
         }
         else
         {
-            //cerr << "그 타일엔 오토바이가 없습니다." << endl;
+            //cerr << "There is no motorcycle on that tile." << endl;
         }
 
         GCDeleteObject gcDeleteObject;
@@ -119,9 +119,9 @@ void ParkingCenter::addMotorcycleBox(MotorcycleBox* pMotorcycleBox)
     __END_CATCH
 }
 
-// unordered_map에서 열쇠의 TargetID에 해당하는 오토바이를 지우는 함수이다.
-// 여기서 오토바이 전체를 삭제하게 됨으로 존에서 오토바이를 지운다음.
-// 최종적으로 이 함수를 불러야 할 것이다.
+// Removes the motorcycle matching the key's TargetID from the unordered_map.
+// This deletes the whole motorcycle, so remove the motorcycle from the zone first
+// and call this function last.
 void ParkingCenter::deleteMotorcycleBox(ItemID_t keyTargetID) {
     __BEGIN_TRY
 
@@ -142,12 +142,12 @@ void ParkingCenter::deleteMotorcycleBox(ItemID_t keyTargetID) {
 
     m_Motorcycles.erase(itr);
 
-    // 데드락 문제로 바로 지우지 않는다.
+    // Not deleted right away, to avoid a deadlock.
     // SAFE_DELETE(pMotorcycleBox);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    // 나중에 heartbeat에서 지워준다.
+    // heartbeat() deletes it later.
     if (pMotorcycleBox != NULL) {
         __ENTER_CRITICAL_SECTION(m_MutexRemove)
 
@@ -160,7 +160,7 @@ void ParkingCenter::deleteMotorcycleBox(ItemID_t keyTargetID) {
     __END_CATCH
 }
 
-// 특정 KeyID를 가진 MotorcycleBox가 있는지 확인한다.
+// Checks whether a MotorcycleBox with the given KeyID exists.
 bool ParkingCenter::hasMotorcycleBox(ItemID_t keyTargetID) {
     __BEGIN_TRY
 
@@ -181,7 +181,7 @@ bool ParkingCenter::hasMotorcycleBox(ItemID_t keyTargetID) {
     __END_CATCH
 }
 
-// 열쇠의 TargetID로 오토바이를 찾아서 Return 해주는 함수이다.
+// Finds and returns the motorcycle by the key's TargetID.
 MotorcycleBox* ParkingCenter::getMotorcycleBox(ItemID_t keyTargetID) const {
     __BEGIN_TRY
 
@@ -205,14 +205,14 @@ MotorcycleBox* ParkingCenter::getMotorcycleBox(ItemID_t keyTargetID) const {
 
         return pTempBox;
     } catch (Throwable& t) {
-        // cerr << "아직 찾지 않았거나, 열쇠가 잘못된 오토바이 입니당." << endl;
+        // cerr << "Not found yet, or the key does not match this motorcycle." << endl;
         return NULL;
     }
 
     __END_CATCH
 }
 
-// 이건  ClientManager thread에서 돌아간다.
+// This runs on the ClientManager thread.
 void ParkingCenter::heartbeat()
 
 {

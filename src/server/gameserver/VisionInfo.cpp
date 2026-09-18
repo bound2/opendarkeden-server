@@ -20,12 +20,12 @@ VisionInfo::VisionInfo (Sight_t sight , Dir_t dir)
     m_Sight = sight;
     m_Dir   = dir;
 
-    // 임시 시야 영역
+    // Temporary vision area
     VisionState temp1[maxVisionWidth][maxVisionHeight];
     VisionState temp2[maxVisionWidth][maxVisionHeight];
 
     //--------------------------------------------------------------------------------
-    // temp1, temp2, m_Rect 를 모두 OUT_OF_SIGHT로 초기화한다.
+    // Initialize temp1, temp2 and m_Rect all to OUT_OF_SIGHT.
     //--------------------------------------------------------------------------------
     for (int x = 0 ; x < maxVisionWidth ; x ++) {
         for (int y = 0 ; y < maxVisionHeight ; y ++) {
@@ -33,7 +33,7 @@ VisionInfo::VisionInfo (Sight_t sight , Dir_t dir)
         }
     }
 
-    // 중심점은 (10,11)이 된다.
+    // The center point is (10,11).
 //	int cx = maxViewportWidth + 1;
 //	int cy = maxViewportUpperHeight + 1;
     int cx = maxViewportWidth;
@@ -45,7 +45,7 @@ VisionInfo::VisionInfo (Sight_t sight , Dir_t dir)
     int endy   = min(maxVisionHeight - 1 , cy + m_Sight);
 
     //--------------------------------------------------------------------------------
-    // m_Rect 의 IN_SIGHT, OUT_OF_SIGHT 영역을 지정한다.
+    // Set the IN_SIGHT and OUT_OF_SIGHT areas of m_Rect.
     //--------------------------------------------------------------------------------
     for (int x = 1 ; x < maxVisionWidth - 1 ; x ++) {
         for (int y = 1 ; y < maxVisionHeight - 1 ; y ++) {
@@ -74,7 +74,7 @@ VisionInfo::VisionInfo (Sight_t sight , Dir_t dir)
         case LEFTUP : dx--; dy--; break;
     }
 
-    // 시작과 끝좌표를 주의하라. m_Rect 가 기준이다.
+    // Mind the start and end coordinates. m_Rect is the reference.
     for (int x = 1 ; x < maxVisionWidth - 1 ; x ++) {
         for (int y = 1 ; y < maxVisionHeight - 1 ; y ++) {
             temp1[x+dx][y+dy] = m_Rect[x][y];
@@ -101,10 +101,10 @@ VisionInfo::VisionInfo (Sight_t sight , Dir_t dir)
     }
 
     //--------------------------------------------------------------------------------
-    // m_Rect의 ON_SIGHT 영역을 지정한다.
+    // Set the ON_SIGHT area of m_Rect.
     //
-    // IN_SIGHT 영역중에서, 8방향을 체크해서 1개 이상의 OUT_OF_SIGHT 가 존재할 경우
-    // ON_SIGHT 로 지정한다.
+    // Within the IN_SIGHT area, check the 8 directions; if one or more of them
+    // are OUT_OF_SIGHT, mark it ON_SIGHT.
     //--------------------------------------------------------------------------------
     for (int x = 1 ; x < maxVisionWidth - 1 ; x ++) {
         for (int y = 1 ; y < maxVisionHeight - 1 ; y ++) {
@@ -143,18 +143,18 @@ VisionInfo::VisionInfo (Sight_t sight , Dir_t dir)
 
 //--------------------------------------------------------------------------------
 //
-// Q(cx,cy)에 있는 크리처가 P(x,y)를 볼 수 있는지, 없는지.. 그 상태값을 리턴함.
+// Returns the state value telling whether the creature at Q(cx,cy) can see P(x,y).
 //
-// O(a,b)   - Vision Rectangle 의 중심
-// P(x,y)   - 보고자 하는 오브젝트의 위치
-// Q(cx,cy) - 보는 크리처의 위치
+// O(a,b)   - center of the Vision Rectangle
+// P(x,y)   - position of the object being looked at
+// Q(cx,cy) - position of the watching creature
 //
-// Q를 O로 평행이동한 공식을 사용해서, P를 평행이동한 좌표를 P'(x',y') 이라고 할 때,
+// Translating Q onto O and applying the same shift to P gives P'(x',y'), where
 //
 //		x' = x + a - cx
 //		y' = y + b - cy
 //
-// 가 된다. 그러면, m_Rect[x'][y']의 값을 리턴하면 된다. (당연히 범위체크를 해야쥐)
+// Then the value of m_Rect[x'][y'] is returned (after a range check, naturally).
 //
 //--------------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ VisionState VisionInfo::getVisionState (ZoneCoord_t cx , ZoneCoord_t cy , ZoneCo
     int px = x + (maxViewportWidth + 1) - cx;
     int py = y + (maxViewportUpperHeight + 1) - cy;
 
-    // 평행이동한 좌표의 범위를 체크한다.
+    // Check the range of the translated coordinates.
     if (px >= 0 && px < maxVisionWidth && py >= 0 && py < maxVisionHeight)
         return m_Rect[px][py];
 

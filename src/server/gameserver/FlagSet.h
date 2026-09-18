@@ -15,33 +15,33 @@
 #define FLAG_SIZE_MAX 3 * 8
 
 enum FlagSetType {
-    FLAGSET_RECEIVE_NEWBIE_ITEM,         // 0 - 초보자용 아이템 받은 경우
+    FLAGSET_RECEIVE_NEWBIE_ITEM,         // 0 - received the newbie item
     FLAGSET_RECEIVE_NEWBIE_ITEM_FIGHTER, // 1 - sword, blade
     FLAGSET_RECEIVE_NEWBIE_ITEM_CLERIC,  // 2 - heal, enchant
     FLAGSET_RECEIVE_NEWBIE_ITEM_GUNNER,  // 3 - gun
 
-    FLAGSET_TRADE_GIFT_BOX_2002_12, // 4 - 2002.12 크리스마스 이벤트 빨간 선물 상자 교환 여부
-    FLAGSET_RECEIVE_GREEN_GIFT_BOX, // 5 - 다른 사람으로부터 녹색 선물 상자를 받았나
+    FLAGSET_TRADE_GIFT_BOX_2002_12, // 4 - traded the red gift box of the Christmas event
+    FLAGSET_RECEIVE_GREEN_GIFT_BOX, // 5 - received a green gift box from someone else
 
-    FLAGSET_RECEIVE_NEWBIE_ITEM_AUTO, // 6 - 초보자용 아이템을 자동으로 받아야 하는지
+    FLAGSET_RECEIVE_NEWBIE_ITEM_AUTO, // 6 - should receive the newbie item automatically
 
-    FLAGSET_RECEIVE_PREMIUM_EVENT_ITEM_2003_3, // 7 - 2003.3.1 프리미엄 사용자들에게 선물 준다.
+    FLAGSET_RECEIVE_PREMIUM_EVENT_ITEM_2003_3, // 7 - gift given to premium users
 
-    FLAGSET_IS_COUPLE,  // 7 - 이미 커플인가.
-    FLAGSET_WAS_COUPLE, // 8 - 커플 이었다.		- 2003.3 월 커플이벤트용
+    FLAGSET_IS_COUPLE,  // 7 - already in a couple
+    FLAGSET_WAS_COUPLE, // 8 - was in a couple; used by the couple event
 
-    FLAGSET_NOT_JUST_CREATED, // 9 - 막 생성된 캐릭터가 아닌가.
+    FLAGSET_NOT_JUST_CREATED, // 9 - not a just-created character
 
-    FLAGSET_CLEAR_RANK_BONUS_5,  // 10 - 5 레벨 계급 스킬을 초기화 한 적이 있는가?
-    FLAGSET_CLEAR_RANK_BONUS_10, // 11 - 10 레벨 계급 스킬을 초기화 한 적이 있는가?
-    FLAGSET_CLEAR_RANK_BONUS_15, // 12 - 15 레벨 계급 스킬을 초기화 한 적이 있는가?
-    FLAGSET_CLEAR_RANK_BONUS_20, // 13 - 20 레벨 계급 스킬을 초기화 한 적이 있는가?
+    FLAGSET_CLEAR_RANK_BONUS_5,  // 10 - has the level 5 rank skill ever been reset?
+    FLAGSET_CLEAR_RANK_BONUS_10, // 11 - has the level 10 rank skill ever been reset?
+    FLAGSET_CLEAR_RANK_BONUS_15, // 12 - has the level 15 rank skill ever been reset?
+    FLAGSET_CLEAR_RANK_BONUS_20, // 13 - has the level 20 rank skill ever been reset?
 
-    FLAGSET_GNOMES_HORN, // 14 - 대지정령의 뿔 계약을 맺었는가
+    FLAGSET_GNOMES_HORN, // 14 - has the contract for the earth spirit's horn been made
 
-    FLAGSET_SWAP_COAT,    // 15 - 방어구 상의를 바꿨는거
-    FLAGSET_SWAP_TROUSER, // 16 - 방어구 하의를 바꿨는거
-    FLAGSET_SWAP_WEAPON,  // 17 - 무기를 바꿨는가
+    FLAGSET_SWAP_COAT,    // 15 - swapped the armor coat
+    FLAGSET_SWAP_TROUSER, // 16 - swapped the armor trousers
+    FLAGSET_SWAP_WEAPON,  // 17 - swapped the weapon
 
     FLAGSET_MAX
 };

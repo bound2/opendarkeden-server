@@ -16,8 +16,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // class LoginServerManager;
 //
-// 로그인 서버와의 통신을 전담하는 쓰레드이다.
-// 내부에 데이터그램 서버소켓을 하나 가지고 블로킹 기반으로 동작한다.
+// Thread dedicated to communication with the login server.
+// Holds one datagram server socket internally and works in blocking mode.
 //////////////////////////////////////////////////////////////////////////////
 
 class LoginServerManager : public ManagedThread {
@@ -44,7 +44,7 @@ public:
     }
 
 private:
-    DatagramSocket* m_pDatagramSocket; // UDP 서버 소켓
+    DatagramSocket* m_pDatagramSocket; // UDP server socket
 
     mutable Mutex m_Mutex;
 };

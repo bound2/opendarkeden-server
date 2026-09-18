@@ -18,10 +18,10 @@ const Coord_t maxVisionHeight = maxViewportUpperHeight + maxViewportLowerHeight 
 
 ////////////////////////////////////////////////////////////////////////////////
 // class VisionInfo;
-// P(x,y) 가 시야 레벨이 Sight 이며, 특정 방향(dir)을 바라보는 O(cx,cy) 위치의
-// 크리처가 볼 수 있는지의 여부를 런타임에 계산하지 않고, 이미 계산된 값을 시야
-// 레벨과 방향별 시야 사각형에 저장해두면 시야 체크를 보다 빨리 할 수 있게 된다.
-// 이 클래스는, 이 때 사용되는 시야 사각형을 나타낸다.
+// Whether P(x,y) is visible to a creature at O(cx,cy) with sight level Sight
+// facing direction dir need not be computed at runtime: precomputed values
+// kept in a vision rectangle per sight level and direction make the check
+// much faster. This class represents that vision rectangle.
 ////////////////////////////////////////////////////////////////////////////////
 
 /*class VisionInfo
@@ -35,7 +35,7 @@ public:
         int px = x + (maxViewportWidth) - cx;
         int py = y + (maxViewportUpperHeight) - cy;
 
-        // 평행이동한 좌표의 범위를 체크한다.
+        // Check the range of the translated coordinates.
         if (px >= 0 && px < maxVisionWidth && py >= 0 && py < maxVisionHeight)
             return m_Rect[px][py];
 
@@ -44,15 +44,15 @@ public:
     string toString() const ;
 
 private:
-    // 시야 레벨(0 - 13)
+    // Sight level (0 - 13)
     Sight_t m_Sight;
 
-    // 바라보는 방향
+    // Facing direction
     Dir_t m_Dir;
 
     // viewport rectangle
     VisionState m_Rect[maxVisionWidth][maxVisionHeight];
-    // deprecated. 이 클래스는 더이상 안 쓴다.
+    // deprecated. This class is no longer used.
     VisionInfo(Sight_t sight, Dir_t dir) ;
     ~VisionInfo();
 };
@@ -60,7 +60,7 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 // class VisionInfoManager;
-// 시야 정보를 관리하며, 시야 레벨과 방향을 주면 그에 해당하는 시야 정보를 리턴한다.
+// Manages vision info and returns the entry for a given sight level and direction.
 ////////////////////////////////////////////////////////////////////////////////
 
 class VisionInfoManager {
@@ -100,7 +100,7 @@ public:
     string toString() const;
 
 private:
-    // VisionInfo의 이차원 배열
+    // Two-dimensional array of VisionInfo
     //	VisionInfo *** m_pVisionInfos;
 };
 

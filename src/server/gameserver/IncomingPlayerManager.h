@@ -19,13 +19,13 @@
 //////////////////////////////////////////////////////////////////////////////
 // class IncomingPlayerManager;
 //
-// PlayerManager는 게임 서버에 접속한 전체 플레이어를 담당하며,
-// ZonePlayerManager는 각 존그룹에 종속된 플레이어들을 담당하는 반면,
-// IncomingPlayerManager는 게임 서버와 연결은 이루어졌으나 아직 크리처를
-// 로딩하지 않은 임시적인 상태의 플레이어들을 관리한다.
+// PlayerManager covers every player connected to the game server and
+// ZonePlayerManager covers the players belonging to each zone group, while
+// IncomingPlayerManager manages players that are connected to the game
+// server but whose creature has not been loaded yet.
 //
-// 새로운 접속을 인증한 후, 크리처를 로딩해서 플레이어와 연관시킨다.
-// 크리처가 로딩되면 플레이어 및 크리처를 다른 존그룹으로 넘겨준다.
+// After a new connection is authenticated, the creature is loaded and tied to the player.
+// Once the creature is loaded, the player and the creature are handed to another zone group.
 //////////////////////////////////////////////////////////////////////////////
 
 class IncomingPlayerManager : public PlayerManager {
@@ -40,7 +40,7 @@ public:
     // broadcast packet to all players
     void broadcast(Packet* pPacket);
 
-    // 다음의 메쏘드들은 ZoneThread에 의해서 호출된다.
+    // The following methods are called by the ZoneThread.
 
     // select
     void select();
@@ -91,27 +91,27 @@ public:
 
     void deleteQueuePlayer(GamePlayer* pGamePlayer);
 
-    // 모든 플레이어를 정리한다.
+    // Clear out every player.
     void clearPlayers();
 
 private:
-    // TCP 서버 소켓과 소켓 디스크립터
+    // TCP server socket and socket descriptor
     ServerSocket* m_pServerSocket;
     SOCKET m_SocketID;
 
-    // 소속된 플레이어들의 소켓 디스크립터의 집합이다.
-    // m_XXXXFDs[0]은 저장용이며, m_XXXFDs[1]이 실제로 select()의 파라미터로 사용된다.
-    // 즉 select()하기 전에 [0] -> [1] 로 복사가 이루어져야 한다.
+    // The set of socket descriptors of the players this manager owns.
+    // m_XXXXFDs[0] is the stored copy; m_XXXFDs[1] is what select() is actually given.
+    // So [0] must be copied to [1] before calling select().
     fd_set m_ReadFDs[2];
     fd_set m_WriteFDs[2];
     fd_set m_ExceptFDs[2];
 
-    // select에 사용되는 시간
+    // Time used by select
     Timeval m_Timeout[2];
 
     // min_fd, max_fd
-    // select()후 iterating 할 때 속도 증가를 위해서 사용한다.
-    // 또한 select()의 첫번째 파라미터를 계산하기 위해서 사용한다.
+    // Used to speed up iterating after select().
+    // Also used to compute the first parameter of select().
     SOCKET m_MinFD;
     SOCKET m_MaxFD;
 

@@ -54,24 +54,24 @@ void InfoClassManager::init()
         Ratio_t itemRatio = m_pItemInfos[i]->getRatio();
 
         if (itemRatio > 0) {
-            // item type들의 total ratio를 구한다.
+            // Compute the total ratio of the item types.
             m_TotalRatio += itemRatio;
 
-            // 가격 총합
+            // Sum of the prices
             m_AveragePrice += m_pItemInfos[i]->getPrice();
 
             count++;
         }
     }
 
-    // 가격 평균
+    // Average price
     if (count > 1) {
         m_AveragePrice /= count;
     }
 
     Assert(m_pItemInfos[0] != NULL);
 
-    // 가격 증가치
+    // Price increment
     m_AveragePrice /= 1000;
     m_AveragePrice *= 100;
 
@@ -149,14 +149,14 @@ ItemType_t InfoClassManager::getRandomItemType() const
 {
     __BEGIN_TRY
 
-    // DB에 잘못 들어가있을수도 있으므로 확인해봐야한다.
+    // The DB may hold wrong values, so this has to be checked.
     if (m_TotalRatio == 0 || m_InfoCount == 0)
         return 0;
 
     int gambleRatio = g_pVariableManager->getGambleItemTypeRatio(); // 200%
-    int failRatio = m_pItemInfos[0]->getRatio(); // 0번 아이템의 확률이 실패할 확률이다.
-    int succeedRatio = m_TotalRatio - failRatio; // 0번 아이템을 제외한게 성공할 확률이다.
-    int newTotalRatio = failRatio + getPercentValue(succeedRatio, gambleRatio); // 실패 + 성공*gambleRatio
+    int failRatio = m_pItemInfos[0]->getRatio();                    // The ratio of item 0 is the failure probability.
+    int succeedRatio = m_TotalRatio - failRatio;                    // Everything but item 0 is the success probability.
+    int newTotalRatio = failRatio + getPercentValue(succeedRatio, gambleRatio); // fail + success*gambleRatio
     int itemTypeRatio = rand() % newTotalRatio;
     int ratio;
     int ratioSum = 0;
@@ -168,13 +168,13 @@ ItemType_t InfoClassManager::getRandomItemType() const
         << ", select = " << itemTypeRatio << endl;
     */
 
-    // 0번은 실패로 보고..
+    // Item 0 counts as a failure.
     for (uint i = 0; i <= m_InfoCount; i++) {
         ItemInfo* pInfo = m_pItemInfos[i];
         ratio = pInfo->getRatio();
 
-        // 0이 아닌 경우에만 gambleRatio를 적용한다.
-        // 0은 실패아이템으로 보고.. 나머지만 확률을 증가시킨다.
+        // gambleRatio is applied only when the index is not 0.
+        // Index 0 is the failure item; only the rest have their probability raised.
         if (i != 0) {
             // cout << "[" << i << "] " << ratio;
             ratio = getPercentValue(ratio, gambleRatio);
@@ -189,13 +189,13 @@ ItemType_t InfoClassManager::getRandomItemType() const
         // cout << " , ratioSum/Select = " << ratioSum << "/" << itemTypeRatio << endl;
 
         if (itemTypeRatio < ratioSum) {
-            // i번째 type을 선택한다. 아마 pInfo->getItemType()==i 이겠지만..
+            // Select the i-th type. It is probably pInfo->getItemType()==i.
             return pInfo->getItemType();
         }
     }
 
-    // 이럴 수 있을까?  -_-;
-    // getPercentValue에 따라서... 전체와 각각할때 오차가 있을 수 있으므로 가능하다.
+    // Can this happen?
+    // It can: getPercentValue may round the total differently from each entry.
     return 0;
 
     __END_CATCH

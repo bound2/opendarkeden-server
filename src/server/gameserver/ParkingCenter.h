@@ -59,7 +59,7 @@ public:
         return m_pMotorcycle->getItemID();
     }
 
-    // 다른 zone으로 이동중인 오토바이
+    // The motorcycle is moving to another zone.
     bool isTransport() const {
         return m_bTransport;
     }
@@ -68,15 +68,15 @@ public:
     }
 
 private:
-    // 모토사이클 본체
+    // The motorcycle itself
     Motorcycle* m_pMotorcycle;
 
-    // 현재 모토사이클이 있는 위치
+    // Where the motorcycle currently is
     Zone* m_pZone;
     ZoneCoord_t m_X;
     ZoneCoord_t m_Y;
 
-    // 다른 zone으로 이동 중. by sigi. 2002.5.23
+    // Moving to another zone.
     bool m_bTransport;
 };
 
@@ -92,20 +92,20 @@ public:
 public:
     void addMotorcycleBox(MotorcycleBox* pMotorcycleBox);
 
-    // 여기서 keyID는 열쇠의 TargetID를 뜻한다. 또한 Motorcycle의 ItemID이기도 하다.
+    // keyID here is the key's TargetID, which is also the Motorcycle's ItemID.
     void deleteMotorcycleBox(ItemID_t keyTargetID);
 
-    // 여기서 keyID는 열쇠의 TargetID를 뜻한다. 또한 Motorcycle의 ItemID이기도 하다.
+    // keyID here is the key's TargetID, which is also the Motorcycle's ItemID.
     bool hasMotorcycleBox(ItemID_t keyTargetID);
 
-    // 여기서 keyID는 열쇠의 TargetID를 뜻한다. 또한 Motorcycle의 ItemID이기도 하다.
+    // keyID here is the key's TargetID, which is also the Motorcycle's ItemID.
     MotorcycleBox* getMotorcycleBox(ItemID_t keyTargetID) const;
 
-    // 주로 RemoveMotorcycles를 처리해준다. by sigi. 2003.2.26
+    // Mainly processes RemoveMotorcycles.
     void heartbeat();
 
 private:
-    // 여기서 ItemID_t는 오토바이의 ItemID를 말한다.
+    // ItemID_t here means the motorcycle's ItemID.
     unordered_map<ItemID_t, MotorcycleBox*> m_Motorcycles;
     list<MotorcycleBox*> m_RemoveMotorcycles;
 

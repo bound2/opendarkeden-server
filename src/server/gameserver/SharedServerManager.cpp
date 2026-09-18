@@ -89,9 +89,9 @@ void SharedServerManager::run()
         getCurrentTime(dummyQueryTime);
 
         while (!stopRequested()) {
-            usleep(1000); // FIX: 降低 CPU 占用率
+            usleep(1000); // FIX: reduce CPU usage
 
-            // 연결되어 있지 않다면 연결을 시도한다.
+            // Try to connect if not connected.
             if (m_pSharedServerClient == NULL) {
                 Socket* pSocket = NULL;
 
@@ -119,7 +119,7 @@ void SharedServerManager::run()
 
                     cout << "connection to sharedserver established" << endl;
 
-                    // 길드 정보를 가져오도록 요청한다.
+                    // Request the guild information.
                     GSRequestGuildInfo gsRequestGuildInfo;
                     m_pSharedServerClient->sendPacket(&gsRequestGuildInfo);
                 } catch (Throwable& t) {
@@ -140,12 +140,12 @@ void SharedServerManager::run()
                     }
                     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-                    // 다음 접속시도시간
+                    // Wait before the next connection attempt.
                     usleep(500000);
                 }
             }
 
-            // 소켓이 연결되어 있다면 입출력을 처리한다.
+            // Process I/O if the socket is connected.
             __ENTER_CRITICAL_SECTION(m_Mutex)
 
             if (m_pSharedServerClient != NULL) {
@@ -173,8 +173,8 @@ void SharedServerManager::run()
             if (dummyQueryTime < currentTime) {
                 g_pDatabaseManager->executeDummyQuery(pConnection);
 
-                // 1시간 ~ 1시간 30분 사이에서 dummy query 시간을 설정한다.
-                // timeout이 되지 않게 하기 위해서이다.
+                // Schedule the dummy query between 1 hour and 1 hour 30 minutes out,
+                // so the connection does not time out.
                 dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
             }
         }

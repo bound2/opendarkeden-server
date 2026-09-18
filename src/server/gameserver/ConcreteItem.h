@@ -18,7 +18,7 @@ template <Item::ItemClass IClass, typename StackPolicy = NoStack, typename Durab
           typename EnchantLevelPolicy = HasEnchantLevel>
 class ConcreteItem : public Item {
 public:
-    // 가상 함수 구체화
+    // Concrete implementations of the virtual functions
     ItemClass getItemClass() const {
         return IClass;
     }
@@ -47,7 +47,7 @@ public:
     }
 
 public:
-    // 아이템 쌓기 관련
+    // Stacking
     bool isStackable() const {
         return m_Stack.hasValue();
     }
@@ -60,7 +60,7 @@ public:
     }
 
 public:
-    // 내구도 관련
+    // Durability
     Durability_t getDurability() const {
         return m_Durability.getValue();
     }
@@ -77,7 +77,7 @@ public:
     }
 
 public:
-    // 옵션 관련
+    // Options
     bool hasOptionType() const {
         return m_Option.hasOptionType();
     }
@@ -107,7 +107,7 @@ public:
     }
 
 public:
-    // 아이템 등급 관련
+    // Item grade
     Grade_t getGrade() const {
         return m_Grade.getValue();
     }
@@ -120,7 +120,7 @@ public:
     }
 
 public:
-    // 공격력 관련 속성
+    // Attack attributes
     Damage_t getMinDamage() const {
         return max(1, ((int)getItemInfo()->getMinDamage()) + ((int)getBonusDamage()) + m_Grade.getDamageOffset());
     }
@@ -169,7 +169,7 @@ public:
     }
 
 public:
-    // 방어력 관련 속성
+    // Defense attributes
     Defense_t getDefenseBonus() const {
         return max(0, ((int)getItemInfo()->getDefenseBonus()) + m_Grade.getDefenseOffset());
     }
@@ -178,7 +178,7 @@ public:
     }
 
 public:
-    // 인챈트 레벨
+    // Enchant level
     EnchantLevel_t getEnchantLevel() const {
         return m_EnchantLevel.getValue();
     }

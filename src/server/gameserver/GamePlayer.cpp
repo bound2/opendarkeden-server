@@ -472,7 +472,7 @@ void GamePlayer::processCommand(bool Option) {
                 // CGReady's handler runs on the MAIN thread (this loop, called
                 // from IncomingPlayerManager with Option == false), hands the
                 // player to the zone pipeline and flips the status to
-                // GPS_NORMAL — which opens PacketValidator's PIST_ANY gate.
+                // GPS_NORMAL -- which opens PacketValidator's PIST_ANY gate.
                 // Packets a client pipelined behind CGReady must not keep
                 // draining here: they would dispatch on the main thread and
                 // reach the Zone mutation gateways with no group mutex held

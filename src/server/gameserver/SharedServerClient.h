@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : SharedServerClient.h
 // Written by  : reiot@ewestsoft.com
-// Description : 게임 서버용 플레이어 클래스
+// Description : Player class for the game server
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __SHARED_SERVER_CLIENT_H
@@ -16,13 +16,13 @@
 //////////////////////////////////////////////////////////////////////////////
 // class SharedServerClient
 //
-// 게임 서버용 쉐어드 서버 클라이언트 플레이어
+// Shared server client player for the game server
 //
 //////////////////////////////////////////////////////////////////////////////
 
 class SharedServerClient : public Player {
 public:
-    // 저장해 놓을 이전 패킷의 개수
+    // Number of previous packets to keep
     const static BYTE nPacketHistorySize = 10;
 
 public:

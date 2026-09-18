@@ -24,7 +24,7 @@
 //////////////////////////////////////////////////
 
 //
-// 컨테이너속의 쓰레드 객체가 특정 TID를 갖고 있을 경우 true를 리턴한다.
+// Returns true if the thread object in the container has the given TID.
 //
 class isSameTID {
 public:
@@ -54,7 +54,7 @@ ThreadPool::ThreadPool()
 
 //////////////////////////////////////////////////////////////////////
 // destructor
-// 포함하고 있는 모든 쓰레드 객체를 삭제해야 한다.
+// Must delete every thread object it holds.
 //////////////////////////////////////////////////////////////////////
 ThreadPool::~ThreadPool()
 
@@ -71,7 +71,7 @@ ThreadPool::~ThreadPool()
     {
         Thread* temp = *itr;
 
-        // 쓰레드는 종료한 상태여야 한다.
+        // The thread must already have exited.
         Assert(temp != NULL && temp->getStatus() == Thread::EXIT);
 
         SAFE_DELETE(temp);
@@ -86,9 +86,9 @@ ThreadPool::~ThreadPool()
     list<Thread*>::iterator itr;
 
     while ((itr = m_Threads.begin()) != m_Threads.end()) {
-        // 아직도 리스트에 노드가 남아있다는 뜻이다.
+        // Means nodes are still left in the list.
 
-        // 쓰레드는 종료한 상태여야 한다.
+        // The thread must already have exited.
         Assert(*itr != NULL && (*itr)->getStatus() == Thread::EXIT);
 
         SAFE_DELETE(*itr);
@@ -101,7 +101,7 @@ ThreadPool::~ThreadPool()
 
 
 //////////////////////////////////////////////////////////////////////
-// 쓰레드풀안에 등록된 쓰레드들을 RUNNING 상태로 만든다.
+// Puts the threads registered in the thread pool into the RUNNING state.
 //////////////////////////////////////////////////////////////////////
 void ThreadPool::start()
 
@@ -145,8 +145,8 @@ void ThreadPool::start()
 
 
 //////////////////////////////////////////////////////////////////////
-// 쓰레드풀안에 등록된 모든 쓰레드의 실행을 중단시킨다.
-// (이는 singal 혹은 cancellation 으로 구현해야 하겠다.)
+// Stops every thread registered in the thread pool.
+// (This should be implemented with a signal or cancellation.)
 //////////////////////////////////////////////////////////////////////
 void ThreadPool::stop()
 
@@ -185,7 +185,7 @@ void ThreadPool::stop()
 
 
 //////////////////////////////////////////////////////////////////////
-// 쓰레드풀에 쓰레드 객체를 등록한다.
+// Registers a thread object in the thread pool.
 //////////////////////////////////////////////////////////////////////
 void ThreadPool::addThread(Thread* thread)
 
@@ -197,10 +197,10 @@ void ThreadPool::addThread(Thread* thread)
     //////////////////////////////////////////////////
     std::lock_guard lock(m_Mutex);
 
-    // 쓰레드는 널이 아니어야 한다.
+    // The thread must not be null.
     Assert(thread != NULL);
 
-    // 리스트의 맨 마지막에 쓰레드 객체를 삽입한다.
+    // Insert the thread object at the end of the list.
     m_Threads.push_back(thread);
 
     string msg = "== " + thread->getName() + " added to thread pool";
@@ -215,7 +215,7 @@ void ThreadPool::addThread(Thread* thread)
 
 
 //////////////////////////////////////////////////////////////////////
-// 쓰레드풀에서 특정 쓰레드 객체를 삭제한다.
+// Deletes a specific thread object from the thread pool.
 //////////////////////////////////////////////////////////////////////
 void ThreadPool::deleteThread(TID tid) {
     __BEGIN_TRY
@@ -225,27 +225,27 @@ void ThreadPool::deleteThread(TID tid) {
     //////////////////////////////////////////////////
     std::lock_guard lock(m_Mutex);
 
-    // function object로 특정 TID를 가진 쓰레드 객체가 담긴 노드를 담은
-    // iterator를 찾아낸다.
+    // Use a function object to find the iterator for the node holding
+    // the thread object with the given TID.
     list<Thread*>::iterator itr = find_if(m_Threads.begin(), m_Threads.end(), isSameTID(tid));
 
     if (itr != m_Threads.end()) // found!
     {
-        // 쓰레드 객체를 임시로 저장해둔다.
+        // Keep the thread object temporarily.
         Thread* temp = *itr;
 
-        // 쓰레드는 종료한 상태여야 한다.
-        // 하위 클래스에 Mutex가 존재할 경우, getStatus(), setStatus()는 Mutex로 보호되어야 한다.
+        // The thread must already have exited.
+        // If a subclass has a Mutex, getStatus() and setStatus() must be protected by it.
         Assert(temp != NULL && temp->getStatus() == Thread::EXIT);
 
         StringStream msg;
         msg << "== Thread[" << temp->getTID() << "] has been removed from ThreadPool ==";
         log(LOG_DEBUG_MSG, "", "", msg.toString());
 
-        // 쓰레드 객체를 삭제한다.
+        // Delete the thread object.
         SAFE_DELETE(temp);
 
-        // 노드를 삭제한다.
+        // Delete the node.
         m_Threads.erase(itr);
     } else // not found
     {
@@ -268,7 +268,7 @@ void ThreadPool::deleteThread(TID tid) {
 
 
 //////////////////////////////////////////////////////////////////////
-// 쓰레드풀에서 특정 쓰레드 객체를 찾아서 리턴한다.
+// Finds and returns a specific thread object in the thread pool.
 //////////////////////////////////////////////////////////////////////
 Thread* ThreadPool::getThread(TID tid) {
     __BEGIN_TRY

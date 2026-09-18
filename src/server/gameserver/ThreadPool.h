@@ -29,10 +29,10 @@
 //
 // class ThreadPool
 //
-// 쓰레드 객체들의 컬렉션 클래스이다. 서버 종료시 활동중인 모든 쓰레드들을
-// 중단시킬 때, 쓰레드풀 객체의 Stop메쏘드를 사용하면 된다. 내부적으로
-// 시그널이나 캔슬레이션이 사용될 전망이다. 그런데, 아직은 자료가 없어서
-// 구현을 못하고 있다. ^^;
+// A collection class of thread objects. To stop every running thread when
+// the server shuts down, use the thread pool's stop method. Internally it
+// is expected to use signals or cancellation, but there is no material on
+// that yet, so it is not implemented.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -45,7 +45,7 @@ public:
     ThreadPool();
 
     // destructor
-    // 포함하고 있는 모든 쓰레드 객체를 삭제해야 한다.
+    // Must delete every thread object it holds.
     virtual ~ThreadPool();
 
 
@@ -53,27 +53,27 @@ public:
     // methods
     //////////////////////////////////////////////////
 public:
-    // 쓰레드풀안에 등록된 쓰레드들을 RUNNING 상태로 만든다.
+    // Puts the threads registered in the thread pool into the RUNNING state.
     void start();
 
-    // 쓰레드풀안에 등록된 모든 쓰레드의 실행을 중단시킨다.
-    //(이는 singal 혹은 cancellation 으로 구현해야 하겠다.)
+    // Stops every thread registered in the thread pool.
+    //(This should be implemented with a signal or cancellation.)
     void stop();
 
-    // 쓰레드풀에 쓰레드 객체를 등록한다.
+    // Registers a thread object in the thread pool.
     void addThread(Thread* thread);
 
-    // 쓰레드풀에서 특정 쓰레드 객체를 삭제한다.
+    // Deletes a specific thread object from the thread pool.
     void deleteThread(TID tid);
 
-    // 쓰레드풀에서 특정 쓰레드 객체를 찾아서 리턴한다.
+    // Finds and returns a specific thread object in the thread pool.
     Thread* getThread(TID tid);
 
     // #ifdef __NO_COMBAT__
     list<Thread*> getThreads() {
         std::lock_guard lock(m_Mutex);
         return m_Threads;
-    } // 김경석
+    }
     // #endif
 
     //////////////////////////////////////////////////
@@ -81,9 +81,9 @@ public:
     //////////////////////////////////////////////////
 private:
     //
-    // 쓰레드 객체의 포인터에 대한 리스트
-    // 실제로는 쓰레드 클래스의 하위 클래스가 들어가게 된다.
-    // 일반적으로 같은 종류의 쓰레드들이 등록된다.
+    // List of pointers to thread objects.
+    // In practice subclasses of the Thread class are stored.
+    // Normally threads of the same kind are registered.
     //
     // ex> PlayerThreadPool - PlayerThread
     //     NPCThreadPool    - NPCThread

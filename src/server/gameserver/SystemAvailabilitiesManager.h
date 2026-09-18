@@ -59,7 +59,7 @@ public:
         return m_pAvailabilitiesPacket;
     }
 
-    // 싱글톤이당
+    // Singleton
     static SystemAvailabilitiesManager* getInstance() {
         static SystemAvailabilitiesManager theInstance;
         return &theInstance;
