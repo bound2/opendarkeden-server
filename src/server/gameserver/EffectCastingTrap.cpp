@@ -14,7 +14,7 @@ void EffectCastingIcicleTrap::affect() {
 
         //		cout << "EffectCastingIcicleTrap::affect" << endl;
 
-        // Give up if no spot is found after 100 tries.
+        // Give up if no spot is found within the first 10 tries.
         for (int j = 0; j < 100; ++j) {
             int offset = rand() % m_Length;
             Dir_t dir90 = (m_Dir + 2) % 8;

@@ -225,7 +225,7 @@ public:
         return m_RequireSkills;
     }
 
-    // Skills that must be learned before this one.
+    // Skills that become learnable once this one is learned.
     void addRequiredSkill(SkillType_t skillType) {
         m_RequiredSkills.push_back(skillType);
     }

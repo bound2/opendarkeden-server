@@ -1024,7 +1024,7 @@ string getOptionTypeToString(const list<OptionType_t>& optionTypes) {
 // Rare item: attach the next option?
 //////////////////////////////////////////////////////////////////////////////
 bool isPossibleNextOption(ITEM_TEMPLATE* pTemplate) {
-    // At present only up to two options are attached.
+    // At most four options are attached.
     if (pTemplate->OptionType.size() >= 5)
         return false;
 
@@ -1411,8 +1411,7 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
 
             ReqLevel2 = ReqLevel = pItemInfo->getReqLevel();
 
-            // The level limit must be absent or the level high enough, and
-            // the gender must match.
+            // The level limit must be absent or the level high enough.
             if ((ReqLevel <= 0 || CLevel >= ReqLevel)) {
                 break;
             }
@@ -1844,7 +1843,7 @@ TPOINT checkEventDoll( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY )
     // Doll fragments start at 29
     ItemType_t compType = 29;
 
-    // Check that the ancient document fragments are correctly assembled.
+    // Check that the doll fragments are laid out in order.
     for ( curIY = startY; curIY < startY + 4; curIY++ )
     {
         for ( curIX = startX; curIX < startX + 3; curIX++ )
@@ -2377,7 +2376,6 @@ bool canSell(Item* pItem) {
         return false;
     if (pItem->isFlagItem())
         return false;
-    // Quest items can be sold for 50 won.
     // if ( pItem->isTimeLimitItem() ) return false;
 
     Item::ItemClass itemClass = pItem->getItemClass();
