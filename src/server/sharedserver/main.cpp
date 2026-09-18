@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     try {
         string LogServerIP = g_pConfig->getProperty("LogServerIP");
         int LogServerPort = g_pConfig->getPropertyInt("LogServerPort");
-        g_pLogClient = new LogClient(LogServerIP, LogServerPort);
+        openLogClient(LogServerIP, LogServerPort);
         LogClient::setLogLevel(g_pConfig->getPropertyInt("LogLevel"));
 
         log(LOG_SHAREDSERVER, "", "", "Shared Server Start");

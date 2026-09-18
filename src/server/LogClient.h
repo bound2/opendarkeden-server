@@ -125,7 +125,10 @@ protected:
 // globals
 //////////////////////////////////////////////////////////////////////////////
 
-extern LogClient* g_pLogClient;
+// The process's one log client, owned by LogClient.cpp. openLogClient()
+// creates it; logClient() is null until then.
+void openLogClient(const string& ip, short port);
+LogClient* logClient();
 
 void log(short type, const string& source, const string& target);
 void log(short type, const string& source, const string& target, const string& content);

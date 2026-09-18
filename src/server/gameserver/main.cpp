@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
         string LogServerIP = g_pConfig->getProperty("LogServerIP");
         int LogServerPort = g_pConfig->getPropertyInt("LogServerPort");
         int LogLevel = g_pConfig->getPropertyInt("LogLevel");
-        g_pLogClient = new LogClient(LogServerIP, LogServerPort);
+        openLogClient(LogServerIP, LogServerPort);
         LogClient::setLogLevel(LogLevel);
 
         log(LOG_GAMESERVER, "", "", "Game Server Start");
