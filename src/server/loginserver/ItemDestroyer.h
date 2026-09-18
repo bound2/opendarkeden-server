@@ -21,7 +21,4 @@ public:
     void destroyAll(const string& ownerID);
 };
 
-// global variable declaration
-extern ItemDestroyer* g_pItemDestroyer;
-
 #endif

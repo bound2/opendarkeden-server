@@ -9,6 +9,7 @@
 
 #include "GameServerGroupInfoManager.h"
 #include "GameWorldInfoManager.h"
+#include "LoginContext.h"
 #include "UserInfoManager.h"
 #include "WorldSelection.h"
 
@@ -25,12 +26,12 @@ public:
     }
 
     int serverGroupCount(WorldID_t worldID) override {
-        return g_pGameServerGroupInfoManager->getSize(worldID);
+        return de::loginContext().gameServerGroups().getSize(worldID);
     }
 
     ServerGroupRow serverGroup(ServerGroupID_t groupID, WorldID_t worldID) override {
         GameServerGroupInfo* pGameServerGroupInfo =
-            g_pGameServerGroupInfoManager->getGameServerGroupInfo(groupID, worldID);
+            de::loginContext().gameServerGroups().getGameServerGroupInfo(groupID, worldID);
 
         ServerGroupRow row;
         row.groupID = pGameServerGroupInfo->getGroupID();
@@ -40,7 +41,7 @@ public:
     }
 
     UserNum_t serverGroupUserNum(ServerGroupID_t groupID, WorldID_t worldID) override {
-        return g_pUserInfoManager->getUserInfo(groupID, worldID)->getUserNum();
+        return de::loginContext().userInfos().getUserInfo(groupID, worldID)->getUserNum();
     }
 };
 

@@ -56,7 +56,7 @@ SharedServer::SharedServer() {
     g_pGameServerManager = new GameServerManager();
 
     // create client manager
-    g_pHeartbeatManager = new HeartbeatManager();
+    m_pHeartbeatManager = new HeartbeatManager();
 
     // create GameWorldInfoManager
     g_pGameWorldInfoManager = new GameWorldInfoManager();
@@ -80,7 +80,7 @@ SharedServer::SharedServer() {
 SharedServer::~SharedServer() noexcept(false) {
     __BEGIN_TRY
 
-    SAFE_DELETE(g_pHeartbeatManager);
+    SAFE_DELETE(m_pHeartbeatManager);
     SAFE_DELETE(g_pGameServerManager);
     SAFE_DELETE(g_pPacketValidator);
     SAFE_DELETE(g_pPacketFactoryManager);
@@ -132,7 +132,7 @@ void SharedServer::init() {
 
     // Once everything is ready, initialize the client manager and so
     // be ready for networking.
-    g_pHeartbeatManager->init();
+    m_pHeartbeatManager->init();
 
     __END_CATCH
 }
@@ -160,7 +160,7 @@ void SharedServer::start() {
     // called after it, then unless the loop ends (that is, unless an error occurs)
     // the other managers' processing loops would never run.
     //
-    g_pHeartbeatManager->start();
+    m_pHeartbeatManager->start();
 
     __END_CATCH
 }
@@ -182,7 +182,7 @@ void SharedServer::stop() {
 
     // End the main-thread heartbeat loop first, so nothing new is started.
     ServerShutdown::request();
-    g_pHeartbeatManager->stop();
+    m_pHeartbeatManager->stop();
 
     // Request the stop before joining, then join while every manager the
     // worker uses (config, database, guild manager) is still alive.

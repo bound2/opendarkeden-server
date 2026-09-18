@@ -13,6 +13,7 @@
 
 #include "Assert1.h"
 #include "LCReconnect.h"
+#include "LoginContext.h"
 #include "LoginPlayer.h"
 #include "LoginPlayerManager.h"
 
@@ -34,10 +35,12 @@ void GLIncomingConnectionOKHandler::execute(GLIncomingConnectionOK* pPacket)
 #ifdef __LOGIN_SERVER__
 
         try {
-        // Reach the player object through the player id.
-        __ENTER_CRITICAL_SECTION((*g_pLoginPlayerManager))
+        LoginPlayerManager& loginPlayers = de::loginContext().loginPlayers();
 
-        LoginPlayer* pLoginPlayer = g_pLoginPlayerManager->getPlayer_NOLOCKED(pPacket->getPlayerID());
+        // Reach the player object through the player id.
+        __ENTER_CRITICAL_SECTION(loginPlayers)
+
+        LoginPlayer* pLoginPlayer = loginPlayers.getPlayer_NOLOCKED(pPacket->getPlayerID());
 
         if (pLoginPlayer->getPlayerStatus() == LPS_AFTER_SENDING_LG_INCOMING_CONNECTION) {
             // Tell the client to reconnect the game server.
@@ -59,12 +62,12 @@ void GLIncomingConnectionOKHandler::execute(GLIncomingConnectionOK* pPacket)
         pLoginPlayer->disconnect_nolog(UNDISCONNECTED);
 
         // Remove it from the LPM.
-        g_pLoginPlayerManager->deletePlayer_NOLOCKED(pLoginPlayer->getSocket()->getSOCKET());
+        loginPlayers.deletePlayer_NOLOCKED(pLoginPlayer->getSocket()->getSOCKET());
 
         // Delete the LoginPlayer object.
         SAFE_DELETE(pLoginPlayer);
 
-        __LEAVE_CRITICAL_SECTION((*g_pLoginPlayerManager))
+        __LEAVE_CRITICAL_SECTION(loginPlayers)
     } catch (NoSuchElementException& nsee) {
     }
 

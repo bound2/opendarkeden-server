@@ -210,7 +210,3 @@ void GameServerManager::sendPacket(string host, uint port, DatagramPacket* pPack
     __END_DEBUG
     __END_CATCH
 }
-
-
-// global variable definition
-GameServerManager* g_pGameServerManager = NULL;

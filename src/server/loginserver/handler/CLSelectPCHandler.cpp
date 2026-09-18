@@ -18,6 +18,7 @@
 #include "LCReconnect.h"
 #include "LCSelectPCError.h"
 #include "LGIncomingConnection.h"
+#include "LoginContext.h"
 #include "LoginPlayer.h"
 #include "Properties.h"
 #include "ZoneGroupInfoManager.h"
@@ -36,8 +37,9 @@ public:
     }
 
     ServerID_t zoneServerID(ZoneID_t zoneID) override {
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(zoneID);
-        ZoneGroupInfo* pZoneGroupInfo = g_pZoneGroupInfoManager->getZoneGroupInfo(pZoneInfo->getZoneGroupID());
+        ZoneInfo* pZoneInfo = de::loginContext().zoneInfos().getZoneInfo(zoneID);
+        ZoneGroupInfo* pZoneGroupInfo =
+            de::loginContext().zoneGroupInfos().getZoneGroupInfo(pZoneInfo->getZoneGroupID());
         return pZoneGroupInfo->getServerID();
     }
 };
@@ -145,23 +147,24 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
         // IP in database GameServerInfo table. The outside IP should be used.
         pLoginPlayer->setGameServerIP(pGameServerInfo->getIP());
 
+        GameServerManager& gameServers = de::loginContext().gameServers();
+
         if (g_pConfig->getProperty("User") == "excel96")
-            g_pGameServerManager->sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(),
-                                             &lgIncomingConnection);
+            gameServers.sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(), &lgIncomingConnection);
         else if (g_pConfig->getProperty("User") == "beowulf")
-            g_pGameServerManager->sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
-                                             &lgIncomingConnection);
+            gameServers.sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
+                                   &lgIncomingConnection);
         else if (g_pConfig->getProperty("User") == "crazydog")
-            g_pGameServerManager->sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
-                                             &lgIncomingConnection);
+            gameServers.sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
+                                   &lgIncomingConnection);
         else if (g_pConfig->getProperty("User") == "elcastle") {
             cout << "gameserver ip: " << pGameServerInfo->getIP()
                  << ", port: " << g_pConfig->getPropertyInt("GameServerUDPPort") << endl;
-            g_pGameServerManager->sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
-                                             &lgIncomingConnection);
+            gameServers.sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
+                                   &lgIncomingConnection);
         } else if (g_pConfig->getProperty("User") == "elca")
-            g_pGameServerManager->sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
-                                             &lgIncomingConnection);
+            gameServers.sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
+                                   &lgIncomingConnection);
 
         // The slot the account played last, on the account row; the group
         // on all three race rows of the name.

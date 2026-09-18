@@ -11,6 +11,7 @@
 
 #ifdef __LOGIN_SERVER__
 #include "Assert1.h"
+#include "LoginContext.h"
 #include "LoginPlayer.h"
 #include "LoginPlayerManager.h"
 #endif
@@ -38,7 +39,9 @@ void GLIncomingConnectionErrorHandler::execute(GLIncomingConnectionError* pPacke
         // In short, this indicates the login server could not accept the incoming
         // request. The most likely reason is a timeout while reading the handshake.
         try {
-        LoginPlayer* pLoginPlayer = g_pLoginPlayerManager->getPlayer(pPacket->getPlayerID());
+        LoginPlayerManager& loginPlayers = de::loginContext().loginPlayers();
+
+        LoginPlayer* pLoginPlayer = loginPlayers.getPlayer(pPacket->getPlayerID());
 
         Assert(pLoginPlayer->getPlayerStatus() == LPS_AFTER_SENDING_LG_INCOMING_CONNECTION);
 
@@ -48,7 +51,7 @@ void GLIncomingConnectionErrorHandler::execute(GLIncomingConnectionError* pPacke
         pLoginPlayer->disconnect(UNDISCONNECTED);
 
         // Remove it from the LPM.
-        g_pLoginPlayerManager->deletePlayer(pLoginPlayer->getSocket()->getSOCKET());
+        loginPlayers.deletePlayer(pLoginPlayer->getSocket()->getSOCKET());
 
         // Delete the LoginPlayer object.
         SAFE_DELETE(pLoginPlayer);

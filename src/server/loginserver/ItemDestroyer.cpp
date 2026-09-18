@@ -34,5 +34,3 @@ void ItemDestroyer::destroyAll(const string& ownerID) {
 
     __END_CATCH
 }
-
-ItemDestroyer* g_pItemDestroyer = NULL;

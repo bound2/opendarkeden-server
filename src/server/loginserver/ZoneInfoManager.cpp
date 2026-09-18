@@ -172,6 +172,3 @@ string ZoneInfoManager::toString() const {
 
     __END_CATCH
 }
-
-// global variable definition
-ZoneInfoManager* g_pZoneInfoManager = NULL;

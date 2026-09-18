@@ -16,6 +16,7 @@
 #include "Types.h"
 
 class LoginPlayer;
+class ReconnectLoginInfoManager;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -115,9 +116,10 @@ private:
     // player array, so a race condition is quite
     // likely.
     mutable Mutex m_Mutex;
-};
 
-// external variable declaration
-extern LoginPlayerManager* g_pLoginPlayerManager;
+    // Owned here and registered on de::loginContext(), which is how the
+    // packet handlers reach it.
+    ReconnectLoginInfoManager* m_pReconnectLoginInfoManager = nullptr;
+};
 
 #endif

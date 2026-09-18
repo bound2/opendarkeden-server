@@ -18,6 +18,8 @@
 #include "Exception.h"
 #include "Types.h"
 
+class HeartbeatManager;
+
 //////////////////////////////////////////////////////////////////////
 //
 // class SharedServer
@@ -46,6 +48,9 @@ public:
 
 private:
     bool m_Stopped = false;
+
+    // Nothing outside this class reads it.
+    HeartbeatManager* m_pHeartbeatManager = nullptr;
 };
 
 #endif

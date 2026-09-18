@@ -18,6 +18,14 @@
 #include "Exception.h"
 #include "Types.h"
 
+class ClientManager;
+class GameServerGroupInfoManager;
+class GameServerManager;
+class ItemDestroyer;
+class UserInfoManager;
+class ZoneGroupInfoManager;
+class ZoneInfoManager;
+
 //////////////////////////////////////////////////////////////////////
 //
 // class LoginServer
@@ -46,6 +54,17 @@ public:
 
 private:
     bool m_Stopped = false;
+
+    // The managers the login server owns. Each is registered on
+    // de::loginContext() as it is created, except the two nothing outside
+    // this class reads.
+    GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
+    ZoneInfoManager* m_pZoneInfoManager = nullptr;
+    ZoneGroupInfoManager* m_pZoneGroupInfoManager = nullptr;
+    GameServerManager* m_pGameServerManager = nullptr;
+    ClientManager* m_pClientManager = nullptr;
+    ItemDestroyer* m_pItemDestroyer = nullptr;
+    UserInfoManager* m_pUserInfoManager = nullptr;
 };
 
 #endif

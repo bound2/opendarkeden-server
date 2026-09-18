@@ -97,7 +97,3 @@ void HeartbeatManager::run() {
 
     __END_CATCH
 }
-
-
-// global variable definition
-HeartbeatManager* g_pHeartbeatManager = NULL;

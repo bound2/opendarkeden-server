@@ -12,6 +12,7 @@
 
 #ifdef __LOGIN_SERVER__
 #include "Assert1.h"
+#include "LoginContext.h"
 #include "UserInfoManager.h"
 #endif
 
@@ -36,7 +37,7 @@ void GMServerInfoHandler::execute(GMServerInfo* pPacket)
     ServerGroupID_t ServerGroupID = pPacket->getServerID();
     BYTE MaxCount = pPacket->getZoneUserCount();
 
-    UserInfo* pUserInfo = g_pUserInfoManager->getUserInfo(ServerGroupID, WorldID);
+    UserInfo* pUserInfo = de::loginContext().userInfos().getUserInfo(ServerGroupID, WorldID);
 
     pUserInfo->setUserNum(0);
     Assert(pUserInfo != NULL);

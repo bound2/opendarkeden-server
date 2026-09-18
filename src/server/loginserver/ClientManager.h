@@ -13,6 +13,8 @@
 #include "Exception.h"
 #include "Types.h"
 
+class LoginPlayerManager;
+
 //////////////////////////////////////////////////////////////////////
 //
 // class ClientManager;
@@ -24,10 +26,8 @@
 // so it need not inherit Thread. Its structure and role are nonetheless
 // similar to the other classes that do inherit Thread.
 //
-// *NOTES*
-//
-// LoginPlayerManager could be a data member of ClientManager, but it has to
-// be a global variable so packet handlers can reach it easily.
+// It owns the LoginPlayerManager and registers it on de::loginContext(),
+// which is how the packet handlers reach it.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -50,9 +50,9 @@ public:
 
     // The client manager's main method
     void run();
-};
 
-// external variable declaration
-extern ClientManager* g_pClientManager;
+private:
+    LoginPlayerManager* m_pLoginPlayerManager = nullptr;
+};
 
 #endif

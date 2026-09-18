@@ -15,6 +15,7 @@
 #include "GameServerManager.h"
 #include "LGIncomingConnectionError.h"
 #include "LGIncomingConnectionOK.h"
+#include "LoginContext.h"
 #include "ReconnectLoginInfo.h"
 #include "ReconnectLoginInfoManager.h"
 
@@ -86,7 +87,7 @@ void GLIncomingConnectionHandler::execute(GLIncomingConnection* pPacket)
 
     try {
         // Add it to the RLIM.
-        g_pReconnectLoginInfoManager->addReconnectLoginInfo(pReconnectLoginInfo);
+        de::loginContext().reconnectLogins().addReconnectLoginInfo(pReconnectLoginInfo);
 
         // Tell the login server about it again.
         LGIncomingConnectionOK lgIncomingConnectionOK;
@@ -94,7 +95,7 @@ void GLIncomingConnectionHandler::execute(GLIncomingConnection* pPacket)
         lgIncomingConnectionOK.setTCPPort(g_pConfig->getPropertyInt("LoginServerPort"));
         lgIncomingConnectionOK.setKey(authKey);
 
-        g_pGameServerManager->sendPacket(pPacket->getHost(), pPacket->getPort(), &lgIncomingConnectionOK);
+        de::loginContext().gameServers().sendPacket(pPacket->getHost(), pPacket->getPort(), &lgIncomingConnectionOK);
     } catch (DuplicatedException&) {
         // On failure, discard the CI and report the rejection to the peer.
         SAFE_DELETE(pReconnectLoginInfo);
@@ -107,7 +108,7 @@ void GLIncomingConnectionHandler::execute(GLIncomingConnection* pPacket)
         lgIncomingConnectionError.setMessage("duplicated incoming connection");
         lgIncomingConnectionError.setPlayerID(pPacket->getPlayerID());
 
-        g_pGameServerManager->sendPacket(pPacket->getHost(), pPacket->getPort(), &lgIncomingConnectionError);
+        de::loginContext().gameServers().sendPacket(pPacket->getHost(), pPacket->getPort(), &lgIncomingConnectionError);
     }
 
 #endif

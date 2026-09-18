@@ -197,6 +197,3 @@ string UserInfoManager::toString() const noexcept(false) {
 
     __END_CATCH
 }
-
-// global variable definition
-UserInfoManager* g_pUserInfoManager = NULL;

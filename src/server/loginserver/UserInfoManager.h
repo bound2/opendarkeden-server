@@ -68,7 +68,4 @@ private:
 };
 
 
-// global variable declaration
-extern UserInfoManager* g_pUserInfoManager;
-
 #endif

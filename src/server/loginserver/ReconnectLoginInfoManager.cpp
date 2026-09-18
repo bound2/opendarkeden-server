@@ -172,7 +172,3 @@ string ReconnectLoginInfoManager::toString() const {
 
     return msg.toString();
 }
-
-
-// global variable definition
-ReconnectLoginInfoManager* g_pReconnectLoginInfoManager = NULL;

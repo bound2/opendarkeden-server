@@ -66,7 +66,4 @@ private:
 };
 
 
-// global variable declaration
-extern ZoneGroupInfoManager* g_pZoneGroupInfoManager;
-
 #endif
