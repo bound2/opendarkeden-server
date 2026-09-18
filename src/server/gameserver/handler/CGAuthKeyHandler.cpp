@@ -34,21 +34,7 @@ void CGAuthKeyHandler::execute(CGAuthKey* pPacket, Player* pPlayer)
     Assert(pGamePlayer != NULL);
 
     DWORD key = pPacket->getKey();
-    // 	if ( !pGamePlayer->getCSAuth().CheckAuthDword(key) )
-    // 	{
-    // 		filelog("CSAuth.log", "[%s] The authentication value is wrong.", pGamePlayer->getID().c_str());
 
-    // 		GCSystemMessage gcSystemMessage;
-    // 		gcSystemMessage.setMessage("nProtect GameGuard authentication failed. The executable is wrong or the GameGuard files are damaged.");
-    // 		pGamePlayer->sendPacket( &gcSystemMessage );
-
-    // 		EventKick* pKick = new EventKick( pGamePlayer );
-    // 		pKick->setDeadline(100);
-    // //		pKick->setMessage("The GameGuard authentication code is wrong. The connection closes in 10 seconds.");
-    // 		pKick->sendMessage();
-
-    // 		pGamePlayer->addEvent(pKick);
-    // 	}
 
 #endif
 

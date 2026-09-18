@@ -63,8 +63,6 @@ void GameServerInfoManager::init() {
 void GameServerInfoManager::load() {
     __BEGIN_TRY
 
-    // clear GameServerInfos
-    // clear();
 
     ServerInfoRepository& repo = defaultServerInfoRepository();
 
@@ -203,35 +201,6 @@ void GameServerInfoManager::deleteGameServerInfo(const ServerID_t ServerID, cons
     __END_CATCH
 }
 
-/*
-//----------------------------------------------------------------------
-// get info
-//----------------------------------------------------------------------
-GameServerInfo * GameServerInfoManager::getGameServerInfo (const string & nickname) const
-
-{
-    __BEGIN_TRY
-
-    GameServerInfo * pGameServerInfo = NULL;
-
-    HashMapGameServerInfo::const_iterator itr = m_pGameServerInfos.find(nickname);
-
-    if (itr != m_pGameServerInfos.end()) {
-
-        pGameServerInfo = itr->second;
-
-    } else {
-
-        // When no such game server info object could be found
-        throw NoSuchElementException(nickname);
-
-    }
-
-    return pGameServerInfo;
-
-    __END_CATCH
-}
-*/
 
 GameServerInfo* GameServerInfoManager::getGameServerInfo(const ServerID_t ServerID, const ServerGroupID_t ServerGroupID,
                                                          WorldID_t WorldID) const {

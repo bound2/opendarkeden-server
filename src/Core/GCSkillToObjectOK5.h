@@ -82,12 +82,6 @@ public:
         m_SkillType = SkillType;
     }
 
-    /*
-        // get / set Target X,Y
-        Coord_t getTargetX() const  { return m_TargetX; }
-        Coord_t getTargetY() const  { return m_TargetY; }
-        void setTargetXY(Coord_t X, Coord_t Y)  { m_TargetX = X; m_TargetY = Y; }
-    */
 
     // get / set Duration
     Duration_t getDuration() const {

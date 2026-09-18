@@ -33,8 +33,6 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
 
 #ifdef __GAME_SERVER__
 
-        // Ignored
-        //	return;
         throw DisconnectException("Money cannot be dropped.");
 
     Assert(pPacket != NULL);
@@ -99,14 +97,11 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
         // Drop the money in the zone.
         TPOINT pt = pZone->addItem(pItem, ZoneX, ZoneY);
         if (pt.x != -1) {
-            // pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
-            //  Item save optimization.
             char pField[80];
             sprintf(pField, "OwnerID='', Storage=%d, StorageID=%u, X=%d, Y=%d", STORAGE_ZONE, pZone->getZoneID(), pt.x,
                     pt.y);
             pItem->tinysave(pField);
 
-            // pItem->create("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
 
             // Leave a money log if the amount warrants one
             if (amount >= g_pVariableManager->getMoneyTraceLogLimit()) {
@@ -114,23 +109,11 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
                 sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), ZoneX, ZoneY);
                 remainMoneyTraceLog(pPC->getName(), zoneName, ITEM_LOG_MOVE, DETAIL_DROP, amount);
             }
-
-
-            // log(LOG_DROP_MONEY, pPC->getName(), "", pItem->toString());
         } else {
-            // log(LOG_DROP_MONEY, pPC->getName(), "", "CANNOT DROP! : " + pItem->toString());
-
-            // cout << "#############################################" << endl;
-            // cout << "# CRITICAL ERROR! CANNOT ADD MONEY TO ZONE! #" << endl;
-            // cout << "#############################################" << endl;
-
             SAFE_DELETE(pItem);
             return;
         }
 
-        // Take the money from the player.
-        // if (pPC->isSlayer())       pSlayer->setGoldEx(pSlayer->getGold() - amount);
-        // else if (pPC->isVampire()) pVampire->setGoldEx(pVampire->getGold() - amount);
 
         // by sigi. 2002.9.4
         if (pPC->isSlayer())
@@ -139,9 +122,7 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
             pVampire->decreaseGoldEx(amount);
         else if (pPC->isOusters())
             pOusters->decreaseGoldEx(amount);
-
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
 #endif // __GAME_SERVER__

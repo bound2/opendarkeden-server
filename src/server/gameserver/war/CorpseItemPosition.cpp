@@ -117,7 +117,6 @@ Item* CorpseItemPosition::getItem_CORE(Zone* pZone, bool isDel)
                     TPOINT tp = pZone->addItem(pGemStone, pMonsterCorpse->getX(), pMonsterCorpse->getY());
 
                     pGemStone->create("", STORAGE_ZONE, pZone->getZoneID(), tp.x, tp.y);
-                    //					pGemStone->setFlag( Effect::EFFECT_CLASS_DROP_FORCE );
                     pGemStone->setFlag(
                         (Effect::EffectClass)(Effect::EFFECT_CLASS_SLAYER_ONLY + (int)g_pFlagManager->getWinnerRace()));
 

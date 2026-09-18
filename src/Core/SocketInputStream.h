@@ -92,16 +92,6 @@ public:
         return 0;
     }
 
-    /*	uint read (bool   & buf)  { return read((char*)&buf, szbool  ); }
-        uint read (char   & buf)  { return read((char*)&buf, szchar  ); }
-        uint read (uchar  & buf)  { return read((char*)&buf, szuchar ); }
-        uint read (short  & buf)  { return read((char*)&buf, szshort ); }
-        uint read (ushort & buf)  { return read((char*)&buf, szushort); }
-        uint read (int    & buf)  { return read((char*)&buf, szint   ); }
-        uint read (uint   & buf)  { return read((char*)&buf, szuint  ); }
-        uint read (long   & buf)  { return read((char*)&buf, szlong  ); }
-        uint read (ulong  & buf)  { return read((char*)&buf, szulong ); }
-    */
     // peek data from stream (input buffer). Same split as read() above.
     bool peek(std::span<std::byte> dst);
     bool peek(char* buf, uint len);
@@ -185,8 +175,6 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 inline uint SocketInputStream::read(std::span<std::byte> dst) {
-    //	__BEGIN_TRY
-
     char* buf = reinterpret_cast<char*>(dst.data());
     const uint len = (uint)dst.size();
 
@@ -209,7 +197,6 @@ inline uint SocketInputStream::read(std::span<std::byte> dst) {
         //
 
         memcpy(buf, &m_Buffer[m_Head], len);
-
     } else { // reversed order ( m_Head > m_Tail )
 
         //
@@ -230,8 +217,6 @@ inline uint SocketInputStream::read(std::span<std::byte> dst) {
     m_Head = (m_Head + len) % m_BufferLen;
 
     return len;
-
-    //	__END_CATCH
 }
 
 

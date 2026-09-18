@@ -150,8 +150,6 @@ void SGQuitGuildOKHandler::execute(SGQuitGuildOK* pPacket)
         Player* pPlayer = pCreature->getPlayer();
         Assert(pPlayer != NULL);
 
-        //		StringStream msg;
-        //		msg << memberName << " left the guild.";
 
         char msg[100];
         if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)

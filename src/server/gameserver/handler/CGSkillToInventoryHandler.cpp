@@ -67,10 +67,6 @@ void CGSkillToInventoryHandler::execute(CGSkillToInventory* pPacket, Player* pPl
                 if (!isAbleToUseInventorySkill(pSlayer, X, Y, TX, TY))
                     bSuccess = false;
             }
-            /*			if (pSlayer->isFlag(Effect::EFFECT_CLASS_SNIPING_MODE))
-                        {
-                            g_Sniping.checkRevealRatio(pSlayer, 20, 10);
-                        } */
 
             if (bSuccess) {
                 SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
@@ -91,20 +87,6 @@ void CGSkillToInventoryHandler::execute(CGSkillToInventory* pPacket, Player* pPl
             if (!isAbleToUseInventorySkill(pVampire, X, Y, TX, TY))
                 bSuccess = false;
 
-            /*			if (pVampire->isFlag(Effect::EFFECT_CLASS_INVISIBILITY))
-                        {
-                            addVisibleCreature(pZone, pVampire, true);
-                        }
-
-                        if (pVampire->isFlag(Effect::EFFECT_CLASS_EXTREME))
-                        {
-                            EffectManager * pEffectManager = pVampire->getEffectManager();
-                            Assert( pEffectManager != NULL );
-                            Effect * pEffect = pEffectManager->findEffect( Effect::EFFECT_CLASS_EXTREME );
-                            if ( pEffect != NULL ) {
-                                pEffect->setDeadline(0);
-                            }
-                        } */
 
             if (bSuccess) {
                 SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);

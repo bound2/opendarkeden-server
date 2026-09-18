@@ -70,8 +70,6 @@ public:
 class VSRect {
 public:
     VSRect(int l = 0, int t = 0, int r = 0, int b = 0) {
-        // Assert(l <= r && t <= b);
-
         left = l;
         top = t;
         right = r;
@@ -91,8 +89,6 @@ public:
     }
 
     void set(int l, int t, int r, int b) {
-        // Assert(l <= r && t <= b);
-
         left = l;
         top = t;
         right = r;

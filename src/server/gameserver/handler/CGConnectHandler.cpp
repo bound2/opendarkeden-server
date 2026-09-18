@@ -309,8 +309,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
     bool bAlreadyConnected = false;
 
-    // try
-    //{
     if (pPacket->getPCType() == PC_SLAYER) {
         pSlayer = new Slayer();
         pSlayer->setName(pPacket->getPCName());
@@ -322,9 +320,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             throw ProtocolException("Failed to load SLAYER data from DB");
         }
 
-        // Checked below because of items that apply only in a pay zone
-        // pSlayer->loadItem();
-        // Assert(pSlayer->getName() == pPacket->getPCName());
         if (pSlayer->getName() != pPacket->getPCName()) {
             cout << "Different Name : " << pSlayer->getName().c_str() << ", " << pPacket->getPCName().c_str() << endl;
 
@@ -333,8 +328,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
         pGamePlayer->setCreature(pSlayer);
 
-        // Register the Slayer with the TelephoneCenter.
-        // g_pTelephoneCenter->addSlayer(pSlayer);
 
         // Add the periodic recovery event to the player object.
         // Ten-second recovery is the rule here.
@@ -371,7 +364,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
                         // DB update
                         { defaultSessionRepository().markGuildMemberLoggedOn(pSlayer->getName()); }
-
                     } catch (DuplicatedException& t) {
                         // Ignore it for now.
                         filelog("guildBug.log", "%s", t.toString().c_str());
@@ -391,8 +383,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             throw ProtocolException("Failed to VAMPIRE data from DB");
         }
 
-        // Checked below because of items that apply only in a pay zone
-        // pVampire->loadItem();
         Assert(pVampire->getName() == pPacket->getPCName());
 
         pGamePlayer->setCreature(pVampire);
@@ -451,8 +441,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             throw ProtocolException("Failed to VAMPIRE data from DB");
         }
 
-        // Checked below because of items that apply only in a pay zone
-        // pVampire->loadItem();
         Assert(pOusters->getName() == pPacket->getPCName());
         // filelog("Ousters.txt","CGConectHandler.cpp 0,HP:%d,MAXHP:%d,MP:%d,MAXMP:%d",  (int)pOusters->getHP(
         // ATTR_CURRENT), (int)pOusters->getHP(ATTR_MAX),(int)pOusters->getMP(ATTR_CURRENT),
@@ -505,7 +493,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             }
         }
     }
-    //}
 
     cout << " ¿©±â´Â µÇ³ª¿ä2" << endl;
 
@@ -588,14 +575,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     pGamePlayer->setPremiumPlay();
 
     // test code
-    /*
-    // Broadcasts some message right after login.
-    EventSystemMessage* pESM = new EventSystemMessage( pGamePlayer );
-    pESM->setDeadline( 0 );
-    pESM->addMessage("This is a test system message");
-    pESM->addMessage("Hoping it prints properly..");
-    pGamePlayer->addEvent( pESM );
-    */
 
     // Checked here because of items that apply only in a pay zone
     // 2002.8.26. by sigi
@@ -677,19 +656,12 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     // The Zone must already be set by Creature::load().
     pCreature->registerObject();
 
-    // Add the periodic save event to the player object.
-    // Ten-minute saving is the rule here.
-    // (note that setDeadline's parameter is in 0.1 seconds)
-    // EventSave* pEventSave = new EventSave(pGamePlayer);
-    // pEventSave->setDeadline(600* 10);
-    // pGamePlayer->addEvent(pEventSave);
 
 #ifdef __USE_ENCRYPTER__
     // Register the encryption code. It uses the objectID for now.
     pGamePlayer->setEncryptCode();
 #endif
 
-    //	pGamePlayer->sendPacket( SystemAvailabilitiesManager::getInstance()->getAvailabilitiesPacket() );
     SEND_SYSTEM_AVAILABILITIES(pGamePlayer);
 
     //----------------------------------------------------------------------

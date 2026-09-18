@@ -130,7 +130,6 @@ void CGModifyNicknameHandler::execute(CGModifyNickname* pPacket, Player* pPlayer
             return;
         }
 
-        //			pPC->removeFlag(Effect::EFFECT_CLASS_CAN_MODIFY_NICKNAME_0);
         pNickname->setNickname(pPacket->getNickname());
 
         pPC->getNicknameBook()->repository().updateNickname(pPC->getName(), pNickname->getNicknameID(),

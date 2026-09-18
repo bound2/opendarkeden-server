@@ -72,16 +72,6 @@ Item* InventoryItemPosition::popItem_UNLOCKED()
 
     pItem = popItem_CORE(pPC);
 
-    /*
-    if ( pItem->getItemClass() == Item::ITEM_CLASS_BLOOD_BIBLE )
-    {
-        GCAddEffect gcAddEffect;
-        gcAddEffect.setEffectID( Effect::EFFECT_CLASS_WARP_BLOOD_BIBLE_FROM_ME );
-        gcAddEffect.setObjectID( pPC->getObjectID() );
-
-        pPC->getZone()->broadcastPacket( pPC->getX(), pPC->getY(), &gcAddEffect );
-    }
-    */
 
     __LEAVE_CRITICAL_SECTION((*pZone))
 

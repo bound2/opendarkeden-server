@@ -105,9 +105,7 @@ void CGSayHandler::execute(CGSay* pPacket, Player* pPlayer) {
             // isVampire);
             pCreature->getZone()->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcSay, pCreature);
         }
-
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
 #endif

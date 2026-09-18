@@ -235,7 +235,5 @@ void GCWarList::operator=(const GCWarList& WL) {
         }
 
         addWarInfo(pNewWarInfo);
-        //		cout << "GCWarList::operator = New ()" << pNewWarInfo->getStartTime() << endl;
-        //		cout << "GCWarList::operator = Ori ()" << pWarInfo->getStartTime() << endl;
     }
 }

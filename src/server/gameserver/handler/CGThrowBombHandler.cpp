@@ -144,22 +144,10 @@ void CGThrowBombHandler::execute(CGThrowBomb* pPacket, Player* pPlayer)
         // If the item is null or not a bomb...
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_BOMB) {
             GCSkillFailed1 _GCSkillFailed1;
-            //_GCSkillFailed1.setSkillType(SKILL_THROW_BOMB);
             pPlayer->sendPacket(&_GCSkillFailed1);
             return;
         }
 
-        /*
-        // 6 is an arbitrary throwing range...
-        // What should happen when a throw goes beyond the range?
-        if (!verifyDistance(pSlayer, ZoneX, ZoneY, 6))
-        {
-            GCSkillFailed1 _GCSkillFailed1;
-            //_GCSkillFailed1.setSkillType(SKILL_THROW_BOMB);
-            pPlayer->sendPacket(&_GCSkillFailed1);
-            return;
-        }
-        */
 
         // Get the bomb's various information.
         Bomb* pBomb = dynamic_cast<Bomb*>(pItem);
@@ -196,7 +184,6 @@ void CGThrowBombHandler::execute(CGThrowBomb* pPacket, Player* pPlayer)
         if (bManaCheck && bTimeCheck && bRangeCheck) {
         } else {
             GCSkillFailed1 _GCSkillFailed1;
-            //_GCSkillFailed1.setSkillType(SKILL_THROW_BOMB);
             pPlayer->sendPacket(&_GCSkillFailed1);
             return;
         }
@@ -289,8 +276,6 @@ void CGThrowBombHandler::execute(CGThrowBomb* pPacket, Player* pPlayer)
             // 2003. 1. 12 by bezz
             if (pSkillSlot->canUse())
                 increaseSkillExp(pSlayer, SKILL_DOMAIN_GUN, pSkillSlot, pSkillInfo, _GCThrowBombOK1);
-            //			increaseAlignment(pSlayer, SKILL_DOMAIN_GUN, _GCThrowBombOK1);
-            // shareAttrExp(pSlayer, RealDamage, 1, 8, 1, _GCSkillToTileOK1);
             // A packet should be sent here..
         }
 

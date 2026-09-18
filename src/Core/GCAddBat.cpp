@@ -21,9 +21,6 @@ void GCAddBat::read(SocketInputStream& iStream)
 
     de::wire::readString(iStream, m_Name, {1, 20}, "Name");
 
-    // iStream.read(m_SpriteType);
-    // iStream.read(m_MainColor);
-    // iStream.read(m_SubColor);
 
     iStream.read(m_ItemType);
     iStream.read(m_X);
@@ -46,9 +43,6 @@ void GCAddBat::write(SocketOutputStream& oStream) const
 
     de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
 
-    // oStream.write(m_SpriteType);
-    // oStream.write(m_MainColor);
-    // oStream.write(m_SubColor);
 
     oStream.write(m_ItemType);
     oStream.write(m_X);

@@ -103,7 +103,6 @@ void CGAddGearToMouseHandler::execute(CGAddGearToMouse* pPacket, Player* pPlayer
             pPlayer->sendPacket(&_GCCannotAdd);
         }
     } catch (Throwable& t) {
-        // cerr << t.toString();
     }
 
 #endif // __GAME_SERVER__

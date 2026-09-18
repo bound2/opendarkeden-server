@@ -44,8 +44,6 @@ uint WaitForMeet::waitPartner(PlayerCreature* pTargetPC) {
         return result;
 
     GCSystemMessage gcSystemMessage;
-    //	StringStream msg;
-    //	msg << pWaitingPC->getName() << " sent a couple request.";
 
     char msg[100];
     sprintf(msg, g_pStringPool->c_str(STRID_REQUEST_MEET), pWaitingPC->getName().c_str());
@@ -95,11 +93,6 @@ uint WaitForMeet::acceptPartner(PlayerCreature* pRequestedPC) {
     pNewItem1->setPartnerItemID(pNewItem2->getItemID());
     pNewItem2->setPartnerItemID(pNewItem1->getItemID());
 
-    //	ItemNameInfo *pRequestedPCItemNameInfo = new ItemNameInfo( pNewItem1->getObjectID(), pWaitingPC->getName() );
-    //	ItemNameInfo *pWaitingPCItemNameInfo = new ItemNameInfo( pNewItem2->getObjectID(), pRequestedPC->getName() );
-
-    //	pRequestedPC->addItemNameInfoList( pRequestedPCItemNameInfo );
-    //	pWaitingPC->addItemNameInfoList( pWaitingPCItemNameInfo );
 
     // Register with the couple manager.
     g_pCoupleManager->makeCouple(pWaitingPC, pRequestedPC);
@@ -120,22 +113,6 @@ uint WaitForMeet::acceptPartner(PlayerCreature* pRequestedPC) {
     // Anything else to do.....
     // Refresh the list of named items and send it.
     // It is not sent.
-    /*	if ( !pRequestedPC->isEmptyItemNameInfoList()
-            && !pWaitingPC->isEmptyItemNameInfoList() )
-        {
-            GCItemNameInfoList  gcRequestedPCItemNamInfoList;
-            GCItemNameInfoList  gcWaitingPCItemNamInfoList;
-
-            makeGCItemNameInfoList( &gcRequestedPCItemNamInfoList, pRequestedPC );
-            makeGCItemNameInfoList( &gcWaitingPCItemNamInfoList, pWaitingPC );
-
-            pRequestedPC->getPlayer()->sendPacket( &gcRequestedPCItemNamInfoList );
-            pWaitingPC->getPlayer()->sendPacket( &gcWaitingPCItemNamInfoList );
-        }
-        else
-        {
-            Assert(false);
-        }*/
 
     return 0;
 

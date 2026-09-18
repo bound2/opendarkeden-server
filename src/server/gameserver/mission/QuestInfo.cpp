@@ -68,7 +68,6 @@ bool QuestInfo::canExecute(PlayerCreature* pPC) const
 
         curGrade = (QuestGrade_t)pOusters->getLevel();
     } else {
-        //	cout << "is it an Ousters? QuestInfo::canExecute()" << endl;
         cout << "넌대체머냐-_-; QuestInfo::canExecute()" << endl;
         return false;
     }

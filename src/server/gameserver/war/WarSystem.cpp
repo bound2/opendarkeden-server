@@ -205,8 +205,6 @@ bool WarSystem::addWar(War* pWar)
         g_pZoneGroupManager->broadcast(&gcWarList);
     }
 
-    // It is already made. WarScheduler's execute did a tinysave, so the Status need not change either.
-    // pWarSchedule->create();
 
     // Add it to the list of wars in progress.
     // heartbeat() removes it.
@@ -324,7 +322,6 @@ void WarSystem::sendGCWarList(Player* pPlayer)
 
     if (!m_GCWarList.isEmpty()) {
         pPlayer->sendPacket(&m_GCWarList);
-        // cout << m_GCWarList.toString().c_str() << endl;
     }
 
     __LEAVE_CRITICAL_SECTION(m_MutexWarList)
@@ -496,6 +493,10 @@ bool WarSystem::hasCastleActiveWar(ZoneID_t zoneID) const
 
     bool bHasCastleActiveWar = false;
 
+    // The running wars are answered from m_ActiveWars under its own leaf
+    // mutex rather than by walking the schedules under m_Mutex: callers
+    // reach this from inside a zone effect that already holds locks of its
+    // own, and taking m_Mutex here deadlocks against them.
     __ENTER_CRITICAL_SECTION(m_MutexActiveWars)
 
     list<ActiveWarInfo>::const_iterator itr = find(m_ActiveWars.begin(), m_ActiveWars.end(), ActiveWarInfo(zoneID));
@@ -505,29 +506,6 @@ bool WarSystem::hasCastleActiveWar(ZoneID_t zoneID) const
     }
 
     __LEAVE_CRITICAL_SECTION(m_MutexActiveWars)
-
-    /*
-    // Because of a deadlock (in the Zone's EffectHasBloodBible::affect(Item), and elsewhere too)
-    // the list of running wars is kept and handled separately.
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    const RecentSchedules::container_type& schedules = m_RecentSchedules.getSchedules();
-    RecentSchedules::const_iterator itr = schedules.begin();
-
-    for( ; itr != schedules.end(); itr++ )
-    {
-        War* pWar = dynamic_cast<War*>( (*itr)->getWork() );
-        if( pWar == NULL ) continue;
-
-        if( pWar->getCastleZoneID() == zoneID )
-        {
-            m_Mutex.unlock();
-            return true;
-        }
-    }
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-    */
 
     return bHasCastleActiveWar;
 
@@ -784,10 +762,6 @@ void WarSystem::broadcastWarList(GamePlayer* pGamePlayer) const
 
         warExist = true;
 
-        /*		StringStream msg;
-                msg << pWar->getWarName() << " runs until "
-                    << ( pSchedule->getScheduledTime() ).toString() << ".";
-        */
 
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_WAR_STATUS), pWar->getWarName().c_str(),

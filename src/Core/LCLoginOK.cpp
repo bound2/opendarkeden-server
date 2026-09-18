@@ -37,7 +37,6 @@ void LCLoginOK::write(SocketOutputStream& oStream) const {
     oStream.write(m_Stat);
     oStream.write(m_LastDays);
 
-    // cout << "**************" << m_LastDays << " days left." << endl;
 
     __END_CATCH
 }

@@ -61,21 +61,6 @@ GameServerPlayer::GameServerPlayer(Socket* pSocket)
 GameServerPlayer::~GameServerPlayer() noexcept {
     // destructor should never throw; guard any future cleanup
     try {
-        /*
-    // delete socket input stream
-    SAFE_DELETE(m_pInputStream);
-
-    // delete socket output stream
-    SAFE_DELETE(m_pOutputStream);
-
-    // delete socket
-    if ( m_pSocket != NULL )
-    {
-        m_pSocket->close();
-        delete m_pSocket;
-        m_pSocket = NULL;
-    }
-    */
     } catch (...) {
         // swallow all exceptions to honor noexcept
     }
@@ -163,13 +148,11 @@ void GameServerPlayer::processCommand() noexcept(false) {
             // Delete the packet
             delete pPacket;
         }
-
     } catch (NoSuchElementException& nsee) {
         // PacketFactoryManager::createPacket(PacketID_t)
         // PacketFactoryManager::getPacketMaxSize(PacketID_t)
         // may throw it.
         throw Error(nsee.toString());
-
     } catch (const InsufficientDataException&) {
         // do nothing
     }
@@ -187,12 +170,6 @@ void GameServerPlayer::sendPacket(Packet* pPacket) noexcept(false) {
 
     m_pOutputStream->writePacket(pPacket);
 
-    /*
-    cout << endl;
-    cout << "=== GameServerPlayer::sendPacket() ===" << endl;
-    cout << pPacket->toString() << endl;
-    cout << "============================" << endl;
-    */
 
     __END_CATCH
 }

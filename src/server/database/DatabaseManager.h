@@ -27,7 +27,6 @@ public:
     void init();
     void addConnection(int TID, Connection* pConnection);
     void addDistConnection(int TID, Connection* pConnection);
-    //	void addPCRoomConnection(int TID, Connection * pConnection) ;
 
     Connection* getConnection(const string& ip);
     Connection* getDistConnection(const string& ip);
@@ -69,7 +68,6 @@ public:
     // so there is nothing to watch out for there.
     //--------------------------------------------------------------------
     Connection* getConnection(int TID);
-    //	void addConnection(WorldID_t WorldID, Connection * pConnection) ;
 
 private:
     // DB connection held per thread
@@ -78,11 +76,8 @@ private:
     // Distribute DB connection held per thread
     unordered_map<int, Connection*> m_DistConnections;
 
-    //	unordered_map<WorldID_t, Connection*> m_WorldConnections;
     unordered_map<int, Connection*> m_WorldConnections;
 
-    // DB connection for PC room integration
-    //	unordered_map<int, Connection*> m_PCRoomConnections;
 
     // DB connection held per world
 
@@ -97,8 +92,6 @@ private:
 
     Connection* m_pDistConnection;
 
-    // Default DB connection for PC room integration. Used by the login server.
-    //	Connection* m_pPCRoomConnection;
 
     mutable Mutex m_Mutex;
 };

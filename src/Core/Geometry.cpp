@@ -87,8 +87,6 @@ uint getPointsFromLineEx(int x1, int y1, int x2, int y2, int range, list<POINT>&
     } else if (yLength == 0) {
         return getPointsFromHLineEx(x1, x2, y1, range, rList);
     } else if (xLength > yLength) {
-        // cout << "xLength:" << xLength << endl;
-
         // If the current X length is longer than the range, just draw a line and return.
         if (xLength >= range)
             return getPointsFromLine(x1, y1, x2, y2, rList);
@@ -96,32 +94,24 @@ uint getPointsFromLineEx(int x1, int y1, int x2, int y2, int range, list<POINT>&
         // Work out the missing length.
         int xoffset = range - xLength;
 
-        // cout << "xOffset:" << xoffset << endl;
 
         if (x1 < x2)
             nx2 = x2 + xoffset;
         else
             nx2 = x2 - xoffset;
 
-        // cout << "nx2:" << nx2 << endl;
 
         double yoffset = (double)(y2 - y1) / (double)(x2 - x1) * (double)xoffset;
 
-        // cout << "yOffset:" << yoffset << endl;
 
         if (y1 < y2)
             ny2 = y2 + abs((int)yoffset);
         else
             ny2 = y2 - abs((int)yoffset);
 
-        // ny2 = y2 - (int)yoffset;
-
-        // cout << "ny2:" << ny2 << endl;
 
         getPointsFromLine(x1, y1, nx2, ny2, rList);
     } else {
-        // cout << "yLength:" << yLength << endl;
-
         // If the current Y length is longer than the range, just draw a line and return.
         if (yLength >= range)
             return getPointsFromLine(x1, y1, x2, y2, rList);
@@ -129,26 +119,21 @@ uint getPointsFromLineEx(int x1, int y1, int x2, int y2, int range, list<POINT>&
         // Work out the missing length.
         int yoffset = range - yLength;
 
-        // cout << "yOffset:" << yoffset << endl;
 
         if (y1 < y2)
             ny2 = y2 + yoffset;
         else
             ny2 = y2 - yoffset;
 
-        // cout << "ny2:" << ny2 << endl;
 
         double xoffset = (double)(x2 - x1) / (double)(y2 - y1) * (double)yoffset;
 
-        // cout << "xOffset:" << xoffset << endl;
 
         if (x1 < x2)
             nx2 = x2 + abs((int)xoffset);
         else
             nx2 = x2 - abs((int)xoffset);
-        // nx2 = x2 - (int)xoffset;
 
-        // cout << "nx2:" << nx2 << endl;
 
         getPointsFromLine(x1, y1, nx2, ny2, rList);
     }

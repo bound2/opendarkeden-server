@@ -68,7 +68,6 @@ void CGThrowItemHandler::execute(CGThrowItem* pPacket, Player* pPlayer)
         pSkillHandler->execute(pSlayer, pPacket->getTargetObjectID(), pPacket->getObjectID(), pPacket->getX(),
                                pPacket->getY());
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
 #endif // __GAME_SERVER__

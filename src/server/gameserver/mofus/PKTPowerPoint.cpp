@@ -11,8 +11,6 @@
 
 // constructor
 PKTPowerPoint::PKTPowerPoint() {
-    // memset( this, 0, szPKTPowerPoint );
-
     nSize = szPKTPowerPoint - szMPacketSize;
 }
 

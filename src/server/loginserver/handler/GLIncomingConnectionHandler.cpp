@@ -83,10 +83,6 @@ void GLIncomingConnectionHandler::execute(GLIncomingConnection* pPacket)
     currentTime.tv_sec += 30;
     pReconnectLoginInfo->setExpireTime(currentTime);
 
-    // debug message
-    // cout << "+--------------------------------+" << endl << "| Incoming Connection Infomation |" << endl <<
-    // "+--------------------------------+" << endl << "ClientIP : " << pPacket->getClientIP() << endl << "Auth Key : "
-    // << authKey << endl;
 
     try {
         // Add it to the RLIM.
@@ -99,8 +95,6 @@ void GLIncomingConnectionHandler::execute(GLIncomingConnection* pPacket)
         lgIncomingConnectionOK.setKey(authKey);
 
         g_pGameServerManager->sendPacket(pPacket->getHost(), pPacket->getPort(), &lgIncomingConnectionOK);
-
-        // cout << "GLIncomingConnectionHandler Send Packet to ServerIP : " << pPacket->getHost() << endl;
     } catch (DuplicatedException&) {
         // On failure, discard the CI and report the rejection to the peer.
         SAFE_DELETE(pReconnectLoginInfo);

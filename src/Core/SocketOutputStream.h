@@ -111,16 +111,6 @@ public:
                       "prefix plus write(const char*, uint) / write(std::span<const std::byte>) for a buffer.");
         return 0;
     }
-    /*	uint write (bool   buf)  { return write((const char*)&buf, szbool  ); }
-        uint write (char   buf)  { return write((const char*)&buf, szchar  ); }
-        uint write (uchar  buf)  { return write((const char*)&buf, szuchar ); }
-        uint write (short  buf)  { return write((const char*)&buf, szshort ); }
-        uint write (ushort buf)  { return write((const char*)&buf, szushort); }
-        uint write (int    buf)  { return write((const char*)&buf, szint   ); }
-        uint write (uint   buf)  { return write((const char*)&buf, szuint  ); }
-        uint write (long   buf)  { return write((const char*)&buf, szlong  ); }
-        uint write (ulong  buf)  { return write((const char*)&buf, szulong ); }
-    */
     // flush stream (output buffer) to socket
     uint flush();
 
@@ -266,7 +256,6 @@ inline uint SocketOutputStream::write(std::span<const std::byte> src) {
         if (m_Head == 0) {
             nFree = m_BufferLen - m_Tail - 1;
             memcpy(&m_Buffer[m_Tail], buf, len);
-
         } else {
             nFree = m_BufferLen - m_Tail;
             if (len <= nFree)
@@ -276,7 +265,6 @@ inline uint SocketOutputStream::write(std::span<const std::byte> src) {
                 memcpy(m_Buffer, &buf[nFree], len - nFree);
             }
         }
-
     } else { // reversed order
 
         //

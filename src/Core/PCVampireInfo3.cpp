@@ -98,7 +98,6 @@ void PCVampireInfo3::write(SocketOutputStream& oStream) const {
     BYTE coatType = (BYTE)m_CoatType;
     oStream.write(coatType);
 
-    // cout << "PCVampireInfo3: Name=" << m_Name.c_str() << ", CoatType=" << (int)coatType << endl;
 
     // write colors
     for (uint i = 0; i < VAMPIRE_COLOR_MAX; i++)
@@ -124,7 +123,6 @@ void PCVampireInfo3::write(SocketOutputStream& oStream) const {
     oStream.write(m_Rank);
     oStream.write(m_AdvancementLevel);
 
-    // cout << "advancement level : " << (int)m_AdvancementLevel << endl;
 
     __END_CATCH
 }

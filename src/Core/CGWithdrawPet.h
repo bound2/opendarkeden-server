@@ -93,8 +93,6 @@ class CGWithdrawPetHandler {
 public:
     // execute packet's handler
     static void execute(CGWithdrawPet* pPacket, Player* player);
-    // static void executeSlayer(CGWithdrawPet* pPacket, Player* player) ;
-    // static void executeVampire(CGWithdrawPet* pPacket, Player* player) ;
 };
 
 #endif

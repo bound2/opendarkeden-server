@@ -17,12 +17,9 @@
 void PCSlayerInfo::setShapeInfo(DWORD flag, Color_t color[SLAYER_COLOR_MAX]) {
     m_Outlook = bitset<SLAYER_BIT_MAX>(flag);
 
-    // cout << "-----------SET------------" << endl;
-    // cout << m_Outlook << endl;
 
     for (uint i = 0; i < SLAYER_COLOR_MAX; i++) {
         m_Colors[i] = color[i];
-        // cout << (int)color[i] << endl;
     }
 }
 
@@ -85,7 +82,6 @@ void PCSlayerInfo::read(SocketInputStream& iStream) {
     // read misc
     //--------------------------------------------------
     iStream.read(m_Fame);
-    //	iStream.read( m_Gold );
 
     //--------------------------------------------------
     // read skills
@@ -94,10 +90,6 @@ void PCSlayerInfo::read(SocketInputStream& iStream) {
         iStream.read(m_DomainLevels[i]);
     }
 
-    //--------------------------------------------------
-    // read zone id
-    //--------------------------------------------------
-    //	iStream.read( m_ZoneID );
 
     //--------------------------------------------------------------------------------
     // read outlook bitset
@@ -167,7 +159,6 @@ void PCSlayerInfo::write(SocketOutputStream& oStream) const {
     // write misc
     //--------------------------------------------------
     oStream.write(m_Fame);
-    //	oStream.write( m_Gold );
 
     //--------------------------------------------------
     // write skills
@@ -176,10 +167,6 @@ void PCSlayerInfo::write(SocketOutputStream& oStream) const {
         oStream.write(m_DomainLevels[i]);
     }
 
-    //--------------------------------------------------
-    // write zone id
-    //--------------------------------------------------
-    //	oStream.write( m_ZoneID );
 
     //--------------------------------------------------------------------------------
     // write outlook bitset
@@ -213,7 +200,6 @@ string PCSlayerInfo::toString() const {
     for (uint i = 0; i < SKILL_DOMAIN_VAMPIRE; i++)
         msg << "," << SkillDomain2String[i] << ":" << (int)m_DomainLevels[i];
 
-    //	msg << ",ZoneID:" << m_ZoneID
     msg << ",Sex:" << Sex2String[getSex()] << ",HairStyle:" << HairStyle2String[getHairStyle()]
         << ",HairColor:" << (int)getHairColor() << ",SkinColor:" << (int)getSkinColor()
         << " ,Helmet:" << (int)getHelmetType() << ",HelmetColor:" << (int)getHelmetColor()

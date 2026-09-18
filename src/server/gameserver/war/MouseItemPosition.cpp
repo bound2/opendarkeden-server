@@ -39,7 +39,6 @@ Item* MouseItemPosition::popItem_UNLOCKED()
     Creature* pTargetCreature = findCreature();
     Zone* pZone = getZoneByCreature(pTargetCreature);
 
-    // Assert( pZone != NULL );
     if (pZone == NULL)
         return NULL;
 

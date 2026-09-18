@@ -36,11 +36,6 @@ void CGRequestPowerPointHandler::execute(CGRequestPowerPoint* pPacket, Player* p
     Assert(pCreature != NULL);
 
 
-    // cout << "--------------------------------------------------" << endl;
-    // cout << "RECV RequestPowerPoint (CellNum:" << pPacket->getCellNum() << ",Name:" << pCreature->getName() << ")" <<
-    // endl; cout << "--------------------------------------------------" << endl;
-
-
 #ifdef __MOFUS__
     g_pMPlayerManager->addJob(pGamePlayer->getID(), pCreature->getName(), pPacket->getCellNum());
 #endif

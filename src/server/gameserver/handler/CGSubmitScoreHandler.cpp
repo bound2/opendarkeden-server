@@ -41,9 +41,6 @@ void CGSubmitScoreHandler::execute(CGSubmitScore* pPacket, Player* pPlayer)
 
             defaultPlayRecordRepository().recordMiniGameScore(pPC->getName(), pPacket->getScore(),
                                                               pPacket->getGameType(), pPacket->getLevel());
-            //						"INSERT INTO MiniGameScores (Name, Type, Level, Score, Time) VALUES
-            //('%s',%u,%u,%u,now())", pPC->getName().c_str(), 						pPacket->getGameType(),
-            // pPacket->getLevel(), pPacket->getScore();
 
             if (pPacket->getLevel() == 2) {
                 pPC->getQuestManager()->submitMiniGameScore(pPacket->getGameType(), pPacket->getScore());
@@ -56,7 +53,6 @@ void CGSubmitScoreHandler::execute(CGSubmitScore* pPacket, Player* pPlayer)
                 sendGCMiniGameScores(pPC, pPacket->getGameType(), pPacket->getLevel() + 1);
         }
     } catch (Throwable& t) {
-        // cout << t.toString();
     }
 
 #endif

@@ -101,7 +101,6 @@ void CGUseItemFromInventoryHandler::execute(CGUseItemFromInventory* pPacket, Pla
 
 #ifdef __GAME_SERVER__
 
-        //	cout << "CGUseItemFromInventoryHandler " << endl;
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
@@ -124,7 +123,6 @@ void CGUseItemFromInventoryHandler::execute(CGUseItemFromInventory* pPacket, Pla
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
 
-    // cout << "Packet arrived: " << pPacket->toString() << endl;
 
     // An area beyond the inventory coordinates is not allowed.
     if (InvenX >= pInventory->getWidth() || InvenY >= pInventory->getHeight()) {
@@ -148,7 +146,6 @@ void CGUseItemFromInventoryHandler::execute(CGUseItemFromInventory* pPacket, Pla
 
     // A mismatched OID, or an item that cannot be used, is an error.
     if (ItemObjectID != pPacket->getObjectID() || !isUsableItem(pItem, pCreature)) {
-        // cout << "Item cannot be used. Object id does not match..." << endl;
         GCCannotUse _GCCannotUse;
         _GCCannotUse.setObjectID(pPacket->getObjectID());
         pGamePlayer->sendPacket(&_GCCannotUse);
@@ -175,7 +172,6 @@ void CGUseItemFromInventoryHandler::execute(CGUseItemFromInventory* pPacket, Pla
     }
 
     // Branch to the handling function by item kind.
-    ////cout << pItem->getItemClass() << endl;
 
     switch (pItem->getItemClass()) {
     case Item::ITEM_CLASS_POTION:
@@ -295,7 +291,6 @@ void CGUseItemFromInventoryHandler::executePotion(CGUseItemFromInventory* pPacke
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
     Item* pItem = pInventory->getItem(InvenX, InvenY);
-    // ObjectID_t      ItemObjectID = pItem->getObjectID();
 
     Assert(pCreature->isSlayer());
 
@@ -553,7 +548,6 @@ void CGUseItemFromInventoryHandler::executeMagazine(CGUseItemFromInventory* pPac
     Creature* pCreature = pGamePlayer->getCreature();
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
     Inventory* pInventory = pPC->getInventory();
-    // Zone*           pZone        = pPC->getZone();
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
     Item* pItem = pInventory->getItem(InvenX, InvenY);
@@ -624,11 +618,9 @@ void CGUseItemFromInventoryHandler::executeETC(CGUseItemFromInventory* pPacket, 
     Creature* pCreature = pGamePlayer->getCreature();
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
     Inventory* pInventory = pPC->getInventory();
-    // Zone*           pZone        = pPC->getZone();
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
     Item* pItem = pInventory->getItem(InvenX, InvenY);
-    // ObjectID_t      ItemObjectID = pItem->getObjectID();
 
     // When the item is a stacking kind,
     // as much as was used is deleted.
@@ -669,7 +661,6 @@ void CGUseItemFromInventoryHandler::executeSerum(CGUseItemFromInventory* pPacket
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
     Item* pItem = pInventory->getItem(InvenX, InvenY);
-    // ObjectID_t      ItemObjectID = pItem->getObjectID();
 
     Assert(pCreature->isVampire());
 
@@ -800,33 +791,6 @@ void CGUseItemFromInventoryHandler::executeVampireETC(CGUseItemFromInventory* pP
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
-    /*
-    // The enclosing function checked plenty of errors, so
-    // the error checking here is cut right down.
-    GamePlayer*     pGamePlayer  = dynamic_cast<GamePlayer*>(pPlayer);
-    Creature*       pCreature    = pGamePlayer->getCreature();
-    PlayerCreature* pPC          = dynamic_cast<PlayerCreature*>(pCreature);
-    Inventory*      pInventory   = pPC->getInventory();
-    Zone*           pZone        = pPC->getZone();
-    CoordInven_t    InvenX       = pPacket->getX();
-    CoordInven_t    InvenY       = pPacket->getY();
-    Item*           pItem        = pInventory->getItem(InvenX, InvenY);
-    ObjectID_t      ItemObjectID = pItem->getObjectID();
-
-    // When the item is a stacking kind,
-    // as much as was used is deleted.
-    if (isStackable(pItem))
-    {
-        decreaseItemNum(pItem, pInventory, pCreature->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
-    }
-    else
-    {
-        // A non-stacking item is deleted right away.
-        pInventory->deleteItem(InvenX, InvenY);
-        pItem->destroy();
-        SAFE_DELETE(pItem);
-    }
-    */
 
 #endif
 
@@ -855,7 +819,6 @@ void CGUseItemFromInventoryHandler::executeSlayerPortalItem(CGUseItemFromInvento
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
     Item* pItem = pInventory->getItem(InvenX, InvenY);
-    // ObjectID_t      ItemObjectID = pItem->getObjectID();
 
     Assert(pCreature->isSlayer());
 
@@ -886,10 +849,8 @@ void CGUseItemFromInventoryHandler::executeSlayerPortalItem(CGUseItemFromInvento
     bool bZoneTypeCheck = (pZone->getZoneType() == ZONE_NORMAL_FIELD) ? true : false;
     bool bCanUseCheck = pSlayer->isRealWearing(pPortalItem);
     bool bChargeCheck = (pPortalItem->getCharge() > 0) ? true : false;
-    // bool bMotorcycleCheck = pSlayer->hasRideMotorcycle();
     bool bZoneCheck = pZone->isNoPortalZone();
 
-    // if (bZoneTypeCheck && bCanUseCheck && bChargeCheck && !bMotorcycleCheck)
     if (bZoneTypeCheck && bCanUseCheck && bChargeCheck && !bHasRelic && !bParalyze && !bZoneCheck) {
         // Lower the item's charge and attach the effect to the slayer.
         pPortalItem->setCharge(pPortalItem->getCharge() - 1);
@@ -941,7 +902,6 @@ void CGUseItemFromInventoryHandler::executeOustersSummonItem(CGUseItemFromInvent
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
     Item* pItem = pInventory->getItem(InvenX, InvenY);
-    // ObjectID_t      ItemObjectID = pItem->getObjectID();
 
     if (SiegeManager::Instance().isSiegeZone(pPC->getZoneID()) || pZone->isNoPortalZone()) {
         GCCannotUse _GCCannotUse;
@@ -972,7 +932,6 @@ void CGUseItemFromInventoryHandler::executeOustersSummonItem(CGUseItemFromInvent
 
     bool bCanUseCheck = pOusters->isRealWearing(pSummonItem);
     bool bChargeCheck = (pSummonItem->getCharge() > 0) ? true : false;
-    // bool bMotorcycleCheck = pOusters->hasRideMotorcycle();
 
     SkillType_t SkillType = SKILL_SUMMON_SYLPH;
     SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
@@ -1050,7 +1009,6 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
 
 #ifdef __GAME_SERVER__
 
-        ////cout << pPacket->toString().c_str() << endl;
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
@@ -1065,8 +1023,6 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
     Item* pItem = pInventory->getItem(InvenX, InvenY);
-    // ObjectID_t      ItemObjectID = pItem->getObjectID();
-    //
     if (SiegeManager::Instance().isSiegeZone(pPC->getZoneID())) {
         GCCannotUse _GCCannotUse;
         _GCCannotUse.setObjectID(pPacket->getObjectID());
@@ -1109,36 +1065,6 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
         Assert(pKey != NULL);
 
         targetID = pKey->setNewMotorcycle(pSlayer);
-        /*		// (!) A MotorcycleObject has to be created and MotorcycleItemID==Target taken from it.
-                // Please pull this code into a function.
-                Key* pKey = dynamic_cast<Key*>(pItem);
-
-                KeyInfo* pKeyInfo = dynamic_cast<KeyInfo*>(g_pItemInfoManager->getItemInfo( pKey->getItemClass(),
-           pKey->getItemType() )); Assert( pKeyInfo != NULL );
-
-                list<OptionType_t> option;
-                ItemType_t motorcycleType = pKeyInfo->getTargetType();
-
-                if ( pKeyInfo->getOptionType() != 0 ) option.push_back( pKeyInfo->getOptionType() );
-
-                Item* pMotorcycle = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MOTORCYCLE, motorcycleType,
-           option); Assert(pMotorcycle != NULL); (pZone->getObjectRegistry()).registerObject(pMotorcycle);
-
-                pMotorcycle->create(pSlayer->getName(), STORAGE_ZONE, pZone->getZoneID(), pSlayer->getX(),
-           pSlayer->getY()); pKey->setTarget(pMotorcycle->getItemID());
-
-                targetID = pMotorcycle->getItemID();
-
-                // The targetID has to be updated in the DB too.
-                // (the KeyObject Target UPDATE is ItemObjectRepository::saveKeyTarget now)
-                defaultItemObjectRepository().saveKeyTarget(GEAR_KEY, targetID, pKey->getItemID());
-
-                // log
-                filelog("motorcycle.txt", "[SetTargetID] Owner = %s, KeyID = %lu, Key's targetID = %lu, MotorcycleID =
-           %lu", pSlayer->getName().c_str(), pKey->getItemID(), pKey->getTarget(), pMotorcycle->getItemID() );
-
-                // pMotorcycle could be used below, but it is deleted here so as not to touch the existing code.
-                SAFE_DELETE(pMotorcycle);*/
     } else {
         // Once a motorcycle and a key are linked, someone keeps deleting the motorcycle.
         // Check that the motorcycle linked to the key really is in the DB, and if not make a new one.
@@ -1160,8 +1086,6 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
 
 
     if (g_pParkingCenter->hasMotorcycleBox(targetID)) {
-        ////cout << "A motorcycle was already called" << endl;
-
         MotorcycleBox* pMotorcycleBox = g_pParkingCenter->getMotorcycleBox(targetID);
 
         if (pMotorcycleBox != NULL && !pMotorcycleBox->isTransport()) {
@@ -1181,11 +1105,6 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
 
                 // This stands in for Use OK.
                 // A Use would probably make the item disappear.
-                /*
-                GCCannotUse _GCCannotUse;
-                _GCCannotUse.setObjectID(pPacket->getObjectID());
-                pGamePlayer->sendPacket(&_GCCannotUse);
-                */
 
                 // A delay should be applied for a while..
             }
@@ -1234,7 +1153,6 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
 
 
         // Add the motorcycle to the zone.
-        ////cout << "Adding the motorcycle to the zone" << pSlayer->getX() << " " << pSlayer->getY() << endl;
         TPOINT pt = pZone->addItem(pMotorcycle, pSlayer->getX(), pSlayer->getY(), false);
 
         if (pt.x == -1) {
@@ -1265,17 +1183,6 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
         GCCannotUse _GCCannotUse;
         _GCCannotUse.setObjectID(pPacket->getObjectID());
         pGamePlayer->sendPacket(&_GCCannotUse);
-        //}
-        /*
-    else
-    {
-        GCCannotUse _GCCannotUse;
-        _GCCannotUse.setObjectID(pPacket->getObjectID());
-        pGamePlayer->sendPacket(&_GCCannotUse);
-
-        return;
-    }
-    */
     }
 #endif
     __END_DEBUG_EX __END_CATCH
@@ -1309,7 +1216,6 @@ void CGUseItemFromInventoryHandler::executeFirecraker(CGUseItemFromInventory* pP
 
 #ifdef __GAME_SERVER__
 
-        ////cout << pPacket->toString().c_str() << endl;
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
@@ -1417,32 +1323,6 @@ void CGUseItemFromInventoryHandler::executeFirecraker(CGUseItemFromInventory* pP
 
         Effect::EffectClass effectClass = FirecrackerEffects[pItem->getItemType()];
 
-        /*	switch ( pItem->getItemType() )
-            {
-                case 0:
-                    effectClass = Effect::EFFECT_CLASS_FIRE_CRACKER_1;
-                    break;
-
-                case 1:
-                    effectClass = Effect::EFFECT_CLASS_FIRE_CRACKER_2;
-                    break;
-
-                case 2:
-                    effectClass = Effect::EFFECT_CLASS_FIRE_CRACKER_3;
-                    break;
-
-                case 3:
-                    effectClass = Effect::EFFECT_CLASS_DRAGON_FIRE_CRACKER;
-                    break;
-
-                case 4:
-                    effectClass = Effect::EFFECT_CLASS_FIRE_CRACKER_4;
-                    break;
-
-                default:
-                    Assert(false);
-                    break;
-            }*/
         // Build the effect and broadcast it.
         GCAddEffectToTile gcAddEffectToTile;
         gcAddEffectToTile.setObjectID(pCreature->getObjectID());
@@ -1643,7 +1523,6 @@ void CGUseItemFromInventoryHandler::executeDyePotion(CGUseItemFromInventory* pPa
     }
 
     if (bInitAllStat) {
-        //	initAllStatAndSendChange( pPC );
         pPC->setFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT);
         transportCreature(pPC, pPC->getZoneID(), pPC->getX(), pPC->getY(), false);
     } else if (bRefresh) {
@@ -1834,16 +1713,13 @@ void CGUseItemFromInventoryHandler::executeResurrectItem(CGUseItemFromInventory*
     ResurrectItemInfo* pItemInfo =
         dynamic_cast<ResurrectItemInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
 
-    // cout << "Resurrection item used : " << pPC->getName() << " : " << pItem->getItemType() << endl;
 
     if (pItem->getObjectID() != pPacket->getObjectID() || pItemInfo == NULL) {
-        // cout << "The item object id is wrong" << endl;
         sendCannotUse(pPacket, pPlayer);
         return;
     }
 
     if (!pPC->isFlag(Effect::EFFECT_CLASS_COMA)) {
-        // cout << "Not in the dead state" << endl;
         sendCannotUse(pPacket, pPlayer);
         return;
     }
@@ -2016,7 +1892,6 @@ void CGUseItemFromInventoryHandler::executeTranslator(CGUseItemFromInventory* pP
 
     if (pItem->getObjectID() != pPacket->getObjectID() || pItemInfo == NULL ||
         pPC->isFlag(Effect::EFFECT_CLASS_TRANSLATION)) {
-        ////cout << "The item object id is wrong" << endl;
         sendCannotUse(pPacket, pPlayer);
         return;
     }
@@ -2122,7 +1997,6 @@ void CGUseItemFromInventoryHandler::executePetItem(CGUseItemFromInventory* pPack
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Creature* pCreature = pGamePlayer->getCreature();
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-    //	Zone*			pZone		 = pPC->getZone();
     Inventory* pInventory = pPC->getInventory();
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
@@ -2152,7 +2026,6 @@ void CGUseItemFromInventoryHandler::executePetItem(CGUseItemFromInventory* pPack
     if (pPetItem != NULL) {
         PetInfo* pTargetPetInfo = pPetItem->getPetInfo();
         if (pTargetPetInfo->getPetHP() == 0) {
-            //			cout << pPC->getName() << " do not call a dead pet" << endl;
             sendCannotUse(pPacket, pPlayer);
             return;
         }
@@ -2224,14 +2097,6 @@ void CGUseItemFromInventoryHandler::executePetFood(CGUseItemFromInventory* pPack
 
             decreaseItemNum(pItem, pInventory, pCreature->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
 
-            //			pInventory->deleteItem( pPetFood->getObjectID() );
-            //			pPetFood->destroy();
-
-            //			SAFE_DELETE( pPetFood );
-
-            //			GCModifyInformation gcMI;
-            //			gcMI.addShortData( MODIFY_PET_HP, pPetInfo->getPetHP() );
-            //			pGamePlayer->sendPacket(&gcMI);
 
             sendPetInfo(pGamePlayer, true);
 
@@ -2273,7 +2138,6 @@ void CGUseItemFromInventoryHandler::executeEventGiftBox(CGUseItemFromInventory* 
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
     Item* pItem = pInventory->getItem(InvenX, InvenY);
-    // ObjectID_t      ItemObjectID = pItem->getObjectID();
 
     // It cannot be used unless it is a black gift box
     if (pItem->getItemType() < 6 || (pItem->getItemType() >= 16 && pItem->getItemType() <= 18)) {
@@ -2288,47 +2152,8 @@ void CGUseItemFromInventoryHandler::executeEventGiftBox(CGUseItemFromInventory* 
     if (pItem->getItemType() >= 22 && pItem->getItemType() <= 26) {
         sendCannotUse(pPacket, pPlayer);
         return;
-
-        /*		if ( pCreature->isFlag( Effect::EFFECT_CLASS_CAN_MODIFY_NICKNAME_0 ) )
-                {
-                    sendCannotUse( pPacket, pPlayer );
-                    return;
-                }
-                else
-                {
-                    pCreature->setFlag( Effect::EFFECT_CLASS_CAN_MODIFY_NICKNAME_0 );
-
-                    GCUseOK gcUseOK;
-                    pGamePlayer->sendPacket(&gcUseOK);
-
-                    pInventory->deleteItem(InvenX, InvenY);
-                    pItem->destroy();
-                    SAFE_DELETE(pItem);
-                    return;
-                }*/
     }
 
-    /*	if ( pItem->getItemType() == 23 )
-        {
-            if ( pCreature->isFlag( Effect::EFFECT_CLASS_CAN_MODIFY_PET_NICKNAME ) )
-            {
-                sendCannotUse( pPacket, pPlayer );
-                return;
-            }
-            else
-            {
-                pCreature->setFlag( Effect::EFFECT_CLASS_CAN_MODIFY_PET_NICKNAME );
-
-                GCUseOK gcUseOK;
-                pGamePlayer->sendPacket(&gcUseOK);
-
-                pInventory->deleteItem(InvenX, InvenY);
-                pItem->destroy();
-                SAFE_DELETE(pItem);
-                return;
-            }
-        }
-    */
     // What the black box turns into always fits in 2*2, so the Inventory check is skipped
     // (a situation where it does not fit after the black box is erased would be awkward)
     Item* pResultItem = NULL;
@@ -2517,18 +2342,6 @@ void CGUseItemFromInventoryHandler::executeEventGiftBox(CGUseItemFromInventory* 
         pResultItem->create(pPC->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
 
         GCCreateItem gcCreateItem;
-        /*		gcCreateItem.setObjectID(pResultItem->getObjectID());
-                gcCreateItem.setItemClass(pResultItem->getItemClass());
-                gcCreateItem.setItemType(pResultItem->getItemType());
-                gcCreateItem.setOptionType(pResultItem->getOptionTypeList());
-                gcCreateItem.setDurability(pResultItem->getDurability());
-                gcCreateItem.setItemNum(pResultItem->getNum());
-
-                if ( isChargingItem )
-                    gcCreateItem.setEnchantLevel( chargeNum );
-
-                gcCreateItem.setInvenX(InvenX);
-                gcCreateItem.setInvenY(InvenY);*/
         makeGCCreateItem(&gcCreateItem, pResultItem, InvenX, InvenY);
 
         pGamePlayer->sendPacket(&gcCreateItem);
@@ -2537,7 +2350,6 @@ void CGUseItemFromInventoryHandler::executeEventGiftBox(CGUseItemFromInventory* 
         if (pResultItem != NULL && pResultItem->isTraceItem()) {
             remainTraceLog(pResultItem, "BLACK BOX", pCreature->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
         }
-
     } else {
         filelog("GiftBoxErrorLog.txt", "[Name] : %s : ÀÎº¥Åä¸®¿¡ ¾ÆÀÌÅÛÀ» ³ÖÀ» ¼ö ¾ø´Ù. Item : %s\n",
                 pCreature->getName().c_str(), pResultItem->toString().c_str());

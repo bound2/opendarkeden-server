@@ -110,19 +110,6 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
                 pGamePlayer->sendPacket(&gcSystemMessage);
                 return;
             }
-            /*
-                        if (g_pConfig->getPropertyInt("ServerID" ) != 0 )
-                        {
-                            GCNoticeEvent gcNoticeEvent;
-
-                            gcNoticeEvent.setCode(NOTICE_EVENT_NOT_FIRST_SERVER);
-                            pGamePlayer->sendPacket(&gcNoticeEvent);
-            //				GCSystemMessage gcSystemMessage;
-            //				gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LEVEL_WAR_ONLY_FIRST_SERVER ));
-            //				pGamePlayer->sendPacket (&gcSystemMessage);
-                            return;
-                        }
-            */
 
             // Look at the creature information and bounce it accordingly
             ZONE_COORD pos(g_pLevelWarZoneInfoManager->getCreatureZoneID(pCreature));
@@ -158,19 +145,6 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
 
                 return;
             }
-            /*
-                        if (g_pConfig->getPropertyInt("ServerID" ) != 0 )
-                        {
-                            GCNoticeEvent gcNoticeEvent;
-
-                            gcNoticeEvent.setCode(NOTICE_EVENT_NOT_FIRST_SERVER);
-                            pGamePlayer->sendPacket(&gcNoticeEvent);
-            //				GCSystemMessage gcSystemMessage;
-            //				gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LEVEL_WAR_ONLY_FIRST_SERVER ));
-            //				pGamePlayer->sendPacket (&gcSystemMessage);
-                            return;
-                        }
-            */
 
             // Look at the creature information and bounce it accordingly
             ZONE_COORD pos;
@@ -216,8 +190,6 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
             return;
         }
 
-        // Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-        // Assert(pSlayer != NULL);
 
         bool bCancel = false;
 
@@ -241,8 +213,6 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
                 if (!de::gameContext().wayPoints().isValidWayPoint(id, x, y, pCreature->getRace())) {
                     // Should something be done here?
                     bCancel = true;
-
-                    // return;
                 }
 
                 try {
@@ -273,10 +243,6 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
                                     sPriceMap[level] = price;
                                 }
 
-                                /*if (g_pFlagManager->hasFlagWar() &&
-                                        pPacket->getZoneID() == 32 &&
-                                        pPacket->getX() == 124 &&
-                                        pPacket->getY() == 144 ) price = 0;*/
 
                                 if (pOusters->getGold() < price) {
                                     gcNoticeEvent.setCode(NOTICE_EVENT_NOT_ENOUGH_MONEY);

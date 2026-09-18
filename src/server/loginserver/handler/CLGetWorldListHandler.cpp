@@ -30,14 +30,12 @@ void CLGetWorldListHandler::execute(CLGetWorldList* pPacket, Player* pPlayer)
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
-    // cout << "Start execute" << endl;
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
     try {
         int Num = g_pGameWorldInfoManager->getSize();
 
-        // cout << "WorldNum : " << Num << endl;
 
         // Worlds are numbered from 1, so the table has one unused slot at 0.
         std::vector<WorldInfo*> aWorldInfo(Num + 1, nullptr);
@@ -52,11 +50,6 @@ void CLGetWorldListHandler::execute(CLGetWorldList* pPacket, Player* pPlayer)
             pWorldInfo->setStat(pGameWorldInfo->getStatus());
 
             aWorldInfo[i] = pWorldInfo;
-
-            // Excluding Transylvania (2)
-            // if (i==2) pWorldInfo->setStat(WORLD_CLOSE);
-
-            // cout << "AddWorld : " << pWorldInfo->getName() << endl;
         }
 
         LCWorldList lcWorldList;
@@ -71,12 +64,8 @@ void CLGetWorldListHandler::execute(CLGetWorldList* pPacket, Player* pPlayer)
         }
 
         pLoginPlayer->sendPacket(&lcWorldList);
-
-        //		pLoginPlayer->setPlayerStatus(LPS_PC_MANAGEMENT);
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
-    // cout << "End execute" << endl;
 
 #endif
 

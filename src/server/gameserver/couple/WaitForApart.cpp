@@ -37,8 +37,6 @@ uint WaitForApart::waitPartner(PlayerCreature* pTargetPC) {
     }
 
     GCSystemMessage gcSystemMessage;
-    //	StringStream msg;
-    //	msg << pWaitingPC->getName() << " sent a parting request.";
 
     char msg[100];
     sprintf(msg, g_pStringPool->c_str(STRID_REQUEST_APART), pWaitingPC->getName().c_str());
@@ -90,45 +88,6 @@ uint WaitForApart::acceptPartner(PlayerCreature* pRequestedPC) {
     pWaitingPC->getFlagSet()->save(pWaitingPC->getName());
 
     return 0;
-    /*	Inventory* pRequestedPCInven = pRequestedPC->getInventory();
-        Inventory* pWaitingPCInven = pWaitingPC->getInventory();
-
-        Item::ItemClass IClass = Item::ITEM_CLASS_COUPLE_ITEM;
-        Item* pRequestedPCCoupleItem = pRequestedPCInven->findItem(IClass , 0);
-        Item* pWaitingPCCoupleItem = pWaitingPCInven->findItem(IClass , 0);
-
-        if (pRequestedPCCoupleItem != NULL && pWaitingPCCoupleItem != NULL)
-        {
-            pRequestedPCInven->deleteItem(pRequestedPCCoupleItem->getObjectID());
-            pWaitingPCInven->deleteItem(pWaitingPCCoupleItem->getObjectID());
-
-            GCDeleteInventoryItem gcDeleteRequestedPCInventoryCoupleItem;
-            GCDeleteInventoryItem gcDeleteWaitingPCInventoryCoupleItem;
-
-            gcDeleteRequestedPCInventoryCoupleItem.setObjectID( pRequestedPCCoupleItem->getObjectID() );
-            gcDeleteWaitingPCInventoryCoupleItem.setObjectID( pWaitingPCCoupleItem->getObjectID() );
-
-            pRequestedPC->getPlayer()->sendPacket( &gcDeleteRequestedPCInventoryCoupleItem );
-            pWaitingPC->getPlayer()->sendPacket( &gcDeleteWaitingPCInventoryCoupleItem );
-
-            // The couple is broken, so the PlayerCreature's ItemNameInfo has to go as well
-            // Just set it to NULL
-            pRequestedPC->deleteItemNameInfoList( pRequestedPCCoupleItem->getObjectID() );
-            pWaitingPC->deleteItemNameInfoList( pWaitingPCCoupleItem->getObjectID() );
-
-            // Remove the item.
-            pRequestedPCCoupleItem->destroy();
-            SAFE_DELETE( pRequestedPCCoupleItem );
-            pWaitingPCCoupleItem->destroy();
-            SAFE_DELETE( pWaitingPCCoupleItem );
-
-            // Because one has to go and find another man or woman.
-
-            return true;
-        }
-
-        return false;
-        */
 
     __END_CATCH
 }
@@ -159,7 +118,6 @@ bool WaitForApart::removeCoupleItem(PlayerCreature* pPC) {
             Item* pRing = pSlayer->getWearItem(i);
             if (pRing != NULL) {
                 if (isMatchCoupleRing(pPC, pRing)) {
-                    //					pSlayer->deleteWearItem( i );
                     pSlayer->takeOffItem(i, false, true);
                     pRing->destroy();
                     SAFE_DELETE(pRing);
@@ -182,7 +140,6 @@ bool WaitForApart::removeCoupleItem(PlayerCreature* pPC) {
             Item* pRing = pVampire->getWearItem(i);
             if (pRing != NULL) {
                 if (isMatchCoupleRing(pPC, pRing)) {
-                    //					pVampire->deleteWearItem( i );
                     pVampire->takeOffItem(i, false, true);
                     pRing->destroy();
                     SAFE_DELETE(pRing);
@@ -222,21 +179,6 @@ bool WaitForApart::removeCoupleItem(PlayerCreature* pPC) {
     SAFE_DELETE(pCoupleItem);
 
     return true;
-    /*	Item* pPCCoupleItem = getCoupleItem( pPC );
-        if ( pPCCoupleItem == NULL ) return false;
-
-        pPC->getInventory()->deleteItem( pPCCoupleItem->getObjectID() );
-        GCDeleteInventoryItem gcDeleteInventoryItem;
-        gcDeleteInventoryItem.setObjectID( pPCCoupleItem->getObjectID() );
-
-        pPC->getPlayer()->sendPacket( &gcDeleteInventoryItem );
-
-    //	pPC->deleteItemNameInfoList( pPCCoupleItem->getObjectID() );
-
-        pPCCoupleItem->destroy();
-        SAFE_DELETE( pPCCoupleItem );
-
-        return true;*/
 
     __END_CATCH
 }

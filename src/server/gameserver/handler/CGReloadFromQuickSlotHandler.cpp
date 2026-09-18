@@ -111,16 +111,13 @@ void CGReloadFromQuickSlotHandler::execute(CGReloadFromQuickSlot* pPacket, Playe
 
             pSlayer->setFlag(Effect::EFFECT_CLASS_RELOAD_TIMER);
             pEffectManager->addEffect(pEffect);
-
         } else {
             GCCannotUse _GCCannotUse;
             _GCCannotUse.setObjectID(ItemObjectID);
 
             pPlayer->sendPacket(&_GCCannotUse);
         }
-
     } catch (Throwable& t) {
-        // cout << t.toString();
     }
 
 #endif // __GAME_SERVER__

@@ -72,15 +72,6 @@ public:
         m_Name = name;
     }
 
-    /*
-        // get/set sprite type
-        SpriteType_t getSpriteType() const  { return m_SpriteType; }
-        void setSpriteType(SpriteType_t spriteType)  { m_SpriteType = spriteType; }
-
-        // get/set sub color
-        Color_t getSubColor() const  { return m_SubColor; }
-        void setSubColor(Color_t color)  { m_SubColor = color; }
-    */
     // get/set main color
     Color_t getMainColor() const {
         return m_MainColor;
@@ -151,13 +142,6 @@ private:
     // Type of the transformation item
     ItemType_t m_ItemType;
 
-    /*
-        // Sprite type
-        SpriteType_t m_SpriteType;
-
-        // Colour information
-        Color_t m_SubColor;
-    */
     Color_t m_MainColor;
 
     // X, Y and direction

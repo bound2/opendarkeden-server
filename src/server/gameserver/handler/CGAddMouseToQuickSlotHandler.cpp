@@ -106,15 +106,11 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                         pItem->setNum(NewNum);
                         pBeltInventory->increaseNum(MaxStack - CurrentNum);
                         pBeltInventory->increaseWeight(pItem->getWeight() * (MaxStack - CurrentNum));
-                        // pPrevItem->save(pSlayer->getName(), STORAGE_BELT, pBelt->getItemID(), SlotID, 0);
-                        //  Item save optimization.
                         char pField[80];
                         sprintf(pField, "Num=%d, Storage=%d, StorageID=%u, X=%d", MaxStack, STORAGE_BELT,
                                 pBelt->getItemID(), SlotID);
                         pPrevItem->tinysave(pField);
 
-                        // pItem->save(pSlayer->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                        //  Item save optimization.
                         sprintf(pField, "Num=%d, Storage=%d", NewNum, STORAGE_EXTRASLOT);
                         pItem->tinysave(pField);
 
@@ -126,8 +122,6 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                         pPrevItem->setNum(pPrevItem->getNum() + pItem->getNum());
                         pBeltInventory->increaseNum(pItem->getNum());
                         pBeltInventory->increaseWeight(pItem->getWeight() * pItem->getNum());
-                        // pPrevItem->save(pSlayer->getName(), STORAGE_BELT , pBelt->getItemID(), SlotID, 0);
-                        //  Item save optimization.
                         char pField[80];
                         sprintf(pField, "Num=%d, Storage=%d, StorageID=%u, X=%d", pPrevItem->getNum(), STORAGE_BELT,
                                 pBelt->getItemID(), SlotID);
@@ -148,14 +142,10 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                     pBeltInventory->addItem(SlotID, 0, pItem);
 
                     // Save to the DB.
-                    // pPrevItem->save(pSlayer->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                    // Item save optimization.
                     char pField[80];
                     sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
                     pPrevItem->tinysave(pField);
 
-                    // pItem->save(pSlayer->getName(), STORAGE_BELT , pBelt->getItemID(), SlotID, 0);
-                    //  Item save optimization.
                     sprintf(pField, "Storage=%d, StorageID=%u, X=%d", STORAGE_BELT, pBelt->getItemID(), SlotID);
                     pItem->tinysave(pField);
 
@@ -169,8 +159,6 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
 
                 // On a successful add, remove the item hanging on the mouse.
                 pSlayer->deleteItemFromExtraInventorySlot();
-                // pItem->save(pSlayer->getName(), STORAGE_BELT, pBelt->getItemID(), SlotID, 0);
-                //  Item save optimization.
                 char pField[80];
                 sprintf(pField, "Storage=%d, StorageID=%u, X=%d", STORAGE_BELT, pBelt->getItemID(), SlotID);
                 pItem->tinysave(pField);
@@ -253,15 +241,11 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                         pItem->setNum(NewNum);
                         pArmsbandInventory->increaseNum(MaxStack - CurrentNum);
                         pArmsbandInventory->increaseWeight(pItem->getWeight() * (MaxStack - CurrentNum));
-                        // pPrevItem->save(pOusters->getName(), STORAGE_BELT, pArmsband->getItemID(), SlotID, 0);
-                        //  Item save optimization.
                         char pField[80];
                         sprintf(pField, "Num=%d, Storage=%d, StorageID=%u, X=%d", MaxStack, STORAGE_BELT,
                                 pArmsband->getItemID(), SlotID);
                         pPrevItem->tinysave(pField);
 
-                        // pItem->save(pOusters->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                        //  Item save optimization.
                         sprintf(pField, "Num=%d, Storage=%d", NewNum, STORAGE_EXTRASLOT);
                         pItem->tinysave(pField);
 
@@ -273,8 +257,6 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                         pPrevItem->setNum(pPrevItem->getNum() + pItem->getNum());
                         pArmsbandInventory->increaseNum(pItem->getNum());
                         pArmsbandInventory->increaseWeight(pItem->getWeight() * pItem->getNum());
-                        // pPrevItem->save(pOusters->getName(), STORAGE_BELT , pArmsband->getItemID(), SlotID, 0);
-                        //  Item save optimization.
                         char pField[80];
                         sprintf(pField, "Num=%d, Storage=%d, StorageID=%u, X=%d", pPrevItem->getNum(), STORAGE_BELT,
                                 pArmsband->getItemID(), SlotID);
@@ -295,14 +277,10 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                     pArmsbandInventory->addItem(SlotID, 0, pItem);
 
                     // Save to the DB.
-                    // pPrevItem->save(pOusters->getName(), STORAGE_EXTRASLOT, 0, 0, 0);
-                    // Item save optimization.
                     char pField[80];
                     sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
                     pPrevItem->tinysave(pField);
 
-                    // pItem->save(pOusters->getName(), STORAGE_BELT , pArmsband->getItemID(), SlotID, 0);
-                    //  Item save optimization.
                     sprintf(pField, "Storage=%d, StorageID=%u, X=%d", STORAGE_BELT, pArmsband->getItemID(), SlotID);
                     pItem->tinysave(pField);
 
@@ -316,8 +294,6 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
 
                 // On a successful add, remove the item hanging on the mouse.
                 pOusters->deleteItemFromExtraInventorySlot();
-                // pItem->save(pOusters->getName(), STORAGE_BELT, pArmsband->getItemID(), SlotID, 0);
-                //  Item save optimization.
                 char pField[80];
                 sprintf(pField, "Storage=%d, StorageID=%u, X=%d", STORAGE_BELT, pArmsband->getItemID(), SlotID);
                 pItem->tinysave(pField);

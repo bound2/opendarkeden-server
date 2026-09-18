@@ -57,14 +57,12 @@ void GCGQuestInventory::write(SocketOutputStream& oStream) const {
     BYTE size = m_ItemList.size();
     oStream.write(size);
 
-    // cout << "Quest inventory size : " << (int)size << endl;
 
     list<ItemType_t>::const_iterator itr = m_ItemList.begin();
     list<ItemType_t>::const_iterator endItr = m_ItemList.end();
 
     for (; itr != endItr; ++itr) {
         oStream.write((*itr));
-        // cout << "	Quest item code : " << (int)(*itr) << endl;
     }
 
     __END_CATCH

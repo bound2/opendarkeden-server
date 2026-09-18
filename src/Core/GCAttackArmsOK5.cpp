@@ -58,8 +58,6 @@ void GCAttackArmsOK5::read(SocketInputStream& iStream)
     iStream.read(m_SkillType);
     iStream.read(m_ObjectID);
     iStream.read(m_TargetObjectID);
-    //	iStream.read(m_X);
-    //	iStream.read(m_Y);
 
     // The hit flag is one byte on the wire; any non-zero value is a hit.
     BYTE success;
@@ -82,8 +80,6 @@ void GCAttackArmsOK5::write(SocketOutputStream& oStream) const {
     oStream.write(m_SkillType);
     oStream.write(m_ObjectID);
     oStream.write(m_TargetObjectID);
-    //	oStream.write(m_X);
-    //	oStream.write(m_Y);
     oStream.write(m_bSuccess);
 
     __END_DEBUG

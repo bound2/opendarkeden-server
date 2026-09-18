@@ -176,25 +176,6 @@ string GCWarScheduleList::toString() const
 
     msg << "GCWarScheduleList(" << "WarNum : " << m_WarScheduleList.size();
 
-    /*	WarScheduleInfoListItor itr = m_WarScheduleList.begin();
-
-        for(; itr != m_WarScheduleList.end(); itr++ )
-        {
-            msg << ", (WarScheduleInfo : "
-                << (((*itr)->warType)?"WAR_TYPE_DIFFERENT_RACE, ":"WAR_TYPE_SAME_RACE, " )
-                << (*itr)->year << "year "
-                << (*itr)->month << "month "
-                << (*itr)->day << "day"
-                << (*itr)->hour << "hour";
-
-            if((*itr)->warType == 0 )
-            {
-                msg << ", Challenger GuildID : " << (*itr)->challengerGuildID;
-                msg << ", Challenger GuildName : " << (*itr)->challengerGuildName;
-            }
-
-            msg << ")";
-        }*/
 
     msg << ")";
 

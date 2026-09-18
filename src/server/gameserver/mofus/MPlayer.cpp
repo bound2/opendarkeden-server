@@ -89,8 +89,6 @@ void MPlayer::processCommand() {
             memcpy(&packetSize, &header[0], szMPacketSize);
             memcpy(&packetID, &header[szMPacketSize], szMPacketID);
 
-            // packetSize = ntohl( packetSize );
-            // packetID = ntohl( packetID );
 
             // Verify we have a handler for this packet ID.
             if (!g_pMPacketManager->hasHandler(packetID)) {

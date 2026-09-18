@@ -132,29 +132,6 @@ void GCSkillToTileOK2::addCListElement(ObjectID_t ObjectID)
     __END_CATCH
 }
 
-/*
-//////////////////////////////////////////////////////////////////////
-//
-// GCSkillToTileOK2::deleteCListElement()
-//
-// Member function needed when removing an element of the creature list.
-//
-//////////////////////////////////////////////////////////////////////
-void GCSkillToTileOK2::deleteCListElement()
-
-{
-    __BEGIN_TRY
-
-    // Drop one creature id.
-    m_CList.pop_front();
-
-    // Drop one from the creature list counter.
-    m_CListNum--;
-
-    __END_CATCH
-}
-*/
-
 
 //////////////////////////////////////////////////////////////////////
 //

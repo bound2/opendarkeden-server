@@ -19,7 +19,6 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
 #ifdef __GAME_SERVER__
-        // cout<<"friend1"<<endl;
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
@@ -30,7 +29,6 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
 
     if (Command > MAX_CG)
         throw InvalidProtocolException("Command Error");
-    // cout<<"friend2"<<endl;
     switch (Command) {
         /////////////////////////////////////////////////CG_ADD_FRIEND_AGREE/////////////////////////////////////////
     case CG_ADD_FRIEND_AGREE: {
@@ -144,7 +142,6 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
     }
     ///////////////////////////////////////////CG_GETSTATE//////////////////////////////////////////////////////////
     case CG_UPDATE: {
-        // cout<<"friend3"<<endl;
         {
             FriendRepository& friends = defaultFriendRepository();
 

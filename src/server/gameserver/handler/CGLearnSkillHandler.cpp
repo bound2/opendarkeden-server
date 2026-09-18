@@ -81,10 +81,8 @@ void CGLearnSkillHandler::execute(CGLearnSkill* pPacket, Player* pPlayer)
     case SKILL_CHARGING_POWER:
     case SKILL_FAST_RELOAD:
     case SKILL_QUICK_FIRE:
-        //		case SKILL_SMG_MASTERY:
     case SKILL_MULTI_SHOT:
     case SKILL_HEAD_SHOT:
-        //		case SKILL_AR_MASTERY:
     case SKILL_PIERCING:
     case SKILL_CREATE_HOLY_WATER:
     case SKILL_LIGHT:
@@ -122,8 +120,6 @@ void CGLearnSkillHandler::execute(CGLearnSkill* pPacket, Player* pPlayer)
     case SKILL_SNAKE_COMBO:
     case SKILL_SWORD_WAVE:
     case SKILL_TORNADO_SEVER:
-        //		case SKILL_SG_MASTERY:
-        //		case SKILL_SR_MASTERY:
     case SKILL_AURA_SHIELD:
     case SKILL_ACID_SWAMP:
     case SKILL_INVISIBILITY:
@@ -143,7 +139,6 @@ void CGLearnSkillHandler::execute(CGLearnSkill* pPacket, Player* pPlayer)
     case SKILL_BLOODY_KNIFE:
     case SKILL_CAUSE_CRITICAL_WOUNDS:
     case SKILL_HURRICANE_COMBO:
-        //		case SKILL_CREATE_BOMB:
     case SKILL_CREATE_MINE:
     case SKILL_INSTALL_MINE:
     case SKILL_THUNDER_BOLT:
@@ -174,9 +169,7 @@ void CGLearnSkillHandler::execute(CGLearnSkill* pPacket, Player* pPlayer)
     case SKILL_TYPHOON:
     case SKILL_PEACE:
     case SKILL_ACTIVATION:
-    // case SKILL_EXORCISM:
     case SKILL_SANCTUARY:
-        //		case SKILL_REFLECTION:
     case SKILL_HYMN:
     case SKILL_TRANSFUSION:
     case SKILL_BLOODY_SPEAR:
@@ -370,7 +363,6 @@ void CGLearnSkillHandler::execute(CGLearnSkill* pPacket, Player* pPlayer)
     case SKILL_Fire_Meteor:
     case SKILL_Big_Rockfall:
     case SKILL_Rapid_Freeze:
-        // #endif
         break;
     ////////////////////////////////////////////////////////////
     // unsupported skills
@@ -548,16 +540,12 @@ void CGLearnSkillHandler::executeSlayerSkill(CGLearnSkill* pPacket, Player* pPla
     }
 
 
-    //	if (pSkillInfo->getLevel() <= pSlayer->getSkillDomainLevel(pSkillInfo->getDomainType())) bSuccess = true;
     if (pSkillInfo->getLevel() <= pSlayer->getSkillDomainLevel(actualDomainType))
         bSuccess = true;
 
     // Without the experience to learn the skill it cannot be learned. The experience is checked too, in case the level is wrong.
     // The ETC domain is handled as an exception.
     if (targetDomainType != SKILL_DOMAIN_ETC)
-        //		if (pSlayer->getSkillDomainExp(pSkillInfo->getDomainType())
-        //				>= g_pSkillDomainInfoManager->getDomainInfo((SkillDomain)pSkillInfo->getDomainType(),
-        //(Level_t)max(0, (int)pSkillInfo->getLevel() - 1))->getAccumExp())
         if (pSlayer->getSkillDomainLevel(pSkillInfo->getDomainType()) >= pSkillInfo->getLevel())
             bSuccess = true;
 

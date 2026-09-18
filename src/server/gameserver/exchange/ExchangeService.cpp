@@ -468,7 +468,6 @@ Outcome<void, ExchangeRejection> ExchangeService::claimItem(PlayerCreature* pPla
         // This requires finding the item by ObjectID and moving it
 
         return Result::Ok();
-
     } else {
         // Seller claiming back cancelled/expired item
         Result decision = decideSellerClaim(defaultExchangeRepository(), pPlayer->getName(), orderOrListingID);
@@ -553,9 +552,6 @@ bool ExchangeService::moveItemToExchangeStorage(PlayerCreature* pPlayer, Item* p
     // The item will be associated with the exchange system
     string owner = pPlayer->getName();
 
-    // Call item's save method with STORAGE_EXCHANGE
-    // This is the pattern used in the codebase
-    // pItem->save(owner, STORAGE_EXCHANGE, 0, 0, 0);
 
     // Remove from inventory
     Inventory* pInv = pPlayer->getInventory();
@@ -575,8 +571,6 @@ bool ExchangeService::moveItemFromExchangeStorage(PlayerCreature* pPlayer, int64
     if (!pInv)
         return false;
 
-    // Find empty slot
-    // pItem->create(pPlayer->getName(), STORAGE_INVENTORY, ...);
 
     return true;
 }
@@ -602,9 +596,6 @@ void ExchangeService::createItemSnapshot(Item* pItem, ExchangeListing& listing) 
             if (idx >= 3)
                 break;
 
-            // Set option type and value
-            // listing.optionType1 = type;
-            // listing.optionValue1 = value;
             idx++;
         }
     }

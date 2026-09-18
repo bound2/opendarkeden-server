@@ -24,7 +24,6 @@ typedef pthread_t TID;
 
 
 namespace pthreadAPI {
-
 //
 // exception version of pthread_create()
 //
@@ -70,16 +69,6 @@ void pthread_attr_getdetachstate_ex(const pthread_attr_t* attr, int* detachstate
 //
 void pthread_attr_setdetachstate_ex(pthread_attr_t* attr, int detachstate);
 
-/*
-void pthreadAPI::pthread_attr_setschedpolicy_ex (pthread_attr_t *attr, int policy);
-void pthreadAPI::pthread_attr_getschedpolicy_ex (const pthread_attr_t *attr, int *policy);
-void pthreadAPI::pthread_attr_setschedparam_ex (pthread_attr_t *attr, const struct sched_param *param);
-void pthreadAPI::pthread_attr_getschedparam_ex (const pthread_attr_t *attr, struct sched_param *param);
-void pthreadAPI::pthread_attr_setinheritsched_ex (pthread_attr_t *attr, int inherit);
-void pthreadAPI::pthread_attr_getinheritsched_ex (const pthread_attr_t *attr, int *inherit);
-void pthreadAPI::pthread_attr_setscope_ex (pthread_attr_t *attr, int scope);
-void pthreadAPI::pthread_attr_getscope_ex (const pthread_attr_t *attr, int *scope);
-*/
 
 //
 // exception version of pthread_mutex_init()
@@ -116,20 +105,6 @@ void pthread_mutexattr_init_ex(pthread_mutexattr_t* attr);
 //
 void pthread_mutexattr_destroy_ex(pthread_mutexattr_t* attr);
 
-/*
-
-//
-//
-// exception version of pthread_mutexattr_getkind()
-//
-void pthread_mutexattr_gettype_ex ( const pthread_mutexattr_t * attr , int * kind ) ;
-
-//
-// exception version of pthread_mutexattr_setkind()
-//
-void pthread_mutexattr_settype_ex ( pthread_mutexattr_t * attr , int kind ) ;
-
-*/
 
 //
 // exception version of pthread_cond_init()
@@ -170,7 +145,6 @@ void pthread_condattr_init_ex(pthread_condattr_t* attr);
 // exception version of pthread_condattr_destroy()
 //
 void pthread_condattr_destroy_ex(pthread_condattr_t* attr);
-
 } // end of namespace pthreadAPI
 
 #endif

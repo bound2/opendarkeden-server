@@ -118,7 +118,6 @@ bool FlagManager::startFlagWar() {
         m_EndTime = VSDateTime::currentDateTime().addSecs(pFlagWar->getWarTime());
     else
         m_EndTime = VSDateTime::currentDateTime().addSecs(3600);
-    //	m_EndTime = m_RecentSchedules.top()->getScheduledTime();
 
     resetFlagCounts();
 
@@ -215,7 +214,6 @@ bool FlagManager::putFlag(PlayerCreature* pPC, Item* pItem, MonsterCorpse* pFlag
 
     Effect* pEffect = pPC->findEffect(Effect::EFFECT_CLASS_HAS_FLAG);
     if (pEffect != NULL) {
-        // cout << "the effect is removed too.." << endl;
         pEffect->setDeadline(0);
     }
 
@@ -260,9 +258,6 @@ Race_t FlagManager::getWinnerRace() {
     return (Race_t)maxRace;
 }
 
-/*VSDateTime FlagManager::getNextFlagWarTime()
-{
-}*/
 
 void FlagManager::resetFlagCounts() {
     m_FlagCount[SLAYER] = 0;

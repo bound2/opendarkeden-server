@@ -35,25 +35,8 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
 #ifdef __GAME_SERVER__
 
         // hmm
-        /*
-        if (!g_pPCFinder->setKickCharacter(pPacket->getPCName(), pPacket->getHost(), pPacket->getPort() ))
-        {
-            GLKickVerify glKickVerify;
-            glKickVerify.setKicked(false);
-            glKickVerify.setID(pPacket->getID());
-            glKickVerify.setPCName(pPacket->getPCName());
-
-            g_pLoginServerManager->sendPacket(pPacket->getHost() , pPacket->getPort() , &glKickVerify);
-
-            //cout << "LGKickVerify Send Packet to ServerIP : " << pPacket->getHost() << endl;
-            //cout << "LGKickVerify Send Packet to ServerPort : " << pPacket->getPort() << endl;
-
-            return;
-        }
-        */
 
         try {
-
         const string pcName = pPacket->getPCName();
         const string host = pPacket->getHost();
         const uint port = pPacket->getPort();
@@ -67,9 +50,6 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
             glKickVerify.setPCName(pcName);
 
             g_pLoginServerManager->sendPacket(host, port, &glKickVerify);
-
-            // cout << "LGKickVerify Send Packet to ServerIP : " << host << endl;
-            // cout << "LGKickVerify Send Packet to ServerPort : " << port << endl;
         };
 
         // The kick flags are GamePlayer state, read by whichever manager
@@ -85,11 +65,8 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
         const bool found = de::postToPlayer(
             pcName,
             [=](PlayerCreature&, Player& player) {
-                // cout << "KickCharacter : " << pcName.c_str() << endl;
-
                 GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(&player);
 
-                // Assert(pGamePlayer!=NULL);
                 if (pGamePlayer == NULL) // how could that happen?
                 {
                     return;
@@ -116,7 +93,6 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
 
         if (!found)
             notHere();
-
     } catch (NoSuchElementException&) {
     }
 

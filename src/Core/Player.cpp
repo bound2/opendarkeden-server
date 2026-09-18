@@ -23,10 +23,7 @@
 // constructor
 //
 //////////////////////////////////////////////////////////////////////
-Player::Player() : m_pSocket(NULL), m_pInputStream(NULL), m_pOutputStream(NULL) {
-    // add by viva
-    // pHashTable = NULL;
-}
+Player::Player() : m_pSocket(NULL), m_pInputStream(NULL), m_pOutputStream(NULL) {}
 
 Player::Player(Socket* pSocket) : m_pSocket(pSocket), m_pInputStream(NULL), m_pOutputStream(NULL) {
     __BEGIN_TRY
@@ -43,8 +40,6 @@ Player::Player(Socket* pSocket) : m_pSocket(pSocket), m_pInputStream(NULL), m_pO
 
     Assert(m_pOutputStream != NULL);
 
-    // add by viva
-    // pHashTable = NULL;
     __END_CATCH
 }
 
@@ -67,13 +62,6 @@ Player::~Player() noexcept(false) {
         delete m_pSocket;
         m_pSocket = NULL;
     }
-    // add by viva
-    /*if(pHashTable!=NULL)
-    {
-        delete[] pHashTable;
-        pHashTable = NULL;
-    }*/
-    // end
 }
 
 
@@ -88,7 +76,6 @@ void Player::processInput() {
     try {
         m_pInputStream->fill();
     } catch (NonBlockingIOException& nbie) {
-        // cout << nbie.toString().c_str() << endl;
     }
 
     __END_CATCH
@@ -97,77 +84,13 @@ void Player::processInput() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// parse packet and execute handler for the packet
+// The base does nothing. Each Player subclass parses its own input
+// buffer and dispatches the packets it finds there.
 //
 //////////////////////////////////////////////////////////////////////
 void Player::processCommand(bool Option) {
     __BEGIN_TRY
 
-    /*
-        try {
-
-            // Variables used temporarily below
-            char header[szPacketHeader];
-            PacketID_t packetID;
-            PacketSize_t packetSize;
-            Packet * pPacket;
-
-            // Handle as many packets as the input buffer holds.
-            while ( true ) {
-
-                // Read the packet header size from the input stream.
-                // If the stream does not hold that many bytes,
-                // an Insufficient exception is thrown and the loop is left.
-                m_pInputStream->peek( header , szPacketHeader );
-
-                // Work out the packet id and the packet size.
-                // The packet size here excludes the header.
-                memcpy( &packetID   , &header[0] , szPacketID );
-                memcpy( &packetSize , &header[szPacketID] , szPacketSize );
-
-                // If the packet id is odd, treat it as a protocol error.
-                if ( packetID >= Packet::PACKET_MAX )
-                    throw InvalidProtocolException("invalid packet id");
-
-                // If the packet size is too large, treat it as a protocol error.
-                if ( packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID) )
-                    throw InvalidProtocolException("too large packet size");
-
-                // Check whether the input buffer holds as many bytes as the packet size.
-                // A break would do just as well here. (an exception is used for now.)
-                if ( m_pInputStream->length() < szPacketHeader + packetSize )
-                    throw InsufficientDataException();
-
-                // Getting this far means the input buffer holds at least one whole packet.
-                // Ask the packet factory manager for a packet by its id and create the packet stream.
-                // A wrong packet id is handled by the packet factory manager.
-                pPacket = g_pPacketFactoryManager->createPacket( packetID );
-
-                // Then initialise the packet from the stream.
-                // read(), defined in the packet subclass, is called through the virtual mechanism
-                // so it is initialised automatically.
-                m_pInputStream->read( pPacket );
-
-                PacketDispatcher::dispatch(pPacket, this);
-
-                // Delete the packet
-                delete pPacket;
-
-            }
-
-        } catch ( NoSuchElementException & nsee ) {
-
-            // PacketFactoryManager::createPacket(PacketID_t)
-            // PacketFactoryManager::getPacketMaxSize(PacketID_t)
-            // can throw it.
-            throw Error( nsee.toString() );
-
-        } catch ( InsufficientDataException ) {
-
-            // do nothing
-
-        }
-    */
     __END_CATCH
 }
 
@@ -202,12 +125,6 @@ void Player::sendPacket(Packet* pPacket) {
     if (m_pOutputStream != NULL) // -_-;
         m_pOutputStream->writePacket(pPacket);
 
-    /*
-    cout << endl;
-    cout << "=== Player::sendPacket() ===" << endl;
-    cout << pPacket->toString() << endl;
-    cout << "============================" << endl;
-    */
 
     __END_CATCH
 }

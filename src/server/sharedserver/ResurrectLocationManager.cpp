@@ -81,7 +81,6 @@ bool ResurrectLocationManager::getSlayerPosition(ZoneID_t id, ZONE_COORD& zoneCo
         return false;
     }
 
-    // return itr->second;
     zoneCoord = itr->second;
 
     return true;
@@ -118,7 +117,6 @@ bool ResurrectLocationManager::getVampirePosition(ZoneID_t id, ZONE_COORD& zoneC
         return false;
     }
 
-    // return itr->second;
 
     zoneCoord = itr->second;
 

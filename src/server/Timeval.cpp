@@ -104,7 +104,6 @@ void getCurrentYearTime(unsigned int& currentYearTime) {
 
     tm Timem;
     localtime_r(&daytime, &Timem);
-    //	tm * Timem = localtime( &daytime );
 
     StringStream stime;
 

@@ -141,7 +141,6 @@ void PCSlayerInfo2::write(SocketOutputStream& oStream) const {
     oStream.write(m_Rank);
     oStream.write(m_RankExp);
 
-    //		cout << m_RankExp << endl;
 
     // write attributes
     oStream.write(m_STRExp);

@@ -11,7 +11,6 @@ RewardInfo* SlayerWeaponRewardClass::selectReward(PlayerCreature* pPC) const {
     __BEGIN_TRY
 
     Assert(pPC != NULL);
-    //	Assert( pPC->isSlayer() );
 
     if (pPC->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pPC);
@@ -28,8 +27,6 @@ RewardInfo* SlayerWeaponRewardClass::selectReward(PlayerCreature* pPC) const {
             SkillDomainType_t domain = pSlayer->getHighestSkillDomain();
 
             if (suitableItemClass(iClass, domain) && pItemRI->canGiveReward(pPC)) {
-                //	QuestMessage result = pItemRI->giveReward(pPC);
-                //	if ( result == COMPLETE_SUCCESS ) return result;
                 return pItemRI;
             }
         }
@@ -57,7 +54,6 @@ RewardInfo* SlayerWeaponRewardClass::selectReward(PlayerCreature* pPC) const {
             Item::ItemClass iClass = pItemRI->getItemClass();
 
             if (iClass == targetItemClass && pItemRI->canGiveReward(pPC)) {
-                //				return pItemRI;
                 candidates.push_back(pItemRI);
             }
         }

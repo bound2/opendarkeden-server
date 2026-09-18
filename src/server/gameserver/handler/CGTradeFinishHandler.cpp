@@ -44,16 +44,6 @@ void CGTradeFinishHandler::execute(CGTradeFinish* pPacket, Player* pPlayer)
 
     // Look in the zone for the one wanted for the exchange.
     Creature* pTargetPC = NULL;
-    /*
-    try
-    {
-        pTargetPC = pZone->getCreature(TargetOID);
-    }
-    catch (NoSuchElementException)
-    {
-        pTargetPC = NULL;
-    }
-    */
 
     // NoSuch removed.
     pTargetPC = pZone->getCreature(TargetOID);
@@ -178,13 +168,9 @@ void CGTradeFinishHandler::executeSlayer(CGTradeFinish* pPacket, Player* pPlayer
         // Change the exchange state.
         pInfo1->setStatus(TRADE_FINISH);
 
-        // cout << "CGTradeFinish [" << pSender->getName() << "] changed state to TRADE_FINISH." << endl;
 
         // If the other side allows the exchange too, actually perform it.
         if (pInfo2->getStatus() == TRADE_FINISH) {
-            // cout << "CGTradeFinish [" << pReceiver->getName() << "] is TRADE_FINISH too, so the exchange runs." <<
-            // endl;
-
             // Exchange only when the exchange is certainly possible.
             if (pTradeManager->canTrade(pSender, pReceiver) == 1) {
                 // Send both sides a packet telling them to perform the exchange.
@@ -315,8 +301,6 @@ void CGTradeFinishHandler::executeVampire(CGTradeFinish* pPacket, Player* pPlaye
         // If the other side allows the exchange too, actually perform it.
         if (pInfo2->getStatus() == TRADE_FINISH) {
             // Exchange only when the exchange is certainly possible.
-            // cout << "CGTradeFinish [" << pReceiver->getName() << "] is TRADE_FINISH too, so the exchange runs." <<
-            // endl;
             if (pTradeManager->canTrade(pSender, pReceiver) == 1) {
                 // Send both sides a packet telling them to perform the exchange.
                 gcTradeFinish.setTargetObjectID(pSender->getObjectID());
@@ -446,8 +430,6 @@ void CGTradeFinishHandler::executeOusters(CGTradeFinish* pPacket, Player* pPlaye
         // If the other side allows the exchange too, actually perform it.
         if (pInfo2->getStatus() == TRADE_FINISH) {
             // Exchange only when the exchange is certainly possible.
-            // cout << "CGTradeFinish [" << pReceiver->getName() << "] is TRADE_FINISH too, so the exchange runs." <<
-            // endl;
             if (pTradeManager->canTrade(pSender, pReceiver) == 1) {
                 // Send both sides a packet telling them to perform the exchange.
                 gcTradeFinish.setTargetObjectID(pSender->getObjectID());

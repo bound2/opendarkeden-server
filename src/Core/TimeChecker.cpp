@@ -40,12 +40,6 @@ void TimePeriod::heartbeat(VSTime currentTime) {
         else
             m_bInPeriod = false;
     }
-
-    //	cout << "CurrentTime: " << currentTime.toString()
-    //		 << "FromTime: " << m_FromTime.toString()
-    //		 << "ToTime: " << m_ToTime.toString()
-    //		 << "isPeriod: " << ( m_bInPeriod ? "TRUE" : "FALSE" )
-    //		 << endl;
 }
 
 

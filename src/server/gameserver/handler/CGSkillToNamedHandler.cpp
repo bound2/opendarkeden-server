@@ -82,10 +82,6 @@ void CGSkillToNamedHandler::execute(CGSkillToNamed* pPacket, Player* pPlayer)
             if (!isAbleToUseSelfSkill(pSlayer, SkillType))
                 bSuccess = false;
 
-            /*			if (pSlayer->isFlag(Effect::EFFECT_CLASS_SNIPING_MODE))
-                        {
-                            g_Sniping.checkRevealRatio(pSlayer, 20, 10);
-                        } */
 
             if (bSuccess) {
                 SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
@@ -101,26 +97,12 @@ void CGSkillToNamedHandler::execute(CGSkillToNamed* pPacket, Player* pPlayer)
             VampireSkillSlot* pVampireSkillSlot = ((Vampire*)pCreature)->hasSkill(SkillType);
             bool bSuccess = true;
 
-            // cout << "SkillType:" << (int)SkillType << endl;
 
-            /*			if (pVampire->isFlag(Effect::EFFECT_CLASS_EXTREME))
-                        {
-                            EffectManager * pEffectManager = pVampire->getEffectManager();
-                            Assert(pEffectManager != NULL);
-                            Effect * pEffect = pEffectManager->findEffect(Effect::EFFECT_CLASS_EXTREME);
-                            if (pEffect != NULL ) {
-                                pEffect->setDeadline(0);
-                            }
-                        } */
             if (pVampireSkillSlot == NULL)
                 bSuccess = false;
             if (!isAbleToUseSelfSkill(pVampire, SkillType))
                 bSuccess = false;
 
-            /*			if (pVampire->isFlag(Effect::EFFECT_CLASS_INVISIBILITY))
-                        {
-                            addVisibleCreature(pZone, pVampire, true);
-                        } */
 
             if (bSuccess) {
                 SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
@@ -152,7 +134,6 @@ void CGSkillToNamedHandler::execute(CGSkillToNamed* pPacket, Player* pPlayer)
             }
         }
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
 #endif // __GAME_SERVER__

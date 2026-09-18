@@ -119,7 +119,6 @@ Result* Statement::executeQuery()
     if (pResult != NULL) {
         m_pResult = new Result(pResult, m_Statement);
     } else {
-        // if (mysql_num_fields(m_pConnection->getMYSQL() ) != 0 )
         if (mysql_field_count(m_pConnection->getMYSQL()) != 0) {
             cerr << "Stmt::EQ Unknown Error > " << getError() << endl;
 

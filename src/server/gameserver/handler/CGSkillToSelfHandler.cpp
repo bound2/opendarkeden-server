@@ -88,10 +88,6 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
             if (!isAbleToUseSelfSkill(pSlayer, SkillType))
                 bSuccess = false;
 
-            /*			if (pSlayer->isFlag(Effect::EFFECT_CLASS_SNIPING_MODE))
-                        {
-                            g_Sniping.checkRevealRatio(pSlayer, 20, 10);
-                        } */
 
             // For UN_TRANSFORM, a handler of its own does the work
             if (SkillType == SKILL_UN_TRANSFORM) {
@@ -127,8 +123,6 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
             if ((SkillType == SKILL_TRANSFORM_TO_BAT || SkillType == SKILL_TRANSFORM_TO_WOLF) &&
                 (pVampire->hasRelicItem() || pVampire->isFlag(Effect::EFFECT_CLASS_HAS_FLAG) ||
                  pVampire->isFlag(Effect::EFFECT_CLASS_HAS_SWEEPER))) {
-                // cout << "Transformation is impossible while holding a relic" << endl;
-
                 GCSkillFailed1 _GCSkillFailed1;
                 _GCSkillFailed1.setSkillType(SkillType);
                 pPlayer->sendPacket(&_GCSkillFailed1);
@@ -139,13 +133,6 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
                 addVisibleCreature(pZone, pVampire, true);
                 return;
             }
-            /*			if (SkillType == SKILL_HOWL && pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF))
-                        {
-                            SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_HOWL);
-                            Assert(pSkillHandler != NULL);
-                            pSkillHandler->execute(pVampire, pVampireSkillSlot, pPacket->getCEffectID());
-                            return;
-                        } */
             if (SkillType == SKILL_UN_TRANSFORM) {
                 if (pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF) ||
                     pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT) ||
@@ -157,34 +144,18 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
                 }
             }
             if (SkillType == SKILL_OPEN_CASKET && pVampire->isFlag(Effect::EFFECT_CLASS_CASKET)) {
-                // cout << "OpenCasket" << endl;
                 SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_OPEN_CASKET);
                 Assert(pSkillHandler != NULL);
                 pSkillHandler->execute(pVampire, pVampireSkillSlot, pPacket->getCEffectID());
                 return;
             }
 
-            // cout << "SkillType:" << (int)SkillType << endl;
-
-            /*            if (pVampire->isFlag(Effect::EFFECT_CLASS_EXTREME))
-                        {
-                            EffectManager * pEffectManager = pVampire->getEffectManager();
-                            Assert(pEffectManager != NULL);
-                            Effect * pEffect = pEffectManager->findEffect(Effect::EFFECT_CLASS_EXTREME);
-                            if (pEffect != NULL ) {
-                                pEffect->setDeadline(0);
-                            }
-                        } */
 
             if (pVampireSkillSlot == NULL)
                 bSuccess = false;
             if (!isAbleToUseSelfSkill(pVampire, SkillType))
                 bSuccess = false;
 
-            /*			if (pVampire->isFlag(Effect::EFFECT_CLASS_INVISIBILITY))
-                        {
-                            addVisibleCreature(pZone, pVampire, true);
-                        } */
 
             if (bSuccess) {
                 SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
@@ -240,7 +211,6 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
             }
         }
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
 #endif // __GAME_SERVER__

@@ -80,78 +80,7 @@ void CGAttackHandler::execute(CGAttack* pPacket, Player* pPlayer)
 
         // Do not attack a relic table of one's own race.
 
-        /*
-        if ( pTarget->isMonster() )
-        {
-            Monster* pMonster = dynamic_cast<Monster*>(pTarget);
-            Assert( pMonster != NULL );
 
-            MonsterType_t type = pMonster->getMonsterType();
-
-            if ( ( type == 371 || type == 372 || type == 373 ) && pCreature->isSlayer() )
-            {
-                GCSkillFailed1 _GCSkillFailed1;
-                _GCSkillFailed1.setSkillType(SKILL_ATTACK_MELEE);
-                pPlayer->sendPacket( &_GCSkillFailed1 );
-                return;
-            }
-
-            if ( ( type == 374 || type == 375 || type == 376) && pCreature->isVampire() )
-            {
-                GCSkillFailed1 _GCSkillFailed1;
-                _GCSkillFailed1.setSkillType(SKILL_ATTACK_MELEE);
-                pPlayer->sendPacket( &_GCSkillFailed1 );
-                return;
-            }
-
-            if ( type >= 371 && type <= 376)
-            {
-                string RelicName = "";
-
-                switch(type)
-                {
-                    case 371:
-                        RelicName = "Rommel's Medal";
-                        break;
-                    case 372:
-                        RelicName = "Holy Robe";
-                        break;
-                    case 374:
-                        RelicName = "Virgin's Blood";
-                        break;
-                    case 375:
-                        RelicName = "Inverted Cross";
-                        break;
-                    default:
-                        RelicName = pMonster->getName();
-                }
-
-                // Make the effect
-                EffectCombatMessage1* pEffect = new EffectCombatMessage1();
-                pEffect->setNextTime(30);
-                pEffect->setDelay(30);
-                pEffect->setDeadline(60);
-                pEffect->setRelicName(RelicName);
-
-                // Attach the effect to the Zone
-                (pZone->getObjectRegistry()).registerObject(pEffect);
-                pZone->addEffect(pEffect);
-            }
-        }
-        */
-
-        /*		if (pGamePlayer->isSlayer() &&
-                        pCreature->isMonster() &&
-                        (pCreature->getMonsterType() == 371 ||
-                         pCreature->getMonsterType() == 372 ||
-                         pCreature->getMonsterType() == 371))
-                    return;
-                if (pGamePlayer->isVampire() &&
-                        pCreature->isMonster() &&
-                        (pCreature->getMonsterType() == 373 ||
-                         pCreature->getMonsterType() == 374))
-                    return;
-        */
         if (!isAbleToUseObjectSkill(pCreature, SKILL_ATTACK_MELEE))
             return;
 

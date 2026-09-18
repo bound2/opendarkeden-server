@@ -32,7 +32,6 @@
 #include "repository/ItemRepository.h"
 
 namespace de::gm {
-
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
@@ -97,14 +96,12 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
         pos = msg.find_first_of(' ', previous + 1);
         string optionString = trim(msg.substr(previous + 1, pos - previous - 1));
 
-        // cout << "optionString: " << optionString.c_str() << endl;
 
         if (optionString.size() == 0)
             break;
 
         OptionInfo* pOptionInfo = NULL;
 
-        // try {
         pOptionInfo = g_pOptionInfoManager->getOptionInfo(optionString);
 
         if (pOptionInfo == NULL) {
@@ -114,21 +111,11 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
                 break;
         }
 
-        /*
-    } catch (NoSuchElementException&) {
-        try {
-            pOptionInfo = g_pOptionInfoManager->getOptionInfo( atoi(optionString.c_str()) );
-        } catch (NoSuchElementException&) {
-            break;
-        }
-    }
-    */
 
         if (pOptionInfo != NULL) {
             OptionType = pOptionInfo->getType();
 
             if (OptionType != 0) {
-                // cout << "optionType = " << (int)OptionType << endl;
                 optionTypes.push_back(OptionType);
             }
         }
@@ -139,7 +126,6 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
 
     // Return when it is not an item that can really be created.
     if (!g_pItemInfoManager->isPossibleItem(ItemClass, ItemType, optionTypes)) {
-        // cerr << "Cannot create item" << endl;
         StringStream msg;
         msg << g_pStringPool->getString(STRID_CANNOT_CREATE_ITEM_2) << ItemClass2ShortString[ItemClass] << ", "
             << (int)ItemType << ", " << getOptionTypeToString(optionTypes);
@@ -152,26 +138,11 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
         return;
     }
 
-    // cout << "createItemOptions : " << getOptionTypeToString(optionTypes) << endl;
     //  Should a unique item made by create have its count limited too?
     ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(ItemClass, ItemType);
     Assert(pItemInfo != NULL);
 
     // For a unique item
-    /*
-    if (pItemInfo->isUnique())
-    {
-        if (!UniqueItemManager::isPossibleCreate( ItemClass, ItemType ))
-        {
-            GCSystemMessage gcSystemMessage;
-            gcSystemMessage.setMessage("This unique item cannot be created any more.");
-
-            pGamePlayer->sendPacket( &gcSystemMessage );
-
-            return;
-        }
-    }
-    */
 
     Item* pItem = g_pItemFactoryManager->createItem((Item::ItemClass)ItemClass, ItemType, optionTypes);
     pItem->setCreateType(Item::CREATE_TYPE_CREATE);
@@ -198,7 +169,6 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
         }
     }
 
-    // cout << "createItemOptions : " << getOptionTypeToString(pItem->getOptionTypeList()) << endl;
 
     if (isStackable(pItem->getItemClass()) && lNum < rNum) {
         int itemNum = atoi(msg.substr(lNum + 1, rNum - lNum - 1).c_str());
@@ -250,62 +220,9 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
             makeGCCreateItem(&gcCreateItem, pItem, p.x, p.y);
             pGamePlayer->sendPacket(&gcCreateItem);
         } else {
-            // cerr << "Failed to put it in the inventory window" << endl;
             SAFE_DELETE(pItem);
         }
     }
-    /*	else if ( pCreature->isVampire() )
-        {
-            Vampire* pVampire= dynamic_cast<Vampire*>(pCreature);
-
-            Inventory* pInventory = pVampire->getInventory();
-
-            Assert(pInventory != NULL);
-
-            TPOINT p;
-
-            if (pInventory->getEmptySlot(pItem, p))
-            {
-                pInventory->addItem(p.x, p.y, pItem);
-
-                makeGCCreateItem( &gcCreateItem, pItem, p.x, p.y );
-
-                pGamePlayer->sendPacket(&gcCreateItem);
-
-                pItem->create(pVampire->getName(), STORAGE_INVENTORY, 0, p.x, p.y);
-            }
-            else
-            {
-                //cout << "Failed to put it in the inventory window" << endl;
-                SAFE_DELETE(pItem);
-            }
-        }
-        else if ( pCreature->isOusters() )
-        {
-            Ousters* pOusters= dynamic_cast<Ousters*>(pCreature);
-
-            Inventory* pInventory = pOusters->getInventory();
-
-            Assert(pInventory != NULL);
-
-            TPOINT p;
-
-            if (pInventory->getEmptySlot(pItem, p))
-            {
-                pInventory->addItem(p.x, p.y, pItem);
-
-                makeGCCreateItem( &gcCreateItem, pItem, p.x, p.y );
-
-                pGamePlayer->sendPacket(&gcCreateItem);
-
-                pItem->create(pOusters->getName(), STORAGE_INVENTORY, 0, p.x, p.y);
-            }
-            else
-            {
-                //cout << "Failed to put it in the inventory window" << endl;
-                SAFE_DELETE(pItem);
-            }
-        }*/
 
     if (pItem != NULL) {
         if (isRelicItem(pItem)) {
@@ -315,7 +232,6 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
         // For a unique item, mark it unique.
         if (pItemInfo->isUnique()) {
             pItem->setUnique();
-            // UniqueItemManager::createItem( ItemClass, ItemType );
             filelog("uniqueItem.txt", "[OpCreate] %s %s", pCreature->getName().c_str(), pItem->toString().c_str());
         }
 
@@ -330,5 +246,4 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
 
     __END_DEBUG_EX __END_CATCH
 }
-
 } // namespace de::gm

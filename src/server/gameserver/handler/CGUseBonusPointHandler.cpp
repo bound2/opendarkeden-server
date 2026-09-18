@@ -88,37 +88,6 @@ void CGUseBonusPointHandler::execute(CGUseBonusPoint* pPacket, Player* pPlayer)
             StringStream sst;
             sst << "INTE = " << (int)cur;
             pVampire->tinysave(sst.toString());
-
-            /*
-            // A rise in INT can make a new skill learnable.
-            SkillType_t lastSkill = pVampire->findLastSkill();
-
-
-            // Find the skill at the level after lastSkill.
-            // Not finding one means there is nothing more to learn.
-            for(int i = SKILL_BLOOD_DRAIN + 1 ; i < SKILL_MAX; i++)
-            {
-                SkillParentInfo* pParentInfo = g_pSkillParentInfoManager->getSkillParentInfo(i);
-
-                if (pParentInfo->hasParent(lastSkill))// found it!
-                {
-                    SkillInfo* pNewSkillInfo = g_pSkillInfoManager->getSkillInfo(i);
-                    if (pNewSkillInfo->getEXP() <= cur && pVampire->hasSkill(i) == NULL)
-                    {
-                        //cout << "(" << pVampire->getName() << ") can learn new skill >> ";
-
-                        // A new skill can be learned.
-                        GCLearnSkillReady gcLSR;
-                        gcLSR.setSkillDomainType(SKILL_DOMAIN_VAMPIRE);
-                        pVampire->getPlayer()->sendPacket(&gcLSR);
-                        break;
-                    }
-                }
-
-            }
-            */
-
-            // log(LOG_USE_BONUS_POINT, pVampire->getName(), "", "INT");
         } else if (which == INC_STR) {
             cur = pVampire->getSTR(ATTR_BASIC) + 1;
             pVampire->setSTR(cur, ATTR_BASIC);
@@ -126,8 +95,6 @@ void CGUseBonusPointHandler::execute(CGUseBonusPoint* pPacket, Player* pPlayer)
             StringStream sst;
             sst << "STR = " << (int)cur;
             pVampire->tinysave(sst.toString());
-
-            // log(LOG_USE_BONUS_POINT, pVampire->getName(), "", "STR");
         } else if (which == INC_DEX) {
             cur = pVampire->getDEX(ATTR_BASIC) + 1;
             pVampire->setDEX(cur, ATTR_BASIC);
@@ -135,8 +102,6 @@ void CGUseBonusPointHandler::execute(CGUseBonusPoint* pPacket, Player* pPlayer)
             StringStream sst;
             sst << "DEX = " << (int)cur;
             pVampire->tinysave(sst.toString());
-
-            // log(LOG_USE_BONUS_POINT, pVampire->getName(), "", "DEX");
         }
 
         // Save the changed bonus points.

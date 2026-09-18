@@ -120,9 +120,6 @@ void CGPickupMoneyHandler::execute(CGPickupMoney* pPacket, Player* pPlayer)
                 marginGold = currentGold + itemGold - MAX_MONEY;
                 pMoney->setAmount(marginGold);
 
-                // if (pCreature->isSlayer()) pSlayer->setGoldEx(MAX_MONEY);
-                // else                       pVampire->setGoldEx(MAX_MONEY);
-                //  by sigi. 2002.9.4
                 if (pCreature->isSlayer())
                     pSlayer->increaseGoldEx(pickupMoney);
                 else if (pCreature->isVampire())
@@ -133,9 +130,6 @@ void CGPickupMoneyHandler::execute(CGPickupMoney* pPacket, Player* pPlayer)
                 bSuccess = true;
                 bMargin = true;
             } else {
-                // if (pCreature->isSlayer()) pSlayer->setGoldEx(currentGold + itemGold);
-                // else                       pVampire->setGoldEx(currentGold + itemGold);
-                //  by sigi. 2002.9.4
                 if (pCreature->isSlayer())
                     pSlayer->increaseGoldEx(itemGold);
                 else if (pCreature->isVampire())
@@ -155,8 +149,6 @@ void CGPickupMoneyHandler::execute(CGPickupMoney* pPacket, Player* pPlayer)
         }
 
         if (bSuccess) {
-            // log(LOG_PICKUP_MONEY, pCreature->getName(), "", pItem->toString());
-
             // First delete the item from the zone.
             pZone->deleteItem(pItem, ZoneX, ZoneY);
 
@@ -185,18 +177,12 @@ void CGPickupMoneyHandler::execute(CGPickupMoney* pPacket, Player* pPlayer)
             if (bMargin) {
                 TPOINT pt = pZone->addItem(pItem, ZoneX, ZoneY);
                 if (pt.x != -1) {
-                    // pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
-                    //  Item save optimization.
                     char pField[80];
                     sprintf(pField, "Storage=%d, StorageID=%u, X=%d, Y=%d", STORAGE_ZONE, pZone->getZoneID(), pt.x,
                             pt.y);
                     pItem->tinysave(pField);
-
                 } else {
                     // If the money could not be dropped, just delete it.
-                    // cout << "#############################################" << endl;
-                    // cout << "# CRITICAL ERROR! CANNOT ADD MONEY TO ZONE! #" << endl;
-                    // cout << "#############################################" << endl;
 
                     SAFE_DELETE(pItem);
                 }
@@ -212,14 +198,12 @@ void CGPickupMoneyHandler::execute(CGPickupMoney* pPacket, Player* pPlayer)
                 remainMoneyTraceLog(zoneName, pCreature->getName(), ITEM_LOG_MOVE, DETAIL_PICKUP,
                                     itemGold - marginGold);
             }
-
         } else {
             GCCannotAdd _GCCannotAdd;
             _GCCannotAdd.setObjectID(pPacket->getObjectID());
             pPlayer->sendPacket(&_GCCannotAdd);
         }
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
 #endif // __GAME_SERVER__

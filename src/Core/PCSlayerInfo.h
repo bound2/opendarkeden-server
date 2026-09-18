@@ -442,14 +442,6 @@ private:
     // skill domain levels
     SkillLevel_t m_DomainLevels[6];
 
-    /*
-    // Gold
-    Gold_t m_Gold;
-
-
-    // The zone last played in
-    ZoneID_t m_ZoneID;
-    */
 
     bitset<SLAYER_BIT_MAX> m_Outlook;   // Slayer appearance information
     Color_t m_Colors[SLAYER_COLOR_MAX]; // Slayer colour information

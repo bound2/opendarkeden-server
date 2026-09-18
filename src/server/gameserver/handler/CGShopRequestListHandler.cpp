@@ -40,16 +40,6 @@ void CGShopRequestListHandler::execute(CGShopRequestList* pPacket, Player* pPlay
     Zone* pZone = pPC->getZone();
     Creature* pNPCBase = NULL;
 
-    /*
-    try
-    {
-        pNPCBase = pZone->getCreature(NPCID);
-    }
-    catch (NoSuchElementException & nsee)
-    {
-        pNPCBase = NULL;
-    }
-    */
 
     // NoSuch removed.
     pNPCBase = pZone->getCreature(NPCID);
@@ -78,7 +68,6 @@ void CGShopRequestListHandler::execute(CGShopRequestList* pPacket, Player* pPlay
         }
 
         pkt.setMarketCondBuy(pNPC->getMarketCondBuy());
-        //		pkt.setMarketCondSell(pNPC->getMarketCondSell());
         pkt.setMarketCondSell(pNPC->getTaxRatio(pPC));
 
         // Send the packet.
@@ -98,7 +87,6 @@ void CGShopRequestListHandler::execute(CGShopRequestList* pPacket, Player* pPlay
         }
 
         pkt.setMarketCondBuy(pNPC->getMarketCondBuy());
-        //		pkt.setMarketCondSell(pNPC->getMarketCondSell());
         pkt.setMarketCondSell(pNPC->getTaxRatio(pPC));
 
         // Send the packet.

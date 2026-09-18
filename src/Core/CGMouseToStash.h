@@ -95,8 +95,6 @@ public:
 class CGMouseToStashHandler {
 public:
     static void execute(CGMouseToStash* pPacket, Player* player);
-    // static void executeSlayer(CGMouseToStash* pPacket, Player* player) ;
-    // static void executeVampire(CGMouseToStash* pPacket, Player* player) ;
 };
 
 

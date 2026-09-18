@@ -93,8 +93,6 @@ class CGDepositPetHandler {
 public:
     // execute packet's handler
     static void execute(CGDepositPet* pPacket, Player* player);
-    // static void executeSlayer(CGDepositPet* pPacket, Player* player) ;
-    // static void executeVampire(CGDepositPet* pPacket, Player* player) ;
 };
 
 #endif

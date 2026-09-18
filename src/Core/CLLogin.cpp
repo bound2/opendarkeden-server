@@ -25,10 +25,6 @@ void CLLogin::read(SocketInputStream& iStream)
     iStream.read(m_LoginMode);
 
     /* convert hex -> str */
-    // char tmpStr[20];
-    // sprintf(tmpStr, "%02x%02x%02x%02x%02x%02x",
-    // m_cMacAddress[0],m_cMacAddress[1],m_cMacAddress[2],m_cMacAddress[3],m_cMacAddress[4],m_cMacAddress[5]);
-    // m_strMacAddress = tmpStr[i];
 
     __END_CATCH
 }
@@ -74,7 +70,6 @@ bool CLLogin::checkMacAddress(string lastMac) const {
 
     if (tmpStr == lastMac)
         retValue = true;
-    // if(m_strMacAddress	== lastMac)	retValue = true;
 
     return retValue;
 }

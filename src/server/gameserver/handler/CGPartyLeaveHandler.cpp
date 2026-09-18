@@ -42,8 +42,6 @@ void CGPartyLeaveHandler::execute(CGPartyLeave* pPacket, Player* pPlayer)
 
     int PartyID = pCreature->getPartyID();
     if (PartyID == 0) {
-        // filelog("PARTY_EXCEPTION.log", "CGPartyLeaveHandler::execute() : the party ID is 0. [%s]",
-        // pCreature->toString().c_str());
         throw ProtocolException();
     }
 
@@ -55,15 +53,9 @@ void CGPartyLeaveHandler::execute(CGPartyLeave* pPacket, Player* pPlayer)
         // If one of two members expelled the other,
         // the global party is deleted inside this.
         // The remaining party members' IDs become 0.
-        // cout << "===== Global party manager state before leaving the party" << endl;
-        // cout << g_pGlobalPartyManager->toString() << endl;
-        // cout << "================================================" << endl;
 
         g_pGlobalPartyManager->deletePartyMember(PartyID, pCreature);
 
-        // cout << "===== Global party manager state after leaving the party" << endl;
-        // cout << g_pGlobalPartyManager->toString() << endl;
-        // cout << "================================================" << endl;
 
         // Delete from the local party.
         LocalPartyManager* pLocalPartyManager = pZone->getLocalPartyManager();
@@ -72,25 +64,17 @@ void CGPartyLeaveHandler::execute(CGPartyLeave* pPacket, Player* pPlayer)
     }
     // A different name means one wants to expel another member of the party.
     else {
-        // cout << "===== Global party manager state before the expulsion" << endl;
-        // cout << g_pGlobalPartyManager->toString() << endl;
-        // cout << "=======================================" << endl;
-
         // Delete from the global party.
         // If one of two members expelled the other,
         // the global party is deleted inside this.
         // The remaining party members' IDs become 0.
         g_pGlobalPartyManager->expelPartyMember(PartyID, pCreature, TargetName);
 
-        // cout << "===== Global party manager state after the expulsion" << endl;
-        // cout << g_pGlobalPartyManager->toString() << endl;
-        // cout << "=======================================" << endl;
 
         // Delete the expelled one from the local party.
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
         Creature* pTargetCreature = g_pPCFinder->getCreature_LOCKED(TargetName);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch removed.
         if (pTargetCreature == NULL) {
@@ -102,12 +86,8 @@ void CGPartyLeaveHandler::execute(CGPartyLeave* pPacket, Player* pPlayer)
         LocalPartyManager* pLocalPartyManager = pTargetZone->getLocalPartyManager();
         Assert(pLocalPartyManager != NULL);
 
-        // cout << "===== Local party manager state before the expulsion" << endl;
-        // cout << pLocalPartyManager->toString() << endl;
-        // cout << "=======================================" << endl;
 
         pLocalPartyManager->deletePartyMember(PartyID, pTargetCreature);
-        // cout << "The expelled player was deleted from the local party." << endl;
 
         __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
     }

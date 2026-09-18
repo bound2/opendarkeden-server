@@ -89,7 +89,6 @@ void PCSlayerInfo3::write(SocketOutputStream& oStream) const {
     oStream.write(m_Rank);
     oStream.write(m_AdvancementLevel);
 
-    // cout << "advancement level : " << (int)m_AdvancementLevel << endl;
 
     __END_CATCH
 }

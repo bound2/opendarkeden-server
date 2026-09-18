@@ -76,7 +76,6 @@ void CGBloodDrainHandler::execute(CGBloodDrain* pPacket, Player* pPlayer)
             pSkillHandler->execute(pVampire, pPacket->getObjectID());
         }
     } catch (Throwable& t) {
-        // cout << t.toString();
     }
 
 #endif

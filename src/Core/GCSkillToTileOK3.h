@@ -102,8 +102,6 @@ public:
 
     //	void setCListNum(BYTE CListNum)  { m_CListNum = CListNum; }
 
-    // add / delete  Creature List
-    //	void addCListElement(ObjectID_t ObjectID) ;
 
     // Clear CreatureList
     //	void clearCList()  { m_CList.clear(); m_CListNum = 0; }
@@ -134,11 +132,6 @@ private:
 
     Coord_t m_Y;
 
-    // CreatureList Element Number
-    //	BYTE m_CListNum;
-
-    // Creature List
-    //	list<ObjectID_t> m_CList;
 
     BYTE m_Grade;
 };

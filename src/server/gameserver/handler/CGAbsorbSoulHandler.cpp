@@ -60,7 +60,6 @@ void CGAbsorbSoulHandler::execute(CGAbsorbSoul* pPacket, Player* pPlayer)
                                    pPacket->getInvenY(), pPacket->getTargetInvenX(), pPacket->getTargetInvenY());
         }
     } catch (Throwable& t) {
-        // cout << t.toString();
     }
 
 #endif

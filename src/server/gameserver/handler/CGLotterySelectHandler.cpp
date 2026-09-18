@@ -41,8 +41,6 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
 #ifdef __GAME_SERVER__
-        // NOTE: Original code could cancel reward processing; keep active.
-        // return;
 
         GamePlayer* pGP = dynamic_cast<GamePlayer*>(pPlayer);
     Assert(pGP != NULL);
@@ -137,7 +135,6 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
             sprintf(sCommand, "*allworld *command NotifyWin %s(%s) %u", pCreature->getName().c_str(), worldName.c_str(),
                     pPC->getLottoRewardID());
             de::gm::opworld(NULL, sCommand, 0, false);
-
         } else {
             // Otherwise, hand out consolation rewards
             Item::ItemClass iClass;
@@ -148,14 +145,7 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
             bool isUnique = false;
             MonsterType_t masterType;
 
-            // No reward items for the first quest tier
-            // 					if (pPC->getLottoQuestLevel()== 0 )
-            // 					{
-            // 						return;
-            // 					}
-            switch (pPC->getLottoQuestLevel())
-            //					switch( pPC->getQuestManager()->getEventQuestAdvanceManager()->getQuestLevel() )
-            {
+            switch (pPC->getLottoQuestLevel()) {
             case 0: {
                 // No reward items for the first quest tier
                 return;
@@ -390,14 +380,12 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
 
                     it.NextOptionRatio = 0;
 
-                    // cout << "TradeLairItem: BonusRatio = " << it.NextOptionRatio << endl;
 
                     if (pTreasure->getRandomItem(&it)) {
                         pItem = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
                         Assert(pItem != NULL);
                     }
                 }
-
             } else {
                 pItem = g_pItemFactoryManager->createItem(iClass, iType, oList);
             }
@@ -453,8 +441,6 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
         }
     } break;
     case TYPE_OVER_ENDING: {
-        // Dev note: PlayerCreature::setHP should be updated to accept this path
-        // pPC->setHP(0);
         if (pCreature != NULL) {
             if (pCreature->isSlayer()) {
                 Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);

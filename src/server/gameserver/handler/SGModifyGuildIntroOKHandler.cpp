@@ -32,7 +32,6 @@ void SGModifyGuildIntroOKHandler::execute(SGModifyGuildIntroOK* pPacket)
 
 #ifdef __GAME_SERVER__
 
-        // cout << "SGModifyGuildIntro received" << endl;
 
         Assert(pPacket != NULL);
 

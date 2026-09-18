@@ -23,7 +23,6 @@ void CGAddMouseToInventory::read(SocketInputStream& iStream)
     __BEGIN_TRY
 
     iStream.read(m_ObjectID);
-    // iStream.read(m_InventoryItemObjectID);
     iStream.read(m_InvenX);
     iStream.read(m_InvenY);
 
@@ -36,7 +35,6 @@ void CGAddMouseToInventory::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
 
     oStream.write(m_ObjectID);
-    // oStream.write(m_InventoryItemObjectID);
     oStream.write(m_InvenX);
     oStream.write(m_InvenY);
 

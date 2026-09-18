@@ -24,7 +24,6 @@ public:
     string getWarName() const;
 
 public:
-    // void			sendWarStartMessage() const ;
     void sendWarEndMessage() const;
 
 protected:

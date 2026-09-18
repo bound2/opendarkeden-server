@@ -162,7 +162,6 @@ bool VSDate::setYMD(int y, int m, int d) {
 
     jd = greg2jul(y, m, d);
 
-    // Assert(year() == (y > 99 ? y : 1900+y) && month() == m && day() == d);
 
     return true;
 }
@@ -453,9 +452,7 @@ bool VSTime::currentTime(VSTime* ct) {
     gettimeofday(&tv, 0);
     time_t ltime = tv.tv_sec;
     tm t;
-    // tm *t = localtime(&ltime);
     localtime_r(&ltime, &t);
-    // ct->ds = (uint)(MSECS_PER_HOUR*t->tm_hour + MSECS_PER_MIN*t->tm_min + 1000*t->tm_sec + tv.tv_usec/1000);
     ct->ds = (uint)(MSECS_PER_HOUR * t.tm_hour + MSECS_PER_MIN * t.tm_min + 1000 * t.tm_sec + tv.tv_usec / 1000);
     return (t.tm_hour == 0 && t.tm_min == 0);
 }
@@ -569,7 +566,6 @@ VSDateTime VSDateTime::addMSecs(int nsecs) const {
         nsecs %= MSECS_PER_DAY;
     }
 
-    // tt += sign*nsecs*1000;
     tt += sign * nsecs;
 
     if (tt < 0) {

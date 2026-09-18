@@ -17,39 +17,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // Rectangle class
 //////////////////////////////////////////////////////////////////////////////
-/*
-VSRect::VSRect(int l, int t, int r, int b)
-{
-    Assert(l <= r && t <= b);
-
-    left   = l;
-    top    = t;
-    right  = r;
-    bottom = b;
-}
-
-bool VSRect::ptInRect(const POINT& pt) const
-{
-    if(left <= pt.x && pt.x <= right && top <= pt.y && pt.y <= bottom) return true;
-    return false;
-}
-
-bool VSRect::ptInRect(const int x, const int y) const
-{
-    if(left <= x && x <= right && top <= y && y <= bottom) return true;
-    return false;
-}
-
-void VSRect::set(int l, int t, int r, int b)
-{
-    Assert(l <= r && t <= b);
-
-    left   = l;
-    top    = t;
-    right  = r;
-    bottom = b;
-}
-*/
 
 //////////////////////////////////////////////////////////////////////////////
 // Turn a number into a string
@@ -121,42 +88,6 @@ Dir_t computeDirection(int originX, int originY, int destX, int destY) {
     return DIR_NONE;
 }
 
-/*
-Dir_t calcDirection(int originX, int originY, int destX, int destY)
-{
-    return computeDirection(originX, originY, destX, destY);
-}
-
-Dir_t getDirection(int originX, int originY, int destX, int destY)
-{
-    return computeDirection(originX, originY, destX, destY);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// Pick a random number
-//////////////////////////////////////////////////////////////////////////////
-int Random(int Min, int Max)
-{
-    if(Max == 0 || Min > Max) return  0;
-    return ((rand() %(int)((Max) -(Min) + 1)) +(Min));
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// Round off
-//////////////////////////////////////////////////////////////////////////////
-int Round(float f) { return f - 0.5 >(int)f ?(int)f + 1 :(int)f; }
-
-//////////////////////////////////////////////////////////////////////////////
-// Dice function
-//////////////////////////////////////////////////////////////////////////////
-uint Dice(uint num , uint dice)
-{
-    uint result = 0;
-    for(uint i = 0 ; i < num ; i ++)
-    result += rand() % dice + 1;
-    return result;
-}
-*/
 
 //////////////////////////////////////////////////////////////////////////////
 // Take one line out of a long string
@@ -175,13 +106,6 @@ string getline(const string& str, size_t& pos) {
         pos = pos + 1;
 
     return str.substr(oldpos, (pos - 1) - oldpos);
-
-    /*
-    uint oldpos = pos;
-    // Adding one gives
-    pos = str.find_first_of('\n',oldpos) + 1;
-    return str.substr(oldpos ,(pos - 1) - oldpos);
-    */
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -210,7 +134,6 @@ void getCurrentTimeEx(int& year, int& month, int& day, int& hour, int& minute, i
     time_t cur_time = time(NULL);
     tm cur_tm;
     localtime_r(&cur_time, &cur_tm);
-    // tm*    cur_tm   = localtime(&cur_time);
 
     year = cur_tm.tm_year + 1900;
     month = cur_tm.tm_mon + 1;
@@ -238,38 +161,6 @@ string getCurrentTimeStringEx(void) {
 //////////////////////////////////////////////////////////////////////////////
 // Split a word into its high and low bytes
 //////////////////////////////////////////////////////////////////////////////
-/*
-void splitWord(WORD value, int& high, int& low)
-{
-    high = value >> 8;
-    low  = value & 0xFF;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// Fill with zeroes
-//////////////////////////////////////////////////////////////////////////////
-void zerofill(void* pointer, size_t size)
-{
-    memset(pointer, 0, size);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// Check whether a value is within a range
-//////////////////////////////////////////////////////////////////////////////
-bool isInRange(int value, int min, int max)
-{
-    if(min <= value && value <= max) return true;
-    return false;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// Work out the percentage of a given number
-//////////////////////////////////////////////////////////////////////////////
-int getPercentValue(int value, int percent)
-{
-    return(int)((float)value *(float)percent / 100.0);
-}
-*/
 
 //////////////////////////////////////////////////////////////////////////////
 // Work out the percentage of a given number - rounded to one decimal place

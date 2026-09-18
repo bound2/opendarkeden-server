@@ -175,18 +175,13 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
 
     // Take the money.
     if (bSlayer) {
-        // pSlayer->setGoldEx(playerMoney-repairPrice);
-        //  by sigi. 2002.9.4
         pSlayer->decreaseGoldEx(repairPrice);
-        // log(LOG_REPAIR_ITEM, pSlayer->getName(), "", pItem->toString());
     } else if (bVampire) {
         // by sigi. 2002.9.4
         pVampire->decreaseGoldEx(repairPrice);
-        // log(LOG_REPAIR_ITEM, pVampire->getName(), "", pItem->toString());
     } else if (bOusters) {
         // by sigi. 2002.9.4
         pOusters->decreaseGoldEx(repairPrice);
-        // log(LOG_REPAIR_ITEM, pOusters->getName(), "", pItem->toString());
     }
 
     // Save to the DB that the item was repaired.
@@ -195,7 +190,6 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
     // it is not saved.
 
 
-    // Item save optimization.
     if (repairPrice > 0) {
         char pField[80];
 
@@ -212,36 +206,6 @@ void CGRequestRepairHandler::executeNormal(CGRequestRepair* pPacket, Player* pPl
         pItem->tinysave(pField);
     }
 
-    /*
-    // Whatever it is.. only the durability has to change.
-    // But.. some ItemObjects have no Durability field and
-    // some have to store a Charge.
-    // So.. for now the save that stores everything is used.
-    switch (storage)
-    {
-        case STORAGE_INVENTORY:
-        {
-            pItem->save(pPC->getName(), STORAGE_INVENTORY, 0, X, Y);
-        }
-        break;
-
-        case STORAGE_GEAR:
-        {
-            if (bSlayer)
-            {
-                pItem->save(pSlayer->getName(),  STORAGE_GEAR, 0, X, 0);
-            }
-            else
-            {
-                pItem->save(pVampire->getName(), STORAGE_GEAR, 0, X, 0);
-            }
-        }
-        break;
-
-        default:
-            break;
-    }
-    */
 
     // Send the OK packet.
     response.setCode(NPC_RESPONSE_REPAIR_OK);
@@ -330,16 +294,12 @@ void CGRequestRepairHandler::executeMotorcycle(CGRequestRepair* pPacket, Player*
                         repairItem(pItemOnTile);
 
                         // Save it.
-                        // pItemOnTile->save(pPC->getName(), STORAGE_ZONE, pZone->getZoneID(), zx, zy);
-                        // Item save optimization.
                         char pField[80];
                         sprintf(pField, "Durability=%d", pItemOnTile->getDurability());
                         pItemOnTile->tinysave(pField);
 
 
                         // Take the money.
-                        // if (bSlayer) (dynamic_cast<Slayer*>(pPC))->setGoldEx(playerMoney-repairPrice);
-                        // else         (dynamic_cast<Vampire*>(pPC))->setGoldEx(playerMoney-repairPrice);
 
                         // by sigi. 2002.9.4
                         (dynamic_cast<PlayerCreature*>(pPC))->decreaseGoldEx(repairPrice);
@@ -419,8 +379,6 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
                     if (pItem->getDurability() != oldDurability) {
                         // To cut down DB queries,
                         // save only when the durability changed.
-                        // pItem->save(pSlayer->getName(), STORAGE_GEAR, 0, i, 0);
-                        // Item save optimization.
                         sprintf(pField, "Durability=%d", pItem->getDurability());
                         pItem->tinysave(pField);
                     }
@@ -432,13 +390,10 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
         }
 
         // Take the money, and...
-        // pSlayer->setGoldEx(pSlayer->getGold() - repairPrice);
 
         // by sigi.2002.9.4
         pSlayer->decreaseGoldEx(repairPrice);
 
-        // leave a log.
-        // log(LOG_REPAIR_ITEM, pSlayer->getName(), "", "ALL");
 
         // Send the OK packet.
         response.setCode(NPC_RESPONSE_REPAIR_OK);
@@ -480,8 +435,6 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
                     if (pItem->getDurability() != oldDurability) {
                         // To cut down DB queries,
                         // save only when the durability changed.
-                        // pItem->save(pVampire->getName(), STORAGE_GEAR, 0, i, 0);
-                        // Item save optimization.
                         sprintf(pField, "Durability=%d", pItem->getDurability());
                         pItem->tinysave(pField);
                     }
@@ -493,12 +446,9 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
         }
 
         // Take the money, and...
-        // pVampire->setGoldEx(pVampire->getGold() - repairPrice);
         // by sigi.2002.9.4
         pVampire->decreaseGoldEx(repairPrice);
 
-        // leave a log.
-        // log(LOG_REPAIR_ITEM, pVampire->getName(), "", "ALL");
 
         // Send the OK packet.
         response.setCode(NPC_RESPONSE_REPAIR_OK);
@@ -540,8 +490,6 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
                     if (pItem->getDurability() != oldDurability) {
                         // To cut down DB queries,
                         // save only when the durability changed.
-                        // pItem->save(pOusters->getName(), STORAGE_GEAR, 0, i, 0);
-                        // Item save optimization.
                         sprintf(pField, "Durability=%d", pItem->getDurability());
                         pItem->tinysave(pField);
                     }
@@ -553,12 +501,9 @@ void CGRequestRepairHandler::executeAll(CGRequestRepair* pPacket, Player* pPlaye
         }
 
         // Take the money, and...
-        // pOusters->setGoldEx(pOusters->getGold() - repairPrice);
         // by sigi.2002.9.4
         pOusters->decreaseGoldEx(repairPrice);
 
-        // leave a log.
-        // log(LOG_REPAIR_ITEM, pOusters->getName(), "", "ALL");
 
         // Send the OK packet.
         response.setCode(NPC_RESPONSE_REPAIR_OK);

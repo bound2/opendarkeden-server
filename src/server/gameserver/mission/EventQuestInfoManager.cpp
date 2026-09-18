@@ -30,8 +30,6 @@ void EventQuestInfoManager::load(const string& name) {
         bool isEventQuest = monsterKills[r].eventQuest != 0;
         int questLevel = (int)monsterKills[r].questLevel;
 
-        //			RewardClass* pRC = g_pRewardClassInfoManager->getRewardClass( rewardClass );
-        //			Assert( pRC != NULL );
 
         MonsterKillQuestInfo* pMonsterKillQI = new MonsterKillQuestInfo(qID, race, MaxGrade, MinGrade, timeLimit,
                                                                         rewardClass, monsterSType, isChief, killCount);

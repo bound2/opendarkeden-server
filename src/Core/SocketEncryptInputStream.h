@@ -90,17 +90,6 @@ public:
         return n;
     }
 
-    /*    uint readEncrypt (bool   &buf)  { uint n = read((char*)&buf, szbool  ); buf = m_Encrypter.convert(buf); return
-       n; } uint readEncrypt (char   &buf)  { uint n = read((char*)&buf, szchar  ); buf = m_Encrypter.convert(buf);
-       return n; } uint readEncrypt (uchar  &buf)  { uint n = read((char*)&buf, szuchar ); buf =
-       m_Encrypter.convert(buf);  return n; } uint readEncrypt (short  &buf)  { uint n = read((char*)&buf, szshort );
-       buf = m_Encrypter.convert(buf);  return n; } uint readEncrypt (ushort &buf)  { uint n = read((char*)&buf,
-       szushort); buf = m_Encrypter.convert(buf);  return n; } uint readEncrypt (int    &buf)  { uint n =
-       read((char*)&buf, szint   ); buf = m_Encrypter.convert(buf);  return n; } uint readEncrypt (uint   &buf)  { uint
-       n = read((char*)&buf, szuint  ); buf = m_Encrypter.convert(buf);  return n; } uint readEncrypt (long   &buf)  {
-       uint n = read((char*)&buf, szlong  ); buf = m_Encrypter.convert(buf);  return n; } uint readEncrypt (ulong  &buf)
-       { uint n = read((char*)&buf, szulong ); buf = m_Encrypter.convert(buf);  return n; }
-    */
     void setEncryptCode(uchar code) {
         m_Encrypter.setCode(code);
     }

@@ -96,17 +96,11 @@ void CGSilverCoatingHandler::execute(CGSilverCoating* pPacket, Player* pPlayer)
 
     // Take the money.
     if (bSlayer) {
-        // pSlayer->setGoldEx(playerMoney - coatingPrice);
-
         // by sigi. 2002.9.4
         pSlayer->decreaseGoldEx(coatingPrice);
-        // log(LOG_REPAIR_ITEM, pSlayer->getName(), "", pItem->toString());
     } else {
-        // pVampire->setGoldEx(playerMoney - coatingPrice);
-
         // by sigi. 2002.9.4
         pVampire->decreaseGoldEx(coatingPrice);
-        // log(LOG_REPAIR_ITEM, pVampire->getName(), "", pItem->toString());
     }
 
     // Only silver has to be saved.
@@ -119,20 +113,6 @@ void CGSilverCoatingHandler::execute(CGSilverCoating* pPacket, Player* pPlayer)
     // STORAGE_STASH can certainly come back, but
     // repairing something in the stash makes no sense, so
     // it is not saved.
-    /*
-    switch (storage)
-    {
-        case STORAGE_INVENTORY:
-            pItem->save(pPC->getName(), STORAGE_INVENTORY, 0, X, Y);
-            break;
-        case STORAGE_GEAR:
-            if (bSlayer) pItem->save(pSlayer->getName(),  STORAGE_GEAR, 0, X, 0);
-            else         pItem->save(pVampire->getName(), STORAGE_GEAR, 0, X, 0);
-            break;
-        default:
-            break;
-    }
-    */
 
     // Send the OK packet.
     response.setCode(NPC_RESPONSE_SILVER_COATING_OK);

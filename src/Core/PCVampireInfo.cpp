@@ -85,17 +85,12 @@ void PCVampireInfo::read(SocketInputStream& iStream) {
     iStream.read(m_Level);
     iStream.read(m_Rank);
     iStream.read(m_Exp);
-    //	iStream.read( m_Gold );
 
     //--------------------------------------------------
     // read Fame
     //--------------------------------------------------
     iStream.read(m_Fame);
 
-    //--------------------------------------------------
-    // read zone id
-    //--------------------------------------------------
-    //	iStream.read( m_ZoneID );
 
     //--------------------------------------------------
     // read Bonus Point
@@ -164,17 +159,12 @@ void PCVampireInfo::write(SocketOutputStream& oStream) const {
     oStream.write(m_Level);
     oStream.write(m_Rank);
     oStream.write(m_Exp);
-    //	oStream.write( m_Gold );
 
     //--------------------------------------------------
     // read Fame
     //--------------------------------------------------
     oStream.write(m_Fame);
 
-    //--------------------------------------------------
-    // write zone id
-    //--------------------------------------------------
-    //	oStream.write( m_ZoneID );
 
     //--------------------------------------------------
     // write Bonus Point

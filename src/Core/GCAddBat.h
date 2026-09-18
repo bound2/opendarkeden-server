@@ -52,19 +52,6 @@ public:
         m_Name = name;
     }
 
-    /*
-    // get/set sprite type
-    SpriteType_t getSpriteType() const  { return m_SpriteType; }
-    void setSpriteType(SpriteType_t spriteType)  { m_SpriteType = spriteType; }
-
-    // get/set main color
-    Color_t getMainColor() const  { return m_MainColor; }
-    void setMainColor(Color_t color)  { m_MainColor = color; }
-
-    // get/set sub color
-    Color_t getSubColor() const  { return m_SubColor; }
-    void setSubColor(Color_t color)  { m_SubColor = color; }
-    */
 
     // get/set X
     Coord_t getX() const {

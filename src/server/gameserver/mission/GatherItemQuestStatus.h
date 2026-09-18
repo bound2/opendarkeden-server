@@ -13,7 +13,6 @@ public:
           m_TargetNum(num), m_CurrentNum(0) {}
     ~GatherItemQuestStatus() {}
 
-    //	bool			got( Item* pItem ) ;
     bool isTarget(Item* pItem) const;
     void reset() {
         m_CurrentNum = 0;

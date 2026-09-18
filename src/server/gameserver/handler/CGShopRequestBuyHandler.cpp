@@ -66,11 +66,8 @@ void CGShopRequestBuyHandler::execute(CGShopRequestBuy* pPacket, Player* pPlayer
     }
 
     // try
-    //{
-
     // NoSuch removed.
     pNPCBase = pZone->getCreature(NPCID);
-    //}
     if (pNPCBase == NULL) // catch (NoSuchElementException)
     {
         GCShopBuyFail gcShopBuyFail;
@@ -90,18 +87,6 @@ void CGShopRequestBuyHandler::execute(CGShopRequestBuy* pPacket, Player* pPlayer
 
     NPC* pNPC = dynamic_cast<NPC*>(pNPCBase);
 
-    /*
-    // Used to check whether the store has the item
-    for (int i=0; i<=2; i++)
-    {
-        for (int j=0; j<20; j++)
-        {
-            cout << (int)pNPC->isExistShopItem(i, j) << " ";
-        }
-
-        cout << endl;
-    }
-    */
 
     if (pNPC->getShopType() == SHOPTYPE_NORMAL) {
         // Check that the NPC holds the item the player wants to buy
@@ -165,7 +150,6 @@ void CGShopRequestBuyHandler::execute(CGShopRequestBuy* pPacket, Player* pPlayer
     }
 #endif
 
-    // cout << "Buy ok" << endl;
 
 #endif
 
@@ -206,18 +190,14 @@ void CGShopRequestBuyHandler::executeNormal(CGShopRequestBuy* pPacket, Player* p
 
     // A Mysterious item is priced differently.
     if (bMysteriousRack) {
-        // cout << pPacket->toString().c_str() << endl;
         itemMoney = g_pPriceManager->getMysteriousPrice(pItem->getItemClass(), pCreature);
-        // cout << "CGShopRequestBuyHandler::MysteriousItem Price = " << itemMoney << endl;
     } else {
         itemMoney = g_pPriceManager->getPrice(pItem, pNPC->getMarketCondSell(), shopType, pPC) * itemNum;
-        // cout << "CGShopRequestBuyHandler::normalItem Price = " << itemMoney << endl;
     }
 
     if (pNPC->getTaxingCastleZoneID() != 0) {
         int itemTaxRatio = pNPC->getTaxRatio(pPC);
         if (itemTaxRatio > 100) {
-            //			int NewItemMoney = getPercentValue((int)itemMoney, itemTaxRatio);
             int NewItemMoney = (int)(itemMoney * (itemTaxRatio / 100.0));
             itemTax = (NewItemMoney - itemMoney);
 
@@ -238,7 +218,6 @@ void CGShopRequestBuyHandler::executeNormal(CGShopRequestBuy* pPacket, Player* p
         gcShopBuyFail.setAmount(0);
         pPlayer->sendPacket(&gcShopBuyFail);
 
-        // cout << "Not Enough Money for Mysterious Item" << endl;
 
         return;
     }
@@ -274,12 +253,10 @@ void CGShopRequestBuyHandler::executeNormal(CGShopRequestBuy* pPacket, Player* p
         if (bMysteriousRack)
             SAFE_DELETE(pItem);
 
-        // cout << "Can't Add to Inventory" << endl;
 
         return;
     }
 
-    // if (pItem != NULL ) pItem->whenPCTake(pPC);
 
     // When the player bought a special item the shop version goes up.
     if (shopType == SHOP_RACK_SPECIAL) {
@@ -287,7 +264,6 @@ void CGShopRequestBuyHandler::executeNormal(CGShopRequestBuy* pPacket, Player* p
     }
 
     // Take the player's money.
-    // pPC->setGoldEx(playerMoney - itemMoney);
 
     // by sigi. 2002.9.4
     pPC->decreaseGoldEx(itemMoney);
@@ -295,11 +271,9 @@ void CGShopRequestBuyHandler::executeNormal(CGShopRequestBuy* pPacket, Player* p
             itemTax);
     g_pCastleInfoManager->increaseTaxBalance(pNPC->getTaxingCastleZoneID(), itemTax);
 
-    // cout << "addItemEx" << endl;
 
     Item* pReturnItem = pInventory->addItemEx(x, y, pItem);
     if (pReturnItem == pItem) {
-        // cout << "add ok" << endl;
         //  pReturnItem equal to pItem means the item was not
         //  a stacking item.
 
@@ -308,12 +282,7 @@ void CGShopRequestBuyHandler::executeNormal(CGShopRequestBuy* pPacket, Player* p
         // An ItemID of 0 means create() hands out a new ItemID.
         // by sigi. 2002.10.28
         pItem->create(pPC->getName(), STORAGE_INVENTORY, 0, x, y, pItem->getItemID());
-        // Calling create alone makes the DB put a count like a potion's at 1.
-        // So save has to be called again to set the real count.
-        // pItem->save(pPC->getName(), STORAGE_INVENTORY, 0, x, y);
 
-        // create was changed to store the count right away.
-        // Item save optimization.
 
         // Send the OK packet.
         GCShopBuyOK OKPacket;
@@ -330,18 +299,11 @@ void CGShopRequestBuyHandler::executeNormal(CGShopRequestBuy* pPacket, Player* p
         OKPacket.setEnchantLevel(pItem->getEnchantLevel());
         OKPacket.setPrice(playerMoney - itemMoney);
         pPlayer->sendPacket(&OKPacket);
-
-        // log(LOG_BUY_ITEM, pPC->getName(), "", pItem->toString());
     } else {
-        // cout << "pile ok" << endl;
-        // log(LOG_BUY_ITEM, pPC->getName(), "", pItem->toString());
-
         // pReturnItem different from pItem means the item was
         // a stacking item. So the pItem sent in to be added
         // has to be deleted.
         SAFE_DELETE(pItem);
-        // pReturnItem->save(pPC->getName(), STORAGE_INVENTORY, 0, x, y);
-        //  Item save optimization.
         char pField[80];
         sprintf(pField, "Num=%d", pReturnItem->getNum());
         pReturnItem->tinysave(pField);
@@ -368,7 +330,6 @@ void CGShopRequestBuyHandler::executeNormal(CGShopRequestBuy* pPacket, Player* p
     if (pItem != NULL && pItem->isTraceItem()) {
         remainTraceLog(pItem, pNPC->getName(), pCreature->getName(), ITEM_LOG_CREATE, DETAIL_SHOPBUY);
     }
-    // cout << "send OK" << endl;
 
     // When it is not a mysterious item..
     if (!bMysteriousRack) {
@@ -383,7 +344,6 @@ void CGShopRequestBuyHandler::executeNormal(CGShopRequestBuy* pPacket, Player* p
         pNPC->insertShopItem(shopType, shopIndex, pNewItem);
     } else if (bMysteriousRack) {
         // For a mysterious item the shop can be left as it is.
-        // cout << "mysterious item" << endl;
     } else {
         // When the sold item is not a normal item,
         // the players nearby have to be told that a shop item was sold.
@@ -507,8 +467,6 @@ void CGShopRequestBuyHandler::executeMotorcycle(CGShopRequestBuy* pPacket, Playe
         pNPC->increaseShopVersion(shopType);
 
     // Take the player's money.
-    // pPC->setGoldEx(playerMoney - itemMoney);
-    // by sigi. 2002.9.4
     pPC->decreaseGoldEx(itemMoney);
 
     // First take the motorcycle out of the NPC's rack and put it in the zone.
@@ -516,9 +474,7 @@ void CGShopRequestBuyHandler::executeMotorcycle(CGShopRequestBuy* pPacket, Playe
     TPOINT pt = pZone->addItem(pItem, pPC->getX(), pPC->getY(), false);
     if (pt.x == -1) {
         // Erase the motorcycle just sold from the NPC on the server side.
-        // pNPC->removeShopItem(shopType, shopIndex);
 
-        // SAFE_DELETE(pItem);
         //  The motorcycle could not be added to the zone. Just return.
         cerr << "######################################################" << endl;
         cerr << "# CRITICAL ERROR!!! Cannot add MOTORCYCLE to ZONE!!! #" << endl;
@@ -654,7 +610,6 @@ void CGShopRequestBuyHandler::executeEvent(CGShopRequestBuy* pPacket, Player* pP
 
 #ifdef __XMAS_EVENT_CODE__
 
-        // cout << "CGShopRequestBuy::executeChildrenEvent() : BEGIN" << endl;
 
         ObjectID_t NPCID = pPacket->getObjectID();
     ShopRackType_t shopType = pPacket->getShopType();
@@ -684,9 +639,6 @@ void CGShopRequestBuyHandler::executeEvent(CGShopRequestBuy* pPacket, Player* pP
     // Get the event price of the event item.
     g_pPriceManager->getStarPrice(pItem, star);
 
-    // cout << "Item to buy:" << endl << pItem->toString() << endl;
-    // cout << "Price of the item to buy:" << endl
-    //	<< "COLOR:" << star.color << ",AMOUNT:" << star.amount << endl;
 
     // For a potion or a magazine the item count is set first, and then...
     // In fact event items include no potion or magazine, but...
@@ -703,8 +655,6 @@ void CGShopRequestBuyHandler::executeEvent(CGShopRequestBuy* pPacket, Player* pP
 
     // Here it is checked whether enough stars for that price are held.
     if (!pInventory->hasEnoughStar(star)) {
-        // cout << "The player does not hold that many stars." << endl;
-
         GCShopBuyFail gcShopBuyFail;
         gcShopBuyFail.setCode(GC_SHOP_BUY_FAIL_NOT_ENOUGH_MONEY);
         gcShopBuyFail.setAmount(0);
@@ -712,12 +662,9 @@ void CGShopRequestBuyHandler::executeEvent(CGShopRequestBuy* pPacket, Player* pP
         return;
     }
 
-    // cout << "The player holds at least that many stars." << endl;
 
     // In case there is no room...
     if (!pInventory->canAddingEx(x, y, pItem)) {
-        // cout << "There is no room in the inventory." << endl;
-
         GCShopBuyFail gcShopBuyFail;
         gcShopBuyFail.setCode(GC_SHOP_BUY_FAIL_NOT_ENOUGH_SPACE);
         gcShopBuyFail.setAmount(0);
@@ -733,19 +680,13 @@ void CGShopRequestBuyHandler::executeEvent(CGShopRequestBuy* pPacket, Player* pP
     // Here the player's stars are reduced.
     pInventory->decreaseStar(star);
 
-    // cout << "The player's stars were reduced." << endl;
 
     Item* pReturnItem = pInventory->addItemEx(x, y, pItem);
     if (pReturnItem == pItem) {
         // pReturnItem equal to pItem means the item was not
         // a stacking item.
         pItem->create(pPC->getName(), STORAGE_INVENTORY, 0, x, y);
-        // Calling create alone makes the DB put a count like a potion's at 1.
-        // So save has to be called again to set the real count.
-        // pItem->save(pPC->getName(), STORAGE_INVENTORY, 0, x, y);
 
-        // item's create was changed to store the count.
-        // Item save optimization.
 
         // Send the OK packet.
         GCShopBuyOK OKPacket;
@@ -762,17 +703,11 @@ void CGShopRequestBuyHandler::executeEvent(CGShopRequestBuy* pPacket, Player* pP
         OKPacket.setEnchantLevel(pItem->getEnchantLevel());
         OKPacket.setPrice(playerMoney);
         pPlayer->sendPacket(&OKPacket);
-
-        // log(LOG_BUY_ITEM, pPC->getName(), "", pItem->toString());
     } else {
-        // log(LOG_BUY_ITEM, pPC->getName(), "", pItem->toString());
-
         // pReturnItem different from pItem means the item was
         // a stacking item. So the pItem sent in to be added
         // has to be deleted.
         SAFE_DELETE(pItem);
-        // pReturnItem->save(pPC->getName(), STORAGE_INVENTORY, 0, x, y);
-        //  Item save optimization.
         char pField[80];
         sprintf(pField, "Num=%d", pReturnItem->getNum());
         pReturnItem->tinysave(pField);
@@ -863,7 +798,6 @@ void CGShopRequestBuyHandler::executeEvent(CGShopRequestBuy* pPacket, Player* pP
         }
     }
 
-    // cout << "CGShopRequestBuy::executeEvent() : END" << endl;
 
 #endif
 #endif

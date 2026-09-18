@@ -87,14 +87,6 @@ void LGIncomingConnectionHandler::execute(LGIncomingConnection* pPacket)
     pConnectionInfo->setExpireTime(currentTime);
 
     // debug message
-    /*
-    cout << "+--------------------------------+" << endl
-         << "| Incoming Connection Infomation |" << endl
-         << "+--------------------------------+" << endl
-         << "ClientIP : " << pPacket->getClientIP() << endl
-         << "Auth Key : " << authKey << endl
-         << "P C Name : " << pPacket->getPCName() << endl;
-     */
 
     try {
         // Add it to the CIM.
@@ -115,7 +107,6 @@ void LGIncomingConnectionHandler::execute(LGIncomingConnection* pPacket)
 
         cout << "LGIncomingConnectionHandler Send Packet to ServerIP : " << pPacket->getHost() << endl;
         cout << "LGIncomingConnectionHandler Send Packet to ServerPort : " << pPacket->getPort() << endl;
-
     } catch (DuplicatedException&) {
         // The connection info is discarded; the loginserver is not told.
         SAFE_DELETE(pConnectionInfo);

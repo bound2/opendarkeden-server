@@ -16,28 +16,14 @@ PKTConnectAsk::PKTConnectAsk() {
 // Reads data from the input stream and initialises the packet.
 void PKTConnectAsk::read(SocketInputStream& iStream) {
     iStream.read((char*)this, szPKTConnectAsk);
-
-    // change order - network to host
-    //	nSize		= ntohl( nSize );
-    //	nCode		= ntohl( nCode );
-    //	nOnGameCode	= ntohl( nOnGameCode );
 }
 
 // Sends the packet's binary image to the output stream.
 void PKTConnectAsk::write(SocketOutputStream& oStream) {
     nCode = getID();
 
-    // change order - host to network
-    //	nSize		= htonl( nSize );
-    //	nCode		= htonl( nCode );
-    //	nOnGameCode	= htonl( nOnGameCode );
 
     oStream.write((const char*)this, szPKTConnectAsk);
-
-    // restore order
-    //	nSize		= ntohl( nSize );
-    //	nCode		= ntohl( nCode );
-    //	nOnGameCode	= ntohl( nOnGameCode );
 }
 
 // debug message

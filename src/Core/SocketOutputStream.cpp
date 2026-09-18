@@ -19,7 +19,6 @@ SocketOutputStream::SocketOutputStream(Socket* sock, uint BufferLen)
     : m_Socket(sock), m_Buffer(NULL), m_BufferLen(BufferLen), m_Head(0), m_Tail(0), m_Encrypted(0), m_Sequence(0) {
     __BEGIN_TRY
 
-    //	Assert( m_Socket != NULL );
     Assert(m_BufferLen > 0);
 
     m_Buffer = new char[m_BufferLen];
@@ -40,7 +39,6 @@ SocketOutputStream::~SocketOutputStream() noexcept {
     if (m_Buffer != NULL) {
         // After a ConnectException has been caught because the connection broke,
         // flushing here would raise SIGPIPE. So, leave it alone~
-        // flush();
         delete[] m_Buffer;
         m_Buffer = NULL;
     }
@@ -244,7 +242,6 @@ uint SocketOutputStream::flush() {
 void SocketOutputStream::resize(int size) {
     __BEGIN_TRY
 
-    // Assert( m_Socket != NULL );
     Assert(size != 0);
 
     int orgSize = size;
@@ -273,7 +270,6 @@ void SocketOutputStream::resize(int size) {
         //
 
         memcpy(newBuffer, &m_Buffer[m_Head], m_Tail - m_Head);
-
     } else if (m_Head > m_Tail) {
         //
         //     T  H

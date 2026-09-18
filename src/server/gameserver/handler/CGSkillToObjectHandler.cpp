@@ -90,7 +90,6 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
             EffectAberration* pEffect =
                 dynamic_cast<EffectAberration*>(pCreature->findEffect(Effect::EFFECT_CLASS_ABERRATION));
             if (pEffect != NULL && (rand() % 100) < pEffect->getRatio()) {
-                // cout << "aberration affected " << endl;
                 GCSkillFailed1 _GCSkillFailed1;
                 _GCSkillFailed1.setSkillType(SkillType);
                 pPlayer->sendPacket(&_GCSkillFailed1);
@@ -112,21 +111,8 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
                 bSuccess = false;
             if (!isAbleToUseObjectSkill(pSlayer))
                 bSuccess = false;
-            /*			if (pSlayer->isFlag(Effect::EFFECT_CLASS_SNIPING_MODE))
-                        {
-                            g_Sniping.checkRevealRatio(pSlayer, 20, 10);
-                        } */
 
             // A relic table of one's own race does not accept the skill.
-            /*	if (pTargetCreature->isMonster() )
-                {
-                    Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
-                    Assert(pMonster != NULL);
-
-                    if (pMonster->getMonsterType() == 371 || pMonster->getMonsterType() == 372 ||
-               pMonster->getMonsterType() == 373) bSuccess = false;
-                }
-    */
             if (bSuccess) {
                 SkillHandler* SkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
                 Assert(SkillHandler != NULL);
@@ -154,10 +140,6 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
             if (!isAbleToUseObjectSkill(pVampire))
                 bSuccess = false;
 
-            /*			if (pVampire->isFlag(Effect::EFFECT_CLASS_INVISIBILITY))
-                        {
-                            addVisibleCreature(pZone, pVampire, true);
-                        } */
 
             // An EXTREME skill in use has to be released.
             // The EXTREME skill cannot be used alongside another skill.
@@ -170,32 +152,6 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
             // The MELEE skills usable while EXTREME is up are
             //  ACID TOUCH, POISONOUS HAND and BLOODY NAIL.
             //
-
-            /*			if (pVampire->isFlag(Effect::EFFECT_CLASS_EXTREME))
-                        {
-                            if(!(SkillType == SKILL_ACID_TOUCH) && !(SkillType == SKILL_POISONOUS_HANDS) && !(SkillType
-               == SKILL_BLOODY_NAIL))
-                            {
-                                EffectManager * pEffectManager = pVampire->getEffectManager();
-                                Assert(pEffectManager != NULL);
-                                Effect * pEffect = pEffectManager->findEffect(Effect::EFFECT_CLASS_EXTREME);
-                                if (pEffect != NULL ) {
-                                    pEffect->setDeadline(0);
-                                }
-                            }
-                        } */
-
-            /*
-            // A relic table of one's own race does not accept the skill.
-            if (pTargetCreature->isMonster() )
-            {
-                Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
-                Assert(pMonster != NULL);
-
-                if (pMonster->getMonsterType() == 374 || pMonster->getMonsterType() == 375 || pMonster->getMonsterType()
-            == 376) bSuccess = false;
-            }
-            */
 
 
             if (bSuccess) {
@@ -242,7 +198,6 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
             }
         }
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
 #endif // __GAME_SERVER__

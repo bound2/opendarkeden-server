@@ -63,7 +63,6 @@ public:
     bool isModifyCastleOwner(PlayerCreature* pPC);
     GuildID_t getWinnerGuildID(PlayerCreature* pPC);
 
-    // void			sendWarStartMessage() const ;
     void sendWarEndMessage() const;
 
     bool endWar(PlayerCreature* pPC);

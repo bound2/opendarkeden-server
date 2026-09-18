@@ -162,7 +162,6 @@ void Connection::connect()
         throw SQLConnectException(mysql_error(&m_Mysql));
     m_bConnected = (mysql_real_connect(&m_Mysql, m_Host.c_str(), m_User.c_str(), m_Password.c_str(), m_Database.c_str(),
                                        m_Port, 0, 0) != NULL);
-    // cout << "Connection Calls~~~" << endl;
 
     // Not being connected is an error.
     if (!m_bConnected) {

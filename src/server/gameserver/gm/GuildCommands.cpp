@@ -34,7 +34,6 @@
 #include "repository/CharacterRepository.h"
 
 namespace de::gm {
-
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 void opguild(string msg, int i, Creature* pCreature) {
@@ -204,63 +203,6 @@ void oprefreshguildunion(GamePlayer* pGamePlayer, string msg, int i, bool bSameW
     GuildUnionManager::Instance().reload();
 
 
-    /*
-        // packet
-        GGCommand ggCommand;
-        ggCommand.setCommand( command );
-
-
-        // Send it to each server.
-        HashMapGameServerInfo** pGameServerInfos = g_pGameServerInfoManager->getGameServerInfos();
-
-
-        static int myWorldID = g_pConfig->getPropertyInt("WorldID");
-        static int myServerID = g_pConfig->getPropertyInt("ServerID");
-
-        int maxWorldID = g_pGameServerInfoManager->getMaxWorldID();
-        int maxServerGroupID = g_pGameServerInfoManager->getMaxServerGroupID();
-
-
-        for (int worldID=1; worldID<maxWorldID; worldID++)
-        {
-            for (int groupID=0; groupID<maxServerGroupID; groupID++)
-            {
-                HashMapGameServerInfo& gameServerInfo = pGameServerInfos[worldID][groupID];
-
-                if (!gameServerInfo.empty())
-                {
-                    HashMapGameServerInfo::const_iterator itr = gameServerInfo.begin();
-                    for (; itr != gameServerInfo.end(); itr++)
-                    {
-                        GameServerInfo* pGameServerInfo = itr->second;
-
-                        if (pGameServerInfo->getWorldID()==myWorldID)
-                        {
-                            // Only when it is not the current server.. (handled above)
-                            if (pGameServerInfo->getGroupID()==myServerID)
-                            {
-                            }
-                            else
-                            {
-                                g_pLoginServerManager->sendPacket( pGameServerInfo->getIP(),
-                                                                    pGameServerInfo->getUDPPort(),
-                                                                    &ggCommand );
-                            }
-                        }
-                        // For another World. Unless it is broadcast to this world only..
-                        else if (!bSameWorldOnly)
-                        {
-                            g_pLoginServerManager->sendPacket( pGameServerInfo->getIP(),
-                                                                    pGameServerInfo->getUDPPort(),
-                                                                    &ggCommand );
-
-                        }
-                    }
-                }
-            }
-        }
-    */
     __END_DEBUG_EX __END_CATCH
 }
-
 } // namespace de::gm

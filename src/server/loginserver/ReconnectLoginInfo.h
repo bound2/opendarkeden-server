@@ -106,9 +106,6 @@ public:
     bool operator()(const ReconnectLoginInfo& left, const ReconnectLoginInfo& right) {
         // Ascending Order
         return left.getExpireTime() > right.getExpireTime();
-
-        // Descending Order
-        // return left.getExpireTime() < right.getExpireTime();
     }
 };
 

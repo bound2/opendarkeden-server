@@ -57,7 +57,6 @@ void CGAddMouseToZoneHandler::execute(CGAddMouseToZone* pPacket, Player* pPlayer
     Creature* pCreature = pGamePlayer->getCreature();
     bool Success = false;
 
-    // EffectHasRelic* pEffect = NULL;
 
     Zone* pZone = pCreature->getZone();
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
@@ -98,21 +97,6 @@ void CGAddMouseToZoneHandler::execute(CGAddMouseToZone* pPacket, Player* pPlayer
 
     ObjectID_t ItemObjectID = pItem->getObjectID();
 
-    /*	if (pItem->isQuestItem() )
-        {
-            pPC->deleteItemFromExtraInventorySlot();
-
-            // Leave an ItemTrace
-            if (pItem != NULL && pItem->isTraceItem() )
-            {
-                remainTraceLog(pItem, pCreature->getName(), "DropQuestItem", ITEM_LOG_DELETE, DETAIL_DROP);
-            }
-
-            pItem->destroy();
-            SAFE_DELETE(pItem);
-
-            Success = true;
-        }*/
     if (ItemObjectID == pPacket->getObjectID() && canDropToZone(pPC, pItem)) {
         // Access the Item in the Zone.
         // For now drop the Item at one's own position.
@@ -126,8 +110,6 @@ void CGAddMouseToZoneHandler::execute(CGAddMouseToZone* pPacket, Player* pPlayer
 
         if (pt.x != -1) {
             pItem->whenPCLost(pPC);
-            // pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
-            //  Item save optimization.
             char pField[80];
             sprintf(pField, "OwnerID='', Storage=%d, StorageID=%u, X=%d, Y=%d", (int)STORAGE_ZONE, pZone->getZoneID(),
                     pt.x, pt.y);
@@ -236,40 +218,10 @@ void CGAddMouseToZoneHandler::execute(CGAddMouseToZone* pPacket, Player* pPlayer
                 }
 
                 // Report where the Relic fell from time to time.
-                /*				if (!pItem->isFlag(Effect::EFFECT_CLASS_RELIC_POSITION))
-                                {
-                                    EffectRelicPosition* pPosition = new EffectRelicPosition(pItem);
-                                    pPosition->setNextTime(10);		// broadcast the message after 1 second.
-                                    pPosition->setTick(1*60*10); 	// report once a minute.
-                                    pPosition->setZoneID(pZone->getZoneID());
-                                    pPosition->setX(pt.x);
-                                    pPosition->setY(pt.y);
-                                    pPosition->setPart(pItem->getItemType());
-                                    pItem->setFlag(Effect::EFFECT_CLASS_RELIC_POSITION);
-                                    pItem->getEffectManager().addEffect(pPosition);
-                                }
-                                else
-                                {
-                                    // Find the existing one and change its value.
-                                }
-                */
 
                 // Send every user a message that a Relic has fallen.
-                /*
-                ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pZone->getZoneID());
-                Assert(pZoneInfo != NULL);
-
-                StringStream msg;
-                msg << pRelicInfo->getName() << " relic has fallen in " << pZoneInfo->getFullName() << " (" << pt.x << " , " << pt.y
-                << " ).";
-
-                GCSystemMessage message;
-                message.setMessage(msg.toString());
-                g_pZoneGroupManager->broadcast(&message);
-                */
             }
 
-            // log(LOG_DROP_ITEM, pCreature->getName(), "", pItem->toString());
 
             // Leave an ItemTrace
             if (pItem != NULL && pItem->isTraceItem()) {

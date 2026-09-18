@@ -308,46 +308,6 @@ void pthreadAPI::pthread_mutexattr_destroy_ex(pthread_mutexattr_t* attr) {
 }
 
 
-/*
-////////////////////////////////////////////////////////////////////////////////
-//
-// exception version of pthread_mutexattr_gettype()
-//
-////////////////////////////////////////////////////////////////////////////////
-void pthreadAPI::pthread_mutexattr_gettype_ex ( const pthread_mutexattr_t * attr , int * kind )
-
-{
-    __BEGIN_TRY
-
-    if ( pthread_mutexattr_gettype ( attr , kind ) < 0 )
-        throw UnknownError();
-
-    __END_CATCH
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// exception version of pthread_mutexattr_settype()
-//
-////////////////////////////////////////////////////////////////////////////////
-void pthreadAPI::pthread_mutexattr_settype_ex ( pthread_mutexattr_t * attr , int kind )
-
-{
-    __BEGIN_TRY
-
-    if ( pthread_mutexattr_settype ( attr , kind ) < 0 ) {
-        switch ( errno ) {
-            case EINVAL :
-                throw Error("kind is neither PTHREAD_MUTEX_FAST_NP nor PTHREAD_MUTEX_RECURSIVE_NP nor
-PTHREAD_MUTEX_ERRORCHECK_NP"); default : throw UnknownError(strerror(errno),errno);
-        }
-    }
-
-    __END_CATCH
-}
-*/
-
 ////////////////////////////////////////////////////////////////////////////////
 //
 // exception version of pthread_cond_init()

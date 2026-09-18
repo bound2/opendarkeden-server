@@ -40,7 +40,6 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
 
 #ifdef __GAME_SERVER__
 
-        // cout << "SGExpelGuildMember received" << endl;
 
         Assert(pPacket != NULL);
 
@@ -76,8 +75,6 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
 
-            //			StringStream msg;
-            //			msg << pGuild->getName() << " the guild join request was cancelled.";
 
             char msg[100];
             if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)
@@ -98,8 +95,6 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
 
-            //			StringStream msg;
-            //			msg << pPacket->getName() << "'s guild join was cancelled.";
 
             char msg[100];
             if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)
@@ -161,7 +156,6 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
 
                 // Send the guild expulsion message.
                 GCSystemMessage gcSystemMessage;
-                //			gcSystemMessage.setMessage("You were expelled from the guild.");
 
                 if (guildRace == Guild::GUILD_RACE_SLAYER)
                     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_EXPEL_TEAM_MEMBER));
@@ -194,8 +188,6 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
 
-            //			StringStream msg;
-            //			msg << pPacket->getName() << " was expelled from the guild.";
 
             char msg[100];
             if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)

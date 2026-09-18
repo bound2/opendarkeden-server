@@ -38,7 +38,6 @@
 #include "repository/SessionRepository.h"
 
 namespace de::gm {
-
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 void opkick(GamePlayer* pGamePlayer, string msg, int i) {
@@ -291,7 +290,6 @@ void opinfo(GamePlayer* pGamePlayer, string msg, int i) {
             << pSlayer->getHP(ATTR_MAX) << " MP : " << (int)pSlayer->getMP() << " / " << pSlayer->getMP(ATTR_MAX)
             << " Fame : " << (int)pSlayer->getFame() << " Gold : " << (int)pSlayer->getGold()
             << " StashGold : " << (int)pSlayer->getStashGold();
-
     } else if (pTargetCreature->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pTargetCreature);
 
@@ -301,7 +299,6 @@ void opinfo(GamePlayer* pGamePlayer, string msg, int i) {
             << " TOHIT : " << (int)pVampire->getToHit() << " HP : " << (int)pVampire->getHP() << " / "
             << pVampire->getHP(ATTR_MAX) << " Fame : " << (int)pVampire->getFame()
             << " Gold : " << (int)pVampire->getGold() << " StashGold : " << (int)pVampire->getStashGold();
-
     } else if (pTargetCreature->isOusters()) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pTargetCreature);
 
@@ -356,11 +353,7 @@ void opfind(GamePlayer* pGamePlayer, string msg, int i) {
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(msg);
         pGamePlayer->sendPacket(&gcSystemMessage);
-
     } else {
-        //		StringStream msg;
-        //		msg <<  Name << " is not on this game server.";
-
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_PLAYER_NOT_IN_GAMESERVER), Name.c_str());
 
@@ -421,8 +414,6 @@ void opuser(GamePlayer* pGamePlayer, string msg, int i) {
     } catch (const DatabaseError&) {
         return;
     }
-    //	StringStream msg;
-    //	msg << "current number of players : " << GroupCount << " players";
 
     char msg[100];
     sprintf(msg, g_pStringPool->c_str(STRID_CURRENT_NUMBER_OF_PLAYER), GroupCount);
@@ -558,15 +549,6 @@ void opfun(GamePlayer* pGamePlayer, string msg, int i) {
         Creature* pCreature = pGamePlayer->getCreature();
         Assert(pCreature != NULL);
 
-        /*
-        if (!pCreature->isSlayer())
-        {
-            GCSystemMessage gcSystemMessage;
-            gcSystemMessage.setMessage("it has to be a slayer");
-            pGamePlayer->sendPacket (&gcSystemMessage);
-            return;
-        }
-        */
 
         Zone* pZone = pCreature->getZone();
         Assert(pZone != NULL);
@@ -632,8 +614,6 @@ void opgrant(GamePlayer* pGamePlayer, string msg, int i) {
 
     Creature* pTargetCreature = NULL;
 
-    // try
-    //{
     pTargetCreature = pZone->getCreature(Name);
 
     // NoSuch removed.
@@ -641,25 +621,15 @@ void opgrant(GamePlayer* pGamePlayer, string msg, int i) {
         if (pTargetCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);
             pSlayer->setCompetence(Competence);
-            // cout << "set new Competence : " << (int)pSlayer->getCompetence() << endl;
         } else if (pTargetCreature->isVampire()) {
             Vampire* pVampire = dynamic_cast<Vampire*>(pTargetCreature);
             pVampire->setCompetence(Competence);
-            // cout << "set new Competence : " << (int)pVampire->getCompetence() << endl;
         } else if (pTargetCreature->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pTargetCreature);
             pOusters->setCompetence(Competence);
-            // cout << "set new Competence : " << (int)pOusters->getCompetence() << endl;
         }
     }
-    //}
-    // catch (NoSuchElementException& nsee)
-    //{
-    // cout << nsee.toString() << endl;
-    //	pTargetCreature = NULL;
-    //}
 
-    // cout << "Creature Name : " << Name << endl;
 
     __END_DEBUG_EX __END_CATCH
 }
@@ -680,5 +650,4 @@ void opsoulchain(GamePlayer* pPlayer, string msg, int i) {
 
     __END_DEBUG_EX __END_CATCH
 }
-
 } // namespace de::gm

@@ -58,9 +58,6 @@ void StoreInfo::read(SocketInputStream& iStream, bool toOther) {
 
     for (int i = 0; i < ItemNum; ++i) {
         m_Items[i].read(iStream);
-        //		StoreItemInfo info;
-        //		info.read(iStream);
-        //		m_Items.push_back(info);
     }
 
     __END_CATCH
@@ -70,7 +67,6 @@ void StoreInfo::write(SocketOutputStream& oStream, bool toOther) const {
     __BEGIN_TRY
 
     oStream.write(m_Open);
-    //	cout << "m_Open = " << (int)m_Open << endl;
     if (toOther && m_Open == 0)
         return;
 

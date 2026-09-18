@@ -20,25 +20,6 @@ void CGSetVampireHotKeyHandler::execute(CGSetVampireHotKey* pPacket, Player* pPl
 
 #ifdef __GAME_SERVER__
 
-    /*	Assert(pPacket != NULL);
-        Assert(pPlayer != NULL);
-
-        GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
-
-    //	if (pGamePlayer->getPlayerStatus() == GPS_NORMAL) {
-
-        // In this state the creature must have loaded correctly, so it must not be NULL.
-        // PLAYER_INGAME itself means the creature loading succeeded.
-        Creature* pCreature = pGamePlayer->getCreature();
-        Assert(pCreature != NULL);
-        if (pCreature->isVampire()) {
-            Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-            for(int i = 0; i < 8; i++) {
-                pVampire->setHotKey(i, pPacket->getHotKey(i));
-            }
-        }
-
-    //	}*/
 
 #endif
 

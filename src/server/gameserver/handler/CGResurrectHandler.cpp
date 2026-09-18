@@ -39,8 +39,6 @@ void CGResurrectHandler::execute(CGResurrect* pPacket, Player* pPlayer)
 
     // It is an error when the creature carries no COMA effect.
     if (pCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
-        // cout << "The flag is on." << endl;
-
         // Reach the COMA effect.
         EffectManager* pEffectManager = pCreature->getEffectManager();
         Assert(pEffectManager != NULL);
@@ -50,30 +48,12 @@ void CGResurrectHandler::execute(CGResurrect* pPacket, Player* pPlayer)
 
         // Without 5 seconds since death, no revival is possible.
         if (pEffectComa->canResurrect()) {
-            // cout << "5 seconds passed, so it can be revived." << endl;
-
-            /*
-            if (pCreature->isSlayer())
-            {
-                Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-                //cout << "Current HP:" << pSlayer->getHP(ATTR_CURRENT);
-            }
-            else if (pCreature->isVampire())
-            {
-                Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-                //cout << "Current HP:" << pVampire->getHP(ATTR_CURRENT);
-            }
-            */
-
             // Set the deadline to 0. The heartbeat then unaffects it and
             // revives the player automatically.
             pEffectComa->setDeadline(0);
         } else {
-            // cout << "5 seconds have not passed." << endl;
         }
     } else {
-        // cout << "There is no flag." << endl;
-
         // Where exactly is unclear, but after dying somewhere the coma
         // effect seems to fly off, or the HP rises while dead.
         // So code is put in that kills by force when the packet arrives

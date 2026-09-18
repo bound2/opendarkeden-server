@@ -107,23 +107,6 @@ void GameServerManager::run() {
 
                 if (pDatagram != NULL) // guards against some exceptions
                 {
-                    // cout << pDatagramPacket->toString() << endl;
-
-                    /*
-                    // UDP test
-                    cout << "[DatagramPacket] " << pDatagram->getHost() << ":"
-                                                << pDatagram->getPort() << endl;
-
-                    if (pDatagram->getPort()!=9997)
-                    {
-                        LGKickCharacter lg;
-                        lg.setPCName("111");
-                        lg.setID(111);
-
-                        sendPacket(pDatagram->getHost(), pDatagram->getPort(), &lg);
-                    }
-                    */
-
                     // Pull the datagram packet object out.
                     pDatagram->read(pDatagramPacket);
 
@@ -206,7 +189,6 @@ void GameServerManager::sendPacket(string host, uint port, DatagramPacket* pPack
 
     try {
         //	try
-        //	{
         // Keep one datagram object and set the destination peer's host
         // and port on it.
         Datagram datagram;
@@ -219,14 +201,6 @@ void GameServerManager::sendPacket(string host, uint port, DatagramPacket* pPack
 
         // Send the datagram through the datagram socket.
         m_pDatagramSocket->send(&datagram);
-        //	}
-        //	catch ( ConnectException & t )
-        //	{
-        //		cout << "GameServerManager::sendDatagram Exception Check!!" << endl;
-        //		cout << t.toString() << endl;
-        //		throw ConnectException( "GameServerManager::sendDatagram send failed");
-        //	}
-
     } catch (Throwable& t) {
         cout << "====================================================================" << endl;
         cout << t.toString() << endl;

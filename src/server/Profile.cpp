@@ -49,14 +49,6 @@ string ProfileSample::getAverageTime(void) const {
         0,
     };
 
-    /*
-    ulonglong accu_time = (m_AccuTime.tv_sec * 1000000 + m_AccuTime.tv_usec) / m_CallCount;
-    ulong avg_sec = accu_time / 1000000;
-    ulong avg_usec = accu_time % 1000000;
-
-    sprintf(avg_buf, "%ld.%06lds", avg_sec, avg_usec);
-
-    */
     double accu_time = (m_AccuTime.tv_sec + (double)m_AccuTime.tv_usec / 1000000) / m_CallCount;
 
     sprintf(avg_buf, "%5.9lfs", accu_time);
@@ -261,68 +253,7 @@ void ProfileSampleSet::outputProfile(bool bOutputOnlyRootNode, bool bOutputThrea
 }
 
 void ProfileSampleSet::outputProfileToFile(const char* filename, bool bOutputOnlyRootNode, bool bOutputThreadID,
-                                           GMServerInfo* pServerInfo) {
-    // add by viva for Notice
-    /*
-    string real_filename = string(filename) + itos(Thread::self()) + ".txt";
-
-    ofstream file(real_filename.c_str(), ios::out | ios::app);
-    if (!file) return;
-
-    file << "==================================================" << endl;
-
-    file << VSDateTime::currentDateTime().toString() << endl;
-
-    if (pServerInfo!=NULL)
-        file << pServerInfo->toString().c_str() << endl;
-    file << "--------------------------------------------------" << endl;
-
-    if (bOutputThreadID)
-        file << "TID:" << Thread::self() << endl;
-
-    file << setw(15) << " Average       ";
-    file << setw(15) << " Total         ";
-    file << setw(15) << " CallCount     ";
-    file << setw(15) << " Child         ";
-    file << setw(15) << " Name          ";
-    file << endl;
-
-    for (int i=0; i<MAX_PROFILE_SAMPLES; i++)
-    {
-        if (m_ProfileSamples[i].isUsed())
-        {
-            file << setw(15) << m_ProfileSamples[i].getAverageTime();
-            file << setw(15) << m_ProfileSamples[i].getAccumulatedTime();
-            file << setw(15) << m_ProfileSamples[i].getCallCount();
-            file << setw(15) << m_ProfileSamples[i].getChildrenTime();
-
-            file << " ";
-
-            int ParentCount = m_ProfileSamples[i].getParentCount();
-            for (int t=0; t<ParentCount; t++)
-            {
-                file << "  ";
-            }
-
-            file << m_ProfileSamples[i].getName();
-            file << endl;
-        }
-
-        // Taking only the root node is the same as taking only the node at the very
-        // front of the array. So take one and
-        // return right away.
-        if (bOutputOnlyRootNode)
-        {
-            return;
-        }
-    }
-
-    file << "==================================================" << endl;
-
-    file.close();
-    */
-    // end
-}
+                                           GMServerInfo* pServerInfo) {}
 
 void ProfileSampleSet::storeProfileInHistory(const string& name, float percent) {}
 

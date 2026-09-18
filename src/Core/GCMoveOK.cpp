@@ -22,11 +22,6 @@ void GCMoveOK::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    /*
-    iStream.read(m_X);
-    iStream.read(m_Y);
-    iStream.read(m_Dir);
-    */
 
 #ifdef __USE_ENCRYPTER__
     SocketEncryptInputStream* pEIStream = dynamic_cast<SocketEncryptInputStream*>(&iStream);
@@ -56,11 +51,6 @@ void GCMoveOK::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    /*
-    oStream.write(m_X);
-    oStream.write(m_Y);
-    oStream.write(m_Dir);
-    */
 
 #ifdef __USE_ENCRYPTER__
     SocketEncryptOutputStream* pEOStream = dynamic_cast<SocketEncryptOutputStream*>(&oStream);

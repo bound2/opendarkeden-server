@@ -89,8 +89,6 @@ void CGExpelGuildHandler::execute(CGExpelGuild* pPacket, Player* pPlayer)
         }
         string TargetGuildMaster = pGuild->getMaster();
 
-        // cout << "The guild is expelled from the union. The user to notify is: " << TargetGuildMaster.c_str() << endl;
-
 
         GuildRepository& guilds = defaultGuildRepository();
 
@@ -98,7 +96,6 @@ void CGExpelGuildHandler::execute(CGExpelGuild* pPacket, Player* pPlayer)
                                                      g_pStringPool->c_str(377));
 
         if (guilds.countUnionMembersSpelled(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
-            // cout << "If no member is left after the expulsion, the union information is removed." << endl;
             guilds.deleteUnionInfoOnly(UNION_SQL_QUOTED, pUnion->getUnionID());
             GuildUnionManager::Instance().reload();
         }
@@ -135,8 +132,6 @@ void CGExpelGuildHandler::execute(CGExpelGuild* pPacket, Player* pPlayer)
         // Tell the ones on other servers about the change.
         GuildUnionManager::Instance().sendModifyUnionInfo(dynamic_cast<PlayerCreature*>(pTargetCreature)->getGuildID());
         GuildUnionManager::Instance().sendModifyUnionInfo(dynamic_cast<PlayerCreature*>(pCreature)->getGuildID());
-
-
     } else {
         gcGuildResponse.setCode(GuildUnionOfferManager::NOT_YOUR_UNION);
         pPlayer->sendPacket(&gcGuildResponse);

@@ -48,7 +48,6 @@ void Datagram::read(DatagramPacket*& pPacket) {
     read((char*)&packetID, szPacketID);
     read((char*)&packetSize, szPacketSize);
 
-    // cout << "DatagramPacket I  D : " << packetID << endl;
 
     // invalid packet id
     if (packetID >= Packet::PACKET_MAX)
@@ -77,7 +76,6 @@ void Datagram::read(DatagramPacket*& pPacket) {
     Assert(pPacket != NULL);
 
     // Initialize the packet.
-    // filelog("datagram.txt","id:%u host:%s",packetID,getHost().c_str());
     pPacket->read(*this);
 
     // Record the peer address/port on the packet.

@@ -298,29 +298,6 @@ SOCKET SocketAPI::accept_ex(SOCKET s, struct sockaddr* addr, uint* addrlen) {
         } // end of switch
 #endif
     } else {
-        /*
-                struct timeval tm;
-                struct timeval tm2;
-
-        //		int time = getsockopt( client, SOL_SOCKET, SO_SNDTIMEO, &tm, &socklen );
-        //		int time2 = getsockopt( client, SOL_SOCKET, SO_RCVTIMEO, &tm2, &socklen2 );
-
-        //		cout << "Socket Option Time Out Sec Value : " << tm.tv_sec << endl;
-        //		cout << "Socket Option Time Out Usec Value : " << tm.tv_usec << endl;
-                // Send Time out
-        //		tm.tv_sec = 0;
-        //		tm.tv_usec = 20;
-        //		socklen_t socklen = sizeof( tm );
-
-                // Recv Time out
-                tm2.tv_sec = 0;
-                tm2.tv_usec = 10000;
-                socklen_t socklen2 = sizeof( tm2 );
-
-                socklen2 = sizeof( tm2 );
-        //		setsockopt( client, SOL_SOCKET, SO_SNDTIMEO, &tm, socklen );
-                setsockopt( client, SOL_SOCKET, SO_RCVTIMEO, &tm2, socklen2 );
-        */
     }
 
     return client;
@@ -504,7 +481,6 @@ uint SocketAPI::send_ex(SOCKET s, const void* buf, uint len, uint flags) {
         } else if (nSent == 0) {
             throw ConnectException("connect closed.");
         }
-
     } catch (Throwable& t) {
         cout << "SocketAPI::send_ex Exception Check!" << endl;
         cout << t.toString() << endl;
@@ -632,8 +608,6 @@ uint SocketAPI::recvfrom_ex(SOCKET s, void* buf, int len, uint flags, struct soc
 #if defined(__LINUX__) || defined(__APPLE__)
     int nReceived = recvfrom(s, buf, len, flags, from, fromlen);
 
-    // SOCKADDR_IN* sa = (SOCKADDR_IN*)from;
-    // cout << "recvfrom_ex : " << inet_ntoa(sa->sin_addr) << ":" << sa->sin_port << endl;
 
 #endif
 
@@ -877,29 +851,8 @@ int SocketAPI::select_ex(int maxfdp1, fd_set* readset, fd_set* writeset, fd_set*
             // by sigi. 2002.5.17
             return 0;
         // throw TimeoutException();
-
-        /*
-        // commented out by sigi. 2002.5.17
-        if ( result < 0 ) {
-            switch ( errno ) {
-            case EINTR :
-                throw InterruptedException("A non blocked signal was caught.");
-            case EBADF :
-                throw Error("An invalid file descriptor was given in one of the sets.");
-            case EINVAL :
-                throw Error("parameter maxfdp1 is negative.");
-            case ENOMEM :
-                throw Error("select was unable to allocate memory for internal tables.");
-            default :
-                throw UnknownError(strerror(errno),errno);
-            }
-        }
-        */
-
     } catch (Throwable& t) {
         // Ignore any exception.
-        //		cout << "a strange error came out of select.." << endl;
-        //		throw TimeoutException();
     }
 
     return result;
