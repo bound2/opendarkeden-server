@@ -95,11 +95,11 @@ public:
     virtual Weight_t getWeight() const;
 
 private:
-    ItemType_t m_ItemType;           // 아이템 타입
-    list<OptionType_t> m_OptionType; // 옵션 타입
+    ItemType_t m_ItemType;           // Item type
+    list<OptionType_t> m_OptionType; // Option type
 
-    static Mutex m_Mutex;             // 아이템 ID 관련 락
-    static ItemID_t m_ItemIDRegistry; // 클래스별 고유 아이템 아이디 발급기
+    static Mutex m_Mutex;             // Lock for the item ID registry
+    static ItemID_t m_ItemIDRegistry; // Per-class unique item ID generator
 };
 
 

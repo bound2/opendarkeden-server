@@ -257,9 +257,9 @@ void CastleSymbolLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    // CastleSymbol load할게 있다는것은..
-    // 현재로서는 이전에 서버다운이 되었다는 의미이다.
-    // 그래서, 지운다. by sigi
+    // Anything left to load for a CastleSymbol means, as things stand,
+    // that the server went down earlier.
+    // So it is deleted.
     defaultItemObjectRepository().deleteWarItemsOfOwner(GEAR_CASTLE_SYMBOL, pCreature->getName());
 
     __END_CATCH

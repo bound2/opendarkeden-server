@@ -56,8 +56,8 @@ public:
 private:
     ItemType_t m_ItemType;
 
-    static Mutex m_Mutex;             // 아이템 ID 관련 락
-    static ItemID_t m_ItemIDRegistry; // 클래스별 고유 아이템 아이디 발급기
+    static Mutex m_Mutex;             // Lock for the item ID registry
+    static ItemID_t m_ItemIDRegistry; // Per-class unique item ID generator
 };
 
 //////////////////////////////////////////////////////////////////////////////

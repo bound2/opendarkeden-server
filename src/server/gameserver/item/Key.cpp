@@ -95,7 +95,7 @@ ItemID_t Key::setNewMotorcycle(Slayer* pSlayer) {
 
     ItemID_t targetID = 0;
 
-    // 타겟이 0이 아니라도 타겟이 없으면 새 모터사이클을 넣어야 된다.
+    // Even when the target is not 0, a new motorcycle has to be put in if the target is missing.
     Assert(pSlayer != NULL);
     Zone* pZone = pSlayer->getZone();
     Assert(pZone != NULL);
@@ -118,14 +118,14 @@ ItemID_t Key::setNewMotorcycle(Slayer* pSlayer) {
 
     targetID = pMotorcycle->getItemID();
 
-    // targetID를 DB에도 update시켜야 한다.
+    // The target ID has to be updated in the database as well.
     defaultItemObjectRepository().saveKeyTarget(GEAR_KEY, targetID, getItemID());
 
     // log
     filelog("motorcycle.txt", "[SetTargetID] Owner = %s, KeyID = %lu, Key's targetID = %lu, MotorcycleID = %lu",
             pSlayer->getName().c_str(), getItemID(), getTarget(), pMotorcycle->getItemID());
 
-    // 밑에서 pMotorcycle을 사용해도 되겠지만, 기존 코드 안 건드릴려고 여기서 지운다.
+    // pMotorcycle could be used below, but it is deleted here so the existing code stays untouched.
     SAFE_DELETE(pMotorcycle);
 
     return targetID;

@@ -322,7 +322,7 @@ void PetItemLoader::load(Creature* pCreature)
             pPetInfo->setFeedTime(VSDateTime(rows[r].lastFeedTime));
             pPetInfo->setNickname(rows[r].nickname);
 
-            // 양방향 링크
+            // Two-way link.
             pPetItem->setPetInfo(pPetInfo);
             pPetInfo->setPetItem(pPetItem);
 
@@ -425,7 +425,7 @@ void PetItemLoader::load(Creature* pCreature)
 
 
             case STORAGE_PET_STASH:
-                /* 펫을 불러다가 pCreature에 넣어야 되나?...*/
+                /* Should the pet be loaded and put into pCreature?...*/
                 if (pPC->getPetStashItem(storageID) == NULL) {
                     pPC->addPetStashItem(storageID, pPetItem);
                     pPetItem->whenPCTake(pPC);

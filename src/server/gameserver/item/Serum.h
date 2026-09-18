@@ -70,11 +70,11 @@ public:
     }
 
 private:
-    ItemType_t m_ItemType; // 아이템 타입
-    ItemNum_t m_Num;       // 겹쳐있는 혈청의 갯수
+    ItemType_t m_ItemType; // Item type
+    ItemNum_t m_Num;       // Number of serums stacked
 
-    static Mutex m_Mutex;             // 아이템 ID 관련 락
-    static ItemID_t m_ItemIDRegistry; // 클래스별 고유 아이템 아이디 발급기
+    static Mutex m_Mutex;             // Lock for the item ID registry
+    static ItemID_t m_ItemIDRegistry; // Per-class unique item ID generator
 };
 
 
@@ -114,9 +114,9 @@ public:
     virtual string toString() const;
 
 private:
-    int m_HPAmount; // 단위 시간당 HP 회복량
-    int m_Period;   // 단위 시간(초 단위)
-    int m_Count;    // 단위 시간을 몇 번 반복할 것인가?
+    int m_HPAmount; // HP recovered per unit of time
+    int m_Period;   // Unit of time, in seconds
+    int m_Count;    // How many times the unit of time repeats
 };
 
 

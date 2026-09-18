@@ -20,7 +20,7 @@
 #include "repository/ItemObjectRepository.h"
 
 void setStoneNum(vector<OptionType_t>& OptionType, CoordInven_t x, CoordInven_t y,
-                 uint Num); // CGAddItemToCodeSheetHandler.cpp 에 정의되어있는데. 될라나
+                 uint Num); // Defined in CGAddItemToCodeSheetHandler.cpp.
 
 ItemID_t CodeSheet::m_ItemIDRegistry = 0;
 Mutex CodeSheet::m_Mutex;

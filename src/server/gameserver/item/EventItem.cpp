@@ -240,7 +240,7 @@ void EventItemLoader::load(Creature* pCreature)
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
 
             if (pEventItem->getItemType() == 27) {
-                // 깃발은 나오면 안 된다. -_-
+                // A flag must not turn up here.
                 processItemBug(pCreature, pEventItem);
             } else
                 switch (storage) {

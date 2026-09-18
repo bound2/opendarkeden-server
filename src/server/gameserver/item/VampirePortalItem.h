@@ -95,14 +95,14 @@ public:
     virtual EnchantLevel_t getEnchantLevel() const;
 
 private:
-    ItemType_t m_ItemType; // 아이템 타입
-    int m_Charge;          // 포탈을 열 수 있는 횟수
-    ZoneID_t m_ZoneID;     // 목표 존 ID
-    ZoneCoord_t m_X;       // 목표 존 좌표
-    ZoneCoord_t m_Y;       // 목표 존 좌표
+    ItemType_t m_ItemType; // Item type
+    int m_Charge;          // Number of times the portal can be opened
+    ZoneID_t m_ZoneID;     // Target zone ID
+    ZoneCoord_t m_X;       // Target zone coordinate
+    ZoneCoord_t m_Y;       // Target zone coordinate
 
-    static Mutex m_Mutex;             // 아이템 ID 관련 락
-    static ItemID_t m_ItemIDRegistry; // 클래스별 고유 아이템 아이디 발급기
+    static Mutex m_Mutex;             // Lock for the item ID registry
+    static ItemID_t m_ItemIDRegistry; // Per-class unique item ID generator
 };
 
 

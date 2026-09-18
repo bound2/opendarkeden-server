@@ -146,7 +146,7 @@ bool CoupleRing::hasPartnerItem()
     int count = 0;
 
     if (defaultItemObjectRepository().loadCoupleRingPartnerCount(GEAR_COUPLE_RING, getPartnerItemID(), count)) {
-        // 위험!
+        // Dangerous!
         Assert(count >= 0);
         Assert(count <= 1);
 
@@ -249,7 +249,7 @@ void CoupleRingLoader::load(Creature* pCreature)
             pCoupleRing->setName(rows[r].name);
             pCoupleRing->setPartnerItemID(rows[r].partnerItemID);
 
-            // 파트너 아이템이 없거나 더 이상 커플이 아니면 아이템을 지워준다.
+            // Delete the item when the partner item is gone or the two are no longer a couple.
             if (pPC != NULL && (!de::gameContext().couples().isCouple(pPC, pCoupleRing->getName()) ||
                                 !pCoupleRing->hasPartnerItem())) {
                 de::gameContext().couples().removeCoupleForce(pPC, pCoupleRing->getName());
@@ -258,7 +258,7 @@ void CoupleRingLoader::load(Creature* pCreature)
                 pCoupleRing->tinysave(sql);
                 SAFE_DELETE(pCoupleRing);
 
-                // FlagSet 도 날려준다.
+                // Clear the FlagSet as well.
                 pPC->getFlagSet()->turnOff(FLAGSET_IS_COUPLE);
                 pPC->getFlagSet()->save(pPC->getName());
                 continue;

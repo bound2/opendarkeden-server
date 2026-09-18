@@ -31,7 +31,7 @@ Motorcycle::Motorcycle(ItemType_t itemType, const list<OptionType_t>& optionType
     : m_ItemType(itemType), m_OptionType(optionType), m_Durability(0), m_pInventory(NULL) {
     __BEGIN_TRY
 
-    // 모터사이클은 타입에 따라 인벤토리의 크기가 다르다.
+    // A motorcycle's inventory size depends on its type.
     switch (itemType) {
     case 0:
         m_pInventory = new Inventory(10, 6);
