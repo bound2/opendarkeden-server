@@ -21,7 +21,7 @@
 bool ConditionEnterCastleDungeon::isSatisfied(Creature* pCreature1, Creature* pCreature2, void* pParam) const
 
 {
-    // 나중에 전쟁중인지 체크해야 된다
+    // A check for whether a war is in progress still has to be added.
 
     Assert(pCreature2 != NULL);
     Assert(pCreature2->isPC());
@@ -34,7 +34,7 @@ bool ConditionEnterCastleDungeon::isSatisfied(Creature* pCreature1, Creature* pC
 
     bPayPlay = true;
 
-    // 돈 낸 사람만 castle 에 들어갈 수 있다.
+    // Only someone who has paid can enter the castle.
     if (bPayPlay) {
         bool hasGuildWar = g_pWarSystem->hasCastleActiveWar(m_CastleZoneID);
 
@@ -47,8 +47,8 @@ bool ConditionEnterCastleDungeon::isSatisfied(Creature* pCreature1, Creature* pC
         GuildID_t GuildID = pPC->getGuildID();
         GuildID_t OwnerGuildID = pCastleInfo->getGuildID();
 
-        // 전쟁이 없을 때 --> 성 소유 길드만 들어갈 수 있다.
-        // 길드 전쟁 중 --> 공격 길드도 들어갈 수 있다.
+        // No war --> only the guild that owns the castle can enter.
+        // Guild war --> the attacking guild can enter as well.
         if (OwnerGuildID != SlayerCommon && OwnerGuildID != VampireCommon && OwnerGuildID != OustersCommon &&
             GuildID == OwnerGuildID) {
             return true;

@@ -25,7 +25,7 @@
 bool ConditionEnterHolyLand::isSatisfied(Creature* pCreature1, Creature* pCreature2, void* pParam) const
 
 {
-    // 나중에 전쟁중인지 체크해야 된다
+    // A check for whether a war is in progress still has to be added.
 
     Assert(pCreature2 != NULL);
     Assert(pCreature2->isPC());
@@ -38,25 +38,25 @@ bool ConditionEnterHolyLand::isSatisfied(Creature* pCreature1, Creature* pCreatu
 
     bPayPlay = true;
 
-    // 돈 낸 사람만 castle 에 들어갈 수 있다.
+    // Only someone who has paid can enter the castle.
     if (bPayPlay) {
-        // 종족 전쟁 중에.. 전쟁 참가 인원 제한을 한다면..
+        // During a race war, if the number of participants is limited.
         if (g_pWarSystem->hasActiveRaceWar() && g_pVariableManager->isActiveRaceWarLimiter()) {
             Zone* pZone = getZoneByZoneID(m_TargetZoneID);
             Assert(pZone != NULL);
 
-            // 아담의 성지에 들어갈때
+            // When entering Adam's holy land
             if (!pZone->isHolyLand()) {
                 return true;
             }
 
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
 
-            // 전쟁 참가를 했었어야 한다.
+            // The PC must have joined the war.
             return pPC->isFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET);
         }
 
-        // 전쟁 중 아니면 그냥 들어간다.
+        // When no war is going on, entry is free.
         return true;
     }
 

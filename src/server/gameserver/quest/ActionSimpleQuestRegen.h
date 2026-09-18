@@ -2,8 +2,8 @@
 // Filename    : ActionSimpleQuestRegen.h
 // Written By  :
 // Description :
-// 상점 NPC를 제일 처음 로딩할 때, 상점 NPC가 팔게 될 아이템을
-// 준비하는 액션이다. ShopTemplate 클래스와 매니저를 참고할 것.
+// Action that prepares the items a shop NPC will sell, run when the NPC is
+// first loaded. See the ShopTemplate class and its manager.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_SIMPLE_QUEST_REGEN_H__
@@ -33,8 +33,8 @@ public:
     virtual string toString() const;
 
 private:
-    Timeval m_Period;    // 상점을 리젠할 주기
-    Timeval m_NextRegen; // 다음 상점 리젠 시간
+    Timeval m_Period;    // Shop regeneration period
+    Timeval m_NextRegen; // Next shop regeneration time
 };
 
 

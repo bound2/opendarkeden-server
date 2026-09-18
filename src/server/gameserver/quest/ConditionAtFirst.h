@@ -2,8 +2,8 @@
 // Filename    : ConditionAtFirst.h
 // Written By  :
 // Description :
-// NPC 가 로딩된 직후에 최초로 한번만 실행되어야 하는 액션들을
-// 이 컨디션과 연관시켜주면 자동으로 실행된다.
+// Actions that must run only once, right after the NPC is loaded,
+// run automatically when they are tied to this condition.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __AT_FIRST_H__

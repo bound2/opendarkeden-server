@@ -34,7 +34,7 @@ void ActionRandomSay::read(PropertyBuffer& propertyBuffer)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionRandomSay::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -46,11 +46,11 @@ void ActionRandomSay::execute(Creature* pCreature1, Creature* pCreature2)
     Assert(pCreature2 == NULL);
     Assert(pCreature1->isNPC());
 
-    // RandomSay는 아래에서 보다시피, 임의의 범위(Start와 End) 안의
-    // 스크립트 중 랜덤을 돌려 하나를 클라이언트에게 보내는 식이다.
-    // 그러므로 Start와 End 사이에 존재하지 않는 스크립트가 있으면 곤란하다.
-    // 스크립트 테이블을 만들 때, RandomSay에 사용하는 것은
-    // 데이터가 반드시 연속적으로 존재하게 만들어야 한다.
+    // RandomSay picks one script at random from the range between Start and
+    // End and sends it to the client, as the code below shows.
+    // A script id missing between Start and End is therefore a problem:
+    // when the script table is built, the entries used by RandomSay
+    // must be stored contiguously.
     NPC* pNPC = dynamic_cast<NPC*>(pCreature1);
     ScriptID_t scriptID = m_StartScriptID + random() % (m_EndScriptID - m_StartScriptID + 1);
     const Script* pScript = context().publicScripts().getScript(scriptID);

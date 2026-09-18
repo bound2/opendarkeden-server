@@ -2,7 +2,7 @@
 // Filename    : ActionRewardEventQuest.h
 // Written By  : excel96
 // Description :
-// Creature가 PC에게 질문을 던진다. 이 대사는 NPC 대화창에 출력된다.
+// The creature asks the PC a question. The line is printed in the NPC dialogue window.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_REWARD_EVENT_QUEST_H__
@@ -35,9 +35,9 @@ public:
     }
 
 private:
-    ScriptID_t m_ScriptID[5];     // 말할 대사 아이디
-    ScriptID_t m_CounterScriptID; // 퀘스트가 완료되지 않았을 때
-    ScriptID_t m_CancelScriptID;  // 이전 단계 퀘스트의 보상을 받을 때
+    ScriptID_t m_ScriptID[5];     // IDs of the script lines to speak
+    ScriptID_t m_CounterScriptID; // Used when the quest is not complete
+    ScriptID_t m_CancelScriptID;  // Used when the reward of the previous quest stage is taken
 };
 
 

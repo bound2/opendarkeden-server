@@ -2,8 +2,8 @@
 // Filename    : ActionTakeDonation.h
 // Written By  :
 // Description :
-// Creature가 주어진 대사를 말한다. 이 대사는 크리처의 머리 위의 말풍선으로
-// 출력된다.
+// The creature speaks the given script line. The line is shown in a speech
+// bubble above the creature's head.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_TAKE_DONATION_H__
@@ -36,7 +36,7 @@ public:
     }
 
 private:
-    Gold_t m_Amount; // 받을 돈의 양
+    Gold_t m_Amount; // Amount of gold to collect
 };
 
 //////////////////////////////////////////////////////////////////////////////

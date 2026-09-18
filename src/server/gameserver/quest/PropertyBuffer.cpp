@@ -41,7 +41,7 @@ string PropertyBuffer::getProperty(string key) {
     while (m_Index < bufferLen) {
         string line = trim(getline(m_Buffer, m_Index));
 
-        // 빈 라인 또는 코멘트 라인이 아닌 경우
+        // Neither an empty line nor a comment line.
         if (line.size() != 0 && line[0] != Comment) {
             size_t i = line.find(Separator);
 
@@ -81,7 +81,7 @@ bool PropertyBuffer::getProperty(string key, string& value) {
     while (m_Index < bufferLen) {
         string line = trim(getline(m_Buffer, m_Index));
 
-        // 빈 라인 또는 코멘트 라인이 아닌 경우
+        // Neither an empty line nor a comment line.
         if (line.size() != 0 && line[0] != Comment) {
             size_t i = line.find(Separator);
 

@@ -45,7 +45,7 @@ void ActionRegisterSiege::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionRegisterSiege::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -100,14 +100,14 @@ void ActionRegisterSiege::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    // 이미 전쟁 신청을 했는가?
+    // Has a war already been registered?
     if (g_pGuildManager->hasWarSchedule(guildID)) {
         gcNPCResponse.setCode(NPC_RESPONSE_WAR_ALREADY_REGISTERED);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
         return;
     }
 
-    // 전쟁 스케쥴이 다 찼는가?
+    // Is the war schedule full?
 
     Schedule* pNextSchedule = pWarScheduler->getRecentSchedule();
 

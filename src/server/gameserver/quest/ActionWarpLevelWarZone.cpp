@@ -35,7 +35,7 @@ void ActionWarpLevelWarZone::read(PropertyBuffer& propertyBuffer)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionWarpLevelWarZone::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -51,14 +51,14 @@ void ActionWarpLevelWarZone::execute(Creature* pCreature1, Creature* pCreature2)
     GCSystemMessage gcSystemMessage;
 
 
-    // 레벨 너무 높은 캐릭터는 들어갈 수 없다
+    // A character whose level is too high cannot enter.
     if (g_pLevelWarZoneInfoManager->getCreatureLevelGrade(pCreature2) == -1) {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TO_HIGH_LEVEL_FOR_LEVEL_WAR));
         pGamePlayer->sendPacket(&gcSystemMessage);
         return;
     }
 
-    // 크리쳐 정보 보고 알아서 튕겨주자 =_=;;
+    // Pick the destination from the creature's information.
     ZONE_COORD pos(g_pLevelWarZoneInfoManager->getCreatureZoneID(pCreature2));
 
     if (pCreature2->isSlayer()) {

@@ -24,7 +24,7 @@ void ActionCallHelicopter::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionCallHelicopter::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -36,7 +36,7 @@ void ActionCallHelicopter::execute(Creature* pCreature1, Creature* pCreature2)
     Assert(pCreature1->isNPC());
     Assert(pCreature2->isPC());
 
-    // 슬레이어만이 이 액션의 대상이 된다.
+    // Only a Slayer is a target of this action.
     if (!pCreature2->isSlayer())
         return;
     if (pCreature2->isFlag(Effect::EFFECT_CLASS_HAS_FLAG) || pCreature2->isFlag(Effect::EFFECT_CLASS_HAS_SWEEPER))
@@ -45,7 +45,7 @@ void ActionCallHelicopter::execute(Creature* pCreature1, Creature* pCreature2)
     Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature2);
     Assert(pSlayer != NULL);
 
-    // 슬레이어에게 이펙트를 걸어준다.
+    // Apply the effect to the Slayer.
     if (!pSlayer->isFlag(Effect::EFFECT_CLASS_SLAYER_PORTAL))
         pSlayer->setFlag(Effect::EFFECT_CLASS_SLAYER_PORTAL);
 

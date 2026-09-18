@@ -24,7 +24,7 @@ void ActionTakeDonation::read(PropertyBuffer& propertyBuffer)
     __BEGIN_TRY
 
     try {
-        // 받을 돈의 양을 읽어들인다.
+        // Read the amount of money to receive.
         m_Amount = (Gold_t)propertyBuffer.getPropertyInt("Amount");
     } catch (NoSuchElementException& nsee) {
         throw Error(nsee.toString());
@@ -35,7 +35,7 @@ void ActionTakeDonation::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionTakeDonation::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -59,18 +59,18 @@ void ActionTakeDonation::execute(Creature* pCreature1, Creature* pCreature2)
     if (pCreature2->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature2);
 
-        // 기부량보다 가진 돈이 적다면 기부할 수가 없다.
+        // A player whose gold is less than the donation amount cannot donate.
         if (pSlayer->getGold() < m_Amount) {
             gcNPCResponse.setCode(NPC_RESPONSE_DONATION_FAIL_MONEY);
             pPlayer->sendPacket(&gcNPCResponse);
             return;
         }
 
-        // 기부 금액에 따라 성향을 회복시켜준다.
+        // Recover alignment in proportion to the donated amount.
         oldAlignment = pSlayer->getAlignment();
         newAlignment = pSlayer->getAlignment();
 
-        // 성향이 -2500 이하일 경우에만 변화한다.
+        // Alignment only changes when it is below -2500.
         if (oldAlignment < -2500) {
             if (-4999 <= oldAlignment && oldAlignment <= -2500) {
                 newAlignment = min(-2500, (int)(oldAlignment + m_Amount / 100));
@@ -83,11 +83,11 @@ void ActionTakeDonation::execute(Creature* pCreature1, Creature* pCreature2)
             pSlayer->saveAlignment(newAlignment);
         }
 
-        // 기부금액만큼 돈을 줄인다.
+        // Reduce the gold by the donated amount.
         // by sigi. 2002.9.17
         pSlayer->decreaseGoldEx(m_Amount);
 
-        // 패킷을 보낸다.
+        // Send the packet.
         gcNPCResponse.setCode(NPC_RESPONSE_DONATION_OK);
         gcNPCResponse.setParameter(pSlayer->getGold());
         pPlayer->sendPacket(&gcNPCResponse);
@@ -97,18 +97,18 @@ void ActionTakeDonation::execute(Creature* pCreature1, Creature* pCreature2)
     } else if (pCreature2->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pCreature2);
 
-        // 기부량보다 가진 돈이 적다면 기부할 수가 없다.
+        // A player whose gold is less than the donation amount cannot donate.
         if (pVampire->getGold() < m_Amount) {
             gcNPCResponse.setCode(NPC_RESPONSE_DONATION_FAIL_MONEY);
             pPlayer->sendPacket(&gcNPCResponse);
             return;
         }
 
-        // 기부 금액에 따라 성향을 회복시켜준다.
+        // Recover alignment in proportion to the donated amount.
         oldAlignment = pVampire->getAlignment();
         newAlignment = pVampire->getAlignment();
 
-        // 성향이 -2500 이하일 경우에만 변화한다.
+        // Alignment only changes when it is below -2500.
         if (oldAlignment < -2500) {
             if (-4999 <= oldAlignment && oldAlignment <= -2500) {
                 newAlignment = min(-2500, (int)(oldAlignment + m_Amount / 100));
@@ -121,11 +121,11 @@ void ActionTakeDonation::execute(Creature* pCreature1, Creature* pCreature2)
             pVampire->saveAlignment(newAlignment);
         }
 
-        // 기부금액만큼 돈을 줄인다.
+        // Reduce the gold by the donated amount.
         // by sigi. 2002.9.18
         pVampire->decreaseGoldEx(m_Amount);
 
-        // 패킷을 보낸다.
+        // Send the packet.
         gcNPCResponse.setCode(NPC_RESPONSE_DONATION_OK);
         gcNPCResponse.setParameter(pVampire->getGold());
         pPlayer->sendPacket(&gcNPCResponse);
@@ -135,18 +135,18 @@ void ActionTakeDonation::execute(Creature* pCreature1, Creature* pCreature2)
     } else if (pCreature2->isOusters()) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pCreature2);
 
-        // 기부량보다 가진 돈이 적다면 기부할 수가 없다.
+        // A player whose gold is less than the donation amount cannot donate.
         if (pOusters->getGold() < m_Amount) {
             gcNPCResponse.setCode(NPC_RESPONSE_DONATION_FAIL_MONEY);
             pPlayer->sendPacket(&gcNPCResponse);
             return;
         }
 
-        // 기부 금액에 따라 성향을 회복시켜준다.
+        // Recover alignment in proportion to the donated amount.
         oldAlignment = pOusters->getAlignment();
         newAlignment = pOusters->getAlignment();
 
-        // 성향이 -2500 이하일 경우에만 변화한다.
+        // Alignment only changes when it is below -2500.
         if (oldAlignment < -2500) {
             if (-4999 <= oldAlignment && oldAlignment <= -2500) {
                 newAlignment = min(-2500, (int)(oldAlignment + m_Amount / 100));
@@ -159,11 +159,11 @@ void ActionTakeDonation::execute(Creature* pCreature1, Creature* pCreature2)
             pOusters->saveAlignment(newAlignment);
         }
 
-        // 기부금액만큼 돈을 줄인다.
+        // Reduce the gold by the donated amount.
         // by sigi. 2002.9.18
         pOusters->decreaseGoldEx(m_Amount);
 
-        // 패킷을 보낸다.
+        // Send the packet.
         gcNPCResponse.setCode(NPC_RESPONSE_DONATION_OK);
         gcNPCResponse.setParameter(pOusters->getGold());
         pPlayer->sendPacket(&gcNPCResponse);

@@ -2,10 +2,10 @@
 // Filename    : ActionTeachSkill.cpp
 // Written By  :
 // Description :
-// NPC가 플레이어에게 기술을 가르쳐 줄 때 쓰이는 액션이다.
-// 실제적으로는 NPC가 가르쳐 줄 수 있는 기술을 패킷으로
-// 전송해 줄 뿐이고, 나머지 작업들은 패킷이 왕복하는 사이에
-// 처리된다.
+// Action used when an NPC teaches a skill to the player.
+// In practice the NPC only sends the skills it can teach as a packet;
+// the remaining work is handled while the packet travels back and
+// forth.
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "ActionTeachSkill.h"
@@ -28,7 +28,7 @@ void ActionTeachSkill::read(PropertyBuffer& propertyBuffer)
     __BEGIN_TRY
 
     try {
-        // 도메인 타입을 읽어들인다.
+        // Read the domain type.
         string domainType = propertyBuffer.getProperty("DomainType");
 
         if (domainType == "BLADE")
@@ -56,7 +56,7 @@ void ActionTeachSkill::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionTeachSkill::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -68,7 +68,7 @@ void ActionTeachSkill::execute(Creature* pCreature1, Creature* pCreature2)
     Assert(pCreature1->isNPC());
     Assert(pCreature2->isPC());
 
-    // 일단 클라이언트를 위해서 OK 패킷을 함 날린다.
+    // Send an OK packet to the client first.
     GCNPCResponse okpkt;
     Player* pPlayer = pCreature2->getPlayer();
     Assert(pPlayer != NULL);
@@ -85,7 +85,7 @@ void ActionTeachSkill::execute(Creature* pCreature1, Creature* pCreature2)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionTeachSkill::executeSlayer(Creature* pCreature1, Creature* pCreature2)
 
@@ -98,9 +98,9 @@ void ActionTeachSkill::executeSlayer(Creature* pCreature1, Creature* pCreature2)
 
     Assert(pPlayer != NULL);
 
-    // 일단 기술을 배울 수 있는지 체크를 한다.
+    // First check whether the skill can be learned.
     if (pSlayer->getGoalExp(m_DomainType) != 0) {
-        // 패킷을 만들어 가지고...
+        // Build the packet...
         teachinfo.setDomainType(m_DomainType);
         teachinfo.setTargetLevel(0);
         pPlayer->sendPacket(&teachinfo);
@@ -111,7 +111,7 @@ void ActionTeachSkill::executeSlayer(Creature* pCreature1, Creature* pCreature2)
     SkillType_t SkillType = g_pSkillInfoManager->getSkillTypeByLevel(m_DomainType, DomainLevel);
 
 
-    // 패킷을 만들어 가지고...
+    // Build the packet...
     teachinfo.setDomainType(m_DomainType);
     teachinfo.setTargetLevel(SkillType);
 
@@ -122,7 +122,7 @@ void ActionTeachSkill::executeSlayer(Creature* pCreature1, Creature* pCreature2)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionTeachSkill::executeVampire(Creature* pCreature1, Creature* pCreature2)
 
@@ -137,12 +137,12 @@ void ActionTeachSkill::executeVampire(Creature* pCreature1, Creature* pCreature2
     SkillType_t SkillType = g_pSkillInfoManager->getSkillTypeByLevel(m_DomainType, DomainLevel);
 
 
-    // 패킷을 만들어 가지고...
+    // Build the packet...
     GCTeachSkillInfo teachinfo;
     teachinfo.setDomainType(m_DomainType);
     teachinfo.setTargetLevel(SkillType);
 
-    // 전송한다.
+    // Send it.
     Player* pPlayer = pCreature2->getPlayer();
     Assert(pPlayer != NULL);
     pPlayer->sendPacket(&teachinfo);

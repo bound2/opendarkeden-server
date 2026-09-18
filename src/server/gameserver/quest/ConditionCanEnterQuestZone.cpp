@@ -28,7 +28,7 @@ bool ConditionCanEnterQuestZone::isSatisfied(Creature* pCreature1, Creature* pCr
     bool bQuestCondition = pPC->getGQuestManager()->canEnterDynamicZone(m_QuestZoneID);
     bool bDynamicZoneAvailable = true;
 
-    // Dynamic 존인지를 확인한다.
+    // Check whether it is a dynamic zone.
     int targetDynamicZoneType = de::gameContext().dynamicZoneInfos().getDynamicZoneTypeByZoneID(m_QuestZoneID);
 
     if (targetDynamicZoneType != DYNAMIC_ZONE_MAX) {

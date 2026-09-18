@@ -35,7 +35,7 @@ void ActionGiveSpecialEventItem::read(PropertyBuffer& propertyBuffer)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// �׼��� �����Ѵ�.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -53,14 +53,14 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
     Player* pPlayer = pPC->getPlayer();
     Assert(pPlayer != NULL);
 
-    // ���� Ŭ���̾�Ʈ�� ���� GCNPCResponse�� �����ش�.
+    // Send GCNPCResponse to the client first.
     GCNPCResponse okpkt;
     pPlayer->sendPacket(&okpkt);
 
     int count = -1;
 
     {
-        // �ش� �ο찡 ���ٴ� ���� �� ����� �̺�Ʈ �������� ���� �ڰ��� ���ٴ� ���� ���Ѵ�.
+        // No stored count means the account did not join the event.
         if (!defaultSpecialEventRepository().loadCount(pPlayer->getID(), count)) {
             char buf[100];
             sprintf(buf, g_pStringPool->c_str(STRID_DO_NOT_JOIN_BLOOD_WAR_EVENT), pPlayer->getID().c_str());
@@ -73,8 +73,8 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
         }
     }
 
-    // ī��Ʈ�� 0���϶�� ���� �� ����� �̹� ��������
-    // �޾Ҵٴ� ���� �ǹ��Ѵ�.
+    // A count of zero or less means the account has already
+    // received the event item.
     if (count <= 0) {
         char buf[100];
         sprintf(buf, g_pStringPool->c_str(STRID_ALREADY_TAKE_BLOOD_WAR_EVET_ITEM), pPlayer->getID().c_str());
@@ -107,7 +107,7 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
 
         Key* pKey = dynamic_cast<Key*>(pKeyItem);
 
-        // OID�� ��Ϲ޴´�.
+        // Register the items to get their object IDs.
         OR.registerObject(pItem1);
         OR.registerObject(pItem2);
         OR.registerObject(pMotorcycle);
@@ -143,19 +143,19 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
 
                 msg << "Inventory Adding Succeeded : " << pItem->toString() << "\n";
 
-                // ItemTraceLog �� �����
+                // Leave an ItemTraceLog.
                 if (pItem != NULL && pItem->isTraceItem()) {
                     remainTraceLog(pItem, pCreature1->getName(), pCreature2->getName(), ITEM_LOG_CREATE,
                                    DETAIL_EVENTNPC);
                 }
             } else {
-                // �ڸ��� ���ٸ� ������ ����߸���.
+                // Drop the item on the ground when the inventory is full.
                 pt = pZone->addItem(pItem, pPC->getX(), pPC->getY());
                 if (pt.x != -1) {
                     pItem->create("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
                     pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
 
-                    // ItemTraceLog �� �����
+                    // Leave an ItemTraceLog.
                     if (pItem != NULL && pItem->isTraceItem()) {
                         char zoneName[15];
                         sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
@@ -178,7 +178,7 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
         Item* pItem3 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_RING, 3, option50);
         Item* pItem4 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_RING, 3, option50);
 
-        // OID�� ��Ϲ޴´�.
+        // Register the items to get their object IDs.
         OR.registerObject(pItem1);
         OR.registerObject(pItem2);
         OR.registerObject(pItem3);
@@ -212,19 +212,19 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
 
                 msg << "Inventory Adding Succeeded : " << pItem->toString() << "\n";
 
-                // ItemTraceLog �� �����
+                // Leave an ItemTraceLog.
                 if (pItem != NULL && pItem->isTraceItem()) {
                     remainTraceLog(pItem, pCreature1->getName(), pCreature2->getName(), ITEM_LOG_CREATE,
                                    DETAIL_EVENTNPC);
                 }
             } else {
-                // �ڸ��� ���ٸ� ������ ����߸���.
+                // Drop the item on the ground when the inventory is full.
                 pt = pZone->addItem(pItem, pPC->getX(), pPC->getY());
                 if (pt.x != -1) {
                     pItem->create("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
                     pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
 
-                    // ItemTraceLog �� �����
+                    // Leave an ItemTraceLog.
                     if (pItem != NULL && pItem->isTraceItem()) {
                         char zoneName[15];
                         sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);

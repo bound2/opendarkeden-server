@@ -16,7 +16,7 @@ bool ConditionAnsweredBy::isSatisfied(Creature* pCreature1, Creature* pCreature2
 
     COND_ANSWERED_BY* pCond = (COND_ANSWERED_BY*)pParam;
 
-    // 스크립트 ID와 대답ID가 같다면 이 컨디션은 true
+    // The condition is true when both the script ID and the answer ID match.
     if (pCond->ScriptID == m_ScriptID && pCond->AnswerID == m_AnswerID)
         return true;
     return false;

@@ -19,7 +19,7 @@ bool ConditionEveryTime::isSatisfied(Creature* pCreature1, Creature* pCreature2,
     bool expired = pCreature1 != NULL && pCreature2 == NULL && currentTime > m_NextTurn;
 
     ////////////////////////////////////////////////////////////////////////////////
-    // 시간이 초과되었으면, 다음 실행시간을 m_Turn 이후로 재설정한다.
+    // When the time has expired, push the next run time m_Turn further on.
     ////////////////////////////////////////////////////////////////////////////////
     if (expired) {
         Timeval delay;

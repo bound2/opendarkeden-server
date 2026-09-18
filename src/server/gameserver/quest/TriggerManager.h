@@ -2,8 +2,8 @@
 // Filename    : TriggerManager.h
 // Written By  :
 // Description :
-// 트리거들의 집합을 관리하는 클래스. 크리처/아이템/존 등 트리거를 가질
-// 수 있는 객체들에 종속된다.
+// Class that manages a set of triggers. It belongs to the objects that can
+// have triggers, such as creatures, items and zones.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __TRIGGER_MANAGER_H__
@@ -52,7 +52,7 @@ private:
     ConditionSet m_ConditionSet;
 
     // list of triggers
-    // 런타임에 트리거가 추가될 가능성이 있다.
+    // Triggers may be added at runtime.
     list<Trigger*> m_Triggers;
 };
 

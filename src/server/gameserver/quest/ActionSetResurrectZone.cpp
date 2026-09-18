@@ -35,7 +35,7 @@ void ActionSetResurrectZone::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionSetResurrectZone::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -47,7 +47,7 @@ void ActionSetResurrectZone::execute(Creature* pCreature1, Creature* pCreature2)
     Assert(pCreature1->isNPC());
     Assert(pCreature2->isPC());
 
-    // 일단 클라이언트를 위해서 OK 패킷을 함 날린다.
+    // Send an OK packet to the client first.
     GCNPCResponse okpkt;
     Player* pPlayer = pCreature2->getPlayer();
     Assert(pPlayer != NULL);

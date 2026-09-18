@@ -28,7 +28,7 @@ public:
     virtual string toString() const;
 
 private:
-    Creature::CreatureClass m_CClass; // 크리쳐 클래스
+    Creature::CreatureClass m_CClass; // Creature class
 };
 
 //////////////////////////////////////////////////////////////////////////////

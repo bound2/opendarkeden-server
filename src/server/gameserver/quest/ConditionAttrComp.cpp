@@ -51,7 +51,7 @@ bool ConditionAttrComp::isSatisfied(Creature* pCreature1, Creature* pCreature2, 
 
     uint current = 0;
 
-    // STR을 비교한다.
+    // Compare STR.
     if (m_ReqSTR > 0) {
         if (pCreature2->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature2);
@@ -71,7 +71,7 @@ bool ConditionAttrComp::isSatisfied(Creature* pCreature1, Creature* pCreature2, 
         }
     }
 
-    // DEX를 비교한다.
+    // Compare DEX.
     if (m_ReqDEX > 0) {
         if (pCreature2->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature2);
@@ -91,7 +91,7 @@ bool ConditionAttrComp::isSatisfied(Creature* pCreature1, Creature* pCreature2, 
         }
     }
 
-    // INT를 비교한다.
+    // Compare INT.
     if (m_ReqINT > 0) {
         if (pCreature2->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature2);
@@ -111,7 +111,7 @@ bool ConditionAttrComp::isSatisfied(Creature* pCreature1, Creature* pCreature2, 
         }
     }
 
-    // Sum을 비교한다.
+    // Compare the stat sum.
     if (m_ReqSum > 0) {
         if (pCreature2->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature2);
@@ -143,7 +143,7 @@ bool ConditionAttrComp::isSatisfied(Creature* pCreature1, Creature* pCreature2, 
         }
     }
 
-    // Level을 비교한다.
+    // Compare the level.
     if (m_ReqLevel > 0) {
         if (pCreature2->isSlayer()) {
             return true;

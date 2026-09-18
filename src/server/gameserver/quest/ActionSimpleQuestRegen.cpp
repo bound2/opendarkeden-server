@@ -2,8 +2,8 @@
 // Filename    : ActionSimpleQuestRegen.cpp
 // Written By  :
 // Description :
-// 상점 NPC를 제일 처음 로딩할 때, 상점 NPC가 팔게 될 아이템을
-// 준비하는 액션이다. ShopTemplate 클래스와 매니저를 참고할 것.
+// Action that prepares the items a shop NPC will sell, run when the NPC is
+// first loaded. See the ShopTemplate class and its manager.
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "ActionSimpleQuestRegen.h"
@@ -52,12 +52,12 @@ void ActionSimpleQuestRegen::read(PropertyBuffer& propertyBuffer)
     __BEGIN_TRY
 
     try {
-        // 상점 업데이트 주기를 읽어들인다. (초 단위)
+        // Read the shop update period. (in seconds)
         int nSecond = propertyBuffer.getPropertyInt("Period");
 
         m_Period.tv_sec = nSecond;
 
-        // 다음 상점 업데이트를 언제 할 것인가를 세팅해 준다.
+        // Set when the next shop update is due.
         Timeval currentTime;
         getCurrentTime(currentTime);
         m_NextRegen = currentTime;
@@ -70,8 +70,8 @@ void ActionSimpleQuestRegen::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
-// NOTE : ShopTemplate은 이 액션이 실행되기 전에 모두 로드되어 있어야 한다.
+// Execute the action.
+// NOTE : Every ShopTemplate must be loaded before this action runs.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionSimpleQuestRegen::execute(Creature* pCreature1, Creature* pCreature2)
 

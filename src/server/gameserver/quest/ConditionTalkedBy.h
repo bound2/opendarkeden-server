@@ -2,7 +2,7 @@
 // Filename    : ConditionTalkedBy.h
 // Written By  :
 // Description :
-// NPC가 PC로부터 대화를 받았을 경우, 특별히 이 컨디션이 참이 아닐 가능성은 없다.
+// When an NPC is talked to by a PC, there is no particular case where this condition is false.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __TALKED_BY_H__

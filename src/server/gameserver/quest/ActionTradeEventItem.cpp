@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : ActionTradeEventItem.cpp
-// Written By  : 장홍창
 // Description :
 ////////////////////////////////////////////////////////////////////////////////
 #include "ActionTradeEventItem.h"
@@ -37,7 +36,7 @@ void ActionTradeEventItem::read(PropertyBuffer& propertyBuffer)
     __BEGIN_TRY
 
     try {
-        // 받을 돈의 양을 읽어들인다.
+        // Read the amount of money to receive.
         m_GoalAmount = (Gold_t)propertyBuffer.getPropertyInt("Amount");
     } catch (NoSuchElementException& nsee) {
         throw Error(nsee.toString());
@@ -47,7 +46,7 @@ void ActionTradeEventItem::read(PropertyBuffer& propertyBuffer)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -68,12 +67,12 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
     Inventory* pInventory = pPC->getInventory();
     XMAS_STAR star;
 
-    // 먼저 클라이언트를 위해 GCNPCResponse를 보내준다.
+    // Send GCNPCResponse to the client first.
     GCNPCResponse okpkt;
     pPlayer->sendPacket(&okpkt);
     char message[100];
 
-    // 이 사람의 인벤토리에 축구공이 충분한지 살핀다.
+    // Check whether this player's inventory holds enough soccer balls.
 
 
     context().prices().getBallPrice(m_GoalAmount, star);
@@ -90,8 +89,8 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    // 만약 이 사람의 인벤토리에 자리가 충분하다면 아이템을 넣는다.
-    // 먼저 아이템을 두개 만든다.
+    // If this player's inventory has enough room, put the items in.
+    // First create the two items.
     Zone* pZone = pPC->getZone();
     ObjectRegistry& OR = pZone->getObjectRegistry();
 
@@ -182,33 +181,33 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
             case 100:
                 pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 1, option4);
                 pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 2, option4);
-                //					message << "STR+4 바디슈트와 STR+4 커시피드 네크리스를 지급해 드렸습니다. 코리아팀
+                // message << "STR+4 bodysuit and STR+4 Cuspid necklace granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_11));
                 break;
             case 125:
                 pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option4);
                 pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 3, option4);
-                //					message << "STR+4 점프슈트와 STR+4 젯 네크리스를 지급해 드렸습니다.코리아팀
+                // message << "STR+4 jumpsuit and STR+4 Jet necklace granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_12));
                 break;
             case 175:
                 pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option5);
                 pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 4, option3);
-                //					message << "STR+5 점프슈트와 STR+4 아이돌 팬던트를 지급해 드렸습니다. 코리아팀
+                // message << "STR+5 jumpsuit and STR+4 Idol pendant granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_13));
                 break;
             case 225:
                 pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option5);
                 pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 5, option3);
-                //					message << "STR+5 점프슈트와 STR+4 역십자가(Anti-Cross)를 팬던트를 지급해
-                // 드렸습니다. 코리아팀 파이팅!";
+                // message << "STR+5 jumpsuit and STR+4 Anti-Cross pendant
+                // granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_14));
                 break;
             case 275:
                 pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option5);
                 pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 6, option3);
-                //					message << "STR+5 점프슈트와 STR+4 데스스타(Death-Star) 팬던트를 지급해 드렸습니다.
-                // 코리아팀 파이팅!";
+                // message << "STR+5 jumpsuit and STR+4 Death-Star pendant granted.
+                // Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_15));
                 break;
             default:
@@ -219,33 +218,33 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
             case 100:
                 pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 0, option4);
                 pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 2, option4);
-                //					message << "STR+4 스윙코트와 STR+4 커시피드 네크리스를 지급해 드렸습니다. 코리아팀
+                // message << "STR+4 swing coat and STR+4 Cuspid necklace granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_16));
                 break;
             case 125:
                 pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option4);
                 pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 3, option4);
-                //					message << "STR+4 프록코트와 STR+4 젯 네크리스를 지급해 드렸습니다.코리아팀
+                // message << "STR+4 frock coat and STR+4 Jet necklace granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_17));
                 break;
             case 175:
                 pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option5);
                 pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 4, option3);
-                //					message << "STR+5 프록코트와 STR+4 아이돌 팬던트를 지급해 드렸습니다. 코리아팀
+                // message << "STR+5 frock coat and STR+4 Idol pendant granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_18));
                 break;
             case 225:
                 pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option5);
                 pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 5, option3);
-                //					message << "STR+5 프록코트와 STR+4 역십자가(Anti-Cross)를 팬던트를 지급해
-                // 드렸습니다. 코리아팀 파이팅!";
+                // message << "STR+5 frock coat and STR+4 Anti-Cross pendant
+                // granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_19));
                 break;
             case 275:
                 pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option5);
                 pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 6, option3);
-                //					message << "STR+5 프록코트와 STR+4 데스스타(Death-Star) 팬던트를 지급해 드렸습니다.
-                // 코리아팀 파이팅!";
+                // message << "STR+5 frock coat and STR+4 Death-Star pendant granted.
+                // Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_20));
                 break;
             default:
@@ -259,21 +258,21 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
     OR.registerObject(pItem1);
     OR.registerObject(pItem2);
 
-    // 만약 inventory에 공간이 있다면, 넣는다.
-    // 두개를 넣어야 하기 때문에 하나를 넣고 다시 하나를 이어서 넣은 다음에
-    // 최종적으로 두개 다 들어가면 축구공의 개수를 줄인다.
-    // 만약 두번째가 들어가지 않느다면, 첫번째 아이템을 삭제한다.
+    // If the inventory has room, put them in.
+    // Two items have to go in, so one is added and then the other, and
+    // once both are in the number of soccer balls is reduced.
+    // If the second one does not fit, the first item is deleted.
     if (pInventory->addItem(pItem1, pt)) {
         if (pInventory->addItem(pItem2, pt2)) {
             pItem1->create(pPC->getName(), STORAGE_INVENTORY, 0, pt.x, pt.y);
             pItem2->create(pPC->getName(), STORAGE_INVENTORY, 0, pt2.x, pt2.y);
 
-            // ItemTraceLog 를 남긴다
+            // Leave an ItemTraceLog.
             if (pItem1 != NULL && pItem1->isTraceItem()) {
                 remainTraceLog(pItem1, pCreature1->getName(), pCreature2->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
             }
 
-            // ItemTraceLog 를 남긴다
+            // Leave an ItemTraceLog.
             if (pItem2 != NULL && pItem2->isTraceItem()) {
                 remainTraceLog(pItem2, pCreature1->getName(), pCreature2->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
             }
@@ -301,7 +300,7 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
 
             pPlayer->sendPacket(&gcCreateItem);
 
-            // 축구공을 줄인다.
+            // Reduce the soccer balls.
             pInventory->decreaseStar(star);
             cout << "플레이어의 축구공을 " << star.amount << " 개 줄였습니다." << endl;
 

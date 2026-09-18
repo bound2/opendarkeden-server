@@ -44,11 +44,11 @@ void ActionRedeemMotorcycle::execute(Creature* pCreature1, Creature* pCreature2)
     Player* pPlayer = pCreature2->getPlayer();
     Assert(pPlayer != NULL);
 
-    // 일단 클라이언트를 위해 ok패킷을 하나 날려주고...
+    // Send an OK packet to the client first.
     GCNPCResponse answerOKpkt;
     pPlayer->sendPacket(&answerOKpkt);
 
-    // 플레이어가 슬레이어인지 검사한다.
+    // Check whether the player is a Slayer.
     if (pCreature2->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature2);
         Zone* pZone = pSlayer->getZone();
@@ -70,10 +70,10 @@ void ActionRedeemMotorcycle::execute(Creature* pCreature1, Creature* pCreature2)
             BeltInvenHeight = pBeltInventory->getHeight();
         }
 
-        // 인벤토리를 검색한다.
+        // Search the inventory.
         for (uint y = 0; y < InvenHeight; y++) {
             for (uint x = 0; x < InvenWidth; x++) {
-                // x, y에 아이템이 있다면...
+                // If there is an item at x, y...
                 if (pInventory->hasItem(x, y)) {
                     pItem = pInventory->getItem(x, y);
                     if (load(pItem, pSlayer, pZone, pSlayer->getX(), pSlayer->getY())) {
@@ -84,7 +84,7 @@ void ActionRedeemMotorcycle::execute(Creature* pCreature1, Creature* pCreature2)
         }
 
         if (pBelt != NULL) {
-            // 벨트를 검색한다
+            // Search the belt.
             for (uint y = 0; y < BeltInvenHeight; y++) {
                 for (uint x = 0; x < BeltInvenWidth; x++) {
                     if (pBeltInventory->hasItem(x, y)) {
@@ -96,7 +96,7 @@ void ActionRedeemMotorcycle::execute(Creature* pCreature1, Creature* pCreature2)
                 }
             }
         }
-    } else // 뱀파이어라면...오토바이를 찾아줄 이유가 있을까?
+    } else // A Vampire has no motorcycle to redeem.
     {
     }
 
@@ -112,7 +112,7 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
 
     __BEGIN_TRY
 
-    // 단서가 되는 아이템이 키가 아니라면 false를 리턴.
+    // Return false if the item is not a key.
     if (pItem->getItemClass() != Item::ITEM_CLASS_KEY)
         return false;
 
@@ -120,17 +120,17 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
     ItemID_t targetID = pKey->getTarget();
 
     try {
-        // 키가 맞다면 키의 타겟이 되는 아이템의 아이템 ID를 얻어낸다.
-        // targetID가 0인 경우는.. targetID(motorcycleObject의 ItemID)가 설정이 안된 경우다.
-        // 이 때는 임시로 targetID를 key의 ItemID와 같게 하면 된다...고 본다.
-        // targetID가 motorcycle의 itemID로 들어가기 때문에..
-        // broadcasting 등에서.. Assert()에 의해서 다운되었다...고 보여진다.  - -;
+        // If it is a key, get the item ID of the item the key targets.
+        // A targetID of 0 means the motorcycle object's ItemID was never set.
+        // In that case the targetID is set to the key's own ItemID.
+        // Because the targetID is used as the motorcycle's itemID,
+        // broadcasting and the like crashed on an Assert().
         // by sigi. 2002.12.25 x-mas T_T;
         if (targetID == 0) {
             targetID = pKey->setNewMotorcycle(pSlayer);
         } else {
-            // 한번 모터사이클이랑 키랑 연결됐는데 모터사이클을 누가 자꾸 지우나보다.
-            // 키에 연결된 모터사이클이 실제로 디비에 있는지 체크하고 없으면 새로 만들어서 넣어준다.
+            // The motorcycle linked to the key can be deleted behind its back.
+            // Check that it still exists in the database, and create a new one if not.
             if (!defaultItemObjectRepository().motorcycleExists(targetID)) {
                 Key* pKey = dynamic_cast<Key*>(pItem);
                 Assert(pKey != NULL);
@@ -140,17 +140,17 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
         }
 
 
-        // 필살 방어 코드 -_-;
+        // Defensive guard.
         if (targetID == 0) {
             filelog("errorLog.txt", "[ActionRedeemMotorcycle] itemID=%d, motorItemID=%d", (int)pItem->getItemID(),
                     (int)targetID);
             return false;
         }
 
-        // DB에 쿼리하기 전에 먼저 객체가 생성되어 있지는 않은지 체크한다.
+        // Check that the object has not been created already before querying the database.
         if (g_pParkingCenter->hasMotorcycleBox(targetID)) {
-            // 자꾸 다운되어서 혹시나 하고..
-            // 일단 주석처리한다.  by sigi. 2002.11.16
+            // A box for this motorcycle already exists, so it must not be
+            // created a second time.
 
             return false;
         }
@@ -166,7 +166,7 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
                                                                                    targetID, redeemRow);
 
             // by sigi. 2002.10.14
-            // 결과물이 없다면 모터사이클이 없는 거쥐.
+            // No row means there is no motorcycle.
             if (!bRowFound) {
                 bFound = false;
 
@@ -184,7 +184,7 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
             }
 
 
-            // 모터사이클 객체를 생성한다.
+            // Create the motorcycle object.
             list<OptionType_t> optionTypes;
             setOptionTypeFromField(optionTypes, optionType);
             Motorcycle* pMotorcycle = new Motorcycle(itemType, optionTypes);
@@ -194,13 +194,13 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
             pMotorcycle->setItemID(itemID);
             pMotorcycle->setDurability(durability);
 
-            // 존에다 붙이기 전에 oid를 새로 할당받는다.
+            // Assign a new object ID before attaching it to the zone.
             (pZone->getObjectRegistry()).registerObject(pMotorcycle);
 
-            // 생성한 모터사이클을 존에다 갖다붙인다.
+            // Attach the created motorcycle to the zone.
             TPOINT pt = pZone->addItem(pMotorcycle, x, y, false);
             if (pt.x == -1) {
-                // 오토바이를 존에다 더할 수 없었다. 씨바.
+                // The motorcycle could not be added to the zone.
                 filelog("motorError.txt",
                         "ActionRedeemMotorcycle::load() : 모터사이클을 존에다 더할 수 없습니다. zoneID=%d, xy=(%d, %d)",
                         (int)pZone->getZoneID(), (int)x, (int)y); // by sigi. 2002.12.24
@@ -214,7 +214,7 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
                     pZone->getZoneID(), pt.x, pt.y, durability);
             }
 
-            // 모터사이클을 뻑킹 센터에 등록해준다.
+            // Register the motorcycle with the parking center.
             MotorcycleBox* pBox = new MotorcycleBox(pMotorcycle, pZone, pt.x, pt.y);
             Assert(pBox != NULL);
 
@@ -232,7 +232,7 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
     } catch (Throwable& t) { // by sigi. 2002.12.25
         filelog("motorError.txt", "%s - itemID=%d, motorItemID=%d", t.toString().c_str(), (int)pItem->getItemID(),
                 (int)targetID);
-        // 일단 다운은 막자.
+        // Swallowed so the failure does not bring the server down.
     }
 
     __END_CATCH

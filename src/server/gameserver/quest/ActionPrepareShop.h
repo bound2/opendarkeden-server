@@ -2,8 +2,8 @@
 // Filename    : ActionPrepareShop.h
 // Written By  :
 // Description :
-// 상점 NPC를 제일 처음 로딩할 때, 상점 NPC가 팔게 될 아이템을
-// 준비하는 액션이다. ShopTemplate 클래스와 매니저를 참고할 것.
+// Action that prepares the items a shop NPC will sell, run when the NPC is
+// first loaded. See the ShopTemplate class and its manager.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_PREPARE_SHOP_H__

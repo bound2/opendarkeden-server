@@ -18,14 +18,14 @@ void ActionQuitDialogue::read(PropertyBuffer& propertyBuffer)
 {
     __BEGIN_TRY
 
-    // 이 액션은 NPC와 플레이어 간의 대화를 종료시키는 역할을 하므로
-    // 특별히 읽어들여야 할 파라미터가 존재하지 않는다.
+    // This action ends the dialogue between the NPC and the player, so it has
+    // no parameters to read.
 
     __END_CATCH
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionQuitDialogue::execute(Creature* pCreature1, Creature* pCreature2)
 

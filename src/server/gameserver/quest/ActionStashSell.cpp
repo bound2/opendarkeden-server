@@ -27,7 +27,7 @@ void ActionStashSell::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionStashSell::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -44,7 +44,7 @@ void ActionStashSell::execute(Creature* pCreature1, Creature* pCreature2)
     GCStashSell pkt;
 
     if (pCreature2->isSlayer()) {
-        // 현재 가지고 있는 보관함의 갯수로 다음 보관함의 값을 정한다.
+        // The number of stashes held decides the price of the next stash.
         curStashNum = dynamic_cast<Slayer*>(pCreature2)->getStashNum();
 
         if (curStashNum < STASH_RACK_MAX) {
@@ -52,7 +52,7 @@ void ActionStashSell::execute(Creature* pCreature1, Creature* pCreature2)
         } else
             price = 0;
     } else if (pCreature2->isVampire()) {
-        // 현재 가지고 있는 보관함의 갯수로 다음 보관함의 값을 정한다.
+        // The number of stashes held decides the price of the next stash.
         curStashNum = dynamic_cast<Vampire*>(pCreature2)->getStashNum();
 
         if (curStashNum < STASH_RACK_MAX) {
@@ -60,7 +60,7 @@ void ActionStashSell::execute(Creature* pCreature1, Creature* pCreature2)
         } else
             price = 0;
     } else if (pCreature2->isOusters()) {
-        // 현재 가지고 있는 보관함의 갯수로 다음 보관함의 값을 정한다.
+        // The number of stashes held decides the price of the next stash.
         curStashNum = dynamic_cast<Ousters*>(pCreature2)->getStashNum();
 
         if (curStashNum < STASH_RACK_MAX) {
@@ -69,7 +69,7 @@ void ActionStashSell::execute(Creature* pCreature1, Creature* pCreature2)
             price = 0;
     }
 
-    // 패킷에다 값을 세팅해 준다.
+    // Set the value in the packet.
     pkt.setPrice(price);
 
     Player* pPlayer = pCreature2->getPlayer();

@@ -32,7 +32,7 @@ public:
     }
 
 private:
-    ScriptID_t m_ScriptID; // 말할 대사 아이디
+    ScriptID_t m_ScriptID; // ID of the script line to say
 };
 
 

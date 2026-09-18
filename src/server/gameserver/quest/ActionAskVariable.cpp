@@ -60,7 +60,7 @@ void ActionAskVariable::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -90,7 +90,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
         string keyword = pInfo->getKeyword();
 
         if (keyword == "EntranceFee") {
-            // 입장료를 넣어준다.
+            // Fill in the entrance fee.
             ZoneID_t zoneID = atoi(pInfo->getParameter(0).c_str());
 
             if (zoneID == 0)
@@ -102,8 +102,8 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
             Race_t race = g_pCastleInfoManager->getCastleInfo(zoneID)->getRace();
 
             char strValue[20];
-            // 종족전쟁 중일땐 모두 무료
-            // 길드전쟁 중일땐 성에 들어갈 수 있는 종족만 무료
+            // Free for everyone during a race war.
+            // During a guild war only the race allowed into the castle enters free.
             if (g_pWarSystem->hasActiveRaceWar() || g_pWarSystem->hasCastleActiveWar(zoneID)) {
                 sprintf(strValue, "%s", g_pStringPool->getString(STRID_FREE).c_str());
             } else if (race == RACE_SLAYER) {
@@ -125,7 +125,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
             else
                 pParam->setValue(g_pStringPool->getString(STRID_NO_ENTER));
         } else if (keyword == "CastleOwner") {
-            // 성 주인을 체크해서 넣어준다.
+            // Look up the castle owner and fill it in.
             ZoneID_t zoneID = atoi(pInfo->getParameter(0).c_str());
 
             if (zoneID == 0)
@@ -135,24 +135,24 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
             string result;
             if (pCastleInfo != NULL) {
                 if (pCastleInfo->isCommon()) {
-                    // 공용성이다.
+                    // A common castle.
                     if (pCastleInfo->getRace() == Guild::GUILD_RACE_SLAYER) {
-                        // 슬레이어 공용성이다.
+                        // A Slayer common castle.
                         result = g_pStringPool->getString(STRID_SLAYER_COMMON_CASTLE);
                     } else if (pCastleInfo->getRace() == Guild::GUILD_RACE_VAMPIRE) {
-                        // 뱀파이어 공용성이다.
+                        // A Vampire common castle.
                         result = g_pStringPool->getString(STRID_VAMPIRE_COMMON_CASTLE);
                     } else {
                         result = g_pStringPool->getString(STRID_OUSTERS_COMMON_CASTLE);
                     }
                 } else {
-                    // 길드가 소유한 성이다.
+                    // A castle owned by a guild.
                     Guild* pGuild = g_pGuildManager->getGuild(pCastleInfo->getGuildID());
                     if (pGuild == NULL)
                         result = g_pStringPool->getString(STRID_NO_MASTER_CASTLE);
                     else
                         //						result = pGuild->getName() + ( (pGuild->getRace() ==
-                        // RACE_SLAYER)?"팀":"클랜" ) + "의 성";
+                        // RACE_SLAYER)?"Team":"Clan" ) + "'s castle";
                         result = pGuild->getName() +
                                  ((pGuild->getRace() == RACE_SLAYER) ? (g_pStringPool->getString(STRID_TEAM))
                                                                      : (g_pStringPool->getString(STRID_CLAN))) +
