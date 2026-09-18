@@ -235,6 +235,3 @@ string TimeManager::toString() const
     return msg.toString();
     __END_CATCH
 }
-
-// global variable definition
-TimeManager* g_pTimeManager = NULL;

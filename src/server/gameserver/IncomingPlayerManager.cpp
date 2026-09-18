@@ -1490,7 +1490,3 @@ void IncomingPlayerManager::clearPlayers()
 
     __END_CATCH
 }
-
-
-// external variable definition
-IncomingPlayerManager* g_pIncomingPlayerManager = NULL;

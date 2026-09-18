@@ -42,6 +42,4 @@ private:
     EffectLoader* m_pEffectLoaders[Effect::EFFECT_CLASS_MAX] = {};
 };
 
-extern EffectLoaderManager* g_pEffectLoaderManager;
-
 #endif

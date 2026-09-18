@@ -130,7 +130,4 @@ private:
     ConnectionInfoManager* m_pConnectionInfoManager = nullptr;
 };
 
-// external variable declaration
-extern IncomingPlayerManager* g_pIncomingPlayerManager;
-
 #endif

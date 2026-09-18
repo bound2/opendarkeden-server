@@ -309,7 +309,7 @@ void CGSelectWayPointHandler::executeEnterQuestZone(CGSelectWayPoint* pPacket, P
 
     bool bQuestCondition = pPC->getGQuestManager()->canEnterDynamicZone(pPacket->getZoneID());
 
-    DynamicZoneGroup* pDynamicZoneGroup = g_pDynamicZoneManager->getDynamicZoneGroup(targetDynamicZoneType);
+    DynamicZoneGroup* pDynamicZoneGroup = de::gameContext().dynamicZones().getDynamicZoneGroup(targetDynamicZoneType);
     Assert(pDynamicZoneGroup != NULL);
 
     bool bDynamicZoneAvailable = pDynamicZoneGroup->canEnter();

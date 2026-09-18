@@ -14,6 +14,7 @@
 #include "BloodBibleSignInfo.h"
 #include "GCBloodBibleSignInfo.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PlayerCreature.h"
 #endif // __GAME_SERVER__
@@ -37,7 +38,7 @@ void CGSelectBloodBibleHandler::execute(CGSelectBloodBible* pPacket, Player* pPl
     BloodBibleBonus* pBonus = NULL;
 
     try {
-        pBonus = g_pBloodBibleBonusManager->getBloodBibleBonus(pPacket->getBloodBibleID());
+        pBonus = de::gameContext().bloodBibleBonuses().getBloodBibleBonus(pPacket->getBloodBibleID());
         if (pBonus == NULL)
             return;
     } catch (NoSuchElementException& e) {

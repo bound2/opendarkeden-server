@@ -145,5 +145,3 @@ Item* ItemMineInfoManager::getRandomItem(int minID, int maxID) {
 
     __END_CATCH
 }
-
-ItemMineInfoManager* g_pItemMineInfoManager = NULL;

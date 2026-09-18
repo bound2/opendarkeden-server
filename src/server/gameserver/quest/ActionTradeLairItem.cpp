@@ -24,6 +24,7 @@
 #include "GCDeleteInventoryItem.h"
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -97,6 +98,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
     Item* pMasterItem = NULL;
     MonsterType_t MonsterType = 0;
 
+    ItemMineInfoManager& itemMineInfos = context().itemMineInfos();
     Item* pItem1 = NULL;
     bool bUpgrade = false;
 
@@ -179,15 +181,15 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
             Attr_t totalAttr = pSlayer->getTotalAttr(ATTR_BASIC);
 
             if (totalAttr <= 130) // 하드코딩 ㅜ.ㅠ
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(0);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(0);
             else if (totalAttr <= 210)
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(1);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(1);
             else if (totalAttr <= 270)
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(2);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(2);
             else if (totalAttr <= 300)
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(3);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(3);
             else
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(4);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(4);
         } else if (pPC->isVampire()) {
             Vampire* pVampire = dynamic_cast<Vampire*>(pPC);
             Assert(pVampire != NULL);
@@ -195,15 +197,15 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
             Level_t level = pVampire->getLevel();
 
             if (level <= 20)
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(5);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(5);
             else if (level <= 40)
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(6);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(6);
             else if (level <= 60)
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(7);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(7);
             else if (level <= 90)
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(8);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(8);
             else
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(9);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(9);
         } else if (pPC->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pPC);
             Assert(pOusters != NULL);
@@ -211,15 +213,15 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
             Level_t level = pOusters->getLevel();
 
             if (level <= 20)
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(10);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(10);
             else if (level <= 40)
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(11);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(11);
             else if (level <= 60)
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(12);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(12);
             else if (level <= 90)
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(13);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(13);
             else
-                pItemMineInfo = g_pItemMineInfoManager->getItemMineInfo(14);
+                pItemMineInfo = itemMineInfos.getItemMineInfo(14);
         } else
             Assert(false);
 
@@ -230,11 +232,11 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 6);
 
         if (pPC->isSlayer()) {
-            pItem1 = g_pItemMineInfoManager->getRandomItem(15, 32);
+            pItem1 = itemMineInfos.getRandomItem(15, 32);
         } else if (pPC->isVampire()) {
-            pItem1 = g_pItemMineInfoManager->getRandomItem(33, 45);
+            pItem1 = itemMineInfos.getRandomItem(33, 45);
         } else if (pPC->isOusters()) {
-            pItem1 = g_pItemMineInfoManager->getRandomItem(46, 61);
+            pItem1 = itemMineInfos.getRandomItem(46, 61);
         }
 
         setItemGender(pItem1, (pPC->getSex() == FEMALE) ? GENDER_FEMALE : GENDER_MALE);
@@ -243,11 +245,11 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 7);
 
         if (pPC->isSlayer()) {
-            pItem1 = g_pItemMineInfoManager->getRandomItem(62, 81);
+            pItem1 = itemMineInfos.getRandomItem(62, 81);
         } else if (pPC->isVampire()) {
-            pItem1 = g_pItemMineInfoManager->getRandomItem(82, 96);
+            pItem1 = itemMineInfos.getRandomItem(82, 96);
         } else if (pPC->isOusters()) {
-            pItem1 = g_pItemMineInfoManager->getRandomItem(97, 112);
+            pItem1 = itemMineInfos.getRandomItem(97, 112);
         }
     } else {
         // 거래를 위한 NPC의 Property가 잘못되었다. 이런 경우에는

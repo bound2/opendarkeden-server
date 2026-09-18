@@ -99,7 +99,7 @@ void PlayerCreature::applyBloodBibleSign() {
     for (; bItr != getBloodBibleSign()->getList().end(); ++bItr) {
         if (applyCount >= openNum)
             break;
-        BloodBibleBonus* pBonus = g_pBloodBibleBonusManager->getBloodBibleBonus(*bItr);
+        BloodBibleBonus* pBonus = de::gameContext().bloodBibleBonuses().getBloodBibleBonus(*bItr);
         if (pBonus != NULL) {
             OptionTypeList optionTypes = pBonus->getOptionTypeList();
             OptionTypeListConstItor optionItr;

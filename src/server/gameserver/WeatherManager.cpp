@@ -48,7 +48,7 @@ void WeatherManager::init()
     //--------------------------------------------------------------------------------
 
     // Fetch the GameTime object to find out which month it is.
-    GameTime gametime = g_pTimeManager->getGameTime();
+    GameTime gametime = de::gameContext().worldTime().getGameTime();
 
     // Fetch this month's weather information.
     // const WeatherInfo & weatherInfo = de::gameContext().weatherInfos().getWeatherInfo(gametime.getMonth());
@@ -61,7 +61,7 @@ void WeatherManager::init()
     //--------------------------------------------------------------------------------
 
     // Get the game time as a time_t.
-    time_t gmtime = g_pTimeManager->getgametime();
+    time_t gmtime = de::gameContext().worldTime().getgametime();
 
     // Convert to a tm structure to read the hour, minute and second.
     tm ltm;
@@ -155,7 +155,7 @@ void WeatherManager::heartbeat()
     //--------------------------------------------------------------------------------
     if (currentTime > m_Tomorrow) {
         // Fetch the GameTime object to find out which month it is.
-        GameTime gametime = g_pTimeManager->getGameTime();
+        GameTime gametime = de::gameContext().worldTime().getGameTime();
 
         // Fetch this month's weather information.
         const WeatherInfo& weatherInfo = de::gameContext().weatherInfos().getWeatherInfo(gametime.getMonth());
@@ -174,7 +174,7 @@ void WeatherManager::heartbeat()
         }
 
         // Get the game time as a time_t.
-        time_t gmtime = g_pTimeManager->getgametime();
+        time_t gmtime = de::gameContext().worldTime().getgametime();
 
         // Convert to a tm structure to read the hour, minute and second.
         tm ltm;

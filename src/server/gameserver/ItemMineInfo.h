@@ -94,7 +94,4 @@ private:
     HashMapItemMineInfo m_ItemMineInfos;
 };
 
-// Global Variable Definition
-extern ItemMineInfoManager* g_pItemMineInfoManager;
-
 #endif // __ITEM_MINE_INFO_MANAGER_H__

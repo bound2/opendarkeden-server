@@ -4,6 +4,7 @@
 #include "CoupleManager.h"
 #include "FlagSet.h"
 #include "GCCreateItem.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemFactoryManager.h"
 #include "ItemNameInfo.h"
@@ -95,7 +96,7 @@ uint WaitForMeet::acceptPartner(PlayerCreature* pRequestedPC) {
 
 
     // Register with the couple manager.
-    g_pCoupleManager->makeCouple(pWaitingPC, pRequestedPC);
+    de::gameContext().couples().makeCouple(pWaitingPC, pRequestedPC);
 
     // Take the couple registration fee.
     receiveCoupleRegisterFee(pWaitingPC);

@@ -7,6 +7,7 @@
 #include "CGReady.h"
 
 #ifdef __GAME_SERVER__
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "Zone.h"
@@ -41,10 +42,10 @@ void CGReadyHandler::execute(CGReady* pPacket, Player* pPlayer)
     // Delete the player from the IPM and move it to the ZPM.
     //--------------------------------------------------------------------------------
     try {
-        g_pIncomingPlayerManager->deletePlayer(pGamePlayer->getSocket()->getSOCKET());
+        de::gameContext().incomingPlayers().deletePlayer(pGamePlayer->getSocket()->getSOCKET());
 
         // With the Core structure changed, the heartbeat sends them all at once to keep the threads from interfering.
-        g_pIncomingPlayerManager->pushOutPlayer(pGamePlayer);
+        de::gameContext().incomingPlayers().pushOutPlayer(pGamePlayer);
     } catch (NoSuchElementException& nsee) {
         StringStream msg;
         msg << "Critical Error : IPM에 플레이어가 없네용. 무슨 일이지..  - -;\n" << nsee.toString();

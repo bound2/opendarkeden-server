@@ -788,7 +788,7 @@ bool Slayer::load()
     }
 
     // Load the effects.
-    g_pEffectLoaderManager->load(this);
+    de::gameContext().effectLoaders().load(this);
 
     // Load the Rank Bonus.
     loadRankBonus();

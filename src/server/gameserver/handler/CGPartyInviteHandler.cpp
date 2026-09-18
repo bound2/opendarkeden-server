@@ -12,6 +12,7 @@
 #include "GCPartyError.h"
 #include "GCPartyInvite.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Party.h"
 #include "PlayerCreature.h"
@@ -37,7 +38,7 @@ public:
     }
 
     bool canAddMember(int partyID) override {
-        return g_pGlobalPartyManager->canAddMember(partyID);
+        return de::gameContext().parties().canAddMember(partyID);
     }
 
 private:
@@ -133,17 +134,17 @@ void CGPartyInviteHandler::execute(CGPartyInvite* pPacket, Player* pPlayer)
     // A newcomer reaches the zone's local party only when the global party
     // manager took him.
     if (events.join == PartyJoin::RequesterJoinsTargetParty) {
-        if (g_pGlobalPartyManager->addPartyMember(events.joinPartyID, pCreature))
+        if (de::gameContext().parties().addPartyMember(events.joinPartyID, pCreature))
             pZone->getLocalPartyManager()->addPartyMember(events.joinPartyID, pCreature);
     } else if (events.join == PartyJoin::TargetJoinsRequesterParty) {
-        if (g_pGlobalPartyManager->addPartyMember(events.joinPartyID, pTargetCreature))
+        if (de::gameContext().parties().addPartyMember(events.joinPartyID, pTargetCreature))
             pZone->getLocalPartyManager()->addPartyMember(events.joinPartyID, pTargetCreature);
     } else if (events.join == PartyJoin::CreateParty) {
-        int NewPartyID = g_pGlobalPartyManager->registerParty();
+        int NewPartyID = de::gameContext().parties().registerParty();
 
-        g_pGlobalPartyManager->createParty(NewPartyID, pTargetCreature->getCreatureClass());
-        g_pGlobalPartyManager->addPartyMember(NewPartyID, pCreature);
-        g_pGlobalPartyManager->addPartyMember(NewPartyID, pTargetCreature);
+        de::gameContext().parties().createParty(NewPartyID, pTargetCreature->getCreatureClass());
+        de::gameContext().parties().addPartyMember(NewPartyID, pCreature);
+        de::gameContext().parties().addPartyMember(NewPartyID, pTargetCreature);
 
         LocalPartyManager* pLocalPartyManager = pZone->getLocalPartyManager();
         pLocalPartyManager->createParty(NewPartyID, pTargetCreature->getCreatureClass());

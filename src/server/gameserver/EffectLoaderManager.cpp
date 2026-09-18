@@ -159,6 +159,3 @@ string EffectLoaderManager::toString() const
 
     __END_CATCH
 }
-
-// global variable definition
-EffectLoaderManager* g_pEffectLoaderManager = NULL;

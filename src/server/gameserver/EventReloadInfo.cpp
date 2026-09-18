@@ -56,7 +56,7 @@ void EventReloadInfo::activate()
 
     switch (m_InfoType) {
     case MASTER_LAIR_INFO:
-        g_pMasterLairInfoManager->reload();
+        de::gameContext().masterLairInfos().reload();
         break;
 
     case MONSTER_INFO: {

@@ -11,6 +11,7 @@
 #include "DB.h"
 #include "GCModifyInformation.h"
 #include "GCOtherModifyInfo.h"
+#include "GameContext.h"
 #include "Ousters.h"
 #include "Player.h"
 #include "Slayer.h"
@@ -190,8 +191,8 @@ void EffectAlignmentRecovery::affect(Creature* pCreature)
 
     // A change of alignment step has to be announced to other players too.
 
-    Alignment beforeAlignment = g_pAlignmentManager->getAlignmentType(CurrentAlignment);
-    Alignment afterAlignment = g_pAlignmentManager->getAlignmentType(NewAlignment);
+    Alignment beforeAlignment = de::gameContext().alignments().getAlignmentType(CurrentAlignment);
+    Alignment afterAlignment = de::gameContext().alignments().getAlignmentType(NewAlignment);
 
     if (beforeAlignment != afterAlignment) {
         GCOtherModifyInfo gcOtherModifyInfo;

@@ -54,6 +54,8 @@ namespace de::gm {
 void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
     __BEGIN_TRY
 
+    CombatInfoManager& combatInfo = de::gameContext().combatInfo();
+
     if (pGamePlayer == NULL)
         return;
 
@@ -81,8 +83,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
     string set_type = msg.substr(j + 1, z - j - 1);
 
     if (set_type == "start") {
-        if (g_pCombatInfoManager->isCombat() || g_pCombatInfoManager->isSlayerBonus() ||
-            g_pCombatInfoManager->isVampireBonus()) {
+        if (combatInfo.isCombat() || combatInfo.isSlayerBonus() || combatInfo.isVampireBonus()) {
             cout << "�̹� �������Դϴ�" << endl;
             //			message << "it has already started";
             gcSystemMessage.setMessage(g_pStringPool->getString(STRID_COMBAT_ALEADY_START));
@@ -123,11 +124,10 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
                 pZone->addRelicItem(i);
             }
 
-            g_pCombatInfoManager->setCombat(true);
+            combatInfo.setCombat(true);
         }
     } else if (set_type == "end") {
-        if (!g_pCombatInfoManager->isCombat() &&
-            (g_pCombatInfoManager->isSlayerBonus() || g_pCombatInfoManager->isVampireBonus()))
+        if (!combatInfo.isCombat() && (combatInfo.isSlayerBonus() || combatInfo.isVampireBonus()))
 
         {
             cout << "������ �����մϴ�." << endl;
@@ -160,11 +160,11 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
                 Zone* pZone = pZoneGroup->getZone(ZoneNum);
 
                 pZone->deleteRelicItem();
-                g_pCombatInfoManager->setRelicOwner(i, CombatInfoManager::RELIC_OWNER_NULL);
+                combatInfo.setRelicOwner(i, CombatInfoManager::RELIC_OWNER_NULL);
             }
 
-            g_pCombatInfoManager->computeModify();
-            g_pCombatInfoManager->setCombat(false);
+            combatInfo.computeModify();
+            combatInfo.setCombat(false);
         } else {
             cout << "�������� �ƴϰų� ������ �� �����ϴ�." << endl;
             gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_END_COMBAT));

@@ -1,13 +1,14 @@
 #include "GQuestEventPartyElement.h"
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "Party.h"
 #include "PlayerCreature.h"
 
 GQuestElement::ResultType GQuestEventPartyElement::checkCondition(PlayerCreature* pPC) const {
     if (pPC->getPartyID() == 0)
         return WAIT;
-    Party* pParty = g_pGlobalPartyManager->getParty(pPC->getPartyID());
+    Party* pParty = de::gameContext().parties().getParty(pPC->getPartyID());
     if (pParty == NULL)
         return FAIL;
     if (pParty->getSize() != 2)

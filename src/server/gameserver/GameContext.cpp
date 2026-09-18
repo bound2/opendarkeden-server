@@ -18,6 +18,16 @@ ActionFactoryManager& GameContext::actionFactories() const {
     return *m_pActionFactoryManager;
 }
 
+AlignmentManager& GameContext::alignments() const {
+    Assert(m_pAlignmentManager != nullptr);
+    return *m_pAlignmentManager;
+}
+
+BloodBibleBonusManager& GameContext::bloodBibleBonuses() const {
+    Assert(m_pBloodBibleBonusManager != nullptr);
+    return *m_pBloodBibleBonusManager;
+}
+
 CastleShrineInfoManager& GameContext::castleShrines() const {
     Assert(m_pCastleShrineInfoManager != nullptr);
     return *m_pCastleShrineInfoManager;
@@ -33,6 +43,11 @@ ClientManager& GameContext::clients() const {
     return *m_pClientManager;
 }
 
+CombatInfoManager& GameContext::combatInfo() const {
+    Assert(m_pCombatInfoManager != nullptr);
+    return *m_pCombatInfoManager;
+}
+
 ConditionFactoryManager& GameContext::conditionFactories() const {
     Assert(m_pConditionFactoryManager != nullptr);
     return *m_pConditionFactoryManager;
@@ -46,6 +61,11 @@ Properties& GameContext::config() const {
 ConnectionInfoManager& GameContext::connectionInfos() const {
     Assert(m_pConnectionInfoManager != nullptr);
     return *m_pConnectionInfoManager;
+}
+
+CoupleManager& GameContext::couples() const {
+    Assert(m_pCoupleManager != nullptr);
+    return *m_pCoupleManager;
 }
 
 DarkLightInfoManager& GameContext::darkLights() const {
@@ -83,6 +103,16 @@ DynamicZoneInfoManager& GameContext::dynamicZoneInfos() const {
     return *m_pDynamicZoneInfoManager;
 }
 
+DynamicZoneManager& GameContext::dynamicZones() const {
+    Assert(m_pDynamicZoneManager != nullptr);
+    return *m_pDynamicZoneManager;
+}
+
+EffectLoaderManager& GameContext::effectLoaders() const {
+    Assert(m_pEffectLoaderManager != nullptr);
+    return *m_pEffectLoaderManager;
+}
+
 EventQuestLootingManager& GameContext::eventQuestLoot() const {
     Assert(m_pEventQuestLootingManager != nullptr);
     return *m_pEventQuestLootingManager;
@@ -93,9 +123,19 @@ GameServerGroupInfoManager& GameContext::gameServerGroups() const {
     return *m_pGameServerGroupInfoManager;
 }
 
+GlobalPartyManager& GameContext::parties() const {
+    Assert(m_pGlobalPartyManager != nullptr);
+    return *m_pGlobalPartyManager;
+}
+
 GoodsInfoManager& GameContext::goodsInfos() const {
     Assert(m_pGoodsInfoManager != nullptr);
     return *m_pGoodsInfoManager;
+}
+
+IncomingPlayerManager& GameContext::incomingPlayers() const {
+    Assert(m_pIncomingPlayerManager != nullptr);
+    return *m_pIncomingPlayerManager;
 }
 
 ItemFactoryManager& GameContext::itemFactories() const {
@@ -106,6 +146,16 @@ ItemFactoryManager& GameContext::itemFactories() const {
 ItemLoaderManager& GameContext::itemLoaders() const {
     Assert(m_pItemLoaderManager != nullptr);
     return *m_pItemLoaderManager;
+}
+
+ItemMineInfoManager& GameContext::itemMineInfos() const {
+    Assert(m_pItemMineInfoManager != nullptr);
+    return *m_pItemMineInfoManager;
+}
+
+MasterLairInfoManager& GameContext::masterLairInfos() const {
+    Assert(m_pMasterLairInfoManager != nullptr);
+    return *m_pMasterLairInfoManager;
 }
 
 MonsterNameManager& GameContext::monsterNames() const {
@@ -121,6 +171,11 @@ OustersEXPInfoManager& GameContext::oustersExp() const {
 PCFinder& GameContext::playerCreatures() const {
     Assert(m_pPCFinder != nullptr);
     return *m_pPCFinder;
+}
+
+PriceManager& GameContext::prices() const {
+    Assert(m_pPriceManager != nullptr);
+    return *m_pPriceManager;
 }
 
 ScriptManager& GameContext::publicScripts() const {
@@ -156,6 +211,11 @@ StringPool& GameContext::strings() const {
 TimeChecker& GameContext::timeChecker() const {
     Assert(m_pTimeChecker != nullptr);
     return *m_pTimeChecker;
+}
+
+TimeManager& GameContext::worldTime() const {
+    Assert(m_pTimeManager != nullptr);
+    return *m_pTimeManager;
 }
 
 VampEXPInfoManager& GameContext::vampireExp() const {

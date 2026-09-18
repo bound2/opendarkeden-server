@@ -10,6 +10,7 @@
 #include "Creature.h"
 #include "GCPartyError.h"
 #include "GCPartyLeave.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PCFinder.h"
 #include "Party.h"
@@ -54,7 +55,7 @@ void CGPartyLeaveHandler::execute(CGPartyLeave* pPacket, Player* pPlayer)
         // the global party is deleted inside this.
         // The remaining party members' IDs become 0.
 
-        g_pGlobalPartyManager->deletePartyMember(PartyID, pCreature);
+        de::gameContext().parties().deletePartyMember(PartyID, pCreature);
 
 
         // Delete from the local party.
@@ -68,7 +69,7 @@ void CGPartyLeaveHandler::execute(CGPartyLeave* pPacket, Player* pPlayer)
         // If one of two members expelled the other,
         // the global party is deleted inside this.
         // The remaining party members' IDs become 0.
-        g_pGlobalPartyManager->expelPartyMember(PartyID, pCreature, TargetName);
+        de::gameContext().parties().expelPartyMember(PartyID, pCreature, TargetName);
 
 
         // Delete the expelled one from the local party.

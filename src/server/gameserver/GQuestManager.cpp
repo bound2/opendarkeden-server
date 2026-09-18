@@ -10,6 +10,7 @@
 #include "GQuestCheckPoint.h"
 #include "GQuestInfo.h"
 #include "GQuestStatus.h"
+#include "GameContext.h"
 #include "Monster.h"
 #include "MonsterCorpse.h"
 #include "MonsterInfo.h"
@@ -250,7 +251,7 @@ void GQuestManager::levelUp() {
     refreshQuest();
 
     if (m_pOwner->getLevel() == 25 && m_pOwner->getPartyID() != 0) {
-        Party* pParty = g_pGlobalPartyManager->getParty(m_pOwner->getPartyID());
+        Party* pParty = de::gameContext().parties().getParty(m_pOwner->getPartyID());
         if (pParty != NULL && pParty->getSize() == 2) {
             pParty->eventPartyCrash();
         }
@@ -351,7 +352,7 @@ void GQuestManager::rideMotorcycle(bool isParty) {
     }
 
     if (!isParty && m_pOwner->getPartyID() != 0) {
-        Party* pParty = g_pGlobalPartyManager->getParty(m_pOwner->getPartyID());
+        Party* pParty = de::gameContext().parties().getParty(m_pOwner->getPartyID());
         if (pParty != NULL && pParty->getSize() == 2) {
             unordered_map<string, Creature*> members = pParty->getMemberMap();
             unordered_map<string, Creature*>::iterator itr = members.begin();
@@ -399,7 +400,7 @@ void GQuestManager::touchWayPoint(MonsterCorpse* pWayPoint) {
     }
 
     if (m_pOwner->getPartyID() != 0) {
-        Party* pParty = g_pGlobalPartyManager->getParty(m_pOwner->getPartyID());
+        Party* pParty = de::gameContext().parties().getParty(m_pOwner->getPartyID());
         if (pParty != NULL && pParty->getSize() == 2) {
             unordered_map<string, Creature*> members = pParty->getMemberMap();
             unordered_map<string, Creature*>::iterator itr = members.begin();
@@ -542,7 +543,7 @@ void GQuestManager::fastMove(bool isParty) {
     }
 
     if (!isParty && m_pOwner->getPartyID() != 0) {
-        Party* pParty = g_pGlobalPartyManager->getParty(m_pOwner->getPartyID());
+        Party* pParty = de::gameContext().parties().getParty(m_pOwner->getPartyID());
         if (pParty != NULL && pParty->getSize() == 2) {
             unordered_map<string, Creature*> members = pParty->getMemberMap();
             unordered_map<string, Creature*>::iterator itr = members.begin();
@@ -579,7 +580,7 @@ void GQuestManager::illegalWarp(bool isParty) {
     }
 
     if (!isParty && m_pOwner->getPartyID() != 0) {
-        Party* pParty = g_pGlobalPartyManager->getParty(m_pOwner->getPartyID());
+        Party* pParty = de::gameContext().parties().getParty(m_pOwner->getPartyID());
         if (pParty != NULL && pParty->getSize() == 2) {
             unordered_map<string, Creature*> members = pParty->getMemberMap();
             unordered_map<string, Creature*>::iterator itr = members.begin();

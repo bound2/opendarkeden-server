@@ -17,6 +17,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "MonsterCorpse.h"
 #include "PCVampireInfo3.h"
 #include "VampireCorpse.h"
@@ -83,7 +84,7 @@ void EatCorpse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
             if (pCorpse->getItemType() == VAMPIRE_CORPSE) {
                 PCVampireInfo3& rPCVampireInfo3 = dynamic_cast<VampireCorpse*>(pCorpse)->getVampireInfo();
 
-                if (g_pAlignmentManager->getAlignmentType(rPCVampireInfo3.getAlignment()) < NEUTRAL) {
+                if (de::gameContext().alignments().getAlignmentType(rPCVampireInfo3.getAlignment()) < NEUTRAL) {
                     ItemNum_t ItemCount = pCorpse->getTreasureCount();
 
                     // 시체 안에 들어있는 아이템을 모조리 다 뺀다.

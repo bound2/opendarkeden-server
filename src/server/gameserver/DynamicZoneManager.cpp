@@ -11,9 +11,6 @@
 #include "DynamicZoneInfo.h"
 #include "GameContext.h"
 
-// global variable
-DynamicZoneManager* g_pDynamicZoneManager = NULL;
-
 // First DynamicZoneID used for newly created zones;
 // increased by 1 for each one created.
 const ZoneID_t StartDynamicZoneID = 15001;

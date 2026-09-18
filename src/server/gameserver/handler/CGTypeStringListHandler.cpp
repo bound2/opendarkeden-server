@@ -10,6 +10,7 @@
 #include "FlagSet.h"
 #include "GCModifyInformation.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "NPC.h"
 #include "PCFinder.h"
@@ -177,13 +178,13 @@ void CGTypeStringListHandler::executeApartForce(CGTypeStringList* pPacket, Playe
     Zone* pZone = pPC->getZone();
     Assert(pZone != NULL);
 
-    if (!g_pCoupleManager->hasCouple(pPC)) {
+    if (!de::gameContext().couples().hasCouple(pPC)) {
         pPlayer->sendPacket(&gcQuitDialog);
         return;
     }
 
     string PartnerName;
-    if (!g_pCoupleManager->getPartnerName(pPC, PartnerName)) {
+    if (!de::gameContext().couples().getPartnerName(pPC, PartnerName)) {
         pPlayer->sendPacket(&gcQuitDialog);
         return;
     }
@@ -220,7 +221,7 @@ void CGTypeStringListHandler::executeApartForce(CGTypeStringList* pPacket, Playe
 
     WaitForApart::removeCoupleItem(pPC);
 
-    g_pCoupleManager->removeCoupleForce(pPC, PartnerName);
+    de::gameContext().couples().removeCoupleForce(pPC, PartnerName);
 
     pPC->getFlagSet()->turnOff(FLAGSET_IS_COUPLE);
     pPC->getFlagSet()->save(pPC->getName());

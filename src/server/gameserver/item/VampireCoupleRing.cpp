@@ -11,6 +11,7 @@
 #include "Belt.h"
 #include "DB.h"
 #include "FlagSet.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -225,7 +226,7 @@ void VampireCoupleRingLoader::load(Creature* pCreature)
         pPC->getFlagSet()->turnOff(FLAGSET_IS_COUPLE);
         pPC->getFlagSet()->save(pPC->getName());
 
-        g_pCoupleManager->removeCoupleForce(pPC);
+        de::gameContext().couples().removeCoupleForce(pPC);
     }
 
     for (size_t r = 0; r < rows.size(); r++) {
@@ -251,9 +252,9 @@ void VampireCoupleRingLoader::load(Creature* pCreature)
 
             // 파트너 아이템이 없거나 더 이상 커플이 아니면 아이템을 지워준다.
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-            if (pPC != NULL && (!g_pCoupleManager->isCouple(pPC, pVampireCoupleRing->getName()) ||
+            if (pPC != NULL && (!de::gameContext().couples().isCouple(pPC, pVampireCoupleRing->getName()) ||
                                 !pVampireCoupleRing->hasPartnerItem())) {
-                g_pCoupleManager->removeCoupleForce(pPC, pVampireCoupleRing->getName());
+                de::gameContext().couples().removeCoupleForce(pPC, pVampireCoupleRing->getName());
                 char sql[30];
                 sprintf(sql, "Storage = 10");
                 pVampireCoupleRing->tinysave(sql);

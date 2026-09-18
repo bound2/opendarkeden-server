@@ -8,6 +8,7 @@
 
 #ifdef __GAME_SERVER__
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "NPC.h"
 #include "PriceManager.h"
@@ -42,7 +43,7 @@ void CGStashRequestBuyHandler::execute(CGStashRequestBuy* pPacket, Player* pPlay
         return;
     }
 
-    Price_t price = g_pPriceManager->getStashPrice(curStashNum + 1);
+    Price_t price = de::gameContext().prices().getStashPrice(curStashNum + 1);
 
     // Not enough money is a failure too.
     if (pPlayerCreature->getGold() < price) {

@@ -6,6 +6,7 @@
 #include "CGSilverCoating.h"
 
 #ifdef __GAME_SERVER__
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemInfo.h"
 #include "ItemInfoManager.h"
@@ -83,7 +84,7 @@ void CGSilverCoatingHandler::execute(CGSilverCoating* pPacket, Player* pPlayer)
         return;
     }
 
-    coatingPrice = g_pPriceManager->getSilverCoatingPrice(pItem);
+    coatingPrice = de::gameContext().prices().getSilverCoatingPrice(pItem);
     if (coatingPrice > playerMoney) {
         response.setCode(NPC_RESPONSE_SILVER_COATING_FAIL_MONEY);
         pPlayer->sendPacket(&response);

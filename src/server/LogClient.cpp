@@ -31,8 +31,19 @@
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
-LogClient* g_pLogClient = NULL;
 int LogClient::m_LogLevel = 0;
+
+namespace {
+LogClient* s_pLogClient = NULL;
+} // namespace
+
+void openLogClient(const string& ip, short port) {
+    s_pLogClient = new LogClient(ip, port);
+}
+
+LogClient* logClient() {
+    return s_pLogClient;
+}
 
 void log(short type, const string& source, const string& target) {
     /*
@@ -41,7 +52,7 @@ void log(short type, const string& source, const string& target) {
     // calls as far as possible.
     if (type < LogClient::getLogLevel())
     {
-        g_pLogClient->_log(type, source, target);
+        logClient()->_log(type, source, target);
     }
     else { }
     */
@@ -54,7 +65,7 @@ void log(short type, const string& source, const string& target, const string& c
     // calls as far as possible.
     if (type < LogClient::getLogLevel())
     {
-        g_pLogClient->_log(type, source, target, content);
+        logClient()->_log(type, source, target, content);
     }
     else { }
     */
@@ -67,7 +78,7 @@ void log(short type, const string& source, const string& target, const string& c
     // calls as far as possible.
     if (type < LogClient::getLogLevel())
     {
-        g_pLogClient->_log(type, source, target, content, zoneid);
+        logClient()->_log(type, source, target, content, zoneid);
     }
     else { }
     */

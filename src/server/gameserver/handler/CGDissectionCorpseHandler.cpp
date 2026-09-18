@@ -29,6 +29,7 @@
 #include "GCRemoveEffect.h"
 #include "GCSystemMessage.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
@@ -233,7 +234,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                     // If it is not one's own corpse
                     if (rPCSlayerInfo.getName() != pCreature->getName()) {
                         // An evil one's corpse gets no protection....
-                        if (g_pAlignmentManager->getAlignmentType(rPCSlayerInfo.getAlignment()) >= NEUTRAL) {
+                        if (de::gameContext().alignments().getAlignmentType(rPCSlayerInfo.getAlignment()) >= NEUTRAL) {
                             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
 
                             // The alignment drops by 500
@@ -251,7 +252,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                     // If it is not one's own corpse
                     if (rPCVampireInfo.getName() != pCreature->getName()) {
                         // An evil one's corpse gets no protection....
-                        if (g_pAlignmentManager->getAlignmentType(rPCVampireInfo.getAlignment()) >= NEUTRAL) {
+                        if (de::gameContext().alignments().getAlignmentType(rPCVampireInfo.getAlignment()) >= NEUTRAL) {
                             Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
 
                             // The alignment drops by 500
@@ -269,7 +270,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                     // If it is not one's own corpse
                     if (rPCOustersInfo.getName() != pCreature->getName()) {
                         // An evil one's corpse gets no protection....
-                        if (g_pAlignmentManager->getAlignmentType(rPCOustersInfo.getAlignment()) >= NEUTRAL) {
+                        if (de::gameContext().alignments().getAlignmentType(rPCOustersInfo.getAlignment()) >= NEUTRAL) {
                             Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
 
                             // The alignment drops by 500

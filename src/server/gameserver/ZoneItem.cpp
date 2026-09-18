@@ -96,6 +96,7 @@
 #include "GDRLairManager.h"
 #include "GGCommand.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
 #include "GuildManager.h"
@@ -788,7 +789,7 @@ bool Zone::addRelicItem(int relicIndex)
             pMonsterCorpse->getEffectManager().addEffect(pRelicTable);
             pMonsterCorpse->setFlag(Effect::EFFECT_CLASS_SLAYER_RELIC_TABLE);
 
-            g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_SLAYER);
+            de::gameContext().combatInfo().setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_SLAYER);
         } else {
             Effect* pRelicTable = new EffectVampireRelicTable(pMonsterCorpse);
             pRelicTable->setNextTime(999999);
@@ -797,7 +798,7 @@ bool Zone::addRelicItem(int relicIndex)
             pMonsterCorpse->getEffectManager().addEffect(pRelicTable);
             pMonsterCorpse->setFlag(Effect::EFFECT_CLASS_VAMPIRE_RELIC_TABLE);
 
-            g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
+            de::gameContext().combatInfo().setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
         }
 
         // Create the relic.
@@ -821,13 +822,13 @@ bool Zone::addRelicItem(int relicIndex)
             pMonsterCorpse->getEffectManager().addEffect(pEffect);
             pMonsterCorpse->setFlag(Effect::EFFECT_CLASS_SLAYER_RELIC);
             pEffect->affect(pMonsterCorpse);
-            g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_SLAYER);
+            de::gameContext().combatInfo().setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_SLAYER);
         } else {
             EffectVampireRelic* pEffect = new EffectVampireRelic(pMonsterCorpse);
             pMonsterCorpse->getEffectManager().addEffect(pEffect);
             pMonsterCorpse->setFlag(Effect::EFFECT_CLASS_VAMPIRE_RELIC);
             pEffect->affect(pMonsterCorpse);
-            g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
+            de::gameContext().combatInfo().setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
         }
 
 

@@ -260,6 +260,4 @@ private:
     unordered_map<ZoneID_t, MasterLairInfo*> m_MasterLairInfos; // hash map of zone info
 };
 
-extern MasterLairInfoManager* g_pMasterLairInfoManager;
-
 #endif

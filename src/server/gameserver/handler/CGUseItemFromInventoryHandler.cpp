@@ -43,6 +43,7 @@
 #include "GCUseOK.h"
 #include "GDRLairManager.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -2156,88 +2157,90 @@ void CGUseItemFromInventoryHandler::executeEventGiftBox(CGUseItemFromInventory* 
 
     // What the black box turns into always fits in 2*2, so the Inventory check is skipped
     // (a situation where it does not fit after the black box is erased would be awkward)
+    ItemMineInfoManager& itemMineInfos = de::gameContext().itemMineInfos();
+
     Item* pResultItem = NULL;
     bool bFullStack = true;
 
     if (pItem->getItemType() == 6) {
         if (pCreature->isSlayer()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(113, 122);
+            pResultItem = itemMineInfos.getRandomItem(113, 122);
         } else if (pCreature->isVampire()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(123, 132);
+            pResultItem = itemMineInfos.getRandomItem(123, 132);
         } else if (pCreature->isOusters()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(133, 142);
+            pResultItem = itemMineInfos.getRandomItem(133, 142);
         }
     } else if (pItem->getItemType() == 7) {
         if (pCreature->isSlayer()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(143, 152);
+            pResultItem = itemMineInfos.getRandomItem(143, 152);
         } else if (pCreature->isVampire()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(153, 162);
+            pResultItem = itemMineInfos.getRandomItem(153, 162);
         } else if (pCreature->isOusters()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(163, 172);
+            pResultItem = itemMineInfos.getRandomItem(163, 172);
         }
     } else if (pItem->getItemType() == 8) {
         if (pCreature->isSlayer()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(173, 182);
+            pResultItem = itemMineInfos.getRandomItem(173, 182);
         } else if (pCreature->isVampire()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(183, 192);
+            pResultItem = itemMineInfos.getRandomItem(183, 192);
         } else if (pCreature->isOusters()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(193, 202);
+            pResultItem = itemMineInfos.getRandomItem(193, 202);
         }
     } else if (pItem->getItemType() == 9) {
         if (pCreature->isSlayer()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(203, 212);
+            pResultItem = itemMineInfos.getRandomItem(203, 212);
         } else if (pCreature->isVampire()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(213, 222);
+            pResultItem = itemMineInfos.getRandomItem(213, 222);
         } else if (pCreature->isOusters()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(223, 232);
+            pResultItem = itemMineInfos.getRandomItem(223, 232);
         }
     } else if (pItem->getItemType() == 10) {
         if (pCreature->isSlayer()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(233, 242);
+            pResultItem = itemMineInfos.getRandomItem(233, 242);
         } else if (pCreature->isVampire()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(243, 252);
+            pResultItem = itemMineInfos.getRandomItem(243, 252);
         } else if (pCreature->isOusters()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(253, 262);
+            pResultItem = itemMineInfos.getRandomItem(253, 262);
         }
     } else if (pItem->getItemType() == 11) {
         if (pCreature->isSlayer()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(263, 272);
+            pResultItem = itemMineInfos.getRandomItem(263, 272);
         } else if (pCreature->isVampire()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(273, 282);
+            pResultItem = itemMineInfos.getRandomItem(273, 282);
         } else if (pCreature->isOusters()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(283, 292);
+            pResultItem = itemMineInfos.getRandomItem(283, 292);
         }
     } else if (pItem->getItemType() == 12) {
         if (pCreature->isSlayer()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(293, 302);
+            pResultItem = itemMineInfos.getRandomItem(293, 302);
         } else if (pCreature->isVampire()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(303, 312);
+            pResultItem = itemMineInfos.getRandomItem(303, 312);
         } else if (pCreature->isOusters()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(313, 322);
+            pResultItem = itemMineInfos.getRandomItem(313, 322);
         }
     } else if (pItem->getItemType() == 13) {
         if (pCreature->isSlayer()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(323, 332);
+            pResultItem = itemMineInfos.getRandomItem(323, 332);
         } else if (pCreature->isVampire()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(333, 342);
+            pResultItem = itemMineInfos.getRandomItem(333, 342);
         } else if (pCreature->isOusters()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(343, 352);
+            pResultItem = itemMineInfos.getRandomItem(343, 352);
         }
     } else if (pItem->getItemType() == 14) {
         if (pCreature->isSlayer()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(353, 362);
+            pResultItem = itemMineInfos.getRandomItem(353, 362);
         } else if (pCreature->isVampire()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(363, 372);
+            pResultItem = itemMineInfos.getRandomItem(363, 372);
         } else if (pCreature->isOusters()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(373, 382);
+            pResultItem = itemMineInfos.getRandomItem(373, 382);
         }
     } else if (pItem->getItemType() == 15) {
         if (pCreature->isSlayer()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(383, 392);
+            pResultItem = itemMineInfos.getRandomItem(383, 392);
         } else if (pCreature->isVampire()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(393, 402);
+            pResultItem = itemMineInfos.getRandomItem(393, 402);
         } else if (pCreature->isOusters()) {
-            pResultItem = g_pItemMineInfoManager->getRandomItem(403, 412);
+            pResultItem = itemMineInfos.getRandomItem(403, 412);
         }
     } else if (pItem->getItemType() == 19) {
         int value = rand() % 100;

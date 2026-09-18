@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[36];
+char g_managerStorage[48];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -211,6 +211,70 @@ TEST(GameContextTest, CharacterLoadingManagersAreReadBack) {
     EXPECT_EQ(&context.timeChecker(), pTimeChecker);
 }
 
+TEST(GameContextTest, CombatStateManagersAreReadBack) {
+    de::GameContext context;
+
+    AlignmentManager* pAlignmentManager = standIn<AlignmentManager>(36);
+    BloodBibleBonusManager* pBloodBibleBonusManager = standIn<BloodBibleBonusManager>(37);
+    CombatInfoManager* pCombatInfoManager = standIn<CombatInfoManager>(38);
+
+    context.setAlignmentManager(pAlignmentManager);
+    context.setBloodBibleBonusManager(pBloodBibleBonusManager);
+    context.setCombatInfoManager(pCombatInfoManager);
+
+    EXPECT_EQ(&context.alignments(), pAlignmentManager);
+    EXPECT_EQ(&context.bloodBibleBonuses(), pBloodBibleBonusManager);
+    EXPECT_EQ(&context.combatInfo(), pCombatInfoManager);
+}
+
+TEST(GameContextTest, WorldClockAndInstanceManagersAreReadBack) {
+    de::GameContext context;
+
+    DynamicZoneManager* pDynamicZoneManager = standIn<DynamicZoneManager>(39);
+    EffectLoaderManager* pEffectLoaderManager = standIn<EffectLoaderManager>(40);
+    MasterLairInfoManager* pMasterLairInfoManager = standIn<MasterLairInfoManager>(41);
+    TimeManager* pTimeManager = standIn<TimeManager>(42);
+
+    context.setDynamicZoneManager(pDynamicZoneManager);
+    context.setEffectLoaderManager(pEffectLoaderManager);
+    context.setMasterLairInfoManager(pMasterLairInfoManager);
+    context.setTimeManager(pTimeManager);
+
+    EXPECT_EQ(&context.dynamicZones(), pDynamicZoneManager);
+    EXPECT_EQ(&context.effectLoaders(), pEffectLoaderManager);
+    EXPECT_EQ(&context.masterLairInfos(), pMasterLairInfoManager);
+    EXPECT_EQ(&context.worldTime(), pTimeManager);
+}
+
+TEST(GameContextTest, PlayerGroupingManagersAreReadBack) {
+    de::GameContext context;
+
+    CoupleManager* pCoupleManager = standIn<CoupleManager>(43);
+    GlobalPartyManager* pGlobalPartyManager = standIn<GlobalPartyManager>(44);
+    IncomingPlayerManager* pIncomingPlayerManager = standIn<IncomingPlayerManager>(45);
+
+    context.setCoupleManager(pCoupleManager);
+    context.setGlobalPartyManager(pGlobalPartyManager);
+    context.setIncomingPlayerManager(pIncomingPlayerManager);
+
+    EXPECT_EQ(&context.couples(), pCoupleManager);
+    EXPECT_EQ(&context.parties(), pGlobalPartyManager);
+    EXPECT_EQ(&context.incomingPlayers(), pIncomingPlayerManager);
+}
+
+TEST(GameContextTest, TradeManagersAreReadBack) {
+    de::GameContext context;
+
+    ItemMineInfoManager* pItemMineInfoManager = standIn<ItemMineInfoManager>(46);
+    PriceManager* pPriceManager = standIn<PriceManager>(47);
+
+    context.setItemMineInfoManager(pItemMineInfoManager);
+    context.setPriceManager(pPriceManager);
+
+    EXPECT_EQ(&context.itemMineInfos(), pItemMineInfoManager);
+    EXPECT_EQ(&context.prices(), pPriceManager);
+}
+
 TEST(GameContextTest, ReregisteringReplacesTheManager) {
     de::GameContext context;
 
@@ -227,27 +291,38 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     // startup-order bug, so every accessor asserts rather than returning
     // something the caller could test.
     EXPECT_THROW(context.actionFactories(), AssertionError);
+    EXPECT_THROW(context.alignments(), AssertionError);
+    EXPECT_THROW(context.bloodBibleBonuses(), AssertionError);
     EXPECT_THROW(context.castleShrines(), AssertionError);
     EXPECT_THROW(context.castleSkills(), AssertionError);
     EXPECT_THROW(context.clients(), AssertionError);
+    EXPECT_THROW(context.combatInfo(), AssertionError);
     EXPECT_THROW(context.conditionFactories(), AssertionError);
     EXPECT_THROW(context.config(), AssertionError);
     EXPECT_THROW(context.connectionInfos(), AssertionError);
+    EXPECT_THROW(context.couples(), AssertionError);
     EXPECT_THROW(context.darkLights(), AssertionError);
     EXPECT_THROW(context.databases(), AssertionError);
     EXPECT_THROW(context.directiveSets(), AssertionError);
     EXPECT_THROW(context.dragonEyes(), AssertionError);
     EXPECT_THROW(context.dynamicZoneFactories(), AssertionError);
     EXPECT_THROW(context.dynamicZoneInfos(), AssertionError);
+    EXPECT_THROW(context.dynamicZones(), AssertionError);
+    EXPECT_THROW(context.effectLoaders(), AssertionError);
     EXPECT_THROW(context.eventQuestLoot(), AssertionError);
     EXPECT_THROW(context.gameServerGroups(), AssertionError);
     EXPECT_THROW(context.goodsInfos(), AssertionError);
+    EXPECT_THROW(context.incomingPlayers(), AssertionError);
     EXPECT_THROW(context.itemFactories(), AssertionError);
     EXPECT_THROW(context.itemLoaders(), AssertionError);
+    EXPECT_THROW(context.itemMineInfos(), AssertionError);
+    EXPECT_THROW(context.masterLairInfos(), AssertionError);
     EXPECT_THROW(context.monsterNames(), AssertionError);
     EXPECT_THROW(context.optionSets(), AssertionError);
     EXPECT_THROW(context.oustersExp(), AssertionError);
+    EXPECT_THROW(context.parties(), AssertionError);
     EXPECT_THROW(context.playerCreatures(), AssertionError);
+    EXPECT_THROW(context.prices(), AssertionError);
     EXPECT_THROW(context.publicScripts(), AssertionError);
     EXPECT_THROW(context.rankBonuses(), AssertionError);
     EXPECT_THROW(context.shopTemplates(), AssertionError);
@@ -260,6 +335,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.volumeInfos(), AssertionError);
     EXPECT_THROW(context.wayPoints(), AssertionError);
     EXPECT_THROW(context.weatherInfos(), AssertionError);
+    EXPECT_THROW(context.worldTime(), AssertionError);
     EXPECT_THROW(context.zoneGroups(), AssertionError);
     EXPECT_THROW(context.zoneInfos(), AssertionError);
 }

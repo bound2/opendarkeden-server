@@ -34,6 +34,7 @@
 #include "GCSystemMessage.h"
 #include "GCUpdateInfo.h"
 #include "GCWarScheduleList.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfo.h"
 #include "GameServerInfoManager.h"
@@ -303,7 +304,7 @@ void makeGCUpdateInfo(GCUpdateInfo* pUpdateInfo, Creature* pCreature)
     Assert(pZoneGroup != NULL);
 
     pUpdateInfo->setZoneID(pZone->getZoneID());
-    pUpdateInfo->setGameTime(g_pTimeManager->getGameTime());
+    pUpdateInfo->setGameTime(de::gameContext().worldTime().getGameTime());
 
     pUpdateInfo->setZoneX(x);
     pUpdateInfo->setZoneY(y);

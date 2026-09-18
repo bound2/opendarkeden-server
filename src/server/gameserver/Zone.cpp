@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "LogClient.h"
 #include "MasterLairInfoManager.h"
 #include "MasterLairManager.h"
@@ -41,7 +42,6 @@
 #include "EffectDarkness.h"
 #include "EffectDecayCorpse.h"
 #include "EffectDecayItem.h"
-#include "EffectLoaderManager.h"
 #include "EffectManager.h"
 #include "EffectSchedule.h"
 #include "EffectVampirePortal.h"
@@ -863,7 +863,7 @@ void Zone::heartbeat()
         // Update the time band.
         if (m_UpdateTimebandTime < currentTime) {
             if (!m_bTimeStop) {
-                m_Timeband = g_pTimeManager->getTimeband();
+                m_Timeband = de::gameContext().worldTime().getTimeband();
             }
 
             // Update the timeband every 5 seconds, which is 2 minutes of game time.

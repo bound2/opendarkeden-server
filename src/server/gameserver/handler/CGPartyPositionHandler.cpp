@@ -9,6 +9,7 @@
 #ifdef __GAME_SERVER__
 #include "Creature.h"
 #include "GCPartyPosition.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Party.h"
 #endif
@@ -38,7 +39,7 @@ void CGPartyPositionHandler::execute(CGPartyPosition* pPacket, Player* pPlayer)
         gcPartyPosition.setMaxHP(pPacket->getMaxHP());
         gcPartyPosition.setHP(pPacket->getHP());
 
-        Party* pParty = g_pGlobalPartyManager->getParty(pCreature->getPartyID());
+        Party* pParty = de::gameContext().parties().getParty(pCreature->getPartyID());
         if (pParty != NULL) {
             pParty->broadcastPacket(&gcPartyPosition);
         }

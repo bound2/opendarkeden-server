@@ -8,6 +8,7 @@
 
 #include "Creature.h"
 #include "GCStashSell.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Ousters.h"
 #include "PriceManager.h"
@@ -47,7 +48,7 @@ void ActionStashSell::execute(Creature* pCreature1, Creature* pCreature2)
         curStashNum = dynamic_cast<Slayer*>(pCreature2)->getStashNum();
 
         if (curStashNum < STASH_RACK_MAX) {
-            price = g_pPriceManager->getStashPrice(curStashNum + 1);
+            price = context().prices().getStashPrice(curStashNum + 1);
         } else
             price = 0;
     } else if (pCreature2->isVampire()) {
@@ -55,7 +56,7 @@ void ActionStashSell::execute(Creature* pCreature1, Creature* pCreature2)
         curStashNum = dynamic_cast<Vampire*>(pCreature2)->getStashNum();
 
         if (curStashNum < STASH_RACK_MAX) {
-            price = g_pPriceManager->getStashPrice(curStashNum + 1);
+            price = context().prices().getStashPrice(curStashNum + 1);
         } else
             price = 0;
     } else if (pCreature2->isOusters()) {
@@ -63,7 +64,7 @@ void ActionStashSell::execute(Creature* pCreature1, Creature* pCreature2)
         curStashNum = dynamic_cast<Ousters*>(pCreature2)->getStashNum();
 
         if (curStashNum < STASH_RACK_MAX) {
-            price = g_pPriceManager->getStashPrice(curStashNum + 1);
+            price = context().prices().getStashPrice(curStashNum + 1);
         } else
             price = 0;
     }

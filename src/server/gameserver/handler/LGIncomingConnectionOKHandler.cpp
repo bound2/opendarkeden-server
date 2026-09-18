@@ -14,6 +14,7 @@
 #include "Assert1.h"
 #include "DatabaseManager.h"
 #include "GCReconnectLogin.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "LogDef.h"
@@ -39,9 +40,9 @@ void LGIncomingConnectionOKHandler::execute(LGIncomingConnectionOK* pPacket) {
         GamePlayer* pGamePlayer = NULL;
 
         try {
-            pGamePlayer = g_pIncomingPlayerManager->getPlayer(pPacket->getPlayerID());
+            pGamePlayer = de::gameContext().incomingPlayers().getPlayer(pPacket->getPlayerID());
         } catch (NoSuchElementException) {
-            pGamePlayer = g_pIncomingPlayerManager->getReadyPlayer(pPacket->getPlayerID());
+            pGamePlayer = de::gameContext().incomingPlayers().getReadyPlayer(pPacket->getPlayerID());
         }
 
         int fd = -1;

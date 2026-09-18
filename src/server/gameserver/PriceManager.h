@@ -41,7 +41,4 @@ public:
     int getBallPrice(int price, XMAS_STAR& star) const;
 };
 
-// global variable declaration
-extern PriceManager* g_pPriceManager;
-
 #endif

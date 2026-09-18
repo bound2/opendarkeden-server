@@ -16,6 +16,7 @@
 #include "GCNoticeEvent.h"
 #include "GCSay.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "Inventory.h"
 #include "Item.h"
 #include "ItemFactoryManager.h"
@@ -48,7 +49,7 @@ MasterLairManager::MasterLairManager(Zone* pZone)
     Assert(pZone != NULL);
     m_pZone = pZone;
 
-    MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(m_pZone->getZoneID());
+    MasterLairInfo* pInfo = de::gameContext().masterLairInfos().getMasterLairInfo(m_pZone->getZoneID());
     Assert(pInfo != NULL);
 
     m_MasterID = 0; // a single master
@@ -550,7 +551,7 @@ void MasterLairManager::processEventWaitingRegen()
             activeEventWaitingPlayer();
         } else {
             // Otherwise wait until the next regen time.
-            MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(m_pZone->getZoneID());
+            MasterLairInfo* pInfo = de::gameContext().masterLairInfos().getMasterLairInfo(m_pZone->getZoneID());
             Assert(pInfo != NULL);
 
             m_RegenTime.tv_sec += pInfo->getRegenDelay();
@@ -570,7 +571,7 @@ void MasterLairManager::activeEventWaitingPlayer()
 {
     __BEGIN_TRY
 
-    MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(m_pZone->getZoneID());
+    MasterLairInfo* pInfo = de::gameContext().masterLairInfos().getMasterLairInfo(m_pZone->getZoneID());
     Assert(pInfo != NULL);
 
     deleteAllMonsters();
@@ -671,7 +672,7 @@ void MasterLairManager::activeEventMinionCombat()
 {
     __BEGIN_TRY
 
-    MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(m_pZone->getZoneID());
+    MasterLairInfo* pInfo = de::gameContext().masterLairInfos().getMasterLairInfo(m_pZone->getZoneID());
     Assert(pInfo != NULL);
 
     // Signal that the pillar of fire has ended.
@@ -738,7 +739,7 @@ void MasterLairManager::activeEventMasterCombat()
     // Master-specific hardcoding can go here.
 
     if (pMaster != NULL) {
-        MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(m_pZone->getZoneID());
+        MasterLairInfo* pInfo = de::gameContext().masterLairInfos().getMasterLairInfo(m_pZone->getZoneID());
         Assert(pInfo != NULL);
 
         Monster* pMasterMonster = dynamic_cast<Monster*>(pMaster);
@@ -850,7 +851,7 @@ void MasterLairManager::activeEventWaitingKickOut()
 {
     __BEGIN_TRY
 
-    MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(m_pZone->getZoneID());
+    MasterLairInfo* pInfo = de::gameContext().masterLairInfos().getMasterLairInfo(m_pZone->getZoneID());
     Assert(pInfo != NULL);
 
     // Print a message if the master is not dead.
@@ -1018,7 +1019,7 @@ void MasterLairManager::kickOutPlayers()
 {
     __BEGIN_TRY
 
-    MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(m_pZone->getZoneID());
+    MasterLairInfo* pInfo = de::gameContext().masterLairInfos().getMasterLairInfo(m_pZone->getZoneID());
     Assert(pInfo != NULL);
 
     /*
