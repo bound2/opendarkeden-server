@@ -80,9 +80,9 @@ void EffectComa::unaffect(Creature* pDeadCreature)
     Assert(pDeadCreature != NULL);
     // Assert(pDeadCreature->isDead());
 
-    // 이펙트 플래그를 삭제해준다.
+    // Clear the effect flag.
     pDeadCreature->removeFlag(Effect::EFFECT_CLASS_COMA);
-    // 날아오면 강제로 죽이는 코드를 집어넣는다.
+    // Code that forces the creature to die once it gets here.
     if (pDeadCreature->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pDeadCreature);
         pSlayer->setHP(0, ATTR_CURRENT);
@@ -135,9 +135,9 @@ void EffectComa::save(const string& ownerID)
     __END_CATCH
 }
 
-// 스타팅 시간은 이펙트를 생성한 시간이자, 플레이어가 죽은 시간이다.
-// 이 시간에다 5초를 더함으로써, canResurrect 함수에서 죽은 뒤 5초가 지나지
-// 않은 사람이 Resurrect못하게 검사할 수 있다.
+// The start time is when the effect was created, which is when the player died.
+// Adding 5 seconds to it lets canResurrect reject anyone who has been dead for
+// less than 5 seconds.
 void EffectComa::setStartTime(void) {
     getCurrentTime(m_StartTime);
     m_StartTime.tv_sec += 5;
@@ -166,4 +166,6 @@ string EffectComa::toString() const {
 
 void EffectComaLoader::load(Creature* pCreature)
 
-    {__BEGIN_TRY __END_CATCH}
+{
+    __BEGIN_TRY __END_CATCH
+}

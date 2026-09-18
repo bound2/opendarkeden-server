@@ -19,7 +19,7 @@ EffectAftermath::EffectAftermath(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // 서버 전용 Effect이다. by sigi. 2002.11.14
+    // Server-only Effect.
     m_bBroadcastingEffect = false;
 
     setTarget(pCreature);
@@ -168,7 +168,7 @@ void EffectAftermathLoader::load(Creature* pCreature)
     __BEGIN_TRY
 
     if (pCreature == NULL || (!pCreature->isSlayer() && !pCreature->isOusters())) {
-        // cout << "EffectAftermathLoader : 크리쳐가 널입니다." << endl;
+        // cout << "EffectAftermathLoader : the creature is null." << endl;
         return;
     }
 

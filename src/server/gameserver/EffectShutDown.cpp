@@ -86,7 +86,7 @@ void EffectShutDown::affect(Creature* pCreature)
 
     /*	StringStream msg;
 
-        msg << (int)RemainTime << "초 후에 서버가 종료됩니다. 잠시 후 접속해 주시기 바랍니다. "; */
+        msg << (int)RemainTime << " seconds until the server shuts down. Please reconnect shortly. "; */
     char msg[80];
     sprintf(msg, g_pStringPool->c_str(STRID_SERVER_SHUT_DOWN_COUNT_DOWN), (int)RemainTime);
 
@@ -154,8 +154,8 @@ void EffectShutDown::affect(Creature* pCreature)
 
 //----------------------------------------------------------------------
 // affect to target
-// 이 이펙트는 타일에 종속되지 않으므로, affect()는 호출되지 않는다.
-// 왜냐하면, target은 생성자에서 지정되며, 아무런 일도 하지 않기 때문이다.
+// This effect is not bound to a tile, so affect() is never called.
+// The target is set in the constructor and this overload does nothing.
 //----------------------------------------------------------------------
 void EffectShutDown::affect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pTarget)
 
@@ -177,7 +177,7 @@ void EffectShutDown::unaffect()
 
     //	StringStream msg;
 
-    //	msg << "서버가 종료됩니다.";
+    // msg << "The server is shutting down.";
 
     GCSystemMessage gcSystemMessage;
     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_SERVER_SHUT_DOWN));

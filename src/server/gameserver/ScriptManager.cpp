@@ -44,7 +44,7 @@ void ScriptManager::load(const string& ownerID)
         string msg;
 
         ////////////////////////////////////////////////////////////
-        // subject를 파싱한다.
+        // Parse the subject.
         ////////////////////////////////////////////////////////////
         start = 0;
         end = 0;
@@ -69,7 +69,7 @@ void ScriptManager::load(const string& ownerID)
         }
 
         ////////////////////////////////////////////////////////////
-        // content를 파싱한다.
+        // Parse the content.
         ////////////////////////////////////////////////////////////
         start = 0;
         end = 0;

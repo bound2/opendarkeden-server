@@ -82,7 +82,7 @@ void EffectTryingPosition::affect(Creature* pCreature) {
     if (!RegenZoneManager::getInstance()->canTryRegenZone(pPC, m_pTower))
         return;
 
-    // 리젠존타워가 먹히는 중이라는 이펙트를 찍어준다.
+    // Stamp the effect that shows the regen zone tower is being taken.
     EffectTryRegenZone* pTowerEffect = new EffectTryRegenZone(m_pTower);
     Assert(pTowerEffect != NULL);
 

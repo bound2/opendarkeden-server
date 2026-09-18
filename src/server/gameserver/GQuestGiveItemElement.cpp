@@ -38,7 +38,7 @@ GQuestElement::ResultType GQuestGiveItemElement::checkCondition(PlayerCreature* 
         makeGCCreateItem(&gcCreateItem, pItem, pt.x, pt.y);
         pPC->getPlayer()->sendPacket(&gcCreateItem);
 
-        // ItemTraceLog 를 남긴다
+        // Leave an ItemTraceLog
         if (pItem->isTraceItem()) {
             remainTraceLog(pItem, "GQuest", pPC->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
             remainTraceLogNew(pItem, pPC->getName(), ITL_GET, ITLD_EVENTNPC, pPC->getZone()->getZoneID());

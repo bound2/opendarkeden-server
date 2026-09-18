@@ -13,8 +13,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class Event;
-// 플레이어 클래스에 연관되어 있으며,
-// 일정 시간 후에 특정 액션을 취하도록 해준다.
+// Associated with the player class;
+// makes a specific action run after a set amount of time.
 //////////////////////////////////////////////////////////////////////////////
 
 class GamePlayer;
@@ -22,19 +22,19 @@ class GamePlayer;
 class Event {
 public:
     enum EventClass {
-        EVENT_CLASS_RESURRECT,                // 크리처가 죽었을 경우, 부활시키기..
-        EVENT_CLASS_MORPH,                    // 슬레이어 -> 뱀파이어변신
-        EVENT_CLASS_RESTORE,                  // 뱀파이어 -> 슬레이어 변신
-        EVENT_SAVE,                           // 주기적으로 크리처 정보를 저장하기
-        EVENT_CLASS_REGENERATION,             // 뱀파이어를 주기적으로 회복해주기
-        EVENT_CLASS_RELOAD_INFO,              // DB에서 info를 reload한다.
-        EVENT_CLASS_TRANSPORT,                // Zone이동 한다.
-        EVENT_CLASS_KICK,                     // 얼마 후에 kick한다.
-        EVENT_CLASS_SYSTEM_MESSAGE,           // Incoming에서 받은 System메세지를 갖고 있다가 뿌려준다.
-        EVENT_CLASS_REFRESH_HOLY_LAND_PLAYER, // Holy Land Race Bonus 변화에 따라 Holy Land Player Stat 을 갱신
-        EVENT_CLASS_SHUTDOWN,                 // 사용자들을 몽땅 정리하고 셧다운
-        EVENT_CLASS_HEAD_COUNT,               // 30분에 한번씩 머리 딴 갯수 세장
-        EVENT_CLASS_AUTH,                     // Nprotect 인증
+        EVENT_CLASS_RESURRECT,                // Resurrect a creature after it dies
+        EVENT_CLASS_MORPH,                    // Slayer -> Vampire transformation
+        EVENT_CLASS_RESTORE,                  // Vampire -> Slayer transformation
+        EVENT_SAVE,                           // Save creature information periodically
+        EVENT_CLASS_REGENERATION,             // Recover a Vampire periodically
+        EVENT_CLASS_RELOAD_INFO,              // Reload info from the DB
+        EVENT_CLASS_TRANSPORT,                // Move between zones
+        EVENT_CLASS_KICK,                     // Kick after a while
+        EVENT_CLASS_SYSTEM_MESSAGE,           // Hold a system message received while incoming and show it later
+        EVENT_CLASS_REFRESH_HOLY_LAND_PLAYER, // Refresh Holy Land player stats when the Holy Land Race Bonus changes
+        EVENT_CLASS_SHUTDOWN,                 // Clear out all users and shut down
+        EVENT_CLASS_HEAD_COUNT,               // Count severed heads once every 30 minutes
+        EVENT_CLASS_AUTH,                     // Nprotect authentication
         EVENT_CLASS_MAX
     };
 
@@ -46,7 +46,7 @@ public:
     virtual EventClass getEventClass() const = 0;
 
     // get event life-cycle
-    // 기본적으로 모든 이벤트들은 1회용이다.
+    // By default every event is one-shot.
     virtual bool isTemporary() const {
         return true;
     }
@@ -64,8 +64,8 @@ public:
     virtual string toString() const = 0;
 
 protected:
-    GamePlayer* m_pGamePlayer; // 게임 플레이어 객체
-    Timeval m_Deadline;        // 실행 시간
+    GamePlayer* m_pGamePlayer; // Game player object
+    Timeval m_Deadline;        // Time it runs
 };
 
 #endif

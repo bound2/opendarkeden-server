@@ -184,7 +184,7 @@ MasterLairInfoManager::~MasterLairInfoManager()
         SAFE_DELETE(pInfo);
     }
 
-    // 해쉬맵안에 있는 모든 pair 들을 삭제한다.
+    // Delete every pair in the hashmap.
     m_MasterLairInfos.clear();
 
     __END_CATCH_NO_RETHROW
@@ -373,11 +373,11 @@ void MasterLairInfoManager::addMasterLairInfo(MasterLairInfo* pMasterLairInfo)
 {
     __BEGIN_TRY
 
-    // 일단 같은 아이디의 존이 있는지 체크해본다.
+    // First check whether a zone with the same id already exists.
     unordered_map<ZoneID_t, MasterLairInfo*>::iterator itr = m_MasterLairInfos.find(pMasterLairInfo->getZoneID());
 
     if (itr != m_MasterLairInfos.end())
-        // 똑같은 아이디가 이미 존재한다는 소리다. - -;
+        // The same id already exists.
         throw Error("duplicated zone id");
 
     m_MasterLairInfos[pMasterLairInfo->getZoneID()] = pMasterLairInfo;
@@ -395,13 +395,13 @@ void MasterLairInfoManager::deleteMasterLairInfo(ZoneID_t zoneID) {
     unordered_map<ZoneID_t, MasterLairInfo*>::iterator itr = m_MasterLairInfos.find(zoneID);
 
     if (itr != m_MasterLairInfos.end()) {
-        // 존을 삭제한다.
+        // Delete the zone.
         SAFE_DELETE(itr->second);
 
-        // pair를 삭제한다.
+        // Delete the pair.
         m_MasterLairInfos.erase(itr);
     } else {
-        // 그런 존 아이디를 찾을 수 없었을 때
+        // No such zone id was found.
         StringStream msg;
         msg << "ZoneID : " << zoneID;
         throw NoSuchElementException(msg.toString());
@@ -425,7 +425,7 @@ MasterLairInfo* MasterLairInfoManager::getMasterLairInfo(ZoneID_t zoneID) {
         pMasterLairInfo = itr->second;
 
     } else {
-        // 그런 존 아이디를 찾을 수 없었을 때
+        // No such zone id was found.
         /*
         StringStream msg;
         msg << "ZoneID : " << zoneID;

@@ -137,7 +137,7 @@ GQuestElement::ResultType GQuestStatus::checkElements(GQuestInfo::ElementType ty
     return GQuestElement::FAIL;
 }
 
-// element들을 순서대로 check해야 된다. 앞에꺼가 완결되어야 뒤에꺼를 체크한다.
+// Check the elements in order. The next one is checked only once the previous one completes.
 GQuestElement::ResultType GQuestStatus::checkElementsSEQ(GQuestInfo::ElementType type) {
     cout << "Checking SEQ : " << (int)type << endl;
     GQuestMission* pCurrentMission = m_MissionMap[m_ElementAdvance[type]];
@@ -190,7 +190,7 @@ GQuestElement::ResultType GQuestStatus::checkElementsSEQ(GQuestInfo::ElementType
     return GQuestElement::OK;
 }
 
-// 하나라도 success면 ok. FAIL 조건 체크할때 쓴다. ㅜ.ㅠ
+// OK if at least one succeeds. Used when checking FAIL conditions.
 GQuestElement::ResultType GQuestStatus::checkElementsOR(GQuestInfo::ElementType type) {
     cout << "Checking OR : " << (int)type << endl;
 
@@ -263,7 +263,7 @@ GQuestElement::ResultType GQuestStatus::checkElementsOR(GQuestInfo::ElementType 
     return GQuestElement::FAIL;
 }
 
-// 모든 element를 한꺼번에 평가한다. 기다려야 되는것도 한꺼번에 기다린다.
+// Evaluate every element at once. The ones that must wait are waited on together.
 GQuestElement::ResultType GQuestStatus::checkElementsAND(GQuestInfo::ElementType type) {
     cout << "Checking AND : " << (int)type << endl;
 

@@ -1,7 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : Inventory.cpp
 // Written By  : elca@ewestsoft.com
-// Revised By  : 김성민
 // Description :
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -29,7 +28,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
-// 기본 생성자
+// Default constructor.
 ////////////////////////////////////////////////////////////
 Inventory::Inventory(CoordInven_t Width, CoordInven_t Height, bool bDeleteAll)
 
@@ -54,7 +53,7 @@ Inventory::Inventory(CoordInven_t Width, CoordInven_t Height, bool bDeleteAll)
 }
 
 ////////////////////////////////////////////////////////////
-// 복사 생성자
+// Copy constructor.
 ////////////////////////////////////////////////////////////
 Inventory::Inventory(const Inventory* pInventory)
 
@@ -85,7 +84,7 @@ Inventory::Inventory(const Inventory* pInventory)
 }
 
 ////////////////////////////////////////////////////////////
-// 소멸자
+// Destructor.
 ////////////////////////////////////////////////////////////
 Inventory::~Inventory()
 
@@ -96,25 +95,25 @@ Inventory::~Inventory()
 
     try {
         if (m_pInventorySlot != NULL) {
-            // 인벤토리에 존재하는 모든 아이템들을 삭제한다.
-            // 아이템 크기를 사용하면 좀더 최적화할 수 있을 것이다.
+            // Delete every item held in the inventory.
+            // Using the item size would allow further optimization.
             for (j = 0; j < m_Height; j++) {
                 for (i = 0; i < m_Width; i++) {
                     Item* pItem = m_pInventorySlot[i][j].getItem();
                     if (pItem != NULL) {
-                        // 인벤토리 슬랏을 NULL 로 지정한다.
+                        // Set the inventory slot to NULL.
 
                         deleteItem(i, j);
 
                         if (m_bDeleteAll) {
-                            // 열쇠일 경우에 ParkingCenter에서 오토바이 정보를 빼낸다음.
-                            // Zone에서 오토바이를 삭제해주고, ParkingCenter에 오토바이를 삭제한다.
-                            // 원래 깔끔하게 하기 위해선 GamePlayer 내지는 Creature의 destructor에서
-                            // 해야하나, 검색 시간의 단축을 위해서 꽁수로 여기서 하도록 한다.
-                            // 이거 없애믄, 개 된다.
+                            // For a key, take the motorcycle information out of the ParkingCenter,
+                            // remove the motorcycle from the Zone, then delete it from the ParkingCenter.
+                            // Cleanly this would belong in the destructor of GamePlayer or Creature,
+                            // but it is done here as a shortcut to save search time.
+                            // Removing this breaks things.
                             if (pItem->getItemClass() == Item::ITEM_CLASS_KEY) {
                                 Key* pKey = dynamic_cast<Key*>(pItem);
-                                // 걍 간단하게 이안에서 알아서 존에서 지워 주도록 하자.
+                                // The call below also takes care of removing it from the zone.
                                 if (g_pParkingCenter->hasMotorcycleBox(pKey->getTarget())) {
                                     g_pParkingCenter->deleteMotorcycleBox(pKey->getTarget());
                                 }
@@ -128,7 +127,7 @@ Inventory::~Inventory()
 
             // Assert(m_TotalNum == 0);
             // Assert(m_TotalWeight == 0);
-            //  임시로 넣어둔 코드.. 그냥 숫자나 보고 싶어서 - -; by sigi. 2002.5.15
+            // Temporary code, just to look at the number.
             if (m_TotalNum != 0) {
                 filelog("inventoryBug.txt", "TotalNum=%d", m_TotalNum);
             }
@@ -158,7 +157,7 @@ Inventory::~Inventory()
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
-// 지정된 위치에 아이템이 있는가?
+// Is there an item at the given position?
 ////////////////////////////////////////////////////////////
 bool Inventory::hasItem(CoordInven_t X, CoordInven_t Y)
 
@@ -175,7 +174,7 @@ bool Inventory::hasItem(CoordInven_t X, CoordInven_t Y)
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 아이템이 있는가?
+// Is the given item present?
 ////////////////////////////////////////////////////////////
 bool Inventory::hasItem(ObjectID_t ObjectID)
 
@@ -191,7 +190,7 @@ bool Inventory::hasItem(ObjectID_t ObjectID)
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 아이템이 있는가?
+// Is the given item present?
 ////////////////////////////////////////////////////////////
 bool Inventory::hasItemWithItemID(ItemID_t ItemID)
 
@@ -207,7 +206,7 @@ bool Inventory::hasItemWithItemID(ItemID_t ItemID)
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 타겟을 타겟으로 하는 열쇠를 가지고 있는가?
+// Is a key aimed at the given target held?
 ////////////////////////////////////////////////////////////
 bool Inventory::hasKey(ItemID_t TargetItemID)
 
@@ -232,9 +231,9 @@ bool Inventory::hasKey(ItemID_t TargetItemID)
 }
 
 ////////////////////////////////////////////////////////////
-// 주어진 위치에 아이템을 더할 수 있는가?
-// 이 함수는 하나는 마우스에 붙일 수 있다고 가정하고
-// 결과를 리턴한다.
+// Can the item be added at the given position?
+// This function assumes that one item can be attached to the mouse
+// and returns the result accordingly.
 ////////////////////////////////////////////////////////////
 bool Inventory::canAdding(CoordInven_t X, CoordInven_t Y, Item* pItem)
 
@@ -277,9 +276,9 @@ bool Inventory::canAdding(CoordInven_t X, CoordInven_t Y, Item* pItem)
 }
 
 ////////////////////////////////////////////////////////////
-// 주어진 위치에 아이템을 붙일 수 있는가?
-// 이 함수는 마우스에 아이템을 붙일 수 있다고
-// 가정하지 ***않는다.***
+// Can the item be placed at the given position?
+// This function does ***not*** assume that an item can be
+// attached to the mouse.
 ////////////////////////////////////////////////////////////
 bool Inventory::canAddingEx(CoordInven_t X, CoordInven_t Y, Item* pItem)
 
@@ -293,17 +292,17 @@ bool Inventory::canAddingEx(CoordInven_t X, CoordInven_t Y, Item* pItem)
     if ((X + ItemWidth > m_Width) || (Y + ItemHeight > m_Height))
         return false;
 
-    // 인벤토리를 검색하면서, 그 자리에 아이템이 있다면,
-    // 리스트에 그 아이템이 없는지 검사한 후, 리스트에다 아이템을 집어넣는다.
+    // Scan the inventory; where a slot holds an item, check that the
+    // item is not already in the list, then put it into the list.
     for (int x = X; x < X + ItemWidth; x++) {
         for (int y = Y; y < Y + ItemHeight; y++) {
             Item* pInvenItem = m_pInventorySlot[x][y].getItem();
 
-            // 그 자리에 아이템이 있다면...
+            // If there is an item in that slot...
             if (pInvenItem != NULL) {
                 bool bAdd = true;
 
-                // 리스트에 존재하는지 검사
+                // Check whether it is already in the list.
                 list<Item*>::iterator itr = prevItemList.begin();
                 for (; itr != prevItemList.end(); itr++) {
                     if (*itr == pInvenItem) {
@@ -312,20 +311,20 @@ bool Inventory::canAddingEx(CoordInven_t X, CoordInven_t Y, Item* pItem)
                     }
                 }
 
-                // 리스트에다가 아이템을 더한다.
+                // Add the item to the list.
                 if (bAdd)
                     prevItemList.push_back(pInvenItem);
             }
         }
     }
 
-    // 아이템을 넣으려고 하는 곳에 두 가지 이상의 아이템이 있다면,
-    // 아이템을 넣을 수 없다.
+    // If the target area already holds two or more different items,
+    // the item cannot be placed.
     if (prevItemList.size() > 1)
         return false;
 
-    // 아이템이 하나 있다면 그 아이템은 쌓이는 아이템이어야 하고,
-    // 쌓으려는 아이템과 클래스와 타입이 같아야 한다.
+    // If exactly one item is there, it must be a stackable item and
+    // must have the same class and type as the item being stacked.
     if (prevItemList.size() == 1) {
         Item::ItemClass IClass = pItem->getItemClass();
         ItemType_t IType = pItem->getItemType();
@@ -334,15 +333,15 @@ bool Inventory::canAddingEx(CoordInven_t X, CoordInven_t Y, Item* pItem)
         Item::ItemClass InvenIClass = pInvenItem->getItemClass();
         ItemType_t InvenIType = pInvenItem->getItemType();
 
-        // 아이템이 종류가 다른 것이라면 당연히 false닷.
+        // A different kind of item means false.
         if (IClass != InvenIClass || IType != InvenIType)
             return false;
 
-        // 쌓일 수 있는 아이템이 아니었다면 당연히 false닷.
+        // An item that cannot be stacked means false.
         if (!isStackable(pItem))
             return false;
 
-        // 갯수를 넘어도 당연히 false닷.
+        // Exceeding the maximum count also means false.
         uint MaxStack = ItemMaxStack[IClass];
         if ((pItem->getNum() + pInvenItem->getNum()) > (int)(MaxStack))
             return false;
@@ -363,7 +362,7 @@ bool Inventory::canAddingEx(CoordInven_t X, CoordInven_t Y, Item* pItem)
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
-// 지정된 위치에 아이템을 더한다.
+// Add an item at the given position.
 ////////////////////////////////////////////////////////////
 bool Inventory::addItem(CoordInven_t X, CoordInven_t Y, Item* pItem)
 
@@ -372,7 +371,7 @@ bool Inventory::addItem(CoordInven_t X, CoordInven_t Y, Item* pItem)
     __BEGIN_DEBUG
 
     if (pItem == NULL) {
-        // cerr << "Inventory::addItem() : 아이템 포인터가 널입니다." << endl;
+        // cerr << "Inventory::addItem() : the item pointer is null." << endl;
         return false;
     }
 
@@ -380,7 +379,7 @@ bool Inventory::addItem(CoordInven_t X, CoordInven_t Y, Item* pItem)
     VolumeHeight_t ItemHeight = pItem->getVolumeHeight();
     Weight_t ItemWeight = pItem->getWeight();
 
-    // 아이템을 더하기 전에 확인을 한다.
+    // Verify before adding the item.
     for (int x = X; x < X + ItemWidth; x++)
         for (int y = Y; y < Y + ItemHeight; y++)
             if (getInventorySlot(x, y).getItem() != NULL)
@@ -394,7 +393,7 @@ bool Inventory::addItem(CoordInven_t X, CoordInven_t Y, Item* pItem)
         }
     }
 
-    // 아이템 갯수만큼 무게를 더하고, 갯수도 더한다.
+    // Add the weight for the item count, and add the count too.
     m_TotalWeight += (ItemWeight * pItem->getNum());
     m_TotalNum += pItem->getNum();
 
@@ -405,7 +404,7 @@ bool Inventory::addItem(CoordInven_t X, CoordInven_t Y, Item* pItem)
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 위치에 아이템을 더한다.
+// Add an item at the given position.
 ////////////////////////////////////////////////////////////
 Item* Inventory::addItemEx(CoordInven_t X, CoordInven_t Y, Item* pItem)
 
@@ -423,19 +422,19 @@ Item* Inventory::addItemEx(CoordInven_t X, CoordInven_t Y, Item* pItem)
     VolumeHeight_t ItemHeight = pItem->getVolumeHeight();
     Item* pInvenItem = m_pInventorySlot[X][Y].getItem();
 
-    // 아이템이 존재한다면 쌓일 수 있는 아이템이기
-    // 때문에, 숫자를 증가시켜 준다.
+    // If an item is already there it is a stackable item,
+    // so increase its count.
     if (pInvenItem != NULL) {
         pInvenItem->setNum(pItem->getNum() + pInvenItem->getNum());
 
-        // 포인터를 삭제하기에 앞서, 무게와 아이템 숫자를 증가시켜준다.
+        // Before deleting the pointer, increase the weight and the item count.
         m_TotalWeight += (pItem->getWeight() * pItem->getNum());
         m_TotalNum += pItem->getNum();
 
-        // 인벤토리 아이템의 카운트를 증가시켰으니까,
-        // 더하라고 온 아이템은 삭제해준다.
-        // *** 원래는 삭제를 했었는데,
-        // 아무래도 이상해서, 일단은 그냥 놔둔다. ***
+        // The inventory item's count has been increased, so the item
+        // passed in to be added is deleted.
+        // *** The item was deleted here originally, but that seemed
+        // wrong, so for now it is left alone. ***
         // SAFE_DELETE(pItem);
         // pItem = NULL;
         return pInvenItem;
@@ -443,7 +442,7 @@ Item* Inventory::addItemEx(CoordInven_t X, CoordInven_t Y, Item* pItem)
 
     for (int x = X; x < X + ItemWidth; x++) {
         for (int y = Y; y < Y + ItemHeight; y++) {
-            // 아이템이 없다면...모든 슬롯에다가 같은 포인터를 할당해 준다.
+            // If no item is there, assign the same pointer to every slot.
             m_pInventorySlot[x][y].addItem(pItem);
         }
     }
@@ -458,7 +457,7 @@ Item* Inventory::addItemEx(CoordInven_t X, CoordInven_t Y, Item* pItem)
 }
 
 ////////////////////////////////////////////////////////////
-// 아이템을 알아서 더한다.
+// Add an item at an automatically chosen position.
 ////////////////////////////////////////////////////////////
 bool Inventory::addItem(Item* pItem) {
     __BEGIN_TRY
@@ -478,7 +477,7 @@ bool Inventory::addItem(Item* pItem) {
 }
 
 ////////////////////////////////////////////////////////////
-// 아이템을 알아서 더한다.
+// Add an item at an automatically chosen position.
 ////////////////////////////////////////////////////////////
 bool Inventory::addItem(Item* pItem, TPOINT& rpt) {
     __BEGIN_TRY
@@ -503,7 +502,7 @@ bool Inventory::addItem(Item* pItem, TPOINT& rpt) {
 }
 
 ////////////////////////////////////////////////////////////
-// 아이템을 넣을 수 있는 빈 자리를 찾는다.
+// Find an empty place where the item can be put.
 ////////////////////////////////////////////////////////////
 bool Inventory::getEmptySlot(VolumeWidth_t ItemWidth, VolumeHeight_t ItemHeight, _TPOINT& p)
 
@@ -514,7 +513,7 @@ bool Inventory::getEmptySlot(VolumeWidth_t ItemWidth, VolumeHeight_t ItemHeight,
     int i, j;
 
     //---------------------------------------------------------
-    // grid의 모든(x,y)에 pItem을 추가할 수 있는지 검사해본다.
+    // Check whether pItem can be added at every (x,y) of the grid.
     //---------------------------------------------------------
     int yLimit = m_Height - ItemHeight;
     int xLimit = m_Width - ItemWidth;
@@ -528,20 +527,20 @@ bool Inventory::getEmptySlot(VolumeWidth_t ItemWidth, VolumeHeight_t ItemHeight,
             yPlusHeight = y + ItemHeight;
 
             //---------------------------------------------------------
-            // (x,y)에 넣을 수 있는지 체크..
+            // Check whether it can be put at (x,y).
             //---------------------------------------------------------
             bool bPlace = true;
 
             for (i = y; bPlace && i < yPlusHeight; i++) {
                 for (j = x; bPlace && j < xPlusWidth; j++) {
                     //---------------------------------------------------------
-                    // 이미 다른 Item이 있는 grid가 하나라도 있다면 추가할 수 없다.
+                    // If even one grid cell already holds another Item, it cannot be added.
                     //---------------------------------------------------------
                     Item* pItem = m_pInventorySlot[j][i].getItem();
                     if (pItem != NULL) {
                         bPlace = false;
 
-                        // 다음에 체크할 것...
+                        // Next thing to check...
                         //		y = i + pItem->getVolumeHeight() - 1;
 
                         break;
@@ -550,7 +549,7 @@ bool Inventory::getEmptySlot(VolumeWidth_t ItemWidth, VolumeHeight_t ItemHeight,
             }
 
             //---------------------------------------------------------
-            // (x,y)에 넣을 수 있는 경우
+            // The case where it can be put at (x,y).
             //---------------------------------------------------------
             if (bPlace) {
                 p.x = x;
@@ -568,7 +567,7 @@ bool Inventory::getEmptySlot(VolumeWidth_t ItemWidth, VolumeHeight_t ItemHeight,
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 아이템을 찾아서 지운다.
+// Find the given item and delete it.
 ////////////////////////////////////////////////////////////
 void Inventory::deleteItem(ObjectID_t ObjectID)
 
@@ -592,10 +591,10 @@ void Inventory::deleteItem(ObjectID_t ObjectID)
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 위치에서 아이템을 지운다.
-// *** 주의 ***
-// 1x1 아이템이 아닐 경우, 좌측 상단의 좌표를 지정해주지
-// 않으면 끔찍한 결과가 발생할 수 있다.
+// Delete the item at the given position.
+// *** Caution ***
+// For an item that is not 1x1, failing to give the top-left
+// coordinate can have terrible results.
 ////////////////////////////////////////////////////////////
 void Inventory::deleteItem(CoordInven_t X, CoordInven_t Y)
 
@@ -630,20 +629,19 @@ void Inventory::deleteItem(CoordInven_t X, CoordInven_t Y)
                     // if (slot.getItem()==pItem)
                     { slot.deleteItem(); }
                     /*
-                    // 다른 문제였다. - -;
-                    // Restore에서 뱀파이어 아이템 양손 무기를 하나 체크를 안해서 그렇다.
-                    // by sigi. 2002.8.29 밤
+                    // It was a different problem.
+                    // Restore failed to check one of the vampire two-handed weapon items.
                     else
                     {
-                        // 인벤토리에 뭔가 이상한 현상이 있다고 보여지므로
-                        // 일단 다운 현상을 막기 위해서..
-                        // 전체를 검색해서 아이템을 지운다.
+                        // Something looks wrong with the inventory, so to stop the
+                        // server going down for now,
+                        // search the whole inventory and delete the item.
                         // by sigi. 2002.8.29
                         filelog("inventoryDeleteBug.txt", "deleteItem(%d, %d): class=%d, type=%d, volume(%d, %d), Wrong
                     Item. (%d, %d) ", (int)X, (int)Y, (int)pItem->getItemClass(), (int)pItem->getItemType(),
                     (int)ItemWidth, (int)ItemHeight, (int)x, (int)y);
 
-                        // 전체 검색해서 pItem을 지운다.
+                        // Search the whole inventory and delete pItem.
                         for (int a=0; a<m_Width; a++)
                         {
                             for (int b=0; b<m_Height; b++)
@@ -683,8 +681,8 @@ void Inventory::deleteItem(CoordInven_t X, CoordInven_t Y)
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
-// X, Y로부터 아이템의 크기만큼의 슬랏을 검사하여,
-// 존재하는 아이템이 있으면 그 포인터를 리턴한다.
+// Inspect the slots covering the item's size starting at X, Y and
+// return the pointer of an item found there.
 ////////////////////////////////////////////////////////////
 Item* Inventory::searchItem(CoordInven_t X, CoordInven_t Y, Item* pItem, TPOINT& pt)
 
@@ -713,7 +711,7 @@ Item* Inventory::searchItem(CoordInven_t X, CoordInven_t Y, Item* pItem, TPOINT&
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 아이템을 찾아서 포인터를 리턴한다.
+// Find the given item and return its pointer.
 ////////////////////////////////////////////////////////////
 Item* Inventory::getItemWithItemID(ItemID_t itemID)
 
@@ -727,7 +725,7 @@ Item* Inventory::getItemWithItemID(ItemID_t itemID)
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 벨트를 찾아서 포인터를 리턴한다.
+// Find the given belt and return its pointer.
 ////////////////////////////////////////////////////////////
 Item* Inventory::getBeltWithItemID(ItemID_t itemID)
 
@@ -741,7 +739,7 @@ Item* Inventory::getBeltWithItemID(ItemID_t itemID)
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 아이템을 찾아서 포인터를 리턴한다.
+// Find the given item and return its pointer.
 ////////////////////////////////////////////////////////////
 Item* Inventory::getItemWithObjectID(ObjectID_t objectID)
 
@@ -755,8 +753,8 @@ Item* Inventory::getItemWithObjectID(ObjectID_t objectID)
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 아이템을 찾아서 포인터를 리턴한다.
-// 이와 함께 그 아이템의 좌측 상단 좌표도 같이 보내준다.
+// Find the given item and return its pointer.
+// The item's top-left coordinate is returned along with it.
 ////////////////////////////////////////////////////////////
 Item* Inventory::findItemOID(ObjectID_t id, CoordInven_t& X, CoordInven_t& Y)
 
@@ -782,8 +780,8 @@ Item* Inventory::findItemOID(ObjectID_t id, CoordInven_t& X, CoordInven_t& Y)
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 아이템을 찾아서 포인터를 리턴한다.
-// 이와 함께 그 아이템의 좌측 상단 좌표도 같이 보내준다.
+// Find the given item and return its pointer.
+// The item's top-left coordinate is returned along with it.
 ////////////////////////////////////////////////////////////
 Item* Inventory::findItemIID(ItemID_t id, CoordInven_t& X, CoordInven_t& Y)
 
@@ -809,8 +807,8 @@ Item* Inventory::findItemIID(ItemID_t id, CoordInven_t& X, CoordInven_t& Y)
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 id와 클래스로 아이템을 찾아서 포인터를 리턴한다.
-// 이와 함께 그 아이템의 좌측 상단 좌표도 같이 보내준다.
+// Find the item by the given id and class and return its pointer.
+// The item's top-left coordinate is returned along with it.
 ////////////////////////////////////////////////////////////
 Item* Inventory::findItemOID(ObjectID_t id, Item::ItemClass IClass, CoordInven_t& X, CoordInven_t& Y)
 
@@ -836,8 +834,8 @@ Item* Inventory::findItemOID(ObjectID_t id, Item::ItemClass IClass, CoordInven_t
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 id와 클래스로 아이템을 찾아서 포인터를 리턴한다.
-// 이와 함께 그 아이템의 좌측 상단 좌표도 같이 보내준다.
+// Find the item by the given id and class and return its pointer.
+// The item's top-left coordinate is returned along with it.
 ////////////////////////////////////////////////////////////
 Item* Inventory::findItemIID(ItemID_t id, Item::ItemClass IClass, CoordInven_t& X, CoordInven_t& Y)
 
@@ -865,11 +863,10 @@ Item* Inventory::findItemIID(ItemID_t id, Item::ItemClass IClass, CoordInven_t& 
 /////////////////////////////////////////////////////////////////////////////////////
 // findItem
 //    : ItemClass
-//  Desctiption: 해당 인벤토리에 특정 Item Class의 아이템이 존재하는 가 체크한다.
-//               레어 마스터를 죽였을 경우 나타나는 아이템을 교환하기 위해서
-//               이 사람이 가지고 있는 특정 Item Class의 아이템을 반환한다.
+//  Description: Check whether an item of a given Item Class exists in this inventory.
+//               Returns the item of that Item Class the player holds, so the item
+//               dropped when a lair master is killed can be exchanged.
 //
-//  2002.09.04 장홍창
 /////////////////////////////////////////////////////////////////////////////////////
 
 Item* Inventory::findItem(Item::ItemClass IClass, ItemType_t itemType) //, CoordInven_t& X, CoordInven_t& Y)
@@ -930,7 +927,7 @@ Item* Inventory::findItem(Item::ItemClass IClass, ItemType_t itemType, CoordInve
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
-// 지정된 위치의 아이템 포인터를 리턴한다.
+// Return the item pointer at the given position.
 ////////////////////////////////////////////////////////////
 Item* Inventory::getItem(CoordInven_t X, CoordInven_t Y) const
 
@@ -944,7 +941,7 @@ Item* Inventory::getItem(CoordInven_t X, CoordInven_t Y) const
 }
 
 ////////////////////////////////////////////////////////////
-// 지정된 위치에 아이템 포인터를 세팅해준다.
+// Set the item pointer at the given position.
 ////////////////////////////////////////////////////////////
 void Inventory::setItem(CoordInven_t X, CoordInven_t Y, Item* pItem)
 
@@ -964,15 +961,15 @@ void Inventory::setItem(CoordInven_t X, CoordInven_t Y, Item* pItem)
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
-// 인벤토리에서 아이템 포인터 모두를 제거한다.
-// 실제로 아이템 객체를 지우지는 않는다.
+// Remove every item pointer from the inventory.
+// The item objects themselves are not deleted.
 ////////////////////////////////////////////////////////////
 void Inventory::clear()
 
 {
     __BEGIN_TRY
 
-    // 인벤토리 전체를 쭈욱 검색하면서...
+    // Scan right through the whole inventory...
     for (int y = 0; y < m_Height; y++) {
         for (int x = 0; x < m_Width; x++) {
             InventorySlot& slot = getInventorySlot(x, y);
@@ -987,7 +984,7 @@ void Inventory::clear()
 }
 
 ////////////////////////////////////////////////////////////
-// 인벤토리에 들어있는 아이템을 리스트로 만들어서 리턴한다.
+// Build a list of the items held in the inventory and return it.
 ////////////////////////////////////////////////////////////
 list<Item*> Inventory::getList() const
 
@@ -1002,10 +999,10 @@ list<Item*> Inventory::getList() const
             Item* pItem = slot.getItem();
             bool bAdd = true;
 
-            // 아이템이 있다면 아이템 리스트에
-            // 이미 들어가 있지는 않은지 체크를 해야 한다.
+            // If there is an item, check that it is not already
+            // in the item list.
             if (pItem != NULL) {
-                // 리스트에 같은 놈이 있는지 체크를 한다.
+                // Check whether the same one is already in the list.
                 list<Item*>::iterator itr = itemList.begin();
                 for (; itr != itemList.end(); itr++) {
                     if (*itr == pItem) {
@@ -1014,7 +1011,7 @@ list<Item*> Inventory::getList() const
                     }
                 }
 
-                // 리스트에 똑같은 아이템이 없었다면 리스트에다가 더한다.
+                // If the same item was not in the list, add it to the list.
                 if (bAdd) {
                     itemList.push_back(pItem);
                     y += pItem->getVolumeHeight() - 1;
@@ -1030,7 +1027,7 @@ list<Item*> Inventory::getList() const
 }
 
 ////////////////////////////////////////////////////////////
-// 인벤토리 안에 들어 있는 2x2 아이템의 갯수를 리턴한다.
+// Return the number of 2x2 items held in the inventory.
 ////////////////////////////////////////////////////////////
 int Inventory::calc2x2Item(void) const
 
@@ -1074,10 +1071,10 @@ void Inventory::save(const string& owner)
             Item* pItem = slot.getItem();
             bool bAdd = true;
 
-            // 아이템이 있다면 아이템 리스트에
-            // 이미 들어가 있지는 않은지 체크를 해야 한다.
+            // If there is an item, check that it is not already
+            // in the item list.
             if (pItem != NULL) {
-                // 리스트에 같은 놈이 있는지 체크를 한다.
+                // Check whether the same one is already in the list.
                 list<Item*>::iterator itr = itemList.begin();
                 for (; itr != itemList.end(); itr++) {
                     if (*itr == pItem) {
@@ -1086,9 +1083,9 @@ void Inventory::save(const string& owner)
                     }
                 }
 
-                // 리스트에 똑같은 아이템이 없었다면 리스트에다가 더한다.
-                // 벨트일 경우에는 Belt::save에서 안에 들어있는 아이템까지
-                // 저장하니까, 걱정할 필요없다.
+                // If the same item was not in the list, add it to the list.
+                // For a belt, Belt::save also saves the items inside it,
+                // so there is nothing to worry about.
                 if (bAdd) {
                     pItem->save(owner, STORAGE_INVENTORY, 0, x, y);
                     itemList.push_back(pItem);
@@ -1135,24 +1132,23 @@ string Inventory::toString() const
 
 
 ///////////////////////////////////////////////////////////////////////////
-// XMAS 이벤트를 위해서 만든 색깔별 이벤트 별 숫자 코드이다.
-// 2002년 어린이날에 이 코드를 그대로 사용하기 위해서
-// 주석을 해제하고 사용하였다.
-// 단 같은 이벤트가 계속해서 발생할 수 있기 때문에,
-// EVENT CODE의 이름을 XMAS가 아니라 STAR_EVENT_CODE로 바꾸는 것을 고려해야
-// 할 것이다.
+// Per-colour event star count code, written for the XMAS event.
+// The comments were removed so that this code could be reused
+// unchanged for the Children's Day event.
+// Since the same event can keep recurring, renaming the EVENT
+// CODE from XMAS to STAR_EVENT_CODE should be
+// considered.
 //
-// 2002.5.2 장홍창(changaya@metrotech.co.kr
 //
 //////////////////////////////////////////////////////////////////////////
 // #ifdef __XMAS_EVENT_CODE__
-//  인벤토리를 검색하면서 색깔별로 이벤트 별 숫자를 헤아린다.
+// Scan the inventory and count the event stars by colour.
 bool Inventory::hasEnoughStar(const XMAS_STAR& star)
 
 {
     __BEGIN_TRY
 
-    // cout << "필요한 별의 숫자 : " << star.amount << endl;
+    // cout << "Number of stars needed : " << star.amount << endl;
 
     int amount[STAR_COLOR_MAX];
     memset(amount, 0, sizeof(int) * STAR_COLOR_MAX);
@@ -1199,7 +1195,7 @@ bool Inventory::hasEnoughStar(const XMAS_STAR& star)
     }
 
     // cout << star.color << endl;
-    // cout << "가지고 있는 공의 숫자: " << amount[star.color] << endl;
+    // cout << "Number of balls held: " << amount[star.color] << endl;
 
     if (amount[star.color] >= star.amount)
         return true;
@@ -1216,7 +1212,7 @@ void Inventory::decreaseStar(const XMAS_STAR& star)
 {
     __BEGIN_TRY
 
-    // 줄여야 할 양을 기억해 둔다.
+    // Remember the amount that has to be reduced.
     int amount = star.amount;
 
     for (int y = 0; y < m_Height; y++) {
@@ -1234,16 +1230,16 @@ void Inventory::decreaseStar(const XMAS_STAR& star)
                     (IType == 6 && star.color == STAR_COLOR_PINK)) {
                     int ItemNum = pItem->getNum();
 
-                    // 아이템의 스택 숫자가 줄여야 할 양보다 작거나 같다면,
-                    // 아이템을 삭제해야 한다.
+                    // If the item's stack count is less than or equal to the amount to reduce,
+                    // the item has to be deleted.
                     if (ItemNum <= amount) {
                         m_TotalWeight -= (pItem->getWeight() * ItemNum);
                         m_TotalNum -= ItemNum;
 
-                        // 아이템이 삭제된만큼 지워야 할 양도 줄여줘야 한다.
+                        // Reduce the remaining amount by however much was deleted.
                         amount = amount - ItemNum;
 
-                        // 아이템을 삭제해준다.
+                        // Delete the item.
                         deleteItem(x, y);
                         pItem->destroy();
                         SAFE_DELETE(pItem);
@@ -1254,11 +1250,11 @@ void Inventory::decreaseStar(const XMAS_STAR& star)
                         pItem->setNum(ItemNum - amount);
                         pItem->save(m_Owner, STORAGE_INVENTORY, 0, x, y);
 
-                        // 아이템이 삭제된만큼 지워야 할 양도 줄여줘야 한다.
+                        // Reduce the remaining amount by however much was deleted.
                         amount = 0;
                     }
 
-                    // 줄여야 할 양이 0이 되었다면 리턴한다.
+                    // Return once the amount to reduce reaches 0.
                     if (amount == 0)
                         return;
                 }
@@ -1266,7 +1262,7 @@ void Inventory::decreaseStar(const XMAS_STAR& star)
         }
     }
 
-    // 정상적인 처리 순서라면 이 곳까지 오면 안 된다.
+    // Normal processing should never reach this point.
     Assert(false);
 
     __END_CATCH
@@ -1290,8 +1286,8 @@ bool Inventory::hasRedGiftBox(void)
                 pItem->getItemType() == 1) {
                 return true;
 
-                // 선물 상자의 크기가 2x2이기 때문에,
-                // x를 하나 더 더해준다.
+                // A present box is 2x2, so
+                // advance x by one more.
                 x += 1;
             }
         }
@@ -1320,8 +1316,8 @@ bool Inventory::hasGreenGiftBox(void)
                 pItem->getItemType() == 0) {
                 return true;
 
-                // 선물 상자의 크기가 2x2이기 때문에,
-                // x를 하나 더 더해준다.
+                // A present box is 2x2, so
+                // advance x by one more.
                 x += 1;
             }
         }
@@ -1344,7 +1340,7 @@ void Inventory::clearQuestItem(list<Item*>& iList) {
             for (int i = 0; i < width; i++) {
                 Item* pItem = getItem(i, j);
                 if (pItem != NULL) {
-                    // 체크된 아이템의 리스트에서 현재 아이템을 찾는다.
+                    // Look for the current item in the list of already checked items.
                     list<Item*>::iterator itr = find(ItemList.begin(), ItemList.end(), pItem);
 
                     if (itr == ItemList.end()) {
@@ -1354,9 +1350,9 @@ void Inventory::clearQuestItem(list<Item*>& iList) {
                             deleteItem(pItem->getObjectID());
                             iList.push_back(pItem);
                         } else {
-                            // 리스트에 아이템이 없으면
-                            // 같은 아이템을 두번 체크하지 않기 위해서
-                            // 리스트에다가 아이템을 집어넣는다.
+                            // If the item is not in the list,
+                            // put it into the list so that the same item
+                            // is not checked twice.
                             ItemList.push_back(pItem);
                         }
                     }

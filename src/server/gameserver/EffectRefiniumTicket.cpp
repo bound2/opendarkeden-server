@@ -39,7 +39,7 @@ void EffectRefiniumTicket::unaffect(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    // 플래그를 끈다.
+    // Clear the flag.
     pCreature->removeFlag(Effect::EFFECT_CLASS_REFINIUM_TICKET);
 
     __END_CATCH

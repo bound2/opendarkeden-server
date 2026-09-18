@@ -51,17 +51,17 @@ void EventResurrect::activate()
 
     Assert(pDeadPC != NULL);
 
-    // 하이드한 상태에서 죽었다면, 하이드를 풀어준다.
+    // If the player died while hidden, clear hide.
     pDeadPC->removeFlag(Effect::EFFECT_CLASS_HIDE);
 
-    // 무브모드를 바꿔준다.
+    // Change the move mode.
     if (pDeadPC->isVampire() && pDeadPC->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT)) {
         pDeadPC->setMoveMode(Creature::MOVE_MODE_FLYING);
     } else {
         pDeadPC->setMoveMode(Creature::MOVE_MODE_WALKING);
     }
 
-    // HP를 채워준다.
+    // Refill HP.
     if (pDeadPC->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pDeadPC);
         pSlayer->setHP(pSlayer->getHP(ATTR_MAX), ATTR_CURRENT);
@@ -73,38 +73,38 @@ void EventResurrect::activate()
         pOusters->setHP(pOusters->getHP(ATTR_MAX), ATTR_CURRENT);
     }
 
-    // 새 zone을 설정하지 않는다. by sigi. 2002.5.11
+    // The new zone is not set here.
     Zone* pOldZone = pDeadPC->getZone();
     Assert(pOldZone != NULL);
 
     try {
-        // 존그룹의 ZPM에서 플레이어를 삭제한다.
+        // Remove the player from the zone group's ZPM.
         pOldZone->getZoneGroup()->getZonePlayerManager()->deletePlayer(m_pGamePlayer->getSocket()->getSOCKET());
 
-        // 여기서 설정해줘야지만 Save 이벤트가 IPM에서 동작하지 않는다.
+        // Setting it here is what keeps the Save event from running in the IPM.
         m_pGamePlayer->setPlayerStatus(GPS_WAITING_FOR_CG_READY);
 
-        // IPM으로 플레이어를 옮긴다.
+        // Move the player to the IPM.
         // g_pIncomingPlayerManager->pushPlayer(m_pGamePlayer);
         pOldZone->getZoneGroup()->getZonePlayerManager()->pushOutPlayer(m_pGamePlayer);
 
     } catch (NoSuchElementException& t) {
         filelog("eventRessurect.txt", "%s-%s", t.toString().c_str(), pDeadPC->getName().c_str());
         cerr << "EventResurrect::activate() : NoSuchElementException" << endl;
-        // throw Error("존에 플레이어가 존재하지 않습니다.");
-        //  어떻게 없어졌겠지.. -_-;
-        //  무시하고.. 그냥 진행한다.
+        // throw Error("The player does not exist in the zone.");
+        //  It must have disappeared somehow.
+        //  Ignore it and simply carry on.
         //  by sigi. 2002.11.25
     }
 
-    // 죽었을 당시 killCreature에서 존을 셋팅 하기 때문에 그냥 할당 받으면 된다.
+    // killCreature set the zone at the time of death, so it can just be taken as is.
 
-    // 이거는 ZonePlayerManager의 heartbeat에서 처리한다.
-    // 주석처리 by sigi. 2002.5.14
+    // This is handled in ZonePlayerManager's heartbeat.
+    // Commented out.
     // pDeadPC->registerObject();
 
     /*
-    // GCUpdateInfo 패킷을 만들어둔다.
+    // Prepare the GCUpdateInfo packet.
     GCUpdateInfo gcUpdateInfo;
 
     makeGCUpdateInfo(&gcUpdateInfo, pDeadPC);

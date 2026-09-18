@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectGrandMasterOusters.cpp
-// Written by  : 쉭
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -64,7 +63,7 @@ void EffectGrandMasterOusters::affect(Creature* pCreature)
 
     pCreature->setFlag(Effect::EFFECT_CLASS_GRAND_MASTER_OUSTERS);
 
-    // 주위에 뿌려준다.
+    // Broadcast to the surroundings.
     GCAddEffect gcAddEffect;
     gcAddEffect.setObjectID(pCreature->getObjectID());
     gcAddEffect.setEffectID(getSendEffectClass());

@@ -28,7 +28,7 @@ enum GDRLairStatus {
     GDR_LAIR_KILL_ALL,
 };
 
-// 평시. 레어는 쉬고 있고 시간이 되면 레어를 열어준다.
+// Idle. The lair rests and opens when its time comes.
 class GDRLairIdle : public SetTimeState {
 public:
     DWORD getStateType() const {
@@ -48,7 +48,7 @@ public:
 private:
 };
 
-// 20분간 레어가 열리면서 일루젼스 웨이 함정이 활성화된다.
+// The lair is open for 20 minutes and the Illusions Way traps become active.
 class GDRLairEntrance : public TimerState {
 public:
     DWORD getStateType() const {
@@ -67,9 +67,9 @@ public:
     }
 };
 
-// 레어 입구가 닫힌 뒤에도 5분간 일루젼스 웨이를 통과할 수 있는 시간이 있다.
-// 그냥 5분 시간끄는거고 일루젼스 웨이를 한명이라도 통과하면 바로 Icepole
-// State로 넘어간다.
+// After the lair entrance closes there are still 5 minutes to get through
+// the Illusions Way. It just burns 5 minutes; as soon as anyone gets
+// through, it moves straight to the Icepole state.
 /*class GDRLairIllusionsWayOnly : public TimerState
 {
 public:
@@ -84,9 +84,9 @@ public:
     string	toString() const { return "GDRLairIllusionsWayOnly"; }
 };*/
 
-// 일루젼스 웨이를 통과한 플레이어가 있다면 얼음 기둥을 깰 수 있는 시간을
-// 준다. 시작할 때 얼음 기둥을 소환하고 얼음 기둥 깨지면 그 자리에 1분뒤에
-// 데미지를 주는 얼음기둥 이펙트가.. (--)
+// If a player got through the Illusions Way, they are given time to break
+// the ice pole. The pole is summoned at the start, and once it breaks an
+// ice pole effect that deals damage appears there a minute later.
 class GDRLairIcepole : public State {
 public:
     void start();
@@ -106,8 +106,8 @@ private:
     Timeval m_BroadcastTime;
 };
 
-// 얼음 기둥을 통과한 넘이 있다면 질드레가 등장한다.
-// 질드레가 소환되고 이펙트가 발생하고 질드레 대사 1을 한다.
+// If anyone got past the ice pole, GDR appears.
+// GDR is summoned, the effect plays, and GDR speaks line 1.
 class GDRLairScene1 : public GDRScene {
 public:
     GDRLairScene1() : GDRScene(GDR_LAIR_SUMMON_MONSTER) {}
@@ -125,9 +125,9 @@ public:
     }
 };
 
-// 질드레 레어에 일반 몬스터를 10회 소환한다.
-// 살아남은 넘이 없어지면 Idle로
-// 10회 소환한 뒤에도 살아남은 넘이 있으면 Scene2로
+// Summon ordinary monsters into the GDR lair 10 times.
+// If nobody is left alive, go to Idle;
+// if someone survives all 10 waves, go to Scene2.
 class GDRLairSummonMonster : public MonsterSummonState {
 public:
     GDRLairSummonMonster();
@@ -146,8 +146,8 @@ public:
     }
 };
 
-// 질드레가 대사 2를 하고 이펙트 시전 후 지정 위치로 이동한 뒤
-// 대사 3을 한다.
+// GDR speaks line 2, casts the effect, moves to the set position and
+// then speaks line 3.
 class GDRLairScene2 : public GDRScene {
 public:
     GDRLairScene2() : GDRScene(GDR_LAIR_SUMMON_GDR_DUP) {}
@@ -165,7 +165,7 @@ public:
     }
 };
 
-// 질드레가 분신을 소환한다.
+// GDR summons its duplicates.
 class GDRLairSummonGDRDup : public MonsterSummonState {
 public:
     GDRLairSummonGDRDup();
@@ -184,7 +184,7 @@ public:
     }
 };
 
-// 질드레가 대사 4를 하고 이펙트를 시전한다.
+// GDR speaks line 4 and casts the effect.
 class GDRLairScene3 : public GDRScene {
 public:
     GDRLairScene3() : GDRScene(GDR_LAIR_GDR_FIGHT) {}
@@ -202,7 +202,7 @@ public:
     }
 };
 
-// 질드레가 활성화되어 플레이어들과 싸운다.
+// GDR becomes active and fights the players.
 class GDRLairGDRFight : public State {
 public:
     DWORD getStateType() const {
@@ -220,9 +220,9 @@ public:
     }
 };
 
-// 질드레가 대사 5를 하고 엔딩 연출이 나온다.
-// 이후 질드레 코어로 플레이어를 몽땅 옮겨버린뒤
-// 질드레 각성체가 대사 6을 한다.
+// GDR speaks line 5 and the ending sequence plays.
+// Every player is then moved to the GDR core, where the
+// awakened GDR speaks line 6.
 class GDRLairScene4 : public GDRScene {
 public:
     GDRLairScene4() : GDRScene(GDR_LAIR_AWAKENED_GDR_FIGHT) {}
@@ -239,8 +239,8 @@ public:
     }
 };
 
-// 질드레 각성체가 활성화되어 플레이어들과 싸운다.
-// HP가 50% 아래로 떨어지면 Scene5로, 죽으면 Scene6으로.
+// The awakened GDR becomes active and fights the players.
+// Below 50% HP go to Scene5; on death go to Scene6.
 class GDRLairAwakenedGDRFight : public State {
     bool m_bGDRDamaged;
 
@@ -260,7 +260,7 @@ public:
     }
 };
 
-// 대사 7을 하고 지정 위치로 이동한 뒤 대사 8을 한다.
+// Speak line 7, move to the set position, then speak line 8.
 class GDRLairScene5 : public GDRScene {
 public:
     GDRLairScene5() : GDRScene(GDR_LAIR_MINION_FIGHT) {}
@@ -277,7 +277,7 @@ public:
     }
 };
 
-// 중간보스를 제한된 시간 안에 잡아야 한다.
+// The mid-boss has to be killed within a time limit.
 class GDRLairMinionFight : public MonsterSummonState {
 public:
     GDRLairMinionFight();
@@ -296,7 +296,7 @@ public:
     }
 };
 
-// 대사 9를 하고 지정 위치로 이동한 뒤 대사 10을 한다.
+// Speak line 9, move to the set position, then speak line 10.
 class GDRLairScene6 : public GDRScene {
 public:
     GDRLairScene6() : GDRScene(GDR_LAIR_AWAKENED_GDR_FIGHT) {}
@@ -313,8 +313,8 @@ public:
     }
 };
 
-// 죽으면서 대사를 하고 보상 아이템을 지급한다.
-// 사실 별로 할 거 없다 -_-
+// Speak while dying and hand out the reward items.
+// There is not much else to do here.
 class GDRLairEnding : public TimerState {
 public:
     GDRLairEnding() : TimerState(GDR_LAIR_IDLE, 10) {}
@@ -333,7 +333,7 @@ public:
     }
 };
 
-// 끝장났다. 다 죽어라
+// It is over. Kill everyone.
 class GDRLairKillAll : public TimerState {
 public:
     GDRLairKillAll() : TimerState(GDR_LAIR_IDLE, 10) {}
@@ -353,7 +353,7 @@ public:
     }
 };
 
-// 질드레 레어를 총괄하는 매니저. ClientManager의 스레드에서 돈다.
+// Manager for the GDR lair. Runs on the ClientManager's thread.
 class GDRLairManager : public FiniteStateMachine, public ManagedThread {
 public:
     ~GDRLairManager() noexcept override {

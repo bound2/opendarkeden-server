@@ -159,17 +159,17 @@ void ItemInfo::clearDefaultOptions()
     m_DefaultOptions.clear();
 }
 
-// 다음 단계의 옵션으로 upgrade가 성공했나?
+// Did the upgrade to the next option level succeed?
 bool ItemInfo::isUpgradeSucceed() const {
-    // 0이 아니고
-    // 확률만큼 rand()했을때 특정한 한 값(0)이 나오는 경우가 성공이다.
+    // It succeeds when the ratio is not 0 and rand() over that ratio
+    // lands on one particular value (0).
     // return m_UpgradeRatio!=0 && (rand()%m_UpgradeRatio==0);
 
-    // 그런데.. 기획이 백분율로 나왔다. -_-;
+    // The design came out as a percentage instead.
     return (rand() % 100 < (int)m_UpgradeRatio);
 }
 
-// 다음 단계의 옵션으로 upgrade 하다가 실패해서 item이 부서졌나?
+// Did the upgrade to the next option level fail and break the item?
 bool ItemInfo::isUpgradeCrash() const {
     return (rand() % 100 < m_UpgradeCrashPercent);
 }

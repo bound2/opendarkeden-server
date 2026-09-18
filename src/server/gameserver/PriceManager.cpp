@@ -1,9 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : PriceManager.cpp
-// Written By  : 김성민
 // Description :
-// 아이템을 상점에서 사고 팔 때, 그 매매가격을 결정하는 클래스이다.
-// 내부적으로는 ItemInfoManager의 원래 가격을 이용해 계산을 한다.
+// Class that decides the price when items are bought from or sold to a shop.
+// Internally it computes from the original price held by ItemInfoManager.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "PriceManager.h"
@@ -32,22 +31,22 @@ const uint SUMMON_ITEM_CHARGE_PRICE = 1000;
 
 //////////////////////////////////////////////////////////////////////////////
 // getPrice()
-// 아이템 정보를 참조해 실제 물건값을 정한다.
-// nDiscount 변수(백분율)를 이용해 물건값을 컨트롤할 수 있다.
+// Determines the actual price of an item from its item info.
+// The nDiscount parameter (a percentage) controls the price.
 //////////////////////////////////////////////////////////////////////////////
 Price_t PriceManager::getPrice(Item* pItem, MarketCond_t nDiscount, ShopRackType_t shopType,
                                Creature* pCreature) const {
-    // 첨에 공짜로 준 아이템은 팔아도 1원밖에 못 얻는다. 2003. 1. 15. Sequoia
+    // An item that was given away for free sells for only 1.
     if (pItem->getCreateType() == Item::CREATE_TYPE_GAME)
         return (Price_t)1;
-    // 퀘스트 아이템은 오디번~~~ 2003. 4. 14. Sequoia
+    // A time-limited quest item sells for 50.
     if (pItem->isTimeLimitItem())
         return (Price_t)50;
     if (pItem->getItemClass() == Item::ITEM_CLASS_MOON_CARD && pItem->getItemType() == 4) {
         return (Price_t)g_pVariableManager->getVariable(CROWN_PRICE);
     }
 
-    // 아이템의 원래 가격을 얻어낸다.
+    // Get the item's original price.
     ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
     double originalPrice = pItemInfo->getPrice();
     double finalPrice = 0;
@@ -58,7 +57,7 @@ Price_t PriceManager::getPrice(Item* pItem, MarketCond_t nDiscount, ShopRackType
         originalPrice *= (gradePercent / 100.0);
     }
 
-    // 슬레이어 포탈 같은 경우에는 원래 가격에다 현재 차지 수만큼의 가격을 더해야 한다.
+    // A slayer portal adds the price of its current charges to the original price.
     if (pItem->getItemClass() == Item::ITEM_CLASS_SLAYER_PORTAL_ITEM) {
         SlayerPortalItem* pSlayerPortalItem = dynamic_cast<SlayerPortalItem*>(pItem);
         originalPrice += (pSlayerPortalItem->getCharge() * PORTAL_ITEM_CHARGE_PRICE);
@@ -70,12 +69,12 @@ Price_t PriceManager::getPrice(Item* pItem, MarketCond_t nDiscount, ShopRackType
         originalPrice += (pOustersSummonItem->getCharge() * SUMMON_ITEM_CHARGE_PRICE);
     }
 
-    // 옵션이 있다면 옵션만큼의 가격을 곱해야 한다.
+    // If the item has options, multiply the price by the option multiplier.
     const list<OptionType_t>& optionTypes = pItem->getOptionTypeList();
     if (!optionTypes.empty()) {
         finalPrice = 0;
 
-        // 가격 = (원래 가격 * 옵션의 PriceMultiplier / 100) + ..
+        // price = (original price * the option's PriceMultiplier / 100) + ..
         double priceMultiplier = 0;
         list<OptionType_t>::const_iterator itr;
         for (itr = optionTypes.begin(); itr != optionTypes.end(); itr++) {
@@ -88,25 +87,25 @@ Price_t PriceManager::getPrice(Item* pItem, MarketCond_t nDiscount, ShopRackType
         originalPrice = finalPrice;
     }
 
-    // 아이템이 손상되었다면 손상된 만큼의 가격을 깍아야 한다.
+    // A damaged item loses price in proportion to the damage.
     double maxDurability = (double)computeMaxDurability(pItem);
     double curDurability = (double)(pItem->getDurability());
 
-    // 아이템 중에 내구도가 없는 것들이 존재하기 때문에 처리해준다.
+    // Some items have no durability, so handle that case.
     if (maxDurability > 1)
         finalPrice = originalPrice * curDurability / maxDurability;
     else
         finalPrice = originalPrice;
 
-    // 상점 시세에 따라 가격을 다시 조정해준다.
+    // Adjust the price again for the shop's market condition.
     finalPrice = finalPrice * nDiscount / 100;
 
-    // 상점의 종류에 따라 가격을 다시 조정해준다.
+    // Adjust the price again for the kind of shop.
     if (shopType == SHOP_RACK_MYSTERIOUS) {
         finalPrice *= 10;
     }
 
-    // 크리쳐의 변화 요소에 따라 가격을 다시 조정해준다.
+    // Adjust the price again for the creature's own modifiers.
     if (pCreature != NULL) {
         if (pCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -119,19 +118,19 @@ Price_t PriceManager::getPrice(Item* pItem, MarketCond_t nDiscount, ShopRackType
                 finalPrice = getPercentValue((int)finalPrice, 70);
             }
         } else if (pCreature->isVampire()) {
-            // 뱀파이어가 해골을 팔 경우에는 해골의 가격을 반으로 줄여준다.
+            // A vampire selling a skull gets half the skull's price.
             if (pItem->getItemClass() == Item::ITEM_CLASS_SKULL) {
                 finalPrice = finalPrice / 2.0;
             }
         } else if (pCreature->isOusters()) {
-            // 아우스터즈가 해골을 팔 경우에는 해골의 가격의 75%.
+            // An ousters selling a skull gets 75% of the skull's price.
             if (pItem->getItemClass() == Item::ITEM_CLASS_SKULL) {
                 finalPrice *= 0.75;
             }
         }
     }
 
-    // 유료 사용자이고 유료존 이면
+    // For a paying user in a pay zone.
     if (g_pVariableManager->getVariable(PREMIUM_HALF_EVENT)) {
         if (pItem->getItemClass() == Item::ITEM_CLASS_POTION || pItem->getItemClass() == Item::ITEM_CLASS_SERUM ||
             pItem->getItemClass() == Item::ITEM_CLASS_LARVA || pItem->getItemClass() == Item::ITEM_CLASS_PUPA ||
@@ -140,20 +139,20 @@ Price_t PriceManager::getPrice(Item* pItem, MarketCond_t nDiscount, ShopRackType
                 PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
                 GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPC->getPlayer());
                 if (pGamePlayer->isPayPlaying()) {
-                    // 반 값.
+                    // Half price.
                     finalPrice = finalPrice / 2;
                 }
             }
         }
     }
 
-    // Blood Bible 보너스 적용
+    // Apply the Blood Bible bonus.
     if (pItem->getItemClass() == Item::ITEM_CLASS_POTION || pItem->getItemClass() == Item::ITEM_CLASS_SERUM) {
         if (pCreature->isPC()) {
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
             int ratio = pPC->getPotionPriceRatio();
             if (ratio != 0) {
-                // ratio 값이 마이너스 값이다.
+                // The ratio value is negative.
                 finalPrice += getPercentValue((int)finalPrice, ratio);
             }
         }
@@ -164,12 +163,12 @@ Price_t PriceManager::getPrice(Item* pItem, MarketCond_t nDiscount, ShopRackType
 
 //////////////////////////////////////////////////////////////////////////////
 // getRepairPrice()
-// 아이템을 수리할 때 드는 비용을 리턴한다.
-// 아이템 수리비는 완전히 박살난 아이템일 경우
-// 원래 아이템 가격의 10분의 1이다.
+// Returns the cost of repairing an item.
+// For a completely ruined item the repair cost is
+// one tenth of the item's original price.
 //////////////////////////////////////////////////////////////////////////////
 Price_t PriceManager::getRepairPrice(Item* pItem, Creature* pCreature) const {
-    // 아이템의 원래 가격을 얻어낸다.
+    // Get the item's original price.
     ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
     double originalPrice = pItemInfo->getPrice();
     double finalPrice = 0;
@@ -180,7 +179,7 @@ Price_t PriceManager::getRepairPrice(Item* pItem, Creature* pCreature) const {
         originalPrice *= (gradePercent / 100.0);
     }
 
-    // 슬레이어 포탈 같은 경우에는 수리를 할 수는 없지만, 차지를 늘릴 수가 있다.
+    // A slayer portal cannot be repaired, but its charges can be topped up.
     if (pItem->getItemClass() == Item::ITEM_CLASS_SLAYER_PORTAL_ITEM) {
         SlayerPortalItem* pSlayerPortalItem = dynamic_cast<SlayerPortalItem*>(pItem);
         int MaxCharge = pSlayerPortalItem->getMaxCharge();
@@ -197,11 +196,11 @@ Price_t PriceManager::getRepairPrice(Item* pItem, Creature* pCreature) const {
         return (MaxCharge - CurCharge) * SUMMON_ITEM_CHARGE_PRICE;
     }
 
-    // 옵션이 있다면 옵션만큼의 가격을 곱해야 한다.
+    // If the item has options, multiply the price by the option multiplier.
     const list<OptionType_t>& optionTypes = pItem->getOptionTypeList();
     if (!optionTypes.empty()) {
         finalPrice = 0;
-        // 가격 = (원래 가격 * 옵션의 PriceMultiplier의 총합 / 100) * 옵션의 개수
+        // price = (original price * sum of the options' PriceMultipliers / 100) * number of options
         double priceMultiplier = 0;
         list<OptionType_t>::const_iterator itr;
         for (itr = optionTypes.begin(); itr != optionTypes.end(); itr++) {
@@ -223,27 +222,27 @@ Price_t PriceManager::getRepairPrice(Item* pItem, Creature* pCreature) const {
     }
     */
 
-    // 아이템이 손상되었다면 손상된 만큼의 가격을 깍아야 한다.
+    // A damaged item loses price in proportion to the damage.
     double maxDurability = (double)computeMaxDurability(pItem);
     double curDurability = (double)(pItem->getDurability());
 
-    // 아이템 중에 내구도가 없는 것들이 존재하기 때문에 처리해준다.
+    // Some items have no durability, so handle that case.
     if (maxDurability != 0) {
-        // 아이템의 현재 내구도가 맥스라면 리턴한다.
+        // Return early if the item is at full durability.
         if (curDurability == maxDurability) {
             return 0;
         }
 
-        // 현재 내구도를 최내 내구도로 나누면 그 아이템의 손상된 정도가 나온다.
-        // 이를 원래 가격에다 곱하면, 내구도가 깍인 만큼 아이템의 값이 떨어지게 된다.
+        // Current durability divided by maximum durability gives how damaged the item is.
+        // Multiplying the original price by it lowers the value as durability drops.
         finalPrice = originalPrice * curDurability / maxDurability;
     } else {
-        // 내구도가 없는 아이템은 손상되지가 않으므로,
-        // 내구도를 고려한 가격은 원래의 값과 똑같다.
+        // An item without durability cannot be damaged, so
+        // its durability-adjusted price equals the original price.
         finalPrice = originalPrice;
     }
 
-    // 수리 비용은 원래 값의 10분의 1이다.
+    // The repair cost is one tenth of the lost value.
     finalPrice = (originalPrice - finalPrice) / 10.0;
 
     if (finalPrice < 1.0) {
@@ -255,7 +254,7 @@ Price_t PriceManager::getRepairPrice(Item* pItem, Creature* pCreature) const {
 
 //////////////////////////////////////////////////////////////////////////////
 // getSilverCoatingPrice()
-// 아이템을 은 도금할 때의 가격이다.
+// The price of silver-coating an item.
 //////////////////////////////////////////////////////////////////////////////
 Price_t PriceManager::getSilverCoatingPrice(Item* pItem, Creature* pCreature) const {
     if (pItem == NULL)
@@ -275,7 +274,7 @@ Price_t PriceManager::getSilverCoatingPrice(Item* pItem, Creature* pCreature) co
     double maxSilver = pItemInfo->getMaxSilver();
     double finalPrice = 0;
 
-    // 땜빵으로 집어넣은 은의 가격이다.
+    // Stopgap: the price is the amount of silver.
     finalPrice = maxSilver;
 
     return max(0, (int)finalPrice);
@@ -283,8 +282,8 @@ Price_t PriceManager::getSilverCoatingPrice(Item* pItem, Creature* pCreature) co
 
 //////////////////////////////////////////////////////////////////////////////
 // getStashPrice()
-// 보관함 가격을 리턴한다.
-// 그렇게 자주 변동될 가격이 아니기 때문에 코드에다 집어넣어 놓았다.
+// Returns the price of a stash slot.
+// It changes rarely, so the values are written into the code.
 //////////////////////////////////////////////////////////////////////////////
 Price_t PriceManager::getStashPrice(BYTE index, Creature* pCreature) const {
     Price_t price = 0;
@@ -316,12 +315,12 @@ Price_t PriceManager::getStashPrice(BYTE index, Creature* pCreature) const {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 이벤트용 가격 함수
-// 2001년 크리스마스 이벤트때 사용하였던 별 아이템에 대한 정보이다.
-// 2002년 어린이날에도 같은 이벤트를 사용하기로 하였기 때문에 주석을 해지
+// Price function for events.
+// Information for the star item used in the Christmas event.
+// The same event is reused for Children's Day, so the code is enabled again.
 //
-// 별 이벤트가 앞으로 일어날 수 있는 관계로,
-// 이름을 STAR_EVENT_CODE로 변경하는 것을 고려해야 하겠다.
+// Since the star event may run again,
+// renaming this to STAR_EVENT_CODE should be considered.
 //////////////////////////////////////////////////////////////////////////////
 int PriceManager::getStarPrice(Item* pItem, XMAS_STAR& star) const {
     Assert(pItem != NULL);
@@ -368,8 +367,8 @@ int PriceManager::getBallPrice(int price, XMAS_STAR& star) const {
     return 0;
 }
 
-// Mysterious Item 가격
-// itemClass와 pCreature의 능력치에 따라서 가격이 달라진다.
+// Mysterious item price.
+// The price varies with itemClass and with pCreature's attributes.
 Price_t PriceManager::getMysteriousPrice(Item::ItemClass itemClass, Creature* pCreature) const {
     int multiplier = 1;
 
@@ -381,40 +380,40 @@ Price_t PriceManager::getMysteriousPrice(Item::ItemClass itemClass, Creature* pC
         Attr_t CINT = pSlayer->getINT(ATTR_BASIC);
         Attr_t CSUM = CSTR + CDEX + CINT;
 
-        // 0~20 사이
+        // Between 0 and 20
         multiplier = CSUM / 15;
     } else if (pCreature->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
 
         Level_t CLevel = pVampire->getLevel();
 
-        // 0~20 사이
+        // Between 0 and 20
         multiplier = CLevel / 5;
     } else if (pCreature->isOusters()) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
 
         Level_t CLevel = pOusters->getLevel();
 
-        // 0~20 사이
+        // Between 0 and 20
         multiplier = CLevel / 5;
     }
 
-    // 1~20사이
+    // Between 1 and 20
     multiplier = max(1, multiplier);
 
-    // 가격 평균을 알아온다.
+    // Get the average price.
     InfoClassManager* pInfoClass = g_pItemInfoManager->getInfoManager(itemClass);
     Assert(pInfoClass != NULL);
 
-    // 가격 평균 * 능력치 비율?
+    // Average price * attribute ratio.
     int finalPrice = (int)pInfoClass->getAveragePrice() * multiplier;
 
-    // Blood Bible 보너스 적용
+    // Apply the Blood Bible bonus.
     if (pCreature->isPC()) {
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
         int ratio = pPC->getGamblePriceRatio();
         if (ratio != 0) {
-            // ratio 값은 마이너스 값이다.
+            // The ratio value is negative.
             finalPrice += getPercentValue(finalPrice, ratio);
         }
     }

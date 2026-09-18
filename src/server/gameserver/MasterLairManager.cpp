@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : MasterLairManager.h
-// Written By  : 쉭
 // Description :
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -52,16 +51,16 @@ MasterLairManager::MasterLairManager(Zone* pZone)
     MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(m_pZone->getZoneID());
     Assert(pInfo != NULL);
 
-    m_MasterID = 0; // 마스터 한 마리
+    m_MasterID = 0; // a single master
     m_MasterX = 0;
     m_MasterY = 0;
 
-    m_bMasterReady = false; // 마스터가 싸울 준비가 되었나?
+    m_bMasterReady = false; // is the master ready to fight?
 
-    // m_nMaxSummonMonster = pInfo->getMaxSummonMonster(); // 마스터가 소환할 최대의 몬스터 수
+    // m_nMaxSummonMonster = pInfo->getMaxSummonMonster(); // max monsters the master summons
     // m_nSummonedMonster = 0;
 
-    m_nMaxPassPlayer = pInfo->getMaxPassPlayer(); // 최대 출입 가능자 수
+    m_nMaxPassPlayer = pInfo->getMaxPassPlayer(); // maximum number of players allowed in
     m_nPassPlayer = 0;
 
     m_Event = EVENT_WAITING_REGEN;
@@ -70,7 +69,7 @@ MasterLairManager::MasterLairManager(Zone* pZone)
     Timeval currentTime;
     getCurrentTime(currentTime);
 
-    // 의미없당. - -;
+    // Has no meaning.
     m_EventTime.tv_sec = currentTime.tv_sec + pInfo->getFirstRegenDelay();
     m_EventTime.tv_usec = 0;
 
@@ -103,20 +102,20 @@ MasterLairManager::~MasterLairManager()
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Creature가 이 Zone(MasterLair)에 들어올 수 있는지 체크하고
-// 들어올 수 있다면 들어왔다고 보고 체크해둔다.
+// Check whether a creature may enter this zone (MasterLair) and, if it may,
+// record it as having entered.
 //
-// [조건]
+// [Conditions]
 //   - EVENT_WAITING_PLAYER,
 //     EVENT_MINION_COMBAT,
-//     EVENT_MASTER_COMBAT인 경우만 들어올 가능성이 있다.
-//   - EffectMasterLairPass가 있고 현재 MasterLair의 것이 맞는 경우는 무조건 들어온다.
-//   - EVENT_WAITING_PLAYER가 아니면 못 들어온다.
-//   - 마스터가 없는 경우 m_nPassPlayer >= m_nMaxPassPlayer인 경우 못 들어옴
+//     EVENT_MASTER_COMBAT are the only states in which entry is possible.
+//   - A creature holding an EffectMasterLairPass for this MasterLair always enters.
+//   - Entry is refused unless the state is EVENT_WAITING_PLAYER.
+//   - With no master, entry is refused when m_nPassPlayer >= m_nMaxPassPlayer.
 //
-// 출입 가능한 캐릭터에게는 EffectMasterLairPass가 없다면
-//   - m_nPassPlayer를 1증가시키고 EffectMasterLairPass를 붙여준다.
-//   - EffectMasterLairPass의 지속 시간은 EVENT_MASTER_COMBAT이 끝나는 시간까지이다.
+// For a character allowed in that has no EffectMasterLairPass:
+//   - m_nPassPlayer is increased by 1 and an EffectMasterLairPass is attached.
+//   - The EffectMasterLairPass lasts until EVENT_MASTER_COMBAT ends.
 //
 ////////////////////////////////////////////////////////////////////////////////
 bool MasterLairManager::enterCreature(Creature* pCreature)
@@ -131,13 +130,13 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
     }
 
     if (m_Event != EVENT_WAITING_PLAYER && m_Event != EVENT_MINION_COMBAT && m_Event != EVENT_MASTER_COMBAT) {
-        // cout << "[" << (int)m_pZone->getZoneID() << "] MasterLairManager: 지금은 들어갈 수 없는 모드" << endl;
+        // cout << "[" << (int)m_pZone->getZoneID() << "] MasterLairManager: cannot enter now" << endl;
         return false;
     }
 
     EffectMasterLairPass* pPassEffect = NULL;
 
-    // 현재 Zone의 EffectMasterLairPass를 갖고 있는가?
+    // Does the creature hold an EffectMasterLairPass for the current zone?
     if (pCreature->isFlag(Effect::EFFECT_CLASS_MASTER_LAIR_PASS)) {
         if (g_pVariableManager->isRetryMasterLair()) {
             Effect* pEffect = pCreature->getEffectManager()->findEffect(Effect::EFFECT_CLASS_MASTER_LAIR_PASS);
@@ -152,7 +151,7 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
                 goto ENTER_OK;
             }
 
-            // 다른 Lair의 Pass다. - -;
+            // The pass belongs to a different lair.
             // cout << "[" << (int)m_pZone->getZoneID() << "] MMasterLairManager: " << pCreature->getName().c_str() << "
             // has Wrong EffectPass" << endl;
         } else {
@@ -163,7 +162,7 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
         }
     }
 
-    // 들어올 수 없는 경우
+    // Entry is refused.
     if (m_Event != EVENT_WAITING_PLAYER) {
         // cout << "[" << (int)m_pZone->getZoneID() << "] MasterLairManager: Not WAITING_PLAYER: "
         //	<< m_pZone->getPCManager()->getSize() << " / " << m_nPassPlayer << "/" << m_nMaxPassPlayer << endl;
@@ -180,7 +179,7 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
         return false;
     }
 
-    // 들어올 수 있다고 판단된 경우
+    // Entry is allowed.
     m_nPassPlayer++;
 
     if (pPassEffect == NULL) {
@@ -203,7 +202,7 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
 ENTER_OK:
 
     /*
-    // Sniping 제거
+    // Remove Sniping.
     if (pCreature->isFlag(Effect::EFFECT_CLASS_SNIPING_MODE))
     {
         EffectManager* pEffectManager = pCreature->getEffectManager();
@@ -212,7 +211,7 @@ ENTER_OK:
         pCreature->removeFlag(Effect::EFFECT_CLASS_INVISIBILITY);
     }
 
-    // Invisibility제거
+    // Remove Invisibility.
     if (pCreature->isFlag(Effect::EFFECT_CLASS_INVISIBILITY))
     {
         EffectManager* pEffectManager = pCreature->getEffectManager();
@@ -244,9 +243,9 @@ ENTER_OK:
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
-// WaitingPlayer상태이면 PassPlayer를 하나 줄여준다.
+// In the WaitingPlayer state, decrease PassPlayer by one.
 //
-// 마스터 레어에 다시 들어갈 수 없는 상태이면 EffectPass를 없애준다.
+// If re-entering the master lair is not allowed, remove the EffectPass.
 //
 ////////////////////////////////////////////////////////////////////////////////
 bool MasterLairManager::leaveCreature(Creature* pCreature)
@@ -260,14 +259,14 @@ bool MasterLairManager::leaveCreature(Creature* pCreature)
         return true;
     }
 
-    // waiting player인 경우만 숫자를 줄인다.
+    // The count is decreased only in the waiting player state.
     if (m_Event == EVENT_WAITING_PLAYER) {
         if (m_nPassPlayer > 0)
             m_nPassPlayer--;
     }
 
-    // 나간 경우(죽은 경우) 마스터 레어에 다시 돌아올 수 없는 모드..가 되어있다면
-    // 나갈 때 EffectMasterLairPass를 제거한다.
+    // When re-entry after leaving (or dying) is not allowed, remove the
+    // EffectMasterLairPass on the way out.
     if (!g_pVariableManager->isRetryMasterLair()) {
         if (pCreature->isFlag(Effect::EFFECT_CLASS_MASTER_LAIR_PASS)) {
             pCreature->getEffectManager()->deleteEffect(Effect::EFFECT_CLASS_MASTER_LAIR_PASS);
@@ -343,15 +342,15 @@ void MasterLairManager::processEventWaitingPlayer()
     Timeval currentTime;
     getCurrentTime(currentTime);
 
-    // 대기 시간이 끝나면..
-    // 마스터가 몬스터를 소환하기 하기 시작한다.
+    // When the waiting time is over,
+    // the master starts summoning monsters.
     if (currentTime >= m_EventTime) {
-        // 마스터 레어가 열려있다고 사람들에게 알려준다.
+        // Tell everyone the master lair is open.
         //		ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( m_pZone->getZoneID() );
         //		Assert(pZoneInfo!=NULL);
 
         //		StringStream msg;
-        //		msg << "마스터 레어(" << pZoneInfo->getFullName().c_str() << ")가 닫혔습니다.";
+        //		msg << "The master lair (" << pZoneInfo->getFullName().c_str() << ") has closed.";
 
         //        char msg[50];
         //       sprintf( msg, g_pStringPool->c_str( STRID_MASTER_LAIR_CLOSED ),
@@ -371,20 +370,20 @@ void MasterLairManager::processEventWaitingPlayer()
 
         g_pZoneGroupManager->broadcast(&gcNoticeEvent);
 
-        // Minion과의 싸움 시작
+        // Start the fight with the minions.
         activeEventMinionCombat();
     } else {
         int remainSec = m_EventTime.tv_sec - currentTime.tv_sec;
 
-        // 1분 마다 한번씩 알린다.
+        // Announce once a minute.
         if (remainSec != m_EventValue && remainSec != 0 && remainSec % 60 == 0) {
-            // 마스터 레어가 열려있다고 사람들에게 알려준다.
+            // Tell everyone the master lair is open.
             //			ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( m_pZone->getZoneID() );
             //			Assert(pZoneInfo!=NULL);
 
             //			StringStream msg;
-            //			msg << "마스터 레어(" << pZoneInfo->getFullName().c_str() << ") 출입 가능 시간이 "
-            //				<< (remainSec/60) << "분 남았습니다.";
+            //			msg << "The master lair (" << pZoneInfo->getFullName().c_str() << ") can be entered for "
+            //				<< (remainSec/60) << " more minutes.";
 
             //            char msg[100];
             //           sprintf( msg, g_pStringPool->c_str( STRID_MASTER_LAIR_OPENING_COUNT_DOWN ),
@@ -430,9 +429,9 @@ void MasterLairManager::processEventMinionCombat()
     Timeval currentTime;
     getCurrentTime(currentTime);
 
-    // 대기 시간이 끝나면..
-    // 몹을 덜 죽였다는 의미이므로..
-    // 강제추방한다.
+    // When the waiting time is over,
+    // not enough monsters were killed, so
+    // the players are forcibly kicked out.
     if (currentTime >= m_EventTime) {
         GCNoticeEvent gcNoticeEvent;
         gcNoticeEvent.setCode(NOTICE_EVENT_MASTER_COMBAT_END);
@@ -441,16 +440,16 @@ void MasterLairManager::processEventMinionCombat()
         activeEventWaitingKickOut();
     }
 
-    // 소환된 몹이 다 죽은 경우라면..
-    // 마스터가 나와서 싸운다.
+    // When every summoned monster is dead,
+    // the master comes out and fights.
     // if (m_nSummonedMonster >= m_nMaxSummonMonster
     if (m_bMasterReady
-        // 존에 마스터 혼자만 남은 경우
+        // Only the master is left in the zone.
         && m_pZone->getMonsterManager()->getSize() == 1) {
         activeEventMasterCombat();
     }
 
-    // 플레이어들이 다 죽은 경우
+    // Every player is dead.
     if (m_pZone->getPCManager()->getSize() == 0) {
         activeEventWaitingRegen();
     }
@@ -474,7 +473,7 @@ void MasterLairManager::processEventMasterCombat()
     Creature* pMaster = m_pZone->getMonsterManager()->getCreature(m_MasterID);
 
     if (pMaster == NULL) {
-        // 마스터 어디갔나?
+        // The master is missing.
         StringStream msg;
         msg << "마스터가 없어졌다. zoneID = " << (int)m_pZone->getZoneID();
 
@@ -482,14 +481,14 @@ void MasterLairManager::processEventMasterCombat()
 
         // throw Error(msg.toString());
     } else {
-        // 현재 마스터의 위치
+        // The master's current position.
         m_MasterX = pMaster->getX();
         m_MasterY = pMaster->getY();
     }
 
-    // 마스터가 죽었거나
-    // 대기 시간이 끝나면..
-    // 강제추방 모드로 바꾼다.
+    // When the master is dead or
+    // the waiting time is over,
+    // switch to the forced kick-out mode.
     if (pMaster == NULL || pMaster->isDead()) {
         killAllMonsters();
         giveKillingReward();
@@ -500,7 +499,7 @@ void MasterLairManager::processEventMasterCombat()
         activeEventWaitingKickOut();
     }
 
-    // 플레이어들이 다 죽은 경우
+    // Every player is dead.
     if (m_pZone->getPCManager()->getSize() == 0) {
         activeEventWaitingRegen();
     }
@@ -521,9 +520,9 @@ void MasterLairManager::processEventWaitingKickOut()
     Timeval currentTime;
     getCurrentTime(currentTime);
 
-    // 대기 시간이 끝나면
-    //   사용자들을 kickOut 시키고
-    //   Regen되기를 기다린다.
+    // When the waiting time is over,
+    //   kick the players out and
+    //   wait for the regen.
     if (currentTime >= m_EventTime) {
         kickOutPlayers();
         activeEventWaitingRegen();
@@ -544,13 +543,13 @@ void MasterLairManager::processEventWaitingRegen()
     Timeval currentTime;
     getCurrentTime(currentTime);
 
-    // 리젠 시간이 되면
-    //   사용자들을 기다린다.
+    // When the regen time arrives,
+    //   wait for players.
     if (currentTime >= m_RegenTime) {
         if (g_pVariableManager->isActiveMasterLair()) {
             activeEventWaitingPlayer();
         } else {
-            // 아니면 다음 리젠 시간까지 대기한다.
+            // Otherwise wait until the next regen time.
             MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(m_pZone->getZoneID());
             Assert(pInfo != NULL);
 
@@ -581,14 +580,14 @@ void MasterLairManager::activeEventWaitingPlayer()
 
     m_nPassPlayer = 0;
 
-    // 5분 대기 시간
+    // Five-minute waiting time.
     getCurrentTime(m_RegenTime);
     m_EventTime.tv_sec = m_RegenTime.tv_sec + pInfo->getStartDelay();
     m_EventTime.tv_usec = m_RegenTime.tv_usec;
     m_EventValue = 0;
 
-    // 바닥에서 계속 불꽃이 솟아오른다.
-    // 3초마다
+    // Flames keep rising from the ground,
+    // every three seconds.
     int lairAttackTick = pInfo->getLairAttackTick();
     int lairAttackMinNumber = pInfo->getLairAttackMinNumber();
     int lairAttackMaxNumber = pInfo->getLairAttackMaxNumber();
@@ -597,8 +596,8 @@ void MasterLairManager::activeEventWaitingPlayer()
     // " << lairAttackMaxNumber << endl;
 
     if (lairAttackMinNumber > 0 && lairAttackMaxNumber > 0) {
-        // 기존에 있던 공격 Effect를 모두 지운다.
-        for (int i = 0; i < 10; i++) // 무한루프 방지 -_-;
+        // Delete every existing attack effect.
+        for (int i = 0; i < 10; i++) // guard against an infinite loop
         {
             Effect* pOldEffect = m_pZone->findEffect(Effect::EFFECT_CLASS_CONTINUAL_GROUND_ATTACK);
             if (pOldEffect == NULL)
@@ -616,23 +615,23 @@ void MasterLairManager::activeEventWaitingPlayer()
         ObjectRegistry& objectregister = m_pZone->getObjectRegistry();
         objectregister.registerObject(pEffect);
 
-        // 존에다가 이펙트를 추가한다.
+        // Add the effect to the zone.
         m_pZone->addEffect(pEffect);
 
-        // 불기둥
+        // Pillar of fire.
         GCNoticeEvent gcNoticeEvent;
         gcNoticeEvent.setCode(NOTICE_EVENT_CONTINUAL_GROUND_ATTACK);
-        gcNoticeEvent.setParameter(pInfo->getStartDelay()); // 초
+        gcNoticeEvent.setParameter(pInfo->getStartDelay()); // seconds
 
         m_pZone->broadcastPacket(&gcNoticeEvent);
     }
 
-    // 마스터 레어가 열렸다고 사람들에게 알려준다.
+    // Tell everyone the master lair has opened.
     //	ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( m_pZone->getZoneID() );
     //	Assert(pZoneInfo!=NULL);
 
     //	StringStream msg;
-    //	msg << "마스터 레어(" << pZoneInfo->getFullName().c_str() << ")가 열렸습니다.";
+    //	msg << "The master lair (" << pZoneInfo->getFullName().c_str() << ") has opened.";
 
     //    char msg[50];
     //   sprintf( msg, g_pStringPool->c_str( STRID_MASTER_LAIR_OPENED ),
@@ -652,7 +651,7 @@ void MasterLairManager::activeEventWaitingPlayer()
 
     g_pZoneGroupManager->broadcast(&gcNoticeEvent);
 
-    // 다음 리젠 시간 설정
+    // Set the next regen time.
     m_RegenTime.tv_sec += pInfo->getRegenDelay();
 
     m_Event = EVENT_WAITING_PLAYER;
@@ -675,7 +674,7 @@ void MasterLairManager::activeEventMinionCombat()
     MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(m_pZone->getZoneID());
     Assert(pInfo != NULL);
 
-    // 불기둥 끝났다는 신호
+    // Signal that the pillar of fire has ended.
     GCNoticeEvent gcNoticeEvent;
     gcNoticeEvent.setCode(NOTICE_EVENT_CONTINUAL_GROUND_ATTACK_END);
     m_pZone->broadcastPacket(&gcNoticeEvent);
@@ -685,38 +684,38 @@ void MasterLairManager::activeEventMinionCombat()
     m_pZone->broadcastPacket(&gcNoticeEvent);
 
 
-    // tile에서는 지우고 packet은 안 보낸다.
+    // Remove from the tile without sending a packet.
     deleteAllMonsters();
 
-    // 마스터 생성
+    // Create the master.
     Monster* pMaster = new Monster(pInfo->getMasterNotReadyMonsterType());
     Assert(pMaster != NULL);
 
-    // 시체에서 아이템이 안 나오도록 한다.
+    // No items come out of the corpse.
     pMaster->setTreasure(false);
 
-    // 무적 상태로 설정
+    // Set the invulnerable state.
     pMaster->setFlag(Effect::EFFECT_CLASS_NO_DAMAGE);
 
-    // 마스터를 생성해 놓으면
-    // 마스터가 알아서 몬스터를 소환하게 된다.
+    // Once the master exists it summons
+    // monsters on its own.
 
     try {
         m_pZone->addCreature(pMaster, pInfo->getMasterX(), pInfo->getMasterY(), pInfo->getMasterDir());
 
-        // ObjectID를 기억해두고 읽어서 사용한다.
+        // Remember the ObjectID and read the master through it.
         m_MasterID = pMaster->getObjectID();
     } catch (EmptyTileNotExistException&) {
-        // 마스터가 들어갈 자리가 없다고? -_-;
+        // There is no free tile for the master.
         SAFE_DELETE(pMaster);
     }
 
-    // m_nSummonedMonster = 0;  // 마스터가 소환한 몬스터 수
+    // m_nSummonedMonster = 0;  // number of monsters the master summoned
 
     m_Event = EVENT_MINION_COMBAT;
     m_EventValue = 0;
 
-    // 언제까지 싸울까?
+    // How long the fight lasts.
     getCurrentTime(m_EventTime);
     m_EventTime.tv_sec += pInfo->getEndDelay();
 
@@ -736,7 +735,7 @@ void MasterLairManager::activeEventMasterCombat()
     __BEGIN_TRY
 
     Creature* pMaster = m_pZone->getMonsterManager()->getCreature(m_MasterID);
-    // 여기서 마스터 관련 하드코딩을 해도 되겠지. - -;
+    // Master-specific hardcoding can go here.
 
     if (pMaster != NULL) {
         MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(m_pZone->getZoneID());
@@ -744,44 +743,44 @@ void MasterLairManager::activeEventMasterCombat()
 
         Monster* pMasterMonster = dynamic_cast<Monster*>(pMaster);
 
-        // 소환 단계의 마스터 대신에 직접 싸우는 마스터 몬스터로 바꾼다.
+        // Replace the summoning-stage master with the master monster that fights.
         if (pInfo->getMasterMonsterType() != pMasterMonster->getMonsterType()) {
-            // 마스터 생성
+            // Create the master.
             Monster* pNewMaster = new Monster(pInfo->getMasterMonsterType());
             Assert(pNewMaster != NULL);
 
-            // 시체에서 아이템이 안 나오도록 한다.
+            // No items come out of the corpse.
             pNewMaster->setTreasure(false);
 
             try {
                 m_pZone->addCreature(pNewMaster, pInfo->getSummonX(), pInfo->getSummonY(), pMaster->getDir());
 
-                // ObjectID를 기억해두고 읽어서 사용한다.
+                // Remember the ObjectID and read the master through it.
                 m_MasterID = pNewMaster->getObjectID();
             } catch (EmptyTileNotExistException&) {
                 m_MasterID = 0;
 
-                // 마스터가 들어갈 자리가 없다고? -_-;
+                // There is no free tile for the master.
                 SAFE_DELETE(pNewMaster);
             }
 
-            // NotReady상태의 Master를 그냥 남겨 두는 경우
+            // The NotReady master is left in place.
             if (pInfo->isMasterRemainNotReady()) {
                 ZoneCoord_t cx = pMasterMonster->getX();
                 ZoneCoord_t cy = pMasterMonster->getY();
 
-                // 먼저 바닥에 쓰러뜨리라고, 이펙트를 뿌린다.
+                // Broadcast the effect that lays it on the ground first.
                 GCAddEffect gcAddEffect;
                 gcAddEffect.setObjectID(pMasterMonster->getObjectID());
                 gcAddEffect.setEffectID(Effect::EFFECT_CLASS_COMA);
                 gcAddEffect.setDuration(0);
                 m_pZone->broadcastPacket(cx, cy, &gcAddEffect);
 
-                // AI만 제거하고 그대로 둔다.
+                // Only the AI is removed; the monster stays.
                 pMasterMonster->removeBrain();
 
                 /*
-                // 아이템으로 남겨둘랬는데.. AI제거하고 그냥 두는게 나을거 같아서
+                // Leaving it with the AI removed is preferred to leaving an item.
                 m_pZone->deleteCreature( pMaster, pMaster->getX(), pMaster->getY() );
 
                 ZoneCoord_t cx = pMasterMonster->getX();
@@ -791,13 +790,13 @@ void MasterLairManager::activeEventMasterCombat()
 
                 bool bCreateCorpse = true;
 
-                // 시체를 타일에 추가한다. 현재 타일에 아이템이 존재한다면,
+                // Add the corpse to the tile. If the tile already holds an item,
                 if (tile.hasItem())
                 {
                     bCreateCorpse = false;
                 }
 
-                // Zone에 시체(관)를 추가한다.
+                // Add the corpse (casket) to the zone.
                 if (bCreateCorpse)
                 {
                     Timeval currentTime;
@@ -823,12 +822,12 @@ void MasterLairManager::activeEventMasterCombat()
                 SAFE_DELETE(pMaster);
             }
         } else {
-            // 무적 상태 해제
-            // 원래 있던 마스터가 새 마스터로 대체되지 않고 직접 싸우게 하면 그전에 마스터가 무적이었으므로
-            // 무적을 풀어줘야 한다. 새 마스터가 싸우게 하려면 원래 마스터는 NO_DAMAGE상태로 남아있어야 한다.
-            // 테페즈레어에서 원래 마스터가 테페즈 관인데 이거 너무 일찍 풀어주는 바람에 테페즈 관이 NO_DAMAGE
-            // 가 풀려서 테페즈 관을 때려서 경험치를 얻을 수 있게 되는 버그가 있었다.
-            // 이 if절 들어오기 전에 있었던 것을 else 절로 옮긴다. 2003. 1.16. by Sequoia
+            // Clear the invulnerable state.
+            // When the original master is not replaced and fights directly it was
+            // invulnerable until now, so the flag must be cleared. If a new master
+            // fights instead, the original master must stay NO_DAMAGE. In Tepez lair
+            // the original master is the Tepez casket; clearing this too early let
+            // players hit the casket for experience.
             pMaster->removeFlag(Effect::EFFECT_CLASS_NO_DAMAGE);
         }
     }
@@ -854,7 +853,7 @@ void MasterLairManager::activeEventWaitingKickOut()
     MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(m_pZone->getZoneID());
     Assert(pInfo != NULL);
 
-    // 마스터가 안 죽었다면 메세지 출력
+    // Print a message if the master is not dead.
     Creature* pMaster = m_pZone->getMonsterManager()->getCreature(m_MasterID);
 
     if (pMaster != NULL && pMaster->isAlive()) {
@@ -866,14 +865,14 @@ void MasterLairManager::activeEventWaitingKickOut()
             m_pZone->broadcastPacket(pMaster->getX(), pMaster->getY(), &gcSay);
     }
 
-    // 안의 사용자들을 밖으로 내보내는 시간
+    // Time given to move the players inside back out.
     m_Event = EVENT_WAITING_KICK_OUT;
     m_EventValue = 0;
 
     getCurrentTime(m_EventTime);
     m_EventTime.tv_sec += pInfo->getKickOutDelay();
 
-    // Lair의 유저들에게 종료 시간을 보내준다.
+    // Send the end time to the users in the lair.
     GCNoticeEvent gcNoticeEvent;
     gcNoticeEvent.setCode(NOTICE_EVENT_KICK_OUT_FROM_ZONE);
     gcNoticeEvent.setParameter(pInfo->getKickOutDelay());
@@ -897,7 +896,7 @@ void MasterLairManager::activeEventWaitingRegen()
 
     deleteAllMonsters();
 
-    // EffectContinualGroundAttack를 꺼준다.
+    // Turn off EffectContinualGroundAttack.
 
     // m_nSummonedMonster = 0;
     m_nPassPlayer = 0;
@@ -922,7 +921,7 @@ void MasterLairManager::deleteAllMonsters()
 {
     __BEGIN_TRY
 
-    // Zone의 MonsterManager에서 제거한 다음에 지워준다.
+    // Remove it from the zone's MonsterManager, then delete it.
     // m_pZone->getMonsterManager()->deleteCreature( m_pMaster->getObjectID() );
     // SAFE_DELETE(m_pMaster);
     bool bDeleteFromZone = true;
@@ -945,14 +944,14 @@ void MasterLairManager::killAllMonsters()
 {
     __BEGIN_TRY
 
-    // 이 부분에 뭔가 문제가 있는거 같아 제거한다.
+    // Removed because something seems wrong with this part.
 
     /*
-    // 강제로 죽이지 않을 몬스터
+    // Monsters that are not force-killed.
     unordered_map<ObjectID_t, ObjectID_t> exceptCreatures;
     exceptCreatures[m_MasterID] = m_MasterID;
 
-    // 모든 몬스터를 죽인다.
+    // Kill every monster.
     m_pZone->getMonsterManager()->killAllMonsters( exceptCreatures );
     */
 
@@ -1029,13 +1028,13 @@ void MasterLairManager::kickOutPlayers()
 
     //cout << "[kickOut] " << (int)zoneID << ": "<< (int)zoneX << ", " << (int)zoneY << endl;
 
-    // 존의 모든 사용자들을 다른 곳으로 이동시킨다.
+    // Move every user in the zone elsewhere.
     PCManager* pPCManager = (PCManager*)(m_pZone->getPCManager());
     pPCManager->transportAllCreatures( zoneID, zoneX, zoneY );
     */
 
 
-    // 추방 시간 후에는 메테오 공격
+    // After the kick-out time, a meteor attack.
     int lairAttackTick = pInfo->getLairAttackTick();
     int lairAttackMinNumber = pInfo->getLairAttackMinNumber();
     int lairAttackMaxNumber = pInfo->getLairAttackMaxNumber();
@@ -1048,13 +1047,13 @@ void MasterLairManager::kickOutPlayers()
     ObjectRegistry& objectregister = m_pZone->getObjectRegistry();
     objectregister.registerObject(pEffect);
 
-    // 존에다가 이펙트를 추가한다.
+    // Add the effect to the zone.
     m_pZone->addEffect(pEffect);
 
-    // 메테오 공격
+    // Meteor attack.
     GCNoticeEvent gcNoticeEvent;
     gcNoticeEvent.setCode(NOTICE_EVENT_CONTINUAL_GROUND_ATTACK);
-    gcNoticeEvent.setParameter(pInfo->getStartDelay()); // 초
+    gcNoticeEvent.setParameter(pInfo->getStartDelay()); // seconds
 
     m_pZone->broadcastPacket(&gcNoticeEvent);
 
@@ -1066,10 +1065,10 @@ void MasterLairManager::kickOutPlayers()
 // give Killing Reward
 //
 ////////////////////////////////////////////////////////////////////////////////
-// 마스터가 죽었을때의 보상
-// 지금은 QuestItem을 현재 존의 사람들에게 각자의 인벤토리에 넣어준다.
-// 인벤토리에 자리가 없는 경우엔 바닥에 떨어뜨리는데
-// 이미 가지고 있는 사람은 주울 수 없다.
+// Reward for killing the master.
+// A QuestItem is put into the inventory of each player in the zone.
+// If there is no room in the inventory it is dropped on the ground, where a
+// player who already holds one cannot pick it up.
 ////////////////////////////////////////////////////////////////////////////////
 void MasterLairManager::giveKillingReward()
 
@@ -1083,7 +1082,7 @@ void MasterLairManager::giveKillingReward()
     if (creatures.empty())
         return;
 
-    int goodOneIndex = rand() % creatures.size(); // 펜던트를 가질 사람은 누구일까?
+    int goodOneIndex = rand() % creatures.size(); // who gets the pendant
 
     ItemType_t itemType;
     int i;
@@ -1095,26 +1094,26 @@ void MasterLairManager::giveKillingReward()
             Inventory* pInventory = pPC->getInventory();
 
             //------------------------------------------------------------
-            // 계급 경험치를 올려준다.
+            // Raise the rank experience.
             //------------------------------------------------------------
-            // 마스터 위치와 7타일 이내에 이는 경우
+            // Only within 7 tiles of the master's position.
             //
             if (pPC->getDistance(m_MasterX, m_MasterY) <= 7) {
                 pPC->increaseRankExp(MASTER_KILL_RANK_EXP);
             }
 
             //------------------------------------------------------------
-            // 보상 아이템을 생성한다.
+            // Create the reward item.
             //------------------------------------------------------------
-            // 하드. - -;
+            // Hardcoded.
             switch (m_pZone->getZoneID()) {
-            // 바토리레어 & 클론
+            // Bathory lair and its clone.
             case 1104:
             case 1106:
                 itemType = ((goodOneIndex == i) ? 1 : 0);
                 break;
 
-            // 테페즈 레어 & 클론
+            // Tepez lair and its clone.
             case 1114:
             case 1115:
                 itemType = ((goodOneIndex == i) ? 3 : 2);
@@ -1130,34 +1129,34 @@ void MasterLairManager::giveKillingReward()
 
             (m_pZone->getObjectRegistry()).registerObject(pItem);
 
-            // 인벤토리의 빈 곳을 찾는다.
+            // Find an empty slot in the inventory.
             _TPOINT p;
             if (pInventory->getEmptySlot(pItem, p)) {
-                // 인벤토리에 추가한다.
+                // Add it to the inventory.
                 pInventory->addItem(p.x, p.y, pItem);
 
                 pItem->create(pCreature->getName(), STORAGE_INVENTORY, 0, p.x, p.y);
 
-                // ItemTrace 에 Log 를 남긴다
+                // Write an entry to the ItemTrace log.
                 if (pItem != NULL && pItem->isTraceItem()) {
                     remainTraceLog(pItem, "LairMaster", pCreature->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
                     remainTraceLogNew(pItem, pCreature->getName(), ITL_GET, ITLD_EVENTNPC, m_pZone->getZoneID());
                 }
 
-                // 인벤토리에 아이템 생성 패킷을 보내준다.
+                // Send the inventory item creation packet.
                 GCCreateItem gcCreateItem;
 
                 makeGCCreateItem(&gcCreateItem, pItem, p.x, p.y);
 
                 pCreature->getPlayer()->sendPacket(&gcCreateItem);
             } else {
-                // 인벤토리에 자리가 없어서 바닥에 떨어뜨린다.
+                // No room in the inventory, so drop it on the ground.
 
                 TPOINT p = m_pZone->addItem(pItem, pCreature->getX(), pCreature->getY());
                 if (p.x != -1) {
                     pItem->create("", STORAGE_ZONE, m_pZone->getZoneID(), p.x, p.y);
 
-                    // ItemTrace 에 Log 를 남긴다
+                    // Write an entry to the ItemTrace log.
                     if (pItem != NULL && pItem->isTraceItem()) {
                         char zoneName[15];
                         sprintf(zoneName, "%4d%3d%3d", m_pZone->getZoneID(), p.x, p.y);
@@ -1184,11 +1183,11 @@ string MasterLairManager::toString() const
     int eventSec = m_EventTime.tv_sec;
 
     switch (m_Event) {
-    case EVENT_WAITING_PLAYER: // 사람들이 들어오길 기다린다.
+    case EVENT_WAITING_PLAYER: // waiting for players to enter
         msg << "WAITING_PLAYER, ";
         break;
 
-    case EVENT_MINION_COMBAT: // 소환된 몬스터와 싸운다.
+    case EVENT_MINION_COMBAT: // fighting the summoned monsters
         msg << "MINION_COMBAT, ";
         break;
 
@@ -1196,11 +1195,11 @@ string MasterLairManager::toString() const
         msg << "MASTER_COMBAT, ";
         break;
 
-    case EVENT_WAITING_KICK_OUT: // 사용자 강제추방 대기(마스터 잡은 경우의 정리 시간)
+    case EVENT_WAITING_KICK_OUT: // waiting to kick users out (cleanup after the master is killed)
         msg << "WAITING_KICK_OUT, ";
         break;
 
-    case EVENT_WAITING_REGEN: // 다시 리젠되길 기다린다.
+    case EVENT_WAITING_REGEN: // waiting for the regen
         msg << "WAITING_REGEN, ";
 
         eventSec = m_RegenTime.tv_sec;

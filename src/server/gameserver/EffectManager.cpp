@@ -59,11 +59,11 @@ EffectManager::~EffectManager()
 {
     __BEGIN_TRY
 
-    // 정식으로 deleteEffects() 가 호출되지 않았다면,
-    // 각 effect에 대해서 unaffect()를 호출할 필요가 없다.
-    // 단지 객체만 삭제해주면 된다.
+    // If deleteEffects() was not called properly,
+    // there is no need to call unaffect() on each effect.
+    // Deleting the objects is enough.
     while (!m_Effects.empty()) {
-        // effect 객체를 삭제한다.
+        // Delete the effect object.
         SAFE_DELETE(m_Effects.front());
         m_Effects.pop_front();
     }
@@ -137,7 +137,7 @@ void EffectManager::deleteEffect(ObjectID_t effectID)
             i++;
         }
 
-        // cerr << "EffectManager::deleteEffect에서 effect를 찾지 못했습니다."<<endl;
+        // cerr << "EffectManager::deleteEffect could not find the effect."<<endl;
         filelog("EffectManagerBug.txt", "there is no effect with effect id %d", effectID);
         Assert(false);
     }
@@ -158,10 +158,10 @@ void EffectManager::deleteEffect(Effect::EffectClass EClass)
     if (itr != m_Effects.end()) {
         Effect* pEffect = *itr;
         m_Effects.erase(itr);
-        // pEffect->unaffect(); // 이거 하면 왜 안될까?
+        // pEffect->unaffect(); // Why does this not work?
         SAFE_DELETE(pEffect);
     } else {
-        // cerr << "EffectManager::deleteEffect에서 effect를 찾지 못했습니다."<<endl;
+        // cerr << "EffectManager::deleteEffect could not find the effect."<<endl;
     }
 
     __END_DEBUG
@@ -189,10 +189,10 @@ void EffectManager::deleteEffect(Creature* pCreature, Effect::EffectClass EClass
             pEffect->destroy(pCreature->getName());
         }
 
-        // pEffect->unaffect(); // 이거하면 안되네
+        // pEffect->unaffect(); // This does not work.
         SAFE_DELETE(pEffect);
     } else {
-        // cerr << "EffectManager::deleteEffect에서 effect를 찾지 못했습니다."<<endl;
+        // cerr << "EffectManager::deleteEffect could not find the effect."<<endl;
     }
 
     __END_DEBUG
@@ -279,7 +279,7 @@ EffectInfo* EffectManager::getEffectInfo()
     getCurrentTime(currentTime);
     __END_PROFILE_EM("EM_GETTIME");
 
-    // 이펙트 정보 구성.
+    // Build the effect information.
     for (list<Effect*>::const_iterator itr = m_Effects.begin(); itr != m_Effects.end(); itr++) {
         Effect* pEffect = *itr;
         EffectID_t EffectID = pEffect->getSendEffectClass();
@@ -289,8 +289,8 @@ EffectInfo* EffectManager::getEffectInfo()
 
         switch (EffectID)
         {
-            // 이 이펙트들은 서버에서만 쓰는 이펙트이기 때문에
-            // 클라이언트에게 날려주지 않는다.
+            // These effects are used on the server only, so they are not
+            // sent to the client.
             case Effect::EFFECT_CLASS_AFTERMATH:
             case Effect::EFFECT_CLASS_ALIGNMENT_RECOVERY:
             case Effect::EFFECT_CLASS_ENEMY_ERASE:
@@ -302,7 +302,7 @@ EffectInfo* EffectManager::getEffectInfo()
         }
         */
 
-        // 각 Effect의 constructor에서 client로 보낼 effect인지 아닌지를 결정한다.
+        // Each Effect's constructor decides whether it is an effect sent to the client.
         // by sigi. 2002.11.14
         bool bSend = pEffect->isBroadcastingEffect();
 
@@ -311,17 +311,17 @@ EffectInfo* EffectManager::getEffectInfo()
             Turn_t Duration;
 
             __BEGIN_PROFILE_EM("EM_COMPUTE_TIME")
-            // 데드라인과 현재 시간을 빼서 남은 시간을 날려줘야 한다.
+            // Subtract the current time from the deadline and send the remaining time.
             DeadLine = (*itr)->getDeadline();
             Duration = DeadLine.tv_sec - currentTime.tv_sec;
             __END_PROFILE_EM("EM_COMPUTE_TIME")
 
             if (EffectID == Effect::EFFECT_CLASS_BLOOD_DRAIN || EffectID == Effect::EFFECT_CLASS_CAN_ENTER_GDR_LAIR) {
-                // Duration 날아가는 것이 WORD 형으로 날아가는데,
-                // 2바이트라서 흡혈 시간 같은 경우에는 너무 길어
-                // 오버플로우가 일어나게 된다.
-                // 그래서 다른 이펙트 같은 경우에는 10을 곱해서 날리지만,
-                // 흡혈 이펙트는 10을 곱해서 날리지 않는다.
+                // Duration is sent as a WORD,
+                // and two bytes are too short for a blood drain time,
+                // so it would overflow.
+                // Other effects are therefore sent multiplied by 10,
+                // but the blood drain effect is not.
                 pEffectInfo->addListElement(EffectID, Duration);
             } else {
                 pEffectInfo->addListElement(EffectID, Duration * 10);
@@ -350,7 +350,7 @@ EffectInfo* EffectManager::getEffectInfo()
 // sendEffectInfo
 //
 //////////////////////////////////////////////////////////////////////////////
-// Effect 정보를 broadcasting한다.
+// Broadcasts the Effect information.
 // by sigi. 2002.11.14
 //////////////////////////////////////////////////////////////////////////////
 void EffectManager::sendEffectInfo(Creature* pCreature, Zone* pZone, ZoneCoord_t x, ZoneCoord_t y)
@@ -368,7 +368,7 @@ void EffectManager::sendEffectInfo(Creature* pCreature, Zone* pZone, ZoneCoord_t
 
     getCurrentTime(currentTime);
 
-    // 주위에 뿌려준다.
+    // Scatter it to the surroundings.
     GCAddEffect gcAddEffect;
     gcAddEffect.setObjectID(pCreature->getObjectID());
 
@@ -379,16 +379,16 @@ void EffectManager::sendEffectInfo(Creature* pCreature, Zone* pZone, ZoneCoord_t
             EffectID_t EffectID = pEffect->getSendEffectClass();
             gcAddEffect.setEffectID(EffectID);
 
-            // 데드라인과 현재 시간을 빼서 남은 시간을 날려줘야 한다.
+            // Subtract the current time from the deadline and send the remaining time.
             Timeval DeadLine = (*itr)->getDeadline();
             Turn_t Duration = DeadLine.tv_sec - currentTime.tv_sec;
 
             if (EffectID == Effect::EFFECT_CLASS_BLOOD_DRAIN || EffectID == Effect::EFFECT_CLASS_CAN_ENTER_GDR_LAIR) {
-                // Duration 날아가는 것이 WORD 형으로 날아가는데,
-                // 2바이트라서 흡혈 시간 같은 경우에는 너무 길어
-                // 오버플로우가 일어나게 된다.
-                // 그래서 다른 이펙트 같은 경우에는 10을 곱해서 날리지만,
-                // 흡혈 이펙트는 10을 곱해서 날리지 않는다.
+                // Duration is sent as a WORD,
+                // and two bytes are too short for a blood drain time,
+                // so it would overflow.
+                // Other effects are therefore sent multiplied by 10,
+                // but the blood drain effect is not.
                 gcAddEffect.setDuration(Duration);
             } else {
                 gcAddEffect.setDuration(Duration * 10);
@@ -439,7 +439,7 @@ void EffectManager::addEffect(Effect* pEffect)
         Assert(*current != NULL);
         Effect* pEffect = *current;
 
-        // 이펙트가 expire 되었으면 삭제한다.
+        // Delete the effect once it has expired.
         if (currentTime > pEffect->getDeadline())
         {
             if (before == m_Effects.end())
@@ -457,10 +457,10 @@ void EffectManager::addEffect(Effect* pEffect)
             }
 
             // *CAUTION
-            // EffectBlood Drain일 경우에 루프 도는 것을 멈춰준다.
-            // 왜? EffectBlood Drain안에서 Slayer의 데이터가 변형되기 때문에.
-            // 다음 Effect를 처리 하면서 개가 될 수도 있다.
-            // 다음에 슬레이어가 되었을때 나머지 이펙트들은 로딩하도록 한다.
+            // For EffectBloodDrain the loop is stopped.
+            // Why? Because the Slayer's data is changed inside EffectBloodDrain.
+            // Handling the next Effect could go wrong.
+            // The remaining effects are loaded the next time the character becomes a Slayer.
             pEffect->unaffect();
             SAFE_DELETE(pEffect);
 
@@ -468,8 +468,8 @@ void EffectManager::addEffect(Effect* pEffect)
         }
         else
         {
-            // expire 되지 않은 이펙트 중에,
-            // 다음 affect 시간이 되었으면 affect한다.
+            // Among the effects that have not expired,
+            // affect those whose next affect time has come.
             if (currentTime > pEffect->getNextTime())
             {
                 pEffect->affect();
@@ -487,9 +487,9 @@ void EffectManager::addEffect(Effect* pEffect)
 }
 */
 //////////////////////////////////////////////////////////////////////////////
-// 위의 heartbeat랑 똑같은데
-// 시간을 받아오는거만 다르다. -_-;
-// getCurrentTime() 안 할려고.. 음하하.. by sigi. 2002.5.8
+// Same as the heartbeat above,
+// only the way the time is obtained differs:
+// this one avoids calling getCurrentTime().
 //////////////////////////////////////////////////////////////////////////////
 int EffectManager::heartbeat(const Timeval& currentTime)
 
@@ -511,7 +511,7 @@ int EffectManager::heartbeat(const Timeval& currentTime)
         // by sigi. for debugging. 2002.12.23
         m_LastEffectClass = (int)pEffect->getEffectClass();
 
-        // 이펙트가 expire 되었으면 삭제한다.
+        // Delete the effect once it has expired.
         if (currentTime > pEffect->getDeadline()) {
             if (before == m_Effects.end()) {
                 // first effect
@@ -525,18 +525,18 @@ int EffectManager::heartbeat(const Timeval& currentTime)
             }
 
             // *CAUTION
-            // EffectBlood Drain일 경우에 루프 도는 것을 멈춰준다.
-            // 왜? EffectBlood Drain안에서 Slayer의 데이터가 변형되기 때문에.
-            // 다음 Effect를 처리 하면서 개가 될 수도 있다.
-            // 다음에 슬레이어가 되었을때 나머지 이펙트들은 로딩하도록 한다.
-            // 이벤트 기반으로 바꿔서 루프 도는거 안 멈춰도 되게 수정했다. -_-
+            // For EffectBloodDrain the loop is stopped.
+            // Why? Because the Slayer's data is changed inside EffectBloodDrain.
+            // Handling the next Effect could go wrong.
+            // The remaining effects are loaded the next time the character becomes a Slayer.
+            // Changed to be event based, so the loop no longer has to stop.
             pEffect->unaffect();
             SAFE_DELETE(pEffect);
 
             rvalue++;
         } else {
-            // expire 되지 않은 이펙트 중에,
-            // 다음 affect 시간이 되었으면 affect한다.
+            // Among the effects that have not expired,
+            // affect those whose next affect time has come.
             if (currentTime > pEffect->getNextTime()) {
                 pEffect->affect();
             }

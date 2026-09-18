@@ -1,8 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename : ItemMap.h
-// Written by : 김성민
 // Description :
-// 클라이언트에서 가져온 소트된 아이템의 맵이다.
+// A sorted map of items taken from the client.
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "ItemMap.h"
@@ -26,8 +25,8 @@ ItemMap::ItemMap()
 }
 
 ////////////////////////////////////////////////////////////
-// 아이템 객체 자체를 지우기를 원하지 않는다면,
-// 반드시 clearAll()를 호출한 후에 부를 것.
+// If the item objects themselves should not be deleted,
+// be sure to call clearAll() before this.
 ////////////////////////////////////////////////////////////
 ItemMap::~ItemMap()
 
@@ -40,16 +39,16 @@ ItemMap::~ItemMap()
 }
 
 ////////////////////////////////////////////////////////////
-// 향상된 정렬을 위해 사용하는 2x2 아이템의 갯수 세팅
+// Set the number of 2x2 items, used for improved sorting.
 ////////////////////////////////////////////////////////////
 void ItemMap::set2x2(int n)
 
 {
     __BEGIN_TRY
 
-    // 2x2 아이템이 3개가 있을 경우,
-    // 우선 순위가 제일 높다. 그래서 3개 단위로
-    // 변수 값을 세팅해준다.
+    // When there are three 2x2 items they have the
+    // highest priority, so the variables are set in
+    // units of three.
     m_Num2x2 = n;
     m_Num2x2Temp = (n / 3) * 3;
 
@@ -57,7 +56,7 @@ void ItemMap::set2x2(int n)
 }
 
 ////////////////////////////////////////////////////////////
-// 아이템을 맵에다 더한다.
+// Add an item to the map.
 ////////////////////////////////////////////////////////////
 bool ItemMap::addItem(Item* pItem)
 
@@ -68,7 +67,7 @@ bool ItemMap::addItem(Item* pItem)
 
     ITEM_MAP::const_iterator itr = find(key);
 
-    if (itr == end()) // 없으면 추가한다.
+    if (itr == end()) // Add it if it is not there.
     {
         insert(ITEM_MAP::value_type(key, pItem));
         return true;
@@ -81,14 +80,14 @@ bool ItemMap::addItem(Item* pItem)
 
 
 ////////////////////////////////////////////////////////////
-// 아이템을 정렬하기 위한 키를 만든다.
+// Build the key used to sort items.
 //
-// key는 8 byte이고 상위byte부터..
+// The key is 8 bytes, starting from the high byte..
 //
 // 4 Byte : gridWidth* gridHeight
 // 4 Byte : ObjectID
 //
-// 로 표현된다.
+// is how it is laid out.
 ////////////////////////////////////////////////////////////
 ulonglong ItemMap::getKey(Item* pItem)
 
@@ -100,7 +99,7 @@ ulonglong ItemMap::getKey(Item* pItem)
     int gridHeight = pItem->getVolumeHeight();
     int gridSize = gridWidth * gridHeight;
 
-    // 2x2 아이템을 땜빵으로 우선순위를 제일 높게 해준다.
+    // As a stopgap, 2x2 items are given the highest priority.
     if (gridSize == 4) {
         if (m_Num2x2Temp > 0) {
             m_Num2x2Temp--;

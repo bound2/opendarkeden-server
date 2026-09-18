@@ -35,7 +35,7 @@ public:
     void setPart(int part);
 
 private:
-    string m_PartName; // 성의 상징 이름
+    string m_PartName; // Name of the castle symbol
     static const EffectClass EffectClasses[6];
 };
 

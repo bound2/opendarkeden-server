@@ -36,7 +36,7 @@ void EffectLoud::unaffect(Creature* pCreature)
     Assert(pCreature != NULL);
     //	Assert(pCreature->isOusters());
 
-    // 플래그를 끈다.
+    // Clear the flag.
     pCreature->removeFlag(Effect::EFFECT_CLASS_LOUD);
 
     Zone* pZone = pCreature->getZone();
@@ -45,7 +45,7 @@ void EffectLoud::unaffect(Creature* pCreature)
     //	Ousters* pTargetOusters = dynamic_cast<Ousters*>(pCreature);
     //	Assert( pTargetOusters != NULL );
 
-    // 이펙트를 삭제하라고 알려준다.
+    // Notify that the effect should be removed.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_LOUD);

@@ -2,8 +2,8 @@
 // Filename    : EffectLoveChain.cpp
 // Written by  : elca
 // Description :
-// 군인기술 Sniping 또는 뱀파이어 기술 Invisibility로 인해서
-// 현재 점점 희미해져가고 있는(사라지고 있는) 크리쳐에 붙는 이펙트이다.
+// Effect attached to a creature that is fading away because of the
+// soldier skill Sniping or the vampire skill Invisibility.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "EffectLoveChain.h"
@@ -56,7 +56,7 @@ void EffectLoveChain::unaffect(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    // 이펙트 플레그가 없다면 죽었다거나 하는 문제로 transport 하지 않겠다는걸 의미한다.
+    // No effect flag means the creature died or similar, so do not transport it.
     if (!pCreature->isFlag(Effect::EFFECT_CLASS_LOVE_CHAIN))
         return;
 
@@ -76,13 +76,13 @@ void EffectLoveChain::unaffect(Creature* pCreature)
     ZoneCoord_t y = pCreature->getY();
     pCreature->removeFlag(Effect::EFFECT_CLASS_LOVE_CHAIN);
 
-    // Effect 가 없어졌음을 알린다.
+    // Announce that the effect is gone.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_LOVE_CHAIN);
     pZone->broadcastPacket(x, y, &gcRemoveEffect);
 
-    // Target 을 체크해서 전송이 가능하면 전송한다.
+    // Check the target and transport if it is allowed.
     bool bValid = false;
 
     __ENTER_CRITICAL_SECTION((*g_pPCFinder))
@@ -91,14 +91,14 @@ void EffectLoveChain::unaffect(Creature* pCreature)
     if (pTargetCreature != NULL) {
         Zone* pTargetZone = pTargetCreature->getZone();
         if (pTargetZone != NULL) {
-            // 마스터 레어로는 이동할 수 없다.
+            // Cannot move into a master lair.
             if (!pTargetZone->isMasterLair() && !GDRLairManager::Instance().isGDRLairZone(pTargetZone->getZoneID())) {
-                // 유료 서비스 이용이 가능한가?
+                // Is the pay service available?
                 if (pGamePlayer->loginPayPlay(pGamePlayer->getSocket()->getHost(), pGamePlayer->getID()) ||
                     !(g_pZoneInfoManager->getZoneInfo(pTargetZone->getZoneID())->isPayPlay())) {
                     if (!pTargetCreature->isPC() ||
                         !(dynamic_cast<PlayerCreature*>(pTargetCreature)->getStore()->isOpen())) {
-                        // 야전사령부, 시외곽지역, 이벤트경기장, 이벤트OX 존으로는 갈 수 없다.
+                        // Cannot go to the field headquarters, outskirts, event stadium or event OX zones.
                         if (pTargetZone->getZoneID() != 2101 && pTargetZone->getZoneID() != 2102 &&
                             pTargetZone->getZoneID() != 1005 && pTargetZone->getZoneID() != 1006 &&
                             pTargetZone->getZoneID() != 1131 && pTargetZone->getZoneID() != 1132 &&

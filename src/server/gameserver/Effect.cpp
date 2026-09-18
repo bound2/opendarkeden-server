@@ -57,10 +57,10 @@ void Effect::setNextTime(Turn_t delay)
 {
     __BEGIN_TRY
 
-    // 현재 시간을 측정한다.
+    // Read the current time.
     getCurrentTime(m_NextTime);
 
-    // 이때, delay 는 0.1 초가 1 이다.
+    // delay is counted in units of 0.1 second.
     m_NextTime.tv_sec += delay / 10;
     m_NextTime.tv_usec += (delay % 10) * 100000;
 
@@ -70,18 +70,18 @@ void Effect::setNextTime(Turn_t delay)
 void Effect::setDeadline(Turn_t delay) {
     __BEGIN_TRY
 
-    // 현재 시간을 측정한다.
+    // Read the current time.
     getCurrentTime(m_Deadline);
 
-    // 데드라인을 결정한다.
-    // 이때, delay 는 0.1 초가 1 이다.
+    // Work out the deadline.
+    // delay is counted in units of 0.1 second.
     m_Deadline.tv_sec += delay / 10;
     m_Deadline.tv_usec += (delay % 10) * 100000;
 
     __END_CATCH
 }
 
-// 남은 duration(1/10초 단위)
+// Remaining duration, in units of 1/10 second
 Duration_t Effect::getRemainDuration() {
     __BEGIN_TRY
 

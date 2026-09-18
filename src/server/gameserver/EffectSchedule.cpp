@@ -38,8 +38,8 @@ EffectScheduleWork::~EffectScheduleWork()
 
     // SAFE_DELETE(m_pData);
 
-    // 코드에 따라서, void* m_pData를 캐스팅해서,
-    // 알맞게 지워줘야 한다.
+    // Depending on the code, void* m_pData must be cast
+    // and deleted appropriately.
     if (m_Code == WORKCODE_ADD_VAMPIRE_PORTAL) {
         Assert(m_pData == NULL);
     } else if (m_Code == WORKCODE_DELETE) {
@@ -153,35 +153,35 @@ void EffectScheduleManager::heartbeat(void)
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    // 모든 스케쥴을 처리할 때까지...
+    // Until every schedule has been handled...
     while (!m_EffectScheduleList.empty()) {
         EffectSchedule* pEffectSchedule = m_EffectScheduleList.front();
         Assert(pEffectSchedule != NULL);
 
         Effect* pEffect = pEffectSchedule->getEffect();
 
-        // 작업 대상이 되는 이펙트가 아직 존재한다면, 작업에 들어간다.
+        // If the effect the work targets still exists, start the work.
         if (pEffect != NULL) {
-            // 모든 일을 처리할 때까지...
+            // Until every job has been handled...
             while (true) {
                 EffectScheduleWork* pWork = pEffectSchedule->getFrontWork();
 
-                // 모든 일을 끝냈다면 브레이크
+                // Break out once every job is done.
                 if (pWork == NULL)
                     break;
 
                 int WorkCode = pWork->getCode();
                 // void* pData    = pWork->getData();
 
-                // 각 작업 코드에 따라서 일을 처리한다.
+                // Handle the work according to each work code.
                 if (WorkCode == WORKCODE_ADD_VAMPIRE_PORTAL) {
                     Assert(pEffect->getEffectClass() == Effect::EFFECT_CLASS_VAMPIRE_PORTAL);
 
                     EffectVampirePortal* pEffectVampirePortal = dynamic_cast<EffectVampirePortal*>(pEffect);
                     Assert(pEffectVampirePortal != NULL);
 
-                    // 현재 이펙트 내부에 있는 좌표는 제일 처음에 가고자 했던 좌표다.
-                    // 그 타일에 같은 이펙트가 있거나 하는 이유로 좌표는 수정될 수 있다.
+                    // The coordinates inside the effect are the ones first aimed at.
+                    // They may change, for instance if that tile already holds the same effect.
                     Zone* pZone = pEffectVampirePortal->getZone();
                     ZoneCoord_t cx = pEffectVampirePortal->getX();
                     ZoneCoord_t cy = pEffectVampirePortal->getY();
@@ -190,22 +190,22 @@ void EffectScheduleManager::heartbeat(void)
                     TPOINT pt = findSuitablePositionForEffect(pZone, cx, cy, Effect::EFFECT_CLASS_VAMPIRE_PORTAL);
 
                     if (pt.x != -1) {
-                        // 좌표가 수정되었을 지도 모르니, 좌표를 수정해준다.
+                        // The coordinates may have been changed, so update them.
                         pEffectVampirePortal->setX(pt.x);
                         pEffectVampirePortal->setY(pt.y);
 
-                        // OID를 등록받아야 find라든지 하는 작업을 실행할 수 있다.
+                        // An OID must be registered before find and similar work can run.
                         ObjectRegistry& OR = pZone->getObjectRegistry();
                         OR.registerObject(pEffectVampirePortal);
 
-                        // 타일 및 뱀파이어 포탈 매니저에 등록한다.
+                        // Register it with the tile and the vampire portal manager.
                         Tile& rTile = pZone->getTile(pt.x, pt.y);
                         rTile.addEffect(pEffectVampirePortal);
 
                         EffectManager* pVampirePortalManager = pZone->getVampirePortalManager();
                         pVampirePortalManager->addEffect(pEffectVampirePortal);
 
-                        // 타일에 이펙트가 붙었으니, 브로드캐스팅을 해준다.
+                        // The effect is attached to the tile, so broadcast it.
                         GCAddVampirePortal gcAddVampirePortal;
                         gcAddVampirePortal.setObjectID(pEffectVampirePortal->getObjectID());
                         gcAddVampirePortal.setOwnerID(pEffectVampirePortal->getOwnerID());

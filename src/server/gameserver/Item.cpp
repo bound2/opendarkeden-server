@@ -52,7 +52,7 @@ bool Item::destroy()
     __END_CATCH
 }
 
-// 아이템을 버린다. 기본은 가비지로, 특별한 경우엔 Timeover 나 그외 안 쓰는 storage로..
+// Discard the item. Into the garbage by default, in special cases into Timeover or another unused storage.
 void Item::waste(Storage storage) const
 
 {

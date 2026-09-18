@@ -46,7 +46,7 @@ GQuestElement::ResultType GQuestAdvanceClassElement::checkCondition(PlayerCreatu
     }
 
     advExp = min((int)advExp, 18496191);
-    // 하드코딩 -_-
+    // Hard-coded
     pPC->increaseAdvancementClassExp(advExp, false);
 
     return OK;

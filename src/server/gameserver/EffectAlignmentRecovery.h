@@ -24,7 +24,7 @@ public:
         return EFFECT_CLASS_ALIGNMENT_RECOVERY;
     }
 
-    // OBJECT_PRIORITY_NONE 라는 뜻은, 타일에 들어가서는 안된다는 뜻이다.
+    // OBJECT_PRIORITY_NONE means this must not go onto a tile.
     virtual ObjectPriority getObjectPriority() const {
         return OBJECT_PRIORITY_NONE;
     }
@@ -67,13 +67,13 @@ public:
     }
 
 private:
-    // 몇 초마다 TICK이 발동 되는가.
+    // How many seconds between ticks
     Turn_t m_Delay;
 
-    // 완료시 회복량
+    // Amount recovered when it completes
     Alignment_t m_AlignmentQuantity;
 
-    // 회복이 완료되는데 걸리는 시간.
+    // Time the recovery takes to complete
     Turn_t m_Period;
 };
 

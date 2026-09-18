@@ -23,7 +23,7 @@ EffectHPRecovery::EffectHPRecovery()
 {
     __BEGIN_TRY
 
-    // 서버 전용 Effect이다. by sigi. 2002.11.14
+    // Server-only Effect.
     m_bBroadcastingEffect = false;
 
     __END_CATCH
@@ -37,7 +37,7 @@ EffectHPRecovery::EffectHPRecovery(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Cr
     Assert(getZone() != NULL);
     Assert(getTarget() != NULL);
 
-    // 서버 전용 Effect이다. by sigi. 2002.11.14
+    // Server-only Effect.
     m_bBroadcastingEffect = false;
 
     __END_CATCH
@@ -87,17 +87,17 @@ void EffectHPRecovery::affect(Creature* pCreature)
         bool bComaCheck = pSlayer->isFlag(Effect::EFFECT_CLASS_COMA);
 
         if (bHPCheck && bPeriodCheck && bAliveCheck && !bComaCheck) {
-            // 플레그 걸귀
+            // Set the flag.
             pSlayer->setFlag(Effect::EFFECT_CLASS_HP_RECOVERY);
 
-            // 한 턴에 얼마나 회복 시킬 것인가.
+            // How much to recover in one turn.
             HP_t CurrentHP = pSlayer->getHP(ATTR_CURRENT);
             HP_t NewHP =
                 min((int)(pSlayer->getHP(ATTR_MAX)), (int)(CurrentHP + m_HPQuantity * (m_Period - RecoveryPeriod)));
 
             pSlayer->setHP(NewHP, ATTR_CURRENT);
         } else {
-            // unaffect하면서 패킷이 날아갈 테니까....
+            // The packet goes out during unaffect.
             setDeadline(0);
         }
 
@@ -118,23 +118,23 @@ void EffectHPRecovery::affect(Creature* pCreature)
         bool bComaCheck = pVampire->isFlag(Effect::EFFECT_CLASS_COMA);
 
         if (bHPCheck && bPeriodCheck && bAliveCheck && !bComaCheck) {
-            // 플레그 걸귀
+            // Set the flag.
             pVampire->setFlag(Effect::EFFECT_CLASS_HP_RECOVERY);
 
-            // 한 턴에 얼마나 회복 시킬 것인가.
+            // How much to recover in one turn.
             HP_t CurrentHP = pVampire->getHP(ATTR_CURRENT);
             HP_t NewHP = min((int)(pVampire->getHP(ATTR_MAX)), CurrentHP + m_HPQuantity);
 
             pVampire->setHP(NewHP, ATTR_CURRENT);
 
-            // 혈청의 경우에는 은 데미지를 치료한다.
+            // Serum also heals silver damage.
             if (pVampire->getSilverDamage() > 0) {
                 Silver_t silverRecovery = max(1, m_HPQuantity / 2);
                 Silver_t newSilverDamage = max(0, (int)(pVampire->getSilverDamage() - silverRecovery));
 
-                // printf("현재은데미지:%d\n", pVampire->getSilverDamage());
-                // printf("은데미지회복량:%d\n", (int)(m_HPQuantity/2));
-                // printf("새로운실버데미지:%d\n", newSilverDamage);
+                // printf("current silver damage:%d\n", pVampire->getSilverDamage());
+                // printf("silver damage recovered:%d\n", (int)(m_HPQuantity/2));
+                // printf("new silver damage:%d\n", newSilverDamage);
 
                 pVampire->saveSilverDamage(newSilverDamage);
 
@@ -144,7 +144,7 @@ void EffectHPRecovery::affect(Creature* pCreature)
                 pVampire->getPlayer()->sendPacket(&GCMI);
             }
         } else {
-            // unaffect하면서 패킷이 날아갈 테니까....
+            // The packet goes out during unaffect.
             setDeadline(0);
         }
 
@@ -165,17 +165,17 @@ void EffectHPRecovery::affect(Creature* pCreature)
         bool bComaCheck = pOusters->isFlag(Effect::EFFECT_CLASS_COMA);
 
         if (bHPCheck && bPeriodCheck && bAliveCheck && !bComaCheck) {
-            // 플레그 걸귀
+            // Set the flag.
             pOusters->setFlag(Effect::EFFECT_CLASS_HP_RECOVERY);
 
-            // 한 턴에 얼마나 회복 시킬 것인가.
+            // How much to recover in one turn.
             HP_t CurrentHP = pOusters->getHP(ATTR_CURRENT);
             HP_t NewHP = min((int)(pOusters->getHP(ATTR_MAX) - pOusters->getSilverDamage()),
                              (int)(CurrentHP + (m_HPQuantity * (m_Period - RecoveryPeriod))));
 
             pOusters->setHP(NewHP, ATTR_CURRENT);
 
-            // 은 데미지를 치료한다.
+            // Heal silver damage.
             /*			if ( pOusters->getSilverDamage() > 0 )
                         {
                             Silver_t silverRecovery  = max( 1, m_HPQuantity / 2 );
@@ -189,7 +189,7 @@ void EffectHPRecovery::affect(Creature* pCreature)
                             pOusters->getPlayer()->sendPacket( &GCMI );
                         }*/
         } else {
-            // unaffect하면서 패킷이 날아갈 테니까....
+            // The packet goes out during unaffect.
             setDeadline(0);
         }
 
@@ -229,7 +229,7 @@ void EffectHPRecovery::unaffect(Creature* pCreature)
         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
         Zone* pZone = pSlayer->getZone();
 
-        // 턴이 남아있고, 살아있는 경우에만 HP를 회복시킨다.
+        // Recover HP only while turns remain and the creature is alive.
         if (m_Period != 0 && pCreature->isAlive()) {
             HP_t CurrentHP = pSlayer->getHP(ATTR_CURRENT);
             HP_t NewHP = min((int)(pSlayer->getHP(ATTR_MAX)), (int)(CurrentHP + m_HPQuantity * m_Period));
@@ -237,14 +237,14 @@ void EffectHPRecovery::unaffect(Creature* pCreature)
             pSlayer->setHP(NewHP, ATTR_CURRENT);
         }
 
-        // 현재 HP를 브로드캐스팅한다.
-        // 이제 회복이 끝났나는 것을 알리도록 한다.
-        // 자신에게 먼저
+        // Broadcast the current HP.
+        // Announce that the recovery has ended.
+        // To the player first.
         GCHPRecoveryEndToSelf gcEffectHPRecoveryEndToSelf;
         gcEffectHPRecoveryEndToSelf.setCurrentHP(pSlayer->getHP(ATTR_CURRENT));
         pSlayer->getPlayer()->sendPacket(&gcEffectHPRecoveryEndToSelf);
 
-        // 주변사람에게도..
+        // And to nearby players.
         GCHPRecoveryEndToOthers gcEffectHPRecoveryEndToOthers;
         gcEffectHPRecoveryEndToOthers.setObjectID(pSlayer->getObjectID());
         gcEffectHPRecoveryEndToOthers.setCurrentHP(pSlayer->getHP(ATTR_CURRENT));
@@ -255,7 +255,7 @@ void EffectHPRecovery::unaffect(Creature* pCreature)
         Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
         Zone* pZone = pVampire->getZone();
 
-        // 턴이 남아있고, 살아있는 경우에만 HP를 회복시킨다.
+        // Recover HP only while turns remain and the creature is alive.
         if (m_Period != 0 && pCreature->isAlive()) {
             HP_t CurrentHP = pVampire->getHP(ATTR_CURRENT);
             HP_t NewHP = min((int)(pVampire->getHP(ATTR_MAX)), (int)(CurrentHP + m_HPQuantity * m_Period));
@@ -263,14 +263,14 @@ void EffectHPRecovery::unaffect(Creature* pCreature)
             pVampire->setHP(NewHP, ATTR_CURRENT);
         }
 
-        // 현재 HP를 브로드캐스팅한다.
-        // 이제 회복이 끝났나는 것을 알리도록 한다.
-        // 자신에게 먼저
+        // Broadcast the current HP.
+        // Announce that the recovery has ended.
+        // To the player first.
         GCHPRecoveryEndToSelf gcEffectHPRecoveryEndToSelf;
         gcEffectHPRecoveryEndToSelf.setCurrentHP(pVampire->getHP(ATTR_CURRENT));
         pVampire->getPlayer()->sendPacket(&gcEffectHPRecoveryEndToSelf);
 
-        // 주변사람에게도..
+        // And to nearby players.
         GCHPRecoveryEndToOthers gcEffectHPRecoveryEndToOthers;
         gcEffectHPRecoveryEndToOthers.setObjectID(pVampire->getObjectID());
         gcEffectHPRecoveryEndToOthers.setCurrentHP(pVampire->getHP(ATTR_CURRENT));
@@ -281,7 +281,7 @@ void EffectHPRecovery::unaffect(Creature* pCreature)
         Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
         Zone* pZone = pOusters->getZone();
 
-        // 턴이 남아있고, 살아있는 경우에만 HP를 회복시킨다.
+        // Recover HP only while turns remain and the creature is alive.
         if (m_Period != 0 && pCreature->isAlive()) {
             HP_t CurrentHP = pOusters->getHP(ATTR_CURRENT);
             HP_t NewHP = min((int)(pOusters->getHP(ATTR_MAX)), (int)(CurrentHP + m_HPQuantity * m_Period));
@@ -289,14 +289,14 @@ void EffectHPRecovery::unaffect(Creature* pCreature)
             pOusters->setHP(NewHP, ATTR_CURRENT);
         }
 
-        // 현재 HP를 브로드캐스팅한다.
-        // 이제 회복이 끝났나는 것을 알리도록 한다.
-        // 자신에게 먼저
+        // Broadcast the current HP.
+        // Announce that the recovery has ended.
+        // To the player first.
         GCHPRecoveryEndToSelf gcEffectHPRecoveryEndToSelf;
         gcEffectHPRecoveryEndToSelf.setCurrentHP(pOusters->getHP(ATTR_CURRENT));
         pOusters->getPlayer()->sendPacket(&gcEffectHPRecoveryEndToSelf);
 
-        // 주변사람에게도..
+        // And to nearby players.
         GCHPRecoveryEndToOthers gcEffectHPRecoveryEndToOthers;
         gcEffectHPRecoveryEndToOthers.setObjectID(pOusters->getObjectID());
         gcEffectHPRecoveryEndToOthers.setCurrentHP(pOusters->getHP(ATTR_CURRENT));

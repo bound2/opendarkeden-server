@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : OptionInfo.cpp
-// Written By  : 김성민
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -21,7 +20,7 @@
 OptionInfoManager* g_pOptionInfoManager = NULL;
 
 
-// itemClass에 optionType이 붙을 수 있는가?
+// Can an optionType be attached to this itemClass?
 bool isPossibleOptionClass(Item::ItemClass itemClass, OptionClass optionClass) {
     switch (itemClass) {
     // WEAPON
@@ -162,7 +161,7 @@ bool isPossibleOptionClass(Item::ItemClass itemClass, OptionClass optionClass) {
         }
         break;
 
-        /* 삽 -.-;
+        /* Disabled.
         case Item::ITEM_CLASS_BLOOD_BIBLE :
             switch (optionClass)
             {
@@ -260,7 +259,7 @@ OptionInfo::OptionInfo()
     m_Ratio = 0;
     m_GambleLevel = 0;
 
-    // 다음 단계의 option으로 upgrade할때 필요한 정보
+    // Information needed to upgrade to the next option stage.
     m_PreviousOptionType = 0;
     m_UpgradeOptionType = 0;
     m_UpgradeRatio = 0;
@@ -322,27 +321,27 @@ void OptionInfo::setReqAbility(const string& req)
     __END_CATCH
 }
 
-// 다음 단계의 옵션으로 upgrade가 성공했나?
+// Did the upgrade to the next option stage succeed?
 bool OptionInfo::isUpgradeSucceed() const {
-    // 0이 아니고
-    // 확률만큼 rand()했을때 특정한 한 값(0)이 나오는 경우가 성공이다.
+    // Not zero, and
+    // success is rand() over the ratio landing on one particular value (0).
     // return m_UpgradeRatio!=0 && (rand()%m_UpgradeRatio==0);
 
-    // 그런데.. 기획이 백분율로 나왔다. -_-;
+    // The design came back in percentages instead.
     return (rand() % 100 < (int)m_UpgradeRatio);
 }
 
-// 다음 단계의 옵션으로 upgrade가 성공했나?
+// Did the upgrade to the next option stage succeed?
 bool OptionInfo::isUpgradeSecondSucceed() const {
-    // 0이 아니고
-    // 확률만큼 rand()했을때 특정한 한 값(0)이 나오는 경우가 성공이다.
+    // Not zero, and
+    // success is rand() over the ratio landing on one particular value (0).
     // return m_UpgradeRatio!=0 && (rand()%m_UpgradeRatio==0);
 
-    // 그런데.. 기획이 백분율로 나왔다. -_-;
+    // The design came back in percentages instead.
     return (rand() % 100 < (int)m_UpgradeSecondRatio);
 }
 
-// 다음 단계의 옵션으로 upgrade 하다가 실패해서 item이 부서졌나?
+// Did the item break from a failed upgrade to the next option stage?
 bool OptionInfo::isUpgradeCrash() const {
     return (rand() % 100 < m_UpgradeCrashPercent);
 }
@@ -385,7 +384,7 @@ OptionInfoSet::~OptionInfoSet()
     __END_CATCH_NO_RETHROW
 }
 
-// 지정된 레벨에 따라서 맵에다 옵션 타입을 집어넣는다.
+// Put the option type into the map under the given level.
 void OptionInfoSet::addOptionType(uint level, OptionType_t type)
 
 {
@@ -405,7 +404,7 @@ void OptionInfoSet::addOptionType(uint level, OptionType_t type)
     __END_CATCH
 }
 
-// 지정된 최소, 최대 레벨에 따라, 그 범위 안의 옵션을 벡터에다 집어넣는다.
+// Put the options within the given minimum and maximum level range into the vector.
 void OptionInfoSet::getPossibleOptionTypes(uint minLevel, uint maxLevel, vector<OptionType_t>& rOptionVector)
 
 {
@@ -571,8 +570,8 @@ void OptionInfoManager::load()
 
             addOptionInfo(pInfo);
 
-            // 옵션 클래스에 따라서 알맞은 OptionInfoSet에다가
-            // level, type을 집어넣어준다.
+            // Put the level and type into the OptionInfoSet that matches the
+            // option class.
             uint OClass = pInfo->getClass();
             uint level = pInfo->getLevel();
             OptionType_t type = pInfo->getType();
@@ -580,14 +579,14 @@ void OptionInfoManager::load()
 
             m_OptionInfoSet[OClass].addOptionType(level, type);
 
-            // gamble을 위한 option정보 설정
+            // Set up the option information used for gambling.
             for (int ic = 0; ic < Item::ITEM_CLASS_MAX; ic++) {
-                // itemClass에 붙을 수 있는 option인 경우
-                // m_GambleOptions에 추가해둔다.
+                // If the option can be attached to this itemClass,
+                // add it to m_GambleOptions.
                 if (gambleRatio > 0 && isPossibleOptionClass((Item::ItemClass)ic, (OptionClass)OClass)) {
                     uint gambleLevel = pInfo->getGambleLevel();
 
-                    // level까지 추가해둔다.
+                    // Add it up to that level.
                     for (uint l = gambleLevel; l <= GAMBLE_OPTION_LEVEL_MAX; l++) {
                         m_GambleOptions[ic][l].push_back(type);
                     }
@@ -655,7 +654,7 @@ void OptionInfoManager::load()
         }
 
 
-        // gamble option별로 totalRatio를 구해둔다.
+        // Compute totalRatio for each gamble option.
         for (int ic = 0; ic < Item::ITEM_CLASS_MAX; ic++) {
             for (uint l = 0; l <= GAMBLE_OPTION_LEVEL_MAX; l++) {
                 m_TotalGambleRatio[ic][l] = 0;
@@ -699,7 +698,7 @@ void OptionInfoManager::addOptionInfo(OptionInfo* pOptionInfo)
 {
     __BEGIN_TRY
 
-    // OptionType으로 구분되는 해쉬맵에다 집어넣는다.
+    // Insert into the hash map keyed by OptionType.
     unordered_map<OptionType_t, OptionInfo*>::iterator itr = m_OptionInfos.find(pOptionInfo->getType());
 
     if (itr != m_OptionInfos.end()) {
@@ -712,7 +711,7 @@ void OptionInfoManager::addOptionInfo(OptionInfo* pOptionInfo)
 
     m_OptionInfos[pOptionInfo->getType()] = pOptionInfo;
 
-    // Nickname으로 구분되는 해쉬맵에다 집어넣는다.
+    // Insert into the hash map keyed by Nickname.
     unordered_map<string, OptionInfo*>::iterator itr2 = m_NicknameOptionInfos.find(pOptionInfo->getNickname());
 
     if (itr2 != m_NicknameOptionInfos.end()) {
@@ -740,7 +739,6 @@ OptionInfo* OptionInfoManager::getOptionInfo(OptionType_t OptionType)
         // cerr << "OptionInfoManager::getOptionInfo() : No Such Element Exception. OptionType=" << (int)OptionType <<
         // endl; throw NoSuchElementException();
 
-        // nosuch제거. 2002.8.23. by sigi
         return NULL;
     }
 
@@ -760,7 +758,6 @@ OptionInfo* OptionInfoManager::getOptionInfo(const string& nickname)
         // cerr << "OptionInfoManager::getOptionInfo() : No Such Element Exception" << endl;
         // throw NoSuchElementException();
 
-        // nosuch제거. 2002.8.23. by sigi
         return NULL;
     }
 

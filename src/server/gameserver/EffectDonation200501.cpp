@@ -47,7 +47,7 @@ void EffectDonation200501::affect(Creature* pCreature)
 
     pCreature->setFlag(Effect::EFFECT_CLASS_DONATION_200501);
 
-    // 주위에 뿌려준다.
+    // Broadcast to the surroundings.
     GCAddEffect gcAddEffect;
     gcAddEffect.setObjectID(pCreature->getObjectID());
     gcAddEffect.setEffectID(getSendEffectClass());
@@ -78,7 +78,7 @@ void EffectDonation200501::unaffect(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    // 플래그를 끄고,
+    // Clear the flag,
     pCreature->removeFlag(Effect::EFFECT_CLASS_DONATION_200501);
 
     Zone* pZone = pCreature->getZone();

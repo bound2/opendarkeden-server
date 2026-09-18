@@ -50,7 +50,7 @@ public:
     }
 
 protected:
-    int m_Part; // 피의 성서 조각 번호
+    int m_Part; // Blood bible fragment number
     Turn_t m_Tick;
 };
 

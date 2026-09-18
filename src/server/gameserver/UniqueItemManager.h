@@ -18,16 +18,16 @@ class UniqueItemManager {
 public:
     void init();
 
-    // unique item을 하나 생성한다.
+    // Create one unique item.
     // Item* getRandomUniqueitem() ;
 
-    // 아이템 생성 가능한가? (아이템 개수 제한)
+    // Can the item be created? (item count limit)
     static bool isPossibleCreate(Item::ItemClass itemClass, ItemType_t itemType);
 
-    // 아이템 생성했다. (개수 변경)
+    // An item was created. (updates the count)
     static void createItem(Item::ItemClass itemClass, ItemType_t itemType);
 
-    // 아이템 생성했다. (개수 변경)
+    // An item was deleted. (updates the count)
     static void deleteItem(Item::ItemClass itemClass, ItemType_t itemType);
 
 private:

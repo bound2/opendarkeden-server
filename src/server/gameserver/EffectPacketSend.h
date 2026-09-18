@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectPacketSend.h
 // Written by  :
-// Description : PacketSend에 의한 방어력 하강 effect
+// Description : Defense reduction effect caused by PacketSend
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_PACKET_SEND__
@@ -21,7 +21,7 @@ public:
     EffectPacketSend(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y);
 
 public:
-    // 안 쓴다 -_-; KIN
+    // Not used.
     EffectClass getEffectClass() const {
         return EFFECT_CLASS_PK_ZONE_REGEN;
     }

@@ -39,7 +39,7 @@ public:
     }
 
 private:
-    // DragonEye 아이템의 ID. GlobalPostionLoader 를 위한 멤버
+    // ID of the DragonEye item. Member for GlobalPostionLoader
     ItemID_t m_ItemID;
 };
 

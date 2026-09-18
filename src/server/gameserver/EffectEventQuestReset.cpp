@@ -18,7 +18,7 @@ EffectEventQuestReset::EffectEventQuestReset(Creature* pCreature, int type) : m_
 
     setTarget(pCreature);
 
-    // ¼­¹ö Àü¿ë EffectÀÌ´Ù. by sigi. 2002.11.14
+    // Server-only Effect.
     m_bBroadcastingEffect = false;
 
     __END_CATCH

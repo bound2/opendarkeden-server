@@ -60,7 +60,7 @@ void EffectHasCastleSymbol::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // 존 정보를 얻는다.
+    // Get the zone.
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
@@ -70,13 +70,13 @@ void EffectHasCastleSymbol::affect(Creature* pCreature)
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
     Assert(pPC != NULL);
 
-    // 위치를 알린다.
+    // Announce the location.
     /*	StringStream msg;
-        msg << pCreature->getName() << " 님("
-            //<< ( pCreature->isSlayer() ? "슬레이어" : "뱀파이어" ) << ")이 "
-            << g_pGuildManager->getGuildName( pPC->getGuildID() ) << ")이 "
+        msg << pCreature->getName() << " ("
+            //<< ( pCreature->isSlayer() ? "Slayer" : "Vampire" ) << ") at "
+            << g_pGuildManager->getGuildName( pPC->getGuildID() ) << ") at "
             << pZoneInfo->getFullName() << "(" << (int)pCreature->getX() << ", " << (int)pCreature->getY()
-            << ")에서 성의 상징(" << m_PartName << ")을 가지고 있습니다.";
+            << ") has the castle symbol (" << m_PartName << ").";
         */
 
     char msg[300];
@@ -118,7 +118,7 @@ void EffectHasCastleSymbol::affect(Item* pItem)
     if (m_pZone == NULL)
         return;
 
-    // 성에 전쟁이 진행중인 경우만 메세지를 보내준다.
+    // Send the message only while a war is running at the castle.
     ZoneID_t castleZoneID;
     bool isCastle;
 
@@ -128,10 +128,10 @@ void EffectHasCastleSymbol::affect(Item* pItem)
         ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(m_pZone->getZoneID());
         Assert(pZoneInfo != NULL);
 
-        // 위치를 알린다.
+        // Announce the location.
         /*		StringStream msg;
                 msg << pZoneInfo->getFullName() << "(" << (int)m_X << ", " << (int)m_Y
-                    << ")의 성단에 " << m_PartName << " 성의 상징 이 있습니다.";
+                    << ") holds the " << m_PartName << " castle symbol on its shrine.";
         */
 
         char msg[200];

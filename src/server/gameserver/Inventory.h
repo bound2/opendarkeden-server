@@ -1,7 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : Inventory.h
 // Written By  : elca@ewestsoft.com
-// Revised By  : 김성민
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -149,9 +148,9 @@ public:
 
     // #ifdef __XMAS_EVENT_CODE__
     /////////////////////////////////////////////////////////////////////////
-    // 2001년 크리스마스 이벤트 관련 함수들.
-    // 2002년 어린이날 스타 이벤트를 위해서 재사용(GiftBox는 사용하지 않음)
-    // 이벤트 재사용을 위해서 XMAS_STAR를 STAR_EVENT로 바꾸는 것을 고려해야 함
+    // Functions for the 2001 Christmas event.
+    // Reused for the 2002 Children's Day star event (GiftBox is not used).
+    // Renaming XMAS_STAR to STAR_EVENT should be considered for further reuse.
 public:
     bool hasEnoughStar(const XMAS_STAR& star);
     void decreaseStar(const XMAS_STAR& star);
@@ -166,13 +165,13 @@ public:
     // member data
     ////////////////////////////////////////
 private:
-    string m_Owner;                   // 인벤토리 소유주
+    string m_Owner;                   // Inventory owner
     CoordInven_t m_Width;             // Inventory Width
     CoordInven_t m_Height;            // Inventory Height
     ItemNum_t m_TotalNum;             // Total Count
     Weight_t m_TotalWeight;           // Total Weight
-    InventorySlot** m_pInventorySlot; // InventorySlot의 이차원 배열.
-    bool m_bDeleteAll;                // 객체가 삭제될 때 아이템까지 삭제한다.
+    InventorySlot** m_pInventorySlot; // Two-dimensional array of InventorySlot.
+    bool m_bDeleteAll;                // Delete the items too when the object is deleted.
 };
 
 #endif // __INVENTORY_H__

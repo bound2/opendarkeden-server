@@ -17,7 +17,7 @@ EffectKillTimer::EffectKillTimer(Creature* pCreature, bool kill)
 {
     __BEGIN_TRY
 
-    // 서버 전용 Effect이다. by sigi. 2002.11.14
+    // Server-only Effect.
     m_bBroadcastingEffect = false;
 
     setTarget(pCreature);

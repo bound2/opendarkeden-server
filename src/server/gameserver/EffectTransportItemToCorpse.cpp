@@ -34,7 +34,7 @@ EffectTransportItemToCorpse::EffectTransportItemToCorpse(Zone* pZone, Item* pIte
     m_pTargetZone = pTargetZone;
     m_CorpseObjectID = corpseObjectID;
 
-    // 서버 전용 Effect이다. by sigi. 2002.11.14
+    // Server-only effect.
     m_bBroadcastingEffect = false;
 
     __END_CATCH
@@ -57,8 +57,8 @@ EffectTransportItemToCorpse::~EffectTransportItemToCorpse()
 
 //----------------------------------------------------------------------
 // affect to target
-// 이 이펙트는 타일에 종속되지 않으므로, affect()는 호출되지 않는다.
-// 왜냐하면, target은 생성자에서 지정되며, 아무런 일도 하지 않기 때문이다.
+// This effect does not belong to a tile, so affect() is never called:
+// the target is set in the constructor and it does nothing.
 //----------------------------------------------------------------------
 void EffectTransportItemToCorpse::affect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pTarget)
 
@@ -85,9 +85,9 @@ void EffectTransportItemToCorpse::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord
     Item* pItem = dynamic_cast<Item*>(pTarget);
     Assert(pItem != NULL);
 
-    // 다른 존에 추가한다.
-    // Multi-thread이므로.. 조심조심..
-    // 같은 ZoneGroup이면 걍 넣는다.
+    // Add to the other zone.
+    // Multi-threaded, so be careful.
+    // If it is the same ZoneGroup, just insert it.
     if (pZone->getZoneGroup() == m_pTargetZone->getZoneGroup())
     // if (pZone==m_pTargetZone)
     {

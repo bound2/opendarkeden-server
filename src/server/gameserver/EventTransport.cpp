@@ -52,7 +52,7 @@ void EventTransport::sendMessage()
     Turn_t RemainTime = max(0, (int)(m_Deadline.tv_sec - currentTime.tv_sec));
 
     //	StringStream msg;
-    //	msg << (int)RemainTime << "초 후에 " << m_ZoneName << "로 이동됩니다.";
+    //	msg << (int)RemainTime << " seconds until the move to " << m_ZoneName << ".";
 
     char msg[50];
     sprintf(msg, g_pStringPool->c_str(STRID_TRANSPORT_CREATURE), (int)RemainTime, m_ZoneName.c_str());
@@ -91,21 +91,21 @@ void EventTransport::activate()
     dropFlagToZone(pPC, bSendPacket);
     dropSweeperToZone(pPC, bSendPacket);
 
-    // Zone에서 제거한다.
+    // Remove from the zone.
     pOldZone->deleteCreature(pCreature, pCreature->getX(), pCreature->getY());
 
-    // 이동해야할 Zone을 설정한다.
+    // Set the zone to move to.
     pCreature->setNewZone(getZoneByZoneID(m_ZoneID));
     pCreature->setNewXY(m_X, m_Y);
 
     try {
-        // 존그룹의 ZPM에서 플레이어를 삭제한다.
+        // Delete the player from the zone group's ZPM.
         pOldZone->getZoneGroup()->getZonePlayerManager()->deletePlayer(m_pGamePlayer->getSocket()->getSOCKET());
 
-        // 여기서 설정해줘야지만 Save 이벤트가 IPM에서 동작하지 않는다.
+        // Setting this here keeps the Save event from running in the IPM.
         m_pGamePlayer->setPlayerStatus(GPS_WAITING_FOR_CG_READY);
 
-        // IPM으로 플레이어를 옮긴다.
+        // Move the player to the IPM.
         // g_pIncomingPlayerManager->pushPlayer(m_pGamePlayer);
         pOldZone->getZoneGroup()->getZonePlayerManager()->pushOutPlayer(m_pGamePlayer);
 

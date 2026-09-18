@@ -106,7 +106,7 @@ void EffectPKZoneRegen::affect(Creature* pCreature)
 
             m_pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &gcHP, pSlayer);
         }
-        // HP는 다 치료된 상태고 흡혈에 걸려있으면
+        // HP is fully healed and blood drain is active.
         if (pSlayer->getHP(ATTR_CURRENT) >= pSlayer->getHP(ATTR_MAX) &&
             pSlayer->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN)) {
             EffectBloodDrain* pEffect =
@@ -140,14 +140,14 @@ void EffectPKZoneRegen::affect(Creature* pCreature)
 
             pVampire->setHP(min((int)pVampire->getHP(ATTR_MAX), (int)pVampire->getHP(ATTR_CURRENT) + m_HP));
 
-            // 넘한테 뿌릴꺼
+            // What is sent to everyone else
             gcHP.setCurrentHP(pVampire->getHP(ATTR_CURRENT));
 
-            // 자기한테 보여줄꺼
+            // What is shown to the player
             GCModifyInformation gcMI;
             gcMI.addShortData(MODIFY_CURRENT_HP, pVampire->getHP(ATTR_CURRENT));
 
-            // HP가 실버 데미지를 넘어서게 되면 실버데미지를 날려 준다.
+            // Once HP rises past the silver damage, clear the silver damage.
             if (pVampire->getHP(ATTR_CURRENT) > pVampire->getHP(ATTR_MAX) - pVampire->getSilverDamage()) {
                 pVampire->setSilverDamage(pVampire->getHP(ATTR_MAX) - pVampire->getHP(ATTR_CURRENT));
 
@@ -171,7 +171,7 @@ void EffectPKZoneRegen::affect(Creature* pCreature)
 
             GCModifyInformation gcMI;
 
-            // HP가 실버 데미지를 넘어서게 되면 실버데미지를 날려 준다.
+            // Once HP rises past the silver damage, clear the silver damage.
             if (pOusters->getHP(ATTR_CURRENT) > pOusters->getHP(ATTR_MAX) - pOusters->getSilverDamage()) {
                 pOusters->setSilverDamage(pOusters->getHP(ATTR_MAX) - pOusters->getHP(ATTR_CURRENT));
 

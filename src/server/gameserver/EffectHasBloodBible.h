@@ -32,7 +32,7 @@ public:
     void setPart(int part);
 
 private:
-    string m_PartName; // 피의 성서 조각 이름
+    string m_PartName; // Name of the blood bible fragment
 };
 
 #endif

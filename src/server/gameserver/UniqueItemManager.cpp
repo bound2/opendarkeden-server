@@ -64,7 +64,7 @@ bool UniqueItemManager::isPossibleCreate(Item::ItemClass itemClass, ItemType_t i
 //----------------------------------------------------------------------
 // createItem
 //----------------------------------------------------------------------
-// DB에서 개수 증가
+// Increase the count in the DB
 //----------------------------------------------------------------------
 void UniqueItemManager::createItem(Item::ItemClass itemClass, ItemType_t itemType)
 
@@ -81,7 +81,7 @@ void UniqueItemManager::createItem(Item::ItemClass itemClass, ItemType_t itemTyp
 //----------------------------------------------------------------------
 // deleteItem
 //----------------------------------------------------------------------
-// DB에서 개수 증가
+// Decrease the count in the DB
 //----------------------------------------------------------------------
 void UniqueItemManager::deleteItem(Item::ItemClass itemClass, ItemType_t itemType)
 

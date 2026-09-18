@@ -34,13 +34,13 @@ EffectContinualGroundAttack::EffectContinualGroundAttack(Zone* pZone, EffectClas
 
     m_Delay = delay;
 
-    setNextTime(10); // 1초 후 시작
+    setNextTime(10); // Starts after 1 second
     setDeadline(delay);
 
     m_MinNumber = 1;
     m_MaxNumber = 1;
 
-    // 서버 전용 Effect이다. by sigi. 2002.11.14
+    // Server-only effect.
     m_bBroadcastingEffect = false;
 
     __END_CATCH
@@ -66,25 +66,25 @@ void EffectContinualGroundAttack::affect()
 
     int creatureNum = m_pZone->getPCManager()->getSize() + m_pZone->getMonsterManager()->getSize();
 
-    // 부하를 조금이라도 줄이기 위해서..
-    // 존에 공격받을 캐릭터가 있어야지 effect를 붙이지..
+    // To cut the load a little:
+    // attach the effect only when the zone holds a character to attack.
     if (creatureNum > 0) {
-        // zone의 특정 위치에 effect를 출력하고 damage를 준다.
-        int range = min(100, (m_MaxNumber - m_MinNumber)); // 동시에 1~100사이
+        // Show the effect at a position in the zone and deal damage.
+        int range = min(100, (m_MaxNumber - m_MinNumber)); // Between 1 and 100 at once
         int number = (range > 0 ? m_MinNumber + rand() % range : m_MinNumber);
 
         // cout << "EffectContinualGroundAttack: " << (int)m_pZone->getZoneID() << ", num= " << number << endl;
 
         VSRect rect(0, 0, m_pZone->getWidth() - 1, m_pZone->getHeight() - 1);
 
-        // m_MinNumber ~ m_MaxNumber 개의 공격
+        // m_MinNumber ~ m_MaxNumber attacks
         for (int i = 0; i < number; i++) {
             const BPOINT& pt = m_pZone->getRandomEmptyTilePosition();
 
             if (!rect.ptInRect(pt.x, pt.y))
                 continue;
 
-            // 중심 타일 체크
+            // Check the center tile.
             Tile& tile = m_pZone->getTile(pt.x, pt.y);
 
             int X = pt.x;
@@ -95,12 +95,12 @@ void EffectContinualGroundAttack::affect()
 
             int DamagePercent = 100;
 
-            // 이펙트 오브젝트를 생성한다.
+            // Create the effect object.
             Effect* pAttackEffect = NULL;
 
             switch (m_AttackEffect) {
             case EFFECT_CLASS_GROUND_ATTACK: {
-                // 같은 이펙트가 이미 존재한다면 더 쎈 damage로 설정한다.
+                // If the same effect already exists, set the stronger damage.
                 Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_GROUND_ATTACK);
                 if (pOldEffect != NULL) {
                     EffectGroundAttack* pGAEffect = dynamic_cast<EffectGroundAttack*>(pOldEffect);
@@ -109,14 +109,14 @@ void EffectContinualGroundAttack::affect()
                 }
 
                 EffectGroundAttack* pEffect = new EffectGroundAttack(m_pZone, X, Y);
-                pEffect->setDeadline(22); // 2초+알파
+                pEffect->setDeadline(22); // 2 seconds plus a little
                 pEffect->setDamagePercent(DamagePercent);
 
                 pAttackEffect = pEffect;
             } break;
 
             case EFFECT_CLASS_METEOR_STRIKE: {
-                // 같은 이펙트가 있다면 삭제한다.
+                // If the same effect exists, delete it.
                 Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_METEOR_STRIKE);
                 if (pOldEffect != NULL) {
                     ObjectID_t effectID = pOldEffect->getObjectID();
@@ -124,7 +124,7 @@ void EffectContinualGroundAttack::affect()
                 }
 
                 EffectMeteorStrike* pEffect = new EffectMeteorStrike(m_pZone, X, Y);
-                pEffect->setDeadline(10); // 1초
+                pEffect->setDeadline(10); // 1 second
 
                 // 400 ~ 600 100%
                 // 200 ~ 300 50%
@@ -140,20 +140,20 @@ void EffectContinualGroundAttack::affect()
 
 
             if (pAttackEffect != NULL) {
-                // 타일에 붙은 이펙트는 OID를 받아야 한다.
+                // An effect attached to a tile must be given an OID.
                 ObjectRegistry& objectregister = m_pZone->getObjectRegistry();
                 objectregister.registerObject(pAttackEffect);
 
-                // 존 및 타일에다가 이펙트를 추가한다.
+                // Add the effect to the zone and to the tile.
                 m_pZone->addEffect(pAttackEffect);
                 tile.addEffect(pAttackEffect);
 
-                // 가운데꺼만 이펙트를 보여준다.
+                // Show the effect only for the center one.
                 GCAddEffectToTile gcAddEffectToTile;
                 gcAddEffectToTile.setEffectID(pAttackEffect->getEffectClass());
                 gcAddEffectToTile.setObjectID(pAttackEffect->getObjectID());
                 gcAddEffectToTile.setXY(X, Y);
-                gcAddEffectToTile.setDuration(20); // 2초
+                gcAddEffectToTile.setDuration(20); // 2 seconds
 
                 m_pZone->broadcastPacket(X, Y, &gcAddEffectToTile);
             }

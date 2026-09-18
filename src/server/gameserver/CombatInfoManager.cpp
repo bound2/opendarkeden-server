@@ -57,7 +57,7 @@ void CombatInfoManager::computeModify() {
     m_VampireToHitModify = 0;
 
     for (int i = 0; i < maxRelic; i++) {
-        // bonus, penalty 계산
+        // Compute the bonus and penalty.
     }
 
     GCSystemMessage gcSystemMessage;
@@ -67,33 +67,33 @@ void CombatInfoManager::computeModify() {
 
     bool bVampireBonus = m_RelicOwner[0] == RELIC_OWNER_VAMPIRE && m_RelicOwner[1] == RELIC_OWNER_VAMPIRE;
 
-    // 슬레이어 승리
+    // Slayer victory
     if (bSlayerBonus) {
         // m_SlayerHPModify = g_pVariableManager->getCombatSlayerHPBonusRatio();
-        //		gcSystemMessage.setMessage("슬레이어에게 보너스를 뭐줄까?");
+        //		gcSystemMessage.setMessage("What bonus should the Slayers get?");
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_APPLICATE_COMBAT_SLAYER_BONUS));
         bSendMessage = true;
     }
-    // 뱀파이어 승리
+    // Vampire victory
     else if (bVampireBonus) {
         // m_VampireHPModify = g_pVariableManager->getCombatVampireHPBonusRatio();
-        //		gcSystemMessage.setMessage("뱀파이어에게 보너스를 뭐줄까?");
+        //		gcSystemMessage.setMessage("What bonus should the Vampires get?");
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_APPLICATE_COMBAT_VAMPIRE_BONUS));
         bSendMessage = true;
     }
 
     else if (!bSlayerBonus && !bVampireBonus) {
-        // 적용되고 있다가 적용안되는 경우
+        // Was being applied and no longer is.
         if (m_bSlayerBonus && m_bVampireBonus) {
             gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_MORE_COMBAT_BONUS));
             bSendMessage = true;
         }
-        // 슬레이어 보너스가 사라지는 경우
+        // The Slayer bonus goes away.
         else if (m_bSlayerBonus) {
             gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_MORE_COMBAT_SLAYER_BONUS));
             bSendMessage = true;
         }
-        // 뱀파이어 보너스가 사라지는 경우
+        // The Vampire bonus goes away.
         else if (m_bVampireBonus) {
             gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_MORE_COMBAT_VAMPIRE_BONUS));
             bSendMessage = true;

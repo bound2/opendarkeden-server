@@ -50,7 +50,7 @@
 #include "repository/ItemRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// ½×ÀÏ ¼ö ÀÖ´Â ¾ÆÀÌÅÛÀÎ°¡?
+// Is this a stackable item?
 //////////////////////////////////////////////////////////////////////////////
 bool isStackable(Item::ItemClass IClass) {
     switch (IClass) {
@@ -77,7 +77,7 @@ bool isStackable(Item::ItemClass IClass) {
     case Item::ITEM_CLASS_PET_ENCHANT_ITEM:
     case Item::ITEM_CLASS_LUCKY_BAG:
     case Item::ITEM_CLASS_PET_FOOD:
-    case Item::ITEM_CLASS_MONEY: // add by sonic 2006.10.30  ½«½ðÇ®ÉèÎª¿Éµþ¼Ó
+    case Item::ITEM_CLASS_MONEY: // Money is stackable.
         return true;
     default:
         return false;
@@ -87,7 +87,7 @@ bool isStackable(Item::ItemClass IClass) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½×ÀÏ ¼ö ÀÖ´Â ¾ÆÀÌÅÛÀÎ°¡?
+// Is this a stackable item?
 //////////////////////////////////////////////////////////////////////////////
 bool isStackable(const Item* pItem) {
     // if (pItem == NULL) return false;
@@ -117,14 +117,14 @@ bool isStackable(const Item* pItem) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// °°Àº Å¬·¡½º, Å¸ÀÔÀÇ ¾ÆÀÌÅÛÀÎ°¡?
+// Are the two items of the same class and type?
 //////////////////////////////////////////////////////////////////////////////
 bool isSameItem(Item::ItemClass IClass1, Item::ItemClass IClass2, ItemType_t type1, ItemType_t type2) {
     return IClass1 == IClass2 && type1 == type2;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// °°Àº Å¬·¡½º, Å¸ÀÔÀÇ ¾ÆÀÌÅÛÀÎ°¡?
+// Are the two items of the same class and type?
 //////////////////////////////////////////////////////////////////////////////
 bool isSameItem(const Item* pItem1, const Item* pItem2) {
     return pItem1 != NULL && pItem2 != NULL && pItem1->getItemClass() == pItem2->getItemClass() &&
@@ -132,14 +132,14 @@ bool isSameItem(const Item* pItem1, const Item* pItem2) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// µÎ ¾ÆÀÌÅÛÀ» ½×À» ¼ö ÀÖ´Â°¡?
+// Can the two items be stacked?
 //////////////////////////////////////////////////////////////////////////////
 bool canStack(const Item* pItem1, const Item* pItem2) {
     return isStackable(pItem1) && isSameItem(pItem1, pItem2);
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// µÎ ¼Õ ¹«±âÀÎ°¡?
+// Is this a two-handed weapon?
 //////////////////////////////////////////////////////////////////////////////
 bool isTwohandWeapon(const Item* pItem) {
     if (pItem == NULL)
@@ -163,7 +163,7 @@ bool isTwohandWeapon(const Item* pItem) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Á¢±ÙÀü ¹«±âÀÎ°¡?
+// Is this a melee weapon?
 //////////////////////////////////////////////////////////////////////////////
 bool isMeleeWeapon(const Item* pItem) {
     if (pItem == NULL)
@@ -186,7 +186,7 @@ bool isMeleeWeapon(const Item* pItem) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Àü»ç, ±ºÀÎ ¼ºÁ÷ÀÚ ¹«±âÀÎ°¡?
+// Is this a warrior, soldier or priest weapon?
 //////////////////////////////////////////////////////////////////////////////
 bool isFighterWeapon(const Item* pItem) {
     if (pItem == NULL)
@@ -238,7 +238,7 @@ bool isClericWeapon(const Item* pItem) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ÃÑ¿¡ ¸Â´Â ÅºÃ¢ÀÎ°¡?
+// Is this magazine suitable for the gun?
 //////////////////////////////////////////////////////////////////////////////
 bool isSuitableMagazine(const Item* pGun, const Item* pMagazine, bool hasVivid) {
     if (pGun == NULL || pMagazine == NULL)
@@ -294,7 +294,7 @@ bool isSuitableMagazine(const Item* pGun, const Item* pMagazine, bool hasVivid) 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î¿ë ¹«±âÀÎ°¡?
+// Is this a Slayer weapon?
 //////////////////////////////////////////////////////////////////////////////
 bool isSlayerWeapon(Item::ItemClass IClass) {
     switch (IClass) {
@@ -315,7 +315,7 @@ bool isSlayerWeapon(Item::ItemClass IClass) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¹ìÆÄÀÌ¾î¿ë ¹«±âÀÎ°¡?
+// Is this a Vampire weapon?
 //////////////////////////////////////////////////////////////////////////////
 bool isVampireWeapon(Item::ItemClass IClass) {
     switch (IClass) {
@@ -329,7 +329,7 @@ bool isVampireWeapon(Item::ItemClass IClass) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¾Æ¿ì½ºÅÍ½º¿ë ¹«±âÀÎ°¡?
+// Is this an Ousters weapon?
 //////////////////////////////////////////////////////////////////////////////
 bool isOustersWeapon(Item::ItemClass IClass) {
     switch (IClass) {
@@ -344,7 +344,7 @@ bool isOustersWeapon(Item::ItemClass IClass) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î¿ë ¹æ¾î±¸ÀÎ°¡?
+// Is this Slayer armor?
 //////////////////////////////////////////////////////////////////////////////
 bool isSlayerArmor(Item::ItemClass IClass) {
     switch (IClass) {
@@ -364,7 +364,7 @@ bool isSlayerArmor(Item::ItemClass IClass) {
     return false;
 }
 //////////////////////////////////////////////////////////////////////////////
-// ¹ìÆÄÀÌ¾î¿ë ¹æ¾î±¸ÀÎ°¡?
+// Is this Vampire armor?
 //////////////////////////////////////////////////////////////////////////////
 bool isVampireArmor(Item::ItemClass IClass) {
     switch (IClass) {
@@ -379,7 +379,7 @@ bool isVampireArmor(Item::ItemClass IClass) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¾Æ¿ì½ºÅÍ½º ¹æ¾î±¸ÀÎ°¡?
+// Is this Ousters armor?
 //////////////////////////////////////////////////////////////////////////////
 bool isOustersArmor(Item::ItemClass IClass) {
     switch (IClass) {
@@ -397,7 +397,7 @@ bool isOustersArmor(Item::ItemClass IClass) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î¿ë ¾Ç¼¼»ç¸®ÀÎ°¡?
+// Is this a Slayer accessory?
 //////////////////////////////////////////////////////////////////////////////
 bool isSlayerAccessory(Item::ItemClass IClass) {
     switch (IClass) {
@@ -413,7 +413,7 @@ bool isSlayerAccessory(Item::ItemClass IClass) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¹ìÆÄÀÌ¾î¿ë ¾Ç¼¼»ç¸®ÀÎ°¡?
+// Is this a Vampire accessory?
 //////////////////////////////////////////////////////////////////////////////
 bool isVampireAccessory(Item::ItemClass IClass) {
     switch (IClass) {
@@ -431,7 +431,7 @@ bool isVampireAccessory(Item::ItemClass IClass) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¾Æ¿ì½ºÅÍ½º¿ë ¾Ç¼¼»ç¸®ÀÎ°¡?
+// Is this an Ousters accessory?
 //////////////////////////////////////////////////////////////////////////////
 bool isOustersAccessory(Item::ItemClass IClass) {
     switch (IClass) {
@@ -449,10 +449,10 @@ bool isOustersAccessory(Item::ItemClass IClass) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ¼ö¸®°¡´ÉÇÑ ¾ÆÀÌÅÛÀÎ°¡?
+// Is this a repairable item?
 //////////////////////////////////////////////////////////////////////////////
 bool isRepairableItem(const Item* pItem) {
-    // À¯´ÏÅ© ¾ÆÀÌÅÛÀº ¼ö¸®ÇÒ ÇÊ¿ä°¡ ¾ø´Ù.
+    // Unique items do not need repairing.
     if (pItem == NULL || pItem->isUnique() || pItem->isTimeLimitItem())
         return false;
     if (pItem->isFlagItem())
@@ -503,7 +503,7 @@ bool isRepairableItem(const Item* pItem) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ¾ÆÀÌÅÛÀ» ¼ö¸®ÇÑ´Ù.
+// Repair an item.
 //////////////////////////////////////////////////////////////////////////////
 void repairItem(Item* pItem) {
     if (pItem != NULL && !pItem->isUnique() && isRepairableItem(pItem)) {
@@ -516,16 +516,16 @@ void repairItem(Item* pItem) {
             OustersSummonItem* pOustersSummonItem = dynamic_cast<OustersSummonItem*>(pItem);
             pOustersSummonItem->setCharge(pOustersSummonItem->getMaxCharge());
         } else {
-            // ÃÖ³» ³»±¸Ä¡¸¦ ¾ò¾î³»¼­
+            // Obtain the maximum durability,
             Durability_t maxDurability = computeMaxDurability(pItem);
-            // ¼ö¸®ÇÑ´Ù.
+            // then repair.
             pItem->setDurability(maxDurability);
         }
     }
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¾ÆÀÌÅÛÀÇ ÃÖ´ë ³»±¸µµ¸¦ ¾ò¾î³½´Ù.
+// Get the item's maximum durability.
 //////////////////////////////////////////////////////////////////////////////
 Durability_t computeMaxDurability(Item* pItem) {
     if (pItem == NULL)
@@ -536,7 +536,7 @@ Durability_t computeMaxDurability(Item* pItem) {
 
     unsigned long maxDurability = pItem->getMaxDurability();
 
-    // 100%¿¡¼­ ½ÃÀÛ
+    // Start from 100%
     unsigned long plusPoint = 100;
 
     const list<OptionType_t>& optionTypes = pItem->getOptionTypeList();
@@ -557,20 +557,20 @@ Durability_t computeMaxDurability(Item* pItem) {
     }
 
     maxDurability = (maxDurability * plusPoint / 100);
-    // 65000 ³Ñ¾î°¡¸é »à»ç¸®³­´Ù -_-;;;
+    // Going over 65000 breaks.
     //	maxDurability = min( (unsigned long)65000, maxDurability );
 
     return (Durability_t)maxDurability;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ÅºÃ¢À» °¥¾Æ³¢¿öÁØ´Ù.
+// Change the magazine.
 //////////////////////////////////////////////////////////////////////////////
 Bullet_t reloadArmsItem(Item* pGun, Item* pMagazine) {
     Assert(pGun != NULL);
     Assert(pMagazine != NULL);
 
-    // vivid magazine Ã¼Å©´Â ¿©±â µé¾î¿À±â Àü¿¡ ÇÑ´Ù. ÀÌ ÇÔ¼ö´Â ¹«Á¶°Ç reloadÇØÁØ´Ù.
+    // The vivid magazine check is done before entering here. This function always reloads.
     if (isSuitableMagazine(pGun, pMagazine, true) == false)
         return false;
 
@@ -606,7 +606,7 @@ Bullet_t reloadArmsItem(Item* pGun, Item* pMagazine) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ÃÑ¾ËÀ» »©ÁØ´Ù.
+// Remove a bullet.
 //////////////////////////////////////////////////////////////////////////////
 Bullet_t decreaseBullet(Item* pWeapon)
 
@@ -623,7 +623,6 @@ Bullet_t decreaseBullet(Item* pWeapon)
     Bullet_t bullet = 0;
     Silver_t silver = 0;
 
-    // Gun class¸¦ Ãß°¡Çß´Ù. by sigi. 2002.5.8
     /*
     if (IClass == Item::ITEM_CLASS_AR
         || IClass == Item::ITEM_CLASS_SMG
@@ -687,7 +686,7 @@ Bullet_t decreaseBullet(Item* pWeapon)
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ³²Àº ÃÑ¾ËÀÇ °¹¼ö¸¦ ¸®ÅÏ
+// Return the number of remaining bullets.
 //////////////////////////////////////////////////////////////////////////////
 Bullet_t getRemainBullet(Item* pWeapon)
 
@@ -732,7 +731,7 @@ Bullet_t getRemainBullet(Item* pWeapon)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ÁÖÀ» ¼ö ÀÖ´Â ¾ÆÀÌÅÛÀÎ°¡?
+// Can this item be picked up?
 //////////////////////////////////////////////////////////////////////////////
 bool isPortableItem(Item* pItem) {
     Assert(pItem != NULL);
@@ -753,15 +752,15 @@ bool isPortableItem(Item* pItem) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// »ç¿ëÇÒ ¼ö ÀÖ´Â ¾ÆÀÌÅÛÀÎ°¡?
-// ¿©±â¼­ÀÇ »ç¿ëÀÌ¶õ, »ç¿ëÇØ¼­ »ç¶óÁö´Â ¼Ò¸ð¼º ¾ÆÀÌÅÛÀ» ¸»ÇÑ´Ù.
+// Is this a usable item?
+// Use here means a consumable item that disappears when used.
 //////////////////////////////////////////////////////////////////////////////
 bool isUsableItem(Item* pItem, Creature* pUser) {
     Assert(pItem != NULL);
     Assert(pUser != NULL);
 
-    // ³ªÁß¿¡ °°Àº Å¬·¡½ºÁö¸¸, ¾î¶² °ÍÀº »ç¿ëÇÒ ¼ö ÀÖ°í,
-    // ¾î¶² °ÍÀº »ç¿ëÇÒ ¼ö ¾ø´Â °ÍÀÌ ³ª¿ÀÁö ¾ÊÀ»±î?
+    // Later there may be items of the same class where some can be used and
+    // some cannot.
     // ItemType_t IType = pItem->getItemType();
 
     switch (pItem->getItemClass()) {
@@ -795,7 +794,7 @@ bool isUsableItem(Item* pItem, Creature* pUser) {
         break;
     case Item::ITEM_CLASS_EVENT_TREE:
         if (pItem->getItemType() == 12 || (pItem->getItemType() >= 26 && pItem->getItemType() <= 28))
-            return true; // ¿Ï¼ºµÈ Æ®¸®
+            return true; // Completed tree.
         break;
 
     case Item::ITEM_CLASS_EVENT_ETC:
@@ -868,7 +867,7 @@ bool isUsableItem(Item* pItem, Creature* pUser) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¾ÆÀÌÅÛÀÇ ¼ýÀÚ¸¦ ÁÙÀÎ´Ù.
+// Decrease the item count.
 //////////////////////////////////////////////////////////////////////////////
 ItemNum_t decreaseItemNum(Item* pItem, Inventory* pInventory, const string& OwnerID, Storage storage,
                           StorageID_t storageID, BYTE x, BYTE y) {
@@ -878,18 +877,18 @@ ItemNum_t decreaseItemNum(Item* pItem, Inventory* pInventory, const string& Owne
     Assert(isStackable(pItem));
 
     if (pItem->getNum() > 1) {
-        pItem->setNum(pItem->getNum() - 1);             // ¾ÆÀÌÅÛÀÇ °¹¼ö¸¦ ÇÏ³ª ÁÙÀÎ´Ù.
-        pInventory->decreaseItemNum();                  // ÀÎº¥Åä¸® ÃÑ °¹¼ö¸¦ ÁÙÀÎ´Ù.
-        pInventory->decreaseWeight(pItem->getWeight()); // ÀÎº¥Åä¸® ÃÑ ¹«°Ô¸¦ ÁÙÀÎ´Ù.
-        // pItem->save(OwnerID, storage, storageID, x, y); // ¾ÆÀÌÅÛ Á¤º¸¸¦ ÀúÀåÇÑ´Ù.
-        //  ¾ÆÀÌÅÛ ÀúÀå ÃÖÀûÈ­. 2002.7.25 by sigi
+        pItem->setNum(pItem->getNum() - 1);             // Decrease the item count by one.
+        pInventory->decreaseItemNum();                  // Decrease the inventory's total count.
+        pInventory->decreaseWeight(pItem->getWeight()); // Decrease the inventory's total weight.
+        // pItem->save(OwnerID, storage, storageID, x, y); // Save the item information.
+        //  Item save optimization.
         char pField[80];
         sprintf(pField, "Num=%d", pItem->getNum());
         pItem->tinysave(pField);
 
 
         return pItem->getNum();
-    } else // ¾ÆÀÌÅÛÀÌ 1°³Â¥¸®¿´À¸´Ï, »èÁ¦ÇÑ´Ù.
+    } else // Only one item was left, so delete it.
     {
         pInventory->deleteItem(x, y);
         pItem->destroy();
@@ -955,7 +954,7 @@ bool hasOptionClass(const list<OptionType_t>& optionTypes, OptionType_t optionTy
                 return true;
         }
     } catch (Throwable& t) {
-        // ¹«½Ã..
+        // Ignored.
         filelog("hasOptionClassBug.txt", "%s", t.toString().c_str());
     }
 
@@ -1022,18 +1021,18 @@ string getOptionTypeToString(const list<OptionType_t>& optionTypes) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ·¹¾î ¾ÆÀÌÅÛ : ´ÙÀ½ ¿É¼ÇÀ» ºÙÀÏ±î?
+// Rare item: attach the next option?
 //////////////////////////////////////////////////////////////////////////////
 bool isPossibleNextOption(ITEM_TEMPLATE* pTemplate) {
-    // ÇöÀç´Â ¿É¼ÇÀÌ 2°³±îÁö¹Û¿¡ ¾È ºÙ´Â´Ù.
+    // At present only up to two options are attached.
     if (pTemplate->OptionType.size() >= 5)
         return false;
 
-    // ¾Æ¹«°Íµµ ¾ø´Ù¸é ¹«Á¶°Ç ºÙÀÎ´Ù...°í ÇÏ´Â°Ç ¾Æ´ÏÁö¸¸ ¾îÂ¶µç ±×·¸´Ù - -;
+    // If nothing is attached yet, always attach one.
     if (pTemplate->OptionType.empty())
         return true;
 
-    // ¾ÆÀÌÅÛ¿¡ Æ¯º°È÷ Àû¿ëµÇ¾î ÀÖ´Â ¿É¼Ç È®·üÀ» Àû¿ë½ÃÅ²´Ù.
+    // Apply the option probability set specifically on the item.
     if (pTemplate->NextOptionRatio != 0) {
         int dice = rand() % 100;
         // cout << "NextOptionRatio : " << dice << " < " << (int)pTemplate->NextOptionRatio << endl;
@@ -1041,13 +1040,13 @@ bool isPossibleNextOption(ITEM_TEMPLATE* pTemplate) {
     }
 
     try {
-        // ¾ÆÀÌÅÛ Á¾·ùº°·Î.. ´ÙÀ½ ¿É¼ÇÀÌ ºÙÀ» È®·üÀ» ±¸ÇÑ´Ù.
+        // Get the probability that the next option is attached, per item kind.
         ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pTemplate->ItemClass, pTemplate->ItemType);
         Ratio_t nextItemRatio = pItemInfo->getNextOptionRatio();
 
-        // ÇöÀç ºÙÀº ¿É¼Ç¿¡ ´ëÇØ¼­.. ´ÙÀ½ ¿É¼ÇÀÌ ºÙÀ» È®·üÀ» ±¸ÇÑ´Ù.
+        // Get the probability of the next option, given the options already attached.
         list<OptionType_t>::const_iterator itr = pTemplate->OptionType.begin();
-        Ratio_t nextOptionRatio = nextItemRatio; // °è»ê ÁÙÀÏ·Á°í..
+        Ratio_t nextOptionRatio = nextItemRatio; // To reduce the computation.
         Ratio_t baseMultiplier = 100;            // 100%
         for (; itr != pTemplate->OptionType.end(); itr++) {
             OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(*itr);
@@ -1057,8 +1056,8 @@ bool isPossibleNextOption(ITEM_TEMPLATE* pTemplate) {
             baseMultiplier *= 100;
         }
 
-        // [¿¹Á¦] ¿É¼ÇÀÌ µÎ °³ ºÙ¾î ÀÖ´Â ¾ÆÀÌÅÛ¿¡¼­
-        //        ¼¼¹øÂ° ¿É¼ÇÀÌ ºÙÀ» È®·üÀÌ¶ó¸é..
+        // [Example] For an item that already carries two options,
+        //        the probability that a third option is attached:
         //
         // nextItemRatio = 10 %
         // nextOptionRatio1 = 20 %
@@ -1067,7 +1066,7 @@ bool isPossibleNextOption(ITEM_TEMPLATE* pTemplate) {
         // total nextOptionRatio = nextItemRatio * nextOptionRatio1 * nextOptionRatio2
         //                       = 10 * 20 * 30 = 6000
         //
-        // baseMultiplier = 100(ÃÊ±â°ª) * 100(option1) * 100(option2)
+        // baseMultiplier = 100(initial) * 100(option1) * 100(option2)
         //                = 1000000
         //
         // selectRatio = 0~baseMultiplier = 0~1000000
@@ -1079,14 +1078,14 @@ bool isPossibleNextOption(ITEM_TEMPLATE* pTemplate) {
 
         Ratio_t selectRatio = rand() % baseMultiplier;
 
-        // ·¹¾î ¾ÆÀÌÅÛ ·çÆÃ È®·üÀ» Àû¿ë½ÃÅ²´Ù.
+        // Apply the rare item looting probability.
         nextOptionRatio = getPercentValue(nextOptionRatio, g_pVariableManager->getRareItemRatio());
 
-        // È®·ü Ã¼Å©
+        // Probability check
         return selectRatio < nextOptionRatio;
 
     } catch (Throwable& t) {
-        // ÀÏ´Ü ¹«½ÃÇÑ´Ù.
+        // Ignored for now.
         filelog("nextOptionBug.txt", "%s", t.toString().c_str());
     }
 
@@ -1094,7 +1093,7 @@ bool isPossibleNextOption(ITEM_TEMPLATE* pTemplate) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// °·ºí ¾ÆÀÌÅÛ »ý¼º
+// Gamble item creation
 //////////////////////////////////////////////////////////////////////////////
 Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, int maxLevel)
 
@@ -1112,7 +1111,7 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
     ItemInfo* pItemInfo = NULL;
 
     //----------------------------------------------------------------------
-    // SlayerÀÎ °æ¿ì
+    // Slayer case
     //----------------------------------------------------------------------
     if (pCreature->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -1128,27 +1127,27 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
         Attr_t ReqSum, ReqSum2;
         Attr_t ReqGender;
 
-        // gambleÇÒ ¼ö ÀÖ´Â ÇÑ°è¸¦ Á» ´õ ³ôÇôº»´Ù.
+        // Raise the limit that can be gambled a little.
         CSTR += 3;
         CDEX += 3;
         CINT += 3;
         CSUM += 5;
 
-        // levelÁ¦ÇÑ
+        // Level limit
         if (maxLevel != 0) {
-            int maxAttr = maxLevel * 2 / 3; // attrÀº SUMÀÇ 2/3À¸·Î º»´Ù.
+            int maxAttr = maxLevel * 2 / 3; // attr is taken as 2/3 of SUM.
             CSTR = min((int)maxAttr, (int)CSTR);
             CDEX = min((int)maxAttr, (int)CDEX);
             CINT = min((int)maxAttr, (int)CINT);
             CSUM = min((int)maxLevel, (int)CSUM);
         }
 
-        // 10¹ø¸¸ µ¹·Áº»´Ù.
+        // Try only ten times.
         int i = 10;
         do {
             itemType = pInfoClass->getRandomItemType();
 
-            // ÀÌ itemTypeÀ» »ý¼ºÇØµµ µÇ´Â levelÀÎÁö È®ÀÎÇÑ´Ù.
+            // Check whether the level allows creating this itemType.
             pItemInfo = g_pItemInfoManager->getItemInfo(itemClass, itemType);
 
             ReqSTR2 = ReqSTR = pItemInfo->getReqSTR();
@@ -1160,14 +1159,14 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
             if (CSTR >= ReqSTR && CDEX >= ReqDEX && CINT >= ReqINT && CSUM >= ReqSum &&
                 (ReqGender == GENDER_BOTH || pSlayer->getSex() == MALE && ReqGender == GENDER_MALE ||
                  pSlayer->getSex() == FEMALE && ReqGender == GENDER_FEMALE)) {
-                // ÀÌ item typeÀ¸·Î °áÁ¤ÇÑ´Ù.
+                // Settle on this item type.
                 break;
             }
 
         } while (--i);
 
         if (i == 0) {
-            // ¿©ÀÚÀÎ °æ¿ì´Â ±âº» item typeÀÌ ´Ù¸£´Ù.
+            // For females the default item type differs.
             if ((itemClass == Item::ITEM_CLASS_COAT || itemClass == Item::ITEM_CLASS_TROUSER) &&
                 pSlayer->getSex() == FEMALE) {
                 itemType = 1;
@@ -1175,13 +1174,13 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
                 itemType = 0;
             }
 
-            // ¹Ø¿¡¼­ Ã¼Å©ÇÒ¶§ ¹«½ÃÇÏ±â À§ÇØ¼­..
+            // So that the check below ignores it.
             pItemInfo = NULL;
         }
 
 
-        // ¾ÆÀÌÅÛÀÌ ¿É¼ÇÀ» °¡Áö°í ÀÖ´Ù¸é,
-        // ¿É¼ÇÀÇ Á¾·ù¿¡ µû¶ó¼­ ´É·ÂÄ¡ Á¦ÇÑÀ» ¿Ã·ÁÁØ´Ù.
+        // If the item carries options,
+        // raise the attribute limit according to the kinds of option.
         int maxOptionLevel = max(1, min(100, (int)(CSUM / 3)));
 
         const vector<OptionType_t>& optionVector =
@@ -1199,15 +1198,15 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
         cout << endl;
         */
 
-        // Total OptionRatio¸¦ ±¸ÇÑ´Ù.
+        // Get the total OptionRatio.
         int itemOptionRatio = g_pOptionInfoManager->getTotalGambleRatio((Item::ItemClass)itemClass, maxOptionLevel);
 
         if (optionVector.size() > 0 && itemOptionRatio > 0 && (pItemInfo == NULL || !pItemInfo->isUnique())) {
-            // 10¹ø¸¸ µ¹·Áº»´Ù.
+            // Try only ten times.
             int i = 10;
 
             do {
-                // randomÀ¸·Î optionÀ» ¼±ÅÃÇÑ´Ù.
+                // Select an option at random.
                 int optionRatio = random() % itemOptionRatio;
                 int ratioSum = 0;
 
@@ -1222,13 +1221,13 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
                     ratioSum += pOptionInfo->getRatio();
 
                     if (optionRatio < ratioSum) {
-                        // ÀÌ optionÀ» ¼±ÅÃÇÑ´Ù.
+                        // Select this option.
                         // cout << "select : " << (int)optionType << endl;
                         break;
                     }
                 }
 
-                // optionÀÇ ¿ä±¸ ´É·ÂÄ¡¸¦ ´õÇØ¼­
+                // Add the option's required attributes and
                 if (ReqSTR != 0)
                     ReqSTR = ReqSTR2 + (pOptionInfo->getReqSum() * 2);
                 if (ReqDEX != 0)
@@ -1250,9 +1249,9 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
                 //	<< "CDEX=" << CDEX << ", "
                 //	<< "CINT=" << CINT << endl;
 
-                // playerÀÇ ´É·ÂÄ¡¿¡ ¸Â´Â ¾ÆÀÌÅÛÀÎÁö È®ÀÎÇÑ´Ù.
+                // check whether the item matches the player's attributes.
                 if (CSTR >= ReqSTR && CDEX >= ReqDEX && CINT >= ReqINT && CSUM >= ReqSum) {
-                    // ÀÌ option typeÀ¸·Î °áÁ¤ÇÑ´Ù.
+                    // Settle on this option type.
                     // cout << "OK!" << endl;
                     break;
                 }
@@ -1263,22 +1262,22 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
                 optionType = 0; //(rand()%3==0? 1: (rand()%2? 6:11));
             }
         }
-        // ¹«¿É 	// ÀûÀýÇÑ°Ô ¾øÀ¸¸é STR+1, DEX+1, INT+1 Áß¿¡¼­ ¾Ï°Å³ª..
+        // No option. If nothing suitable is found, any of STR+1, DEX+1, INT+1.
         else
             optionType = 0; //(rand()%3==0? 1: (rand()%2? 6:11));
     }
     //----------------------------------------------------------------------
-    // VampireÀÎ °æ¿ì
+    // Vampire case
     //----------------------------------------------------------------------
     else if (pCreature->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
 
         Level_t CLevel = pVampire->getLevel();
 
-        // gambleÇÒ ¼ö ÀÖ´Â ÇÑ°è¸¦ Á» ´õ ³ôÇôº»´Ù.
+        // Raise the limit that can be gambled a little.
         CLevel += 3;
 
-        // levelÁ¦ÇÑ
+        // Level limit
         if (maxLevel != 0) {
             CLevel = min((int)maxLevel, (int)CLevel);
         }
@@ -1287,19 +1286,19 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
         Attr_t ReqGender;
 
 
-        // 10¹ø¸¸ µ¹·Áº»´Ù.
+        // Try only ten times.
         int i = 10;
         do {
             itemType = pInfoClass->getRandomItemType();
 
-            // ÀÌ itemTypeÀ» »ý¼ºÇØµµ µÇ´Â levelÀÎÁö È®ÀÎÇÑ´Ù.
+            // Check whether the level allows creating this itemType.
             pItemInfo = g_pItemInfoManager->getItemInfo(itemClass, itemType);
 
             ReqLevel2 = ReqLevel = pItemInfo->getReqLevel();
             ReqGender = pItemInfo->getReqGender();
 
-            // ·¹º§ Á¦ÇÑÀÌ ¾ø°Å³ª Á¦ÇÑ ·¹º§ÀÌ ³ô°í
-            // ¼ºº°ÀÌ ¸Â¾Æ¾ß ÇÑ´Ù.
+            // The level limit must be absent or the level high enough, and
+            // the gender must match.
             if ((ReqLevel <= 0 || CLevel >= ReqLevel) &&
                 (ReqGender == GENDER_BOTH || pVampire->getSex() == MALE && ReqGender == GENDER_MALE ||
                  pVampire->getSex() == FEMALE && ReqGender == GENDER_FEMALE)) {
@@ -1309,7 +1308,7 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
         } while (--i);
 
         if (i == 0) {
-            // ¿©ÀÚÀÎ °æ¿ì´Â ±âº» item typeÀÌ ´Ù¸£´Ù.
+            // For females the default item type differs.
             if (Item::ITEM_CLASS_VAMPIRE_COAT && pVampire->getSex() == FEMALE) {
                 itemType = 1;
             } else {
@@ -1317,15 +1316,15 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
             }
         }
 
-        // ¾ÆÀÌÅÛÀÌ ¿É¼ÇÀ» °¡Áö°í ÀÖ´Ù¸é,
-        // ¿É¼ÇÀÇ Á¾·ù¿¡ µû¶ó¼­ ´É·ÂÄ¡ Á¦ÇÑÀ» ¿Ã·ÁÁØ´Ù.
+        // If the item carries options,
+        // raise the attribute limit according to the kinds of option.
         int maxOptionLevel = max(1, min(100, (int)CLevel));
 
         const vector<OptionType_t>& optionVector =
             g_pOptionInfoManager->getPossibleGambleOptionVector((Item::ItemClass)itemClass, maxOptionLevel);
         vector<OptionType_t>::const_iterator iOption;
 
-        // Total OptionRatio¸¦ ±¸ÇÑ´Ù.
+        // Get the total OptionRatio.
         int itemOptionRatio = g_pOptionInfoManager->getTotalGambleRatio((Item::ItemClass)itemClass, maxOptionLevel);
 
         /*
@@ -1341,11 +1340,11 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
 
 
         if (optionVector.size() > 0 && itemOptionRatio > 0 && (pItemInfo == NULL || !pItemInfo->isUnique())) {
-            // 10¹ø¸¸ µ¹·Áº»´Ù.
+            // Try only ten times.
             int i = 10;
 
             do {
-                // randomÀ¸·Î optionÀ» ¼±ÅÃÇÑ´Ù.
+                // Select an option at random.
                 int optionRatio = random() % itemOptionRatio;
                 int ratioSum = 0;
 
@@ -1360,17 +1359,17 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
                     ratioSum += pOptionInfo->getRatio();
 
                     if (optionRatio < ratioSum) {
-                        // ÀÌ optionÀ» ¼±ÅÃÇÑ´Ù.
+                        // Select this option.
                         break;
                     }
                 }
 
-                // optionÀÇ ¿ä±¸ ´É·ÂÄ¡¸¦ ´õÇØ¼­
+                // Add the option's required attributes and
                 ReqLevel = ReqLevel2 + pOptionInfo->getReqLevel();
 
-                // playerÀÇ ´É·ÂÄ¡¿¡ ¸Â´Â ¾ÆÀÌÅÛÀÎÁö È®ÀÎÇÑ´Ù.
+                // check whether the item matches the player's attributes.
                 if (ReqLevel <= 0 || CLevel >= ReqLevel) {
-                    // ÀÌ option typeÀ¸·Î °áÁ¤ÇÑ´Ù.
+                    // Settle on this option type.
                     break;
                 }
 
@@ -1380,40 +1379,40 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
                 optionType = 0; //(rand()%3==0? 1: (rand()%2? 6:11));
             }
         }
-        // ¹«¿É!  // ÀûÀýÇÑ°Ô ¾øÀ¸¸é STR+1, DEX+1, INT+1 Áß¿¡¼­ ¾Ï°Å³ª..
+        // No option. If nothing suitable is found, any of STR+1, DEX+1, INT+1.
         else
             optionType = 0; //(rand()%3==0? 1: (rand()%2? 6:11));
     }
     //----------------------------------------------------------------------
-    // OustersÀÎ °æ¿ì
+    // Ousters case
     //----------------------------------------------------------------------
     else if (pCreature->isOusters()) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
 
         Level_t CLevel = pOusters->getLevel();
 
-        // gambleÇÒ ¼ö ÀÖ´Â ÇÑ°è¸¦ Á» ´õ ³ôÇôº»´Ù.
+        // Raise the limit that can be gambled a little.
         CLevel += 3;
 
-        // levelÁ¦ÇÑ
+        // Level limit
         if (maxLevel != 0) {
             CLevel = min((int)maxLevel, (int)CLevel);
         }
 
         Attr_t ReqLevel, ReqLevel2;
 
-        // 10¹ø¸¸ µ¹·Áº»´Ù.
+        // Try only ten times.
         int i = 10;
         do {
             itemType = pInfoClass->getRandomItemType();
 
-            // ÀÌ itemTypeÀ» »ý¼ºÇØµµ µÇ´Â levelÀÎÁö È®ÀÎÇÑ´Ù.
+            // Check whether the level allows creating this itemType.
             pItemInfo = g_pItemInfoManager->getItemInfo(itemClass, itemType);
 
             ReqLevel2 = ReqLevel = pItemInfo->getReqLevel();
 
-            // ·¹º§ Á¦ÇÑÀÌ ¾ø°Å³ª Á¦ÇÑ ·¹º§ÀÌ ³ô°í
-            // ¼ºº°ÀÌ ¸Â¾Æ¾ß ÇÑ´Ù.
+            // The level limit must be absent or the level high enough, and
+            // the gender must match.
             if ((ReqLevel <= 0 || CLevel >= ReqLevel)) {
                 break;
             }
@@ -1424,15 +1423,15 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
             itemType = 0;
         }
 
-        // ¾ÆÀÌÅÛÀÌ ¿É¼ÇÀ» °¡Áö°í ÀÖ´Ù¸é,
-        // ¿É¼ÇÀÇ Á¾·ù¿¡ µû¶ó¼­ ´É·ÂÄ¡ Á¦ÇÑÀ» ¿Ã·ÁÁØ´Ù.
+        // If the item carries options,
+        // raise the attribute limit according to the kinds of option.
         int maxOptionLevel = max(1, min(100, (int)CLevel));
 
         const vector<OptionType_t>& optionVector =
             g_pOptionInfoManager->getPossibleGambleOptionVector((Item::ItemClass)itemClass, maxOptionLevel);
         vector<OptionType_t>::const_iterator iOption;
 
-        // Total OptionRatio¸¦ ±¸ÇÑ´Ù.
+        // Get the total OptionRatio.
         int itemOptionRatio = g_pOptionInfoManager->getTotalGambleRatio((Item::ItemClass)itemClass, maxOptionLevel);
 
         /*
@@ -1448,11 +1447,11 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
 
 
         if (optionVector.size() > 0 && itemOptionRatio > 0 && (pItemInfo == NULL || !pItemInfo->isUnique())) {
-            // 10¹ø¸¸ µ¹·Áº»´Ù.
+            // Try only ten times.
             int i = 10;
 
             do {
-                // randomÀ¸·Î optionÀ» ¼±ÅÃÇÑ´Ù.
+                // Select an option at random.
                 int optionRatio = random() % itemOptionRatio;
                 int ratioSum = 0;
 
@@ -1467,17 +1466,17 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
                     ratioSum += pOptionInfo->getRatio();
 
                     if (optionRatio < ratioSum) {
-                        // ÀÌ optionÀ» ¼±ÅÃÇÑ´Ù.
+                        // Select this option.
                         break;
                     }
                 }
 
-                // optionÀÇ ¿ä±¸ ´É·ÂÄ¡¸¦ ´õÇØ¼­
+                // Add the option's required attributes and
                 ReqLevel = ReqLevel2 + pOptionInfo->getReqLevel();
 
-                // playerÀÇ ´É·ÂÄ¡¿¡ ¸Â´Â ¾ÆÀÌÅÛÀÎÁö È®ÀÎÇÑ´Ù.
+                // check whether the item matches the player's attributes.
                 if (ReqLevel <= 0 || CLevel >= ReqLevel) {
-                    // ÀÌ option typeÀ¸·Î °áÁ¤ÇÑ´Ù.
+                    // Settle on this option type.
                     break;
                 }
 
@@ -1487,12 +1486,12 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
                 optionType = 0; //(rand()%3==0? 1: (rand()%2? 6:11));
             }
         }
-        // ¹«¿É!  // ÀûÀýÇÑ°Ô ¾øÀ¸¸é STR+1, DEX+1, INT+1 Áß¿¡¼­ ¾Ï°Å³ª..
+        // No option. If nothing suitable is found, any of STR+1, DEX+1, INT+1.
         else
             optionType = 0; //(rand()%3==0? 1: (rand()%2? 6:11));
     }
 
-    // itemÀ» »ý¼ºÇØ¼­ ³Ñ°ÜÁØ´Ù.
+    // Create the item and hand it back.
     list<OptionType_t> optionTypes;
     if (optionType != 0)
         optionTypes.push_back(optionType);
@@ -1506,7 +1505,7 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¿É¼ÇÀÌ ºÙÀ» ¼ö ÀÖ´Â ¾ÆÀÌÅÛÀÎ°¡?
+// Is this an item that options can be attached to?
 //////////////////////////////////////////////////////////////////////////////
 bool isPossibleOptionItemClass(Item::ItemClass IClass) {
     switch (IClass) {
@@ -1565,7 +1564,7 @@ bool isPossibleOptionItemClass(Item::ItemClass IClass) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ´ÙÀ½ ´Ü°è·Î ¾÷±×·¹ÀÌµåµÉ ¼ö ÀÖ´Â ItemTypeÀÎ°¡
+// Is this an ItemType that can be upgraded to the next step?
 //////////////////////////////////////////////////////////////////////////////
 bool isPossibleUpgradeItemType(Item::ItemClass IClass) {
     switch (IClass) {
@@ -1622,7 +1621,7 @@ ItemType_t getUpgradeItemType(Item::ItemClass IClass, ItemType_t itemType, ItemT
     InfoClassManager* pInfoClass = g_pItemInfoManager->getInfoManager(IClass);
     Assert(pInfoClass != NULL);
 
-    // ¾ÆÀÌÅÛ ¾÷±×·¹ÀÌµå Á¤º¸°¡ DB¿¡ µé¾î°£´Ù. ¿©±â¼­´Â ÁÖ¾îÁø È¸¼ö¸¸Å­ ´ÙÀ½ ItemTypeÀ¸·Î ¿Å°Ü°£´Ù.
+    // Item upgrade information goes into the DB. Here it advances to the next ItemType the given number of times.
     ItemType_t newItemType = itemType;
 
     for (int i = 0; i < upgradeCount; i++) {
@@ -1636,7 +1635,7 @@ ItemType_t getUpgradeItemType(Item::ItemClass IClass, ItemType_t itemType, ItemT
 
     /*	int maxItemType = pInfoClass->getInfoCount()-1;
 
-        // ÀÌ¹Ì ÃÖ°í ¾ÆÀÌÅÛÀÎ °æ¿ì
+        // Already the highest item
         if (itemType==maxItemType)
         {
             //cout << itemType << "(max)" << endl;
@@ -1645,7 +1644,7 @@ ItemType_t getUpgradeItemType(Item::ItemClass IClass, ItemType_t itemType, ItemT
 
         int itemTypeGap = 1;
 
-        // ¾ÆÀÌÅÛ ´Ü°è ¼ø¼­°¡ 2´Ü°è¾¿ µÇ¾î ÀÖ´Â ¾ÆÀÌÅÛ
+        // Items whose step order advances two steps at a time
         if (IClass==Item::ITEM_CLASS_COAT
             || IClass==Item::ITEM_CLASS_TROUSER
             || IClass==Item::ITEM_CLASS_VAMPIRE_COAT)
@@ -1655,17 +1654,17 @@ ItemType_t getUpgradeItemType(Item::ItemClass IClass, ItemType_t itemType, ItemT
 
         int newItemType = min(maxItemType, itemType + upgradeCount*itemTypeGap);
 
-        // 2´Ü°è¾¿ °Ç³Ê¶ç¾î¾ßÇÒ °æ¿ì
+        // When two steps have to be skipped
         if (itemTypeGap==2
             && (itemType & 0x01)!=(newItemType & 0x01)) newItemType -= 1;
 
-        // ÃÖ°í ¾ÆÀÌÅÛÀÌ À¯´ÏÅ©ÀÏ ¼öµµ ÀÖ´Âµ¥.. ÀÌ°Ç »©ÁÖÀÚ..
+        // The highest item may be unique -- leave that one out.
         while (newItemType > itemType)
         {
             ItemInfo* pItemInfo = pInfoClass->getItemInfo( newItemType );
             Assert(pItemInfo!=NULL);
 
-            // À¯´ÏÅ©¶ó¸é.. ÇÑ ´Ü°è¾¿ ³·ÃçÁØ´Ù.
+            // If unique, step down one level at a time.
             if (pItemInfo->isUnique()) newItemType-=itemTypeGap;
             else break;
         }
@@ -1692,9 +1691,9 @@ ItemType_t getDowngradeItemType(Item::ItemClass IClass, ItemType_t itemType) {
 
 /*
 //////////////////////////////////////////////////////////////////////////////
-// Å©¸®½º¸¶½º Æ®¸® ÀÌº¥Æ®¿ë
+// For the Christmas tree event
 //////////////////////////////////////////////////////////////////////////////
-// Æ®¸® Á¶°¢À» °Ë»ö
+// Search for tree fragments
 TPOINT checkEventTree( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY )
 {
     __BEGIN_TRY
@@ -1724,7 +1723,7 @@ TPOINT checkEventTree( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY )
     CoordInven_t curIX = 0, curIY = 0;
     ItemType_t compType = 0;
 
-    // Æ®¸® Á¶°¢ÀÌ Á¦´ë·Î ¸ÂÃçÁ® ÀÖ´ÂÁö È®ÀÎÇÑ´Ù.
+    // Check that the tree fragments are correctly assembled.
     for ( curIY = startY; curIY < startY + 4; curIY++ )
     {
         for ( curIX = startX; curIX < startX + 3; curIX++ )
@@ -1749,7 +1748,7 @@ TPOINT checkEventTree( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY )
     __END_CATCH
 }
 
-// °í´ë¹®Çå
+// Ancient document
 TPOINT checkEventDocument( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY )
 {
     __BEGIN_TRY
@@ -1768,7 +1767,7 @@ TPOINT checkEventDocument( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY
 
     ItemType_t		itemType		= pCurItem->getItemType();
 
-    // °í´ë¹®Çå Á¶°¢Àº 13ºÎÅÍ ½ÃÀÛÇÑ´Ù
+    // Ancient document fragments start at 13
     itemType = itemType - 13;
 
     CoordInven_t	startX = iX - itemType % 3;
@@ -1781,10 +1780,10 @@ TPOINT checkEventDocument( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY
 
     CoordInven_t curIX = 0, curIY = 0;
 
-    // °í´ë¹®Çå Á¶°¢Àº 13ºÎÅÍ ½ÃÀÛÇÑ´Ù
+    // Ancient document fragments start at 13
     ItemType_t compType = 13;
 
-    // °í´ë ¹«Çå Á¶°¢ÀÌ Á¦´ë·Î ¸ÂÃçÁ® ÀÖ´ÂÁö È®ÀÎÇÑ´Ù.
+    // Check that the ancient document fragments are correctly assembled.
     for ( curIY = startY; curIY < startY + 4; curIY++ )
     {
         for ( curIX = startX; curIX < startX + 3; curIX++ )
@@ -1809,8 +1808,8 @@ TPOINT checkEventDocument( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY
     __END_CATCH
 }
 
-// ÀÎÇü -_-;; ÀÌ°Å ÀÏ¹ÝÈ­ ±Ý¹æ ½ÃÅ³ °Í °°Àºµ¥ ;; ÀÎÀÚ¸¸ ÇÏ³ª ´õ ¹Þµµ·Ï ÇÏ¸é -_-;
-// ´ã¿¡ Äù½ºÆ® ¶§´Â ÀÏ¹ÝÈ­ ½ÃÅ°µµ·Ï ÇÏÀÚ. ¤Ñ.¤Ña
+// Doll. This could be generalized by taking one more argument.
+// Generalize it for the next quest.
 TPOINT checkEventDoll( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY )
 {
     __BEGIN_TRY
@@ -1829,7 +1828,7 @@ TPOINT checkEventDoll( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY )
 
     ItemType_t		itemType		= pCurItem->getItemType();
 
-    // ÀÎÇü Á¶°¢Àº 29ºÎÅÍ ½ÃÀÛÇÑ´Ù
+    // Doll fragments start at 29
     itemType = itemType - 29;
 
     CoordInven_t	startX = iX - itemType % 3;
@@ -1842,10 +1841,10 @@ TPOINT checkEventDoll( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY )
 
     CoordInven_t curIX = 0, curIY = 0;
 
-    // ÀÎÇü Á¶°¢Àº 29ºÎÅÍ ½ÃÀÛÇÑ´Ù
+    // Doll fragments start at 29
     ItemType_t compType = 29;
 
-    // °í´ë ¹«Çå Á¶°¢ÀÌ Á¦´ë·Î ¸ÂÃçÁ® ÀÖ´ÂÁö È®ÀÎÇÑ´Ù.
+    // Check that the ancient document fragments are correctly assembled.
     for ( curIY = startY; curIY < startY + 4; curIY++ )
     {
         for ( curIX = startX; curIX < startX + 3; curIX++ )
@@ -1871,7 +1870,7 @@ TPOINT checkEventDoll( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY )
 }
 */
 
-// ÀÏ¹ÝÈ­ ½ÃÅ² °Å checkEventTree ¶û checkEventDocument ¶û checkEventDoll Àº Áö¿ìÀÚ
+// Generalized version; checkEventTree, checkEventDocument and checkEventDoll can be removed.
 TPOINT checkEventPuzzle(PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY, int start) {
     __BEGIN_TRY
 
@@ -1924,7 +1923,7 @@ TPOINT checkEventPuzzle(PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY, i
     __END_CATCH
 }
 
-// ÀÎº¥Åä¸®ÀÇ (X0, Y0) - (X1, y1) ¹üÀ§ÀÇ ¾ÆÀÌÅÛÀ» Áö¿î´Ù.
+// Delete the items in the inventory range (X0, Y0) - (X1, y1).
 void deleteInventoryItem(Inventory* pInventory, CoordInven_t invenX0, CoordInven_t invenY0, CoordInven_t invenX1,
                          CoordInven_t invenY1) {
     __BEGIN_TRY
@@ -1932,16 +1931,16 @@ void deleteInventoryItem(Inventory* pInventory, CoordInven_t invenX0, CoordInven
     CoordInven_t curIX = 0, curIY = 0;
     Item* pCurItem = 0;
 
-    // ¸ÂÃçÁø Æ®¸® Á¶°¢À» Áö¿î´Ù.
+    // Delete the assembled tree fragments.
     for (curIY = invenY0; curIY <= invenY1; curIY++) {
         for (curIX = invenX0; curIX <= invenX1; curIX++) {
             pCurItem = pInventory->getItem(curIX, curIY);
 
             if (pCurItem != NULL) {
-                // ÀÎº¥Åä¸®¿¡¼­ Áö¿î´Ù.
+                // Delete it from the inventory.
                 pInventory->deleteItem(pCurItem->getObjectID());
 
-                // DB ¿¡¼­ ³¯¸°´Ù.
+                // Remove it from the DB.
                 pCurItem->destroy();
 
                 SAFE_DELETE(pCurItem);
@@ -1969,7 +1968,7 @@ const NewbieItem NewbieItems[maxNewbieItemNum] = {
     {Item::ITEM_CLASS_POTION, 0, 9, 4, 9}, {Item::ITEM_CLASS_POTION, 5, 9, 5, 9},
 };
 
-// ÀÎº¥Åä¸®¿¡ ÃÊº¸ÀÚ¿ë ¾ÆÀÌÅÛÀ» ³Ö¾îÁØ´Ù.
+// Put the newbie items into the inventory.
 bool addNewbieItemToInventory(Slayer* pSlayer, bool sendPacket)
 
 {
@@ -2279,11 +2278,11 @@ void saveDissectionItem(Creature* pCreature, Item* pTreasure, int x, int y)
     Assert(pCreature != NULL);
     Assert(pTreasure != NULL);
 
-    // relicÀÌ ¾Æ´Ñ °æ¿ì¸¸.. DB¿¡ ¾ÆÀÌÅÛÀ» »ý¼ºÇÑ´Ù.
-    // ÇÇÀÇ ¼º¼­ÀÏ °æ¿ì ÀÌ¹Ì DB¿¡ ÀÖÀ¸¹Ç·Î DB¸¦ ¾÷µ¥ÀÌÆ®ÇØÁØ´Ù.
+    // Create the item in the DB only when it is not a relic.
+    // A Blood Bible is already in the DB, so the DB is updated instead.
     switch (pTreasure->getItemClass()) {
     case Item::ITEM_CLASS_RELIC: {
-        // RelicÀº DB¿¡ ÀúÀåÇÒ ÇÊ¿ä ¾ø´Ù.
+        // A Relic does not need to be stored in the DB.
     } break;
 
     case Item::ITEM_CLASS_BLOOD_BIBLE:
@@ -2300,16 +2299,16 @@ void saveDissectionItem(Creature* pCreature, Item* pTreasure, int x, int y)
         ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pTreasure->getItemClass(), pTreasure->getItemType());
         Assert(pItemInfo != NULL);
 
-        // À¯´ÏÅ© ¾ÆÀÌÅÛÀÎ °æ¿ì´Â
-        // ¾ÆÀÌÅÛ ÀÚÃ¼¿¡ À¯´ÏÅ© ¼³Á¤À» ÇØÁÖ°í
-        // DB¿¡ À¯´ÏÅ© ¾ÆÀÌÅÛÀÇ °³¼ö¸¦ º¯°æ½ÃÄÑÁØ´Ù.
+        // For a unique item,
+        // mark the item itself as unique and
+        // change the unique item count in the DB.
         //
-        // (*) ¸ó½ºÅÍ°¡ Á×¾úÀ» ¶§,
-        //     ¸ó½ºÅÍ ¾È¿¡ ÀÖ´Â ¾ÆÀÌÅÛ¿¡´Â À¯´ÏÅ© ¼³Á¤µµ ¾ÈÇÏ°í
-        //     DB¿¡µµ °³¼ö º¯°æÀ» ¾ÈÇÑ´Ù. ±×·¡¼­, Áö¿öÁÙ¶§µµ ¹«½ÃÇÑ´Ù.
-        //     ÇöÀç À¯´ÏÅ© ¾ÆÀÌÅÛÀº ¸ó½ºÅÍ¸¦ ÅëÇØ¼­¸¸ ³ªÅ¸³ª°í
-        //     CGDissectionCorpse¸¦ ÅëÇØ¼­ »ý¼º(!)µÇ°í
-        //     EffectDecayItemÀ» ÅëÇØ¼­¸¸ Á¦°ÅµÈ´Ù.
+        // (*) When a monster dies,
+        //     items inside the monster are neither marked unique
+        //     nor counted in the DB. So they are ignored on deletion too.
+        //     At present unique items appear only through monsters,
+        //     are created (!) through CGDissectionCorpse and
+        //     are removed only through EffectDecayItem.
 
         if (pItemInfo->isUnique()) {
             pTreasure->setUnique();
@@ -2318,8 +2317,8 @@ void saveDissectionItem(Creature* pCreature, Item* pTreasure, int x, int y)
                     pTreasure->toString().c_str());
         }
 
-        // ±âÁ¸ÀÇ ItemID¸¦ ±×´ë·Î À¯ÁöÇÑ´Ù.
-        // ItemID°¡ 0ÀÌ¸é.. create()ÇÒ¶§ ´Ù½Ã ItemID¸¦ ¹Þ´Â´Ù.
+        // Keep the existing ItemID.
+        // If the ItemID is 0, a new ItemID is assigned on create().
         // by sigi. 2002.10.28
         pTreasure->create("", STORAGE_ZONE, pCreature->getZone()->getZoneID(), x, y, pTreasure->getItemID());
     }
@@ -2378,7 +2377,7 @@ bool canSell(Item* pItem) {
         return false;
     if (pItem->isFlagItem())
         return false;
-    // Äù½ºÆ® ¾ÆÀÌÅÛÀº 50¿ø¿¡ ÆÈ ¼ö ÀÖ´Ù.
+    // Quest items can be sold for 50 won.
     // if ( pItem->isTimeLimitItem() ) return false;
 
     Item::ItemClass itemClass = pItem->getItemClass();
@@ -2392,7 +2391,7 @@ bool canSell(Item* pItem) {
     if (itemClass == Item::ITEM_CLASS_SWEEPER)
         return false;
 
-    // edit by coffee 2007-7-7 ÐÞ¸ÄÈÎÎñÎïÆ· ÉúÃüÂÝÐýÎª¿É³öÊÛ
+    // The quest item Life Spiral is sellable.
     if (itemClass == Item::ITEM_CLASS_EVENT_ITEM && pItem->getItemType() == 31)
         return true;
 
@@ -2455,11 +2454,11 @@ bool canTrade(Item* pItem) {
     if (itemClass == Item::ITEM_CLASS_SWEEPER)
         return false;
 
-    // ¹Ý´Þ Ä«µå´Â Æ®·¹ÀÌµå ÇÒ ¼ö ¾ø´Ù.
+    // The half moon card cannot be traded.
     if (itemClass == Item::ITEM_CLASS_MOON_CARD && pItem->getItemType() == 0)
         return false;
 
-    // ÇÁ¸®¹Ì¾ö Ã¼Çè±Ç Á¶°¢ -_-
+    // Premium trial ticket fragment
     if (itemClass == Item::ITEM_CLASS_LUCKY_BAG && pItem->getItemType() == 3)
         return false;
     if (itemClass == Item::ITEM_CLASS_EVENT_ITEM && pItem->getItemType() == 28)
@@ -2467,11 +2466,11 @@ bool canTrade(Item* pItem) {
     if (itemClass == Item::ITEM_CLASS_EFFECT_ITEM && pItem->getItemType() >= 4 && pItem->getItemType() <= 6)
         return false;
 
-    // ÀÌº¥Æ® ¶±±¹Àº ±³È¯ ºÒ°¡.
+    // Event rice cake soup cannot be exchanged.
     if (itemClass == Item::ITEM_CLASS_EVENT_STAR && (itemType >= 17 && itemType <= 21))
         return false;
 
-    // º¹Á¶¸® ¾ÆÀÌÅÛ ±³È¯ ºÒ°¡
+    // The lucky strainer item cannot be exchanged.
     if (itemClass == Item::ITEM_CLASS_MIXING_ITEM && itemType == 18)
         return false;
 
@@ -2553,15 +2552,15 @@ void setItemGender(Item* pItem, GenderRestriction gender) {
 bool bTraceLog(Item* pItem) {
     Item::ItemClass iClass = pItem->getItemClass();
 
-    // PetItem Àº ¹«Á¶°Ç ³²±ä´Ù
+    // A PetItem always leaves a trace log.
     if (iClass == Item::ITEM_CLASS_PET_ITEM || iClass == Item::ITEM_CLASS_CORE_ZAP)
         return true;
 
-    // Æ÷¼ÇÀÇ ÆÄ¶õ »çÅÁÀÌ¶û Èò»ö ¶±±¹Àº ³²±ä´Ù
+    // The blue candy potion and the white rice cake soup leave a trace log.
     if (iClass == Item::ITEM_CLASS_POTION && (pItem->getItemType() == 10 || pItem->getItemType() == 11))
         return true;
 
-    // Serum ¿¡ »¡°£ »çÅÁÀº ³²±ä´Ù
+    // The red candy Serum leaves a trace log.
     if (iClass == Item::ITEM_CLASS_SERUM && (pItem->getItemType() == 4 || pItem->getItemType() == 5))
         return true;
 
@@ -2594,7 +2593,7 @@ bool bTraceLog(Item* pItem) {
     const list<OptionType_t>& optionList = pItem->getOptionTypeList();
     list<OptionType_t>::const_iterator itr;
 
-    // ÀúÇ× ¿É¼ÇÀÌ ÀÖ´Â °Ç ±â·Ï ³²±ä´Ù
+    // Items with a resistance option leave a trace log.
     for (itr = optionList.begin(); itr != optionList.end(); itr++) {
         OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(*itr);
         if (pOptionInfo == NULL)
@@ -2607,13 +2606,13 @@ bool bTraceLog(Item* pItem) {
             return true;
     }
 
-    // ºñÁê¶û Ææ´øÆ®´Â ±â·Ï ³²±ä´Ù
-    // Event Star ´Â ±â·Ï ³²±ä´Ù
+    // Bijou and pendant leave a trace log.
+    // Event Star leaves a trace log.
     if (iClass == Item::ITEM_CLASS_QUEST_ITEM || iClass == Item::ITEM_CLASS_EVENT_STAR ||
         iClass == Item::ITEM_CLASS_MIXING_ITEM)
         return true;
 
-    // ±× ¿ÜÀÇ ¾ÆÀÌÅÛÀÎ °æ¿ì 3´Ü ÀÌÇÏ´Â ±â·Ï ³²±âÁö ¾Ê´Â´Ù
+    // Any other item at step 3 or below leaves no trace log.
     if ((int)(pItem->getItemType()) < 3)
         return false;
 
@@ -2667,7 +2666,7 @@ void remainMoneyTraceLog(const string& preOwner, const string& owner, ItemTraceL
     __END_CATCH
 }
 
-// Web ¿¡¼­ »ê ¾ÆÀÌÅÛÀ» ¸¸µå´Â ÇÔ¼ö
+// Creates an item bought on the web.
 Item* createItemByGoodsID(DWORD goodsID) {
     GoodsInfo* pGoodsInfo = de::gameContext().goodsInfos().getGoodsInfo(goodsID);
     if (pGoodsInfo == NULL) {
@@ -2729,7 +2728,7 @@ Item* createItemByGoodsID(DWORD goodsID) {
         pPetInfo->setPetHP(5760);
         pPetInfo->setFeedTime(VSDateTime::currentDateTime());
 
-        // ¾ç¹æÇâ ¸µÅ©
+        // Two-way link
         pPetItem->setPetInfo(pPetInfo);
         pPetInfo->setPetItem(pPetItem);
     }
