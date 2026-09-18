@@ -641,10 +641,10 @@ void Guild::addMember(GuildMember* pMember)
 
     if (rank == GuildMember::GUILDMEMBER_RANK_NORMAL || rank == GuildMember::GUILDMEMBER_RANK_MASTER ||
         rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
-        // 일반회원이나 (서브)마스터가 추가될때 ActiverMemberCount를 증가시킨다.
+        // Adding a normal member or a (sub)master increases m_ActiveMemberCount.
         m_ActiveMemberCount++;
     } else if (rank == GuildMember::GUILDMEMBER_RANK_WAIT) {
-        // 가입 대기자가 추가될때 WaitMemberCount 를 증가 시킨다.
+        // Adding an applicant increases m_WaitMemberCount.
         m_WaitMemberCount++;
     }
 
@@ -679,7 +679,7 @@ void Guild::deleteMember(const string& name)
 
     if (rank == GuildMember::GUILDMEMBER_RANK_NORMAL || rank == GuildMember::GUILDMEMBER_RANK_MASTER ||
         rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
-        // 활동중인 회원수 카운터를 감소 시킨다
+        // Decrease the active member counter.
         m_ActiveMemberCount--;
     } else if (rank == GuildMember::GUILDMEMBER_RANK_WAIT) {
         m_WaitMemberCount--;
@@ -776,7 +776,7 @@ void Guild::modifyMemberRank(const string& name, GuildMemberRank_t rank)
 void Guild::addCurrentMember(const string& name) {
     __BEGIN_TRY
 
-    __ENTER_CRITICAL_SECTION(m_Mutex) // 다른 뮤텍스 써도 될 듯한데.. 귀찮아..
+    __ENTER_CRITICAL_SECTION(m_Mutex) // A separate mutex would do here.
 
     if (std::ranges::find(m_CurrentMembers, name) != m_CurrentMembers.end()) {
         return;
@@ -784,7 +784,7 @@ void Guild::addCurrentMember(const string& name) {
 
     m_CurrentMembers.push_back(name);
 
-    // Guild Member 객체에 로그온을 세팅한다.
+    // Set the logon flag on the GuildMember object.
     GuildMember* pGuildMember = getMember_NOLOCKED(name);
     if (pGuildMember == NULL) {
         return;
@@ -810,7 +810,7 @@ void Guild::deleteCurrentMember(const string& name) {
 
     m_CurrentMembers.erase(itr);
 
-    // Guild Member 객체에 로그오프를 세팅한다.
+    // Set the logoff flag on the GuildMember object.
     GuildMember* pGuildMember = getMember_NOLOCKED(name);
     if (pGuildMember == NULL) {
         return;
@@ -939,7 +939,7 @@ void Guild::expireTimeOutWaitMember(VSDateTime currentDateTime, list<string>& mL
             pGuildMember->isRequestDateTimeOut(currentDateTime)) {
             mList.push_back(pGuildMember->getName());
 
-            // wait member count 를 줄인다.
+            // Decrease the wait member count.
             m_WaitMemberCount--;
 
             pGuildMember->expire();

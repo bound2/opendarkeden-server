@@ -110,19 +110,19 @@ public:
     string toString() const;
 
 private:
-    ZoneID_t m_ZoneID;     // 존ID
-    ShrineID_t m_ShrineID; // 성 상징의 ShrineID
-    GuildID_t m_GuildID;   // 주인 길드 ID
-    string m_Name;         // 성 이름
-    int m_ItemTaxRatio;    // 아이템 살 때 세율 (%)
-    Gold_t m_EntranceFee;  // 입장료
-    Gold_t m_TaxBalance;   // 세금 쌓여있는거
-    Race_t m_Race;         // 어느 종족의 성인가
+    ZoneID_t m_ZoneID;     // Zone ID
+    ShrineID_t m_ShrineID; // ShrineID of the castle symbol
+    GuildID_t m_GuildID;   // ID of the owning guild
+    string m_Name;         // Castle name
+    int m_ItemTaxRatio;    // Tax rate when buying items (%)
+    Gold_t m_EntranceFee;  // Entrance fee
+    Gold_t m_TaxBalance;   // Tax accumulated so far
+    Race_t m_Race;         // Which race the castle belongs to
 
-    list<OptionType_t> m_BonusOptionList; // 종족 보너스
+    list<OptionType_t> m_BonusOptionList; // Race bonus
     list<ZoneID_t> m_CastleZoneIDList;
 
-    ZONE_COORD m_ResurrectPosition[CASTLE_RESURRECT_PRIORITY_MAX]; // 성의 부활 위치
+    ZONE_COORD m_ResurrectPosition[CASTLE_RESURRECT_PRIORITY_MAX]; // Resurrection positions of the castle
 };
 
 class CastleInfoManager {
@@ -168,7 +168,7 @@ public:
     bool getResurrectPosition(PlayerCreature* pPC, ZONE_COORD& zoneCoord);
 
     //----------------------------------------------------------------------
-    // CastleZoneID 관련
+    // CastleZoneID related
     //----------------------------------------------------------------------
     bool isCastleZone(ZoneID_t castleZoneID, ZoneID_t targetZoneID) const;
     bool isCastleZone(ZoneID_t zoneID) const;
@@ -178,7 +178,7 @@ public:
     bool isSameCastleZone(ZoneID_t zoneID1, ZoneID_t zoneID2) const;
 
     //----------------------------------------------------------------------
-    // 모든 성에 적용 되는 것들
+    // Things that apply to every castle
     //----------------------------------------------------------------------
     void releaseAllSafeZone();
     void resetAllSafeZone();

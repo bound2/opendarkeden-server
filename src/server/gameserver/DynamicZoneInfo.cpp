@@ -27,7 +27,7 @@ DynamicZoneInfoManager::~DynamicZoneInfoManager() {
 }
 
 void DynamicZoneInfoManager::init() {
-    // 제단 입구 존 추가
+    // Add the Gate of Alter zone.
     {
         DynamicZoneInfo* pDynamicZoneInfo = new DynamicZoneInfo;
         pDynamicZoneInfo->setDynamicZoneType(DYNAMIC_ZONE_GATE_OF_ALTER);
@@ -36,7 +36,7 @@ void DynamicZoneInfoManager::init() {
         addDynamicZoneInfo(pDynamicZoneInfo);
     }
 
-    // 피의 제단 존 추가
+    // Add the Alter of Blood zone.
     {
         DynamicZoneInfo* pDynamicZoneInfo = new DynamicZoneInfo;
         pDynamicZoneInfo->setDynamicZoneType(DYNAMIC_ZONE_ALTER_OF_BLOOD);
@@ -45,7 +45,7 @@ void DynamicZoneInfoManager::init() {
         addDynamicZoneInfo(pDynamicZoneInfo);
     }
 
-    // 슬레이어 심연의 거울 존 추가
+    // Add the Slayer Mirror of Abyss zone.
     {
         DynamicZoneInfo* pDynamicZoneInfo = new DynamicZoneInfo;
         pDynamicZoneInfo->setDynamicZoneType(DYNAMIC_ZONE_SLAYER_MIRROR_OF_ABYSS);
@@ -54,7 +54,7 @@ void DynamicZoneInfoManager::init() {
         addDynamicZoneInfo(pDynamicZoneInfo);
     }
 
-    // 뱀파이어 심연의 거울 존 추가
+    // Add the Vampire Mirror of Abyss zone.
     {
         DynamicZoneInfo* pDynamicZoneInfo = new DynamicZoneInfo;
         pDynamicZoneInfo->setDynamicZoneType(DYNAMIC_ZONE_VAMPIRE_MIRROR_OF_ABYSS);
@@ -63,7 +63,7 @@ void DynamicZoneInfoManager::init() {
         addDynamicZoneInfo(pDynamicZoneInfo);
     }
 
-    // 아우스터즈 심연의 거울 존 추가
+    // Add the Ousters Mirror of Abyss zone.
     {
         DynamicZoneInfo* pDynamicZoneInfo = new DynamicZoneInfo;
         pDynamicZoneInfo->setDynamicZoneType(DYNAMIC_ZONE_OUSTERS_MIRROR_OF_ABYSS);

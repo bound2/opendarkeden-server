@@ -25,7 +25,7 @@ bool deleteRelicEffect(Corpse* pCorpse, Item* pItem);
 bool deleteRelicEffect(Creature* pCreature, Item* pItem);
 
 //////////////////////////////////////////////////////////////////////////////
-// relic을 zone에 떨어뜨리는 경우
+// When a relic is dropped into a zone
 //////////////////////////////////////////////////////////////////////////////
 bool dropRelicToZone(PlayerCreature* pPC, Item* pItem);
 bool dropRelicToZone(Creature* pCreature, bool bSendPacket = true);

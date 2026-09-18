@@ -25,7 +25,7 @@ class BroadcastFilter;
 //
 // class ZonePlayerManager;
 //
-// 현재 ZoneGroup에 소속된 플레이어를 관리하는 매니저 객체이다.
+// Manages the players that belong to this ZoneGroup.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -103,7 +103,7 @@ public:
         m_Mutex.unlock();
     }
 
-    // 모든 플레이어를 정리한다.
+    // Clear out every player.
     void clearPlayers();
 
     void setZGID(ZoneGroupID_t id) {
@@ -114,19 +114,19 @@ public:
     }
 
 private:
-    // 소속된 플레이어들의 소켓 디스크립터의 집합이다.
-    // m_XXXXFDs[0]은 저장용이며, m_XXXFDs[1]이 실제로 select()의 파라미터로 사용된다.
-    // 즉 select()하기 전에 [0] -> [1] 로 복사가 이루어져야 한다.
+    // Set of socket descriptors of the players in this group.
+    // m_XXXXFDs[0] is the stored copy; m_XXXFDs[1] is what select() is given,
+    // so [0] must be copied into [1] before every select().
     fd_set m_ReadFDs[2];
     fd_set m_WriteFDs[2];
     fd_set m_ExceptFDs[2];
 
-    // select에 사용되는 시간
+    // Time used by select
     Timeval m_Timeout[2];
 
     // min_fd, max_fd
-    // select()후 iterating 할 때 속도 증가를 위해서 사용한다.
-    // 또한 select()의 첫번째 파라미터를 계산하기 위해서 사용한다.
+    // Used to speed up iteration after select(),
+    // and to compute the first parameter of select().
     SOCKET m_MinFD;
     SOCKET m_MaxFD;
 

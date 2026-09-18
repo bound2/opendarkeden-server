@@ -183,7 +183,7 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// STL find_if 알고리즘을 이용하기 위한 비교 클래스
+// Comparison class used with the STL find_if algorithm.
 //////////////////////////////////////////////////////////////////////////////
 class isSameCreature {
 public:
@@ -200,8 +200,8 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 // add PC
 //
-// PC 를 존에 최초로 추가한다. PC 주변의 다른 PC들에게 새 크리처의 출현을 알려주고,
-// 주변을 스캔해서 객체들의 정보를 받아온다.
+// Add a PC to the zone for the first time. Tells the other PCs nearby that a new
+// creature appeared, and scans the surroundings for object information.
 //////////////////////////////////////////////////////////////////////////////
 void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
@@ -222,7 +222,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
     if (pt.x != -1) {
         pCreature->setLastTarget(0);
 
-        // 지정된 좌표를 클라이언트로 전송한다.
+        // Send the chosen coordinates to the client.
         GCSetPosition gcSetPosition;
         gcSetPosition.setX(pt.x);
         gcSetPosition.setY(pt.y);
@@ -230,19 +230,19 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
         pCreature->getPlayer()->sendPacket(&gcSetPosition);
 
-        // 크리처의 좌표와 방향을 지정한다.
+        // Set the creature's coordinates and direction.
         pCreature->setXYDir(pt.x, pt.y, dir);
 
-        // 적절한 흌일을 찾았으면, 크리처를 실제로
-        // PC매니저와 타일에 각각 집어넣는다.
+        // Once a suitable tile is found, put the creature into the PC manager
+        // and into the tile.
         m_pTiles[pt.x][pt.y].addCreature(pCreature);
 
 
         m_pPCManager->addCreature(pCreature);
 
-        // Sanctuary 플래그가 켜져있으면 꺼준다.
+        // Clear the Sanctuary flag if it is set.
 
-        // 패밀리 요금제일경우 Default Option 보너스를 준다.
+        // On the family rate plan, grant the default option bonus.
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pCreature->getPlayer());
         if (pGamePlayer->isFamilyPayAvailable() && !pCreature->isFlag(Effect::EFFECT_CLASS_FAMILY_BONUS)) {
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
@@ -253,7 +253,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
             pPC->setFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT);
         }
 
-        // EFFECT_CLASS_INIT_ALL_STAT 이 켜져 있으면 initAllStat을 부르로 Flag 을 끈다.
+        // If EFFECT_CLASS_INIT_ALL_STAT is set, call initAllStat and clear the flag.
         if (pCreature->isFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT)) {
             if (pCreature->isSlayer()) {
                 Slayer* pInitSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -351,8 +351,8 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         }
 
         //////////////////////////////////////////////////////////////////////////////
-        // 보내야할 메시지가 있다면 보낸다.
-        // 일단 막아둔다. - bezz 2002. 07. 13
+        // Send the pending message, if there is one.
+        // Currently disabled.
         //////////////////////////////////////////////////////////////////////////////
         if (!pCreature->isFlag(Effect::EFFECT_CLASS_LOGIN_GUILD_MESSAGE)) {
             vector<string> messages = defaultMessageRepository().loadMessages(pCreature->getName());
@@ -369,7 +369,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         }
 
         //////////////////////////////////////////////////////////////////////////////
-        // PREMIUM_HALF_EVENT 가 on 되어 있고 유료존이면 클라이언트에 알린다.
+        // Tell the client when PREMIUM_HALF_EVENT is on and this is a pay zone.
         //////////////////////////////////////////////////////////////////////////////
         if (g_pVariableManager->getVariable(PREMIUM_HALF_EVENT) &&
             (m_ZoneID == 61 || m_ZoneID == 64 || m_ZoneID == 1007)) {
@@ -379,7 +379,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
             pCreature->getPlayer()->sendPacket(&gcNoticeEvent);
         }
 
-        // 주변의 PC들에게 알릴 GCAddSlayer or GCAddVampire 패킷을 생성한다.
+        // Build the GCAddSlayer or GCAddVampire packet sent to nearby PCs.
         Creature::CreatureClass CClass = pCreature->getCreatureClass();
         if (CClass == Creature::CREATURE_CLASS_SLAYER) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -388,7 +388,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
             scan(pCreature, pt.x, pt.y, &gcAddSlayer);
 
-            // 능력치 40 이상인 경우 야전사령부에서 쫓겨난다. by sigi. 2002.11.7
+            // A character with an attribute of 40 or more is expelled from the field headquarters.
             checkNewbieTransportToGuild(pSlayer);
         } else if (CClass == Creature::CREATURE_CLASS_VAMPIRE) {
             Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
@@ -397,8 +397,8 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
             scan(pCreature, pt.x, pt.y, &gcAddVampire);
 
-            // 뱀파이어라면 포탈을 이용해 왔을 가능성이 있으므로,
-            // 플래그를 꺼준다.
+            // A vampire may have arrived through a portal, so
+            // clear the flag.
             if (pVampire->isFlag(Effect::EFFECT_CLASS_VAMPIRE_PORTAL)) {
                 pVampire->removeFlag(Effect::EFFECT_CLASS_VAMPIRE_PORTAL);
             }
@@ -412,24 +412,24 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
             throw Error("invalid creature class. must be slayer or vampire...");
         }
 
-        // 파티에 가입되어 있다면 로컬 파티에 가입시킨다.
+        // If the creature belongs to a party, join it to the local party.
         uint PartyID = pCreature->getPartyID();
         if (PartyID != 0) {
-            // 파티가 있다면 걍 더한다.
+            // With a party, just add the member.
             m_pLocalPartyManager->addPartyMember(PartyID, pCreature);
         }
 
-        // 불기둥
+        // Pillar of fire.
         if (isMasterLair() && m_pMasterLairManager != NULL) {
             MasterLairInfo* pInfo = g_pMasterLairInfoManager->getMasterLairInfo(getZoneID());
             Assert(pInfo != NULL);
 
             if (m_pMasterLairManager->getCurrentEvent() == MasterLairManager::EVENT_WAITING_PLAYER) {
-                // 연속적인 불기둥 이펙트가 있는 경우에 알려준다.
+                // Announce it when the continual pillar-of-fire effect is present.
                 if (m_pEffectManager->findEffect(Effect::EFFECT_CLASS_CONTINUAL_GROUND_ATTACK) != NULL) {
                     GCNoticeEvent gcNoticeEvent;
                     gcNoticeEvent.setCode(NOTICE_EVENT_CONTINUAL_GROUND_ATTACK);
-                    gcNoticeEvent.setParameter(pInfo->getStartDelay()); // 초
+                    gcNoticeEvent.setParameter(pInfo->getStartDelay()); // seconds
 
                     broadcastPacket(&gcNoticeEvent);
                 }
@@ -437,11 +437,11 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         }
 
         //-----------------------------------------------------------------
-        // 세금 적용되는 경우
+        // When tax applies.
         //-----------------------------------------------------------------
 
         //-----------------------------------------------------------------
-        // 전쟁 중인 경우는 전쟁정보를 보내준다.
+        // While a war is running, send the war information.
         //-----------------------------------------------------------------
         if (g_pWarSystem->isWarActive()) {
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
@@ -455,15 +455,15 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         }
 
         if (m_pLevelWarManager != NULL && m_pLevelWarManager->hasWar()) {
-            // 레벨별 전쟁 중이면 먼가 보내줘야 될 듯
+            // During a level war the war list has to be sent.
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
             m_pLevelWarManager->sendGCWarList(pPC->getPlayer());
         }
 
         //-----------------------------------------------------------------
-        // 아담의 성지에 들어온 경우는 이펙트를 뿌려준다.
+        // Entering Adam's holy land broadcasts an effect.
         //-----------------------------------------------------------------
-        // 이전에 있던 존을 체크해야 될거 같은데? -_-;
+        // The previous zone probably ought to be checked here.
         //-----------------------------------------------------------------
         sendHolyLandWarpEffect(pCreature);
         //}
@@ -489,20 +489,20 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         }
 
 
-        // Player 에게 GCItemNameInfoList 패킷을 보내준다
+        // Send the GCItemNameInfoList packet to the player.
 
-        // PK존에서 죽어서 되살아나는 경우 부활 이펙트가 붙는다.
+        // A player revived after dying in a PK zone gets the resurrection effect.
         if (pCreature->isFlag(Effect::EFFECT_CLASS_PK_ZONE_RESURRECTION)) {
             Effect* pEffect = pCreature->findEffect(Effect::EFFECT_CLASS_PK_ZONE_RESURRECTION);
             if (pEffect != NULL) {
-                // Effect가 끝나서 사라질 때 부활 이펙트 붙여주라는 패킷이 날라간다.
+                // When the effect expires, the packet that attaches the resurrection effect is sent.
                 pEffect->setDeadline(0);
             } else {
                 pCreature->removeFlag(Effect::EFFECT_CLASS_PK_ZONE_RESURRECTION);
             }
         }
 
-        // 막 생성된 넘이라면 먼가를 보내준다.
+        // A freshly created character gets some extra packets.
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
         if (pPC->getFlagSet()->isOn(FLAGSET_NOT_JUST_CREATED)) {
             GCNoticeEvent gcNoticeEvent;
@@ -621,7 +621,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
         if (pPC->getPetInfo() != NULL)
             sendPetInfo(pGamePlayer);
-        // 존 이동할때  넣어주는 패킷
+        // Packet sent on a zone change.
         pPC->getPlayer()->sendPacket(pPC->getNicknameBook()->getNicknameBookListPacket().get());
 
         Packet* pGQuestPacket = pPC->getGQuestManager()->getStatusInfoPacket();
@@ -643,7 +643,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
                     if (pUnion->getMasterGuildID() == pPC->getGuildID())
 
-                        // 요청한놈이 지가 속한 길드의 마스터인가? || 연합의 마스터길드가 내 길드가 맞나?
+                        // Is the requester the master of its own guild, and is the union's master guild this guild?
                         if (g_pGuildManager->isGuildMaster(pPC->getGuildID(), pPC) &&
                             pUnion->getMasterGuildID() == pPC->getGuildID()) {
                             if (GuildUnionOfferManager::Instance().makeOfferList(pUnion->getUnionID(),
@@ -671,7 +671,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         ZoneCoord_t tempY = Random(20, m_Height);
         addPC(pCreature, tempX, tempY, 0);
 
-        // 맥스카운트 지나도 못 찾은 경우 Assert
+        // Assert when nothing was found within the maximum count.
     }
 
 
@@ -683,7 +683,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
 //--------------------------------------------------------------------------------
 // add Creature
-// 크리처가 존에 최초로 들어갈 때, 크리처 주변의 PC들에게 새 크리처의 출현을 알려준다.
+// When a creature first enters the zone, tell the PCs around it that it appeared.
 //--------------------------------------------------------------------------------
 void Zone::addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
@@ -697,16 +697,16 @@ void Zone::addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_
 
     TPOINT pt = findSuitablePosition(this, cx, cy, pCreature->getMoveMode());
 
-    // 찾은 경우 체크
+    // Check whether a spot was found.
     if (pt.x != -1) {
         //--------------------------------------------------------------------------------
-        // OID 를 할당받는다.
+        // Assign an OID.
         //--------------------------------------------------------------------------------
         m_ObjectRegistry.registerObject(pCreature);
 
         //--------------------------------------------------------------------------------
-        // 적절한 타일을 찾았으면, 크리처를 크리처매니저와 타일에 각각 집어넣는다.
-        // Monster 일 경우, MonsterManager에 추가하며, NPC 일 경우, NPCManager 에 추가한다.
+        // Once a suitable tile is found, put the creature into its creature manager and the tile.
+        // A monster goes to the MonsterManager, an NPC to the NPCManager.
         //--------------------------------------------------------------------------------
         if (pCreature->isMonster()) {
             Monster* pMonster = dynamic_cast<Monster*>(pCreature);
@@ -745,14 +745,14 @@ void Zone::addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_
         m_pTiles[pt.x][pt.y].addCreature(pCreature, false);
 
         //--------------------------------------------------------------------------------
-        // 크리처의 좌표를 지정한다.
+        // Set the creature's coordinates.
         //--------------------------------------------------------------------------------
         pCreature->setXYDir(pt.x, pt.y, dir);
         pCreature->setZone(this);
 
 
         //--------------------------------------------------------------------------------
-        // 주변의 PC들에게 알릴 GCAddNPC or GCAddMonster 패킷을 생성한다.
+        // Build the GCAddNPC or GCAddMonster packet sent to nearby PCs.
         //--------------------------------------------------------------------------------
         Creature::CreatureClass CClass = pCreature->getCreatureClass();
 
@@ -764,7 +764,7 @@ void Zone::addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_
         } else if (CClass == Creature::CREATURE_CLASS_MONSTER) {
             Monster* pMonster = dynamic_cast<Monster*>(pCreature);
 
-            // zone에 처음 들어갈때도 여러가지 상태가 있다.. by sigi
+            // A creature entering a zone can already be in various states.
             Packet* pAddMonsterPacket = createMonsterAddPacket(pMonster, NULL);
 
             if (pAddMonsterPacket != NULL) {
@@ -773,8 +773,8 @@ void Zone::addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_
             }
 
             // by sigi. 2002.9.6
-            // 포탈을 통해서 나타나는 모습을 보여준다.
-            // 플래그를 꺼준다.
+            // Show the appearance of arriving through a portal and
+            // clear the flag.
             if (pMonster->isFlag(Effect::EFFECT_CLASS_VAMPIRE_PORTAL)) {
                 pMonster->removeFlag(Effect::EFFECT_CLASS_VAMPIRE_PORTAL);
             }
@@ -918,7 +918,7 @@ bool Zone::addCreatureToTile(Creature* pCreature, ZoneCoord_t x, ZoneCoord_t y, 
 // The counterpart of addCreatureToTile: no creature manager is touched, so a
 // creature removed this way is off the map but still owned by its manager,
 // still heartbeaten, and still reachable by name or id. That is what the
-// corpse paths want — dropping a dead player from the PC manager would stop
+// corpse paths want -- dropping a dead player from the PC manager would stop
 // its effect manager's heartbeat. A caller that wants the creature out of the
 // zone entirely wants deleteCreature instead.
 //
@@ -950,21 +950,21 @@ void Zone::deleteCreature(Creature* pCreature, ZoneCoord_t x, ZoneCoord_t y)
     try {
         Assert(pCreature->getX() == x && pCreature->getY() == y);
 
-        // 해당되는 CreatureManager 에서 크리처를 삭제한다.
+        // Remove the creature from its CreatureManager.
         if (pCreature->isPC()) {
             m_pPCManager->deleteCreature(pCreature->getObjectID());
 
 
-            // 파티 초대중이라면 PartyInviteInfo를 삭제해준다.
+            // Cancel a pending party invitation and delete its PartyInviteInfo.
             m_pPartyInviteInfoManager->cancelInvite(pCreature);
 
-            // 파티에 가입되어 있었다면 로컬 파티에서 삭제해 준다.
+            // If the creature was in a party, remove it from the local party.
             uint PartyID = pCreature->getPartyID();
             if (PartyID != 0) {
                 m_pLocalPartyManager->deletePartyMember(PartyID, pCreature);
             }
 
-            // 트레이드 중이었다면 트레이드 관련 정보를 삭제해준다.
+            // If a trade was in progress, delete the trade information.
             TradeInfo* pInfo = m_pTradeManager->getTradeInfo(pCreature->getName());
             if (pInfo != NULL) {
                 m_pTradeManager->cancelTrade(pCreature);
@@ -975,22 +975,22 @@ void Zone::deleteCreature(Creature* pCreature, ZoneCoord_t x, ZoneCoord_t y)
             m_pNPCManager->deleteCreature(pCreature->getObjectID());
         }
 
-        // 타일에서 크리처를 삭제한다.
+        // Remove the creature from the tile.
         try {
             getTile(x, y).deleteCreature(pCreature->getObjectID());
         } catch (NoSuchElementException& nsee) {
             // by sigi. 2002.12.10
-            // Player캐릭터가 죽을때..
-            // [1] PCManager::killCreature()에서 tile에서는 지우고 목표존 설정하고
-            // [2] EventResurrect에서 IncomingPlayer로 보내면.. 거기서 적절한 Zone에 들어가는데..
-            // 이 두 과정.. 사이에서 아직 ZonePlayerManager에 있는 동안 Pay정보같은걸로 인해서
-            // transport되면.. tile에서 지우려고 할때 문제가 생긴다..고 보여진다.
-            // 일단, 그 부분(ZPM::pay체크)에서는 GPS_NORMAL인 경우만 하도록 하겠지만.
-            // 이것도 무시할만하다고 보여지므로.. 일단 로그만 남기자.
+            // When a player character dies:
+            // [1] PCManager::killCreature() removes it from the tile and sets the target zone;
+            // [2] EventResurrect hands it to IncomingPlayer, which puts it into the right zone.
+            // Between the two, while it is still in the ZonePlayerManager, a transport caused by
+            // something like the pay state would break the removal from the tile.
+            // The pay check in the ZPM only runs in GPS_NORMAL for that reason, and the rest
+            // is considered harmless, so only a log is written.
             filelog("zoneDeleteCreatureError.log", "%s", nsee.toString().c_str());
         }
 
-        // 주변의 PC들에게 크리처가 사라졌다는 사실을 브로드캐스트한다.
+        // Broadcast to nearby PCs that the creature is gone.
         GCDeleteObject gcDeleteObject(pCreature->getObjectID());
         broadcastPacket(x, y, &gcDeleteObject, pCreature);
     } catch (Throwable& t) {
@@ -1014,12 +1014,12 @@ void Zone::deleteObject(Object* pObject, ZoneCoord_t x, ZoneCoord_t y)
     __BEGIN_PROFILE_ZONE("Z_DELETE_OBJECT")
 
     //--------------------------------------------------
-    // 존에서 객체를 삭제한다.
+    // Delete the object from the zone.
     //--------------------------------------------------
     getTile(x, y).deleteObject(pObject->getObjectID());
 
     //--------------------------------------------------
-    // 주변의 PC들에게 객체가 사라졌다는 사실을 브로드캐스트한다.
+    // Broadcast to nearby PCs that the object is gone.
     //--------------------------------------------------
     GCDeleteObject gcDeleteObject(pObject->getObjectID());
 
@@ -1033,24 +1033,24 @@ void Zone::deleteObject(Object* pObject, ZoneCoord_t x, ZoneCoord_t y)
 //-------------------------------------------------------------
 // create MonsterAddPacket
 //-------------------------------------------------------------
-// monster의 상태에 따라서 GCAddXXX packet을 생성한다. by sigi
+// Build the GCAddXXX packet according to the monster's state.
 //-------------------------------------------------------------
 Packet* Zone::createMonsterAddPacket(Monster* pMonster, Creature* pPC) const
 
 {
     Assert(pMonster != NULL);
 
-    // 보는 사람이 설정되지 않은 경우
-    // 다~ 볼 수 있는 상태라고 설정한다.
-    // 일단 packet을 생성해두고 체크하기 위해서다.
+    // When no viewer is given, everything is treated as visible.
+    // The packet is built first and the visibility is checked
+    // afterwards.
     if (pPC != NULL && !canSee(pPC, pMonster))
         return NULL;
 
-    // ObservingEye 이펙트를 가져온다.
+    // Fetch the ObservingEye effect.
     //		//Assert( pEffectObservingEye );
 
     if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-        // 뱀파거나 볼 수 있다면..
+        // A vampire, or anyone that can see it.
         {
             GCAddBurrowingCreature* pPacket = new GCAddBurrowingCreature();
 
@@ -1063,13 +1063,13 @@ Packet* Zone::createMonsterAddPacket(Monster* pMonster, Creature* pPC) const
         }
 
     }
-    // 박쥐인 상태
+    // In bat form.
     else if (pMonster->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT)) {
         GCAddBat* pPacket = new GCAddBat();
         pPacket->setObjectID(pMonster->getObjectID());
         pPacket->setName(pMonster->getName());
         pPacket->setXYDir(pMonster->getX(), pMonster->getY(), pMonster->getDir());
-        pPacket->setItemType(0); // 아직 안 쓴다.
+        pPacket->setItemType(0); // not used yet
         pPacket->setMaxHP(pMonster->getHP(ATTR_MAX));
         pPacket->setCurrentHP(pMonster->getHP(ATTR_CURRENT));
         pPacket->setGuildID(1);
@@ -1077,25 +1077,25 @@ Packet* Zone::createMonsterAddPacket(Monster* pMonster, Creature* pPC) const
 
         return pPacket;
     }
-    // 늑대인 상태
+    // In wolf form.
     else if (pMonster->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF)) {
         GCAddWolf* pPacket = new GCAddWolf();
         pPacket->setObjectID(pMonster->getObjectID());
         pPacket->setName(pMonster->getName());
         pPacket->setXYDir(pMonster->getX(), pMonster->getY(), pMonster->getDir());
-        pPacket->setItemType(0); // 아직 안 쓴다.
+        pPacket->setItemType(0); // not used yet
         pPacket->setMaxHP(pMonster->getHP(ATTR_MAX));
         pPacket->setCurrentHP(pMonster->getHP(ATTR_CURRENT));
         pPacket->setGuildID(1);
 
         return pPacket;
     }
-    // invisiblity 상태
+    // In the invisibility state.
     else if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
-        // 보이나? 뱀파거나 볼수 있다면..
+        // Visible? A vampire, or anyone that can see it.
         {
             // FIXME
-            // 설정에따라서 어떻게 보일지 결정된 후..
+            // The appearance depends on the settings.
             GCAddMonster* pPacket = new GCAddMonster();
             makeGCAddMonster(pPacket, pMonster);
             pPacket->setEffectInfo(pMonster->getEffectInfo());
@@ -1147,12 +1147,12 @@ void Zone::deleteNPCs(Race_t race)
     __BEGIN_TRY
 
     const unordered_map<ObjectID_t, Creature*>& NPCs =
-        m_pNPCManager->getCreatures(); // unordered_map을 복사해서 써야한다.
+        m_pNPCManager->getCreatures(); // the unordered_map must be copied before use
     unordered_map<ObjectID_t, Creature*>::const_iterator itr = NPCs.begin();
 
     list<ObjectID_t> creatures;
 
-    // 일단 ObjectID들을 저장해둔다.
+    // Collect the object IDs first.
     for (; itr != NPCs.end(); itr++) {
         Creature* pCreature = itr->second;
         creatures.push_back(pCreature->getObjectID());
@@ -1160,7 +1160,7 @@ void Zone::deleteNPCs(Race_t race)
 
     list<ObjectID_t>::iterator oitr = creatures.begin();
 
-    // NPC를 지운다.
+    // Delete the NPCs.
     for (; oitr != creatures.end(); oitr++) {
         Creature* pCreature = m_pNPCManager->getCreature(*oitr);
 

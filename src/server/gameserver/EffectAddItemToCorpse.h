@@ -11,7 +11,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class EffectAddItemToCorpse;
-// 아이템을 시체에 추가한다.
+// Adds an item to a corpse.
 //////////////////////////////////////////////////////////////////////////////
 
 class Item;
@@ -26,7 +26,7 @@ public:
         return EFFECT_CLASS_ADD_ITEM_TO_CORPSE;
     }
 
-    // OBJECT_PRIORITY_NONE 라는 뜻은, 타일에 들어가서는 안된다는 뜻이다.
+    // OBJECT_PRIORITY_NONE means it must not be placed on a tile.
     virtual ObjectPriority getObjectPriority() const {
         return OBJECT_PRIORITY_NONE;
     }

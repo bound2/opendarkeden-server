@@ -51,7 +51,7 @@ bool checkZonePlayerManager(GamePlayer* pGamePlayer, ZonePlayerManager* pZPM, co
 
 //////////////////////////////////////////////////////////////////////////////
 // constructor
-// 하위 매니저 객체를 생성한다.
+// Create the sub-manager objects.
 //////////////////////////////////////////////////////////////////////////////
 ZonePlayerManager::ZonePlayerManager()
 
@@ -63,13 +63,13 @@ ZonePlayerManager::ZonePlayerManager()
     m_PlayerListQueue.clear();
     m_BroadcastQueue.clear();
 
-    // fd_set 들을 0 으로 초기화한다.
+    // Clear the fd_sets.
     FD_ZERO(&m_ReadFDs[0]);
     FD_ZERO(&m_WriteFDs[0]);
     FD_ZERO(&m_ExceptFDs[0]);
 
-    // m_Timeout 을 초기화한다.
-    // 나중에는 이 주기 역시 옵션으로 처리하도록 하자.
+    // Initialize m_Timeout.
+    // This interval should eventually become a configuration option.
     m_Timeout[0].tv_sec = 0;
     m_Timeout[0].tv_usec = 0;
     __END_CATCH
@@ -83,7 +83,7 @@ ZonePlayerManager::~ZonePlayerManager() noexcept
 {
     __BEGIN_TRY
 
-    // 플레이어 삭제는 PlayerManager 레벨에서 이루어지므로 신경쓰지 않아도 된다.
+    // Player deletion happens at the PlayerManager level, so nothing to do here.
 
     __END_CATCH_NO_RETHROW
 }
@@ -126,13 +126,13 @@ void ZonePlayerManager::pushBroadcastPacket(Packet* pPacket, BroadcastFilter* pF
 
     __ENTER_CRITICAL_SECTION(m_MutexBroadcast)
 
-    // 여기에 쓰는 패킷이 Encrypter 를 쓰지 않는 다는 전제하에 해놓은 코딩이다.
-    // 만일 Encrypter 를 쓰는 패킷을 사용하려면 BroadcastQueue 를 Zone 에 두고
-    // 그것을 사용해야한다.
+    // This assumes the packets written here do not use an Encrypter.
+    // To use packets that need an Encrypter, the BroadcastQueue would have to live
+    // in the Zone and be used from there.
 
-    // 필터와 패킷을 큐에 넣는다.
-    // 필터는 새로 생성한 객체(클론)를 넣는다.
-    // 패킷을 스트림에 써서 큐에 넣는다.
+    // Put the filter and the packet into the queue.
+    // The filter is stored as a newly created clone.
+    // The packet is written to a stream and the stream is queued.
     SocketOutputStream* pStream = new SocketOutputStream(NULL, szPacketHeader + pPacket->getPacketSize());
     pPacket->writeHeaderNBody(*pStream);
 
@@ -204,18 +204,18 @@ void ZonePlayerManager::copyPlayers()
 
 //////////////////////////////////////////////////////////////////////////////
 // call select() system call
-// 상위에서 TimeoutException 을 받으면 플레이어는 처리하지 않아도 된다.
+// When the caller gets a TimeoutException there are no players to process.
 //////////////////////////////////////////////////////////////////////////////
 void ZonePlayerManager::select() {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    // m_Timeout[0] 을 m_Timeout[1] 으로 복사한다.
+    // Copy m_Timeout[0] into m_Timeout[1].
     m_Timeout[1].tv_sec = m_Timeout[0].tv_sec;
     m_Timeout[1].tv_usec = m_Timeout[0].tv_usec;
 
-    // m_XXXFDs[0] 을 m_XXXFDs[1] 으로 복사한다.
+    // Copy m_XXXFDs[0] into m_XXXFDs[1].
     m_ReadFDs[1] = m_ReadFDs[0];
     m_WriteFDs[1] = m_WriteFDs[0];
     m_ExceptFDs[1] = m_ExceptFDs[0];
@@ -223,13 +223,12 @@ void ZonePlayerManager::select() {
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     try {
-        // 이제 m_XXXFDs[1] 을 가지고 select() 를 호출한다.
+        // Now call select() with m_XXXFDs[1].
         SocketAPI::select_ex(m_MaxFD + 1, &m_ReadFDs[1], &m_WriteFDs[1], &m_ExceptFDs[1], &m_Timeout[1]);
     }
-    // 주석처리 by sigi. 2002.5.14
     // do nothing
     catch (InterruptedException& ie) {
-        // 시그널이 올 리가 엄찌~~
+        // A signal is not expected here.
         log(LOG_GAMESERVER_ERROR, "", "", ie.toString());
     }
 
@@ -239,9 +238,9 @@ void ZonePlayerManager::select() {
 //////////////////////////////////////////////////////////////////////////////
 // process all players' inputs
 //
-// 서버 소켓의 read flag가 켜졌을 경우, 새로운 접속이 들어왔으므로
-// 이를 처리하고, 다른 소켓의 read flag가 켜졌을 경우, 새로운 패킷이
-// 들어왔으므로 그 플레이어의 processInput()을 호출하면 된다.
+// When the server socket's read flag is set a new connection has arrived and is
+// handled here; when another socket's read flag is set a new packet has arrived,
+// so that player's processInput() is called.
 //////////////////////////////////////////////////////////////////////////////
 void ZonePlayerManager::processInputs() {
     __BEGIN_TRY
@@ -254,7 +253,7 @@ void ZonePlayerManager::processInputs() {
 
 
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
-        // ZPM에는 플레이어만 들어있으므로, 더 비교할 꺼리가 없다.
+        // The ZPM holds only players, so there is nothing further to compare.
         if (FD_ISSET(i, &m_ReadFDs[1])) {
             if (m_pPlayers[i] != NULL && m_pPlayers[i] == m_pPlayers[i]) {
                 GamePlayer* pTempPlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
@@ -381,25 +380,25 @@ void ZonePlayerManager::processCommands() {
                         }
                     }
 
-                    // 정상적인 게임 상태에서(GPS_NORMAL)만 Pay체크를 한다.
-                    // PCManager::killCreature()에서는 GPS_IGNORE_ALL로 바뀌고
-                    // tile에서 지우고.. zone이동이 되므로.. 이걸로 문제가 생길 수 있다고 본다.
+                    // Only check pay status in the normal game state (GPS_NORMAL).
+                    // PCManager::killCreature() switches to GPS_IGNORE_ALL, removes the creature from
+                    // its tile and moves it between zones, which could otherwise cause trouble here.
                     // by sigi. 2002.12.10
                     else if (pTempPlayer->getPlayerStatus() == GPS_NORMAL) {
-                        // 패밀리 요금제 적용이 끝난 경우. 유료존에 있는 무료 파티원들을 무료존으로 옮겨야한다.
+                        // When the family rate has expired, free party members in a pay zone move to a free zone.
                         if (pTempPlayer->isFamilyFreePassEnd()) {
                             Creature* pCreature = pTempPlayer->getCreature();
                             Zone* pZone = pCreature->getZone();
                             Assert(pZone != NULL);
 
                             if (pZone->isPayPlay()) {
-                                // 무료 사용자일 경우 아래 if 문에서 유료 체크를 하고 무료존으로 옮겨간다.
+                                // For a free user the if below does the pay check and moves them to a free zone.
                                 pTempPlayer->setPremiumPlay();
                             }
                         }
 
-                        // 유료 사용자인 경우는 시간을 줄인다.
-                        // 패밀리 요금 사용자인 경우 시간이 다되었는지 확인한다. 유무료존에 상관없이
+                        // For a paying user, decrease the remaining time.
+                        // For a family-rate user, check whether the time ran out, in pay and free zones alike.
                         if ((pTempPlayer->isPayPlaying() || pTempPlayer->isPremiumPlay() ||
                              pTempPlayer->isFamilyPayAvailable()) &&
                             !pTempPlayer->updatePayPlayTime(pTempPlayer->getID(), currentDateTime, currentTime)) {
@@ -407,15 +406,15 @@ void ZonePlayerManager::processCommands() {
                             Zone* pZone = pCreature->getZone();
                             Assert(pZone != NULL);
 
-                            // 유료 서비스 종료
+                            // End the pay service.
                             pTempPlayer->logoutPayPlay(pTempPlayer->getID());
 
-                            // 패밀리 요금 사용자인 경우 FamilyPayAvailable flag 을 꺼준다.
-                            // 패밀리 요금 디폴트 옵션을 끊다.
+                            // For a family-rate user, clear the FamilyPayAvailable flag
+                            // and drop the family-rate default option.
                             if (pTempPlayer->isFamilyPayAvailable()) {
                                 pTempPlayer->setFamilyPayAvailable(false);
 
-                                // 파티원일 경우 Family Pay를 refresh 한다.
+                                // If the player is in a party, refresh the family pay state.
                                 int PartyID = pCreature->getPartyID();
                                 if (PartyID != 0) {
                                     g_pGlobalPartyManager->refreshFamilyPay(PartyID);
@@ -432,7 +431,7 @@ void ZonePlayerManager::processCommands() {
                             IsPayPlayEnd = true;
                         }
 
-                        // 패밀리 요금제 적용이 끝났다면, 다시 체크하지 않게 하기위에 타입을 바꿔준다.
+                        // Once the family rate has expired, change the type so it is not checked again.
                         if (pTempPlayer->isFamilyFreePassEnd()) {
                             pTempPlayer->setFamilyPayPartyType(FAMILY_PAY_PARTY_TYPE_NONE);
                         }
@@ -539,8 +538,8 @@ void ZonePlayerManager::processOutputs() {
 //
 // process all players' exceptions
 //
-// 현재까지는 OOB 데이타를 전송할 계획은 없다.
-// 따라서, 만약 OOB가 켜져 있다면 에러로 간주하고 접속을 확 짤라 버린다.
+// There is no plan to send OOB data.
+// So if OOB is set it is treated as an error and the connection is cut.
 //
 //////////////////////////////////////////////////////////////////////
 void ZonePlayerManager::processExceptions() {
@@ -579,7 +578,7 @@ void ZonePlayerManager::processExceptions() {
 
 
 //////////////////////////////////////////////////////////////////////
-// 특정 플레이어를 매니저에 추가한다.
+// Add a player to the manager.
 //////////////////////////////////////////////////////////////////////
 void ZonePlayerManager::addPlayer(GamePlayer* pGamePlayer) {
     __BEGIN_TRY
@@ -591,17 +590,17 @@ void ZonePlayerManager::addPlayer(GamePlayer* pGamePlayer) {
 
     SOCKET fd = pGamePlayer->getSocket()->getSOCKET();
 
-    // m_MinFD , m_MaxFD 를 재조정한다.
+    // Readjust m_MinFD and m_MaxFD.
     if (m_MinFD == -1 && m_MaxFD == -1) {
-        // 최초의 플레이어의 경우
+        // The first player.
         m_MinFD = m_MaxFD = fd;
     } else {
         m_MinFD = min(fd, m_MinFD);
         m_MaxFD = max(fd, m_MaxFD);
     }
 
-    // 모든 fd_set 에 fd 비트를 on 시킨다.
-    // m_XXXFDs[1] 은 다음번에 처리해주면 된다.
+    // Turn the fd bit on in every fd_set.
+    // m_XXXFDs[1] can be handled on the next pass.
     FD_SET(fd, &m_ReadFDs[0]);
     FD_SET(fd, &m_WriteFDs[0]);
     FD_SET(fd, &m_ExceptFDs[0]);
@@ -612,7 +611,7 @@ void ZonePlayerManager::addPlayer(GamePlayer* pGamePlayer) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// 특정 플레이어를 매니저에 추가한다.
+// Add a player to the manager.
 //////////////////////////////////////////////////////////////////////
 void ZonePlayerManager::addPlayer_NOBLOCKED(GamePlayer* pGamePlayer) {
     __BEGIN_TRY
@@ -622,17 +621,17 @@ void ZonePlayerManager::addPlayer_NOBLOCKED(GamePlayer* pGamePlayer) {
 
     SOCKET fd = pGamePlayer->getSocket()->getSOCKET();
 
-    // m_MinFD , m_MaxFD 를 재조정한다.
+    // Readjust m_MinFD and m_MaxFD.
     if (m_MinFD == -1 && m_MaxFD == -1) {
-        // 최초의 플레이어의 경우
+        // The first player.
         m_MinFD = m_MaxFD = fd;
     } else {
         m_MinFD = min(fd, m_MinFD);
         m_MaxFD = max(fd, m_MaxFD);
     }
 
-    // 모든 fd_set 에 fd 비트를 on 시킨다.
-    // m_XXXFDs[1] 은 다음번에 처리해주면 된다.
+    // Turn the fd bit on in every fd_set.
+    // m_XXXFDs[1] can be handled on the next pass.
     FD_SET(fd, &m_ReadFDs[0]);
     FD_SET(fd, &m_WriteFDs[0]);
     FD_SET(fd, &m_ExceptFDs[0]);
@@ -641,21 +640,21 @@ void ZonePlayerManager::addPlayer_NOBLOCKED(GamePlayer* pGamePlayer) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// 특정 플레이어를 매니저에서 삭제한다.
+// Remove a player from the manager.
 //////////////////////////////////////////////////////////////////////
 void ZonePlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
     __BEGIN_TRY
 
-    // 플레이어 포인터를 플레이어 배열에서 삭제한다.
+    // Remove the player pointer from the player array.
     PlayerManager::deletePlayer(fd);
 
     Assert(m_pPlayers[fd] == NULL);
 
-    // m_MinFD , m_MaxFD 를 재조정한다.
-    // fd == m_MinFD && fd == m_MaxFD 인 경우는 첫번째 if 에서 처리된다.
+    // Readjust m_MinFD and m_MaxFD.
+    // The fd == m_MinFD && fd == m_MaxFD case is handled by the first if.
     if (fd == m_MinFD) {
-        // 앞에서부터 제일 작은 fd 를 찾는다.
-        // m_MinFD 자리는 현재 NULL 이 되어 있음을 유의하라.
+        // Search forward for the smallest fd.
+        // Note that the m_MinFD slot is now NULL.
         int i = m_MinFD;
         for (i = m_MinFD; i <= m_MaxFD; i++) {
             if (m_pPlayers[i] != NULL) {
@@ -664,14 +663,14 @@ void ZonePlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
             }
         }
 
-        // 적절한 m_MinFD를 찾지 못했을 경우,
-        // 이때에는 m_MinFD == m_MaxFD 인 경우이다.
-        // 이때에는 둘 다 -1 로 설정해주자.
+        // When no suitable m_MinFD was found,
+        // this is the m_MinFD == m_MaxFD case.
+        // Set both to -1.
         if (i > m_MaxFD)
             m_MinFD = m_MaxFD = -1;
 
     } else if (fd == m_MaxFD) {
-        // 뒤에서부터 가장 큰 fd 를 찾는다.
+        // Search backward for the largest fd.
         int i = m_MaxFD;
         for (i = m_MaxFD; i >= m_MinFD; i--) {
             if (m_pPlayers[i] != NULL) {
@@ -680,7 +679,7 @@ void ZonePlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
             }
         }
 
-        // 적절한 m_MinFD를 찾지 못했을 경우,
+        // When no suitable m_MaxFD was found,
         if (i < m_MinFD) {
             filelog("ZonePlayerManagerBug.txt", "%s : %s", "ZonePlayerManager::deletePlayer_NOBLOCKED()",
                     "MinMaxFD problem");
@@ -688,9 +687,9 @@ void ZonePlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
         }
     }
 
-    // 모든 fd_set 에 fd 비트를 off 시킨다.
-    // m_XXXFDs[1]도 고쳐야 하는 이유는, 이후 처리에서 객체가 없어졌는데도
-    // 처리받을 확률이 있기 때문이다.
+    // Turn the fd bit off in every fd_set.
+    // m_XXXFDs[1] must be cleared too, because later processing could otherwise still
+    // service an object that is already gone.
     FD_CLR(fd, &m_ReadFDs[0]);
     FD_CLR(fd, &m_ReadFDs[1]);
     FD_CLR(fd, &m_WriteFDs[0]);
@@ -704,7 +703,7 @@ void ZonePlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
 
 
 //////////////////////////////////////////////////////////////////////
-// 특정 플레이어를 매니저에서 삭제한다.
+// Remove a player from the manager.
 //////////////////////////////////////////////////////////////////////
 void ZonePlayerManager::deletePlayer(SOCKET fd) {
     __BEGIN_TRY
@@ -712,7 +711,7 @@ void ZonePlayerManager::deletePlayer(SOCKET fd) {
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     try {
-        // 플레이어 포인터를 플레이어 배열에서 삭제한다.
+        // Remove the player pointer from the player array.
         PlayerManager::deletePlayer(fd);
     } catch (OutOfBoundException& o) {
         filelog("ZPMError.txt", "OOB: %s, Socket: %d", o.toString().c_str(), fd);
@@ -730,11 +729,11 @@ void ZonePlayerManager::deletePlayer(SOCKET fd) {
 
     Assert(m_pPlayers[fd] == NULL);
 
-    // m_MinFD , m_MaxFD 를 재조정한다.
-    // fd == m_MinFD && fd == m_MaxFD 인 경우는 첫번째 if 에서 처리된다.
+    // Readjust m_MinFD and m_MaxFD.
+    // The fd == m_MinFD && fd == m_MaxFD case is handled by the first if.
     if (fd == m_MinFD) {
-        // 앞에서부터 제일 작은 fd 를 찾는다.
-        // m_MinFD 자리는 현재 NULL 이 되어 있음을 유의하라.
+        // Search forward for the smallest fd.
+        // Note that the m_MinFD slot is now NULL.
         int i = m_MinFD;
         for (i = m_MinFD; i <= m_MaxFD; i++) {
             if (m_pPlayers[i] != NULL) {
@@ -743,14 +742,14 @@ void ZonePlayerManager::deletePlayer(SOCKET fd) {
             }
         }
 
-        // 적절한 m_MinFD를 찾지 못했을 경우,
-        // 이때에는 m_MinFD == m_MaxFD 인 경우이다.
-        // 이때에는 둘 다 -1 로 설정해주자.
+        // When no suitable m_MinFD was found,
+        // this is the m_MinFD == m_MaxFD case.
+        // Set both to -1.
         if (i > m_MaxFD)
             m_MinFD = m_MaxFD = -1;
 
     } else if (fd == m_MaxFD) {
-        // 뒤에서부터 가장 큰 fd 를 찾는다.
+        // Search backward for the largest fd.
         int i = m_MaxFD;
         for (i = m_MaxFD; i >= m_MinFD; i--) {
             if (m_pPlayers[i] != NULL) {
@@ -759,16 +758,16 @@ void ZonePlayerManager::deletePlayer(SOCKET fd) {
             }
         }
 
-        // 적절한 m_MinFD를 찾지 못했을 경우,
+        // When no suitable m_MaxFD was found,
         if (i < m_MinFD) {
             filelog("ZonePlayerManagerBug.txt", "%s : %s", "ZonePlayerManager::deletePlayer()", "MinMaxFD problem");
             throw UnknownError("m_MinFD & m_MaxFD problem.");
         }
     }
 
-    // 모든 fd_set 에 fd 비트를 off 시킨다.
-    // m_XXXFDs[1]도 고쳐야 하는 이유는, 이후 처리에서 객체가 없어졌는데도
-    // 처리받을 확률이 있기 때문이다.
+    // Turn the fd bit off in every fd_set.
+    // m_XXXFDs[1] must be cleared too, because later processing could otherwise still
+    // service an object that is already gone.
     FD_CLR(fd, &m_ReadFDs[0]);
     FD_CLR(fd, &m_ReadFDs[1]);
     FD_CLR(fd, &m_WriteFDs[0]);
@@ -810,10 +809,10 @@ Player* ZonePlayerManager::getPlayerByPhoneNumber(PhoneNumber_t PhoneNumber) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// 전체 사용자들의 세이브를 담당하는 루틴.
-// 다른 쓰레드에서 접근 할 수 있으므로 락을 걸어 줘야 하나..
-// 현재 쓰레드의 Event처리를 하면서 save를 할 수 있으므로...
-// 하위 save에 Lock을 걸어주고 이 루틴에서는 함수만 호출하도록 한다.
+// Routine that saves every player.
+// Another thread can reach it, so it would need a lock here,
+// but a save can run while this thread processes events, so
+// the lock is taken in the lower-level save and this routine only calls it.
 // ZonePlayerManager:: save()
 //////////////////////////////////////////////////////////////////////
 void ZonePlayerManager::save()
@@ -871,7 +870,7 @@ void ZonePlayerManager::processPlayerListQueue()
 {
     __BEGIN_TRY
 
-    // PlayerQueue의 Player를 메니져에 추가한다.
+    // Add the players in the queue to the manager.
     while (!m_PlayerListQueue.empty()) {
         GamePlayer* pGamePlayer = m_PlayerListQueue.front();
 
@@ -888,7 +887,7 @@ void ZonePlayerManager::processPlayerListQueue()
 
         Assert(pCreature != NULL);
 
-        // 새로 들어갈 Zone.. by sigi. 2002.5.11
+        // The zone the player is entering.
         Zone* pZone = pCreature->getZone();
         Assert(pZone != NULL);
 
@@ -910,8 +909,8 @@ void ZonePlayerManager::heartbeat()
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    // 나갈 대기열에 있는 사람을 처리 해 준다.
-    // 기냥 IPM으로 Push하믄 끝이다.
+    // Process the players waiting to leave.
+    // They are simply pushed to the IPM.
     while (!m_PlayerOutListQueue.empty()) {
         GamePlayer* pGamePlayer = m_PlayerOutListQueue.front();
 
@@ -922,7 +921,7 @@ void ZonePlayerManager::heartbeat()
         g_pIncomingPlayerManager->pushPlayer(pGamePlayer);
     }
 
-    // broadcast packet queue 를 처리한다.
+    // Process the broadcast packet queue.
     if (!m_BroadcastQueue.empty())
         flushBroadcastPacket();
 
@@ -932,8 +931,7 @@ void ZonePlayerManager::heartbeat()
 void ZonePlayerManager::deleteQueuePlayer(GamePlayer* pGamePlayer) {
     __BEGIN_TRY
 
-    // 필요없는 lock인거 같다.
-    // 제거 by sigi. 2002.5.9
+    // No lock is needed here.
 
     Assert(pGamePlayer != NULL);
 
@@ -975,14 +973,14 @@ void ZonePlayerManager::removeFlag(Effect::EffectClass EC)
 }
 
 ////////////////////////////////////////////////////////////////////////
-// ZonePlayerManager 에 있는 모든 사용자를 정리한다.
+// Clean up every player held by the ZonePlayerManager.
 ////////////////////////////////////////////////////////////////////////
 void ZonePlayerManager::clearPlayers()
 
 {
     __BEGIN_TRY
 
-    // PlayerListQueue 에 있는 애들을 정리한다.
+    // Clean up the entries in PlayerListQueue.
     while (!m_PlayerListQueue.empty()) {
         GamePlayer* pGamePlayer = m_PlayerListQueue.front();
 
@@ -992,14 +990,14 @@ void ZonePlayerManager::clearPlayers()
             try {
                 pGamePlayer->disconnect();
             } catch (Throwable& t) {
-                // 무시
+                // Ignore.
             }
 
             SAFE_DELETE(pGamePlayer);
         }
     }
 
-    // PlayerOutListQueue 에 있는 애들을 정리한다.
+    // Clean up the entries in PlayerOutListQueue.
     while (!m_PlayerOutListQueue.empty()) {
         GamePlayer* pGamePlayer = m_PlayerOutListQueue.front();
 
@@ -1009,7 +1007,7 @@ void ZonePlayerManager::clearPlayers()
             try {
                 pGamePlayer->disconnect();
             } catch (Throwable& t) {
-                // 무시
+                // Ignore.
             }
 
             SAFE_DELETE(pGamePlayer);
@@ -1019,7 +1017,7 @@ void ZonePlayerManager::clearPlayers()
     if (m_MinFD == -1 && m_MaxFD == -1)
         return;
 
-    // 플레이어를 정리한다.
+    // Clean up the players.
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         if (m_pPlayers[i] != NULL) {
             GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
@@ -1028,7 +1026,7 @@ void ZonePlayerManager::clearPlayers()
                 try {
                     pGamePlayer->disconnect();
                 } catch (Throwable& t) {
-                    // 무시
+                    // Ignore.
                 }
 
                 SAFE_DELETE(pGamePlayer);

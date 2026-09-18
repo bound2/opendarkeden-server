@@ -20,7 +20,7 @@ EffectKillAftermath::EffectKillAftermath(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // 서버 전용 Effect이다. by sigi. 2002.11.14
+    // Server-only Effect.
     m_bBroadcastingEffect = false;
 
     setTarget(pCreature);
@@ -171,7 +171,7 @@ void EffectKillAftermathLoader::load(Creature* pCreature)
     __BEGIN_TRY
 
     if (pCreature == NULL) {
-        // cout << "EffectKillAftermathLoader : 크리쳐가 널입니다." << endl;
+        // cout << "EffectKillAftermathLoader : the creature is null." << endl;
         return;
     }
 

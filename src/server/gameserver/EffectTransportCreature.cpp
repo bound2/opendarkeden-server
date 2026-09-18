@@ -34,12 +34,12 @@ EffectTransportCreature::EffectTransportCreature(Creature* pCreature, ZoneID_t z
 
     m_CreatureID = pCreature->getObjectID();
     m_ZoneID = zoneID;
-    m_pZone = pCreature->getZone(); // 그냥 다른 곳에서의 assert때문에
+    m_pZone = pCreature->getZone(); // Only because of an assert elsewhere
     setTarget(pCreature);
     setDeadline(delay);
     setNextTime(0);
 
-    // 서버 전용 Effect이다. by sigi. 2002.11.14
+    // Server-only Effect.
     m_bBroadcastingEffect = false;
 
     __END_CATCH
@@ -84,7 +84,7 @@ void EffectTransportCreature::affect(Creature* pCreature)
     Turn_t RemainTime = deadLine.tv_sec - nextTime.tv_sec;
 
     //	StringStream msg;
-    //	msg << (int)RemainTime << "초 후에 " << m_ZoneName << "로 이동됩니다.";
+    // msg << (int)RemainTime << " seconds until the move to " << m_ZoneName << ".";
 
     char msg[50];
     sprintf(msg, g_pStringPool->c_str(STRID_TRANSPORT_CREATURE), (int)RemainTime, m_ZoneName.c_str());

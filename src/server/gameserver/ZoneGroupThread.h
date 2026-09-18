@@ -26,9 +26,9 @@
 //
 // class ZoneGroupThread;
 //
-// 하나의 존그룹(ZoneGroup)을 맡아서 관리하는 쓰레드로서, 존그룹에
-// 종속된 PC, 존에 소속된 NPC와 MOB, 존의 각종 처리.. 등을 전담한다.
-// 즉 존그룹에서는 순차 처리가 이루어지게 된다.
+// Thread that takes charge of a single ZoneGroup: the PCs bound to the zone
+// group, the NPCs and MOBs in its zones, and the zones' various processing.
+// Processing inside a zone group is therefore sequential.
 //
 //////////////////////////////////////////////////////////////////////
 

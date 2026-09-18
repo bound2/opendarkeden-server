@@ -16,7 +16,7 @@
 // #include "EffectHasBloodBible.h"
 #include "GCAddEffect.h"
 
-// ItemUtil.h에 이거 옮기고 지워도 된다.
+// This can be moved into ItemUtil.h and deleted from here.
 extern void saveItemInCorpse(Item* pItem, Corpse* pCorpse);
 
 //////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ Item* Corpse::getTreasure()
         Item* pItem = m_Treasures.front();
         Assert(pItem != NULL);
 
-        // 성단에서 성서가 빠져나갈때 이펙트를 꺼준다.
+        // Turn the effect off when the bible leaves the shrine.
         deleteFlagEffect(this, pItem);
         deleteRelicEffect(this, pItem);
 

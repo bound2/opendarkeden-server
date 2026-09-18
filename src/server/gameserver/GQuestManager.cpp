@@ -189,7 +189,7 @@ void GQuestManager::heartbeat() {
         Timeval endTime = pTimeMission->getEndTime();
         if (gCurrentTime > endTime) {
             pTimeMission->m_pParent->update();
-            // -_- 땜빵;
+            // Stopgap.
             break;
         }
     }
@@ -227,7 +227,7 @@ void GQuestManager::blooddrain() {
             m_pOwner->getPlayer()->sendPacket(&gcSM);
         }
 
-        // -_- 땜빵;
+        // Stopgap.
         //		break;
     }
 }
@@ -242,7 +242,7 @@ void GQuestManager::levelUp() {
 
         if (pLevelMission->isSuccess(m_pOwner)) {
             pLevelMission->m_pParent->update();
-            // -_- 땜빵;
+            // Stopgap.
             //			break;
         }
     }
@@ -278,7 +278,7 @@ bool GQuestManager::metNPC(NPC* pNPC) {
         if (pSayNPCElement->getTarget() == pNPC->getNPCID()) {
             pSayNPCMission->meet();
             pSayNPCMission->m_pParent->update();
-            // 한번에 한명씩만 만나기
+            // Meet only one at a time.
             return true;
         }
     }
@@ -313,7 +313,7 @@ void GQuestManager::killed() {
             pKilledMission->m_pParent->update();
         }
 
-        // -_- 땜빵;
+        // Stopgap.
         //		break;
     }
 }
@@ -346,7 +346,7 @@ void GQuestManager::rideMotorcycle(bool isParty) {
             pRideMotorcycleMission->m_pParent->update();
         }
 
-        // -_- 땜빵;
+        // Stopgap.
         //		break;
     }
 
@@ -633,7 +633,7 @@ void GQuestManager::advancementClassLevelUp() {
 
         if (pAdvancementClassLevelMission->isSuccess(m_pOwner)) {
             pAdvancementClassLevelMission->m_pParent->update();
-            // -_- 땜빵;
+            // Stopgap.
             //			break;
         }
     }
@@ -652,7 +652,7 @@ void GQuestManager::clearDynamicZone(ZoneID_t zoneID) {
 
         if (pClearDynamicZoneMission->isClear()) {
             pClearDynamicZoneMission->m_pParent->update();
-            // -_- 땜빵;
+            // Stopgap.
             //			break;
         }
     }
@@ -669,7 +669,7 @@ void GQuestManager::enterDynamicZone(ZoneID_t zoneID) {
 
         if (pEnterDynamicZoneMission->isEnter()) {
             pEnterDynamicZoneMission->m_pParent->update();
-            // -_- 땜빵;
+            // Stopgap.
             //			break;
         }
     }

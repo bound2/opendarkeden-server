@@ -2,8 +2,8 @@
 // Filename    : Garbage.h
 // Written by  : excel96
 // Description :
-// 서버 DB 오류 같은 것으로 인해, 유저의 아이템이 사라질 위기에 처했을
-// 경우에 들어가게 되는 storage의 하나다.
+// One of the storages an item goes into when it is at risk of being lost
+// because of something such as a server DB error.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __GARBAGE_H__

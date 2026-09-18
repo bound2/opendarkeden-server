@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : ShopTemplate.h
-// Written By  : 김성민
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -14,10 +13,10 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class ShopTemplate
-// 상점에서 아이템을 자동으로 생성하기 위해서 DB에서 일정한
-// 형식의 틀을 읽어오는데, 그 틀을 캡슐화한 클래스이다.
-// 거의 구조체와 비슷한 클래스이며 자체적으로 특별히 하는 일은
-// 없고, 그냥 데이터를 임시적으로 저장하는 역할만을 한다.
+// A fixed-format template read from the DB to generate shop items
+// automatically, wrapped in a class.
+// It is little more than a struct: it does nothing of its own and
+// only holds the data temporarily.
 //////////////////////////////////////////////////////////////////////////////
 
 class ShopTemplate {
@@ -94,8 +93,8 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 // class ShopTemplateManager
-// ShopTemplate 클래스의 해쉬맵을 가지고 있는 클래스이다.
-// id를 주면 그에 해당하는 ShopTemplate을 되돌려주는 역할을 한다.
+// Holds a hash map of ShopTemplate objects.
+// Given an id, it returns the matching ShopTemplate.
 //////////////////////////////////////////////////////////////////////////////
 
 class ShopTemplateManager {

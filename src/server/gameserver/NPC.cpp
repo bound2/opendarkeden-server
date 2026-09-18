@@ -1,9 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : NPC.cpp
-// Written By  : 김성민
 // Description :
-// 원래는 상점 처리 부분이 없었으나, 이 클래스를 상속받아 상점 NPC를
-// 만들기도 좀 그래서, 그냥 NPC 안에다 상점 인터페이스를 집어넣었다.
+// Originally there was no shop handling; deriving a shop NPC from this class
+// was awkward, so the shop interface was put directly into NPC.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "NPC.h"
@@ -27,31 +26,31 @@ NPC::NPC()
 
     m_pInventory = NULL;
 
-    // 다음 처리받을 턴을 지정한다.
+    // Set the turn at which it is processed next.
     getCurrentTime(m_NextTurn);
     m_NextTurn.tv_sec += rand() % 3;
     m_NextTurn.tv_usec += rand() % 1000000;
     if (m_NextTurn.tv_usec >= 1000000)
         m_NextTurn.tv_sec++;
 
-    // 인벤토리 객체를 생성한다.
+    // Create the inventory object.
     // m_pInventory = new Inventory(5,5);
 
-    // 상점 진열장 객체를 생성한다.
+    // Create the shop rack object.
     m_pRack = new ShopRack[SHOP_RACK_TYPE_MAX];
     Assert(m_pRack != NULL);
 
-    // 상점 시세 변수를 디폴트로 세팅해준다.
+    // Set the shop market variables to their defaults.
     m_MarketCondBuy = 25;
     m_MarketCondSell = 100;
 
-    // 기본적으로 상점은 일반 상점이다.
+    // A shop is a normal shop by default.
     m_ShopType = SHOPTYPE_NORMAL;
 
     m_ClanType = 0;
 
-    // 그냥 의미없는 default.
-    // 잘못해서 VisionInfo에서 Sight를 찾는 경우 대비
+    // A meaningless default.
+    // Guards against VisionInfo looking up Sight by mistake.
     // by sigi. 2002.9.6
     m_Sight = 5;
 
@@ -76,21 +75,21 @@ NPC::NPC(const string& name)
     m_Name = name;
     m_pInventory = NULL;
 
-    // 다음 처리받을 턴을 지정한다.
+    // Set the turn at which it is processed next.
     getCurrentTime(m_NextTurn);
     m_NextTurn.tv_sec += rand() % 3;
     m_NextTurn.tv_usec += rand() % 1000000;
     if (m_NextTurn.tv_usec >= 1000000)
         m_NextTurn.tv_sec++;
 
-    // 인벤토리 객체를 생성한다.
+    // Create the inventory object.
     // m_pInventory = new Inventory(5,5);
 
-    // 상점 진열장 객체를 생성한다.
+    // Create the shop rack object.
     m_pRack = new ShopRack[SHOP_RACK_TYPE_MAX];
     Assert(m_pRack != NULL);
 
-    // 상점 시세 변수를 디폴트로 세팅해준다.
+    // Set the shop market variables to their defaults.
     m_MarketCondBuy = 25;
     m_MarketCondSell = 100;
 
@@ -121,9 +120,9 @@ NPC::~NPC()
 }
 
 // registerObject()
-// Zone에 종속된 ObjectRegistry를 사용해서,
-// NPC 와 소유아이템들의 ObjectID를 할당받는다.
-// 현재로는 등록해야 할 것은 NPC 자신의 OID 밖에 없다.
+// Allocates the ObjectIDs of the NPC and its owned items using the
+// ObjectRegistry that belongs to the Zone.
+// For now the only thing to register is the NPC's own OID.
 void NPC::registerObject()
 
 {
@@ -143,17 +142,17 @@ void NPC::registerObject()
 }
 
 // load()
-// 이 NPC와 관련된 데이터들을 로드한다.
-// 스크립트나, 트리거 등등.
+// Loads the data related to this NPC.
+// Scripts, triggers and so on.
 bool NPC::load()
 
 {
     __BEGIN_TRY
 
-    // trigger 를 로딩한다.
+    // Load the triggers.
     m_TriggerManager.load(m_Name);
 
-    // AtFirst 컨디션이 있으면, 실행하고 삭제한다.
+    // If there is an AtFirst condition, run it and delete it.
     if (m_TriggerManager.hasCondition(Condition::CONDITION_AT_FIRST)) {
         list<Trigger*>& triggers = m_TriggerManager.getTriggers();
         list<Trigger*>::iterator itr = triggers.begin();
@@ -174,7 +173,7 @@ bool NPC::load()
 }
 
 // init()
-// 데이터들을 초기화하고...존에 NPC를 등록한다.
+// Initializes the data and registers the NPC in the zone.
 void NPC::init()
 
 {
@@ -187,21 +186,21 @@ void NPC::init()
 }
 
 // act()
-// 게임 서버의 메인 루프마다 한번씩 불리는 함수이다.
-// AI 코드가 수행되는 메인 함수라 할 수 있다.
+// Called once per main loop of the game server.
+// This is the main function in which the AI code runs.
 void NPC::act(const Timeval& currentTime)
 
 {
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // 현재 시간이 다음 턴보다 크다면, 아직 좀 더 기다려야 한다.
-    // 그렇지 않으면, 액션을 취한다.
+    // If the current time is greater than the next turn, it has to wait a little longer.
+    // Otherwise, take an action.
     if (currentTime < m_NextTurn)
         return;
 
-    // 다음 턴을 지정한다.
-    // 현재 NPC들은 1초에 1타일만 움직이기 땜시로.. =_=;
+    // Set the next turn.
+    // NPCs currently move only one tile per second.
     Timeval delay;
     delay.tv_sec = 0;
     delay.tv_usec = 750000 + rand() % 200000;
@@ -212,10 +211,10 @@ void NPC::act(const Timeval& currentTime)
     if (m_pCoupleUnregisterManager != NULL)
         m_pCoupleUnregisterManager->heartbeat();
 
-    // 트리거를 가지고 있을 경우, 각 트리거들의 조건이 만족되는지 체크한다.
-    // 만약 특정 트리거의 모든 조건이 만족한다면, 그 트리거에 해당되는
-    // 액션을 실행하고 리턴한다. 왜냐하면, 트리거 역시 액션이므로,
-    // 일단 액션은 한 턴에 한번만 실행되기 때문이다.
+    // When it has triggers, check whether the conditions of each trigger are met.
+    // If every condition of a particular trigger is met, run the action for that
+    // trigger and return, because a trigger is an action too and an action runs
+    // only once per turn.
     list<Trigger*>& triggers = m_TriggerManager.getTriggers();
     list<Trigger*>::iterator itr = triggers.begin();
 
@@ -232,84 +231,84 @@ void NPC::act(const Timeval& currentTime)
 }
 
 // getShopVersion()
-// 지정된 종류의 상점의 버전을 리턴한다.
+// Returns the version of the shop of the given type.
 ShopVersion_t NPC::getShopVersion(ShopRackType_t type) const {
     Assert(type < SHOP_RACK_TYPE_MAX);
     return m_pRack[type].getVersion();
 }
 
 // setShopVersion()
-// 지정된 종류의 상점의 버전을 세팅한다.
+// Sets the version of the shop of the given type.
 void NPC::setShopVersion(ShopRackType_t type, ShopVersion_t ver) {
     Assert(type < SHOP_RACK_TYPE_MAX);
     m_pRack[type].setVersion(ver);
 }
 
 // increaseShopVersion()
-// 지정된 종류의 상점의 버전을 올린다.
+// Raises the version of the shop of the given type.
 void NPC::increaseShopVersion(ShopRackType_t type) {
     Assert(type < SHOP_RACK_TYPE_MAX);
     m_pRack[type].increaseVersion();
 }
 
 // isExistShopItem()
-// 지정된 종류와 인덱스의 아이템이 상점 진열장 안에 존재하는지 리턴한다.
+// Returns whether the item of the given type and index exists in the shop rack.
 bool NPC::isExistShopItem(ShopRackType_t type, BYTE index) const {
     Assert(type < SHOP_RACK_TYPE_MAX);
     return m_pRack[type].isExist(index);
 }
 
 // insertShopItem()
-// 지정된 종류와 인덱스의 진열장에다가 아이템을 집어넣는다.
+// Puts an item into the rack of the given type and index.
 void NPC::insertShopItem(ShopRackType_t type, BYTE index, Item* pItem) {
     Assert(type < SHOP_RACK_TYPE_MAX);
     m_pRack[type].insert(index, pItem);
 }
 
 // removeShopItem()
-// 지정된 종류와 인덱스의 진열장에서 아이템을 제거한다.
+// Removes the item from the rack of the given type and index.
 void NPC::removeShopItem(ShopRackType_t type, BYTE index) {
     Assert(type < SHOP_RACK_TYPE_MAX);
     return m_pRack[type].remove(index);
 }
 
 // getShopItem()
-// 지정된 종류와 인덱스의 진열장에 있는 아이템 포인터를 리턴한다.
+// Returns the pointer to the item in the rack of the given type and index.
 Item* NPC::getShopItem(ShopRackType_t type, BYTE index) const {
     Assert(type < SHOP_RACK_TYPE_MAX);
     return m_pRack[type].get(index);
 }
 
 // clearShopItem()
-// 진열장을 청소(?)한다.
+// Clears the rack.
 void NPC::clearShopItem(void) {
     for (int i = 0; i < SHOP_RACK_TYPE_MAX; i++)
         m_pRack[i].clear();
 }
 
 // getFirstEmptySlot()
-// 지정된 종류의 진열장에서 제일 앞쪽의 빈 칸을 찾는다.
+// Finds the frontmost empty slot in the rack of the given type.
 BYTE NPC::getFirstEmptySlot(ShopRackType_t type) const {
     Assert(type < SHOP_RACK_TYPE_MAX);
     return m_pRack[type].getFirstEmptySlot();
 }
 
 // getLastEmptySlot()
-// 지정된 종류의 진열장에서 제일 뒤쪽의 빈 칸을 찾는다.
+// Finds the rearmost empty slot in the rack of the given type.
 BYTE NPC::getLastEmptySlot(ShopRackType_t type) const {
     Assert(type < SHOP_RACK_TYPE_MAX);
     return m_pRack[type].getLastEmptySlot();
 }
 
 // isFull()
-// 지정된 종류의 진열장이 현재 꽉찬 상태인지를 리턴한다.
+// Returns whether the rack of the given type is currently full.
 bool NPC::isFull(ShopRackType_t type) const {
     Assert(type < SHOP_RACK_TYPE_MAX);
     return m_pRack[type].isFull();
 }
 
 // isEmpty
-// 지정된 종류의 진열장이 현재 빈 상태인지를 리턴한다.
+// Returns whether the rack of the given type is currently empty.
 bool NPC::isEmpty(ShopRackType_t type) const {
     Assert(type < SHOP_RACK_TYPE_MAX);
     return m_pRack[type].isEmpty();

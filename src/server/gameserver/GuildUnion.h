@@ -120,31 +120,31 @@ public:
         OK = 0,
         ALREADY_IN_UNION,
         ALREADY_OFFER_SOMETHING,
-        TARGET_IS_NOT_MASTER, // 상대방이 마스터가 아니라네;;
+        TARGET_IS_NOT_MASTER, // The other side is not a master
         NOT_IN_UNION,
-        MASTER_CANNOT_QUIT, // 연합의 마스터 길드는 스스로 탈퇴불가(하위길드가 없을때만 가능-자동이래)
+        MASTER_CANNOT_QUIT, // A union master guild cannot leave on its own (automatic once no sub-guild is left)
         NO_TARGET_UNION,
         NOT_YOUR_UNION,
-        SOURCE_IS_NOT_MASTER, // 신청한 사람이 마스터가 아니다
-        YOU_HAVE_PENALTY,     // 강제로 탈퇴한 기록이 있다. 신청할 수 없다
-        NOT_ENOUGH_SLOT,      // OfferJoin시...가입할 수 있는 Slot이 꽉차 있다.
-        TOO_MANY_MEMBER       // 멤버가 50명 이상이라 가입할 수 없다.
+        SOURCE_IS_NOT_MASTER, // The applicant is not a master
+        YOU_HAVE_PENALTY,     // Has a record of a forced withdrawal and cannot apply
+        NOT_ENOUGH_SLOT,      // On OfferJoin: the joinable slots are full
+        TOO_MANY_MEMBER       // Cannot join because there are 50 or more members
 
 
     };
-    uint offerJoin(GuildID_t gID, GuildID_t MasterGID); // 연합가입 신청
-    uint offerQuit(GuildID_t gID);                      // 연합탈퇴 신청
+    uint offerJoin(GuildID_t gID, GuildID_t MasterGID); // Apply to join a union
+    uint offerQuit(GuildID_t gID);                      // Apply to leave a union
 
-    uint acceptJoin(GuildID_t gID); // 연합가입 수락
-    uint acceptQuit(GuildID_t gID); // 연합탈퇴 수락
+    uint acceptJoin(GuildID_t gID); // Accept a union join
+    uint acceptQuit(GuildID_t gID); // Accept a union withdrawal
 
-    uint denyJoin(GuildID_t gID); // 연합가입 거부
-    uint denyQuit(GuildID_t gID); // 엽합탈퇴 거부
+    uint denyJoin(GuildID_t gID); // Deny a union join
+    uint denyQuit(GuildID_t gID); // Deny a union withdrawal
 
     void clearOffer(GuildID_t gID);
     bool hasOffer(GuildID_t gID);
 
-    bool makeOfferList(uint uID, GCUnionOfferList& offerList); // 목록요청
+    bool makeOfferList(uint uID, GCUnionOfferList& offerList); // Request the list
 
     static GuildUnionOfferManager& Instance() {
         static GuildUnionOfferManager theInstance;

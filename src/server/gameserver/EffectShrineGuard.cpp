@@ -70,7 +70,7 @@ void EffectShrineGuard::affect(Creature* pCreature)
         msg << pVampire->getName();
     }
 
-    msg << " 님이 슬레이어 성물을 가졌습니다.";
+    msg << " has taken the Slayer relic.";
 
     GCSystemMessage gcSystemMessage;
 
@@ -80,7 +80,7 @@ void EffectShrineGuard::affect(Creature* pCreature)
     g_pZoneGroupManager->broadcast( &gcSystemMessage );
 
 
-    // Effect붙인다.
+    // Attach the effect.
     GCAddEffect gcAddEffect;
     gcAddEffect.setObjectID( pCreature->getObjectID() );
     gcAddEffect.setEffectID( getEffectClass() );
@@ -139,8 +139,8 @@ void EffectShrineGuard::unaffect(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    // 능력치를 정상적으로 되돌리기 위해서는 플래그를 끄고,
-    // initAllStat을 불러야 한다.
+    // To restore the attributes properly, clear the flag and
+    // call initAllStat.
     pCreature->removeFlag(Effect::EFFECT_CLASS_SHRINE_GUARD);
 
     Zone* pZone = pCreature->getZone();

@@ -48,7 +48,7 @@ enum VariableType {
     RANK_EXP_GAIN_PERCENT,         // 37
     ITEM_LUCK_PERCENT,             // 38
 
-    // 대박 이벤트 용 ( code name : lotto event )
+    // For the jackpot event ( code name : lotto event )
     // 2003. 1. 12 by bezz. Sequoia. dew
     LOTTO_ITEM_RATIO,     // 39
     LOTTO_ITEM_BONUS_NUM, // 40
@@ -102,7 +102,7 @@ enum VariableType {
 
     MONEY_TRACE_LOG_LIMIT, // 67
 
-    // 피시방 복권 이벤트
+    // PC room lottery event
     PC_ROOM_LOTTO_EVENT, // 68
     ACTIVE_FLAG_WAR,     // 69
 
@@ -132,7 +132,7 @@ enum VariableType {
     GOLD_LUCKY_BAG_RATIO,  // 85
     RED_LUCKY_BAG_RATIO,   // 86
 
-    // 위의 CHRISTMAS_GIFT_BOX 랑은 관련이 없다
+    // Unrelated to CHRISTMAS_GIFT_BOX above
     EVENT_GIFT_BOX,        // 87
     RED_GIFT_BOX_RATIO,    // 88
     BLUE_GIFT_BOX_RATIO,   // 89
@@ -249,7 +249,7 @@ const string VariableType2String[VARIABLE_MAX] = {
     "RANK_EXP_GAIN_PERCENT",         // 37
     "ITEM_LUCK_PERCENT",             // 38
 
-    // 대박 이벤트 용 ( code name : lotto event )
+    // For the jackpot event ( code name : lotto event )
     // 2003. 1. 12 by bezz. Sequoia. dew
     "LOTTO_ITEM_RATIO",     // 39
     "LOTTO_ITEM_BONUS_NUM", // 40
@@ -326,7 +326,7 @@ const string VariableType2String[VARIABLE_MAX] = {
     "GOLD_LUCKY_BAG_RATIO",  // 85
     "RED_LUCKY_BAG_RATIO",   // 86
 
-    // 위의 CHRISTMAS_GIFT_BOX 랑은 관련이 없다
+    // Unrelated to CHRISTMAS_GIFT_BOX above
     "EVENT_GIFT_BOX",        // 87
     "RED_GIFT_BOX_RATIO",    // 88
     "BLUE_GIFT_BOX_RATIO",   // 89
@@ -433,7 +433,7 @@ public:
         return m_Variables[STAR_RATIO];
     }
 
-    // 이벤트가 활성화되고 끊는 함수
+    // Turns the event on and off
     void setEventActivate(int value) {
         setVariable(EVENT_ACTIVE, value);
     }

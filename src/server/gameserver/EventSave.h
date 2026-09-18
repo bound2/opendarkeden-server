@@ -11,7 +11,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class EventSave;
-// 각 캐릭터를 주기적으로 저장하도록 해주는 이벤트이다.
+// Event that makes each character be saved periodically.
 //////////////////////////////////////////////////////////////////////////////
 
 class EventSave : public Event {
@@ -25,7 +25,7 @@ public:
     }
 
     // get event life-cycle
-    // EventSave 이벤트는 주기적으로 계속 실행되어야 하므로, 삭제되어서는 안된다.
+    // The EventSave event must keep running periodically, so it must not be deleted.
     virtual bool isTemporary() const {
         return false;
     }

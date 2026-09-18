@@ -23,10 +23,10 @@
 #define NIGHT_END_HOUR 4
 
 enum Timeband {
-    TIME_DAWN = 0, // 새벽
-    TIME_DAY,      // 낮
-    TIME_DUSK,     // 저녁
-    TIME_NIGHT,    // 밤
+    TIME_DAWN = 0, // Dawn
+    TIME_DAY,      // Day
+    TIME_DUSK,     // Dusk
+    TIME_NIGHT,    // Night
 
     TIME_MAX
 };
@@ -34,8 +34,8 @@ enum Timeband {
 //////////////////////////////////////////////////////////////////////////////
 // class TimeManager;
 //
-// 현재 게임 시간을 계산해주는 매니저 클래스이다.(사실 매니저라고 할 것도 없다.
-// 이 외에도 뭔가 다른 역할을 할 것도 같다...
+// Manager class that computes the current game time.
+// It may take on other roles as well.
 //////////////////////////////////////////////////////////////////////////////
 
 class TimeManager {

@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectGrandMasterSlayer.cpp
-// Written by  : 쉭
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -64,7 +63,7 @@ void EffectGrandMasterSlayer::affect(Creature* pCreature)
 
     pCreature->setFlag(Effect::EFFECT_CLASS_GRAND_MASTER_SLAYER);
 
-    // 주위에 뿌려준다.
+    // Broadcast it to the surroundings.
     GCAddEffect gcAddEffect;
     gcAddEffect.setObjectID(pCreature->getObjectID());
     gcAddEffect.setEffectID(getSendEffectClass());
@@ -97,8 +96,8 @@ void EffectGrandMasterSlayer::unaffect(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    // 능력치를 정상적으로 되돌리기 위해서는 플래그를 끄고,
-    // initAllStat을 불러야 한다.
+    // To restore the attributes properly, clear the flag and
+    // call initAllStat.
     pCreature->removeFlag(Effect::EFFECT_CLASS_GRAND_MASTER_SLAYER);
 
     Zone* pZone = pCreature->getZone();

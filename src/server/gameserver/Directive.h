@@ -1,9 +1,8 @@
 ////////////////////////////////////////////////////////////////////////
 // Filename    : Directive.h
-// Written By  : 김성민
 // Description :
-// MonsterAI에서 행동을 결정하는 Directive와 DirectiveSet을
-// 구현해놓은 파일이다.
+// Implements the Directive and DirectiveSet that decide behaviour in
+// MonsterAI.
 ////////////////////////////////////////////////////////////////////////
 
 #ifndef __DIRECTIVE_H__
@@ -15,7 +14,7 @@
 #include "Types.h"
 
 ////////////////////////////////////////////////////////////////////////
-// 조건 상수
+// Condition constants
 ////////////////////////////////////////////////////////////////////////
 
 enum {
@@ -132,7 +131,7 @@ const string DirectiveCondition2String[] = {"EnemyRangeMelee",          // 0
                                             "ConditionMAX"};
 
 ////////////////////////////////////////////////////////////////////////
-// 행동 상수
+// Action constants
 ////////////////////////////////////////////////////////////////////////
 
 enum {
@@ -165,9 +164,9 @@ const string DirectiveAction2String[] = {"Approach",    // 0
 ////////////////////////////////////////////////////////////////////////
 // class Directive
 //
-// 하나의 액션에 대한 임의의 조건들을 집어넣은 클래스이다.
-// 즉 조건과, 그 액션에 필요한 파라미터, 그리고 확률, 중요성 등을
-// 뭉쳐놓은 클래스...
+// Holds the arbitrary conditions for a single action: the conditions, the
+// parameters the action needs, its probability, its importance and so on,
+// all bundled into one class.
 ////////////////////////////////////////////////////////////////////////
 
 class Directive {
@@ -231,10 +230,10 @@ protected:
 ////////////////////////////////////////////////////////////////////////
 // class DirectiveSet
 //
-// Directive 클래스의 집합이다. 원래 Directive의 Weight 변수를
-// 이용하여 소팅을 가능하게 만들려고 했는데, 생각보다 리스트를
-// 소팅하는 게 귀찮아서 그냥 집어넣는 순서대로 우선순위가 높은 것으로
-// 인식하도록 했다.(MonsterAI 참조)
+// A set of Directive objects. Sorting on the Directive Weight field was the
+// original intent, but sorting the list turned out to be more bother than
+// expected, so insertion order is taken as priority order instead, earliest
+// first (see MonsterAI).
 ////////////////////////////////////////////////////////////////////////
 
 class DirectiveSet {
@@ -301,32 +300,32 @@ public:
     ~DirectiveSetManager();
 
 public:
-    // 객체를 초기화한다.
+    // Initialize the object.
     void init();
 
-    // DB로부터 directive set을 로드한다.
+    // Load the directive sets from the database.
     void load();
 
-    // 지정된 타입의 directive set 포인터를 반환한다.
+    // Return a pointer to the directive set of the given type.
     DirectiveSet* getDirectiveSet(uint index);
 
 protected:
-    // 문자열을 파싱해서 지정된 인덱스에 directive set을 생성한다.
+    // Parse the strings and create a directive set at the given index.
     void createDirectiveSet(uint index, const string& name, const string& text, const string& deadtext);
 
-    // directive에 딸려오는 파라미터들을 파싱한다.
+    // Parse the parameters that come with a directive.
     void parseDirectiveParameter(Directive* pDirective, const string& text, int mode);
 
-    // 문자열로부터 condition 값을 리턴한다.
+    // Return the condition value for a string.
     int getCondition(const string& token);
 
-    // 문자열로부터 action 값을 리턴한다.
+    // Return the action value for a string.
     int getAction(const string& token);
 
-    // 문자열로부터 파라미터 값을 리턴한다.
+    // Return the parameter value for a string.
     int getParameter(const string& token);
 
-    // 문자열로부터 확률을 리턴한다.
+    // Return the probability for a string.
     int getRatio(const string& token);
 
 

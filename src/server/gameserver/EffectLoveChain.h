@@ -2,8 +2,8 @@
 // Filename    : EffectLoveChain.h
 // Written by  : elca@ewestsoft.com
 // Description :
-// 군인기술 Sniping 또는 뱀파이어 기술 Invisibility로 인해서
-// 현재 점점 희미해져가고 있는(사라지고 있는) 크리쳐에 붙는 이펙트이다.
+// Effect attached to a creature that is fading away because of the
+// soldier skill Sniping or the vampire skill Invisibility.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_LOVE_CHAIN__
@@ -56,10 +56,10 @@ public:
     }
 
 private:
-    ObjectID_t m_OwnerOID;     // 이펙트 걸린 놈의 OwnerID
-    Zone* m_pZone;             // Zone 포인터
+    ObjectID_t m_OwnerOID;     // OwnerID of the creature carrying the effect
+    Zone* m_pZone;             // Zone pointer
     string m_TargetName;       // Target Name
-    ObjectID_t m_ItemObjectID; // 아이템의 오브젝트 아이디
+    ObjectID_t m_ItemObjectID; // Object id of the item
 };
 
 #endif

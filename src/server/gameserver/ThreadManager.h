@@ -21,12 +21,12 @@ class ThreadPool;
 //
 // class ThreadManager
 //
-// 게임 서버상의 모든(!) 쓰레드풀을 관리한다. 게임서버로부터 init, start,
-// stop 명령이 떨어지면 하위 쓰레드풀의 같은 메쏘드를 호출한다.
+// Manages every thread pool in the game server. When the game server issues init,
+// start or stop, the same method is called on each sub thread pool.
 //
-// init  : 각 쓰레드풀에 옵션에서 지정한 개수의 쓰레드를 생성, 등록한다.
-// start : 각 쓰레드풀에 등록된 쓰레드들을 활성화(start)시킨다.
-// stop  : 각 쓰레드풀에 등록된 쓰레드들을 비활성화(stop)시킨다.
+// init  : creates and registers the configured number of threads in each pool.
+// start : starts the threads registered in each pool.
+// stop  : stops the threads registered in each pool.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -40,25 +40,25 @@ public:
 
 
 public:
-    // 쓰레드 매니저를 초기화한다.
+    // Initialize the thread manager.
     void init();
 
     // activate sub thread pools
-    // 하위 쓰레드 풀을 활성화시킨다.
+    // Start the sub thread pools.
     void start();
 
     // deactivate sub thread pools
-    // 하위 쓰레드 풀을 종료시킨다.
+    // Stop the sub thread pools.
     void stop();
 
     // #ifdef __NO_COMBAT__
     ThreadPool* getThreadPool() {
         return m_pZoneGroupThreadPool;
-    } // 김경석
+    }
     // #endif
 
 private:
-    // 쓰레드풀
+    // Thread pool
     ThreadPool* m_pZoneGroupThreadPool;
 };
 

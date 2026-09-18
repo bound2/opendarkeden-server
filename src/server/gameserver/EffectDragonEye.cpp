@@ -35,7 +35,7 @@ void EffectDragonEye::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // HP 가 두배~
+    // Double the HP
     if (pCreature->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
         SLAYER_RECORD prev;
@@ -66,7 +66,7 @@ void EffectDragonEye::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // HP 원래대로
+    // Restore the HP
     if (pCreature->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
         SLAYER_RECORD prev;

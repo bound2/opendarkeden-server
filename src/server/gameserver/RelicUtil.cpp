@@ -75,12 +75,12 @@ void sendBloodBibleEffect(Object* pObject, Effect::EffectClass EClass)
 }
 
 
-// 	티모르남동
-// 			슬레이어 ( 37, 163 )
-//			뱀파이어 ( 193, 46 )
+// Timor southeast
+//     Slayer ( 37, 163 )
+//     Vampire ( 193, 46 )
 //
-//	아담의 성지 동<뱀파이어> ( 239, 134)
-//	아담의 성지 서<슬레이어> ( 27, 133 )
+// Adam's holy land, east <Vampire> ( 239, 134)
+// Adam's holy land, west <Slayer> ( 27, 133 )
 void sendHolyLandWarpEffect(Creature* pCreature)
 
 {
@@ -99,8 +99,8 @@ void sendHolyLandWarpEffect(Creature* pCreature)
     if (pCreature->isSlayer()) {
         const int maxHolyLandWarpSlayer = 1;
         static ZONE_COORD HolyLandWarpSlayer[maxHolyLandWarpSlayer] = {
-            ZONE_COORD(53, 37, 163), // 티모르 남동
-                                     //			ZONE_COORD( 73, 27, 133 )	// 아담의 성지 서쪽
+            ZONE_COORD(53, 37, 163), // Timor southeast
+                                     //   ZONE_COORD( 73, 27, 133 )  // Adam's holy land, west
         };
 
         for (int i = 0; i < maxHolyLandWarpSlayer; i++) {
@@ -118,8 +118,8 @@ void sendHolyLandWarpEffect(Creature* pCreature)
     } else if (pCreature->isVampire()) {
         const int maxHolyLandWarpVampire = 1;
         static ZONE_COORD HolyLandWarpVampire[maxHolyLandWarpVampire] = {
-            ZONE_COORD(53, 193, 46), // 티모르 남동
-                                     //			ZONE_COORD( 71, 239, 134 )	// 아담의 성지 동쪽
+            ZONE_COORD(53, 193, 46), // Timor southeast
+                                     //   ZONE_COORD( 71, 239, 134 )  // Adam's holy land, east
         };
 
         for (int i = 0; i < maxHolyLandWarpVampire; i++) {
@@ -135,12 +135,12 @@ void sendHolyLandWarpEffect(Creature* pCreature)
 
         EClass = Effect::EFFECT_CLASS_WARP_HOLY_LAND_VAMPIRE;
     } else if (pCreature->isOusters()) {
-        // 음냐 언젠가 해줘야 함 ~_~
-        // 아우스터즈는 아담의 성지 어디에 떨구지 ㅡ.,ㅡ
+        // This still has to be done some day.
+        // Where in Adam's holy land should Ousters be dropped?
         const int maxHolyLandWarpOusters = 1;
         static ZONE_COORD HolyLandWarpOusters[maxHolyLandWarpOusters] = {
-            ZONE_COORD(53, 160, 170), // 티모르 남동
-                                      //			ZONE_COORD( 72, 129, 112 )	// 아담의 성지 중앙
+            ZONE_COORD(53, 160, 170), // Timor southeast
+                                      //   ZONE_COORD( 72, 129, 112 )  // Adam's holy land, center
         };
 
         for (int i = 0; i < maxHolyLandWarpOusters; i++) {
@@ -177,8 +177,8 @@ bool addEffectRelicPosition(Item* pItem, ZoneID_t zoneID, TPOINT pt)
 
     if (!pItem->isFlag(Effect::EFFECT_CLASS_RELIC_POSITION)) {
         EffectRelicPosition* pPosition = new EffectRelicPosition(pItem);
-        // pPosition->setNextTime(10);     // 1초 후 메세지 뿌린다.
-        pPosition->setTick(1 * 60 * 10); // 1분마다 한번씩 알린다.
+        // pPosition->setNextTime(10);     // broadcast the message after 1 second
+        pPosition->setTick(1 * 60 * 10); // announce once a minute
         pPosition->setZoneID(zoneID);
         pPosition->setX(pt.x);
         pPosition->setY(pt.y);
@@ -202,8 +202,8 @@ bool deleteEffectRelicPosition(Item* pItem)
 
     Assert(pItem != NULL);
 
-    // EffectRelicPosition 제거한다.
-    // 성물 보관대에 붙어있던 Effect를 제거한다.
+    // Remove the EffectRelicPosition.
+    // Remove the effect attached to the relic table.
     if (pItem->isFlag(Effect::EFFECT_CLASS_RELIC_POSITION)) {
         Effect* pPositionEffect = pItem->getEffectManager().findEffect(Effect::EFFECT_CLASS_RELIC_POSITION);
         Assert(pPositionEffect != NULL);
@@ -220,7 +220,7 @@ bool deleteEffectRelicPosition(Item* pItem)
     __END_CATCH
 }
 
-// Corpse붙은 pItem과 관련된 Effect를 없애준다.
+// Removes the effects related to pItem attached to the corpse.
 bool deleteRelicEffect(Corpse* pCorpse, Item* pItem)
 
 {
@@ -320,7 +320,7 @@ bool isRelicItem(Item::ItemClass IClass) {
     return false;
 }
 
-// Zone에 있는 pCorpse가 pItem을 가지고 있다.
+// pCorpse in the zone holds pItem.
 bool addHasRelicEffect(Zone* pZone, Corpse* pCorpse, Item* pItem)
 
 {
@@ -334,7 +334,7 @@ bool addHasRelicEffect(Zone* pZone, Corpse* pCorpse, Item* pItem)
 
     EffectHasRelic* pRelicEffect = NULL;
 
-    // 성단이 성서를 가지고 있다는 표시
+    // Marks that the altar holds the bible.
     switch (pItem->getItemClass()) {
     case Item::ITEM_CLASS_BLOOD_BIBLE: {
         pRelicEffect = new EffectHasBloodBible(pCorpse);
@@ -350,8 +350,8 @@ bool addHasRelicEffect(Zone* pZone, Corpse* pCorpse, Item* pItem)
 
     pRelicEffect->setZone(pZone);
     pRelicEffect->setXY(pCorpse->getX(), pCorpse->getY());
-    // pRelicEffect->setNextTime( 1*10 );   // 1초 후
-    pRelicEffect->setTick(1 * 60 * 10); // 1분마다 메세지 출력
+    // pRelicEffect->setNextTime( 1*10 );   // after 1 second
+    pRelicEffect->setTick(1 * 60 * 10); // print the message once a minute
     pRelicEffect->setPart(pItem->getItemType());
 
     pRelicEffect->affect();
@@ -360,7 +360,7 @@ bool addHasRelicEffect(Zone* pZone, Corpse* pCorpse, Item* pItem)
     pCorpse->setFlag(pRelicEffect->getEffectClass());
     effectManager.addEffect(pRelicEffect);
 
-    // 이펙트를 붙여주라고 한다.
+    // Tell the client to attach the effect.
     GCAddEffect gcAddEffect;
     gcAddEffect.setObjectID(pCorpse->getObjectID());
     gcAddEffect.setEffectID(pRelicEffect->getSendEffectClass());
@@ -404,7 +404,7 @@ bool deleteRelicEffect(Creature* pCreature, Item* pItem)
         return false;
     }
 
-    // has relic 이펙트를 찾아서 이펙트를 지워준다.
+    // Find the has-relic effect and remove it.
     Effect* pEffect = pCreature->findEffect(effectClass);
     if (pEffect != NULL) {
         pCreature->removeFlag(effectClass);
@@ -427,7 +427,7 @@ bool addRelicEffect(Creature* pCreature, Item* pItem)
     Assert(pCreature != NULL);
     Assert(pItem != NULL);
 
-    // 성물을 가졌다는 이펙트를 붙인다.
+    // Attach the effect that marks holding a relic.
     Effect::EffectClass effectClass;
     Effect::EffectClass effectClassSend;
 
@@ -441,15 +441,15 @@ bool addRelicEffect(Creature* pCreature, Item* pItem)
         if (pRelicInfo->relicType == RELIC_TYPE_SLAYER) {
             effectClassSend = effectClass = Effect::EFFECT_CLASS_HAS_SLAYER_RELIC;
             EffectHasRelic* pEffect = new EffectHasSlayerRelic(pCreature);
-            // pEffect->setNextTime( 1*10 );	// 10초 후
-            pEffect->setTick(1 * 60 * 10); // 1분마다 메세지 출력
+            // pEffect->setNextTime( 1*10 );  // after 10 seconds
+            pEffect->setTick(1 * 60 * 10); // print the message once a minute
             pCreature->addEffect(pEffect);
             pEffect->affect();
         } else {
             effectClassSend = effectClass = Effect::EFFECT_CLASS_HAS_VAMPIRE_RELIC;
             EffectHasRelic* pEffect = new EffectHasVampireRelic(pCreature);
-            // pEffect->setNextTime( 1*10 );	// 10초 후
-            pEffect->setTick(1 * 60 * 10); // 1분마다 메세지 출력
+            // pEffect->setNextTime( 1*10 );  // after 10 seconds
+            pEffect->setTick(1 * 60 * 10); // print the message once a minute
             pCreature->addEffect(pEffect);
             pEffect->affect();
         }
@@ -457,8 +457,8 @@ bool addRelicEffect(Creature* pCreature, Item* pItem)
         effectClass = Effect::EFFECT_CLASS_HAS_BLOOD_BIBLE;
         effectClassSend = (Effect::EffectClass)((int)Effect::EFFECT_CLASS_HAS_BLOOD_BIBLE + itemtype);
         EffectHasRelic* pEffect = new EffectHasBloodBible(pCreature);
-        // pEffect->setNextTime( 1*10 );	// 10초 후
-        pEffect->setTick(1 * 60 * 10); // 1분마다 메세지 출력
+        // pEffect->setNextTime( 1*10 );  // after 10 seconds
+        pEffect->setTick(1 * 60 * 10); // print the message once a minute
         pEffect->setPart(itemtype);
         pCreature->addEffect(pEffect);
         pEffect->affect();
@@ -466,8 +466,8 @@ bool addRelicEffect(Creature* pCreature, Item* pItem)
         effectClass = Effect::EFFECT_CLASS_HAS_CASTLE_SYMBOL;
         effectClassSend = (Effect::EffectClass)((int)Effect::EFFECT_CLASS_HAS_CASTLE_SYMBOL + itemtype);
         EffectHasRelic* pEffect = new EffectHasCastleSymbol(pCreature);
-        // pEffect->setNextTime( 1*10 );	// 10초 후
-        pEffect->setTick(1 * 60 * 10); // 1분마다 메세지 출력
+        // pEffect->setNextTime( 1*10 );  // after 10 seconds
+        pEffect->setTick(1 * 60 * 10); // print the message once a minute
         pEffect->setPart(itemtype);
         pCreature->addEffect(pEffect);
         pEffect->affect();
@@ -488,7 +488,7 @@ bool addRelicEffect(Creature* pCreature, Item* pItem)
 
     pCreature->setFlag(effectClass);
 
-    // Effect붙였다고 알려준다.
+    // Announce that the effect was attached.
     GCAddEffect gcAddEffect;
     gcAddEffect.setObjectID(pCreature->getObjectID());
     gcAddEffect.setEffectID(effectClassSend);
@@ -507,27 +507,27 @@ bool dropRelicToZone(PlayerCreature* pPC, Item* pItem)
     Zone* pZone = pPC->getZone();
     Assert(pZone != NULL);
 
-    // 일단 아이템을 바닥에 떨어뜨린다.
-    // 시체와 겹칠 수도 있으므로.. 캐릭터가 없는 곳에 떨어뜨린다.
+    // Drop the item on the ground, on a square with no character on it
+    // since it could otherwise overlap a corpse.
     TPOINT pt = pZone->addItem(pItem, pPC->getX(), pPC->getY(), false);
 
-    if (pt.x != -1) // 떨어뜨리는데 성공했다면
+    if (pt.x != -1) // if the drop succeeded
     {
         char pField[80];
         sprintf(pField, "OwnerID='', Storage=%d, StorageID=%u, X=%d, Y=%d", STORAGE_ZONE, pZone->getZoneID(), pt.x,
                 pt.y);
         pItem->tinysave(pField);
 
-        // 인벤토리에서 뺀다.
+        // Take it out of the inventory.
         // pInventory->deleteItem( pItem->getObjectID() );
         deleteRelicEffect(pPC, pItem);
 
-        // Relic이 떨어진 곳의 정보를 틈틈히 알려주도록 한다.
+        // Announce from time to time where the relic was dropped.
         /*		if (!pItem->isFlag( Effect::EFFECT_CLASS_RELIC_POSITION))
                 {
                     EffectRelicPosition* pPosition = new EffectRelicPosition(pItem);
-                    //pPosition->setNextTime(10);     // 1초 후 메세지 뿌린다.
-                    pPosition->setTick( 1*60*10 );  // 1분마다 한번씩 알린다.
+                    //pPosition->setNextTime(10);     // broadcast the message after 1 second
+                    pPosition->setTick( 1*60*10 );  // announce once a minute
                     pPosition->setZoneID( pZone->getZoneID() );
                     pPosition->setX( pt.x );
                     pPosition->setY( pt.y );
@@ -538,14 +538,14 @@ bool dropRelicToZone(PlayerCreature* pPC, Item* pItem)
                 }*/
 
 
-        // 전체 사용자에게 Relic 이 떨어졌다는 메시지를 보낸다.
+        // Send every player a message saying the relic was dropped.
         /*
         ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( pZone->getZoneID() );
         Assert( pZoneInfo != NULL );
 
         StringStream msg;
-        msg << pRelicInfo->getName() << " 성물이 " << pZoneInfo->getFullName() << " ( " << pt.x << " , " << pt.y << " )
-        에 떨어졌습니다.";
+        msg << pRelicInfo->getName() << " dropped at " << pZoneInfo->getFullName() << " ( " << pt.x << " , " << pt.y
+        << " ).";
 
         GCSystemMessage message;
         message.setMessage( msg.toString() );
@@ -553,7 +553,7 @@ bool dropRelicToZone(PlayerCreature* pPC, Item* pItem)
         */
         if (!pItem->isFlag(Effect::EFFECT_CLASS_RELIC_LOCK)) {
             EffectRelicLock* pLock = new EffectRelicLock(pItem);
-            pLock->setDeadline(10 * 10); // 10초
+            pLock->setDeadline(10 * 10); // 10 seconds
             pItem->setFlag(Effect::EFFECT_CLASS_RELIC_LOCK);
             pItem->getEffectManager().addEffect(pLock);
         }
@@ -574,7 +574,7 @@ bool dropRelicToZone(Creature* pCreature, bool bSendPacket)
     bool bDrop = false;
 
     ///////////////////////////////////////////////////////////////////
-    // 죽을 때 DragonEye 를 가지고 있다면 원래 위치로 빽~
+    // If the creature holds a DragonEye when it dies, it goes back to its original position.
     ///////////////////////////////////////////////////////////////////
     if (pCreature->isFlag(Effect::EFFECT_CLASS_DRAGON_EYE)) {
         de::gameContext().dragonEyes().warpToDefaultPosition(pCreature);
@@ -589,22 +589,22 @@ bool dropRelicToZone(Creature* pCreature, bool bSendPacket)
     }
 
     ///////////////////////////////////////////////////////////////////
-    // 죽을 때 Relic Item을 가지고 있다면 바닥에 떨어뜨린다.
+    // If the creature holds a relic item when it dies, drop it on the ground.
     ///////////////////////////////////////////////////////////////////
     if (pCreature->hasRelicItem()) {
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
         Assert(pPC != NULL);
 
-        // mouse에 relic이 있는지 체크
+        // Check whether a relic is held on the mouse cursor.
         Item* pSlotItem = pPC->getExtraInventorySlotItem();
 
         if (pSlotItem != NULL && isRelicItem(pSlotItem)) {
             if (dropRelicToZone(pPC, pSlotItem)) {
                 pPC->deleteItemFromExtraInventorySlot();
 
-                // player의 mouse에서 제거한다.
-                // client에서 이 패킷을 받으면
-                // mouse에서도 함 체크해주게 했다.
+                // Remove it from the player's mouse cursor.
+                // When the client receives this packet it also
+                // checks the mouse cursor.
 
                 if (bSendPacket) {
                     GCDeleteInventoryItem gcDeleteInventoryItem;
@@ -626,17 +626,17 @@ bool dropRelicToZone(Creature* pCreature, bool bSendPacket)
         ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pZone->getZoneID());
         Assert(pZoneInfo != NULL);
 
-        // 인벤토리에서 Relic Item을 찾아본다.
+        // Look for a relic item in the inventory.
         for (CoordInven_t y = 0; y < pInventory->getHeight(); y++) {
             for (CoordInven_t x = 0; x < pInventory->getWidth(); x++) {
                 Item* pItem = pInventory->getItem(x, y);
                 if (pItem != NULL && isRelicItem(pItem)) {
-                    // 일단 아이템을 바닥에 떨어뜨린다.
+                    // Drop the item on the ground.
                     if (dropRelicToZone(pPC, pItem)) {
-                        // 인벤토리에서 뺀다.
+                        // Take it out of the inventory.
                         pInventory->deleteItem(pItem->getObjectID());
 
-                        // player의 inventory에서 제거한다.
+                        // Remove it from the player's inventory.
                         if (bSendPacket) {
                             GCDeleteInventoryItem gcDeleteInventoryItem;
                             gcDeleteInventoryItem.setObjectID(pItem->getObjectID());
@@ -657,7 +657,7 @@ bool dropRelicToZone(Creature* pCreature, bool bSendPacket)
 }
 
 
-// 시체에서 RelicItem이 나오는것 처리
+// Handles a relic item coming out of a corpse.
 bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
 
 {
@@ -673,7 +673,7 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
     //
     //----------------------------------------------------------------------
     case Item::ITEM_CLASS_RELIC: {
-        // 만약 아이템이 하나도 남지 않았다면(마지막 아이템이었다면, EffectRelic을 삭제해 준다)
+        // If no item is left (it was the last one), the EffectRelic is deleted.
         try {
             int relicIndex = pItem->getItemType();
             const RelicInfo* pRelicInfo =
@@ -687,16 +687,16 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
             sprintf(msg, g_pStringPool->c_str(STRID_RELIC_FROM_RELIC_TABLE), pRelicInfo->getName().c_str());
 
             //				StringStream msg;
-            //				msg << "성물 보관대에서 "
-            //					<< "성물(" << pRelicInfo->getName() << ")이 나왔습니다.";
+            //        msg << "Out of the relic table, "
+            //          << "the relic (" << pRelicInfo->getName() << ") came out.";
 
             GCSystemMessage gcSystemMessage;
             gcSystemMessage.setMessage(msg);
             g_pZoneGroupManager->broadcast(&gcSystemMessage);
 
 
-            // relic이 성물보관대에서 빠져나왔기 때문에
-            // 보너스/패널티를 다시 조정해준다.
+            // The relic left the relic table, so the
+            // bonuses and penalties are recomputed.
             g_pCombatInfoManager->computeModify();
         } catch (Throwable& t) {
             cout << t.toString().c_str() << endl;
@@ -717,7 +717,7 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
             g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BLOOD_BIBLE, pItem->getItemType()));
 
         //			StringStream msg;
-        //			msg << "피의 성서 조각(" << pBloodBibleInfo->getName() << ")이 나왔습니다.";
+        //      msg << "A blood bible fragment (" << pBloodBibleInfo->getName() << ") came out.";
 
         char msg[200];
         sprintf(msg, g_pStringPool->c_str(STRID_BLOOD_BIBLE_FROM_SHRINE), pBloodBibleInfo->getName().c_str());
@@ -727,11 +727,11 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
         // g_pZoneGroupManager->broadcast( &gcSystemMessage );
         g_pHolyLandManager->broadcast(&gcSystemMessage);
 
-        // 성서 조각 아이템 위치 변경
+        // Update the bible fragment item's position.
         if (!pItem->isFlag(Effect::EFFECT_CLASS_RELIC_POSITION)) {
             EffectRelicPosition* pPosition = new EffectRelicPosition(pItem);
-            // pPosition->setNextTime(10);     // 1초 후 메세지 뿌린다.
-            pPosition->setTick(1 * 60 * 10); // 1분마다 한번씩 알린다.
+            // pPosition->setNextTime(10);     // broadcast the message after 1 second
+            pPosition->setTick(1 * 60 * 10); // announce once a minute
             pPosition->setZoneID(pCorpse->getZone()->getZoneID());
             pPosition->setX(pt.x);
             pPosition->setY(pt.y);
@@ -756,7 +756,7 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
 
         if (pCastleSymbolInfo != NULL) {
             //				StringStream msg;
-            //				msg << "성 상징물(" << pCastleSymbolInfo->getName() << ")이 나왔습니다.";
+            //        msg << "A castle symbol (" << pCastleSymbolInfo->getName() << ") came out.";
 
             char msg[200];
             sprintf(msg, g_pStringPool->c_str(STRID_CASTLE_SYMBOL_FROM_SHRINE), pCastleSymbolInfo->getName().c_str());
@@ -766,11 +766,11 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
             g_pCastleInfoManager->broadcastShrinePacket(pItem->getItemType(), &gcSystemMessage);
 
 
-            // 성서 조각 아이템 위치 변경
+            // Update the bible fragment item's position.
             if (!pItem->isFlag(Effect::EFFECT_CLASS_RELIC_POSITION)) {
                 EffectRelicPosition* pPosition = new EffectRelicPosition(pItem);
-                // pPosition->setNextTime(10);     // 1초 후 메세지 뿌린다.
-                pPosition->setTick(1 * 60 * 10); // 1분마다 한번씩 알린다.
+                // pPosition->setNextTime(10);     // broadcast the message after 1 second
+                pPosition->setTick(1 * 60 * 10); // announce once a minute
                 pPosition->setZoneID(pCorpse->getZone()->getZoneID());
                 pPosition->setX(pt.x);
                 pPosition->setY(pt.y);
@@ -793,8 +793,8 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
     __END_CATCH
 }
 
-// Relic이 pCorpse에서 어딘가로 warp되었다고 할때
-// pCorpse에 Effect를 붙여준다.
+// When a relic warps away from pCorpse,
+// attach the effect to pCorpse.
 void sendRelicWarpEffect(Corpse* pCorpse)
 
 {

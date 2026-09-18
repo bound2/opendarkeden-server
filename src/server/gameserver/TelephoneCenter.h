@@ -19,8 +19,8 @@
 //--------------------------------------------------------------------------------
 // class TelephoneCenter;
 //
-// 게임 서버의 글로벌 매니저 객체로, PC의 폰번호를 사용해서 PC객체에 접근할 수 있도록
-// 해준다. 내부적으로 unordered_map 을 사용해서, 검색 속도를 향상시킨다.
+// Global manager object of the game server that gives access to a PC object by
+// the PC's phone number. Internally uses an unordered_map to speed up the lookup.
 //
 //--------------------------------------------------------------------------------
 class TelephoneCenter {

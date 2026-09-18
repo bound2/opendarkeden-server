@@ -128,9 +128,9 @@ check_ratchet R6g "Zone.cpp lines" 1274 "$R6g"
 # enum, a skill slot class or a persistence record type that is per-race, so
 # they shrink again only when one of those types is reconciled.
 R6h=$(wc -l < src/server/gameserver/Slayer.cpp 2>/dev/null || echo missing)
-check_ratchet R6h "Slayer.cpp lines" 3593 "$R6h"
+check_ratchet R6h "Slayer.cpp lines" 3589 "$R6h"
 R6i=$(wc -l < src/server/gameserver/Vampire.cpp 2>/dev/null || echo missing)
-check_ratchet R6i "Vampire.cpp lines" 2312 "$R6i"
+check_ratchet R6i "Vampire.cpp lines" 2308 "$R6i"
 R6j=$(wc -l < src/server/gameserver/Ousters.cpp 2>/dev/null || echo missing)
 check_ratchet R6j "Ousters.cpp lines" 2183 "$R6j"
 
@@ -435,12 +435,13 @@ rm -f "$r16_inc" "$r16_dead"
 # beside it still says what the comment meant. Comments are translated tree
 # by tree: src/domain, src/server/database, src/server/loginserver,
 # src/server/sharedserver, the whole of src/Core, the files directly under
-# src/server, and the gameserver's handler, war, gm, repository, mission,
-# couple, ctf, packetfill and mofus trees are done; what is left is the rest
-# of src/server/gameserver. String literals -- log lines, GM messages, the
+# src/server, the gameserver's handler, war, gm, repository, mission,
+# couple, ctf, packetfill and mofus trees, and the files directly under
+# src/server/gameserver are done; what is left is the gameserver's skill,
+# quest and item trees. String literals -- log lines, GM messages, the
 # reserved-name table -- are left for a pass of their own, because changing
-# one changes what the server says rather than how the source reads; the 221
-# that remain in the finished trees, 213 of them in those gameserver trees,
+# one changes what the server says rather than how the source reads; the 493
+# that remain in the finished trees, 482 of them in those gameserver trees,
 # are all this count holds there.
 #
 # Line-based, and the byte class is spelled the way R12 spells it: exclude
@@ -449,7 +450,7 @@ rm -f "$r16_inc" "$r16_dead"
 # working tree out of the count, which [^[:print:]] would not, and LC_ALL=C
 # keeps the range byte-wise where a locale would read it as characters.
 R17=$(LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R17 "source lines carrying non-ASCII bytes" 14195 "$R17"
+check_ratchet R17 "source lines carrying non-ASCII bytes" 7050 "$R17"
 
 # --- R18: commented-out code inside /* */ blocks ---------------------------
 # Code that was switched off years ago says nothing true about the running
@@ -525,7 +526,7 @@ if ! [[ "$r18_files" =~ ^[0-9]+$ ]] || [ "$r18_files" -lt 3000 ]; then
     echo "[FAIL] R18 commented-out code: only '$r18_files' files scanned (find or perl broken?)"
     fail=1
 else
-    check_ratchet R18 "commented-out code lines in /* */ blocks" 3306 "$R18"
+    check_ratchet R18 "commented-out code lines in /* */ blocks" 3301 "$R18"
 fi
 
 # --- Removed dead services must not return --------------------------------

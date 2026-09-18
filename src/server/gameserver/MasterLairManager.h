@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : MasterLairManager.h
-// Written by  : 쉭
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -25,11 +24,11 @@ class Zone;
 class MasterLairManager {
 public:
     enum MasterLairEvent {
-        EVENT_WAITING_PLAYER,   // 사람들이 들어오길 기다린다.
-        EVENT_MINION_COMBAT,    // 소환된 몬스터와 싸운다.
-        EVENT_MASTER_COMBAT,    // 마스터와 싸운다.
-        EVENT_WAITING_KICK_OUT, // 사용자 강제추방 대기(마스터 잡은 경우의 정리 시간)
-        EVENT_WAITING_REGEN,    // 다시 리젠되길 기다린다.
+        EVENT_WAITING_PLAYER,   // wait for players to come in
+        EVENT_MINION_COMBAT,    // fight the summoned monsters
+        EVENT_MASTER_COMBAT,    // fight the master
+        EVENT_WAITING_KICK_OUT, // wait to expel the players (cleanup time once the master is killed)
+        EVENT_WAITING_REGEN,    // wait for the next regen
 
         EVENT_MAX
     };
@@ -43,8 +42,8 @@ public:
         return m_Event;
     }
 
-    bool enterCreature(Creature* pCreature); // 존에 출입이 가능한가?
-    bool leaveCreature(Creature* pCreature); // 존에서 나간 경우
+    bool enterCreature(Creature* pCreature); // may the creature enter the zone?
+    bool leaveCreature(Creature* pCreature); // the creature left the zone
 
     bool heartbeat();
 
@@ -81,33 +80,33 @@ protected:
     void activeEventWaitingKickOut();
     void activeEventWaitingRegen();
 
-    void deleteAllMonsters(); // 모든 몬스터 삭제
-    void kickOutPlayers();    // 사용자 강제 추방
-    void giveKillingReward(); // 마스터 죽였을 때 받는 보상
-    void killAllMonsters();   // 모든 몬스터를 죽인다
+    void deleteAllMonsters(); // delete every monster
+    void kickOutPlayers();    // expel the players
+    void giveKillingReward(); // reward for killing the master
+    void killAllMonsters();   // kill every monster
 
 private:
     Zone* m_pZone;
-    ObjectID_t m_MasterID; // 마스터 한 마리
+    ObjectID_t m_MasterID; // the single master
     ZoneCoord_t m_MasterX;
     ZoneCoord_t m_MasterY;
 
-    bool m_bMasterReady; // 마스터가 싸울 준비가 되었나?
+    bool m_bMasterReady; // is the master ready to fight?
 
-    // int               m_nMaxSummonMonster; // 마스터가 소환할 최대의 몬스터 수
-    // int               m_nSummonedMonster;  // 마스터가 소환한 몬스터 수
+    // int               m_nMaxSummonMonster; // maximum monsters the master may summon
+    // int               m_nSummonedMonster;  // monsters the master has summoned
 
-    int m_nMaxPassPlayer; // 최대 출입 사용자 수
-    int m_nPassPlayer;    // Pass를 받은 사람 수
+    int m_nMaxPassPlayer; // maximum number of players allowed in
+    int m_nPassPlayer;    // number of players that received a pass
 
-    MasterLairEvent m_Event; // 현재의 이벤트 종류
-    Timeval m_EventTime;     // 현재의 이벤트가 지속될 시간
-    int m_EventValue;        // 이벤트와 관련된 값
+    MasterLairEvent m_Event; // the current event kind
+    Timeval m_EventTime;     // how long the current event lasts
+    int m_EventValue;        // value associated with the event
 
-    Timeval m_RegenTime; // 싹 정리하고 다시 시작하는 시간
+    Timeval m_RegenTime; // time at which everything is cleared and restarted
 
 
-    mutable Mutex m_Mutex; // m_nPassPlayer를 확실히 체크할려고..
+    mutable Mutex m_Mutex; // to check m_nPassPlayer reliably
 };
 
 #endif

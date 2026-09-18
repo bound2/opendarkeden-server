@@ -21,7 +21,7 @@ Effect::EffectClass EffectWithWarning::getEffectClass() const {
 }
 
 void EffectWithWarning::start() {
-    //	cout << "시작하지롱" << m_SignDuration << endl;
+    //	cout << "starting" << m_SignDuration << endl;
 
     setNextTime(m_SignDuration);
     setDeadline(m_SignDuration + m_MainDuration);
@@ -41,7 +41,7 @@ void EffectWithWarning::start() {
 void EffectWithWarning::affect() {
     __BEGIN_TRY
 
-    //	cout << "때리지롱" << m_X << ", " << m_Y << endl;
+    //	cout << "hitting" << m_X << ", " << m_Y << endl;
 
     if (!m_State) {
         GCDeleteEffectFromTile gcDET;
@@ -110,7 +110,7 @@ void EffectIcicle::affect() {
         forward_list<Object*>::const_iterator itr = rList.begin();
         forward_list<Object*>::const_iterator endItr = rList.end();
 
-        //	cout << "아프냐?" << endl;
+        //	cout << "does it hurt?" << endl;
 
         for (; itr != endItr; ++itr) {
             Object* pObject = *itr;
@@ -155,12 +155,12 @@ void EffectIcicle::affect() {
             gcHP.setCurrentHP(finalHP);
             m_pZone->broadcastPacket(m_X, m_Y, &gcHP);
 
-            //			cout << "아프다" << endl;
+            //			cout << "it hurts" << endl;
 
             if (pCreature->isFlag(Effect::EFFECT_CLASS_ICE_FIELD_TO_CREATURE))
                 continue;
 
-            // 이팩트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectIceFieldToCreature* pEffect = new EffectIceFieldToCreature(pCreature);
             pEffect->setDeadline(50);
             pCreature->addEffect(pEffect);
@@ -244,7 +244,7 @@ void EffectLargeIcicle::affect() {
                     if (pCreature->isFlag(Effect::EFFECT_CLASS_ICE_FIELD_TO_CREATURE))
                         continue;
 
-                    // 이팩트 클래스를 만들어 붙인다.
+                    // Create the effect class and attach it.
                     EffectIceFieldToCreature* pEffect = new EffectIceFieldToCreature(pCreature);
                     pEffect->setDeadline(50);
                     pCreature->addEffect(pEffect);
@@ -333,7 +333,7 @@ void EffectSideTrap::affect() {
                 if (pCreature->isFlag(Effect::EFFECT_CLASS_ICE_FIELD_TO_CREATURE))
                     continue;
 
-                // 이팩트 클래스를 만들어 붙인다.
+                // Create the effect class and attach it.
                 EffectIceFieldToCreature* pEffect = new EffectIceFieldToCreature(pCreature);
                 pEffect->setDeadline(50);
                 pCreature->addEffect(pEffect);

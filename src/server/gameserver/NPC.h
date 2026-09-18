@@ -1,9 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : NPC.h
-// Written By  : 김성민
 // Description :
-// 원래는 상점 처리 부분이 없었으나, 이 클래스를 상속받아 상점 NPC를
-// 만들기도 좀 그래서, 그냥 NPC 안에다 상점 인터페이스를 집어넣었다.
+// Originally there was no shop handling. Rather than deriving a shop NPC from
+// this class, the shop interface was put directly into NPC.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __NPC_H__
@@ -22,19 +21,19 @@ class RewardClassInfoManager;
 class Script;
 
 //////////////////////////////////////////////////////////////////////////////
-// 상점의 종류 (크리스마스 이벤트용)
+// Shop types (for the Christmas event)
 //////////////////////////////////////////////////////////////////////////////
 enum ShopType {
-    SHOPTYPE_NORMAL = 0, // 일반 상점
-    SHOPTYPE_EVENT,      // 이벤트 상점
+    SHOPTYPE_NORMAL = 0, // Normal shop
+    SHOPTYPE_EVENT,      // Event shop
 
     SHOPTYPE_MAX
 };
 
 //////////////////////////////////////////////////////////////////////////////
-// NPC의 종족 상수
-// 이 상수를 이용해 슬레이어가 뱀파이어 NPC에게 말을 걸거나
-// 상점을 이용하는 것들을 막는다.
+// NPC race constants.
+// They are used to stop a Slayer from talking to a Vampire NPC
+// or from using its shop.
 //////////////////////////////////////////////////////////////////////////////
 enum { NPC_RACE_SLAYER = 0, NPC_RACE_VAMPIRE, NPC_RACE_OUSTERS, NPC_RACE_MONSTER, NPC_RACE_UNKNOWN, NPC_RACE_MAX };
 
@@ -158,11 +157,11 @@ public:
     }
 
     ////////////////////////////////////////////////////////////
-    // 상점 관련 인터페이스
-    // 상점 인터페이스에 관련된 함수는 NPC가 실제로
-    // 상점 NPC가 아닌 경우에는 거의 모두가 exception을
-    // 던지므로, 이 NPC가 확실히 상점 NPC인지 체크하고,
-    // 함수를 호출해야 한다.
+    // Shop related interface.
+    // Almost every function of the shop interface throws an
+    // exception when the NPC is not actually a shop NPC, so
+    // check that this NPC really is a shop NPC before
+    // calling them.
     ////////////////////////////////////////////////////////////
 public:
     int getShopType(void) const {
@@ -259,24 +258,24 @@ protected:
     SpriteType_t m_SpriteType;
     Color_t m_MainColor;
     Color_t m_SubColor;
-    Timeval m_NextTurn;              // 다음 액션 실행 시간
-    Inventory* m_pInventory;         // NPC의 인벤토리
-    TriggerManager m_TriggerManager; // 트리거 매니저
+    Timeval m_NextTurn;              // Time the next action runs
+    Inventory* m_pInventory;         // The NPC's inventory
+    TriggerManager m_TriggerManager; // Trigger manager
     bool m_bShowInMinimap;
     ClanType_t m_ClanType;
 
-    // 상점 인터페이스
+    // Shop interface
     int m_ShopType;
     ShopRack* m_pRack;
     MarketCond_t m_MarketCondBuy;
     MarketCond_t m_MarketCondSell;
     //	QuestBoard*  m_pQuestBoard;
 
-    // 커플 등록 매니저
+    // Couple registration managers
     PartnerWaitingManager* m_pCoupleRegisterManager;
     PartnerWaitingManager* m_pCoupleUnregisterManager;
 
-    // 퀘스트 관련 정보들
+    // Quest related information
     QuestInfoManager* m_pQuestInfoManager;
     RewardClassInfoManager* m_pRewardClassInfoManager;
 

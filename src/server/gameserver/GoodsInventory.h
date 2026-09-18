@@ -36,23 +36,23 @@ public:
         return m_Goods;
     }
 
-    // 아이템 추가
+    // Add an item
     void addItem(string ID, Item* pItem);
 
-    // 아이템 가져오기
+    // Take an item out
     Item* popItem(ObjectID_t oid);
 
-    // 아이템 걍가져오기
+    // Just look at an item
     Item* getItem(ObjectID_t oid);
 
-    // 인벤토리가 비었나?
+    // Is the inventory empty?
     bool empty() {
         return m_Goods.empty();
     }
 
     void clear();
 
-    // 인벤토리에 있는 아이템 개수
+    // Number of items in the inventory
     int getNum() const {
         return m_Goods.size();
     }

@@ -31,7 +31,7 @@ void EffectDeleteTile::affect()
 {
     __BEGIN_TRY
 
-    // 주위에 뿌려준다. -> 없어도 될 듯
+    // Broadcast to the surroundings. -> probably not needed
     /*	GCAddEffectToTile gcAddEffectToTile;
         gcAddEffectToTile.setEffectID( getEffectClass() );
         gcAddEffectToTile.setObjectID( getObjectID() );
@@ -72,7 +72,7 @@ void EffectDeleteTile::unaffect()
     Tile& EffectedTile = m_pZone->getTile(m_X, m_Y);
     EffectedTile.deleteEffect(m_ObjectID);
 
-    // 이펙트가 사라졌다고 알려준다.
+    // Notify that the effect is gone.
     GCDeleteEffectFromTile gcDeleteEffectFromTile;
     gcDeleteEffectFromTile.setEffectID(Effect::EFFECT_CLASS_DELETE_TILE);
     gcDeleteEffectFromTile.setObjectID(m_ObjectID);

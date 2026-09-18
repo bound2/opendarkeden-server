@@ -2,7 +2,7 @@
 //
 // Filename    : main.cpp
 // Written By  : reiot@ewestsoft.com
-// Description : °ÔÀÓ ¼­¹ö¿ë ¸ÞÀÎ ÇÔ¼ö
+// Description : main function for the game server
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     filelog("serverStart.log", "GameServer Start");
 
-    // °¢Á¾ ÇÚµé·¯¸¦ ¼³Á¤ÇÑ´Ù.
+    // Install the various handlers.
     std::set_new_handler(handleMemoryError);
     std::set_terminate(handleUnhandledException);
 
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     delete [] pPointer;
     */
 
-    // ÀûÀýÇÑ À§Ä¡¸¦ Ã£¾Æº¸ÀÚ.
+    // Find a suitable place for this.
     srand(time(0));
     cout << ">>> RANDOMIZATION INITIALIZATION SUCCESS..." << endl;
 
@@ -92,11 +92,11 @@ int main(int argc, char* argv[]) {
     cout << ">>> PACKET DISPATCH TABLE REGISTERED..." << endl;
 
     if (argc < 3) {
-        // cout << "Usage : gameserver -f È¯°æÆÄÀÏ" << endl;
+        // cout << "Usage : gameserver -f config-file" << endl;
         exit(1);
     }
 
-    // command-line parameter¸¦ string À¸·Î º¯È¯ÇÑ´Ù. ^^;
+    // Convert the command-line parameters into strings.
     string* Argv;
 
     Argv = new string[argc];
@@ -105,16 +105,16 @@ int main(int argc, char* argv[]) {
 
     cout << ">>> COMMAND-LINE PARAMETER READING SUCCESS..." << endl;
 
-    // È¯°æ ÆÄÀÏÀ» ÀÐ¾îµéÀÎ´Ù.
-    // ´Ü ½ÇÇà ÆÄÀÏÀº $VSHOME/bin¿¡, È¯°æ ÆÄÀÏÀº $VSHOME/conf ¿¡ Á¸ÀçÇØ¾ß ÇÑ´Ù.½
-    // command line ¿¡¼­ È¯°æ ÆÄÀÏÀ» ÁöÁ¤ÇÒ ¼ö ÀÖµµ·Ï ÇÑ´Ù.
+    // Read the config file.
+    // The executable has to live in $VSHOME/bin and the config file in $VSHOME/conf.
+    // The config file can be given on the command line.
 
     try {
         if (Argv[1] != "-f") {
             throw Error("Usage : gameserver -f config-file -t test-config-file");
         }
 
-        // Ã¹¹øÂ° ÆÄ¶ó¹ÌÅÍ°¡ -f ÀÏ °æ¿ì, µÎ¹øÂ° ÆÄ¶ó¹ÌÅÍ´Â È¯°æÆÄÀÏÀÇ À§Ä¡°¡ µÈ´Ù.
+        // When the first parameter is -f, the second is the path of the config file.
         g_pConfig = new Properties();
         g_pConfig->load(Argv[2]);
 
@@ -123,11 +123,11 @@ int main(int argc, char* argv[]) {
         // cout << e.toString() << endl;
     }
 
-    // ·Î±× ¸Å´ÏÀú¸¦ »ý¼ºÇÏ°í ÃÊ±âÈ­ÇÑÈÄ È°¼ºÈ­½ÃÅ²´Ù.
-    // ·Î±× ¸Å´ÏÀú´Â °ÔÀÓ ¼­¹öÀÇ ÃÊ±âÈ­°úÁ¤¿¡¼­ ¹ß»ýÇÒ °¡´É¼ºÀÌ ÀÖ´Â ¿¡·¯±îÁöµµ
-    // °ËÃâÇØ³»¾ß ÇÏ¹Ç·Î °ÔÀÓ ¼­¹ö ³»ºÎ¿¡¼­ ÃÊ±âÈ­ÇØ¼­´Â ¾ÈµÈ´Ù.
-    // ¶ÇÇÑ ´Ù¸¥ °´Ã¼¸¦ »ý¼ºÇÏ°í ÃÊ±âÈ­ÇÏ±âÀü¿¡ ·Î±×¸Å´ÏÀú°¡ ¿ì¼±ÀûÀ¸·Î »ý¼º,
-    // ÃÊ±âÈ­µÇ¾î¾ß ÇÑ´Ù.
+    // Create the log manager, initialize it and start it.
+    // The log manager has to catch even errors that can happen while the game
+    // server initializes, so it may not be initialized inside the game server.
+    // It also has to be created and initialized before any other object is
+    // created or initialized.
     try {
         string LogServerIP = g_pConfig->getProperty("LogServerIP");
         int LogServerPort = g_pConfig->getPropertyInt("LogServerPort");
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
     cout << ">>> LOGCLIENT INITIALZATION SUCCESS..." << endl;
 
     //
-    // °ÔÀÓ ¼­¹ö °´Ã¼¸¦ »ý¼ºÇÏ°í ÃÊ±âÈ­ÇÑ ÈÄ È°¼ºÈ­½ÃÅ²´Ù.
+    // Create the game server object, initialize it and start it.
     //
     GameServer* pGameServer = NULL;
 
@@ -157,30 +157,30 @@ int main(int argc, char* argv[]) {
         rl.rlim_max = RLIM_INFINITY;
         setrlimit(RLIMIT_CORE, &rl);
 
-        // °ÔÀÓ ¼­¹ö °´Ã¼¸¦ »ý¼ºÇÑ´Ù.
+        // Create the game server object.
         pGameServer = new GameServer();
 
         cout << ">>> GAME SERVER INSTANCE CREATED..." << endl;
 
-        // °ÔÀÓ ¼­¹ö °´Ã¼¸¦ ÃÊ±âÈ­ÇÑ´Ù.
+        // Initialize the game server object.
         pGameServer->init();
 
         cout << ">>> GAME SERVER INITIALIZATION SUCCESS..." << endl;
 
-        // °ÔÀÓ ¼­¹ö °´Ã¼¸¦ È°¼ºÈ­½ÃÅ²´Ù.
+        // Start the game server object.
         if (!ServerShutdown::isRequested())
             pGameServer->start();
     } catch (Throwable& e) {
-        // ·Î±×°¡ ÀÌ·ïÁö±â Àü¿¡ ¼­¹ö°¡ ³¡³¯ °æ¿ì¸¦ ´ëºñÇØ¼­
+        // In case the server ends before logging is up.
         ofstream ofile("../log/instant.log", ios::out);
         ofile << e.toString() << endl;
         ofile.close();
 
-        // Ç¥ÁØ Ãâ·ÂÀ¸·Îµµ Ãâ·ÂÇØÁØ´Ù.
+        // Print it to standard output as well.
         cout << e.toString() << endl;
 
-        // °ÔÀÓ ¼­¹ö¸¦ Áß´Ü½ÃÅ²´Ù.
-        // ÀÌ ³»ºÎ¿¡¼­ ÇÏÀ§ ¸Å´ÏÀú ¿ª½Ã Áß´ÜµÇ¾î¾ß ÇÑ´Ù.
+        // Stop the game server.
+        // The sub-managers have to be stopped from inside it.
         ServerShutdown::fail();
     } catch (...) {
         cout << "unknown exception..." << endl;

@@ -175,7 +175,7 @@ bool SweeperSetManager::putSweeper(Item* pSweeper, MonsterCorpse* pSafe) {
     Assert(pSweeper != NULL);
     Assert(pSafe != NULL);
 
-    // Sweepr 를 넣는 사용자와 pSafe 의 종족이 같음은 위에서 확인했다고 가정한다
+    // Assumes it was already checked above that the user inserting the Sweeper and pSafe share a race
     if (pSweeper->getItemClass() != Item::ITEM_CLASS_SWEEPER)
         return false;
     if (pSafe->getItemClass() != Item::ITEM_CLASS_CORPSE)
@@ -286,7 +286,7 @@ bool SweeperSetManager::returnSweeper( Zone* pZone, Sweeper* pSweeper ) const
 
     ObjectID_t CorpseObjectID = pDefaultSafe->getObjectID();
 
-    // Default Safe 로 옮기고 소유한 종족에 대한 것도 저장해야 한다
+    // It has to be moved to the Default Safe and the owning race has to be saved too
 //	pZone->transportItemToCorpse( pSweeper, pTargetZone, CorpseObjectID );
 
     SweeperSet* pSweeperSet = getSweeperSet( 3 );

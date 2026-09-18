@@ -238,7 +238,7 @@ Item* getGiftBoxItem(GiftBox giftbox) {
 }
 
 int getBlackGiftBoxType(int t1, int t2) {
-    // 필살 하드코딩이다 -ㅠ-
+    // Hard-coded.
     int min = 0;
     int max = 0;
 

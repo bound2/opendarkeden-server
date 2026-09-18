@@ -45,7 +45,7 @@ public:
 
 private:
     int m_DynamicZoneType;     // DynamicZoneType
-    ZoneID_t m_TemplateZoneID; // 다이나믹 존의 틀이되는 존 ID
+    ZoneID_t m_TemplateZoneID; // ID of the zone used as the template of the dynamic zone
 };
 
 

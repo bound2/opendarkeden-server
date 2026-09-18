@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // DynamicZoneManager.h
-// 서버에서 생겼다 사라졌다하는 존을 관리하는 넘
+// Manages the zones that come and go on the server
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef __DYNAMIC_ZONE_MANAGER_H__
@@ -30,10 +30,10 @@ public:
     void init();
     void clear();
 
-    // 새로 DynamicZoneGroup 을 추가한다.
+    // Add a new DynamicZoneGroup.
     void addDynamicZoneGroup(DynamicZoneGroup* pDynamicZoneGroup);
 
-    // DynamicZoneGroup 을 찾아서 반환한다.
+    // Find a DynamicZoneGroup and return it.
     DynamicZoneGroup* getDynamicZoneGroup(int dynamicZoneType);
 
     // get new dynamic zone id

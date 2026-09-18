@@ -23,7 +23,7 @@ EffectEnemyErase::EffectEnemyErase(Creature* pCreature)
 
     setTarget(pCreature);
 
-    // 서버 전용 Effect이다. by sigi. 2002.11.14
+    // Server-only Effect.
     m_bBroadcastingEffect = false;
 
     __END_CATCH

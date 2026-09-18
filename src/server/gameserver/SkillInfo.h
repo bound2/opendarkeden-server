@@ -144,7 +144,7 @@ public:
         m_Target = target;
     }
 
-    // 새로운 버젼을 위해.(합쳐진 버전...)
+    // For the new version (the merged version).
     uint getSubSkill() const {
         return m_SubSkill;
     }
@@ -201,7 +201,7 @@ public:
         (bPhysic ? m_PropertyType.set(SKILL_PROPERTY_TYPE_PHYSIC) : m_PropertyType.reset(SKILL_PROPERTY_TYPE_PHYSIC));
     }
 
-    // 배우기 위해 필요한 스킬 포인트
+    // Skill points required to learn this skill.
     int getSkillPoint() const {
         return m_SkillPoint;
     }
@@ -209,7 +209,7 @@ public:
         m_SkillPoint = skillPoint;
     }
 
-    // 스킬 레벨 업 포인트
+    // Skill level-up points.
     int getLevelUpPoint() const {
         return m_LevelUpPoint;
     }
@@ -217,7 +217,7 @@ public:
         m_LevelUpPoint = levelUpPoint;
     }
 
-    // 이전에 배워야 할 스킬들
+    // Skills that must be learned before this one.
     void addRequireSkill(SkillType_t skillType) {
         m_RequireSkills.push_back(skillType);
     }
@@ -225,7 +225,7 @@ public:
         return m_RequireSkills;
     }
 
-    // 이전에 배워야 할 스킬들
+    // Skills that must be learned before this one.
     void addRequiredSkill(SkillType_t skillType) {
         m_RequiredSkills.push_back(skillType);
     }
@@ -241,7 +241,7 @@ public:
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // 시전하기 위해 필요한 조건들. 아우스터스용
+    // Conditions required to cast. For Ousters.
     ////////////////////////////////////////////////////////////////////////////
     Elemental_t getRequireFire() const {
         return m_RequireFire;
@@ -317,60 +317,60 @@ private:
     uint m_Type;        // Type
     string m_Name;      // Name
     uint m_Level;       // m_Level
-    uint m_MinDamage;   // 최소 데미지
-    uint m_MaxDamage;   // 최대 데미지
-    uint m_MinDelay;    // 최소 딜레이
-    uint m_MaxDelay;    // 최대 딜레이
-    uint m_MinCastTime; // 캐스팅 타임.. 초단위
-    uint m_MaxCastTime; // 최대 캐스팅 타임
+    uint m_MinDamage;   // minimum damage
+    uint m_MaxDamage;   // maximum damage
+    uint m_MinDelay;    // minimum delay
+    uint m_MaxDelay;    // maximum delay
+    uint m_MinCastTime; // casting time, in seconds
+    uint m_MaxCastTime; // maximum casting time
 
-    // 최소 지속시간
-    // 최대 최소가 구별없이 그냥 지속시간만 있는 것은 최소 지속시간에서 읽어오면 된다.
-    // 지속시간이 0인 것은 Instant, -1 은 Long을 의미한다.
+    // Minimum duration.
+    // A skill with a single duration rather than a min/max pair is read from the minimum duration.
+    // A duration of 0 means Instant, -1 means Long.
     int m_MinDuration;
 
-    // 최대 지속시간
+    // Maximum duration.
     int m_MaxDuration;
 
-    // MP 소비량
+    // MP consumption.
     uint m_ConsumeMP;
 
-    // 최대 최소 사정거리, 시야???
+    // Maximum and minimum range; sight?
     uint m_MaxRange;
     uint m_MinRange;
 
-    // 명중시킬 수 있는 타겟의 MoveType
+    // MoveType of the targets that can be hit.
     // 0x01 : burrowing
     // 0x02 : walking
     // 0x04 : flying
     uint m_Target;
 
-    // 합쳐진 버젼을 위해..
+    // For the merged version.
     uint m_SubSkill;
     uint m_Point;
 
     BYTE m_Domain;
 
-    // 마법의 계열. 독, 산, 저주 등등
+    // Magic domain: poison, acid, curse and so on.
     int m_MagicDomain;
 
-    // 정령 계열
+    // Elemental domain.
     int m_ElementalDomain;
 
-    // 필요한 스킬 포인트
+    // Skill points required.
     int m_SkillPoint;
     int m_LevelUpPoint;
 
-    // 이전에 배워야할 스킬들
+    // Skills that must be learned before this one.
     list<SkillType_t> m_RequireSkills;
 
-    // 이거 다음에 배울 수 있는 스킬들
+    // Skills that can be learned after this one.
     list<SkillType_t> m_RequiredSkills;
 
     BYTE m_CanDelete;
 
-    // 시전하기 위해 필요한 조건들
-    // 아우스터스 용
+    // Conditions required to cast.
+    // For Ousters.
     Elemental_t m_RequireFire;
     Elemental_t m_RequireWater;
     Elemental_t m_RequireEarth;
@@ -412,17 +412,17 @@ public:
     void addSkillInfo(SkillInfo* pSkillInfo);
 
     // get SkillType by LearnLevel
-    // 현재의 도메인 레벨에서 배울 수 있는 기술의 타입은 어떤 것인지 찾는다.
-    // 도메인의 레벨로 알 수 있지렁.
+    // Find which skill type can be learned at the current domain level.
+    // The domain level tells you.
     SkillType_t getSkillTypeByLevel(SkillDomainType_t SkillDomain, Level_t Level);
 
-    // 도메인의 레벨로 그 레벨은 어떤 등급에 해당하는지 아는 함수.
+    // Return the grade that a domain level corresponds to.
     SkillGrade getGradeByDomainLevel(Level_t Level);
 
-    // 현재 등급에서 기술이 어느정도 레벨까지 올라갈 수 있는지 알아 본다.
+    // Find how far a skill can be levelled up at the current grade.
     Level_t getLimitLevelByDomainGrade(SkillGrade Grade);
 
-    // 현재 INT에서 MP 감소량을 뽑아내기 위한 함수.
+    // Return the MP consumption reduction for the given INT.
     MP_t getdecreaseConsumeMP(Attr_t INT) {
         return m_decreaseConsumeMP[INT];
     }

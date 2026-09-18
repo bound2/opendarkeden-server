@@ -64,13 +64,13 @@ void EventMorph::activate()
     Assert(pFromCreature->isSlayer());
 
     if (m_pGamePlayer->getPlayerStatus() != GPS_NORMAL) {
-        // 플레이어의 상태가 WAITING_FOR_CG_READY인데, morph가
-        // activate되어 밑의 존에서 크리쳐를 지우는 부분에서 에러가 throw되어
-        // 서버가 죽는 버그가 있었다. 정확히 어떻게 해서 CG_READY상태에서
-        // 이벤트가 activate되는지는 모르겠으나, GamePlayer의
-        // EventManager 자체를 GPS_NORMAL일 때만 돌아가게 하면,
-        // Resurrect가 되지 않으니 주의하길 바란다. 결국 GamePlayer 내부에서
-        // 체크를 하기가 곤란하기 때문에 이 부분에서, 처리한다.
+        // There was a bug where the player status was WAITING_FOR_CG_READY, morph
+        // activated, and the code below that deletes the creature from the zone
+        // threw an error and killed the server. It is not known exactly how an
+        // event can activate in the CG_READY state, but note that making
+        // GamePlayer's EventManager run only while GPS_NORMAL would stop
+        // Resurrect from working. Checking inside GamePlayer is awkward, so
+        // the check is done here instead.
         StringStream msg;
         msg << "EventMorph::activate() : GamePlayer의 상태가 GPS_NORMAL이 아닙니다." << "PlayerID["
             << m_pGamePlayer->getID() << "]" << "CreatureName[" << pFromCreature->getName() << "]";
@@ -82,7 +82,7 @@ void EventMorph::activate()
     pFromCreature->removeFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
     Zone* pZone = pFromCreature->getZone();
 
-    // 만일 Restore 이펙트가 걸려있다면 변신이 되지 않는다.
+    // No morph while the Restore effect is active.
     if (pFromCreature->isFlag(Effect::EFFECT_CLASS_RESTORE)) {
         return;
     }
@@ -92,27 +92,27 @@ void EventMorph::activate()
     dropSweeperToZone(pFromCreature);
 
     //////////////////////////////////////////////////////////////////////
-    // 각종 존 레벨 정보를 삭제해야 한다.
+    // Zone-level information of various kinds has to be removed.
     //////////////////////////////////////////////////////////////////////
 
-    // 파티 초대 중이라면 정보를 삭제해 준다.
+    // Remove the party invitation info if an invite is pending.
     PartyInviteInfoManager* pPIIM = pZone->getPartyInviteInfoManager();
     Assert(pPIIM != NULL);
     pPIIM->cancelInvite(pFromCreature);
 
-    // 파티 관련 정보를 삭제해 준다.
+    // Remove the party related information.
     uint PartyID = pFromCreature->getPartyID();
     if (PartyID != 0) {
-        // 먼저 로컬에서 삭제하고...
+        // First remove it locally...
         LocalPartyManager* pLPM = pZone->getLocalPartyManager();
         Assert(pLPM != NULL);
         pLPM->deletePartyMember(PartyID, pFromCreature);
 
-        // 글로벌에서도 삭제해 준다.
+        // Then remove it globally as well.
         deleteAllPartyInfo(pFromCreature);
     }
 
-    // 트레이드 중이었다면 트레이드 관련 정보를 삭제해준다.
+    // Remove the trade information if a trade was in progress.
     TradeManager* pTM = pZone->getTradeManager();
     Assert(pTM != NULL);
     pTM->cancelTrade(pFromCreature);
@@ -122,8 +122,8 @@ void EventMorph::activate()
 
     Vampire* pVampire = new Vampire();
 
-    GCMorph1 gcEventMorph1;               // 변신 당사자에게..
-    GCMorphVampire2 gcEventMorphVampire2; // 변신 구경꾼들에게..
+    GCMorph1 gcEventMorph1;               // To the one who morphs..
+    GCMorphVampire2 gcEventMorphVampire2; // To the onlookers..
 
     pVampire->setName(pFromCreature->getName());
 
@@ -144,13 +144,13 @@ void EventMorph::activate()
     // slayer to vampire
     Slayer* pSlayer = dynamic_cast<Slayer*>(pFromCreature);
 
-    // 뱀파이어로 변신할때 Creature Pointer가 달라지므로...
-    // 원래 등록 되어있던 포인터는 개가 된다...
-    // 따라서 새로운 Creature Pointer를 등록해줘야 한다.
+    // The Creature pointer changes when morphing into a vampire, so the
+    // pointer registered before becomes useless.
+    // The new Creature pointer has to be registered instead.
     g_pPCFinder->deleteCreature(pFromCreature->getName());
     g_pPCFinder->addCreature(pVampire);
 
-    // 길드 현재 접속 리스트에서 삭제한다.
+    // Remove from the guild's currently-connected list.
     if (pSlayer->getGuildID() != 99) {
         Guild* pGuild = g_pGuildManager->getGuild(pSlayer->getGuildID());
         if (pGuild != NULL) {
@@ -170,25 +170,25 @@ void EventMorph::activate()
                     pSlayer->getName().c_str());
     }
 
-    // 인벤토리 교체.
+    // Swap the inventory.
     Inventory* pInventory = pSlayer->getInventory();
     pVampire->setInventory(pInventory);
     pSlayer->setInventory(NULL);
 
-    // 보관함 교체
-    pVampire->deleteStash();                 // 이전 객체를 지워주고...
-    pVampire->setStash(pSlayer->getStash()); // 슬레이어 걸로 바꾼 다음에
+    // Swap the stash
+    pVampire->deleteStash();                 // Delete the previous object...
+    pVampire->setStash(pSlayer->getStash()); // then take over the slayer's
     pVampire->setStashNum(pSlayer->getStashNum());
-    pVampire->setStashStatus(false); // OID 할당 상태를 false로...
-    pSlayer->setStash(NULL);         // 포인터 에러를 막기 위해 슬레이어 것은 NULL로...
+    pVampire->setStashStatus(false); // Reset the OID assignment state to false...
+    pSlayer->setStash(NULL);         // NULL out the slayer's to avoid a pointer error...
 
     /*
-    // 가비지 교체
+    // Swap the garbage
     while (true)
     {
         Item* pGarbage = pSlayer->popItemFromGarbage();
 
-        // 더 이상 없다면 브레이크...
+        // Break once there are no more...
         if (pGarbage == NULL) break;
 
         pVampire->addItemToGarbage(pGarbage);
@@ -196,14 +196,14 @@ void EventMorph::activate()
     */
 
 
-    // 플래그 셋 교체
+    // Swap the flag set
     pVampire->deleteFlagSet();
     pVampire->setFlagSet(pSlayer->getFlagSet());
     pSlayer->setFlagSet(NULL);
 
     Item* pItem = NULL;
     _TPOINT point;
-    // 기어에서 인벤토리로..
+    // From the gear into the inventory..
     for (int part = 0; part < (int)Slayer::WEAR_MAX; part++) {
         pItem = pSlayer->getWearItem((Slayer::WearPart)part);
         if (pItem) {
@@ -211,7 +211,7 @@ void EventMorph::activate()
                 Assert(((Slayer::WearPart)part == Slayer::WEAR_RIGHTHAND) ||
                        ((Slayer::WearPart)part == Slayer::WEAR_LEFTHAND));
                 Assert(pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND) == pSlayer->getWearItem(Slayer::WEAR_LEFTHAND));
-                // 양손 아템.
+                // Two-handed item.
                 pSlayer->deleteWearItem(Slayer::WEAR_RIGHTHAND);
                 pSlayer->deleteWearItem(Slayer::WEAR_LEFTHAND);
             } else {
@@ -219,8 +219,8 @@ void EventMorph::activate()
             }
 
             if (pInventory->getEmptySlot(pItem, point)) {
-                // 인벤토리에 여유 슬롯이 있으면..
-                // 인벤토리에 추가
+                // If there is a free slot in the inventory..
+                // add it to the inventory
                 pInventory->addItem(point.x, point.y, pItem);
                 pItem->save(pVampire->getName(), STORAGE_INVENTORY, 0, point.x, point.y);
             } else if (pItem->isTimeLimitItem()) {
@@ -233,14 +233,14 @@ void EventMorph::activate()
                 ZoneCoord_t ZoneX = pSlayer->getX();
                 ZoneCoord_t ZoneY = pSlayer->getY();
 
-                // 존으로 뿌린다.
+                // Drop it into the zone.
                 pt = pZone->addItem(pItem, ZoneX, ZoneY);
 
                 if (pt.x != -1) {
                     pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
                     log(LOG_DROP_ITEM_MORPH, pSlayer->getName(), "", pItem->toString());
 
-                    // ItemTraceLog 를 남긴다
+                    // Leave an ItemTraceLog.
                     if (pItem != NULL && pItem->isTraceItem()) {
                         char zoneName[15];
                         sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
@@ -249,7 +249,7 @@ void EventMorph::activate()
                                           pt.x, pt.y);
                     }
                 } else {
-                    // ItemTraceLog 를 남긴다
+                    // Leave an ItemTraceLog.
                     if (pItem != NULL && pItem->isTraceItem()) {
                         remainTraceLog(pItem, pFromCreature->getName(), "GOD", ITEM_LOG_DELETE, DETAIL_DROP);
                         remainTraceLogNew(pItem, pFromCreature->getName(), ITL_ETC, ITLD_DELETE);
@@ -260,7 +260,7 @@ void EventMorph::activate()
             }
         }
     }
-    // ExtraInventorySlot에서 인벤토리로..
+    // From the ExtraInventorySlot into the inventory..
     pItem = pSlayer->getExtraInventorySlotItem();
     if (pItem) {
         pSlayer->deleteItemFromExtraInventorySlot();
@@ -284,7 +284,7 @@ void EventMorph::activate()
                 pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
                 log(LOG_DROP_ITEM_MORPH, pSlayer->getName(), "");
 
-                // ItemTraceLog 를 남긴다
+                // Leave an ItemTraceLog.
                 if (pItem != NULL && pItem->isTraceItem()) {
                     char zoneName[15];
                     sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
@@ -293,7 +293,7 @@ void EventMorph::activate()
                                       pt.y);
                 }
             } else {
-                // ItemTraceLog 를 남긴다
+                // Leave an ItemTraceLog.
                 if (pItem != NULL && pItem->isTraceItem()) {
                     remainTraceLog(pItem, pFromCreature->getName(), "GOD", ITEM_LOG_DELETE, DETAIL_DROP);
                     remainTraceLogNew(pItem, pFromCreature->getName(), ITL_DROP, ITLD_DELETE);
@@ -310,7 +310,7 @@ void EventMorph::activate()
 
     pVampire->loadTimeLimitItem();
 
-    // Vampire로 변했을때는 돈을 초기화한다.
+    // Gold is reset when the character becomes a Vampire.
     // pVampire->setGoldEx(pSlayer->getGold());
     pVampire->setGoldEx(0);
     pVampire->setStashGoldEx(0);
@@ -337,15 +337,15 @@ void EventMorph::activate()
     // Update the field of view.
     pZone->updateHiddenScan(pVampire);
 
-    // 뱀프 기술
+    // Vampire skills
     pVampire->sendVampireSkillInfo();
 
     m_pTargetCreature = NULL;
 
-    // 뱀프로 변했다는 정보를 Slayer Field에 추가한다.
+    // Record the change to vampire in the Slayer table.
     pSlayer->tinysave("Race='VAMPIRE'");
 
-    // 뱀파이어 마을로 이동시킨다.
+    // Move the character to the vampire town.
     uint ZoneNum = 1003;
 
     ZoneCoord_t ZoneX = 62;
@@ -360,7 +360,7 @@ void EventMorph::activate()
     //	Zone* pZone = pVampire->getZone();
 
     //--------------------------------------------------------------------------------
-    // 도착존이 어느 서버, 어느 존그룹에 속하는지 알아본다.
+    // Find out which server and which zone group the destination zone belongs to.
     //--------------------------------------------------------------------------------
     ZoneInfo* pZoneInfo;
     try {
@@ -377,36 +377,35 @@ void EventMorph::activate()
     } catch (NoSuchElementException&) {
         cerr << "Critical Error : 현재로는 게임 서버는 1대뿐이당.." << endl;
 
-        // 일단은 서버가 1대이므로.. 그대로 나간다...
+        // Only one server is supported for now, so bail out.
         throw Error("Critical Error : only one game server is supported");
     }
 
     //--------------------------------------------------------------------------------
-    // 우선 이전 존에서 PC 를 삭제하고, 플레이어를 ZPM -> IPM 으로 옮긴다.
+    // First delete the PC from the previous zone and move the player from the ZPM to the IPM.
     //--------------------------------------------------------------------------------
     try {
-        // 이제, 존에서 PC를 삭제한다.
+        // Now delete the PC from the zone.
         //
         // *CAUTION*
         //
-        // pVampire 좌표가 실제로 pVampire가 존재하는 타일의 좌표와 같아야 한다.
-        // 따라서, 이 메쏘드를 호출하기 전에 좌표를 잘 바꿔놔야 한당..
+        // pVampire's coordinates must match the tile pVampire actually stands on.
+        // So the coordinates have to be set correctly before calling this method.
         //
         pZone->deleteCreature(pVampire, pVampire->getX(), pVampire->getY());
 
-        // 존그룹의 ZPM에서 플레이어를 삭제한다.
+        // Delete the player from the zone group's ZPM.
         // pZone->getZoneGroup()->getZonePlayerManager()->deletePlayer_NOBLOCKED(pGamePlayer);
         // pZone->getZoneGroup()->getZonePlayerManager()->deletePlayer_NOBLOCKED(pGamePlayer->getSocket()->getSOCKET());
         pZone->getZoneGroup()->getZonePlayerManager()->deletePlayer(pGamePlayer->getSocket()->getSOCKET());
 
         //--------------------------------------------------
-        // 크리처의 새로운 좌표는 포탈의 도착 지점이다.
+        // The creature's new coordinates are the portal's arrival point.
         //--------------------------------------------------
-        // 주석처리 by sigi. 2002.5.17
         // pVampire->setXY(ZoneX, ZoneY);
         // pVampire->setZone(NULL);
 
-        // IPM으로 플레이어를 옮긴다.
+        // Move the player to the IPM.
         // g_pIncomingPlayerManager->addPlayer(pGamePlayer);
         // g_pIncomingPlayerManager->pushPlayer(pGamePlayer);
         pZone->getZoneGroup()->getZonePlayerManager()->pushOutPlayer(pGamePlayer);
@@ -416,17 +415,17 @@ void EventMorph::activate()
         throw Error(nsee.toString());
     }
 
-    // 크리처에다가 존을 지정해준다. 이는 OID 를 할당받기 위해서이다.
+    // Assign the zone to the creature, so that an OID can be allocated.
     Zone* pNewZone = pZoneGroup->getZone(ZoneNum);
     Assert(pNewZone != NULL);
 
     // pVampire->setZone(pZone);
-    //  이동할 존을 설정한다. by sigi. 2002.5.11
+    //  Set the zone to move to.
     pVampire->setNewZone(pNewZone);
     pVampire->setNewXY(ZoneX, ZoneY);
 
 
-    // 크리처의 정보를 저장한다.
+    // Store the creature's information.
     pVampire->setZone(pNewZone);
     pVampire->setXY(ZoneX, ZoneY);
 
@@ -435,12 +434,12 @@ void EventMorph::activate()
     pVampire->setZone(pZone);
     pVampire->setXY(x, y);
 
-    // 크리처 자신과 소유 아이템들의 OID를 할당받는다.
+    // Allocate OIDs for the creature itself and the items it owns.
     // pVampire->registerObject();
 
     /*
     //--------------------------------------------------------------------------------
-    // GCUpdateInfo 패킷을 만들어둔다.
+    // Build the GCUpdateInfo packet.
     //--------------------------------------------------------------------------------
     GCUpdateInfo gcUpdateInfo;
 
@@ -455,7 +454,7 @@ void EventMorph::activate()
     pGamePlayer->setPlayerStatus(GPS_WAITING_FOR_CG_READY);
 
 
-    // 지금 지우면.. 돌고 있는 EffectManager는 어케 되남? -_-;
+    // What happens to the running EffectManager if this is deleted now?
     //----------------------------------
 
     /*
@@ -469,7 +468,7 @@ void EventMorph::activate()
 
     /*
     ofstream file("blood.txt", ios::out | ios::app);
-    file << "슬레이어 [" << pSlayer->getName() << "] 뱀파로 변하다 >> ";
+    file << "Slayer [" << pSlayer->getName() << "] turned into a vampire >> ";
     file << getCurrentTimeStringEx() << endl;
     file.close();
     */

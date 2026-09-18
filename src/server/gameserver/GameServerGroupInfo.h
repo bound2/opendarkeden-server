@@ -2,7 +2,7 @@
 //
 // Filename    : GameServerGroupInfo.h
 // Written By  : Reiot
-// Description : 로그인 서버에서 갖고 있는 각 게임 서버에 대한 정보
+// Description : Information about each game server held by the login server
 //
 //----------------------------------------------------------------------
 
@@ -19,8 +19,8 @@
 //
 // class GameServerGroupInfo;
 //
-// GAME DB의 GameServerGroupInfo 테이블에서 읽어들인 각 게임 서버의 정보를
-// 담은 클래스이다.
+// Class holding the information about each game server read from the
+// GameServerGroupInfo table of the GAME DB.
 //
 //----------------------------------------------------------------------
 

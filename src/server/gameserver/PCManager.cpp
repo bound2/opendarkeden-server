@@ -88,7 +88,7 @@ PCManager::PCManager()
 
 //////////////////////////////////////////////////////////////////////////////
 // destructor
-// 컨테이너의 모든 객체들을 DB에 저장한 후, 삭제한다.
+// Save every object in the container to the database, then delete it.
 //////////////////////////////////////////////////////////////////////////////
 PCManager::~PCManager()
 
@@ -99,16 +99,16 @@ PCManager::~PCManager()
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 존에 소속된 PC 들의 heartbeat 관련 메쏘드들을 실행해준다.
-// 이때, PC가 죽었더라도 삭제하면 안된다. 왜냐하면, PC 가 PC 매니저에서
-// 삭제되면 PC's EffectManager 의 heartbeat 메쏘드가 호출되지 않기 때문이다.
-// 대신 CreatureDead::unaffect()에서 없에주면 딱 알맞겠다.
+// Run the heartbeat methods of the PCs belonging to the zone.
+// A dead PC must not be removed here, because once a PC is removed from the PC
+// manager its EffectManager's heartbeat method is no longer called.
+// Removing it in CreatureDead::unaffect() instead would fit.
 //
-// 여기선 이펙트 아이템에 대한 처리를 프로세싱 하는 부분이다.
-// 이 함수는 Zone의 Heart Beat에서 처리되는 루틴이다.
-// 다른 쓰레드와의 관계를 살펴 볼때, ProcessCommand가 끝난 상황에서 처리된다.
-// 그러나 다른 쓰레드에서 PCManager의 deleteCreature 또는 addCreature를
-// 하게 되면 이 함수 또한 안전하지 못할 것이다.
+// This is where effect items are processed.
+// This routine runs from the Zone heartbeat.
+// With respect to other threads it runs after ProcessCommand has finished.
+// It is not safe, however, if another thread calls PCManager::deleteCreature or
+// addCreature.
 //////////////////////////////////////////////////////////////////////////////
 void PCManager::processCreatures()
 
@@ -129,14 +129,14 @@ void PCManager::processCreatures()
             Creature* pCreature = current->second;
             Assert(pCreature != NULL);
 
-            // 가지고 있는 아이템의 heartbeat.. Inventory, Gear 검색
+            // Heartbeat of the items held; search inventory and gear.
             if (pCreature->isSlayer()) {
                 Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
                 Assert(pSlayer != NULL);
                 pSlayer->heartbeat(currentTime);
 
 
-                // HolyLandRaceBonus 적용을 위해 initAllStat을 부른다.
+                // Call initAllStat so the HolyLandRaceBonus is applied.
                 if (m_bRefreshHolyLandPlayer && !g_pWarSystem->hasActiveRaceWar()) {
                     SLAYER_RECORD prev;
 
@@ -144,7 +144,7 @@ void PCManager::processCreatures()
                     pSlayer->initAllStat();
                     pSlayer->sendRealWearingInfo();
                     pSlayer->sendModifyInfo(prev);
-                    // 성지스킬을 위해 스킬 목록을 다시 보낸다.
+                    // Resend the skill list for the holy land skills.
                     pSlayer->sendSlayerSkillInfo();
                 }
             } else if (pCreature->isVampire()) {
@@ -162,24 +162,24 @@ void PCManager::processCreatures()
                         Assert(pEffectComa != NULL);
 
                         if (pEffectComa->canResurrect()) {
-                            // 타겟의 이펙트 매니저에서 코마 이펙트를 삭제한다.
+                            // Delete the coma effect from the target's effect manager.
                             pVampire->deleteEffect(Effect::EFFECT_CLASS_COMA);
                             pVampire->removeFlag(Effect::EFFECT_CLASS_COMA);
 
-                            // 코마 이펙트가 날아갔다고 알려준다.
+                            // Tell the client the coma effect is gone.
                             GCRemoveEffect gcRemoveEffect;
                             gcRemoveEffect.setObjectID(pVampire->getObjectID());
                             gcRemoveEffect.addEffectList((EffectID_t)Effect::EFFECT_CLASS_COMA);
                             pVampire->getZone()->broadcastPacket(pVampire->getX(), pVampire->getY(), &gcRemoveEffect);
 
-                            // 부활하고 나서 effect 붙여준다.
+                            // Reattach the effects after the resurrection.
                             pVampire->getEffectManager()->sendEffectInfo(pVampire, pVampire->getZone(),
                                                                          pVampire->getX(), pVampire->getY());
                         }
                     }
                 }
 
-                // HolyLandRaceBonus 적용을 위해 initAllStat을 부른다.
+                // Call initAllStat so the HolyLandRaceBonus is applied.
                 if (m_bRefreshHolyLandPlayer && !g_pWarSystem->hasActiveRaceWar()) {
                     VAMPIRE_RECORD prev;
 
@@ -187,7 +187,7 @@ void PCManager::processCreatures()
                     pVampire->initAllStat();
                     pVampire->sendRealWearingInfo();
                     pVampire->sendModifyInfo(prev);
-                    // 성지스킬을 위해 스킬 목록을 다시 보낸다.
+                    // Resend the skill list for the holy land skills.
                     pVampire->sendVampireSkillInfo();
                 }
             } else if (pCreature->isOusters()) {
@@ -197,19 +197,19 @@ void PCManager::processCreatures()
             }
 
             if (pCreature->isDead()
-                // transfusion때문에 추가. isDead()는 HP가 0인지를 ㅔ크하는데
-                // HP는 채워지고 있을 수 있다. by sigi. 2002.10.8
+                // Added for transfusion: isDead() checks whether HP is 0, but HP may
+                // still be refilling.
                 || pCreature->isFlag(Effect::EFFECT_CLASS_COMA) && pCreature->isVampire()) {
                 if (!pCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
                     ///////////////////////////////////////////////////////////////////
-                    // 죽을 때 Relic Item을 가지고 있다면 바닥에 떨어뜨린다.
+                    // Drop any relic item held on death to the ground.
                     ///////////////////////////////////////////////////////////////////
                     dropRelicToZone(pCreature);
                     dropFlagToZone(pCreature);
                     dropSweeperToZone(pCreature);
 
                     ///////////////////////////////////////////////////////////////////
-                    // 죽을 때 성향에 따라서 아이템을 떨어뜨린다.
+                    // Drop items on death according to alignment.
                     ///////////////////////////////////////////////////////////////////
                     Zone* pZone = pCreature->getZone();
                     Assert(pZone != NULL);
@@ -243,13 +243,13 @@ void PCManager::processCreatures()
                         int SumAttr =
                             pSlayer->getSTR(ATTR_BASIC) + pSlayer->getDEX(ATTR_BASIC) + pSlayer->getINT(ATTR_BASIC);
 
-                        // 섬이 40 이상이고, 일반 유저라면 죽을 때 아이템을 떨어뜨릴 확률이 있다.
+                        // A normal user with SumAttr over 40 may drop items on death.
                         if (SumAttr > 40 && pSlayer->getCompetence() == 3) {
                             Alignment_t alignment = pSlayer->getAlignment();
                             ItemNum_t DropItemNum = g_pAlignmentManager->getDropItemNum(alignment, pSlayer->isPK());
 
-                            // DropItemNum개까지만
-                            // 착용한 유니크 아이템을 떨어뜨린다.
+                            // Drop the worn unique items, up to DropItemNum
+                            // of them.
                             for (int i = 0; DropItemNum > 0 && i < Slayer::WEAR_MAX; i++) {
                                 Item* pItem = pSlayer->getWearItem((Slayer::WearPart)i);
 
@@ -265,7 +265,7 @@ void PCManager::processCreatures()
                                         pSlayer->deleteWearItem((Slayer::WearPart)i);
                                     }
 
-                                    // 존으로 뿌린다.
+                                    // Scatter it into the zone.
                                     TPOINT pt = pZone->addItem(pItem, pSlayer->getX(), pSlayer->getY());
 
                                     if (pt.x != -1) {
@@ -273,7 +273,7 @@ void PCManager::processCreatures()
                                                 pItem->toString().c_str());
                                         pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
 
-                                        // ItemTraceLog 를 남긴다
+                                        // Write an ItemTraceLog entry.
                                         if (pItem != NULL && pItem->isTraceItem()) {
                                             char zoneName[15];
                                             sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
@@ -283,7 +283,7 @@ void PCManager::processCreatures()
                                                               pZone->getZoneID(), pt.x, pt.y);
                                         }
                                     } else {
-                                        // ItemTraceLog 를 남긴다
+                                        // Write an ItemTraceLog entry.
                                         if (pItem != NULL && pItem->isTraceItem()) {
                                             remainTraceLog(pItem, pCreature->getName(), "GOD", ITEM_LOG_DELETE,
                                                            DETAIL_DROP);
@@ -295,10 +295,10 @@ void PCManager::processCreatures()
 
                                     log(LOG_DROP_ITEM_DIE, pSlayer->getName(), "");
 
-                                    // 떨어뜨릴 개수를 줄여준다.
+                                    // Decrease the remaining drop count.
                                     DropItemNum--;
 
-                                    // 유니크는 무조건 한개만 떨어뜨린다.
+                                    // Only one unique item is ever dropped.
                                     break;
                                 }
                             }
@@ -308,7 +308,7 @@ void PCManager::processCreatures()
                                 int RandomValue = Random(0, (int)Slayer::WEAR_MAX - 1);
                                 Item* pItem = pSlayer->getWearItem(Slayer::WearPart(RandomValue));
 
-                                // 커플링을 떨어뜨려선 안된다 ㅜ.ㅠ
+                                // A couple ring must not be dropped.
                                 // 2003.3.14
                                 if (pItem != NULL && !isCoupleRing(pItem) && !pItem->isTimeLimitItem()) {
                                     // by sigi. 2002.11.7
@@ -322,7 +322,7 @@ void PCManager::processCreatures()
                                     }
 
 
-                                    // 존으로 뿌린다.
+                                    // Scatter it into the zone.
                                     TPOINT pt = pZone->addItem(pItem, pSlayer->getX(), pSlayer->getY());
 
                                     if (pt.x != -1) {
@@ -330,7 +330,7 @@ void PCManager::processCreatures()
                                                 pItem->toString().c_str());
                                         pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
 
-                                        // ItemTraceLog 를 남긴다
+                                        // Write an ItemTraceLog entry.
                                         if (pItem != NULL && pItem->isTraceItem()) {
                                             char zoneName[15];
                                             sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
@@ -340,7 +340,7 @@ void PCManager::processCreatures()
                                                               pZone->getZoneID(), pt.x, pt.y);
                                         }
                                     } else {
-                                        // ItemTraceLog 를 남긴다
+                                        // Write an ItemTraceLog entry.
                                         if (pItem != NULL && pItem->isTraceItem()) {
                                             remainTraceLog(pItem, pCreature->getName(), "GOD", ITEM_LOG_DELETE,
                                                            DETAIL_DROP);
@@ -355,12 +355,12 @@ void PCManager::processCreatures()
                             }
                         }
 
-                        // PK 당한것을 재 셋팅 해 줘야 한다.
+                        // Reset the PK flag.
                         pSlayer->setPK(false);
                     } else if (CClass == Creature::CREATURE_CLASS_VAMPIRE) {
                         pVampire = dynamic_cast<Vampire*>(pCreature);
 
-                        // 숨어있었을 경우 죽을때 튀어나온다.
+                        // A hidden vampire pops out on death.
                         // 2003. 1. 17. Sequoia, DEW
                         if (pVampire->isFlag(Effect::EFFECT_CLASS_HIDE)) {
                             if (canUnburrow(pZone, pVampire->getX(), pVampire->getY())) {
@@ -369,7 +369,7 @@ void PCManager::processCreatures()
                             }
                         }
 
-                        // 박쥐나 늑대 상태인 뱀파이어는 죽을 때 원래대로 돌아간다.
+                        // A vampire in bat or wolf form returns to its own form on death.
                         if (pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT) ||
                             pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF) ||
                             pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WERWOLF)) {
@@ -378,15 +378,15 @@ void PCManager::processCreatures()
                             addUntransformCreature(pZone, pVampire, true);
                         }
 
-                        // 관 안에 있던 뱀파이어는 죽을 때 관이 없어진다.
+                        // A vampire inside a casket loses the casket on death.
 
-                        // 성향에 따라서 돈과 아이템을 떨어트린다.
+                        // Drop money and items according to alignment.
                         if (pVampire->getLevel() > 10 && pVampire->getCompetence() == 3) {
                             Alignment_t alignment = pVampire->getAlignment();
                             ItemNum_t DropItemNum = g_pAlignmentManager->getDropItemNum(alignment, pVampire->isPK());
 
-                            // DropItemNum개까지만
-                            // 착용한 유니크 아이템을 떨어뜨린다.
+                            // Drop the worn unique items, up to DropItemNum
+                            // of them.
                             for (int i = 0; DropItemNum > 0 && i < Vampire::VAMPIRE_WEAR_MAX; i++) {
                                 Item* pItem = pVampire->getWearItem((Vampire::WearPart)i);
 
@@ -401,14 +401,14 @@ void PCManager::processCreatures()
                                         pVampire->deleteWearItem((Vampire::WearPart)i);
                                     }
 
-                                    // 존으로 뿌린다.
+                                    // Scatter it into the zone.
                                     TPOINT pt = pZone->addItem(pItem, pVampire->getX(), pVampire->getY());
 
                                     if (pt.x != -1) {
                                         filelog("uniqueItem.txt", "DropByKilled: %s %s", pVampire->getName().c_str(),
                                                 pItem->toString().c_str());
                                         pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
-                                        // ItemTraceLog 를 남긴다
+                                        // Write an ItemTraceLog entry.
                                         if (pItem != NULL && pItem->isTraceItem()) {
                                             char zoneName[15];
                                             sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
@@ -418,7 +418,7 @@ void PCManager::processCreatures()
                                                               pZone->getZoneID(), pt.x, pt.y);
                                         }
                                     } else {
-                                        // ItemTraceLog 를 남긴다
+                                        // Write an ItemTraceLog entry.
                                         if (pItem != NULL && pItem->isTraceItem()) {
                                             remainTraceLog(pItem, pCreature->getName(), "GOD", ITEM_LOG_DELETE,
                                                            DETAIL_DROP);
@@ -430,10 +430,10 @@ void PCManager::processCreatures()
 
                                     log(LOG_DROP_ITEM_DIE, pVampire->getName(), "");
 
-                                    // 떨어뜨릴 개수를 줄여준다.
+                                    // Decrease the remaining drop count.
                                     DropItemNum--;
 
-                                    // 유니크는 무조건 한개만 떨어뜨린다.
+                                    // Only one unique item is ever dropped.
                                     break;
                                 }
                             }
@@ -443,7 +443,7 @@ void PCManager::processCreatures()
                                 int RandomValue = Random(0, (int)Vampire::VAMPIRE_WEAR_MAX - 1);
                                 Item* pItem = pVampire->getWearItem(Vampire::WearPart(RandomValue));
 
-                                // 커플링을 떨어뜨려선 안된다 ㅜ.ㅠ
+                                // A couple ring must not be dropped.
                                 // 2003.3.14
                                 if (pItem != NULL && !isCoupleRing(pItem) && !pItem->isTimeLimitItem()) {
                                     // by sigi. 2002.11.7
@@ -456,14 +456,14 @@ void PCManager::processCreatures()
                                         pVampire->deleteWearItem(Vampire::WearPart(RandomValue));
                                     }
 
-                                    // 존으로 뿌린다.
+                                    // Scatter it into the zone.
                                     TPOINT pt = pZone->addItem(pItem, pVampire->getX(), pVampire->getY());
 
                                     if (pt.x != -1) {
                                         filelog("dropItem.txt", "DropByKilled: %s %s", pVampire->getName().c_str(),
                                                 pItem->toString().c_str());
                                         pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
-                                        // ItemTraceLog 를 남긴다
+                                        // Write an ItemTraceLog entry.
                                         if (pItem != NULL && pItem->isTraceItem()) {
                                             char zoneName[15];
                                             sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
@@ -473,7 +473,7 @@ void PCManager::processCreatures()
                                                               pZone->getZoneID(), pt.x, pt.y);
                                         }
                                     } else {
-                                        // ItemTraceLog 를 남긴다
+                                        // Write an ItemTraceLog entry.
                                         if (pItem != NULL && pItem->isTraceItem()) {
                                             remainTraceLog(pItem, pCreature->getName(), "GOD", ITEM_LOG_DELETE,
                                                            DETAIL_DROP);
@@ -490,21 +490,21 @@ void PCManager::processCreatures()
 
                         SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_EXTREME);
                         Assert(pSkillHandler != NULL);
-                        // 익스트림 걸어주기~ 분노~~
+                        // Apply the Extreme effect.
                         pSkillHandler->execute(pVampire);
 
-                        // PK 당한것을 재 셋팅 해 줘야 한다.
+                        // Reset the PK flag.
                         pVampire->setPK(false);
                     } else if (CClass == Creature::CREATURE_CLASS_OUSTERS) {
                         pOusters = dynamic_cast<Ousters*>(pCreature);
 
-                        // 성향에 따라서 돈과 아이템을 떨어트린다.
+                        // Drop money and items according to alignment.
                         if (pOusters->getLevel() > 10 && pOusters->getCompetence() == 3) {
                             Alignment_t alignment = pOusters->getAlignment();
                             ItemNum_t DropItemNum = g_pAlignmentManager->getDropItemNum(alignment, pOusters->isPK());
 
-                            // DropItemNum개까지만
-                            // 착용한 유니크 아이템을 떨어뜨린다.
+                            // Drop the worn unique items, up to DropItemNum
+                            // of them.
                             for (int i = 0; DropItemNum > 0 && i < Ousters::OUSTERS_WEAR_MAX; i++) {
                                 Item* pItem = pOusters->getWearItem((Ousters::WearPart)i);
 
@@ -519,14 +519,14 @@ void PCManager::processCreatures()
                                         pOusters->deleteWearItem((Ousters::WearPart)i);
                                     }
 
-                                    // 존으로 뿌린다.
+                                    // Scatter it into the zone.
                                     TPOINT pt = pZone->addItem(pItem, pOusters->getX(), pOusters->getY());
 
                                     if (pt.x != -1) {
                                         filelog("uniqueItem.txt", "DropByKilled: %s %s", pOusters->getName().c_str(),
                                                 pItem->toString().c_str());
                                         pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
-                                        // ItemTraceLog 를 남긴다
+                                        // Write an ItemTraceLog entry.
                                         if (pItem != NULL && pItem->isTraceItem()) {
                                             char zoneName[15];
                                             sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
@@ -536,7 +536,7 @@ void PCManager::processCreatures()
                                                               pZone->getZoneID(), pt.x, pt.y);
                                         }
                                     } else {
-                                        // ItemTraceLog 를 남긴다
+                                        // Write an ItemTraceLog entry.
                                         if (pItem != NULL && pItem->isTraceItem()) {
                                             remainTraceLog(pItem, pCreature->getName(), "GOD", ITEM_LOG_DELETE,
                                                            DETAIL_DROP);
@@ -548,10 +548,10 @@ void PCManager::processCreatures()
 
                                     log(LOG_DROP_ITEM_DIE, pOusters->getName(), "");
 
-                                    // 떨어뜨릴 개수를 줄여준다.
+                                    // Decrease the remaining drop count.
                                     DropItemNum--;
 
-                                    // 유니크는 무조건 한개만 떨어뜨린다.
+                                    // Only one unique item is ever dropped.
                                     break;
                                 }
                             }
@@ -560,7 +560,7 @@ void PCManager::processCreatures()
                                 int RandomValue = Random(0, (int)Ousters::OUSTERS_WEAR_MAX - 1);
                                 Item* pItem = pOusters->getWearItem(Ousters::WearPart(RandomValue));
 
-                                // 커플링을 떨어뜨려선 안된다 ㅜ.ㅠ
+                                // A couple ring must not be dropped.
                                 // 2003.3.14
                                 if (pItem != NULL && !isCoupleRing(pItem) && !pItem->isTimeLimitItem()) {
                                     // by sigi. 2002.11.7
@@ -573,14 +573,14 @@ void PCManager::processCreatures()
                                         pOusters->deleteWearItem(Ousters::WearPart(RandomValue));
                                     }
 
-                                    // 존으로 뿌린다.
+                                    // Scatter it into the zone.
                                     TPOINT pt = pZone->addItem(pItem, pOusters->getX(), pOusters->getY());
 
                                     if (pt.x != -1) {
                                         filelog("dropItem.txt", "DropByKilled: %s %s", pOusters->getName().c_str(),
                                                 pItem->toString().c_str());
                                         pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
-                                        // ItemTraceLog 를 남긴다
+                                        // Write an ItemTraceLog entry.
                                         if (pItem != NULL && pItem->isTraceItem()) {
                                             char zoneName[15];
                                             sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), pt.x, pt.y);
@@ -590,7 +590,7 @@ void PCManager::processCreatures()
                                                               pZone->getZoneID(), pt.x, pt.y);
                                         }
                                     } else {
-                                        // ItemTraceLog 를 남긴다
+                                        // Write an ItemTraceLog entry.
                                         if (pItem != NULL && pItem->isTraceItem()) {
                                             remainTraceLog(pItem, pCreature->getName(), "GOD", ITEM_LOG_DELETE,
                                                            DETAIL_DROP);
@@ -605,14 +605,14 @@ void PCManager::processCreatures()
                             }
                         }
 
-                        // PK 당한것을 재 셋팅 해 줘야 한다.
+                        // Reset the PK flag.
                         pOusters->setPK(false);
                     } else {
                         throw Error("invalid creature class");
                     }
 
-                    // 제일 처음에 죽을 때에는 COMA가 걸려 있지 않으므로,
-                    // 이 부분에 걸려서 COMA가 걸리게 된다.
+                    // On the first death COMA is not set, so this branch is taken
+                    // and COMA is applied.
                     EffectComa* pEffectComa = new EffectComa(pCreature);
                     pEffectComa->setStartTime();
                     if (pTryingTile != NULL)
@@ -635,7 +635,7 @@ void PCManager::processCreatures()
                     if (pCreature->isSlayer()) {
                         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
 
-                        // 모터사이클을 타고 있다면, 모터사이클에서 내린다.
+                        // Dismount the motorcycle if riding one.
                         if (pSlayer->hasRideMotorcycle()) {
                             Zone* pZone = pCreature->getZone();
                             Assert(pZone != NULL);
@@ -646,14 +646,14 @@ void PCManager::processCreatures()
                             pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &_GCGetOffMotorCycle);
                         }
 
-                        // 현재 헬기를 부른 상태라면 헬기를 끈다.
+                        // Turn off the helicopter if one has been called.
                         if (pSlayer->isFlag(Effect::EFFECT_CLASS_SLAYER_PORTAL)) {
                             pSlayer->removeFlag(Effect::EFFECT_CLASS_SLAYER_PORTAL);
 
-                            // 헬기를 제거하라고 뿌려줘야 하는데...?
+                            // A packet removing the helicopter should be broadcast here.
                         }
                     } else if (pCreature->isVampire()) {
-                        //  관 속에서 나가기
+                        //  Leave the casket.
                         if (pCreature->isFlag(Effect::EFFECT_CLASS_CASKET)) {
                             Effect* pEffectCasket = pCreature->findEffect(Effect::EFFECT_CLASS_CASKET);
 
@@ -717,7 +717,7 @@ void PCManager::processCreatures()
                     if (pCreature->isFlag(Effect::EFFECT_CLASS_FADE_OUT)) {
                         pCreature->removeFlag(Effect::EFFECT_CLASS_FADE_OUT);
                         pCreature->deleteEffect(Effect::EFFECT_CLASS_FADE_OUT);
-                        // unaffect 를 해주면 스나이핑이나 인비지가 걸리기 때문에 해주면 안 된다.
+                        // unaffect must not be called: it would set sniping or invisibility.
                     }
 
                     if (pCreature->isFlag(Effect::EFFECT_CLASS_REFINIUM_TICKET)) {
@@ -731,7 +731,7 @@ void PCManager::processCreatures()
                         if (pEffect != NULL) {
                             pEffect->unaffect();
                         }
-                        // paralyze 제거
+                        // Remove paralyze.
                         pEffectManager->deleteEffect(pCreature, Effect::EFFECT_CLASS_SUMMON_SYLPH);
                         pCreature->removeFlag(Effect::EFFECT_CLASS_SUMMON_SYLPH);
                     }
@@ -742,7 +742,7 @@ void PCManager::processCreatures()
                         if (pEffect != NULL) {
                             pEffect->unaffect();
                         }
-                        // paralyze 제거
+                        // Remove paralyze.
                         pEffectManager->deleteEffect(pCreature, Effect::EFFECT_CLASS_INVISIBILITY);
                         pCreature->removeFlag(Effect::EFFECT_CLASS_INVISIBILITY);
                     }
@@ -753,7 +753,7 @@ void PCManager::processCreatures()
                         if (pEffect != NULL) {
                             pEffect->unaffect();
                         }
-                        // paralyze 제거
+                        // Remove paralyze.
                         pEffectManager->deleteEffect(pCreature, Effect::EFFECT_CLASS_SNIPING_MODE);
                         pCreature->removeFlag(Effect::EFFECT_CLASS_SNIPING_MODE);
                     }
@@ -764,12 +764,12 @@ void PCManager::processCreatures()
                         if (pEffectPal != NULL) {
                             pEffectPal->unaffect();
                         }
-                        // paralyze 제거
+                        // Remove paralyze.
                         pEffectManager->deleteEffect(pCreature, Effect::EFFECT_CLASS_PARALYZE);
                         pCreature->removeFlag(Effect::EFFECT_CLASS_PARALYZE);
                     }
 
-                    // 죽었을때 할루 끈다. by sigi. 2002.9.23
+                    // Turn off hallucination on death.
                     if (pCreature->isFlag(Effect::EFFECT_CLASS_HALLUCINATION)) {
                         Effect* pEffectHallu = pCreature->findEffect(Effect::EFFECT_CLASS_HALLUCINATION);
 
@@ -799,25 +799,25 @@ void PCManager::processCreatures()
                         pCreature->removeFlag(Effect::EFFECT_CLASS_HELLFIRE_TO_ENEMY);
                     }
 
-                    // 죽었을 때 Soul Chain 이펙트를 끈다.
-                    // unaffect가 호출될 때 flag이 켜져있지 않다면 transport 하지 않도록한다.
+                    // Turn off the Soul Chain effect on death.
+                    // If the flag is off when unaffect runs, no transport happens.
                     if (pCreature->isFlag(Effect::EFFECT_CLASS_SOUL_CHAIN)) {
                         pCreature->removeFlag(Effect::EFFECT_CLASS_SOUL_CHAIN);
                     }
 
-                    // 죽었을 때 Love Chain 이펙트를 끈다.
-                    // unaffect가 호출될 때 flag이 켜져있지 않다면 transport 하지 않도록한다.
+                    // Turn off the Love Chain effect on death.
+                    // If the flag is off when unaffect runs, no transport happens.
                     if (pCreature->isFlag(Effect::EFFECT_CLASS_LOVE_CHAIN)) {
                         pCreature->removeFlag(Effect::EFFECT_CLASS_LOVE_CHAIN);
                     }
 
-                    // 죽으면 GunShotGuidance Aim 이펙트를 끈다.
+                    // Turn off the GunShotGuidance Aim effect on death.
                     if (pCreature->isFlag(Effect::EFFECT_CLASS_GUN_SHOT_GUIDANCE_AIM)) {
                         pCreature->deleteEffect(Effect::EFFECT_CLASS_GUN_SHOT_GUIDANCE_AIM);
                         pCreature->removeFlag(Effect::EFFECT_CLASS_GUN_SHOT_GUIDANCE_AIM);
                     }
 
-                    // 죽으면 슬립/아마게돈 이펙트를 끈다. 2003. 1. 2. by Sequoia
+                    // Turn off the Sleep / Armageddon effect on death.
                     if (pCreature->isFlag(Effect::EFFECT_CLASS_SLEEP)) {
                         Effect* pEffectSleep = pCreature->findEffect(Effect::EFFECT_CLASS_SLEEP);
 
@@ -847,7 +847,7 @@ void PCManager::processCreatures()
                         pCreature->deleteEffect(Effect::EFFECT_CLASS_TRAPPED);
                     }
 
-                    // 바닥에 쓰러뜨리라고, 이펙트를 뿌려준다.
+                    // Broadcast the effect that lays the creature on the ground.
                     GCAddEffect gcAddEffect;
                     gcAddEffect.setObjectID(pCreature->getObjectID());
                     gcAddEffect.setEffectID(Effect::EFFECT_CLASS_COMA);
@@ -877,15 +877,15 @@ void PCManager::processCreatures()
                     Assert(pEffectComa != NULL);
 
                     if (pEffectComa->getDeadline() < currentTime) {
-                        // 먼저 이펙트를 삭제한다.
+                        // Delete the effect first.
                         pEffectManager->deleteEffect(pCreature, Effect::EFFECT_CLASS_COMA);
                         pCreature->removeFlag(Effect::EFFECT_CLASS_COMA);
 
-                        // 사용자의 입력에 의해서 COMA 이펙트가 unaffect되면, 진짜로 죽은 것이 된다.
-                        // 그러므로, PC 를 죽이고, 플레이어를 ZPM -> IPM 으로 옮긴다.
+                        // When the COMA effect is unaffected by user input the PC is
+                        // really dead, so kill it and move the player from ZPM to IPM.
                         killCreature(pCreature);
 
-                        // PC 의 노드를 삭제한다.
+                        // Delete the PC's node.
                         m_Creatures.erase(current);
 
                         if (before == m_Creatures.end()) // first element
@@ -903,15 +903,14 @@ void PCManager::processCreatures()
             } else {
                 before = current++;
 
-                // 크리처에 걸려 있는 이펙트들을 실행시킨다.
+                // Run the effects attached to the creature.
                 pCreature->getEffectManager()->heartbeat(currentTime);
             }
         }
 
-        // 이거 while 루프 안에 있었다 ㅜ.ㅠ
-        // 전쟁중에는 안 보내주도록 수정
+        // Not sent during a war.
         if (m_bRefreshHolyLandPlayer && !g_pWarSystem->hasActiveRaceWar()) {
-            // 아담의 성지 전역에 피의 성서 보너스 정보를 뿌린다.
+            // Broadcast the blood bible bonus information across Adam's holy land.
             GCHolyLandBonusInfo gcHolyLandBonusInfo;
             g_pBloodBibleBonusManager->makeHolyLandBonusInfo(gcHolyLandBonusInfo);
             g_pHolyLandManager->broadcast(&gcHolyLandBonusInfo);
@@ -931,11 +930,11 @@ void PCManager::processCreatures()
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// (1) 타일에서 크리처를 삭제한다.
-// (2) 시체를 생성하고, 인벤토리를 시체로 옮긴다.
-// (3) 타일에 아이템이 존재할 경우, 적절히 처리한다.
-// (4) 시체를 타일에 추가한다. 중복시, 그 옆에 놓는다.
-// (5) 부활 이펙트를 크리처에 추가한다.
+// (1) Remove the creature from its tile.
+// (2) Create the corpse and move the inventory into it.
+// (3) Handle any item already on the tile.
+// (4) Add the corpse to the tile, or next to it if the tile is taken.
+// (5) Add the resurrection effect to the creature.
 //////////////////////////////////////////////////////////////////////////////
 void PCManager::killCreature(Creature* pDeadCreature)
 
@@ -945,8 +944,8 @@ void PCManager::killCreature(Creature* pDeadCreature)
 
     Assert(pDeadCreature != NULL);
 
-    // transfusion때문에 죽은 뒤에도 HP찬다..
-    // 무시. by sigi. 2002.10.8
+    // Because of transfusion, HP keeps filling even after death.
+    // Ignored.
 
     Zone* pZone = pDeadCreature->getZone();
     Assert(pZone != NULL);
@@ -957,32 +956,32 @@ void PCManager::killCreature(Creature* pDeadCreature)
     // Eternity
     pDeadCreature->removeFlag(Effect::EFFECT_CLASS_ETERNITY);
 
-    // PK존에서 죽었을 때에는 살아날 때 이펙트가 붙는다.
+    // Dying in a PK zone attaches an effect on resurrection.
     if (g_pPKZoneInfoManager->isPKZone(pZone->getZoneID())) {
         EffectPKZoneResurrection* pEffect = new EffectPKZoneResurrection(pDeadCreature);
         pDeadCreature->addEffect(pEffect);
         pDeadCreature->setFlag(pEffect->getEffectClass());
     }
 
-    // 파티 초대중이라면 PartyInviteInfo를 삭제해준다.
+    // Delete the PartyInviteInfo if a party invitation is pending.
     PartyInviteInfoManager* pPIIM = pZone->getPartyInviteInfoManager();
     pPIIM->cancelInvite(pDeadCreature);
 
-    // 먼저 로컬 파티 매니저에서 죽은 놈을 지워줘야 한다.
+    // Remove the dead creature from the local party manager first.
     uint PartyID = pDeadCreature->getPartyID();
     if (PartyID != 0) {
         LocalPartyManager* pLPM = pZone->getLocalPartyManager();
         pLPM->deletePartyMember(PartyID, pDeadCreature);
     }
 
-    // 트레이드 중이었다면 트레이드 관련 정보를 삭제해준다.
+    // Delete the trade information if a trade was in progress.
     TradeManager* pTradeManager = pZone->getTradeManager();
     TradeInfo* pInfo = pTradeManager->getTradeInfo(pDeadCreature->getName());
     if (pInfo != NULL) {
         pTradeManager->cancelTrade(pDeadCreature);
     }
 
-    // 시체에 붙어있는 EFFECT_CLASS_CANNOT_ABSORB_SOUL 이펙트를 제거한다
+    // Remove the EFFECT_CLASS_CANNOT_ABSORB_SOUL effect from the corpse.
     if (pDeadCreature->isFlag(Effect::EFFECT_CLASS_CANNOT_ABSORB_SOUL)) {
         pDeadCreature->removeFlag(Effect::EFFECT_CLASS_CANNOT_ABSORB_SOUL);
     }
@@ -995,7 +994,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
     }
 
     if (addCorpse) {
-        // 시체를 생성한다.
+        // Create the corpse.
         Corpse* pCorpse = NULL;
 
         if (pDeadCreature->isSlayer()) {
@@ -1036,7 +1035,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
         }
     }
 
-    // 크리처가 죽었다고 주변에 알려준다.
+    // Tell the surroundings that the creature died.
     GCCreatureDied gcCreatureDied;
     gcCreatureDied.setObjectID(pDeadCreature->getObjectID());
     pDeadCreature->getPlayer()->sendPacket(&gcCreatureDied);
@@ -1049,38 +1048,38 @@ void PCManager::killCreature(Creature* pDeadCreature)
 
 
     // *NOTE
-    // 강제 접속 종료일 경우 목표 지점을 미리 지정해 놓기 위한 방법이다.
-    // Resurrect처리 관계와 밀접한 부분이므로 이 부분이 바뀔 경우 Resurrect도 생각해야
-    // 한다. 단순히 DB세이브만 하면 된다고 생각하기 쉽지만. GamePlayer가 Disconnect
-    // 하면서 크리쳐를 세이브하기 때문에 다시 덮어서 세이브하게 되므로 성립이 되지 않는다.
+    // This sets the destination in advance in case the connection is forcibly closed.
+    // It is tied closely to the Resurrect handling, so Resurrect must be considered
+    // if it changes. A plain database save is not enough: GamePlayer saves the
+    // creature while disconnecting and would overwrite it.
     ZoneID_t ZoneID = 0;
     ZoneCoord_t ZoneX = 0;
     ZoneCoord_t ZoneY = 0;
     ZONE_COORD ResurrectCoord;
     Zone* pResurrectZone = NULL;
 
-    // 도착존이 어느 서버, 어느 존그룹에 속하는지 알아본다.
-    // 원래는 모든 존은 그 존에서 죽었을때 돌아가야 할 존을 명시해줘야 한다.
+    // Find which server and zone group the destination zone belongs to.
+    // Every zone should name the zone to return to when a creature dies in it.
     ZoneInfo* pZoneInfo = NULL;
     ZoneGroup* pZoneGroup = NULL;
 
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pDeadCreature);
     Assert(pPC != NULL);
 
-    // 이벤트 존에서 죽었으면 이벤트 존 부활위치로..
+    // Dying in an event zone resurrects at the event zone's resurrection position.
     EventZoneInfo* pEventZoneInfo = EventZoneInfoManager::Instance().getEventZoneInfo(pPC->getZoneID());
     if (pEventZoneInfo != NULL) {
         ResurrectCoord.id = pPC->getZoneID();
         ResurrectCoord.x = pEventZoneInfo->getResurrectX();
         ResurrectCoord.y = pEventZoneInfo->getResurrectY();
     }
-    // PK존에서 죽었을 경우
-    // PK존의 부활 위치로 가야 한다.
+    // Dying in a PK zone resurrects at the PK zone's
+    // resurrection position.
     else if (g_pPKZoneInfoManager->isPKZone(pPC->getZoneID())) {
         if (!g_pPKZoneInfoManager->getResurrectPosition(pPC->getZoneID(), ResurrectCoord))
             g_pResurrectLocationManager->getPosition(pPC, ResurrectCoord);
     }
-    // 일루젼스웨이1
+    // Illusion Way 1.
     else if (pPC->getZoneID() == 1410) {
         ResurrectCoord.id = 1410;
         ResurrectCoord.x = 120;
@@ -1109,18 +1108,18 @@ void PCManager::killCreature(Creature* pDeadCreature)
     pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZoneID);
     pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
 
-    // Resurrect 이벤트를 플레이어 객체에 연관시킨다.
+    // Associate the Resurrect event with the player object.
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pDeadCreature->getPlayer());
     EventResurrect* pEventResurrect = new EventResurrect(pGamePlayer);
     pEventResurrect->setDeadline(0);
 
-    // 부활할 장소를 셋팅한다.	 by sigi. 2002.5.11
+    // Set the resurrection location.
     pResurrectZone = pZoneGroup->getZone(ZoneID);
     Assert(pResurrectZone != NULL);
 
     if (pZone->isHolyLand() != pResurrectZone->isHolyLand()) {
-        // 아담의 성지에서 밖으로 나가면서 부활되는 경우
-        // 성지 보너스를 다시 세팅하기 위해 initAllStat 을 불러줘야 한다.
+        // Resurrecting across the boundary of Adam's holy land requires initAllStat
+        // so the holy land bonus is set again.
         pDeadCreature->setFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT);
     }
 
@@ -1136,19 +1135,19 @@ void PCManager::killCreature(Creature* pDeadCreature)
     pDeadCreature->setNewZone(pResurrectZone);
     pDeadCreature->setNewXY(ZoneX, ZoneY);
 
-    // Player에 Event를 붙인다.
+    // Attach the event to the player.
     pGamePlayer->addEvent(pEventResurrect);
 
-    // DB 저장을 위해서.. EventResurrect에서 zone설정을 바꾼다.
+    // For the database save, EventResurrect changes the zone setting.
     ZoneCoord_t oldZoneX = pDeadCreature->getX();
     ZoneCoord_t oldZoneY = pDeadCreature->getY();
 
-    // 새 존의 정보를 저장해둔다.
+    // Save the new zone information.
     pDeadCreature->setZone(pResurrectZone);
     pDeadCreature->setXY(ZoneX, ZoneY);
 
     pDeadCreature->save();
-    // 다시 원래의 Zone 정보로 설정해준다.
+    // Restore the original zone information.
     pDeadCreature->setZone(pZone);
     pDeadCreature->setXY(oldZoneX, oldZoneY);
 
@@ -1171,9 +1170,9 @@ void PCManager::transportAllCreatures(ZoneID_t ZoneID, ZoneCoord_t ZoneX, ZoneCo
 
     Zone* pZone = NULL;
 
-    // transportCreature - Zone::deleteCreature에서 다시 PCManager로 접근해서
-    // SELF_DEAD_LOCK이 발생한다. -_--.. 그래서..
-    // 일단 존에 있는 모든 Creature의 ID를 기억해두고...
+    // transportCreature reaches back into PCManager from Zone::deleteCreature and
+    // causes a SELF_DEAD_LOCK, so the IDs of every creature in the zone are
+    // collected first.
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     unordered_map<ObjectID_t, Creature*>::const_iterator iCreature = m_Creatures.begin();
@@ -1183,8 +1182,8 @@ void PCManager::transportAllCreatures(ZoneID_t ZoneID, ZoneCoord_t ZoneX, ZoneCo
 
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
 
-        // race==0xFF는 default로 모든 종족이라는 의미이고 -_-;
-        // 특정 종족만 이동시킨다.
+        // race == 0xFF is the default and means every race;
+        // otherwise only that race is transported.
         if (race == defaultRaceValue || race == pPC->getRace()) {
             creatureIDs.push_back(iCreature->first);
 
@@ -1196,7 +1195,7 @@ void PCManager::transportAllCreatures(ZoneID_t ZoneID, ZoneCoord_t ZoneX, ZoneCo
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    // 그 Creature들을 다른 곳으로 이동시킨다.
+    // Move those creatures elsewhere.
     try {
         vector<ObjectID_t>::const_iterator itr = creatureIDs.begin();
 
@@ -1219,7 +1218,7 @@ void PCManager::transportAllCreatures(ZoneID_t ZoneID, ZoneCoord_t ZoneX, ZoneCo
                     Assert(pPC != NULL);
                     g_pResurrectLocationManager->getPosition(pPC, ResurrectCoord);
 
-                    // 10초
+                    // 10 seconds
                     pEventTransport->setDeadline(100);
                     pEventTransport->setZoneName("");
                     pEventTransport->setTargetZone(ResurrectCoord.id, ResurrectCoord.x, ResurrectCoord.y);
@@ -1234,7 +1233,7 @@ void PCManager::transportAllCreatures(ZoneID_t ZoneID, ZoneCoord_t ZoneX, ZoneCo
                         pEventTransport->setTargetZone(ZoneID, pCreature->getX(), pCreature->getY());
                     } else {
                         pEventTransport->setTargetZone(ZoneID, ZoneX, ZoneY);
-                        // 몇 초후에 어디로 이동한다.고 보내준다.
+                        // Tell the client where it moves to and after how many seconds.
                     }
                 }
 

@@ -21,10 +21,10 @@
 DynamicZoneFactoryManager::DynamicZoneFactoryManager() : m_Factories(NULL), m_Size(DYNAMIC_ZONE_MAX) {
     Assert(m_Size > 0);
 
-    // 컨디션팩토리배열을 생성한다.
+    // Create the factory array.
     m_Factories = new DynamicZoneFactory*[m_Size];
 
-    // 팩토리에 대한 포인터들을 NULL 로 초기화한다.
+    // Initialize the factory pointers to NULL.
     for (int i = 0; i < m_Size; i++)
         m_Factories[i] = NULL;
 }
@@ -36,7 +36,7 @@ DynamicZoneFactoryManager::DynamicZoneFactoryManager() : m_Factories(NULL), m_Si
 DynamicZoneFactoryManager::~DynamicZoneFactoryManager() {
     Assert(m_Factories != NULL);
 
-    // 각각의 컨디션팩토리들을 삭제한다.
+    // Delete each factory.
     for (int i = 0; i < m_Size; i++) {
         if (m_Factories[i] != NULL) {
             delete m_Factories[i];
@@ -44,14 +44,14 @@ DynamicZoneFactoryManager::~DynamicZoneFactoryManager() {
         }
     }
 
-    // 컨디션팩토리배열을 삭제한다.
+    // Delete the factory array.
     delete[] m_Factories;
     m_Factories = NULL;
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 정의된 모든 컨디션팩토리들을 여기에 추가한다.
+// Add every defined factory here.
 ////////////////////////////////////////////////////////////////////////////////
 void DynamicZoneFactoryManager::init() {
     addFactory(new DynamicZoneGateOfAlterFactory());
@@ -75,7 +75,7 @@ void DynamicZoneFactoryManager::addFactory(DynamicZoneFactory* pFactory) {
         Assert(false);
     }
 
-    // 컨디션팩토리를 등록한다.
+    // Register the factory.
     m_Factories[pFactory->getDynamicZoneType()] = pFactory;
 }
 
@@ -99,8 +99,8 @@ DynamicZone* DynamicZoneFactoryManager::createDynamicZone(int dynamicZoneType) c
 // get dynamiczone name with dynamiczone type
 ////////////////////////////////////////////////////////////////////////////////
 string DynamicZoneFactoryManager::getDynamicZoneName(int dynamicZoneType) const {
-    // 타입이 범위를 넘어섬으로 인해서 Seg.Fault 가 발생하지 않도록.
-    // 이런 사용자는 당장 짤라야 한다.
+    // Guard against a segmentation fault caused by an out-of-range type.
+    // Such a call is a programming error.
     if (dynamicZoneType >= m_Size || m_Factories[dynamicZoneType] == NULL) {
         StringStream msg;
         msg << "invalid dynamiczone type (" << dynamicZoneType << ")";

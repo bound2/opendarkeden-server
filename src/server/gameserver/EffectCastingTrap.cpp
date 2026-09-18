@@ -14,7 +14,7 @@ void EffectCastingIcicleTrap::affect() {
 
         //		cout << "EffectCastingIcicleTrap::affect" << endl;
 
-        // 100번 찾아도 안되면 관둔다.
+        // Give up if no spot is found after 100 tries.
         for (int j = 0; j < 100; ++j) {
             int offset = rand() % m_Length;
             Dir_t dir90 = (m_Dir + 2) % 8;
@@ -38,7 +38,7 @@ void EffectCastingIcicleTrap::affect() {
             }
         }
 
-        //		cout << x << ", " << y << " 에 이펙트 붙일께용" << endl;
+        //  cout << x << ", " << y << " is where the effect will be attached" << endl;
 
         if (m_bLarge) {
             EffectLargeIcicle* pEffectLargeIcicle = new EffectLargeIcicle(m_IcicleEffect, m_pZone, x, y);

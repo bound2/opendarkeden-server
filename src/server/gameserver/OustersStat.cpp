@@ -136,7 +136,7 @@ void Ousters::initAllStat(int numPartyMember)
     m_Resist[MAGIC_DOMAIN_CURSE] = 0;
     m_Resist[MAGIC_DOMAIN_BLOOD] = 0;
 
-    // BloodBible 관련 보너스 수치들 초기화
+    // Reset the BloodBible related bonus values
     m_ConsumeMPRatio = 0;
     m_GamblePriceRatio = 0;
     m_PotionPriceRatio = 0;
@@ -146,15 +146,15 @@ void Ousters::initAllStat(int numPartyMember)
     m_PhysicDamageReduce = 0;
 
     //////////////////////////////////////////////////////////////////////////////
-    // 제일 먼저 기본 능력치를 초기화시키고,
-    // 기본 능력치에 영향을 주는 이펙트를 검사한다.
+    // First reset the base attributes, then
+    // check the effects that modify them.
     //////////////////////////////////////////////////////////////////////////////
     m_STR[ATTR_CURRENT] = m_STR[ATTR_MAX] = m_STR[ATTR_BASIC];
     m_DEX[ATTR_CURRENT] = m_DEX[ATTR_MAX] = m_DEX[ATTR_BASIC];
     m_INT[ATTR_CURRENT] = m_INT[ATTR_MAX] = m_INT[ATTR_BASIC];
 
     //////////////////////////////////////////////////////////////////////////////
-    // 능력치 계산을 위한 파라미터들을 초기화한다.
+    // Initialize the parameters used for the attribute computation.
     //////////////////////////////////////////////////////////////////////////////
     attr.nSTR = m_STR[ATTR_CURRENT];
     attr.nDEX = m_DEX[ATTR_CURRENT];
@@ -186,7 +186,7 @@ void Ousters::initAllStat(int numPartyMember)
     m_PassiveRatio = 0;
 
     ////////////////////////////////////////////////////////////
-    // 부가적인 능력치들을 다시 계산한다.
+    // Recompute the derived attributes.
     ////////////////////////////////////////////////////////////
     m_HP[ATTR_MAX] = computeHP(CClass, &attr);
     m_HP[ATTR_BASIC] = 0;
@@ -214,12 +214,12 @@ void Ousters::initAllStat(int numPartyMember)
 
     int DragonEyeHPBonus = 0;
     if (isFlag(Effect::EFFECT_CLASS_DRAGON_EYE)) {
-        // HP 보너스는 두배
+        // The HP bonus is doubled
         DragonEyeHPBonus = m_HP[ATTR_MAX];
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    // 일단 기어 체크 변수를 초기화해서 모든 기어를 안 입은 것으로 간주하고 시작한다.
+    // Reset the gear check flags first, so every gear slot starts out as not worn.
     //////////////////////////////////////////////////////////////////////////////
     bool pOldRealWearingCheck[OUSTERS_WEAR_MAX]; // by sigi. 2002.10.31
     for (int i = 0; i < OUSTERS_WEAR_MAX; i++) {
@@ -228,7 +228,7 @@ void Ousters::initAllStat(int numPartyMember)
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    // Blood Bible 각각의 보너스 옵션을 받는다.
+    // Each Blood Bible bonus option is applied.
     //////////////////////////////////////////////////////////////////////////////
 
     if (g_pSweeperBonusManager->isAble(getZoneID()) &&
@@ -252,7 +252,7 @@ void Ousters::initAllStat(int numPartyMember)
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    // 기본적으로 가지고 있는 옵션들을 계산한다.
+    // Compute the options the character has by default.
     //////////////////////////////////////////////////////////////////////////////
     forward_list<DefaultOptionSetType_t>::iterator itr = m_DefaultOptionSet.begin();
     for (; itr != m_DefaultOptionSet.end(); itr++) {
@@ -267,7 +267,7 @@ void Ousters::initAllStat(int numPartyMember)
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    // 펫이 주는 보너스를 계산한다.
+    // Compute the bonus granted by the pet.
     //////////////////////////////////////////////////////////////////////////////
     if (m_pPetInfo != NULL) {
         if (m_pPetInfo->getPetAttr() != 0xff)
@@ -293,22 +293,22 @@ void Ousters::initAllStat(int numPartyMember)
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    // for 가 두번인 이유는 아이템으로 올라간 능력치에 의해서
-    // 입을 수 있게 되는 아이템을 체크하기 위해서이다.
+    // The loop runs twice so that items which only become wearable
+    // through attributes raised by other items are checked too.
     //////////////////////////////////////////////////////////////////////////////
     for (int j = 0; j < OUSTERS_WEAR_MAX; j++) {
         int wearCount = 0;
         for (int i = 0; i < OUSTERS_WEAR_MAX; i++) {
             Item* pItem = m_pWearItem[i];
-            // 현재 포인트에 아이템이 있고
-            // 그것에 대한 체크를 아직 하지 않았다면...
+            // If there is an item in this slot and
+            // it has not been checked yet...
             if (pItem != NULL && m_pRealWearingCheck[i] == false) {
-                // 만일 진짜루 입을 수 있는 아이템이라면 능력치를 올려준다.
+                // Raise the attributes if the item really can be worn.
                 if (isRealWearing(pItem)) {
                     computeItemStat(pItem);
 
-                    // 양손 무기라면, 체크를 두번 하지 않도록
-                    // 왼쪽, 오른쪽 모두 체크 변수를 세팅
+                    // For a two-handed weapon set the check flag for both
+                    // the left and the right hand, so it is not counted twice.
                     if (isTwohandWeapon(pItem)) {
                         m_pRealWearingCheck[WEAR_LEFTHAND] = true;
                         m_pRealWearingCheck[WEAR_RIGHTHAND] = true;
@@ -333,8 +333,8 @@ void Ousters::initAllStat(int numPartyMember)
         }
     }
     if (zaps[0] && zaps[1] && zaps[2] && zaps[3]) {
-        computeOptionStat(182); // 모저 9
-        computeOptionStat(185); // 모능 3
+        computeOptionStat(182); // all resistances 9
+        computeOptionStat(185); // all attributes 3
     }
 
     applyBloodBibleSign();
@@ -346,8 +346,8 @@ void Ousters::initAllStat(int numPartyMember)
         bSendPacket = (dynamic_cast<GamePlayer*>(m_pPlayer)->getPlayerStatus() == GPS_NORMAL);
     }
 
-    // 일단 위에서 다 입었는데..
-    // 능력치에 따라서 복장이 적용이 안되는 아이템은 복장 정보를 없앤다.
+    // Everything above was treated as worn, but
+    // items whose outfit does not apply at these attributes have their outfit info cleared.
     // by sigi. 2002.10.30
     for (int i = 0; i < OUSTERS_WEAR_MAX; i++) {
         if (m_pRealWearingCheck[i]) {
@@ -382,7 +382,7 @@ void Ousters::initAllStat(int numPartyMember)
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    // HP, MP 스틸 확률을 계산해 둔다.
+    // Compute the HP and MP steal chances.
     //////////////////////////////////////////////////////////////////////////////
     if (hasRankBonus(RankBonus::RANK_BONUS_LIFE_ABSORB)) {
         RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_LIFE_ABSORB);
@@ -406,7 +406,7 @@ void Ousters::initAllStat(int numPartyMember)
     m_MPStealRatio = computeStealRatio(CClass, m_MPStealAmount, &attr);
 
     //////////////////////////////////////////////////////////////////////////////
-    // 부가적인 능력치를 직접 수정하는 이펙트를 검사한다.
+    // Check the effects that directly modify the derived attributes.
     //////////////////////////////////////////////////////////////////////////////
     if (isFlag(Effect::EFFECT_CLASS_DOOM)) {
         EffectDoom* pDoom = dynamic_cast<EffectDoom*>(findEffect(Effect::EFFECT_CLASS_DOOM));
@@ -516,7 +516,7 @@ void Ousters::initAllStat(int numPartyMember)
     }
 
     //////////////////////////////////////////////////////////////////////////////
-    // 패시브 기술을 계산한다.
+    // Compute the passive skills.
     //////////////////////////////////////////////////////////////////////////////
     OustersSkillSlot* pHideSight = getSkill(SKILL_HIDE_SIGHT);
     if (pHideSight != NULL && attr.pWeapon != NULL &&
@@ -528,7 +528,7 @@ void Ousters::initAllStat(int numPartyMember)
 
 
     ///////////////////////////////////////////////////////////////////////////////
-    // 계급 보너스를 계산한다.
+    // Compute the rank bonus.
     ///////////////////////////////////////////////////////////////////////////////
     if (hasRankBonus(RankBonus::RANK_BONUS_WOOD_SKIN)) {
         RankBonus* pRankBonus = getRankBonus(RankBonus::RANK_BONUS_WOOD_SKIN);
@@ -723,7 +723,6 @@ void Ousters::initAllStat(int numPartyMember)
         Assert(pRankBonus != NULL);
 
         int MPBonus = getPercentValue(m_MP[ATTR_CURRENT], pRankBonus->getPoint());
-        // edit by Coffee 2007-5-20 錦攣침쥣轟掘MP BUG
         m_MPStealAmount += MPBonus;
         m_MPStealRatio = computeStealRatio(CClass, m_MPStealAmount, &attr);
     }
@@ -759,7 +758,7 @@ void Ousters::initAllStat(int numPartyMember)
         m_ElementalEarth += pRankBonus->getPoint();
     }
 
-    // -_- %로 적용되는 스킬은 마지막에 적용시킨다.
+    // Skills that apply as a percentage are applied last.
     if (isFlag(Effect::EFFECT_CLASS_SHARP_CHAKRAM)) {
         EffectSharpChakram* pEffect = dynamic_cast<EffectSharpChakram*>(findEffect(Effect::EFFECT_CLASS_SHARP_CHAKRAM));
 
@@ -791,9 +790,9 @@ void Ousters::initAllStat(int numPartyMember)
         }
     }
 
-    // HP,MP의 현재치를 HP,MP의 최고치를 넘는 경우
-    // 현재치를 최고치값으로 set
-    // 패시브 스킬 초기화
+    // If the current HP or MP exceeds the maximum HP or MP,
+    // set the current value to the maximum
+    // Initialize the passive skills
     bool bCanUsePassive = false;
     if (hasSkill(SKILL_FIRE_OF_SOUL_STONE) != NULL) {
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_FIRE_OF_SOUL_STONE);
@@ -964,24 +963,24 @@ int Ousters::getBloodBibleSignOpenNum() const {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// STR, DEX, INT의 경우
-// CURRENT = 기본 수치 + 아이템 수치 + 마법 수치
-// MAX     = 기본 수치 + 아이템 수치
-// BASIC   = 기본 수치
+// For STR, DEX and INT:
+// CURRENT = base value + item value + magic value
+// MAX     = base value + item value
+// BASIC   = base value
 //
-// HP, MP의 경우
-// CURRENT = 현재 수치
-// MAX     = 현재 맥스
-// BASIC   = 아이템에 의한 변화 수치
+// For HP and MP:
+// CURRENT = current value
+// MAX     = current maximum
+// BASIC   = change contributed by items
 //
-// Defense, Protection, ToHit의 경우
-// CURRENT = 현재 수치
-// MAX     = 아이템에 의한 변화 수치
+// For Defense, Protection and ToHit:
+// CURRENT = current value
+// MAX     = change contributed by items
 //
-// Damage의 경우
-// CURRENT = Min 데미지
-// MAX     = Max 데미지
-// BASIC   = 아이템에 의한 변화 수치
+// For Damage:
+// CURRENT = Min damage
+// MAX     = Max damage
+// BASIC   = change contributed by items
 //////////////////////////////////////////////////////////////////////////////
 void Ousters::computeStatOffset()
 
@@ -996,8 +995,8 @@ void Ousters::computeStatOffset()
     cur_attr.nINT = m_INT[ATTR_CURRENT];
     cur_attr.nLevel = m_Level;
 
-    // 세로워진 STR, DEX, INT로 새로 계산을 한 다음
-    // 아이템 또는 마법 수치를 더한다.
+    // Recompute with the renewed STR, DEX and INT, then
+    // add the item and magic values.
     m_HP[ATTR_MAX] = computeHP(CClass, &cur_attr);
     m_HP[ATTR_MAX] += m_HP[ATTR_BASIC];
 
@@ -1034,7 +1033,7 @@ void Ousters::computeItemStat(Item* pItem)
     __BEGIN_TRY
 
     if (pItem->getItemClass() == Item::ITEM_CLASS_OUSTERS_CHAKRAM) {
-        // 무기라면 무기가 가지는 속도 파라미터를 더한다.
+        // For a weapon, add the speed parameter the weapon carries.
         ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
         m_AttackSpeed[ATTR_CURRENT] += pItemInfo->getSpeed();
         m_AttackSpeed[ATTR_MAX] += pItemInfo->getSpeed();
@@ -1095,14 +1094,14 @@ void Ousters::computeItemStat(Item* pItem)
 
     m_Luck += pItem->getLuck();
 
-    // 부가적인 옵션들
+    // Additional options
     const list<OptionType_t>& optionType = pItem->getOptionTypeList();
     list<OptionType_t>::const_iterator itr;
     for (itr = optionType.begin(); itr != optionType.end(); itr++) {
         computeOptionStat(*itr);
     }
 
-    // Item 자체의 defaultOption을 적용시킨다.
+    // Apply the item's own defaultOption.
     const list<OptionType_t>& defaultOptions = pItem->getDefaultOptions();
     list<OptionType_t>::const_iterator iOptions;
 
@@ -1118,14 +1117,14 @@ void Ousters::computeOptionStat(Item* pItem)
 {
     __BEGIN_TRY
 
-    // 부가적인 옵션들
+    // Additional options
     const list<OptionType_t>& optionType = pItem->getOptionTypeList();
     list<OptionType_t>::const_iterator itr;
     for (itr = optionType.begin(); itr != optionType.end(); itr++) {
         computeOptionStat(*itr);
     }
 
-    // Item 자체의 defaultOption을 적용시킨다.
+    // Apply the item's own defaultOption.
     const list<OptionType_t>& defaultOptions = pItem->getDefaultOptions();
     list<OptionType_t>::const_iterator iOptions;
 

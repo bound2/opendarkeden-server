@@ -80,8 +80,8 @@ void EffectRelicTable::unaffect(Item* pItem)
 
     Assert(pItem != NULL);
 
-    // 능력치를 정상적으로 되돌리기 위해서는 플래그를 끄고,
-    // initAllStat을 불러야 한다.
+    // To restore the attributes properly, clear the flag and
+    // call initAllStat.
     pItem->removeFlag(Effect::EFFECT_CLASS_HAS_SLAYER_RELIC);
 
     Zone* pZone = pItem->getZone();
@@ -100,7 +100,7 @@ void EffectRelicTable::unaffect(Item* pItem)
     __END_CATCH
 }
 
-// SafeTime 이 지나지 않았으면 성물을 꺼낼 수 없다.
+// The relic cannot be taken out until SafeTime has passed.
 bool EffectRelicTable::isSafeTime() const {
     Timeval currentTime;
     getCurrentTime(currentTime);
@@ -108,7 +108,7 @@ bool EffectRelicTable::isSafeTime() const {
     return currentTime > m_SafeTime;
 }
 
-// LockTime 동안은 성물을 꺼낼 수 없다.
+// The relic cannot be taken out during LockTime.
 bool EffectRelicTable::isLockTime() const {
     Timeval currentTime;
     getCurrentTime(currentTime);

@@ -38,10 +38,10 @@ void EventShutdown::activate()
 
         g_pIncomingPlayerManager->clearPlayers();
     } catch (Throwable& t) {
-        // 무시
+        // Ignore
     }
 
-    // 프로세스 종료. 꺄꺄~ 죽어라~~ 꺄꺄~
+    // Terminate the process.
     if (g_pVariableManager->isKillDaemonCtl() == 1) {
         kill(getppid(), 9);
     }

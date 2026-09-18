@@ -57,8 +57,8 @@ void EffectTranslation::unaffect(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    // 능력치를 정상적으로 되돌리기 위해서는 플래그를 끄고,
-    // initAllStat을 불러야 한다.
+    // To restore the stats to normal, the flag must be cleared and
+    // initAllStat must be called.
     pCreature->removeFlag(Effect::EFFECT_CLASS_TRANSLATION);
 
     Zone* pZone = pCreature->getZone();

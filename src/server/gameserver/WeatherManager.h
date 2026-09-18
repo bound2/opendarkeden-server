@@ -21,21 +21,21 @@ class Zone;
 //
 // class WeatherManager;
 //
-// Á¸ÀÇ ³¯¾¾¸¦ °ü¸®ÇÏ´Â °´Ã¼·Î¼­, °¢ Á¸Àº ÇÏ³ªÀÇ WeatherManager¸¦ °¡Áö°í ÀÖ¾î¾ß ÇÑ´Ù.
+// Manages a zone's weather; every zone must own one WeatherManager.
 //
-// Á¸ÀÇ ³¯¾¾´Â ÇÏ·ç¿¡ ÇÑ¹ø °áÁ¤ÀÌ µÈ´Ù. ¿ì¼±, GameTime ¿¡¼­ ¿À´ÃÀÌ ¸î¿ùÀÎÁö¸¦
-// ¾Ë¾Æ³½ ´ÙÀ½, WeatherInfoManager ¿¡¼­ ÇØ´çµÇ´Â WeatherInfo ¸¦ °¡Á®¿Â´Ù.
-// ÀÌÁ¦ dice ¸¦ ±¼·Á¼­, ¿À´ÃÀÇ ³¯¾¾¸¦ °áÁ¤Áþ´Â´Ù. CLEAR-RAIN-SNOW Áß ÇÏ³ª¸¦ °áÁ¤
-// Áö¾úÀ¸¸é, ÀÌÁ¦ ÇÏ·çÀÇ ¼¼ºÎÀûÀÎ ³¯¾¾¸¦ °áÁ¤Áþ´Â´Ù.
+// A zone's weather is decided once a day. First the current month is taken
+// from GameTime, then the matching WeatherInfo is fetched from
+// WeatherInfoManager. A dice roll then picks today's weather as one of
+// CLEAR, RAIN or SNOW, after which the day's detail is worked out.
 //
-// ³¯¾¾ÀÇ ±âº» ´ÜÀ§´Â °ÔÀÓ ½Ã°£ 1 ½Ã°£ÀÌ´Ù.
+// The basic unit of weather is one game hour.
 //
-// WEATHER_CLEAR : ÀÌ °æ¿ì, ºñ³ª ´«ÀÌ ³»¸®Áö ¾Ê´Â´Ù.
-// WEATHER_RAINY, WEATHER_SNOWY : ÇÏ·ç¿¡ ºñ°¡ ³»¸± È®·üÀ» ¹ÙÅÁÀ¸·Î ¸Å ½Ã°£¸¶´Ù
-// ´ÙÀÌ½º¸¦ ±¼·Á¼­ ºñ¸¦ ³»¸®°Ô ÇÑ´Ù. ÀÌ¶§, ºñ°¡ ±×Ä¥ ½Ã°£µµ ´ÙÀÌ½º·Î °è»êÇØÁØ´Ù.
-//(ºñ°¡ ³»¸®´Â ½Ã°£ ¿ª½Ãº °ÔÀÓ ½Ã°£ ÇÑ½Ã°£À» ´ÜÀ§·Î ÇÑ´Ù.)
+// WEATHER_CLEAR : no rain or snow falls.
+// WEATHER_RAINY, WEATHER_SNOWY : a dice roll each hour, based on the day's
+// chance of rain, starts the rain; the time it stops is rolled as well.
+//(The duration of the rain is also measured in units of one game hour.)
 //
-// ¹ø°³°¡ Ä¡´Â ±âº» ´ÜÀ§´Â ½Ç½Ã°£ 1ºÐÀÌ¸ç, È®·üÀº(ºñÀÇ ·¹º§* 5 - 30) %ÀÌ´Ù.
+// Lightning is checked once per real minute, with a chance of (rain level * 5 - 30) %.
 //
 //--------------------------------------------------------------------------------
 class WeatherManager {
@@ -51,25 +51,25 @@ public:
     // initialize
     void init();
 
-    // ÁöÁ¤ ½Ã°£ÀÌ µÇ¸é ³¯¾¾¸¦ ¾Ë¾Æ¼­ ¹Ù²ãÁØ´Ù. Á¸ÀÇ heartbeat ¿¡¼­ È£ÃâµÇ¾î¾ß ÇÑ´Ù.
+    // Changes the weather when its time comes. Must be called from the zone's heartbeat.
     void heartbeat();
 
-    // ¿À´ÃÀÇ ³¯¾¾¸¦ ¸®ÅÏÇÑ´Ù.
+    // Return today's weather.
     Weather getTodayWeather() const {
         return m_TodayWeather;
     }
 
-    // ¿À´Ã ºñ³ª ´«ÀÌ ¿Ã È®·üÀ» ¸®ÅÏÇÑ´Ù.
+    // Return today's chance of rain or snow.
     uint getProbability() const {
         return m_Probability;
     }
 
-    // ÇöÀçÀÇ ³¯¾¾¸¦ ¸®ÅÏÇÑ´Ù.
+    // Return the current weather.
     Weather getCurrentWeather() const {
         return m_CurrentWeather;
     }
 
-    // ÇöÀçÀÇ ³¯¾¾ ·¹º§À» ¸®ÅÏÇÑ´Ù.
+    // Return the current weather level.
     WeatherLevel_t getWeatherLevel() const {
         return m_WeatherLevel;
     }
@@ -82,36 +82,36 @@ public:
     string toString() const;
 
 private:
-    // ÇöÀç ¿¬°üµÇ¾î ÀÖ´Â Á¸
+    // The zone this manager is attached to.
     Zone* m_pZone;
 
-    // ¿À´ÃÀÇ ³¯¾¾(CLEAR/RAINY/SNOWY)
+    // Today's weather (CLEAR/RAINY/SNOWY)
     Weather m_TodayWeather;
 
-    // ºñ³ª ´«ÀÌ ¿Ã È®·ü(0 - 100)
+    // Chance of rain or snow (0 - 100)
     uint m_Probability;
 
-    // ÇöÀçÀÇ ³¯¾¾
+    // The current weather
     Weather m_CurrentWeather;
 
-    // ³¯¾¾ ·¹º§(1 - 20)
+    // Weather level (1 - 20)
     WeatherLevel_t m_WeatherLevel;
 
 
     //--------------------------------------------------
-    // ´ÙÀ½ XXX ÇÒ ½Ã°£(ÃÊ´ÜÀ§µµ ÃæºÐÇÏ´Ù)
+    // Time of the next XXX (second resolution is plenty)
     //--------------------------------------------------
 private:
-    // ³»ÀÏ
+    // Tomorrow
     time_t m_Tomorrow;
 
-    // ´ÙÀ½ ³¯¾¾ º¯°æ ½Ã°£
+    // Time of the next weather change
     time_t m_NextWeatherChangingTime;
 
-    // ´ÙÀ½ ¹ø°³ ½Ã°£
+    // Time of the next lightning
     time_t m_NextLightning;
 
-    // ´ÙÀ½ 10ºÐ´ë
+    // The next 10-minute mark
     time_t m_Next10Min;
 };
 

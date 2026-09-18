@@ -11,7 +11,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class EffectDecayCorpse;
-// 일정 시간이 지나면, 시체를 썩어 없어지게 하고, 내부의 아이템을 삭제한다.
+// After a while the corpse rots away and the items inside it are deleted.
 //////////////////////////////////////////////////////////////////////////////
 
 class Corpse;
@@ -26,7 +26,7 @@ public:
         return EFFECT_CLASS_DECAY_CORPSE;
     }
 
-    // OBJECT_PRIORITY_NONE 라는 뜻은, 타일에 들어가서는 안된다는 뜻이다.
+    // OBJECT_PRIORITY_NONE means it must not be placed on a tile.
     virtual ObjectPriority getObjectPriority() const {
         return OBJECT_PRIORITY_NONE;
     }

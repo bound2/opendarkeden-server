@@ -11,8 +11,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class EffectRideMotorcycle;
-// 일정 시간이 지나서 바닥의 아이템은 사라지고
-// 다른 존으로 옮겨지게 된다.
+// After a while the item on the ground disappears and
+// is moved to another zone.
 //////////////////////////////////////////////////////////////////////////////
 
 class Slayer;
@@ -28,7 +28,7 @@ public:
         return EFFECT_CLASS_TRANSPORT_ITEM;
     }
 
-    // OBJECT_PRIORITY_NONE 라는 뜻은, 타일에 들어가서는 안된다는 뜻이다.
+    // OBJECT_PRIORITY_NONE means it must not be placed on a tile.
     ObjectPriority getObjectPriority() const {
         return OBJECT_PRIORITY_NONE;
     }

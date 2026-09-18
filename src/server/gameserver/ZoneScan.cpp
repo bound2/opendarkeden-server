@@ -186,9 +186,9 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// detect invisibility등의 효과가 사라진 경우..보이는 놈이 안보이게 될 경우
-// pCreature에게 GCDeleteObject를 보내준다. 보고 있던 invisible creature를
-// delete한다. 또는 안보인는 넘이 보이게 될 경우등..
+// When an effect such as detect invisibility goes away and something visible
+// becomes invisible, GCDeleteObject is sent to pCreature so it drops the
+// invisible creature it was watching, and the other way round as well.
 //////////////////////////////////////////////////////////////////////////////
 void Zone::updateInvisibleScan(Creature* pCreature) {
     __BEGIN_TRY
@@ -199,9 +199,9 @@ void Zone::updateInvisibleScan(Creature* pCreature) {
     Coord_t cy = pCreature->getY();
     Player* pPlayer = pCreature->getPlayer();
 
-    // Revealer 이펙트를 가져온다.
+    // Fetch the Revealer effect.
 
-    // ObservingEey 이펙트를 가져온다.
+    // Fetch the ObservingEye effect.
     EffectObservingEye* pEffectObservingEye = NULL;
     if (pCreature->isFlag(Effect::EFFECT_CLASS_OBSERVING_EYE)) {
         pEffectObservingEye =
@@ -209,7 +209,7 @@ void Zone::updateInvisibleScan(Creature* pCreature) {
     }
 
     EffectGnomesWhisper* pEffectGnomesWhisper = NULL;
-    // GnomesWhisper 이펙트를 가져온다.
+    // Fetch the GnomesWhisper effect.
     if (pCreature->isFlag(Effect::EFFECT_CLASS_GNOMES_WHISPER)) {
         pEffectGnomesWhisper =
             dynamic_cast<EffectGnomesWhisper*>(pCreature->findEffect(Effect::EFFECT_CLASS_GNOMES_WHISPER));
@@ -220,8 +220,8 @@ void Zone::updateInvisibleScan(Creature* pCreature) {
         for (ZoneCoord_t iy = max(0, cy - maxViewportUpperHeight - 1),
                          endy = min(m_Height - 1, cy + maxViewportLowerHeight + 1);
              iy <= endy; iy++) {
-            // darkness영역 조사.
-            // 사실 pCreature는 당연히 slayer다.(updateInvisibleScan이므로..)
+            // Examine the darkness area.
+            // pCreature is a slayer or an Ousters here (this is updateInvisibleScan).
             if (pCreature->isSlayer() || pCreature->isOusters()) {
                 const forward_list<Object*>& objectList = m_pTiles[ix][iy].getObjectList();
                 forward_list<Object*>::const_iterator itr = objectList.begin();
@@ -232,16 +232,16 @@ void Zone::updateInvisibleScan(Creature* pCreature) {
                         Creature* pPC = dynamic_cast<Creature*>(*itr);
                         Assert(pPC != NULL);
 
-                        // 자기 자신일 경우 통과
+                        // Skip the creature itself.
                         if (pCreature == pPC || pPC->isFlag(Effect::EFFECT_CLASS_GHOST))
                             continue;
 
-                        // 숨어있는 대상에 대해서..
-                        // SNIPING이나 INVISIBILITY상태일 경우.
+                        // For a hidden target,
+                        // that is one in the SNIPING or INVISIBILITY state.
                         if (pPC->isFlag(Effect::EFFECT_CLASS_INVISIBILITY) &&
                             pCreature->getVisionState(ix, iy) >= IN_SIGHT) {
-                            // Detect Invisibility 이펙트가 있거나 뱀파이어면 볼 수 있다
-                            // ObservingEye 이펙트가 있을 경우 상대방을 볼 수 있는 레벨이라면
+                            // A creature with the Detect Invisibility effect, or a vampire, can see it,
+                            // as can one whose ObservingEye effect is high enough for that target.
                             if (pCreature->isFlag(Effect::EFFECT_CLASS_DETECT_INVISIBILITY) || pCreature->isVampire() ||
                                 (pEffectObservingEye != NULL && pEffectObservingEye->canSeeInvisibility(pPC)) ||
                                 (pEffectGnomesWhisper != NULL && pEffectGnomesWhisper->canSeeInvisibility())) {
@@ -300,9 +300,9 @@ void Zone::updateInvisibleScan(Creature* pCreature) {
 
 //--------------------------------------------------------------------------------
 // update hidden scan
-// detect hidden등의 효과가 사라진 경우..보이는 놈이 안보이게 될 경우
-// pCreature에게 GCDeleteObject를 보내준다.
-// 보고 있던 burrow creature를 delete한다. 또는 안보인는 넘이 보이게 될 경우등..
+// When an effect such as detect hidden goes away and something visible becomes
+// hidden, GCDeleteObject is sent to pCreature so it drops the burrowing
+// creature it was watching, and the other way round as well.
 // ABCD
 //--------------------------------------------------------------------------------
 void Zone::updateHiddenScan(Creature* pCreature)
@@ -316,15 +316,15 @@ void Zone::updateHiddenScan(Creature* pCreature)
     Coord_t cy = pCreature->getY();
     Player* pPlayer = pCreature->getPlayer();
 
-    // Revealer 이펙트를 가져온다.
+    // Fetch the Revealer effect.
 
     for (ZoneCoord_t ix = max(0, cx - maxViewportWidth - 1), endx = min(m_Width - 1, cx + maxViewportWidth + 1);
          ix <= endx; ix++) {
         for (ZoneCoord_t iy = max(0, cy - maxViewportUpperHeight - 1),
                          endy = min(m_Height - 1, cy + maxViewportLowerHeight + 1);
              iy <= endy; iy++) {
-            // darkness영역 조사.
-            // 사실 pCreature는 당연히 slayer다.(updateHiddenScan이므로..)
+            // Examine the darkness area.
+            // pCreature is of course a slayer here (this is updateHiddenScan).
             if (pCreature->isSlayer()) {
                 const forward_list<Object*>& objectList = m_pTiles[ix][iy].getObjectList();
 
@@ -335,11 +335,11 @@ void Zone::updateHiddenScan(Creature* pCreature)
                         Creature* pPC = dynamic_cast<Creature*>(*itr);
                         Assert(pPC != NULL);
 
-                        // 자기 자신일 경우 통과
+                        // Skip the creature itself.
                         if (pCreature == pPC)
                             continue;
 
-                        // 숨어있는 대상에 대해서..
+                        // For a hidden target.
                         if (pPC->isFlag(Effect::EFFECT_CLASS_HIDE) && pCreature->getVisionState(ix, iy) >= IN_SIGHT) {
                             if (pCreature->isFlag(Effect::EFFECT_CLASS_DETECT_HIDDEN) || pCreature->isVampire())
                             //								|| ( pEffectRevealer != NULL && pEffectRevealer->canSeeHide(
@@ -367,9 +367,9 @@ void Zone::updateHiddenScan(Creature* pCreature)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Detect 기능이 생기거나 없어질 경우.
-// 보는 Creature 의 Creature 추가 삭제 처리
-// 아우스터스 용
+// When the detect ability appears or goes away,
+// add or remove creatures for the watching creature.
+// For Ousters.
 //////////////////////////////////////////////////////////////////////////////
 void Zone::updateDetectScan(Creature* pCreature) {
     __BEGIN_TRY
@@ -404,7 +404,7 @@ void Zone::updateDetectScan(Creature* pCreature) {
                         Creature* pPC = dynamic_cast<Creature*>(*itr);
                         Assert(pPC != NULL);
 
-                        // 자기 자신일 경우 통과
+                        // Skip the creature itself.
                         if (pCreature == pPC || pPC->isFlag(Effect::EFFECT_CLASS_GHOST))
                             continue;
 
@@ -482,8 +482,8 @@ void Zone::updateDetectScan(Creature* pCreature) {
 
 //--------------------------------------------------------------------------------
 // update mine scan
-// detect mine등의 효과가 사라진 경우..보이는 mine이 안보이게 될 경우
-// pCreature에게 GCDeleteObject를 보내준다.
+// When an effect such as detect mine goes away and a visible mine becomes
+// invisible, GCDeleteObject is sent to pCreature.
 //--------------------------------------------------------------------------------
 void Zone::updateMineScan(Creature* pCreature) {
     __BEGIN_TRY
@@ -502,7 +502,7 @@ void Zone::updateMineScan(Creature* pCreature) {
             if (pCreature->getVisionState(ix, iy) == OUT_OF_SIGHT)
                 continue;
 
-            // 사실 pCreature는 당연히 slayer다.(updateMineScan이므로..)
+            // pCreature is of course a slayer here (this is updateMineScan).
             if (pCreature->isSlayer()) {
                 Item* pItem = m_pTiles[ix][iy].getItem();
                 if (pItem) {
@@ -534,7 +534,7 @@ void Zone::updateMineScan(Creature* pCreature) {
 
 //////////////////////////////////////////////////////////////////////////////
 // scan
-// (x,y)에서 시야 영역안에 존재하는 모든 객체들의 정보를 받아온다.
+// Collect information on every object within sight of (x,y).
 //////////////////////////////////////////////////////////////////////////////
 void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) {
     __BEGIN_TRY
@@ -569,30 +569,30 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
 
                 //--------------------------------------------------------------------------------
                 //
-                // 각 객체의 OBJECT CLASS에 따라서 적합한 GCAddXXX 패킷을 만들어서
-                // owner 에게 전송한다.
+                // Build the GCAddXXX packet that fits each object's OBJECT CLASS and send it
+                // to the owner.
                 //
                 // *NOTES*
                 //
-                // 가장 출현 확률이 높은 객체 CLASS 가 case 앞부분에 나와야 한다.
+                // The object CLASS that occurs most often should come first among the cases.
                 //
                 //--------------------------------------------------------------------------------
                 switch ((*itr)->getObjectClass()) {
                 //--------------------------------------------------------------------------------
-                // 타일 위에 크리처가 있을 경우
+                // A creature on the tile.
                 //--------------------------------------------------------------------------------
                 case Object::OBJECT_CLASS_CREATURE: {
                     //--------------------------------------------------------------------------------
-                    // PC의 경우 pPacket을 전송해야 하며, !PC인 경우에는 전송할 필요가 없다.
-                    // 또한 모든 크리처의 정보를 owner에게 전송해야 한다.
+                    // For a PC, pPacket must be sent; for a non-PC it need not be.
+                    // Information on every creature is sent to the owner either way.
                     //--------------------------------------------------------------------------------
                     Creature* pCreature = dynamic_cast<Creature*>(*itr);
                     Assert(pCreature != NULL);
 
-                    if (pCreature == pPC) // 자기 자신의 정보는 받을 필요가 없다.
+                    if (pCreature == pPC) // no need to receive one's own information
                         continue;
 
-                    // 안보이면 쌩
+                    // Skip what cannot be seen.
                     bool bCanSee = canSee(pPC, pCreature);
 
                     switch (pCreature->getCreatureClass()) {
@@ -610,11 +610,11 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                         }
 
                         //--------------------------------------------------------------------------------
-                        // 몬스터가 PC 를 볼 수 있는 경우, PC 를 몬스터의 Enemy 로 지정한다.
+                        // If the monster can see the PC, make the PC the monster's enemy.
                         //--------------------------------------------------------------------------------
                         VisionState vs = pMonster->getVisionState(cx, cy);
 
-                        // Aggressive 몬스터일 경우에만 적으로 등록해준다.
+                        // Only an aggressive monster registers an enemy.
                         if (vs >= IN_SIGHT && pMonster->getAlignment() == ALIGNMENT_AGGRESSIVE) {
                             if (isPotentialEnemy(pMonster, pPC)) {
                                 pMonster->addPotentialEnemy(pPC);
@@ -623,7 +623,7 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                     } break;
 
                     case Creature::CREATURE_CLASS_SLAYER: {
-                        // 내가 그곳을 볼 수 있다면(darkness와 관련하여)
+                        // If this creature can see that square (with respect to darkness).
                         if (bCanSee) {
                             //											if
                             //(!pCreature->isFlag(Effect::EFFECT_CLASS_GHOST)
@@ -640,10 +640,10 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                             //											}
                         }
 
-                        // 상대(슬레이어)가 나를 볼 수 있다면
+                        // If the other side (a slayer) can see this creature.
                         if (pPacket && pCreature->getVisionState(cx, cy) >= IN_SIGHT) {
                             Assert(pCreature->getPlayer() != NULL);
-                            // canSee 로 대체. 2003.05.29 by bezz
+                            // Handled by canSee.
                             if (canSee(pCreature, pPC)) {
                                 pCreature->getPlayer()->sendStream(&outputStream);
                             }
@@ -652,7 +652,7 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
 
                     case Creature::CREATURE_CLASS_VAMPIRE: {
                         if (bCanSee) {
-                            // PC가 ObservingEye 이펙트를 가지고 있다면 이펙트를 가져온다.
+                            // Fetch the ObservingEye effect if the PC has one.
                             //												//Assert( pEffectObservingEye != NULL );
 
                             if (pCreature->isFlag(Effect::EFFECT_CLASS_HIDE)) {
@@ -673,12 +673,12 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                             }
                         }
 
-                        // 상대가 나를 볼 수 있다면..
-                        // 상대는 vampire이므로 시야만 가능하다면 darkness와는 관계가 없다.
-                        // 뱀파이어가 상대일땐 스나이핑 모드라면 절대 못 본다...
+                        // If the other side can see this creature.
+                        // The other side is a vampire, so as long as it is in sight darkness does not matter.
+                        // Against a vampire, sniping mode makes the creature completely invisible.
                         //
-                        // 근데 scan 함수 특성상 snipping 모드를 해제 하지 않고 넘어갈 수는 없다.
-                        // canSee로 대체
+                        // But the way scan works, sniping mode cannot be skipped without clearing it.
+                        // Handled by canSee.
                         if (pPacket && pCreature->getVisionState(cx, cy) >= IN_SIGHT && canSee(pCreature, pPC)) {
                             Assert(pCreature->getPlayer() != NULL);
                             pCreature->getPlayer()->sendStream(&outputStream);
@@ -687,7 +687,7 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
 
                     case Creature::CREATURE_CLASS_OUSTERS: {
                         if (bCanSee) {
-                            // PC가 ObservingEye 이펙트를 가지고 있다면 이펙트를 가져온다.
+                            // Fetch the ObservingEye effect if the PC has one.
                             //												//Assert( pEffectObservingEye != NULL );
 
                             Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
@@ -721,7 +721,7 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                 break;
 
                 //--------------------------------------------------------------------------------
-                // 타일 위에 아이템이 있을 경우
+                // An item on the tile.
                 //--------------------------------------------------------------------------------
                 case Object::OBJECT_CLASS_ITEM: {
                     Item* pItem = dynamic_cast<Item*>(*itr);
@@ -780,7 +780,7 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                 } break;
 
                 //--------------------------------------------------------------------------------
-                // 타일 위에 이펙트가 있을 경우
+                // An effect on the tile.
                 //--------------------------------------------------------------------------------
                 case Object::OBJECT_CLASS_EFFECT: {
                     Effect* pEffect = dynamic_cast<Effect*>(*itr);
@@ -808,7 +808,7 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                         ZoneCoord_t centerX = pEffectSanctuary->getCenterX();
                         ZoneCoord_t centerY = pEffectSanctuary->getCenterY();
 
-                        // sanctuary는 중심좌표인 경우만 packet을 보낸다.
+                        // A sanctuary sends the packet only for its center coordinate.
                         if (centerX == ix && centerY == iy) {
                             GCAddEffectToTile gcAddEffectToTile;
 
@@ -820,7 +820,7 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                             pPlayer->sendPacket(&gcAddEffectToTile);
                         }
                     }
-                    // Broadcasting Effect 인지 체크 추가 by Sequoia 2003.3.31
+                    // Check whether this is a broadcasting effect.
                     else if (pEffect->isBroadcastingEffect()) {
                         GCAddEffectToTile gcAddEffectToTile;
 
@@ -836,7 +836,7 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
 
 
                 //--------------------------------------------------------------------------------
-                // 타일 위에 장애물이 있을 경우
+                // An obstacle on the tile.
                 //--------------------------------------------------------------------------------
                 case Object::OBJECT_CLASS_OBSTACLE: {
                     /*
@@ -844,7 +844,7 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                 } break;
 
                 //--------------------------------------------------------------------------------
-                // 타일 위에 포탈이 있을 경우
+                // A portal on the tile.
                 //--------------------------------------------------------------------------------
                 case Object::OBJECT_CLASS_PORTAL: {
                     /*
@@ -866,8 +866,8 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터가 존의 (x,y)에 새로 리젠되었을 경우, 시야 영역안에 존재하는 모든 PC들에게
-// GCAddXXX 패킷을 보내면서, 동시에 그 PC 를 잠재적인 적으로 간주한다.
+// When a monster respawns at (x,y), send a GCAddXXX packet to every PC within
+// sight and treat those PCs as potential enemies.
 //////////////////////////////////////////////////////////////////////////////
 void Zone::scanPC(Creature* pCreature) {
     __BEGIN_TRY
@@ -883,7 +883,7 @@ void Zone::scanPC(Creature* pCreature) {
 
     Packet* pGCAddXXX = NULL;
 
-    // 크리쳐의 종류에 따라, 패킷을 만들어둔다.
+    // Build the packet according to the creature's class.
     Creature::CreatureClass CClass = pCreature->getCreatureClass();
 
     bool isMonster = pCreature->isMonster();
@@ -921,21 +921,21 @@ void Zone::scanPC(Creature* pCreature) {
                     Creature* pPC = dynamic_cast<Creature*>(*itr);
                     Assert(pPC != NULL);
 
-                    // PC 이면서, 크리처를 볼 수 있는 경우
+                    // A PC that can see the creature.
                     if (pPC->isPC() && pPC->getVisionState(cx, cy) >= IN_SIGHT && canSee(pPC, pCreature))
                     //						&& !pPC->isFlag(Effect::EFFECT_CLASS_GHOST)
                     {
-                        // Creature 가 Revealer 이펙트를 가지고 있다면 이펙트를 가져온다.
+                        // Fetch the Revealer effect if the creature has one.
 
-                        // Creature 가 ObservingEye 이펙트를 가지고 있다면 이펙트를 가져온다.
+                        // Fetch the ObservingEye effect if the creature has one.
                         //							//Assert( pEffectObservingEye != NULL );
 
-                        // 몬스터가 스나이핑을 쓸리는 없다 그래서 DETECT_HIDDEN과 INVISIBILITY만 체크 한다.
+                        // A monster never snipes, so only DETECT_HIDDEN and INVISIBILITY are checked.
                         pPC->getPlayer()->sendPacket(pGCAddXXX);
                         //						}
 
                         if (isMonster) {
-                            // (cx,cy)에 있는 몬스터가 (ix,iy)에 있는 PC를 볼 수 있는가?
+                            // Can the monster at (cx,cy) see the PC at (ix,iy)?
                             VisionState vs = pMonster->getVisionState(ix, iy);
                             if (vs >= IN_SIGHT && pMonster->getAlignment() == ALIGNMENT_AGGRESSIVE &&
                                 canSee(pCreature, pPC)) {
@@ -963,7 +963,7 @@ void Zone::scanPC(Creature* pCreature) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// pTargetCreture를 볼 수 있는 자(player)들의 list를 돌려준다.
+// Return the list of players that can see pTargetCreature.
 // **********************************
 //////////////////////////////////////////////////////////////////////////////
 list<Creature*> Zone::getWatcherList(ZoneCoord_t x, ZoneCoord_t y, Creature* pTargetCreature)
@@ -979,8 +979,8 @@ list<Creature*> Zone::getWatcherList(ZoneCoord_t x, ZoneCoord_t y, Creature* pTa
         return cList;
 
     ////////////////////////////////////////////////////////////
-    // 시야 영역의 상하좌우 모두 + 1 씩 증가시킨다.
-    // 이유는 방향에 따른 ON_SIGHT 영역이 증가되기 때문이다.
+    // Grow the sight area by one in every direction, because the ON_SIGHT area
+    // grows with the facing direction.
     ////////////////////////////////////////////////////////////
     for (ZoneCoord_t ix = max(0, x - maxViewportWidth - 1), endx = min(m_Width - 1, x + maxViewportWidth + 1);
          ix <= endx; ix++) {
@@ -1000,7 +1000,7 @@ list<Creature*> Zone::getWatcherList(ZoneCoord_t x, ZoneCoord_t y, Creature* pTa
                 if (pCreature->isPC()) {
                     Assert(pCreature->getPlayer() != NULL);
 
-                    // 자기 자신의 정보는 받을 필요가 없다.
+                    // No need to receive one's own information.
                     if (pTargetCreature == pCreature || pCreature->isFlag(Effect::EFFECT_CLASS_GHOST))
                         continue;
 
@@ -1056,22 +1056,22 @@ void Zone::monsterScan(Monster* pMonster, ZoneCoord_t x, ZoneCoord_t y, Dir_t di
     ZoneCoord_t y2 = y;
 
     //////////////////////////////////////////////////////////////////////////////
-    // 시야 영역의 상하좌우 모두 + 1 씩 증가시킨다.
-    // 이유는 방향에 따른 ON_SIGHT 영역이 증가되기 때문이다.
+    // Grow the sight area by one in every direction, because the ON_SIGHT area
+    // grows with the facing direction.
     //////////////////////////////////////////////////////////////////////////////
     int sight = pMonster->getSight();
 
     for (ZoneCoord_t ix = max(0, x2 - sight - 1), endx = min(m_Width - 1, x2 + sight + 1); ix <= endx; ix++) {
         for (ZoneCoord_t iy = max(0, y2 - sight - 1), endy = min(m_Height - 1, y2 + sight + 1); iy <= endy; iy++) {
-            // 현재 타일 위에 있는 모든 오브젝트들에 대해 반복한다.
+            // Iterate over every object on the current tile.
             const forward_list<Object*>& objectList = m_pTiles[ix][iy].getObjectList();
 
             forward_list<Object*>::const_iterator itr = objectList.begin();
 
             //
-            // object가 있는 경우만
-            // pVisionInfo->getVisionState()를 체크 하기 위해서
-            // if - do~while 을 사용했다. by sigi. 2002.5.8
+            // An if combined with a do-while is used here so that
+            // pVisionInfo->getVisionState() is checked only when
+            // there is actually an object on the tile.
             //
             if (itr != objectList.end()) {
                 do {
@@ -1080,12 +1080,12 @@ void Zone::monsterScan(Monster* pMonster, ZoneCoord_t x, ZoneCoord_t y, Dir_t di
                     Object::ObjectClass OClass = (*itr)->getObjectClass();
 
                     ////////////////////////////////////////////////////////////
-                    // 각 객체의 OBJECT CLASS에 따라서 적합한 GCAddXXX 패킷을
-                    // 만들어서 owner 에게 전송한다.
+                    // Build the GCAddXXX packet that fits each object's OBJECT CLASS
+                    // and send it to the owner.
                     ////////////////////////////////////////////////////////////
 
                     ////////////////////////////////////////////////////////////
-                    // 타일 위에 크리처가 있을 경우
+                    // A creature on the tile.
                     ////////////////////////////////////////////////////////////
                     if (OClass == Object::OBJECT_CLASS_CREATURE) {
                         Creature* pCreature = dynamic_cast<Creature*>(*itr);
@@ -1102,7 +1102,7 @@ void Zone::monsterScan(Monster* pMonster, ZoneCoord_t x, ZoneCoord_t y, Dir_t di
 
                             VisionState vs = pOtherMonster->getVisionState(x2, y2);
 
-                            // Aggressive 몬스터에게만 적으로 등록시켜준다.
+                            // Register the two as potential enemies when in sight.
                             if (vs >= IN_SIGHT) {
                                 if (isPotentialEnemy(pMonster, pOtherMonster)) {
                                     pMonster->addPotentialEnemy(pOtherMonster);

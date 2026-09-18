@@ -70,7 +70,7 @@ else
     msg << pVampire->getName();
 }
 
-msg << " 님이 슬레이어 성물을 가졌습니다.";
+msg << " has taken the Slayer relic.";
 
 GCSystemMessage gcSystemMessage;
 gcSystemMessage.setMessage(msg.toString());
@@ -78,7 +78,7 @@ gcSystemMessage.setMessage(msg.toString());
 g_pZoneGroupManager->broadcast( &gcSystemMessage );
 */
 
-    // 존 정보를 얻는다.
+    // Get the zone.
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
@@ -86,11 +86,11 @@ g_pZoneGroupManager->broadcast( &gcSystemMessage );
     ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( pZone->getZoneID() );
     Assert( pZoneInfo != NULL );
 
-    // 위치를 알린다.
+    // Announce the location.
     StringStream msg;
-    msg << pCreature->getName() << " 님(" << ( pCreature->isSlayer() ? "슬레이어" : "뱀파이어" ) << ")이 "
+    msg << pCreature->getName() << " (" << ( pCreature->isSlayer() ? "Slayer" : "Vampire" ) << ") at "
         << pZoneInfo->getFullName() << "(" << (int)pCreature->getX() << ", " << (int)pCreature->getY()
-        << ")에서 피의 성서 조각(" << m_PartName << ")을 가지고 있습니다.";
+        << ") has a fragment of the Blood Bible (" << m_PartName << ").";
 
     GCSystemMessage gcSystemMessage;
     gcSystemMessage.setMessage(msg.toString());
@@ -135,10 +135,10 @@ void EffectHasBloodBible::affect(Item* pItem)
     ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( m_pZone->getZoneID() );
     Assert( pZoneInfo != NULL );
 
-    // 위치를 알린다.
+    // Announce the location.
     StringStream msg;
     msg << pZoneInfo->getFullName() << "(" << (int)m_X << ", " << (int)m_Y
-        << ")의 성단에 피의 성서 조각(" << m_PartName << ")이 있습니다.";
+        << ") has a fragment of the Blood Bible (" << m_PartName << ") on its shrine.";
 
     GCSystemMessage gcSystemMessage;
     gcSystemMessage.setMessage(msg.toString());
@@ -159,7 +159,7 @@ void EffectHasBloodBible::affect(Item* pItem)
     pGCBBS->setX(m_X);
     pGCBBS->setY(m_Y);
 
-    // 성에 전쟁이 진행중인 경우만 메세지를 보내준다.
+    // Send the message only while a war is running at the castle.
     if (g_pWarSystem->hasActiveRaceWar()) {
         g_pHolyLandManager->broadcast(pGCBBS);
     }

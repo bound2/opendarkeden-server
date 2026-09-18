@@ -111,7 +111,7 @@ void DynamicZoneSlayerMirrorOfAbyss::heartbeat() {
 bool DynamicZoneSlayerMirrorOfAbyss::checkPC() {
     Assert(m_pZone != NULL);
 
-    // PC 수 체크
+    // Check the number of PCs.
     uint size = m_pZone->getPCManager()->getSize();
 
     return size != 0;
@@ -120,7 +120,7 @@ bool DynamicZoneSlayerMirrorOfAbyss::checkPC() {
 bool DynamicZoneSlayerMirrorOfAbyss::addMono() {
     Assert(m_pZone != NULL);
 
-    // 이성의 봉인을 생성한다.
+    // Create the Seal of Reason.
     Monster* pMonster = new Monster(792);
     Assert(pMonster != NULL);
 
@@ -161,7 +161,7 @@ bool DynamicZoneSlayerMirrorOfAbyss::clearMono() {
 bool DynamicZoneSlayerMirrorOfAbyss::openGateToOut() {
     Assert(m_pZone != NULL);
 
-    // 퀘스트를 진행시킨다.
+    // Advance the quest.
     unordered_map<ObjectID_t, Creature*>::const_iterator itr = m_pZone->getPCManager()->getCreatures().begin();
     unordered_map<ObjectID_t, Creature*>::const_iterator endItr = m_pZone->getPCManager()->getCreatures().end();
 
@@ -192,7 +192,7 @@ bool DynamicZoneSlayerMirrorOfAbyss::checkComplete() {
 void DynamicZoneSlayerMirrorOfAbyss::processEntering() {
     Assert(m_pZone != NULL);
 
-    // 퀘스트 존에 들어왔음을 알린다.
+    // Announce that the quest zone has been entered.
     unordered_map<ObjectID_t, Creature*>::const_iterator itr = m_pZone->getPCManager()->getCreatures().begin();
     unordered_map<ObjectID_t, Creature*>::const_iterator endItr = m_pZone->getPCManager()->getCreatures().end();
 
@@ -221,7 +221,7 @@ bool DynamicZoneSlayerMirrorOfAbyss::checkMono() {
 void DynamicZoneSlayerMirrorOfAbyss::killPC() {
     Assert(m_pZone != NULL);
 
-    // PC 를 죽인다.
+    // Kill the PCs.
     unordered_map<ObjectID_t, Creature*>::const_iterator itr = m_pZone->getPCManager()->getCreatures().begin();
     unordered_map<ObjectID_t, Creature*>::const_iterator endItr = m_pZone->getPCManager()->getCreatures().end();
 

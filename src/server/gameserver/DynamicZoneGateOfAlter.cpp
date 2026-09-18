@@ -151,7 +151,7 @@ void DynamicZoneGateOfAlter::heartbeat() {
 bool DynamicZoneGateOfAlter::addTileEffect() {
     Assert(m_pZone != NULL);
 
-    // 바닥에 이펙트를 깐다.
+    // Lay effects on the ground.
     for (ZoneCoord_t x = 0; x < m_pZone->getWidth(); ++x)
     // for ( ZoneCoord_t x = 15; x <= 17; ++x )
     {
@@ -159,21 +159,21 @@ bool DynamicZoneGateOfAlter::addTileEffect() {
         // for ( ZoneCoord_t y = 15; y <= 17; ++y )
         {
             if (EffectMask[y][x] != 0) {
-                // 타일을 가져와서 이펙트를 생성할 수 있는지 확인
+                // Get the tile and check whether an effect can be created on it
                 Tile& tile = m_pZone->getTile(x, y);
 
                 if (!tile.canAddEffect() || tile.hasEffect())
                     continue;
 
-                // 이펙트 오브젝트 생성
+                // Create the effect object
                 EffectDeleteTile* pEffect = new EffectDeleteTile(m_pZone, x, y);
                 pEffect->setDeadline(999999);
 
-                // 존에 OID 등록
+                // Register the OID with the zone
                 m_pZone->registerObject(pEffect);
                 m_pZone->addEffect(pEffect);
 
-                // 타일 에 붙이기
+                // Attach it to the tile
                 tile.addEffect(pEffect);
             }
         }
@@ -185,7 +185,7 @@ bool DynamicZoneGateOfAlter::addTileEffect() {
 bool DynamicZoneGateOfAlter::checkPC() {
     Assert(m_pZone != NULL);
 
-    // PC 수 체크
+    // Check the number of PCs
     uint size = m_pZone->getPCManager()->getSize();
 
     return size != 0;
@@ -194,7 +194,7 @@ bool DynamicZoneGateOfAlter::checkPC() {
 bool DynamicZoneGateOfAlter::checkNoEffect() {
     Assert(m_pZone != NULL);
 
-    // 이펙트 수 체크
+    // Check the number of effects
     uint size = m_pZone->getEffectManager()->getSize();
 
     //		char msg[8];
@@ -209,7 +209,7 @@ bool DynamicZoneGateOfAlter::checkNoEffect() {
 bool DynamicZoneGateOfAlter::openGateToAlter() {
     Assert(m_pZone != NULL);
 
-    // 퀘스트를 진행시킨다.
+    // Advance the quest.
     unordered_map<ObjectID_t, Creature*>::const_iterator itr = m_pZone->getPCManager()->getCreatures().begin();
     unordered_map<ObjectID_t, Creature*>::const_iterator endItr = m_pZone->getPCManager()->getCreatures().end();
 
@@ -253,7 +253,7 @@ bool DynamicZoneGateOfAlter::openGateToAlter() {
 bool DynamicZoneGateOfAlter::removeTileEffect() {
     Assert(m_pZone != NULL);
 
-    // 모든 이펙트를 지운다.
+    // Clear every effect.
     m_pZone->getEffectManager()->setTimeOutAllEffect();
 
     return true;
@@ -282,7 +282,7 @@ void DynamicZoneGateOfAlter::removeEffect(ZoneCoord_t x, ZoneCoord_t y) {
 void DynamicZoneGateOfAlter::addFakeEffect() {
     Assert(m_pZone != NULL);
 
-    // 모든 포탈위치로 FakeEffect 를 보낸다.
+    // Send a FakeEffect to every portal position.
     for (int x = 0; x < m_pZone->getWidth(); x++) {
         for (int y = 0; y < m_pZone->getHeight(); y++) {
             Tile& tile = m_pZone->getTile(x, y);
@@ -298,7 +298,7 @@ void DynamicZoneGateOfAlter::addFakeEffect() {
 }
 
 void DynamicZoneGateOfAlter::processEntering() {
-    // 퀘스트 존에 들어왔음을 알린다.
+    // Announce that the quest zone has been entered.
     unordered_map<ObjectID_t, Creature*>::const_iterator itr = m_pZone->getPCManager()->getCreatures().begin();
     unordered_map<ObjectID_t, Creature*>::const_iterator endItr = m_pZone->getPCManager()->getCreatures().end();
 

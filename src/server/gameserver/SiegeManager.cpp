@@ -244,7 +244,7 @@ void SiegeManager::recallGuild(ZoneID_t currentZoneID, ZoneID_t siegeZoneID, Gui
         if (pTargetCreature == NULL)
             continue;
 
-        // 소환자의 존과 좌표.
+        // Zone and coordinates of the summoner.
         ZoneID_t ZoneNum = siegeZoneID;
         Coord_t ZoneX = targetPos[side - 1].x;
         Coord_t ZoneY = targetPos[side - 1].y;

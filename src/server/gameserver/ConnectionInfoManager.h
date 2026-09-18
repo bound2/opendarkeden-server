@@ -18,7 +18,7 @@ typedef unordered_map<string, ConnectionInfo*> HashMapConnectionInfo;
 
 //////////////////////////////////////////////////////////////////////////////
 // class ConnectionInfoManager;
-// IP 스트링을 키값으로 하는 unordered_map 을 내부에 가지고 있다.
+// Holds an unordered_map internally, keyed by the IP string.
 //////////////////////////////////////////////////////////////////////////////
 
 class ConnectionInfoManager {
@@ -39,7 +39,7 @@ private:
     HashMapConnectionInfo m_ConnectionInfos;
 
     Timeval m_NextHeartbeat;
-    Timeval m_UpdateUserStatusTime; // 넷마블용 by sigi. 2002.11.4
+    Timeval m_UpdateUserStatusTime; // For Netmarble
 
     mutable Mutex m_Mutex;
 };

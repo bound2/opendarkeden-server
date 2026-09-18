@@ -30,7 +30,7 @@ class GCGuildMemberList;
 
 //////////////////////////////////////////////////////////////////////////////
 // class GuildMember
-// 길드멤버에 관한 정보를 가진다.
+// Holds the information about a guild member.
 //
 //////////////////////////////////////////////////////////////////////////////
 
@@ -82,12 +82,12 @@ public:
 
 public:
     enum GuildRank {
-        GUILDMEMBER_RANK_NORMAL = 0, // 일반 멤버
-        GUILDMEMBER_RANK_MASTER,     // 길드 마스터
-        GUILDMEMBER_RANK_SUBMASTER,  // 길드 서브 마스터
-        GUILDMEMBER_RANK_WAIT,       // 길드 가입 대기
-        GUILDMEMBER_RANK_DENY,       // 추방/거부 당함
-        GUILDMEMBER_RANK_LEAVE,      // 길드 탈퇴(스스로)
+        GUILDMEMBER_RANK_NORMAL = 0, // Ordinary member
+        GUILDMEMBER_RANK_MASTER,     // Guild master
+        GUILDMEMBER_RANK_SUBMASTER,  // Guild sub master
+        GUILDMEMBER_RANK_WAIT,       // Waiting to join the guild
+        GUILDMEMBER_RANK_DENY,       // Expelled or refused
+        GUILDMEMBER_RANK_LEAVE,      // Left the guild voluntarily
 
         GUILDMEMBER_RANK_MAX
     };
@@ -123,7 +123,7 @@ public: // identity methods
     GuildMemberRank_t getRank() const {
         return m_Rank.load(std::memory_order_relaxed);
     }
-    void setRank(GuildMemberRank_t rank); // Guild class 에서 처리한다.
+    void setRank(GuildMemberRank_t rank); // Handled in the Guild class.
 
     bool getLogOn() const {
         return m_bLogOn.load(std::memory_order_relaxed);
@@ -159,24 +159,24 @@ public:
     ///// Member data /////
 
 protected:
-    GuildID_t m_GuildID; // 길드 ID
-    string m_Name;       // 멤버 이름
+    GuildID_t m_GuildID; // Guild ID
+    string m_Name;       // Member name
     // Rank, log-on and server are written by the SG handlers on the
     // SharedServerManager thread and read by zone threads through
     // Guild::getMember(); each is an independent flag, so an atomic rather
     // than a field under the guild mutex.
-    std::atomic<GuildMemberRank_t> m_Rank; // 멤버의 계급
-    VSDateTime m_RequestDateTime;          // 가입 신청 시간
-    std::atomic<bool> m_bLogOn;            // 접속 여부
-    std::atomic<ServerID_t> m_ServerID;    // 서버 위치
+    std::atomic<GuildMemberRank_t> m_Rank; // The member's rank
+    VSDateTime m_RequestDateTime;          // Time the join request was made
+    std::atomic<bool> m_bLogOn;            // Whether the member is logged on
+    std::atomic<ServerID_t> m_ServerID;    // Which server the member is on
 };
 
 
 //////////////////////////////////////////////////////////////////////////////
 // class Guild
-// 길드에 관한 정보를 가진다.
+// Holds the information about a guild.
 //
-// GuildInfo 테이블의 구조
+// Structure of the GuildInfo table
 // ----------------------------------------
 // GuildID            INT
 // GuildName          VARCHAR(20)
@@ -198,26 +198,26 @@ class Guild {
 
 public:
     enum GuildTypes {
-        GUILD_TYPE_NORMAL = 0, // 일반 길드
-        GUILD_TYPE_JUDGE,      // 판관 길드
-        GUILD_TYPE_ASSASSIN,   // 암살자 길드
+        GUILD_TYPE_NORMAL = 0, // Ordinary guild
+        GUILD_TYPE_JUDGE,      // Judge guild
+        GUILD_TYPE_ASSASSIN,   // Assassin guild
 
         GUILD_TYPE_MAX
     };
 
     enum GuildState {
-        GUILD_STATE_ACTIVE = 0, // 활동 중인 길드
-        GUILD_STATE_WAIT,       // 등록 대기 중인 길드
-        GUILD_STATE_CANCEL,     // 취소된 길드
-        GUILD_STATE_BROKEN,     // 해체된 길드
+        GUILD_STATE_ACTIVE = 0, // Active guild
+        GUILD_STATE_WAIT,       // Guild waiting for registration
+        GUILD_STATE_CANCEL,     // Cancelled guild
+        GUILD_STATE_BROKEN,     // Disbanded guild
 
         GUILD_STATE_MAX
     };
 
     enum GuildRace {
-        GUILD_RACE_SLAYER = 0, // 슬레이어 길드
-        GUILD_RACE_VAMPIRE,    // 뱀파이어 길드
-        GUILD_RACE_OUSTERS,    // 아우스터즈 길드
+        GUILD_RACE_SLAYER = 0, // Slayer guild
+        GUILD_RACE_VAMPIRE,    // Vampire guild
+        GUILD_RACE_OUSTERS,    // Ousters guild
 
         GUILD_RACE_MAX
     };
@@ -406,7 +406,7 @@ protected:
     string m_Date;                                // guild expire / registration date, guarded by m_Mutex
     string m_Intro;                               // guild introduction, guarded by m_Mutex
 
-    HashMapGuildMember m_Members; // 길드 멤버 포인터 맵
+    HashMapGuildMember m_Members; // Map of guild member pointers
     // Members removed from the map are parked here until the guild is
     // destroyed rather than deleted: getMember() hands its GuildMember* out
     // after releasing m_Mutex, so a zone thread may still be reading one
@@ -419,15 +419,15 @@ protected:
     std::atomic<int> m_ActiveMemberCount; // Active Member Count
     std::atomic<int> m_WaitMemberCount;   // Wait Member Count
 
-    static GuildID_t m_MaxGuildID;      // 길드 아이디 최대값
-    static ZoneID_t m_MaxSlayerZoneID;  // 슬레이어 길드 존 ID 최대값
-    static ZoneID_t m_MaxVampireZoneID; // 뱀파이어 길드 존 ID 최대값
-    static ZoneID_t m_MaxOustersZoneID; // 아우스터즈 길드 존 ID 최대값
+    static GuildID_t m_MaxGuildID;      // Maximum guild ID
+    static ZoneID_t m_MaxSlayerZoneID;  // Maximum slayer guild zone ID
+    static ZoneID_t m_MaxVampireZoneID; // Maximum vampire guild zone ID
+    static ZoneID_t m_MaxOustersZoneID; // Maximum ousters guild zone ID
 
     mutable Mutex m_Mutex; // Mutex for Guild
 
 #ifdef __GAME_SERVER__
-    list<string> m_CurrentMembers; // 현재 접속 중인 멤버
+    list<string> m_CurrentMembers; // Members currently logged on
 #endif
 };
 

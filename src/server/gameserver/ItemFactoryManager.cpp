@@ -114,10 +114,10 @@ ItemFactoryManager::ItemFactoryManager()
 
     Assert(m_Size > 0);
 
-    // 아이템팩토리배열을 생성한다.
+    // Create the item factory array.
     m_Factories = new ItemFactory*[m_Size];
 
-    // 팩토리에 대한 포인터들을 NULL 로 초기화한다.
+    // Initialize the factory pointers to NULL.
     for (int i = 0; i < m_Size; i++)
         m_Factories[i] = NULL;
 
@@ -136,11 +136,11 @@ ItemFactoryManager::~ItemFactoryManager()
 
     Assert(m_Factories != NULL);
 
-    // 각각의 아이템팩토리들을 삭제한다.
+    // Delete each of the item factories.
     for (int i = 0; i < m_Size; i++)
         SAFE_DELETE(m_Factories[i]);
 
-    // 아이템팩토리배열을 삭제한다.
+    // Delete the item factory array.
     SAFE_DELETE_ARRAY(m_Factories);
 
     __END_CATCH_NO_RETHROW
@@ -149,7 +149,7 @@ ItemFactoryManager::~ItemFactoryManager()
 
 //////////////////////////////////////////////////////////////////////
 //
-// 정의된 모든 아이템팩토리들을 여기에 추가한다.
+// Add every defined item factory here.
 //
 //////////////////////////////////////////////////////////////////////
 void ItemFactoryManager::init()
@@ -440,7 +440,7 @@ void ItemFactoryManager::init()
 
 //////////////////////////////////////////////////////////////////////
 //
-// 아이템 클래스로 하위 팩토리 매니져에 있는 createItem을 실행한다.
+// Run createItem on the sub factory manager chosen by the item class.
 //
 //////////////////////////////////////////////////////////////////////
 Item* ItemFactoryManager::createItem(Item::ItemClass IClass, ItemType_t ItemType, const list<OptionType_t>& OptionType)
@@ -449,8 +449,8 @@ Item* ItemFactoryManager::createItem(Item::ItemClass IClass, ItemType_t ItemType
     __BEGIN_TRY
 
     try {
-        // 아이템 아이디가 범위를 넘어섬으로 인해서 Seg.Fault 가 발생하지 않도록.
-        // 이런 사용자는 당장 짤라야 한다.
+        // Guard against a Seg.Fault caused by an item id out of range.
+        // Such a user has to be cut off at once.
         if (IClass >= m_Size || m_Factories[IClass] == NULL) {
             StringStream msg;
             msg << "item factory [" << (int)IClass << "] not exist.";
@@ -475,7 +475,7 @@ Item* ItemFactoryManager::createItem(Item::ItemClass IClass, ItemType_t ItemType
 
 //////////////////////////////////////////////////////////////////////
 //
-// 아이템아이디로 특정 아이템의 이름을 리턴한다.
+// Return the name of a specific item by item id.
 //
 //////////////////////////////////////////////////////////////////////
 string ItemFactoryManager::getItemName(Item::ItemClass IClass)
@@ -483,8 +483,8 @@ string ItemFactoryManager::getItemName(Item::ItemClass IClass)
 {
     __BEGIN_TRY
 
-    // 아이템 아이디가 범위를 넘어섬으로 인해서 Seg.Fault 가 발생하지 않도록.
-    // 이런 사용자는 당장 짤라야 한다.
+    // Guard against a Seg.Fault caused by an item id out of range.
+    // Such a user has to be cut off at once.
     if (IClass >= m_Size || m_Factories[IClass] == NULL) {
         StringStream msg;
         msg << "invaltype item type(" << (int)IClass << ")";
@@ -502,7 +502,7 @@ Item::ItemClass ItemFactoryManager::getItemClassByName(const string& ClassName)
 
     unordered_map<string, Item::ItemClass>::const_iterator itr = m_ItemClassMap.begin();
     for (; itr != m_ItemClassMap.end(); itr++) {
-        // 대,소문자를 무시하고, 비교를 수행한다.
+        // Compare ignoring case.
         if (strcasecmp(ClassName.c_str(), (itr->first).c_str()) == 0) {
             return itr->second;
         }

@@ -2,9 +2,9 @@
 // Filename    : EffectComa.h
 // Written by  : excel96
 // Description :
-// 슬레이어나 뱀파이어가 죽었을 때, 걸리는 이펙트.
-// 이 이펙트가 걸린 슬레이어는 움직일 수 없으며, 아이템 및 기술을 사용할
-// 수 없으며, 말도 할 수 없다.
+// Effect applied when a Slayer or a Vampire dies.
+// A creature under this effect cannot move, cannot use items or skills,
+// and cannot speak.
 // (CGMove, CGUseItem, CGSkillTo..., CGSay)
 //////////////////////////////////////////////////////////////////////////////
 

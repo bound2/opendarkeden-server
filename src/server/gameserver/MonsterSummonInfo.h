@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : MonsterSummonInfo.h
-// Written By  : 쉭
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -15,13 +14,13 @@
 
 struct MonsterCollection;
 
-// 소환될때의 정보
+// Information used when summoning
 struct SUMMON_INFO {
     enum ClanType {
         CLAN_TYPE_DEFAULT,      // default = 1
-        CLAN_TYPE_RANDOM_EACH,  // 이번에 생성되는 애들 각각 다르게
-        CLAN_TYPE_RANDOM_GROUP, // 이번에 생성되는 애들 전부 같게
-        CLAN_TYPE_GROUP,        // 이번에 생성되는 애들 전부 같게. clanID지정
+        CLAN_TYPE_RANDOM_EACH,  // Each one created this time differs
+        CLAN_TYPE_RANDOM_GROUP, // All created this time are the same
+        CLAN_TYPE_GROUP,        // All created this time are the same, with clanID given
     };
 
     SUMMON_INFO() {
@@ -34,23 +33,23 @@ struct SUMMON_INFO {
         initHPPercent = 0;
     }
 
-    bool canScanEnemy; // 적(몬스터? -_-;)을 스스로 scan하는가?
+    bool canScanEnemy; // Does it scan for enemies (monsters) by itself?
     ClanType clanType;
     int clanID;
-    bool hasItem; // 소환된 몬스터가 아이템을 가지는가?
+    bool hasItem; // Does the summoned monster carry an item?
     RegenType regenType;
-    bool scanEnemy; // 생성될때 적(몬스터? -_-;)을  scan하는가?
+    bool scanEnemy; // Does it scan for enemies (monsters) when created?
     int initHPPercent;
 };
 
-// 소환될때의 정보: 여러가지를 한꺼번에 소환
+// Information used when summoning: summons several kinds at once
 struct SUMMON_INFO2 : public SUMMON_INFO {
     ZoneCoord_t X;
     ZoneCoord_t Y;
     MonsterCollection* pMonsters;
 };
 
-// 몬스터 몇 마리
+// A number of monsters
 struct MonsterCollectionInfo {
     SpriteType_t SpriteType;
     MonsterType_t MonsterType;
@@ -61,7 +60,7 @@ struct MonsterCollectionInfo {
     string toString() const;
 };
 
-// 몬스터 여러 종류
+// Several kinds of monsters
 struct MonsterCollection {
     list<MonsterCollectionInfo> Infos;
 
@@ -70,7 +69,7 @@ struct MonsterCollection {
     string toString() const;
 };
 
-// 소환 단계
+// Summon step
 struct MonsterSummonStep {
     vector<MonsterCollection> Collections;
 
@@ -81,7 +80,7 @@ struct MonsterSummonStep {
     string toString() const;
 };
 
-// 소환 정보
+// Summon information
 struct MonsterSummonInfo {
     vector<MonsterSummonStep> Steps;
 

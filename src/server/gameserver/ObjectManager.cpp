@@ -80,7 +80,7 @@
 
 // #include "MonsterKillQuest.h"
 
-// 아담의 성지 보너스
+// Adam's holy land bonus
 // #include "HolyLandRaceBonus.h"
 #include "BloodBibleBonusManager.h"
 #include "CastleShrineInfoManager.h"
@@ -91,13 +91,13 @@
 #include "War.h"
 #include "WarSystem.h"
 
-// 커플 이벤트용
+// For the couple event
 #include "CoupleManager.h"
 
-// PK존용
+// For PK zones
 #include "PKZoneInfoManager.h"
 
-// 성지스킬
+// Holy land skills
 #include "CastleSkillInfo.h"
 #include "StringPool.h"
 // #include "FameLimitInfo.h"
@@ -130,7 +130,7 @@
 #include "mission/EventQuestLootingManager.h"
 #include "war/DragonEyeManager.h"
 
-/*// 심플퀘스트
+/*// Simple quest
 #include "mission/QuestInfoManager.h"
 #include "mission/RewardClassInfoManager.h"
 */
@@ -206,7 +206,7 @@ ObjectManager::ObjectManager()
     context.setOustersEXPInfoManager(m_pOustersEXPInfoManager);
     g_pPriceManager = new PriceManager();
     g_pEffectLoaderManager = new EffectLoaderManager();
-    // 다른 작업을 위해서 임시로 막아둠.
+    // Temporarily disabled for other work.
     g_pGuildManager = new GuildManager();
     //	g_pGuildRegistrationManager = new GuildRegistrationManager();
     //	g_pGuildVoteManager         = new GuildVoteManager();
@@ -388,8 +388,8 @@ void ObjectManager::init()
     printf("ObjectManager::load() : SystemAvailabilitiesManager Initialization Success\n");
 
     //--------------------------------------------------------------------------------
-    // 존을 로딩할때, NPC 를 로딩하며 이때 이 팩토리들이 사용되므로
-    // 존 로딩보다 먼저 호출되어야 한다.
+    // Loading a zone loads its NPCs, and these factories are used for that, so
+    // this has to be called before the zones are loaded.
     //--------------------------------------------------------------------------------
     printf("ObjectManager::init() : StringPool Initialization Start....... \n");
     g_pStringPool->load();
@@ -427,7 +427,7 @@ void ObjectManager::init()
     m_pPublicScriptManager->init();
     printf("ObjectManager::init() : PublicScriptManager Initialization Success\n");
 
-    // option을 itemInfo보다 먼저 load()해야한다.
+    // Options have to be load()ed before itemInfo.
     printf("ObjectManager::init() : OptionInfoManager Initialization Start\n");
     g_pOptionInfoManager->init();
     printf("ObjectManager::init() : OptionInfoManager Initialization Success\n");
@@ -469,8 +469,8 @@ void ObjectManager::init()
     g_pMonsterInfoManager->init();
     printf("ObjectManager::init() : MonsterInfoManager Initialization Success\n");
 
-    // 반드시 ZoneInfoManager보다 먼저 로드되어야 한다.
-    // 반드시 OptionInfo 보다 나중에 로드되어야 한다.
+    // Must be loaded before ZoneInfoManager.
+    // Must be loaded after OptionInfo.
     /*	printf("ObjectManager::load() : RewardClassInfoManager Initialization Start\n");
         g_pRewardClassInfoManager->load();
         printf("ObjectManager::load() : RewardClassInfoManager Initialization Success\n");*/
@@ -485,12 +485,12 @@ void ObjectManager::init()
 
     // by sigi. 2002.9.2
     printf("ObjectManager::load() : MasterLairInfoManager Initialization Start\n");
-    g_pMasterLairInfoManager->init(); // ZoneInfo, MonsterManager이후, Zone 이전에 loading해야 한다.
+    g_pMasterLairInfoManager->init(); // load after ZoneInfo and MonsterManager, before Zone
     printf("ObjectManager::load() : MasterLairInfoManager Initialization Success\n");
 
     // by bezz,Sequoia. 2003. 1. 20.
     printf("ObjectManager::load() : CastleInfoManager Initialization Start\n");
-    g_pCastleInfoManager->init(); // ZoneInfo, MonsterManager이후, Zone 이전에 loading해야 한다.
+    g_pCastleInfoManager->init(); // load after ZoneInfo and MonsterManager, before Zone
     printf("ObjectManager::load() : CastleInfoManager Initialization Success\n");
 
     //	printf("ObjectManager::load() : HolyLandRaceBonus Initialization Start\n");
@@ -505,8 +505,8 @@ void ObjectManager::init()
     g_pBloodBibleBonusManager->init();
     printf("ObjectManager::load() : BloodBibleBonusManager Initialization Success\n");
 
-    // ShrineInfoManager 는 필살로 Zone 이 모두 로딩된 다음에 불려야 한다.
-    // BloodBibleBonusManager에 BloodBible 소유 종족을 세팅하므로 BloodBibleBonusManager가 로딩된 다음에 불려야 한다.
+    // ShrineInfoManager must be called only after every Zone has been loaded.
+    // It sets the BloodBible-owning race on BloodBibleBonusManager, so it must come after that manager loads.
     printf("ObjectManager::init() : ShrineInfoManager Initialization Start\n");
     g_pShrineInfoManager->init();
     printf("ObjectManager::init() : ShrineInfoManager Initialization Success\n");
@@ -519,25 +519,25 @@ void ObjectManager::init()
     m_pWeatherInfoManager->init();
     printf("ObjectManager::init() : WeatherInfoManager Initialization Success\n");
 
-    // WayPointManager 도 필살로 Zone이 모두 로딩된 다음에 불려야 된다.
+    // WayPointManager must also be called only after every Zone has been loaded.
     printf("ObjectManager::load() : WayPointManager Initialization Start\n");
     m_pWayPointManager->load();
     printf("ObjectManager::load() : WayPointManager Initialization Success\n");
 
     printf("ObjectManager::load() : LevelWarZoneInfoManager Initialization Start\n");
-    g_pLevelWarZoneInfoManager->init(); // 머 아무때나 Loading 해도 됨
+    g_pLevelWarZoneInfoManager->init(); // may be loaded at any time
     printf("ObjectManager::load() : LevelWarZoneInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : LevelNickInfoManager Initialization Start\n");
-    LevelNickInfoManager::Instance().load(); // 머 아무때나 Loading 해도 됨
+    LevelNickInfoManager::Instance().load(); // may be loaded at any time
     printf("ObjectManager::load() : LevelNickInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : DragonEyeManagerManager Initialization Start\n");
-    m_pDragonEyeManager->init(); // 아이템 인포가 로딩된 뒤.
+    m_pDragonEyeManager->init(); // after the item info is loaded
     printf("ObjectManager::load() : DragonEyeManagerManager Initialization Success\n");
 
     printf("ObjectManager::init() : TimeChecker Initialization Start\n");
-    m_pTimeChecker->init(); // 아무때나 Loading 해도 됨
+    m_pTimeChecker->init(); // may be loaded at any time
     printf("ObjectManager::init() : TimeChecker Initialization Success\n");
 
 
@@ -552,10 +552,10 @@ void ObjectManager::load()
     __BEGIN_TRY
 
     //--------------------------------------------------------------------------------
-    // 존그룹을 로딩하면, 내부적으로 존을 로딩한다.
-    // 이때 존 안에 소속된 NPC 들이 로딩되는데.. SetPosition 액션이 수행되기
-    // 위해서는 먼저 ZoneInfoManager 가 Initialization되어야 한다.
-    // 따라서, ZoneInfoManager -> ZoneGroupManager 순으로 Initialization되어야 한다.
+    // Loading a zone group loads its zones internally.
+    // That loads the NPCs belonging to each zone, and the SetPosition action
+    // needs ZoneInfoManager to be initialized first.
+    // So the initialization order is ZoneInfoManager -> ZoneGroupManager.
     //--------------------------------------------------------------------------------
     // printf("ObjectManager::init() : ZoneInfoManager Initialization Start\n");
     // g_pZoneInfoManager->init();
@@ -753,7 +753,7 @@ void ObjectManager::load()
     m_pDynamicZoneInfoManager->init();
     printf("ObjectManager::load() : DynamicZoneInfoManager Initialization Success\n");
 
-    // DynamicZoneInfoManager init 후에 호출
+    // Called after DynamicZoneInfoManager init
     printf("ObjectManager::load() : DynamicZoneManager Initialization Start\n");
     g_pDynamicZoneManager->init();
     printf("ObjectManager::load() : DynamicZoneManager Initialization Success\n");

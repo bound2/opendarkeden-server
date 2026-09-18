@@ -14,7 +14,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class MonsterCorpse;
-// 몬스터가 죽었을 경우, 남기는 시체이다.
+// The corpse a monster leaves behind when it dies.
 //////////////////////////////////////////////////////////////////////////////
 
 class Monster;
@@ -128,15 +128,15 @@ public:
 
     // data members
 protected:
-    MonsterType_t m_MonsterType; // 몬스터 타입
-    string m_Name;               // 몬스터 이름
-    Dir_t m_Dir;                 // 시체의 방향
-    bool m_bhasHead;             // 머리가 달려 있나 없나.
-    string m_HostName;           // 이 시체에서 나오는 아이템에 대한 우선권을 가진 자의 이름
-    int m_HostPartyID;           // 이 시체에서 나오는 아이템에 대한 우선권을 가진 파티의 ID
-    string m_QuestHostName; // 이 시체에서 나오는 퀘스트 아이템에 대한 우선권을 가진 자의 이름
+    MonsterType_t m_MonsterType; // Monster type
+    string m_Name;               // Monster name
+    Dir_t m_Dir;                 // Direction the corpse faces
+    bool m_bhasHead;             // Whether the head is still attached
+    string m_HostName;           // Name of the player with first claim on items from this corpse
+    int m_HostPartyID;           // ID of the party with first claim on items from this corpse
+    string m_QuestHostName;      // Name of the player with first claim on quest items from this corpse
 
-    bool m_bShrine; // 성단인가?
+    bool m_bShrine; // Is this a shrine?
     ObjectID_t m_LastKiller;
 };
 

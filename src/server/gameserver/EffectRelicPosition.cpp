@@ -53,12 +53,12 @@ void EffectRelicPosition::affect(Item* pItem)
 {
     __BEGIN_TRY
 
-    // 존 정보를 얻는다.
+    // Get the zone info.
     ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(m_ZoneID);
     Assert(pZoneInfo != NULL);
 
     if (pItem->getItemClass() == Item::ITEM_CLASS_RELIC) {
-        // 성물의 정보를 얻는다.
+        // Get the relic info.
         ItemType_t relicIndex = pItem->getItemType();
         const RelicInfo* pRelicInfo =
             dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
@@ -66,9 +66,9 @@ void EffectRelicPosition::affect(Item* pItem)
 
         //		StringStream msg;
 
-        /*		// 위치를 알린다.
-                msg << "성물(" << pRelicInfo->getName() << ")이 "
-                    << pZoneInfo->getFullName() << "(" << (int)m_X << ", " << (int)m_Y << ")에 떨어져 있습니다."; */
+        /*		// Announce the location.
+                msg << "The relic (" << pRelicInfo->getName() << ") is lying at "
+                    << pZoneInfo->getFullName() << "(" << (int)m_X << ", " << (int)m_Y << ")."; */
 
         char msg[100];
 
@@ -99,8 +99,8 @@ void EffectRelicPosition::affect(Item* pItem)
         g_pZoneGroupManager->broadcast(pGCBBS);
         g_pShrineInfoManager->registerBloodBibleStatus(m_Part, pGCBBS);
         /*
-        msg << "피의 성서 조각이 "
-            << pZoneInfo->getFullName() << "(" << (int)m_X << ", " << (int)m_Y << ")에 떨어져 있습니다.";
+        msg << "A fragment of the Blood Bible is lying at "
+            << pZoneInfo->getFullName() << "(" << (int)m_X << ", " << (int)m_Y << ").";
 
         g_pZoneGroupManager->broadcast( &gcSystemMessage );
         */
@@ -109,8 +109,8 @@ void EffectRelicPosition::affect(Item* pItem)
     } else if (pItem->getItemClass() == Item::ITEM_CLASS_CASTLE_SYMBOL) {
         //		StringStream msg;
 
-        //		msg << "성의 상징이 "
-        //			<< pZoneInfo->getFullName() << "(" << (int)m_X << ", " << (int)m_Y << ")에 떨어져 있습니다.";
+        //		msg << "The castle symbol is lying at "
+        //			<< pZoneInfo->getFullName() << "(" << (int)m_X << ", " << (int)m_Y << ").";
 
         char msg[200];
         sprintf(msg, g_pStringPool->c_str(STRID_BROADCAST_CASTLE_SYMBOL_POSITION_3), pZoneInfo->getFullName().c_str(),

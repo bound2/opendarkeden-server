@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : DefaultOptionSetInfo.h
-// Written By  : 배재형
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -18,7 +17,7 @@
 
 
 enum DefaultOptionSetTypes {
-    DEFAULT_OPTION_SET_FAMILY_PAY, // 0. 패밀리 요금제용. 모든저항 +7
+    DEFAULT_OPTION_SET_FAMILY_PAY, // 0. For the family billing plan. All resistances +7
 
     DEFAULT_OPTION_SET_MAX
 };

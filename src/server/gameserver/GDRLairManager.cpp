@@ -124,7 +124,7 @@ VSDateTime GDRLairManager::getNextOpenTime() const {
         i = 0;
     }
 
-    // ��,�Ͽ��Ͽ� 19��Ÿ�� ����
+    // Skip the 19:00 slot on Wednesday and Sunday.
     if ((ret.date().dayOfWeek() == 7 || ret.date().dayOfWeek() == 3) && i == 2)
         ++i;
 
@@ -201,12 +201,12 @@ void GDRLairEntrance::start() {
     pLair->addEffect_LOCKING(pEffectKickOut1);
     pCore->addEffect_LOCKING(pEffectKickOut2);
 
-    // ��� ����.
+    // Open the lair.
     cout << "���巹 ��� ���ϴ�." << endl;
     GDRLairManager::Instance().open();
 
     EffectGDRLairClose* pEffectClose = new EffectGDRLairClose(20);
-    //	// 5��
+    //	// 5 minutes
     //	pEffectClose->setDeadline(3000);
     pIllusionsWay1->addEffect_LOCKING(pEffectClose);
 
@@ -571,7 +571,7 @@ DWORD GDRLairEntrance::heartbeat(Timeval currentTime) {
 
     const PCManager* pPM = pZone->getPCManager();
     int limit = g_pVariableManager->getVariable(GDR_LAIR_PC_LIMIT);
-    // 0�̸� �ο� ������
+    // 0 means there is no player limit.
     if (limit != 0 && pPM->getSize() >= limit) {
         return GDR_LAIR_ICEPOLE;
     }
@@ -585,7 +585,7 @@ DWORD GDRLairEntrance::heartbeat(Timeval currentTime) {
 {
     TimerState::start();
     filelog( "GDRLair.log", "Starting Illusions Way State" );
-    cout << "�Ϸ����� ���̸� Ȱ��ȭ�Ǿ��̶�" << endl;
+    cout << "The Illusions Way is now active." << endl;
 }*/
 
 // void GDRLairIllusionsWayOnly::end()
@@ -627,7 +627,7 @@ void GDRLairIcepole::start() {
     Zone* pIllusionsWay1 = getZoneByZoneID(1410);
     Zone* pIllusionsWay2 = getZoneByZoneID(1411);
 
-    // �Ϸ��������̿����� ���� �ѾƳ�������.
+    // Drive everyone out of the Illusions Way zones.
     GCSystemMessage gcSM;
     gcSM.setMessage("û��ͨ���þ�֮·.10����ƶ�������ص�.");
 
@@ -664,8 +664,8 @@ DWORD GDRLairIcepole::heartbeat(Timeval currentTime) {
             {
                 GCSystemMessage gcSM;
                 char buf[255];
-                sprintf(buf, "�Ϸ����� ���̿� %d ���� �ֽ��ϴ�. ��� ����� �Ϸ����� ���̸� ����ؾ� ���巹
-       ��� Ȱ��ȭ�˴ϴ�.", illPCNum); gcSM.setMessage( buf );
+                sprintf(buf, "There are %d players in the Illusions Way. Everyone has to pass through
+       before the GDR lair activates.", illPCNum); gcSM.setMessage( buf );
 
                 __ENTER_CRITICAL_SECTION( (*pZone) )
 
@@ -915,7 +915,7 @@ void GDRLairSummonGDRDup::start() {
 
     GroupSummonInfo* pGSI = new GroupSummonInfo;
 
-    // 5����
+    // Summon five of them.
     pGSI->getSummonInfos().push_back(new SummonInfo(721, 5, 38, 43));
     m_GroupSummonInfos.push_back(pGSI);
 
@@ -1033,7 +1033,7 @@ void GDRLairScene4::start() {
 
     __LEAVE_CRITICAL_SECTION((*(pGDRLair->getZoneGroup())))
 
-    // ���巹 ����
+    // Create GDR.
     Monster* pGDR = new Monster(723);
 
     pGDR->setName("���巹");
@@ -1115,8 +1115,8 @@ DWORD GDRLairAwakenedGDRFight::heartbeat(Timeval currentTime) {
     int msize;
     int psize;
 
-    // �¸�~ ���⼭ pZone �ȿ� m_pZoneGroup �� NULL �̾ ���� �ھ �ִ�. slayer5
-    // Ȯ���� ����...��~ ���~
+    // Cores have died here because m_pZoneGroup inside pZone was NULL.
+    // Needs checking.
     __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
 
     MonsterManager* pMM = pZone->getMonsterManager();
@@ -1134,7 +1134,7 @@ DWORD GDRLairAwakenedGDRFight::heartbeat(Timeval currentTime) {
 
     if (msize < 1) {
         m_bGDRDamaged = false;
-        // ���� ������
+        // No monsters are left.
         return GDR_LAIR_ENDING;
     }
 
@@ -1250,7 +1250,7 @@ void GDRLairScene6::start() {
     // thread, so the group mutex is held from here.
     __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
 
-    // ���� ����
+    // Hand out the rewards.
     const PCManager* pPCManager = pZone->getPCManager();
     const unordered_map<ObjectID_t, Creature*>& creatures = pPCManager->getCreatures();
     unordered_map<ObjectID_t, Creature*>::const_iterator itr;
@@ -1272,21 +1272,21 @@ void GDRLairScene6::start() {
 
             (pZone->getObjectRegistry()).registerObject(pItem);
 
-            // �κ��丮�� �� ���� ã�´�.
+            // Find an empty slot in the inventory.
             _TPOINT p;
             if (pInventory->getEmptySlot(pItem, p)) {
-                // �κ��丮�� �߰��Ѵ�.
+                // Add it to the inventory.
                 pInventory->addItem(p.x, p.y, pItem);
 
                 pItem->create(pCreature->getName(), STORAGE_INVENTORY, 0, p.x, p.y);
 
-                // ItemTrace �� Log �� �����
+                // Leave an ItemTrace log.
                 if (pItem != NULL && pItem->isTraceItem()) {
                     remainTraceLog(pItem, "GDRLair", pCreature->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
                     remainTraceLogNew(pItem, pCreature->getName(), ITL_GET, ITLD_EVENTNPC, pZone->getZoneID());
                 }
 
-                // �κ��丮�� ������ ���� ��Ŷ�� �����ش�.
+                // Send the packet that creates the item in the inventory.
                 GCCreateItem gcCreateItem;
 
                 makeGCCreateItem(&gcCreateItem, pItem, p.x, p.y);
@@ -1299,13 +1299,13 @@ void GDRLairScene6::start() {
         }
     }
 
-    // 6���ִٰ� ���󰣴�.
+    // Move every player back.
     pGDR->setBrain(NULL);
     pZone->getPCManager()->transportAllCreatures(pZone->getZoneID(), 82, 93, defaultRaceValue, 15);
 
     __LEAVE_CRITICAL_SECTION((*(pZone->getZoneGroup())))
 
-    // �� 15�� ���̿� �� ������ �ȴ�.
+    // The whole sequence takes about 15 seconds.
     m_ActionList.clear();
     m_ActionList.push_back(new ActionSay(pGDR, 356));
     m_ActionList.push_back(new ActionWait(pGDR, 50));
@@ -1314,7 +1314,7 @@ void GDRLairScene6::start() {
     m_ActionList.push_back(new ActionSay(pGDR, 371));
     m_ActionList.push_back(new ActionWait(pGDR, 50));
     m_ActionList.push_back(new ActionWarp(pGDR, 78, 89));
-    // �ε��ϴµ� 5���� ��ٷ��ش�.
+    // Wait 5 seconds for the load.
     m_ActionList.push_back(new ActionWait(pGDR, 50));
 
     m_ActionList.push_back(new ActionSay(pGDR, 358));
@@ -1409,10 +1409,10 @@ void GDRLairEnding::start() {
                     pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_QUEST_ITEM, itemType, nullList);
                 } else {
                     //					itemType = 8;
-                    //					filelog( "GDRLair.log", "%s �� ���긦 �޾ҽ��ϴ�.",
+                    //					filelog( "GDRLair.log", "%s received a reward.",
                     // pPC->getName().c_str()
                     //);
-                    // ����� ���ۿ� ���.
+                    // No reward for this one, so skip it.
                     continue;
                 }
                 //				itemType = ((goodOneIndex[1]==i||goodOneIndex[2]==i)? 9:8);
@@ -1420,21 +1420,21 @@ void GDRLairEnding::start() {
 
             (pZone->getObjectRegistry()).registerObject(pItem);
 
-            // �κ��丮�� �� ���� ã�´�.
+            // Find an empty slot in the inventory.
             _TPOINT p;
             if (pInventory->getEmptySlot(pItem, p)) {
-                // �κ��丮�� �߰��Ѵ�.
+                // Add it to the inventory.
                 pInventory->addItem(p.x, p.y, pItem);
 
                 pItem->create(pCreature->getName(), STORAGE_INVENTORY, 0, p.x, p.y);
 
-                // ItemTrace �� Log �� �����
+                // Leave an ItemTrace log.
                 if (pItem != NULL && pItem->isTraceItem()) {
                     remainTraceLog(pItem, "GDRLair", pCreature->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
                     remainTraceLogNew(pItem, pCreature->getName(), ITL_GET, ITLD_EVENTNPC);
                 }
 
-                // �κ��丮�� ������ ���� ��Ŷ�� �����ش�.
+                // Send the packet that creates the item in the inventory.
                 GCCreateItem gcCreateItem;
 
                 makeGCCreateItem(&gcCreateItem, pItem, p.x, p.y);

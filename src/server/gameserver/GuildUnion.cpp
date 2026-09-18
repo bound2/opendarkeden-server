@@ -113,7 +113,7 @@ void GuildUnionManager::sendModifyUnionInfo(uint gID) {
     ggCommand.setCommand(Msg);
 
 
-    // 각 server로 보낸다.
+    // Send to each server.
     HashMapGameServerInfo** pGameServerInfos = g_pGameServerInfoManager->getGameServerInfos();
 
 
@@ -134,7 +134,7 @@ void GuildUnionManager::sendModifyUnionInfo(uint gID) {
                     GameServerInfo* pGameServerInfo = itr->second;
 
                     if (pGameServerInfo->getWorldID() == myWorldID) {
-                        // 현재 서버가 아닌 경우에만..(위에서 처리했으므로)
+                        // Only for servers other than the current one (handled above).
                         if (pGameServerInfo->getGroupID() == myServerID) {
                         } else {
                             g_pLoginServerManager->sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(),
@@ -152,7 +152,7 @@ void GuildUnionManager::sendRefreshCommand() {
     ggCommand.setCommand("*refreshguildunion");
 
 
-    // 각 server로 보낸다.
+    // Send to each server.
     HashMapGameServerInfo** pGameServerInfos = g_pGameServerInfoManager->getGameServerInfos();
 
 
@@ -173,7 +173,7 @@ void GuildUnionManager::sendRefreshCommand() {
                     GameServerInfo* pGameServerInfo = itr->second;
 
                     if (pGameServerInfo->getWorldID() == myWorldID) {
-                        // 현재 서버가 아닌 경우에만..(위에서 처리했으므로)
+                        // Only for servers other than the current one (handled above).
                         if (pGameServerInfo->getGroupID() == myServerID) {
                         } else {
                             g_pLoginServerManager->sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(),

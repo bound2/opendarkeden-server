@@ -2,8 +2,8 @@
 // Filename    : ZoneUtil.h
 // Written by  : excel96
 // Description :
-// 존과 관련된 특정한 작업들을 수행하는 함수들을 존 안에 넣으니까,
-// 존 파일이 너무 커지는 경향이 있어서, 존 파일 외부로 꺼낸 함수들이다.
+// Functions that perform zone-related work; keeping them inside Zone made
+// the zone file too large, so they were pulled out of it.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ZONE_UTIL_H__
@@ -30,177 +30,177 @@ class Corpse;
 struct ZONE_COORD;
 struct SUMMON_INFO;
 
-// 종류별로 소환
+// Summoning by kind.
 struct SUMMON_INFO2;
 
 //////////////////////////////////////////////////////////////////////////////
-// 특정 크리쳐를 더할 수 있는 위치를 찾는다.
+// Find a position where a given creature can be added.
 //
-// Zone*       pZone        : 존에 대한 포인터
-// ZoneCoord_t cx           : 더하고자 하는 초기 위치 x
-// ZoneCoord_t cy           : 더하고자 하는 초기 위치 y
-// Creature::MoveMode MMode : 크리쳐의 움직임 모드
+// Zone*       pZone        : pointer to the zone
+// ZoneCoord_t cx           : initial x to add at
+// ZoneCoord_t cy           : initial y to add at
+// Creature::MoveMode MMode : the creature's move mode
 //////////////////////////////////////////////////////////////////////////////
 TPOINT findSuitablePosition(Zone* pZone, ZoneCoord_t cx, ZoneCoord_t cy, Creature::MoveMode MMode);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 특정 아이템을 더할 수 있는 위치를 찾는다.
+// Find a position where a given item can be added.
 //
-// Zone*       pZone          : 존에 대한 포인터
-// ZoneCoord_t cx             : 더하고자 하는 초기 위치 x
-// ZoneCoord_t cy             : 더하고자 하는 초기 위치 y
-// bool        bAllowCreature : 크리쳐가 존재하는 곳도 괜찮은가?
+// Zone*       pZone          : pointer to the zone
+// ZoneCoord_t cx             : initial x to add at
+// ZoneCoord_t cy             : initial y to add at
+// bool        bAllowCreature : is a place holding a creature acceptable?
 //////////////////////////////////////////////////////////////////////////////
 TPOINT findSuitablePositionForItem(Zone* pZone, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCreature,
                                    bool bAllowSafeZone = true, bool bForce = false);
 
 //////////////////////////////////////////////////////////////////////////////
-// 특정 이펙트를 더할 수 있는 위치를 찾는다.
+// Find a position where a given effect can be added.
 //
-// Zone*       pZone          : 존에 대한 포인터
-// ZoneCoord_t cx             : 더하고자 하는 초기 위치 x
-// ZoneCoord_t cy             : 더하고자 하는 초기 위치 y
-// Effect::EffectClass EClass : 더하고자 하는 이펙트 클래스
+// Zone*       pZone          : pointer to the zone
+// ZoneCoord_t cx             : initial x to add at
+// ZoneCoord_t cy             : initial y to add at
+// Effect::EffectClass EClass : the effect class to add
 //////////////////////////////////////////////////////////////////////////////
 TPOINT findSuitablePositionForEffect(Zone* pZone, ZoneCoord_t cx, ZoneCoord_t cy, Effect::EffectClass EClass);
 
 //////////////////////////////////////////////////////////////////////////////
-// 특정 위치에서 지정된 무브 모드의 크리쳐를 추가할 수 있는지 검사한다.
+// Check whether a creature of the given move mode can be added at a position.
 //
-// Zone*              pZone : 존에 대한 포인터
-// ZoneCoord_t        x     : 버로우하고자 하는 좌표 x
-// ZoneCoord_t        y     : 버로우하고자 하는 좌표 y
-// Creature::MoveMode MMode : 크리쳐의 무브 모드
+// Zone*              pZone : pointer to the zone
+// ZoneCoord_t        x     : x of the coordinate to burrow at
+// ZoneCoord_t        y     : y of the coordinate to burrow at
+// Creature::MoveMode MMode : the creature's move mode
 //////////////////////////////////////////////////////////////////////////////
 bool canAddCreature(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Creature::MoveMode MMode);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 특정 위치에 버로우가 가능한지 체크를 한다.
+// Check whether burrowing is possible at a position.
 //
-// Zone* pZone   : 존에 대한 포인터
-// ZoneCoord_t x : 버로우하고자 하는 좌표 x
-// ZoneCoord_t y : 버로우하고자 하는 좌표 y
+// Zone* pZone   : pointer to the zone
+// ZoneCoord_t x : x of the coordinate to burrow at
+// ZoneCoord_t y : y of the coordinate to burrow at
 //////////////////////////////////////////////////////////////////////////////
 bool canBurrow(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 특정 위치에 언버로우가 가능한지 체크를 한다.
+// Check whether unburrowing is possible at a position.
 //
-// Zone* pZone   : 존에 대한 포인터
-// ZoneCoord_t x : 버로우하고자 하는 좌표 x
-// ZoneCoord_t y : 버로우하고자 하는 좌표 y
+// Zone* pZone   : pointer to the zone
+// ZoneCoord_t x : x of the coordinate to burrow at
+// ZoneCoord_t y : y of the coordinate to burrow at
 //////////////////////////////////////////////////////////////////////////////
 bool canUnburrow(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 크리쳐를 뒤로 물러나게 한다.
+// Push the creature backwards.
 //
-// Zone*       pZone     : 존에 대한 포인터
-// Creature*   pCreature : 물러나게 할 크리쳐
-// ZoneCoord_t originX   : pCreature를 물러나게 한 상대방의 좌표 x
-// ZoneCoord_t originY   : pCreature를 물러나게 한 상대방의 좌표 y
+// Zone*       pZone     : pointer to the zone
+// Creature*   pCreature : the creature to push back
+// ZoneCoord_t originX   : x of the opponent that pushed pCreature back
+// ZoneCoord_t originY   : y of the opponent that pushed pCreature back
 //////////////////////////////////////////////////////////////////////////////
 Dir_t knockbackCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t originX, ZoneCoord_t originY);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 하이드를 쓴 크리쳐를 존에다 추가한다.
+// Add a creature that has used hide to the zone.
 //
-// Zone*       pZone     : 존에 대한 포인터
-// Creature*   pCreature : 하이드를 쓴 크리쳐
-// ZoneCoord_t cx        : 크리쳐의 원래 좌표 x
-// ZoneCoord_t cy        : 크리쳐의 원래 좌표 y
+// Zone*       pZone     : pointer to the zone
+// Creature*   pCreature : the creature that used hide
+// ZoneCoord_t cx        : the creature's original x
+// ZoneCoord_t cy        : the creature's original y
 //////////////////////////////////////////////////////////////////////////////
 void addBurrowingCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 하이드를 푼 크리쳐를 존에다 추가한다.
+// Add a creature that has come out of hide to the zone.
 //
-// Zone*       pZone     : 존에 대한 포인터
-// Creature*   pCreature : 하이드를 푼 크리쳐
-// ZoneCoord_t cx        : 크리쳐의 원래 좌표 x
-// ZoneCoord_t cy        : 크리쳐의 원래 좌표 y
-// Dir_t       dir       : 나온 크리쳐가 향할 방향
+// Zone*       pZone     : pointer to the zone
+// Creature*   pCreature : the creature that left hide
+// ZoneCoord_t cx        : the creature's original x
+// ZoneCoord_t cy        : the creature's original y
+// Dir_t       dir       : the direction the emerging creature faces
 //////////////////////////////////////////////////////////////////////////////
 void addUnburrowCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 변신을 푼 크리쳐를 존에다 추가한다.
+// Add a creature that has left its transformation to the zone.
 //
-// Zone*     pZone     : 존에 대한 포인터
-// Creature* pCreature : 변신을 푼 크리쳐
-// bool      bForce    : 이펙트의 duration이 만기가 되지 않았는데,
-//                       강제로 푸는 것인가?
+// Zone*     pZone     : pointer to the zone
+// Creature* pCreature : the creature that left its transformation
+// bool      bForce    : is it being ended by force while the effect's
+//                       duration has not expired?
 //////////////////////////////////////////////////////////////////////////////
 void addUntransformCreature(Zone* pZone, Creature* pCreature, bool bForce);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 안 보이는 크리쳐를 추가한다.
+// Add an invisible creature.
 //
-// Zone*       pZone     : 존에 대한 포인터
-// Creature*   pCreature : 안 보이는 크리쳐
-// ZoneCoord_t cx        : 크리쳐의 원래 좌표 x
-// ZoneCoord_t cy        : 크리쳐의 원래 좌표 y
+// Zone*       pZone     : pointer to the zone
+// Creature*   pCreature : the invisible creature
+// ZoneCoord_t cx        : the creature's original x
+// ZoneCoord_t cy        : the creature's original y
 //////////////////////////////////////////////////////////////////////////////
 void addInvisibleCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 안 보이던 크리쳐가 보일 경우, 이 크리쳐를 추가한다.
+// Add a creature that was invisible and has become visible.
 //
-// Zone*       pZone     : 존에 대한 포인터
-// Creature*   pCreature : 안 보이던 크리쳐
-// bool        bForce    : 강제로 visible 상태가 되었나?
+// Zone*       pZone     : pointer to the zone
+// Creature*   pCreature : the creature that was invisible
+// bool        bForce    : was it forced into the visible state?
 //////////////////////////////////////////////////////////////////////////////
 void addVisibleCreature(Zone* pZone, Creature* pCreature, bool bForced);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 스나이핑 모드의 크리쳐를 추가한다.
+// Add a creature in sniping mode.
 //
-// Zone*       pZone     : 존에 대한 포인터
-// Creature*   pCreature : 안 보이는 크리쳐
-// ZoneCoord_t cx        : 크리쳐의 원래 좌표 x
-// ZoneCoord_t cy        : 크리쳐의 원래 좌표 y
+// Zone*       pZone     : pointer to the zone
+// Creature*   pCreature : the invisible creature
+// ZoneCoord_t cx        : the creature's original x
+// ZoneCoord_t cy        : the creature's original y
 //////////////////////////////////////////////////////////////////////////////
 void addSnipingModeCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 안 보이던 크리쳐가 보일 경우, 이 크리쳐를 추가한다.
+// Add a creature that was invisible and has become visible.
 //
-// Zone*       pZone     : 존에 대한 포인터
-// Creature*   pCreature : 안 보이던 크리쳐
-// bool        bForce    : 강제로 visible 상태가 되었나?
+// Zone*       pZone     : pointer to the zone
+// Creature*   pCreature : the creature that was invisible
+// bool        bForce    : was it forced into the visible state?
 //////////////////////////////////////////////////////////////////////////////
 void addUnSnipingModeCreature(Zone* pZone, Creature* pCreature, bool bForced);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 존에다 지뢰를 더한다.
+// Add a mine to the zone.
 //
-// Zone*       pZone : 존에 대한 포인터
-// Mine*       pMine : 지뢰 객체에 대한 포인터
-// ZoneCoord_t cx    : 지뢰를 더할 좌표 x
-// ZoneCoord_t cy    : 지뢰를 더할 좌표 y
+// Zone*       pZone : pointer to the zone
+// Mine*       pMine : pointer to the mine object
+// ZoneCoord_t cx    : x to add the mine at
+// ZoneCoord_t cy    : y to add the mine at
 //////////////////////////////////////////////////////////////////////////////
 void addInstalledMine(Zone* pZone, Mine* pMine, ZoneCoord_t cx, ZoneCoord_t cy);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 특정 크리쳐가 지뢰를 밟지 않았는지 체크한다.
+// Check whether a creature has stepped on a mine.
 //
-// Zone*       pZone     : 존에 대한 포인터
-// Creature*   pCreature : 검사할 크리쳐
-// ZoneCoord_t X         : 검사할 좌표 x
-// ZoneCoord_t Y         : 검사할 좌표 y
+// Zone*       pZone     : pointer to the zone
+// Creature*   pCreature : the creature to check
+// ZoneCoord_t X         : x of the coordinate to check
+// ZoneCoord_t Y         : y of the coordinate to check
 //////////////////////////////////////////////////////////////////////////////
 bool checkMine(Zone* pZone, Creature* pCreature, ZoneCoord_t X, ZoneCoord_t Y);
 bool checkMine(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y);
@@ -208,26 +208,26 @@ bool checkMine(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y);
 bool checkTrap(Zone* pZone, Creature* pCreature);
 
 //////////////////////////////////////////////////////////////////////////////
-// 특정 크리쳐를 다른 존으로 이동시킨다.
+// Move a creature to another zone.
 //
-// Creature*   pCreature    : 이동할 크리쳐
-// ZoneID_t    TargetZoneID : 이동할 존 ID
-// ZoneCoord_t TargetX      : 이동할 존 좌표 X
-// ZoneCoord_t TargetY      : 이동할 존 좌표 Y
-// bool        bSendMoveOK  : GCMoveOK를 날려주는가에 대한 여부
+// Creature*   pCreature    : the creature to move
+// ZoneID_t    TargetZoneID : ID of the zone to move to
+// ZoneCoord_t TargetX      : X in the destination zone
+// ZoneCoord_t TargetY      : Y in the destination zone
+// bool        bSendMoveOK  : whether GCMoveOK is sent
 //////////////////////////////////////////////////////////////////////////////
 void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t TX, ZoneCoord_t TY,
                        bool bSendMoveOK = true);
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 특정 존ID를 가진 존을 찾아서 포인터를 리턴한다.
-// ZoneID_t ZID : 찾고자 하는 존 ID
+// Find the zone with the given zone ID and return its pointer.
+// ZoneID_t ZID : the zone ID to look for
 //////////////////////////////////////////////////////////////////////////////
 Zone* getZoneByZoneID(ZoneID_t ZID);
 
 //////////////////////////////////////////////////////////////////////////////
-// 운영자 명령어로서, 특정 타입의 몬스터를 존에다 추가한다.
+// Operator command that adds monsters of a given type to a zone.
 //////////////////////////////////////////////////////////////////////////////
 void addMonstersToZone(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, SpriteType_t SType, MonsterType_t MType, int num,
                        const SUMMON_INFO& summonInfo, list<Monster*>* pSummonedMonsters = NULL);
@@ -235,30 +235,30 @@ void addMonstersToZone(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, SpriteType_t S
 void addMonstersToZone(Zone* pZone, const SUMMON_INFO2& summonInfo, list<Monster*>* pSummonedMonsters = NULL);
 
 //////////////////////////////////////////////////////////////////////////////
-// 특정 크리쳐가 현재 안전 지대 내부에 있는가를 검사하는 함수
-// 교환할 때 쓰인다.
+// Checks whether a creature is currently inside a safe zone.
+// Used when exchanging.
 //////////////////////////////////////////////////////////////////////////////
 bool isInSafeZone(Creature* pCreature);
 
 //////////////////////////////////////////////////////////////////////////////
-// 좌표가 존의 범위 안인지를 체크한다.
+// Check whether the coordinate is inside the zone's bounds.
 //////////////////////////////////////////////////////////////////////////////
 bool isValidZoneCoord(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, int offset = 0);
 
 //////////////////////////////////////////////////////////////////////////////
-// master lair 에  pCreature가 들어갈 수 있는가?
+// Can pCreature enter the master lair?
 //////////////////////////////////////////////////////////////////////////////
 bool enterMasterLair(Zone* pZone, Creature* pCreature);
 
-// 야전사령부에서 초보자들을 다른 곳으로 보낼때.. 목표 존의 정보
+// Information about the destination zone when the field HQ sends beginners elsewhere.
 void checkNewbieTransportToGuild(Slayer* pSlayer);
 void getNewbieTransportZoneInfo(Slayer* pSlayer, ZONE_COORD& zoneInfo);
 
-// Corpse를 Zone에 추가한다.
+// Add a Corpse to a Zone.
 bool addCorpseToZone(Corpse* pCorpse, Zone* pZone, ZoneCoord_t cx, ZoneCoord_t cy);
 
-// 범위 안에 특정한 몬스터 시체가 있는지 확인한다.
-// 있으면 true, 없으면 false
+// Check whether a corpse of the given monster is inside the range.
+// true if present, false otherwise.
 bool checkCorpse(Zone* pZone, MonsterType_t MType, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t x2, ZoneCoord_t y2);
 
 void makeZoneIDList(const string& zoneIDs, list<ZoneID_t>& zoneIDList);

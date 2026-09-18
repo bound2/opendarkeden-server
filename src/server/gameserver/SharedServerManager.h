@@ -19,8 +19,8 @@ class SharedServerClient;
 //////////////////////////////////////////////////////////////////////////////
 // class SharedServerManager;
 //
-// 쉐어드 서버와의 통신을 전담하는 쓰레드이다.
-// 연결 끊기면 다시 연결해야 된다. 될 때까지~~
+// Thread dedicated to communication with the shared server.
+// When the connection drops it must reconnect, and it retries until it succeeds.
 //////////////////////////////////////////////////////////////////////////////
 
 class SharedServerManager : public ManagedThread {

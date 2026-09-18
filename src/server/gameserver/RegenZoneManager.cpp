@@ -272,11 +272,11 @@ bool RegenZoneManager::canRegen(PlayerCreature* pPC, uint ID) {
 
     if (itr == m_RegenZoneInfos.end()) {
         switch (ID) {
-        case 8:  // 옥타부스
-        case 10: // 셉티무스
+        case 8:  // Octavus
+        case 10: // Septimus
             return pPC->isSlayer();
-        case 9:  // 테르티우스
-        case 11: // 쿠아르투스
+        case 9:  // Tertius
+        case 11: // Quartus
             return pPC->isVampire();
         case 12:
         case 13:
@@ -290,7 +290,7 @@ bool RegenZoneManager::canRegen(PlayerCreature* pPC, uint ID) {
             unordered_map<ObjectID_t, Creature*>& cmap = pMM->getCreatures();
             unordered_map<ObjectID_t, Creature*>::iterator itr = cmap.begin();
 
-            // 성문이 있으면 안된다.
+            // The castle gate must not be there.
             for (; itr != cmap.end(); ++itr) {
                 Monster* pMonster = dynamic_cast<Monster*>((itr->second));
                 if (pMonster != NULL && pMonster->getMonsterType() == 726)
@@ -320,28 +320,28 @@ void RegenZoneManager::regeneratePC(PlayerCreature* pPC, uint ID) {
 
     if (itr == m_RegenZoneInfos.end()) {
         switch (ID) {
-        case 8: // 옥타부스
+        case 8: // Octavus
         {
             targetPos.id = 1201;
             targetPos.x = 120;
             targetPos.y = 120;
             break;
         }
-        case 9: // 테르티우스
+        case 9: // Tertius
         {
             targetPos.id = 1202;
             targetPos.x = 30;
             targetPos.y = 120;
             break;
         }
-        case 10: // 셉티무스
+        case 10: // Septimus
         {
             targetPos.id = 1203;
             targetPos.x = 120;
             targetPos.y = 30;
             break;
         }
-        case 11: // 쿠아르투스
+        case 11: // Quartus
         {
             targetPos.id = 1204;
             targetPos.x = 30;

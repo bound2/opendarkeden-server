@@ -17,21 +17,21 @@ class Zone;
 //////////////////////////////////////////////////////////////////////////////
 // class Effect;
 //
-// ¼­¹ö¿¡¼­ÀÇ ÀÌÆåÆ®´Â Å©¸®Ã³, Á¸, ¾ÆÀÌÅÛ µî¿¡ ÀÏÁ¤ ½Ã°£ÈÄ¿¡ ÀÏ¾î³ª´Â
-// ¿©·¯ °¡Áö È¿°úµéÀ» ÀÇ¹ÌÇÑ´Ù.
+// An effect on the server is one of the various things that happen to a creature,
+// a zone or an item after some time has passed.
 //
-// °¡·É, ½ÃÃ¼°¡ ÀÏÁ¤ ½Ã°£ ÈÄ¿¡ ¼­¹ö¿¡¼­ »ç¶óÁö´Â °ÍÀÌ³ª, °¡½º ¸¶¹ýÀÌ
-// °É¸° Å¸ÀÏ¿¡ Å©¸®Ã³°¡ ¿Ã¶ó°¡¼­ Áßµ¶ÀÌ µÇ´Â °Í ¸ðµÎ ÀÌÆåÆ®·Î ±¸ÇöµÈ´Ù.
-// ¶ÇÇÑ, ¶¥¿¡ ¶³¾îÁø ¾ÆÀÌÅÛ¿¡ °É·ÁÀÖ´Â ¸¶¹ý ¿ª½Ã ÀÌÆåÆ®·Î ±¸ÇöµÈ´Ù.
+// A corpse vanishing from the server after a while, or a creature being poisoned
+// by stepping on a tile under a gas spell, are both implemented as effects.
+// A spell on an item lying on the ground is an effect as well.
 //
-// ÇÏÀ§ Å¬·¡½º¿¡¼­ affect(), unaffect() ¸Þ½îµå¸¦ ±¸ÇöÇØ¼­ ´Ù¾çÇÑ
-// È¿°ú¸¦ Ç¥ÇöÇÏµµ·Ï ÇÑ´Ù.
+// Subclasses implement the affect() and unaffect() methods to express the
+// various effects.
 //
 // *CAUTION*
 //
-// Å¸ÀÏ À§¿¡ ³õ¿© ÀÖ´Â ÀÌÆåÆ®¿Í ½ÃÃ¼¿¡ ºÙ¾îÀÖ´Â ÀÌÆåÆ®´Â °³³ä»ó ¸¹ÀÌ ´Ù¸£´Ù.
-// Å¸ÀÏ À§ÀÇ ÀÌÆåÆ®´Â Å¸ÀÏ¿¡ ¼Ò¼ÓµÇÁö¸¸, ½ÃÃ¼ÀÇ ÀÌÆåÆ®´Â ´ÜÁö Á¸ÀÇ
-// ÀÌÆåÆ® ¸Å´ÏÀú¿¡¸¸ ¼Ò¼ÓµÈ´Ù.
+// An effect placed on a tile and an effect attached to a corpse differ a lot:
+// the one on a tile belongs to that tile, while a corpse's effect belongs only
+// to the zone's effect manager.
 //
 // void SkillHandler::execute(...)
 // {
@@ -70,7 +70,7 @@ class Effect : public Object {
 public:
     enum EffectClass {
         ////////////////////////////////////////////////////////////
-        // »õ·Î Ãß°¡µÇ´Â ±â¼úÀº Á¦ÀÏ ¹Ø¿¡ ³Ö¾îÁÖ¼¼¿ä!!!!!!!!!!!
+        // New skills must be appended at the very bottom.
         ////////////////////////////////////////////////////////////
         EFFECT_CLASS_LIGHT = 0,                   // 0
         EFFECT_CLASS_DETECT_HIDDEN,               // 1
@@ -144,7 +144,7 @@ public:
         EFFECT_CLASS_PRECEDENCE,                  // 69
         EFFECT_CLASS_RESTORE,                     // 70
 
-        // ÀÌ°Å ÀÌ¸§ ¹Ù²¸¾ß ÇÑ´Ù.
+        // This name needs to change.
         EFFECT_CLASS_CURE_CRITICAL_WOUNDS, // 70
 
         EFFECT_CLASS_EXTREME,    // 71
@@ -224,7 +224,7 @@ public:
         EFFECT_CLASS_SOUL_CHAIN, // 123
 
         // by sigi. 2002.11.7
-        EFFECT_CLASS_TRANSPORT_CREATURE, // 124	- Á¦´ë·Î ±¸Çö ¾ÈµÊ.
+        EFFECT_CLASS_TRANSPORT_CREATURE, // 124 - not properly implemented
 
         // by sigi. 2002.11.8
         EFFECT_CLASS_GRAND_MASTER_SLAYER, // 125
@@ -308,8 +308,8 @@ public:
         EFFECT_CLASS_SHRINE_HOLY_11, // 185
         EFFECT_CLASS_SHRINE_HOLY_12, // 186
 
-        EFFECT_CLASS_SHRINE_GUARD_WARP,     // 187		  ¼öÈ£¼º´Ü¿¡¼­ ¿öÇÁµÉ¶§
-        EFFECT_CLASS_SHRINE_HOLY_WARP,      // 188		  ¼ºÁö¼º´Ü¿¡¼­ ¿öÇÁµÉ¶§
+        EFFECT_CLASS_SHRINE_GUARD_WARP,     // 187   warping from the guardian altar
+        EFFECT_CLASS_SHRINE_HOLY_WARP,      // 188   warping from the holy land altar
         EFFECT_CLASS_CHANGE_CASTLE_CHANGED, // 189
 
         EFFECT_CLASS_SHRINE_SHIELD, // 190
@@ -318,11 +318,11 @@ public:
         EFFECT_CLASS_TRANSPORT_ITEM_TO_CORPSE, // 192
         EFFECT_CLASS_ADD_ITEM_TO_CORPSE,       // 193
 
-        EFFECT_CLASS_WARP_BLOOD_BIBLE_FROM_ME, // 194 ³»°¡ °¡Áö°íÀÖ´ø ÇÇÀÇ¼º¼­°¡ ¿öÇÁµÉ¶§ ¸Ó¸®¿¡ Âï¾îÁÖ´Â-_- ÀÌÆåÆ®
-        EFFECT_CLASS_WARP_BLOOD_BIBLE_FROM_TILE, // 195 ¶¥¿¡ ¶³¾îÁ®ÀÖ´ø ÇÇÀÇ¼º¼­°¡ ¿öÇÁµÉ¶§ ±× Å¸ÀÏ¿¡ Âï¾îÁÖ´Â ÀÌÆåÆ®
+        EFFECT_CLASS_WARP_BLOOD_BIBLE_FROM_ME,   // 194 drawn over the head when a carried blood bible warps away
+        EFFECT_CLASS_WARP_BLOOD_BIBLE_FROM_TILE, // 195 drawn on the tile when a dropped blood bible warps away
 
-        EFFECT_CLASS_WARP_HOLY_LAND_VAMPIRE, // 196 ¹ìÆÄÀÌ¾î°¡ Æ÷Å»·Î ÀÌµ¿ÇÒ¶§
-        EFFECT_CLASS_WARP_HOLY_LAND_SLAYER,  // 197 ½½·¹ÀÌ¾î°¡ Æ÷Å»·Î ÀÌµ¿ÇÒ¶§
+        EFFECT_CLASS_WARP_HOLY_LAND_VAMPIRE, // 196 a vampire moving through a portal
+        EFFECT_CLASS_WARP_HOLY_LAND_SLAYER,  // 197 a slayer moving through a portal
 
         EFFECT_CLASS_HAS_CASTLE_SYMBOL,   // 198
         EFFECT_CLASS_HAS_CASTLE_SYMBOL_2, // 199
@@ -344,12 +344,12 @@ public:
         EFFECT_CLASS_PK_ZONE_REGEN,        // 209
         EFFECT_CLASS_PK_ZONE_RESURRECTION, // 210
 
-        EFFECT_CLASS_MAGIC_ELUSION,      // 211	¿ÁÅ¸ºÎ½º
-        EFFECT_CLASS_POISON_MESH,        // 212	Å×¸£Æ¼¿ì½º
-        EFFECT_CLASS_ILLUSION_OF_AVENGE, // 213	¼ÁÆ¼¹«½º
-        EFFECT_CLASS_WILL_OF_LIFE,       // 214	Äí¾Æ¸£Åõ½º
+        EFFECT_CLASS_MAGIC_ELUSION,      // 211 Octavus
+        EFFECT_CLASS_POISON_MESH,        // 212 Tertius
+        EFFECT_CLASS_ILLUSION_OF_AVENGE, // 213 Septimus
+        EFFECT_CLASS_WILL_OF_LIFE,       // 214 Quartus
 
-        // ½Å±Ô ½ºÅ³ Effect Ãß°¡
+        // Effects for the new skills.
         EFFECT_CLASS_DENIAL_MAGIC,         // 215
         EFFECT_CLASS_DENIAL_MAGIC_DAMAGED, // 216
         EFFECT_CLASS_REQUITAL,             // 217
@@ -433,8 +433,8 @@ public:
         EFFECT_CLASS_REDIANCE,       // 272
         EFFECT_CLASS_HEART_CATALYST, // 273
 
-        EFFECT_CLASS_WARP_HOLY_LAND_OUSTERS, // 274 ¾Æ¿ì½ºÅÍÁî°¡ Æ÷Å»·Î ÀÌµ¿ÇÒ¶§
-        EFFECT_CLASS_FAMILY_BONUS,           // 275 ÆÐ¹Ð¸® ¿ä±ÝÁ¦ º¸³Ê½º
+        EFFECT_CLASS_WARP_HOLY_LAND_OUSTERS, // 274 an Ousters moving through a portal
+        EFFECT_CLASS_FAMILY_BONUS,           // 275 family rate plan bonus
 
         EFFECT_CLASS_PROTECTION_FROM_BLOOD, // 276
         EFFECT_CLASS_ETERNITY,              // 277
@@ -443,8 +443,8 @@ public:
         EFFECT_CLASS_ETERNITY_PAUSE, // 279
 
         EFFECT_CLASS_TRAP_INSTALLED, // 280
-        EFFECT_CLASS_TRAP_TRIGGERED, // 281 Æ®·¦¿¡ °É·ÈÀ» ¶§ ÀâÇô¸ÔÈ÷´Â(?) ÀÌÆåÆ®
-        EFFECT_CLASS_TRAPPED,        // 282 Å©¸®ÃÄ°¡ Æ®·¦¿¡ °É·ÁÀÖ´Â ÀÌÆåÆ®
+        EFFECT_CLASS_TRAP_TRIGGERED, // 281 effect shown when a trap is sprung
+        EFFECT_CLASS_TRAPPED,        // 282 effect while a creature is caught in a trap
         EFFECT_CLASS_MERCY_GROUND,   // 283
         EFFECT_CLASS_HOLY_ARMOR,     // 284
 
@@ -614,30 +614,30 @@ public:
         EFFECT_CLASS_PK_COUNTED,     // 410
         EFFECT_CLASS_PUNISH_COUNTED, // 411
 
-        EFFECT_CLASS_SIEGE_DEFENDER,  // 412	// °ø¼ºÀü ¹æ¾îÃø
-        EFFECT_CLASS_SIEGE_REINFORCE, // 413	// °ø¼ºÀü ¹æ¾îÃø ¿ø±º
+        EFFECT_CLASS_SIEGE_DEFENDER,  // 412 // siege defenders
+        EFFECT_CLASS_SIEGE_REINFORCE, // 413 // siege defender reinforcements
 
-        EFFECT_CLASS_SIEGE_ATTACKER_1, // 414	// °ø¼ºÀü °ø°ÝÃø 1¹ø
-        EFFECT_CLASS_SIEGE_ATTACKER_2, // 415	// °ø¼ºÀü °ø°ÝÃø 2¹ø
-        EFFECT_CLASS_SIEGE_ATTACKER_3, // 416	// °ø¼ºÀü °ø°ÝÃø 3¹ø
-        EFFECT_CLASS_SIEGE_ATTACKER_4, // 417	// °ø¼ºÀü °ø°ÝÃø 4¹ø
-        EFFECT_CLASS_SIEGE_ATTACKER_5, // 418	// °ø¼ºÀü °ø°ÝÃø 5¹ø
+        EFFECT_CLASS_SIEGE_ATTACKER_1, // 414 // siege attacker 1
+        EFFECT_CLASS_SIEGE_ATTACKER_2, // 415 // siege attacker 2
+        EFFECT_CLASS_SIEGE_ATTACKER_3, // 416 // siege attacker 3
+        EFFECT_CLASS_SIEGE_ATTACKER_4, // 417 // siege attacker 4
+        EFFECT_CLASS_SIEGE_ATTACKER_5, // 418 // siege attacker 5
 
-        EFFECT_CLASS_SHARE_HP, // 419	// HP °øÀ¯ÇÏ±â~
+        EFFECT_CLASS_SHARE_HP, // 419 // share HP
 
-        EFFECT_CLASS_LAND_MINE_EXPLOSION, // 420	// ·£µå¸¶ÀÎ ÅÍÁö´Â ÀÌÆåÆ®
-        EFFECT_CLASS_CLAYMORE_EXPLOTION,  // 421	// Å©·¹¸ð¾î ÅÍÁö´Â ÀÌÆåÆ®
-        EFFECT_CLASS_PLEASURE_EXPLOSION,  // 422	// ÇÃ·¹Á® ½ºÅ×ÀÌ¼Ç ÅÍÁö´Â ÀÌÆåÆ®
-        EFFECT_CLASS_TURRET_LASER,        // 423	// ÅÍ·¿ ·¹ÀÌÀú 1Å¸ÀÏ
-        EFFECT_CLASS_TURRET_LASER_ATTACK, // 424	// ÅÍ·¿ ·¹ÀÌÀú °ø°Ý 1Å¸ÀÏ (°ø°ÝÃø¿¡µµ º¸ÀÓ)
-        EFFECT_CLASS_AUTO_TURRET,         // 425	// ¿ÀÅä ÅÍ·¿ ¼­ÀÖ´Â°Å
+        EFFECT_CLASS_LAND_MINE_EXPLOSION, // 420 // land mine explosion effect
+        EFFECT_CLASS_CLAYMORE_EXPLOTION,  // 421 // claymore explosion effect
+        EFFECT_CLASS_PLEASURE_EXPLOSION,  // 422 // pleasure station explosion effect
+        EFFECT_CLASS_TURRET_LASER,        // 423 // turret laser, one tile
+        EFFECT_CLASS_TURRET_LASER_ATTACK, // 424 // turret laser attack, one tile (also seen by the attackers)
+        EFFECT_CLASS_AUTO_TURRET,         // 425 // auto turret standing
 
-        EFFECT_CLASS_HIDE_TO_ATTACKER, // 426	// °ø¼º °ø°ÝÃø¿¡´Â ¾È º¸ÀÎ´Ù.
+        EFFECT_CLASS_HIDE_TO_ATTACKER, // 426 // not visible to the siege attackers
 
         EFFECT_CLASS_REPUTO_FACTUM,      // 427
-        EFFECT_CLASS_REPUTO_FACTUM_LAST, // 428	// Áö¼ÓÀÌÆåÆ®
+        EFFECT_CLASS_REPUTO_FACTUM_LAST, // 428 // lasting effect
 
-        EFFECT_CLASS_SWORD_OF_THOR, // 429	// Å¸ÀÏ¿¡ ºÙ¾î¼­ ÅÍÁö´Â Ä®
+        EFFECT_CLASS_SWORD_OF_THOR, // 429 // sword attached to a tile that explodes
 
         EFFECT_CLASS_BURNING_SOL_CHARGE_1, // 430
         EFFECT_CLASS_BURNING_SOL_CHARGE_2, // 431
@@ -648,7 +648,7 @@ public:
         EFFECT_CLASS_WHITSUNTIDE,    // 435
 
         EFFECT_CLASS_DRAGON_EYE,             // 436
-        EFFECT_CLASS_ROCKET_LAUNCHER,        // 437	// Å¬¶óÀÌ¾ðÆ®¸¸ ¾´´Ù
+        EFFECT_CLASS_ROCKET_LAUNCHER,        // 437 // client only
         EFFECT_CLASS_PLASMA_ROCKET_LAUNCHER, // 438
         EFFECT_CLASS_INTIMATE_GRAIL,         // 439
 
@@ -684,33 +684,33 @@ public:
 
         EFFECT_CLASS_TILE_PORTAL,                    // 464
                                                      // add by Coffee 2007-5-20
-        EFFECT_CLASS_BLOOD_BLLODY_SCARIFY,           // ÑªÖ®ÀÓÓ¡(ÎüÑª¹í)
-        EFFECT_CLASS_BLOOD_CURSE,                    // ÑªÖ®Ô{Öä(ÎüÑª¹í)
+        EFFECT_CLASS_BLOOD_BLLODY_SCARIFY,           // Bloody Scarify (vampire)
+        EFFECT_CLASS_BLOOD_CURSE,                    // Blood Curse (vampire)
         EFFECT_CLASS_SKILL_BOMB_CRASH_WALK_TO_ENEMY, // 465
-        EFFECT_CLASS_SKILL_SATELLITE_BOMB_AIM,       // ÎÀÐÇºä»÷ Ð§¹û¶¨Òå (ÈËÀà)
-        EFFECT_CLASS_SKILL_SATELLITE_BOMB_POINT,     // ÎÀÐÇºä»÷ Ð§¹û¶¨Òå (ÈËÀà)
-        EFFECT_CLASS_SKILL_SATELLITE_BOMB_FIRE,      // ¿ªÇ¹Ð§¹û
-        EFFECT_CLASS_HEAVEN_GROUND,                  // ·¨Ê¦ÌìÉñ½µÁÙ
-        EFFECT_CLASS_DUMMY_DRAKE,                    // µÂÀ×¿Ë¿þÀÜ(Ä§Áé)
-        EFFECT_CLASS_HYDRO_CONVERGENCE,              //  ¸´ºÏË®ÁÆ
-        EFFECT_CLASS_SUMMON_CLAY,   //  Summon Clay  Õ³ÍÁÕÙ»½    (Ä§ÁéÐÂ¼¼ÄÜ ÍÁ·¨)
-        EFFECT_CLASS_HETER_CHAKRAM, //  Heter Chakram ÏÄ²¼Àû»ùÒò  (Ä§ÁéÐÂ¼¼ÄÜ  Õ½Ê¿)
+        EFFECT_CLASS_SKILL_SATELLITE_BOMB_AIM,       // satellite bomb aiming
+        EFFECT_CLASS_SKILL_SATELLITE_BOMB_POINT,     // satellite bomb target point
+        EFFECT_CLASS_SKILL_SATELLITE_BOMB_FIRE,      // satellite bomb firing
+        EFFECT_CLASS_HEAVEN_GROUND,                  // mage skill: descent of the heavenly god
+        EFFECT_CLASS_DUMMY_DRAKE,                    // dummy drake
+        EFFECT_CLASS_HYDRO_CONVERGENCE,              //  hydro convergence
+        EFFECT_CLASS_SUMMON_CLAY,                    //  Summon Clay
+        EFFECT_CLASS_HETER_CHAKRAM,                  //  Heter Chakram
 
 
         // add by viva
-        EFFECT_CLASS_XRL_Missile, // XRL Õ¨ÁÑµ¼µ¯
+        EFFECT_CLASS_XRL_Missile, // XRL missile
         EFFECTSTATUS_UNKOWN_VIVA2,
         EFFECTSTATUS_UNKOWN_VIVA3,
         EFFECTSTATUS_UNKOWN_VIVA4,
 
-        EFFECT_CLASS_Bramble_Halo,    // Original Action:390 //¾£¼¬¹â»· //×£¸£
+        EFFECT_CLASS_Bramble_Halo,    // Original Action:390 // Bramble Halo
         EFFECTSTATUS_UNKOWN_VIVA5,    // EffectSpriteType:1134
         EFFECT_CLASS_Rapid_Freeze,    // Original Action:396
         EFFECT_CLASS_Penetrate_Wheel, // Orginal Action : 393
         EFFECTSTATUS_UNKOWN_VIVA6,
         EFFECTSTATUS_VAMPIRE_TRANSFORM_TO_D_BAT,   // Original Action : 409
         EFFECTSTATUS_VAMPIRE_TRANSFORM_TO_D_ANGEL, // Original Action : 410
-        EFFECTSTATUS_SUMMON_SYLPH1,                // ÕÙ»½¾«Áé//ousters//Original Action : 247
+        EFFECTSTATUS_SUMMON_SYLPH1,                // summon sylph // ousters // Original Action : 247
         EFFECTSTATUS_SUMMON_SYLPH2,
         EFFECTSTATUS_UNKOWN_VIVA7,
 
@@ -753,7 +753,7 @@ public:
         return getEffectClass();
     }
 
-    // Client¿¡ »Ñ·ÁÁà¾ßÇÏ´Â EffectÀÎ°¡? by sigi. 2002.11.14
+    // Is this an effect that has to be broadcast to the client?
     bool isBroadcastingEffect() {
         return m_bBroadcastingEffect;
     }
@@ -846,14 +846,14 @@ public:
     // data members
     ////////////////////////////////////////////////////////////
 protected:
-    Zone* m_pZone; // target objectÀÇ À§Ä¡
+    Zone* m_pZone; // position of the target object
     ZoneCoord_t m_X;
     ZoneCoord_t m_Y;
-    Object* m_pTarget;  // target object - ¾î¶² °´Ã¼¿¡ °É·Á ÀÖ´Â°¡?
-    Timeval m_NextTime; // ´ÙÀ½ ¹ø¿¡ ½ÇÇàÇØ¾ß ÇÏ´Â ½Ã°£
-    Timeval m_Deadline; // ¾ðÁ¦ ÀÌ °´Ã¼¸¦ »èÁ¦ÇØ¾ß ÇÏ´Â°¡?¸¦ ³ªÅ¸³»´Â ½Ã°£
+    Object* m_pTarget;  // target object -- which object the effect is applied to
+    Timeval m_NextTime; // the time at which it must run next
+    Timeval m_Deadline; // the time at which this object must be deleted
 
-    // Client¿¡ »Ñ·ÁÁà¾ßÇÏ´Â EffectÀÎ°¡? by sigi. 2002.11.14
+    // Is this an effect that has to be broadcast to the client?
     bool m_bBroadcastingEffect;
 };
 

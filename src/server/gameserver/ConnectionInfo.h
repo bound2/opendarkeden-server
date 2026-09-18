@@ -13,7 +13,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class ConnectionInfo;
-// ¼­¹ö°£ ÀÌµ¿¿¡¼­ Á¤´çÇÑ ¿¬°á¿¡ ´ëÇÑ Á¤º¸¸¦ ³ªÅ¸³»´Â °´Ã¼
+// Describes a connection that is valid for a move between servers.
 //////////////////////////////////////////////////////////////////////////////
 
 class ConnectionInfo {
@@ -63,20 +63,20 @@ private:
     string m_ClientIP;    // valid client's ip
     string m_PlayerID;    // PlayerID
     string m_PCName;      // PC name
-    Timeval m_ExpireTime; // expire time : ¾ðÁ¦±îÁö ÀÌ Á¤º¸¸¦ À¯ÁöÇÏ°í ÀÖ¾î¾ß ÇÏ´ÂÁö..
+    Timeval m_ExpireTime; // expire time : how long this info has to be kept
     DWORD m_Key;          // validation key
 };
 
 //////////////////////////////////////////////////////////////////////////////
 // CompareConnectionInfo
 //
-// priority_queue ¿¡¼­ ConnectionInfo ³¢¸® ºñ±³ÇÒ ¶§ »ç¿ëÇÏ´Â Å¬·¡½º¸
+// Class used to compare ConnectionInfo objects in a priority_queue
 //
 // *CAUTION*
 //
-// ½Ã°£ÀûÀ¸·Î ÀÌ¸¥(½Ã°£°ªÀÌ ÀÛÀº) ÂÊÀÌ PQ ÀÇ top ¿¡ À§Ä¡ÇØ¾ß ÇÑ´Ù.
-// Áï PQ ´Â ascending order ¸¦ ÀÌ·ï¾ß ÇÑ´Ù. ¿Ö ±×·±Áö´Â Àß »ìÆìº¸±â¸¦..
-// ½Ã°£ÀÌ ¾ø´Â °ü°è·Î.. - -;
+// The entry with the earlier time (the smaller value) must sit at the
+// top of the PQ; that is, the PQ must be in ascending order. Look at
+// the comparison closely to see why.
 //////////////////////////////////////////////////////////////////////////////
 
 class CompareConnectionInfo {

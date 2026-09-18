@@ -29,11 +29,11 @@ public:
     string toString() const;
 
 public:
-    ShrineID_t m_ShrineID;    // Shrine ID. ItemType과 같아야 한다.
-    ShrineInfo m_GuardShrine; // 성 안에 있는 Shrine
-    ShrineInfo m_HolyShrine;  // 아담의 성지에 있는 Shrine
-    ItemType_t m_ItemType;    // 성서 조각 ItemType
-    ItemID_t m_ItemID;        // 성서 조각 ItemID
+    ShrineID_t m_ShrineID;    // Shrine ID. Must match the ItemType.
+    ShrineInfo m_GuardShrine; // Shrine inside the castle
+    ShrineInfo m_HolyShrine;  // Shrine in Adam's holy land
+    ItemType_t m_ItemType;    // ItemType of the bible fragment
+    ItemID_t m_ItemID;        // ItemID of the bible fragment
 };
 
 

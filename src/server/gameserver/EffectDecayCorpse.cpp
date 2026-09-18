@@ -26,7 +26,7 @@ EffectDecayCorpse::EffectDecayCorpse(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, 
 
     m_ObjectID = pCorpse->getObjectID();
 
-    // 서버 전용 Effect이다. by sigi. 2002.11.14
+    // Server-only effect.
     m_bBroadcastingEffect = false;
 
     __END_CATCH
@@ -57,19 +57,19 @@ void EffectDecayCorpse::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obje
 {
     __BEGIN_TRY
 
-    // 올바른 좌표이어야 한다.
+    // The coordinates must be valid.
     Assert(isValidZoneCoord(pZone, x, y));
 
-    // 시체에 접근한다.
+    // Reach the corpse.
     if (pZone->getTile(x, y).hasItem()) {
         Item* pItem = pZone->getTile(x, y).getItem();
 
         if (pItem != NULL) {
-            // 타일위에 아이템이 있고 그 아이템의 오브젝트 아이디가 똑같아야만 똑 같은 시체이다.
+            // Only an item on the tile with the same object id is the same corpse.
             if (pItem->getObjectID() == m_ObjectID) {
                 Corpse* pCorpse = dynamic_cast<Corpse*>(pTarget);
                 try {
-                    // 시체를 존에서 삭제한다.
+                    // Delete the corpse from the zone.
                     Assert(pZone->getTile(x, y).getItem() == pCorpse);
                     pZone->deleteItem(pCorpse, x, y);
                 } catch (NoSuchElementException& nsee) {
@@ -81,7 +81,7 @@ void EffectDecayCorpse::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obje
                 gcDeleteObject.setObjectID(pCorpse->getObjectID());
                 pZone->broadcastPacket(x, y, &gcDeleteObject);
 
-                // 시체 자체를 삭제한다.
+                // Delete the corpse object itself.
                 SAFE_DELETE(pCorpse);
             }
         }

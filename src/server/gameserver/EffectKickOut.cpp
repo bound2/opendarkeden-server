@@ -7,7 +7,7 @@
 #include "Zone.h"
 
 void EffectKickOut::affect() {
-    // 1분에 한번
+    // Once a minute
     setNextTime(600);
     m_MinutesCount--;
 

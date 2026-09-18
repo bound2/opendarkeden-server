@@ -37,7 +37,7 @@ EffectTransportItem::EffectTransportItem(Zone* pZone, ZoneCoord_t sx, ZoneCoord_
     m_StartX = sx;
     m_StartY = sy;
 
-    // 서버 전용 Effect이다. by sigi. 2002.11.14
+    // Server-only effect.
     m_bBroadcastingEffect = false;
 
     __END_CATCH
@@ -60,8 +60,8 @@ EffectTransportItem::~EffectTransportItem()
 
 //----------------------------------------------------------------------
 // affect to target
-// 이 이펙트는 타일에 종속되지 않으므로, affect()는 호출되지 않는다.
-// 왜냐하면, target은 생성자에서 지정되며, 아무런 일도 하지 않기 때문이다.
+// This effect does not belong to a tile, so affect() is never called,
+// because the target is set in the constructor and it does nothing.
 //----------------------------------------------------------------------
 void EffectTransportItem::affect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pTarget)
 
@@ -87,36 +87,36 @@ void EffectTransportItem::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Ob
     // pTargetZone, x, y
     // m_pZone, m_StartX, m_StartY
 
-    // 올바른 좌표이어야 한다.
+    // The coordinates must be valid.
     if (isValidZoneCoord(pZone, m_StartX, m_StartY)) {
         // Assert(isValidZoneCoord(pZone, m_StartX, m_StartY));
 
-        // TempItem 변수를 잡는다.
+        // Take a TempItem variable.
         Item* pTempItem = NULL;
 
-        // 여기서는 지정 아이템이 없을 수 있으며, 또 다른 아이템이 놓여 있을 수도 있다.
-        // 이 경우는 오리지널 아이템과 지금 현재 바닥에 있는 아이템을 비교하여 삭제해야 한다.
-        // 없을 경우는 무시하면 된다.
+        // The designated item may be gone here, or a different item may be lying there.
+        // In that case compare the original item with the one now on the ground before deleting.
+        // If there is none, ignore it.
         Tile& tile = pZone->getTile(m_StartX, m_StartY);
 
         if (tile.hasItem()) {
             pTempItem = tile.getItem();
 
             if (pTempItem != NULL) {
-                // ObjectID가 같다는 말은 같은 아이템이란 말이다.
+                // The same ObjectID means it is the same item.
                 // if (pTempItem->getObjectID() == m_ObjectID) {
                 if (pTempItem->getObjectID() == m_ObjectID) {
                     pZone->deleteItem(pTempItem, m_StartX, m_StartY);
 
-                    // 아이템이 사라졌다는 패킷을 날린다.
+                    // Send the packet saying the item is gone.
                     GCDeleteObject gcDeleteObject;
                     gcDeleteObject.setObjectID(m_ObjectID);
 
                     pZone->broadcastPacket(m_StartX, m_StartY, &gcDeleteObject);
 
-                    // 다른 존에 추가한다.
-                    // Multi-thread이므로.. 조심조심..
-                    // 같은 ZoneGroup이면 걍 넣는다.
+                    // Add it to the other zone.
+                    // This is multi-threaded, so be careful.
+                    // If it is the same ZoneGroup, just put it in.
                     if (pZone->getZoneGroup() == m_pTargetZone->getZoneGroup())
                     // if (pZone==m_pTargetZone)
                     {

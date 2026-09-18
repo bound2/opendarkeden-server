@@ -19,9 +19,9 @@ Event::Event(GamePlayer* pGamePlayer)
 
     m_pGamePlayer = pGamePlayer;
 
-    // EventReloadInfo때문에 assert제거했다. NULL일 수 있기 때문에
-    // 사실 EventReloadInfo를 Event로 만들 이유는 없었지만(GamePlayer랑 관계없다 -_-;)
-    // 개발 시간상.. EventManager를 쓸 수 밖에 없어서리.. -_-
+    // The assert is gone because EventReloadInfo may pass NULL.
+    // EventReloadInfo need not have been an Event (it has nothing to do with
+    // GamePlayer), but EventManager was the only thing available at the time.
     // by sigi. 2002.9.26
     //	Assert(m_pGamePlayer != NULL);
 
@@ -43,11 +43,11 @@ void Event::setDeadline(Turn_t delay)
 {
     __BEGIN_TRY
 
-    // 현재 시간을 측정한다.
+    // Read the current time.
     getCurrentTime(m_Deadline);
 
-    // 데드라인을 결정한다.
-    // 이때, delay 는 0.1 초가 1 이다.
+    // Work out the deadline.
+    // delay is counted in units of 0.1 second.
     m_Deadline.tv_sec += delay / 10;
     m_Deadline.tv_usec += (delay % 10) * 100000;
 

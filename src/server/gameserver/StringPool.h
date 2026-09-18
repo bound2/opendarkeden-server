@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////
 // Filename : StringPool.h
-// Desc     : 서버내에서 사용되는 string 들의 pool
+// Desc     : Pool of the strings used inside the server
 ////////////////////////////////////////////////////////////////////
 
 #ifndef __STRING_POOL_H__
@@ -141,7 +141,7 @@ enum StringID {
     STRID_QUIT_TEAM_2,                       // 125
     STRID_QUIT_CLAN_2,                       // 126
 
-    // Action 에 있는 String 처리 안되어 있었음
+    // The strings in Action were not handled
     STRID_NOT_ENOUGH_MONEY,           // 127
     STRID_NOT_ENOUGH_INVENTORY_SPACE, // 128
     STRID_ITEM_NOT_EXIST,             // 129

@@ -14,7 +14,7 @@
 #include "Exception.h"
 #include "Types.h"
 
-// 마스터 죽였을때 개인이 받는 계급 경험치
+// Rank experience an individual receives for killing the master
 const int MASTER_KILL_RANK_EXP = 23300;
 
 //                            0x00bbggrr
@@ -194,47 +194,47 @@ public:
     string toString() const;
 
 private:
-    ZoneID_t m_ZoneID;                         // 존 아이디
-    MonsterType_t m_MasterNotReadyMonsterType; // 마스터의 NotReady 상태에서의 MonsterType
-    MonsterType_t m_MasterMonsterType;         // 마스터의 MonsterType
-    bool m_MasterRemainNotReady;               // NotReady상태의 Master를 시체로 바꾸기
-    ZoneCoord_t m_MasterX;                     // 마스터의 X좌표
-    ZoneCoord_t m_MasterY;                     // 마스터의 Y좌표
-    Dir_t m_MasterDir;                         // 마스터의 방향
-    int m_MaxPassPlayer;                       // 최대 사용자 수
-    // int            m_MaxSummonMonster;          // 최대 몬스터 소환 숫자
-    ZoneCoord_t m_SummonX; // 몬스터 소환 좌표
-    ZoneCoord_t m_SummonY; // 몬스터 소환 좌표
-    int m_FirstRegenDelay; // 최초의 마스터 레어 리젠 주기(분)
-    int m_RegenDelay;      // 마스터 레어 리젠 주기(분)
-    int m_StartDelay;      // 입장 금지, 마스터 부활 시간
-    int m_EndDelay;        // 마스터를 죽일 수 있는 시간, 이 시간 이후에는 강제 추방
-    int m_KickOutDelay;    // 마스터를 죽인 후, 강제추방까지의 시간
+    ZoneID_t m_ZoneID;                         // zone id
+    MonsterType_t m_MasterNotReadyMonsterType; // MonsterType of the master while NotReady
+    MonsterType_t m_MasterMonsterType;         // MonsterType of the master
+    bool m_MasterRemainNotReady;               // turn a NotReady master into a corpse
+    ZoneCoord_t m_MasterX;                     // master's X coordinate
+    ZoneCoord_t m_MasterY;                     // master's Y coordinate
+    Dir_t m_MasterDir;                         // master's direction
+    int m_MaxPassPlayer;                       // maximum number of players
+    // int            m_MaxSummonMonster;          // maximum number of summoned monsters
+    ZoneCoord_t m_SummonX; // monster summon coordinate
+    ZoneCoord_t m_SummonY; // monster summon coordinate
+    int m_FirstRegenDelay; // first master lair regen interval (minutes)
+    int m_RegenDelay;      // master lair regen interval (minutes)
+    int m_StartDelay;      // entry ban and master revival time
+    int m_EndDelay;        // time allowed to kill the master; players are expelled after it
+    int m_KickOutDelay;    // time from killing the master until expulsion
 
-    // 강제추방시킬 존
+    // Zone players are expelled to
     ZoneID_t m_KickZoneID;
     ZoneCoord_t m_KickZoneX;
     ZoneCoord_t m_KickZoneY;
 
-    // Lair 전체 공격
+    // Lair-wide attack
     int m_LairAttackTick;
     int m_LairAttackMinNumber;
     int m_LairAttackMaxNumber;
 
-    // 몹 소환할때 하는 말
+    // Lines said when summoning monsters
     vector<string> m_MasterSummonSay;
 
-    // 마스터가 죽을 때 하는 말
+    // Lines said when the master dies
     vector<string> m_MasterDeadSlayerSay;
     vector<string> m_MasterDeadVampireSay;
 
-    // 마스터가 안 죽었을때 하는 말
+    // Lines said when the master was not killed
     vector<string> m_MasterNotDeadSay;
 };
 
 //////////////////////////////////////////////////////////////////////////////
 // class MasterLairInfoManager;
-// ZoneID 를 키값으로 해서 존 정보를 검색할 수 있는 기능을 제공한다.
+// Provides lookup of zone information keyed by ZoneID.
 //////////////////////////////////////////////////////////////////////////////
 
 class MasterLairInfoManager {
@@ -257,7 +257,7 @@ public:
     string toString() const;
 
 private:
-    unordered_map<ZoneID_t, MasterLairInfo*> m_MasterLairInfos; // zone info 의 해쉬맵
+    unordered_map<ZoneID_t, MasterLairInfo*> m_MasterLairInfos; // hash map of zone info
 };
 
 extern MasterLairInfoManager* g_pMasterLairInfoManager;

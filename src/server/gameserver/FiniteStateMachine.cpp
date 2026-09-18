@@ -8,14 +8,14 @@ void FiniteStateMachine::heartbeat(Timeval currentTime) {
     } else
         nextState = m_pCurrentState->heartbeat(currentTime);
 
-    // 상태가 바뀌는 경우
+    // When the state changes
     if (nextState != 0) {
-        // 현재 상태를 끝내고
+        // End the current state
         cout << "End state " << m_pCurrentState->toString() << endl;
         m_pCurrentState->end();
         m_pStateFactory->wasteState(m_pCurrentState);
 
-        // 다음 상태로 간다.
+        // Go to the next state.
         State* pNextState = m_pStateFactory->makeState(nextState);
         m_pCurrentState = pNextState;
         cout << "Start state " << m_pCurrentState->toString() << endl;

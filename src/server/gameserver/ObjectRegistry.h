@@ -14,7 +14,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class ObjectRegistry;
-// 객체에게 ObjectID를 할당한다.
+// Assigns an ObjectID to an object.
 //////////////////////////////////////////////////////////////////////////////
 
 class ObjectRegistry {
@@ -28,7 +28,7 @@ public:
     void unlock();
 
 private:
-    ObjectID_t m_ObjectIDKey; // Object ID 생성을 위한 키값
+    ObjectID_t m_ObjectIDKey; // Key value used to generate Object IDs
     mutable Mutex m_Mutex;    // mutex
 };
 

@@ -21,7 +21,7 @@ public:
     virtual ~ItemInfo();
 
 
-    // 공통 정보
+    // Common information
 public:
     virtual Item::ItemClass getItemClass() const = 0;
     string getItemClassName() const {
@@ -134,7 +134,7 @@ public:
     virtual string toString() const = 0;
 
 
-    // 개별 정보. 편의상 베이스 클래스에 정의해준다.
+    // Per-class information, defined in the base class for convenience.
 public:
     virtual Durability_t getDurability() const {
         return 1;
@@ -203,7 +203,7 @@ public:
         return 0;
     }
 
-    // ItemType에 따른 기본 옵션
+    // Default options for the ItemType
     virtual void setDefaultOptions(const string& options);
     void addDefaultOptions(OptionType_t optionType);
     void clearDefaultOptions();
@@ -260,31 +260,31 @@ public:
 
     // member data
 protected:
-    ItemType_t m_ItemType;     // 아이템 타입
-    string m_Name;             // 이름
-    string m_EName;            // 영문 이름
-    Price_t m_Price;           // 가격
-    VolumeType_t m_VolumeType; // 부피
-    Weight_t m_Weight;         // 무게
-    Ratio_t m_Ratio;           // 아이템 등장 확률(갬블 확률)
-    string m_Description;      // 아이템 설명
-    Attr_t m_ReqSTR;           // 필요한 STR
-    Attr_t m_ReqDEX;           // 필요한 DEX
-    Attr_t m_ReqINT;           // 필요한 INT
-    Attr_t m_ReqSum;           // 필요한 능력치의 합
-    Level_t m_ReqLevel;        // 필요한 레벨
-    Level_t m_ReqAdvanceLevel; // 필요한 전직 레벨
-    Attr_t m_ReqGender;        // 필요한 성
+    ItemType_t m_ItemType;     // item type
+    string m_Name;             // name
+    string m_EName;            // English name
+    Price_t m_Price;           // price
+    VolumeType_t m_VolumeType; // volume
+    Weight_t m_Weight;         // weight
+    Ratio_t m_Ratio;           // item appearance chance (gamble chance)
+    string m_Description;      // item description
+    Attr_t m_ReqSTR;           // required STR
+    Attr_t m_ReqDEX;           // required DEX
+    Attr_t m_ReqINT;           // required INT
+    Attr_t m_ReqSum;           // required sum of the stats
+    Level_t m_ReqLevel;        // required level
+    Level_t m_ReqAdvanceLevel; // required advancement level
+    Attr_t m_ReqGender;        // required sex
 
-    bool m_bDefaultOptions;              // 기본 옵션이 있나?
-    list<OptionType_t> m_DefaultOptions; // 기본 옵션
+    bool m_bDefaultOptions;              // are there default options?
+    list<OptionType_t> m_DefaultOptions; // default options
 
-    Ratio_t m_UpgradeRatio;    // enchant해서 성공할 확률
-    int m_UpgradeCrashPercent; // upgrade가 실패해서 부서질 확률 = m_UpgradeCrashPercent%
+    Ratio_t m_UpgradeRatio;    // chance that an enchant succeeds
+    int m_UpgradeCrashPercent; // chance of breaking on a failed upgrade = m_UpgradeCrashPercent%
 
-    bool m_bUnique; // unique item 인가?
+    bool m_bUnique; // is this a unique item?
 
-    Ratio_t m_NextOptionRatio; // 다른 옵션이 붙을 확률
+    Ratio_t m_NextOptionRatio; // chance that another option is attached
 
     ItemType_t m_NextItemType;
     Ratio_t m_DowngradeRatio;

@@ -19,7 +19,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class ZoneInfoManager;
-// ZoneID 를 키값으로 해서 존 정보를 검색할 수 있는 기능을 제공한다.
+// Provides lookup of zone information keyed by ZoneID.
 //////////////////////////////////////////////////////////////////////////////
 
 class ZoneInfoManager {
@@ -49,7 +49,7 @@ private:
     // load and, at run time, on whichever zone thread creates a dynamic
     // zone. A reader loads a snapshot without waiting on a writer; a writer replaces it.
     struct Tables {
-        unordered_map<ZoneID_t, ZoneInfo*> byID; // zone info 의 해쉬맵
+        unordered_map<ZoneID_t, ZoneInfo*> byID; // Hash map of zone info
         unordered_map<string, ZoneInfo*> byFullName;
         unordered_map<string, ZoneInfo*> byShortName;
     };

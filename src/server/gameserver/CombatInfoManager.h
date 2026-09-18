@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename     : CombatInfoManager.h
 // Written by   : bezz
-// Description  : 전쟁의 승패와 관련해서 관련 값들을 설정한다.
+// Description  : Sets the values tied to the outcome of a war.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __COMBAT_INFO_MANAGER_H__
@@ -16,15 +16,15 @@
 //////////////////////////////////////////////////////////////////////////////
 // class CombatInfoManager
 //
-// 현재 Relic의 Onwer를 가지고 있으며
-// 그에 따른 Bonus, Penalty 값을 계산하여 알려준다.
+// Holds the current owner of each Relic and computes the
+// resulting bonus and penalty values.
 //////////////////////////////////////////////////////////////////////////////
 
 class CombatInfoManager {
 public:
     ///////////////////////////////////////////////////////////////////
     // Relic Owner
-    // Relic을 소유하여 Bonus, Penalty를 받을 대상
+    // The side that owns the Relic and so receives the bonus or penalty
     ///////////////////////////////////////////////////////////////////
     enum RelicOwner { RELIC_OWNER_NULL, RELIC_OWNER_SLAYER, RELIC_OWNER_VAMPIRE };
 
@@ -32,17 +32,17 @@ public:
     // Constructor
     CombatInfoManager();
 
-    // Bonus, Penalty 값을 초기화 한다.
+    // Initialize the bonus and penalty values.
     void initModify();
 
-    // Bonus, Penalty를 계산한다.
+    // Compute the bonus and penalty.
     void computeModify();
 
-    // Relic Onwer를 설정한다.
+    // Set the Relic owner.
     void setRelicOwner(int index, RelicOwner relicOwner);
 
 
-    // Bonus, Penalty 값을 return
+    // Return the bonus and penalty values
     int getSlayerHPModify() const {
         return m_SlayerHPModify;
     }
@@ -71,10 +71,10 @@ public:
     }
 
 private:
-    // 각 Relic의 Owner
+    // Owner of each Relic
     RelicOwner m_RelicOwner[maxRelic];
 
-    // Bonus, Penalty 값
+    // Bonus and penalty values
     int m_SlayerHPModify;
     int m_SlayerToHitModify;
     int m_VampireHPModify;

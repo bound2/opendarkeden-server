@@ -205,10 +205,10 @@ int g_FastMoveSearchY[8][4] = {
 };
 
 //////////////////////////////////////////////////////////////////////////////
-// 기본적으로 Zone 의 처리는 mutex 를 사용하지 않는다.
-// 왜냐하면, ZoneGroupThread의 단일 처리를 받기 때문이다. 그런데, 새로 존에
-// PC를 추가하는 것은 IPM에서 이루어지게 되므로, 이런 연유로 mutex 멤버를
-// 추가해야 하며, 아래 메소드에 locking 을 걸어줘야 한다.
+// Zone processing generally does not use a mutex,
+// because it is driven only by the ZoneGroupThread. Adding a new PC to a
+// zone, however, happens in the IPM, which is why a mutex member is needed
+// and the method below has to be locked.
 //////////////////////////////////////////////////////////////////////////////
 void Zone::pushPC(Creature* pCreature)
 
@@ -227,11 +227,11 @@ void Zone::pushPC(Creature* pCreature)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// P(cx,cy)에 있는 PC를 dir 방향으로 이동시켜 Q(nx,ny)로 옮긴다.
-// 그리고나서, 주변의 PC들에게 이동 정보를 브로드캐스트한다.
+// Move the PC at P(cx,cy) in direction dir to Q(nx,ny).
+// Then broadcast the move information to the surrounding PCs.
 //
 // *CAUTION*
-// PC가 아닌 크리처(NPC,Monster)의 이동은 moveCreature를 사용한다.
+// Moving a non-PC creature (NPC, Monster) uses moveCreature.
 //////////////////////////////////////////////////////////////////////////////
 void Zone::movePC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
@@ -252,25 +252,25 @@ void Zone::movePC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir
 
     const int threshold = 6;
     ////////////////////////////////////////////////////////////
-    // 일단 크리처가 점프를 하려는 건지를 체크한다.
-    // 만약 약간 점프했을 경우, GCMoveError 패킷을 전송한다.
+    // First check whether the creature is trying to jump.
+    // If it jumped slightly, send a GCMoveError packet.
     //
-    // OX, OY : 플레이어의 현재 좌표
-    // CX, CY : 타겟 좌표
+    // OX, OY : the player's current coordinates
+    // CX, CY : the target coordinates
     //
     // max(0, OX - threshold) <= CX <= min(OX + threshold, ZONEWIDTH-1)
     // max(0, OY - threshold) <= CY <= min(OY + threshold, ZONEHEIGHT-1)
-    // 를 만족해야 정상적인 이동이다.
+    // must hold for the move to be valid.
     ////////////////////////////////////////////////////////////
     if (pCreature->getX() != cx || pCreature->getY() != cy) {
         if (cx >= max(0, pCreature->getX() - threshold) && cx <= min(m_Width - 1, pCreature->getX() + threshold) &&
             cy >= max(0, pCreature->getY() - threshold) && cy <= min(m_Height - 1, pCreature->getY() + threshold)) {
-            // 허용가능한 오차 범위내에서의 점프는 그냥 무시해준다.
+            // A jump within the allowed error range is simply ignored.
 
             filelog("ZoneDebug.txt", "movePC - 2\n\r");
             return;
         } else {
-            // 허용가능한 오차 범위를 넘어설 경우 접속을 차단한다.
+            // A jump beyond the allowed error range blocks the connection.
 
             GCMoveError gcMoveError(cx, cy);
             pPlayer->sendPacket(&gcMoveError);
@@ -279,14 +279,14 @@ void Zone::movePC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir
         }
     }
 
-    // 다음 좌표를 계산한다.
+    // Compute the next coordinates.
     int nx = cx;
     int ny = cy;
 
     //////////////////////////////////////////////////////////////////////////////
     // *CAUTION*
-    // 경계지점에서 경계의 외곽으로 움직이는 패킷이 날아와서는 안된다.
-    // ex> (0,10)에서 LEFT 이동은 날아올 수 없다. (10,0)에서 UP 이동도 마찬가지이다.
+    // A packet moving from the border to outside the border must not arrive.
+    // e.g. a LEFT move from (0,10) cannot arrive. The same goes for an UP move from (10,0).
     //////////////////////////////////////////////////////////////////////////////
     nx = nx + dirMoveMask[dir].x;
     ny = ny + dirMoveMask[dir].y;
@@ -296,20 +296,20 @@ void Zone::movePC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir
         throw InvalidProtocolException("invalid coordination");
 
     ////////////////////////////////////////////////////////////
-    // 이동할 곳이 block 되어있다면, GCMoveError 를 전송한다.
-    // (PC와 같은 위치가 block 되어야 한다.)
+    // If the destination is blocked, send GCMoveError.
+    // (The position the PC stands on has to be blocked too.)
     ////////////////////////////////////////////////////////////
     Tile& newTile = m_pTiles[nx][ny];
     Tile& oldTile = m_pTiles[cx][cy];
 
-    // 성물을 가지고 있는 경우라면.. 안전지대에 들어갈 수 없다.
+    // While carrying a relic, safe zones cannot be entered.
     if (pCreature->hasRelicItem() || pCreature->isFlag(Effect::EFFECT_CLASS_HAS_FLAG) ||
         pCreature->isFlag(Effect::EFFECT_CLASS_HAS_SWEEPER)) {
         ZoneLevel_t ZoneLevel = getZoneLevel(nx, ny);
 
-        // 슬레이어이면 슬레이어 안전지대에 못 들어간다.
-        // 뱀파이어이면  뱀파이어안전지대에 못 들어간다.
-        // 공통 안전지대이면 못 들어간다.
+        // A Slayer cannot enter a Slayer safe zone.
+        // A Vampire cannot enter a Vampire safe zone.
+        // A common safe zone cannot be entered.
         if (pCreature->isSlayer() && (ZoneLevel & SLAYER_SAFE_ZONE) ||
             pCreature->isVampire() && (ZoneLevel & VAMPIRE_SAFE_ZONE) ||
             pCreature->isOusters() && (ZoneLevel & OUSTERS_SAFE_ZONE) || (ZoneLevel & COMPLETE_SAFE_ZONE)) {
@@ -335,24 +335,24 @@ void Zone::movePC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir
     }
 
     if (newTile.isBlocked(pCreature->getMoveMode())
-        // BloodyWallBlocked나
-        // Sanctuary 이펙트가 걸려있다면 못 간다.
+        // If BloodyWallBlocked or
+        // Sanctuary is in effect, the move is not allowed.
         || newTile.hasEffect() && (newTile.getEffect(Effect::EFFECT_CLASS_BLOODY_WALL_BLOCKED) ||
                                    newTile.getEffect(Effect::EFFECT_CLASS_SANCTUARY)) ||
         oldTile.getEffect(Effect::EFFECT_CLASS_SANCTUARY) != NULL) {
         GCMoveError gcMoveError(cx, cy);
         pPlayer->sendPacket(&gcMoveError);
     } else {
-        // 우선 크리처의 좌표를 변경한다.
+        // First change the creature's coordinates.
         pCreature->setXYDir(nx, ny, dir);
 
         try {
-            // 이전 타일에서 크리처를 삭제한다.
+            // Delete the creature from the previous tile.
             m_pTiles[cx][cy].deleteCreature(pCreature->getObjectID());
 
-            // 새 타일에 크리처를 추가한다.
+            // Add the creature to the new tile.
             if (!newTile.addCreature(pCreature)) {
-                // Portal을 activate 시킨 경우이다. by sigi. 2002.5.6
+                // The portal was activated.
                 return;
             }
 
@@ -363,12 +363,12 @@ void Zone::movePC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir
                 filelog("CheckMineBug.txt", "%s : %s", "movePC", t.toString().c_str());
             }
 
-            // 클라이언트에게 GCMoveOK 를 전송할때, (nx,ny)는 도착 좌표여야 하며,
-            // dir 은 바라보는(이동할) 방향이어야 한다. 그것이 현재의 정책!
+            // When GCMoveOK is sent to the client, (nx,ny) must be the destination and
+            // dir the facing (movement) direction. That is the current policy.
             GCMoveOK gcMoveOK(nx, ny, dir);
             pPlayer->sendPacket(&gcMoveOK);
 
-            // 자동으로 GCMove/GCAddSlayer/GCAddVampire 패킷을 브로드캐스트한다.
+            // Broadcast the GCMove/GCAddSlayer/GCAddVampire packets automatically.
             movePCBroadcast(pCreature, cx, cy, nx, ny);
         } catch (NoSuchElementException& nsee) {
             throw Error("The creature is not on the previous tile.");
@@ -384,12 +384,12 @@ void Zone::movePC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// PC가 아닌 크리처(NPC,Monster)를 움직일 때 이 메소드를 사용한다.
+// This method is used to move a non-PC creature (NPC, Monster).
 //
 // *CAUTION*
 //
-// 이때, (nx,ny,dir)은 크리처가 도달할 다음 좌표와 바라보는 방향을 나타낸다.
-// 그리고, 이 좌표에 아무 것도 없다는 검증이 먼저 이루어져야 한다. (길찾기 루틴)
+// Here (nx,ny,dir) is the next coordinate the creature reaches and its facing direction.
+// It must already have been verified that this coordinate is empty. (path finding routine)
 //////////////////////////////////////////////////////////////////////////////
 void Zone::moveCreature(Creature* pCreature, ZoneCoord_t nx, ZoneCoord_t ny, Dir_t dir)
 
@@ -402,15 +402,15 @@ void Zone::moveCreature(Creature* pCreature, ZoneCoord_t nx, ZoneCoord_t ny, Dir
     ZoneCoord_t cx = pCreature->getX();
     ZoneCoord_t cy = pCreature->getY();
 
-    // 이전 타일에서 크리처를 삭제하고, 다음 타일에 크리처를 추가한다.
+    // Delete the creature from the previous tile and add it to the next tile.
     try {
-        // 이전 타일에서 크리처를 삭제한다.
+        // Delete the creature from the previous tile.
         m_pTiles[cx][cy].deleteCreature(pCreature->getObjectID());
 
-        // 도착 타일에 크리처를 추가한다.
+        // Add the creature to the destination tile.
         m_pTiles[nx][ny].addCreature(pCreature);
 
-        // 크리처의 좌표와 방향을 설정한다.
+        // Set the creature's coordinates and direction.
         pCreature->setXYDir(nx, ny, dir);
 
         try {
@@ -429,15 +429,15 @@ void Zone::moveCreature(Creature* pCreature, ZoneCoord_t nx, ZoneCoord_t ny, Dir
         throw;
     }
 
-    // 알아서 GCMove 랑 GCAddMonster/GCAddNPC 를 브로드캐스트한다.
+    // Broadcast GCMove and GCAddMonster/GCAddNPC automatically.
     moveCreatureBroadcast(pCreature, cx, cy, nx, ny);
 
     __END_CATCH
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// P(x1,y1)에서 Q(x2,y2)로 빠른 이동한 크리처가 주변 영역에 존재하는 PC들에게
-// 브로드캐스트하는 메쏘드이다.
+// Broadcasts a creature's fast move from P(x1,y1) to Q(x2,y2) to the PCs
+// in the surrounding area.
 // for Skill FlashSliding, ShadowWalk
 //////////////////////////////////////////////////////////////////////////////
 bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t x2, ZoneCoord_t y2,
@@ -445,15 +445,14 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // 이 메쏘드는 PC 를 대상으로 한다.
+    // This method targets a PC.
     Assert(pPC->isPC());
 
-    // isAbleToMove 로 바꾼다. by bezz. 2002.12.28
     if (!isAbleToMove(pPC))
         return false;
 
 
-    // 성물을 가지고 있는 경우라면.. 안전지대에 들어갈 수 없다.
+    // While carrying a relic, safe zones cannot be entered.
     if (pPC->hasRelicItem()) {
         return false;
     }
@@ -469,21 +468,21 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
     if (rTile.getEffect(Effect::EFFECT_CLASS_ON_BRIDGE) != NULL)
         return false;
 
-    // 적당한 종착지점을 찾는다.
-    // 전면부에서 적당한 지점..4개 검색
+    // Find a suitable destination point.
+    // Four candidate points in front are searched.
     Dir_t dir = calcDirection(x1, y1, x2, y2);
 
-    // g_FastMoveSearchX, Y로 찾으면 된다. by sigi. 2002.5.8
+    // g_FastMoveSearchX, Y are used for the search.
     int* searchX = g_FastMoveSearchX[dir];
     int* searchY = g_FastMoveSearchY[dir];
 
-    // 빈 타일인지 확인.
+    // Check whether the tile is empty.
     int i = 0;
     for (i = 0; i < 4; i++) {
         int targetX = x2 + searchX[i], targetY = y2 + searchY[i];
         if (targetX >= 0 && targetX < m_Width && targetY >= 0 && targetY < m_Height &&
             !m_pTiles[targetX][targetY].isBlocked(pPC->getMoveMode()) && !m_pTiles[targetX][targetY].hasPortal() &&
-            // Sanctuary 가 걸려있지 않아야 한다. by Sequoia 2003.3.25
+            // Sanctuary must not be in effect.
             m_pTiles[targetX][targetY].getEffect(Effect::EFFECT_CLASS_SANCTUARY) == NULL &&
             m_pTiles[x1][y1].getEffect(Effect::EFFECT_CLASS_SANCTUARY) == NULL) {
             x2 = targetX;
@@ -492,7 +491,7 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
         }
     }
     if (i == 4) {
-        return false; // 빈타일을 못찾았다!
+        return false; // No empty tile was found!
     }
 
     Player* pPlayer = pPC->getPlayer();
@@ -513,16 +512,16 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
 
     pPlayer->sendStream(&outputStream);
 
-    // 퀘스트..
+    // Quest.
     dynamic_cast<PlayerCreature*>(pPC)->getGQuestManager()->fastMove();
 
     //////////////////////////////////////////////////////////////
-    // move의 종류....
-    // 이에따라 GCDelete나 Add등을 보내줘야 할 수 도 있다.
+    // The kind of move....
+    // Depending on it, GCDelete or Add may have to be sent.
 
-    // PC의 좌표 변경.
+    // Change the PC's coordinates.
     pPC->setXYDir(x2, y2, dir);
-    // 이전 타일에서 크리처를 삭제한다.
+    // Delete the creature from the previous tile.
 
     try {
         m_pTiles[x1][y1].deleteCreature(pPC->getObjectID());
@@ -531,7 +530,7 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
         throw;
     }
 
-    // 새 타일에 크리처를 추가한다.
+    // Add the creature to the new tile.
     m_pTiles[x2][y2].addCreature(pPC);
 
     try {
@@ -546,8 +545,8 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
 
 
     //--------------------------------------------------------------------------------
-    // GCAddSlayer/GCAddVampire 패킷을 만들어둔다.
-    // 현재의 정책에 의하면, GCAdd 패킷은 현재의 좌표를 바탕으로 한다.
+    // Prepare the GCAddSlayer/GCAddVampire packet.
+    // By the current policy, the GCAdd packet is based on the current coordinates.
     //--------------------------------------------------------------------------------
     Packet* pGCAddXXX = NULL;
 
@@ -560,8 +559,8 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
     } else if (pPC->getCreatureClass() == Creature::CREATURE_CLASS_VAMPIRE) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pPC);
 
-        // 음.. hide상태에서 움직일 수는 없지만..
-        // 미래를 대비.
+        // Moving while hidden is not possible,
+        // but prepare for the future.
         if (pPC->isFlag(Effect::EFFECT_CLASS_HIDE)) {
             GCAddBurrowingCreature* pGCABC = new GCAddBurrowingCreature();
             pGCABC->setObjectID(pVampire->getObjectID());
@@ -584,13 +583,13 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
     }
 
     //--------------------------------------------------------------------------------
-    // GCDeleteObject 패킷을 만들어둔다.
+    // Prepare the GCDeleteObject packet.
     //--------------------------------------------------------------------------------
     GCDeleteObject gcDeleteObject;
     gcDeleteObject.setObjectID(pPC->getObjectID());
 
 
-    // 총 시야의 범위를 구한다.
+    // Compute the total range of sight.
     ZoneCoord_t minX, maxX, minY, maxY;
     if (x1 < x2) {
         minX = max(0, x1 - maxViewportWidth);
@@ -608,7 +607,7 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
     }
 
 
-    // ObservingEye 이펙트를 가져온다.
+    // Get the ObservingEye effect.
     //		//Assert( pEffectObservingEye != NULL );
     //
     for (ZoneCoord_t ix = minX; ix <= maxX; ix++) {
@@ -617,12 +616,12 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
 
             forward_list<Object*>::const_iterator itr = objectList.begin();
 
-            // visionInfo 때문에..
-            // if - do~while()로 구조 변경 by sigi. 2002.5.8
+            // Because of visionInfo,
+            // the structure is an if plus a do-while rather than a plain if.
             if (itr != objectList.end()) {
-                // 이전 좌표 P(x1,y1)에서 I(ix,iy)가 어떻게 보이는가?
+                // How is I(ix,iy) seen from the previous coordinate P(x1,y1)?
                 VisionState prevVisionState = VisionInfoManager::getVisionState(x1, y1, ix, iy);
-                // 현재 좌표 Q(x2,y2)에서 I(ix,iy)가 어떻게 보이는가?
+                // How is I(ix,iy) seen from the current coordinate Q(x2,y2)?
                 VisionState curVisionState = VisionInfoManager::getVisionState(x2, y2, ix, iy);
 
                 do {
@@ -630,23 +629,23 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
 
                     //--------------------------------------------------------------------------------
                     //
-                    // 각 객체의 OBJECT CLASS에 따라서 적합한 GCAddXXX 패킷을 만들어서
-                    // owner 에게 전송한다.
+                    // Build the GCAddXXX packet matching each object's OBJECT CLASS and
+                    // send it to the owner.
                     //
                     // *NOTES*
                     //
-                    // 가장 출현 확률이 높은 객체 CLASS 가 case 앞부분에 나와야 한다.
+                    // The object CLASS most likely to appear must come first among the cases.
                     //
                     //--------------------------------------------------------------------------------
                     switch ((*itr)->getObjectClass()) {
                     //--------------------------------------------------------------------------------
-                    // 타일 위에 크리처가 있을 경우
+                    // When there is a creature on the tile
                     //--------------------------------------------------------------------------------
                     case Object::OBJECT_CLASS_CREATURE: {
                         Creature* pCreature = dynamic_cast<Creature*>(*itr);
                         Assert(pCreature != NULL);
 
-                        // 자기 자신의 정보는 받을 필요가 없다.
+                        // There is no need to receive one's own information.
                         if (pCreature == pPC)
                             continue;
 
@@ -656,8 +655,8 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
 
                             //--------------------------------------------------------------------------------
                             //
-                            // 이전 좌표에서는 이 몬스터를 볼 수 없었으나, 도착 좌표에서 이 몬스터를 보게 될
-                            // 경우 GCAddMonster 패킷을 전송한다.
+                            // If this monster was invisible from the previous coordinate but becomes
+                            // visible from the destination coordinate, send a GCAddMonster packet.
                             //
                             //--------------------------------------------------------------------------------
                             if (prevVisionState == OUT_OF_SIGHT && curVisionState >= IN_SIGHT) {
@@ -670,11 +669,11 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                             }
 
                             //--------------------------------------------------------------------------------
-                            // PC를 몬스터의 잠재적인 적으로 지정해준다.
+                            // Register the PC as a potential enemy of the monster.
                             //--------------------------------------------------------------------------------
                             VisionState vs = pMonster->getVisionState(x2, y2);
 
-                            // Aggressive 몬스터에게만 적으로 등록시켜준다.
+                            // Register as an enemy only for Aggressive monsters.
                             if (vs >= IN_SIGHT && pMonster->getAlignment() == ALIGNMENT_AGGRESSIVE) {
                                 if (isPotentialEnemy(pMonster, pPC)) {
                                     pMonster->addPotentialEnemy(pPC);
@@ -688,11 +687,11 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                         //--------------------------------------------------------------------------------
                         case Creature::CREATURE_CLASS_SLAYER: {
                             //--------------------------------------------------------------------------------
-                            // 이전 좌표에서는 보이지 않다가, 이번 좌표에서 새로 보이게 된 크리처만
-                            // GCAddXXX 를 받아온다. 계속 보일 경우에는 받아오지 않는다.
+                            // Only creatures that were invisible at the previous coordinate and are
+                            // visible at this one get a GCAddXXX. Those that stay visible do not.
                             //--------------------------------------------------------------------------------
                             if (curVisionState >= IN_SIGHT && prevVisionState == OUT_OF_SIGHT) {
-                                // 보는 이가 스나이핑 상태라면 디텍트 되어 있어야 한다.
+                                // If the viewer is sniping, it has to have been detected.
                                 //												if
                                 //(!pCreature->isFlag(Effect::EFFECT_CLASS_SNIPING_MODE)
                                 //													||
@@ -713,12 +712,12 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
 
                             //--------------------------------------------------------------------------------
                             //
-                            // Q(x2,y2)가 이 크리처의 시야 사각형의 경계에 위치하면서, P(x1,y1)은 사각형의 외부,
-                            // 즉 보이지 않는 경우에만 GCAddXXX 패킷을 전송한다. 이렇게 하지 않으면, PC
-                            // 크리처가 pCreature의 시야 경계에서 계속 움직이게 되면 계속 서버는 GCAddXXX 패킷을
-                            // 보내야만 한다.
+                            // Send the GCAddXXX packet only when Q(x2,y2) is on the border of this
+                            // creature's sight rectangle and P(x1,y1) is outside it, i.e. invisible.
+                            // Otherwise the server would keep sending GCAddXXX packets as the PC keeps
+                            // moving along pCreature's sight border.
                             //
-                            // 요약하면,
+                            // In summary,
                             //
                             // OUT_OF_SIGHT -> ON_SIGHT/NEW_SIGHT : GCAddXXX
                             // IN_SIGHT/ON_SIGHT/NEW_SIGHT -> IN_SIGHT/ON_SIGHT/NEW_SIGHT : GCMove
@@ -727,10 +726,9 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                             VisionState prevVS = pCreature->getVisionState(x1, y1);
                             VisionState currVS = pCreature->getVisionState(x2, y2);
 
-                            // 보이지 않는 영역에서, 경계 영역을 거치지 않고 바로
-                            // 시야 내부 영역으로 들어온다는 것은 불가능하다.
+                            // Entering the visible interior straight from the invisible area without
+                            // passing through the border area is impossible.
 
-                            // canSee 로 대체. by bezz 2003.05.29
                             if (canSee(pCreature, pPC)) {
                                 if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                     pCreature->getPlayer()->sendPacket(pGCAddXXX);
@@ -745,9 +743,9 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
 
                         case Creature::CREATURE_CLASS_VAMPIRE: {
                             //--------------------------------------------------------------------------------
-                            // 이전 좌표에서는 보이지 않다가, 이번 좌표에서 새로 보이게 된 크리처만
-                            // GCAddXXX 를 받아온다. 이전에도 NEW_SIGHT 이고, 지금도 NEW_SIGHT 이면,
-                            // 새로 받아오지 않는다.
+                            // Only creatures that were invisible at the previous coordinate and are
+                            // visible at this one get a GCAddXXX. If it was NEW_SIGHT before and is
+                            // NEW_SIGHT now, nothing new is fetched.
                             //--------------------------------------------------------------------------------
                             if (curVisionState >= IN_SIGHT && prevVisionState == OUT_OF_SIGHT) {
                                 if (canSee(pPC, pCreature)) {
@@ -769,7 +767,7 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                                         GCAddVampire gcAddVampire;
                                         makeGCAddVampire(&gcAddVampire, pVampire);
                                         pPlayer->sendPacket(&gcAddVampire);
-                                        // pCreature는 invisibility상태..
+                                        // pCreature is in the invisibility state.
                                         // pPC->isFlag(Effect::EFFECT_CLASS_DETECT_INVISIBILITY)
                                     }
                                 }
@@ -778,12 +776,12 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                             Assert(pCreature->getPlayer() != NULL);
 
                             //--------------------------------------------------------------------------------
-                            // Q(x2,y2)가 이 크리처의 시야 사각형의 경계에 위치하면서, P(x1,y1)은 사각형의 외부,
-                            // 즉 보이지 않는 경우에만 GCAddXXX 패킷을 전송한다. 이렇게 하지 않으면, PC
-                            // 크리처가 pCreature의 시야 경계에서 계속 움직이게 되면 계속 서버는 GCAddXXX 패킷을
-                            // 보내야만 한다.
+                            // Send the GCAddXXX packet only when Q(x2,y2) is on the border of this
+                            // creature's sight rectangle and P(x1,y1) is outside it, i.e. invisible.
+                            // Otherwise the server would keep sending GCAddXXX packets as the PC keeps
+                            // moving along pCreature's sight border.
                             //
-                            // 요약하면,
+                            // In summary,
                             //
                             // OUT_OF_SIGHT -> ON_SIGHT/NEW_SIGHT : GCAddXXX
                             // IN_SIGHT/ON_SIGHT/NEW_SIGHT -> IN_SIGHT/ON_SIGHT/NEW_SIGHT : GCMove
@@ -792,10 +790,10 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                             VisionState prevVS = pCreature->getVisionState(x1, y1);
                             VisionState currVS = pCreature->getVisionState(x2, y2);
 
-                            // 상대는 뱀파이어이므로 나의 darkness상태는 관계없다.
-                            // Hide도 관계없다.
+                            // The other party is a Vampire, so my darkness state does not matter.
+                            // Hide does not matter either.
                             // *NOTE
-                            // 상대가 슬레이어라면 슬레이어가 스나이핑 상태인지를 체크 해야 한다.
+                            // If the other party is a Slayer, whether it is sniping has to be checked.
                             if (canSee(pCreature, pPC)) {
                                 if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                     pCreature->getPlayer()->sendPacket(pGCAddXXX);
@@ -810,9 +808,9 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
 
                         case Creature::CREATURE_CLASS_OUSTERS: {
                             //--------------------------------------------------------------------------------
-                            // 이전 좌표에서는 보이지 않다가, 이번 좌표에서 새로 보이게 된 크리처만
-                            // GCAddXXX 를 받아온다. 이전에도 NEW_SIGHT 이고, 지금도 NEW_SIGHT 이면,
-                            // 새로 받아오지 않는다.
+                            // Only creatures that were invisible at the previous coordinate and are
+                            // visible at this one get a GCAddXXX. If it was NEW_SIGHT before and is
+                            // NEW_SIGHT now, nothing new is fetched.
                             //--------------------------------------------------------------------------------
                             if (curVisionState >= IN_SIGHT && prevVisionState == OUT_OF_SIGHT &&
                                 canSee(pPC, pCreature)) {
@@ -826,12 +824,12 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                             Assert(pCreature->getPlayer() != NULL);
 
                             //--------------------------------------------------------------------------------
-                            // Q(x2,y2)가 이 크리처의 시야 사각형의 경계에 위치하면서, P(x1,y1)은 사각형의 외부,
-                            // 즉 보이지 않는 경우에만 GCAddXXX 패킷을 전송한다. 이렇게 하지 않으면, PC
-                            // 크리처가 pCreature의 시야 경계에서 계속 움직이게 되면 계속 서버는 GCAddXXX 패킷을
-                            // 보내야만 한다.
+                            // Send the GCAddXXX packet only when Q(x2,y2) is on the border of this
+                            // creature's sight rectangle and P(x1,y1) is outside it, i.e. invisible.
+                            // Otherwise the server would keep sending GCAddXXX packets as the PC keeps
+                            // moving along pCreature's sight border.
                             //
-                            // 요약하면,
+                            // In summary,
                             //
                             // OUT_OF_SIGHT -> ON_SIGHT/NEW_SIGHT : GCAddXXX
                             // IN_SIGHT/ON_SIGHT/NEW_SIGHT -> IN_SIGHT/ON_SIGHT/NEW_SIGHT : GCMove
@@ -840,10 +838,10 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                             VisionState prevVS = pCreature->getVisionState(x1, y1);
                             VisionState currVS = pCreature->getVisionState(x2, y2);
 
-                            // 상대는 뱀파이어이므로 나의 darkness상태는 관계없다.
-                            // Hide도 관계없다.
+                            // The other party is a Vampire, so my darkness state does not matter.
+                            // Hide does not matter either.
                             // *NOTE
-                            // 상대가 슬레이어라면 슬레이어가 스나이핑 상태인지를 체크 해야 한다.
+                            // If the other party is a Slayer, whether it is sniping has to be checked.
                             if (canSee(pCreature, pPC)) {
                                 if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                     pCreature->getPlayer()->sendPacket(pGCAddXXX);
@@ -861,8 +859,8 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
 
                             //--------------------------------------------------------------------------------
                             //
-                            // 이전 좌표에서는 이 몬스터를 볼 수 없었으나, 도착 좌표에서 이 몬스터를 보게 될
-                            // 경우 GCAddMonster 패킷을 전송한다.
+                            // If this monster was invisible from the previous coordinate but becomes
+                            // visible from the destination coordinate, send a GCAddMonster packet.
                             //
                             //--------------------------------------------------------------------------------
                             if (prevVisionState == OUT_OF_SIGHT && curVisionState >= IN_SIGHT) {
@@ -882,7 +880,7 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                     break;
 
                     //--------------------------------------------------------------------------------
-                    // 타일 위에 아이템이 있을 경우
+                    // When there is an item on the tile
                     //--------------------------------------------------------------------------------
                     case Object::OBJECT_CLASS_ITEM: {
                         if (curVisionState >= IN_SIGHT && prevVisionState == OUT_OF_SIGHT) {
@@ -942,7 +940,7 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                     } break;
 
                     //--------------------------------------------------------------------------------
-                    // 타일 위에 이펙트가 있을 경우
+                    // When there is an effect on the tile
                     //--------------------------------------------------------------------------------
                     case Object::OBJECT_CLASS_EFFECT: {
                         Effect* pEffect = dynamic_cast<Effect*>(*itr);
@@ -972,7 +970,7 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                                 ZoneCoord_t centerX = pEffectSanctuary->getCenterX();
                                 ZoneCoord_t centerY = pEffectSanctuary->getCenterY();
 
-                                // sanctuary는 중심좌표인 경우만 packet을 보낸다.
+                                // For sanctuary the packet is sent only at the centre coordinate.
                                 if (centerX == ix && centerY == iy) {
                                     GCAddEffectToTile gcAddEffectToTile;
 
@@ -983,9 +981,7 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
 
                                     pPlayer->sendPacket(&gcAddEffectToTile);
                                 }
-                            }
-                            // Broadcasting Effect 체크 추가 by Sequoia 2003.3.31
-                            else if (pEffect->isBroadcastingEffect()) {
+                            } else if (pEffect->isBroadcastingEffect()) {
                                 GCAddEffectToTile gcAddEffectToTile;
 
                                 gcAddEffectToTile.setObjectID(pEffect->getObjectID());
@@ -999,14 +995,14 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                     } break;
 
                     //--------------------------------------------------------------------------------
-                    // 타일 위에 장애물이 있을 경우
+                    // When there is an obstacle on the tile
                     //--------------------------------------------------------------------------------
                     case Object::OBJECT_CLASS_OBSTACLE: {
                         // darkness
                     } break;
 
                     //--------------------------------------------------------------------------------
-                    // 타일 위에 포탈이 있을 경우
+                    // When there is a portal on the tile
                     //--------------------------------------------------------------------------------
                     case Object::OBJECT_CLASS_PORTAL: {
                         // darkness
@@ -1031,8 +1027,8 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
 
 
 //////////////////////////////////////////////////////////////////////////////
-// P(x1,y1)에서 Q(x2,y2)로 빠른 이동한 크리처가 주변 영역에 존재하는 PC들에게
-// 브로드캐스트하는 메쏘드이다.
+// Broadcasts a creature's fast move from P(x1,y1) to Q(x2,y2) to the PCs
+// in the surrounding area.
 // for Skill FlashSliding, ShadowWalk
 //////////////////////////////////////////////////////////////////////////////
 bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t x2, ZoneCoord_t y2,
@@ -1053,20 +1049,20 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
 
     ZoneLevel_t ZoneLevel = getZoneLevel(x2, y2);
 
-    // 안전 지대에 못 들어간다.
+    // Safe zones cannot be entered.
     if ((ZoneLevel & SLAYER_SAFE_ZONE) || (ZoneLevel & VAMPIRE_SAFE_ZONE) || (ZoneLevel & COMPLETE_SAFE_ZONE)) {
         return false;
     }
 
-    // 적당한 종착지점을 찾는다.
-    // 전면부에서 적당한 지점..4개 검색
+    // Find a suitable destination point.
+    // Four candidate points in front are searched.
     Dir_t dir = calcDirection(x1, y1, x2, y2);
 
-    // g_FastMoveSearchX, Y로 찾으면 된다. by sigi. 2002.5.8
+    // g_FastMoveSearchX, Y are used for the search.
     int* searchX = g_FastMoveSearchX[dir];
     int* searchY = g_FastMoveSearchY[dir];
 
-    // 빈 타일인지 확인.
+    // Check whether the tile is empty.
     int i = 0;
     for (i = 0; i < 4; i++) {
         int targetX = x2 + searchX[i], targetY = y2 + searchY[i];
@@ -1078,10 +1074,10 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
         }
     }
     if (i == 4) {
-        return false; // 빈타일을 못찾았다!
+        return false; // No empty tile was found!
     }
 
-    // 일단 패킷을 만들어두고 밑에서 보낸다.
+    // Build the packet first and send it below.
     GCFastMove gcFastMove;
     gcFastMove.setObjectID(pMonster->getObjectID());
     gcFastMove.setXY(x1, y1, x2, y2);
@@ -1095,15 +1091,15 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
 #endif
     gcFastMove.writeHeaderNBody(outputStream);
 
-    // 몬스터한테는 보낼 필요가 없다.
+    // There is no need to send it to the monster.
 
     //////////////////////////////////////////////////////////////
-    // move의 종류....
-    // 이에따라 GCDelete나 Add등을 보내줘야 할 수 도 있다.
+    // The kind of move....
+    // Depending on it, GCDelete or Add may have to be sent.
 
-    // Monster 좌표 변경.
+    // Change the Monster's coordinates.
     pMonster->setXYDir(x2, y2, dir);
-    // 이전 타일에서 크리처를 삭제한다.
+    // Delete the creature from the previous tile.
 
     try {
         m_pTiles[x1][y1].deleteCreature(pMonster->getObjectID());
@@ -1112,7 +1108,7 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
         throw;
     }
 
-    // 새 타일에 크리처를 추가한다.
+    // Add the creature to the new tile.
     m_pTiles[x2][y2].addCreature(pMonster);
 
     try {
@@ -1124,20 +1120,20 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
 
 
     //--------------------------------------------------------------------------------
-    // GCAddSlayer/GCAddVampire 패킷을 만들어둔다.
-    // 현재의 정책에 의하면, GCAdd 패킷은 현재의 좌표를 바탕으로 한다.
+    // Prepare the GCAddSlayer/GCAddVampire packet.
+    // By the current policy, the GCAdd packet is based on the current coordinates.
     //--------------------------------------------------------------------------------
     Packet* pAddMonsterPacket = createMonsterAddPacket(pMonster, NULL);
 
     if (pAddMonsterPacket != NULL) {
         //--------------------------------------------------------------------------------
-        // GCDeleteObject 패킷을 만들어둔다.
+        // Prepare the GCDeleteObject packet.
         //--------------------------------------------------------------------------------
         GCDeleteObject gcDeleteObject;
         gcDeleteObject.setObjectID(pMonster->getObjectID());
 
 
-        // 총 시야의 범위를 구한다.
+        // Compute the total range of sight.
         ZoneCoord_t minX, maxX, minY, maxY;
         if (x1 < x2) {
             minX = max(0, x1 - maxViewportWidth);
@@ -1161,34 +1157,34 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
 
                 forward_list<Object*>::const_iterator itr = objectList.begin();
 
-                // visionInfo 때문에..
-                // if - do~while()로 구조 변경 by sigi. 2002.5.8
+                // Because of visionInfo,
+                // the structure is an if plus a do-while rather than a plain if.
                 if (itr != objectList.end()) {
-                    // 이전 좌표 P(x1,y1)에서 I(ix,iy)가 어떻게 보이는가?
-                    // 현재 좌표 Q(x2,y2)에서 I(ix,iy)가 어떻게 보이는가?
+                    // How is I(ix,iy) seen from the previous coordinate P(x1,y1)?
+                    // How is I(ix,iy) seen from the current coordinate Q(x2,y2)?
 
                     do {
                         Assert(*itr != NULL);
 
                         //--------------------------------------------------------------------------------
                         //
-                        // 각 객체의 OBJECT CLASS에 따라서 적합한 GCAddXXX 패킷을 만들어서
-                        // owner 에게 전송한다.
+                        // Build the GCAddXXX packet matching each object's OBJECT CLASS and
+                        // send it to the owner.
                         //
                         // *NOTES*
                         //
-                        // 가장 출현 확률이 높은 객체 CLASS 가 case 앞부분에 나와야 한다.
+                        // The object CLASS most likely to appear must come first among the cases.
                         //
                         //--------------------------------------------------------------------------------
                         switch ((*itr)->getObjectClass()) {
                         //--------------------------------------------------------------------------------
-                        // 타일 위에 크리처가 있을 경우
+                        // When there is a creature on the tile
                         //--------------------------------------------------------------------------------
                         case Object::OBJECT_CLASS_CREATURE: {
                             Creature* pCreature = dynamic_cast<Creature*>(*itr);
                             Assert(pCreature != NULL);
 
-                            // 자기 자신의 정보는 받을 필요가 없다.
+                            // There is no need to receive one's own information.
                             if (pCreature == pMonster)
                                 continue;
 
@@ -1197,10 +1193,10 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                                 Monster* pOtherMonster = dynamic_cast<Monster*>(pCreature);
 
                                 //--------------------------------------------------------------------------------
-                                // PC를 몬스터의 잠재적인 적으로 지정해준다.
+                                // Register the PC as a potential enemy of the monster.
                                 //--------------------------------------------------------------------------------
 
-                                // Aggressive 몬스터에게만 적으로 등록시켜준다.
+                                // Register as an enemy only for Aggressive monsters.
                                 {
                                     if (isPotentialEnemy(pOtherMonster, pMonster)) {
                                         pMonster->addPotentialEnemy(pOtherMonster);
@@ -1218,11 +1214,11 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                                 VisionState prevVS = pCreature->getVisionState(x1, y1);
                                 VisionState currVS = pCreature->getVisionState(x2, y2);
 
-                                // Creature 가 ObservingEye 이펙트를 가지고 있다면 가져온다.
+                                // If the Creature has the ObservingEye effect, get it.
                                 //												EffectObservingEye* pEffectObservingEye
                                 //													//Assert( pEffectObservingEye !=
 
-                                // 상대에게 PC의 등장을 알리는 패킷.
+                                // Packet announcing the PC's appearance to the other party.
                                 //												if
                                 //((!pMonster->isFlag(Effect::EFFECT_CLASS_HIDE) ||
                                 // pCreature->isFlag(Effect::EFFECT_CLASS_DETECT_HIDDEN) ) //|| (
@@ -1252,12 +1248,12 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                                 Assert(pCreature->getPlayer() != NULL);
 
                                 //--------------------------------------------------------------------------------
-                                // Q(x2,y2)가 이 크리처의 시야 사각형의 경계에 위치하면서, P(x1,y1)은 사각형의 외부,
-                                // 즉 보이지 않는 경우에만 GCAddXXX 패킷을 전송한다. 이렇게 하지 않으면, PC
-                                // 크리처가 pCreature의 시야 경계에서 계속 움직이게 되면 계속 서버는 GCAddXXX 패킷을
-                                // 보내야만 한다.
+                                // Send the GCAddXXX packet only when Q(x2,y2) is on the border of this
+                                // creature's sight rectangle and P(x1,y1) is outside it, i.e. invisible.
+                                // Otherwise the server would keep sending GCAddXXX packets as the PC keeps
+                                // moving along pCreature's sight border.
                                 //
-                                // 요약하면,
+                                // In summary,
                                 //
                                 // OUT_OF_SIGHT -> ON_SIGHT/NEW_SIGHT : GCAddXXX
                                 // IN_SIGHT/ON_SIGHT/NEW_SIGHT -> IN_SIGHT/ON_SIGHT/NEW_SIGHT : GCMove
@@ -1266,10 +1262,10 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                                 VisionState prevVS = pCreature->getVisionState(x1, y1);
                                 VisionState currVS = pCreature->getVisionState(x2, y2);
 
-                                // 상대는 뱀파이어이므로 나의 darkness상태는 관계없다.
-                                // Hide도 관계없다.
+                                // The other party is a Vampire, so my darkness state does not matter.
+                                // Hide does not matter either.
                                 // *NOTE
-                                // 상대가 슬레이어라면 슬레이어가 스나이핑 상태인지를 체크 해야 한다.
+                                // If the other party is a Slayer, whether it is sniping has to be checked.
                                 if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                     pCreature->getPlayer()->sendPacket(pAddMonsterPacket);
                                     pCreature->getPlayer()->sendStream(&outputStream);
@@ -1286,7 +1282,7 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                                 VisionState prevVS = pCreature->getVisionState(x1, y1);
                                 VisionState currVS = pCreature->getVisionState(x2, y2);
 
-                                // 상대에게 PC의 등장을 알리는 패킷.
+                                // Packet announcing the PC's appearance to the other party.
                                 if (canSee(pCreature, pMonster)) {
                                     if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                         pCreature->getPlayer()->sendPacket(pAddMonsterPacket);
@@ -1311,26 +1307,26 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                         break;
 
                         //--------------------------------------------------------------------------------
-                        // 타일 위에 아이템이 있을 경우
+                        // When there is an item on the tile
                         //--------------------------------------------------------------------------------
                         case Object::OBJECT_CLASS_ITEM: {
                         } break;
 
                         //--------------------------------------------------------------------------------
-                        // 타일 위에 이펙트가 있을 경우
+                        // When there is an effect on the tile
                         //--------------------------------------------------------------------------------
                         case Object::OBJECT_CLASS_EFFECT: {
                         } break;
 
                         //--------------------------------------------------------------------------------
-                        // 타일 위에 장애물이 있을 경우
+                        // When there is an obstacle on the tile
                         //--------------------------------------------------------------------------------
                         case Object::OBJECT_CLASS_OBSTACLE: {
                             // darkness
                         } break;
 
                         //--------------------------------------------------------------------------------
-                        // 타일 위에 포탈이 있을 경우
+                        // When there is a portal on the tile
                         //--------------------------------------------------------------------------------
                         case Object::OBJECT_CLASS_PORTAL: {
                             // darkness

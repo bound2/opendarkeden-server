@@ -110,7 +110,7 @@ bool ResurrectLocationManager::getSlayerPosition(ZoneID_t id, ZONE_COORD& zoneCo
         // cerr << "ResurrectLocationManager::getPosition() : No Such ZoneID" << endl;
         // throw NoSuchElementException("ResurrectLocationManager::getPosition() : No Such ZoneID");
 
-        // NoSuch제거. by sigi. 2002.5.9
+        // Returns false instead of throwing NoSuchElementException.
         return false;
     }
 
@@ -149,7 +149,7 @@ bool ResurrectLocationManager::getVampirePosition(ZoneID_t id, ZONE_COORD& zoneC
 
     if (itr == m_VampirePosition.end()) {
         // cerr << "ResurrectLocationManager::getPosition() : No Such ZoneID" << endl;
-        //  NoSuch제거. by sigi. 2002.5.9
+        //  Returns false instead of throwing NoSuchElementException.
         // throw NoSuchElementException("ResurrectLocationManager::getPosition() : No Such ZoneID");
         return false;
     }
@@ -258,7 +258,7 @@ bool ResurrectLocationManager::getPosition(PlayerCreature* pPC, ZONE_COORD& zone
             }
         }
 
-        // 종족 전쟁이 진행중에 .. 참가 인원 제한을 한다면
+        // If a race war is running and the number of participants is limited
         if (!bFindPosition && g_pWarSystem->hasActiveRaceWar() && g_pVariableManager->isActiveRaceWarLimiter()) {
             ZoneInfo* pResZoneInfo = NULL;
 
@@ -270,10 +270,10 @@ bool ResurrectLocationManager::getPosition(PlayerCreature* pPC, ZONE_COORD& zone
                 }
             }
 
-            // 아담의 성지로 들어가는 경우.. 전쟁 신청을 안 했다면..
+            // Entering Adam's holy land without having applied for the war
             if ((pResZoneInfo != NULL && pResZoneInfo->isHolyLand() || pPC->getZone()->isHolyLand()) &&
                 !pPC->isFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET)) {
-                // 각 종족의 기본 부활위치로 보낸다.
+                // Send them to the default resurrection position of their race.
                 if (getRaceDefaultPosition(pPC->getRace(), zoneCoord)) {
                     bFindPosition = true;
                 } else {
@@ -314,38 +314,38 @@ bool ResurrectLocationManager::getBasicPosition(PlayerCreature* pPC, ZONE_COORD&
 {
     __BEGIN_TRY
 
-    // 일단 PlayerCreature에 지정되어 있는 부활 위치를 가져온다.
+    // First take the resurrection position set on the PlayerCreature.
     if (pPC->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pPC);
         Assert(pSlayer != NULL);
 
-        // 초보자 이면 초보자존에 부활하도록 한다.
+        // A novice resurrects in the novice zone.
         if (pSlayer->isNovice()) {
             pPC->setResurrectZoneID(SLAYER_NOVICE_ZONE_ID);
         }
 
         if (!getSlayerPosition(pPC->getResurrectZoneID(), zoneCoord)) {
-            // 만약 지정된 부활 존이 없다면 현재 있는 존의 부활 위치를 가져온다.
+            // If no resurrection zone is set, take the position of the current zone.
             if (!getSlayerPosition(pPC->getZone()->getZoneID(), zoneCoord)) {
-                // 현재 존도 없다면 Default 다.
+                // If the current zone has none either, use the default.
                 if (!getSlayerPosition(SLAYER_DEFAULT_ZONE_ID, zoneCoord))
                     throw Error("Critical Error : ResurrectInfo is not established!2");
             }
         }
     } else if (pPC->isVampire()) {
         if (!getVampirePosition(pPC->getResurrectZoneID(), zoneCoord)) {
-            // 만약 지정된 부활 존이 없다면 현재 있는 존의 부활 위치를 가져온다.
+            // If no resurrection zone is set, take the position of the current zone.
             if (!getVampirePosition(pPC->getZone()->getZoneID(), zoneCoord)) {
-                // 현재 존도 없다면 Default 다.
+                // If the current zone has none either, use the default.
                 if (!getVampirePosition(VAMPIRE_DEFAULT_ZONE_ID, zoneCoord))
                     throw Error("Critical Error : ResurrectInfo is not established!2");
             }
         }
     } else if (pPC->isOusters()) {
         if (!getOustersPosition(pPC->getResurrectZoneID(), zoneCoord)) {
-            // 만약 지정된 부활 존이 없다면 현재 있는 존의 부활 위치를 가져온다.
+            // If no resurrection zone is set, take the position of the current zone.
             if (!getOustersPosition(pPC->getZone()->getZoneID(), zoneCoord)) {
-                // 현재 존도 없다면 Default 다.
+                // If the current zone has none either, use the default.
                 if (!getOustersPosition(OUSTERS_DEFAULT_ZONE_ID, zoneCoord))
                     throw Error("Critical Error : ResurrectInfo is not established!2");
             }

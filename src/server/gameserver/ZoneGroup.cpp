@@ -54,7 +54,7 @@ ZoneGroup::~ZoneGroup()
 {
     __BEGIN_TRY
 
-    // 해쉬맵안에 있는 모든 pair 들을 삭제한다. The Snapshot member frees the
+    // Deleting the pairs of the hash map by hand is not needed. The Snapshot member frees the
     // published map with the object; nothing to clear by hand.
 
     __END_CATCH_NO_RETHROW
@@ -67,12 +67,12 @@ ZoneGroup::~ZoneGroup()
 // thread exists, so single-threaded startup/loading is exempt. The holder
 // fields are written only under the mutex, so a false FIRE cannot occur for
 // the actual holder; a reader that does not hold the mutex may read them
-// racily — and that reader is exactly the violation being detected.
+// racily -- and that reader is exactly the violation being detected.
 //
 // A violation ABORTS. It must not throw: AssertionError is a Throwable, and
 // the catch(Throwable&) blocks sitting on these very paths (e.g. the empty
 // one in GamePlayer::disconnect) would swallow it, converting a detected
-// cross-thread race into a silently half-applied mutation — quieter and
+// cross-thread race into a silently half-applied mutation -- quieter and
 // more destructive than the race itself. abort() cannot be caught, leaves a
 // core, and the filelog line says which group and which threads.
 //////////////////////////////////////////////////////////////////////////////
@@ -161,8 +161,8 @@ void ZoneGroup::processPlayers()
         endProfileEx("ZPM_OUTPUT");
 
     } catch (TimeoutException&) {
-        // timeout 이 발생하면, 입력, 출력, OOB 처리 어느 것이나 할 게 없당..
-        // 잘못된 FD가 있을 경우 짜르기 위하여 시행한다 -_-;
+        // On a timeout there is nothing to do for input, output or OOB handling.
+        // It runs so that an invalid FD can be cut off.
     } catch (InterruptedException& ie) {
     } catch (IOException& ioe) {
     } catch (Error& er) {
@@ -170,7 +170,7 @@ void ZoneGroup::processPlayers()
     }
 
     try {
-        // 모든 플레이어의 명령을 처리한다.
+        // Process the commands of every player.
         beginProfileEx("ZPM_COMMAND");
         m_pZonePlayerManager->processCommands();
         endProfileEx("ZPM_COMMAND");
@@ -183,7 +183,7 @@ void ZoneGroup::processPlayers()
 
     try {
         beginProfileEx("ZPM_HEARTBEAT");
-        m_pZonePlayerManager->heartbeat(); // 내부에서 lock건다.
+        m_pZonePlayerManager->heartbeat(); // Takes the lock internally.
         endProfileEx("ZPM_HEARTBEAT");
     } catch (Error& er) {
         filelog("errorLog.txt", "%s", er.toString().c_str());
@@ -284,12 +284,12 @@ void ZoneGroup::addZone(Zone* pZone)
 {
     __BEGIN_TRY
 
-    // 일단 같은 아이디의 존이 있는지 체크해본다. The insert is a copy-on-write
+    // First check whether a zone with the same id exists. The insert is a copy-on-write
     // publish (see m_Zones), so a reader on another thread -- this group's
     // own heartbeat included -- keeps iterating the map it loaded.
     m_Zones.update([pZone](ZoneMap& zones) {
         if (zones.find(pZone->getZoneID()) != zones.end())
-            // 똑같은 아이디가 이미 존재한다는 소리다. - -;
+            // A zone with the same id already exists.
             throw Error("duplicated zone id");
         zones[pZone->getZoneID()] = pZone;
     });
@@ -315,7 +315,7 @@ void ZoneGroup::deleteZone(ZoneID_t zoneID) {
 
 //////////////////////////////////////////////////////////////////////////////
 // Remove zone from zone group
-// delete하지 않고 node만 지워준다.
+// Only the node is removed; the zone itself is not deleted.
 //////////////////////////////////////////////////////////////////////////////
 Zone* ZoneGroup::removeZone(ZoneID_t zoneID) {
     __BEGIN_TRY
@@ -323,12 +323,12 @@ Zone* ZoneGroup::removeZone(ZoneID_t zoneID) {
     return m_Zones.update([zoneID](ZoneMap& zones) {
         ZoneMap::iterator itr = zones.find(zoneID);
         if (itr == zones.end()) {
-            // 그런 존 아이디를 찾을 수 없었을 때
+            // The zone id could not be found.
             StringStream msg;
             msg << "ZoneID : " << zoneID;
             throw NoSuchElementException(msg.toString());
         }
-        // pair를 삭제한다. delete하지 않고 node만 지워준다.
+        // Erase the pair. Only the node is removed; the zone itself is not deleted.
         Zone* pZone = itr->second;
         zones.erase(itr);
         return pZone;
@@ -353,7 +353,7 @@ Zone* ZoneGroup::getZone(ZoneID_t zoneID) const {
     if (itr != zones->end()) {
         pZone = itr->second;
     } else {
-        // 그런 존 아이디를 찾을 수 없었을 때
+        // The zone id could not be found.
         StringStream msg;
         msg << "ZoneID : " << zoneID;
         throw NoSuchElementException(msg.toString());

@@ -37,8 +37,8 @@ public:
     string toString() const;
 
 private:
-    ItemFactory** m_Factories; // 아이템팩토리의 배열
-    ushort m_Size;             // 아이템팩토리배열의 크기
+    ItemFactory** m_Factories; // Array of item factories
+    ushort m_Size;             // Size of the item factory array
     unordered_map<string, Item::ItemClass> m_ItemClassMap;
 };
 

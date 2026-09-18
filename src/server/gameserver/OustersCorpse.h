@@ -16,7 +16,7 @@ class Ousters;
 
 //////////////////////////////////////////////////////////////////////////////
 // class OustersCorpse;
-// 뱀파이어가 죽었을 경우, 남기는 시체이다.
+// Corpse left behind when an Ousters dies.
 //////////////////////////////////////////////////////////////////////////////
 
 class OustersCorpse : public Corpse {
@@ -67,7 +67,7 @@ public:
     }
 
 protected:
-    PCOustersInfo3 m_OustersInfo; // 시체의 외모에 대한 정보
+    PCOustersInfo3 m_OustersInfo; // Information about the corpse's appearance
 };
 
 #endif

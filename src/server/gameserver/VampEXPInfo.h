@@ -44,9 +44,9 @@ public:
     string toString() const;
 
 private:
-    Level_t m_Level;  // 레벨
-    Exp_t m_GoalExp;  // 목표 경험치
-    Exp_t m_AccumExp; // 누적 경험치
+    Level_t m_Level;  // Level
+    Exp_t m_GoalExp;  // Target experience
+    Exp_t m_AccumExp; // Accumulated experience
 };
 
 

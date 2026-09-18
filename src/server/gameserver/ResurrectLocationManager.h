@@ -2,8 +2,8 @@
 // Filename    : ResurrectLocationManager.h
 // Written by  : excel96
 // Description :
-// 플레이어가 죽었을 때 다시 태어나는 부활 위치를 존 별로 저장하고
-// 있는 맵이다.
+// Map that stores, per zone, the resurrection location where a player is
+// reborn after dying.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __RESURRECTMANAGER_H__
@@ -17,11 +17,11 @@
 //////////////////////////////////////////////////////////////////////////////
 // class ResurrectLocationManager
 //
-// 플레이어가 죽었을 때 다시 태어나는 부활 위치를 존 별로 저장하고
-// 있는 맵이다.
+// Map that stores, per zone, the resurrection location where a player is
+// reborn after dying.
 //
-// 슬레이어 및 뱀파이어 각각 기본 부활 위치를 지정할 수 있는
-// 함수가 있어야 한다. 현재는 Resurrect.cpp에 소스 레벨로 들어가 있다.
+// There should be functions to set the default resurrection location for
+// Slayers and Vampires; for now they are hard-coded in Resurrect.cpp.
 //////////////////////////////////////////////////////////////////////////////
 
 class PlayerCreature;

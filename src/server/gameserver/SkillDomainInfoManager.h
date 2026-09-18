@@ -58,19 +58,19 @@ public:
     string toString() const;
 
 private:
-    // 스킬 도메인의 타입
+    // Type of the skill domain
     SkillDomainType_t m_Type;
 
-    // 단계(스킬 트리에서 이 기술의 depth)
+    // Stage (this skill's depth in the skill tree)
     Level_t m_Level;
 
-    // 목표 경험치
+    // Target experience
     Exp_t m_GoalExp;
 
-    // 누적 경험치
+    // Accumulated experience
     Exp_t m_AccumExp;
 
-    // 적절한 무기 단계
+    // Suitable weapon tier
     ItemType_t m_BestItemType;
 };
 

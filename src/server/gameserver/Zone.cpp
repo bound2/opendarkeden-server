@@ -202,7 +202,7 @@ void strlwr(char* str) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 일반적인 몬스터들이 적으로 인식하느냐 마느냐 하는 함수
+// Decides whether ordinary monsters recognize the creature as an enemy.
 //////////////////////////////////////////////////////////////////////////////
 bool isPotentialEnemy(Monster* pMonster, Creature* pCreature) {
     Assert(pCreature != NULL);
@@ -227,7 +227,7 @@ bool isPotentialEnemy(Monster* pMonster, Creature* pCreature) {
             return false;
     }
 
-    // 현재로서는 슬레이어나 아우스터스는 무조건 적이다.
+    // For now Slayers and Ousters are always enemies.
     if (pCreature->isSlayer())
         return true;
 
@@ -241,13 +241,13 @@ bool isPotentialEnemy(Monster* pMonster, Creature* pCreature) {
     } else if (pCreature->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
 
-        // 몬스터의 레벨이 뱀파이어의 레벨보다 10레벨 이상 높을 경우,
-        // 적으로 인식한다.
+        // When the monster's level is at least 10 levels above the vampire's level,
+        // recognize it as an enemy.
         if ((pVampire->getLevel() + 10) <= pMonster->getLevel()) {
             return true;
         }
 
-        // 10레벨 이상인 뱀파이어는 적이다.
+        // Vampires of level 10 or higher are enemies.
         if (pVampire->getLevel() > 10) {
             return true;
         }
@@ -289,7 +289,7 @@ list<Packet*>* getRelicEffectPacket(MonsterCorpse* pMonsterCorpse, Effect::Effec
 //////////////////////////////////////////////////////////////////////////////
 // sendRelicEffect( MonsterCorpse* )
 //////////////////////////////////////////////////////////////////////////////
-// pMonsterCorpse에 붙은 Effect를 pPlayer에게 보낸다.
+// Sends the Effects attached to pMonsterCorpse to pPlayer.
 //////////////////////////////////////////////////////////////////////////////
 list<Packet*>* createRelicEffect(MonsterCorpse* pMonsterCorpse) {
     list<Packet*>* pPackets = NULL;
@@ -447,7 +447,7 @@ list<Packet*>* createRelicEffect(MonsterCorpse* pMonsterCorpse) {
 //////////////////////////////////////////////////////////////////////////////
 // sendRelicEffect( MonsterCorpse* )
 //////////////////////////////////////////////////////////////////////////////
-// pMonsterCorpse에 붙은 Effect를 pPlayer에게 보낸다.
+// Sends the Effects attached to pMonsterCorpse to pPlayer.
 //////////////////////////////////////////////////////////////////////////////
 void sendRelicEffect(MonsterCorpse* pMonsterCorpse, Player* pPlayer) {
     list<Packet*>* pPackets = createRelicEffect(pMonsterCorpse);
@@ -467,7 +467,7 @@ void sendRelicEffect(MonsterCorpse* pMonsterCorpse, Player* pPlayer) {
 //////////////////////////////////////////////////////////////////////////////
 // sendRelicEffect( MonsterCorpse* )
 //////////////////////////////////////////////////////////////////////////////
-// pMonsterCorpse에 붙은 Effect를 (x,y)에 뿌린다.
+// Scatters the Effects attached to pMonsterCorpse at (x,y).
 //////////////////////////////////////////////////////////////////////////////
 void sendRelicEffect(MonsterCorpse* pMonsterCorpse, Zone* pZone, ZoneCoord_t x, ZoneCoord_t y) {
     list<Packet*>* pPackets = createRelicEffect(pMonsterCorpse);
@@ -592,7 +592,7 @@ Zone::~Zone()
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 타일에 지정된 존 레벨을 리턴한다.
+// Returns the zone level assigned to the tile.
 //////////////////////////////////////////////////////////////////////////////
 ZoneLevel_t Zone::getZoneLevel(ZoneCoord_t x, ZoneCoord_t y) const
 
@@ -600,9 +600,9 @@ ZoneLevel_t Zone::getZoneLevel(ZoneCoord_t x, ZoneCoord_t y) const
     __BEGIN_TRY
 
 
-    // assert 제거.
-    // 이 값이 한계를 넘어서 assert나서 죽었다.
-    // 이렇게 가도 무리가 없을 듯..
+    // No assert here:
+    // the value went out of bounds and the assert killed the process,
+    // so going without it should be fine.
     // by sigi. 2002.8.13
     if (x < m_Width && y < m_Height) {
         return m_ppLevel[x][y];
@@ -727,7 +727,7 @@ void Zone::deleteEffect_LOCKING(ObjectID_t id)
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 일정 주기마다 해줘야 하는 기능들을 여기에 추가하도록 한다.
+// Add the work that has to run at a fixed interval here.
 //////////////////////////////////////////////////////////////////////////////
 void Zone::heartbeat()
 
@@ -740,13 +740,13 @@ void Zone::heartbeat()
 
         beginProfileEx("Z_PCQUEUE");
 
-        // PCQueue의 PC를 존에 추가한다.
+        // Add the PCs in the PC queue to the zone.
         while (!m_PCListQueue.empty()) {
             Creature* pCreature = m_PCListQueue.front();
             Assert(pCreature != NULL);
             Assert(pCreature->getZone() == this);
 
-            // 존에 추가하고, 주변 PC들에게 브로드캐스트한다.
+            // Add to the zone and broadcast to the surrounding PCs.
             addPC(pCreature, pCreature->getX(), pCreature->getY(), DOWN);
 
             m_PCListQueue.pop_front();
@@ -758,12 +758,12 @@ void Zone::heartbeat()
         m_pPCManager->processCreatures(); // process all PC
         endProfileEx("Z_PC");
 
-        // 마스터 레어 매니저가 있다면 마스터 레어이다
+        // A zone with a master lair manager is a master lair.
         // by sigi. 2002.9.2
         if (m_pMasterLairManager != NULL)
             m_pMasterLairManager->heartbeat(); // process master lair
 
-        // WarScheduler가 있다면 성이지..
+        // A zone with a WarScheduler is a castle.
         // by sigi. 2003.1.24
         if (m_pWarScheduler != NULL && g_pVariableManager->isWarActive()) {
             Work* pWork = m_pWarScheduler->heartbeat();
@@ -778,15 +778,15 @@ void Zone::heartbeat()
 
         if (m_pLevelWarManager != NULL && g_pVariableManager->isActiveLevelWar()) {
             m_pLevelWarManager->heartbeat();
-            // LevelWar Zone 에는 시간 별로 유료 무료 사용자 출입제한이 이상해서 해줘야 함.
+            // LevelWar zones need this because the paid/free user access limit varies by time.
             m_pLevelWarManager->freeUserTimeCheck();
         }
 
 
-        // player가 있어야 monster를 heartbeat한다.
-        // 즉, player가 없는 zone은 monster가 가만히 있는다.
-        // monster의 EffectManager가 안 돌아가므로 문제가 될 수도 있지만,
-        // 크게 문제가 없다고 보고.. -_-; .. by sigi. 2002.5.6
+        // Monsters are only heartbeat while a player is present.
+        // That is, monsters in a zone with no player stay still.
+        // The monsters' EffectManager does not run then, which could be a problem,
+        // but it is considered harmless.
         if (getPCCount() > 0 || (isDynamicZone() && (m_pDynamicZone->getStatus() == DYNAMIC_ZONE_STATUS_RUNNING))) {
             beginProfileEx("Z_MONSTER");
             m_pMonsterManager->processCreatures(); // process all monsters
@@ -799,11 +799,11 @@ void Zone::heartbeat()
         endProfileEx("Z_NPC");
 
         beginProfileEx("Z_ESCH");
-        // 먼저 이펙트 스케쥴을 먼저 실행시킨다.
+        // Run the effect schedule first.
         m_pEffectScheduleManager->heartbeat();
         endProfileEx("Z_ESCH");
 
-        // Item의 EffectManager에서 getCurrentTime을 호출하지 않게 하기 위해서.
+        // So that the Item's EffectManager does not call getCurrentTime.
         // by sigi. 2002.5.8
         Timeval currentTime;
         getCurrentTime(currentTime);
@@ -816,7 +816,7 @@ void Zone::heartbeat()
         m_pLockedEffectManager->heartbeat(currentTime);
         __LEAVE_CRITICAL_SECTION(m_MutexEffect)
 
-        // Debug: 统计 zone 的 effects
+        // Debug: count the zone's effects.
         static time_t lastZoneLogTime = 0;
         size_t zoneEffects = m_pEffectManager->getSize();
 
@@ -860,17 +860,17 @@ void Zone::heartbeat()
         Timeval currentTime;
         getCurrentTime(currentTime);
 
-        // time band 를 갱신한다.
+        // Update the time band.
         if (m_UpdateTimebandTime < currentTime) {
             if (!m_bTimeStop) {
                 m_Timeband = g_pTimeManager->getTimeband();
             }
 
-            // 5초마다 timeband 를 갱신한다. 게임 시간으로 2분
+            // Update the timeband every 5 seconds, which is 2 minutes of game time.
             m_UpdateTimebandTime.tv_sec += 5;
         }
 
-        // DynamicZone 일 경우
+        // Dynamic zone case.
         if (isDynamicZone())
             m_pDynamicZone->heartbeat();
     } catch (Throwable& t) {
@@ -886,19 +886,19 @@ void Zone::heartbeat()
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// PCManager, MonsterManager, NPCManager 에서 지정된 OID 를 가진 크리처를
-// 찾아서 리턴한다. 없을 경우 NoSuchElementException 을 던진다.
+// Finds the creature with the given OID in PCManager, MonsterManager or
+// NPCManager and returns it. Throws NoSuchElementException when there is none.
 //
-// 이 메쏘드는 찾고자 하는 크리처의 타입(PC,NPC,Monster)를 모를 경우에
-// 사용한다. 웬만하면, 타입을 알아내서 getCreature(Creature::CreatureClass,ObjectID_t)
-// 메쏘드를 사용하도록 한다.
+// Use this method when the type (PC, NPC, Monster) of the creature being
+// looked for is unknown. Where possible determine the type and use the
+// getCreature(Creature::CreatureClass,ObjectID_t) method instead.
 //////////////////////////////////////////////////////////////////////////////
 Creature* Zone::getCreature(ObjectID_t objectID) const
 // NoSuchElementException, Error)
 {
     __BEGIN_TRY
 
-    // NoSuchElementException을 안 쓰는 버전 by sigi. 2002.5.2
+    // Version that does not use NoSuchElementException.
     Creature* pCreature = NULL;
 
     pCreature = m_pMonsterManager->getCreature(objectID);
@@ -918,19 +918,19 @@ Creature* Zone::getCreature(ObjectID_t objectID) const
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// PCManager, MonsterManager, NPCManager 에서 지정된 Name을 가진 크리처를 찾아서
-// 리턴한다. 없을 경우 NoSuchElementException 을 던진다.
+// Finds the creature with the given Name in PCManager, MonsterManager or
+// NPCManager and returns it. Throws NoSuchElementException when there is none.
 //
-// 이 메쏘드는 찾고자 하는 크리처의 타입(PC,NPC,Monster)를 모를 경우에 사용한다.
-// 웬만하면, 타입을 알아내서 getCreature(Creature::CreatureClass,Name)
-// 메쏘드를 사용하도록 한다.
+// Use this method when the type (PC, NPC, Monster) of the creature being looked for is unknown.
+// Where possible determine the type and use the getCreature(Creature::CreatureClass,Name)
+// method instead.
 //////////////////////////////////////////////////////////////////////////////
 Creature* Zone::getCreature(const string& Name) const
 // NoSuchElementException, Error)
 {
     __BEGIN_TRY
 
-    // NoSuchElementException을 안 쓰는 버전 by sigi. 2002.5.2
+    // Version that does not use NoSuchElementException.
     Creature* pCreature = NULL;
 
     pCreature = m_pPCManager->getCreature(Name);
@@ -951,7 +951,7 @@ Creature* Zone::getCreature(const string& Name) const
 
 //--------------------------------------------------------------------------------
 //
-// 존에서 특정 OID를 가진 특정 크리처 타입을 가진 크리처를 찾아서 리턴한다.
+// Finds and returns the creature with the given OID and creature type in the zone.
 //
 //--------------------------------------------------------------------------------
 Creature* Zone::getCreature(Creature::CreatureClass creatureClass, ObjectID_t objectID) const
@@ -1014,7 +1014,7 @@ list<NPCInfo*>* Zone::getNPCInfos(void) {
 }
 
 void Zone::addNPCInfo(NPCInfo* pInfo) {
-    // 이거 zone delete할때 지워야된데이.. - -;	by sigi
+    // These must be freed when the zone is deleted.
     m_NPCInfos.push_back(pInfo);
 }
 
@@ -1041,7 +1041,7 @@ DWORD Zone::getLoadValue() const {
         return 200;
     }
 
-    // 10초당 loop수
+    // Loops per 10 seconds.
     DWORD loadValue = m_LoadValue * 10 / elapsedTime.tv_sec;
 
     return loadValue;
@@ -1053,7 +1053,7 @@ void Zone::sendNPCInfo()
 {
     __BEGIN_TRY
 
-    // NPC에 대한 정보를 클라이언트에게 보내준다.
+    // Send the NPC information to the client.
     GCNPCInfo gcNPCInfo;
 
     list<NPCInfo*>::const_iterator itr = m_NPCInfos.begin();
@@ -1096,7 +1096,7 @@ void Zone::releaseSafeZone()
 
     m_ZoneLevel = NO_SAFE_ZONE;
 
-    // 존 레벨을 초기화시킨다.
+    // Reset the zone level of every tile.
     for (ZoneCoord_t x = 0; x < m_Width; x++)
         for (ZoneCoord_t y = 0; y < m_Height; y++)
             m_ppLevel[x][y] = m_ZoneLevel;
@@ -1111,7 +1111,7 @@ void Zone::resetSafeZone()
 
     m_ZoneLevel = g_pZoneInfoManager->getZoneInfo(m_ZoneID)->getZoneLevel();
 
-    // 존 레벨을 초기화시킨다.
+    // Reset the zone level of every tile.
     for (ZoneCoord_t x = 0; x < m_Width; x++)
         for (ZoneCoord_t y = 0; y < m_Height; y++)
             m_ppLevel[x][y] = m_ZoneLevel;
@@ -1130,14 +1130,14 @@ void Zone::resetDarkLightInfo()
 }
 
 
-// 종족 전쟁에 참가하는 사람만 남긴다. 나머지는 kick한다.
+// Keeps only the players taking part in the race war and kicks the rest.
 void Zone::remainRaceWarPlayers()
 
 {
     __BEGIN_TRY
 
     try {
-        // 참가 인원 제한을 하지 않는다면 무시한다.
+        // Ignore this when the participant limit is not active.
         if (!g_pVariableManager->isActiveRaceWarLimiter())
             return;
 
@@ -1174,7 +1174,7 @@ void Zone::remainRaceWarPlayers()
                 pEventTransport->setTargetZone(ZC.id, ZC.x, ZC.y);
                 pEventTransport->setZoneName(pZoneInfo->getFullName());
 
-                // 몇 초후에 어디로 이동한다.고 보내준다.
+                // Tell the player where it will be moved to and in how many seconds.
                 pEventTransport->sendMessage();
 
                 pGamePlayer->addEvent(pEventTransport);
@@ -1257,7 +1257,7 @@ void Zone::remainPayPlayer()
                 gcSystemMessage.setMessage(msg);
                 pPlayer->sendPacket(&gcSystemMessage);
 
-                // 몇 초후에 어디로 이동한다.고 보내준다.
+                // Tell the player where it will be moved to and in how many seconds.
 
                 pGamePlayer->addEvent(pEventTransport);
             } else {

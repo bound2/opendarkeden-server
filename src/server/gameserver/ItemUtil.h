@@ -25,54 +25,54 @@ class Corpse;
 struct ITEM_TEMPLATE;
 
 enum ItemTraceLogType {
-    ITEM_LOG_CREATE = 0, // 아이템 생성에 대한 로그
-    ITEM_LOG_TRADE,      // 아이템 TRADE 에 대한 로그
-    ITEM_LOG_MOVE,       // 아이템 이동에 대한 로그
-    ITEM_LOG_DELETE,     // 아이템 삭제에 대한 로그
+    ITEM_LOG_CREATE = 0, // log for item creation
+    ITEM_LOG_TRADE,      // log for item trades
+    ITEM_LOG_MOVE,       // log for item moves
+    ITEM_LOG_DELETE,     // log for item deletion
 
     ITEM_LOG_MAX
 };
 
 enum ItemTraceDetailType {
-    DETAIL_COMMAND = 0, // command 명령어로 생성						: ITEM_LOG_CREATE
-    DETAIL_SHOPBUY,     // 상점에서 산 경우								: ITEM_LOG_CREATE
-    DETAIL_PICKUP,      // 바닥에서 물건 주웠을 경우					: ITEM_LOG_MOVE
-    DETAIL_DROP,        // 바닥에 버린 경우								: ITEM_LOG_MOVE
-    DETAIL_EVENTNPC,    // 이벤트로 생긴 아이템							: ITEM_LOG_CREATE
-    DETAIL_SHOPSELL,    // 상점에 물건 판 경우							: ITEM_LOG_DELETE
-    DETAIL_TIMEOUT,     // 바닥에 떨어진 후 timeout 으로 사라진 경우	: ITEM_LOG_DELETE
-    DETAIL_ENCHANT,     // 인첸트로 변경된 경우							: ITEM_LOG_DELETE
-    DETAIL_OPCLEAR,     // commnad 로 삭제								: ITEM_LOG_DELETE
-    DETAIL_TRADE,       // 아이템 TRADE									: ITEM_LOG_TRADE
-    DETAIL_MALLBUY,     // 웹에서 산 아이템								: ITEM_LOG_CREATE
+    DETAIL_COMMAND = 0, // created by a command                        : ITEM_LOG_CREATE
+    DETAIL_SHOPBUY,     // bought in a shop                            : ITEM_LOG_CREATE
+    DETAIL_PICKUP,      // picked up from the ground                   : ITEM_LOG_MOVE
+    DETAIL_DROP,        // dropped on the ground                       : ITEM_LOG_MOVE
+    DETAIL_EVENTNPC,    // item created by an event                    : ITEM_LOG_CREATE
+    DETAIL_SHOPSELL,    // sold to a shop                              : ITEM_LOG_DELETE
+    DETAIL_TIMEOUT,     // vanished by timeout after being dropped     : ITEM_LOG_DELETE
+    DETAIL_ENCHANT,     // changed by an enchant                       : ITEM_LOG_DELETE
+    DETAIL_OPCLEAR,     // deleted by a command                        : ITEM_LOG_DELETE
+    DETAIL_TRADE,       // item trade                                  : ITEM_LOG_TRADE
+    DETAIL_MALLBUY,     // item bought on the web                      : ITEM_LOG_CREATE
 
     DETAIL_MAX
 };
 
 enum ITLType {
-    ITL_GET = 0, // 아이템 GET
-    ITL_DROP,    // 아이템 DROP
-    ITL_ETC,     // 아이템 ETC
+    ITL_GET = 0, // item GET
+    ITL_DROP,    // item DROP
+    ITL_ETC,     // item ETC
 
     ITL_MAX
 };
 
 enum ITLDType {
-    ITLD_PICKUP = 0, // 아이템 PICKUP		GET
-    ITLD_TRADE,      // 아이템 TRADE			GET/DROP
-    ITLD_EVENTNPC,   // 이벤트를 clear하고 NPC에게 받는 아이템 		GET
+    ITLD_PICKUP = 0, // item PICKUP    GET
+    ITLD_TRADE,      // item TRADE     GET/DROP
+    ITLD_EVENTNPC,   // item received from an NPC after clearing an event    GET
     ITLD_PETITEM,    // GET
     ITLD_ENCHANT,    // GET/DROP
     ITLD_MIXING,     // GET/DROP
     ITLD_OPTION,     // GET/DROP/ETC
 
-    ITLD_NPCSHOP,     // NPC샵에서 거래	GET/DROP
-    ITLD_WEBSHOP,     // 웹마켓에서의 거래 GET
-    ITLD_PRIVATESHOP, // 개인상점에서 GET/DROP
+    ITLD_NPCSHOP,     // traded in an NPC shop  GET/DROP
+    ITLD_WEBSHOP,     // traded in the web market GET
+    ITLD_PRIVATESHOP, // in a private shop GET/DROP
 
-    ITLD_GM,      // 게임마스터의 ACTION GET/DROP/MOVE/ETC
-    ITLD_TIMEOUT, // Time아웃	DROP
-    ITLD_DELETE,  // Delete		// ETC+DELETE 의 경우는 없을테다.
+    ITLD_GM,      // game master ACTION GET/DROP/MOVE/ETC
+    ITLD_TIMEOUT, // timeout  DROP
+    ITLD_DELETE,  // Delete   // there should be no ETC+DELETE case
     ITLD_MOVE,    // Mode 		GET/DROP/ETC
 
     ITLD_MAX
@@ -126,26 +126,26 @@ const string ITLDType2String[] = {
 };
 
 //////////////////////////////////////////////////////////////////////////////
-// 쌓일 수 있는 아이템인가?
+// Is the item stackable?
 //////////////////////////////////////////////////////////////////////////////
 bool isStackable(Item::ItemClass IClass);
 bool isStackable(const Item* pItem);
 
 //////////////////////////////////////////////////////////////////////////////
-// 같은 클래스, 타입의 아이템인가?
+// Are the items of the same class and type?
 //////////////////////////////////////////////////////////////////////////////
 bool isSameItem(Item::ItemClass IClass1, Item::ItemClass IClass2, ItemType_t type1, ItemType_t type2);
 bool isSameItem(const Item* pItem1, const Item* pItem2);
 
 //////////////////////////////////////////////////////////////////////////////
-// 두 아이템을 쌓을 수 있는가?
+// Can the two items be stacked?
 //////////////////////////////////////////////////////////////////////////////
 bool canStack(const Item* pItem1, const Item* pItem2);
 
 //////////////////////////////////////////////////////////////////////////////
-// 두 손 무기인가?
-// 접근전 무기인가?
-// 전사,군인, 성직자 무기인가?
+// Is it a two-handed weapon?
+// Is it a melee weapon?
+// Is it a warrior, soldier or cleric weapon?
 //////////////////////////////////////////////////////////////////////////////
 bool isTwohandWeapon(const Item* pItem);
 bool isMeleeWeapon(const Item* pItem);
@@ -154,12 +154,12 @@ bool isArmsWeapon(const Item* pItem);
 bool isClericWeapon(const Item* pItem);
 
 //////////////////////////////////////////////////////////////////////////////
-// 총에 맞는 탄창인가?
+// Does the magazine fit the gun?
 //////////////////////////////////////////////////////////////////////////////
 bool isSuitableMagazine(const Item* pGun, const Item* pMagazine, bool hasVivid);
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어용 무기인가?
+// Is it a slayer weapon?
 //////////////////////////////////////////////////////////////////////////////
 bool isSlayerWeapon(Item::ItemClass IClass);
 bool isAdvancedSlayerWeapon(Item::ItemClass IClass);
@@ -167,97 +167,97 @@ bool isVampireWeapon(Item::ItemClass IClass);
 bool isOustersWeapon(Item::ItemClass IClass);
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어용 방어구인가?
+// Is it slayer armor?
 //////////////////////////////////////////////////////////////////////////////
 bool isSlayerArmor(Item::ItemClass IClass);
 bool isVampireArmor(Item::ItemClass IClass);
 bool isOustersArmor(Item::ItemClass IClass);
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어용 악세사리인가?
+// Is it a slayer accessory?
 //////////////////////////////////////////////////////////////////////////////
 bool isSlayerAccessory(Item::ItemClass IClass);
 bool isVampireAccessory(Item::ItemClass IClass);
 bool isOustersAccessory(Item::ItemClass IClass);
 
 //////////////////////////////////////////////////////////////////////////////
-// 수리할 수 있는 아이템인가?
+// Can the item be repaired?
 //////////////////////////////////////////////////////////////////////////////
 bool isRepairableItem(const Item* pItem);
 
 //////////////////////////////////////////////////////////////////////////////
-// 아이템을 수리한다.
+// Repair the item.
 //////////////////////////////////////////////////////////////////////////////
 void repairItem(Item* pItem);
 
 //////////////////////////////////////////////////////////////////////////////
-// 아이템의 최대 내구도를 얻어낸다.
+// Get the item's maximum durability.
 //////////////////////////////////////////////////////////////////////////////
 Durability_t computeMaxDurability(Item* pItem);
 
 //////////////////////////////////////////////////////////////////////////////
-// 탄창을 갈아끼워준다.
+// Reload the magazine.
 //////////////////////////////////////////////////////////////////////////////
 Bullet_t reloadArmsItem(Item* pWeapon, Item* pMagazine);
 
 //////////////////////////////////////////////////////////////////////////////
-// 총알을 빼준다.
+// Consume a bullet.
 //////////////////////////////////////////////////////////////////////////////
 Bullet_t decreaseBullet(Item* pWeapon);
 
 //////////////////////////////////////////////////////////////////////////////
-// 남은 총알의 갯수를 리턴
+// Return the number of bullets left.
 //////////////////////////////////////////////////////////////////////////////
 Bullet_t getRemainBullet(Item* pWeapon);
 
 //////////////////////////////////////////////////////////////////////////////
-// 주을 수 있는 아이템인가?
+// Can the item be picked up?
 //////////////////////////////////////////////////////////////////////////////
 bool isPortableItem(Item* pItem);
 
 //////////////////////////////////////////////////////////////////////////////
-// 사용할 수 있는 아이템인가?
-// 여기서의 사용이란, 사용해서 사라지는 소모성 아이템을 말한다.
+// Can the item be used?
+// Use here means a consumable item that disappears when used.
 //////////////////////////////////////////////////////////////////////////////
 bool isUsableItem(Item* pItem, Creature* pUser);
 
 //////////////////////////////////////////////////////////////////////////////
-// 아이템의 숫자를 줄인다.
+// Decrease the item count.
 //////////////////////////////////////////////////////////////////////////////
 ItemNum_t decreaseItemNum(Item* pItem, Inventory* pInventory, const string& OwnerID, Storage storage,
                           StorageID_t storageID, BYTE x, BYTE y);
 
 //////////////////////////////////////////////////////////////////////////////
-// 아이템이 겹치는 버그를 로그하는 함수다.
+// Logs the bug where items overlap.
 //////////////////////////////////////////////////////////////////////////////
 void processItemBug(Creature* pCreature, Item* pItem);
 void processItemBugEx(Creature* pCreature, Item* pItem);
 
 //////////////////////////////////////////////////////////////////////////////
-// Mysterious item 생성
+// Create a mysterious item.
 //////////////////////////////////////////////////////////////////////////////
 Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, int maxLevel = 0);
 
 //////////////////////////////////////////////////////////////////////////////
-// Option에 관련된 ㅎ마수들
+// Functions related to options.
 //////////////////////////////////////////////////////////////////////////////
-// 특정한 OptionType이 붙어있는가?
+// Is a particular OptionType attached?
 bool hasOptionType(const list<OptionType_t>& optionTypes, OptionType_t optionType);
 
-// 특정한 OptionClass(STR, DEX...)가 붙어있는가?
+// Is a particular OptionClass (STR, DEX...) attached?
 bool hasOptionClass(const list<OptionType_t>& optionTypes, OptionType_t optionType);
 
-// DB에서 읽어올때
+// When reading from the DB.
 void setOptionTypeFromField(list<OptionType_t>& optionTypes, const string& optionField);
 
-// DB에 저장할 때
+// When saving to the DB.
 void setOptionTypeToField(const list<OptionType_t>& optionTypes, string& optionField);
 
-// cout에 사용
+// Used with cout.
 string getOptionTypeToString(const list<OptionType_t>& optionTypes);
 
 //////////////////////////////////////////////////////////////////////////////
-// 다음 옵션이 붙을 확률 체크 : 레어 아이템 생성 여부
+// Check the chance of another option being attached: whether a rare item is created.
 //////////////////////////////////////////////////////////////////////////////
 bool isPossibleNextOption(ITEM_TEMPLATE* pTemplate);
 
@@ -266,19 +266,19 @@ ItemType_t getDowngradeItemType(Item::ItemClass IClass, ItemType_t itemType);
 bool isPossibleUpgradeItemType(Item::ItemClass IClass);
 
 //////////////////////////////////////////////////////////////////////////////
-// 크리스마스 트리 이벤트용
+// For the Christmas tree event.
 //////////////////////////////////////////////////////////////////////////////
-// 트리 조각을 검색
+// Search for tree fragments.
 // TPOINT checkEventTree( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY );
 // TPOINT checkEventDocument( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY );
 // TPOINT checkEventDoll( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY );
 TPOINT checkEventPuzzle(PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY, int start);
 
-// 인벤토리의 (X0, Y0) - (X1, y1) 범위의 아이템을 지운다.
+// Delete the items in the inventory range (X0, Y0) - (X1, Y1).
 void deleteInventoryItem(Inventory* pInventory, CoordInven_t invenX0, CoordInven_t invenY0, CoordInven_t invenX1,
                          CoordInven_t invenY1);
 
-// 인벤토리에 초보자용 아이템을 넣어준다.
+// Put the newbie items into the inventory.
 bool addNewbieItemToInventory(Slayer* pSlayer, bool sendPacket = false);
 bool addNewbieGoldToInventory(Slayer* pSlayer, bool sendPacket = false);
 bool addNewbieItemToGear(Slayer* pSlayer, bool sendPacket = false);
@@ -289,7 +289,7 @@ bool addNewbieItemToGear(Ousters* pOusters, bool sendPacket = false);
 
 Item::ItemClass getBestNewbieWeaponClass(Slayer* pSlayer);
 
-// 옵션 string으로부터 옵션 list를 만든다.
+// Build the option list from an option string.
 void makeOptionList(const string& options, list<OptionType_t>& optionList);
 
 void saveDissectionItem(Creature* pCreature, Item* pTreasure, int x, int y);
@@ -318,27 +318,27 @@ bool isPointOnlyTradeItem(Item* pItem);
 
 bool suitableItemClass(Item::ItemClass iClass, SkillDomainType_t domainType);
 
-// 아이템을 성별에 맞는 동급의 아이템으로 바꿔준다. 아이템 타입이 남자용 다음에 바로 같은 급의 여자용이 온다고 가정
-// 이걸 불러준 뒤엔 반드시 아이템 타입을 세이브해주던가 pItem->save() 를 불러줘야 된다.
+// Swap the item for the same-grade item of the matching gender, assuming the female type
+// directly follows the male one. After calling this the item type must be saved, or pItem->save() called.
 void setItemGender(Item* pItem, GenderRestriction gender);
 
-// Item Trace Log 를 남길 아이템인가?
+// Should an item trace log be written for this item?
 bool bTraceLog(Item* pItem);
 
-// Item Trace Log 남기는 함수
+// Writes an item trace log.
 void remainTraceLog(Item* pItem, const string& preOwner, const string& owner, ItemTraceLogType logType,
                     ItemTraceDetailType detailType);
 void remainTraceLogNew(Item* pItem, const string& owner, ITLType logType, ITLDType detailType, ZoneID_t zid = 0,
                        int x = 0, int y = 0);
 
-// Meney Trace Log 남기는 함수
+// Writes a money trace log.
 void remainMoneyTraceLog(const string& preOwner, const string& owner, ItemTraceLogType logType,
                          ItemTraceDetailType detailType, int amount);
 
-// Web 에서 산 아이템을 만드는 함수
+// Creates an item bought on the web.
 Item* createItemByGoodsID(DWORD goodsID);
 
-// 복권당첨에 관련 된 함수 (특별히 둘 곳이 없어서 여기 둔다 --;) 2003.04.29 by DEW
+// Lottery prize handling (kept here for lack of a better place).
 bool bWinPrize(DWORD rewardID, DWORD questLevel);
 
 void deleteFlagEffect(Corpse* pFlagPole, Item* pFlag);

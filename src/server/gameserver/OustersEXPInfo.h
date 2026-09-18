@@ -51,10 +51,10 @@ public:
     string toString() const;
 
 private:
-    Level_t m_Level;                // 레벨
-    Exp_t m_GoalExp;                // 목표 경험치
-    Exp_t m_AccumExp;               // 누적 경험치
-    SkillBonus_t m_SkillPointBonus; // 레벨업시 스킬 보너스 포인트
+    Level_t m_Level;                // Level
+    Exp_t m_GoalExp;                // Target experience
+    Exp_t m_AccumExp;               // Accumulated experience
+    SkillBonus_t m_SkillPointBonus; // Skill bonus points granted on level up
 };
 
 

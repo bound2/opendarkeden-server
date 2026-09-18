@@ -14,7 +14,7 @@ class PlayerCreature;
 // 								LimitInfo
 //
 //--------------------------------------------------------------------------------
-// 숫자 제한 : 0 <= Current <= Limit
+// Count limit : 0 <= Current <= Limit
 //--------------------------------------------------------------------------------
 class LimitInfo {
 public:
@@ -62,7 +62,7 @@ protected:
 // 								LevelLimitInfo
 //
 //--------------------------------------------------------------------------------
-// 숫자 제한 : 특정 레벨(MinLevel ~ MaxLevel)의 사용자 제한
+// Count limit : limits the users of a specific level range (MinLevel ~ MaxLevel)
 // 0 <= Current <= Limit
 //--------------------------------------------------------------------------------
 class LevelLimitInfo : public LimitInfo {
@@ -96,7 +96,7 @@ public:
     }
 
 private:
-    int m_ID; // 구분용 ID
+    int m_ID; // ID used to tell the entries apart
     int m_MinLevel;
     int m_MaxLevel;
 };
@@ -107,7 +107,7 @@ private:
 // 								PCLimiter
 //
 //--------------------------------------------------------------------------------
-// PlayerCreature에 대한 출입 체크
+// Entry check for PlayerCreature
 //--------------------------------------------------------------------------------
 template <class T> class PCLimiter {
 public:

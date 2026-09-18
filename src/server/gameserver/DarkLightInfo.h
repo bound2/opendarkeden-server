@@ -39,18 +39,18 @@ public:
     string toString() const;
 
 private:
-    // 어둡기 레벨
-    // 0 - 15 사이의 값으로, 높을 수록 화면이 어두워진다.
+    // Darkness level
+    // 0 - 15; the higher the value, the darker the screen.
     DarkLevel_t m_DarkLevel;
 
-    // 빛의 크기
-    // 1 - 13 사이의 값으로, 높을 수록 빛의 범위가 커진다.
+    // Size of the light
+    // 1 - 13; the higher the value, the wider the lit area.
     LightLevel_t m_LightLevel;
 };
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// DLIM 의 내부 DLI 의 배열의 크기
+// Size of the DLI array inside the DLIM
 ////////////////////////////////////////////////////////////////////////////////
 const uint nDarkLightInfos = 12 * 24 * 6;
 
