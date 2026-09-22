@@ -11,6 +11,7 @@
 #include "Assert.h"
 #include "DB.h"
 #include "GCRequestPowerPointResult.h"
+#include "GameContext.h"
 #include "MPlayer.h"
 #include "Mofus.h"
 #include "PCFinder.h"
@@ -135,9 +136,11 @@ MJob* MPlayerManager::popJob() {
 
 void MPlayerManager::processResult() {
     // Locate the target player creature.
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    Creature* pCreature = g_pPCFinder->getCreature_LOCKED(m_pCurrentJob->getName());
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    Creature* pCreature = pcFinder.getCreature_LOCKED(m_pCurrentJob->getName());
 
     if (pCreature != NULL) {
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
@@ -190,7 +193,7 @@ void MPlayerManager::processResult() {
         pPC->getPlayer()->sendPacket(&gcRequestPowerPointResult);
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 }
 
 // global variable

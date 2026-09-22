@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 
+#include "GameContext.h"
 #include "NPC.h"
 #include "PCFinder.h"
 #include "Thread.h"
@@ -71,7 +72,7 @@ void NPCManager::load(ZoneID_t zoneID, int race)
             pNPC->init();
             printf("loading end\n");
             // For NPC tracing, by DEW 2003. 04. 16
-            g_pPCFinder->addNPC(pNPC);
+            de::gameContext().playerCreatures().addNPC(pNPC);
 
             // NPC->init() loads the NPC's triggers and runs CONDITION_AT_FIRST;
             // its ACTION_SET_POSITION is what adds the NPC to the zone. An NPC

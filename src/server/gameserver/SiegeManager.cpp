@@ -9,6 +9,7 @@
 #include "GCCannotAdd.h"
 #include "GCDeleteInventoryItem.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Item.h"
 #include "Monster.h"
@@ -227,9 +228,11 @@ void SiegeManager::recallGuild(ZoneID_t currentZoneID, ZoneID_t siegeZoneID, Gui
 
     static TPOINT targetPos[7] = {{172, 38}, {172, 38}, {20, 232}, {20, 232}, {20, 232}, {20, 232}, {20, 232}};
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    list<Creature*> clist = g_pPCFinder->getGuildCreatures(guildID, num);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    list<Creature*> clist = pcFinder.getGuildCreatures(guildID, num);
 
     for (list<Creature*>::iterator itr = clist.begin(); itr != clist.end(); ++itr) {
         Creature* pTargetCreature = *itr;
@@ -286,7 +289,7 @@ void SiegeManager::recallGuild(ZoneID_t currentZoneID, ZoneID_t siegeZoneID, Gui
             break;
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 }
 
 bool SiegeManager::isSiegeZone(ZoneID_t zID) {

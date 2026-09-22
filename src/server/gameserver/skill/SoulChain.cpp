@@ -58,9 +58,11 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
         ZoneCoord_t y = pSlayer->getY();
 
         bool bValidTarget = false;
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-        Creature* pTarget = g_pPCFinder->getCreature_LOCKED(targetName);
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        Creature* pTarget = pcFinder.getCreature_LOCKED(targetName);
         if (pTarget != NULL) {
             Zone* pTargetZone = pTarget->getZone();
             if (pTargetZone != NULL) {
@@ -94,7 +96,7 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
             }
         }
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
 
         int RequiredMP = pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);
@@ -220,9 +222,11 @@ void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkil
         ZoneCoord_t y = pVampire->getY();
 
         bool bValidTarget = false;
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-        Creature* pTarget = g_pPCFinder->getCreature_LOCKED(targetName);
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        Creature* pTarget = pcFinder.getCreature_LOCKED(targetName);
         if (pTarget != NULL) {
             Zone* pTargetZone = pTarget->getZone();
             if (pTargetZone != NULL) {
@@ -255,7 +259,7 @@ void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkil
             }
         }
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
 
         int RequiredMP = decreaseConsumeMP(pVampire, pSkillInfo);
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);
@@ -348,9 +352,11 @@ void SoulChain::execute(Ousters* pOusters, const string& targetName, OustersSkil
         ZoneCoord_t y = pOusters->getY();
 
         bool bValidTarget = false;
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-        Creature* pTarget = g_pPCFinder->getCreature_LOCKED(targetName);
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        Creature* pTarget = pcFinder.getCreature_LOCKED(targetName);
         if (pTarget != NULL) {
             Zone* pTargetZone = pTarget->getZone();
             if (pTargetZone != NULL) {
@@ -383,7 +389,7 @@ void SoulChain::execute(Ousters* pOusters, const string& targetName, OustersSkil
             }
         }
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
 
         int RequiredMP = pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);

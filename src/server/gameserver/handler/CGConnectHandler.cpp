@@ -96,6 +96,8 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
 
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
+
     // set MAC Address
     pGamePlayer->setMacAddress(pPacket->getMacAddress());
 
@@ -339,7 +341,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         // Add to the PCFinder.
         // Removal from the PCFinder happens only in ~GamePlayer().
         try {
-            g_pPCFinder->addCreature(pSlayer);
+            pcFinder.addCreature(pSlayer);
         } catch (DuplicatedException& de) {
             bAlreadyConnected = true;
         }
@@ -397,7 +399,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         // Add to the PCFinder.
         // Removal from the PCFinder happens only in ~GamePlayer().
         try {
-            g_pPCFinder->addCreature(pVampire);
+            pcFinder.addCreature(pVampire);
         } catch (DuplicatedException& de) {
             bAlreadyConnected = true;
         }
@@ -458,7 +460,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         // Add to the PCFinder.
         // Removal from the PCFinder happens only in ~GamePlayer().
         try {
-            g_pPCFinder->addCreature(pOusters);
+            pcFinder.addCreature(pOusters);
         } catch (DuplicatedException& de) {
             bAlreadyConnected = true;
         }

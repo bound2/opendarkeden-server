@@ -1186,9 +1186,11 @@ void oplog(GamePlayer* pPlayer, string msg, int i) {
 
     Creature* pTargetCreature = NULL;
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    pTargetCreature = g_pPCFinder->getCreature_LOCKED(name);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    pTargetCreature = pcFinder.getCreature_LOCKED(name);
     if (pTargetCreature == NULL) {
         return;
     }
@@ -1211,7 +1213,7 @@ void oplog(GamePlayer* pPlayer, string msg, int i) {
         pPlayer->sendPacket(&gcMsg);
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
     __END_DEBUG_EX __END_CATCH
 }

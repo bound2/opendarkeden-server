@@ -7,6 +7,7 @@
 //----------------------------------------------------------------------
 
 // include files
+#include "GameContext.h"
 #include "Properties.h"
 #include "SGModifyGuildMemberOK.h"
 
@@ -116,9 +117,11 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
         }
 
         // Send the one who approved a message. (send only: fine from this thread)
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-        Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getSender());
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        Creature* pCreature = pcFinder.getCreature_LOCKED(pPacket->getSender());
         if (pCreature != NULL && pCreature->isPC()) {
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
@@ -137,7 +140,7 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
             pPlayer->sendPacket(&gcSystemMessage);
         }
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
     } else if (pGuildMember->getRank() != GuildMember::GUILDMEMBER_RANK_MASTER &&
                pPacket->getGuildMemberRank() == GuildMember::GUILDMEMBER_RANK_MASTER) {
         ///////////////////////////////////////////////////////////
@@ -154,10 +157,12 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
         pGuild->setMaster(pGuildMember->getName());
 
         // Send a message if connected.
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
+
+        __ENTER_CRITICAL_SECTION(pcFinder)
 
         // If the new guild master is on this game server, send it the new information.
-        Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuildMember->getName());
+        Creature* pCreature = pcFinder.getCreature_LOCKED(pGuildMember->getName());
         if (pCreature != NULL && pCreature->isPC()) {
             PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
             Assert(pPlayerCreature != NULL);
@@ -174,7 +179,7 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
         }
 
         // If the original guild master is on this game server, send it the new information.
-        pCreature = g_pPCFinder->getCreature_LOCKED(sMaster);
+        pCreature = pcFinder.getCreature_LOCKED(sMaster);
         if (pCreature != NULL && pCreature->isPC()) {
             PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
             Assert(pPlayerCreature != NULL);
@@ -191,7 +196,7 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
         }
 
         // Send the one who changed the master a message.
-        pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getSender());
+        pCreature = pcFinder.getCreature_LOCKED(pPacket->getSender());
         if (pCreature != NULL && pCreature->isPC()) {
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
@@ -206,7 +211,7 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
             pPlayer->sendPacket(&gcSystemMessage);
         }
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
     } else {
         ///////////////////////////////////////////////////////////
         // Change the guild member information.
@@ -214,9 +219,11 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
         pGuild->modifyMemberRank(pGuildMember->getName(), pPacket->getGuildMemberRank());
 
         // Send a message if connected.
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-        Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuildMember->getName());
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        Creature* pCreature = pcFinder.getCreature_LOCKED(pGuildMember->getName());
         if (pCreature != NULL && pCreature->isPC()) {
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
@@ -233,7 +240,7 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
         }
 
         // Send the one who made the change a message.
-        pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getSender());
+        pCreature = pcFinder.getCreature_LOCKED(pPacket->getSender());
         if (pCreature != NULL && pCreature->isPC()) {
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
@@ -253,7 +260,7 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
             pPlayer->sendPacket(&gcSystemMessage);
         }
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
     }
 
 #endif

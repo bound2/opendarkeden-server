@@ -196,9 +196,11 @@ void CGTypeStringListHandler::executeApartForce(CGTypeStringList* pPacket, Playe
 
     PlayerCreature* pPartnerPC = NULL;
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    Creature* pTargetCreature = g_pPCFinder->getCreature_LOCKED(PartnerName);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    Creature* pTargetCreature = pcFinder.getCreature_LOCKED(PartnerName);
     if (pTargetCreature != NULL) {
         if (!pTargetCreature->isPC()) {
             __CRITICAL_SECTION_LOCK.unlock();
@@ -217,7 +219,7 @@ void CGTypeStringListHandler::executeApartForce(CGTypeStringList* pPacket, Playe
         }
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
     WaitForApart::removeCoupleItem(pPC);
 

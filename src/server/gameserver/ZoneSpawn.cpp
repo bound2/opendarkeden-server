@@ -1123,7 +1123,7 @@ bool Zone::deleteNPC(Creature* pCreature)
 
     try {
         deleteCreature(pCreature, pCreature->getX(), pCreature->getY());
-        g_pPCFinder->deleteNPC(pCreature->getName());
+        de::gameContext().playerCreatures().deleteNPC(pCreature->getName());
 
     } catch (NoSuchElementException) {
         cout << "NoSuchNPC : " << pCreature->getName().c_str() << ", (" << pCreature->getX() << ", "

@@ -10,6 +10,7 @@
 #include "GCFriendChatting.h"
 
 #ifdef __GAME_SERVER__
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PCFinder.h"
 #include "repository/FriendRepository.h"
@@ -41,9 +42,11 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
         }
 
         Creature* pTargetCreature = NULL;
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
-        pTargetCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getPlayerName());
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
+
+        __ENTER_CRITICAL_SECTION(pcFinder)
+        pTargetCreature = pcFinder.getCreature_LOCKED(pPacket->getPlayerName());
+        __LEAVE_CRITICAL_SECTION(pcFinder)
 
         if (pTargetCreature != NULL) {
             Player* pTargetPlayer = pTargetCreature->getPlayer();
@@ -68,9 +71,11 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
         ///////////////////////////////////////////////CG_ADD_FRIEND///////////////////////////////////////////////////
     case CG_ADD_FRIEND: {
         Creature* pTargetCreature = NULL;
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
-        pTargetCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getPlayerName());
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
+
+        __ENTER_CRITICAL_SECTION(pcFinder)
+        pTargetCreature = pcFinder.getCreature_LOCKED(pPacket->getPlayerName());
+        __LEAVE_CRITICAL_SECTION(pcFinder)
         bool blResult = true;
         if (pTargetCreature != NULL) {
             Player* pTargetPlayer = pTargetCreature->getPlayer();
@@ -118,9 +123,11 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
         ////////////////////////////////////////////////////CG_MESSAGE//////////////////////////////////////////////
     case CG_MESSAGE: {
         Creature* pTargetCreature = NULL;
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
-        pTargetCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getPlayerName());
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
+
+        __ENTER_CRITICAL_SECTION(pcFinder)
+        pTargetCreature = pcFinder.getCreature_LOCKED(pPacket->getPlayerName());
+        __LEAVE_CRITICAL_SECTION(pcFinder)
 
         if (pTargetCreature != NULL) {
             Player* pTargetPlayer = pTargetCreature->getPlayer();
@@ -159,9 +166,11 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
                 gcFriend.setIsBlack(roster[r].isBlack);
 
                 Creature* pTargetCreature = NULL;
-                __ENTER_CRITICAL_SECTION((*g_pPCFinder))
-                pTargetCreature = g_pPCFinder->getCreature_LOCKED(gcFriend.getPlayerName());
-                __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+                PCFinder& pcFinder = de::gameContext().playerCreatures();
+
+                __ENTER_CRITICAL_SECTION(pcFinder)
+                pTargetCreature = pcFinder.getCreature_LOCKED(gcFriend.getPlayerName());
+                __LEAVE_CRITICAL_SECTION(pcFinder)
 
                 if (pTargetCreature == NULL)
                     gcFriend.setIsOnLine(0);
@@ -193,9 +202,11 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
         ////////////////////////////////////////CG_ADD_FRIEND_REFUSE/////////////////////////////
     case CG_ADD_FRIEND_REFUSE: {
         Creature* pTargetCreature = NULL;
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
-        pTargetCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getPlayerName());
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
+
+        __ENTER_CRITICAL_SECTION(pcFinder)
+        pTargetCreature = pcFinder.getCreature_LOCKED(pPacket->getPlayerName());
+        __LEAVE_CRITICAL_SECTION(pcFinder)
 
         if (pTargetCreature == NULL) {
             GCFriendChatting gcFriend;
@@ -220,9 +231,11 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
         defaultFriendRepository().insertBlacklisted(pPacket->getPlayerName(), pCreature->getName());
 
         Creature* pTargetCreature = NULL;
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
-        pTargetCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getPlayerName());
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
+
+        __ENTER_CRITICAL_SECTION(pcFinder)
+        pTargetCreature = pcFinder.getCreature_LOCKED(pPacket->getPlayerName());
+        __LEAVE_CRITICAL_SECTION(pcFinder)
 
         if (pTargetCreature == NULL) {
             GCFriendChatting gcFriend;
@@ -260,9 +273,11 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
         pGamePlayer->sendPacket(&gcFriend);
 
         Creature* pTargetCreature = NULL;
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
-        pTargetCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getPlayerName());
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
+
+        __ENTER_CRITICAL_SECTION(pcFinder)
+        pTargetCreature = pcFinder.getCreature_LOCKED(pPacket->getPlayerName());
+        __LEAVE_CRITICAL_SECTION(pcFinder)
 
         if (pTargetCreature) {
             Player* pTargetPlayer = pTargetCreature->getPlayer();

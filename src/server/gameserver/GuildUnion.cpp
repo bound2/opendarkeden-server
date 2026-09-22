@@ -4,6 +4,7 @@
 
 #include "GCModifyInformation.h"
 #include "GGCommand.h"
+#include "GameContext.h"
 #include "GameServer.h"
 #include "GameServerInfoManager.h"
 #include "Guild.h"
@@ -249,15 +250,17 @@ bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
             // Every guild is removed; the last one cleaned up as well.
 
             Creature* pTargetCreature = NULL;
-            __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+            PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-            pTargetCreature = g_pPCFinder->getCreature_LOCKED(unionMasterID);
+            __ENTER_CRITICAL_SECTION(pcFinder)
+
+            pTargetCreature = pcFinder.getCreature_LOCKED(unionMasterID);
             if (pTargetCreature != NULL) {
                 GCModifyInformation gcModifyInformation2;
                 makeGCModifyInfoGuildUnion(&gcModifyInformation2, pTargetCreature);
                 pTargetCreature->getPlayer()->sendPacket(&gcModifyInformation2);
             }
-            __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+            __LEAVE_CRITICAL_SECTION(pcFinder)
 
             // Tell everyone the union master changed.
             sendGCOtherModifyInfoGuildUnionByGuildID(gID);
@@ -292,22 +295,24 @@ bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
                 Creature* pTargetCreature = NULL;  // the guild's master
                 Creature* pTargetCreature2 = NULL; // the union guild's master
 
-                __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+                PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-                pTargetCreature = g_pPCFinder->getCreature_LOCKED(guildMasterID);
+                __ENTER_CRITICAL_SECTION(pcFinder)
+
+                pTargetCreature = pcFinder.getCreature_LOCKED(guildMasterID);
                 if (pTargetCreature != NULL) {
                     GCModifyInformation gcModifyInformation2;
                     makeGCModifyInfoGuildUnion(&gcModifyInformation2, pTargetCreature);
                     pTargetCreature->getPlayer()->sendPacket(&gcModifyInformation2);
                 }
 
-                pTargetCreature2 = g_pPCFinder->getCreature_LOCKED(unionMasterID);
+                pTargetCreature2 = pcFinder.getCreature_LOCKED(unionMasterID);
                 if (pTargetCreature != NULL) {
                     GCModifyInformation gcModifyInformation2;
                     makeGCModifyInfoGuildUnion(&gcModifyInformation2, pTargetCreature2);
                     pTargetCreature2->getPlayer()->sendPacket(&gcModifyInformation2);
                 }
-                __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+                __LEAVE_CRITICAL_SECTION(pcFinder)
 
 
                 // Send the changed guild-master information.

@@ -1259,11 +1259,11 @@ void opForceNick(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
     Creature* pTargetCreature;
     Creature* pCreature = pGamePlayer->getCreature();
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    __ENTER_CRITICAL_SECTION(de::gameContext().playerCreatures())
 
-    pTargetCreature = g_pPCFinder->getCreature_LOCKED(name);
+    pTargetCreature = de::gameContext().playerCreatures().getCreature_LOCKED(name);
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(de::gameContext().playerCreatures())
 
     if (pTargetCreature == NULL || pTargetCreature->getZone() != pCreature->getZone() || !pTargetCreature->isPC()) {
         gcSystemMessage.setMessage("��ͼ�ϣ��޷��ҵ��ý�ɫ.");
@@ -1298,11 +1298,11 @@ void opRemoveNick(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage
     Creature* pTargetCreature;
     Creature* pCreature = pGamePlayer->getCreature();
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    __ENTER_CRITICAL_SECTION(de::gameContext().playerCreatures())
 
-    pTargetCreature = g_pPCFinder->getCreature_LOCKED(name);
+    pTargetCreature = de::gameContext().playerCreatures().getCreature_LOCKED(name);
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(de::gameContext().playerCreatures())
 
     if (pTargetCreature == NULL || pTargetCreature->getZone() != pCreature->getZone() || !pTargetCreature->isPC()) {
         gcSystemMessage.setMessage("��ͼ�ϣ��޷��ҵ��ý�ɫ.");
@@ -1401,9 +1401,9 @@ void opGuildRecall(GamePlayer* pGamePlayer, const string& value1, GCSystemMessag
         }
     }
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    __ENTER_CRITICAL_SECTION(de::gameContext().playerCreatures())
 
-    list<Creature*> clist = g_pPCFinder->getGuildCreatures(gid, 200);
+    list<Creature*> clist = de::gameContext().playerCreatures().getGuildCreatures(gid, 200);
 
     for (list<Creature*>::const_iterator itr = clist.begin(); itr != clist.end(); ++itr) {
         Creature* pTargetCreature = *itr;
@@ -1440,7 +1440,7 @@ void opGuildRecall(GamePlayer* pGamePlayer, const string& value1, GCSystemMessag
             break;
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(de::gameContext().playerCreatures())
 }
 
 // *command ResetSiege

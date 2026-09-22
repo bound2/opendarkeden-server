@@ -17,6 +17,7 @@
 #include "GCKickMessage.h"
 #include "GCSystemMessage.h"
 #include "GSGuildMemberLogOn.h"
+#include "GameContext.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "IncomingPlayerManager.h"
@@ -160,7 +161,7 @@ GamePlayer::~GamePlayer() noexcept {
             dropFlagToZone(m_pCreature, false);
             dropSweeperToZone(m_pCreature);
 
-            g_pPCFinder->deleteCreature(m_pCreature->getName());
+            de::gameContext().playerCreatures().deleteCreature(m_pCreature->getName());
 
             // From here on postToPlayer() cannot find this player, so what
             // is still queued for it runs its ifGone handlers now. Each

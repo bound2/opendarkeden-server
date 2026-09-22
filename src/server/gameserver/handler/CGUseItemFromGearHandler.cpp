@@ -15,6 +15,7 @@
 #include "EffectLoveChain.h"
 #include "GCCannotUse.h"
 #include "GCUseOK.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Item.h"
 #include "ItemFactoryManager.h"
@@ -155,9 +156,11 @@ void CGUseItemFromGearHandler::executeCoupleRing(CGUseItemFromGear* pPacket, Gam
     bool bValidZone = false;
 
     // the tracing part
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    pTargetCreature = g_pPCFinder->getCreature_LOCKED(targetName);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    pTargetCreature = pcFinder.getCreature_LOCKED(targetName);
     if (pTargetCreature == NULL) {
         GCCannotUse _GCCannotUse;
         _GCCannotUse.setObjectID(pPacket->getObjectID());
@@ -177,7 +180,7 @@ void CGUseItemFromGearHandler::executeCoupleRing(CGUseItemFromGear* pPacket, Gam
                      (!g_pWarSystem->hasActiveRaceWar() || !pTargetZone->isHolyLand()) && !pTargetZone->isCastle() &&
                      !g_pPKZoneInfoManager->isPKZone(pTargetZone->getZoneID()) && !pTargetZone->isDynamicZone();
     }
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
     // A place that cannot be reached is a failure.
     if (!bValidZone) {

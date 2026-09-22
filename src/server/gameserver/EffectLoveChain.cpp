@@ -86,9 +86,11 @@ void EffectLoveChain::unaffect(Creature* pCreature)
     // Check the target and transport if it is allowed.
     bool bValid = false;
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    Creature* pTargetCreature = g_pPCFinder->getCreature_LOCKED(m_TargetName);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    Creature* pTargetCreature = pcFinder.getCreature_LOCKED(m_TargetName);
     if (pTargetCreature != NULL) {
         Zone* pTargetZone = pTargetCreature->getZone();
         if (pTargetZone != NULL) {
@@ -127,7 +129,7 @@ void EffectLoveChain::unaffect(Creature* pCreature)
         }
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
     if (!bValid) {
         GCCannotUse _GCCannotUse;

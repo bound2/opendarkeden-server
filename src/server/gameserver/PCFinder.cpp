@@ -356,6 +356,3 @@ NPC* PCFinder::getNPC_LOCKED(const string& name) const
 
     __END_CATCH
 }
-
-// global variable definition
-PCFinder* g_pPCFinder = NULL;

@@ -14,6 +14,7 @@
 #include "Creature.h"
 #include "GCWhisper.h"
 #include "GCWhisperFailed.h"
+#include "GameContext.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "PCFinder.h"
@@ -33,9 +34,11 @@ void GGServerChatHandler::execute(GGServerChat* pPacket)
 
 #ifdef __GAME_SERVER__
 
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-            Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getReceiver());
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    Creature* pCreature = pcFinder.getCreature_LOCKED(pPacket->getReceiver());
     if (pCreature != NULL && pCreature->getPlayer() != NULL) {
         GCWhisper gcWhisper;
 
@@ -46,7 +49,7 @@ void GGServerChatHandler::execute(GGServerChat* pPacket)
 
         pCreature->getPlayer()->sendPacket(&gcWhisper);
     }
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
 
 #endif

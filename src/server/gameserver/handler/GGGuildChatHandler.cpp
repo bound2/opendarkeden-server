@@ -13,6 +13,7 @@
 
 #include "Creature.h"
 #include "GCGuildChat.h"
+#include "GameContext.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "GuildUnion.h"
@@ -23,12 +24,14 @@ static void broadcastGuild(Guild* pGuild, Packet* pPacket) {
     if (pGuild == NULL || pPacket == NULL)
         return;
 
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
+
     list<string> currentMembers = pGuild->getCurrentMembers();
     list<string>::const_iterator itr = currentMembers.begin();
     for (; itr != currentMembers.end(); itr++) {
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        __ENTER_CRITICAL_SECTION(pcFinder)
 
-        Creature* pCreature = g_pPCFinder->getCreature_LOCKED((*itr));
+        Creature* pCreature = pcFinder.getCreature_LOCKED((*itr));
         if (pCreature != NULL) {
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
@@ -37,7 +40,7 @@ static void broadcastGuild(Guild* pGuild, Packet* pPacket) {
                 pPlayer->sendPacket(pPacket);
         }
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
     }
 }
 

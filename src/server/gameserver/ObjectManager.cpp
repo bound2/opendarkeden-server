@@ -163,7 +163,7 @@ ObjectManager::ObjectManager()
     m_pSkillInfoManager = new SkillInfoManager();
     m_pSkillDomainInfoManager = new SkillDomainInfoManager();
     // g_pSkillParentInfoManager   = new SkillParentInfoManager ();
-    g_pPCFinder = new PCFinder();
+    m_pPCFinder = new PCFinder();
 
     // The context is given the managers created above so that a subsystem
     // can be handed them explicitly. It does not own them: they are created
@@ -186,7 +186,7 @@ ObjectManager::ObjectManager()
     context.setWeatherInfoManager(m_pWeatherInfoManager);
     context.setSkillInfoManager(m_pSkillInfoManager);
     context.setSkillDomainInfoManager(m_pSkillDomainInfoManager);
-    context.setPCFinder(g_pPCFinder);
+    context.setPCFinder(m_pPCFinder);
 
     g_pParkingCenter = new ParkingCenter();
     m_pTelephoneCenter = new TelephoneCenter();
@@ -292,7 +292,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pActionFactoryManager);
     SAFE_DELETE(m_pConditionFactoryManager);
     SAFE_DELETE(m_pPublicScriptManager);
-    SAFE_DELETE(g_pPCFinder);
+    SAFE_DELETE(m_pPCFinder);
     SAFE_DELETE(g_pParkingCenter);
     SAFE_DELETE(m_pTelephoneCenter);
     SAFE_DELETE(m_pItemMineInfoManager);

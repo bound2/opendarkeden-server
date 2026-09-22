@@ -13,6 +13,7 @@
 #include "GCModifyInformation.h"
 #include "GCOtherModifyInfo.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -122,9 +123,11 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
 
 
             Creature* pTargetCreature = NULL;
-            __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+            PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-            pTargetCreature = g_pPCFinder->getCreature_LOCKED(TargetGuildMaster);
+            __ENTER_CRITICAL_SECTION(pcFinder)
+
+            pTargetCreature = pcFinder.getCreature_LOCKED(TargetGuildMaster);
             if (pTargetCreature == NULL) {
                 return;
             }
@@ -132,7 +135,7 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             makeGCModifyInfoGuildUnion(&gcModifyInformation2, pTargetCreature);
             pTargetCreature->getPlayer()->sendPacket(&gcModifyInformation2);
 
-            __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+            __LEAVE_CRITICAL_SECTION(pcFinder)
 
             //////////////////////////////
 

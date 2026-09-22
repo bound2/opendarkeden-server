@@ -77,7 +77,4 @@ private:
     mutable Mutex m_Mutex;
 };
 
-// global variable declaration
-extern PCFinder* g_pPCFinder;
-
 #endif

@@ -27,9 +27,9 @@
 // EventMorph paths call it on a zone thread, where nothing catches a
 // DatabaseError at all -- std::terminate, i.e. the process. And
 // MPlayerManager::processResult calls it INSIDE
-// __ENTER_CRITICAL_SECTION((*g_pPCFinder)), whose
+// __ENTER_CRITICAL_SECTION(pcFinder), whose
 // __LEAVE_CRITICAL_SECTION catches Throwable& only: that one would
-// also leave g_pPCFinder held on the way out.
+// also leave the PCFinder held on the way out.
 
 int loadPowerPoint(const string& name) {
     __BEGIN_TRY
