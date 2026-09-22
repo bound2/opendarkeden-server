@@ -839,10 +839,14 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > through `default*Repository()` accessors, never `g_p*` externs.
   >
   > **Extending a seam: the header is the authority.** Each repository
-  > header carries its tables' quirks and an explicit **"not enclosed"**
-  > list of the SQL on the same tables the seam does not cover. Read that
-  > header before adding a method, and grep the whole tree (loginserver/
-  > and sharedserver/ included) before rewriting the list.
+  > header carries its tables' quirks and, where SQL on the same tables
+  > lives outside the seam, an explicit **"not enclosed"** list of it (nine
+  > headers carry one today; the others say so in prose or not at all, so
+  > grep before assuming a seam is total). Read that header before adding
+  > a method, and grep the whole tree (loginserver/ and sharedserver/
+  > included) before rewriting the list. A `SELECT MAX()` on an empty table
+  > answers one NULL row; a method raises the intended `Error` for it rather
+  > than converting it.
   >
   > **Seams:** `BalanceInfo`, `GameInfo`, `ContentInfo`, `ZoneInfo`,
   > `QuestInfo` — the read-only boot-time catalogues (exp/attr ladders,

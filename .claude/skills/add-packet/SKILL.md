@@ -53,7 +53,8 @@ public:
 `kName` must begin with a known link prefix (CG/GC/CL/LC/GL/LG/GS/SG/GG/GM)
 — `de::packet::KnownDirection` fails compilation otherwise, naming the
 factory. `kMaxSize` is a **read-buffer budget**: it must be at least what
-`write()` can emit at its widest, or the receiver truncates.
+`write()` can emit at its widest, or the receiver rejects the packet as a
+protocol error and drops the connection.
 
 Strings on the wire are a length prefix then that many bytes: use
 `de::wire::readString`/`writeString` (BYTE prefix) or the `...String16`
@@ -66,7 +67,8 @@ The handler class is **declared in this same header** (see the bottom of
 ## 3. Kernel membership
 
 Add both files to `tests/arch/kernel_files.txt`, alphabetically in the
-"Packet classes and info classes" block, `.cpp` before `.h`. That list *is*
+"Packet classes and info classes" block, `.cpp` before `.h` (a convention
+only: `gen_factory_list.sh` sorts the names itself). That list *is*
 `de-kernel`'s source list (`src/Core/CMakeLists.txt` reads it), so there is
 no separate CMake edit for the packet itself.
 
@@ -132,8 +134,9 @@ which folds the whole kernel into one `FactoryList`.
 ## 7. Golden fixture
 
 Add the packet to the family test file it belongs to (`tests/packet_*.cpp`
-— chat, combat, inventory, store, guild, party, trade, movement, creature,
-skill, quest/war, session, login, zone scan, interserver, handshake). Each
+— chat, combat, inventory, store, guild, party, trade, exchange, movement,
+creature, skill, quest/war, session, login, zone scan, interserver,
+handshake). Each
 file has a `fill()` / `expectEqual()` pair per packet and a macro that
 produces the three pins: golden bytes, a loopback round trip through real
 sockets, and `getPacketSize()` against both the bytes `write()` emits and
@@ -209,6 +212,14 @@ bash tests/tools/wire_inventory_diff.sh ../client
 
 It must exit 0. Do not add an exceptions line to make the diff green: a
 one-sided packet that is not deliberately one-sided is a finding.
+
+Other checks in `tests/ratchet/ratchets.sh` a new packet can trip: a
+registered factory that is in neither `tests/generated/AllPacketFactories.inc`
+nor `tests/ratchet/factory_exceptions.txt` fails "every registered factory
+is covered by the wire inventory"; a header copied from a sibling with its
+include guard fails R13; a non-ASCII byte in the new files fails R17; a
+bare `throw "..."`, a `throw x.c_str()` or a `catch (const char*)` in
+`read()` fails R11, R10a or R10b.
 
 ## 10. Before the PR
 

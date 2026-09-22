@@ -342,7 +342,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         // Removal from the PCFinder happens only in ~GamePlayer().
         try {
             pcFinder.addCreature(pSlayer);
-        } catch (DuplicatedException& de) {
+        } catch (DuplicatedException& dupe) {
             bAlreadyConnected = true;
         }
 
@@ -400,7 +400,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         // Removal from the PCFinder happens only in ~GamePlayer().
         try {
             pcFinder.addCreature(pVampire);
-        } catch (DuplicatedException& de) {
+        } catch (DuplicatedException& dupe) {
             bAlreadyConnected = true;
         }
 
@@ -461,7 +461,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         // Removal from the PCFinder happens only in ~GamePlayer().
         try {
             pcFinder.addCreature(pOusters);
-        } catch (DuplicatedException& de) {
+        } catch (DuplicatedException& dupe) {
             bAlreadyConnected = true;
         }
 
