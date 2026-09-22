@@ -567,7 +567,7 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
     Assert(pTargetCreature != NULL);
 
     // Alignment does not change in a PK zone.
-    if (g_pPKZoneInfoManager->isPKZone(pAttacker->getZoneID()))
+    if (de::gameContext().pkZoneInfos().isPKZone(pAttacker->getZoneID()))
         return;
 
     Zone* pZone = pTargetCreature->getZone();
@@ -870,7 +870,7 @@ void increaseAlignment(Creature* pCreature, Creature* pEnemy, ModifyInfo& mi) {
     Assert(pEnemy != NULL);
 
     // Alignment is not raised in a PK zone.
-    if (g_pPKZoneInfoManager->isPKZone(pCreature->getZoneID()))
+    if (de::gameContext().pkZoneInfos().isPKZone(pCreature->getZoneID()))
         return;
 
     // Alignment is not raised inside a dynamic zone.
@@ -1047,7 +1047,7 @@ void shareAttrExp(Slayer* pSlayer, Damage_t Damage, BYTE STRMultiplier, BYTE DEX
     Assert(pSlayer != NULL);
 
     // No experience is given inside a PK zone.
-    if (g_pPKZoneInfoManager->isPKZone(pSlayer->getZoneID()))
+    if (de::gameContext().pkZoneInfos().isPKZone(pSlayer->getZoneID()))
         return;
 
     // No experience is given inside a dynamic zone.
@@ -1096,7 +1096,7 @@ void shareVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
         return;
 
     // No experience is gained inside a PK zone.
-    if (g_pPKZoneInfoManager->isPKZone(pVampire->getZoneID()))
+    if (de::gameContext().pkZoneInfos().isPKZone(pVampire->getZoneID()))
         return;
 
     // No experience is gained inside a dynamic zone.
@@ -1140,7 +1140,7 @@ void shareOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo) {
         return;
 
     // No experience is gained inside a PK zone.
-    if (g_pPKZoneInfoManager->isPKZone(pOusters->getZoneID()))
+    if (de::gameContext().pkZoneInfos().isPKZone(pOusters->getZoneID()))
         return;
 
     // No experience is gained inside a dynamic zone.
@@ -1204,7 +1204,7 @@ void increaseSkillExp(Slayer* pSlayer, SkillDomainType_t DomainType, SkillSlot* 
     Assert(pSkillInfo != NULL);
 
     // No experience is given inside a PK zone.
-    if (g_pPKZoneInfoManager->isPKZone(pSlayer->getZoneID()))
+    if (de::gameContext().pkZoneInfos().isPKZone(pSlayer->getZoneID()))
         return;
 
     // No experience is given inside a dynamic zone.
@@ -1284,7 +1284,7 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
         return false;
 
     // No experience is given inside a PK zone.
-    if (g_pPKZoneInfoManager->isPKZone(pSlayer->getZoneID()))
+    if (de::gameContext().pkZoneInfos().isPKZone(pSlayer->getZoneID()))
         return false;
 
     // No experience is given inside a dynamic zone.
@@ -1945,7 +1945,7 @@ void increaseFame(Creature* pCreature, uint amount) {
         return;
 
     // Fame is not raised inside a PK zone.
-    if (g_pPKZoneInfoManager->isPKZone(pCreature->getZoneID()))
+    if (de::gameContext().pkZoneInfos().isPKZone(pCreature->getZoneID()))
         return;
 
     // Fame is not raised inside a dynamic zone.

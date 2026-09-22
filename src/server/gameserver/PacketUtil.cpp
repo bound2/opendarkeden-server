@@ -375,7 +375,7 @@ void makeGCUpdateInfo(GCUpdateInfo* pUpdateInfo, Creature* pCreature)
     if (pZone->getZoneType() == ZONE_CASTLE) {
         pUpdateInfo->setDarkLevel(pZone->getDarkLevel());
         pUpdateInfo->setLightLevel(pZone->getLightLevel());
-    } else if (g_pPKZoneInfoManager->isPKZone(pZone->getZoneID())) {
+    } else if (de::gameContext().pkZoneInfos().isPKZone(pZone->getZoneID())) {
         pUpdateInfo->setLightLevel(14);
         pUpdateInfo->setDarkLevel(0);
     } else if (pCreature->isSlayer()) {

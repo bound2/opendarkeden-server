@@ -547,7 +547,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
     bool isCastleZone = de::gameContext().castleInfos().getCastleZoneID(pCreature->getZoneID(), castleZoneID);
     bool isMasterLair = pZoneInfo->isMasterLair() || GDRLairManager::Instance().isGDRLairZone(pCreature->getZoneID());
-    bool isPKZone = g_pPKZoneInfoManager->isPKZone(pCreature->getZoneID());
+    bool isPKZone = de::gameContext().pkZoneInfos().isPKZone(pCreature->getZoneID());
     bool isMaze = (pCreature->getZoneID() == 3001) || (pCreature->getZoneID() == 3002) ||
                   (pCreature->getZoneID() == 3003) || (pCreature->getZoneID() == 1013); // add by sonic 2006.10.30
     bool isEventZone = EventZoneInfoManager::Instance().getEventZoneInfo(pCreature->getZoneID()) != NULL;

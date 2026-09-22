@@ -178,7 +178,7 @@ void CGUseItemFromGearHandler::executeCoupleRing(CGUseItemFromGear* pPacket, Gam
                      pTargetZone->getZoneID() != 1132 && pTargetZone->getZoneID() != 1133 &&
                      pTargetZone->getZoneID() != 1134 && !pTargetZone->isCastleZone() && !pTargetZone->isMasterLair() &&
                      (!de::gameContext().warSystem().hasActiveRaceWar() || !pTargetZone->isHolyLand()) &&
-                     !pTargetZone->isCastle() && !g_pPKZoneInfoManager->isPKZone(pTargetZone->getZoneID()) &&
+                     !pTargetZone->isCastle() && !de::gameContext().pkZoneInfos().isPKZone(pTargetZone->getZoneID()) &&
                      !pTargetZone->isDynamicZone();
     }
     __LEAVE_CRITICAL_SECTION(pcFinder)

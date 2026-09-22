@@ -113,7 +113,7 @@ void WeatherManager::heartbeat()
         return;
 
     // Nothing to do in a PK zone either.
-    if (g_pPKZoneInfoManager->isPKZone(m_pZone->getZoneID()))
+    if (de::gameContext().pkZoneInfos().isPKZone(m_pZone->getZoneID()))
         return;
 
     time_t currentTime = time(0);

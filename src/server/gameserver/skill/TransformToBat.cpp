@@ -50,7 +50,7 @@ void TransformToBat::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordI
         // Transformation requires a suitable item.
         // It is also blocked in a PK zone.
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_VAMPIRE_ETC || pItem->getItemType() != 1 ||
-            pVampire->hasRelicItem() || g_pPKZoneInfoManager->isPKZone(pZone->getZoneID()) ||
+            pVampire->hasRelicItem() || de::gameContext().pkZoneInfos().isPKZone(pZone->getZoneID()) ||
             pVampire->isFlag(Effect::EFFECT_CLASS_REFINIUM_TICKET) ||
             GDRLairManager::Instance().isGDRLairZone(pZone->getZoneID()) ||
             SiegeManager::Instance().isSiegeZone(pZone->getZoneID()) ||

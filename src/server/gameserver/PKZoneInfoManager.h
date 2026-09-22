@@ -122,6 +122,4 @@ private:
     PKZoneInfoMap m_PKZoneInfos;
 };
 
-extern PKZoneInfoManager* g_pPKZoneInfoManager;
-
 #endif // __PK_ZONE_INFO_MANAGER_H__

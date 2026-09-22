@@ -47,6 +47,7 @@ class MonsterNameManager;
 class OptionInfoManager;
 class OustersEXPInfoManager;
 class PCFinder;
+class PKZoneInfoManager;
 class PriceManager;
 class RankBonusInfoManager;
 class ScriptManager;
@@ -113,6 +114,7 @@ private:
     OptionInfoManager* m_pOptionInfoManager = nullptr;
     OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
+    PKZoneInfoManager* m_pPKZoneInfoManager = nullptr;
     PriceManager* m_pPriceManager = nullptr;
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;

@@ -198,6 +198,11 @@ PCFinder& GameContext::playerCreatures() const {
     return *m_pPCFinder;
 }
 
+PKZoneInfoManager& GameContext::pkZoneInfos() const {
+    Assert(m_pPKZoneInfoManager != nullptr);
+    return *m_pPKZoneInfoManager;
+}
+
 PriceManager& GameContext::prices() const {
     Assert(m_pPriceManager != nullptr);
     return *m_pPriceManager;

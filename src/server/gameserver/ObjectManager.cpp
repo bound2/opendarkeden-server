@@ -250,7 +250,8 @@ ObjectManager::ObjectManager()
 
     m_pCoupleManager = new CoupleManager();
     context.setCoupleManager(m_pCoupleManager);
-    g_pPKZoneInfoManager = new PKZoneInfoManager();
+    m_pPKZoneInfoManager = new PKZoneInfoManager();
+    context.setPKZoneInfoManager(m_pPKZoneInfoManager);
     //	g_pFameLimitInfoManager = new FameLimitInfoManager();
     m_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
     context.setGameServerGroupInfoManager(m_pGameServerGroupInfoManager);
@@ -346,7 +347,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pSkillPropertyManager);
 
     SAFE_DELETE(m_pCoupleManager);
-    SAFE_DELETE(g_pPKZoneInfoManager);
+    SAFE_DELETE(m_pPKZoneInfoManager);
     //	SAFE_DELETE(g_pFameLimitInfoManager);
     SAFE_DELETE(m_pGameServerGroupInfoManager);
     SAFE_DELETE(m_pCastleSkillInfoManager);
@@ -642,7 +643,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : RaceWarLimiter Initialization Success\n");
 
     printf("ObjectManager::load() : PKZoneInfoManager Initialization Start\n");
-    g_pPKZoneInfoManager->load();
+    m_pPKZoneInfoManager->load();
     printf("ObjectManager::load() : PKZoneInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : GameServerGroupInfoManager Initialization Start\n");

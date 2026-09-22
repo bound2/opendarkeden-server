@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[55];
+char g_managerStorage[56];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -162,14 +162,17 @@ TEST(GameContextTest, ZoneAmbienceManagersAreReadBack) {
     DarkLightInfoManager* pDarkLightInfoManager = standIn<DarkLightInfoManager>(21);
     DirectiveSetManager* pDirectiveSetManager = standIn<DirectiveSetManager>(22);
     DynamicZoneInfoManager* pDynamicZoneInfoManager = standIn<DynamicZoneInfoManager>(23);
+    PKZoneInfoManager* pPKZoneInfoManager = standIn<PKZoneInfoManager>(55);
 
     context.setDarkLightInfoManager(pDarkLightInfoManager);
     context.setDirectiveSetManager(pDirectiveSetManager);
     context.setDynamicZoneInfoManager(pDynamicZoneInfoManager);
+    context.setPKZoneInfoManager(pPKZoneInfoManager);
 
     EXPECT_EQ(&context.darkLights(), pDarkLightInfoManager);
     EXPECT_EQ(&context.directiveSets(), pDirectiveSetManager);
     EXPECT_EQ(&context.dynamicZoneInfos(), pDynamicZoneInfoManager);
+    EXPECT_EQ(&context.pkZoneInfos(), pPKZoneInfoManager);
 }
 
 TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
@@ -347,6 +350,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.optionSets(), AssertionError);
     EXPECT_THROW(context.oustersExp(), AssertionError);
     EXPECT_THROW(context.parties(), AssertionError);
+    EXPECT_THROW(context.pkZoneInfos(), AssertionError);
     EXPECT_THROW(context.playerCreatures(), AssertionError);
     EXPECT_THROW(context.prices(), AssertionError);
     EXPECT_THROW(context.publicScripts(), AssertionError);

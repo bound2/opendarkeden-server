@@ -15,6 +15,7 @@
 #include "GCSystemMessage.h"
 #include "GCUpdateInfo.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "Ousters.h"
@@ -77,12 +78,12 @@ void ActionEnterPKZone::execute(Creature* pNPC, Creature* pCreature)
     bool bTransport = true;
 
     if (bTransport) {
-        if (pPC->isPLAYER() && !g_pPKZoneInfoManager->canEnterPKZone(m_ZoneID))
+        if (pPC->isPLAYER() && !context().pkZoneInfos().canEnterPKZone(m_ZoneID))
             bTransport = false;
     }
 
     if (bTransport) {
-        PKZoneInfo* pPKZoneInfo = g_pPKZoneInfoManager->getPKZoneInfo(m_ZoneID);
+        PKZoneInfo* pPKZoneInfo = context().pkZoneInfos().getPKZoneInfo(m_ZoneID);
 
         if (pPKZoneInfo == NULL) {
             GCSystemMessage gcSystemMessage;

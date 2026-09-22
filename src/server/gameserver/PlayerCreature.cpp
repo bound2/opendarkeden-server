@@ -903,7 +903,7 @@ void PlayerCreature::increaseRankExp(RankExp_t Point) {
     if (Point <= 0)
         return;
 
-    if (g_pPKZoneInfoManager->isPKZone(getZoneID()))
+    if (de::gameContext().pkZoneInfos().isPKZone(getZoneID()))
         return;
 
     if (m_pZone != NULL && m_pZone->isDynamicZone())

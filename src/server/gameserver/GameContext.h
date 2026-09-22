@@ -58,6 +58,7 @@ class MonsterNameManager;
 class OptionInfoManager;
 class OustersEXPInfoManager;
 class PCFinder;
+class PKZoneInfoManager;
 class PriceManager;
 class Properties;
 class RankBonusInfoManager;
@@ -198,6 +199,9 @@ public:
     void setPCFinder(PCFinder* pPCFinder) {
         m_pPCFinder = pPCFinder;
     }
+    void setPKZoneInfoManager(PKZoneInfoManager* pPKZoneInfoManager) {
+        m_pPKZoneInfoManager = pPKZoneInfoManager;
+    }
     void setPriceManager(PriceManager* pPriceManager) {
         m_pPriceManager = pPriceManager;
     }
@@ -290,6 +294,7 @@ public:
     OptionInfoManager& optionInfos() const;
     OustersEXPInfoManager& oustersExp() const;
     PCFinder& playerCreatures() const;
+    PKZoneInfoManager& pkZoneInfos() const;
     PriceManager& prices() const;
     ScriptManager& publicScripts() const;
     RankBonusInfoManager& rankBonuses() const;
@@ -347,6 +352,7 @@ private:
     OptionInfoManager* m_pOptionInfoManager = nullptr;
     OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
+    PKZoneInfoManager* m_pPKZoneInfoManager = nullptr;
     PriceManager* m_pPriceManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;

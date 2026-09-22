@@ -5,8 +5,6 @@
 #include "ZoneUtil.h"
 #include "repository/ZoneInfoRepository.h"
 
-PKZoneInfoManager* g_pPKZoneInfoManager = NULL;
-
 string PKZoneInfo::toString()
 
 {
