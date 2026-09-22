@@ -396,6 +396,7 @@ void Party::addMember(Creature* pCreature)
     if (itr == m_MemberMap.end()) {
         m_MemberMap[pCreature->getName()] = pCreature;
     } else {
+        // A creature already in the party is left as it is.
     }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)

@@ -43,5 +43,7 @@ string VisionInfoManager::toString() const
 {
     __BEGIN_TRY
 
+    return "VisionInfoManager()";
+
     __END_CATCH
 }

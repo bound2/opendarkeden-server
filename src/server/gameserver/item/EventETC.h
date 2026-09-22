@@ -80,12 +80,13 @@ private:
 
 class EventETCInfo : public ItemInfo {
 public:
-public:
     virtual Item::ItemClass getItemClass() const {
         return Item::ITEM_CLASS_EVENT_ETC;
     }
     virtual string toString() const;
 
+    // Function is the amount the item recovers, not the option bit mask the
+    // event star and event tree items keep in their Function column.
     uint getFunction() const {
         return m_Function;
     }

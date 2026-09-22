@@ -535,8 +535,6 @@ bool MonsterAI::move(ZoneCoord_t ex, ZoneCoord_t ey)
 {
     Zone* pZone = m_pBody->getZone();
 
-    // Moving while hidden causes trouble.
-
     // Position and direction to move to
     ZoneCoord_t nx, ny;
     Dir_t ndir;

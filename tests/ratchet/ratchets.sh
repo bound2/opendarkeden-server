@@ -133,7 +133,7 @@ check_ratchet R6h "Slayer.cpp lines" 3087 "$R6h"
 R6i=$(wc -l < src/server/gameserver/Vampire.cpp 2>/dev/null || echo missing)
 check_ratchet R6i "Vampire.cpp lines" 2047 "$R6i"
 R6j=$(wc -l < src/server/gameserver/Ousters.cpp 2>/dev/null || echo missing)
-check_ratchet R6j "Ousters.cpp lines" 1959 "$R6j"
+check_ratchet R6j "Ousters.cpp lines" 1954 "$R6j"
 
 # --- R7: pre-C++17 dynamic exception specifications ------------------------
 # The migration also normalized real `throw(expr)` expressions to `throw expr`

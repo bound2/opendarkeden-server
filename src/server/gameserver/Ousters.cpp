@@ -1702,12 +1702,7 @@ void Ousters::saveSkills(void) const {
 Sight_t Ousters::getEffectedSight() {
     __BEGIN_TRY
 
-    Sight_t sight = Creature::getEffectedSight();
-
-    if (sight == DEFAULT_SIGHT) {
-    }
-
-    return sight;
+    return Creature::getEffectedSight();
 
     __END_CATCH
 }
