@@ -128,9 +128,6 @@ bool PartyInviteInfoManager::canInvite(Creature* pHost, Creature* pGuest)
     if (pHostInfo != NULL || pGuestInfo != NULL)
         return false;
 
-    // Cannot invite a guest who already belongs to a party.
-    // if (pGuest->getPartyID() != 0) return false;
-
     return true;
 
     __END_CATCH
@@ -1209,7 +1206,7 @@ void Party::shareRankExp(Creature* pLeader, int otherLevel)
         Creature* pCreature = (*itr);
         Assert(pCreature != NULL);
 
-        // While looking for nearby party members, also accumulate their level sum.
+        // Give each nearby member a share of the experience in proportion to its level.
         int level = 0;
         if (pCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -1320,7 +1317,7 @@ void Party::shareAdvancementExp(Creature* pLeader, int amount)
         PlayerCreature* pCreature = dynamic_cast<PlayerCreature*>(*itr);
         Assert(pCreature != NULL);
 
-        // While looking for nearby party members, also accumulate their level sum.
+        // Give each nearby member a share of the experience in proportion to its level.
         int myQuota = amount * pCreature->getLevel() / LevelSum;
         pCreature->increaseAdvancementClassExp(myQuota);
     }
@@ -2812,8 +2809,6 @@ bool GlobalPartyManager::deletePartyMember(int ID, Creature* pCreature)
 
     // Delete the party once its size drops to 1.
     if (pParty->getSize() == 1) {
-        // cout << "Global party size reached 0, deleting party object [" << pParty->getID() << "]." << endl;
-
         m_PartyMap.erase(itr);
 
         // Set the remaining members' party IDs to 0 and

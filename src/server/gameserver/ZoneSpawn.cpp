@@ -1147,8 +1147,7 @@ void Zone::deleteNPCs(Race_t race)
 {
     __BEGIN_TRY
 
-    const unordered_map<ObjectID_t, Creature*>& NPCs =
-        m_pNPCManager->getCreatures(); // the unordered_map must be copied before use
+    const unordered_map<ObjectID_t, Creature*>& NPCs = m_pNPCManager->getCreatures();
     unordered_map<ObjectID_t, Creature*>::const_iterator itr = NPCs.begin();
 
     list<ObjectID_t> creatures;

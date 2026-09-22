@@ -364,8 +364,8 @@ void Vampire::checkItemTimeLimit() {
             if (pItem != NULL) {
                 bool bCheck = true;
 
-                // A two-handed weapon was already registered under WEAR_LEFTHAND,
-                // so there is no need to register it again.
+                // A two-handed weapon fills both hand slots with the same item,
+                // so it is handled only once, under WEAR_LEFTHAND.
                 if (i == WEAR_RIGHTHAND && isTwohandWeapon(pItem))
                     bCheck = false;
 
@@ -432,8 +432,8 @@ void Vampire::updateEventItemTime(DWORD time) {
             if (pItem != NULL) {
                 bool bCheck = true;
 
-                // A two-handed weapon was already registered under WEAR_LEFTHAND,
-                // so there is no need to register it again.
+                // A two-handed weapon fills both hand slots with the same item,
+                // so it is handled only once, under WEAR_LEFTHAND.
                 if (i == WEAR_RIGHTHAND && isTwohandWeapon(pItem))
                     bCheck = false;
 

@@ -86,7 +86,7 @@ void makeGCAddNPC(GCAddNPC* pAddNPC, NPC* pNPC);
 // Build the GCAddNewItemToZone sent when a new item is added to the zone.
 void makeGCAddNewItemToZone(GCAddNewItemToZone* pAddItem, Item* pItem, int X, int Y);
 
-// Build the GCAddNewItemToZone sent when a new item is added to the zone.
+// Build the GCDropItemToZone sent when an item is dropped into the zone.
 void makeGCDropItemToZone(GCDropItemToZone* pAddItem, Item* pItem, int X, int Y);
 
 // Build the packet sent when a Slayer corpse is added to the zone.

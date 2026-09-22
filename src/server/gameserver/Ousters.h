@@ -598,7 +598,7 @@ public:
     bool satisfySkillRequire(SkillInfo* pSkillInfo);
 
     //////////////////////////////
-    // Elemental attribute functions
+    // Passive skill functions
     //////////////////////////////
     bool isPassiveAvailable(SkillType_t type) {
         return m_PassiveSkillMap.find(type) != m_PassiveSkillMap.end() && m_PassiveSkillMap[type].first;

@@ -600,12 +600,10 @@ void MonsterManager::processCreatures()
             }
         }
 
-        // The monster regeneration code contains findPosition, an unbounded loop.
-        // When several monsters die within 30 seconds, finding places to regenerate
-        // them can take a long time, and a long time here causes lag. Even if the
-        // average gets a little slower, the regeneration check is run every turn
-        // to reduce that lag.
-        // Check the monster count periodically and regenerate.
+        // The monster regeneration code contains findPosition, which retries up to
+        // 300 times to find a free position. When several monsters die at once that
+        // can take a long time and cause lag, so the check that counts the monsters
+        // and regenerates them runs only once every 5 seconds.
         if (m_RegenTime < currentTime) {
             __BEGIN_PROFILE_MONSTER("MM_REGENERATE_CREATURES");
 
@@ -753,7 +751,7 @@ bool MonsterManager::findPosition(MonsterType_t monsterType, ZoneCoord_t& RX, Zo
     int count = 0;
 
 
-    // This is an unbounded loop -- could that ever be a problem?
+    // Retry until a free position is found, giving up after 300 tries.
     while (true) {
         const BPOINT& pt = m_pZone->getRandomMonsterRegenPosition();
 

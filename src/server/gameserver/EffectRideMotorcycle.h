@@ -11,8 +11,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class EffectRideMotorcycle;
-// After a while the item on the ground disappears and
-// is moved to another zone.
+// Server-side effect on the motorcycle's owner; when it expires
+// the owner gets back on the motorcycle.
 //////////////////////////////////////////////////////////////////////////////
 
 class Slayer;

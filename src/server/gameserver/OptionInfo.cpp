@@ -331,7 +331,7 @@ bool OptionInfo::isUpgradeSucceed() const {
     return (rand() % 100 < (int)m_UpgradeRatio);
 }
 
-// Did the upgrade to the next option stage succeed?
+// Did the Blue Drop 2 upgrade to the next option stage succeed?
 bool OptionInfo::isUpgradeSecondSucceed() const {
     // Not zero, and
     // success is rand() over the ratio landing on one particular value (0).

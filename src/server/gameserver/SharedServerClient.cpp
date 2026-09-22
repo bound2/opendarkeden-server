@@ -77,7 +77,7 @@ void SharedServerClient::processCommand() {
             }
 
             // Read the packet id and the packet size.
-            // The packet size includes the header.
+            // The packet size counts the body only.
             memcpy(&packetID, &header[0], szPacketID);
             memcpy(&packetSize, &header[szPacketID], szPacketSize);
 

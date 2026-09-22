@@ -407,7 +407,7 @@ protected:
     Resist_t m_Resist[MAGIC_DOMAIN_MAX];     // Magic resistance
 
     // The zone to enter next, the zone to resurrect in.
-    Zone* m_pNewZone;   // Pointer to the current zone
+    Zone* m_pNewZone;   // Pointer to that zone
     ZoneCoord_t m_NewX; // Zone x coordinate
     ZoneCoord_t m_NewY; // Zone y coordinate
 

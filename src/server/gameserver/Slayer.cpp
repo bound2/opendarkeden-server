@@ -1005,7 +1005,7 @@ SkillSlot* Slayer::getSkill(SkillType_t SkillType) const
     __END_CATCH
 }
 
-// Put a SkillSlot into an automatically found empty slot.
+// Register a SkillSlot under its skill type; a duplicate slot is deleted.
 void Slayer::addSkill(SkillSlot* pSkillSlot)
 
 {
@@ -3414,7 +3414,7 @@ QuestGrade_t Slayer::getQuestGrade() const {
            getSkillDomainLevel(SKILL_DOMAIN_ENCHANT) * 1.5;
 }
 
-// A pure attribute sum below 40 makes the character a Novice.
+// A pure attribute sum of 40 or less makes the character a Novice.
 bool Slayer::isNovice() const {
     return (m_STR[ATTR_BASIC] + m_DEX[ATTR_BASIC] + m_INT[ATTR_BASIC]) <= 40;
 }

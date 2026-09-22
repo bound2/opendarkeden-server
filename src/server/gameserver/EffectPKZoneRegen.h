@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectPKZoneRegen.h
 // Written by  :
-// Description : Defense reduction effect caused by PKZoneRegen
+// Description : Restores HP and MP at intervals to players inside a PK zone area.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_PK_ZONE_REGEN__

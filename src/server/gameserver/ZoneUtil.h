@@ -157,7 +157,7 @@ void addInvisibleCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t cx, Zone
 //
 // Zone*       pZone     : pointer to the zone
 // Creature*   pCreature : the creature that was invisible
-// bool        bForce    : was it forced into the visible state?
+// bool        bForced   : was it forced into the visible state?
 //////////////////////////////////////////////////////////////////////////////
 void addVisibleCreature(Zone* pZone, Creature* pCreature, bool bForced);
 
@@ -166,7 +166,7 @@ void addVisibleCreature(Zone* pZone, Creature* pCreature, bool bForced);
 // Add a creature in sniping mode.
 //
 // Zone*       pZone     : pointer to the zone
-// Creature*   pCreature : the invisible creature
+// Creature*   pCreature : the creature entering sniping mode
 // ZoneCoord_t cx        : the creature's original x
 // ZoneCoord_t cy        : the creature's original y
 //////////////////////////////////////////////////////////////////////////////
@@ -174,11 +174,11 @@ void addSnipingModeCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t cx, Zo
 
 
 //////////////////////////////////////////////////////////////////////////////
-// Add a creature that was invisible and has become visible.
+// Add a creature that left sniping mode.
 //
 // Zone*       pZone     : pointer to the zone
-// Creature*   pCreature : the creature that was invisible
-// bool        bForce    : was it forced into the visible state?
+// Creature*   pCreature : the creature that was in sniping mode
+// bool        bForced   : was it forced out of sniping mode?
 //////////////////////////////////////////////////////////////////////////////
 void addUnSnipingModeCreature(Zone* pZone, Creature* pCreature, bool bForced);
 

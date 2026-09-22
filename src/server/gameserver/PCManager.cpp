@@ -735,7 +735,7 @@ void PCManager::processCreatures()
                         if (pEffect != NULL) {
                             pEffect->unaffect();
                         }
-                        // Remove paralyze.
+                        // Remove the sylph summon effect.
                         pEffectManager->deleteEffect(pCreature, Effect::EFFECT_CLASS_SUMMON_SYLPH);
                         pCreature->removeFlag(Effect::EFFECT_CLASS_SUMMON_SYLPH);
                     }
@@ -746,7 +746,7 @@ void PCManager::processCreatures()
                         if (pEffect != NULL) {
                             pEffect->unaffect();
                         }
-                        // Remove paralyze.
+                        // Remove the invisibility effect.
                         pEffectManager->deleteEffect(pCreature, Effect::EFFECT_CLASS_INVISIBILITY);
                         pCreature->removeFlag(Effect::EFFECT_CLASS_INVISIBILITY);
                     }
@@ -757,7 +757,7 @@ void PCManager::processCreatures()
                         if (pEffect != NULL) {
                             pEffect->unaffect();
                         }
-                        // Remove paralyze.
+                        // Remove the sniping-mode effect.
                         pEffectManager->deleteEffect(pCreature, Effect::EFFECT_CLASS_SNIPING_MODE);
                         pCreature->removeFlag(Effect::EFFECT_CLASS_SNIPING_MODE);
                     }
@@ -885,8 +885,8 @@ void PCManager::processCreatures()
                         pEffectManager->deleteEffect(pCreature, Effect::EFFECT_CLASS_COMA);
                         pCreature->removeFlag(Effect::EFFECT_CLASS_COMA);
 
-                        // When the COMA effect is unaffected by user input the PC is
-                        // really dead, so kill it and move the player from ZPM to IPM.
+                        // The coma deadline has passed, so the PC is really dead: kill it and
+                        // move the player from ZPM to IPM.
                         killCreature(pCreature);
 
                         // Delete the PC's node.

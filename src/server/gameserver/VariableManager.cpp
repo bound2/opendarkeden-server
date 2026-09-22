@@ -136,7 +136,7 @@ VariableManager::VariableManager()
     m_Variables[ACTIVE_FLAG_WAR] = false;     // Whether capture the flag is running
 
     m_Variables[KILL_DAEMONCTL] = false;  // Whether daemonctl2 is killed
-    m_Variables[EVENT_MOON_CARD] = false; // Whether daemonctl2 is killed
+    m_Variables[EVENT_MOON_CARD] = false; // Whether the moon card event is on
 
     m_Variables[FULL_MOON_CARD_RATIO] = 3000;
     m_Variables[HALF_MOON_CARD_RATIO] = 100;

@@ -790,7 +790,7 @@ void makeGCAddNewItemToZone(GCAddNewItemToZone* pAddNewItemToZone, Item* pItem, 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Build the GCDropItemToZone sent when a new item is added to the zone.
+// Build the GCDropItemToZone sent when an item is dropped into the zone.
 //////////////////////////////////////////////////////////////////////////////
 void makeGCDropItemToZone(GCDropItemToZone* pDropItemToZone, Item* pItem, int X, int Y)
 
@@ -1075,7 +1075,7 @@ void sendEffectLevelUp(Creature* pCreature)
     // Broadcast it to the surroundings.
     GCAddEffect gcAddEffect;
     gcAddEffect.setObjectID(pCreature->getObjectID());
-    gcAddEffect.setDuration(10); // Not very meaningful, but set to 1 second.
+    gcAddEffect.setDuration(10); // Not very meaningful, but set to a short fixed duration.
 
     if (pCreature->isSlayer()) {
         gcAddEffect.setEffectID(Effect::EFFECT_CLASS_LEVELUP_SLAYER);

@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectTryingPosition.h
 // Written by  :
-// Description : Defense reduction effect caused by TryingPosition
+// Description : Starts a regen zone tower capture when a player stands on the position.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_TRYING_POSITION__

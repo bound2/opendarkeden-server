@@ -838,7 +838,7 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                             VisionState prevVS = pCreature->getVisionState(x1, y1);
                             VisionState currVS = pCreature->getVisionState(x2, y2);
 
-                            // The other party is a Vampire, so my darkness state does not matter.
+                            // The other party is an Ousters, so my darkness state does not matter.
                             // Hide does not matter either.
                             // *NOTE
                             // If the other party is a Slayer, whether it is sniping has to be checked.
@@ -1120,7 +1120,7 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
 
 
     //--------------------------------------------------------------------------------
-    // Prepare the GCAddSlayer/GCAddVampire packet.
+    // Prepare the GCAddMonster packet.
     // By the current policy, the GCAdd packet is based on the current coordinates.
     //--------------------------------------------------------------------------------
     Packet* pAddMonsterPacket = createMonsterAddPacket(pMonster, NULL);
@@ -1193,10 +1193,9 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                                 Monster* pOtherMonster = dynamic_cast<Monster*>(pCreature);
 
                                 //--------------------------------------------------------------------------------
-                                // Register the PC as a potential enemy of the monster.
+                                // Register the two monsters as potential enemies of each other.
                                 //--------------------------------------------------------------------------------
 
-                                // Register as an enemy only for Aggressive monsters.
                                 {
                                     if (isPotentialEnemy(pOtherMonster, pMonster)) {
                                         pMonster->addPotentialEnemy(pOtherMonster);
@@ -1218,7 +1217,7 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                                 //												EffectObservingEye* pEffectObservingEye
                                 //													//Assert( pEffectObservingEye !=
 
-                                // Packet announcing the PC's appearance to the other party.
+                                // Packet announcing the monster's appearance to the other party.
                                 //												if
                                 //((!pMonster->isFlag(Effect::EFFECT_CLASS_HIDE) ||
                                 // pCreature->isFlag(Effect::EFFECT_CLASS_DETECT_HIDDEN) ) //|| (
@@ -1282,7 +1281,7 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                                 VisionState prevVS = pCreature->getVisionState(x1, y1);
                                 VisionState currVS = pCreature->getVisionState(x2, y2);
 
-                                // Packet announcing the PC's appearance to the other party.
+                                // Packet announcing the monster's appearance to the other party.
                                 if (canSee(pCreature, pMonster)) {
                                     if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                         pCreature->getPlayer()->sendPacket(pAddMonsterPacket);

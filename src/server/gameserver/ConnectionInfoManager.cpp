@@ -241,7 +241,7 @@ void ConnectionInfoManager::heartbeat()
 
         // Store in the DB when running for Netmarble.
         if (currentTime > m_UpdateUserStatusTime) {
-            // Every minute
+            // Every 30 seconds
             m_UpdateUserStatusTime.tv_sec = currentTime.tv_sec + 30;
 
             if (g_pConfig->getPropertyInt("IsNetMarble") == 1) {

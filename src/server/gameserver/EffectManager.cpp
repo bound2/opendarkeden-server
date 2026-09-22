@@ -457,10 +457,7 @@ void EffectManager::addEffect(Effect* pEffect)
             }
 
             // *CAUTION
-            // For EffectBloodDrain the loop is stopped.
-            // Why? Because the Slayer's data is changed inside EffectBloodDrain.
-            // Handling the next Effect could go wrong.
-            // The remaining effects are loaded the next time the character becomes a Slayer.
+            // EffectBloodDrain changes the Slayer's data inside unaffect().
             pEffect->unaffect();
             SAFE_DELETE(pEffect);
 
@@ -525,11 +522,7 @@ int EffectManager::heartbeat(const Timeval& currentTime)
             }
 
             // *CAUTION
-            // For EffectBloodDrain the loop is stopped.
-            // Why? Because the Slayer's data is changed inside EffectBloodDrain.
-            // Handling the next Effect could go wrong.
-            // The remaining effects are loaded the next time the character becomes a Slayer.
-            // Changed to be event based, so the loop no longer has to stop.
+            // EffectBloodDrain changes the Slayer's data inside unaffect().
             pEffect->unaffect();
             SAFE_DELETE(pEffect);
 

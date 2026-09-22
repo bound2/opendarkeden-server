@@ -159,7 +159,7 @@ void EffectHasBloodBible::affect(Item* pItem)
     pGCBBS->setX(m_X);
     pGCBBS->setY(m_Y);
 
-    // Send the message only while a war is running at the castle.
+    // Send the message only while a race war is running.
     if (g_pWarSystem->hasActiveRaceWar()) {
         g_pHolyLandManager->broadcast(pGCBBS);
     }

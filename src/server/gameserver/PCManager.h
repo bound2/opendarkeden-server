@@ -31,7 +31,7 @@ public:
     // Return a particular creature object from the creature manager.
     // Creature* getCreature(ObjectID_t objectID) const ;
 
-    // Process the creatures (NPC, Monster) that belong to this manager.
+    // Process the PCs that belong to this manager.
     virtual void processCreatures();
 
     // Handle a dead creature.

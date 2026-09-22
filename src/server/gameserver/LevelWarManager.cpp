@@ -374,7 +374,7 @@ void LevelWarManager::freeUserTimeCheck()
     if (m_bCanEnterFreeUser && hour != LevelWarTime[m_Level - 1][1]) {
         m_bCanEnterFreeUser = false;
 
-        // Throw everyone in the Zone out.
+        // Keep only the paying players in the Zone.
         m_pZone->remainPayPlayer();
     } else if (!m_bCanEnterFreeUser && hour == LevelWarTime[m_Level - 1][1]) {
         m_bCanEnterFreeUser = true;

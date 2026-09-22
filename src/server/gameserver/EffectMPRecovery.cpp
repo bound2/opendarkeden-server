@@ -51,7 +51,7 @@ void EffectMPRecovery::affect()
 {
     __BEGIN_TRY
 
-    // HP recovery according to the delay.
+    // MP recovery according to the delay.
     setNextTime(m_Delay);
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);

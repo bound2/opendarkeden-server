@@ -70,7 +70,7 @@ public:
     ~EffectSchedule();
 
 public:
-    // Add the effect the work applies to.
+    // The effect the work applies to.
     Effect* getEffect(void) const {
         return m_pEffect;
     }

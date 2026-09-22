@@ -2,8 +2,8 @@
 // Filename    : EffectLoveChain.h
 // Written by  : elca@ewestsoft.com
 // Description :
-// Effect attached to a creature that is fading away because of the
-// soldier skill Sniping or the vampire skill Invisibility.
+// Effect that, when it expires, moves the creature to the zone and
+// position of the partner it is chained to.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_LOVE_CHAIN__

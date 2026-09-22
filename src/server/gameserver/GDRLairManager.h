@@ -353,7 +353,7 @@ public:
     }
 };
 
-// Manager for the GDR lair. Runs on the ClientManager's thread.
+// Manager for the GDR lair. Runs on its own managed thread.
 class GDRLairManager : public FiniteStateMachine, public ManagedThread {
 public:
     ~GDRLairManager() noexcept override {

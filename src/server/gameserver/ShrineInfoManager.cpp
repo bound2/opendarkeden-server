@@ -485,7 +485,7 @@ bool ShrineInfoManager::isMatchGuardShrine(Item* pItem, MonsterCorpse* pMonsterC
         return false;
     }
 
-    // True when the MonsterType of the holy shrine of the Shrine set for this blood
+    // True when the MonsterType of the guard shrine of the Shrine set for this blood
     // bible equals the MonsterType of the MonsterCorpse passed in.
     if (pPC->isSlayer()) {
         return pShrineSet->getSlayerGuardShrine().getMonsterType() == pMonsterCorpse->getMonsterType();

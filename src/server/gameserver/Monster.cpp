@@ -669,7 +669,7 @@ void Monster::act(const Timeval& currentTime)
 
                 // Check from the inside out.
                 if (pCoreRect->ptInRect(pt) || pInnerRect->ptInRect(pt)) {
-                    // If it is outside, move at random.
+                    // Inside the core or inner area, move one tile at random now and then.
                     uint diceResult = rand() & 0x0000007F; //%100;
                     if (diceResult < 6)                    // 5
                     {
@@ -691,7 +691,7 @@ void Monster::act(const Timeval& currentTime)
                 if ((m_bScanEnemy || isFlag(Effect::EFFECT_CLASS_HALLUCINATION)) && currentTime > m_NextScanTurn) {
                     m_pZone->monsterScan(this, m_X, m_Y, m_Dir);
 
-                    // Search again after 5 seconds.
+                    // Scan again after 2 seconds.
                     m_NextScanTurn.tv_sec = currentTime.tv_sec + 2;
                     m_NextScanTurn.tv_usec = currentTime.tv_usec;
                 }
@@ -802,8 +802,8 @@ void Monster::addEnemy(Creature* pCreature)
         // The first attacker is attacked first, so it
         // must be added at the very end.
         case ATTACK_FIRST: {
-            // If the number of remembered enemies is below the maximum memory size and
-            // it is not already remembered, add it at the end of the enemy list.
+            // If it is not already remembered, add it at the end of the enemy list
+            // and drop the last entry once the memory size is exceeded.
             list<ObjectID_t>::iterator itr = find(m_Enemies.begin(), m_Enemies.end(), pCreature->getObjectID());
             if (itr == m_Enemies.end()) {
                 m_Enemies.push_back(pCreature->getObjectID());
@@ -816,8 +816,8 @@ void Monster::addEnemy(Creature* pCreature)
         // The last attacker is attacked first, so it
         // must be added at the very front.
         case ATTACK_LAST: {
-            // If the number of remembered enemies is below the maximum memory size and
-            // it is not already remembered, add it at the front of the enemy list.
+            // If it is not already remembered, add it at the front of the enemy list
+            // and drop the last entry once the memory size is exceeded.
             list<ObjectID_t>::iterator itr = find(m_Enemies.begin(), m_Enemies.end(), pCreature->getObjectID());
             if (itr == m_Enemies.end()) {
                 m_Enemies.push_front(pCreature->getObjectID());
@@ -1107,8 +1107,8 @@ void Monster::addEnemy(Creature* pCreature)
         default:
 
         {
-            // If the number of remembered enemies is below the maximum memory size and
-            // it is not already remembered, add it at the end of the enemy list.
+            // If it is not already remembered, add it at the end of the enemy list
+            // and drop the last entry once the memory size is exceeded.
             list<ObjectID_t>::iterator itr = find(m_Enemies.begin(), m_Enemies.end(), pCreature->getObjectID());
             if (itr == m_Enemies.end()) {
                 m_Enemies.push_back(pCreature->getObjectID());

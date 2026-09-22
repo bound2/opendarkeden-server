@@ -251,7 +251,7 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 // class WeakerOusters;
 // The enemy list is sorted from the strongest.
-// So it must return true only for a vampire weaker than self.
+// So it must return true only for an Ousters weaker than self.
 // Inserting before that node keeps the weakest-first order.
 //////////////////////////////////////////////////////////////////////////////
 
@@ -293,7 +293,7 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 // class StrongerMonster;
 // The enemy list is sorted from the weakest.
-// So it must return true only for a vampire stronger than self.
+// So it must return true only for a monster stronger than self.
 // Inserting before that node keeps the weakest-first order.
 //////////////////////////////////////////////////////////////////////////////
 
@@ -336,7 +336,7 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 // class WeakerMonster;
 // The enemy list is sorted from the strongest.
-// So it must return true only for a vampire weaker than self.
+// So it must return true only for a monster weaker than self.
 // Inserting before that node keeps the weakest-first order.
 //////////////////////////////////////////////////////////////////////////////
 

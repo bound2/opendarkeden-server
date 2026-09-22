@@ -1635,7 +1635,7 @@ void Zone::initSpriteCount()
         NPC* pNPC = dynamic_cast<NPC*>(i->second);
         bool bAdd = true;
 
-        for (int j = 0; j < m_NPCCount; j++) // among the monster types already present
+        for (int j = 0; j < m_NPCCount; j++) // among the NPC types already counted
         {
             if (pNPC->getSpriteType() == m_NPCTypes[j]) {
                 bAdd = false;

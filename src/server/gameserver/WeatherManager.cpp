@@ -229,7 +229,6 @@ void WeatherManager::heartbeat()
         // Roll 1d100; a result below (rain level * 5 - 30) counts as
         // a lightning strike. The weather level tops out at 20, so
         // the chance reaches at most 70%.
-        // Lightning is meant to strike whenever it rains.
         if (Dice(1, 100) < (uint)max(0, m_WeatherLevel * 5 - 30)) {
             GCLightning gcLightning;
             gcLightning.setDelay(Dice(1, 5));

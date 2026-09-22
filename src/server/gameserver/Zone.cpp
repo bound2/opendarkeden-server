@@ -227,7 +227,7 @@ bool isPotentialEnemy(Monster* pMonster, Creature* pCreature) {
             return false;
     }
 
-    // For now Slayers and Ousters are always enemies.
+    // A Slayer is always an enemy; an Ousters only above level 10 or when the monster outlevels it by 10.
     if (pCreature->isSlayer())
         return true;
 
@@ -287,9 +287,9 @@ list<Packet*>* getRelicEffectPacket(MonsterCorpse* pMonsterCorpse, Effect::Effec
 
 
 //////////////////////////////////////////////////////////////////////////////
-// sendRelicEffect( MonsterCorpse* )
+// createRelicEffect( MonsterCorpse* )
 //////////////////////////////////////////////////////////////////////////////
-// Sends the Effects attached to pMonsterCorpse to pPlayer.
+// Builds the packet list for the Effects attached to pMonsterCorpse.
 //////////////////////////////////////////////////////////////////////////////
 list<Packet*>* createRelicEffect(MonsterCorpse* pMonsterCorpse) {
     list<Packet*>* pPackets = NULL;
@@ -887,7 +887,7 @@ void Zone::heartbeat()
 
 //////////////////////////////////////////////////////////////////////////////
 // Finds the creature with the given OID in PCManager, MonsterManager or
-// NPCManager and returns it. Throws NoSuchElementException when there is none.
+// NPCManager and returns it, or NULL when there is none.
 //
 // Use this method when the type (PC, NPC, Monster) of the creature being
 // looked for is unknown. Where possible determine the type and use the
@@ -919,7 +919,7 @@ Creature* Zone::getCreature(ObjectID_t objectID) const
 
 //////////////////////////////////////////////////////////////////////////////
 // Finds the creature with the given Name in PCManager, MonsterManager or
-// NPCManager and returns it. Throws NoSuchElementException when there is none.
+// NPCManager and returns it, or NULL when there is none.
 //
 // Use this method when the type (PC, NPC, Monster) of the creature being looked for is unknown.
 // Where possible determine the type and use the getCreature(Creature::CreatureClass,Name)
@@ -1257,7 +1257,7 @@ void Zone::remainPayPlayer()
                 gcSystemMessage.setMessage(msg);
                 pPlayer->sendPacket(&gcSystemMessage);
 
-                // Tell the player where it will be moved to and in how many seconds.
+                // Queue the transport event on the player.
 
                 pGamePlayer->addEvent(pEventTransport);
             } else {
