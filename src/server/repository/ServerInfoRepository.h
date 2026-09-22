@@ -14,7 +14,7 @@
 // g_pDatabaseManager->getDistConnection("DARKEDEN"), the thread's dist
 // connection (the name is ignored).
 //
-// Fields are typed to the driver getter used: getInt → int, getString →
+// Fields are typed to the driver getter used: getInt to int, getString to
 // std::string; the callers narrow to WorldID_t, ServerGroupID_t and the
 // status enums. The two MAX probes answer false over an empty table
 // (MySQL returns one NULL row); the caller sizes its arrays from them.

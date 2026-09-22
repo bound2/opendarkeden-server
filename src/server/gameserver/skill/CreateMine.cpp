@@ -168,7 +168,7 @@ void CreateMine::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
 
             pSkillSlot->setRunTime(output.Delay);
         } else {
-            //  Creating a mine has no delay on failure, so packets
+            //  Creating a mine has no delay on failure, so the client sends packets in
             //  very rapid succession. Broadcasting the failure packet would make
             //  bystanders see the casting animation repeat extremely fast, as if a
             //  speed hack were in use. So nothing is broadcast here and the packet

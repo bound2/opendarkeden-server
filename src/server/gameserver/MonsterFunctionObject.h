@@ -174,7 +174,7 @@ private:
 // class WeakerVampire;
 // The enemy list is sorted from the strongest.
 // So it must return true only for a vampire weaker than self.
-// Inserting before that node keeps the weakest-first order.
+// Inserting before that node keeps the strongest-first order.
 //////////////////////////////////////////////////////////////////////////////
 
 class WeakerVampire {
@@ -252,7 +252,7 @@ private:
 // class WeakerOusters;
 // The enemy list is sorted from the strongest.
 // So it must return true only for an Ousters weaker than self.
-// Inserting before that node keeps the weakest-first order.
+// Inserting before that node keeps the strongest-first order.
 //////////////////////////////////////////////////////////////////////////////
 
 class WeakerOusters {
@@ -337,7 +337,7 @@ private:
 // class WeakerMonster;
 // The enemy list is sorted from the strongest.
 // So it must return true only for a monster weaker than self.
-// Inserting before that node keeps the weakest-first order.
+// Inserting before that node keeps the strongest-first order.
 //////////////////////////////////////////////////////////////////////////////
 
 class WeakerMonster {

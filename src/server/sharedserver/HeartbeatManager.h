@@ -47,7 +47,4 @@ public:
     void run();
 };
 
-// external variable declaration
-extern HeartbeatManager* g_pHeartbeatManager;
-
 #endif

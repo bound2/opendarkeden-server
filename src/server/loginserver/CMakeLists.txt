@@ -25,6 +25,7 @@ set(LOGINSERVER_SOURCES
     handler/GLIncomingConnectionOKHandler.cpp
     handler/GLKickVerifyHandler.cpp
     handler/GMServerInfoHandler.cpp
+    LoginContext.cpp
     LoginPacketDispatch.cpp
     CharacterCreation.cpp
     CharacterDeletion.cpp

@@ -949,8 +949,8 @@ void Vampire::wearItem(WearPart Part, Item* pItem)
     if (isTwohandWeapon(pItem)) {
         // Holding an item in both hands.
         if (isWear(WEAR_RIGHTHAND) && isWear(WEAR_LEFTHAND)) {
-            pLeft = getWearItem(WEAR_RIGHTHAND);
-            pRight = getWearItem(WEAR_LEFTHAND);
+            pLeft = getWearItem(WEAR_LEFTHAND);
+            pRight = getWearItem(WEAR_RIGHTHAND);
 
             // Holding a two-handed weapon.
             if (pLeft == pRight) {
@@ -1104,8 +1104,8 @@ void Vampire::wearItem(WearPart Part)
     if (isTwohandWeapon(pItem)) {
         // Holding an item in both hands.
         if (isWear(WEAR_RIGHTHAND) && isWear(WEAR_LEFTHAND)) {
-            pLeft = getWearItem(WEAR_RIGHTHAND);
-            pRight = getWearItem(WEAR_LEFTHAND);
+            pLeft = getWearItem(WEAR_LEFTHAND);
+            pRight = getWearItem(WEAR_RIGHTHAND);
 
             // Holding a two-handed weapon.
             if (pLeft == pRight) {

@@ -16,6 +16,7 @@
 #include "Assert.h"
 #include "DatabaseError.h"
 #include "LogClient.h"
+#include "LoginContext.h"
 #include "LoginPlayer.h"
 #include "Properties.h"
 #include "ReconnectLoginInfoManager.h"
@@ -36,7 +37,8 @@ LoginPlayerManager::LoginPlayerManager() : m_pServerSocket(NULL), m_ServerFD(INV
 
     m_Mutex.setName("LoginPlayerManager");
 
-    g_pReconnectLoginInfoManager = new ReconnectLoginInfoManager();
+    m_pReconnectLoginInfoManager = new ReconnectLoginInfoManager();
+    de::loginContext().setReconnectLoginInfoManager(m_pReconnectLoginInfoManager);
 
     __END_CATCH
 }
@@ -61,9 +63,9 @@ LoginPlayerManager::~LoginPlayerManager() noexcept {
     // The destructor of the base class PlayerManager disconnects every connected
     // player and deletes the objects, so there is nothing to do here.
     //
-    if (g_pReconnectLoginInfoManager != NULL) {
-        delete g_pReconnectLoginInfoManager;
-        g_pReconnectLoginInfoManager = NULL;
+    if (m_pReconnectLoginInfoManager != NULL) {
+        delete m_pReconnectLoginInfoManager;
+        m_pReconnectLoginInfoManager = NULL;
     }
 
     __END_CATCH_NO_RETHROW
@@ -634,7 +636,3 @@ string LoginPlayerManager::toString() const {
 
     __END_CATCH
 }
-
-
-// global variable definition
-LoginPlayerManager* g_pLoginPlayerManager = NULL;

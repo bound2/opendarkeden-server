@@ -1120,7 +1120,8 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
 
 
     //--------------------------------------------------------------------------------
-    // Prepare the GCAddMonster packet.
+    // Prepare the monster's add packet: GCAddMonster, or the bat, wolf or
+    // burrowing variant its flags select.
     // By the current policy, the GCAdd packet is based on the current coordinates.
     //--------------------------------------------------------------------------------
     Packet* pAddMonsterPacket = createMonsterAddPacket(pMonster, NULL);

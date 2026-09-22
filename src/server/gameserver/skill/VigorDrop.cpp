@@ -4,14 +4,14 @@
 // File Name   : EffectVigorDrop.h
 // Date        : 2002.3.28
 // Description :
-//               Vigor Drop is implemented the same way as the --storm family of
-//               as the --storm skills.
-//               When used, EffectEnergyDrop is attached over a 3x3 area
-//               the EffectVigorDrop effect is attached. EffectVigorDrop
+//               Vigor Drop is implemented the same way as the --storm
+//               skills.
+//               When used, EffectVigorDrop is attached over a 3x3 area
+//               centered on the cast location. EffectVigorDrop does not
 //               deal damage on its own.
-//               the EffectVigorDropToCreature effect to the creatures in that area
-//               and disappears. EffectVigorDropToCreature deals VigorDrop
-//               a third of EnergyDrop's total damage three times in a row
+//               It attaches EffectVigorDropToCreature to the Creatures in
+//               that area and disappears. EffectVigorDropToCreature deals
+//               a third of VigorDrop's total damage three times in a row
 //               to that Creature and then disappears.
 //
 // History

@@ -223,6 +223,3 @@ string GameServerGroupInfoManager::toString() const noexcept(false) {
 
     __END_CATCH
 }
-
-// global variable definition
-GameServerGroupInfoManager* g_pGameServerGroupInfoManager = NULL;

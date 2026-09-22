@@ -12,6 +12,7 @@
 #ifdef __LOGIN_SERVER__
 
 #include "LCLoginOK.h"
+#include "LoginContext.h"
 #include "LoginPlayer.h"
 #include "LoginPlayerManager.h"
 
@@ -33,10 +34,13 @@ void GLKickVerifyHandler::execute(GLKickVerify* pPacket)
 #ifdef __LOGIN_SERVER__
 
 
-        try {
-        g_pLoginPlayerManager->lock();
+        LoginPlayerManager& loginPlayers = de::loginContext().loginPlayers();
 
-        Player* pPlayer = ((PlayerManager*)g_pLoginPlayerManager)->getPlayer(pPacket->getID());
+    try {
+        loginPlayers.lock();
+
+        // The base overload keyed by socket, which the derived getPlayer(name) hides.
+        Player* pPlayer = static_cast<PlayerManager&>(loginPlayers).getPlayer(pPacket->getID());
         LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
         if (pLoginPlayer != NULL) // not strictly needed since NoSuch is used..
@@ -52,9 +56,9 @@ void GLKickVerifyHandler::execute(GLKickVerify* pPacket)
             }
         }
 
-        g_pLoginPlayerManager->unlock();
+        loginPlayers.unlock();
     } catch (Throwable&) { // (NoSuchException&) { // would be pointless.
-        g_pLoginPlayerManager->unlock();
+        loginPlayers.unlock();
     }
 
 #endif

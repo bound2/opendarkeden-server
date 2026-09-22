@@ -14,6 +14,7 @@
 #include "GameServerGroupInfoManager.h"
 #include "LCRegisterPlayerError.h"
 #include "LCRegisterPlayerOK.h"
+#include "LoginContext.h"
 #include "LoginPlayer.h"
 #include "Properties.h"
 #include "Registration.h"
@@ -158,7 +159,7 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
 
         LCRegisterPlayerOK lcRegisterPlayerOK;
         lcRegisterPlayerOK.setGroupName(
-            g_pGameServerGroupInfoManager->getGameServerGroupInfo(ServerGroupID, WorldID)->getGroupName());
+            de::loginContext().gameServerGroups().getGameServerGroupInfo(ServerGroupID, WorldID)->getGroupName());
         lcRegisterPlayerOK.setAdult(true);
         pLoginPlayer->sendPacket(&lcRegisterPlayerOK);
 

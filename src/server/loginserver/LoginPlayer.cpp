@@ -17,6 +17,7 @@
 #include "LCPCList.h"
 #include "LGKickCharacter.h"
 #include "LogClient.h"
+#include "LoginContext.h"
 #include "Packet.h"
 #include "PacketDispatcher.h"
 #include "PacketFactoryManager.h"
@@ -532,7 +533,7 @@ void LoginPlayer::sendLGKickCharacter() {
         lgKickCharacter.setPCName(characterName);
 
         cout << "( " << gameServerIP.c_str() << ", " << gameServerPort << " )" << endl;
-        g_pGameServerManager->sendPacket(gameServerIP, gameServerPort, &lgKickCharacter);
+        de::loginContext().gameServers().sendPacket(gameServerIP, gameServerPort, &lgKickCharacter);
     }
 
     setExpireTimeForKickCharacter();

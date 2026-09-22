@@ -12,6 +12,7 @@
 #include "DatabaseManager.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameWorldInfoManager.h"
+#include "LoginContext.h"
 #include "LoginPlayerManager.h"
 #include "PacketProfile.h"
 #include "Profile.h"
@@ -31,7 +32,8 @@ ClientManager::ClientManager() {
     __BEGIN_TRY
 
     // Create the login player manager.
-    g_pLoginPlayerManager = new LoginPlayerManager();
+    m_pLoginPlayerManager = new LoginPlayerManager();
+    de::loginContext().setLoginPlayerManager(m_pLoginPlayerManager);
 
     __END_CATCH
 }
@@ -48,9 +50,9 @@ ClientManager::~ClientManager() noexcept(false) {
     __BEGIN_TRY
 
     // Delete the login player manager.
-    if (g_pLoginPlayerManager != NULL) {
-        delete g_pLoginPlayerManager;
-        g_pLoginPlayerManager = NULL;
+    if (m_pLoginPlayerManager != NULL) {
+        delete m_pLoginPlayerManager;
+        m_pLoginPlayerManager = NULL;
     }
 
     __END_CATCH
@@ -65,7 +67,7 @@ ClientManager::~ClientManager() noexcept(false) {
 void ClientManager::init() {
     __BEGIN_TRY
 
-    g_pLoginPlayerManager->init();
+    m_pLoginPlayerManager->init();
 
     __END_CATCH
 }
@@ -107,7 +109,7 @@ void ClientManager::stop() {
 void ClientManager::run() {
     __BEGIN_TRY
 
-    Assert(g_pLoginPlayerManager != NULL);
+    Assert(m_pLoginPlayerManager != NULL);
 
     Timeval NextTime;
     getCurrentTime(NextTime);
@@ -129,27 +131,27 @@ void ClientManager::run() {
         beginProfileEx("LS_MAIN");
 
         beginProfileEx("LPM_SELECT");
-        g_pLoginPlayerManager->select();
+        m_pLoginPlayerManager->select();
         endProfileEx("LPM_SELECT");
 
         beginProfileEx("LPM_EXCEPTION");
-        g_pLoginPlayerManager->processExceptions();
+        m_pLoginPlayerManager->processExceptions();
         endProfileEx("LPM_EXCEPTION");
 
         beginProfileEx("LPM_INPUT");
-        g_pLoginPlayerManager->processInputs();
+        m_pLoginPlayerManager->processInputs();
         endProfileEx("LPM_INPUT");
 
         beginProfileEx("LPM_COMMAND");
-        g_pLoginPlayerManager->processCommands();
+        m_pLoginPlayerManager->processCommands();
         endProfileEx("LPM_COMMAND");
 
         beginProfileEx("LPM_OUTPUT");
-        g_pLoginPlayerManager->processOutputs();
+        m_pLoginPlayerManager->processOutputs();
         endProfileEx("LPM_OUTPUT");
 
         beginProfileEx("LPM_HEARTBEAT");
-        g_pReconnectLoginInfoManager->heartbeat();
+        de::loginContext().reconnectLogins().heartbeat();
         endProfileEx("LPM_HEARTBEAT");
 
         endProfileEx("LS_MAIN");
@@ -175,9 +177,7 @@ void ClientManager::run() {
                 g_pGameWorldInfoManager->load();
             }
 
-            if (g_pGameServerGroupInfoManager != NULL) {
-                g_pGameServerGroupInfoManager->load();
-            }
+            de::loginContext().gameServerGroups().load();
 
             ReloadNextTime.tv_sec += ReloadGap;
         }
@@ -193,7 +193,3 @@ void ClientManager::run() {
 
     __END_CATCH
 }
-
-
-// global variable definition
-ClientManager* g_pClientManager = NULL;

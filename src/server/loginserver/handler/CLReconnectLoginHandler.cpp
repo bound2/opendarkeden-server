@@ -14,6 +14,7 @@
 #include "GCDisconnect.h"
 #include "GameServerInfoManager.h"
 #include "LCPCList.h"
+#include "LoginContext.h"
 #include "LoginPlayer.h"
 #include "OptionInfo.h"
 #include "Properties.h"
@@ -91,8 +92,10 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
     // guess both the key and the character name inside a time window.
     //----------------------------------------------------------------------
     try {
+        ReconnectLoginInfoManager& reconnectLogins = de::loginContext().reconnectLogins();
+
         ReconnectLoginInfo* pReconnectLoginInfo =
-            g_pReconnectLoginInfoManager->getReconnectLoginInfo(pLoginPlayer->getSocket()->getHost());
+            reconnectLogins.getReconnectLoginInfo(pLoginPlayer->getSocket()->getHost());
 
         PlayerID = pReconnectLoginInfo->getPlayerID();
 
@@ -107,12 +110,12 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
         Timeval currentTime;
         getCurrentTime(currentTime);
         if (pReconnectLoginInfo->getExpireTime() < currentTime) {
-            g_pReconnectLoginInfoManager->deleteReconnectLoginInfo(pReconnectLoginInfo->getClientIP());
+            reconnectLogins.deleteReconnectLoginInfo(pReconnectLoginInfo->getClientIP());
             throw InvalidProtocolException("session already expired");
         }
 
         // Verified, so the ReconnectLoginInfo is spent.
-        g_pReconnectLoginInfoManager->deleteReconnectLoginInfo(pReconnectLoginInfo->getClientIP());
+        reconnectLogins.deleteReconnectLoginInfo(pReconnectLoginInfo->getClientIP());
     } catch (NoSuchElementException& nsee) // no ReconnectLoginInfo for that address
     {
         // A client that takes too long between connecting and sending

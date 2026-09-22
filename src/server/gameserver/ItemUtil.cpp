@@ -1024,7 +1024,8 @@ string getOptionTypeToString(const list<OptionType_t>& optionTypes) {
 // Rare item: attach the next option?
 //////////////////////////////////////////////////////////////////////////////
 bool isPossibleNextOption(ITEM_TEMPLATE* pTemplate) {
-    // At most four options are attached.
+    // At most five options are attached: the caller has already pushed the
+    // candidate when it asks.
     if (pTemplate->OptionType.size() >= 5)
         return false;
 

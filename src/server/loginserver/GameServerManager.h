@@ -54,7 +54,4 @@ private:
     DatagramSocket* m_pDatagramSocket;
 };
 
-// global variable declaration
-extern GameServerManager* g_pGameServerManager;
-
 #endif

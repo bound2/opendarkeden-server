@@ -19,6 +19,7 @@
 #include "GameWorldInfoManager.h"
 #include "ItemDestroyer.h"
 #include "LogClient.h"
+#include "LoginContext.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
 #include "ServerShutdown.h"
@@ -42,10 +43,13 @@ LoginServer::LoginServer() {
 
     // create some info managers
     g_pGameServerInfoManager = new GameServerInfoManager();
-    g_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
+    m_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
+    de::loginContext().setGameServerGroupInfoManager(m_pGameServerGroupInfoManager);
 
-    g_pZoneInfoManager = new ZoneInfoManager();
-    g_pZoneGroupInfoManager = new ZoneGroupInfoManager();
+    m_pZoneInfoManager = new ZoneInfoManager();
+    de::loginContext().setZoneInfoManager(m_pZoneInfoManager);
+    m_pZoneGroupInfoManager = new ZoneGroupInfoManager();
+    de::loginContext().setZoneGroupInfoManager(m_pZoneGroupInfoManager);
 
     // create packet factory manager, packet validator
     // (They must be created and initialized before the client manager and the server-to-server manager.)
@@ -53,16 +57,18 @@ LoginServer::LoginServer() {
     g_pPacketValidator = new PacketValidator();
 
     // create inter-server communication manager
-    g_pGameServerManager = new GameServerManager();
+    m_pGameServerManager = new GameServerManager();
+    de::loginContext().setGameServerManager(m_pGameServerManager);
 
     // create client manager
-    g_pClientManager = new ClientManager();
+    m_pClientManager = new ClientManager();
 
     // create ItemDestroyer
-    g_pItemDestroyer = new ItemDestroyer();
+    m_pItemDestroyer = new ItemDestroyer();
 
-    // create ItemDestroyer
-    g_pUserInfoManager = new UserInfoManager();
+    // create UserInfoManager
+    m_pUserInfoManager = new UserInfoManager();
+    de::loginContext().setUserInfoManager(m_pUserInfoManager);
 
     // create GameWorldInfoManager
     g_pGameWorldInfoManager = new GameWorldInfoManager();
@@ -81,14 +87,19 @@ LoginServer::LoginServer() {
 LoginServer::~LoginServer() noexcept(false) {
     __BEGIN_TRY
 
-    if (g_pClientManager != NULL) {
-        delete g_pClientManager;
-        g_pClientManager = NULL;
+    if (m_pClientManager != NULL) {
+        delete m_pClientManager;
+        m_pClientManager = NULL;
     }
 
-    if (g_pGameServerManager != NULL) {
-        delete g_pGameServerManager;
-        g_pGameServerManager = NULL;
+    if (m_pItemDestroyer != NULL) {
+        delete m_pItemDestroyer;
+        m_pItemDestroyer = NULL;
+    }
+
+    if (m_pGameServerManager != NULL) {
+        delete m_pGameServerManager;
+        m_pGameServerManager = NULL;
     }
 
     if (g_pPacketValidator != NULL) {
@@ -101,14 +112,14 @@ LoginServer::~LoginServer() noexcept(false) {
         g_pPacketFactoryManager = NULL;
     }
 
-    if (g_pZoneGroupInfoManager != NULL) {
-        delete g_pZoneGroupInfoManager;
-        g_pZoneGroupInfoManager = NULL;
+    if (m_pZoneGroupInfoManager != NULL) {
+        delete m_pZoneGroupInfoManager;
+        m_pZoneGroupInfoManager = NULL;
     }
 
-    if (g_pZoneInfoManager != NULL) {
-        delete g_pZoneInfoManager;
-        g_pZoneInfoManager = NULL;
+    if (m_pZoneInfoManager != NULL) {
+        delete m_pZoneInfoManager;
+        m_pZoneInfoManager = NULL;
     }
 
     if (g_pGameServerInfoManager != NULL) {
@@ -116,17 +127,17 @@ LoginServer::~LoginServer() noexcept(false) {
         g_pGameServerInfoManager = NULL;
     }
 
-    if (g_pGameServerGroupInfoManager != NULL) {
-        delete g_pGameServerGroupInfoManager;
-        g_pGameServerGroupInfoManager = NULL;
+    if (m_pGameServerGroupInfoManager != NULL) {
+        delete m_pGameServerGroupInfoManager;
+        m_pGameServerGroupInfoManager = NULL;
     }
     if (g_pDatabaseManager != NULL) {
         delete g_pDatabaseManager;
         g_pDatabaseManager = NULL;
     }
-    if (g_pUserInfoManager != NULL) {
-        delete g_pUserInfoManager;
-        g_pUserInfoManager = NULL;
+    if (m_pUserInfoManager != NULL) {
+        delete m_pUserInfoManager;
+        m_pUserInfoManager = NULL;
     }
     if (g_pGameWorldInfoManager != NULL) {
         delete g_pGameWorldInfoManager;
@@ -150,9 +161,9 @@ void LoginServer::init() {
 
     // initialize some info managers
     g_pGameServerInfoManager->init();
-    g_pGameServerGroupInfoManager->init();
-    g_pZoneInfoManager->init();
-    g_pZoneGroupInfoManager->init();
+    m_pGameServerGroupInfoManager->init();
+    m_pZoneInfoManager->init();
+    m_pZoneGroupInfoManager->init();
 
     g_pGameWorldInfoManager->init();
 
@@ -160,14 +171,14 @@ void LoginServer::init() {
     g_pPacketFactoryManager->init();
     g_pPacketValidator->init();
 
-    g_pUserInfoManager->init();
+    m_pUserInfoManager->init();
 
     // Initialize the server-to-server communication manager.
-    g_pGameServerManager->init();
+    m_pGameServerManager->init();
 
     // Once everything is ready, initialize the client manager and so
     // be ready for networking.
-    g_pClientManager->init();
+    m_pClientManager->init();
 
     __END_CATCH
 }
@@ -182,7 +193,7 @@ void LoginServer::start() {
     __BEGIN_TRY
 
     // Start the server-to-server communication manager.
-    g_pGameServerManager->start();
+    m_pGameServerManager->start();
 
     //
     // Start the client manager.
@@ -194,7 +205,7 @@ void LoginServer::start() {
     // called after it, then unless the loop ends (that is, unless an error occurs)
     // the other managers' processing loops would never run.
     //
-    g_pClientManager->start();
+    m_pClientManager->start();
 
     __END_CATCH
 }
@@ -216,14 +227,14 @@ void LoginServer::stop() {
 
     // Stop the client manager first so no further connection is accepted.
     ServerShutdown::request();
-    g_pClientManager->stop();
+    m_pClientManager->stop();
 
     // Request the stop before joining, then join while every manager the
     // worker uses (config, database, packet factory) is still alive.
-    g_pGameServerManager->stop();
-    g_pGameServerManager->join();
+    m_pGameServerManager->stop();
+    m_pGameServerManager->join();
     try {
-        g_pGameServerManager->rethrowFailure();
+        m_pGameServerManager->rethrowFailure();
     } catch (Throwable& error) {
         cerr << "GameServerManager: " << error.toString() << endl;
     } catch (const std::exception& error) {

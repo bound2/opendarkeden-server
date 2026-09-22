@@ -61,7 +61,4 @@ private:
     Timeval m_NextHeartbeat;
 };
 
-// global variable declaration
-extern ReconnectLoginInfoManager* g_pReconnectLoginInfoManager;
-
 #endif
