@@ -2000,8 +2000,8 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
         }
 
         if (pCreature->isFlag(Effect::EFFECT_CLASS_HAS_FLAG)) {
-            if (g_pFlagManager->isFlagAllowedZone(pZone->getZoneID()) &&
-                !g_pFlagManager->isFlagAllowedZone(pZoneInfo->getZoneID())) {
+            if (de::gameContext().flags().isFlagAllowedZone(pZone->getZoneID()) &&
+                !de::gameContext().flags().isFlagAllowedZone(pZoneInfo->getZoneID())) {
                 dropFlagToZone(pCreature);
             }
         }

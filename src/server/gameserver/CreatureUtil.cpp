@@ -1210,7 +1210,7 @@ bool isAbleToPickupItem(Creature* pCreature, Item* pItem) {
 
     // A player already holding a flag cannot pick up a flag.
     if (pItem->isFlagItem()) {
-        if (!g_pFlagManager->hasFlagWar())
+        if (!de::gameContext().flags().hasFlagWar())
             return false;
         if (pCreature->isFlag(Effect::EFFECT_CLASS_HAS_FLAG))
             return false;

@@ -9,6 +9,7 @@
 #include "Assert.h"
 #include "Corpse.h"
 #include "GCAddEffectToTile.h"
+#include "GameContext.h"
 #include "Item.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
@@ -109,8 +110,9 @@ Item* CorpseItemPosition::getItem_CORE(Zone* pZone, bool isDel)
         if (pCorpse->getItemType() == MONSTER_CORPSE) {
             MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pCorpse);
             if (pMonsterCorpse != NULL) {
-                if (g_pFlagManager->isFlagPole(pMonsterCorpse) &&
-                    g_pFlagManager->getFlagPoleRace(pMonsterCorpse) == g_pFlagManager->getWinnerRace()) {
+                FlagManager& flags = de::gameContext().flags();
+                if (flags.isFlagPole(pMonsterCorpse) &&
+                    flags.getFlagPoleRace(pMonsterCorpse) == flags.getWinnerRace()) {
                     Item* pGemStone =
                         g_pItemFactoryManager->createItem(Item::ITEM_CLASS_QUEST_ITEM, 4, list<OptionType_t>());
                     pZone->registerObject(pGemStone);
@@ -118,7 +120,7 @@ Item* CorpseItemPosition::getItem_CORE(Zone* pZone, bool isDel)
 
                     pGemStone->create("", STORAGE_ZONE, pZone->getZoneID(), tp.x, tp.y);
                     pGemStone->setFlag(
-                        (Effect::EffectClass)(Effect::EFFECT_CLASS_SLAYER_ONLY + (int)g_pFlagManager->getWinnerRace()));
+                        (Effect::EffectClass)(Effect::EFFECT_CLASS_SLAYER_ONLY + (int)flags.getWinnerRace()));
 
                     EffectID_t effectClass = Effect::EFFECT_CLASS_FIRE_CRACKER_VOLLEY_1 + (rand() & 0x3);
 

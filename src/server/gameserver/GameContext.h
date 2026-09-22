@@ -42,6 +42,7 @@ class DynamicZoneInfoManager;
 class DynamicZoneManager;
 class EffectLoaderManager;
 class EventQuestLootingManager;
+class FlagManager;
 class GameServerGroupInfoManager;
 class GlobalPartyManager;
 class GoodsInfoManager;
@@ -143,6 +144,9 @@ public:
     }
     void setEventQuestLootingManager(EventQuestLootingManager* pEventQuestLootingManager) {
         m_pEventQuestLootingManager = pEventQuestLootingManager;
+    }
+    void setFlagManager(FlagManager* pFlagManager) {
+        m_pFlagManager = pFlagManager;
     }
     void setGameServerGroupInfoManager(GameServerGroupInfoManager* pGameServerGroupInfoManager) {
         m_pGameServerGroupInfoManager = pGameServerGroupInfoManager;
@@ -250,6 +254,7 @@ public:
     DynamicZoneManager& dynamicZones() const;
     EffectLoaderManager& effectLoaders() const;
     EventQuestLootingManager& eventQuestLoot() const;
+    FlagManager& flags() const;
     GameServerGroupInfoManager& gameServerGroups() const;
     GlobalPartyManager& parties() const;
     GoodsInfoManager& goodsInfos() const;
@@ -301,6 +306,7 @@ private:
     DynamicZoneManager* m_pDynamicZoneManager = nullptr;
     EffectLoaderManager* m_pEffectLoaderManager = nullptr;
     EventQuestLootingManager* m_pEventQuestLootingManager = nullptr;
+    FlagManager* m_pFlagManager = nullptr;
     GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
     GlobalPartyManager* m_pGlobalPartyManager = nullptr;
     GoodsInfoManager* m_pGoodsInfoManager = nullptr;

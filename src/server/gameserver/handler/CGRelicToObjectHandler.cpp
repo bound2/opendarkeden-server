@@ -564,7 +564,7 @@ void CGRelicToObjectHandler::executeFlag(CGRelicToObject* pPacket, Player* pPlay
 
 #ifdef __GAME_SERVER__
 
-    if (!g_pFlagManager->hasFlagWar())
+    if (!de::gameContext().flags().hasFlagWar())
         return;
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
@@ -588,7 +588,7 @@ void CGRelicToObjectHandler::executeFlag(CGRelicToObject* pPacket, Player* pPlay
     // Not a flagpole
     if (pTableItem == NULL || pTableItem->getItemClass() != Item::ITEM_CLASS_CORPSE ||
         pTableItem->getItemType() != MONSTER_CORPSE ||
-        !g_pFlagManager->isFlagPole(dynamic_cast<MonsterCorpse*>(pTableItem))) {
+        !de::gameContext().flags().isFlagPole(dynamic_cast<MonsterCorpse*>(pTableItem))) {
         GCCannotAdd _GCCannotAdd;
         _GCCannotAdd.setObjectID(pPacket->getObjectID());
         pPlayer->sendPacket(&_GCCannotAdd);
@@ -610,7 +610,7 @@ void CGRelicToObjectHandler::executeFlag(CGRelicToObject* pPacket, Player* pPlay
         return;
     }
 
-    if (g_pFlagManager->putFlag(pPlayerCreature, pItem, pCorpse)) {
+    if (de::gameContext().flags().putFlag(pPlayerCreature, pItem, pCorpse)) {
         // Handled inside putCastleSymbol.
     } else {
         GCCannotAdd _GCCannotAdd;

@@ -1072,7 +1072,7 @@ void opResetAttr(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
 
 // *command CTF
 void opCTF(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage, bool& bSendPacket) {
-    g_pFlagManager->manualStart();
+    de::gameContext().flags().manualStart();
     gcSystemMessage.setMessage("CTF advanced.");
 }
 

@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[49];
+char g_managerStorage[50];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -128,16 +128,19 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     CastleShrineInfoManager* pCastleShrineInfoManager = standIn<CastleShrineInfoManager>(17);
     DragonEyeManager* pDragonEyeManager = standIn<DragonEyeManager>(18);
     EventQuestLootingManager* pEventQuestLootingManager = standIn<EventQuestLootingManager>(19);
+    FlagManager* pFlagManager = standIn<FlagManager>(49);
     WayPointManager* pWayPointManager = standIn<WayPointManager>(20);
 
     context.setCastleShrineInfoManager(pCastleShrineInfoManager);
     context.setDragonEyeManager(pDragonEyeManager);
     context.setEventQuestLootingManager(pEventQuestLootingManager);
+    context.setFlagManager(pFlagManager);
     context.setWayPointManager(pWayPointManager);
 
     EXPECT_EQ(&context.castleShrines(), pCastleShrineInfoManager);
     EXPECT_EQ(&context.dragonEyes(), pDragonEyeManager);
     EXPECT_EQ(&context.eventQuestLoot(), pEventQuestLootingManager);
+    EXPECT_EQ(&context.flags(), pFlagManager);
     EXPECT_EQ(&context.wayPoints(), pWayPointManager);
 }
 
@@ -313,6 +316,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.dynamicZones(), AssertionError);
     EXPECT_THROW(context.effectLoaders(), AssertionError);
     EXPECT_THROW(context.eventQuestLoot(), AssertionError);
+    EXPECT_THROW(context.flags(), AssertionError);
     EXPECT_THROW(context.gameServerGroups(), AssertionError);
     EXPECT_THROW(context.goodsInfos(), AssertionError);
     EXPECT_THROW(context.incomingPlayers(), AssertionError);

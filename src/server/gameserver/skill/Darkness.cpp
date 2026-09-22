@@ -15,6 +15,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "MonsterCorpse.h"
 #include "RankBonus.h"
 #include "ctf/FlagManager.h"
@@ -175,7 +176,7 @@ void Darkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireS
                             if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_CORPSE &&
                                 pItem->getItemType() == MONSTER_CORPSE) {
                                 MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
-                                if (g_pFlagManager->isFlagPole(pMonsterCorpse)) {
+                                if (de::gameContext().flags().isFlagPole(pMonsterCorpse)) {
                                     //								canAddMap[normalizeCoord_DARKNESS( oX+1, oY, edge )]
                                     continue;
                                 }
@@ -399,7 +400,7 @@ void Darkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
                             if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_CORPSE &&
                                 pItem->getItemType() == MONSTER_CORPSE) {
                                 MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
-                                if (g_pFlagManager->isFlagPole(pMonsterCorpse))
+                                if (de::gameContext().flags().isFlagPole(pMonsterCorpse))
                                     continue;
                             }
                         }

@@ -118,6 +118,11 @@ EventQuestLootingManager& GameContext::eventQuestLoot() const {
     return *m_pEventQuestLootingManager;
 }
 
+FlagManager& GameContext::flags() const {
+    Assert(m_pFlagManager != nullptr);
+    return *m_pFlagManager;
+}
+
 GameServerGroupInfoManager& GameContext::gameServerGroups() const {
     Assert(m_pGameServerGroupInfoManager != nullptr);
     return *m_pGameServerGroupInfoManager;

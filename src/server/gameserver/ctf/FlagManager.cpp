@@ -21,8 +21,6 @@
 #include "ZoneUtil.h"
 #include "repository/FlagWarRepository.h"
 
-FlagManager* g_pFlagManager = NULL;
-
 FlagManager::FlagManager(de::GameContext& context) : m_Context(context) {
     m_Mutex.setName("FlagManager");
     m_FlagCount.clear();

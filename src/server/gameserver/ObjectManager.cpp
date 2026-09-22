@@ -273,7 +273,8 @@ ObjectManager::ObjectManager()
     // g_pQuestInfoManager = new QuestInfoManager();
     // g_pRewardClassInfoManager = new RewardClassInfoManager();
 
-    g_pFlagManager = new FlagManager(context);
+    m_pFlagManager = new FlagManager(context);
+    context.setFlagManager(m_pFlagManager);
     m_pDefaultOptionSetInfoManager = new DefaultOptionSetInfoManager();
     context.setDefaultOptionSetInfoManager(m_pDefaultOptionSetInfoManager);
 
@@ -373,7 +374,7 @@ ObjectManager::~ObjectManager()
     // SAFE_DELETE(g_pQuestInfoManager);
     // SAFE_DELETE(g_pRewardClassInfoManager);
 
-    SAFE_DELETE(g_pFlagManager);
+    SAFE_DELETE(m_pFlagManager);
     SAFE_DELETE(m_pDefaultOptionSetInfoManager);
 
     SAFE_DELETE(g_pLevelWarZoneInfoManager);
@@ -713,7 +714,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : EventQuestLootingManager Initialization Success\n");
 
     printf("ObjectManager::load() : FlagManager Initialization Start\n");
-    g_pFlagManager->init();
+    m_pFlagManager->init();
     printf("ObjectManager::load() : FlagManager Initialization Success\n");
 
     printf("ObjectManager::load() : RegenZoneManager Initialization Start\n");

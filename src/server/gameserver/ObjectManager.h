@@ -32,6 +32,7 @@ class DynamicZoneInfoManager;
 class DynamicZoneManager;
 class EffectLoaderManager;
 class EventQuestLootingManager;
+class FlagManager;
 class GameServerGroupInfoManager;
 class GlobalPartyManager;
 class GoodsInfoManager;
@@ -88,6 +89,7 @@ private:
     DynamicZoneManager* m_pDynamicZoneManager = nullptr;
     EffectLoaderManager* m_pEffectLoaderManager = nullptr;
     EventQuestLootingManager* m_pEventQuestLootingManager = nullptr;
+    FlagManager* m_pFlagManager = nullptr;
     GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
     GlobalPartyManager* m_pGlobalPartyManager = nullptr;
     GoodsInfoManager* m_pGoodsInfoManager = nullptr;

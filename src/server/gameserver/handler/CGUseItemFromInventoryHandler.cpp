@@ -1045,7 +1045,7 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
         pItem->getItemClass() != Item::ITEM_CLASS_KEY || pSlayer->isFlag(Effect::EFFECT_CLASS_COMA) ||
         (pZone->getZoneLevel(pCreature->getX(), pCreature->getY()) & SAFE_ZONE) || pZone->isMasterLair() ||
         pZone->isNoPortalZone() || (!pGamePlayer->isPremiumPlay() && !pGamePlayer->isPayPlaying()) ||
-        g_pFlagManager->isInPoleField(ZONE_COORD(pZone->getZoneID(), pCreature->getX(), pCreature->getY())) ||
+        de::gameContext().flags().isInPoleField(ZONE_COORD(pZone->getZoneID(), pCreature->getX(), pCreature->getY())) ||
         GDRLairManager::Instance().isGDRLairZone(pZone->getZoneID())) {
         GCCannotUse _GCCannotUse;
         _GCCannotUse.setObjectID(pPacket->getObjectID());
