@@ -603,7 +603,6 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
             }
 
             pPC->initPetQuestTarget();
-            //			vector<MonsterType_t> mList = g_pMonsterInfoManager->getMonsterTypeBySprite(
             // pPC->getTargetMonsterSType() ); 			if ( !mList.empty() )
             //			{
             const MonsterInfo* pMonsterInfo = context().monsterInfos().getMonsterInfo(pPC->getTargetMonsterSType());

@@ -677,7 +677,7 @@ bool ShrineInfoManager::returnBloodBible(Zone* pZone, BloodBible* pBloodBible) c
 
     char msg[300];
 
-    const char* race;
+    const char* race = "";
     if (pShrineSet->getOwnerRace() == RACE_SLAYER) {
         race = g_pStringPool->c_str(STRID_SLAYER);
     } else if (pShrineSet->getOwnerRace() == RACE_VAMPIRE) {

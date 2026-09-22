@@ -22,9 +22,11 @@ MonsterNameManager::MonsterNameManager()
     m_pFirstName = NULL;
     m_pMiddleName = NULL;
     m_pLastName = NULL;
+    m_pEventLastName = NULL;
     m_nFirstNameCount = 0;
     m_nMiddleNameCount = 0;
     m_nLastNameCount = 0;
+    m_nEventLastNameCount = 0;
 
     __END_CATCH
 }
@@ -37,6 +39,7 @@ MonsterNameManager::~MonsterNameManager()
     SAFE_DELETE_ARRAY(m_pFirstName);
     SAFE_DELETE_ARRAY(m_pMiddleName);
     SAFE_DELETE_ARRAY(m_pLastName);
+    SAFE_DELETE_ARRAY(m_pEventLastName);
 
     m_UsedName.clear();
 
@@ -155,7 +158,6 @@ string MonsterNameManager::getRandomName(Monster* pMonster)
     if (pMonster == NULL)
         return "";
 
-    // const MonsterInfo* pInfo = g_pMonsterInfoManager->getMonsterInfo(pMonster->getMonsterType());
 
     // Level_t MonsterLevel = pInfo->getLevel();
     string Name = "";

@@ -11,6 +11,59 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A motorcycle that cannot be placed is paid for and never delivered (2026-09-22)
+
+- **`CGShopRequestBuyHandler::executeMotorcycle` charges the player and
+  advances the shop version before it asks the zone for a tile, and when
+  no tile is free it prints a banner and returns:** the gold is gone, no
+  motorcycle or key follows, the probe key it created to test the
+  inventory is never freed, and no `GCShopBuyOK` or `GCShopBuyFail` is
+  sent, so the client's shop dialog waits for a reply that never comes.
+  Every other exit of the function frees the probe and answers. Whether
+  to refund and roll the shop version back, or to place the item first,
+  is a design decision.
+  > **Status:** recorded, not fixed (refactor/game-context-12)
+
+## A scheduled guild war makes every active-war lookup assert (2026-09-22)
+
+- **`WarSystem::getActiveWar` and `getActiveWarSchedule_LOCKED` walk the
+  recent schedules and, for every war whose type is `WAR_GUILD`,
+  `dynamic_cast` it to `SiegeWar` and assert the result,** but `GuildWar`
+  is a sibling of `SiegeWar` that reports the same type and reaches the
+  schedules through `ActionWarRegistration` and the zone heartbeat. While
+  a guild war sits there, every lookup for any zone throws
+  `AssertionError`, including the castle shrine's owner change and the
+  siege manager's checks.
+  > **Status:** recorded, not fixed (refactor/game-context-12)
+
+## A shrine set with no owner names its race from an uninitialised pointer (2026-09-22)
+
+- **`ShrineInfoManager::putBloodBible` chose the race name for its
+  broadcast in three branches, Slayer, Vampire and Ousters, and left the
+  pointer indeterminate for a shrine set nobody owns,** then handed it to
+  `sprintf`. The pointer now starts as an empty string, so an unowned
+  shrine set is announced with no race name rather than whatever the stack
+  held.
+  > **Status:** fixed (refactor/game-context-12, stack top)
+
+## The monster name manager's event names are neither zeroed nor freed (2026-09-22)
+
+- **`MonsterNameManager` initialised its first, middle and last name arrays
+  in the constructor and freed them in the destructor, but not the event
+  last-name array `init()` also loads:** an `init()` that threw before that
+  block left the pointer indeterminate, and every shutdown leaked it. Both
+  now match the other three.
+  > **Status:** fixed (refactor/game-context-12, stack top)
+
+## The war system's end condition is always met (2026-09-22)
+
+- **`WarSystem::isEndCondition` asserts its item and corpse and returns
+  true;** the comparison of the blood bible's monster type against the
+  corpse's is a comment above the return. Nothing calls it today, so the
+  function is a stub a future caller would trust; the comparison it meant
+  names an accessor that does not exist in that spelling.
+  > **Status:** recorded, not fixed (fix/recorded-defects-3)
+
 ## The event monster name overload returns before its retry loop can retry (2026-09-22)
 
 - **The event `MonsterNameManager::getRandomName(Monster*, bool)` returns on
@@ -153,8 +206,12 @@ that followed it.
   `LogServerIP`, `LogServerPort` and `LogLevel` from its config for it.
   The module is gone: its 66 call sites, the message locals that only fed
   them, the class, its header, the `LogData` record it framed its messages
-  in, the two ServerCore entries that compiled them, and the three
-  configuration keys no other reader wanted. What the servers still write
+  in, the two ServerCore entries that compiled them, the three
+  configuration keys no other reader wanted, and the gameserver's startup
+  banner line for it. `LogData::read` took a `short` length straight into a
+  2,001-byte stack buffer, so anything reinstated must not start from it;
+  of the thirty-seven event kinds the header declared, nineteen were ever
+  called. What the servers still write
   is the file logs (`filelog` and the `FILELOG_*` macros) and the play
   records the repositories keep; reinstating a log-server link would be a
   new feature, not a repair.
