@@ -11,6 +11,21 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## The event monster name overload returns before its retry loop can retry (2026-09-22)
+
+- **The event `MonsterNameManager::getRandomName(Monster*, bool)` returns on
+  the first pass of its retry loop and spells its fallback as a comparison
+  (`Name == "..."`) rather than an assignment,** the loop shape the non-event
+  overload had: an empty event-name row comes back as an empty name, the
+  trial count is spent on nothing and the fallback after the loop is both
+  unreachable and a no-op. Nothing calls this overload today; the one
+  `getRandomName` call site takes the non-event one.
+  The loop now draws again while the row that came up is empty and the
+  fallback is an assignment the 300th empty draw reaches. The name itself
+  is unchanged: a non-empty first draw returns that event part alone, as
+  before, with nothing appended around it.
+  > **Status:** fixed (fix/recorded-defects-3)
+
 ## Placing a blood bible on the holy shrine flips its owner without the war check (2026-09-22)
 
 - **`ShrineInfoManager`'s holy-shrine branch tested `isMatchHolyShrine`
@@ -24,6 +39,20 @@ that followed it.
   `CastleShrineInfoManager` still applies the check. Restoring it needs the
   castle zone id the same block no longer computes and a decision on the
   three statements that went with it.
+  The zone id is there to be had -- a shrine set's guard shrines sit in the
+  castle zones, so the commented `getReturnGuardShrine().getZoneID()` is a
+  castle zone id and needs none of the guard-to-castle mapping the castle
+  counterpart does. What is missing is a war to ask. `WarSystem::
+  isModifyCastleOwner` answers out of `getActiveWar`, which only ever
+  returns a siege war whose castle zone matches, and asserts on a null one;
+  `Assert` throws in every build. The holy land's war is the race war, which
+  `getActiveWar` never returns and which overrides neither
+  `isModifyCastleOwner` nor `endWar`, both `false` on the `War` base. So the
+  castle's shape restored here throws on every matching blood bible placed
+  outside a siege on the owner's castle, and inside one asks a predicate --
+  the siege attacker flags -- that has nothing to say about a race. Which
+  war may flip a holy shrine's owner, and on what test, is a design
+  decision the commented code does not answer, so it stays recorded.
   > **Status:** recorded, not fixed (refactor/game-context-11)
 
 ## A random mine item is read off a row that may not exist (2026-09-22)
@@ -44,7 +73,13 @@ that followed it.
   branch and a Vampire branch and calls `prepare()` on it,** the defect
   `ActionGiveEventItem`, `ActionGiveAccountEventItem` and
   `ActionTradeGiftBox` had before they refused the race instead.
-  > **Status:** recorded, not fixed (fix/recorded-defects-2)
+  It refuses the race the same way now: the action reads a `SlayerFilename`
+  and a `VampireFilename` and nothing else, its Lua scripts are the slayer
+  and vampire pair, so a null selector logs the character to
+  `TestServerRewardError.txt`, closes the NPC dialogue and returns. The
+  reward flag is left set, so a character that reaches the action again
+  with a selector still gets its reward.
+  > **Status:** fixed (fix/recorded-defects-3)
 
 ## A vision info manager's debug string fell off the end of the function (2026-09-22)
 
