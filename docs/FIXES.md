@@ -44,7 +44,13 @@ that followed it.
   branch and a Vampire branch and calls `prepare()` on it,** the defect
   `ActionGiveEventItem`, `ActionGiveAccountEventItem` and
   `ActionTradeGiftBox` had before they refused the race instead.
-  > **Status:** recorded, not fixed (fix/recorded-defects-2)
+  It refuses the race the same way now: the action reads a `SlayerFilename`
+  and a `VampireFilename` and nothing else, its Lua scripts are the slayer
+  and vampire pair, so a null selector logs the character to
+  `TestServerRewardError.txt`, closes the NPC dialogue and returns. The
+  reward flag is left set, so a character that reaches the action again
+  with a selector still gets its reward.
+  > **Status:** fixed (fix/recorded-defects-3)
 
 ## A vision info manager's debug string fell off the end of the function (2026-09-22)
 
