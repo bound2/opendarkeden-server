@@ -96,7 +96,7 @@ void ActionEnterSiege::execute(Creature* pNPC, Creature* pCreature)
         return;
     }
 
-    if (!g_pGuildManager->isGuildMaster(pPC->getGuildID(), pPC)) {
+    if (!context().guilds().isGuildMaster(pPC->getGuildID(), pPC)) {
         GCSystemMessage gcSM;
         gcSM.setMessage("Ö»ÓÐÐÐ»á»á³¤,²Å¿ÉÒÔ½øÐÐÉêÇë.");
         pGamePlayer->sendPacket(&gcSM);

@@ -27,7 +27,9 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
-        StringPool& strings = de::gameContext().strings();
+        GuildManager& guilds = de::gameContext().guilds();
+
+    StringPool& strings = de::gameContext().strings();
 
 #ifdef __GAME_SERVER__
 
@@ -47,7 +49,7 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
     Assert(pPlayerCreature != NULL);
 
     // Get the guild.
-    Guild* pGuild = g_pGuildManager->getGuild(pPlayerCreature->getGuildID());
+    Guild* pGuild = guilds.getGuild(pPlayerCreature->getGuildID());
     // try { Assert(pGuild != NULL); } catch (Throwable& t ) { return; }
     if (pGuild == NULL)
         return;
@@ -68,7 +70,7 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
         if (pGuildMember->getRank() != GuildMember::GUILDMEMBER_RANK_MASTER)
             return;
 
-        if (g_pGuildManager->hasActiveWar(pGuild->getID())) {
+        if (guilds.hasActiveWar(pGuild->getID())) {
             GCSystemMessage msg;
             msg.setMessage(strings.getString(STRID_CANNOT_KICK_DURING_WAR));
             pPlayer->sendPacket(&msg);
@@ -99,7 +101,7 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
             pGuildMember->getRank() != GuildMember::GUILDMEMBER_RANK_SUBMASTER)
             return;
 
-        if (g_pGuildManager->hasActiveWar(pGuild->getID())) {
+        if (guilds.hasActiveWar(pGuild->getID())) {
             GCSystemMessage msg;
             msg.setMessage(strings.getString(STRID_CANNOT_ACCEPT_DURING_WAR));
             pPlayer->sendPacket(&msg);

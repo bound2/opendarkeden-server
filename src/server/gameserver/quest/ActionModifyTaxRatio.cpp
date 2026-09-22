@@ -51,7 +51,7 @@ void ActionModifyTaxRatio::execute(Creature* pCreature1, Creature* pCreature2)
     GuildID_t guildID = pPC->getGuildID();
     GCNPCResponse deny;
 
-    Guild* pGuild = g_pGuildManager->getGuild(guildID);
+    Guild* pGuild = context().guilds().getGuild(guildID);
     if (bSuccess && pGuild == NULL) {
         // No guild.
         bSuccess = false;

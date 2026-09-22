@@ -7,6 +7,7 @@
 //----------------------------------------------------------------------
 
 // include files
+#include "GameContext.h"
 #include "Properties.h"
 #include "SGModifyGuildOK.h"
 
@@ -41,7 +42,7 @@ void SGModifyGuildOKHandler::execute(SGModifyGuildOK* pPacket)
 
 #ifdef __GAME_SERVER__
 
-        Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+        Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
     Assert(pGuild != NULL);
 
     if (pGuild->getState() == Guild::GUILD_STATE_WAIT && pPacket->getGuildState() == Guild::GUILD_STATE_ACTIVE) {

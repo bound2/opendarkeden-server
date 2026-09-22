@@ -677,7 +677,7 @@ bool PlayerCreature::hasEnemy(const string& Name) const {
 string PlayerCreature::getGuildName() const
 
 {
-    Guild* pGuild = g_pGuildManager->getGuild(m_GuildID);
+    Guild* pGuild = de::gameContext().guilds().getGuild(m_GuildID);
 
     if (pGuild != NULL)
         return pGuild->getName();
@@ -690,7 +690,7 @@ string PlayerCreature::getGuildName() const
 GuildMemberRank_t PlayerCreature::getGuildMemberRank() const
 
 {
-    Guild* pGuild = g_pGuildManager->getGuild(m_GuildID);
+    Guild* pGuild = de::gameContext().guilds().getGuild(m_GuildID);
 
     if (pGuild != NULL) {
         GuildMember* pGuildMember = pGuild->getMember(getName());

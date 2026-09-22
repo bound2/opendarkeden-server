@@ -210,6 +210,8 @@ bool GuildUnionManager::addGuild(uint uID, GuildID_t gID) {
 bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
     __BEGIN_TRY
 
+    GuildManager& guilds = de::gameContext().guilds();
+
     // If this guild is the union master and is leaving,
     // break up the union it belongs to.
 
@@ -226,7 +228,7 @@ bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
         }
 
         {
-            string unionMasterID = g_pGuildManager->getGuild(gID)->getMaster();
+            string unionMasterID = guilds.getGuild(gID)->getMaster();
             // Remove every guild from the union; once they are all gone the
             // union dissolves itself.
             for (size_t m = 0; m < memberGuilds.size(); m++) {
@@ -286,10 +288,10 @@ bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
             int masterGuildID = 0;
             if (defaultGuildRepository().loadUnionMaster(unionID, masterGuildID)) {
                 unionMasterGuildID = masterGuildID;
-                unionMasterID = g_pGuildManager->getGuild(unionMasterGuildID)->getMaster();
+                unionMasterID = guilds.getGuild(unionMasterGuildID)->getMaster();
             }
 
-            guildMasterID = g_pGuildManager->getGuild(gID)->getMaster();
+            guildMasterID = guilds.getGuild(gID)->getMaster();
 
             if (removeGuild(unionID, ownerGuildID)) {
                 Creature* pTargetCreature = NULL;  // the guild's master
@@ -420,8 +422,8 @@ uint GuildUnionOfferManager::offerJoin(GuildID_t gID, GuildID_t masterGID) {
         return ALREADY_IN_UNION;
     GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(masterGID);
 
-    Guild* pReqGuild = g_pGuildManager->getGuild(gID);
-    Guild* pMasterGuild = g_pGuildManager->getGuild(masterGID);
+    Guild* pReqGuild = de::gameContext().guilds().getGuild(gID);
+    Guild* pMasterGuild = de::gameContext().guilds().getGuild(masterGID);
 
     if (pReqGuild != NULL && pMasterGuild != NULL) {
         if (pReqGuild->getActiveMemberCount() > MAX_GUILDMEMBER_ACTIVE_COUNT ||

@@ -110,8 +110,8 @@ void GuildWar::recordGuildWarStart()
     defaultWarInfoRepository().insertGuildWarHistory(
         (int)getWarID(), getWarStartTime().toStringforWeb(), g_pConfig->getPropertyInt("ServerID"),
         pCastleInfo->getName(), (int)pCastleInfo->getGuildID(),
-        g_pGuildManager->getGuildName(pCastleInfo->getGuildID()), getChallangerGuildID(),
-        g_pGuildManager->getGuildName(getChallangerGuildID()));
+        de::gameContext().guilds().getGuildName(pCastleInfo->getGuildID()), getChallangerGuildID(),
+        de::gameContext().guilds().getGuildName(getChallangerGuildID()));
 
     __END_CATCH
 }
@@ -188,8 +188,8 @@ void GuildWar::recordGuildWarEnd()
 {
     __BEGIN_TRY
 
-    defaultWarInfoRepository().updateGuildWarWinner((int)m_WinnerGuildID,
-                                                    g_pGuildManager->getGuildName(m_WinnerGuildID), (int)getWarID());
+    defaultWarInfoRepository().updateGuildWarWinner(
+        (int)m_WinnerGuildID, de::gameContext().guilds().getGuildName(m_WinnerGuildID), (int)getWarID());
 
     // running a script -- who would have thought the system function would be used
     char cmd[100];
@@ -211,7 +211,7 @@ string GuildWar::getWarName() const
     Guild* pGuild = NULL;
 
     try {
-        pGuild = g_pGuildManager->getGuild(m_ChallangerGuildID);
+        pGuild = de::gameContext().guilds().getGuild(m_ChallangerGuildID);
         pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(m_CastleZoneID);
 
         if (pGuild == NULL || pZoneInfo == NULL)
@@ -349,7 +349,7 @@ void GuildWar::makeWarScheduleInfo(WarScheduleInfo* pWSI) const
         pWSI->challengerGuildID[i] = 0;
     pWSI->reinforceGuildID = 0;
 
-    pWSI->challengerGuildName[0] = g_pGuildManager->getGuildName(getChallangerGuildID());
+    pWSI->challengerGuildName[0] = de::gameContext().guilds().getGuildName(getChallangerGuildID());
 
     __END_CATCH
 }
@@ -393,14 +393,14 @@ void GuildWar::makeWarInfo(WarInfo* pWarInfo) const
     else if (challangerGuildID == VampireCommon)
         attackGuildName = commonVampireGuild;
     else
-        attackGuildName = g_pGuildManager->getGuildName(getChallangerGuildID());
+        attackGuildName = de::gameContext().guilds().getGuildName(getChallangerGuildID());
 
     if (ownGuildID == SlayerCommon)
         defenseGuildName = commonSlayerGuild;
     else if (ownGuildID == VampireCommon)
         defenseGuildName = commonVampireGuild;
     else
-        defenseGuildName = g_pGuildManager->getGuildName(ownGuildID);
+        defenseGuildName = de::gameContext().guilds().getGuildName(ownGuildID);
 
     pGuildWarInfo->setAttackGuildName(attackGuildName);
     pGuildWarInfo->setDefenseGuildName(defenseGuildName);

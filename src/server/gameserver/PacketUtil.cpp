@@ -193,7 +193,7 @@ void makeGCOtherModifyInfoGuildUnion(GCOtherModifyInfo* pModifyInformation, Crea
 
         pModifyInformation->addShortData(MODIFY_UNIONID, pUnion->getUnionID());
 
-        if (g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature)) {
+        if (de::gameContext().guilds().isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature)) {
             isGuildMaster = true;
         }
 
@@ -253,7 +253,7 @@ void makeGCModifyInfoGuildUnion(GCModifyInformation* pModifyInformation, Creatur
 
         pModifyInformation->addShortData(MODIFY_UNIONID, pUnion->getUnionID());
 
-        if (g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature)) {
+        if (de::gameContext().guilds().isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature)) {
             isGuildMaster = true;
         }
 
@@ -554,7 +554,7 @@ void makeGCUpdateInfo(GCUpdateInfo* pUpdateInfo, Creature* pCreature)
 
         pUpdateInfo->setGuildUnionID(pUnion->getUnionID());
 
-        if (g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature)) {
+        if (de::gameContext().guilds().isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature)) {
             isGuildMaster = true;
         }
 

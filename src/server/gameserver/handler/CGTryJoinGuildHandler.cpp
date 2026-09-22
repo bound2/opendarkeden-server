@@ -48,7 +48,7 @@ void CGTryJoinGuildHandler::execute(CGTryJoinGuild* pPacket, Player* pPlayer)
     Creature* pCreature = pGamePlayer->getCreature();
     Assert(pCreature != NULL);
 
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
 
     GuildJoinAttempt attempt;
     attempt.name = pCreature->getName();

@@ -49,7 +49,7 @@ void SGAddGuildOKHandler::execute(SGAddGuildOK* pPacket)
     pGuild->setIntro(pPacket->getGuildIntro());
 
     // Add to guild manager
-    g_pGuildManager->addGuild(pGuild);
+    de::gameContext().guilds().addGuild(pGuild);
 
     // Notify guild master if online
     PCFinder& pcFinder = de::gameContext().playerCreatures();

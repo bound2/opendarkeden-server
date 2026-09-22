@@ -8,6 +8,7 @@
 
 #ifdef __GAME_SERVER__
 #include "GCGuildMemberList.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -38,7 +39,7 @@ void CGRequestGuildMemberListHandler::execute(CGRequestGuildMemberList* pPacket,
     Assert(pPlayerCreature != NULL);
 
     // Get the selected guild.
-    Guild* pGuild = g_pGuildManager->getGuild(pPlayerCreature->getGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pPlayerCreature->getGuildID());
     // try { Assert(pGuild != NULL); } catch (Throwable& ) { return; }
     if (pGuild == NULL)
         return;

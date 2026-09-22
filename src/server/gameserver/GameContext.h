@@ -47,6 +47,7 @@ class FlagManager;
 class GameServerGroupInfoManager;
 class GlobalPartyManager;
 class GoodsInfoManager;
+class GuildManager;
 class IncomingPlayerManager;
 class ItemFactoryManager;
 class ItemInfoManager;
@@ -166,6 +167,9 @@ public:
     void setGoodsInfoManager(GoodsInfoManager* pGoodsInfoManager) {
         m_pGoodsInfoManager = pGoodsInfoManager;
     }
+    void setGuildManager(GuildManager* pGuildManager) {
+        m_pGuildManager = pGuildManager;
+    }
     void setIncomingPlayerManager(IncomingPlayerManager* pIncomingPlayerManager) {
         m_pIncomingPlayerManager = pIncomingPlayerManager;
     }
@@ -283,6 +287,7 @@ public:
     GameServerGroupInfoManager& gameServerGroups() const;
     GlobalPartyManager& parties() const;
     GoodsInfoManager& goodsInfos() const;
+    GuildManager& guilds() const;
     IncomingPlayerManager& incomingPlayers() const;
     ItemFactoryManager& itemFactories() const;
     ItemInfoManager& itemInfos() const;
@@ -341,6 +346,7 @@ private:
     GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
     GlobalPartyManager* m_pGlobalPartyManager = nullptr;
     GoodsInfoManager* m_pGoodsInfoManager = nullptr;
+    GuildManager* m_pGuildManager = nullptr;
     IncomingPlayerManager* m_pIncomingPlayerManager = nullptr;
     ItemFactoryManager* m_pItemFactoryManager = nullptr;
     ItemInfoManager* m_pItemInfoManager = nullptr;

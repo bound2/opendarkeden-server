@@ -152,7 +152,7 @@ void EventMorph::activate()
 
     // Remove from the guild's currently-connected list.
     if (pSlayer->getGuildID() != 99) {
-        Guild* pGuild = g_pGuildManager->getGuild(pSlayer->getGuildID());
+        Guild* pGuild = de::gameContext().guilds().getGuild(pSlayer->getGuildID());
         if (pGuild != NULL) {
             pGuild->deleteCurrentMember(pSlayer->getName());
 

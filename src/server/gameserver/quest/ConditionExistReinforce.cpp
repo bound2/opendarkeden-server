@@ -6,6 +6,7 @@
 
 #include "ConditionExistReinforce.h"
 
+#include "GameContext.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "Zone.h"
@@ -41,7 +42,7 @@ bool ConditionExistReinforce::isSatisfied(Creature* pCreature1, Creature* pCreat
         return false;
 
     GuildID_t gID = pNextWar->recentReinforceGuild();
-    Guild* pGuild = g_pGuildManager->getGuild(gID);
+    Guild* pGuild = de::gameContext().guilds().getGuild(gID);
 
     if (pGuild == NULL)
         return false;

@@ -71,7 +71,7 @@ void ActionAcceptReinforce::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    if (!g_pGuildManager->isGuildMaster(guildID, pPC)) {
+    if (!context().guilds().isGuildMaster(guildID, pPC)) {
         gcNPCResponse.setCode(NPC_RESPONSE_NOT_GUILD_MASTER);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
         return;

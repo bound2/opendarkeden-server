@@ -101,7 +101,7 @@ void CGShopRequestBuyHandler::execute(CGShopRequestBuy* pPacket, Player* pPlayer
         Item* pItem = pNPC->getShopItem(shopType, shopIndex);
 
         if (pItem->getItemClass() == Item::ITEM_CLASS_TRAP_ITEM) {
-            if (!g_pGuildManager->isGuildMaster(pPC->getGuildID(), pPC) ||
+            if (!de::gameContext().guilds().isGuildMaster(pPC->getGuildID(), pPC) ||
                 !pPC->isFlag(Effect::EFFECT_CLASS_SIEGE_DEFENDER)) {
                 GCShopBuyFail gcShopBuyFail;
                 gcShopBuyFail.setCode(GC_SHOP_BUY_FAIL_ITEM_NOT_EXIST);

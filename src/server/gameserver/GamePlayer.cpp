@@ -143,6 +143,8 @@ GamePlayer::GamePlayer(Socket* pSocket)
 GamePlayer::~GamePlayer() noexcept {
     __BEGIN_TRY
 
+    GuildManager& guilds = de::gameContext().guilds();
+
     //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     // Whatever deletes a player object, its status has to be logged out.
@@ -176,7 +178,7 @@ GamePlayer::~GamePlayer() noexcept {
             if (m_pCreature->isSlayer()) {
                 Slayer* pSlayer = dynamic_cast<Slayer*>(m_pCreature);
                 if (pSlayer->getGuildID() != 99) {
-                    Guild* pGuild = g_pGuildManager->getGuild(pSlayer->getGuildID());
+                    Guild* pGuild = guilds.getGuild(pSlayer->getGuildID());
                     if (pGuild != NULL) {
                         pGuild->deleteCurrentMember(pSlayer->getName());
 
@@ -196,7 +198,7 @@ GamePlayer::~GamePlayer() noexcept {
             } else if (m_pCreature->isVampire()) {
                 Vampire* pVampire = dynamic_cast<Vampire*>(m_pCreature);
                 if (pVampire->getGuildID() != 0) {
-                    Guild* pGuild = g_pGuildManager->getGuild(pVampire->getGuildID());
+                    Guild* pGuild = guilds.getGuild(pVampire->getGuildID());
                     if (pGuild != NULL) {
                         pGuild->deleteCurrentMember(pVampire->getName());
 
@@ -216,7 +218,7 @@ GamePlayer::~GamePlayer() noexcept {
             } else if (m_pCreature->isOusters()) {
                 Ousters* pOusters = dynamic_cast<Ousters*>(m_pCreature);
                 if (pOusters->getGuildID() != 66) {
-                    Guild* pGuild = g_pGuildManager->getGuild(pOusters->getGuildID());
+                    Guild* pGuild = guilds.getGuild(pOusters->getGuildID());
                     if (pGuild != NULL) {
                         pGuild->deleteCurrentMember(pOusters->getName());
 

@@ -8,6 +8,7 @@
 
 #ifdef __GAME_SERVER__
 #include "GSModifyGuildIntro.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -40,7 +41,7 @@ void CGModifyGuildIntroHandler::execute(CGModifyGuildIntro* pPacket, Player* pPl
     Assert(pPlayerCreature != NULL);
 
     // Get the guild.
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
     if (pGuild == NULL)
         return;
 

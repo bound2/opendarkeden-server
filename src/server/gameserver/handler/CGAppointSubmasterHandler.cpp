@@ -11,6 +11,7 @@
 #include "GCGuildResponse.h"
 #include "GCSystemMessage.h"
 #include "GSModifyGuildMember.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -40,7 +41,7 @@ void CGAppointSubmasterHandler::execute(CGAppointSubmaster* pPacket, Player* pPl
 
     SYSTEM_ASSERT(SYSTEM_GUILD);
 
-    if (!g_pGuildManager->isGuildMaster(pPacket->getGuildID(), pPlayerCreature)) {
+    if (!de::gameContext().guilds().isGuildMaster(pPacket->getGuildID(), pPlayerCreature)) {
         // Send GC_GUILD_RESPONSE.
         // Content: not the guild master.
         GCGuildResponse gcGR;

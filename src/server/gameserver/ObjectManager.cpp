@@ -206,7 +206,8 @@ ObjectManager::ObjectManager()
     context.setPriceManager(m_pPriceManager);
     m_pEffectLoaderManager = new EffectLoaderManager();
     context.setEffectLoaderManager(m_pEffectLoaderManager);
-    g_pGuildManager = new GuildManager();
+    m_pGuildManager = new GuildManager();
+    context.setGuildManager(m_pGuildManager);
     //	g_pGuildRegistrationManager = new GuildRegistrationManager();
     //	g_pGuildVoteManager         = new GuildVoteManager();
     g_pResurrectLocationManager = new ResurrectLocationManager();
@@ -323,7 +324,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pPriceManager);
     SAFE_DELETE(m_pVampEXPInfoManager);
     SAFE_DELETE(m_pOustersEXPInfoManager);
-    SAFE_DELETE(g_pGuildManager);
+    SAFE_DELETE(m_pGuildManager);
     SAFE_DELETE(g_pResurrectLocationManager);
     SAFE_DELETE(m_pAlignmentManager);
     SAFE_DELETE(m_pWayPointManager);
@@ -548,8 +549,8 @@ void ObjectManager::load()
     //--------------------------------------------------------------------------------
 
     printf("ObjectManager::init() : GuildManager Initialization Start\n");
-    if (g_pGuildManager != NULL)
-        g_pGuildManager->init();
+    if (m_pGuildManager != NULL)
+        m_pGuildManager->init();
     printf("ObjectManager::init() : GuildManager Initialization Success\n");
 
     printf("ObjectManager::init() : GuildUnionManager Initialization Start\n");

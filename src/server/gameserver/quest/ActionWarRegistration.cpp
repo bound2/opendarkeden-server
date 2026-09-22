@@ -51,6 +51,8 @@ void ActionWarRegistration::execute(Creature* pCreature1, Creature* pCreature2)
 {
     __BEGIN_TRY
 
+    GuildManager& guilds = context().guilds();
+
     Assert(pCreature1 != NULL);
     Assert(pCreature2 != NULL);
     Assert(pCreature1->isNPC());
@@ -69,7 +71,7 @@ void ActionWarRegistration::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    if (!g_pGuildManager->isGuildMaster(guildID, pPC)) {
+    if (!guilds.isGuildMaster(guildID, pPC)) {
         gcNPCResponse.setCode(NPC_RESPONSE_NOT_GUILD_MASTER);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
         return;
@@ -90,7 +92,7 @@ void ActionWarRegistration::execute(Creature* pCreature1, Creature* pCreature2)
     Assert(pWarScheduler != NULL);
 
     // Is this guild already holding a castle?
-    if (g_pGuildManager->hasCastle(guildID)) {
+    if (guilds.hasCastle(guildID)) {
         gcNPCResponse.setCode(NPC_RESPONSE_ALREADY_HAS_CASTLE);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
         return;
@@ -107,7 +109,7 @@ void ActionWarRegistration::execute(Creature* pCreature1, Creature* pCreature2)
     }
 
     // Has a war already been registered?
-    if (g_pGuildManager->hasWarSchedule(guildID)) {
+    if (guilds.hasWarSchedule(guildID)) {
         gcNPCResponse.setCode(NPC_RESPONSE_WAR_ALREADY_REGISTERED);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
         return;

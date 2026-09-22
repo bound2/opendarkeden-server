@@ -71,7 +71,7 @@ void ActionRegisterSiege::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    if (!g_pGuildManager->isGuildMaster(guildID, pPC)) {
+    if (!context().guilds().isGuildMaster(guildID, pPC)) {
         gcNPCResponse.setCode(NPC_RESPONSE_NOT_GUILD_MASTER);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
         return;
@@ -102,7 +102,7 @@ void ActionRegisterSiege::execute(Creature* pCreature1, Creature* pCreature2)
     }
 
     // Has a war already been registered?
-    if (g_pGuildManager->hasWarSchedule(guildID)) {
+    if (context().guilds().hasWarSchedule(guildID)) {
         gcNPCResponse.setCode(NPC_RESPONSE_WAR_ALREADY_REGISTERED);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
         return;

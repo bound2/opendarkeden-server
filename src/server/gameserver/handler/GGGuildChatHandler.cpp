@@ -56,10 +56,12 @@ void GGGuildChatHandler::execute(GGGuildChat* pPacket)
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX __BEGIN_DEBUG
 
+        GuildManager& guilds = de::gameContext().guilds();
+
 #ifdef __GAME_SERVER__
 
-        // Get the guild's currently connected members.
-        Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    // Get the guild's currently connected members.
+    Guild* pGuild = guilds.getGuild(pPacket->getGuildID());
 
     if (pGuild == NULL) {
         filelog("GuildMissing.log", "[NoSuchGuild] GuildID : %d", (int)pPacket->getGuildID());
@@ -86,11 +88,11 @@ void GGGuildChatHandler::execute(GGGuildChat* pPacket)
             list<GuildID_t>::iterator itr = gList.begin();
 
             for (; itr != gList.end(); ++itr) {
-                pGuild = g_pGuildManager->getGuild(*itr);
+                pGuild = guilds.getGuild(*itr);
                 broadcastGuild(pGuild, &gcGuildChat);
             }
 
-            pGuild = g_pGuildManager->getGuild(pUnion->getMasterGuildID());
+            pGuild = guilds.getGuild(pUnion->getMasterGuildID());
             broadcastGuild(pGuild, &gcGuildChat);
         }
     }

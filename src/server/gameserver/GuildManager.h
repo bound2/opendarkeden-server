@@ -132,6 +132,4 @@ protected:
     mutable Mutex m_Mutex;
 };
 
-extern GuildManager* g_pGuildManager;
-
 #endif // __GUILDINFO_H__

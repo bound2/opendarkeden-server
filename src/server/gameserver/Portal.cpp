@@ -8,6 +8,7 @@
 
 #include "GCMoveOK.h"
 #include "GCUpdateInfo.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -251,7 +252,7 @@ bool GuildPortal::activate(Creature* pCreature)
     PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
     Assert(pPlayerCreature != NULL);
 
-    Guild* pGuild = g_pGuildManager->getGuild(pPlayerCreature->getGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pPlayerCreature->getGuildID());
 
     // Ignore if the player has no guild.
     if (pGuild == NULL)

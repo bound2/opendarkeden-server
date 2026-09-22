@@ -641,12 +641,12 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         {
             GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(pPC->getGuildID());
             if (pUnion != NULL) {
-                if (g_pGuildManager->isGuildMaster(pPC->getGuildID(), pPC))
+                if (de::gameContext().guilds().isGuildMaster(pPC->getGuildID(), pPC))
 
                     if (pUnion->getMasterGuildID() == pPC->getGuildID())
 
                         // Is the requester the master of its own guild, and is the union's master guild this guild?
-                        if (g_pGuildManager->isGuildMaster(pPC->getGuildID(), pPC) &&
+                        if (de::gameContext().guilds().isGuildMaster(pPC->getGuildID(), pPC) &&
                             pUnion->getMasterGuildID() == pPC->getGuildID()) {
                             if (GuildUnionOfferManager::Instance().makeOfferList(pUnion->getUnionID(),
                                                                                  gcUnionOfferList)) {

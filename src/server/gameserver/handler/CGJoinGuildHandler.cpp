@@ -62,7 +62,7 @@ void CGJoinGuildHandler::execute(CGJoinGuild* pPacket, Player* pPlayer)
     if (pPacket->getGuildMemberRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
         // A starting member may only join a guild that is still waiting for
         // approval.
-        Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+        Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
         if (pGuild == NULL)
             return;
 

@@ -8,6 +8,7 @@
 
 #ifdef __GAME_SERVER__
 #include "GSExpelGuildMember.h"
+#include "GameContext.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "Player.h"
@@ -36,7 +37,7 @@ void CGExpelGuildMemberHandler::execute(CGExpelGuildMember* pPacket, Player* pPl
     SYSTEM_ASSERT(SYSTEM_GUILD);
 
     // Get the guild.
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
     try {
         Assert(pGuild != NULL);
     } catch (Throwable& t) {

@@ -488,7 +488,7 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
         } else if (guildID == OustersCommon) {
             sprintf(msg, "%s castle became an Ousters common castle.", pCastleInfo->getName().c_str());
         } else {
-            Guild* pGuild = g_pGuildManager->getGuild(guildID);
+            Guild* pGuild = de::gameContext().guilds().getGuild(guildID);
 
             if (pGuild == NULL) {
                 filelog("CastleError.log", "Unknown guildID : %d", (int)guildID);

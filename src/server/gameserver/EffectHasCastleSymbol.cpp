@@ -75,7 +75,7 @@ void EffectHasCastleSymbol::affect(Creature* pCreature)
 
     char msg[300];
     sprintf(msg, de::gameContext().strings().c_str(STRID_BROADCAST_CASTLE_SYMBOL_POSITION),
-            pCreature->getName().c_str(), g_pGuildManager->getGuildName(pPC->getGuildID()).c_str(),
+            pCreature->getName().c_str(), de::gameContext().guilds().getGuildName(pPC->getGuildID()).c_str(),
             pZoneInfo->getFullName().c_str(), (int)pCreature->getX(), (int)pCreature->getY(), m_PartName.c_str());
 
     GCSystemMessage gcSystemMessage;

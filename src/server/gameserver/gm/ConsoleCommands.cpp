@@ -461,7 +461,7 @@ void opSetCastleOwnerGuild(GamePlayer* pGamePlayer, const string& value1, GCSyst
     bSendPacket = false;
 
     Zone* pZone = getZoneByZoneID(zoneID);
-    Guild* pGuild = g_pGuildManager->getGuild(guildID);
+    Guild* pGuild = de::gameContext().guilds().getGuild(guildID);
 
     if (pZone != NULL && pZone->isCastle() && pGuild != NULL) {
         de::gameContext().castleInfos().modifyCastleOwner(zoneID, pGuild->getRace(), guildID);

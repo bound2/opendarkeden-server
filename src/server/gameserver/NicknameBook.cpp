@@ -1,6 +1,7 @@
 #include "NicknameBook.h"
 
 #include "GCNicknameList.h"
+#include "GameContext.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "LevelNickInfoManager.h"
@@ -74,7 +75,7 @@ void NicknameBook::load() {
 
     if (m_pOwner->getGuildID() != m_pOwner->getCommonGuildID()) {
         // Fetch the guild.
-        Guild* pGuild = g_pGuildManager->getGuild(m_pOwner->getGuildID());
+        Guild* pGuild = de::gameContext().guilds().getGuild(m_pOwner->getGuildID());
 
         // Check whether the player is the guild's master.
         if (pGuild != NULL && pGuild->getMaster() == m_pOwner->getName()) {

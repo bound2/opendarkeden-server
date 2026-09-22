@@ -11,6 +11,7 @@
 #include "GCNPCResponse.h"
 #include "GCWaitGuildList.h"
 #include "GSQuitGuild.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildInfo.h"
@@ -49,6 +50,8 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
 
 {
     __BEGIN_TRY
+
+    GuildManager& guilds = context().guilds();
 
     Assert(pCreature1 != NULL);
     Assert(pCreature2 != NULL);
@@ -244,7 +247,7 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
         else
             return;
 
-        g_pGuildManager->makeWaitGuildList(gcWaitGuildList, race);
+        guilds.makeWaitGuildList(gcWaitGuildList, race);
 
         pPlayer->sendPacket(&gcWaitGuildList);
     } else if (m_Type == GUILD_DIALOG_LIST) {
@@ -260,7 +263,7 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
         else
             return;
 
-        g_pGuildManager->makeActiveGuildList(gcActiveGuildList, race);
+        guilds.makeActiveGuildList(gcActiveGuildList, race);
 
         pPlayer->sendPacket(&gcActiveGuildList);
     } else if (m_Type == GUILD_DIALOG_QUIT) {
@@ -269,7 +272,7 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
 
         int guildID = 0;
         if (defaultGuildRepository().loadMemberGuildID(pCreature->getName(), guildID)) {
-            pGuild = g_pGuildManager->getGuild(guildID);
+            pGuild = guilds.getGuild(guildID);
         }
 
         // The guild state must be active or waiting.

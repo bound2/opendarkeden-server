@@ -47,7 +47,7 @@ void CGRequestUnionHandler::execute(CGRequestUnion* pPacket, Player* pPlayer)
     GCGuildResponse gcGuildResponse;
 
     // Is the requester the master of the guild it belongs to?
-    if (!g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature)) {
+    if (!de::gameContext().guilds().isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature)) {
         // Send GC_GUILD_RESPONSE.
         // Content: not the guild master.
 
@@ -63,7 +63,7 @@ void CGRequestUnionHandler::execute(CGRequestUnion* pPacket, Player* pPlayer)
 
     if (result == GuildUnionOfferManager::OK) {
         // The other guild's master name has to be found.
-        Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+        Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
 
         if (pGuild != NULL) {
             string targetGuildMaster = pGuild->getMaster();

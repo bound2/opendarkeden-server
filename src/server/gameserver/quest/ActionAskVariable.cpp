@@ -152,7 +152,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     }
                 } else {
                     // A castle owned by a guild.
-                    Guild* pGuild = g_pGuildManager->getGuild(pCastleInfo->getGuildID());
+                    Guild* pGuild = context().guilds().getGuild(pCastleInfo->getGuildID());
                     if (pGuild == NULL)
                         result = strings.getString(STRID_NO_MASTER_CASTLE);
                     else
@@ -202,7 +202,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                 pParam->setValue("없는");
             } else {
                 GuildID_t gID = pNextWar->recentReinforceGuild();
-                Guild* pGuild = g_pGuildManager->getGuild(gID);
+                Guild* pGuild = context().guilds().getGuild(gID);
                 if (pGuild == NULL)
                     pParam->setValue("없는");
                 else

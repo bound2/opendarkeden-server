@@ -62,7 +62,7 @@ void CGAcceptUnionHandler::execute(CGAcceptUnion* pPacket, Player* pPlayer)
     }
 
     // Is the requester the master of its own guild, and is the union's master guild my guild?
-    if (!g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature) ||
+    if (!de::gameContext().guilds().isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature) ||
         pUnion->getMasterGuildID() != pPlayerCreature->getGuildID()) {
         // Send GC_GUILD_RESPONSE.
         // Content: not the guild master.
@@ -80,7 +80,7 @@ void CGAcceptUnionHandler::execute(CGAcceptUnion* pPacket, Player* pPlayer)
 
     ////////////////////
     if (result == GuildUnionOfferManager::OK) {
-        Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+        Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
 
         if (pGuild == NULL) {
             return;

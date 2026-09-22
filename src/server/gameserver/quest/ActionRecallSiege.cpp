@@ -17,6 +17,7 @@
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
 #include "GCUpdateInfo.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -75,7 +76,7 @@ void ActionRecallSiege::execute(Creature* pNPC, Creature* pCreature)
     Assert(siegeZoneID != 0);
 
 
-    if (!g_pGuildManager->isGuildMaster(pPC->getGuildID(), pPC)) {
+    if (!context().guilds().isGuildMaster(pPC->getGuildID(), pPC)) {
         GCSystemMessage gcSM;
         gcSM.setMessage("Ö»ÓÐÐÐ»á»á³¤,²Å¿ÉÒÔ½øÐÐÉêÇë.");
         pGamePlayer->sendPacket(&gcSM);
@@ -83,7 +84,7 @@ void ActionRecallSiege::execute(Creature* pNPC, Creature* pCreature)
     }
 
     // Get the guild the PC belongs to.
-    Guild* pGuild = g_pGuildManager->getGuild(pPC->getGuildID());
+    Guild* pGuild = context().guilds().getGuild(pPC->getGuildID());
     if (pGuild == NULL)
         return;
 

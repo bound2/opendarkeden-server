@@ -143,6 +143,11 @@ GoodsInfoManager& GameContext::goodsInfos() const {
     return *m_pGoodsInfoManager;
 }
 
+GuildManager& GameContext::guilds() const {
+    Assert(m_pGuildManager != nullptr);
+    return *m_pGuildManager;
+}
+
 IncomingPlayerManager& GameContext::incomingPlayers() const {
     Assert(m_pIncomingPlayerManager != nullptr);
     return *m_pIncomingPlayerManager;

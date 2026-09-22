@@ -7,6 +7,7 @@
 //----------------------------------------------------------------------
 
 // include files
+#include "GameContext.h"
 #include "SGDeleteGuildOK.h"
 
 #ifdef __GAME_SERVER__
@@ -43,6 +44,8 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
 {
     __BEGIN_TRY
 
+    GuildManager& guilds = de::gameContext().guilds();
+
 #ifdef __GAME_SERVER__
 
     // Warp the members inside the guild hideout.
@@ -53,7 +56,7 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
     Assert(pPacket != NULL);
 
     // Get the guild.
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = guilds.getGuild(pPacket->getGuildID());
     try {
         Assert(pGuild != NULL);
     } catch (Throwable&) {
@@ -127,7 +130,7 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
         }
 
         // Delete the guild from the guild manager (retired, not freed).
-        g_pGuildManager->deleteGuild(pGuild->getID());
+        guilds.deleteGuild(pGuild->getID());
     } else if (pGuild->getState() == Guild::GUILD_STATE_WAIT) {
         const std::vector<std::pair<std::string, GuildMemberRank_t>> members = pGuild->retireAllMembers();
 
@@ -173,7 +176,7 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
         }
 
         // Delete the guild from the guild manager (retired, not freed).
-        g_pGuildManager->deleteGuild(pGuild->getID());
+        guilds.deleteGuild(pGuild->getID());
         GuildUnionManager::Instance().removeMasterGuild(pGuild->getID());
     }
 

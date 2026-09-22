@@ -54,7 +54,7 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
     pGuildMember->setRank(pPacket->getGuildMemberRank());
 
     // Add it to the guild.
-    Guild* pGuild = g_pGuildManager->getGuild(pGuildMember->getGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pGuildMember->getGuildID());
     pGuild->addMember(pGuildMember);
 
     // Send the member a message.
