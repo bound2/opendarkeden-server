@@ -173,7 +173,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
     } else if (m_Type == 7) // Full moon
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 5);
-        ItemMineInfo* pItemMineInfo;
+        ItemMineInfo* pItemMineInfo = NULL;
 
         if (pPC->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pPC);
@@ -226,8 +226,13 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
         } else
             Assert(false);
 
-        pItem1 = pItemMineInfo->getItem();
-        setItemGender(pItem1, (pPC->getSex() == FEMALE) ? GENDER_FEMALE : GENDER_MALE);
+        // A mine table with no row for the band leaves the trade with no
+        // item, which the no-item handling below answers.
+        if (pItemMineInfo != NULL)
+            pItem1 = pItemMineInfo->getItem();
+
+        if (pItem1 != NULL)
+            setItemGender(pItem1, (pPC->getSex() == FEMALE) ? GENDER_FEMALE : GENDER_MALE);
     } else if (m_Type == 8) // Dark moon
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 6);
@@ -240,7 +245,8 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
             pItem1 = itemMineInfos.getRandomItem(46, 61);
         }
 
-        setItemGender(pItem1, (pPC->getSex() == FEMALE) ? GENDER_FEMALE : GENDER_MALE);
+        if (pItem1 != NULL)
+            setItemGender(pItem1, (pPC->getSex() == FEMALE) ? GENDER_FEMALE : GENDER_MALE);
     } else if (m_Type == 9) // Red lucky pouch
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 7);

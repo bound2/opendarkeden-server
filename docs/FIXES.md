@@ -38,7 +38,15 @@ that followed it.
   and calls `setItemGender` on its item before the null check that
   follows it,** so a treasure whose roll produced nothing reaches
   `setItemGender` with null, the shape the lottery handler had.
-  > **Status:** recorded, not fixed (fix/recorded-defects-1)
+  The mine info is now checked before its item is taken and the gender is
+  set only for an item that exists, so a band with no mine row and a race
+  branch that produced nothing leave the trade item-less and reach the
+  no-item handling the other trade types already take, rather than
+  dereferencing null. The mine-backed types name no lair master, so an
+  item-less one of those ends in the trade's monster lookup rather than
+  its `tradeLairItemBUG.txt` refusal; both are data faults and neither
+  faults the server now.
+  > **Status:** fixed (fix/recorded-defects-2)
 
 ## Two more event item actions crash on an Ousters (2026-09-22)
 
