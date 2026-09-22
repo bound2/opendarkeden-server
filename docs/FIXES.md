@@ -19,13 +19,20 @@ that followed it.
   with the very index or null factory the guard rejected: an out-of-bounds
   read of the factory array for a class past `ITEM_CLASS_MAX`, a null call
   for an in-range class no factory registered. Not reachable from a client
-  packet: all 41 callers pass a literal class, a class read off an existing
+  packet: the callers pass a literal class, a class read off an existing
   item, or one from server-side data, and the GM item command is gated by
   `isPossibleItem`, which asserts the range first. A corrupt database or
   XML row (`ItemMineInfo` reads its class from the database) crashes where
   the guard meant to log and skip. `getItemName` has the weaker shape of the
   same defect: it builds its diagnostic and discards it, then indexes.
-  > **Status:** recorded, not fixed (refactor/game-context-9)
+  Both guards now leave their function: the swallowing `catch` is gone, so
+  `createItem`'s `NoSuchElementException` propagates through `__END_CATCH`
+  to the caller, and `getItemName`, which nothing in the tree calls, throws
+  the diagnostic it had been building. Propagating rather than answering NULL is what the callers
+  support: of the 183 `createItem` call sites only 38 check the pointer
+  within five lines, so a NULL return would have moved the crash rather
+  than removed it. The logging the guard already did is unchanged.
+  > **Status:** fixed (fix/recorded-defects-1)
 
 ## A lair-item trade leaks every winning treasure but the last (2026-09-22)
 
