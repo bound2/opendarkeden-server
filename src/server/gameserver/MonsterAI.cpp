@@ -1888,8 +1888,14 @@ bool checkTimingDuplicateSelf(Monster* pMonster, Creature* pEnemy) {
         return false;
     }
 
+    // Check whether the zone the master is in is a master lair.
     Zone* pZone = pMonster->getZone();
     Assert(pZone != NULL);
+
+    // Meaningless if it is not a master lair.
+    if (!pZone->isMasterLair()) {
+        return false;
+    }
 
     HP_t currentHP = pMonster->getHP(ATTR_CURRENT);
     HP_t maxHP = pMonster->getHP(ATTR_MAX);

@@ -38,7 +38,15 @@ that followed it.
   and calls `setItemGender` on its item before the null check that
   follows it,** so a treasure whose roll produced nothing reaches
   `setItemGender` with null, the shape the lottery handler had.
-  > **Status:** recorded, not fixed (fix/recorded-defects-1)
+  The mine info is now checked before its item is taken and the gender is
+  set only for an item that exists, so a band with no mine row and a race
+  branch that produced nothing leave the trade item-less and reach the
+  no-item handling the other trade types already take, rather than
+  dereferencing null. The mine-backed types name no lair master, so an
+  item-less one of those ends in the trade's monster lookup rather than
+  its `tradeLairItemBUG.txt` refusal; both are data faults and neither
+  faults the server now.
+  > **Status:** fixed (fix/recorded-defects-2)
 
 ## Two more event item actions crash on an Ousters (2026-09-22)
 
@@ -46,7 +54,14 @@ that followed it.
   item selector in a Slayer branch and a Vampire branch, so an Ousters
   leaves the pointer null and dereferences it,** the defect
   `ActionGiveEventItem` had before it refused the race instead.
-  > **Status:** recorded, not fixed (fix/recorded-defects-1)
+  Neither action has an Ousters selector to reach for: both read only a
+  `SlayerFilename` and a `VampireFilename`, and the slayer and vampire
+  classes remain the only selectors in the tree. So both now refuse the
+  way `ActionGiveEventItem` does -- the character is logged to the
+  action's own error file (`AccountEventItemError.txt`,
+  `XMasEventError.txt`) and the NPC dialogue closes. The same two-branch
+  selector choice is also in `ActionGiveTestServerReward`, untouched.
+  > **Status:** fixed (fix/recorded-defects-2)
 
 ## The movement and attack speed-hack check is gone (2026-09-22)
 
@@ -74,7 +89,10 @@ that followed it.
   guard its siblings `checkMasterSummonTiming` and `checkMasterNotReady`
   both apply;** the guard was there, switched off in a comment block that
   is now deleted. A master outside its lair can duplicate itself.
-  > **Status:** recorded, not fixed (refactor/commented-code-3)
+  The guard is back, spelled as its two siblings spell it: a master whose
+  zone is not a master lair fails the condition, so the duplicate-self
+  directive is offered only inside a lair.
+  > **Status:** fixed (fix/recorded-defects-2)
 
 ## A random monster name is only ever its middle part (2026-09-22)
 
@@ -87,7 +105,18 @@ that followed it.
   a last name alone up to level 33, first and last to 66, all three above.
   The event overload has the same loop shape but draws a sensible event
   name.
-  > **Status:** recorded, not fixed (refactor/commented-code-3)
+  The name is now the middle part alone with no trailing space, the loop
+  draws again while the row that came up is empty, and the fallback is an
+  assignment the 300th empty draw reaches. The banded design is **not**
+  restored and stays a design decision: the parts the database ships are up
+  to 13, 11 and 18 bytes, so its top band composes up to 44 bytes while
+  `GCAddMonster`, `GCAddMonsterFromBurrowing` and
+  `GCAddMonsterFromTransformation` all throw `InvalidProtocolException`
+  above a 32-byte name, and how to keep a three-part name inside that
+  field is not something the deleted comment says. The first and last
+  name tables stay loaded and unread, as they already were behind the
+  indices that were always -1.
+  > **Status:** fixed (fix/recorded-defects-2)
 
 ## The item factory's out-of-range guard is caught by its own handler (2026-09-22)
 
