@@ -34,9 +34,9 @@ void GLKickVerifyHandler::execute(GLKickVerify* pPacket)
 #ifdef __LOGIN_SERVER__
 
 
-        try {
         LoginPlayerManager& loginPlayers = de::loginContext().loginPlayers();
 
+    try {
         loginPlayers.lock();
 
         // The base overload keyed by socket, which the derived getPlayer(name) hides.
@@ -58,7 +58,7 @@ void GLKickVerifyHandler::execute(GLKickVerify* pPacket)
 
         loginPlayers.unlock();
     } catch (Throwable&) { // (NoSuchException&) { // would be pointless.
-        de::loginContext().loginPlayers().unlock();
+        loginPlayers.unlock();
     }
 
 #endif

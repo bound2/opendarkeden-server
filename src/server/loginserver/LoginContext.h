@@ -12,10 +12,11 @@
 //               reading a manager before it exists is a startup-order bug, not
 //               a runtime condition to branch on.
 //
-//               The manager class names are the loginserver's own. A game
-//               server and a shared server declare classes of the same names;
-//               those are different types in different executables, and this
-//               header names only the loginserver's.
+//               The manager class names are the loginserver's own. The game
+//               server and the shared server declare classes named
+//               GameServerGroupInfoManager, GameServerManager and
+//               ZoneInfoManager too; those are different types in different
+//               executables, and this header names only the loginserver's.
 //
 //               Only forward declarations live here, so the header costs a
 //               caller nothing and can be included where none of the managers

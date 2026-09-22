@@ -2,8 +2,8 @@
 // Filename    : EffectSoulChain.h
 // Written by  : elca@ewestsoft.com
 // Description :
-// Effect attached to a creature that is fading out because of the soldier
-// skill Sniping or the Vampire skill Invisibility.
+// Effect that, when it expires, transports the player it is on to the zone
+// and position of the creature it is chained to, if that zone allows it.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_SOUL_CHAIN__

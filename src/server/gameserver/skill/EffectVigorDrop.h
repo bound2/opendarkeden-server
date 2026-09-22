@@ -4,7 +4,7 @@
 // File Name   : EffectVigorDrop.h
 // Date        : 2002.3.28
 // Description :
-//               This effect implements what happens when Vigor Drop falls to the
+//               This effect implements what happens when a Vigor Drop
 //               falls to the ground.
 //
 // History
