@@ -14,12 +14,6 @@
 #include "Slayer.h"
 #include "Vampire.h"
 
-//////////////////////////////////////////////////////////////////////////////
-// global varible initialization
-//////////////////////////////////////////////////////////////////////////////
-OptionInfoManager* g_pOptionInfoManager = NULL;
-
-
 // Can an optionType be attached to this itemClass?
 bool isPossibleOptionClass(Item::ItemClass itemClass, OptionClass optionClass) {
     switch (itemClass) {

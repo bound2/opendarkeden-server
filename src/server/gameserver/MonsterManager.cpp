@@ -1687,7 +1687,7 @@ int MonsterManager::upgradeOptionByLuck(int luckLevel, Creature::CreatureClass o
         return 0;
 
     OptionType_t optionType = it.OptionType.front();
-    OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(optionType);
+    OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(optionType);
     if (pOptionInfo == NULL)
         return 0;
 

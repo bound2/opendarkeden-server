@@ -1059,7 +1059,7 @@ void Slayer::wearItem(WearPart Part, Item* pItem)
 
     // Take the colour of the first option.
     if (pItem->getFirstOptionType() != 0)
-        pOptionInfo = g_pOptionInfoManager->getOptionInfo(pItem->getFirstOptionType());
+        pOptionInfo = de::gameContext().optionInfos().getOptionInfo(pItem->getFirstOptionType());
 
     // By the current design an item can always be used even when the
     // attributes are too low, but then the item's attribute bonuses do
@@ -1274,7 +1274,7 @@ void Slayer::wearItem(WearPart Part)
 
     // Take the colour of the first option.
     if (pItem->getFirstOptionType() != 0)
-        pOptionInfo = g_pOptionInfoManager->getOptionInfo(pItem->getFirstOptionType());
+        pOptionInfo = de::gameContext().optionInfos().getOptionInfo(pItem->getFirstOptionType());
 
 
     if (IClass == Item::ITEM_CLASS_SHIELD)
@@ -1728,7 +1728,7 @@ bool Slayer::isRealWearing(Item* pItem) const
         // For every option...
         list<OptionType_t>::const_iterator itr;
         for (itr = optionTypes.begin(); itr != optionTypes.end(); itr++) {
-            OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(*itr);
+            OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(*itr);
 
             if (ReqSTR != 0)
                 ReqSTR += (pOptionInfo->getReqSum() * 2);
@@ -1814,7 +1814,7 @@ void Slayer::setMotorcycle(Motorcycle* pMotorcycle)
         m_SlayerInfo.setMotorcycleColor(388);
     } else {
         OptionType_t option = pMotorcycle->getFirstOptionType();
-        OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(option);
+        OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(option);
 
         if (pOptionInfo != NULL) {
             m_SlayerInfo.setMotorcycleColor(pOptionInfo->getColor());

@@ -279,7 +279,8 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
 
                 OptionType_t targetOption = 0;
                 int ratio = rand() % 100000;
-                const list<PetEnchantOption*>& petEnchantOptions = g_pOptionInfoManager->getPetEnchantOptionList();
+                const list<PetEnchantOption*>& petEnchantOptions =
+                    de::gameContext().optionInfos().getPetEnchantOptionList();
                 list<PetEnchantOption*>::const_iterator itr = petEnchantOptions.begin();
                 list<PetEnchantOption*>::const_iterator endItr = petEnchantOptions.end();
 
@@ -593,7 +594,7 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
     if (bSecondUpgradePossible) {
         // The second option's enchant chance depends on whether the first option succeeded.
 
-        int succeedRatio = g_pOptionInfoManager->getRareUpgradeRatio(secondOption, bFirstSucceed) *
+        int succeedRatio = de::gameContext().optionInfos().getRareUpgradeRatio(secondOption, bFirstSucceed) *
                            (pItemInfo->getUpgradeRatio() + (rand() % 50));
 
         int dice = rand() % diceValue;
@@ -629,7 +630,7 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
     shiftValue = 0;
     if (bThirdUpgradePossible) {
         // The second option's enchant chance depends on whether the first option succeeded.
-        int succeedRatio = g_pOptionInfoManager->getRareUpgradeRatio(thirdOption, bFirstSucceed) *
+        int succeedRatio = de::gameContext().optionInfos().getRareUpgradeRatio(thirdOption, bFirstSucceed) *
                            (pItemInfo->getUpgradeRatio() + (rand() % 50));
 
         int dice = rand() % diceValue;
@@ -804,8 +805,8 @@ void executeEnchantRareOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* p
 
     if (bSecondUpgradePossible) {
         // The second option's enchant chance depends on whether the first option succeeded.
-        int succeedRatio =
-            g_pOptionInfoManager->getRareUpgradeRatio(secondOption, bFirstSucceed) * pItemInfo->getUpgradeRatio();
+        int succeedRatio = de::gameContext().optionInfos().getRareUpgradeRatio(secondOption, bFirstSucceed) *
+                           pItemInfo->getUpgradeRatio();
         int dice = rand() % 10000;
 
 
@@ -1114,7 +1115,7 @@ OptionInfo* getOptionInfo(OptionType_t optionType) {
     OptionInfo* pOptionInfo = NULL;
 
     try {
-        pOptionInfo = g_pOptionInfoManager->getOptionInfo(optionType);
+        pOptionInfo = de::gameContext().optionInfos().getOptionInfo(optionType);
 
         if (pOptionInfo == NULL) {
             filelog("optionError.txt", "CGAddItemToItemHandler: no option [%d]", optionType);

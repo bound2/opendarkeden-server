@@ -1320,7 +1320,7 @@ Color_t PlayerCreature::getItemShapeColor(Item* pItem, OptionInfo* pOptionInfo) 
     }
     // Otherwise take the colour of the item's first option.
     else if (pItem->getFirstOptionType() != 0) {
-        OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(pItem->getFirstOptionType());
+        OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(pItem->getFirstOptionType());
         color = pOptionInfo->getColor();
     } else {
         // Default colour.

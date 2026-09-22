@@ -1447,7 +1447,7 @@ void Slayer::computeOptionClassStat(OptionClass OClass, int PlusPoint) {
 void Slayer::computeOptionStat(OptionType_t optionType) {
     __BEGIN_TRY
 
-    OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(optionType);
+    OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(optionType);
     computeOptionClassStat(pOptionInfo->getClass(), pOptionInfo->getPlusPoint());
 
 

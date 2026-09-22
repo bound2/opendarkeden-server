@@ -1277,7 +1277,7 @@ void Ousters::computeOptionStat(OptionType_t OptionType)
 {
     __BEGIN_TRY
 
-    OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(OptionType);
+    OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(OptionType);
     computeOptionClassStat(pOptionInfo->getClass(), pOptionInfo->getPlusPoint());
 
     __END_CATCH

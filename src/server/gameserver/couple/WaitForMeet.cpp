@@ -195,7 +195,7 @@ uint WaitForMeet::canMakeCouple(PlayerCreature* pPC1, PlayerCreature* pPC2) {
 
 OptionType_t WaitForMeet::getRandomOptionType(PlayerCreature* pPC) {
     int op = rand() % 4;
-    return g_pOptionInfoManager->getOptionType(CoupleRingOptions[(int)pPC->getRace()][op]);
+    return de::gameContext().optionInfos().getOptionType(CoupleRingOptions[(int)pPC->getRace()][op]);
 }
 
 CoupleRingBase* WaitForMeet::giveCoupleRing(PlayerCreature* pPC, string partnerName, _TPOINT* pPt) {

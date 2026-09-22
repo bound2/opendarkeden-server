@@ -128,6 +128,7 @@ void CGMixItemHandler::executeMix(CGMixItem* pPacket, Player* pPlayer, Item* pIt
     Assert(pPC != NULL);
 
     Inventory* pInventory = pPC->getInventory();
+    OptionInfoManager& optionInfos = de::gameContext().optionInfos();
     Zone* pZone = pPC->getZone();
 
     CoordInven_t InvenX = pPacket->getX();
@@ -253,15 +254,15 @@ void CGMixItemHandler::executeMix(CGMixItem* pPacket, Player* pPlayer, Item* pIt
     const list<OptionType_t>& oList1 = pTargetItem1->getOptionTypeList();
     Assert(!oList1.empty());
     OptionType_t option1 = oList1.front();
-    OptionInfo* pOptionInfo1 = g_pOptionInfoManager->getOptionInfo(option1);
+    OptionInfo* pOptionInfo1 = optionInfos.getOptionInfo(option1);
 
     const list<OptionType_t>& oList2 = pTargetItem2->getOptionTypeList();
     Assert(!oList2.empty());
     OptionType_t option2 = oList2.front();
-    OptionInfo* pOptionInfo2 = g_pOptionInfoManager->getOptionInfo(option2);
+    OptionInfo* pOptionInfo2 = optionInfos.getOptionInfo(option2);
 
-    if (g_pOptionInfoManager->getOptionClassInfo(pOptionInfo1->getClass())->getOptionGroup() ==
-        g_pOptionInfoManager->getOptionClassInfo(pOptionInfo2->getClass())->getOptionGroup()) {
+    if (optionInfos.getOptionClassInfo(pOptionInfo1->getClass())->getOptionGroup() ==
+        optionInfos.getOptionClassInfo(pOptionInfo2->getClass())->getOptionGroup()) {
         gcVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_MIXING_FAILED_SAME_OPTION_GROUP);
         pPlayer->sendPacket(&gcVerify);
         return;

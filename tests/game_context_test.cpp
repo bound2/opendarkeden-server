@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[54];
+char g_managerStorage[55];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -114,14 +114,17 @@ TEST(GameContextTest, ItemDescriptionManagersAreReadBack) {
 
     DefaultOptionSetInfoManager* pDefaultOptionSetInfoManager = standIn<DefaultOptionSetInfoManager>(15);
     ItemInfoManager* pItemInfoManager = standIn<ItemInfoManager>(48);
+    OptionInfoManager* pOptionInfoManager = standIn<OptionInfoManager>(54);
     VolumeInfoManager* pVolumeInfoManager = standIn<VolumeInfoManager>(16);
 
     context.setDefaultOptionSetInfoManager(pDefaultOptionSetInfoManager);
     context.setItemInfoManager(pItemInfoManager);
+    context.setOptionInfoManager(pOptionInfoManager);
     context.setVolumeInfoManager(pVolumeInfoManager);
 
     EXPECT_EQ(&context.optionSets(), pDefaultOptionSetInfoManager);
     EXPECT_EQ(&context.itemInfos(), pItemInfoManager);
+    EXPECT_EQ(&context.optionInfos(), pOptionInfoManager);
     EXPECT_EQ(&context.volumeInfos(), pVolumeInfoManager);
 }
 
@@ -340,6 +343,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.masterLairInfos(), AssertionError);
     EXPECT_THROW(context.monsterInfos(), AssertionError);
     EXPECT_THROW(context.monsterNames(), AssertionError);
+    EXPECT_THROW(context.optionInfos(), AssertionError);
     EXPECT_THROW(context.optionSets(), AssertionError);
     EXPECT_THROW(context.oustersExp(), AssertionError);
     EXPECT_THROW(context.parties(), AssertionError);

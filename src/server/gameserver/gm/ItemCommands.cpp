@@ -103,10 +103,10 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
 
         OptionInfo* pOptionInfo = NULL;
 
-        pOptionInfo = g_pOptionInfoManager->getOptionInfo(optionString);
+        pOptionInfo = de::gameContext().optionInfos().getOptionInfo(optionString);
 
         if (pOptionInfo == NULL) {
-            pOptionInfo = g_pOptionInfoManager->getOptionInfo(atoi(optionString.c_str()));
+            pOptionInfo = de::gameContext().optionInfos().getOptionInfo(atoi(optionString.c_str()));
 
             if (pOptionInfo == NULL)
                 break;

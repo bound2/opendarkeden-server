@@ -148,7 +148,7 @@ ObjectManager::ObjectManager()
     m_pVolumeInfoManager = new VolumeInfoManager();
     m_pItemLoaderManager = new ItemLoaderManager();
     m_pShopTemplateManager = new ShopTemplateManager();
-    g_pOptionInfoManager = new OptionInfoManager();
+    m_pOptionInfoManager = new OptionInfoManager();
     m_pItemMineInfoManager = new ItemMineInfoManager();
     m_pDirectiveSetManager = new DirectiveSetManager();
     m_pMonsterNameManager = new MonsterNameManager();
@@ -176,6 +176,7 @@ ObjectManager::ObjectManager()
     context.setVolumeInfoManager(m_pVolumeInfoManager);
     context.setItemLoaderManager(m_pItemLoaderManager);
     context.setShopTemplateManager(m_pShopTemplateManager);
+    context.setOptionInfoManager(m_pOptionInfoManager);
     context.setItemMineInfoManager(m_pItemMineInfoManager);
     context.setDirectiveSetManager(m_pDirectiveSetManager);
     context.setMonsterNameManager(m_pMonsterNameManager);
@@ -298,7 +299,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(g_pParkingCenter);
     SAFE_DELETE(m_pTelephoneCenter);
     SAFE_DELETE(m_pItemMineInfoManager);
-    SAFE_DELETE(g_pOptionInfoManager);
+    SAFE_DELETE(m_pOptionInfoManager);
     SAFE_DELETE(m_pSkillInfoManager);
     SAFE_DELETE(m_pSkillDomainInfoManager);
     SAFE_DELETE(m_pMonsterInfoManager);
@@ -423,7 +424,7 @@ void ObjectManager::init()
 
     // Options have to be load()ed before itemInfo.
     printf("ObjectManager::init() : OptionInfoManager Initialization Start\n");
-    g_pOptionInfoManager->init();
+    m_pOptionInfoManager->init();
     printf("ObjectManager::init() : OptionInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : SweeperBonusManager Initialization Start....... \n");

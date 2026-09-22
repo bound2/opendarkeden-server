@@ -102,7 +102,7 @@ void EventReloadInfo::activate()
     } break;
 
     case OPTION_INFO: {
-        g_pOptionInfoManager->load();
+        de::gameContext().optionInfos().load();
     } break;
 
     case STRING_POOL: {

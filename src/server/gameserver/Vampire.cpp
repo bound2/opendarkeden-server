@@ -1402,7 +1402,7 @@ bool Vampire::isRealWearing(Item* pItem) const
     list<OptionType_t>::const_iterator itr;
 
     for (itr = optionTypes.begin(); itr != optionTypes.end(); itr++) {
-        OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(*itr);
+        OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(*itr);
         ReqLevel += pOptionInfo->getReqLevel();
     }
 

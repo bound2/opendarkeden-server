@@ -512,7 +512,7 @@ Durability_t computeMaxDurability(Item* pItem) {
         OptionType_t OptionType = *itr;
 
         if (OptionType != 0) {
-            OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(OptionType);
+            OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(OptionType);
 
             if (pOptionInfo->getClass() == OPTION_DURABILITY) {
                 plusPoint += (pOptionInfo->getPlusPoint() - 100);
@@ -872,7 +872,7 @@ bool hasOptionClass(const list<OptionType_t>& optionTypes, OptionType_t optionTy
         return false;
 
     try {
-        OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(optionType);
+        OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(optionType);
 
         if (pOptionInfo == NULL)
             return false;
@@ -882,7 +882,7 @@ bool hasOptionClass(const list<OptionType_t>& optionTypes, OptionType_t optionTy
         list<OptionType_t>::const_iterator itr;
 
         for (itr = optionTypes.begin(); itr != optionTypes.end(); itr++) {
-            pOptionInfo = g_pOptionInfoManager->getOptionInfo(*itr);
+            pOptionInfo = de::gameContext().optionInfos().getOptionInfo(*itr);
             if (pOptionInfo == NULL)
                 return false;
             if (pOptionInfo->getClass() == newOptionClass)
@@ -985,7 +985,7 @@ bool isPossibleNextOption(ITEM_TEMPLATE* pTemplate) {
         Ratio_t nextOptionRatio = nextItemRatio; // To reduce the computation.
         Ratio_t baseMultiplier = 100;            // 100%
         for (; itr != pTemplate->OptionType.end(); itr++) {
-            OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(*itr);
+            OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(*itr);
             if (pOptionInfo == NULL)
                 return false;
             nextOptionRatio *= pOptionInfo->getNextOptionRatio();
@@ -1045,6 +1045,8 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
     OptionType_t optionType = 1;
 
     ItemInfo* pItemInfo = NULL;
+
+    OptionInfoManager& optionInfos = de::gameContext().optionInfos();
 
     //----------------------------------------------------------------------
     // Slayer case
@@ -1120,11 +1122,11 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
         int maxOptionLevel = max(1, min(100, (int)(CSUM / 3)));
 
         const vector<OptionType_t>& optionVector =
-            g_pOptionInfoManager->getPossibleGambleOptionVector((Item::ItemClass)itemClass, maxOptionLevel);
+            optionInfos.getPossibleGambleOptionVector((Item::ItemClass)itemClass, maxOptionLevel);
         vector<OptionType_t>::const_iterator iOption;
 
         // Get the total OptionRatio.
-        int itemOptionRatio = g_pOptionInfoManager->getTotalGambleRatio((Item::ItemClass)itemClass, maxOptionLevel);
+        int itemOptionRatio = optionInfos.getTotalGambleRatio((Item::ItemClass)itemClass, maxOptionLevel);
 
         if (optionVector.size() > 0 && itemOptionRatio > 0 && (pItemInfo == NULL || !pItemInfo->isUnique())) {
             // Try only ten times.
@@ -1142,7 +1144,7 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
                 for (iOption = optionVector.begin(); iOption != optionVector.end(); iOption++) {
                     optionType = *iOption;
 
-                    pOptionInfo = g_pOptionInfoManager->getOptionInfo(optionType);
+                    pOptionInfo = optionInfos.getOptionInfo(optionType);
                     ratioSum += pOptionInfo->getRatio();
 
                     if (optionRatio < ratioSum) {
@@ -1246,11 +1248,11 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
         int maxOptionLevel = max(1, min(100, (int)CLevel));
 
         const vector<OptionType_t>& optionVector =
-            g_pOptionInfoManager->getPossibleGambleOptionVector((Item::ItemClass)itemClass, maxOptionLevel);
+            optionInfos.getPossibleGambleOptionVector((Item::ItemClass)itemClass, maxOptionLevel);
         vector<OptionType_t>::const_iterator iOption;
 
         // Get the total OptionRatio.
-        int itemOptionRatio = g_pOptionInfoManager->getTotalGambleRatio((Item::ItemClass)itemClass, maxOptionLevel);
+        int itemOptionRatio = optionInfos.getTotalGambleRatio((Item::ItemClass)itemClass, maxOptionLevel);
 
 
         if (optionVector.size() > 0 && itemOptionRatio > 0 && (pItemInfo == NULL || !pItemInfo->isUnique())) {
@@ -1269,7 +1271,7 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
                 for (iOption = optionVector.begin(); iOption != optionVector.end(); iOption++) {
                     optionType = *iOption;
 
-                    pOptionInfo = g_pOptionInfoManager->getOptionInfo(optionType);
+                    pOptionInfo = optionInfos.getOptionInfo(optionType);
                     ratioSum += pOptionInfo->getRatio();
 
                     if (optionRatio < ratioSum) {
@@ -1341,11 +1343,11 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
         int maxOptionLevel = max(1, min(100, (int)CLevel));
 
         const vector<OptionType_t>& optionVector =
-            g_pOptionInfoManager->getPossibleGambleOptionVector((Item::ItemClass)itemClass, maxOptionLevel);
+            optionInfos.getPossibleGambleOptionVector((Item::ItemClass)itemClass, maxOptionLevel);
         vector<OptionType_t>::const_iterator iOption;
 
         // Get the total OptionRatio.
-        int itemOptionRatio = g_pOptionInfoManager->getTotalGambleRatio((Item::ItemClass)itemClass, maxOptionLevel);
+        int itemOptionRatio = optionInfos.getTotalGambleRatio((Item::ItemClass)itemClass, maxOptionLevel);
 
 
         if (optionVector.size() > 0 && itemOptionRatio > 0 && (pItemInfo == NULL || !pItemInfo->isUnique())) {
@@ -1364,7 +1366,7 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
                 for (iOption = optionVector.begin(); iOption != optionVector.end(); iOption++) {
                     optionType = *iOption;
 
-                    pOptionInfo = g_pOptionInfoManager->getOptionInfo(optionType);
+                    pOptionInfo = optionInfos.getOptionInfo(optionType);
                     ratioSum += pOptionInfo->getRatio();
 
                     if (optionRatio < ratioSum) {
@@ -1923,7 +1925,7 @@ void makeOptionList(const string& options, list<OptionType_t>& optionList)
         OptionType_t optionType;
 
         try {
-            optionType = g_pOptionInfoManager->getOptionType(optionName);
+            optionType = de::gameContext().optionInfos().getOptionType(optionName);
         } catch (NoSuchElementException&) {
             throw Error("No such option.");
         }
@@ -2260,7 +2262,7 @@ bool bTraceLog(Item* pItem) {
 
     // Items with a resistance option leave a trace log.
     for (itr = optionList.begin(); itr != optionList.end(); itr++) {
-        OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(*itr);
+        OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(*itr);
         if (pOptionInfo == NULL)
             return false;
 
@@ -2583,7 +2585,7 @@ OptionType_t getBaseOptionType(OptionType_t type) {
             break;
         seen.insert(cur);
 
-        OptionInfo* pInfo = g_pOptionInfoManager->getOptionInfo(cur);
+        OptionInfo* pInfo = de::gameContext().optionInfos().getOptionInfo(cur);
         if (pInfo == NULL)
             break; // Missing option info - stop here
 

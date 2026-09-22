@@ -32,6 +32,7 @@
 #include "EventTree.h"
 #include "Exception.h"
 #include "Fascia.h"
+#include "GameContext.h"
 #include "Glove.h"
 #include "Helm.h"
 #include "HolyWater.h"
@@ -519,7 +520,7 @@ bool ItemInfoManager::isPossibleItem(Item::ItemClass IClass, ItemType_t IType, c
                 for (; itr != OType.end(); itr++) {
                     OptionType_t optionType = *itr;
 
-                    if (g_pOptionInfoManager->getOptionInfo(optionType) == NULL) {
+                    if (de::gameContext().optionInfos().getOptionInfo(optionType) == NULL) {
                         return false;
                     }
                 }

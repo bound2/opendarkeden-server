@@ -55,6 +55,7 @@ class ItemMineInfoManager;
 class MasterLairInfoManager;
 class MonsterInfoManager;
 class MonsterNameManager;
+class OptionInfoManager;
 class OustersEXPInfoManager;
 class PCFinder;
 class PriceManager;
@@ -188,6 +189,9 @@ public:
     void setMonsterNameManager(MonsterNameManager* pMonsterNameManager) {
         m_pMonsterNameManager = pMonsterNameManager;
     }
+    void setOptionInfoManager(OptionInfoManager* pOptionInfoManager) {
+        m_pOptionInfoManager = pOptionInfoManager;
+    }
     void setOustersEXPInfoManager(OustersEXPInfoManager* pOustersEXPInfoManager) {
         m_pOustersEXPInfoManager = pOustersEXPInfoManager;
     }
@@ -283,6 +287,7 @@ public:
     MasterLairInfoManager& masterLairInfos() const;
     MonsterInfoManager& monsterInfos() const;
     MonsterNameManager& monsterNames() const;
+    OptionInfoManager& optionInfos() const;
     OustersEXPInfoManager& oustersExp() const;
     PCFinder& playerCreatures() const;
     PriceManager& prices() const;
@@ -339,6 +344,7 @@ private:
     MasterLairInfoManager* m_pMasterLairInfoManager = nullptr;
     MonsterInfoManager* m_pMonsterInfoManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;
+    OptionInfoManager* m_pOptionInfoManager = nullptr;
     OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
     PriceManager* m_pPriceManager = nullptr;

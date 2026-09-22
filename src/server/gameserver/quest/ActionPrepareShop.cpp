@@ -158,7 +158,7 @@ void ActionPrepareShop::execute(Creature* pCreature1, Creature* pCreature2)
             maxOptionLevel = pTemplate->getMaxOptionLevel();
 
             // First build the vector of option types that can be created.
-            vector<OptionType_t> optionVector = g_pOptionInfoManager->getPossibleOptionVector(
+            vector<OptionType_t> optionVector = context().optionInfos().getPossibleOptionVector(
                 (Item::ItemClass)itemClass, minOptionLevel, maxOptionLevel);
 
             for (ItemType_t type = minItemType; type <= maxItemType; type++) {

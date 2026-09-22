@@ -183,6 +183,11 @@ MonsterNameManager& GameContext::monsterNames() const {
     return *m_pMonsterNameManager;
 }
 
+OptionInfoManager& GameContext::optionInfos() const {
+    Assert(m_pOptionInfoManager != nullptr);
+    return *m_pOptionInfoManager;
+}
+
 OustersEXPInfoManager& GameContext::oustersExp() const {
     Assert(m_pOustersEXPInfoManager != nullptr);
     return *m_pOustersEXPInfoManager;
