@@ -14,6 +14,7 @@
 #include "GCUseOK.h"
 #include "GDRLairManager.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PCFinder.h"
 #include "Slayer.h"
@@ -95,7 +96,7 @@ void EffectLoveChain::unaffect(Creature* pCreature)
             if (!pTargetZone->isMasterLair() && !GDRLairManager::Instance().isGDRLairZone(pTargetZone->getZoneID())) {
                 // Is the pay service available?
                 if (pGamePlayer->loginPayPlay(pGamePlayer->getSocket()->getHost(), pGamePlayer->getID()) ||
-                    !(g_pZoneInfoManager->getZoneInfo(pTargetZone->getZoneID())->isPayPlay())) {
+                    !(de::gameContext().zoneInfos().getZoneInfo(pTargetZone->getZoneID())->isPayPlay())) {
                     if (!pTargetCreature->isPC() ||
                         !(dynamic_cast<PlayerCreature*>(pTargetCreature)->getStore()->isOpen())) {
                         // Cannot go to the field headquarters, outskirts, event stadium or event OX zones.

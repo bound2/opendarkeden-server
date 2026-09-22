@@ -278,7 +278,7 @@ void Zone::load(bool bOutput)
         char* zonename = new char[128];
         char* lwrFilename = new char[256];
 
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(m_ZoneID);
+        ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(m_ZoneID);
 
         Assert(pZoneInfo != NULL);
 
@@ -609,7 +609,7 @@ void Zone::load(bool bOutput)
                     if (bAddPortal) {
                         ZoneInfo* pTargetZoneInfo = NULL;
                         try {
-                            pTargetZoneInfo = g_pZoneInfoManager->getZoneInfo(targetZoneID);
+                            pTargetZoneInfo = de::gameContext().zoneInfos().getZoneInfo(targetZoneID);
                         } catch (NoSuchElementException& t) {
                             throw Error("No such zone");
                         }
@@ -1002,7 +1002,7 @@ void Zone::reload(bool bOutput)
         char* pDesc = NULL;
         char lwrFilename[256];
 
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(m_ZoneID);
+        ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(m_ZoneID);
 
         Assert(pZoneInfo != NULL);
 
@@ -1318,7 +1318,7 @@ void Zone::reload(bool bOutput)
                     if (bAddPortal) {
                         ZoneInfo* pTargetZoneInfo = NULL;
                         try {
-                            pTargetZoneInfo = g_pZoneInfoManager->getZoneInfo(targetZoneID);
+                            pTargetZoneInfo = de::gameContext().zoneInfos().getZoneInfo(targetZoneID);
                         } catch (NoSuchElementException& t) {
                             throw Error("No such zone");
                         }

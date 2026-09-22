@@ -56,6 +56,4 @@ private:
     de::Snapshot<Tables> m_Tables;
 };
 
-extern ZoneInfoManager* g_pZoneInfoManager;
-
 #endif

@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 #include "DynamicZoneInfo.h"
+#include "GameContext.h"
 #include "ZoneGroupManager.h"
 #include "ZoneInfoManager.h"
 
@@ -18,7 +19,7 @@ DynamicZone::DynamicZone() {
 DynamicZone::~DynamicZone() {}
 
 void DynamicZone::makeDynamicZone() {
-    ZoneInfo* pTemplateZoneInfo = g_pZoneInfoManager->getZoneInfo(m_TemplateZoneID);
+    ZoneInfo* pTemplateZoneInfo = de::gameContext().zoneInfos().getZoneInfo(m_TemplateZoneID);
     Assert(pTemplateZoneInfo != NULL);
 
     char temp[128];
@@ -45,8 +46,8 @@ void DynamicZone::makeDynamicZone() {
     sprintf(temp, "%s%u", pTemplateZoneInfo->getShortName().c_str(), m_ZoneID);
     pZoneInfo->setShortName(temp);
 
-    // add zone info to g_pZoneInfoManager
-    g_pZoneInfoManager->addZoneInfo(pZoneInfo);
+    // add zone info to the zone info table
+    de::gameContext().zoneInfos().addZoneInfo(pZoneInfo);
 
     // make zone and add to ZoneGroup
     Zone* pZone = new Zone(pZoneInfo->getZoneID());

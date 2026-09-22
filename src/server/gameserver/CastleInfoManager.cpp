@@ -248,7 +248,7 @@ void CastleInfoManager::load()
 
         ZoneID_t zoneID = row.zoneID;
 
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(zoneID);
+        ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(zoneID);
         Assert(pZoneInfo != NULL);
 
         pZoneInfo->setCastle();

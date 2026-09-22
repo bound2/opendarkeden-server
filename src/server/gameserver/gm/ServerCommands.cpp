@@ -106,7 +106,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
                 ZoneInfo* pZoneInfo = NULL;
 
                 try {
-                    pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZoneNum);
+                    pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZoneNum);
                 } catch (NoSuchElementException&) {
                     throw Error("No zone info for the relic zone.");
                 }
@@ -144,7 +144,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
                 ZoneInfo* pZoneInfo = NULL;
 
                 try {
-                    pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZoneNum);
+                    pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZoneNum);
                 } catch (NoSuchElementException&) {
                     throw Error("No zone info for the relic zone.");
                 }
@@ -1145,7 +1145,7 @@ void opshutdown(GamePlayer* pGamePlayer, string msg, int i) {
 
         ZoneInfo* pZoneInfo = NULL;
         try {
-            pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZoneNum);
+            pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZoneNum);
         } catch (NoSuchElementException&) {
             throw Error("Shutdown requested, but the zone has no zone info.");
         }

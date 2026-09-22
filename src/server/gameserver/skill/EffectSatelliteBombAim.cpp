@@ -251,7 +251,8 @@ string EffectSatelliteBombAim::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSatelliteBombAim(" << "Zone:" << g_pZoneInfoManager->getZoneInfo(m_pZone->getZoneID())->getFullName()
+    msg << "EffectSatelliteBombAim("
+        << "Zone:" << de::gameContext().zoneInfos().getZoneInfo(m_pZone->getZoneID())->getFullName()
         << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Damage:" << (int)m_Damage << ")";
     return msg.toString();
 

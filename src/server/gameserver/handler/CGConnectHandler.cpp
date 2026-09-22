@@ -542,7 +542,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     cout << " ¿©±â´Â µÇ³ª¿ä4" << endl;
     // Logging in inside a castle or a castle dungeon is not allowed.
     ZoneID_t castleZoneID;
-    ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pCreature->getZoneID());
+    ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(pCreature->getZoneID());
 
     bool isCastleZone = g_pCastleInfoManager->getCastleZoneID(pCreature->getZoneID(), castleZoneID);
     bool isMasterLair = pZoneInfo->isMasterLair() || GDRLairManager::Instance().isGDRLairZone(pCreature->getZoneID());

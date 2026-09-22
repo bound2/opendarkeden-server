@@ -1109,7 +1109,7 @@ void Zone::resetSafeZone()
 {
     __BEGIN_TRY
 
-    m_ZoneLevel = g_pZoneInfoManager->getZoneInfo(m_ZoneID)->getZoneLevel();
+    m_ZoneLevel = de::gameContext().zoneInfos().getZoneInfo(m_ZoneID)->getZoneLevel();
 
     // Reset the zone level of every tile.
     for (ZoneCoord_t x = 0; x < m_Width; x++)
@@ -1165,7 +1165,7 @@ void Zone::remainRaceWarPlayers()
                 ZONE_COORD ZC;
                 g_pResurrectLocationManager->getPosition(pPC, ZC);
 
-                ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZC.id);
+                ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZC.id);
                 Assert(pZoneInfo != NULL);
 
                 EventTransport* pEventTransport = new EventTransport(pGamePlayer);
@@ -1235,7 +1235,7 @@ void Zone::remainPayPlayer()
                 ZONE_COORD ZC;
                 g_pResurrectLocationManager->getPosition(pPC, ZC);
 
-                ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZC.id);
+                ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZC.id);
                 Assert(pZoneInfo != NULL);
 
                 EventTransport* pEventTransport = new EventTransport(pGamePlayer);

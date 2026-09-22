@@ -13,6 +13,7 @@
 #include "GCSkillFailed2.h"
 #include "GDRLairManager.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PCFinder.h"
 #include "Slayer.h"
@@ -99,7 +100,7 @@ void EffectSoulChain::unaffect(Creature* pCreature)
                     // Is the pay service available?
                     if (pGamePlayer->loginPayPlay(pGamePlayer->getSocket()->getHost(), pGamePlayer->getID()) ||
                         pGamePlayer->isFamilyFreePass() ||
-                        !(g_pZoneInfoManager->getZoneInfo(pTargetZone->getZoneID())->isPayPlay())) {
+                        !(de::gameContext().zoneInfos().getZoneInfo(pTargetZone->getZoneID())->isPayPlay())) {
                         // The field headquarters, outskirts, event arena and event OX zones are off limits.
                         // The Temerie sanctuary is off limits as well.
                         if (pTargetZone->getZoneID() != 2101 && pTargetZone->getZoneID() != 2102 &&

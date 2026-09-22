@@ -74,7 +74,7 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
                 // Can the paid service be used?
                 bool bValidPay = pGamePlayer->loginPayPlay(pGamePlayer->getSocket()->getHost(), pGamePlayer->getID()) ||
                                  pGamePlayer->isFamilyFreePass() ||
-                                 !g_pZoneInfoManager->getZoneInfo(pTargetZone->getZoneID())->isPayPlay();
+                                 !de::gameContext().zoneInfos().getZoneInfo(pTargetZone->getZoneID())->isPayPlay();
 
                 // Cannot follow into the field HQ, the outskirts, the event arena, the OX event, or Temerie.
                 bool bValidZone = pTargetZone->getZoneID() != 2101 && pTargetZone->getZoneID() != 2102 &&
@@ -237,7 +237,7 @@ void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkil
                 // Can the paid service be used?
                 bool bValidPay = pGamePlayer->loginPayPlay(pGamePlayer->getSocket()->getHost(), pGamePlayer->getID()) ||
                                  pGamePlayer->isFamilyFreePass() ||
-                                 !g_pZoneInfoManager->getZoneInfo(pTargetZone->getZoneID())->isPayPlay();
+                                 !de::gameContext().zoneInfos().getZoneInfo(pTargetZone->getZoneID())->isPayPlay();
 
                 // Cannot follow into the field HQ, the outskirts, the event arena, the OX event, or Temerie.
                 bool bValidZone = pTargetZone->getZoneID() != 2101 && pTargetZone->getZoneID() != 2102 &&
@@ -365,7 +365,7 @@ void SoulChain::execute(Ousters* pOusters, const string& targetName, OustersSkil
                 // Can the paid service be used?
                 bool bValidPay = pGamePlayer->loginPayPlay(pGamePlayer->getSocket()->getHost(), pGamePlayer->getID()) ||
                                  pGamePlayer->isFamilyFreePass() ||
-                                 !g_pZoneInfoManager->getZoneInfo(pTargetZone->getZoneID())->isPayPlay();
+                                 !de::gameContext().zoneInfos().getZoneInfo(pTargetZone->getZoneID())->isPayPlay();
 
                 // Cannot follow into the field HQ, the outskirts, the event arena, the OX event, or Temerie.
                 bool bValidZone = pTargetZone->getZoneID() != 2101 && pTargetZone->getZoneID() != 2102 &&

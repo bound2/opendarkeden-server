@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGSelectTileEffect.h"
+#include "GameContext.h"
 
 #ifdef __GAME_SERVER__
 #include "Effect.h"
@@ -130,7 +131,7 @@ void CGSelectTileEffectHandler::executeVampirePortal(CGSelectTileEffect* pPacket
         }
 
         try {
-            ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(zonecoord.id);
+            ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(zonecoord.id);
         } catch (NoSuchElementException&) {
             return;
         }

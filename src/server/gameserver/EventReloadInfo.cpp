@@ -81,7 +81,7 @@ void EventReloadInfo::activate()
         break;
 
     case ZONE_INFO:
-        g_pZoneInfoManager->load();
+        de::gameContext().zoneInfos().load();
         break;
 
     case ZONE:

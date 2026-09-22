@@ -11,6 +11,7 @@
 #include "CreatureUtil.h"
 #include "DatabaseError.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -66,7 +67,7 @@ void opwarp(GamePlayer* pGamePlayer, string msg, int i) {
     // A non-NULL ZoneInfo means the string was a zone name,
     // and a NULL ZoneInfo means the string was a zone ID.
     // (a typo is possible, but that is ignored.)
-    ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfoByName(ZoneName);
+    ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfoByName(ZoneName);
     if (pZoneInfo != NULL) {
         ZoneID = pZoneInfo->getZoneID();
     } else {
@@ -317,7 +318,7 @@ void opsummon(GamePlayer* pGamePlayer, string msg, int i) {
 }
 
 void opopenpaymap(GamePlayer* pGamePlayer, string msg, int i) {
-    ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(1013);
+    ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(1013);
     pZoneInfo->setNoPortalZone(true);
     GCSystemMessage gcSystemMessage;
     gcSystemMessage.setMessage("�շѵ�ͼ�Ѿ���");
@@ -325,7 +326,7 @@ void opopenpaymap(GamePlayer* pGamePlayer, string msg, int i) {
 }
 
 void opclosepaymap(GamePlayer* pGamePlayer, string msg, int i) {
-    ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(1013);
+    ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(1013);
     pZoneInfo->setNoPortalZone(false);
     GCSystemMessage gcSystemMessage1;
     gcSystemMessage1.setMessage("�շѵ�ͼ�Ѿ��ر�");

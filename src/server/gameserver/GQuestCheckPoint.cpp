@@ -1,5 +1,6 @@
 #include "GQuestCheckPoint.h"
 
+#include "GameContext.h"
 #include "MonsterCorpse.h"
 #include "Properties.h"
 #include "SXml.h"
@@ -35,7 +36,7 @@ void GQuestCheckPoint::load() {
         m_IDMap[id] = pMonsterCorpse;
 
         StringStream name;
-        name << g_pZoneInfoManager->getZoneInfo(pMonsterCorpse->getZone()->getZoneID())->getFullName() << "("
+        name << de::gameContext().zoneInfos().getZoneInfo(pMonsterCorpse->getZone()->getZoneID())->getFullName() << "("
              << (int)pMonsterCorpse->getX() << "," << (int)pMonsterCorpse->getY() << ")";
         m_NameMap[id] = name.toString();
     }
