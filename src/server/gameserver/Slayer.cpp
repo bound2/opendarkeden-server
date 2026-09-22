@@ -7,7 +7,6 @@
 #include "Slayer.h"
 
 #include "EffectManager.h"
-#include "LogClient.h"
 #include "Player.h"
 #include "repository/CharacterRepository.h"
 #include "repository/GoldRepository.h"

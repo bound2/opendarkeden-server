@@ -17,7 +17,6 @@
 #include "GDRLairManager.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
-#include "LogClient.h"
 #include "Ousters.h"
 #include "PCOustersInfo2.h"
 #include "PCSlayerInfo2.h"

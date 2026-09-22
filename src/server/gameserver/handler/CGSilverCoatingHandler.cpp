@@ -6,6 +6,9 @@
 #include "CGSilverCoating.h"
 
 #ifdef __GAME_SERVER__
+#include <stdio.h>
+
+#include "GCNPCResponse.h"
 #include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemInfo.h"
@@ -14,11 +17,6 @@
 #include "PriceManager.h"
 #include "Slayer.h"
 #include "Vampire.h"
-// #include "LogClient.h"
-
-#include <stdio.h>
-
-#include "GCNPCResponse.h"
 
 #endif
 

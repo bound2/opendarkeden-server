@@ -85,7 +85,6 @@
 #include "DynamicZone.h"
 #include "GuildManager.h"
 #include "GuildUnion.h"
-#include "LogClient.h"
 #include "PCFinder.h"
 #include "Store.h"
 #include "repository/PlayRecordRepository.h"

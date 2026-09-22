@@ -107,7 +107,6 @@
 #include "ItemInfo.h"
 #include "LevelWarManager.h"
 #include "LevelWarZoneInfoManager.h"
-#include "LogClient.h"
 #include "LoginServerManager.h"
 #include "MasterLairInfoManager.h"
 #include "MasterLairManager.h"

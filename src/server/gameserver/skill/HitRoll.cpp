@@ -6,7 +6,6 @@
 
 #include "HitRoll.h"
 
-#include "LogClient.h"
 #include "Monster.h"
 #include "Ousters.h"
 #include "RankBonus.h"

@@ -16,7 +16,6 @@
 #include "Datagram.h"
 #include "DatagramPacket.h"
 #include "GameContext.h"
-#include "LogClient.h"
 #include "PacketDispatcher.h"
 #include "Properties.h"
 #include "ThreadManager.h"

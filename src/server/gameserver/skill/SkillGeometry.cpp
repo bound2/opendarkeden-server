@@ -65,7 +65,6 @@
 #include "HitRoll.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
-#include "LogClient.h"
 #include "MasterLairInfoManager.h"
 #include "Monster.h"
 #include "OustersEXPInfo.h"

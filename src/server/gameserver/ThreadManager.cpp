@@ -10,7 +10,6 @@
 
 #include "Assert.h"
 #include "GameContext.h"
-#include "LogClient.h"
 #include "Properties.h"
 #include "ThreadPool.h"
 #include "ZoneGroupManager.h"

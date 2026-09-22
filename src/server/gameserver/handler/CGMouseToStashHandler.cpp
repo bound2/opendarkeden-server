@@ -7,20 +7,19 @@
 #include "CGMouseToStash.h"
 
 #ifdef __GAME_SERVER__
+#include <stdio.h>
+
+#include "CreatureUtil.h"
+#include "GCCannotAdd.h"
 #include "GamePlayer.h"
 #include "Item.h"
 #include "ItemInfo.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "PlayerCreature.h"
+#include "RelicUtil.h"
 #include "Stash.h"
 #include "Zone.h"
-// #include "LogClient.h"
-#include <stdio.h>
-
-#include "CreatureUtil.h"
-#include "GCCannotAdd.h"
-#include "RelicUtil.h"
 #include "item/Magazine.h"
 #include "item/PetItem.h"
 #include "item/Potion.h"

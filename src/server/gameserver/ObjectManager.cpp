@@ -18,7 +18,6 @@
 #include "ItemInfoManager.h"
 #include "ItemLoaderManager.h"
 #include "ItemMineInfo.h"
-#include "LogClient.h"
 #include "MonsterInfo.h"
 #include "MonsterNameManager.h"
 #include "OptionInfo.h"

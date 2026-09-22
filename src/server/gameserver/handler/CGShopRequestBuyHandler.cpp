@@ -6,7 +6,15 @@
 #include "CGShopRequestBuy.h"
 
 #ifdef __GAME_SERVER__
+#include <stdio.h>
+
+#include "CastleInfoManager.h"
+#include "GCShopBuyFail.h"
+#include "GCShopBuyOK.h"
+#include "GCShopSold.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
+#include "GuildManager.h"
 #include "ItemFactoryManager.h"
 #include "ItemInfo.h"
 #include "ItemInfoManager.h"
@@ -15,19 +23,10 @@
 #include "ParkingCenter.h"
 #include "PriceManager.h"
 #include "Slayer.h"
-#include "Tile.h"
-#include "Vampire.h"
-// #include "LogClient.h"
-#include <stdio.h>
-
-#include "CastleInfoManager.h"
-#include "GCShopBuyFail.h"
-#include "GCShopBuyOK.h"
-#include "GCShopSold.h"
-#include "GameContext.h"
-#include "GuildManager.h"
 #include "SystemAvailabilitiesManager.h"
+#include "Tile.h"
 #include "Utility.h"
+#include "Vampire.h"
 #include "ZoneUtil.h"
 #include "item/Key.h"
 #include "item/Magazine.h"

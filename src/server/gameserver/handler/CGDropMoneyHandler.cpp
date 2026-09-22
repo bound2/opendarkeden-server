@@ -7,20 +7,19 @@
 #include "CGDropMoney.h"
 
 #ifdef __GAME_SERVER__
-#include "GamePlayer.h"
-#include "Item.h"
-#include "ItemUtil.h"
-#include "Ousters.h"
-#include "Slayer.h"
-#include "Vampire.h"
-#include "Zone.h"
-// #include "LogClient.h"
 #include <stdio.h>
 
 #include "GCDeleteObject.h"
 #include "GCDeleteandPickUpOK.h"
+#include "GamePlayer.h"
+#include "Item.h"
 #include "ItemFactoryManager.h"
+#include "ItemUtil.h"
+#include "Ousters.h"
+#include "Slayer.h"
+#include "Vampire.h"
 #include "VariableManager.h"
+#include "Zone.h"
 #include "item/Money.h"
 #endif
 

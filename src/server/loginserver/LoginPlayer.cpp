@@ -16,7 +16,6 @@
 #include "LCLoginOK.h"
 #include "LCPCList.h"
 #include "LGKickCharacter.h"
-#include "LogClient.h"
 #include "LoginContext.h"
 #include "Packet.h"
 #include "PacketDispatcher.h"

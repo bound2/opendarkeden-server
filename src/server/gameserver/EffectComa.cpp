@@ -16,7 +16,6 @@
 #include "IncomingPlayerManager.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
-#include "LogClient.h"
 #include "Ousters.h"
 #include "ResurrectLocationManager.h"
 #include "Slayer.h"

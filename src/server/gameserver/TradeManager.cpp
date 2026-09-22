@@ -14,7 +14,6 @@
 #include "Item.h"
 #include "ItemMap.h"
 #include "ItemUtil.h"
-#include "LogClient.h"
 #include "Ousters.h"
 #include "Player.h"
 #include "Slayer.h"
@@ -644,8 +643,6 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
     if (tradeGold2 >= g_pVariableManager->getMoneyTraceLogLimit()) {
         remainMoneyTraceLog(pCreature2->getName(), pCreature1->getName(), ITEM_LOG_TRADE, DETAIL_TRADE, tradeGold2);
     }
-
-    // log(LOG_TRADE, pCreature1->getName(), pCreature2->getName(), msg.toString());
 
     defaultPlayRecordRepository().logPlayerTrade(VSDateTime::currentDateTime().toString(), pCreature1->getName(), ip1,
                                                  pCreature2->getName(), ip2, msg.toString());

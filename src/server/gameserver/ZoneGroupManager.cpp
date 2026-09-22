@@ -18,7 +18,6 @@
 #include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
-#include "LogClient.h"
 #include "LoginServerManager.h"
 #include "PCManager.h"
 #include "Portal.h"
