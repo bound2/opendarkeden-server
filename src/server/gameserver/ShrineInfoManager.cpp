@@ -175,7 +175,7 @@ void ShrineSet::broadcastBloodBibleStatus()
 
     //	if ( m_pGCBBS != NULL ) g_pHolyLandManager->broadcast( m_pGCBBS );
     if (m_pGCBBS != NULL)
-        g_pZoneGroupManager->broadcast(m_pGCBBS);
+        de::gameContext().zoneGroups().broadcast(m_pGCBBS);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 

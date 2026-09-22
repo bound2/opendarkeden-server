@@ -55,6 +55,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
     __BEGIN_TRY
 
     CombatInfoManager& combatInfo = de::gameContext().combatInfo();
+    ZoneGroupManager& zoneGroups = de::gameContext().zoneGroups();
 
     if (pGamePlayer == NULL)
         return;
@@ -94,7 +95,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
             //			message << "the combat has started";
             gcSystemMessage.setMessage(g_pStringPool->getString(STRID_COMBAT_START));
 
-            g_pZoneGroupManager->broadcast(&gcSystemMessage);
+            zoneGroups.broadcast(&gcSystemMessage);
 
             // by sigi. 2002.7.5
             for (int i = 0; i < maxRelic; i++) {
@@ -114,7 +115,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
                 ZoneGroup* pZoneGroup = NULL;
 
                 try {
-                    pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
+                    pZoneGroup = zoneGroups.getZoneGroup(pZoneInfo->getZoneGroupID());
                 } catch (NoSuchElementException&) {
                     throw Error("No zone group for the relic zone.");
                 }
@@ -132,7 +133,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
         {
             cout << "������ �����մϴ�." << endl;
             gcSystemMessage.setMessage(g_pStringPool->getString(STRID_COMBAT_END));
-            g_pZoneGroupManager->broadcast(&gcSystemMessage);
+            zoneGroups.broadcast(&gcSystemMessage);
 
             // by sigi. 2002.7.5
             for (int i = 0; i < maxRelic; i++) {
@@ -152,7 +153,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
                 ZoneGroup* pZoneGroup = NULL;
 
                 try {
-                    pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
+                    pZoneGroup = zoneGroups.getZoneGroup(pZoneInfo->getZoneGroupID());
                 } catch (NoSuchElementException&) {
                     throw Error("No zone group for the relic zone.");
                 }
@@ -709,13 +710,13 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
                 gcNoticeEvent.setCode(NOTICE_EVENT_HOLYDAY);
                 gcNoticeEvent.setParameter(g_pVariableManager->getVariable(vt));
 
-                g_pZoneGroupManager->broadcast(&gcNoticeEvent);
+                de::gameContext().zoneGroups().broadcast(&gcNoticeEvent);
             } else if (vt == CROWN_PRICE) {
                 GCNoticeEvent gcNoticeEvent;
                 gcNoticeEvent.setCode(NOTICE_EVENT_CROWN_PRICE);
                 gcNoticeEvent.setParameter(g_pVariableManager->getVariable(vt));
 
-                g_pZoneGroupManager->broadcast(&gcNoticeEvent);
+                de::gameContext().zoneGroups().broadcast(&gcNoticeEvent);
             }
         } else {
             gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WRONG_VARIABLE_NAME));
@@ -1076,7 +1077,7 @@ void opsave(GamePlayer* pGamePlayer, string msg, int i) {
         ZoneGroup* pZoneGroup = NULL;
 
         try {
-            pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
+            pZoneGroup = de::gameContext().zoneGroups().getZoneGroup(i);
         } catch (NoSuchElementException&) {
             throw Error("Critical Error : ZoneInfoManager has no such zone group.");
         }
@@ -1107,7 +1108,7 @@ void opwall(GamePlayer* pGamePlayer, string msg, int i) {
         filelog("change.txt", "[Wall]%s, %s", pCreature->getName().c_str(), gcSystemMessage.getMessage().c_str());
     }
 
-    g_pZoneGroupManager->broadcast(&gcSystemMessage);
+    de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
 
     __END_DEBUG_EX __END_CATCH
 }
@@ -1153,7 +1154,7 @@ void opshutdown(GamePlayer* pGamePlayer, string msg, int i) {
         ZoneGroup* pZoneGroup = NULL;
 
         try {
-            pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
+            pZoneGroup = de::gameContext().zoneGroups().getZoneGroup(pZoneInfo->getZoneGroupID());
         } catch (NoSuchElementException&) {
             throw Error("Shutdown requested, but the zone group is missing.");
         }

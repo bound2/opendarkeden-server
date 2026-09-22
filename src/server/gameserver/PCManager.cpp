@@ -1110,7 +1110,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
     ZoneY = ResurrectCoord.y;
 
     pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZoneID);
-    pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
+    pZoneGroup = de::gameContext().zoneGroups().getZoneGroup(pZoneInfo->getZoneGroupID());
 
     // Associate the Resurrect event with the player object.
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pDeadCreature->getPlayer());

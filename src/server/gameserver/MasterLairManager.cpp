@@ -333,7 +333,7 @@ void MasterLairManager::processEventWaitingPlayer()
         gcNoticeEvent.setCode(NOTICE_EVENT_MASTER_LAIR_CLOSED);
         gcNoticeEvent.setParameter(m_pZone->getZoneID());
 
-        g_pZoneGroupManager->broadcast(&gcNoticeEvent);
+        de::gameContext().zoneGroups().broadcast(&gcNoticeEvent);
 
         // Start the fight with the minions.
         activeEventMinionCombat();
@@ -352,7 +352,7 @@ void MasterLairManager::processEventWaitingPlayer()
             uint param = (remainMin << 16) | ((int)m_pZone->getZoneID());
             gcNoticeEvent.setParameter(param);
 
-            g_pZoneGroupManager->broadcast(&gcNoticeEvent);
+            de::gameContext().zoneGroups().broadcast(&gcNoticeEvent);
 
 
             m_EventValue = remainSec;
@@ -580,7 +580,7 @@ void MasterLairManager::activeEventWaitingPlayer()
     gcNoticeEvent.setCode(NOTICE_EVENT_MASTER_LAIR_OPEN);
     gcNoticeEvent.setParameter(m_pZone->getZoneID());
 
-    g_pZoneGroupManager->broadcast(&gcNoticeEvent);
+    de::gameContext().zoneGroups().broadcast(&gcNoticeEvent);
 
     // Set the next regen time.
     m_RegenTime.tv_sec += pInfo->getRegenDelay();

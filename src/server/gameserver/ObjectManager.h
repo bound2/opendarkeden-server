@@ -58,6 +58,7 @@ class VisionInfoManager;
 class VolumeInfoManager;
 class WayPointManager;
 class WeatherInfoManager;
+class ZoneGroupManager;
 class ZoneInfoManager;
 
 class ObjectManager {
@@ -117,6 +118,7 @@ private:
     VolumeInfoManager* m_pVolumeInfoManager = nullptr;
     WayPointManager* m_pWayPointManager = nullptr;
     WeatherInfoManager* m_pWeatherInfoManager = nullptr;
+    ZoneGroupManager* m_pZoneGroupManager = nullptr;
     ZoneInfoManager* m_pZoneInfoManager = nullptr;
 };
 

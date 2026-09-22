@@ -14,6 +14,7 @@
 #include "GCDeleteInventoryItem.h"
 #include "GCNoticeEvent.h"
 #include "GCNotifyWin.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameWorldInfoManager.h"
 #include "Item.h"
@@ -126,7 +127,7 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
             gcNW.setGiftID(pPC->getLottoRewardID());
             gcNW.setName(pCreature->getName());
 
-            g_pZoneGroupManager->broadcast(&gcNW);
+            de::gameContext().zoneGroups().broadcast(&gcNW);
 
             // Broadcast to all worlds via server command
             char sCommand[200];

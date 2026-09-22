@@ -331,7 +331,7 @@ void GuildWar::sendWarEndMessage() const
     GCNoticeEvent gcNoticeEvent;
     gcNoticeEvent.setCode(NOTICE_EVENT_WAR_OVER);
     gcNoticeEvent.setParameter(m_CastleZoneID);
-    g_pZoneGroupManager->broadcast(&gcNoticeEvent);
+    de::gameContext().zoneGroups().broadcast(&gcNoticeEvent);
 
     __END_CATCH
 }

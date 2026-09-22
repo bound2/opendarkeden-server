@@ -71,7 +71,7 @@ void EffectHasBloodBible::affect(Creature* pCreature)
     pGCBBS->setY(pCreature->getY());
 
     //	g_pHolyLandManager->broadcast( pGCBBS );
-    g_pZoneGroupManager->broadcast(pGCBBS);
+    de::gameContext().zoneGroups().broadcast(pGCBBS);
     g_pShrineInfoManager->registerBloodBibleStatus(m_Part, pGCBBS);
 
     setNextTime(m_Tick);

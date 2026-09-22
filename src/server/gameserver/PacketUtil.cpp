@@ -476,14 +476,14 @@ void makeGCUpdateInfo(GCUpdateInfo* pUpdateInfo, Creature* pCreature)
     ////////////////////////////////////////////////////////////
     // Server status information.
     ////////////////////////////////////////////////////////////
-    ServerGroupID_t ZoneGroupCount = g_pZoneGroupManager->size();
+    ServerGroupID_t ZoneGroupCount = de::gameContext().zoneGroups().size();
     UserNum_t ZoneUserNum = 0;
 
     for (int i = 1; i < ZoneGroupCount + 1; i++) {
         ZoneGroup* pZoneGroup;
 
         try {
-            pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
+            pZoneGroup = de::gameContext().zoneGroups().getZoneGroup(i);
         } catch (NoSuchElementException&) {
             throw Error("Critical Error : ZoneInfoManager has no such zone group.");
         }

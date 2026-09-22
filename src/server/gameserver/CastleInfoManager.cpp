@@ -529,7 +529,7 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setType(SYSTEM_MESSAGE_HOLY_LAND);
         gcSystemMessage.setMessage(msg);
-        g_pZoneGroupManager->broadcast(&gcSystemMessage);
+        de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
     }
 
     return true;

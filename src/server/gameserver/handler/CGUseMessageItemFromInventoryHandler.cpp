@@ -14,6 +14,7 @@
 #include "GCCannotUse.h"
 #include "GCSystemMessage.h"
 #include "GCUseOK.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameWorldInfoManager.h"
 #include "Inventory.h"
@@ -283,7 +284,7 @@ void CGUseMessageItemFromInventoryHandler::executeEventFromMessage(CGUseMessageI
     message += color.c_str();
     _GCSystemMessage.setMessage(message);
     _GCSystemMessage.setType(SYSTEM_MESSAGE_PLAYER);
-    g_pZoneGroupManager->broadcast(&_GCSystemMessage);
+    de::gameContext().zoneGroups().broadcast(&_GCSystemMessage);
     GCUseOK gcUseOK;
     pGamePlayer->sendPacket(&gcUseOK);
 

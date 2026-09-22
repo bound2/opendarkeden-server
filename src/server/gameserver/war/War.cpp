@@ -11,6 +11,7 @@
 #include "DB.h"
 #include "GCNoticeEvent.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "HolyLandRaceBonus.h"
 #include "Mutex.h"
 #include "PCManager.h"
@@ -137,7 +138,7 @@ void War::sendWarStartMessage() const
     sprintf(str, g_pStringPool->c_str(STRID_WAR_START), getWarName().c_str());
 
     gcSystemMessage.setMessage(str);
-    g_pZoneGroupManager->broadcast(&gcSystemMessage);
+    de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
 
     filelog("WarLog.txt", "[WarID=%u] %s", (int)m_WarID, str);
 
@@ -157,7 +158,7 @@ void War::sendWarEndMessage() const
     sprintf(str, g_pStringPool->c_str(STRID_WAR_END), getWarName().c_str());
 
     gcSystemMessage.setMessage(str);
-    g_pZoneGroupManager->broadcast(&gcSystemMessage);
+    de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
 
     filelog("WarLog.txt", "[WarID=%u] %s", (int)m_WarID, str);
 

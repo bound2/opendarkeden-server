@@ -14,6 +14,7 @@
 #include "GCSystemMessage.h"
 #include "GCWarScheduleList.h"
 #include "GGCommand.h"
+#include "GameContext.h"
 #include "GameServerInfoManager.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -286,7 +287,7 @@ void SiegeWar::sendWarEndMessage() const
     GCNoticeEvent gcNoticeEvent;
     gcNoticeEvent.setCode(NOTICE_EVENT_WAR_OVER);
     gcNoticeEvent.setParameter(m_CastleZoneID);
-    g_pZoneGroupManager->broadcast(&gcNoticeEvent);
+    de::gameContext().zoneGroups().broadcast(&gcNoticeEvent);
 
     __END_CATCH
 }

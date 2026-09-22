@@ -693,6 +693,3 @@ string ZoneGroupManager::toString() const
 
     __END_CATCH
 }
-
-// global variable definition
-ZoneGroupManager* g_pZoneGroupManager = NULL;

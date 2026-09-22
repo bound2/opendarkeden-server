@@ -667,7 +667,7 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
 
             GCSystemMessage gcSystemMessage;
             gcSystemMessage.setMessage(msg);
-            g_pZoneGroupManager->broadcast(&gcSystemMessage);
+            de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
 
 
             // The relic left the relic table, so the

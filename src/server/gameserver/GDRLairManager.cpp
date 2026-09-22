@@ -11,6 +11,7 @@
 #include "GCCreateItem.h"
 #include "GCNoticeEvent.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "Inventory.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
@@ -162,7 +163,7 @@ void GDRLairEntrance::start() {
 
     GCSystemMessage gcSM;
     gcSM.setMessage("�ȴ����й��ѿ���.");
-    g_pZoneGroupManager->broadcast(&gcSM);
+    de::gameContext().zoneGroups().broadcast(&gcSM);
 
     cout << "Starting GDR Lair Enter State" << endl;
     filelog("GDRLair.log", "Starting GDR Lair Enter State : %d", GDRLairManager::Instance().getTotalPCs());

@@ -65,7 +65,7 @@ void DynamicZone::makeDynamicZone() {
     init();
 
     // set ZoneGroup
-    ZoneGroup* pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
+    ZoneGroup* pZoneGroup = de::gameContext().zoneGroups().getZoneGroup(pZoneInfo->getZoneGroupID());
     Assert(pZoneGroup != NULL);
 
     pZone->setZoneGroup(pZoneGroup);

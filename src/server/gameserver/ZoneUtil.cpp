@@ -2094,7 +2094,7 @@ Zone* getZoneByZoneID(ZoneID_t ZID)
 
     ZoneGroup* pZoneGroup = NULL;
     try {
-        pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
+        pZoneGroup = de::gameContext().zoneGroups().getZoneGroup(pZoneInfo->getZoneGroupID());
     } catch (NoSuchElementException&) {
         // There is only one server for now, so bail out.
         throw Error("getZoneByZoneID() : No Such ZoneGroup");

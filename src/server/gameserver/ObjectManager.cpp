@@ -153,7 +153,7 @@ ObjectManager::ObjectManager()
     m_pItemMineInfoManager = new ItemMineInfoManager();
     m_pDirectiveSetManager = new DirectiveSetManager();
     m_pMonsterNameManager = new MonsterNameManager();
-    g_pZoneGroupManager = new ZoneGroupManager();
+    m_pZoneGroupManager = new ZoneGroupManager();
     m_pTimeManager = new TimeManager();
     m_pDarkLightInfoManager = new DarkLightInfoManager();
     m_pVisionInfoManager = new VisionInfoManager();
@@ -180,7 +180,7 @@ ObjectManager::ObjectManager()
     context.setItemMineInfoManager(m_pItemMineInfoManager);
     context.setDirectiveSetManager(m_pDirectiveSetManager);
     context.setMonsterNameManager(m_pMonsterNameManager);
-    context.setZoneGroupManager(g_pZoneGroupManager);
+    context.setZoneGroupManager(m_pZoneGroupManager);
     context.setTimeManager(m_pTimeManager);
     context.setDarkLightInfoManager(m_pDarkLightInfoManager);
     context.setWeatherInfoManager(m_pWeatherInfoManager);
@@ -308,7 +308,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pDirectiveSetManager);
     SAFE_DELETE(m_pMonsterNameManager);
     SAFE_DELETE(m_pZoneInfoManager);
-    SAFE_DELETE(g_pZoneGroupManager);
+    SAFE_DELETE(m_pZoneGroupManager);
     // SAFE_DELETE(g_pSkillParentInfoManager);
     SAFE_DELETE(g_pSkillHandlerManager);
     SAFE_DELETE(g_pItemFactoryManager);
@@ -483,7 +483,7 @@ void ObjectManager::init()
     printf("ObjectManager::load() : CastleInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : ZoneGroupManager Initialization Start\n");
-    g_pZoneGroupManager->init();
+    m_pZoneGroupManager->init();
     printf("ObjectManager::init() : ZoneGroupManager Initialization Success\n");
 
     printf("ObjectManager::load() : BloodBibleBonusManager Initialization Start\n");

@@ -851,7 +851,7 @@ void opNotifyWin(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
     gcNW.setGiftID(giftID);
     gcNW.setName(name);
 
-    g_pZoneGroupManager->broadcast(&gcNW);
+    de::gameContext().zoneGroups().broadcast(&gcNW);
     bSendPacket = false;
 }
 

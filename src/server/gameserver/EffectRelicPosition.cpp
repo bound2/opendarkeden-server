@@ -93,7 +93,7 @@ void EffectRelicPosition::affect(Item* pItem)
         pGCBBS->setY(m_Y);
 
         //		g_pHolyLandManager->broadcast( pGCBBS );
-        g_pZoneGroupManager->broadcast(pGCBBS);
+        de::gameContext().zoneGroups().broadcast(pGCBBS);
         g_pShrineInfoManager->registerBloodBibleStatus(m_Part, pGCBBS);
 
         setNextTime(999999);

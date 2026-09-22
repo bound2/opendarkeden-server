@@ -361,7 +361,7 @@ void EventMorph::activate()
 
     ZoneGroup* pZoneGroup;
     try {
-        pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
+        pZoneGroup = de::gameContext().zoneGroups().getZoneGroup(pZoneInfo->getZoneGroupID());
     } catch (NoSuchElementException&) {
         cerr << "Critical Error : 현재로는 게임 서버는 1대뿐이당.." << endl;
 

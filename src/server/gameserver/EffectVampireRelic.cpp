@@ -14,6 +14,7 @@
 #include "GCRemoveEffect.h"
 #include "GCStatusCurrentHP.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "Monster.h"
 #include "MonsterCorpse.h"
 #include "Player.h"
@@ -67,7 +68,7 @@ void EffectVampireRelic::affect(Creature* pCreature)
     gcSystemMessage.setType(SYSTEM_MESSAGE_COMBAT);
     gcSystemMessage.setMessage(sMsg);
 
-    g_pZoneGroupManager->broadcast(&gcSystemMessage);
+    de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
 
 
     // Attach the effect.

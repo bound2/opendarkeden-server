@@ -5,6 +5,7 @@
 #include "GCNoticeEvent.h"
 #include "GCSweeperBonusInfo.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "LevelWar.h"
 #include "LevelWarInfo.h"
 #include "LevelWarZoneInfoManager.h"
@@ -87,7 +88,7 @@ void LevelWarManager::startWar() {
     //	gcNoticeEvent.setParameter( ((DWORD)((DWORD)month << 24)) | ((DWORD)((DWORD)day << 16)) | ((DWORD)((DWORD)hour
     //<< 8)) | ((DWORD)((DWORD)level)) );
     gcNoticeEvent.setParameter((level * 100000000) + (year * 1000000) + (month * 10000) + (day * 100) + hour);
-    g_pZoneGroupManager->broadcast(&gcNoticeEvent);
+    de::gameContext().zoneGroups().broadcast(&gcNoticeEvent);
 
     GCSweeperBonusInfo gcSweeperBonusInfo;
     g_pSweeperBonusManager->makeVoidSweeperBonusInfo(gcSweeperBonusInfo);
@@ -385,7 +386,7 @@ void LevelWarManager::freeUserTimeCheck()
         sprintf(msg, g_pStringPool->c_str(STRID_LEVEL_WAR_ZONE_FREE_OPEN), m_Level, hour, hour + 1);
 
         gcSystemMessage.setMessage(msg);
-        g_pZoneGroupManager->broadcast(&gcSystemMessage);
+        de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
     }
 
     __END_CATCH

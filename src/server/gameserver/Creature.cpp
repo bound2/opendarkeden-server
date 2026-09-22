@@ -150,7 +150,7 @@ void Creature::setZoneID(ZoneID_t zoneID)
 
         ZoneGroupID_t zoneGroupID = m_pZoneInfo->getZoneGroupID();
 
-        m_pZone = g_pZoneGroupManager->getZoneGroup(zoneGroupID)->getZone(zoneID);
+        m_pZone = de::gameContext().zoneGroups().getZoneGroup(zoneGroupID)->getZone(zoneID);
         Assert(m_pZone != NULL);
     } catch (NoSuchElementException& nsee) {
         StringStream msg;

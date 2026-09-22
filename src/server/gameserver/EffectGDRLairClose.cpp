@@ -4,6 +4,7 @@
 
 #include "GCSystemMessage.h"
 #include "GDRLairManager.h"
+#include "GameContext.h"
 #include "ZoneGroupManager.h"
 
 void EffectGDRLairClose::affect() {
@@ -13,7 +14,7 @@ void EffectGDRLairClose::affect() {
     sprintf(msg, "%d롸빈,쉥밑균훑댐흩契묵흙왯.", m_MinutesCount);
     GCSystemMessage gcSM;
     gcSM.setMessage(msg);
-    g_pZoneGroupManager->broadcast(&gcSM);
+    de::gameContext().zoneGroups().broadcast(&gcSM);
     m_MinutesCount--;
 }
 
@@ -25,7 +26,7 @@ void EffectGDRLairClose::unaffect() {
 
     GCSystemMessage gcSM;
     gcSM.setMessage("훑댐흩契묵綠밑균.");
-    g_pZoneGroupManager->broadcast(&gcSM);
+    de::gameContext().zoneGroups().broadcast(&gcSM);
 
     __END_CATCH
 }

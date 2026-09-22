@@ -181,7 +181,7 @@ void RaceWar::executeEnd()
     RegenZoneManager::getInstance()->reload();
 
     // Remove the Flag from every character too.
-    g_pZoneGroupManager->removeFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET);
+    de::gameContext().zoneGroups().removeFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET);
 
     de::gm::opworld(NULL, "*world *load blood_bible_owner", 0, true);
 
@@ -255,7 +255,7 @@ void RaceWar::sendWarEndMessage() const
     // The packet that confirms the safe zone release?
     GCNoticeEvent gcNoticeEvent;
     gcNoticeEvent.setCode(NOTICE_EVENT_RACE_WAR_OVER);
-    g_pZoneGroupManager->broadcast(&gcNoticeEvent);
+    de::gameContext().zoneGroups().broadcast(&gcNoticeEvent);
 
     __END_CATCH
 }

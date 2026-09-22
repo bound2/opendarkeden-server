@@ -74,7 +74,7 @@ void EffectHasVampireRelic::affect(Creature* pCreature)
     GCSystemMessage gcSystemMessage;
     gcSystemMessage.setMessage(msg);
 
-    g_pZoneGroupManager->broadcast(&gcSystemMessage);
+    de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
 
     setNextTime(m_Tick);
 
