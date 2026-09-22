@@ -126,24 +126,20 @@ string MonsterNameManager::getRandomName(Monster* pMonster, bool event)
         return "";
 
     string Name = "";
-    bool bContinue = true;
     int trial = 0;
 
-    while (bContinue && trial++ < 300) {
-        short nLastNameIndex = -1;
+    // The name is the event part alone, drawn again while the row that
+    // came up is empty.
+    while (Name == "" && trial++ < 300) {
+        short nLastNameIndex = rand() % m_nEventLastNameCount;
 
-        nLastNameIndex = rand() % m_nEventLastNameCount;
-
-        if (nLastNameIndex != -1)
-            Name += m_pEventLastName[nLastNameIndex];
-
-        return Name;
+        Name = m_pEventLastName[nLastNameIndex];
     }
 
     // If trial goes over 300 no proper name was found,
     // so give it an arbitrary name.
     if (Name == "")
-        Name == "무명씨";
+        Name = "무명씨";
 
     return Name;
 

@@ -11,6 +11,21 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## The event monster name overload returns before its retry loop can retry (2026-09-22)
+
+- **The event `MonsterNameManager::getRandomName(Monster*, bool)` returns on
+  the first pass of its retry loop and spells its fallback as a comparison
+  (`Name == "..."`) rather than an assignment,** the loop shape the non-event
+  overload had: an empty event-name row comes back as an empty name, the
+  trial count is spent on nothing and the fallback after the loop is both
+  unreachable and a no-op. Nothing calls this overload today; the one
+  `getRandomName` call site takes the non-event one.
+  The loop now draws again while the row that came up is empty and the
+  fallback is an assignment the 300th empty draw reaches. The name itself
+  is unchanged: a non-empty first draw returns that event part alone, as
+  before, with nothing appended around it.
+  > **Status:** fixed (fix/recorded-defects-3)
+
 ## Placing a blood bible on the holy shrine flips its owner without the war check (2026-09-22)
 
 - **`ShrineInfoManager`'s holy-shrine branch tested `isMatchHolyShrine`
