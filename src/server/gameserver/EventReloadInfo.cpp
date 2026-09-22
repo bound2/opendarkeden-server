@@ -154,16 +154,6 @@ void EventReloadInfo::activate()
         RaceWarLimiter::getInstance()->load();
         break;
 
-        /*		case QUEST_INFO:
-                    g_pQuestInfoManager->load();
-                    if (m_pGamePlayer!=NULL)
-                    {
-                        GCSystemMessage gcSystemMessage;
-                        gcSystemMessage.setMessage( "Quest_Info_Loaded" );
-                        m_pGamePlayer->sendPacket( &gcSystemMessage );
-                    }
-                break;*/
-
     case GOODS_LIST_INFO:
         de::gameContext().goodsInfos().load();
         break;

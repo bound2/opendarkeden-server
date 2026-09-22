@@ -82,14 +82,6 @@ void EffectMasterLairPass::unaffect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    /*
-    GCRemoveEffect gcRemoveEffect;
-    gcRemoveEffect.setObjectID(pCreature->getObjectID());
-    gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_MASTER_LAIR_PASS);
-    pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
-
-    */
-
     // cout << "EffectMasterLairPass" << "unaffect END" << endl;
 
     __END_DEBUG

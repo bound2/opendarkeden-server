@@ -35,52 +35,13 @@ public:
     void setValue(T value) {}
 };
 
+// Stack Policies
 typedef NoValuePolicy<ItemNum_t, 1> NoStack;
 typedef OneValuePolicy<ItemNum_t> Stackable;
 
-// Stack Policies
-/*class NoStack
-{
-public:
-    bool isStackable() const { return false; }
-    ItemNum_t getNum() const { return 1; }
-    void setNum(ItemNum_t num) { }
-};
-
-class Stackable
-{
-public:
-    Stackable() : m_Num(1) { }
-    bool isStackable() const { return true; }
-    ItemNum_t getNum() const { return m_Num; }
-    void setNum(ItemNum_t num) { m_Num = num; }
-
-private:
-    ItemNum_t m_Num;
-};*/
-
+// Durability Policies
 typedef NoValuePolicy<Durability_t, 1> NoDurability;
 typedef OneValuePolicy<Durability_t> HasDurability;
-
-// Durability Policies
-/*class NoDurability
-{
-public:
-    bool hasDurability() const { return false; }
-    Durability_t getDurability() const { return 1; }
-    void setDurability(Durability_t dur) { }
-};
-
-class HasDurability
-{
-public:
-    bool hasDurability() const { return true; }
-    Durability_t getDurability() const { return m_Durability; }
-    void setDurability(Durability_t dur) { m_Durability = dur; }
-
-private:
-    Durability_t m_Durability;
-};*/
 
 // Option Policies
 class NoOption {

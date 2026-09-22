@@ -510,15 +510,6 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
             // g_pHolyLandRaceBonus->refresh();
 
             // [NPC reset] --> handled in War
-            /*
-            Zone* pZone = getZoneByZoneID( zoneID );
-
-            // Remove all castle NPCs.
-            pZone->deleteNPCs( oldRace );
-
-            // Reload castle NPCs.
-            pZone->loadNPCs( race );
-            */
 
             // Cancel every war schedule for this castle.
             WarScheduler* pWarScheduler = pZone->getWarScheduler();

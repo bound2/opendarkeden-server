@@ -65,24 +65,6 @@ ThreadPool::~ThreadPool()
 
     std::lock_guard lock(m_Mutex);
 
-    /*
-    list<Thread*>::iterator itr = m_Threads.begin();
-    for (; itr != m_Threads.end() ; itr ++)
-    {
-        Thread* temp = *itr;
-
-        // The thread must already have exited.
-        Assert(temp != NULL && temp->getStatus() == Thread::EXIT);
-
-        SAFE_DELETE(temp);
-    }
-
-    m_Threads.erase(m_Threads.begin() , m_Threads.end());
-
-    g_pLogManager->Log5("after erase(begin , end) , list's size == %d\n" , m_Threads.size());
-
-    */
-
     list<Thread*>::iterator itr;
 
     while ((itr = m_Threads.begin()) != m_Threads.end()) {

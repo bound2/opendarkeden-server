@@ -150,14 +150,6 @@ bool DynamicZoneAlterOfBlood::addOffering() {
         try {
             m_pZone->addCreature(pMonster, OfferingCoordinate[i].X, OfferingCoordinate[i].Y, 2);
 
-            /*			NPCInfo* pNPCInfo = new NPCInfo;
-                        pNPCInfo->setName( pMonster->getName() );
-                        pNPCInfo->setNPCID( pMonster->getMonsterType() );
-                        pNPCInfo->setX( pMonster->getX() );
-                        pNPCInfo->setY( pMonster->getY() );
-
-                        m_pZone->addNPCInfo( pNPCInfo );*/
-
             m_OfferingObjectID[i] = pMonster->getObjectID();
         } catch (EmptyTileNotExistException&) {
             SAFE_DELETE(pMonster);

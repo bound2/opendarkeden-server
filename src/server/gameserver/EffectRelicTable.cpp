@@ -75,25 +75,6 @@ void EffectRelicTable::unaffect(Item* pItem)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    /*
-    //cout << "EffectRelicTable" << "unaffect BEGIN" << endl;
-
-    Assert(pItem != NULL);
-
-    // To restore the attributes properly, clear the flag and
-    // call initAllStat.
-    pItem->removeFlag(Effect::EFFECT_CLASS_HAS_SLAYER_RELIC);
-
-    Zone* pZone = pItem->getZone();
-    Assert(pZone != NULL);
-
-    GCRemoveEffect gcRemoveEffect;
-    gcRemoveEffect.setObjectID(pItem->getObjectID());
-    gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_HAS_SLAYER_RELIC);
-    pZone->broadcastPacket(pItem->getX(), pItem->getY(), &gcRemoveEffect);
-
-    //cout << "EffectRelicTable" << "unaffect END" << endl;
-    */
     pItem->removeFlag(getEffectClass());
 
     __END_DEBUG

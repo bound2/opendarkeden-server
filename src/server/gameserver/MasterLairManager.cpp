@@ -202,26 +202,6 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
 
 ENTER_OK:
 
-    /*
-    // Remove Sniping.
-    if (pCreature->isFlag(Effect::EFFECT_CLASS_SNIPING_MODE))
-    {
-        EffectManager* pEffectManager = pCreature->getEffectManager();
-        Assert(pEffectManager);
-        pEffectManager->deleteEffect(pCreature, Effect::EFFECT_CLASS_INVISIBILITY);
-        pCreature->removeFlag(Effect::EFFECT_CLASS_INVISIBILITY);
-    }
-
-    // Remove Invisibility.
-    if (pCreature->isFlag(Effect::EFFECT_CLASS_INVISIBILITY))
-    {
-        EffectManager* pEffectManager = pCreature->getEffectManager();
-        Assert(pEffectManager!=NULL);
-        pEffectManager->deleteEffect(pCreature, Effect::EFFECT_CLASS_INVISIBILITY);
-        pCreature->removeFlag(Effect::EFFECT_CLASS_INVISIBILITY);
-    }
-    */
-
     if (m_Event == EVENT_MINION_COMBAT || m_Event == EVENT_MASTER_COMBAT) {
         Timeval currentTime;
         getCurrentTime(currentTime);
@@ -347,22 +327,6 @@ void MasterLairManager::processEventWaitingPlayer()
     // the master starts summoning monsters.
     if (currentTime >= m_EventTime) {
         // Tell everyone the master lair is closed.
-        //		ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( m_pZone->getZoneID() );
-        //		Assert(pZoneInfo!=NULL);
-
-        //		StringStream msg;
-        //		msg << "The master lair (" << pZoneInfo->getFullName().c_str() << ") has closed.";
-
-        //        char msg[50];
-        //       sprintf( msg, g_pStringPool->c_str( STRID_MASTER_LAIR_CLOSED ),
-        //                      pZoneInfo->getFullName().c_str() );
-        //
-        //       string sMsg( msg );
-        //
-        //		GCSystemMessage gcSystemMessage;
-        //		gcSystemMessage.setType(SYSTEM_MESSAGE_MASTER_LAIR);
-        //		gcSystemMessage.setMessage( sMsg );
-        //		g_pZoneGroupManager->broadcast( &gcSystemMessage );
 
         GCNoticeEvent gcNoticeEvent;
 
@@ -379,24 +343,6 @@ void MasterLairManager::processEventWaitingPlayer()
         // Announce once a minute.
         if (remainSec != m_EventValue && remainSec != 0 && remainSec % 60 == 0) {
             // Tell everyone how many minutes are left before the master lair closes.
-            //			ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( m_pZone->getZoneID() );
-            //			Assert(pZoneInfo!=NULL);
-
-            //			StringStream msg;
-            //			msg << "The master lair (" << pZoneInfo->getFullName().c_str() << ") can be entered for "
-            //				<< (remainSec/60) << " more minutes.";
-
-            //            char msg[100];
-            //           sprintf( msg, g_pStringPool->c_str( STRID_MASTER_LAIR_OPENING_COUNT_DOWN ),
-            //                          pZoneInfo->getFullName().c_str(),
-            //                         (int)(remainSec/60) );
-            //
-            //           string sMsg( msg );
-            //
-            //			GCSystemMessage gcSystemMessage;
-            //			gcSystemMessage.setType(SYSTEM_MESSAGE_MASTER_LAIR);
-            //			gcSystemMessage.setMessage( sMsg );
-            //			g_pZoneGroupManager->broadcast( &gcSystemMessage );
 
             GCNoticeEvent gcNoticeEvent;
 
@@ -628,22 +574,6 @@ void MasterLairManager::activeEventWaitingPlayer()
     }
 
     // Tell everyone the master lair has opened.
-    //	ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( m_pZone->getZoneID() );
-    //	Assert(pZoneInfo!=NULL);
-
-    //	StringStream msg;
-    //	msg << "The master lair (" << pZoneInfo->getFullName().c_str() << ") has opened.";
-
-    //    char msg[50];
-    //   sprintf( msg, g_pStringPool->c_str( STRID_MASTER_LAIR_OPENED ),
-    //                  pZoneInfo->getFullName().c_str() );
-    //
-    //   string sMsg( msg );
-    //
-    //	GCSystemMessage gcSystemMessage;
-    //	gcSystemMessage.setType(SYSTEM_MESSAGE_MASTER_LAIR);
-    //	gcSystemMessage.setMessage( sMsg );
-    //	g_pZoneGroupManager->broadcast( &gcSystemMessage );
 
     GCNoticeEvent gcNoticeEvent;
 
@@ -780,43 +710,6 @@ void MasterLairManager::activeEventMasterCombat()
                 // Only the AI is removed; the monster stays.
                 pMasterMonster->removeBrain();
 
-                /*
-                // Leaving it with the AI removed is preferred to leaving an item.
-                m_pZone->deleteCreature( pMaster, pMaster->getX(), pMaster->getY() );
-
-                ZoneCoord_t cx = pMasterMonster->getX();
-                ZoneCoord_t cy = pMasterMonster->getY();
-
-                Tile& tile = m_pZone->getTile( cx, cy );
-
-                bool bCreateCorpse = true;
-
-                // Add the corpse to the tile. If the tile already holds an item,
-                if (tile.hasItem())
-                {
-                    bCreateCorpse = false;
-                }
-
-                // Add the corpse (casket) to the zone.
-                if (bCreateCorpse)
-                {
-                    Timeval currentTime;
-                    getCurrentTime(currentTime);
-                    int timeGap = m_EventTime.tv_sec - currentTime.tv_sec;
-                    Turn_t decayTurn = timeGap * 10;
-
-                    MonsterCorpse* pMonsterCorpse = new MonsterCorpse(pMasterMonster);
-                    TPOINT pt = m_pZone->addItem(pMonsterCorpse, cx, cy, true, decayTurn);
-                    if (pt.x == -1)
-                    {
-                        SAFE_DELETE(pMonsterCorpse);
-                    }
-                }
-                else
-                {
-                    SAFE_DELETE(pMaster);
-                }
-                */
             } else {
                 m_pZone->deleteCreature(pMaster, pMaster->getX(), pMaster->getY());
 
@@ -947,15 +840,6 @@ void MasterLairManager::killAllMonsters()
 
     // Removed because something seems wrong with this part.
 
-    /*
-    // Monsters that are not force-killed.
-    unordered_map<ObjectID_t, ObjectID_t> exceptCreatures;
-    exceptCreatures[m_MasterID] = m_MasterID;
-
-    // Kill every monster.
-    m_pZone->getMonsterManager()->killAllMonsters( exceptCreatures );
-    */
-
     __END_CATCH
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -963,21 +847,6 @@ void MasterLairManager::killAllMonsters()
 // increase SummonedMonster Number
 //
 ////////////////////////////////////////////////////////////////////////////////
-/*
-void MasterLairManager::increaseSummonedMonsterNumber(int num)
-
-{
-    __BEGIN_TRY
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    m_nSummonedMonster += num;
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    __END_CATCH
-}
-*/
 ////////////////////////////////////////////////////////////////////////////////
 //
 // start Event
@@ -1021,18 +890,6 @@ void MasterLairManager::kickOutPlayers()
 
     MasterLairInfo* pInfo = de::gameContext().masterLairInfos().getMasterLairInfo(m_pZone->getZoneID());
     Assert(pInfo != NULL);
-
-    /*
-    ZoneID_t 	zoneID 	= pInfo->getKickZoneID();
-    ZoneCoord_t zoneX 	= pInfo->getKickZoneX();
-    ZoneCoord_t zoneY 	= pInfo->getKickZoneY();
-
-    //cout << "[kickOut] " << (int)zoneID << ": "<< (int)zoneX << ", " << (int)zoneY << endl;
-
-    // Move every user in the zone elsewhere.
-    PCManager* pPCManager = (PCManager*)(m_pZone->getPCManager());
-    pPCManager->transportAllCreatures( zoneID, zoneX, zoneY );
-    */
 
 
     // After the kick-out time, a meteor attack.

@@ -248,38 +248,6 @@ LevelWarZoneInfo* LevelWarZoneInfoManager::getLevelWarZoneInfo(ZoneID_t zoneID) 
     __END_CATCH
 }
 
-/*
-void LevelWarZoneInfoManager::refreshSweeperBonusZonePlayer()
-
-{
-    __BEGIN_TRY
-
-    __ENTER_CRITICAL_SECTION( m_Mutex )
-
-    unordered_map< ZoneID_t , LevelWarZoneInfo* >::const_iterator itr = m_LevelWarZoneInfos.begin();
-    unordered_map< ZoneID_t , LevelWarZoneInfo* >::const_iterator endItr = m_LevelWarZoneInfos.end();
-
-    for (; itr != endItr ;itr++)
-    {
-        LevelWarZoneInfo* pLevelWarZoneInfo = itr->second;
-        list<ZoneID_t>::const_iterator zitr = pLevelWarZoneInfo->getZoneIDList().begin();
-        list<ZoneID_t>::const_iterator zendItr = pLevelWarZoneInfo->getZoneIDList().end();
-
-        for ( ; zitr != zendItr ; zitr++ )
-        {
-            Zone* pZone = getZoneByZoneID( *zitr );
-            pZone->setRefreshLevelWarBonusZonePlayer( true );
-        }
-    }
-
-    __LEAVE_CRITICAL_SECTION( m_Mutex )
-
-    __END_CATCH
-
-
-}
-*/
-
 void LevelWarZoneInfoManager::broadcast(ZoneID_t zoneID, Packet* pPacket) const
 
 {

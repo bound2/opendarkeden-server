@@ -187,27 +187,6 @@ Item* CastleShrineInfoManager::addShrineToZone(ShrineInfo& shrineInfo, ItemType_
 
     Item* pItem = NULL;
 
-    /*	if ( shrineInfo.getShrineType() == ShrineInfo::SHRINE_GUARD )
-        {
-            pShrine->setFlag( Effect::EFFECT_CLASS_SHRINE_GUARD );
-
-            EffectShrineGuard* pEffect = new EffectShrineGuard(pShrine);
-            pEffect->setShrineID( itemType );
-            pEffect->setTick( 60 * 10 );
-
-            pShrine->getEffectManager().addEffect( pEffect );
-        }
-        else if ( shrineInfo.getShrineType() == ShrineInfo::SHRINE_HOLY )
-        {
-            pShrine->setFlag( Effect::EFFECT_CLASS_SHRINE_HOLY );
-
-            EffectShrineHoly* pEffect = new EffectShrineHoly(pShrine);
-            pEffect->setShrineID( itemType );
-            pEffect->setTick( 60 * 10 );
-
-            pShrine->getEffectManager().addEffect( pEffect );
-        }*/
-
     TPOINT tp = pZone->addItem(pShrine, shrineInfo.getX(), shrineInfo.getY(), true);
     Assert(tp.x != -1);
 
@@ -341,12 +320,6 @@ bool CastleShrineInfoManager::isDefenderOfGuardShrine(PlayerCreature* pPC, Monst
     Assert(pZone != NULL);
 
     // Not a castle -- fail.
-    /*
-    if ( !pZone->isCastle() )
-    {
-        return false;
-    }
-    */
 
 
     ZoneID_t guardZoneID = pZone->getZoneID();
@@ -363,15 +336,6 @@ bool CastleShrineInfoManager::isDefenderOfGuardShrine(PlayerCreature* pPC, Monst
     if (pCastleInfo == NULL)
         return false;
 
-    /*
-    if ( pWar->getWarType() == WAR_RACE )
-    {
-        // During a race war a player of the same race as the castle owner is a defender.
-        if ( pPC->getRace() == pCastleInfo->getRace() )
-            return true;
-    }
-    else
-    */
     if (pWar->getWarType() == WAR_GUILD) {
         GuildWar* pGuildWar = dynamic_cast<GuildWar*>(pWar);
         Assert(pGuildWar != NULL);
@@ -419,14 +383,6 @@ bool CastleShrineInfoManager::canPickupCastleSymbol(Race_t race, CastleSymbol* p
         return false;
     }
 
-    /*
-    if ( pWar->getWarType() == WAR_RACE )
-    {
-        // In a race war anybody may pick it up.
-        return true;
-    }
-    else
-    */
     if (pWar->getWarType() == WAR_GUILD) {
         CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
 

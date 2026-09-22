@@ -76,12 +76,6 @@ int main(int argc, char* argv[]) {
     std::set_new_handler(handleMemoryError);
     std::set_terminate(handleUnhandledException);
 
-    /*
-    int* pPointer = NULL;
-    pPointer = new int[10000000];
-    delete [] pPointer;
-    */
-
     // Find a suitable place for this.
     srand(time(0));
     cout << ">>> RANDOMIZATION INITIALIZATION SUCCESS..." << endl;
@@ -137,9 +131,6 @@ int main(int argc, char* argv[]) {
 
         log(LOG_GAMESERVER, "", "", "Game Server Start");
 
-        // cout << "LogServerIP = " << LogServerIP << endl;
-        // cout << "LogServerPort = " << LogServerPort << endl;
-        // cout << "LogLevel = " << LogClient::getLogLevel() << endl;
     } catch (Error& e) {
         // cout << e.toString() << endl;
     }

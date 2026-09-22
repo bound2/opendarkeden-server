@@ -105,20 +105,6 @@ string TreasureOptionType::toString(void) const
     __END_CATCH
 }
 
-/*XMLTree* TreasureOptionType::makeXMLTree() const
-{
-    XMLTree* ret = NULL;
-    OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo( m_OptionType );
-    if ( pOptionInfo != NULL )
-    {
-        ret = new XMLTree("OptionType");
-        ret->AddAttribute("Option", pOptionInfo->getNickname());
-        ret->AddAttribute("Ratio", m_Ratio);
-    }
-
-    return ret;
-}*/
-
 //////////////////////////////////////////////////////////////////////////////
 // class TreasureItemType member methods
 //////////////////////////////////////////////////////////////////////////////
@@ -339,23 +325,6 @@ string TreasureItemType::toString(void) const
     __END_CATCH
 }
 
-/*XMLTree* TreasureItemType::makeXMLTree() const
-{
-    XMLTree* ret = new XMLTree("ItemType");
-    ret->AddAttribute("Type", m_ItemType);
-    ret->AddAttribute("Ratio", m_Ratio);
-
-    vector<TreasureOptionType*>::const_iterator itr = m_TreasureOptionTypes.begin();
-    vector<TreasureOptionType*>::const_iterator endItr = m_TreasureOptionTypes.end();
-
-    for ( ; itr != endItr ; ++itr )
-    {
-        ret->AddChild( (*itr)->makeXMLTree() );
-    }
-
-    return ret;
-}*/
-
 //////////////////////////////////////////////////////////////////////////////
 // class TreasureItemClass member methods
 //////////////////////////////////////////////////////////////////////////////
@@ -537,23 +506,6 @@ string TreasureItemClass::toString(void) const
 
     __END_CATCH
 }
-
-/*XMLTree* TreasureItemClass::makeXMLTree() const
-{
-    XMLTree* ret = new XMLTree("ItemClass");
-    ret->AddAttribute("Class", ItemClass2ShortString[m_ItemClass]);
-    ret->AddAttribute("Ratio", m_Ratio);
-
-    vector<TreasureItemType*>::const_iterator itr = m_TreasureItemTypes.begin();
-    vector<TreasureItemType*>::const_iterator endItr = m_TreasureItemTypes.end();
-
-    for ( ; itr != endItr ; ++itr )
-    {
-        ret->AddChild( (*itr)->makeXMLTree() );
-    }
-
-    return ret;
-}*/
 
 Item::ItemClass TreasureItemClass::getItemClassFromString(const string& text)
 
@@ -781,10 +733,6 @@ bool Treasure::getRandomItem(ITEM_TEMPLATE* pTemplate, int nPercent)
 
     int ModifyItemRatio = getPercentValue(m_ItemRatio, nPercent);
 
-    //	cout << "Item value : " << ItemRatio << endl;
-    //	cout << "Bonus Ratio : " << nPercent << endl;
-    //	cout << "Item Ratio : " << ModifyItemRatio << endl;
-
     if (ItemRatio < ModifyItemRatio) {
         int OptionRatio = rand() % TREASURE_RATIO_MODULUS;
 
@@ -845,23 +793,6 @@ string Treasure::toString(void) const
 
     __END_CATCH
 }
-
-/*XMLTree* Treasure::makeXMLTree() const
-{
-    XMLTree* ret = new XMLTree("Treasure");
-    ret->AddAttribute("Ratio", m_ItemRatio);
-    ret->AddAttribute("OptionRatio", m_OptionRatio);
-
-    vector<TreasureItemClass*>::const_iterator itr = m_TreasureItemClasses.begin();
-    vector<TreasureItemClass*>::const_iterator endItr = m_TreasureItemClasses.end();
-
-    for ( ; itr != endItr ; ++itr )
-    {
-        ret->AddChild( (*itr)->makeXMLTree() );
-    }
-
-    return ret;
-}*/
 
 //////////////////////////////////////////////////////////////////////////////
 // class TreasureList member methods
@@ -986,21 +917,6 @@ string TreasureList::toString(void) const
     __END_CATCH
 }
 
-/*XMLTree* TreasureList::makeXMLTree() const
-{
-    XMLTree* ret = new XMLTree("TreasureList");
-
-    list<Treasure*>::const_iterator itr = m_Treasures.begin();
-    list<Treasure*>::const_iterator endItr = m_Treasures.end();
-
-    for ( ; itr != endItr ; ++itr )
-    {
-        ret->AddChild( (*itr)->makeXMLTree() );
-    }
-
-    return ret;
-}*/
-
 TreasureLists::TreasureLists() {}
 
 TreasureLists::~TreasureLists() {
@@ -1052,10 +968,6 @@ TreasureList* TreasureLists::loadTreasure(const string& filename) {
     file.close();
 
     addTreasure(filename, pTreasureList);
-
-    //	cout << "Generating XML File.. " << endl;
-    //	XMLTree* pXML = pTreasureList->makeXMLTree();
-    //	pXML->SaveToFile( (filename+".xml").c_str() );
 
     return pTreasureList;
 }

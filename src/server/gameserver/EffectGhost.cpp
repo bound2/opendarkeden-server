@@ -74,17 +74,6 @@ void EffectGhost::unaffect(Creature* pCreature)
     // initAllStat must be called.
     pCreature->removeFlag(Effect::EFFECT_CLASS_GHOST);
 
-    /*
-    Zone* pZone = pCreature->getZone();
-    Assert(pZone != NULL);
-
-    GCRemoveEffect gcRemoveEffect;
-    gcRemoveEffect.setObjectID(pCreature->getObjectID());
-    gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_GHOST);
-    pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
-
-    */
-
     // cout << "EffectGhost" << "unaffect END" << endl;
 
     __END_DEBUG

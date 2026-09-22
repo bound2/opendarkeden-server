@@ -84,9 +84,6 @@ void EffectShutDown::affect(Creature* pCreature)
     Timeval deadLine = getDeadline();
     Turn_t RemainTime = deadLine.tv_sec - nextTime.tv_sec;
 
-    /*	StringStream msg;
-
-        msg << (int)RemainTime << " seconds until the server shuts down. Please reconnect shortly. "; */
     char msg[80];
     sprintf(msg, g_pStringPool->c_str(STRID_SERVER_SHUT_DOWN_COUNT_DOWN), (int)RemainTime);
 
@@ -115,37 +112,6 @@ void EffectShutDown::affect(Creature* pCreature)
         ZonePlayerManager* pZonePlayerManager = pZoneGroup->getZonePlayerManager();
         pZonePlayerManager->broadcastPacket(&gcSystemMessage);
     }
-
-
-    /*
-
-    ZoneInfo* pZoneInfo;
-
-    for (int i = 1; i < 19; i++) {
-
-        try {
-
-            pZoneInfo = g_pZoneInfoManager->getZoneInfo(i);
-
-        } catch (NoSuchElementException) {
-            throw Error("Critical Error : ZoneInfoManager has no such zone.");
-        }
-
-        ZoneGroup* pZoneGroup;
-        try {
-
-            pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
-
-        } catch (NoSuchElementException) {
-            throw Error("Critical Error : ZoneInfoManager has no such zone group.");
-        }
-
-        Zone* pZone = pZoneGroup->getZone(i);
-
-        pZone->broadcastPacket(&gcSystemMessage);
-
-    }
-    */
 
 
     __END_CATCH

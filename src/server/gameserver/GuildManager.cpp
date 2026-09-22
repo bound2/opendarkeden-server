@@ -119,57 +119,6 @@ void GuildManager::load()
                 pGuild->setIntro(row.intro);
 
                 addGuild_NOBLOCKED(pGuild);
-                /*
-                #ifdef __GAME_SERVER__
-                                // If the guild is Active and its hideout is on this server, create the hideout Zone.
-                                if ( pGuild->getServerGroupID() == g_pConfig->getPropertyInt("ServerID") && state ==
-                Guild::GUILD_STATE_ACTIVE )
-                                {
-                                    //////////////
-                                    // Zone Info
-                                    //////////////
-                                    ZoneInfo* pZoneInfo = new ZoneInfo();
-                                    pZoneInfo->setZoneID( pGuild->getZoneID() );
-                                    pZoneInfo->setZoneGroupID( 6 );
-                                    pZoneInfo->setZoneType( "NPC_SHOP" );
-                                    pZoneInfo->setZoneLevel( 0 );
-                                    pZoneInfo->setZoneAccessMode( "PUBLIC" );
-                                    pZoneInfo->setZoneOwnerID( "" );
-                                    pZoneInfo->setPayPlay( "" );
-                                    if ( pGuild->getRace() == Guild::GUILD_RACE_SLAYER )
-                                    {
-                                        pZoneInfo->setSMPFilename( "team_hdqrs.smp" );
-                                        pZoneInfo->setSSIFilename( "team_hdqrs.ssi" );
-                                        string Name = "team - " + pGuild->getName();
-                                        pZoneInfo->setFullName( Name );
-                                        pZoneInfo->setShortName( Name );
-                                    }
-                                    else if ( pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE )
-                                    {
-                                        pZoneInfo->setSMPFilename( "clan_hdqrs.smp" );
-                                        pZoneInfo->setSSIFilename( "clan_hdqrs.ssi" );
-                                        string Name = "clan - " + pGuild->getName();
-                                        pZoneInfo->setFullName( Name );
-                                        pZoneInfo->setShortName( Name );
-                                    }
-
-                                    g_pZoneInfoManager->addZoneInfo( pZoneInfo );
-
-                                    /////////
-                                    // Zone
-                                    /////////
-                                    Zone* pZone = new Zone( pGuild->getZoneID() );
-                                    Assert( pZone != NULL );
-
-                                    ZoneGroup* pZoneGroup = g_pZoneGroupManager->getZoneGroup(6);
-                                    Assert( pZoneGroup != NULL );
-
-                                    pZone->setZoneGroup( pZoneGroup );
-                                    pZoneGroup->addZone( pZone );
-                                    pZone->init();
-                                }
-                #endif
-                */
             }
         }
 
@@ -275,12 +224,6 @@ void GuildManager::deleteGuild(GuildID_t id) {
     }
 
     // Clear the GuildUnion information
-/*	{
-
-        // UnionManager->deleteGuild(xx);
-        GuildUnionManager::Instance().removeMasterGuild(id);
-    }
-*/
 #endif
 
     // Retire, don't free (see m_RetiredGuilds): other threads may still

@@ -15,15 +15,6 @@ GQuestInfo::GQuestInfo(XMLTree* pInfo) {
     m_CheckTypes[FAIL] = OR;
     m_CheckTypes[REWARD] = SEQUENCE;
 
-    /*	m_pHappen = pInfo->GetChild("Happen");
-        m_pComplete = pInfo->GetChild("Complete");
-        m_pFail = pInfo->GetChild("Fail");
-        m_pReward = pInfo->GetChild("Reward");*/
-
-    //	makeVector( pInfo->GetChild("Happen"), m_Elements[HAPPEN] );
-    //	makeVector( pInfo->GetChild("Complete"), m_Elements[COMPLETE] );
-    //	makeVector( pInfo->GetChild("Fail"), m_Elements[FAIL] );
-    //	makeVector( pInfo->GetChild("Reward"), m_Elements[REWARD] );
     makeVector(pInfo->GetChild("Happen"), HAPPEN);
     makeVector(pInfo->GetChild("Complete"), COMPLETE);
     makeVector(pInfo->GetChild("Fail"), FAIL);

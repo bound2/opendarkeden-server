@@ -72,13 +72,6 @@ void EffectHasCastleSymbol::affect(Creature* pCreature)
     Assert(pPC != NULL);
 
     // Announce the location.
-    /*	StringStream msg;
-        msg << pCreature->getName() << " ("
-            //<< ( pCreature->isSlayer() ? "Slayer" : "Vampire" ) << ") at "
-            << g_pGuildManager->getGuildName( pPC->getGuildID() ) << ") at "
-            << pZoneInfo->getFullName() << "(" << (int)pCreature->getX() << ", " << (int)pCreature->getY()
-            << ") has the castle symbol (" << m_PartName << ").";
-        */
 
     char msg[300];
     sprintf(msg, g_pStringPool->c_str(STRID_BROADCAST_CASTLE_SYMBOL_POSITION), pCreature->getName().c_str(),
@@ -90,18 +83,6 @@ void EffectHasCastleSymbol::affect(Creature* pCreature)
 
 
     g_pCastleInfoManager->broadcastShrinePacket(m_Part, &gcSystemMessage);
-    /*
-        CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo( m_Part );
-
-        const list<ZoneID_t>& ZoneIDList = pCastleInfo->getZoneIDList();
-        list<ZoneID_t>::const_iterator itr = ZoneIDList.begin();
-
-        for ( ; itr != ZoneIDList.end() ; itr++)
-        {
-            Zone* pCastleZone = getZoneByZoneID( *itr );
-            pCastleZone->broadcastPacket( &gcSystemMessage );
-        }
-    */
     //	g_pZoneGroupManager->broadcast( &gcSystemMessage );
 
     setNextTime(m_Tick);
@@ -130,10 +111,6 @@ void EffectHasCastleSymbol::affect(Item* pItem)
         Assert(pZoneInfo != NULL);
 
         // Announce the location.
-        /*		StringStream msg;
-                msg << pZoneInfo->getFullName() << "(" << (int)m_X << ", " << (int)m_Y
-                    << ") holds the " << m_PartName << " castle symbol on its shrine.";
-        */
 
         char msg[200];
         sprintf(msg, g_pStringPool->c_str(STRID_BROADCAST_CASTLE_SYMBOL_POSITION_2), pZoneInfo->getFullName().c_str(),
@@ -143,18 +120,6 @@ void EffectHasCastleSymbol::affect(Item* pItem)
         gcSystemMessage.setMessage(msg);
 
         g_pCastleInfoManager->broadcastShrinePacket(m_Part, &gcSystemMessage);
-        /*
-                CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo( m_Part );
-
-                const list<ZoneID_t>& ZoneIDList = pCastleInfo->getZoneIDList();
-                list<ZoneID_t>::const_iterator itr = ZoneIDList.begin();
-
-                for ( ; itr != ZoneIDList.end() ; itr++)
-                {
-                    Zone* pCastleZone = getZoneByZoneID( *itr );
-                    pCastleZone->broadcastPacket( &gcSystemMessage );
-                }
-        */
         //		g_pZoneGroupManager->broadcast( &gcSystemMessage );
     }
 

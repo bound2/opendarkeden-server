@@ -107,11 +107,6 @@ VSDateTime GDRLairManager::getNextOpenTime() const {
     static int OpenTime[4] = {01, 14, 19, 23};
     VSDateTime ret = VSDateTime::currentDateTime();
     VSTime time = ret.time();
-    /*	if ( time.setHMS(time.hour(), 0, 0) )
-        {
-            ret.setTime(time);
-        }
-    */
     int i;
     for (i = 0; i < 4; ++i) {
         if (time.hour() < OpenTime[i])
@@ -130,11 +125,6 @@ VSDateTime GDRLairManager::getNextOpenTime() const {
 
     time.setHMS(OpenTime[i], 0, 0);
     ret.setTime(time);
-
-    /*	if ( time.hour()%2 )
-            ret = ret.addSecs(3600);
-        else
-            ret = ret.addSecs(7200);*/
 
     cout << ret.toString() << "�� ���巹 ���� �ٽ� ����" << endl;
     filelog("GDRLair.log", "%s �� ���巹 ���� �ٽ� ����", ret.toString().c_str());
@@ -363,19 +353,6 @@ void GDRLairEntrance::start() {
         pIllusionsWay2->addEffect_LOCKING(pEffect);
     }
 
-    /*	{
-            EffectCastingSideTrap* pEffect = new EffectCastingSideTrap( pIllusionsWay2 );
-
-            pEffect->setStartXY( 25, 67 );
-            pEffect->setLength( 43 );
-            pEffect->setTick( 10 );
-            pEffect->setUnit( 5 );
-            pEffect->setDir( 3 );
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay2->addEffect_LOCKING( pEffect );
-        }*/
-
     {
         EffectCastingSideTrap* pEffect = new EffectCastingSideTrap(pIllusionsWay2);
 
@@ -388,180 +365,6 @@ void GDRLairEntrance::start() {
         pEffect->setDeadline(12000);
         pIllusionsWay2->addEffect_LOCKING(pEffect);
     }
-    /*	{
-            EffectCastingIcicleTrap* pEffect = new EffectCastingIcicleTrap( Effect::EFFECT_CLASS_ICICLE_DROP,
-       pIllusionsWay1 );
-
-            pEffect->setStartXY( 116, 66 );
-            pEffect->setLength( 48 );
-            pEffect->setTick( 5 );
-            pEffect->setUnit( 10 );
-            pEffect->setDir( 7 );
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay1->addEffect_LOCKING( pEffect );
-        }
-
-        {
-            EffectCastingIceWall* pEffect = new EffectCastingIceWall( pIllusionsWay1 );
-
-            pEffect->setStartXY( 63, 19 );
-            pEffect->setLength( 48 );
-            pEffect->setWallLength( 5 );
-            pEffect->setTick( 15 );
-            pEffect->setDir( 1 );
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay1->addEffect_LOCKING( pEffect );
-        }
-
-        {
-            EffectCastingIceWall* pEffect = new EffectCastingIceWall( pIllusionsWay1 );
-
-            pEffect->setStartXY( 15, 72 );
-            pEffect->setLength( 47 );
-            pEffect->setWallLength( 5 );
-            pEffect->setTick( 15 );
-            pEffect->setDir( 3 );
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay1->addEffect_LOCKING( pEffect );
-        }
-
-        {
-            EffectCastingSideTrap* pEffect = new EffectCastingSideTrap( pIllusionsWay1 );
-
-            pEffect->setStartXY( 68, 119 );
-            pEffect->setLength( 27 );
-            pEffect->setTick( 10 );
-            pEffect->setUnit( 5 );
-            pEffect->setDir( 5 );
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay1->addEffect_LOCKING( pEffect );
-        }
-
-        {
-            EffectCastingSideTrap* pEffect = new EffectCastingSideTrap( pIllusionsWay1 );
-
-            pEffect->setStartXY( 96, 84 );
-            pEffect->setLength( 27 );
-            pEffect->setTick( 10 );
-            pEffect->setUnit( 5 );
-            pEffect->setDir( 7 );
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay1->addEffect_LOCKING( pEffect );
-        }
-
-        {
-            EffectCastingSideTrap* pEffect = new EffectCastingSideTrap( pIllusionsWay1 );
-
-            pEffect->setStartXY( 60, 56 );
-            pEffect->setLength( 10 );
-            pEffect->setTick( 10 );
-            pEffect->setUnit( 5 );
-            pEffect->setDir( 1 );
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay1->addEffect_LOCKING( pEffect );
-        }
-
-        {
-            EffectCastingSideTrap* pEffect = new EffectCastingSideTrap( pIllusionsWay1 );
-
-            pEffect->setStartXY( 51, 73 );
-            pEffect->setLength( 10 );
-            pEffect->setTick( 10 );
-            pEffect->setUnit( 5 );
-            pEffect->setDir( 3 );
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay1->addEffect_LOCKING( pEffect );
-        }
-
-        {
-            EffectCastingIcicleTrap* pEffect = new EffectCastingIcicleTrap( Effect::EFFECT_CLASS_ICICLE_AUGER,
-       pIllusionsWay2 );
-
-            pEffect->setStartXY( 123, 57 );
-            pEffect->setLength( 43 );
-            pEffect->setTick( 5 );
-            pEffect->setUnit( 10 );
-            pEffect->setDir( 7 );
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay2->addEffect_LOCKING( pEffect );
-        }
-
-        {
-            EffectCastingIcicleTrap* pEffect = new EffectCastingIcicleTrap( Effect::EFFECT_CLASS_ICICLE_AUGER_LARGE,
-       pIllusionsWay2 );
-
-            pEffect->setStartXY( 61, 32 );
-            pEffect->setLength( 43 );
-            pEffect->setTick( 10 );
-            pEffect->setUnit( 15 );
-            pEffect->setDir( 3 );
-            pEffect->setLarge(true);
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay2->addEffect_LOCKING( pEffect );
-        }
-
-        {
-            EffectCastingIcicleTrap* pEffect = new EffectCastingIcicleTrap( Effect::EFFECT_CLASS_ICICLE_AUGER_LARGE,
-       pIllusionsWay2 );
-
-            pEffect->setStartXY( 91, 97 );
-            pEffect->setLength( 43 );
-            pEffect->setTick( 10 );
-            pEffect->setUnit( 15 );
-            pEffect->setDir( 7 );
-            pEffect->setLarge(true);
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay2->addEffect_LOCKING( pEffect );
-        }
-
-        {
-            EffectCastingSideTrap* pEffect = new EffectCastingSideTrap( pIllusionsWay2 );
-
-            pEffect->setStartXY( 25, 67 );
-            pEffect->setLength( 43 );
-            pEffect->setTick( 10 );
-            pEffect->setUnit( 5 );
-            pEffect->setDir( 3 );
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay2->addEffect_LOCKING( pEffect );
-        }
-
-        {
-            EffectCastingSideTrap* pEffect = new EffectCastingSideTrap( pIllusionsWay2 );
-
-            pEffect->setStartXY( 25, 67 );
-            pEffect->setLength( 43 );
-            pEffect->setTick( 10 );
-            pEffect->setUnit( 5 );
-            pEffect->setDir( 3 );
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay2->addEffect_LOCKING( pEffect );
-        }
-
-        {
-            EffectCastingSideTrap* pEffect = new EffectCastingSideTrap( pIllusionsWay2 );
-
-            pEffect->setStartXY( 55, 132 );
-            pEffect->setLength( 43 );
-            pEffect->setTick( 10 );
-            pEffect->setUnit( 5 );
-            pEffect->setDir( 7 );
-            pEffect->setNextTime(0);
-            pEffect->setDeadline(12000);
-            pIllusionsWay2->addEffect_LOCKING( pEffect );
-        }*/
 }
 
 DWORD GDRLairEntrance::heartbeat(Timeval currentTime) {
@@ -580,44 +383,6 @@ DWORD GDRLairEntrance::heartbeat(Timeval currentTime) {
 
     return TimerState::heartbeat(currentTime);
 }
-
-/*void GDRLairIllusionsWayOnly::start()
-{
-    TimerState::start();
-    filelog( "GDRLair.log", "Starting Illusions Way State" );
-    cout << "The Illusions Way is now active." << endl;
-}*/
-
-// void GDRLairIllusionsWayOnly::end()
-//{
-//	Zone* pIllusionsWay1 = getZoneByZoneID(1410);
-//	Zone* pIllusionsWay2 = getZoneByZoneID(1411);
-
-/*	__ENTER_CRITICAL_SECTION( (*pIllusionsWay1) )
-    pIllusionsWay1->getPCManager()->transportAllCreatures(0xffff);
-    __LEAVE_CRITICAL_SECTION( (*pIllusionsWay1) )
-    __ENTER_CRITICAL_SECTION( (*pIllusionsWay2) )
-    pIllusionsWay2->getPCManager()->transportAllCreatures(0xffff);
-    __LEAVE_CRITICAL_SECTION( (*pIllusionsWay2) )*/
-//}
-
-/*DWORD GDRLairIllusionsWayOnly::heartbeat(Timeval currentTime)
-{
-    Zone* pZone = GDRLairManager::Instance().getZone( GDRLairManager::GDR_LAIR );
-
-    __ENTER_CRITICAL_SECTION( (*pZone) )
-
-    const PCManager* pPM = pZone->getPCManager();
-    if ( pPM->getSize() > 0 )
-    {
-        pZone->unlock();
-        return GDR_LAIR_ICEPOLE;
-    }
-
-    __LEAVE_CRITICAL_SECTION( (*pZone) )
-
-    return TimerState::heartbeat(currentTime);
-}*/
 
 void GDRLairIcepole::start() {
     filelog("GDRLair.log", "Starting Ice Pole State : %d", GDRLairManager::Instance().getTotalPCs());
@@ -656,30 +421,6 @@ DWORD GDRLairIcepole::heartbeat(Timeval currentTime) {
     }
 
     Zone* pZone = GDRLairManager::Instance().getZone(GDRLairManager::GDR_LAIR);
-
-    /*	int illPCNum = pIllusionsWay1->getPCManager()->getSize() + pIllusionsWay2->getPCManager()->getSize();
-        if ( illPCNum > 0 )
-        {
-            if ( currentTime > m_BroadcastTime )
-            {
-                GCSystemMessage gcSM;
-                char buf[255];
-                sprintf(buf, "There are %d players in the Illusions Way. Everyone has to pass through
-       before the GDR lair activates.", illPCNum); gcSM.setMessage( buf );
-
-                __ENTER_CRITICAL_SECTION( (*pZone) )
-
-                pZone->broadcastPacket( &gcSM );
-
-                __LEAVE_CRITICAL_SECTION( (*pZone) )
-
-                m_BroadcastTime = currentTime;
-                m_BroadcastTime.tv_sec += 60;
-            }
-
-            return 0;
-        }
-    */
 
     __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
 
@@ -859,7 +600,6 @@ void GDRLairScene2::start() {
     //	m_ActionList.push_back( new ActionWait( pGDR, 50 ) );
     m_ActionList.push_back(new ActionSay(pGDR, 338));
     m_ActionList.push_back(new ActionWalk(pGDR, 35, 39, 9));
-    //	m_ActionList.push_back( new ActionWait( pGDR, 30 ) );
     m_ActionList.push_back(new ActionSay(pGDR, 339));
     m_ActionList.push_back(new ActionWait(pGDR, 50));
     m_ActionList.push_back(new ActionSay(pGDR, 340));
@@ -867,18 +607,6 @@ void GDRLairScene2::start() {
     m_ActionList.push_back(new ActionSay(pGDR, 362));
     m_ActionList.push_back(new ActionWait(pGDR, 60));
 
-    //	m_ActionList.push_back( new ActionEffect( pGDR, Effect::EFFECT_CLASS_GDR_SATELLITE, 1200 ) );
-    //	m_ActionList.push_back( new ActionEffect( pGDR, Effect::EFFECT_CLASS_GDR_FLOATING, 1200 ) );
-
-    //	m_ActionList.push_back( new ActionWalk( pGDR, 58, 69, 9 ) );
-    //	m_ActionList.push_back( new ActionWalk( pGDR, 54, 56, 9 ) );
-    //	m_ActionList.push_back( new ActionWalk( pGDR, 33, 37, 9 ) );
-    //	m_ActionList.push_back( new ActionWalk( pGDR, 34, 38, 9 ) );
-
-    //	m_ActionList.push_back( new ActionRemoveEffect( pGDR, Effect::EFFECT_CLASS_GDR_SATELLITE ) );
-    //	m_ActionList.push_back( new ActionRemoveEffect( pGDR, Effect::EFFECT_CLASS_GDR_FLOATING ) );
-
-    //	m_ActionList.push_back( new ActionWait( pGDR, 30 ) );
     m_ActionList.push_back(new ActionSay(pGDR, 363));
     m_ActionList.push_back(new ActionWait(pGDR, 20));
     m_ActionList.push_back(new ActionEffect(pGDR, Effect::EFFECT_CLASS_COMA, 50));
@@ -1408,14 +1136,9 @@ void GDRLairEnding::start() {
                     list<OptionType_t> nullList;
                     pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_QUEST_ITEM, itemType, nullList);
                 } else {
-                    //					itemType = 8;
-                    //					filelog( "GDRLair.log", "%s received a reward.",
-                    // pPC->getName().c_str()
-                    //);
                     // No reward for this one, so skip it.
                     continue;
                 }
-                //				itemType = ((goodOneIndex[1]==i||goodOneIndex[2]==i)? 9:8);
             }
 
             (pZone->getObjectRegistry()).registerObject(pItem);

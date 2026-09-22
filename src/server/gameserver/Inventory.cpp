@@ -628,38 +628,6 @@ void Inventory::deleteItem(CoordInven_t X, CoordInven_t Y)
 
                     // if (slot.getItem()==pItem)
                     { slot.deleteItem(); }
-                    /*
-                    // It was a different problem.
-                    // Restore failed to check one of the vampire two-handed weapon items.
-                    else
-                    {
-                        // Something looks wrong with the inventory, so to stop the
-                        // server going down for now,
-                        // search the whole inventory and delete the item.
-                        // by sigi. 2002.8.29
-                        filelog("inventoryDeleteBug.txt", "deleteItem(%d, %d): class=%d, type=%d, volume(%d, %d), Wrong
-                    Item. (%d, %d) ", (int)X, (int)Y, (int)pItem->getItemClass(), (int)pItem->getItemType(),
-                    (int)ItemWidth, (int)ItemHeight, (int)x, (int)y);
-
-                        // Search the whole inventory and delete pItem.
-                        for (int a=0; a<m_Width; a++)
-                        {
-                            for (int b=0; b<m_Height; b++)
-                            {
-                                InventorySlot& tempSlot = getInventorySlot(a, b);
-
-                                if (tempSlot.getItem()==pItem)
-                                {
-                                    slot.deleteItem();
-
-                                    filelog("inventoryDeleteBug.txt",
-                                            "delete another position(%d, %d)",
-                                            a, b);
-                                }
-                            }
-                        }
-                    }
-                    */
                 }
             }
 

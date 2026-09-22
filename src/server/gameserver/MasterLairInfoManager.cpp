@@ -426,11 +426,6 @@ MasterLairInfo* MasterLairInfoManager::getMasterLairInfo(ZoneID_t zoneID) {
 
     } else {
         // No such zone id was found.
-        /*
-        StringStream msg;
-        msg << "ZoneID : " << zoneID;
-        throw NoSuchElementException(msg.toString());
-        */
 
         return NULL;
     }

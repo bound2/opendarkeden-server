@@ -92,26 +92,6 @@ bool isStackable(Item::ItemClass IClass) {
 bool isStackable(const Item* pItem) {
     // if (pItem == NULL) return false;
 
-    /*
-    switch (pItem->getItemClass())
-    {
-        case Item::ITEM_CLASS_POTION:
-        case Item::ITEM_CLASS_MAGAZINE:
-        case Item::ITEM_CLASS_EVENT_STAR:
-        case Item::ITEM_CLASS_SKULL:
-        case Item::ITEM_CLASS_SERUM:
-        case Item::ITEM_CLASS_VAMPIRE_ETC:
-        case Item::ITEM_CLASS_WATER:
-        case Item::ITEM_CLASS_HOLYWATER:
-        case Item::ITEM_CLASS_BOMB_MATERIAL:
-        case Item::ITEM_CLASS_BOMB:
-        case Item::ITEM_CLASS_MINE:
-            return true;
-        default:
-            return false;
-    }
-    */
-
     // by sigi. 2002.5.13
     return pItem != NULL && pItem->isStackable();
 }
@@ -254,34 +234,18 @@ bool isSuitableMagazine(const Item* pGun, const Item* pMagazine, bool hasVivid) 
     case Item::ITEM_CLASS_SG:
         if (pInfo->getGunType() != MagazineInfo::SG)
             return false;
-        //			if (magazineType == 0) return true;
-        //			if (magazineType == 1) return true;
-        //			if (magazineType == 8) return true;
-        //			if (magazineType == 9) return true;
         break;
     case Item::ITEM_CLASS_AR:
         if (pInfo->getGunType() != MagazineInfo::AR)
             return false;
-        //			if (magazineType == 2) return true;
-        //			if (magazineType == 3) return true;
-        //			if (magazineType == 10) return true;
-        //			if (magazineType == 11) return true;
         break;
     case Item::ITEM_CLASS_SMG:
         if (pInfo->getGunType() != MagazineInfo::SMG)
             return false;
-        //			if (magazineType == 4) return true;
-        //			if (magazineType == 5) return true;
-        //			if (magazineType == 12) return true;
-        //			if (magazineType == 13) return true;
         break;
     case Item::ITEM_CLASS_SR:
         if (pInfo->getGunType() != MagazineInfo::SR)
             return false;
-        //			if (magazineType == 6) return true;
-        //			if (magazineType == 7) return true;
-        //			if (magazineType == 14) return true;
-        //			if (magazineType == 15) return true;
         break;
     default:
         return false;
@@ -623,27 +587,6 @@ Bullet_t decreaseBullet(Item* pWeapon)
     Bullet_t bullet = 0;
     Silver_t silver = 0;
 
-    /*
-    if (IClass == Item::ITEM_CLASS_AR
-        || IClass == Item::ITEM_CLASS_SMG
-        || IClass == Item::ITEM_CLASS_SR
-        || IClass == Item::ITEM_CLASS_SG)
-    {
-        Gun* pGun = dynamic_cast<Gun*>(pWeapon);
-
-        bullet = max(0, (int)(pGun->getBulletCount() - 1));
-        pGun->setBulletCount(bullet);
-
-        silver = max(0, (int)(pGun->getSilver() - 1));
-        pGun->setSilver(silver);
-    }
-    else
-    {
-        filelog("bulletBug.log", "decreaseBullet() : Invalid item class : %s\n", ItemClass2String[IClass].c_str());
-        throw Error("decreaseBullet() : Invalid item class");
-    }
-    */
-
     ///*
     if (IClass == Item::ITEM_CLASS_AR) {
         AR* pAR = dynamic_cast<AR*>(pWeapon);
@@ -700,14 +643,6 @@ Bullet_t getRemainBullet(Item* pWeapon)
     Item::ItemClass IClass = pWeapon->getItemClass();
 
     // by sigi. 2002.5.16
-    /*
-    if (pWeapon->isGun())
-    {
-        Gun* pGun = dynamic_cast<Gun*>(pGun);
-
-        return pGun->getBulletCount();
-    }
-    */
     if (IClass == Item::ITEM_CLASS_AR) {
         AR* pAR = dynamic_cast<AR*>(pWeapon);
         return pAR->getBulletCount();
@@ -1188,17 +1123,6 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
             g_pOptionInfoManager->getPossibleGambleOptionVector((Item::ItemClass)itemClass, maxOptionLevel);
         vector<OptionType_t>::const_iterator iOption;
 
-        /*
-        cout << "optionVector[" << (int)itemClass << "][" << (int)maxOptionLevel << "] = (" << optionVector.size() << ")
-        = ";
-
-        for (iOption=optionVector.begin(); iOption!=optionVector.end(); iOption++)
-        {
-            cout << (int)*iOption << "  ";
-        }
-        cout << endl;
-        */
-
         // Get the total OptionRatio.
         int itemOptionRatio = g_pOptionInfoManager->getTotalGambleRatio((Item::ItemClass)itemClass, maxOptionLevel);
 
@@ -1328,17 +1252,6 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
         // Get the total OptionRatio.
         int itemOptionRatio = g_pOptionInfoManager->getTotalGambleRatio((Item::ItemClass)itemClass, maxOptionLevel);
 
-        /*
-        cout << "optionVector[" << (int)itemClass << "][" << (int)maxOptionLevel << "] = (" << optionVector.size() << ")
-        = ";
-
-        for (iOption=optionVector.begin(); iOption!=optionVector.end(); iOption++)
-        {
-            cout << (int)*iOption << "  ";
-        }
-        cout << endl;
-        */
-
 
         if (optionVector.size() > 0 && itemOptionRatio > 0 && (pItemInfo == NULL || !pItemInfo->isUnique())) {
             // Try only ten times.
@@ -1433,17 +1346,6 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
 
         // Get the total OptionRatio.
         int itemOptionRatio = g_pOptionInfoManager->getTotalGambleRatio((Item::ItemClass)itemClass, maxOptionLevel);
-
-        /*
-        cout << "optionVector[" << (int)itemClass << "][" << (int)maxOptionLevel << "] = (" << optionVector.size() << ")
-        = ";
-
-        for (iOption=optionVector.begin(); iOption!=optionVector.end(); iOption++)
-        {
-            cout << (int)*iOption << "  ";
-        }
-        cout << endl;
-        */
 
 
         if (optionVector.size() > 0 && itemOptionRatio > 0 && (pItemInfo == NULL || !pItemInfo->isUnique())) {
@@ -1633,44 +1535,6 @@ ItemType_t getUpgradeItemType(Item::ItemClass IClass, ItemType_t itemType, ItemT
 
     // cout << "ItemType Upgrade By Luck: " << itemType << " --[+" << upgradeCount << "]--> ";
 
-    /*	int maxItemType = pInfoClass->getInfoCount()-1;
-
-        // Already the highest item
-        if (itemType==maxItemType)
-        {
-            //cout << itemType << "(max)" << endl;
-            return itemType;
-        }
-
-        int itemTypeGap = 1;
-
-        // Items whose step order advances two steps at a time
-        if (IClass==Item::ITEM_CLASS_COAT
-            || IClass==Item::ITEM_CLASS_TROUSER
-            || IClass==Item::ITEM_CLASS_VAMPIRE_COAT)
-        {
-            itemTypeGap = 2;
-        }
-
-        int newItemType = min(maxItemType, itemType + upgradeCount*itemTypeGap);
-
-        // When two steps have to be skipped
-        if (itemTypeGap==2
-            && (itemType & 0x01)!=(newItemType & 0x01)) newItemType -= 1;
-
-        // The highest item may be unique -- leave that one out.
-        while (newItemType > itemType)
-        {
-            ItemInfo* pItemInfo = pInfoClass->getItemInfo( newItemType );
-            Assert(pItemInfo!=NULL);
-
-            // If unique, step down one level at a time.
-            if (pItemInfo->isUnique()) newItemType-=itemTypeGap;
-            else break;
-        }
-
-        //cout << newItemType << endl;*/
-
     return newItemType;
 }
 
@@ -1688,187 +1552,6 @@ ItemType_t getDowngradeItemType(Item::ItemClass IClass, ItemType_t itemType) {
 
     return itemType;
 }
-
-/*
-//////////////////////////////////////////////////////////////////////////////
-// For the Christmas tree event
-//////////////////////////////////////////////////////////////////////////////
-// Search for tree fragments
-TPOINT checkEventTree( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY )
-{
-    __BEGIN_TRY
-
-    Assert( pPC != NULL );
-
-    TPOINT pt;
-    pt.x = -1;
-    pt.y = -1;
-
-    Inventory*		pInventory		= pPC->getInventory();
-    Item*			pCurItem		= pInventory->getItem( iX, iY );
-
-    if ( pCurItem == NULL )
-        return pt;
-
-    ItemType_t		itemType		= pCurItem->getItemType();
-
-    CoordInven_t	startX = iX - itemType % 3;
-    CoordInven_t	startY = iY - itemType / 3;
-
-    if ( pInventory->getWidth() - 3 < startX )
-        return pt;
-    if ( pInventory->getHeight() - 4 < startY )
-        return pt;
-
-    CoordInven_t curIX = 0, curIY = 0;
-    ItemType_t compType = 0;
-
-    // Check that the tree fragments are correctly assembled.
-    for ( curIY = startY; curIY < startY + 4; curIY++ )
-    {
-        for ( curIX = startX; curIX < startX + 3; curIX++ )
-        {
-            pCurItem = pInventory->getItem( curIX, curIY );
-            if ( pCurItem == NULL )
-                return pt;
-
-            if ( pCurItem->getItemClass() != Item::ITEM_CLASS_EVENT_TREE ||
-                 pCurItem->getItemType() != compType )
-                return pt;
-
-            compType++;
-        }
-    }
-
-    pt.x = startX;
-    pt.y = startY;
-
-    return pt;
-
-    __END_CATCH
-}
-
-// Ancient document
-TPOINT checkEventDocument( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY )
-{
-    __BEGIN_TRY
-
-    Assert( pPC != NULL );
-
-    TPOINT pt;
-    pt.x = -1;
-    pt.y = -1;
-
-    Inventory*		pInventory		= pPC->getInventory();
-    Item*			pCurItem		= pInventory->getItem( iX, iY );
-
-    if ( pCurItem == NULL )
-        return pt;
-
-    ItemType_t		itemType		= pCurItem->getItemType();
-
-    // Ancient document fragments start at 13
-    itemType = itemType - 13;
-
-    CoordInven_t	startX = iX - itemType % 3;
-    CoordInven_t	startY = iY - itemType / 3;
-
-    if ( pInventory->getWidth() - 3 < startX )
-        return pt;
-    if ( pInventory->getHeight() - 4 < startY )
-        return pt;
-
-    CoordInven_t curIX = 0, curIY = 0;
-
-    // Ancient document fragments start at 13
-    ItemType_t compType = 13;
-
-    // Check that the ancient document fragments are correctly assembled.
-    for ( curIY = startY; curIY < startY + 4; curIY++ )
-    {
-        for ( curIX = startX; curIX < startX + 3; curIX++ )
-        {
-            pCurItem = pInventory->getItem( curIX, curIY );
-            if ( pCurItem == NULL )
-                return pt;
-
-            if ( pCurItem->getItemClass() != Item::ITEM_CLASS_EVENT_TREE ||
-                 pCurItem->getItemType() != compType )
-                return pt;
-
-            compType++;
-        }
-    }
-
-    pt.x = startX;
-    pt.y = startY;
-
-    return pt;
-
-    __END_CATCH
-}
-
-// Doll. This could be generalized by taking one more argument.
-// Generalize it for the next quest.
-TPOINT checkEventDoll( PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY )
-{
-    __BEGIN_TRY
-
-    Assert( pPC != NULL );
-
-    TPOINT pt;
-    pt.x = -1;
-    pt.y = -1;
-
-    Inventory*		pInventory		= pPC->getInventory();
-    Item*			pCurItem		= pInventory->getItem( iX, iY );
-
-    if ( pCurItem == NULL )
-        return pt;
-
-    ItemType_t		itemType		= pCurItem->getItemType();
-
-    // Doll fragments start at 29
-    itemType = itemType - 29;
-
-    CoordInven_t	startX = iX - itemType % 3;
-    CoordInven_t	startY = iY - itemType / 3;
-
-    if ( pInventory->getWidth() - 3 < startX )
-        return pt;
-    if ( pInventory->getHeight() - 4 < startY )
-        return pt;
-
-    CoordInven_t curIX = 0, curIY = 0;
-
-    // Doll fragments start at 29
-    ItemType_t compType = 29;
-
-    // Check that the doll fragments are laid out in order.
-    for ( curIY = startY; curIY < startY + 4; curIY++ )
-    {
-        for ( curIX = startX; curIX < startX + 3; curIX++ )
-        {
-            pCurItem = pInventory->getItem( curIX, curIY );
-            if ( pCurItem == NULL )
-                return pt;
-
-            if ( pCurItem->getItemClass() != Item::ITEM_CLASS_EVENT_TREE ||
-                 pCurItem->getItemType() != compType )
-                return pt;
-
-            compType++;
-        }
-    }
-
-    pt.x = startX;
-    pt.y = startY;
-
-    return pt;
-
-    __END_CATCH
-}
-*/
 
 // Generalized version; checkEventTree, checkEventDocument and checkEventDoll can be removed.
 TPOINT checkEventPuzzle(PlayerCreature* pPC, CoordInven_t iX, CoordInven_t iY, int start) {
@@ -2018,26 +1701,6 @@ bool addNewbieItemToInventory(Slayer* pSlayer, bool sendPacket)
                               pItem->getItemID());
 
                 if (sendPacket) {
-                    /*gcCreateItem.setObjectID( pItem->getObjectID() );
-                    gcCreateItem.setItemClass( pItem->getItemClass() );
-                    gcCreateItem.setItemType( pItem->getItemType() );
-                    gcCreateItem.setObjectType( pItem->getOptionTypeList() );
-                    gcCreateItem.setDurability( pItem->getDurability() );
-                    gcCreateItem.setSilver( pItem->getSilver() );
-                    if (pItem->getItemClass() == Item::ITEM_CLASS_MAGAZINE)
-                    {
-                        Magazine* pMag = dynamic_cast<Magazine*>(pItem);
-                        gcCreateItem.setItemNum(pMag->getNum());
-                    }
-                    else
-                    {
-                        gcCreateItem.setItemNum(pItem->getNum());
-                    }
-
-                    gcCreateItem.setInvenX( NewbieItems[i][2] );
-                    gcCreateItem.setInvenY( NewbieItems[i][3] );
-
-                    pPlayer->sendPacket( &gcCreateItem );*/
                 }
             }
     }

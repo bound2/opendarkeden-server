@@ -8,12 +8,6 @@
 #include "ItemInfoManager.h"
 #include "ItemPolicies.h"
 
-/*#define InitTableNameClass(C, S) \
-class C { public: \
-    static const string& getObjectTableName() { static string theString(string(S) + "Object"); return theString; } \
-    static const string& getInfoTableName() { static string theString(string(S) + "Info"); return theString; } \
-};*/
-
 template <Item::ItemClass IClass, typename StackPolicy = NoStack, typename DurabilityPolicy = NoDurability,
           typename OptionPolicy = NoOption, typename GradePolicy = NoGrade, typename AttackingStatPolicy = NoAttacking,
           typename EnchantLevelPolicy = HasEnchantLevel>

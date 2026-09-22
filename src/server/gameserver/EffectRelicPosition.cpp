@@ -67,10 +67,6 @@ void EffectRelicPosition::affect(Item* pItem)
 
         //		StringStream msg;
 
-        /*		// Announce the location.
-                msg << "The relic (" << pRelicInfo->getName() << ") is lying at "
-                    << pZoneInfo->getFullName() << "(" << (int)m_X << ", " << (int)m_Y << ")."; */
-
         char msg[100];
 
         sprintf(msg, g_pStringPool->c_str(STRID_RELIC_IN_ZONE), pRelicInfo->getName().c_str(),
@@ -99,12 +95,6 @@ void EffectRelicPosition::affect(Item* pItem)
         //		g_pHolyLandManager->broadcast( pGCBBS );
         g_pZoneGroupManager->broadcast(pGCBBS);
         g_pShrineInfoManager->registerBloodBibleStatus(m_Part, pGCBBS);
-        /*
-        msg << "A fragment of the Blood Bible is lying at "
-            << pZoneInfo->getFullName() << "(" << (int)m_X << ", " << (int)m_Y << ").";
-
-        g_pZoneGroupManager->broadcast( &gcSystemMessage );
-        */
 
         setNextTime(999999);
     } else if (pItem->getItemClass() == Item::ITEM_CLASS_CASTLE_SYMBOL) {

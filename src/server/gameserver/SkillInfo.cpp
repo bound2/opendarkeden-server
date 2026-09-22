@@ -386,22 +386,6 @@ void SkillInfoManager::addSkillInfo(SkillInfo* pSkillInfo) {
 
     m_SkillLevelMap[pSkillInfo->getDomainType()][pSkillInfo->getLevel()] = pSkillInfo->getType();
 
-    /*	list<SkillType_t>& rSkills = pSkillInfo->getRequireSkills();
-        list<SkillType_t>::iterator itr = rSkills.begin();
-
-        for ( ; itr != rSkills.end(); ++itr )
-        {
-            SkillInfo* pRequireSkillInfo = m_SkillInfoList[(*itr)];
-
-            if ( pRequireSkillInfo == NULL )
-            {
-                cout << "The skill load order is wrong : " << (int)pSkillInfo->getType() << " / " << (int)(*itr) <<
-       endl; Assert(false);
-            }
-
-            pRequireSkillInfo->addRequiredSkill(pSkillInfo->getType());
-        }*/
-
     __END_CATCH
 }
 
@@ -497,25 +481,6 @@ string SkillInfoManager::toString() const
     }
 
     msg << ")";
-
-    /*
-    StringStream msg;
-    msg << "SkillInfoManager(";
-
-    for (uint i = 0 ; i < m_SkillCount ; i ++)
-    {
-        if (m_SkillInfoList[i] != NULL)
-        {
-            msg << m_SkillInfoList[i]->toString();
-        }
-        else
-        {
-            msg << "NULL" ;
-        }
-    }
-
-    msg << ")";
-    */
 
     return msg.toString();
 

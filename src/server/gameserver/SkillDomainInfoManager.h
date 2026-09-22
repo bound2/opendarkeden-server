@@ -79,37 +79,6 @@ private:
 // Class DomainInfoManager
 //
 //--------------------------------------------------------------------
-/*
-class DomainInfoManager {
-
-public:
-
-    // constructor
-    DomainInfoManager() ;
-
-    // destructor
-    ~DomainInfoManager() ;
-
-    // initialize manager
-    void init() ;
-
-    // get sub info class manager
-    DomainInfoManager* getInfoManager(Domain DomainType) const ;
-
-    // get item info
-    SkillDomainInfo* getSkillDomainInfo(Level_t Level) const ;
-
-    uint getDomainCount() const ;
-
-    // toString for debug
-    string toString() const ;
-
-private:
-
-    DomainInfo ** m_DomainInfoLists;
-
-};
-*/
 
 //////////////////////////////////////////////////////////////////////////////
 // Class SkillDomainInfoManager

@@ -149,19 +149,6 @@ void BloodBibleBonusManager::makeHolyLandBonusInfo(GCHolyLandBonusInfo& gcHolyLa
 
     {__BEGIN_TRY
 
-         /*	BloodBibleBonusHashMapConstItor itr = m_BloodBibleBonuses.begin();
-              for ( ; itr != m_BloodBibleBonuses.end(); itr++ )
-              {
-                  BloodBibleBonusInfo* pInfo = new BloodBibleBonusInfo();
-                  BloodBibleBonus* pBonus = itr->second;
-
-                  pInfo->setType( pBonus->getType() );
-                  pInfo->setRace( pBonus->getRace() );
-                  pInfo->setOptionType( pBonus->getOptionTypeList() );
-
-                  gcHolyLandBonusInfo.addBloodBibleBonusInfo( pInfo );
-              }*/
-
          __END_CATCH}
 
 string BloodBibleBonusManager::toString() const

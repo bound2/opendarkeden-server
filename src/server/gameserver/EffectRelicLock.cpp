@@ -68,18 +68,6 @@ void EffectRelicLock::unaffect(Item* pItem)
     __END_CATCH
 }
 
-/*
-bool EffectRelicLock::isLockTime() const
-{
-    Timeval currentTime;
-
-    getCurrentTime(&currentTime);
-
-    return currentTime.tv_sec >= m_LockTime.tv_sec
-            && currentTime.tv_usec >= m_LockTime.tv_usec;
-}
-*/
-
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////

@@ -309,11 +309,6 @@ int TradeManager::canTrade(Creature* pCreature1, Creature* pCreature2)
                 // Gift box trade event: a gift box cannot be traded alongside other items -- cancel.
                 if (pItem->getItemClass() == Item::ITEM_CLASS_EVENT_GIFT_BOX && pItem->getItemType() > 1 &&
                     pItem->getItemType() < 6) {
-                    /*
-                    if ( tradeList1.size() != 1 )
-                        goto ErrorCode;
-                    */
-
                     bTradeGiftBox = true;
                 }
 
@@ -334,11 +329,6 @@ int TradeManager::canTrade(Creature* pCreature1, Creature* pCreature2)
                 // Gift box trade event: a gift box cannot be traded alongside other items -- cancel.
                 if (pItem->getItemClass() == Item::ITEM_CLASS_EVENT_GIFT_BOX && pItem->getItemType() > 1 &&
                     pItem->getItemType() < 6) {
-                    /*
-                    if ( tradeList2.size() != 1 )
-                        goto ErrorCode;
-                    */
-
                     // The trade cannot go ahead unless the other side also offered a GiftBox.
                     if (!bTradeGiftBox) {
                         SAFE_DELETE(pInventory1);
@@ -497,11 +487,6 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
             // Gift box trade event: a gift box cannot be traded alongside other items -- cancel.
             if (pItem->getItemClass() == Item::ITEM_CLASS_EVENT_GIFT_BOX && pItem->getItemType() > 1 &&
                 pItem->getItemType() < 6) {
-                /*
-                if ( tradeList1.size() != 1 )
-                    throw Error("TradeManager::processTrade() : a gift box cannot be traded together with other items");
-                */
-
                 bTradeGiftBox = true;
 
                 giftBoxType1 = pItem->getItemType();
@@ -519,11 +504,6 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
             // Gift box trade event: a gift box cannot be traded alongside other items -- cancel.
             if (pItem->getItemClass() == Item::ITEM_CLASS_EVENT_GIFT_BOX && pItem->getItemType() > 1 &&
                 pItem->getItemType() < 6) {
-                /*
-                if ( tradeList2.size() != 1 )
-                    throw Error("TradeManager::processTrade() : a gift box cannot be traded together with other items");
-                */
-
                 // The trade cannot go ahead unless the other side also offered a GiftBox.
                 if (!bTradeGiftBox)
                     throw Error("TradeManager::processTrade() : a gift box trades only against another gift box");
@@ -800,11 +780,6 @@ void TradeManager::cancelTrade(Creature* pPC)
                 Ousters* pOusters1 = dynamic_cast<Ousters*>(pPC);
                 pOusters1->setGold(pOusters1->getGold() + pInfo1->getGold());
             }
-
-            /*
-            try { pTargetPC = pZone->getCreature(TargetName); }
-            catch (NoSuchElementException) { pTargetPC = NULL; }
-            */
 
             pTargetPC = pZone->getCreature(TargetName);
 

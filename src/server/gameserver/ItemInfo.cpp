@@ -122,26 +122,6 @@ void ItemInfo::setDefaultOptions(const string& options)
     }
 
     makeOptionList(options, m_DefaultOptions);
-
-    /*do
-    {
-        b = options.find_first_of(',', a);
-
-        string  optionName = trim( options.substr(a, b-a) );
-
-        OptionType_t optionType;
-
-        try {
-            optionType = g_pOptionInfoManager->getOptionType(optionName);
-        } catch (NoSuchElementException&) {
-            throw Error("No such option.");
-        }
-
-        addDefaultOptions( optionType );
-
-        a = b+1;
-
-    } while (b!=string::npos && b < options.size() -1);*/
 }
 
 

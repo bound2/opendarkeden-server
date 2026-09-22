@@ -132,10 +132,6 @@ void EffectHPRecovery::affect(Creature* pCreature)
                 Silver_t silverRecovery = max(1, m_HPQuantity / 2);
                 Silver_t newSilverDamage = max(0, (int)(pVampire->getSilverDamage() - silverRecovery));
 
-                // printf("current silver damage:%d\n", pVampire->getSilverDamage());
-                // printf("silver damage recovered:%d\n", (int)(m_HPQuantity/2));
-                // printf("new silver damage:%d\n", newSilverDamage);
-
                 pVampire->saveSilverDamage(newSilverDamage);
 
                 GCModifyInformation GCMI;
@@ -176,18 +172,6 @@ void EffectHPRecovery::affect(Creature* pCreature)
             pOusters->setHP(NewHP, ATTR_CURRENT);
 
             // Heal silver damage.
-            /*			if ( pOusters->getSilverDamage() > 0 )
-                        {
-                            Silver_t silverRecovery  = max( 1, m_HPQuantity / 2 );
-                            Silver_t newSilverDamage = max( 0, (int)(pOusters->getSilverDamage() - silverRecovery));
-
-                            pOusters->saveSilverDamage(newSilverDamage);
-
-                            GCModifyInformation GCMI;
-                            GCMI.addShortData( MODIFY_SILVER_DAMAGE, newSilverDamage );
-
-                            pOusters->getPlayer()->sendPacket( &GCMI );
-                        }*/
         } else {
             // The packet goes out during unaffect.
             setDeadline(0);

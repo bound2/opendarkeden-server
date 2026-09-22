@@ -3,12 +3,6 @@
 #include "PlayerCreature.h"
 
 GQuestElement::ResultType GQuestRandomElement::checkCondition(PlayerCreature* pPC) const {
-    /*	vector<GQuestElement*>::const_iterator itr = m_Elements.begin();
-        for ( ; itr != m_Elements.end() ; ++itr )
-        {
-            if ( (*itr)->checkCondition(pPC) == OK ) return OK;
-        }*/
-
     int idx = rand() % m_Elements.size();
 
     return m_Elements[idx]->checkCondition(pPC);

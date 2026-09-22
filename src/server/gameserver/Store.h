@@ -26,12 +26,6 @@ public:
     BYTE removeItem();
     BYTE setItem(Item* pItem, Gold_t price);
 
-    /*	void	setExist(bool exist) { m_bExist = exist; }
-
-        void	setItem(Item* pItem) { m_pItem = pItem; }
-
-        void	setPrice(Gold_t	price) { m_Price = price; }*/
-
     void makeStoreItemInfo(StoreItemInfo& info);
 
 private:

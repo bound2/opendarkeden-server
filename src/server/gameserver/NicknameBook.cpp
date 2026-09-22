@@ -53,19 +53,6 @@ void NicknameBook::load() {
         m_pRepository->insertDefaultCustomSlot(m_pOwner->getName());
     }
 
-    /*	if ( m_pOwner->getLevel() >= 10 )
-        {
-            Level_t level = m_pOwner->getLevel();
-            if ( level > 150 ) level=150;
-            NicknameInfo* pLevelNickname = new NicknameInfo;
-            pLevelNickname->setNicknameID( 1 );
-            pLevelNickname->setNicknameType( NicknameInfo::NICK_BUILT_IN );
-            pLevelNickname->setNicknameIndex( level/10 );
-            setNicknameInfo( 1, pLevelNickname );
-
-            cout << "Nickname number : " << level/10 << endl;
-        }*/
-
     if (m_pOwner->getLevel() >= 10) {
         Level_t level = m_pOwner->getLevel();
         vector<LevelNickInfo*>& infos = LevelNickInfoManager::Instance().getLevelNickInfo(level);

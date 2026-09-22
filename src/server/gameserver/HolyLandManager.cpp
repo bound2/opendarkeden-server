@@ -58,45 +58,6 @@ void HolyLandManager::broadcast(Packet* pPacket) const
     __END_CATCH
 }
 
-/*void HolyLandManager::sendBloodBibleStatus() const
-
-{
-    __BEGIN_TRY
-
-    throw Error("Not Supported");
-
-    __ENTER_CRITICAL_SECTION( m_Mutex )
-
-    HashMapZoneConstItor itr = m_HolyLands.begin();
-
-    for( ; itr != m_HolyLands.end(); itr++ )
-    {
-        Zone* pZone = itr->second;
-        Assert( pZone != NULL );
-
-        __ENTER_CRITICAL_SECTION((*pZone))
-
-        const PCManager* pPCManager = pZone->getPCManager();
-        const unordered_map< ObjectID_t, Creature* > & creatures = pPCManager->getCreatures();
-        unordered_map< ObjectID_t, Creature* >::const_iterator itr;
-
-        for (itr=creatures.begin(); itr!=creatures.end(); itr++)
-        {
-            Creature* pCreature = itr->second;
-            Assert( pCreature->isPC() );
-
-            PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-            g_pShrineInfoManager->sendBloodBibleStatus( pPC );
-        }
-
-        __LEAVE_CRITICAL_SECTION((*pZone))
-    }
-
-    __LEAVE_CRITICAL_SECTION( m_Mutex )
-
-    __END_CATCH
-}
-*/
 void HolyLandManager::fixTimeband(uint timeband)
 
 {

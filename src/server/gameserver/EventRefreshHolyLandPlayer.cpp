@@ -44,11 +44,6 @@ void EventRefreshHolyLandPlayer::activate()
     // Recompute the info of the players in Adam's holy land. (blood bible bonus)
     //	g_pHolyLandManager->refreshHolyLandPlayers();
 
-    /* // Broadcast the blood bible bonus info across Adam's holy land.
-        GCHolyLandBonusInfo gcHolyLandBonusInfo;
-        g_pBloodBibleBonusManager->makeHolyLandBonusInfo( gcHolyLandBonusInfo );
-        g_pHolyLandManager->broadcast( &gcHolyLandBonusInfo );
-    */
     __END_CATCH
 }
 

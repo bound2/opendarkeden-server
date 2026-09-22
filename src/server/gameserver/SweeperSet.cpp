@@ -159,18 +159,6 @@ int SweeperSetManager::getSafeIndex(MonsterCorpse* pSafe) const {
 }
 
 
-/*bool SweeperSetManager::isFit( Item* pSweeper, MonsterCorpse* pSafe )
-{
-    map<ItemType_t, SweeperSet*>::iterator itr = m_SweeperSets.find( pSweeper->getItemType() );
-    if ( itr == m_SweeperSets.end() ) return false;
-
-    SweeperSet* pSweeperSet = itr->second;
-    if ( pSweeperSet->getSweeper() != pSweeper ) return false;
-
-    return pSweeperSet->findSafeIndex( pSafe ) != -1;
-}
-*/
-
 bool SweeperSetManager::putSweeper(Item* pSweeper, MonsterCorpse* pSafe) {
     Assert(pSweeper != NULL);
     Assert(pSafe != NULL);
@@ -271,34 +259,6 @@ bool SweeperSetManager::returnSweeper(ItemType_t sweeperID, bool bLock) {
 
     return false;
 }
-
-/*
-bool SweeperSetManager::returnSweeper( Zone* pZone, Sweeper* pSweeper ) const
-{
-    Assert( pZone != NULL );
-    Assert( pSweeper != NULL );
-
-    MonsterCorpse* pDefaultSafe = getSweeperSet( 3 )->getSweeperSafes( pSweeper->getItemType() );
-    if ( pDefaultSafe == NULL ) return false;
-
-    Zone* pTargetZone = pDefaultSafe->getZone();
-    if ( pTargetZone == NULL ) return false;
-
-    ObjectID_t CorpseObjectID = pDefaultSafe->getObjectID();
-
-    // It has to be moved to the Default Safe and the owning race has to be saved too
-//	pZone->transportItemToCorpse( pSweeper, pTargetZone, CorpseObjectID );
-
-    SweeperSet* pSweeperSet = getSweeperSet( 3 );
-    Assert(pSweeperSet != NULL );
-
-    MonsterCorpse* pSafe = pSweeperSet->getSweeperSafes( pSweeperSet->getItemType() );
-
-    putSweeper( pSweeper, pSafe );
-
-    return true;
-}
-*/
 
 void SweeperSetManager::saveSweeperOwner(uint itemType, int safeType, int ownerRace) {
     defaultWarInfoRepository().saveSweeperOwner(ownerRace, safeType, itemType);
