@@ -80,14 +80,6 @@ private:
 
 class EventETCInfo : public ItemInfo {
 public:
-    /*	enum ITEM_FUNCTION
-        {
-            FUNCTION_NULL = 0,
-            FUNCTION_ENCHANT_OPTION = 0x01,	// Changes an option for the better.
-            FUNCTION_ADD_OPTION = 0x02,		// Adds an option.
-            FUNCTION_ENCHANT_RARE_OPTION = 0x04,	// Raises the option of a rare item.
-        };*/
-
 public:
     virtual Item::ItemClass getItemClass() const {
         return Item::ITEM_CLASS_EVENT_ETC;

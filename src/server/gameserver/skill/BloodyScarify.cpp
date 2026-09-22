@@ -81,8 +81,6 @@ void BloodyScarify::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
         bool bCanHit = canHit(pVampire, pTargetCreature, getSkillType());
         bool bPK = verifyPK(pVampire, pTargetCreature);
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bCanHit && bPK) //&& bUseSkillCrad)
-        /*&&	( !bFastMove || pZone->moveFastPC(pVampire, pVampire->getX(), pVampire->getY(), pTargetCreature->getX(),
-           pTargetCreature->getY(), getSkillType()) ))*/
         {
             SkillInput input(pVampire);
             SkillOutput output;

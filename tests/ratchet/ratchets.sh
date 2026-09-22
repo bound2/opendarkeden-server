@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5193 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5170 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -472,6 +472,11 @@ check_ratchet R17 "source lines carrying non-ASCII bytes" 578 "$R17"
 # line by line, so a "/*" inside a string literal or behind a "//" does not
 # open a block. The first and last lines of a block carry the delimiters
 # and are left out by the same test that skips a bare "/*" or "*/".
+#
+# The five lines the count still holds are not switched-off code: they are
+# the two block comments in handler/CGWhisperHandler.cpp that name, field by
+# field, what the relay puts into a GGServerChat packet, and the scan reads
+# a line like "pPacket->getColor() = the text color" as a call.
 r18_raw=$(find src \( -name '*.cpp' -o -name '*.h' \) -print0 | perl -0 -ne '
     BEGIN { $files = 0; $count = 0 }
     chomp; my $f = $_;
@@ -524,7 +529,7 @@ if ! [[ "$r18_files" =~ ^[0-9]+$ ]] || [ "$r18_files" -lt 3000 ]; then
     echo "[FAIL] R18 commented-out code: only '$r18_files' files scanned (find or perl broken?)"
     fail=1
 else
-    check_ratchet R18 "commented-out code lines in /* */ blocks" 3301 "$R18"
+    check_ratchet R18 "commented-out code lines in /* */ blocks" 5 "$R18"
 fi
 
 # --- Removed dead services must not return --------------------------------
