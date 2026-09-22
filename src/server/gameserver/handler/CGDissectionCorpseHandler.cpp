@@ -69,9 +69,11 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
+        StringPool& strings = de::gameContext().strings();
+
 #ifdef __GAME_SERVER__
 
-        Assert(pPacket != NULL);
+    Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
     try {
@@ -215,7 +217,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
         // Not during the LockTime.
         if (pRelicTableEffect != NULL && (!pRelicTableEffect->isSafeTime() || pRelicTableEffect->isLockTime())) {
             GCSystemMessage gcSystemMessage;
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_TAKE_RELIC_NOW));
+            gcSystemMessage.setMessage(strings.getString(STRID_CANNOT_TAKE_RELIC_NOW));
 
             pGamePlayer->sendPacket(&gcSystemMessage);
             return;
@@ -523,24 +525,24 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                             // Broadcast to the zone once it is pulled out.
                             char safeRace[15];
                             if (pZone->getLevelWarManager()->getSafeIndex(pMonsterCorpse) == 0) {
-                                sprintf(safeRace, g_pStringPool->c_str(STRID_SLAYER));
+                                sprintf(safeRace, strings.c_str(STRID_SLAYER));
                             } else if (pZone->getLevelWarManager()->getSafeIndex(pMonsterCorpse) == 1) {
-                                sprintf(safeRace, g_pStringPool->c_str(STRID_VAMPIRE));
+                                sprintf(safeRace, strings.c_str(STRID_VAMPIRE));
                             } else if (pZone->getLevelWarManager()->getSafeIndex(pMonsterCorpse) == 2) {
-                                sprintf(safeRace, g_pStringPool->c_str(STRID_OUSTERS));
+                                sprintf(safeRace, strings.c_str(STRID_OUSTERS));
                             } else if (pZone->getLevelWarManager()->getSafeIndex(pMonsterCorpse) == 3) {
-                                sprintf(safeRace, g_pStringPool->c_str(STRID_CENTER));
+                                sprintf(safeRace, strings.c_str(STRID_CENTER));
                             } else {
                                 Assert(false);
                             }
 
                             char race[15];
                             if (pCreature->isSlayer()) {
-                                sprintf(race, g_pStringPool->c_str(STRID_SLAYER));
+                                sprintf(race, strings.c_str(STRID_SLAYER));
                             } else if (pCreature->isVampire()) {
-                                sprintf(race, g_pStringPool->c_str(STRID_VAMPIRE));
+                                sprintf(race, strings.c_str(STRID_VAMPIRE));
                             } else if (pCreature->isOusters()) {
-                                sprintf(race, g_pStringPool->c_str(STRID_OUSTERS));
+                                sprintf(race, strings.c_str(STRID_OUSTERS));
                             } else {
                                 Assert(false);
                             }
@@ -550,7 +552,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                                     Item::ITEM_CLASS_SWEEPER, pTreasure->getItemType()));
 
                             char msg[100];
-                            sprintf(msg, g_pStringPool->c_str(STRID_PULL_OUT_SWEEPER), safeRace,
+                            sprintf(msg, strings.c_str(STRID_PULL_OUT_SWEEPER), safeRace,
                                     pSweeperInfo->getName().c_str(), pCreature->getName().c_str(), race);
                             GCSystemMessage gcSystemMessage;
                             gcSystemMessage.setMessage(msg);

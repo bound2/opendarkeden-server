@@ -15,6 +15,7 @@
 #include "GCSystemMessage.h"
 #include "GCUpdateInfo.h"
 #include "GDRLairManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "Ousters.h"
@@ -124,7 +125,7 @@ void ActionEnterGDRLair::execute(Creature* pNPC, Creature* pCreature)
         transportCreature(pCreature, zoneID, X, Y, true);
     } else {
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER));
+        gcSystemMessage.setMessage(context().strings().getString(STRID_CANNOT_ENTER));
         pGamePlayer->sendPacket(&gcSystemMessage);
     }
 

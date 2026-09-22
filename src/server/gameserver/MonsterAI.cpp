@@ -1128,7 +1128,7 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
                 parameter = pDirective->getParameter();
                 GCSay gcSay;
                 gcSay.setObjectID(m_pBody->getObjectID());
-                gcSay.setMessage(g_pStringPool->getString(parameter));
+                gcSay.setMessage(de::gameContext().strings().getString(parameter));
                 gcSay.setColor(0x00ffffff);
                 m_pBody->getZone()->broadcastPacket(m_pBody->getX(), m_pBody->getY(), &gcSay);
             }
@@ -1216,7 +1216,7 @@ void MonsterAI::actDeadAction(Creature* pEnemy)
                 int parameter = pDirective->getParameter();
                 GCSay gcSay;
                 gcSay.setObjectID(m_pBody->getObjectID());
-                gcSay.setMessage(g_pStringPool->getString(parameter));
+                gcSay.setMessage(de::gameContext().strings().getString(parameter));
                 gcSay.setColor(0x00ffffff);
                 m_pBody->getZone()->broadcastPacket(m_pBody->getX(), m_pBody->getY(), &gcSay);
             }

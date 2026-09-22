@@ -93,5 +93,3 @@ const char* StringPool::c_str(uint strID) {
 
     __END_CATCH
 }
-
-StringPool* g_pStringPool = NULL;

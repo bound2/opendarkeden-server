@@ -98,7 +98,7 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             GuildRepository& guilds = defaultGuildRepository();
 
             string escapeGuildName = g_pGuildManager->getGuildName(pPlayerCreature->getGuildID());
-            string escapeGuildNotice = "[" + escapeGuildName + "] " + g_pStringPool->c_str(378);
+            string escapeGuildNotice = "[" + escapeGuildName + "] " + de::gameContext().strings().c_str(378);
 
             messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, escapeGuildNotice);
             guilds.insertEscapeOffer(tempUnionID, pPacket->getGuildID());
@@ -106,7 +106,8 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             // See whether the union has members.. and if not?
             if (guilds.countUnionMembersSpelled(UNION_SQL_PLAIN, tempUnionID) == 0) {
                 guilds.deleteUnionInfoOnly(UNION_SQL_PLAIN, tempUnionID);
-                messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(379));
+                messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster,
+                                           de::gameContext().strings().c_str(379));
                 GuildUnionManager::Instance().reload();
             }
 

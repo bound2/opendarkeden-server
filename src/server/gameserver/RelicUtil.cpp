@@ -638,6 +638,8 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
 {
     __BEGIN_TRY
 
+    StringPool& strings = de::gameContext().strings();
+
     if (!isRelicItem(pItem))
         return false;
 
@@ -659,7 +661,7 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
             de::gameContext().combatInfo().setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_NULL);
 
             char msg[50];
-            sprintf(msg, g_pStringPool->c_str(STRID_RELIC_FROM_RELIC_TABLE), pRelicInfo->getName().c_str());
+            sprintf(msg, strings.c_str(STRID_RELIC_FROM_RELIC_TABLE), pRelicInfo->getName().c_str());
 
             //				StringStream msg;
             //        msg << "Out of the relic table, "
@@ -695,7 +697,7 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
         //      msg << "A blood bible fragment (" << pBloodBibleInfo->getName() << ") came out.";
 
         char msg[200];
-        sprintf(msg, g_pStringPool->c_str(STRID_BLOOD_BIBLE_FROM_SHRINE), pBloodBibleInfo->getName().c_str());
+        sprintf(msg, strings.c_str(STRID_BLOOD_BIBLE_FROM_SHRINE), pBloodBibleInfo->getName().c_str());
 
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(msg);
@@ -734,7 +736,7 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
             //        msg << "A castle symbol (" << pCastleSymbolInfo->getName() << ") came out.";
 
             char msg[200];
-            sprintf(msg, g_pStringPool->c_str(STRID_CASTLE_SYMBOL_FROM_SHRINE), pCastleSymbolInfo->getName().c_str());
+            sprintf(msg, strings.c_str(STRID_CASTLE_SYMBOL_FROM_SHRINE), pCastleSymbolInfo->getName().c_str());
             GCSystemMessage gcSystemMessage;
             gcSystemMessage.setMessage(msg);
             // g_pZoneGroupManager->broadcast( &gcSystemMessage );

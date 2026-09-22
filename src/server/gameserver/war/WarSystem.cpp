@@ -745,6 +745,8 @@ void WarSystem::broadcastWarList(GamePlayer* pGamePlayer) const
 {
     __BEGIN_TRY
 
+    StringPool& strings = de::gameContext().strings();
+
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     const RecentSchedules::container_type& schedules = m_RecentSchedules.getSchedules();
@@ -754,7 +756,7 @@ void WarSystem::broadcastWarList(GamePlayer* pGamePlayer) const
     bool warExist = false;
 
     if (isEmpty()) {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_WAR_IN_ACTIVE));
+        gcSystemMessage.setMessage(strings.getString(STRID_NO_WAR_IN_ACTIVE));
         pGamePlayer->sendPacket(&gcSystemMessage);
 
         return;
@@ -773,14 +775,14 @@ void WarSystem::broadcastWarList(GamePlayer* pGamePlayer) const
 
 
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_WAR_STATUS), pWar->getWarName().c_str(),
+        sprintf(msg, strings.c_str(STRID_WAR_STATUS), pWar->getWarName().c_str(),
                 (pSchedule->getScheduledTime()).toString().c_str());
         gcSystemMessage.setMessage(msg);
         pGamePlayer->sendPacket(&gcSystemMessage);
     }
 
     if (!warExist) {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_WAR_IN_ACTIVE));
+        gcSystemMessage.setMessage(strings.getString(STRID_NO_WAR_IN_ACTIVE));
         pGamePlayer->sendPacket(&gcSystemMessage);
     }
 

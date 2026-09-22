@@ -943,7 +943,7 @@ void MonsterManager::killCreature(Creature* pDeadCreature)
         gcSay.setObjectID(pDeadMonster->getObjectID());
         gcSay.setColor(MASTER_SAY_COLOR);
 
-        gcSay.setMessage(g_pStringPool->getString(345));
+        gcSay.setMessage(de::gameContext().strings().getString(345));
         cout << gcSay.getMessage() << endl;
         pZone->broadcastPacket(cx, cy, &gcSay);
     } else if (pDeadMonster->getMonsterType() == 723) {
@@ -951,7 +951,7 @@ void MonsterManager::killCreature(Creature* pDeadCreature)
         gcSay.setObjectID(pDeadMonster->getObjectID());
         gcSay.setColor(MASTER_SAY_COLOR);
 
-        gcSay.setMessage(g_pStringPool->getString(360));
+        gcSay.setMessage(de::gameContext().strings().getString(360));
         cout << gcSay.getMessage() << endl;
         pZone->broadcastPacket(cx, cy, &gcSay);
     }

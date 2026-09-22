@@ -88,7 +88,7 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
         GuildRepository& guilds = defaultGuildRepository();
 
         defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, TargetGuildMaster,
-                                                     g_pStringPool->c_str(374));
+                                                     de::gameContext().strings().c_str(374));
 
         // What if I am the only one left after refusing?
         if (guilds.countUnionMembersSpelled(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {

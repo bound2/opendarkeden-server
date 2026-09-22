@@ -85,7 +85,7 @@ void EffectShutDown::affect(Creature* pCreature)
     Turn_t RemainTime = deadLine.tv_sec - nextTime.tv_sec;
 
     char msg[80];
-    sprintf(msg, g_pStringPool->c_str(STRID_SERVER_SHUT_DOWN_COUNT_DOWN), (int)RemainTime);
+    sprintf(msg, de::gameContext().strings().c_str(STRID_SERVER_SHUT_DOWN_COUNT_DOWN), (int)RemainTime);
 
     GCSystemMessage gcSystemMessage;
     gcSystemMessage.setMessage(msg);
@@ -146,7 +146,7 @@ void EffectShutDown::unaffect()
     // msg << "The server is shutting down.";
 
     GCSystemMessage gcSystemMessage;
-    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_SERVER_SHUT_DOWN));
+    gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_SERVER_SHUT_DOWN));
 
 
     int maxZoneGroupID = 0;

@@ -5,6 +5,7 @@
 #include "GCSay.h"
 #include "GCSkillToObjectOK4.h"
 #include "GDRLairManager.h"
+#include "GameContext.h"
 #include "Monster.h"
 #include "MonsterManager.h"
 #include "PCManager.h"
@@ -61,7 +62,7 @@ void GDRScene::setGDR(Monster* pGDR) const {
 Turn_t GDRScene::ActionSay::execute() {
     GCSay gcSay;
     gcSay.setObjectID(getTarget()->getObjectID());
-    gcSay.setMessage(g_pStringPool->getString(m_strID));
+    gcSay.setMessage(de::gameContext().strings().getString(m_strID));
     gcSay.setColor(0x00ffffff);
 
     cout << "질드레가 말합니다 : " << gcSay.getMessage() << endl;
@@ -70,7 +71,7 @@ Turn_t GDRScene::ActionSay::execute() {
 
     GCGlobalChat gcGC;
     gcGC.setColor(0x00ffffff);
-    gcGC.setMessage("질드레 " + g_pStringPool->getString(m_strID));
+    gcGC.setMessage("질드레 " + de::gameContext().strings().getString(m_strID));
     gcGC.setRace(RACE_VAMPIRE);
 
     getTarget()->getZone()->broadcastPacket(&gcGC);

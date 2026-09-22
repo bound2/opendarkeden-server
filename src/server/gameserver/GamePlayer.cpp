@@ -1049,14 +1049,14 @@ void GamePlayer::giveLotto() {
 
     if (Amount < PCRoomLottoMaxAmount) {
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_GIVE_LOTTO), Amount + 1);
+        sprintf(msg, de::gameContext().strings().c_str(STRID_GIVE_LOTTO), Amount + 1);
 
         GCSystemMessage gcMsg;
         gcMsg.setMessage(msg);
         sendPacket(&gcMsg);
 
         if (Amount >= PCRoomLottoMaxAmount - 1) {
-            gcMsg.setMessage(g_pStringPool->getString(STRID_CANNOT_GIVE_LOTTO));
+            gcMsg.setMessage(de::gameContext().strings().getString(STRID_CANNOT_GIVE_LOTTO));
             sendPacket(&gcMsg);
         }
     }

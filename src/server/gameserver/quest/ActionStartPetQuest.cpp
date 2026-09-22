@@ -54,7 +54,7 @@ void ActionStartPetQuest::execute(Creature* pCreature1, Creature* pCreature2)
 
     if (context().variables().getVariable(RACE_PET_QUEST) == 0) {
         GCSystemMessage gcSM;
-        gcSM.setMessage(g_pStringPool->getString(STRID_NOT_SUPPORT));
+        gcSM.setMessage(context().strings().getString(STRID_NOT_SUPPORT));
 
         pPC->getPlayer()->sendPacket(&gcSM);
 

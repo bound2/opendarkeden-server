@@ -140,7 +140,7 @@ ObjectManager::ObjectManager()
 
     FlagSet::initialize();
 
-    g_pStringPool = new StringPool();
+    m_pStringPool = new StringPool();
     m_pZoneInfoManager = new ZoneInfoManager();
     m_pVariableManager = new VariableManager();
     m_pItemInfoManager = new ItemInfoManager();
@@ -168,7 +168,7 @@ ObjectManager::ObjectManager()
     // can be handed them explicitly. It does not own them: they are created
     // here and deleted in this class's destructor.
     de::GameContext& context = de::gameContext();
-    context.setStringPool(g_pStringPool);
+    context.setStringPool(m_pStringPool);
     context.setZoneInfoManager(m_pZoneInfoManager);
     context.setVariableManager(m_pVariableManager);
     context.setItemInfoManager(m_pItemInfoManager);
@@ -292,7 +292,7 @@ ObjectManager::~ObjectManager()
 {
     __BEGIN_TRY
 
-    SAFE_DELETE(g_pStringPool);
+    SAFE_DELETE(m_pStringPool);
     SAFE_DELETE(m_pActionFactoryManager);
     SAFE_DELETE(m_pConditionFactoryManager);
     SAFE_DELETE(m_pPublicScriptManager);
@@ -388,7 +388,7 @@ void ObjectManager::init()
     // this has to be called before the zones are loaded.
     //--------------------------------------------------------------------------------
     printf("ObjectManager::init() : StringPool Initialization Start....... \n");
-    g_pStringPool->load();
+    m_pStringPool->load();
     printf("ObjectManager::init() : StringPool Initialization Success....... \n");
 
     printf("ObjectManager::init() : VariableManager Initialization Start....... \n");

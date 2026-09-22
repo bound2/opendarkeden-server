@@ -10,6 +10,7 @@
 
 #include "CreatureUtil.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PlayerCreature.h"
 #include "PlayerStatus.h"
@@ -55,7 +56,7 @@ void EventTransport::sendMessage()
     //	msg << (int)RemainTime << " seconds until the move to " << m_ZoneName << ".";
 
     char msg[50];
-    sprintf(msg, g_pStringPool->c_str(STRID_TRANSPORT_CREATURE), (int)RemainTime, m_ZoneName.c_str());
+    sprintf(msg, de::gameContext().strings().c_str(STRID_TRANSPORT_CREATURE), (int)RemainTime, m_ZoneName.c_str());
 
     string sMsg(msg);
 

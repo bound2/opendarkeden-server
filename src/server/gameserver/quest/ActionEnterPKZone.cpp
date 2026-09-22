@@ -65,6 +65,8 @@ void ActionEnterPKZone::execute(Creature* pNPC, Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
+    StringPool& strings = context().strings();
+
     Assert(pCreature != NULL);
     Assert(pCreature->isPC());
 
@@ -87,7 +89,7 @@ void ActionEnterPKZone::execute(Creature* pNPC, Creature* pCreature)
 
         if (pPKZoneInfo == NULL) {
             GCSystemMessage gcSystemMessage;
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER));
+            gcSystemMessage.setMessage(strings.getString(STRID_CANNOT_ENTER));
             pGamePlayer->sendPacket(&gcSystemMessage);
         }
 
@@ -120,12 +122,12 @@ void ActionEnterPKZone::execute(Creature* pNPC, Creature* pCreature)
             transportCreature(pCreature, m_ZoneID, pPKZoneInfo->getEnterX(), pPKZoneInfo->getEnterY(), true);
         } else {
             GCSystemMessage gcSystemMessage;
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_PKZONE_PC_LIMITED));
+            gcSystemMessage.setMessage(strings.getString(STRID_PKZONE_PC_LIMITED));
             pGamePlayer->sendPacket(&gcSystemMessage);
         }
     } else {
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_PKZONE_PC_LIMITED));
+        gcSystemMessage.setMessage(strings.getString(STRID_PKZONE_PC_LIMITED));
         pGamePlayer->sendPacket(&gcSystemMessage);
     }
 

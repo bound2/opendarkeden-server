@@ -74,9 +74,9 @@ void EffectHasCastleSymbol::affect(Creature* pCreature)
     // Announce the location.
 
     char msg[300];
-    sprintf(msg, g_pStringPool->c_str(STRID_BROADCAST_CASTLE_SYMBOL_POSITION), pCreature->getName().c_str(),
-            g_pGuildManager->getGuildName(pPC->getGuildID()).c_str(), pZoneInfo->getFullName().c_str(),
-            (int)pCreature->getX(), (int)pCreature->getY(), m_PartName.c_str());
+    sprintf(msg, de::gameContext().strings().c_str(STRID_BROADCAST_CASTLE_SYMBOL_POSITION),
+            pCreature->getName().c_str(), g_pGuildManager->getGuildName(pPC->getGuildID()).c_str(),
+            pZoneInfo->getFullName().c_str(), (int)pCreature->getX(), (int)pCreature->getY(), m_PartName.c_str());
 
     GCSystemMessage gcSystemMessage;
     gcSystemMessage.setMessage(msg);
@@ -113,8 +113,8 @@ void EffectHasCastleSymbol::affect(Item* pItem)
         // Announce the location.
 
         char msg[200];
-        sprintf(msg, g_pStringPool->c_str(STRID_BROADCAST_CASTLE_SYMBOL_POSITION_2), pZoneInfo->getFullName().c_str(),
-                (int)m_X, (int)m_Y, m_PartName.c_str());
+        sprintf(msg, de::gameContext().strings().c_str(STRID_BROADCAST_CASTLE_SYMBOL_POSITION_2),
+                pZoneInfo->getFullName().c_str(), (int)m_X, (int)m_Y, m_PartName.c_str());
 
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(msg);

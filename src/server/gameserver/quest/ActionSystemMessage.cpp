@@ -8,6 +8,7 @@
 
 #include "Creature.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "StringPool.h"
 
@@ -44,7 +45,7 @@ void ActionSystemMessage::execute(Creature* pCreature1, Creature* pCreature2)
     Assert(pPlayer != NULL);
 
     GCSystemMessage gcSystemMessage;
-    gcSystemMessage.setMessage(g_pStringPool->getString(m_Content));
+    gcSystemMessage.setMessage(context().strings().getString(m_Content));
     pPlayer->sendPacket(&gcSystemMessage);
 
     __END_CATCH

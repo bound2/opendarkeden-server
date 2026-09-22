@@ -43,10 +43,12 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
+        StringPool& strings = de::gameContext().strings();
+
 #ifdef __GAME_SERVER__
 
-        // Build the guild member object.
-        GuildMember* pGuildMember = new GuildMember();
+    // Build the guild member object.
+    GuildMember* pGuildMember = new GuildMember();
     pGuildMember->setGuildID(pPacket->getGuildID());
     pGuildMember->setName(pPacket->getName());
     pGuildMember->setRank(pPacket->getGuildMemberRank());
@@ -131,22 +133,22 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
                 // Show the guild join message.
                 GCSystemMessage gcSystemMessage;
                 if (guildRace == Guild::GUILD_RACE_SLAYER)
-                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TEAM_JOIN_ACCEPTED));
+                    gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_TEAM_JOIN_ACCEPTED));
                 else if (guildRace == Guild::GUILD_RACE_VAMPIRE)
-                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_JOIN_ACCEPTED));
+                    gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_CLAN_JOIN_ACCEPTED));
                 else if (guildRace == Guild::GUILD_RACE_OUSTERS)
-                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_JOIN_ACCEPTED));
+                    gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_CLAN_JOIN_ACCEPTED));
                 player.sendPacket(&gcSystemMessage);
 
             } else if (rank == GuildMember::GUILDMEMBER_RANK_WAIT) {
                 // Send the guild join request message.
                 GCSystemMessage gcSystemMessage;
                 if (guildRace == Guild::GUILD_RACE_SLAYER)
-                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TEAM_JOIN_TRY));
+                    gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_TEAM_JOIN_TRY));
                 else if (guildRace == Guild::GUILD_RACE_VAMPIRE)
-                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_JOIN_TRY));
+                    gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_CLAN_JOIN_TRY));
                 else if (guildRace == Guild::GUILD_RACE_OUSTERS)
-                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_JOIN_TRY));
+                    gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_CLAN_JOIN_TRY));
 
                 player.sendPacket(&gcSystemMessage);
             }
@@ -170,18 +172,18 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
 
         if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
             if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)
-                sprintf(msg, g_pStringPool->c_str(STRID_TEAM_JOIN_ACCEPTED_2), pGuildMember->getName().c_str());
+                sprintf(msg, strings.c_str(STRID_TEAM_JOIN_ACCEPTED_2), pGuildMember->getName().c_str());
             else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE)
-                sprintf(msg, g_pStringPool->c_str(STRID_CLAN_JOIN_ACCEPTED_2), pGuildMember->getName().c_str());
+                sprintf(msg, strings.c_str(STRID_CLAN_JOIN_ACCEPTED_2), pGuildMember->getName().c_str());
             else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS)
-                sprintf(msg, g_pStringPool->c_str(STRID_CLAN_JOIN_ACCEPTED_2), pGuildMember->getName().c_str());
+                sprintf(msg, strings.c_str(STRID_CLAN_JOIN_ACCEPTED_2), pGuildMember->getName().c_str());
         } else if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_WAIT) {
             if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)
-                sprintf(msg, g_pStringPool->c_str(STRID_TEAM_JOIN_TRY_2), pGuildMember->getName().c_str());
+                sprintf(msg, strings.c_str(STRID_TEAM_JOIN_TRY_2), pGuildMember->getName().c_str());
             else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE)
-                sprintf(msg, g_pStringPool->c_str(STRID_CLAN_JOIN_TRY_2), pGuildMember->getName().c_str());
+                sprintf(msg, strings.c_str(STRID_CLAN_JOIN_TRY_2), pGuildMember->getName().c_str());
             else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS)
-                sprintf(msg, g_pStringPool->c_str(STRID_CLAN_JOIN_TRY_2), pGuildMember->getName().c_str());
+                sprintf(msg, strings.c_str(STRID_CLAN_JOIN_TRY_2), pGuildMember->getName().c_str());
         }
 
         GCSystemMessage gcSystemMessage;

@@ -55,6 +55,7 @@ class ShopTemplateManager;
 class SkillDomainInfoManager;
 class SkillInfoManager;
 class SkillPropertyManager;
+class StringPool;
 class TelephoneCenter;
 class TimeChecker;
 class TimeManager;
@@ -123,6 +124,7 @@ private:
     SkillDomainInfoManager* m_pSkillDomainInfoManager = nullptr;
     SkillInfoManager* m_pSkillInfoManager = nullptr;
     SkillPropertyManager* m_pSkillPropertyManager = nullptr;
+    StringPool* m_pStringPool = nullptr;
     TelephoneCenter* m_pTelephoneCenter = nullptr;
     TimeChecker* m_pTimeChecker = nullptr;
     TimeManager* m_pTimeManager = nullptr;

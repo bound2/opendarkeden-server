@@ -94,7 +94,7 @@ void CGExpelGuildHandler::execute(CGExpelGuild* pPacket, Player* pPlayer)
         GuildRepository& guilds = defaultGuildRepository();
 
         defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, TargetGuildMaster,
-                                                     g_pStringPool->c_str(377));
+                                                     de::gameContext().strings().c_str(377));
 
         if (guilds.countUnionMembersSpelled(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
             guilds.deleteUnionInfoOnly(UNION_SQL_QUOTED, pUnion->getUnionID());

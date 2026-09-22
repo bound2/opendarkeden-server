@@ -47,7 +47,7 @@ uint WaitForMeet::waitPartner(PlayerCreature* pTargetPC) {
     GCSystemMessage gcSystemMessage;
 
     char msg[100];
-    sprintf(msg, g_pStringPool->c_str(STRID_REQUEST_MEET), pWaitingPC->getName().c_str());
+    sprintf(msg, de::gameContext().strings().c_str(STRID_REQUEST_MEET), pWaitingPC->getName().c_str());
     gcSystemMessage.setMessage(msg);
 
     pTargetPC->getPlayer()->sendPacket(&gcSystemMessage);

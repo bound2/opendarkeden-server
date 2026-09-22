@@ -49,9 +49,11 @@
 void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer) {
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
+        StringPool& strings = de::gameContext().strings();
+
 #ifdef __GAME_SERVER__
 
-        Assert(pPacket != NULL);
+    Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
     bool Success = false;
@@ -162,11 +164,11 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
                 // Once picked up, broadcast a system message to the zone
                 char race[15];
                 if (pCreature->isSlayer()) {
-                    sprintf(race, g_pStringPool->c_str(STRID_SLAYER));
+                    sprintf(race, strings.c_str(STRID_SLAYER));
                 } else if (pCreature->isVampire()) {
-                    sprintf(race, g_pStringPool->c_str(STRID_VAMPIRE));
+                    sprintf(race, strings.c_str(STRID_VAMPIRE));
                 } else if (pCreature->isOusters()) {
-                    sprintf(race, g_pStringPool->c_str(STRID_OUSTERS));
+                    sprintf(race, strings.c_str(STRID_OUSTERS));
                 } else {
                     Assert(false);
                 }
@@ -175,7 +177,7 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
                     de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_SWEEPER, pItem->getItemType()));
 
                 char msg[100];
-                sprintf(msg, g_pStringPool->c_str(STRID_PICK_UP_SWEEPER), pSweeperInfo->getName().c_str(),
+                sprintf(msg, strings.c_str(STRID_PICK_UP_SWEEPER), pSweeperInfo->getName().c_str(),
                         pCreature->getName().c_str(), race);
                 GCSystemMessage gcSystemMessage;
                 gcSystemMessage.setMessage(msg);

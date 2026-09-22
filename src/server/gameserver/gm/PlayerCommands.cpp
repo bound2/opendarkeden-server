@@ -358,14 +358,14 @@ void opfind(GamePlayer* pGamePlayer, string msg, int i) {
         string ServerName = groups.getGameServerGroupInfo(ServerID, WorldID)->getGroupName();
 
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_PLAYER_IN_GAMESERVER), Name.c_str(), ServerName.c_str());
+        sprintf(msg, de::gameContext().strings().c_str(STRID_PLAYER_IN_GAMESERVER), Name.c_str(), ServerName.c_str());
 
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(msg);
         pGamePlayer->sendPacket(&gcSystemMessage);
     } else {
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_PLAYER_NOT_IN_GAMESERVER), Name.c_str());
+        sprintf(msg, de::gameContext().strings().c_str(STRID_PLAYER_NOT_IN_GAMESERVER), Name.c_str());
 
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(msg);
@@ -426,7 +426,7 @@ void opuser(GamePlayer* pGamePlayer, string msg, int i) {
     }
 
     char msg[100];
-    sprintf(msg, g_pStringPool->c_str(STRID_CURRENT_NUMBER_OF_PLAYER), GroupCount);
+    sprintf(msg, de::gameContext().strings().c_str(STRID_CURRENT_NUMBER_OF_PLAYER), GroupCount);
 
     GCSystemMessage gcSystemMessage;
     gcSystemMessage.setMessage(msg);

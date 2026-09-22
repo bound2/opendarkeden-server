@@ -7,6 +7,7 @@
 #include "CombatInfoManager.h"
 
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "StringPool.h"
 #include "ZoneGroupManager.h"
 
@@ -45,6 +46,8 @@ void CombatInfoManager::initModify() {
 void CombatInfoManager::computeModify() {
     __BEGIN_TRY
 
+    StringPool& strings = de::gameContext().strings();
+
     m_SlayerHPModify = 0;
     m_SlayerToHitModify = 0;
     m_VampireHPModify = 0;
@@ -65,31 +68,31 @@ void CombatInfoManager::computeModify() {
     if (bSlayerBonus) {
         // m_SlayerHPModify = g_pVariableManager->getCombatSlayerHPBonusRatio();
         //		gcSystemMessage.setMessage("What bonus should the Slayers get?");
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_APPLICATE_COMBAT_SLAYER_BONUS));
+        gcSystemMessage.setMessage(strings.getString(STRID_APPLICATE_COMBAT_SLAYER_BONUS));
         bSendMessage = true;
     }
     // Vampire victory
     else if (bVampireBonus) {
         // m_VampireHPModify = g_pVariableManager->getCombatVampireHPBonusRatio();
         //		gcSystemMessage.setMessage("What bonus should the Vampires get?");
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_APPLICATE_COMBAT_VAMPIRE_BONUS));
+        gcSystemMessage.setMessage(strings.getString(STRID_APPLICATE_COMBAT_VAMPIRE_BONUS));
         bSendMessage = true;
     }
 
     else if (!bSlayerBonus && !bVampireBonus) {
         // Was being applied and no longer is.
         if (m_bSlayerBonus && m_bVampireBonus) {
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_MORE_COMBAT_BONUS));
+            gcSystemMessage.setMessage(strings.getString(STRID_NO_MORE_COMBAT_BONUS));
             bSendMessage = true;
         }
         // The Slayer bonus goes away.
         else if (m_bSlayerBonus) {
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_MORE_COMBAT_SLAYER_BONUS));
+            gcSystemMessage.setMessage(strings.getString(STRID_NO_MORE_COMBAT_SLAYER_BONUS));
             bSendMessage = true;
         }
         // The Vampire bonus goes away.
         else if (m_bVampireBonus) {
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_MORE_COMBAT_VAMPIRE_BONUS));
+            gcSystemMessage.setMessage(strings.getString(STRID_NO_MORE_COMBAT_VAMPIRE_BONUS));
             bSendMessage = true;
         }
     }

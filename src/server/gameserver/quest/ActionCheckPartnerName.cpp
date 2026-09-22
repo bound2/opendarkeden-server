@@ -55,9 +55,9 @@ void ActionCheckPartnerName::execute(Creature* pCreature1, Creature* pCreature2)
     string partnerName;
 
     if (!pPC->getFlagSet()->isOn(FLAGSET_IS_COUPLE) || !context().couples().getPartnerName(pPC, partnerName)) {
-        sprintf(buffer, "%s", g_pStringPool->getString(STRID_NOT_COUPLE).c_str());
+        sprintf(buffer, "%s", context().strings().getString(STRID_NOT_COUPLE).c_str());
     } else {
-        sprintf(buffer, g_pStringPool->getString(STRID_COUPLE_IS).c_str(), partnerName.c_str());
+        sprintf(buffer, context().strings().getString(STRID_COUPLE_IS).c_str(), partnerName.c_str());
     }
 
     GCSystemMessage gcSM;

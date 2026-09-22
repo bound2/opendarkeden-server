@@ -116,7 +116,7 @@ void CGTryJoinGuildHandler::execute(CGTryJoinGuild* pPacket, Player* pPlayer)
         // A full waiting list is the one refusal that also says why.
         if (rejection.reason == GUILD_JOIN_REJECT_WAIT_LIST_FULL) {
             GCSystemMessage msg;
-            msg.setMessage(g_pStringPool->getString(STRID_GUILD_WAIT_MEMBER_FULL));
+            msg.setMessage(de::gameContext().strings().getString(STRID_GUILD_WAIT_MEMBER_FULL));
             pPlayer->sendPacket(&msg);
         }
 

@@ -88,7 +88,8 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
 
         GuildRepository& guilds = defaultGuildRepository();
 
-        defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(375));
+        defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster,
+                                                     de::gameContext().strings().c_str(375));
 
         // What if I am the only one left after accepting the withdrawal?
         if (guilds.countUnionMembersSpelled(UNION_SQL_PLAIN, pUnion->getUnionID()) == 0) {

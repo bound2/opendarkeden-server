@@ -46,6 +46,8 @@ void EffectHasSlayerRelic::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
+    StringPool& strings = de::gameContext().strings();
+
     // Get the zone.
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
@@ -58,14 +60,14 @@ void EffectHasSlayerRelic::affect(Creature* pCreature)
 
     const char* race;
     if (pCreature->isSlayer()) {
-        race = g_pStringPool->c_str(STRID_SLAYER);
+        race = strings.c_str(STRID_SLAYER);
     } else if (pCreature->isVampire()) {
-        race = g_pStringPool->c_str(STRID_VAMPIRE);
+        race = strings.c_str(STRID_VAMPIRE);
     } else if (pCreature->isOusters()) {
-        race = g_pStringPool->c_str(STRID_OUSTERS);
+        race = strings.c_str(STRID_OUSTERS);
     }
 
-    sprintf(msg, g_pStringPool->c_str(STRID_HAVING_SLAYER_RELIC), pCreature->getName().c_str(), race,
+    sprintf(msg, strings.c_str(STRID_HAVING_SLAYER_RELIC), pCreature->getName().c_str(), race,
             //                ( pCreature->isSlayer() ? g_pStringPool->c_str( STRID_SLAYER ) : g_pStringPool->c_str(
             //                STRID_VAMPIRE ) ),
             (int)pCreature->getX(), (int)pCreature->getY());

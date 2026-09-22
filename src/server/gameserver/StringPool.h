@@ -413,6 +413,4 @@ private:
     StringHashMap m_Strings;
 };
 
-extern StringPool* g_pStringPool;
-
 #endif // __STRING_POOL_H__

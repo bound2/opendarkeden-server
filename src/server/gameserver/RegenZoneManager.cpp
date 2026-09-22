@@ -157,7 +157,7 @@ void RegenZoneManager::load() {
         Zone* pZone = getZoneByZoneID(ZoneID);
         Assert(pZone != NULL);
 
-        MonsterCorpse* pTower = new MonsterCorpse(673, g_pStringPool->getString(STRID_REGENZONE_TOWER), 2);
+        MonsterCorpse* pTower = new MonsterCorpse(673, de::gameContext().strings().getString(STRID_REGENZONE_TOWER), 2);
         Assert(pTower != NULL);
 
         pTower->setShrine(true);

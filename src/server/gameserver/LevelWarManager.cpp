@@ -383,7 +383,7 @@ void LevelWarManager::freeUserTimeCheck()
         GCSystemMessage gcSystemMessage;
         char msg[100];
 
-        sprintf(msg, g_pStringPool->c_str(STRID_LEVEL_WAR_ZONE_FREE_OPEN), m_Level, hour, hour + 1);
+        sprintf(msg, de::gameContext().strings().c_str(STRID_LEVEL_WAR_ZONE_FREE_OPEN), m_Level, hour, hour + 1);
 
         gcSystemMessage.setMessage(msg);
         de::gameContext().zoneGroups().broadcast(&gcSystemMessage);

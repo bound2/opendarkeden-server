@@ -139,6 +139,8 @@ bool Monster::isRealEnemy(Creature* pEnemy)
 Monster::Monster(MonsterType_t monsterType) : m_MonsterType(monsterType) {
     __BEGIN_TRY
 
+    StringPool& strings = de::gameContext().strings();
+
     try {
         const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType);
 
@@ -270,26 +272,26 @@ Monster::Monster(MonsterType_t monsterType) : m_MonsterType(monsterType) {
         switch (monsterType) {
         case 358:
         case 359:
-            m_Name = g_pStringPool->getString(STRID_EVENT_SANTA_NAME);
+            m_Name = strings.getString(STRID_EVENT_SANTA_NAME);
             break;
         case 360:
         case 361:
-            m_Name = g_pStringPool->getString(STRID_EVENT_WOLF_NAME);
+            m_Name = strings.getString(STRID_EVENT_WOLF_NAME);
             break;
         case 371:
         case 372:
-            m_Name = g_pStringPool->getString(STRID_SLAYER_RELIC_SHRINE);
+            m_Name = strings.getString(STRID_SLAYER_RELIC_SHRINE);
             break;
         case 374:
         case 375:
-            m_Name = g_pStringPool->getString(STRID_VAMPIRE_RELIC_SHRINE);
+            m_Name = strings.getString(STRID_VAMPIRE_RELIC_SHRINE);
             break;
         default:
             break;
         }
 
         if (monsterType >= 660 && monsterType <= 669)
-            m_Name = g_pStringPool->getString(STRID_ORE);
+            m_Name = strings.getString(STRID_ORE);
 
         // Set the clan type.
         // by sigi. 2002.10.8

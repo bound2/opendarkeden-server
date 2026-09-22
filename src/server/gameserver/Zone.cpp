@@ -1243,15 +1243,15 @@ void Zone::remainPayPlayer()
                 pEventTransport->setTargetZone(ZC.id, ZC.x, ZC.y);
                 pEventTransport->setZoneName(pZoneInfo->getFullName());
 
+                StringPool& strings = de::gameContext().strings();
                 char msg[100];
-
-                sprintf(msg, g_pStringPool->c_str(STRID_LEVEL_WAR_ZONE_FREE_CLOSE_1));
+                sprintf(msg, strings.c_str(STRID_LEVEL_WAR_ZONE_FREE_CLOSE_1));
 
                 GCSystemMessage gcSystemMessage;
                 gcSystemMessage.setMessage(msg);
                 pPlayer->sendPacket(&gcSystemMessage);
 
-                sprintf(msg, g_pStringPool->c_str(STRID_LEVEL_WAR_ZONE_FREE_CLOSE_2), pZoneInfo->getFullName().c_str());
+                sprintf(msg, strings.c_str(STRID_LEVEL_WAR_ZONE_FREE_CLOSE_2), pZoneInfo->getFullName().c_str());
 
                 gcSystemMessage.setMessage(msg);
                 pPlayer->sendPacket(&gcSystemMessage);

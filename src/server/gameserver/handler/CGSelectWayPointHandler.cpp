@@ -44,8 +44,10 @@
 void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer) {
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
+        StringPool& strings = de::gameContext().strings();
+
 #ifdef __GAME_SERVER__
-        Assert(pPacket != NULL);
+    Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
     static map<Level_t, Price_t> sPriceMap;
@@ -106,7 +108,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
         if (pPacket->getZoneID() == 1131) {
             if (de::gameContext().variables().getVariable(ACTIVE_LEVEL_WAR) == 0) {
                 GCSystemMessage gcSystemMessage;
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER));
+                gcSystemMessage.setMessage(strings.getString(STRID_CANNOT_ENTER));
                 pGamePlayer->sendPacket(&gcSystemMessage);
                 return;
             }
@@ -116,7 +118,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
 
             if (g_pSweeperBonusManager->isAble(g_pLevelWarZoneInfoManager->getCreatureZoneID(pCreature))) {
                 GCSystemMessage gcSystemMessage;
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_WAR_IN_ACTIVE));
+                gcSystemMessage.setMessage(strings.getString(STRID_NO_WAR_IN_ACTIVE));
                 pGamePlayer->sendPacket(&gcSystemMessage);
                 return;
             }
@@ -140,7 +142,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
         if (pPacket->getZoneID() == 72) {
             if (!de::gameContext().warSystem().hasActiveRaceWar()) {
                 GCSystemMessage gcSystemMessage;
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_WAR_IN_ACTIVE));
+                gcSystemMessage.setMessage(strings.getString(STRID_NO_WAR_IN_ACTIVE));
                 pGamePlayer->sendPacket(&gcSystemMessage);
 
                 return;
@@ -169,7 +171,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
                 return;
             } else {
                 GCSystemMessage gcSystemMessage;
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER_DURING_RACE_WAR));
+                gcSystemMessage.setMessage(strings.getString(STRID_CANNOT_ENTER_DURING_RACE_WAR));
                 pGamePlayer->sendPacket(&gcSystemMessage);
                 return;
             }

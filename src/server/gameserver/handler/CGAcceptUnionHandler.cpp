@@ -88,7 +88,8 @@ void CGAcceptUnionHandler::execute(CGAcceptUnion* pPacket, Player* pPlayer)
         string TargetGuildMaster = pGuild->getMaster();
 
 
-        defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED, TargetGuildMaster, g_pStringPool->c_str(373));
+        defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED, TargetGuildMaster,
+                                                     de::gameContext().strings().c_str(373));
 
 
         // The new union master must be sent the union id and UNION_MASTER,

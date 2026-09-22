@@ -10,6 +10,7 @@
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
 #include "GCUpdateInfo.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "PCSlayerInfo2.h"
@@ -87,7 +88,7 @@ void ActionWarpToNoviceZone::execute(Creature* pNPC, Creature* pCreature)
         Y = m_BeginnerY;
     } else {
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NOT_BEGINNER));
+        gcSystemMessage.setMessage(context().strings().getString(STRID_NOT_BEGINNER));
         pGamePlayer->sendPacket(&gcSystemMessage);
 
         bTransport = false;

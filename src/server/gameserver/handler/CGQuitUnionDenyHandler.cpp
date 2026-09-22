@@ -12,6 +12,7 @@
 #include "DB.h"
 #include "GCGuildResponse.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -79,7 +80,8 @@ void CGQuitUnionDenyHandler::execute(CGQuitUnionDeny* pPacket, Player* pPlayer)
     string TargetGuildMaster = pGuild->getMaster();
 
 
-    defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(376));
+    defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster,
+                                                 de::gameContext().strings().c_str(376));
 
 #endif // __GAME_SERVER__
 

@@ -54,6 +54,7 @@ namespace de::gm {
 void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
     __BEGIN_TRY
 
+    StringPool& strings = de::gameContext().strings();
     CombatInfoManager& combatInfo = de::gameContext().combatInfo();
     ZoneGroupManager& zoneGroups = de::gameContext().zoneGroups();
 
@@ -70,7 +71,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
 
     // Blocked for now
     {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_DO_NOT_SUPPORT_OLD_WAR));
+        gcSystemMessage.setMessage(strings.getString(STRID_DO_NOT_SUPPORT_OLD_WAR));
         pGamePlayer->sendPacket(&gcSystemMessage);
 
         return;
@@ -87,13 +88,13 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
         if (combatInfo.isCombat() || combatInfo.isSlayerBonus() || combatInfo.isVampireBonus()) {
             cout << "�̹� �������Դϴ�" << endl;
             //			message << "it has already started";
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_COMBAT_ALEADY_START));
+            gcSystemMessage.setMessage(strings.getString(STRID_COMBAT_ALEADY_START));
 
             pGamePlayer->sendPacket(&gcSystemMessage);
         } else {
             cout << "������ ���۵Ǿ����ϴ�" << endl;
             //			message << "the combat has started";
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_COMBAT_START));
+            gcSystemMessage.setMessage(strings.getString(STRID_COMBAT_START));
 
             zoneGroups.broadcast(&gcSystemMessage);
 
@@ -132,7 +133,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
 
         {
             cout << "������ �����մϴ�." << endl;
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_COMBAT_END));
+            gcSystemMessage.setMessage(strings.getString(STRID_COMBAT_END));
             zoneGroups.broadcast(&gcSystemMessage);
 
             // by sigi. 2002.7.5
@@ -168,7 +169,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
             combatInfo.setCombat(false);
         } else {
             cout << "�������� �ƴϰų� ������ �� �����ϴ�." << endl;
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_END_COMBAT));
+            gcSystemMessage.setMessage(strings.getString(STRID_CANNOT_END_COMBAT));
 
             pGamePlayer->sendPacket(&gcSystemMessage);
         }
@@ -182,6 +183,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
 void opset(GamePlayer* pGamePlayer, string msg, int i) {
     __BEGIN_TRY
 
+    StringPool& strings = de::gameContext().strings();
     VariableManager& variables = de::gameContext().variables();
 
     // [!!!] When this is handled through a GGCommand,
@@ -208,7 +210,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
     if (set_type == "star") {
         variables.setStar(atoi(set_value.c_str()));
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_STAR_RATIO), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_STAR_RATIO), set_value.c_str());
         //	    message << "the star rate was set to 1/" << set_value << ".";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -218,14 +220,14 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
         if (set_value == "start") {
             variables.setEventActivate(1);
             //	    	message << "the event has started";
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_EVENT_START));
+            gcSystemMessage.setMessage(strings.getString(STRID_EVENT_START));
             filelog("change.txt", "[%s]%s",
                     (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
                     gcSystemMessage.toString().c_str());
         } else {
             variables.setEventActivate(0);
             //	    	message << "the event has ended";
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_EVENT_END));
+            gcSystemMessage.setMessage(strings.getString(STRID_EVENT_END));
             filelog("change.txt", "[%s]%s",
                     (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
                     gcSystemMessage.toString().c_str());
@@ -233,7 +235,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
     } else if (set_type == "event_ratio") {
         variables.setEventRatio(atoi(set_value.c_str()));
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_EVENT_MONSTER_RATIO), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_EVENT_MONSTER_RATIO), set_value.c_str());
         //	    message << "the event monster rate was set to 1/" << set_value << ".";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -246,7 +248,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setExpRatio(value);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_EXP_RATIO), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_EXP_RATIO), set_value.c_str());
         //	    message << "the experience gain rate was set to " << set_value << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -259,7 +261,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setItemProbRatio(value);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_ITEM_PROBE_RATIO), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_ITEM_PROBE_RATIO), set_value.c_str());
         //	    message << "the item drop rate was set to " << set_value << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -272,7 +274,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setCombatBonusTime(bonusTime);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_COMBAT_BONUS_TIME), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_COMBAT_BONUS_TIME), set_value.c_str());
         //	    message << "the combat victory bonus time was set to " << set_value << " minutes.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -285,7 +287,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setCombatSlayerHPBonusRatio(bonus);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_COMBAT_SLAYER_BONUS_HP), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_COMBAT_SLAYER_BONUS_HP), set_value.c_str());
         //	    message << "the war HP bonus was set to +" << set_value << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -298,7 +300,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setCombatVampireHPBonusRatio(bonus);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_COMBAT_VAMPIRE_BONUS_HP), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_COMBAT_VAMPIRE_BONUS_HP), set_value.c_str());
         //	    message << "the war HP bonus was set to +" << set_value << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -311,7 +313,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setCombatSlayerDamageBonus(bonus);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_COMBAT_SLAYER_BONUS_DAMAGE), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_COMBAT_SLAYER_BONUS_DAMAGE), set_value.c_str());
         //	    message << "the war damage bonus was set to +" << set_value << ".";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -324,7 +326,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setCombatVampireDamageBonus(bonus);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_COMBAT_VAMPIRE_BONUS_DAMAGE), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_COMBAT_VAMPIRE_BONUS_DAMAGE), set_value.c_str());
         //	    message << "the war damage bonus was set to +" << set_value << ".";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -337,7 +339,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setPremiumExpBonusPercent(bonus);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_PREMIUM_EXP_RATIO), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_PREMIUM_EXP_RATIO), set_value.c_str());
         //	    message << "the premium experience bonus was set to " << set_value << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -350,7 +352,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setPremiumItemProbePercent(bonus);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_PREMIUM_ITEM_PROBE_RATIO), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_PREMIUM_ITEM_PROBE_RATIO), set_value.c_str());
         //	    message << "the premium item drop rate was set to " << set_value << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -364,7 +366,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
         variables.setZoneGroupBalancingMinute(minute);
         de::gameContext().clients().setBalanceZoneGroup(minute);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_ZONE_GROUP_BALANCING_TIME), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_ZONE_GROUP_BALANCING_TIME), set_value.c_str());
         //	    message << "the ZoneGroupBalancing period was set to " << set_value << " minutes.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -377,7 +379,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setGambleItemTypeRatio(ratio);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_GAMBLE_ITEM_TYPE_RATIO), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_GAMBLE_ITEM_TYPE_RATIO), set_value.c_str());
         //	    message << "the gamble ItemType rate was set to " << set_value << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -390,7 +392,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setGambleItemOptionRatio(ratio);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_GAMBLE_ITEM_OPTION_RATIO), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_GAMBLE_ITEM_OPTION_RATIO), set_value.c_str());
         //	    message << "the gamble ItemOption rate was set to " << set_value << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -400,7 +402,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
         if (set_value == "on") {
             variables.setSummonMotorcycle(true);
             char msg[100];
-            sprintf(msg, g_pStringPool->c_str(STRID_SET_SUMMON_MOTORCYCLE), "ON");
+            sprintf(msg, strings.c_str(STRID_SET_SUMMON_MOTORCYCLE), "ON");
             //			message << "motorcycle summoning is now ON.";
             gcSystemMessage.setMessage(msg);
             filelog("change.txt", "[%s]%s",
@@ -409,7 +411,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
         } else if (set_value == "off") {
             variables.setSummonMotorcycle(false);
             char msg[100];
-            sprintf(msg, g_pStringPool->c_str(STRID_SET_SUMMON_MOTORCYCLE), "OFF");
+            sprintf(msg, strings.c_str(STRID_SET_SUMMON_MOTORCYCLE), "OFF");
             //			message << "motorcycle summoning is now OFF.";
             gcSystemMessage.setMessage(msg);
             filelog("change.txt", "[%s]%s",
@@ -423,7 +425,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setEnemyLimitTime(enemy_limit_time);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_MONSTER_FORGET_TIME), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_MONSTER_FORGET_TIME), set_value.c_str());
         //	    message << "the monster forget time was set to " << set_value << " seconds.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -436,7 +438,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setRareItemRatio(ratio);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_RARE_ITEM_RATIO), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_RARE_ITEM_RATIO), set_value.c_str());
         //		message << "the rare item drop rate was set to " << set_value << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -449,7 +451,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setUniqueItemRatio(ratio);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_UNIQUE_ITEM_RATIO), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_UNIQUE_ITEM_RATIO), set_value.c_str());
         //		message << "the unique item drop rate was set to " << set_value << "/10000.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -467,7 +469,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
         if (set_value == "on") {
             variables.setActiveMasterLair(true);
             char msg[100];
-            sprintf(msg, g_pStringPool->c_str(STRID_SET_MASTER_LAIR_ACTIVATE), "ON");
+            sprintf(msg, strings.c_str(STRID_SET_MASTER_LAIR_ACTIVATE), "ON");
             //			message << "the master lair event is now ON.";
             gcSystemMessage.setMessage(msg);
             filelog("change.txt", "[%s]%s",
@@ -480,7 +482,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
         } else if (set_value == "off") {
             variables.setActiveMasterLair(false);
             char msg[100];
-            sprintf(msg, g_pStringPool->c_str(STRID_SET_MASTER_LAIR_ACTIVATE), "OFF");
+            sprintf(msg, strings.c_str(STRID_SET_MASTER_LAIR_ACTIVATE), "OFF");
             //			message << "the master lair event is now OFF.";
             gcSystemMessage.setMessage(msg);
             filelog("change.txt", "[%s]%s",
@@ -495,7 +497,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
         if (set_value == "on") {
             variables.setRetryMasterLair(true);
             char msg[100];
-            sprintf(msg, g_pStringPool->c_str(STRID_SET_RETRY_MASTER_LAIR), "ON");
+            sprintf(msg, strings.c_str(STRID_SET_RETRY_MASTER_LAIR), "ON");
             //			message << "retrying the master lair after dying in it is now ON
             // .";
             gcSystemMessage.setMessage(msg);
@@ -505,7 +507,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
         } else if (set_value == "off") {
             variables.setRetryMasterLair(false);
             char msg[100];
-            sprintf(msg, g_pStringPool->c_str(STRID_SET_RETRY_MASTER_LAIR), "OFF");
+            sprintf(msg, strings.c_str(STRID_SET_RETRY_MASTER_LAIR), "OFF");
             //			message << "retrying the master lair after dying in it is now OFF
             // .";
             gcSystemMessage.setMessage(msg);
@@ -522,7 +524,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setHarvestFestivalItemRatio(ratio);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_HARVEST_FESTIVAL_ITEM_RATIO), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_HARVEST_FESTIVAL_ITEM_RATIO), set_value.c_str());
         //		message << "the harvest festival item drop rate was set to 1/" << ratio << "
         // .";
         gcSystemMessage.setMessage(msg);
@@ -536,7 +538,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setMasterBloodDrainStartHP(percent);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_MASTER_BLOOD_DRAIN_START_HP), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_MASTER_BLOOD_DRAIN_START_HP), set_value.c_str());
         //		message << "the master's blood drain start HP is now " << percent << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -549,7 +551,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setMasterBloodDrainStartBD(percent);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_MASTER_BLOOD_DRAIN_START_BD), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_MASTER_BLOOD_DRAIN_START_BD), set_value.c_str());
         //		message << "the master's blood drain start rate is now " << percent << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -562,7 +564,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setMasterBloodDrainEndHP(percent);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_MASTER_BLOOD_DRAIN_END_HP), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_MASTER_BLOOD_DRAIN_END_HP), set_value.c_str());
         //		message << "the master's blood drain end HP is now " << percent << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -575,7 +577,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setMasterBloodDrainEndBD(percent);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_MASTER_BLOOD_DRAIN_END_BD), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_MASTER_BLOOD_DRAIN_END_BD), set_value.c_str());
         //		message << "the master's blood drain end rate is now " << percent << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -585,7 +587,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
         if (set_value == "on") {
             variables.setActiveChiefMonster(true);
             char msg[100];
-            sprintf(msg, g_pStringPool->c_str(STRID_SET_CHIEF_MONSTER), "ON");
+            sprintf(msg, strings.c_str(STRID_SET_CHIEF_MONSTER), "ON");
             //			message << "the chief monster feature is now ON.";
             gcSystemMessage.setMessage(msg);
             filelog("change.txt", "[%s]%s",
@@ -594,7 +596,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
         } else if (set_value == "off") {
             variables.setActiveChiefMonster(false);
             char msg[100];
-            sprintf(msg, g_pStringPool->c_str(STRID_SET_CHIEF_MONSTER), "OFF");
+            sprintf(msg, strings.c_str(STRID_SET_CHIEF_MONSTER), "OFF");
             //			message << "the chief monster feature is now OFF.";
             gcSystemMessage.setMessage(msg);
             filelog("change.txt", "[%s]%s",
@@ -608,7 +610,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
 
         variables.setChiefMonsterRareItemPercent(ratio);
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_SET_CHIEF_MONSTER_RARE_ITEM_RATIO), set_value.c_str());
+        sprintf(msg, strings.c_str(STRID_SET_CHIEF_MONSTER_RARE_ITEM_RATIO), set_value.c_str());
         //		message << "the chief monster rare item drop rate was set to " << set_value << "%.";
         gcSystemMessage.setMessage(msg);
         filelog("change.txt", "[%s]%s",
@@ -618,7 +620,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
         if (set_value == "on") {
             variables.setNewbieTransportToGuild(true);
             char msg[100];
-            sprintf(msg, g_pStringPool->c_str(STRID_SET_NEWBIE_TRANSPORT_TO_GUILD), "ON");
+            sprintf(msg, strings.c_str(STRID_SET_NEWBIE_TRANSPORT_TO_GUILD), "ON");
             //			message << "moving a level 40 character to its guild is now ON.";
             gcSystemMessage.setMessage(msg);
             filelog("change.txt", "[%s]%s",
@@ -627,7 +629,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
         } else if (set_value == "off") {
             variables.setNewbieTransportToGuild(false);
             char msg[100];
-            sprintf(msg, g_pStringPool->c_str(STRID_SET_NEWBIE_TRANSPORT_TO_GUILD), "OFF");
+            sprintf(msg, strings.c_str(STRID_SET_NEWBIE_TRANSPORT_TO_GUILD), "OFF");
             //			message << "moving a level 40 character to its guild is now OFF.";
             gcSystemMessage.setMessage(msg);
             filelog("change.txt", "[%s]%s",
@@ -677,7 +679,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
                 int Tax = atoi(set_value.c_str());
                 de::gameContext().castleInfos().setItemTaxRatio(pZone, Tax);
             } else {
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WRONG_ITEM_TAX_RATIO));
+                gcSystemMessage.setMessage(strings.getString(STRID_WRONG_ITEM_TAX_RATIO));
             }
         }
     }
@@ -721,7 +723,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
                 de::gameContext().zoneGroups().broadcast(&gcNoticeEvent);
             }
         } else {
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WRONG_VARIABLE_NAME));
+            gcSystemMessage.setMessage(strings.getString(STRID_WRONG_VARIABLE_NAME));
         }
     }
 
@@ -859,7 +861,7 @@ void opview(GamePlayer* pGamePlayer, string msg, int i) {
             const string& msg = variables.toString(vt);
             gcSystemMessage.setMessage(msg);
         } else {
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WRONG_VARIABLE_NAME));
+            gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_WRONG_VARIABLE_NAME));
         }
     }
 
@@ -873,6 +875,8 @@ void opview(GamePlayer* pGamePlayer, string msg, int i) {
 //////////////////////////////////////////////////////////////////////////////
 void opload(GamePlayer* pGamePlayer, string msg, int i) {
     __BEGIN_TRY
+
+    StringPool& strings = de::gameContext().strings();
 
     GCSystemMessage gcSystemMessage;
     StringStream message;
@@ -899,7 +903,7 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
 
     if (load_type == "master_lair_info") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::MASTER_LAIR_INFO);
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_MASTER_LAIR_INFO));
+        gcSystemMessage.setMessage(strings.getString(STRID_LOAD_MASTER_LAIR_INFO));
         filelog("change.txt", "[%s]%s",
                 (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
                 gcSystemMessage.toString().c_str());
@@ -918,12 +922,12 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
             pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::MONSTER_INFO, SpriteType);
 
             if (SpriteType != 0) {
-                sprintf(msg, g_pStringPool->c_str(STRID_LOAD_MONSTER_INFO), load_value.c_str());
+                sprintf(msg, strings.c_str(STRID_LOAD_MONSTER_INFO), load_value.c_str());
             } else {
-                sprintf(msg, g_pStringPool->c_str(STRID_LOAD_ALL_MONSTER_INFO));
+                sprintf(msg, strings.c_str(STRID_LOAD_ALL_MONSTER_INFO));
             }
         } else {
-            sprintf(msg, g_pStringPool->c_str(STRID_LOAD_WRONG_MONSTER_INFO), load_value.c_str());
+            sprintf(msg, strings.c_str(STRID_LOAD_WRONG_MONSTER_INFO), load_value.c_str());
         }
 
         gcSystemMessage.setMessage(msg);
@@ -932,13 +936,13 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
                 gcSystemMessage.toString().c_str());
     } else if (load_type == "monster_ai") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::MONSTER_AI);
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_DIRECTIVESET));
+        gcSystemMessage.setMessage(strings.getString(STRID_LOAD_DIRECTIVESET));
         filelog("change.txt", "[%s]%s",
                 (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
                 gcSystemMessage.toString().c_str());
     } else if (load_type == "zone_info") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::ZONE_INFO);
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_ZONE));
+        gcSystemMessage.setMessage(strings.getString(STRID_LOAD_ZONE));
         filelog("change.txt", "[%s]%s",
                 (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
                 gcSystemMessage.toString().c_str());
@@ -947,13 +951,13 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
 
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::ZONE, zoneID);
 
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_ZONE));
+        gcSystemMessage.setMessage(strings.getString(STRID_LOAD_ZONE));
         filelog("change.txt", "[%s]%s",
                 (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
                 gcSystemMessage.toString().c_str());
     } else if (load_type == "log_user") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::LOG_USER_INFO);
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_LOG_USER));
+        gcSystemMessage.setMessage(strings.getString(STRID_LOAD_LOG_USER));
         filelog("change.txt", "[%s]%s",
                 (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
                 gcSystemMessage.toString().c_str());
@@ -975,14 +979,14 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
 
 
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_LOAD_ITEM_INFO), load_value.c_str());
+        sprintf(msg, strings.c_str(STRID_LOAD_ITEM_INFO), load_value.c_str());
         gcSystemMessage.setMessage(msg);
     } else if (load_type == "option_info") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::OPTION_INFO);
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_OPTION_INFO));
+        gcSystemMessage.setMessage(strings.getString(STRID_LOAD_OPTION_INFO));
     } else if (load_type == "rank_bonus_info") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::RANK_BONUS_INFO);
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_RANK_BONUS_INFO));
+        gcSystemMessage.setMessage(strings.getString(STRID_LOAD_RANK_BONUS_INFO));
     } else if (load_type == "string_pool") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::STRING_POOL);
         gcSystemMessage.setMessage("reload StringPool");
@@ -1005,26 +1009,26 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::WAR_SCHEDULE_INFO, zoneID);
 
         StringStream msg;
-        msg << g_pStringPool->getString(STRID_LOAD_WAR_SCHEDULE_INFO);
+        msg << strings.getString(STRID_LOAD_WAR_SCHEDULE_INFO);
 
         if (!de::gameContext().variables().isWarActive()) {
-            msg << g_pStringPool->getString(STRID_WAR_OFF);
+            msg << strings.getString(STRID_WAR_OFF);
         }
 
         gcSystemMessage.setMessage(msg.toString().c_str());
     } else if (load_type == "blood_bible_owner") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::BLOOD_BIBLE_OWNER);
 
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_BLOOD_BIBLE_OWNER_INFO));
+        gcSystemMessage.setMessage(strings.getString(STRID_LOAD_BLOOD_BIBLE_OWNER_INFO));
     } else if (load_type == "sweeper_owner") {
         int level = atoi(load_value.c_str());
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::SWEEPER_OWNER, level);
 
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_BLOOD_BIBLE_OWNER_INFO));
+        gcSystemMessage.setMessage(strings.getString(STRID_LOAD_BLOOD_BIBLE_OWNER_INFO));
     } else if (load_type == "race_war_pc_limit") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::RACE_WAR_PC_LIMIT);
 
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_RACE_WAR_PC_LIMIT_INFO));
+        gcSystemMessage.setMessage(strings.getString(STRID_LOAD_RACE_WAR_PC_LIMIT_INFO));
     } else if (load_type == "npc") {
         ZoneID_t zoneID = (ZoneID_t)(atoi(load_value.c_str()));
         Zone* pZone = getZoneByZoneID(zoneID);
@@ -1038,9 +1042,9 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
     } else if (load_type == "goods_list_info") {
         pEvent = new EventReloadInfo(pGamePlayer, EventReloadInfo::GOODS_LIST_INFO);
 
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_GOODS_LIST_INFO));
+        gcSystemMessage.setMessage(strings.getString(STRID_LOAD_GOODS_LIST_INFO));
     } else {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WRONG_VARIABLE_NAME));
+        gcSystemMessage.setMessage(strings.getString(STRID_WRONG_VARIABLE_NAME));
     }
 
     if (pEvent != NULL) {
@@ -1062,7 +1066,7 @@ void opsave(GamePlayer* pGamePlayer, string msg, int i) {
 
         GCSystemMessage gcSystemMessage;
 
-    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_SAVE_YOUR_DATA));
+    gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_SAVE_YOUR_DATA));
 
     // A SQL failure arrives as END_DB's DatabaseError, which __END_DEBUG_EX
     // below does not match, so it is swallowed here (the text is in

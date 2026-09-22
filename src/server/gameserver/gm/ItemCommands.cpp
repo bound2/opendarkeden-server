@@ -80,7 +80,7 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
         || ItemClass == Item::ITEM_CLASS_MOTORCYCLE || isRelicItem(ItemClass) && optional != "force") {
         // Creating an item is blocked
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_CREATE_ITEM));
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_CANNOT_CREATE_ITEM));
 
         pGamePlayer->sendPacket(&gcSystemMessage);
 
@@ -128,8 +128,8 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
     // Return when it is not an item that can really be created.
     if (!de::gameContext().itemInfos().isPossibleItem(ItemClass, ItemType, optionTypes)) {
         StringStream msg;
-        msg << g_pStringPool->getString(STRID_CANNOT_CREATE_ITEM_2) << ItemClass2ShortString[ItemClass] << ", "
-            << (int)ItemType << ", " << getOptionTypeToString(optionTypes);
+        msg << de::gameContext().strings().getString(STRID_CANNOT_CREATE_ITEM_2) << ItemClass2ShortString[ItemClass]
+            << ", " << (int)ItemType << ", " << getOptionTypeToString(optionTypes);
 
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(msg.toString().c_str());

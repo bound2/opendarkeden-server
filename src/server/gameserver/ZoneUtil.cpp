@@ -2283,6 +2283,8 @@ void getNewbieTransportZoneInfo(Slayer* pSlayer, ZONE_COORD& zoneInfo) {
 
 
 void checkNewbieTransportToGuild(Slayer* pSlayer) {
+    StringPool& strings = de::gameContext().strings();
+
     try {
         if (pSlayer->isPLAYER() && de::gameContext().variables().isNewbieTransportToGuild()) {
             // If the attribute sum is 40 and the zone is the field headquarters, send the player elsewhere.
@@ -2298,7 +2300,7 @@ void checkNewbieTransportToGuild(Slayer* pSlayer) {
 
                 if (BasicSUM >= 39) {
                     GCSystemMessage gcSystemMessage;
-                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NEWBIE_TRANSPORT_TO_GUILD));
+                    gcSystemMessage.setMessage(strings.getString(STRID_NEWBIE_TRANSPORT_TO_GUILD));
                     pSlayer->getPlayer()->sendPacket(&gcSystemMessage);
                 }
 
@@ -2319,17 +2321,17 @@ void checkNewbieTransportToGuild(Slayer* pSlayer) {
                         case SKILL_DOMAIN_HEAL:
                         case SKILL_DOMAIN_ENCHANT:
                             ZoneID = 2010;
-                            ZoneName = g_pStringPool->getString(STRID_CLERIC_GUILD);
+                            ZoneName = strings.getString(STRID_CLERIC_GUILD);
                             break;
 
                         case SKILL_DOMAIN_GUN:
                             ZoneID = 2000;
-                            ZoneName = g_pStringPool->getString(STRID_SOLDIER_GUILD);
+                            ZoneName = strings.getString(STRID_SOLDIER_GUILD);
                             break;
 
                         default:
                             ZoneID = 2020;
-                            ZoneName = g_pStringPool->getString(STRID_KNIGHT_GUILD);
+                            ZoneName = strings.getString(STRID_KNIGHT_GUILD);
                             break;
                         }
 
