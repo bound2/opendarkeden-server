@@ -173,6 +173,11 @@ MasterLairInfoManager& GameContext::masterLairInfos() const {
     return *m_pMasterLairInfoManager;
 }
 
+MonsterInfoManager& GameContext::monsterInfos() const {
+    Assert(m_pMonsterInfoManager != nullptr);
+    return *m_pMonsterInfoManager;
+}
+
 MonsterNameManager& GameContext::monsterNames() const {
     Assert(m_pMonsterNameManager != nullptr);
     return *m_pMonsterNameManager;

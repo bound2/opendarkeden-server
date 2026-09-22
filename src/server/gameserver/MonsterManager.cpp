@@ -203,7 +203,7 @@ void MonsterManager::parseMonsterList(const string& text, bool bReload)
         Assert(maxMonsters > 0);
 
         // Get the monster sprite type from the monster info.
-        const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(monsterType);
+        const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(monsterType);
         SpriteType_t spriteType = pMonsterInfo->getSpriteType();
 
         // Check whether it already exists.
@@ -666,7 +666,7 @@ void MonsterManager::regenerateCreatures()
             SpriteType_t SpriteType = itr->first;
             MonsterType_t monsterType = 0;
 
-            vector<MonsterType_t> RegenVector = g_pMonsterInfoManager->getMonsterTypeBySprite(SpriteType);
+            vector<MonsterType_t> RegenVector = de::gameContext().monsterInfos().getMonsterTypeBySprite(SpriteType);
             Assert(RegenVector.size() > 0);
 
             monsterType = RegenVector[rand() % RegenVector.size()];
@@ -744,7 +744,7 @@ bool MonsterManager::findPosition(MonsterType_t monsterType, ZoneCoord_t& RX, Zo
 {
     __BEGIN_TRY
 
-    const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(monsterType);
+    const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(monsterType);
 
     int count = 0;
 
@@ -1104,7 +1104,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
         return;
 
     MonsterType_t MonsterType = pDeadMonster->getMonsterType();
-    const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(MonsterType);
+    const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(MonsterType);
     TreasureList* pTreasureList = NULL;
 
     //----------------------------------------------------------------------

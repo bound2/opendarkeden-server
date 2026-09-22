@@ -703,7 +703,7 @@ void GDRLairGDRFight::start() {
     __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
 
     pGDR->removeFlag(Effect::EFFECT_CLASS_NO_DAMAGE);
-    const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(pGDR->getMonsterType());
+    const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(pGDR->getMonsterType());
 
     uint aitype = pMonsterInfo->getAIType();
     MonsterAI* pBrain = new MonsterAI(pGDR, aitype);
@@ -826,7 +826,7 @@ void GDRLairAwakenedGDRFight::start() {
     __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
 
     pGDR->removeFlag(Effect::EFFECT_CLASS_NO_DAMAGE);
-    const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(pGDR->getMonsterType());
+    const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(pGDR->getMonsterType());
 
     uint aitype = pMonsterInfo->getAIType();
     MonsterAI* pBrain = new MonsterAI(pGDR, aitype);

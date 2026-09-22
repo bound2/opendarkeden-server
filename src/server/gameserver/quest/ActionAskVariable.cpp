@@ -606,7 +606,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
             //			vector<MonsterType_t> mList = g_pMonsterInfoManager->getMonsterTypeBySprite(
             // pPC->getTargetMonsterSType() ); 			if ( !mList.empty() )
             //			{
-            const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(pPC->getTargetMonsterSType());
+            const MonsterInfo* pMonsterInfo = context().monsterInfos().getMonsterInfo(pPC->getTargetMonsterSType());
             Assert(pMonsterInfo != NULL);
 
             pParam->setValue(pMonsterInfo->getHName());

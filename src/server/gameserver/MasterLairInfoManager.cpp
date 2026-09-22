@@ -266,7 +266,7 @@ void MasterLairInfoManager::load()
         // Sanity check: the master's monster info must exist and be a master.
         try {
             const MonsterInfo* pMonsterInfo =
-                g_pMonsterInfoManager->getMonsterInfo(pMasterLairInfo->getMasterMonsterType());
+                de::gameContext().monsterInfos().getMonsterInfo(pMasterLairInfo->getMasterMonsterType());
 
             if (pMonsterInfo == NULL) // for later. -_-;
             {
@@ -341,7 +341,7 @@ void MasterLairInfoManager::reload()
             // Sanity check: the master's monster info must exist and be a master.
             try {
                 const MonsterInfo* pMonsterInfo =
-                    g_pMonsterInfoManager->getMonsterInfo(pMasterLairInfo->getMasterMonsterType());
+                    de::gameContext().monsterInfos().getMonsterInfo(pMasterLairInfo->getMasterMonsterType());
 
                 if (pMonsterInfo == NULL) // for later. -_-;
                 {

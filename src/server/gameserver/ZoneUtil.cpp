@@ -2125,7 +2125,7 @@ void addMonstersToZone(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, SpriteType_t S
 
 
         if (SType != 0) {
-            const vector<MonsterType_t>& monsterTypes = g_pMonsterInfoManager->getMonsterTypeBySprite(SType);
+            const vector<MonsterType_t>& monsterTypes = de::gameContext().monsterInfos().getMonsterTypeBySprite(SType);
 
             if (!monsterTypes.empty()) {
                 // Create num monsters.
@@ -2170,7 +2170,7 @@ void addMonstersToZone(Zone* pZone, const SUMMON_INFO2& summonInfo, list<Monster
 
             if (monsterInfo.SpriteType != 0) {
                 const vector<MonsterType_t>& monsterTypes =
-                    g_pMonsterInfoManager->getMonsterTypeBySprite(monsterInfo.SpriteType);
+                    de::gameContext().monsterInfos().getMonsterTypeBySprite(monsterInfo.SpriteType);
 
                 if (!monsterTypes.empty()) {
                     // Create Num monsters.

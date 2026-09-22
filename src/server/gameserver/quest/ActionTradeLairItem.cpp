@@ -294,7 +294,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
         // The reward is rolled from the monster's treasure list: every treasure
         // in the list is rolled in turn and the last one that yields an item wins.
         //////////////////////////////////////////////////////////////////////////////
-        const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(MonsterType);
+        const MonsterInfo* pMonsterInfo = context().monsterInfos().getMonsterInfo(MonsterType);
         TreasureList* pTreasureList = NULL;
 
         // The item given differs by race as well.

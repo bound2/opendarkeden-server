@@ -60,18 +60,19 @@ void EventReloadInfo::activate()
         break;
 
     case MONSTER_INFO: {
+        MonsterInfoManager& monsterInfos = de::gameContext().monsterInfos();
         // m_InfoValue is the SpriteType of the Monster to load.
         if (m_InfoValue == 0) {
             // Load them all.
-            g_pMonsterInfoManager->reload(0);
+            monsterInfos.reload(0);
         } else {
             // Find the monsters tied to this SpriteType.
-            const vector<MonsterType_t>& monsters = g_pMonsterInfoManager->getMonsterTypeBySprite(m_InfoValue);
+            const vector<MonsterType_t>& monsters = monsterInfos.getMonsterTypeBySprite(m_InfoValue);
 
             vector<MonsterType_t>::const_iterator itr = monsters.begin();
 
             for (; itr != monsters.end(); itr++) {
-                g_pMonsterInfoManager->reload(*itr);
+                monsterInfos.reload(*itr);
             }
         }
     } break;

@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[53];
+char g_managerStorage[54];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -94,14 +94,17 @@ TEST(GameContextTest, WorldTableManagersAreReadBack) {
     de::GameContext context;
 
     DynamicZoneFactoryManager* pDynamicZoneFactoryManager = standIn<DynamicZoneFactoryManager>(12);
+    MonsterInfoManager* pMonsterInfoManager = standIn<MonsterInfoManager>(53);
     MonsterNameManager* pMonsterNameManager = standIn<MonsterNameManager>(13);
     WeatherInfoManager* pWeatherInfoManager = standIn<WeatherInfoManager>(14);
 
     context.setDynamicZoneFactoryManager(pDynamicZoneFactoryManager);
+    context.setMonsterInfoManager(pMonsterInfoManager);
     context.setMonsterNameManager(pMonsterNameManager);
     context.setWeatherInfoManager(pWeatherInfoManager);
 
     EXPECT_EQ(&context.dynamicZoneFactories(), pDynamicZoneFactoryManager);
+    EXPECT_EQ(&context.monsterInfos(), pMonsterInfoManager);
     EXPECT_EQ(&context.monsterNames(), pMonsterNameManager);
     EXPECT_EQ(&context.weatherInfos(), pWeatherInfoManager);
 }
@@ -335,6 +338,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.itemLoaders(), AssertionError);
     EXPECT_THROW(context.itemMineInfos(), AssertionError);
     EXPECT_THROW(context.masterLairInfos(), AssertionError);
+    EXPECT_THROW(context.monsterInfos(), AssertionError);
     EXPECT_THROW(context.monsterNames(), AssertionError);
     EXPECT_THROW(context.optionSets(), AssertionError);
     EXPECT_THROW(context.oustersExp(), AssertionError);

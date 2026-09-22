@@ -1,6 +1,7 @@
 #include "GQuestPartyDissectElement.h"
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "MonsterInfo.h"
 #include "PlayerCreature.h"
 
@@ -41,7 +42,7 @@ GQuestMission* GQuestPartyDissectElement::makeInitMission(PlayerCreature* pPC) c
             ++selected;
             cout << (int)(*pTargetList)[i] << "가 선택되었습니다." << endl;
 
-            pMission->m_StrArg += g_pMonsterInfoManager->getNameBySpriteType((*pTargetList)[i]);
+            pMission->m_StrArg += de::gameContext().monsterInfos().getNameBySpriteType((*pTargetList)[i]);
         }
     }
 

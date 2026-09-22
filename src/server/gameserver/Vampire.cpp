@@ -2041,7 +2041,7 @@ void Vampire::initPetQuestTarget() {
         maxClass = 13;
     }
 
-    m_TargetMonster = g_pMonsterInfoManager->getRandomMonsterByClass(minClass, maxClass);
+    m_TargetMonster = de::gameContext().monsterInfos().getRandomMonsterByClass(minClass, maxClass);
     m_TargetNum = 80;
     m_TimeLimit = 3600;
 }

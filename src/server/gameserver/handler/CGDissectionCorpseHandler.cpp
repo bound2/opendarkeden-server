@@ -622,10 +622,10 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
             if (pPacket->isPet() && treasureCount != 0) {
                 PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
                 GCModifyInformation gcMI;
-                PetExp_t exp =
-                    computePetExp(getPCLevel(pPC),
-                                  g_pMonsterInfoManager->getMonsterInfo(pMonsterCorpse->getMonsterType())->getLevel(),
-                                  pPC->getPetInfo(), pGamePlayer);
+                PetExp_t exp = computePetExp(
+                    getPCLevel(pPC),
+                    de::gameContext().monsterInfos().getMonsterInfo(pMonsterCorpse->getMonsterType())->getLevel(),
+                    pPC->getPetInfo(), pGamePlayer);
                 if (!increasePetExp(pPC->getPetInfo(), exp, &gcMI)) {
                     pGamePlayer->sendPacket(&gcMI);
                 } else {

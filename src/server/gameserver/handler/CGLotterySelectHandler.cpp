@@ -357,7 +357,7 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
             Item* pItem = NULL;
 
             if (isLairItem) {
-                const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(masterType);
+                const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(masterType);
                 TreasureList* pTreasureList = NULL;
 
                 if (pPC->isSlayer())

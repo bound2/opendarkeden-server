@@ -157,7 +157,7 @@ ObjectManager::ObjectManager()
     m_pDarkLightInfoManager = new DarkLightInfoManager();
     m_pVisionInfoManager = new VisionInfoManager();
     m_pWeatherInfoManager = new WeatherInfoManager();
-    g_pMonsterInfoManager = new MonsterInfoManager();
+    m_pMonsterInfoManager = new MonsterInfoManager();
     g_pSkillHandlerManager = new SkillHandlerManager();
     m_pSkillInfoManager = new SkillInfoManager();
     m_pSkillDomainInfoManager = new SkillDomainInfoManager();
@@ -183,6 +183,7 @@ ObjectManager::ObjectManager()
     context.setTimeManager(m_pTimeManager);
     context.setDarkLightInfoManager(m_pDarkLightInfoManager);
     context.setWeatherInfoManager(m_pWeatherInfoManager);
+    context.setMonsterInfoManager(m_pMonsterInfoManager);
     context.setSkillInfoManager(m_pSkillInfoManager);
     context.setSkillDomainInfoManager(m_pSkillDomainInfoManager);
     context.setPCFinder(m_pPCFinder);
@@ -300,7 +301,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(g_pOptionInfoManager);
     SAFE_DELETE(m_pSkillInfoManager);
     SAFE_DELETE(m_pSkillDomainInfoManager);
-    SAFE_DELETE(g_pMonsterInfoManager);
+    SAFE_DELETE(m_pMonsterInfoManager);
     SAFE_DELETE(m_pItemInfoManager);
     SAFE_DELETE(m_pWeatherInfoManager);
     SAFE_DELETE(m_pVisionInfoManager);
@@ -459,7 +460,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : DarkLightInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : MonsterInfoManager Initialization Start\n");
-    g_pMonsterInfoManager->init();
+    m_pMonsterInfoManager->init();
     printf("ObjectManager::init() : MonsterInfoManager Initialization Success\n");
 
     // Must be loaded before ZoneInfoManager.

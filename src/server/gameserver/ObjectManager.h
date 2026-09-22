@@ -42,6 +42,7 @@ class ItemInfoManager;
 class ItemLoaderManager;
 class ItemMineInfoManager;
 class MasterLairInfoManager;
+class MonsterInfoManager;
 class MonsterNameManager;
 class OustersEXPInfoManager;
 class PCFinder;
@@ -106,6 +107,7 @@ private:
     ItemLoaderManager* m_pItemLoaderManager = nullptr;
     ItemMineInfoManager* m_pItemMineInfoManager = nullptr;
     MasterLairInfoManager* m_pMasterLairInfoManager = nullptr;
+    MonsterInfoManager* m_pMonsterInfoManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;
     OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
