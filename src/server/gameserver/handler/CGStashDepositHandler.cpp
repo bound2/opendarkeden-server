@@ -11,7 +11,6 @@
 #include "GCDeleteandPickUpOK.h"
 #include "GamePlayer.h"
 #include "Item.h"
-#include "LogClient.h"
 #include "Ousters.h"
 #include "Slayer.h"
 #include "Utility.h"
@@ -56,13 +55,9 @@ void CGStashDepositHandler::execute(CGStashDeposit* pPacket, Player* pPlayer) {
             Gold_t margin = MAX_MONEY - pSlayer->getStashGold();
             pSlayer->decreaseGoldEx(margin);
             pSlayer->increaseStashGoldEx(margin);
-
-            log(LOG_STASH_ADD_MONEY, pSlayer->getName(), "", itos(margin));
         } else {
             pSlayer->decreaseGoldEx(amount);
             pSlayer->increaseStashGoldEx(amount);
-
-            log(LOG_STASH_ADD_MONEY, pSlayer->getName(), "", itos(amount));
         }
     } else if (pPC->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pPC);
@@ -74,13 +69,9 @@ void CGStashDepositHandler::execute(CGStashDeposit* pPacket, Player* pPlayer) {
             Gold_t margin = MAX_MONEY - pVampire->getStashGold();
             pVampire->decreaseGoldEx(margin);
             pVampire->increaseStashGoldEx(margin);
-
-            log(LOG_STASH_ADD_MONEY, pVampire->getName(), "", itos(margin));
         } else {
             pVampire->decreaseGoldEx(amount);
             pVampire->increaseStashGoldEx(amount);
-
-            log(LOG_STASH_ADD_MONEY, pVampire->getName(), "", itos(amount));
         }
     } else if (pPC->isOusters()) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pPC);
@@ -92,13 +83,9 @@ void CGStashDepositHandler::execute(CGStashDeposit* pPacket, Player* pPlayer) {
             Gold_t margin = MAX_MONEY - pOusters->getStashGold();
             pOusters->decreaseGoldEx(margin);
             pOusters->increaseStashGoldEx(margin);
-
-            log(LOG_STASH_ADD_MONEY, pOusters->getName(), "", itos(margin));
         } else {
             pOusters->decreaseGoldEx(amount);
             pOusters->increaseStashGoldEx(amount);
-
-            log(LOG_STASH_ADD_MONEY, pOusters->getName(), "", itos(amount));
         }
     }
 

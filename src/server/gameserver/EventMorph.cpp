@@ -21,7 +21,6 @@
 #include "GuildManager.h"
 #include "IncomingPlayerManager.h"
 #include "ItemUtil.h"
-#include "LogClient.h"
 #include "PCFinder.h"
 #include "PacketUtil.h"
 #include "Party.h"
@@ -226,7 +225,6 @@ void EventMorph::activate()
 
                 if (pt.x != -1) {
                     pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
-                    log(LOG_DROP_ITEM_MORPH, pSlayer->getName(), "", pItem->toString());
 
                     // Leave an ItemTraceLog.
                     if (pItem != NULL && pItem->isTraceItem()) {
@@ -270,7 +268,6 @@ void EventMorph::activate()
 
             if (pt.x != -1) {
                 pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
-                log(LOG_DROP_ITEM_MORPH, pSlayer->getName(), "");
 
                 // Leave an ItemTraceLog.
                 if (pItem != NULL && pItem->isTraceItem()) {
@@ -433,8 +430,6 @@ void EventMorph::activate()
 
     // What happens to the running EffectManager if this is deleted now?
     //----------------------------------
-
-    log(LOG_SLAYER_TO_VAMPIRE, pFromCreature->getName(), "");
 
     SAFE_DELETE(pFromCreature);
 

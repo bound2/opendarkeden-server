@@ -14,7 +14,6 @@
 #include "Item.h"
 #include "ItemInfo.h"
 #include "ItemInfoManager.h"
-#include "LogClient.h"
 #include "PlayerCreature.h"
 #include "Stash.h"
 #include "Zone.h"
@@ -79,8 +78,6 @@ void CGStashToMouseHandler::execute(CGStashToMouse* pPacket, Player* pPlayer)
     sprintf(pField, "Storage=%d", STORAGE_EXTRASLOT);
     pStashItem->tinysave(pField);
 
-
-    log(LOG_STASH_REMOVE_ITEM, pPC->getName(), "", pStashItem->toString());
 
 #endif // __GAME_SERVER__
 

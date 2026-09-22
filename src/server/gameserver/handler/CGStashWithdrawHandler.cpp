@@ -10,7 +10,6 @@
 #include "GCDeleteandPickUpOK.h"
 #include "GamePlayer.h"
 #include "Item.h"
-#include "LogClient.h"
 #include "Ousters.h"
 #include "Slayer.h"
 #include "Vampire.h"
@@ -55,14 +54,10 @@ void CGStashWithdrawHandler::execute(CGStashWithdraw* pPacket, Player* pPlayer)
             // by sigi. 2002.9.4
             pSlayer->decreaseStashGoldEx(margin);
             pSlayer->increaseGoldEx(margin);
-
-            log(LOG_STASH_REMOVE_MONEY, pSlayer->getName(), "", itos(margin));
         } else {
             // by sigi. 2002.9.4
             pSlayer->decreaseStashGoldEx(amount);
             pSlayer->increaseGoldEx(amount);
-
-            log(LOG_STASH_REMOVE_MONEY, pSlayer->getName(), "", itos(amount));
         }
     } else if (pPC->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pPC);
@@ -76,14 +71,10 @@ void CGStashWithdrawHandler::execute(CGStashWithdraw* pPacket, Player* pPlayer)
             // by sigi. 2002.9.18
             pVampire->decreaseStashGoldEx(margin);
             pVampire->increaseGoldEx(margin);
-
-            log(LOG_STASH_REMOVE_MONEY, pVampire->getName(), "", itos(margin));
         } else {
             // by sigi. 2002.9.18
             pVampire->decreaseStashGoldEx(amount);
             pVampire->increaseGoldEx(amount);
-
-            log(LOG_STASH_REMOVE_MONEY, pVampire->getName(), "", itos(amount));
         }
     } else if (pPC->isOusters()) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pPC);
@@ -97,14 +88,10 @@ void CGStashWithdrawHandler::execute(CGStashWithdraw* pPacket, Player* pPlayer)
             // by sigi. 2002.9.18
             pOusters->decreaseStashGoldEx(margin);
             pOusters->increaseGoldEx(margin);
-
-            log(LOG_STASH_REMOVE_MONEY, pOusters->getName(), "", itos(margin));
         } else {
             // by sigi. 2002.9.18
             pOusters->decreaseStashGoldEx(amount);
             pOusters->increaseGoldEx(amount);
-
-            log(LOG_STASH_REMOVE_MONEY, pOusters->getName(), "", itos(amount));
         }
     }
 

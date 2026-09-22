@@ -15,7 +15,6 @@
 
 #include "Assert.h"
 #include "DatabaseError.h"
-#include "LogClient.h"
 #include "LoginContext.h"
 #include "LoginPlayer.h"
 #include "Properties.h"
@@ -162,9 +161,8 @@ void LoginPlayerManager::select() {
         SocketAPI::select_ex(m_MaxFD + 1, &m_ReadFDs[1], &m_WriteFDs[1], &m_ExceptFDs[1], &m_Timeout[1]);
     } catch (TimeoutException) {
         // do nothing
-    } catch (InterruptedException& ie) {
+    } catch (InterruptedException&) {
         // No signal can arrive here.
-        log(LOG_LOGINSERVER, "", "", ie.toString());
     }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -186,7 +184,6 @@ void LoginPlayerManager::processExceptions() {
 
             StringStream msg;
             msg << "OOB from " << m_pPlayers[i]->toString();
-            log(LOG_LOGINSERVER_ERROR, "", "", msg.toString());
             cout << msg.toString() << endl;
 
             // Flush the output buffer.
@@ -238,7 +235,6 @@ void LoginPlayerManager::processInputs() {
                     // The socket is blocking, so no exception other than ConnectException and Error can occur.
 
                     cout << ce.toString() << endl;
-                    log(LOG_LOGINSERVER_ERROR, "", ce.toString());
 
                     // The connection is already gone, so the output buffer must not be flushed.
                     m_pPlayers[i]->disconnect(DISCONNECTED);
@@ -288,7 +284,6 @@ void LoginPlayerManager::processCommands() {
                 //--------------------------------------------------
 
                 cout << pe.toString() << endl;
-                log(LOG_LOGINSERVER_ERROR, "", "", pe.toString());
 
                 m_pPlayers[i]->disconnect(UNDISCONNECTED);
 
@@ -299,7 +294,6 @@ void LoginPlayerManager::processCommands() {
                 deletePlayer_NOLOCKED(i);
             } catch (ConnectException& ce) {
                 cout << ce.toString() << endl;
-                log(LOG_LOGINSERVER_ERROR, "", "", ce.toString());
 
                 m_pPlayers[i]->disconnect(DISCONNECTED);
 
@@ -333,7 +327,6 @@ void LoginPlayerManager::processOutputs() {
                 m_pPlayers[i]->processOutput();
             } catch (ConnectException& ce) {
                 cout << ce.toString() << endl;
-                log(LOG_LOGINSERVER_ERROR, "", "", ce.toString());
 
                 // The connection is already gone, so the output buffer must not be flushed.
                 m_pPlayers[i]->disconnect(DISCONNECTED);
@@ -345,7 +338,6 @@ void LoginPlayerManager::processOutputs() {
                 deletePlayer_NOLOCKED(i);
             } catch (ProtocolException& pe) {
                 cout << pe.toString() << endl;
-                log(LOG_LOGINSERVER_ERROR, "", "", pe.toString());
 
                 // The connection is already gone, so the output buffer must not be flushed.
                 m_pPlayers[i]->disconnect(DISCONNECTED);
@@ -407,9 +399,6 @@ void LoginPlayerManager::acceptNewConnection() {
         return;
     }
 
-    StringStream msg;
-    msg << "NEW CONNECTION FROM [" << client->getHost().c_str() << ":" << client->getPort() << "]";
-    log(LOG_LOGINSERVER, "", "", msg.toString());
     cout << "NEW CONNECTION FROM " << client->getHost() << ":" << client->getPort() << endl;
     cerr << "NEW CONNECTION FROM " << client->getHost() << ":" << client->getPort() << endl;
 

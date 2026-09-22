@@ -122,8 +122,6 @@ int main(int argc, char* argv[]) {
         int LogServerPort = g_pConfig->getPropertyInt("LogServerPort");
         openLogClient(LogServerIP, LogServerPort);
         LogClient::setLogLevel(g_pConfig->getPropertyInt("LogLevel"));
-
-        log(LOG_LOGINSERVER, "", "", "Login Server Start");
     } catch (Throwable& t) {
         cout << t.toString() << endl;
     }
@@ -155,8 +153,6 @@ int main(int argc, char* argv[]) {
         ofile.close();
 
         // It means an exception or error not caught below occurred.
-        // In that case it must be logged at LEVEL1 (that is, logged unconditionally).
-        log(LOG_LOGINSERVER_ERROR, "", "", e.toString());
 
         // Print it on standard output too.
         cout << e.toString() << endl;

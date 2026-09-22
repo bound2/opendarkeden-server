@@ -17,7 +17,6 @@
 #include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemFactoryManager.h"
-#include "LogClient.h"
 #include "NPC.h"
 #include "OptionInfo.h"
 #include "ShopTemplate.h"
@@ -153,15 +152,6 @@ void ActionRegenEventShop::execute(Creature* pCreature1, Creature* pCreature2)
     }
 
     // Drop every item the NPC holds and bump the shop version.
-    // Log the items before clearing them.
-    for (ShopRackType_t rackType = 0; rackType < SHOP_RACK_TYPE_MAX; rackType++) {
-        for (BYTE rackIndex = 0; rackIndex < SHOP_RACK_INDEX_MAX; rackIndex++) {
-            Item* pShopItem = pNPC->getShopItem(rackType, rackIndex);
-            if (pShopItem != NULL)
-                log(LOG_SHOP_DESTROY_ITEM, pNPC->getName(), "", pShopItem->toString());
-        }
-    }
-
     pNPC->clearShopItem();
 
     for (int i = 0; i < SHOP_RACK_TYPE_MAX; i++)

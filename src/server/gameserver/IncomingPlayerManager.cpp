@@ -19,7 +19,6 @@
 #include "GLKickVerify.h"
 #include "GameContext.h"
 #include "GamePlayer.h"
-#include "LogClient.h"
 #include "LogDef.h"
 #include "LoginServerManager.h"
 #include "MasterLairManager.h"
@@ -219,9 +218,8 @@ void IncomingPlayerManager::select() {
     try {
         // Now call select() with m_XXXFDs[1].
         SocketAPI::select_ex(m_MaxFD + 1, &m_ReadFDs[1], &m_WriteFDs[1], &m_ExceptFDs[1], &m_Timeout[1]);
-    } catch (InterruptedException& ie) {
+    } catch (InterruptedException&) {
         // A signal should never arrive here.
-        log(LOG_GAMESERVER_ERROR, "", "", ie.toString());
     }
 
     //__LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -531,9 +529,6 @@ void IncomingPlayerManager::processOutputs() {
                         FILELOG_INCOMING_CONNECTION(
                             "ICMPOConnectExcept.log", "[Output] %s, PlayerID : %s, PlayerStatus : %d",
                             ce.toString().c_str(), pTempPlayer->getID().c_str(), (int)pTempPlayer->getPlayerStatus());
-                        StringStream msg;
-                        msg << "DISCONNECT " << pTempPlayer->getID() << "(" << ce.toString() << ")";
-                        log(LOG_GAMESERVER_ERROR, "", "", msg.toString());
 
                         try {
                             // The connection is already closed, so the output buffer must not be flushed.
@@ -566,9 +561,6 @@ void IncomingPlayerManager::processOutputs() {
                         FILELOG_INCOMING_CONNECTION(
                             "ICMPOProtocolExcept.log", "[Output] %s, PlayerID : %s, PlayerStatus : %d",
                             cp.toString().c_str(), pTempPlayer->getID().c_str(), (int)pTempPlayer->getPlayerStatus());
-                        StringStream msg;
-                        msg << "DISCONNECT " << pTempPlayer->getID() << "(" << cp.toString() << ")";
-                        log(LOG_GAMESERVER_ERROR, "", "", cp.toString());
 
                         // The connection is already closed, so the output buffer must not be flushed.
 
@@ -751,9 +743,6 @@ bool IncomingPlayerManager::acceptNewConnection()
         client->setLinger(0);
         m_CheckValue = 9;
 
-        StringStream msg;
-        msg << "NEW CONNECTION FROM " << client->getHost() << ":" << client->getPort();
-        log(LOG_GAMESERVER, "", "", msg.toString());
         m_CheckValue = 10;
 
         //----------------------------------------------------------------------
@@ -801,9 +790,6 @@ bool IncomingPlayerManager::acceptNewConnection()
 
         m_CheckValue += 20000;
         m_CheckValue += 1000;
-        StringStream msg2;
-        msg2 << "ILLEGAL ACCESS FROM " << client->getHost() << ":" << client->getPort();
-        log(LOG_GAMESERVER, "", "", msg2.toString());
 
         m_CheckValue += 1000;
 

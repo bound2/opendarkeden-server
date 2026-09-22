@@ -15,7 +15,6 @@
 #include "GCChangeDarkLight.h"
 #include "GCStatusCurrentHP.h"
 #include "GQuestManager.h"
-#include "LogClient.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Vampire object handler
@@ -80,9 +79,6 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
                 pTargetSlayer->initAllStat();
                 pTargetSlayer->sendRealWearingInfo();
                 pTargetSlayer->addModifyInfo(prev, _GCBloodDrainOK2);
-
-                // Write a log entry.
-                log(LOG_BLOODDRAINED, pTargetCreature->getName(), pVampire->getName());
             }
             // For Ousters, create an effect with no time limit, though strictly speaking it is not unlimited.
             //
@@ -338,9 +334,6 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
                 pTargetSlayer->sendRealWearingInfo();
                 pTargetSlayer->addModifyInfo(prev, _GCBloodDrainOK2);
             }
-
-            // Write a log entry.
-            log(LOG_BLOODDRAINED, pEnemy->getName(), "게임 내의 몬스터");
         }
         // For Ousters, create an effect with no time limit, though strictly speaking it is not unlimited.
         //

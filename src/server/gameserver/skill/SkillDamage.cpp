@@ -66,7 +66,6 @@
 #include "HitRoll.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
-#include "LogClient.h"
 #include "MasterLairInfoManager.h"
 #include "Monster.h"
 #include "OustersEXPInfo.h"
@@ -1808,9 +1807,6 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
                     Player* pPlayer = pSlayer->getPlayer();
                     pPlayer->sendPacket(&gcRemoveFromGear);
 
-                    // Log
-                    log(LOG_DESTROY_ITEM, pCreature->getName(), "", pWeapon->toString());
-
                     // Saves the reduced durability.
                     pWeapon->setDurability(Result);
                     pWeapon->save(pCreature->getName(), STORAGE_GEAR, 0, slot, 0);
@@ -1853,9 +1849,6 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
                     Player* pPlayer = pVampire->getPlayer();
                     pPlayer->sendPacket(&gcRemoveFromGear);
 
-                    // Log
-                    log(LOG_DESTROY_ITEM, pCreature->getName(), "", pWeapon->toString());
-
                     // Saves the reduced durability.
                     pWeapon->setDurability(Result);
                     pWeapon->save(pCreature->getName(), STORAGE_GEAR, 0, slot, 0);
@@ -1895,9 +1888,6 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
 
                     Player* pPlayer = pOusters->getPlayer();
                     pPlayer->sendPacket(&gcRemoveFromGear);
-
-                    // Log
-                    log(LOG_DESTROY_ITEM, pCreature->getName(), "", pWeapon->toString());
 
                     // Saves the reduced durability.
                     pWeapon->setDurability(Result);
@@ -1988,9 +1978,6 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
                     pTargetOusters->takeOffItem((Ousters::WearPart)slot, false, true);
                     pPlayer->sendPacket(&gcRemoveFromGear);
                 }
-
-                // Log
-                log(LOG_DESTROY_ITEM, pTargetCreature->getName(), "", pGear->toString());
 
                 // Destroy
                 pGear->save(pTargetCreature->getName(), STORAGE_GEAR, 0, slot, 0);

@@ -129,8 +129,6 @@ int main(int argc, char* argv[]) {
         openLogClient(LogServerIP, LogServerPort);
         LogClient::setLogLevel(LogLevel);
 
-        log(LOG_GAMESERVER, "", "", "Game Server Start");
-
     } catch (Error& e) {
         // cout << e.toString() << endl;
     }
