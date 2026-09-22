@@ -12,6 +12,7 @@
 #include "GCCannotAdd.h"
 #include "GCCreateItem.h"
 #include "GCTradeVerify.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -126,7 +127,7 @@ void CGAddInventoryToMouseHandler::execute(CGAddInventoryToMouse* pPacket, Playe
         ItemType_t IType = pItem->getItemType();
         const list<OptionType_t>& OType = pItem->getOptionTypeList();
 
-        Item* pNewItem = g_pItemFactoryManager->createItem(IClass, IType, OType);
+        Item* pNewItem = de::gameContext().itemFactories().createItem(IClass, IType, OType);
         Assert(pNewItem != NULL);
 
         // The item added to the mouse keeps the existing OID,

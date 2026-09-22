@@ -46,7 +46,7 @@ void TransformToWerwolf::execute(Vampire* pVampire, ObjectID_t InvenObjectID, Co
         // Transformation requires a suitable item.
         // Transformation is not possible in a PK zone.
         if (pItem->getItemClass() != Item::ITEM_CLASS_SKULL || pItem->getItemType() != 39 || pVampire->hasRelicItem() ||
-            g_pPKZoneInfoManager->isPKZone(pZone->getZoneID()) ||
+            de::gameContext().pkZoneInfos().isPKZone(pZone->getZoneID()) ||
             pVampire->isFlag(Effect::EFFECT_CLASS_REFINIUM_TICKET)) {
             executeSkillFailException(pVampire, getSkillType());
             return;

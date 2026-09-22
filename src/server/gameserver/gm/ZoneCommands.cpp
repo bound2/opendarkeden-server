@@ -231,6 +231,7 @@ void opsummon(GamePlayer* pGamePlayer, string msg, int i) {
         if (pGamePlayer == NULL) return;
 
     Creature* pCreature = pGamePlayer->getCreature();
+    MonsterInfoManager& monsterInfos = de::gameContext().monsterInfos();
 
     size_t j = msg.find_first_of(' ', i + 1);
     size_t k = msg.find_first_of(' ', j + 1); // j~k : name
@@ -253,9 +254,9 @@ void opsummon(GamePlayer* pGamePlayer, string msg, int i) {
         MonsterType = atoi(msg.substr(o + 1, p - o - 1).c_str());
     } else if (strstr(MonsterName.c_str(), "ġ��") != NULL) {
         // Summoning a chief monster
-        MonsterType = g_pMonsterInfoManager->getChiefMonsterTypeByName(MonsterName);
+        MonsterType = monsterInfos.getChiefMonsterTypeByName(MonsterName);
     } else {
-        SpriteType = g_pMonsterInfoManager->getSpriteTypeByName(MonsterName);
+        SpriteType = monsterInfos.getSpriteTypeByName(MonsterName);
 
         if (SpriteType == 0) {
             SpriteType = atoi(msg.substr(j + 1, k - j - 1).c_str());
@@ -302,10 +303,10 @@ void opsummon(GamePlayer* pGamePlayer, string msg, int i) {
             // To check whether the monsterInfo exists or not..
             // It throws a NoSuchElementException when there is none.
             if (SpriteType != 0) {
-                g_pMonsterInfoManager->getMonsterTypeBySprite(SpriteType);
+                monsterInfos.getMonsterTypeBySprite(SpriteType);
                 addMonstersToZone(pZone, ZoneX, ZoneY, SpriteType, MonsterType, MonsterNum, summonInfo);
             } else if (MonsterType != 0) {
-                g_pMonsterInfoManager->getMonsterInfo(MonsterType);
+                monsterInfos.getMonsterInfo(MonsterType);
                 addMonstersToZone(pZone, ZoneX, ZoneY, SpriteType, MonsterType, MonsterNum, summonInfo);
             }
         }

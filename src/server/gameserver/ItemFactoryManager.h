@@ -12,8 +12,6 @@
 #include "Item.h"
 #include "ItemFactory.h"
 
-#define CREATE_ITEM(C, T, O) g_pItemFactoryManager->createItem(C, T, O)
-
 //////////////////////////////////////////////////////////////////////////////
 // class ItemFactoryManager
 //////////////////////////////////////////////////////////////////////////////
@@ -41,7 +39,5 @@ private:
     ushort m_Size;             // Size of the item factory array
     unordered_map<string, Item::ItemClass> m_ItemClassMap;
 };
-
-extern ItemFactoryManager* g_pItemFactoryManager;
 
 #endif

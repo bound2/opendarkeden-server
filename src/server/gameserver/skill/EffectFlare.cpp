@@ -12,6 +12,7 @@
 #include "GCChangeDarkLight.h"
 #include "GCModifyInformation.h"
 #include "GCRemoveEffect.h"
+#include "GameContext.h"
 #include "Monster.h"
 #include "MonsterInfo.h"
 #include "Player.h"
@@ -105,7 +106,7 @@ void EffectFlare::unaffect(Creature* pCreature)
         Monster* pMonster = dynamic_cast<Monster*>(pCreature);
 
         // Sets the sight back to the monster default.
-        const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(pMonster->getMonsterType());
+        const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(pMonster->getMonsterType());
         pMonster->setSight(pMonsterInfo->getSight());
 
         // The sight was changed, so nearby enemies would have to be searched again.

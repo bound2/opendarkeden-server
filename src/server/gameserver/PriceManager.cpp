@@ -76,7 +76,7 @@ Price_t PriceManager::getPrice(Item* pItem, MarketCond_t nDiscount, ShopRackType
         double priceMultiplier = 0;
         list<OptionType_t>::const_iterator itr;
         for (itr = optionTypes.begin(); itr != optionTypes.end(); itr++) {
-            OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(*itr);
+            OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(*itr);
             Assert(pOptionInfo != NULL);
             priceMultiplier = (double)(pOptionInfo->getPriceMultiplier());
             finalPrice += (originalPrice * priceMultiplier / 100);
@@ -202,7 +202,7 @@ Price_t PriceManager::getRepairPrice(Item* pItem, Creature* pCreature) const {
         double priceMultiplier = 0;
         list<OptionType_t>::const_iterator itr;
         for (itr = optionTypes.begin(); itr != optionTypes.end(); itr++) {
-            OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(*itr);
+            OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(*itr);
             Assert(pOptionInfo != NULL);
             priceMultiplier = (double)(pOptionInfo->getPriceMultiplier());
             finalPrice += (originalPrice * priceMultiplier / 100);
@@ -319,7 +319,7 @@ int PriceManager::getStarPrice(Item* pItem, XMAS_STAR& star) const {
 
     Assert(OType != 0);
 
-    OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(OType);
+    OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(OType);
     Assert(pOptionInfo != NULL);
     OptionClass OClass = pOptionInfo->getClass();
 

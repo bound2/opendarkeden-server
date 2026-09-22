@@ -144,11 +144,11 @@ ObjectManager::ObjectManager()
     m_pZoneInfoManager = new ZoneInfoManager();
     g_pVariableManager = new VariableManager();
     m_pItemInfoManager = new ItemInfoManager();
-    g_pItemFactoryManager = new ItemFactoryManager();
+    m_pItemFactoryManager = new ItemFactoryManager();
     m_pVolumeInfoManager = new VolumeInfoManager();
     m_pItemLoaderManager = new ItemLoaderManager();
     m_pShopTemplateManager = new ShopTemplateManager();
-    g_pOptionInfoManager = new OptionInfoManager();
+    m_pOptionInfoManager = new OptionInfoManager();
     m_pItemMineInfoManager = new ItemMineInfoManager();
     m_pDirectiveSetManager = new DirectiveSetManager();
     m_pMonsterNameManager = new MonsterNameManager();
@@ -157,7 +157,7 @@ ObjectManager::ObjectManager()
     m_pDarkLightInfoManager = new DarkLightInfoManager();
     m_pVisionInfoManager = new VisionInfoManager();
     m_pWeatherInfoManager = new WeatherInfoManager();
-    g_pMonsterInfoManager = new MonsterInfoManager();
+    m_pMonsterInfoManager = new MonsterInfoManager();
     g_pSkillHandlerManager = new SkillHandlerManager();
     m_pSkillInfoManager = new SkillInfoManager();
     m_pSkillDomainInfoManager = new SkillDomainInfoManager();
@@ -172,10 +172,11 @@ ObjectManager::ObjectManager()
     context.setZoneInfoManager(m_pZoneInfoManager);
     context.setVariableManager(g_pVariableManager);
     context.setItemInfoManager(m_pItemInfoManager);
-    context.setItemFactoryManager(g_pItemFactoryManager);
+    context.setItemFactoryManager(m_pItemFactoryManager);
     context.setVolumeInfoManager(m_pVolumeInfoManager);
     context.setItemLoaderManager(m_pItemLoaderManager);
     context.setShopTemplateManager(m_pShopTemplateManager);
+    context.setOptionInfoManager(m_pOptionInfoManager);
     context.setItemMineInfoManager(m_pItemMineInfoManager);
     context.setDirectiveSetManager(m_pDirectiveSetManager);
     context.setMonsterNameManager(m_pMonsterNameManager);
@@ -183,6 +184,7 @@ ObjectManager::ObjectManager()
     context.setTimeManager(m_pTimeManager);
     context.setDarkLightInfoManager(m_pDarkLightInfoManager);
     context.setWeatherInfoManager(m_pWeatherInfoManager);
+    context.setMonsterInfoManager(m_pMonsterInfoManager);
     context.setSkillInfoManager(m_pSkillInfoManager);
     context.setSkillDomainInfoManager(m_pSkillDomainInfoManager);
     context.setPCFinder(m_pPCFinder);
@@ -248,7 +250,8 @@ ObjectManager::ObjectManager()
 
     m_pCoupleManager = new CoupleManager();
     context.setCoupleManager(m_pCoupleManager);
-    g_pPKZoneInfoManager = new PKZoneInfoManager();
+    m_pPKZoneInfoManager = new PKZoneInfoManager();
+    context.setPKZoneInfoManager(m_pPKZoneInfoManager);
     //	g_pFameLimitInfoManager = new FameLimitInfoManager();
     m_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
     context.setGameServerGroupInfoManager(m_pGameServerGroupInfoManager);
@@ -297,10 +300,10 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(g_pParkingCenter);
     SAFE_DELETE(m_pTelephoneCenter);
     SAFE_DELETE(m_pItemMineInfoManager);
-    SAFE_DELETE(g_pOptionInfoManager);
+    SAFE_DELETE(m_pOptionInfoManager);
     SAFE_DELETE(m_pSkillInfoManager);
     SAFE_DELETE(m_pSkillDomainInfoManager);
-    SAFE_DELETE(g_pMonsterInfoManager);
+    SAFE_DELETE(m_pMonsterInfoManager);
     SAFE_DELETE(m_pItemInfoManager);
     SAFE_DELETE(m_pWeatherInfoManager);
     SAFE_DELETE(m_pVisionInfoManager);
@@ -312,7 +315,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pZoneGroupManager);
     // SAFE_DELETE(g_pSkillParentInfoManager);
     SAFE_DELETE(g_pSkillHandlerManager);
-    SAFE_DELETE(g_pItemFactoryManager);
+    SAFE_DELETE(m_pItemFactoryManager);
     SAFE_DELETE(m_pVolumeInfoManager);
     SAFE_DELETE(m_pItemLoaderManager);
     SAFE_DELETE(m_pShopTemplateManager);
@@ -344,7 +347,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pSkillPropertyManager);
 
     SAFE_DELETE(m_pCoupleManager);
-    SAFE_DELETE(g_pPKZoneInfoManager);
+    SAFE_DELETE(m_pPKZoneInfoManager);
     //	SAFE_DELETE(g_pFameLimitInfoManager);
     SAFE_DELETE(m_pGameServerGroupInfoManager);
     SAFE_DELETE(m_pCastleSkillInfoManager);
@@ -422,7 +425,7 @@ void ObjectManager::init()
 
     // Options have to be load()ed before itemInfo.
     printf("ObjectManager::init() : OptionInfoManager Initialization Start\n");
-    g_pOptionInfoManager->init();
+    m_pOptionInfoManager->init();
     printf("ObjectManager::init() : OptionInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : SweeperBonusManager Initialization Start....... \n");
@@ -447,7 +450,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : VolumeInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : ItemFactory Initialization Start\n");
-    g_pItemFactoryManager->init();
+    m_pItemFactoryManager->init();
     printf("ObjectManager::init() : ItemFactory Initialization Success\n");
 
     printf("ObjectManager::init() : ItemLoaderManager Initialization Start\n");
@@ -459,7 +462,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : DarkLightInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : MonsterInfoManager Initialization Start\n");
-    g_pMonsterInfoManager->init();
+    m_pMonsterInfoManager->init();
     printf("ObjectManager::init() : MonsterInfoManager Initialization Success\n");
 
     // Must be loaded before ZoneInfoManager.
@@ -640,7 +643,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : RaceWarLimiter Initialization Success\n");
 
     printf("ObjectManager::load() : PKZoneInfoManager Initialization Start\n");
-    g_pPKZoneInfoManager->load();
+    m_pPKZoneInfoManager->load();
     printf("ObjectManager::load() : PKZoneInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : GameServerGroupInfoManager Initialization Start\n");

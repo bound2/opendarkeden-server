@@ -651,8 +651,8 @@ void opShowPKZonePCNum(GamePlayer* pGamePlayer, const string& value1, GCSystemMe
                        bool& bSendPacket) {
     if (pGamePlayer != NULL) {
         ZoneID_t zoneID = pGamePlayer->getCreature()->getZone()->getZoneID();
-        if (g_pPKZoneInfoManager->isPKZone(zoneID)) {
-            int num = g_pPKZoneInfoManager->getPKZoneInfo(zoneID)->getCurrentPCNum();
+        if (de::gameContext().pkZoneInfos().isPKZone(zoneID)) {
+            int num = de::gameContext().pkZoneInfos().getPKZoneInfo(zoneID)->getCurrentPCNum();
 
             char msg[100];
             sprintf(msg, g_pStringPool->getString(STRID_PC_NUM).c_str(), num);
@@ -672,8 +672,8 @@ void opSetPKZonePCNum(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
         size_t j = value1.find_first_of(' ', 0);
         int num = atoi(trim(value1.substr(0, j)).c_str());
 
-        if (g_pPKZoneInfoManager->isPKZone(zoneID)) {
-            g_pPKZoneInfoManager->getPKZoneInfo(zoneID)->setCurrentPCNum(num);
+        if (de::gameContext().pkZoneInfos().isPKZone(zoneID)) {
+            de::gameContext().pkZoneInfos().getPKZoneInfo(zoneID)->setCurrentPCNum(num);
         }
     }
 }

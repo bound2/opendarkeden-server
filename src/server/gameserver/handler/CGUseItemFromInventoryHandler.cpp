@@ -2158,6 +2158,7 @@ void CGUseItemFromInventoryHandler::executeEventGiftBox(CGUseItemFromInventory* 
     // What the black box turns into always fits in 2*2, so the Inventory check is skipped
     // (a situation where it does not fit after the black box is erased would be awkward)
     ItemMineInfoManager& itemMineInfos = de::gameContext().itemMineInfos();
+    ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
 
     Item* pResultItem = NULL;
     bool bFullStack = true;
@@ -2248,17 +2249,17 @@ void CGUseItemFromInventoryHandler::executeEventGiftBox(CGUseItemFromInventory* 
 
         if (value < 70) {
             // Elixir scroll
-            pResultItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_RESURRECT_ITEM, 1, list<OptionType_t>());
+            pResultItem = itemFactories.createItem(Item::ITEM_CLASS_RESURRECT_ITEM, 1, list<OptionType_t>());
         } else if (value < 95) {
             // Red rice-cake soup
-            pResultItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_STAR, 8, list<OptionType_t>());
+            pResultItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_STAR, 8, list<OptionType_t>());
         } else if (value < 99) {
             // Bundle of elixir scrolls
-            pResultItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_RESURRECT_ITEM, 1, list<OptionType_t>());
+            pResultItem = itemFactories.createItem(Item::ITEM_CLASS_RESURRECT_ITEM, 1, list<OptionType_t>());
             pResultItem->setNum(9);
         } else {
             // Accessory mixing forge, type A
-            pResultItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MIXING_ITEM, 6, list<OptionType_t>());
+            pResultItem = itemFactories.createItem(Item::ITEM_CLASS_MIXING_ITEM, 6, list<OptionType_t>());
         }
     } else if (pItem->getItemType() == 20) {
         int value = rand() % 100;
@@ -2266,17 +2267,17 @@ void CGUseItemFromInventoryHandler::executeEventGiftBox(CGUseItemFromInventory* 
 
         if (value < 70) {
             // Resurrection scroll
-            pResultItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_RESURRECT_ITEM, 0, list<OptionType_t>());
+            pResultItem = itemFactories.createItem(Item::ITEM_CLASS_RESURRECT_ITEM, 0, list<OptionType_t>());
         } else if (value < 95) {
             // Blue rice-cake soup
-            pResultItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_STAR, 10, list<OptionType_t>());
+            pResultItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_STAR, 10, list<OptionType_t>());
         } else if (value < 99) {
             // 50 bluebirds
-            pResultItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_STAR, 12, list<OptionType_t>());
+            pResultItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_STAR, 12, list<OptionType_t>());
             pResultItem->setNum(50);
         } else {
             // Armor mixing forge, type A
-            pResultItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MIXING_ITEM, 3, list<OptionType_t>());
+            pResultItem = itemFactories.createItem(Item::ITEM_CLASS_MIXING_ITEM, 3, list<OptionType_t>());
         }
     }
 
@@ -2286,16 +2287,16 @@ void CGUseItemFromInventoryHandler::executeEventGiftBox(CGUseItemFromInventory* 
 
         if (value < 70) {
             // Resurrection scroll
-            pResultItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_RESURRECT_ITEM, 0, list<OptionType_t>());
+            pResultItem = itemFactories.createItem(Item::ITEM_CLASS_RESURRECT_ITEM, 0, list<OptionType_t>());
         } else if (value < 95) {
             // Green rice-cake soup
-            pResultItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_STAR, 9, list<OptionType_t>());
+            pResultItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_STAR, 9, list<OptionType_t>());
         } else if (value < 99) {
             // Notice board 3
-            pResultItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_TREE, 28, list<OptionType_t>());
+            pResultItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_TREE, 28, list<OptionType_t>());
         } else {
             // 4 pet foods
-            pResultItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_PET_FOOD, 4, list<OptionType_t>());
+            pResultItem = itemFactories.createItem(Item::ITEM_CLASS_PET_FOOD, 4, list<OptionType_t>());
             pResultItem->setNum(4);
         }
     }

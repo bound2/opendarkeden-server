@@ -10,6 +10,7 @@
 #include "FlagSet.h"
 #include "GCCreateItem.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -221,7 +222,7 @@ void ActionGiveEventItem::execute(Creature* pCreature1, Creature* pCreature2)
     if (OptionType2 != 0)
         optionTypeList.push_back(OptionType2);
 
-    pItem = g_pItemFactoryManager->createItem(ItemClass, ItemType, optionTypeList);
+    pItem = context().itemFactories().createItem(ItemClass, ItemType, optionTypeList);
     Assert(pItem != NULL);
 
     _TPOINT pt;

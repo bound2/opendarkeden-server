@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 #include "EffectDragonEye.h"
+#include "GameContext.h"
 #include "GlobalItemPositionLoader.h"
 #include "ItemFactoryManager.h"
 #include "Zone.h"
@@ -68,7 +69,7 @@ void DragonEyeManager::createAllDragonEyes()
     // First create the dragon eye items.
     for (int i = 0; i < nDragonEyes; ++i) {
         list<OptionType_t> optionNull;
-        Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_WAR_ITEM, 0, optionNull);
+        Item* pItem = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_WAR_ITEM, 0, optionNull);
         Assert(pItem != NULL);
 
         WarItem* pWarItem = dynamic_cast<WarItem*>(pItem);

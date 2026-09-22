@@ -60,6 +60,7 @@
 #include "GCSystemMessage.h"
 #include "GDRLairManager.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
 #include "HitRoll.h"
@@ -113,7 +114,8 @@ bool verifyDistance(Creature* pCreature, ZoneCoord_t X, ZoneCoord_t Y, Range_t D
     ZoneLevel_t AttackerZoneLevel = pZone->getZoneLevel(cx, cy);
 
     // Skills cannot be used in Adam's holy land or in a safe area inside a PK zone.
-    if ((AttackerZoneLevel & SAFE_ZONE) && (g_pPKZoneInfoManager->isPKZone(pZone->getZoneID()) || pZone->isHolyLand()))
+    if ((AttackerZoneLevel & SAFE_ZONE) &&
+        (de::gameContext().pkZoneInfos().isPKZone(pZone->getZoneID()) || pZone->isHolyLand()))
         return false;
 
     // If the attacker is standing in a Slayer safe area,
@@ -157,7 +159,8 @@ bool verifyDistance(Creature* pCreature, Creature* pTargetCreature, Range_t Dist
     ZoneLevel_t DefenderZoneLevel = pZone->getZoneLevel(tx, ty);
 
     // Skills cannot be used in Adam's holy land or in a safe area inside a PK zone.
-    if ((AttackerZoneLevel & SAFE_ZONE) && (g_pPKZoneInfoManager->isPKZone(pZone->getZoneID()) || pZone->isHolyLand()))
+    if ((AttackerZoneLevel & SAFE_ZONE) &&
+        (de::gameContext().pkZoneInfos().isPKZone(pZone->getZoneID()) || pZone->isHolyLand()))
         return false;
 
     // If the attacker is standing in a Slayer safe area,

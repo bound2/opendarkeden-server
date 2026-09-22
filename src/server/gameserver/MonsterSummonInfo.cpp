@@ -8,6 +8,7 @@
 #include <list>
 #include <vector>
 
+#include "GameContext.h"
 #include "MonsterInfo.h"
 #include "Types.h"
 
@@ -62,13 +63,13 @@ void MonsterCollectionInfo::parseString(const string& text) {
             MonsterType = atoi(name.c_str());
 
             try {
-                g_pMonsterInfoManager->getMonsterInfo(MonsterType);
+                de::gameContext().monsterInfos().getMonsterInfo(MonsterType);
             } catch (Throwable& t) {
                 cout << t.toString().c_str() << endl;
                 Assert(false);
             }
         } else {
-            SpriteType = g_pMonsterInfoManager->getSpriteTypeByName(name);
+            SpriteType = de::gameContext().monsterInfos().getSpriteTypeByName(name);
 
             if (SpriteType == 0)
                 SpriteType = atoi(name.c_str());

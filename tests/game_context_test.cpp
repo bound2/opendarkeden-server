@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[53];
+char g_managerStorage[56];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -94,14 +94,17 @@ TEST(GameContextTest, WorldTableManagersAreReadBack) {
     de::GameContext context;
 
     DynamicZoneFactoryManager* pDynamicZoneFactoryManager = standIn<DynamicZoneFactoryManager>(12);
+    MonsterInfoManager* pMonsterInfoManager = standIn<MonsterInfoManager>(53);
     MonsterNameManager* pMonsterNameManager = standIn<MonsterNameManager>(13);
     WeatherInfoManager* pWeatherInfoManager = standIn<WeatherInfoManager>(14);
 
     context.setDynamicZoneFactoryManager(pDynamicZoneFactoryManager);
+    context.setMonsterInfoManager(pMonsterInfoManager);
     context.setMonsterNameManager(pMonsterNameManager);
     context.setWeatherInfoManager(pWeatherInfoManager);
 
     EXPECT_EQ(&context.dynamicZoneFactories(), pDynamicZoneFactoryManager);
+    EXPECT_EQ(&context.monsterInfos(), pMonsterInfoManager);
     EXPECT_EQ(&context.monsterNames(), pMonsterNameManager);
     EXPECT_EQ(&context.weatherInfos(), pWeatherInfoManager);
 }
@@ -111,14 +114,17 @@ TEST(GameContextTest, ItemDescriptionManagersAreReadBack) {
 
     DefaultOptionSetInfoManager* pDefaultOptionSetInfoManager = standIn<DefaultOptionSetInfoManager>(15);
     ItemInfoManager* pItemInfoManager = standIn<ItemInfoManager>(48);
+    OptionInfoManager* pOptionInfoManager = standIn<OptionInfoManager>(54);
     VolumeInfoManager* pVolumeInfoManager = standIn<VolumeInfoManager>(16);
 
     context.setDefaultOptionSetInfoManager(pDefaultOptionSetInfoManager);
     context.setItemInfoManager(pItemInfoManager);
+    context.setOptionInfoManager(pOptionInfoManager);
     context.setVolumeInfoManager(pVolumeInfoManager);
 
     EXPECT_EQ(&context.optionSets(), pDefaultOptionSetInfoManager);
     EXPECT_EQ(&context.itemInfos(), pItemInfoManager);
+    EXPECT_EQ(&context.optionInfos(), pOptionInfoManager);
     EXPECT_EQ(&context.volumeInfos(), pVolumeInfoManager);
 }
 
@@ -156,14 +162,17 @@ TEST(GameContextTest, ZoneAmbienceManagersAreReadBack) {
     DarkLightInfoManager* pDarkLightInfoManager = standIn<DarkLightInfoManager>(21);
     DirectiveSetManager* pDirectiveSetManager = standIn<DirectiveSetManager>(22);
     DynamicZoneInfoManager* pDynamicZoneInfoManager = standIn<DynamicZoneInfoManager>(23);
+    PKZoneInfoManager* pPKZoneInfoManager = standIn<PKZoneInfoManager>(55);
 
     context.setDarkLightInfoManager(pDarkLightInfoManager);
     context.setDirectiveSetManager(pDirectiveSetManager);
     context.setDynamicZoneInfoManager(pDynamicZoneInfoManager);
+    context.setPKZoneInfoManager(pPKZoneInfoManager);
 
     EXPECT_EQ(&context.darkLights(), pDarkLightInfoManager);
     EXPECT_EQ(&context.directiveSets(), pDirectiveSetManager);
     EXPECT_EQ(&context.dynamicZoneInfos(), pDynamicZoneInfoManager);
+    EXPECT_EQ(&context.pkZoneInfos(), pPKZoneInfoManager);
 }
 
 TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
@@ -335,10 +344,13 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.itemLoaders(), AssertionError);
     EXPECT_THROW(context.itemMineInfos(), AssertionError);
     EXPECT_THROW(context.masterLairInfos(), AssertionError);
+    EXPECT_THROW(context.monsterInfos(), AssertionError);
     EXPECT_THROW(context.monsterNames(), AssertionError);
+    EXPECT_THROW(context.optionInfos(), AssertionError);
     EXPECT_THROW(context.optionSets(), AssertionError);
     EXPECT_THROW(context.oustersExp(), AssertionError);
     EXPECT_THROW(context.parties(), AssertionError);
+    EXPECT_THROW(context.pkZoneInfos(), AssertionError);
     EXPECT_THROW(context.playerCreatures(), AssertionError);
     EXPECT_THROW(context.prices(), AssertionError);
     EXPECT_THROW(context.publicScripts(), AssertionError);

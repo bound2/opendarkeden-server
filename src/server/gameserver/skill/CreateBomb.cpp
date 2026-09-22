@@ -102,7 +102,7 @@ void CreateBomb::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
             computeOutput(input, output);
 
             list<OptionType_t> optionNULL;
-            Item* pBomb = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_BOMB, BombType, optionNULL);
+            Item* pBomb = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_BOMB, BombType, optionNULL);
 
             // Decrease the bomb material count.
             // Inside this function the material count drops by one automatically,

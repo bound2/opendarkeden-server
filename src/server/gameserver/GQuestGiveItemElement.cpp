@@ -3,6 +3,7 @@
 #include "GCCreateItem.h"
 #include "GCSystemMessage.h"
 #include "GQuestInventory.h"
+#include "GameContext.h"
 #include "Inventory.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
@@ -14,7 +15,7 @@
 
 GQuestElement::ResultType GQuestGiveItemElement::checkCondition(PlayerCreature* pPC) const {
     //	cout << "GQuestGiveItemElement : " << (int)m_ItemClass << ", " << (int)m_ItemType << endl;
-    Item* pItem = g_pItemFactoryManager->createItem(m_ItemClass, m_ItemType, m_Option);
+    Item* pItem = de::gameContext().itemFactories().createItem(m_ItemClass, m_ItemType, m_Option);
     if (pItem == NULL)
         return FAIL;
 

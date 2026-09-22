@@ -3,6 +3,7 @@
 #include "CorpseItemPosition.h"
 #include "EffectKeepSweeper.h"
 #include "GCAddEffect.h"
+#include "GameContext.h"
 #include "GlobalItemPosition.h"
 #include "GlobalItemPositionLoader.h"
 #include "Item.h"
@@ -130,7 +131,8 @@ void SweeperSetManager::load(int level, Zone* pZone) {
         Assert(race < 4);
         int safeType = owners[r].sweeperSafeType;
 
-        Item* Sweeper = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_SWEEPER, type, list<OptionType_t>());
+        Item* Sweeper =
+            de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_SWEEPER, type, list<OptionType_t>());
         pZone->registerObject(Sweeper);
 
         Assert(m_Sweepers[Sweeper->getItemType()] == NULL);

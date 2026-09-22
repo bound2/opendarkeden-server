@@ -219,7 +219,7 @@ void ActionRegenShop::execute(Creature* pCreature1, Creature* pCreature2)
                 maxOptionLevel = pTemplate->getMaxOptionLevel();
 
                 // First build the vector of option types that can be created.
-                vector<OptionType_t> optionVector = g_pOptionInfoManager->getPossibleOptionVector(
+                vector<OptionType_t> optionVector = context().optionInfos().getPossibleOptionVector(
                     (Item::ItemClass)itemClass, minOptionLevel, maxOptionLevel);
 
                 for (ItemType_t type = minItemType; type <= maxItemType; type++) {
@@ -248,7 +248,7 @@ void ActionRegenShop::execute(Creature* pCreature1, Creature* pCreature2)
                         if (optionType != 0)
                             optionTypes.push_back(optionType);
 
-                        Item* pItem = g_pItemFactoryManager->createItem(IClass, itemType, optionTypes);
+                        Item* pItem = context().itemFactories().createItem(IClass, itemType, optionTypes);
                         Assert(pItem != NULL);
 
                         // Register in the zone's object registry.

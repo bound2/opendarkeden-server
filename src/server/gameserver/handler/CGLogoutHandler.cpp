@@ -12,6 +12,7 @@
 #include "Creature.h"
 #include "GCSystemMessage.h"
 #include "GLIncomingConnection.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "Inventory.h"
@@ -66,8 +67,8 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
     try {
         // On logout, drop the relic and the blood bible fragments.
 
-        if (pCreature->isPLAYER() && g_pPKZoneInfoManager->isPKZone(pCreature->getZoneID())) {
-            g_pPKZoneInfoManager->leavePKZone(pCreature->getZoneID());
+        if (pCreature->isPLAYER() && de::gameContext().pkZoneInfos().isPKZone(pCreature->getZoneID())) {
+            de::gameContext().pkZoneInfos().leavePKZone(pCreature->getZoneID());
         }
 
         if (g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0 && pPacket == NULL) {

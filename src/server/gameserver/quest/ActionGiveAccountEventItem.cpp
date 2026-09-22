@@ -10,6 +10,7 @@
 #include "DB.h"
 #include "GCCreateItem.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -233,7 +234,7 @@ void ActionGiveAccountEventItem::execute(Creature* pCreature1, Creature* pCreatu
     if (OptionType2 != 0)
         optionTypeList.push_back(OptionType2);
 
-    pItem = g_pItemFactoryManager->createItem(ItemClass, ItemType, optionTypeList);
+    pItem = context().itemFactories().createItem(ItemClass, ItemType, optionTypeList);
     Assert(pItem != NULL);
 
     // Get an empty inventory slot for the item.

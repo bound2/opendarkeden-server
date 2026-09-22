@@ -122,7 +122,7 @@ void Monster::initAllStat(void)
 {
     __BEGIN_TRY
 
-    const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(m_MonsterType);
+    const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType);
 
     Creature::CreatureClass CClass = getCreatureClass();
     BASIC_ATTR attr;

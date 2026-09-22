@@ -88,7 +88,7 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
                                   // Cannot follow into Adam's holy land either.
                                   (!de::gameContext().warSystem().hasActiveRaceWar() || !pTargetZone->isHolyLand()) &&
                                   !pTargetZone->isCastle() && !pTargetZone->isMasterLair() &&
-                                  !g_pPKZoneInfoManager->isPKZone(pTargetZone->getZoneID()) &&
+                                  !de::gameContext().pkZoneInfos().isPKZone(pTargetZone->getZoneID()) &&
                                   // Cannot go into a dynamic zone either.
                                   !pTargetZone->isDynamicZone();
 
@@ -251,7 +251,7 @@ void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkil
                                   pTargetZone->getZoneID() != 1134 && !pTargetZone->isCastleZone() &&
                                   (!de::gameContext().warSystem().hasActiveRaceWar() || !pTargetZone->isHolyLand()) &&
                                   !pTargetZone->isCastle() && !pTargetZone->isMasterLair() &&
-                                  !g_pPKZoneInfoManager->isPKZone(pTargetZone->getZoneID()) &&
+                                  !de::gameContext().pkZoneInfos().isPKZone(pTargetZone->getZoneID()) &&
                                   // Cannot go into a dynamic zone either.
                                   !pTargetZone->isDynamicZone();
 
@@ -381,7 +381,7 @@ void SoulChain::execute(Ousters* pOusters, const string& targetName, OustersSkil
                                   pTargetZone->getZoneID() != 1134 && !pTargetZone->isCastleZone() &&
                                   (!de::gameContext().warSystem().hasActiveRaceWar() || !pTargetZone->isHolyLand()) &&
                                   !pTargetZone->isCastle() && !pTargetZone->isMasterLair() &&
-                                  !g_pPKZoneInfoManager->isPKZone(pTargetZone->getZoneID()) &&
+                                  !de::gameContext().pkZoneInfos().isPKZone(pTargetZone->getZoneID()) &&
                                   // Cannot go into a dynamic zone either.
                                   !pTargetZone->isDynamicZone();
 

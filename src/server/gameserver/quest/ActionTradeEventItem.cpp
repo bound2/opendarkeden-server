@@ -93,6 +93,7 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
     // First create the two items.
     Zone* pZone = pPC->getZone();
     ObjectRegistry& OR = pZone->getObjectRegistry();
+    ItemFactoryManager& itemFactories = context().itemFactories();
 
     TPOINT pt, pt2;
     Item* pItem1;
@@ -115,28 +116,28 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
         {
             switch (m_GoalAmount) {
             case 100:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_COAT, 0, option4);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_TROUSER, 0, option4);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 0, option4);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 0, option4);
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_1));
                 break;
             case 125:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_COAT, 2, option5);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_TROUSER, 2, option5);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 2, option5);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 2, option5);
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_2));
                 break;
             case 175:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_COAT, 4, option1);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_TROUSER, 4, option1);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 4, option1);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 4, option1);
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_3));
                 break;
             case 225:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_COAT, 4, option2);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_TROUSER, 4, option2);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 4, option2);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 4, option2);
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_4));
                 break;
             case 275:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_COAT, 4, option3);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_TROUSER, 4, option3);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 4, option3);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 4, option3);
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_5));
                 break;
             default:
@@ -145,28 +146,28 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
         } else if (pSlayer->getSex() == 0) {
             switch (m_GoalAmount) {
             case 100:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_COAT, 1, option4);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_TROUSER, 1, option4);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 1, option4);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 1, option4);
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_6));
                 break;
             case 125:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_COAT, 3, option5);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_TROUSER, 3, option5);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 3, option5);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 3, option5);
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_7));
                 break;
             case 175:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_COAT, 5, option1);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_TROUSER, 5, option1);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 5, option1);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 5, option1);
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_8));
                 break;
             case 225:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_COAT, 5, option2);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_TROUSER, 5, option2);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 5, option2);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 5, option2);
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_9));
                 break;
             case 275:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_COAT, 5, option3);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_TROUSER, 5, option3);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 5, option3);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 5, option3);
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_10));
                 break;
             default:
@@ -179,33 +180,33 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
         if (pVampire->getSex() == 0) {
             switch (m_GoalAmount) {
             case 100:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 1, option4);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 2, option4);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 1, option4);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 2, option4);
                 // message << "STR+4 bodysuit and STR+4 Cuspid necklace granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_11));
                 break;
             case 125:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option4);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 3, option4);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option4);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 3, option4);
                 // message << "STR+4 jumpsuit and STR+4 Jet necklace granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_12));
                 break;
             case 175:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option5);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 4, option3);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option5);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 4, option3);
                 // message << "STR+5 jumpsuit and STR+4 Idol pendant granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_13));
                 break;
             case 225:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option5);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 5, option3);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option5);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 5, option3);
                 // message << "STR+5 jumpsuit and STR+4 Anti-Cross pendant
                 // granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_14));
                 break;
             case 275:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option5);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 6, option3);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option5);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 6, option3);
                 // message << "STR+5 jumpsuit and STR+4 Death-Star pendant granted.
                 // Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_15));
@@ -216,33 +217,33 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
         } else if (pVampire->getSex() == 1) {
             switch (m_GoalAmount) {
             case 100:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 0, option4);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 2, option4);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 0, option4);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 2, option4);
                 // message << "STR+4 swing coat and STR+4 Cuspid necklace granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_16));
                 break;
             case 125:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option4);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 3, option4);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option4);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 3, option4);
                 // message << "STR+4 frock coat and STR+4 Jet necklace granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_17));
                 break;
             case 175:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option5);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 4, option3);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option5);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 4, option3);
                 // message << "STR+5 frock coat and STR+4 Idol pendant granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_18));
                 break;
             case 225:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option5);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 5, option3);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option5);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 5, option3);
                 // message << "STR+5 frock coat and STR+4 Anti-Cross pendant
                 // granted. Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_19));
                 break;
             case 275:
-                pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option5);
-                pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 6, option3);
+                pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option5);
+                pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 6, option3);
                 // message << "STR+5 frock coat and STR+4 Death-Star pendant granted.
                 // Go Korea team!";
                 sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_20));

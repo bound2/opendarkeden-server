@@ -87,7 +87,8 @@ void CreateHolyPotion::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordI
             // This works because the potion and holy potion item types correspond
             // one to one.
             list<OptionType_t> optionNULL;
-            Item* pHolyPotion = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_POTION, waterType, optionNULL);
+            Item* pHolyPotion =
+                de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_POTION, waterType, optionNULL);
 
             // Decrease the bottle count.
             // Inside this function the bottle count drops by one automatically,

@@ -264,7 +264,7 @@ void ActionRegenEventShop::execute(Creature* pCreature1, Creature* pCreature2)
                     list<OptionType_t> optionTypes;
                     if (optionType != 0)
                         optionTypes.push_back(optionType);
-                    Item* pItem = g_pItemFactoryManager->createItem(IClass, itemType, optionTypes);
+                    Item* pItem = context().itemFactories().createItem(IClass, itemType, optionTypes);
                     Assert(pItem != NULL);
 
                     // Register it in the zone's object registry.

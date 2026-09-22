@@ -113,8 +113,8 @@ Item* CorpseItemPosition::getItem_CORE(Zone* pZone, bool isDel)
                 FlagManager& flags = de::gameContext().flags();
                 if (flags.isFlagPole(pMonsterCorpse) &&
                     flags.getFlagPoleRace(pMonsterCorpse) == flags.getWinnerRace()) {
-                    Item* pGemStone =
-                        g_pItemFactoryManager->createItem(Item::ITEM_CLASS_QUEST_ITEM, 4, list<OptionType_t>());
+                    Item* pGemStone = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_QUEST_ITEM, 4,
+                                                                                   list<OptionType_t>());
                     pZone->registerObject(pGemStone);
                     TPOINT tp = pZone->addItem(pGemStone, pMonsterCorpse->getX(), pMonsterCorpse->getY());
 

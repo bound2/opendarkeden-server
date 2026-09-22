@@ -3,6 +3,7 @@
 
 #include <list>
 
+#include "GameContext.h"
 #include "Item.h"
 #include "ItemFactoryManager.h"
 #include "Monster.h"
@@ -54,24 +55,25 @@ MoonCard getCardKind(PlayerCreature* pPC, Monster* pMonster) {
 Item* getCardItem(MoonCard card) {
     Item* ret = NULL;
     bool putInDB = false;
+    ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
 
     switch (card) {
     case NO_CARD:
         break;
     case FULL_MOON:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_QUEST_ITEM, 5, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_QUEST_ITEM, 5, list<OptionType_t>());
         putInDB = true;
         break;
     case OLD_MOON:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_QUEST_ITEM, 6, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_QUEST_ITEM, 6, list<OptionType_t>());
         putInDB = true;
         break;
     case HALF_MOON:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MOON_CARD, 0, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_MOON_CARD, 0, list<OptionType_t>());
         putInDB = true;
         break;
     case NEW_MOON:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MOON_CARD, 1, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_MOON_CARD, 1, list<OptionType_t>());
         putInDB = true;
         break;
     default:
@@ -129,24 +131,25 @@ LuckyBag getLuckyBagKind(PlayerCreature* pPC, Monster* pMonster) {
 Item* getLuckyBagItem(LuckyBag luckybag) {
     Item* ret = NULL;
     bool putInDB = false;
+    ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
 
     switch (luckybag) {
     case NO_LUCKY_BAG:
         break;
     case GREEN_LUCKY_BAG:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_LUCKY_BAG, 0, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_LUCKY_BAG, 0, list<OptionType_t>());
         putInDB = true;
         break;
     case BLUE_LUCKY_BAG:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_LUCKY_BAG, 1, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_LUCKY_BAG, 1, list<OptionType_t>());
         putInDB = true;
         break;
     case GOLD_LUCKY_BAG:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_LUCKY_BAG, 2, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_LUCKY_BAG, 2, list<OptionType_t>());
         putInDB = true;
         break;
     case RED_LUCKY_BAG:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_QUEST_ITEM, 7, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_QUEST_ITEM, 7, list<OptionType_t>());
         putInDB = true;
         break;
     default:
@@ -205,24 +208,25 @@ GiftBox getGiftBoxKind(PlayerCreature* pPC, Monster* pMonster) {
 Item* getGiftBoxItem(GiftBox giftbox) {
     Item* ret = NULL;
     bool putInDB = false;
+    ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
 
     switch (giftbox) {
     case NO_GIFT_BOX:
         break;
     case RED_GIFT_BOX:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 2, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 2, list<OptionType_t>());
         putInDB = true;
         break;
     case BLUE_GIFT_BOX:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 3, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 3, list<OptionType_t>());
         putInDB = true;
         break;
     case GREEN_GIFT_BOX:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 4, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 4, list<OptionType_t>());
         putInDB = true;
         break;
     case YELLOW_GIFT_BOX:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 5, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 5, list<OptionType_t>());
         putInDB = true;
         break;
     default:

@@ -286,7 +286,7 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
                 // Corpses disappear faster in the master lair.
                 if (isMasterLair()) {
                     MonsterType_t mt = pMonsterCorpse->getMonsterType();
-                    const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(mt);
+                    const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(mt);
                     Assert(pMonsterInfo != NULL);
 
                     // A master's corpse uses its own decay delay.
@@ -802,7 +802,7 @@ bool Zone::addRelicItem(int relicIndex)
 
         // Create the relic.
         list<OptionType_t> optionNULL;
-        Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_RELIC, relicIndex, optionNULL);
+        Item* pItem = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_RELIC, relicIndex, optionNULL);
         Assert(pItem != NULL);
 
 

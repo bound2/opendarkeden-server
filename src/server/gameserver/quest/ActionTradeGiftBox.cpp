@@ -11,6 +11,7 @@
 #include "GCCreateItem.h"
 #include "GCDeleteInventoryItem.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -238,7 +239,7 @@ void ActionTradeGiftBox::execute(Creature* pCreature1, Creature* pCreature2)
     if (OptionType != 0)
         optionTypeList.push_back(OptionType);
 
-    pItem = g_pItemFactoryManager->createItem(ItemClass, ItemType, optionTypeList);
+    pItem = context().itemFactories().createItem(ItemClass, ItemType, optionTypeList);
     Assert(pItem != NULL);
 
 

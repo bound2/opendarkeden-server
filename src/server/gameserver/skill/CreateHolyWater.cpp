@@ -83,7 +83,8 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
             // This works because the Water and HolyWater item types correspond
             // one to one.
             list<OptionType_t> optionNULL;
-            Item* pHolyWater = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_HOLYWATER, waterType, optionNULL);
+            Item* pHolyWater =
+                de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_HOLYWATER, waterType, optionNULL);
             // Sets the count as well.
             pHolyWater->setNum(pWater->getNum());
 

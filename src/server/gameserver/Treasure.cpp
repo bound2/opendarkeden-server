@@ -51,7 +51,7 @@ void TreasureOptionType::loadFromFile(ifstream& file)
     file.read((char*)&m_Ratio, sizeof(int));
 
     try {
-        OptionInfo* pInfo = g_pOptionInfoManager->getOptionInfo(m_OptionType);
+        OptionInfo* pInfo = de::gameContext().optionInfos().getOptionInfo(m_OptionType);
         Assert(pInfo != NULL);
     } catch (NoSuchElementException& nsee) {
         cerr << "TreasureOptionType::loadFromFile() : Unknown Option" << endl;
@@ -78,7 +78,7 @@ void TreasureOptionType::parseString(const string& text)
         m_Ratio = atoi(text.substr(a + 1, text.size() - a - 1).c_str());
 
         try {
-            OptionInfo* pInfo = g_pOptionInfoManager->getOptionInfo(optionString);
+            OptionInfo* pInfo = de::gameContext().optionInfos().getOptionInfo(optionString);
             Assert(pInfo != NULL);
             m_OptionType = pInfo->getType();
         } catch (NoSuchElementException& nsee) {

@@ -111,7 +111,7 @@ Item* ShrineSet::createBloodBibleInGuardShrine()
     Assert(pShrine != NULL);
 
     list<OptionType_t> optionNULL;
-    Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_BLOOD_BIBLE, m_ItemType, optionNULL);
+    Item* pItem = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_BLOOD_BIBLE, m_ItemType, optionNULL);
     Assert(pItem != NULL);
 
     char strZoneID[10];
@@ -677,7 +677,7 @@ bool ShrineInfoManager::returnBloodBible(Zone* pZone, BloodBible* pBloodBible) c
 
     char msg[300];
 
-    const char* race;
+    const char* race = "";
     if (pShrineSet->getOwnerRace() == RACE_SLAYER) {
         race = g_pStringPool->c_str(STRID_SLAYER);
     } else if (pShrineSet->getOwnerRace() == RACE_VAMPIRE) {

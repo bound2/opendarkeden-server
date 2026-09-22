@@ -6,6 +6,7 @@
 
 #include "ItemMineInfo.h"
 
+#include "GameContext.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
 #include "Treasure.h"
@@ -21,7 +22,8 @@ ItemMineInfo::ItemMineInfo()
       * ItemMineInfo::getItem() {
     __BEGIN_TRY
 
-    Item* pItem = g_pItemFactoryManager->createItem((Item::ItemClass)getItemClass(), getItemType(), getItemOptions());
+    Item* pItem =
+        de::gameContext().itemFactories().createItem((Item::ItemClass)getItemClass(), getItemType(), getItemOptions());
 
     return pItem;
 

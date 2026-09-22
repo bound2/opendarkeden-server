@@ -2,6 +2,7 @@
 #include <list>
 
 #include "EventItemUtil.h"
+#include "GameContext.h"
 #include "Item.h"
 #include "ItemFactoryManager.h"
 #include "Monster.h"
@@ -29,6 +30,7 @@ NewYear2005Item getNewYear2005ItemKind(PlayerCreature* pPC, Monster* pMonster) {
 }
 
 Item* getNewYear2005Item(NewYear2005Item kind) {
+    ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
     Item* ret = NULL;
 
     switch (kind) {
@@ -36,27 +38,27 @@ Item* getNewYear2005Item(NewYear2005Item kind) {
         break;
 
     case BOKJORY:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MIXING_ITEM, 18, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_MIXING_ITEM, 18, list<OptionType_t>());
         break;
 
     case EVENT_RED_RICE_CAKE_SOUP:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_STAR, 17, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_EVENT_STAR, 17, list<OptionType_t>());
         break;
 
     case EVENT_GREEN_RICE_CAKE_SOUP:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_STAR, 18, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_EVENT_STAR, 18, list<OptionType_t>());
         break;
 
     case EVENT_BLUE_RICE_CAKE_SOUP:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_STAR, 19, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_EVENT_STAR, 19, list<OptionType_t>());
         break;
 
     case EVENT_BLACK_RICE_CAKE_SOUP:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_STAR, 20, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_EVENT_STAR, 20, list<OptionType_t>());
         break;
 
     case EVENT_MUGWORT_RICE_CAKE_SOUP:
-        ret = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_STAR, 21, list<OptionType_t>());
+        ret = itemFactories.createItem(Item::ITEM_CLASS_EVENT_STAR, 21, list<OptionType_t>());
         break;
 
     default:

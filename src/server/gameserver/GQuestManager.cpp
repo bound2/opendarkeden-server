@@ -458,7 +458,7 @@ void GQuestManager::partyDissect(MonsterCorpse* pMonsterCorpse) {
         cout << "잡은놈 : " << pMonsterCorpse->getMonsterType() << endl;
 
         if (pPartyDissectMission->isTarget(
-                g_pMonsterInfoManager->getMonsterInfo(pMonsterCorpse->getMonsterType())->getSpriteType())) {
+                de::gameContext().monsterInfos().getMonsterInfo(pMonsterCorpse->getMonsterType())->getSpriteType())) {
             GQuestPartyDissectElement* pPartyDissectElement =
                 dynamic_cast<GQuestPartyDissectElement*>(*pPartyDissectMission->m_Position);
             if (pPartyDissectElement == NULL) {

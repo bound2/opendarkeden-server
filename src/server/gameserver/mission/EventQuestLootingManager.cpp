@@ -5,6 +5,7 @@
 
 #include "DB.h"
 #include "EventQuestAdvance.h"
+#include "GameContext.h"
 #include "Item.h"
 #include "ItemFactoryManager.h"
 #include "Monster.h"
@@ -82,7 +83,7 @@ Item* EventQuestLootingInfo::getLootingItem() {
     ItemType_t itemType = m_LootingItemTypeMin + offset;
 
     list<OptionType_t> oList;
-    Item* pRet = g_pItemFactoryManager->createItem(m_LootingItemClass, itemType, oList);
+    Item* pRet = de::gameContext().itemFactories().createItem(m_LootingItemClass, itemType, oList);
 
     pRet->setQuestItem();
 

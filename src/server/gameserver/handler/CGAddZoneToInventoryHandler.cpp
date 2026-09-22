@@ -230,8 +230,8 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
                         pPrevItem->destroy();
                         SAFE_DELETE(pPrevItem);
 
-                        Item* pNewItem =
-                            g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_ITEM, 28, list<OptionType_t>());
+                        Item* pNewItem = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_EVENT_ITEM, 28,
+                                                                                      list<OptionType_t>());
                         pZone->registerObject(pNewItem);
 
                         if (!pInventory->addItem(pt.x, pt.y, pNewItem)) {

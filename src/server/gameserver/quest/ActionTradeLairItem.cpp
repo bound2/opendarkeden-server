@@ -294,7 +294,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
         // The reward is rolled from the monster's treasure list: every treasure
         // in the list is rolled in turn and the last one that yields an item wins.
         //////////////////////////////////////////////////////////////////////////////
-        const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(MonsterType);
+        const MonsterInfo* pMonsterInfo = context().monsterInfos().getMonsterInfo(MonsterType);
         TreasureList* pTreasureList = NULL;
 
         // The item given differs by race as well.
@@ -326,7 +326,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
                 // dropped here rather than left with no owner.
                 SAFE_DELETE(pItem1);
 
-                pItem1 = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
+                pItem1 = context().itemFactories().createItem(it.ItemClass, it.ItemType, it.OptionType);
                 Assert(pItem1 != NULL);
             }
         }

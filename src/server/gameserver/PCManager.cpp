@@ -937,6 +937,8 @@ void PCManager::killCreature(Creature* pDeadCreature)
 
     Assert(pDeadCreature != NULL);
 
+    PKZoneInfoManager& pkZoneInfos = de::gameContext().pkZoneInfos();
+
     // Because of transfusion, HP keeps filling even after death.
     // Ignored.
 
@@ -950,7 +952,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
     pDeadCreature->removeFlag(Effect::EFFECT_CLASS_ETERNITY);
 
     // Dying in a PK zone attaches an effect on resurrection.
-    if (g_pPKZoneInfoManager->isPKZone(pZone->getZoneID())) {
+    if (pkZoneInfos.isPKZone(pZone->getZoneID())) {
         EffectPKZoneResurrection* pEffect = new EffectPKZoneResurrection(pDeadCreature);
         pDeadCreature->addEffect(pEffect);
         pDeadCreature->setFlag(pEffect->getEffectClass());
@@ -1068,8 +1070,8 @@ void PCManager::killCreature(Creature* pDeadCreature)
     }
     // Dying in a PK zone resurrects at the PK zone's
     // resurrection position.
-    else if (g_pPKZoneInfoManager->isPKZone(pPC->getZoneID())) {
-        if (!g_pPKZoneInfoManager->getResurrectPosition(pPC->getZoneID(), ResurrectCoord))
+    else if (pkZoneInfos.isPKZone(pPC->getZoneID())) {
+        if (!pkZoneInfos.getResurrectPosition(pPC->getZoneID(), ResurrectCoord))
             g_pResurrectLocationManager->getPosition(pPC, ResurrectCoord);
     }
     // Illusion Way 1.

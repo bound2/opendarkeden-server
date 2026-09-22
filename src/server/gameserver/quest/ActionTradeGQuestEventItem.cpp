@@ -14,6 +14,7 @@
 #include "GCSystemMessage.h"
 #include "GQuestInventory.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -155,7 +156,7 @@ void ActionTradeGQuestEventItem::execute(Creature* pCreature1, Creature* pCreatu
         filelog("GQuestEventBug.log", "옵션이 틀렸습니다. : %d/%s", value, option.c_str());
     }
 
-    Item* pItem = g_pItemFactoryManager->createItem(iClass, iType, optionList);
+    Item* pItem = context().itemFactories().createItem(iClass, iType, optionList);
     pItem->setGrade(4);
 
     pPC->getZone()->registerObject(pItem);

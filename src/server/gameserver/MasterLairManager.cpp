@@ -983,7 +983,7 @@ void MasterLairManager::giveKillingReward()
             }
 
             list<OptionType_t> nullList;
-            Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_QUEST_ITEM, itemType, nullList);
+            Item* pItem = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_QUEST_ITEM, itemType, nullList);
 
             (m_pZone->getObjectRegistry()).registerObject(pItem);
 

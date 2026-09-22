@@ -9,6 +9,7 @@
 #include "Creature.h"
 #include "GCMonsterKillQuestInfo.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "MonsterInfo.h"
 #include "NPC.h"
@@ -74,7 +75,7 @@ void ActionStartPetQuest::execute(Creature* pCreature1, Creature* pCreature2)
     gcMKQI.addQuestInfo(pQI);
     pPC->getPlayer()->sendPacket(&gcMKQI);
 
-    const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(pQI->sType);
+    const MonsterInfo* pMonsterInfo = context().monsterInfos().getMonsterInfo(pQI->sType);
     Assert(pMonsterInfo != NULL);
 
     MonsterKillQuestStatus* pQS =

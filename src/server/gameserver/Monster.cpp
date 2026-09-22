@@ -140,7 +140,7 @@ Monster::Monster(MonsterType_t monsterType) : m_MonsterType(monsterType) {
     __BEGIN_TRY
 
     try {
-        const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(m_MonsterType);
+        const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType);
 
         // Move mode setting
         m_MoveMode = pMonsterInfo->getMoveMode();
@@ -420,7 +420,7 @@ SpriteType_t Monster::getSpriteType() const
 {
     __BEGIN_TRY
 
-    return g_pMonsterInfoManager->getMonsterInfo(m_MonsterType)->getSpriteType();
+    return de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType)->getSpriteType();
 
     __END_CATCH
 }
@@ -430,7 +430,7 @@ Level_t Monster::getLevel() const
 {
     __BEGIN_TRY
 
-    return g_pMonsterInfoManager->getMonsterInfo(m_MonsterType)->getLevel();
+    return de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType)->getLevel();
 
     __END_CATCH
 }
@@ -440,7 +440,7 @@ uint Monster::getBodySize() const
 {
     __BEGIN_TRY
 
-    return g_pMonsterInfoManager->getMonsterInfo(m_MonsterType)->getBodySize();
+    return de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType)->getBodySize();
 
     __END_CATCH
 }
@@ -450,7 +450,7 @@ Color_t Monster::getMainColor() const
 {
     __BEGIN_TRY
 
-    return g_pMonsterInfoManager->getMonsterInfo(m_MonsterType)->getMainColor();
+    return de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType)->getMainColor();
 
     __END_CATCH
 }
@@ -460,7 +460,7 @@ Color_t Monster::getSubColor() const
 {
     __BEGIN_TRY
 
-    return g_pMonsterInfoManager->getMonsterInfo(m_MonsterType)->getSubColor();
+    return de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType)->getSubColor();
 
     __END_CATCH
 }
@@ -470,7 +470,7 @@ MAlignment Monster::getAlignment() const
 {
     __BEGIN_TRY
 
-    return g_pMonsterInfoManager->getMonsterInfo(m_MonsterType)->getAlignment();
+    return de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType)->getAlignment();
 
     __END_CATCH
 }
@@ -606,7 +606,7 @@ void Monster::act(const Timeval& currentTime)
         // Check for being hidden.
         if (isFlag(Effect::EFFECT_CLASS_HIDE)) {
             __BEGIN_PROFILE_MONSTER("M_UNBURROW");
-            const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(m_MonsterType);
+            const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType);
 
             if ((rand() & 0x0000007F) < pMonsterInfo->getUnburrowChance()) {
                 SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_UN_BURROW);
@@ -1394,7 +1394,7 @@ bool Monster::hasNextMonsterSummonInfo()
 {
     __BEGIN_TRY
 
-    const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(m_MonsterType);
+    const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType);
     Assert(pMonsterInfo != NULL);
 
     if (pMonsterInfo->hasNextMonsterSummonInfo(m_MonsterSummonStep)) {
@@ -1411,7 +1411,7 @@ bool Monster::getMonsterSummonInfo(SUMMON_INFO2& summonInfo)
 {
     __BEGIN_TRY
 
-    const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(m_MonsterType);
+    const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType);
     Assert(pMonsterInfo != NULL);
 
     if (pMonsterInfo->getMonsterSummonInfo(m_MonsterSummonStep, summonInfo)) {

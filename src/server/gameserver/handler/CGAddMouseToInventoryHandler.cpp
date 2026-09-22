@@ -14,6 +14,7 @@
 #include "GCDeleteInventoryItem.h"
 #include "GCNoticeEvent.h"
 #include "GCTradeVerify.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -59,6 +60,7 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
 
         Item* pItem = pPC->getExtraInventorySlot()->getItem();
         bool Success = false;
+        ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
 
         if (pItem == NULL) {
             GCCannotAdd _GCCannotAdd;
@@ -193,7 +195,7 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
                         SAFE_DELETE(pPrevItem);
 
                         Item* pNewItem =
-                            g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_ITEM, 28, list<OptionType_t>());
+                            itemFactories.createItem(Item::ITEM_CLASS_EVENT_ITEM, 28, list<OptionType_t>());
                         pZone->registerObject(pNewItem);
 
                         if (!pInventory->addItem(pt.x, pt.y, pNewItem)) {
@@ -288,8 +290,7 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
 
                         // Create the tree.
                         list<OptionType_t> optionType;
-                        Item* pTreeItem =
-                            g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_TREE, 12, optionType);
+                        Item* pTreeItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_TREE, 12, optionType);
                         pZone->getObjectRegistry().registerObject(pTreeItem);
                         pInventory->addItem(pt.x, pt.y, pTreeItem);
                         pTreeItem->create(pPC->getName(), STORAGE_INVENTORY, 0, pt.x, pt.y);
@@ -310,8 +311,7 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
 
                         // Create the tree.
                         list<OptionType_t> optionType;
-                        Item* pTreeItem =
-                            g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_TREE, 25, optionType);
+                        Item* pTreeItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_TREE, 25, optionType);
                         pTreeItem->setQuestItem();
                         pZone->getObjectRegistry().registerObject(pTreeItem);
                         pInventory->addItem(pt.x, pt.y, pTreeItem);
@@ -333,8 +333,7 @@ void CGAddMouseToInventoryHandler::execute(CGAddMouseToInventory* pPacket, Playe
 
                         // Create the tree.
                         list<OptionType_t> optionType;
-                        Item* pTreeItem =
-                            g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_TREE, 41, optionType);
+                        Item* pTreeItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_TREE, 41, optionType);
                         pTreeItem->setQuestItem();
                         pZone->getObjectRegistry().registerObject(pTreeItem);
                         pInventory->addItem(pt.x, pt.y, pTreeItem);

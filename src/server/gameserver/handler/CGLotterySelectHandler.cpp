@@ -357,7 +357,7 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
             Item* pItem = NULL;
 
             if (isLairItem) {
-                const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(masterType);
+                const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(masterType);
                 TreasureList* pTreasureList = NULL;
 
                 if (pPC->isSlayer())
@@ -388,12 +388,12 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
                         // owner.
                         SAFE_DELETE(pItem);
 
-                        pItem = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
+                        pItem = de::gameContext().itemFactories().createItem(it.ItemClass, it.ItemType, it.OptionType);
                         Assert(pItem != NULL);
                     }
                 }
             } else {
-                pItem = g_pItemFactoryManager->createItem(iClass, iType, oList);
+                pItem = de::gameContext().itemFactories().createItem(iClass, iType, oList);
             }
 
             GenderRestriction gender = GENDER_BOTH;

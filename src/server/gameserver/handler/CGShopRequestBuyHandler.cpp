@@ -338,7 +338,7 @@ void CGShopRequestBuyHandler::executeNormal(CGShopRequestBuy* pPacket, Player* p
 
     if (shopType == SHOP_RACK_NORMAL) {
         // When the sold item is a normal item, create an item of the same type and class.
-        Item* pNewItem = g_pItemFactoryManager->createItem(IClass, IType, OType);
+        Item* pNewItem = de::gameContext().itemFactories().createItem(IClass, IType, OType);
         Assert(pNewItem != NULL);
         (pZone->getObjectRegistry()).registerObject(pNewItem);
         pNPC->insertShopItem(shopType, shopIndex, pNewItem);
@@ -440,8 +440,9 @@ void CGShopRequestBuyHandler::executeMotorcycle(CGShopRequestBuy* pPacket, Playe
     Inventory* pInventory = pPC->getInventory();
     Gold_t playerMoney = pPC->getGold();
 
+    ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
     list<OptionType_t> optionNULL;
-    Item* pTestKey = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_KEY, 0, optionNULL);
+    Item* pTestKey = itemFactories.createItem(Item::ITEM_CLASS_KEY, 0, optionNULL);
     Assert(pTestKey != NULL);
 
     if (playerMoney < itemMoney) {
@@ -491,7 +492,7 @@ void CGShopRequestBuyHandler::executeMotorcycle(CGShopRequestBuy* pPacket, Playe
 
     // Next create the key that matches the motorcycle just created.
     // Then write to the DB that the motorcycle key passed to the player.
-    Item* pKey = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_KEY, 2, optionNULL);
+    Item* pKey = itemFactories.createItem(Item::ITEM_CLASS_KEY, 2, optionNULL);
     Assert(pKey != NULL);
     (pZone->getObjectRegistry()).registerObject(pKey);
     dynamic_cast<Key*>(pKey)->setTarget(MotorcycleID);
@@ -525,7 +526,7 @@ void CGShopRequestBuyHandler::executeMotorcycle(CGShopRequestBuy* pPacket, Playe
         IClass = Item::ITEM_CLASS_MOTORCYCLE;
         IType = pItem->getItemType();
         const list<OptionType_t>& OType = pItem->getOptionTypeList();
-        Item* pNewItem = g_pItemFactoryManager->createItem(IClass, IType, OType);
+        Item* pNewItem = itemFactories.createItem(IClass, IType, OType);
         Assert(pNewItem != NULL);
         (pZone->getObjectRegistry()).registerObject(pNewItem);
         pNPC->insertShopItem(shopType, shopIndex, pNewItem);
@@ -734,7 +735,7 @@ void CGShopRequestBuyHandler::executeEvent(CGShopRequestBuy* pPacket, Player* pP
 
     if (shopType == SHOP_RACK_NORMAL) {
         // When the sold item is a normal item, create an item of the same type and class.
-        Item* pNewItem = g_pItemFactoryManager->createItem(IClass, IType, OType);
+        Item* pNewItem = de::gameContext().itemFactories().createItem(IClass, IType, OType);
         Assert(pNewItem != NULL);
         (pZone->getObjectRegistry()).registerObject(pNewItem);
         pNPC->insertShopItem(shopType, shopIndex, pNewItem);

@@ -173,9 +173,19 @@ MasterLairInfoManager& GameContext::masterLairInfos() const {
     return *m_pMasterLairInfoManager;
 }
 
+MonsterInfoManager& GameContext::monsterInfos() const {
+    Assert(m_pMonsterInfoManager != nullptr);
+    return *m_pMonsterInfoManager;
+}
+
 MonsterNameManager& GameContext::monsterNames() const {
     Assert(m_pMonsterNameManager != nullptr);
     return *m_pMonsterNameManager;
+}
+
+OptionInfoManager& GameContext::optionInfos() const {
+    Assert(m_pOptionInfoManager != nullptr);
+    return *m_pOptionInfoManager;
 }
 
 OustersEXPInfoManager& GameContext::oustersExp() const {
@@ -186,6 +196,11 @@ OustersEXPInfoManager& GameContext::oustersExp() const {
 PCFinder& GameContext::playerCreatures() const {
     Assert(m_pPCFinder != nullptr);
     return *m_pPCFinder;
+}
+
+PKZoneInfoManager& GameContext::pkZoneInfos() const {
+    Assert(m_pPKZoneInfoManager != nullptr);
+    return *m_pPKZoneInfoManager;
 }
 
 PriceManager& GameContext::prices() const {

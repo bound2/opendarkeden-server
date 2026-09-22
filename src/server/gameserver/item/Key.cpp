@@ -111,7 +111,8 @@ ItemID_t Key::setNewMotorcycle(Slayer* pSlayer) {
     if (pKeyInfo->getOptionType() != 0)
         option.push_back(pKeyInfo->getOptionType());
 
-    Item* pMotorcycle = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MOTORCYCLE, motorcycleType, option);
+    Item* pMotorcycle =
+        de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_MOTORCYCLE, motorcycleType, option);
     Assert(pMotorcycle != NULL);
     (pZone->getObjectRegistry()).registerObject(pMotorcycle);
 

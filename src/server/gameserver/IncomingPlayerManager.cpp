@@ -1234,8 +1234,8 @@ void IncomingPlayerManager::heartbeat()
 
                 // The player is leaving a PK zone.
                 if (pCreature->isPLAYER() && pZone != NULL && pOldZone->getZoneID() != pZone->getZoneID()) {
-                    if (g_pPKZoneInfoManager->isPKZone(pOldZone->getZoneID()))
-                        g_pPKZoneInfoManager->leavePKZone(pOldZone->getZoneID());
+                    if (de::gameContext().pkZoneInfos().isPKZone(pOldZone->getZoneID()))
+                        de::gameContext().pkZoneInfos().leavePKZone(pOldZone->getZoneID());
                 }
             }
 

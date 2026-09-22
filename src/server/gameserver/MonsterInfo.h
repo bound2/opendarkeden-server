@@ -483,7 +483,4 @@ private:
     TreasureLists m_OustersTreasureLists; // Treasure lists for ousters
 };
 
-// global variable declaration
-extern MonsterInfoManager* g_pMonsterInfoManager;
-
 #endif

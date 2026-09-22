@@ -53,9 +53,12 @@ class ItemInfoManager;
 class ItemLoaderManager;
 class ItemMineInfoManager;
 class MasterLairInfoManager;
+class MonsterInfoManager;
 class MonsterNameManager;
+class OptionInfoManager;
 class OustersEXPInfoManager;
 class PCFinder;
+class PKZoneInfoManager;
 class PriceManager;
 class Properties;
 class RankBonusInfoManager;
@@ -181,14 +184,23 @@ public:
     void setMasterLairInfoManager(MasterLairInfoManager* pMasterLairInfoManager) {
         m_pMasterLairInfoManager = pMasterLairInfoManager;
     }
+    void setMonsterInfoManager(MonsterInfoManager* pMonsterInfoManager) {
+        m_pMonsterInfoManager = pMonsterInfoManager;
+    }
     void setMonsterNameManager(MonsterNameManager* pMonsterNameManager) {
         m_pMonsterNameManager = pMonsterNameManager;
+    }
+    void setOptionInfoManager(OptionInfoManager* pOptionInfoManager) {
+        m_pOptionInfoManager = pOptionInfoManager;
     }
     void setOustersEXPInfoManager(OustersEXPInfoManager* pOustersEXPInfoManager) {
         m_pOustersEXPInfoManager = pOustersEXPInfoManager;
     }
     void setPCFinder(PCFinder* pPCFinder) {
         m_pPCFinder = pPCFinder;
+    }
+    void setPKZoneInfoManager(PKZoneInfoManager* pPKZoneInfoManager) {
+        m_pPKZoneInfoManager = pPKZoneInfoManager;
     }
     void setPriceManager(PriceManager* pPriceManager) {
         m_pPriceManager = pPriceManager;
@@ -277,9 +289,12 @@ public:
     ItemLoaderManager& itemLoaders() const;
     ItemMineInfoManager& itemMineInfos() const;
     MasterLairInfoManager& masterLairInfos() const;
+    MonsterInfoManager& monsterInfos() const;
     MonsterNameManager& monsterNames() const;
+    OptionInfoManager& optionInfos() const;
     OustersEXPInfoManager& oustersExp() const;
     PCFinder& playerCreatures() const;
+    PKZoneInfoManager& pkZoneInfos() const;
     PriceManager& prices() const;
     ScriptManager& publicScripts() const;
     RankBonusInfoManager& rankBonuses() const;
@@ -332,9 +347,12 @@ private:
     ItemLoaderManager* m_pItemLoaderManager = nullptr;
     ItemMineInfoManager* m_pItemMineInfoManager = nullptr;
     MasterLairInfoManager* m_pMasterLairInfoManager = nullptr;
+    MonsterInfoManager* m_pMonsterInfoManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;
+    OptionInfoManager* m_pOptionInfoManager = nullptr;
     OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
+    PKZoneInfoManager* m_pPKZoneInfoManager = nullptr;
     PriceManager* m_pPriceManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;

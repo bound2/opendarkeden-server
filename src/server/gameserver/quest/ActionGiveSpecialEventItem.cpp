@@ -13,6 +13,7 @@
 #include "GCCreateItem.h"
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -87,6 +88,7 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
 
     Zone* pZone = pPC->getZone();
     ObjectRegistry& OR = pZone->getObjectRegistry();
+    ItemFactoryManager& itemFactories = context().itemFactories();
 
     Inventory* pInventory = pPC->getInventory();
     TPOINT pt;
@@ -100,10 +102,10 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
         option50.push_back(50);
         list<OptionType_t> optionNULL;
 
-        Item* pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_BRACELET, 3, option50);
-        Item* pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_BRACELET, 3, option50);
-        Item* pMotorcycle = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MOTORCYCLE, 0, optionNULL);
-        Item* pKeyItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_KEY, 2, optionNULL);
+        Item* pItem1 = itemFactories.createItem(Item::ITEM_CLASS_BRACELET, 3, option50);
+        Item* pItem2 = itemFactories.createItem(Item::ITEM_CLASS_BRACELET, 3, option50);
+        Item* pMotorcycle = itemFactories.createItem(Item::ITEM_CLASS_MOTORCYCLE, 0, optionNULL);
+        Item* pKeyItem = itemFactories.createItem(Item::ITEM_CLASS_KEY, 2, optionNULL);
 
         Key* pKey = dynamic_cast<Key*>(pKeyItem);
 
@@ -173,10 +175,10 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
         option50.push_back(50);
         list<OptionType_t> optionNULL;
 
-        Item* pItem1 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_RING, 3, option50);
-        Item* pItem2 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_RING, 3, option50);
-        Item* pItem3 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_RING, 3, option50);
-        Item* pItem4 = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_RING, 3, option50);
+        Item* pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_RING, 3, option50);
+        Item* pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_RING, 3, option50);
+        Item* pItem3 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_RING, 3, option50);
+        Item* pItem4 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_RING, 3, option50);
 
         // Register the items to get their object IDs.
         OR.registerObject(pItem1);

@@ -1402,7 +1402,7 @@ bool Vampire::isRealWearing(Item* pItem) const
     list<OptionType_t>::const_iterator itr;
 
     for (itr = optionTypes.begin(); itr != optionTypes.end(); itr++) {
-        OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(*itr);
+        OptionInfo* pOptionInfo = de::gameContext().optionInfos().getOptionInfo(*itr);
         ReqLevel += pOptionInfo->getReqLevel();
     }
 
@@ -2041,7 +2041,7 @@ void Vampire::initPetQuestTarget() {
         maxClass = 13;
     }
 
-    m_TargetMonster = g_pMonsterInfoManager->getRandomMonsterByClass(minClass, maxClass);
+    m_TargetMonster = de::gameContext().monsterInfos().getRandomMonsterByClass(minClass, maxClass);
     m_TargetNum = 80;
     m_TimeLimit = 3600;
 }
