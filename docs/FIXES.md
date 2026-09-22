@@ -22,7 +22,13 @@ that followed it.
   Every other exit of the function frees the probe and answers. Whether
   to refund and roll the shop version back, or to place the item first,
   is a design decision.
-  > **Status:** recorded, not fixed (refactor/game-context-12)
+  > **Status:** fixed (fix/recorded-defects-4) — the no-tile branch now
+  > refunds the price with `increaseGoldEx`, the exact inverse of the
+  > `decreaseGoldEx` that charged it, frees the probe key and answers
+  > `GCShopBuyFail` with `GC_SHOP_BUY_FAIL_NOT_ENOUGH_SPACE`, the way the
+  > function's earlier exits do. The shop version is deliberately left
+  > raised: a raised version only makes the client re-fetch the rack,
+  > which still holds the motorcycle.
 
 ## A scheduled guild war makes every active-war lookup assert (2026-09-22)
 
