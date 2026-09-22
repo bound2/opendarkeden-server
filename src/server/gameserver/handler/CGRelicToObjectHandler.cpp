@@ -248,7 +248,7 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
 
     // Get the RelicInfo.
     const RelicInfo* pRelicInfo =
-        dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
+        dynamic_cast<RelicInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
 
     if (pRelicInfo == NULL) {
         filelog("relic.log", "no such relic index(%d)", relicIndex);
@@ -650,8 +650,8 @@ void CGRelicToObjectHandler::executeSweeper(CGRelicToObject* pPacket, Player* pP
 
     Item* pTableItem = pZone->getItem(pPacket->getObjectID());
 
-    const SweeperInfo* pSweeperInfo =
-        dynamic_cast<SweeperInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, pItem->getItemType()));
+    const SweeperInfo* pSweeperInfo = dynamic_cast<SweeperInfo*>(
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_SWEEPER, pItem->getItemType()));
 
     // No such item, or
     // not a corpse, or

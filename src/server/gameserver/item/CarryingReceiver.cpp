@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -34,7 +35,7 @@ CarryingReceiver::CarryingReceiver(ItemType_t itemType, const list<OptionType_t>
     setItemType(itemType);
     setOptionType(optionType);
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "CarryingReceiver::CarryingReceiver() : Invalid item type or option type");
         throw Error("CarryingReceiver::CarryingReceiver() : Invalid item type or optionType");
     }
@@ -53,7 +54,7 @@ void CarryingReceiver::create(const string& ownerID, Storage storage, StorageID_
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -203,7 +204,9 @@ void CarryingReceiverLoader::load(Creature* pCreature)
             pCarryingReceiver->setObjectID(rows[r].objectID);
             pCarryingReceiver->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CARRYING_RECEIVER, pCarryingReceiver->getItemType())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_CARRYING_RECEIVER, pCarryingReceiver->getItemType())
                     ->isUnique())
                 pCarryingReceiver->setUnique();
 

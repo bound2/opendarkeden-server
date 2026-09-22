@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -35,7 +36,7 @@ HolyWater::HolyWater(ItemType_t itemType, const list<OptionType_t>& optionType)
     m_ItemType = itemType;
     m_Num = 1;
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "HolyWater::HolyWater() : Invalid item type or option type");
         throw Error("HolyWater::HolyWater() : Invalid item type or optionType");
     }
@@ -53,7 +54,7 @@ void HolyWater::create(const string& ownerID, Storage storage, StorageID_t stora
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -100,7 +101,7 @@ Damage_t HolyWater::getMinDamage() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getMinDamage();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getMinDamage();
 
     __END_CATCH
 }
@@ -110,7 +111,7 @@ Damage_t HolyWater::getMaxDamage() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getMaxDamage();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getMaxDamage();
 
     __END_CATCH
 }
@@ -135,7 +136,7 @@ VolumeWidth_t HolyWater::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getVolumeWidth();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -149,7 +150,7 @@ VolumeHeight_t HolyWater::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getVolumeHeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -163,7 +164,7 @@ Weight_t HolyWater::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getWeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getWeight();
 
     __END_CATCH
 }

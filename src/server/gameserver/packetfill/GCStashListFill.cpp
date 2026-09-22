@@ -10,6 +10,7 @@
 #include "Assert1.h"
 #include "Belt.h"
 #include "GCStashList.h"
+#include "GameContext.h"
 #include "Inventory.h"
 #include "Item.h"
 #include "ItemInfoManager.h"
@@ -104,7 +105,7 @@ void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
         // For a belt, the items inside it have to be set too.
         // Which is a nuisance.
         pBelt = dynamic_cast<Belt*>(pItem);
-        pItemInfo = g_pItemInfoManager->getItemInfo(pBelt->getItemClass(), pBelt->getItemType());
+        pItemInfo = de::gameContext().itemInfos().getItemInfo(pBelt->getItemClass(), pBelt->getItemType());
         pocketCount = dynamic_cast<BeltInfo*>(pItemInfo)->getPocketCount();
         pBeltInventory = pBelt->getInventory();
 
@@ -141,7 +142,8 @@ void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
         // For a belt, the items inside it have to be set too.
         // Which is a nuisance.
         pOustersArmsband = dynamic_cast<OustersArmsband*>(pItem);
-        pItemInfo = g_pItemInfoManager->getItemInfo(pOustersArmsband->getItemClass(), pOustersArmsband->getItemType());
+        pItemInfo = de::gameContext().itemInfos().getItemInfo(pOustersArmsband->getItemClass(),
+                                                              pOustersArmsband->getItemType());
         pocketCount = dynamic_cast<OustersArmsbandInfo*>(pItemInfo)->getPocketCount();
         pOustersArmsbandInventory = pOustersArmsband->getInventory();
 

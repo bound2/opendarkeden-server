@@ -9,6 +9,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -41,7 +42,7 @@ OustersChakram::OustersChakram(ItemType_t itemType, const list<OptionType_t>& op
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersChakram::OustersChakram() : Invalid item type or option type");
         throw Error("OustersChakram::OustersChakram() : Invalid item type or optionType");
     }
@@ -59,7 +60,7 @@ void OustersChakram::create(const string& ownerID, Storage storage, StorageID_t 
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -211,7 +212,9 @@ void OustersChakramLoader::load(Creature* pCreature)
             pOustersChakram->setObjectID(rows[r].objectID);
             pOustersChakram->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_CHAKRAM, pOustersChakram->getItemType())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_OUSTERS_CHAKRAM, pOustersChakram->getItemType())
                     ->isUnique())
                 pOustersChakram->setUnique();
 

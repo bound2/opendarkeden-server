@@ -541,7 +541,7 @@ void opfun(GamePlayer* pGamePlayer, string msg, int i) {
         int ItemNum = value2;
 
         ItemType = max(0, ItemType);
-        ItemType = min((int)g_pItemInfoManager->getItemCount(Item::ITEM_CLASS_MINE) - 1, ItemType);
+        ItemType = min((int)de::gameContext().itemInfos().getItemCount(Item::ITEM_CLASS_MINE) - 1, ItemType);
 
         ItemNum = max(1, ItemNum);
         ItemNum = min(36, ItemNum);
@@ -553,7 +553,7 @@ void opfun(GamePlayer* pGamePlayer, string msg, int i) {
         Zone* pZone = pCreature->getZone();
         Assert(pZone != NULL);
 
-        ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MINE, ItemType);
+        ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_MINE, ItemType);
         if (pItemInfo == NULL)
             return;
 

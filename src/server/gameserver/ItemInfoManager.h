@@ -62,6 +62,4 @@ private:
     uint m_ItemIDBase;      // Base that differs for each server
 };
 
-extern ItemInfoManager* g_pItemInfoManager;
-
 #endif

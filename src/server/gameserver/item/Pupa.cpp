@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -33,7 +34,7 @@ Pupa::Pupa()
 Pupa::Pupa(ItemType_t itemType, const list<OptionType_t>& optionType, ItemNum_t Num)
 
     : m_ItemType(itemType), m_Num(Num) {
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Pupa::Pupa() : Invalid item type or option type");
         throw Error("Pupa::Pupa() : Invalid item type or optionType");
     }
@@ -51,7 +52,7 @@ void Pupa::create(const string& ownerID, Storage storage, StorageID_t storageID,
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -132,7 +133,7 @@ VolumeWidth_t Pupa::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType)->getVolumeWidth();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -146,7 +147,7 @@ VolumeHeight_t Pupa::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType)->getVolumeHeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -160,7 +161,7 @@ Weight_t Pupa::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType)->getWeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -170,7 +171,8 @@ int Pupa::getHPAmount(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
+    PupaInfo* pInfo =
+        dynamic_cast<PupaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getHPAmount();
 
     __END_CATCH
@@ -181,7 +183,8 @@ int Pupa::getMPAmount(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
+    PupaInfo* pInfo =
+        dynamic_cast<PupaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getMPAmount();
 
     __END_CATCH
@@ -192,7 +195,8 @@ int Pupa::getHPDelay(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
+    PupaInfo* pInfo =
+        dynamic_cast<PupaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getHPDelay();
 
     __END_CATCH
@@ -203,7 +207,8 @@ int Pupa::getMPDelay(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
+    PupaInfo* pInfo =
+        dynamic_cast<PupaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getMPDelay();
 
     __END_CATCH
@@ -214,7 +219,8 @@ int Pupa::getHPQuantity(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
+    PupaInfo* pInfo =
+        dynamic_cast<PupaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getHPQuantity();
 
     __END_CATCH
@@ -225,7 +231,8 @@ int Pupa::getMPQuantity(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
+    PupaInfo* pInfo =
+        dynamic_cast<PupaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getMPQuantity();
 
     __END_CATCH
@@ -236,7 +243,8 @@ int Pupa::getHPRecoveryUnit(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
+    PupaInfo* pInfo =
+        dynamic_cast<PupaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getHPRecoveryUnit();
 
     __END_CATCH
@@ -247,7 +255,8 @@ int Pupa::getMPRecoveryUnit(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
+    PupaInfo* pInfo =
+        dynamic_cast<PupaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getMPRecoveryUnit();
 
     __END_CATCH

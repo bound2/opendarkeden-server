@@ -740,7 +740,7 @@ bool Zone::addRelicItem(int relicIndex)
 
 
     const RelicInfo* pRelicInfo =
-        dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
+        dynamic_cast<RelicInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
 
     int cx = pRelicInfo->x;
     int cy = pRelicInfo->y;

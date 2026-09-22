@@ -47,6 +47,7 @@ class GlobalPartyManager;
 class GoodsInfoManager;
 class IncomingPlayerManager;
 class ItemFactoryManager;
+class ItemInfoManager;
 class ItemLoaderManager;
 class ItemMineInfoManager;
 class MasterLairInfoManager;
@@ -158,6 +159,9 @@ public:
     void setItemFactoryManager(ItemFactoryManager* pItemFactoryManager) {
         m_pItemFactoryManager = pItemFactoryManager;
     }
+    void setItemInfoManager(ItemInfoManager* pItemInfoManager) {
+        m_pItemInfoManager = pItemInfoManager;
+    }
     void setItemLoaderManager(ItemLoaderManager* pItemLoaderManager) {
         m_pItemLoaderManager = pItemLoaderManager;
     }
@@ -251,6 +255,7 @@ public:
     GoodsInfoManager& goodsInfos() const;
     IncomingPlayerManager& incomingPlayers() const;
     ItemFactoryManager& itemFactories() const;
+    ItemInfoManager& itemInfos() const;
     ItemLoaderManager& itemLoaders() const;
     ItemMineInfoManager& itemMineInfos() const;
     MasterLairInfoManager& masterLairInfos() const;
@@ -301,6 +306,7 @@ private:
     GoodsInfoManager* m_pGoodsInfoManager = nullptr;
     IncomingPlayerManager* m_pIncomingPlayerManager = nullptr;
     ItemFactoryManager* m_pItemFactoryManager = nullptr;
+    ItemInfoManager* m_pItemInfoManager = nullptr;
     ItemLoaderManager* m_pItemLoaderManager = nullptr;
     ItemMineInfoManager* m_pItemMineInfoManager = nullptr;
     MasterLairInfoManager* m_pMasterLairInfoManager = nullptr;

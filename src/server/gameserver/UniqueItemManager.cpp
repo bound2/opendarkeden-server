@@ -6,6 +6,7 @@
 
 #include "UniqueItemManager.h"
 
+#include "GameContext.h"
 #include "Item.h"
 #include "ItemInfoManager.h"
 #include "repository/ItemRepository.h"
@@ -27,7 +28,7 @@ void UniqueItemManager::init()
         Item::ItemClass itemClass = (Item::ItemClass)rows[r].itemClass;
         int itemType = rows[r].itemType;
 
-        ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(itemClass, itemType);
+        ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(itemClass, itemType);
         Assert(pItemInfo != NULL);
 
         pItemInfo->setUnique();

@@ -12,6 +12,7 @@
 
 #include "Assert.h"
 #include "GCDeleteObject.h"
+#include "GameContext.h"
 #include "Item.h"
 #include "ItemUtil.h"
 #include "Money.h"
@@ -109,7 +110,7 @@ void EffectDecayItem::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object
                 pZone->broadcastPacket(x, y, &gcDeleteObject);
 
                 if (m_bDeleteFromDB) {
-                    // ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo( pTempItem->getItemClass(),
+                    // ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo( pTempItem->getItemClass(),
                     // pTempItem->getItemType() ); Assert(pItemInfo!=NULL);
 
                     // Decrease the count for a unique item.

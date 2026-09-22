@@ -11,6 +11,7 @@
 #include "CastleInfoManager.h"
 #include "GCBloodBibleStatus.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "HolyLandManager.h"
 #include "ItemInfoManager.h"
 #include "Relic.h"
@@ -61,7 +62,7 @@ void EffectRelicPosition::affect(Item* pItem)
         // Get the relic info.
         ItemType_t relicIndex = pItem->getItemType();
         const RelicInfo* pRelicInfo =
-            dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
+            dynamic_cast<RelicInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
         Assert(pRelicInfo != NULL);
 
         //		StringStream msg;

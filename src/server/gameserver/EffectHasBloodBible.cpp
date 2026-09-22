@@ -15,6 +15,7 @@
 #include "GCRemoveEffect.h"
 #include "GCStatusCurrentHP.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "HolyLandManager.h"
 #include "ItemInfoManager.h"
 #include "Monster.h"
@@ -176,8 +177,8 @@ void EffectHasBloodBible::setPart(int part)
 {
     __BEGIN_TRY
 
-    const BloodBibleInfo* pBloodBibleInfo =
-        dynamic_cast<const BloodBibleInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BLOOD_BIBLE, part));
+    const BloodBibleInfo* pBloodBibleInfo = dynamic_cast<const BloodBibleInfo*>(
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_BLOOD_BIBLE, part));
 
     if (pBloodBibleInfo != NULL) {
         m_Part = part;

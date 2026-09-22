@@ -1442,7 +1442,7 @@ bool Vampire::isRealWearing(Item* pItem) const
             if ( !isVampireWeapon( pItem->getItemClass() ) ) return false;
         }*/
 
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
 
     Level_t ReqAdvancedLevel = pItemInfo->getReqAdvancedLevel();
     if (ReqAdvancedLevel > 0 && (!isAdvanced() || getAdvancementClassLevel() < ReqAdvancedLevel))
@@ -1719,7 +1719,7 @@ GearInfo* Vampire::getGearInfo() const
             if (IClass == Item::ITEM_CLASS_BELT) {
 
                 // Get the item info.
-                ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+                ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
 
                 // Get the number of pockets.
                 BYTE PocketNum = ((BeltInfo*)pItemInfo)->getPocketCount();

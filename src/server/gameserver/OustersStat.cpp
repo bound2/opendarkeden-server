@@ -1034,14 +1034,14 @@ void Ousters::computeItemStat(Item* pItem)
 
     if (pItem->getItemClass() == Item::ITEM_CLASS_OUSTERS_CHAKRAM) {
         // For a weapon, add the speed parameter the weapon carries.
-        ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+        ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
         m_AttackSpeed[ATTR_CURRENT] += pItemInfo->getSpeed();
         m_AttackSpeed[ATTR_MAX] += pItemInfo->getSpeed();
     }
 
     if (pItem->getItemClass() == Item::ITEM_CLASS_CORE_ZAP) {
-        CoreZapInfo* pItemInfo =
-            dynamic_cast<CoreZapInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+        CoreZapInfo* pItemInfo = dynamic_cast<CoreZapInfo*>(
+            de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
         if (pItemInfo != NULL) {
             computeOptionClassStat(pItemInfo->getOptionClass(), pItem->getGrade());
         }

@@ -35,6 +35,7 @@ class EventQuestLootingManager;
 class GameServerGroupInfoManager;
 class GlobalPartyManager;
 class GoodsInfoManager;
+class ItemInfoManager;
 class ItemLoaderManager;
 class ItemMineInfoManager;
 class MasterLairInfoManager;
@@ -90,6 +91,7 @@ private:
     GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
     GlobalPartyManager* m_pGlobalPartyManager = nullptr;
     GoodsInfoManager* m_pGoodsInfoManager = nullptr;
+    ItemInfoManager* m_pItemInfoManager = nullptr;
     ItemLoaderManager* m_pItemLoaderManager = nullptr;
     ItemMineInfoManager* m_pItemMineInfoManager = nullptr;
     MasterLairInfoManager* m_pMasterLairInfoManager = nullptr;

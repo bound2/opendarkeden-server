@@ -143,6 +143,11 @@ ItemFactoryManager& GameContext::itemFactories() const {
     return *m_pItemFactoryManager;
 }
 
+ItemInfoManager& GameContext::itemInfos() const {
+    Assert(m_pItemInfoManager != nullptr);
+    return *m_pItemInfoManager;
+}
+
 ItemLoaderManager& GameContext::itemLoaders() const {
     Assert(m_pItemLoaderManager != nullptr);
     return *m_pItemLoaderManager;

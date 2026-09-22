@@ -10,6 +10,7 @@
 
 #include "Assert.h"
 #include "CGRequestStoreInfo.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "PCItemInfo.h"
 #include "PlayerCreature.h"
@@ -71,7 +72,7 @@ const list<OptionType_t>& Item::getDefaultOptions(void) const
     __BEGIN_TRY
 
     try {
-        return g_pItemInfoManager->getItemInfo(getItemClass(), getItemType())->getDefaultOptions();
+        return de::gameContext().itemInfos().getItemInfo(getItemClass(), getItemType())->getDefaultOptions();
 
     } catch (NoSuchElementException&) {
         StringStream msg;

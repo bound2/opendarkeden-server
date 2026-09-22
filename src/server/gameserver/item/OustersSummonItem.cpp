@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -37,7 +38,7 @@ OustersSummonItem::OustersSummonItem(ItemType_t itemType, const list<OptionType_
     m_ItemType = itemType;
     m_Charge = getMaxCharge();
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "OustersSummonItem::OustersSummonItem() : Invalid item type or option type");
         throw Error("OustersSummonItem::OustersSummonItem() : Invalid item type or optionType");
     }
@@ -52,7 +53,7 @@ void OustersSummonItem::create(const string& ownerID, Storage storage, StorageID
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -95,7 +96,10 @@ VolumeWidth_t OustersSummonItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_SUMMON_ITEM, m_ItemType)->getVolumeWidth();
+    return de::gameContext()
+        .itemInfos()
+        .getItemInfo(Item::ITEM_CLASS_OUSTERS_SUMMON_ITEM, m_ItemType)
+        ->getVolumeWidth();
 
     __END_CATCH
 }
@@ -105,7 +109,10 @@ VolumeHeight_t OustersSummonItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_SUMMON_ITEM, m_ItemType)->getVolumeHeight();
+    return de::gameContext()
+        .itemInfos()
+        .getItemInfo(Item::ITEM_CLASS_OUSTERS_SUMMON_ITEM, m_ItemType)
+        ->getVolumeHeight();
 
     __END_CATCH
 }
@@ -115,7 +122,7 @@ Weight_t OustersSummonItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_SUMMON_ITEM, m_ItemType)->getWeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_OUSTERS_SUMMON_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -140,7 +147,7 @@ int OustersSummonItem::getMaxCharge(void) const
     __BEGIN_TRY
 
     OustersSummonItemInfo* pInfo = dynamic_cast<OustersSummonItemInfo*>(
-        g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_SUMMON_ITEM, m_ItemType));
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_OUSTERS_SUMMON_ITEM, m_ItemType));
     Assert(pInfo != NULL);
     return pInfo->getMaxCharge();
 

@@ -92,7 +92,7 @@ void CGSilverCoatingHandler::execute(CGSilverCoating* pPacket, Player* pPlayer)
     }
 
     // Get the maximum silver plating and... plate it.
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
     pItem->setSilver(pItemInfo->getMaxSilver());
 
     // Take the money.

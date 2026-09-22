@@ -562,6 +562,3 @@ string ItemInfoManager::toString() const
 
     __END_CATCH
 }
-
-// global variable declaration
-ItemInfoManager* g_pItemInfoManager = NULL;

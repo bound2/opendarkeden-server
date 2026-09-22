@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -40,7 +41,7 @@ OustersStone::OustersStone(ItemType_t itemType, const list<OptionType_t>& option
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersStone::OustersStone() : Invalid item type or option type");
         throw Error("OustersStone::OustersStone() : Invalid item type or optionType");
     }
@@ -59,7 +60,7 @@ void OustersStone::create(const string& ownerID, Storage storage, StorageID_t st
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -132,7 +133,7 @@ string OustersStone::toString() const
 ElementalType OustersStone::getElementalType(void) const {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_STONE, getItemType())->getElementalType();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_OUSTERS_STONE, getItemType())->getElementalType();
 
     __END_CATCH
 }
@@ -144,7 +145,7 @@ ElementalType OustersStone::getElementalType(void) const {
 Elemental_t OustersStone::getElemental(void) const {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_STONE, getItemType())->getElemental();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_OUSTERS_STONE, getItemType())->getElemental();
 
     __END_CATCH
 }
@@ -236,7 +237,9 @@ void OustersStoneLoader::load(Creature* pCreature)
             pOustersStone->setObjectID(rows[r].objectID);
             pOustersStone->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_STONE, pOustersStone->getItemType())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_OUSTERS_STONE, pOustersStone->getItemType())
                     ->isUnique())
                 pOustersStone->setUnique();
 

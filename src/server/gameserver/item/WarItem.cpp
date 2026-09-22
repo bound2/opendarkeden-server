@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "repository/ItemObjectRepository.h"
 
@@ -26,7 +27,7 @@ WarItem::WarItem(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     : m_ItemType(itemType) {
     try {
-        if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
+        if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), m_ItemType, optionType)) {
             filelog("itembug.log", "WarItem::WarItem() : Invalid item type or option type");
             throw Error("WarItem::WarItem() : Invalid item type or optionType");
         }
@@ -48,7 +49,7 @@ void WarItem::create(const string& ownerID, Storage storage, StorageID_t storage
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -118,7 +119,7 @@ VolumeWidth_t WarItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_WAR_ITEM, m_ItemType)->getVolumeWidth();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_WAR_ITEM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -132,7 +133,7 @@ VolumeHeight_t WarItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_WAR_ITEM, m_ItemType)->getVolumeHeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_WAR_ITEM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -146,7 +147,7 @@ Weight_t WarItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_WAR_ITEM, m_ItemType)->getWeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_WAR_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }

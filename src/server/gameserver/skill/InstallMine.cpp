@@ -8,6 +8,7 @@
 
 #include "Assert.h"
 #include "GCSkillToInventoryOK1.h"
+#include "GameContext.h"
 #include "ItemUtil.h"
 #include "SkillInfo.h"
 #include "item/Mine.h"
@@ -69,7 +70,8 @@ void InstallMine::execute(Slayer* pSlayer, ObjectID_t, CoordInven_t X, CoordInve
         if (bInstallAction) {
             GCSkillToInventoryOK1 _GCSkillToInventoryOK1;
 
-            ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MINE, pMine->getItemType());
+            ItemInfo* pItemInfo =
+                de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_MINE, pMine->getItemType());
 
             Damage_t MinDamage = pItemInfo->getMinDamage();
             Damage_t MaxDamage = pItemInfo->getMaxDamage();

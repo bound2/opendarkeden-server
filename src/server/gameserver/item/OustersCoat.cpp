@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -40,7 +41,7 @@ OustersCoat::OustersCoat(ItemType_t itemType, const list<OptionType_t>& optionTy
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersCoat::OustersCoat() : Invalid item type or option type");
         throw Error("OustersCoat::OustersCoat() : Invalid item type or optionType");
     }
@@ -58,7 +59,7 @@ void OustersCoat::create(const string& ownerID, Storage storage, StorageID_t sto
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -208,7 +209,10 @@ void OustersCoatLoader::load(Creature* pCreature)
             pOustersCoat->setObjectID(rows[r].objectID);
             pOustersCoat->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_COAT, pOustersCoat->getItemType())->isUnique())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_OUSTERS_COAT, pOustersCoat->getItemType())
+                    ->isUnique())
                 pOustersCoat->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

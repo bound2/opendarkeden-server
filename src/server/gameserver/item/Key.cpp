@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemFactoryManager.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
@@ -30,7 +31,7 @@ Key::Key()
 Key::Key(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     : m_ItemType(itemType), m_Target(0) {
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Key::Key() : Invalid item type or option type");
         throw Error("Key::Key() : Invalid item type or optionType");
     }
@@ -48,7 +49,7 @@ void Key::create(const string& ownerID, Storage storage, StorageID_t storageID, 
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -100,7 +101,8 @@ ItemID_t Key::setNewMotorcycle(Slayer* pSlayer) {
     Zone* pZone = pSlayer->getZone();
     Assert(pZone != NULL);
 
-    KeyInfo* pKeyInfo = dynamic_cast<KeyInfo*>(g_pItemInfoManager->getItemInfo(getItemClass(), getItemType()));
+    KeyInfo* pKeyInfo =
+        dynamic_cast<KeyInfo*>(de::gameContext().itemInfos().getItemInfo(getItemClass(), getItemType()));
     Assert(pKeyInfo != NULL);
 
     list<OptionType_t> option;
@@ -155,7 +157,7 @@ VolumeWidth_t Key::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_KEY, m_ItemType)->getVolumeWidth();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_KEY, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -169,7 +171,7 @@ VolumeHeight_t Key::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_KEY, m_ItemType)->getVolumeHeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_KEY, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -183,7 +185,7 @@ Weight_t Key::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_KEY, m_ItemType)->getWeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_KEY, m_ItemType)->getWeight();
 
     __END_CATCH
 }

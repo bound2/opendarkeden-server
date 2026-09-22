@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -39,7 +40,7 @@ Trouser::Trouser(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Trouser::Trouser() : Invalid item type or option type");
         throw Error("Trouser::Trouser() : Invalid item type or optionType");
     }
@@ -57,7 +58,7 @@ void Trouser::create(const string& ownerID, Storage storage, StorageID_t storage
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -207,7 +208,10 @@ void TrouserLoader::load(Creature* pCreature)
             pTrouser->setObjectID(rows[r].objectID);
             pTrouser->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_TROUSER, pTrouser->getItemType())->isUnique())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_TROUSER, pTrouser->getItemType())
+                    ->isUnique())
                 pTrouser->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

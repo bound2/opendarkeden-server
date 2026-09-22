@@ -1905,7 +1905,7 @@ bool Slayer::isRealWearing(Item* pItem) const
             if ( !isSlayerWeapon( pItem->getItemClass() ) ) return false;
         }*/
 
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
 
     Level_t ReqAdvancedLevel = pItemInfo->getReqAdvancedLevel();
     if (ReqAdvancedLevel > 0 && (!isAdvanced() || getAdvancementClassLevel() < ReqAdvancedLevel))
@@ -2306,7 +2306,7 @@ GearInfo* Slayer::getGearInfo() const
                         if (IClass == Item::ITEM_CLASS_BELT) {
 
                             // Take the item info.
-                            ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(),
+                            ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(),
                pItem->getItemType());
 
                             // Take the number of pockets.

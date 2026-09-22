@@ -9,6 +9,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -42,7 +43,7 @@ OustersWristlet::OustersWristlet(ItemType_t itemType, const list<OptionType_t>& 
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersWristlet::OustersWristlet() : Invalid item type or option type");
         throw Error("OustersWristlet::OustersWristlet() : Invalid item type or optionType");
     }
@@ -60,7 +61,7 @@ void OustersWristlet::create(const string& ownerID, Storage storage, StorageID_t
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -132,7 +133,10 @@ string OustersWristlet::toString() const
 ElementalType OustersWristlet::getElementalType(void) const {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_WRISTLET, getItemType())->getElementalType();
+    return de::gameContext()
+        .itemInfos()
+        .getItemInfo(Item::ITEM_CLASS_OUSTERS_WRISTLET, getItemType())
+        ->getElementalType();
 
     __END_CATCH
 }
@@ -144,7 +148,7 @@ ElementalType OustersWristlet::getElementalType(void) const {
 Elemental_t OustersWristlet::getElemental(void) const {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_WRISTLET, getItemType())->getElemental();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_OUSTERS_WRISTLET, getItemType())->getElemental();
 
     __END_CATCH
 }
@@ -237,7 +241,9 @@ void OustersWristletLoader::load(Creature* pCreature)
             pOustersWristlet->setObjectID(rows[r].objectID);
             pOustersWristlet->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_WRISTLET, pOustersWristlet->getItemType())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_OUSTERS_WRISTLET, pOustersWristlet->getItemType())
                     ->isUnique())
                 pOustersWristlet->setUnique();
 

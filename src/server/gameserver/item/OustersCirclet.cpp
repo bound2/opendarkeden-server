@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -40,7 +41,7 @@ OustersCirclet::OustersCirclet(ItemType_t itemType, const list<OptionType_t>& op
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersCirclet::OustersCirclet() : Invalid item type or option type");
         throw Error("OustersCirclet::OustersCirclet() : Invalid item type or optionType");
     }
@@ -59,7 +60,7 @@ void OustersCirclet::create(const string& ownerID, Storage storage, StorageID_t 
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -210,7 +211,9 @@ void OustersCircletLoader::load(Creature* pCreature)
             pOustersCirclet->setObjectID(rows[r].objectID);
             pOustersCirclet->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_CIRCLET, pOustersCirclet->getItemType())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_OUSTERS_CIRCLET, pOustersCirclet->getItemType())
                     ->isUnique())
                 pOustersCirclet->setUnique();
 

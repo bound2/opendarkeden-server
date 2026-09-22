@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -38,7 +39,7 @@ Coat::Coat(ItemType_t itemType, const list<OptionType_t>& optionType)
     setOptionType(optionType);
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Coat::Coat() : Invalid item type or option type");
         throw Error("Coat::Coat() : Invalid item type or optionType");
     }
@@ -56,7 +57,7 @@ void Coat::create(const string& ownerID, Storage storage, StorageID_t storageID,
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -206,7 +207,7 @@ void CoatLoader::load(Creature* pCreature)
             pCoat->setObjectID(rows[r].objectID);
             pCoat->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COAT, pCoat->getItemType())->isUnique())
+            if (de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_COAT, pCoat->getItemType())->isUnique())
                 pCoat->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

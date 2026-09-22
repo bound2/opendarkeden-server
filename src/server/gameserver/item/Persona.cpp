@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -37,7 +38,7 @@ Persona::Persona(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Persona::Persona() : Invalid item type or option type");
         throw Error("Persona::Persona() : Invalid item type or optionType");
     }
@@ -55,7 +56,7 @@ void Persona::create(const string& ownerID, Storage storage, StorageID_t storage
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -202,7 +203,10 @@ void PersonaLoader::load(Creature* pCreature)
             pPersona->setObjectID(rows[r].objectID);
             pPersona->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PERSONA, pPersona->getItemType())->isUnique())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_PERSONA, pPersona->getItemType())
+                    ->isUnique())
                 pPersona->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

@@ -223,8 +223,8 @@ void CGUseItemFromInventoryHandler::execute(CGUseItemFromInventory* pPacket, Pla
         executeEventGiftBox(pPacket, pPlayer);
         break;
     case Item::ITEM_CLASS_SMS_ITEM: {
-        SMSItemInfo* pItemInfo =
-            dynamic_cast<SMSItemInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+        SMSItemInfo* pItemInfo = dynamic_cast<SMSItemInfo*>(
+            de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
         Assert(pItemInfo != NULL);
 
         uint charge = pItemInfo->getCharge();
@@ -937,7 +937,7 @@ void CGUseItemFromInventoryHandler::executeOustersSummonItem(CGUseItemFromInvent
     SkillType_t SkillType = SKILL_SUMMON_SYLPH;
     SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
     OustersSummonItemInfo* pItemInfo = dynamic_cast<OustersSummonItemInfo*>(
-        g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+        de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
     Assert(pItemInfo != NULL);
 
     int RequireMP = (int)pSkillInfo->getConsumeMP();
@@ -1234,8 +1234,8 @@ void CGUseItemFromInventoryHandler::executeFirecraker(CGUseItemFromInventory* pP
     ObjectID_t ItemObjectID = pItem->getObjectID();
 
     if (pItem->getItemType() >= 14) {
-        EventETCInfo* pInfo =
-            dynamic_cast<EventETCInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+        EventETCInfo* pInfo = dynamic_cast<EventETCInfo*>(
+            de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
         Assert(pInfo != NULL);
 
         int amount = pInfo->getFunction();
@@ -1371,8 +1371,8 @@ void CGUseItemFromInventoryHandler::executeDyePotion(CGUseItemFromInventory* pPa
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
     Item* pItem = pInventory->getItem(InvenX, InvenY);
-    DyePotionInfo* pItemInfo =
-        dynamic_cast<DyePotionInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+    DyePotionInfo* pItemInfo = dynamic_cast<DyePotionInfo*>(
+        de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
     bool bInitAllStat = false;
     bool bRefresh = true;
 
@@ -1711,8 +1711,8 @@ void CGUseItemFromInventoryHandler::executeResurrectItem(CGUseItemFromInventory*
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
     Item* pItem = pInventory->getItem(InvenX, InvenY);
-    ResurrectItemInfo* pItemInfo =
-        dynamic_cast<ResurrectItemInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+    ResurrectItemInfo* pItemInfo = dynamic_cast<ResurrectItemInfo*>(
+        de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
 
 
     if (pItem->getObjectID() != pPacket->getObjectID() || pItemInfo == NULL) {
@@ -1889,7 +1889,7 @@ void CGUseItemFromInventoryHandler::executeTranslator(CGUseItemFromInventory* pP
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
     Item* pItem = pInventory->getItem(InvenX, InvenY);
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
 
     if (pItem->getObjectID() != pPacket->getObjectID() || pItemInfo == NULL ||
         pPC->isFlag(Effect::EFFECT_CLASS_TRANSLATION)) {
@@ -1945,8 +1945,8 @@ void CGUseItemFromInventoryHandler::executeEffectItem(CGUseItemFromInventory* pP
     CoordInven_t InvenX = pPacket->getX();
     CoordInven_t InvenY = pPacket->getY();
     Item* pItem = pInventory->getItem(InvenX, InvenY);
-    EffectItemInfo* pItemInfo =
-        dynamic_cast<EffectItemInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+    EffectItemInfo* pItemInfo = dynamic_cast<EffectItemInfo*>(
+        de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
 
     if (pItem->getObjectID() != pPacket->getObjectID() || pItemInfo == NULL ||
         pPC->isFlag(pItemInfo->getEffectClass())) {
@@ -2077,8 +2077,8 @@ void CGUseItemFromInventoryHandler::executePetFood(CGUseItemFromInventory* pPack
     Item* pItem = pInventory->getItem(InvenX, InvenY);
 
     PetFood* pPetFood = dynamic_cast<PetFood*>(pItem);
-    PetFoodInfo* pInfo =
-        dynamic_cast<PetFoodInfo*>(g_pItemInfoManager->getItemInfo(pPetFood->getItemClass(), pPetFood->getItemType()));
+    PetFoodInfo* pInfo = dynamic_cast<PetFoodInfo*>(
+        de::gameContext().itemInfos().getItemInfo(pPetFood->getItemClass(), pPetFood->getItemType()));
 
     if (pPetFood != NULL && pInfo != NULL) {
         PetInfo* pPetInfo = pPC->getPetInfo();
@@ -2383,8 +2383,8 @@ void CGUseItemFromInventoryHandler::executeTrapItem(CGUseItemFromInventory* pPac
     Item* pItem = pInventory->getItem(InvenX, InvenY);
 
     TrapItem* pTrapItem = dynamic_cast<TrapItem*>(pItem);
-    TrapItemInfo* pInfo =
-        dynamic_cast<TrapItemInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+    TrapItemInfo* pInfo = dynamic_cast<TrapItemInfo*>(
+        de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
 
     if (!SiegeManager::Instance().isSiegeZone(pPC->getZoneID())) {
         GCCannotUse _GCCannotUse;

@@ -31,6 +31,7 @@
 #include "EventStar.h"
 #include "EventTree.h"
 #include "Fascia.h"
+#include "GameContext.h"
 #include "Glove.h"
 #include "Helm.h"
 #include "HolyWater.h"
@@ -113,8 +114,9 @@ void initItemIDRegistryFromTable(Mutex& mutex, ItemID_t& registry, const char* t
         registry = defaultItemRepository().loadMaxItemID(table);
     }
 
-    registry += (g_pItemInfoManager->getItemIDSuccessor() - (registry % g_pItemInfoManager->getItemIDSuccessor())) +
-                g_pItemInfoManager->getItemIDBase();
+    registry += (de::gameContext().itemInfos().getItemIDSuccessor() -
+                 (registry % de::gameContext().itemInfos().getItemIDSuccessor())) +
+                de::gameContext().itemInfos().getItemIDBase();
 
     __LEAVE_CRITICAL_SECTION(mutex)
 

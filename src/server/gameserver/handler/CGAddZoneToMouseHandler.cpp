@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGAddZoneToMouse.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 
 #ifdef __GAME_SERVER__
@@ -171,7 +172,7 @@ void CGAddZoneToMouseHandler::execute(CGAddZoneToMouse* pPacket, Player* pPlayer
                 }
 
                 const SweeperInfo* pSweeperInfo = dynamic_cast<SweeperInfo*>(
-                    g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, pItem->getItemType()));
+                    de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_SWEEPER, pItem->getItemType()));
 
                 char msg[100];
                 sprintf(msg, g_pStringPool->c_str(STRID_PICK_UP_SWEEPER), pSweeperInfo->getName().c_str(),

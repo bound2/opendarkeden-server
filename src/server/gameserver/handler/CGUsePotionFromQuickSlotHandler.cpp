@@ -22,6 +22,7 @@
 #include "GCStatusCurrentHP.h"
 #include "GCUseOK.h"
 #include "GDRLairManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -51,7 +52,7 @@ bool UseYellowCandy(PlayerCreature* pPC, Item* pItem) {
     if (pItem->getItemClass() == Item::ITEM_CLASS_EVENT_ETC) {
         if (pItem->getItemType() >= 14) {
             EventETCInfo* pInfo = dynamic_cast<EventETCInfo*>(
-                g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+                de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
             Assert(pInfo != NULL);
 
             int amount = pInfo->getFunction();

@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -40,7 +41,7 @@ OustersPendent::OustersPendent(ItemType_t itemType, const list<OptionType_t>& op
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersPendent::OustersPendent() : Invalid item type or option type");
         throw Error("OustersPendent::OustersPendent() : Invalid item type or optionType");
     }
@@ -59,7 +60,7 @@ void OustersPendent::create(const string& ownerID, Storage storage, StorageID_t 
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -210,7 +211,9 @@ void OustersPendentLoader::load(Creature* pCreature)
             pOustersPendent->setObjectID(rows[r].objectID);
             pOustersPendent->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_PENDENT, pOustersPendent->getItemType())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_OUSTERS_PENDENT, pOustersPendent->getItemType())
                     ->isUnique())
                 pOustersPendent->setUnique();
 

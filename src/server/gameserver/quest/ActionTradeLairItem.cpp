@@ -280,7 +280,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 
     if (pItem1 == NULL) {
         QuestItemInfo* pItemInfo = dynamic_cast<QuestItemInfo*>(
-            g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_QUEST_ITEM, pMasterItem->getItemType()));
+            context().itemInfos().getItemInfo(Item::ITEM_CLASS_QUEST_ITEM, pMasterItem->getItemType()));
         Assert(pItemInfo != NULL);
 
         ///////////////////////////////////////////////////////////////////////////////

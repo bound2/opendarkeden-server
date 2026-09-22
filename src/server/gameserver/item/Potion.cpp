@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -38,7 +39,7 @@ Potion::Potion(ItemType_t itemType, const list<OptionType_t>& optionType, ItemNu
     setItemType(itemType);
     setNum(Num);
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), optionType)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), optionType)) {
         filelog("itembug.log", "Potion::Potion() : Invalid item type or option type");
         throw Error("Potion::Potion() : Invalid item type or optionType");
     }
@@ -56,7 +57,7 @@ void Potion::create(const string& ownerID, Storage storage, StorageID_t storageI
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -135,7 +136,7 @@ int Potion::getHPAmount(void) const
     __BEGIN_TRY
 
     PotionInfo* pInfo =
-        dynamic_cast<PotionInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
+        dynamic_cast<PotionInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
     return pInfo->getHPAmount();
 
     __END_CATCH
@@ -147,7 +148,7 @@ int Potion::getMPAmount(void) const
     __BEGIN_TRY
 
     PotionInfo* pInfo =
-        dynamic_cast<PotionInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
+        dynamic_cast<PotionInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
     return pInfo->getMPAmount();
 
     __END_CATCH
@@ -160,7 +161,7 @@ int Potion::getHPDelay(void) const
     __BEGIN_TRY
 
     PotionInfo* pInfo =
-        dynamic_cast<PotionInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
+        dynamic_cast<PotionInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
     return pInfo->getHPDelay();
 
     __END_CATCH
@@ -172,7 +173,7 @@ int Potion::getMPDelay(void) const
     __BEGIN_TRY
 
     PotionInfo* pInfo =
-        dynamic_cast<PotionInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
+        dynamic_cast<PotionInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
     return pInfo->getMPDelay();
 
     __END_CATCH
@@ -185,7 +186,7 @@ int Potion::getHPQuantity(void) const
     __BEGIN_TRY
 
     PotionInfo* pInfo =
-        dynamic_cast<PotionInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
+        dynamic_cast<PotionInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
     return pInfo->getHPQuantity();
 
     __END_CATCH
@@ -197,7 +198,7 @@ int Potion::getMPQuantity(void) const
     __BEGIN_TRY
 
     PotionInfo* pInfo =
-        dynamic_cast<PotionInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
+        dynamic_cast<PotionInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
     return pInfo->getMPQuantity();
 
     __END_CATCH
@@ -210,7 +211,7 @@ int Potion::getHPRecoveryUnit(void) const
     __BEGIN_TRY
 
     PotionInfo* pInfo =
-        dynamic_cast<PotionInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
+        dynamic_cast<PotionInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
     return pInfo->getHPRecoveryUnit();
 
     __END_CATCH
@@ -222,7 +223,7 @@ int Potion::getMPRecoveryUnit(void) const
     __BEGIN_TRY
 
     PotionInfo* pInfo =
-        dynamic_cast<PotionInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
+        dynamic_cast<PotionInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_POTION, getItemType()));
     return pInfo->getMPRecoveryUnit();
 
     __END_CATCH
