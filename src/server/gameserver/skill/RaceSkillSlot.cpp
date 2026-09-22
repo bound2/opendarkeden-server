@@ -34,10 +34,13 @@ RaceSkillSlot::~RaceSkillSlot() {
 }
 
 Turn_t RaceSkillSlot::getRemainTurn(Timeval currentTime) const {
-    Turn_t remainTurn =
-        (m_runTime.tv_sec - currentTime.tv_sec) * 10 + (m_runTime.tv_usec - currentTime.tv_usec) / 100000;
+    // Turn_t is unsigned and the number goes out as the skill's casting
+    // time, so a run time already past reports no turns left rather than a
+    // remainder near 2^32.
+    const long long remainTurn =
+        (long long)(m_runTime.tv_sec - currentTime.tv_sec) * 10 + (m_runTime.tv_usec - currentTime.tv_usec) / 100000;
 
-    return remainTurn;
+    return remainTurn > 0 ? (Turn_t)remainTurn : 0;
 }
 
 void RaceSkillSlot::setRunTime() {

@@ -19,13 +19,20 @@ that followed it.
   with the very index or null factory the guard rejected: an out-of-bounds
   read of the factory array for a class past `ITEM_CLASS_MAX`, a null call
   for an in-range class no factory registered. Not reachable from a client
-  packet: all 41 callers pass a literal class, a class read off an existing
+  packet: the callers pass a literal class, a class read off an existing
   item, or one from server-side data, and the GM item command is gated by
   `isPossibleItem`, which asserts the range first. A corrupt database or
   XML row (`ItemMineInfo` reads its class from the database) crashes where
   the guard meant to log and skip. `getItemName` has the weaker shape of the
   same defect: it builds its diagnostic and discards it, then indexes.
-  > **Status:** recorded, not fixed (refactor/game-context-9)
+  Both guards now leave their function: the swallowing `catch` is gone, so
+  `createItem`'s `NoSuchElementException` propagates through `__END_CATCH`
+  to the caller, and `getItemName`, which nothing in the tree calls, throws
+  the diagnostic it had been building. Propagating rather than answering NULL is what the callers
+  support: of the 183 `createItem` call sites only 38 check the pointer
+  within five lines, so a NULL return would have moved the crash rather
+  than removed it. The logging the guard already did is unchanged.
+  > **Status:** fixed (fix/recorded-defects-1)
 
 ## A lair-item trade leaks every winning treasure but the last (2026-09-22)
 
@@ -35,7 +42,14 @@ that followed it.
   `registerObject` and the earlier ones are heap objects nothing frees. One
   entry means no leak; several mean a leak on every trade, a repeatable NPC
   action. `CGLotterySelectHandler` has the identical loop shape.
-  > **Status:** recorded, not fixed (fix/comment-accuracy-2)
+  Both loops now `SAFE_DELETE` the pointer before overwriting it, so the
+  roll the player is given is still the last winning one and the earlier
+  ones are freed as they are replaced. The lottery handler's pointer also
+  starts at NULL, which it needs to be deleted safely; it was left
+  indeterminate. Still open there, and untouched: when no treasure in the
+  list rolls an item, the body goes on to sex, store and log an item it
+  does not have.
+  > **Status:** fixed (fix/recorded-defects-1)
 
 ## Yellow Poison restores a fixed sight instead of the one it replaced (2026-09-22)
 
@@ -48,7 +62,13 @@ that followed it.
   by Flare and then poisoned gets full vision back the moment the poison
   ticks out, and monsters, whose Flare restore reads the per-type sight,
   are restored to a value that need not be theirs.
-  > **Status:** recorded, not fixed (fix/comment-accuracy-2)
+  The flag now comes off first and the sight that follows is
+  `getEffectedSight()`, so what is left is what the creature's remaining
+  effects say: the Flare sight for one still flared, the default otherwise.
+  `m_OldSight` stays as it is -- it is a persisted column
+  (`EffectYellowPoisonToCreature.OldSight`, written by `create` and
+  `save`), so the field and its writes are not dead, only its readers.
+  > **Status:** fixed (fix/recorded-defects-1)
 
 ## The event item action dereferences a null selector for an Ousters (2026-09-22)
 
@@ -56,7 +76,15 @@ that followed it.
   `isSlayer()` branch and an `isVampire()` branch, neither of which an
   Ousters enters,** so `pLuaSelectItem` stays null and is dereferenced a
   few lines down.
-  > **Status:** recorded, not fixed (fix/comment-accuracy-2)
+  There is no Ousters selector to reach for: the action reads a
+  `SlayerFilename` and a `VampireFilename` and nothing else, and
+  `LuaTradeEventSlayerItem` and `LuaTradeEventVampireItem` are the only
+  two selector classes in the tree. So a null selector is now a refusal:
+  the action logs the character to `GiveEventItemError.txt`, closes the
+  NPC dialogue the way its other refusals do, and returns. The same
+  two-branch selector choice is in `ActionGiveAccountEventItem` and
+  `ActionTradeGiftBox`, both untouched.
+  > **Status:** fixed (fix/recorded-defects-1)
 
 ## A skill off cooldown is sent a 4-billion-turn casting time (2026-09-22)
 
@@ -78,11 +106,14 @@ that followed it.
   `skill/Restore.cpp`. The same body sits in `skill/SkillSlot.cpp` and
   `skill/RaceSkillSlot.cpp` alike, so this is one defect behind three
   callers, not three defects.
-  Pinned as it stands by `race_skill_slot_tests`
-  (`ARunTimeAlreadyPastWrapsInsteadOfGoingNegative`); a fix has to decide
-  what a ready skill should report, which is a protocol question rather
-  than a refactor.
-  > **Status:** recorded, not fixed (refactor/skill-slot-base)
+  Both bodies now clamp: a run time that is already past reports no turns
+  left. The wire layout is unchanged and the client already handles the
+  value — `GCSkillInfoHandler` passes the casting time to
+  `SKILLINFO_NODE::SetAvailableTime`, whose zero means "usable now", the
+  same thing the wrapped value reached through its negative `int`. The
+  clamped rule is pinned by `race_skill_slot_tests` and by the new
+  `skill_slot_tests`, which covers the slayer slot's copy of the body.
+  > **Status:** fixed (fix/recorded-defects-1)
 
 ## ObjectManager created a volume info manager it never deleted (2026-09-17)
 

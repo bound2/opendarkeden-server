@@ -449,20 +449,16 @@ Item* ItemFactoryManager::createItem(Item::ItemClass IClass, ItemType_t ItemType
 {
     __BEGIN_TRY
 
-    try {
-        // Guard against a Seg.Fault caused by an item id out of range.
-        // Such a user has to be cut off at once.
-        if (IClass >= m_Size || m_Factories[IClass] == NULL) {
-            StringStream msg;
-            msg << "item factory [" << (int)IClass << "] not exist.";
-            cerr << "ItemFactoryManager::createItem() : NoSuchElementException" << endl;
-            filelog("itembug.log", "ItemFactoryManager::createItem() : Invalid Item Class : %d", IClass);
-            throw NoSuchElementException(msg.toString());
-        }
-    } catch (Throwable& t) {
-        cerr << t.toString() << endl;
+    // Guard against a Seg.Fault caused by an item id out of range. The
+    // caller gets the exception: there is no item to hand back, and almost
+    // none of the callers check the pointer they are given.
+    if (IClass >= m_Size || m_Factories[IClass] == NULL) {
+        StringStream msg;
+        msg << "item factory [" << (int)IClass << "] not exist.";
+        cerr << "ItemFactoryManager::createItem() : NoSuchElementException" << endl;
+        filelog("itembug.log", "ItemFactoryManager::createItem() : Invalid Item Class : %d", IClass);
+        throw NoSuchElementException(msg.toString());
     }
-
 
     Item* pItem = m_Factories[IClass]->createItem(ItemType, OptionType);
 
@@ -484,11 +480,12 @@ string ItemFactoryManager::getItemName(Item::ItemClass IClass)
 {
     __BEGIN_TRY
 
-    // Guard against a Seg.Fault caused by an item id out of range.
-    // Such a user has to be cut off at once.
+    // Guard against a Seg.Fault caused by an item id out of range. There is
+    // no name to answer with, so the caller gets the exception.
     if (IClass >= m_Size || m_Factories[IClass] == NULL) {
         StringStream msg;
         msg << "invaltype item type(" << (int)IClass << ")";
+        throw NoSuchElementException(msg.toString());
     }
 
     return m_Factories[IClass]->getItemClassName();

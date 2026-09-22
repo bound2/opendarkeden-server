@@ -57,17 +57,18 @@ void EffectYellowPoisonToCreature::unaffect(Creature* pCreature)
         Zone* pZone = pCreature->getZone();
         Player* pPlayer = pCreature->getPlayer();
 
-        // The sight goes back to the default 13 rather than to whatever the
-        // creature had before the poison.
-        Sight_t NewSight = 13;
+        // The flag goes first, so the sight that is left is the one the
+        // creature's remaining effects imply -- a creature still under
+        // Flare keeps the Flare sight instead of being given full vision.
+        pCreature->removeFlag(Effect::EFFECT_CLASS_YELLOW_POISON_TO_CREATURE);
+
+        Sight_t NewSight = pCreature->getEffectedSight();
         pCreature->setSight(NewSight);
 
         // Sends the vision information to the client.
         GCModifyInformation _GCModifyInformation;
         _GCModifyInformation.addShortData(MODIFY_VISION, NewSight);
         pPlayer->sendPacket(&_GCModifyInformation);
-
-        pCreature->removeFlag(Effect::EFFECT_CLASS_YELLOW_POISON_TO_CREATURE);
 
         // When Yellow Poison wears off, the scan is updated and the brightness adjusted.
 

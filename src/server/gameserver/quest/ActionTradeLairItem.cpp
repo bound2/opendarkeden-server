@@ -316,6 +316,10 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 
 
             if (pTreasure->getRandomItem(&it)) {
+                // The last roll wins, so an item an earlier one produced is
+                // dropped here rather than left with no owner.
+                SAFE_DELETE(pItem1);
+
                 pItem1 = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
                 Assert(pItem1 != NULL);
             }

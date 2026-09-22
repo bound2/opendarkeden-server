@@ -353,7 +353,7 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
                 break;
             }
 
-            Item* pItem;
+            Item* pItem = NULL;
 
             if (isLairItem) {
                 const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(masterType);
@@ -382,6 +382,11 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
 
 
                     if (pTreasure->getRandomItem(&it)) {
+                        // The last roll wins, so an item an earlier one
+                        // produced is dropped here rather than left with no
+                        // owner.
+                        SAFE_DELETE(pItem);
+
                         pItem = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
                         Assert(pItem != NULL);
                     }
