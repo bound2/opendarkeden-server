@@ -18,6 +18,7 @@
 #include "GuildManager.h"
 #include "Properties.h"
 #include "SGGuildInfo.h"
+#include "SharedContext.h"
 
 #endif
 
@@ -40,7 +41,7 @@ void GSRequestGuildInfoHandler::execute(GSRequestGuildInfo* pPacket, Player* pPl
 
     SGGuildInfo sgGuildInfo;
 
-    g_pGuildManager->makeSGGuildInfo(sgGuildInfo);
+    de::sharedContext().guilds().makeSGGuildInfo(sgGuildInfo);
 
     // Send the packet to the game server.
     pGSPlayer->sendPacket(&sgGuildInfo);

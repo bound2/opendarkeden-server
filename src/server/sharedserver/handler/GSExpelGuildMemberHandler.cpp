@@ -17,6 +17,7 @@
 #include "GuildManager.h"
 #include "GuildStepRunner.h"
 #include "Properties.h"
+#include "SharedContext.h"
 
 #endif
 
@@ -34,7 +35,7 @@ void GSExpelGuildMemberHandler::execute(GSExpelGuildMember* pPacket, Player* pPl
 
         Assert(pPacket != NULL);
 
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::sharedContext().guilds().getGuild(pPacket->getGuildID());
 
     ExpelGuildMemberRequest request;
     request.guildID = pPacket->getGuildID();

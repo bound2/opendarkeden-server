@@ -18,6 +18,7 @@
 #include "GuildManager.h"
 #include "GuildStepRunner.h"
 #include "SGAddGuildMemberOK.h"
+#include "SharedContext.h"
 
 namespace {
 
@@ -60,7 +61,7 @@ void GSAddGuildMemberHandler::execute(GSAddGuildMember* pPacket, Player* pPlayer
 
     pGuildMember->saveIntro(pPacket->getGuildMemberIntro());
 
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::sharedContext().guilds().getGuild(pPacket->getGuildID());
     pGuild->addMember(pGuildMember);
 
     SGAddGuildMemberOK sgAddGuildMemberOK;
@@ -69,7 +70,7 @@ void GSAddGuildMemberHandler::execute(GSAddGuildMember* pPacket, Player* pPlayer
     sgAddGuildMemberOK.setGuildMemberRank(pGuildMember->getRank());
     sgAddGuildMemberOK.setServerGroupID(pPacket->getServerGroupID());
 
-    g_pGameServerManager->broadcast(&sgAddGuildMemberOK);
+    de::sharedContext().gameServers().broadcast(&sgAddGuildMemberOK);
 
     // The new member may be the one that carries the guild's registration
     // through.

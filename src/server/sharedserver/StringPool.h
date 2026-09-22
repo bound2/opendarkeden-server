@@ -51,6 +51,4 @@ private:
     StringHashMap m_Strings;
 };
 
-extern StringPool* g_pStringPool;
-
 #endif // __SHARED_SERVER_STRING_POOL_H__

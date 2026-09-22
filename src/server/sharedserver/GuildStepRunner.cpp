@@ -15,10 +15,14 @@
 #include "SGModifyGuildMemberOK.h"
 #include "SGModifyGuildOK.h"
 #include "SGQuitGuildOK.h"
+#include "SharedContext.h"
 #include "StringPool.h"
 #include "repository/SharedGuildRepository.h"
 
 void runGuildSteps(const std::vector<SharedGuildStep>& steps, Guild* pGuild, const char* departureLabel) {
+    // Five of the steps below answer the game servers; bind the manager once.
+    GameServerManager& gameServers = de::sharedContext().gameServers();
+
     for (const SharedGuildStep& step : steps) {
         switch (step.action) {
         case SharedGuildAction::LogGuildExit:
@@ -48,7 +52,8 @@ void runGuildSteps(const std::vector<SharedGuildStep>& steps, Guild* pGuild, con
             break;
 
         case SharedGuildAction::InsertMessage:
-            defaultSharedGuildRepository().insertMessage(step.spelling, step.name, g_pStringPool->c_str(step.message));
+            defaultSharedGuildRepository().insertMessage(step.spelling, step.name,
+                                                         de::sharedContext().strings().c_str(step.message));
             break;
 
         case SharedGuildAction::ExpireMember: {
@@ -101,7 +106,7 @@ void runGuildSteps(const std::vector<SharedGuildStep>& steps, Guild* pGuild, con
 
         case SharedGuildAction::DeleteGuild:
             SAFE_DELETE(pGuild);
-            g_pGuildManager->deleteGuild(step.guildID);
+            de::sharedContext().guilds().deleteGuild(step.guildID);
             break;
 
         case SharedGuildAction::SendModifyGuildOK: {
@@ -109,7 +114,7 @@ void runGuildSteps(const std::vector<SharedGuildStep>& steps, Guild* pGuild, con
             sgModifyGuildOK.setGuildID(step.guildID);
             sgModifyGuildOK.setGuildState(step.state);
 
-            g_pGameServerManager->broadcast(&sgModifyGuildOK);
+            gameServers.broadcast(&sgModifyGuildOK);
             break;
         }
 
@@ -119,7 +124,7 @@ void runGuildSteps(const std::vector<SharedGuildStep>& steps, Guild* pGuild, con
             sgExpelGuildMemberOK.setName(step.name);
             sgExpelGuildMemberOK.setSender(step.sender);
 
-            g_pGameServerManager->broadcast(&sgExpelGuildMemberOK);
+            gameServers.broadcast(&sgExpelGuildMemberOK);
             break;
         }
 
@@ -128,7 +133,7 @@ void runGuildSteps(const std::vector<SharedGuildStep>& steps, Guild* pGuild, con
             sgQuitGuildOK.setGuildID(step.guildID);
             sgQuitGuildOK.setName(step.name);
 
-            g_pGameServerManager->broadcast(&sgQuitGuildOK);
+            gameServers.broadcast(&sgQuitGuildOK);
             break;
         }
 
@@ -136,7 +141,7 @@ void runGuildSteps(const std::vector<SharedGuildStep>& steps, Guild* pGuild, con
             SGDeleteGuildOK sgDeleteGuildOK;
             sgDeleteGuildOK.setGuildID(step.guildID);
 
-            g_pGameServerManager->broadcast(&sgDeleteGuildOK);
+            gameServers.broadcast(&sgDeleteGuildOK);
             break;
         }
 
@@ -147,7 +152,7 @@ void runGuildSteps(const std::vector<SharedGuildStep>& steps, Guild* pGuild, con
             sgModifyGuildMemberOK.setGuildMemberRank(step.rank);
             sgModifyGuildMemberOK.setSender(step.sender);
 
-            g_pGameServerManager->broadcast(&sgModifyGuildMemberOK);
+            gameServers.broadcast(&sgModifyGuildMemberOK);
             break;
         }
         }

@@ -16,6 +16,7 @@
 #include "Guild.h"
 #include "GuildManager.h"
 #include "SGModifyGuildIntroOK.h"
+#include "SharedContext.h"
 
 #endif
 
@@ -34,7 +35,7 @@ void GSModifyGuildIntroHandler::execute(GSModifyGuildIntro* pPacket, Player* pPl
         Assert(pPacket != NULL);
 
     // Get the guild.
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::sharedContext().guilds().getGuild(pPacket->getGuildID());
     if (pGuild == NULL)
         return;
 
@@ -46,7 +47,7 @@ void GSModifyGuildIntroHandler::execute(GSModifyGuildIntro* pPacket, Player* pPl
     sgModifyGuildIntroOK.setGuildIntro(pPacket->getGuildIntro());
 
     // Send the packet to the game server.
-    g_pGameServerManager->broadcast(&sgModifyGuildIntroOK);
+    de::sharedContext().gameServers().broadcast(&sgModifyGuildIntroOK);
 
 #endif
 

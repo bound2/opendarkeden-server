@@ -14,16 +14,11 @@
 #include "GameServerManager.h"
 #include "SGExpelGuildMemberOK.h"
 #include "SGGuildInfo.h"
+#include "SharedContext.h"
 #endif
 
 #include "GCActiveGuildList.h"
 #include "GCWaitGuildList.h"
-
-////////////////////////////////////////////////////////////////////////
-// global varible initialization
-////////////////////////////////////////////////////////////////////////
-
-GuildManager* g_pGuildManager = NULL;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -386,7 +381,7 @@ void GuildManager::heartbeat() noexcept(false) {
                 sgExpelGuildMemberOK.setName(*itr2);
                 sgExpelGuildMemberOK.setSender(pGuild->getMaster());
 
-                g_pGameServerManager->broadcast(&sgExpelGuildMemberOK);
+                de::sharedContext().gameServers().broadcast(&sgExpelGuildMemberOK);
             }
         }
 

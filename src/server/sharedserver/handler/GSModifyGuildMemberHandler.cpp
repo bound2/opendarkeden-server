@@ -17,6 +17,7 @@
 #include "GuildManager.h"
 #include "GuildStepRunner.h"
 #include "Properties.h"
+#include "SharedContext.h"
 
 #endif
 
@@ -39,7 +40,7 @@ void GSModifyGuildMemberHandler::execute(GSModifyGuildMember* pPacket, Player* p
     static_assert(kGuildMemberRankSubmaster == GuildMember::GUILDMEMBER_RANK_SUBMASTER);
     static_assert(kGuildMemberRankWait == GuildMember::GUILDMEMBER_RANK_WAIT);
 
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::sharedContext().guilds().getGuild(pPacket->getGuildID());
 
     ModifyGuildMemberRequest request;
     request.guildID = pPacket->getGuildID();

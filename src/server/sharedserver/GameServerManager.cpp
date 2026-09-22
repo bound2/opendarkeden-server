@@ -18,6 +18,7 @@
 #include "Packet.h"
 #include "Properties.h"
 #include "ServerShutdown.h"
+#include "SharedContext.h"
 #include "Socket.h"
 #include "SocketAPI.h"
 
@@ -127,7 +128,7 @@ void GameServerManager::run() {
 
             processCommands();
 
-            g_pGuildManager->heartbeat();
+            de::sharedContext().guilds().heartbeat();
 
             Timeval currentTime;
             getCurrentTime(currentTime);
@@ -630,13 +631,12 @@ void GameServerManager::deleteGameServerPlayer(SOCKET fd) {
     __END_CATCH
 }
 
-void GameServerManager::heartbeat(){__BEGIN_TRY
+void GameServerManager::heartbeat() {
+    __BEGIN_TRY
 
-                                        __ENTER_CRITICAL_SECTION(m_Mutex)
+    __ENTER_CRITICAL_SECTION(m_Mutex)
 
-                                            __LEAVE_CRITICAL_SECTION(m_Mutex)
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-                                                __END_CATCH}
-
-// external variable definition
-GameServerManager* g_pGameServerManager = NULL;
+    __END_CATCH
+}

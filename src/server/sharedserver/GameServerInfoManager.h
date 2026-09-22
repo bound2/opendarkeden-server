@@ -53,7 +53,4 @@ private:
     int m_MaxServerGroupID;
 };
 
-// global variable declaration
-extern GameServerInfoManager* g_pGameServerInfoManager;
-
 #endif
