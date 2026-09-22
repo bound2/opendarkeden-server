@@ -765,19 +765,8 @@ void Vampire::save() const
 ////////////////////////////////////////////////////////////////////////////////
 
 // Return a specific Skill.
-VampireSkillSlot* Vampire::getSkill(SkillType_t SkillType) const
-
-{
-    __BEGIN_TRY
-
-    unordered_map<SkillType_t, VampireSkillSlot*>::const_iterator itr = m_SkillSlot.find(SkillType);
-    if (itr != m_SkillSlot.end()) {
-        return itr->second;
-    }
-
-    return NULL;
-
-    __END_CATCH
+VampireSkillSlot* Vampire::getSkill(SkillType_t SkillType) const {
+    return findSkillSlot(m_SkillSlot, SkillType);
 }
 
 // Add a specific Skill.
@@ -859,59 +848,12 @@ void Vampire::addSkill(VampireSkillSlot* pVampireSkillSlot)
     __END_CATCH
 }
 
-// Removes a castle skill.
-void Vampire::removeCastleSkill(SkillType_t SkillType)
-
-{
-    __BEGIN_TRY
-
-    // Only a castle skill may be removed.
-    if (de::gameContext().castleSkills().getZoneID(SkillType) == 0)
-        return;
-
-    unordered_map<SkillType_t, VampireSkillSlot*>::iterator itr = m_SkillSlot.find(SkillType);
-
-    if (itr != m_SkillSlot.end()) {
-        VampireCastleSkillSlot* pCastleSkillSlot = dynamic_cast<VampireCastleSkillSlot*>(itr->second);
-
-        SAFE_DELETE(pCastleSkillSlot);
-
-        m_SkillSlot.erase(itr);
-    }
-
-    __END_CATCH
+void Vampire::removeCastleSkill(SkillType_t SkillType) {
+    removeCastleSkillSlot<VampireSkillSlot, VampireCastleSkillSlot>(m_SkillSlot, SkillType);
 }
 
-// Removes every castle skill the vampire has.
-void Vampire::removeAllCastleSkill()
-
-{
-    __BEGIN_TRY
-
-    unordered_map<SkillType_t, VampireSkillSlot*>::iterator itr = m_SkillSlot.begin();
-
-    while (itr != m_SkillSlot.end()) {
-        if (itr->second != NULL) {
-            VampireSkillSlot* pSkillSlot = itr->second;
-            if (de::gameContext().castleSkills().getZoneID(pSkillSlot->getSkillType()) == 0) {
-                // Not a castle skill, move on to the next one.
-                ++itr;
-                continue;
-            }
-
-            // A castle skill is removed. Mind the iterator.
-            SAFE_DELETE(pSkillSlot);
-            unordered_map<SkillType_t, VampireSkillSlot*>::iterator prevItr = itr;
-
-            ++itr;
-            m_SkillSlot.erase(prevItr);
-        } else {
-            // A null skill slot should not be in the map.
-            Assert(false);
-        }
-    }
-
-    __END_CATCH
+void Vampire::removeAllCastleSkill() {
+    removeAllCastleSkillSlots(m_SkillSlot);
 }
 
 
@@ -2045,23 +1987,8 @@ string Vampire::toString() const
     __END_CATCH
 }
 
-void Vampire::saveSkills(void) const
-
-{
-    __BEGIN_TRY
-
-    unordered_map<SkillType_t, VampireSkillSlot*>::const_iterator itr = m_SkillSlot.begin();
-    for (; itr != m_SkillSlot.end(); itr++) {
-        VampireSkillSlot* pVampireSkillSlot = itr->second;
-        Assert(pVampireSkillSlot != NULL);
-
-        // Not a basic attack skill...
-        if (pVampireSkillSlot->getSkillType() >= SKILL_DOUBLE_IMPACT) {
-            pVampireSkillSlot->save(m_Name);
-        }
-    }
-
-    __END_CATCH
+void Vampire::saveSkills(void) const {
+    saveSkillSlots(m_SkillSlot);
 }
 
 void Vampire::saveGears(void) const

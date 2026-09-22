@@ -401,6 +401,26 @@ public:
     virtual bool canSee(Object* pObject) const;
 
     ////////////////////////////////////////////////////////////
+    // Skill slot table
+    //
+    // Each race keys its own slot class by skill type. These are the
+    // operations on that table that do not depend on which class it is:
+    // the lookup, the two castle-skill removals and the save sweep. The
+    // race supplies its slot type, and removeCastleSkillSlot its castle
+    // slot type -- only a slot of that class is deleted.
+    ////////////////////////////////////////////////////////////
+protected:
+    template <class SlotType>
+    SlotType* findSkillSlot(const unordered_map<SkillType_t, SlotType*>& skillSlots, SkillType_t SkillType) const;
+
+    template <class SlotType, class CastleSlotType>
+    void removeCastleSkillSlot(unordered_map<SkillType_t, SlotType*>& skillSlots, SkillType_t SkillType);
+
+    template <class SlotType> void removeAllCastleSkillSlots(unordered_map<SkillType_t, SlotType*>& skillSlots);
+
+    template <class SlotType> void saveSkillSlots(const unordered_map<SkillType_t, SlotType*>& skillSlots) const;
+
+    ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
 protected:

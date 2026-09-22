@@ -7,6 +7,7 @@
 #include "PlayerCreature.h"
 
 #include "Belt.h"
+#include "CastleSkillInfo.h"
 #include "EventKick.h"
 #include "ExtraInfo.h"
 #include "ExtraSlotInfo.h"
@@ -71,6 +72,12 @@
 #include "repository/GoodsRepository.h"
 #include "repository/RankBonusRepository.h"
 #include "repository/StashRepository.h"
+#include "skill/CastleSkillSlot.h"
+#include "skill/OustersCastleSkillSlot.h"
+#include "skill/OustersSkillSlot.h"
+#include "skill/SkillSlot.h"
+#include "skill/VampireCastleSkillSlot.h"
+#include "skill/VampireSkillSlot.h"
 
 const int MAX_GOODS_INVENTORY_SIZE = 10;
 
@@ -1439,3 +1446,119 @@ InventoryInfo* PlayerCreature::getInventoryInfo() const {
     __END_DEBUG
     __END_CATCH
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// Skill slot table
+//
+// Each race keys its own slot class by skill type; the operations below do
+// not depend on which class that is, so the race passes its map in and, for
+// the castle removal, names the castle slot class whose instances may be
+// deleted.
+//////////////////////////////////////////////////////////////////////////////
+template <class SlotType>
+SlotType* PlayerCreature::findSkillSlot(const unordered_map<SkillType_t, SlotType*>& skillSlots,
+                                        SkillType_t SkillType) const {
+    __BEGIN_TRY
+
+    typename unordered_map<SkillType_t, SlotType*>::const_iterator itr = skillSlots.find(SkillType);
+    if (itr != skillSlots.end()) {
+        return itr->second;
+    }
+
+    return NULL;
+
+    __END_CATCH
+}
+
+// Removes a castle skill.
+template <class SlotType, class CastleSlotType>
+void PlayerCreature::removeCastleSkillSlot(unordered_map<SkillType_t, SlotType*>& skillSlots, SkillType_t SkillType) {
+    __BEGIN_TRY
+
+    // Only a castle skill may be removed.
+    if (de::gameContext().castleSkills().getZoneID(SkillType) == 0)
+        return;
+
+    typename unordered_map<SkillType_t, SlotType*>::iterator itr = skillSlots.find(SkillType);
+
+    if (itr != skillSlots.end()) {
+        CastleSlotType* pCastleSkillSlot = dynamic_cast<CastleSlotType*>(itr->second);
+
+        SAFE_DELETE(pCastleSkillSlot);
+
+        skillSlots.erase(itr);
+    }
+
+    __END_CATCH
+}
+
+// Removes every castle skill the character has.
+template <class SlotType>
+void PlayerCreature::removeAllCastleSkillSlots(unordered_map<SkillType_t, SlotType*>& skillSlots) {
+    __BEGIN_TRY
+
+    typename unordered_map<SkillType_t, SlotType*>::iterator itr = skillSlots.begin();
+
+    while (itr != skillSlots.end()) {
+        if (itr->second != NULL) {
+            SlotType* pSkillSlot = itr->second;
+            if (de::gameContext().castleSkills().getZoneID(pSkillSlot->getSkillType()) == 0) {
+                // Not a castle skill, move on to the next one.
+                ++itr;
+                continue;
+            }
+
+            // A castle skill is removed. Mind the iterator.
+            SAFE_DELETE(pSkillSlot);
+            typename unordered_map<SkillType_t, SlotType*>::iterator prevItr = itr;
+
+            ++itr;
+            skillSlots.erase(prevItr);
+        } else {
+            // A null skill slot should not be in the map.
+            Assert(false);
+        }
+    }
+
+    __END_CATCH
+}
+
+template <class SlotType>
+void PlayerCreature::saveSkillSlots(const unordered_map<SkillType_t, SlotType*>& skillSlots) const {
+    __BEGIN_TRY
+
+    typename unordered_map<SkillType_t, SlotType*>::const_iterator itr = skillSlots.begin();
+    for (; itr != skillSlots.end(); itr++) {
+        SlotType* pSkillSlot = itr->second;
+        Assert(pSkillSlot != NULL);
+
+        // Not a basic attack skill...
+        if (pSkillSlot->getSkillType() >= SKILL_DOUBLE_IMPACT) {
+            pSkillSlot->save(m_Name);
+        }
+    }
+
+    __END_CATCH
+}
+
+// The three races that keep such a table.
+template SkillSlot* PlayerCreature::findSkillSlot(const unordered_map<SkillType_t, SkillSlot*>&, SkillType_t) const;
+template VampireSkillSlot* PlayerCreature::findSkillSlot(const unordered_map<SkillType_t, VampireSkillSlot*>&,
+                                                         SkillType_t) const;
+template OustersSkillSlot* PlayerCreature::findSkillSlot(const unordered_map<SkillType_t, OustersSkillSlot*>&,
+                                                         SkillType_t) const;
+
+template void PlayerCreature::removeCastleSkillSlot<SkillSlot, CastleSkillSlot>(unordered_map<SkillType_t, SkillSlot*>&,
+                                                                                SkillType_t);
+template void PlayerCreature::removeCastleSkillSlot<VampireSkillSlot, VampireCastleSkillSlot>(
+    unordered_map<SkillType_t, VampireSkillSlot*>&, SkillType_t);
+template void PlayerCreature::removeCastleSkillSlot<OustersSkillSlot, OustersCastleSkillSlot>(
+    unordered_map<SkillType_t, OustersSkillSlot*>&, SkillType_t);
+
+template void PlayerCreature::removeAllCastleSkillSlots(unordered_map<SkillType_t, SkillSlot*>&);
+template void PlayerCreature::removeAllCastleSkillSlots(unordered_map<SkillType_t, VampireSkillSlot*>&);
+template void PlayerCreature::removeAllCastleSkillSlots(unordered_map<SkillType_t, OustersSkillSlot*>&);
+
+template void PlayerCreature::saveSkillSlots(const unordered_map<SkillType_t, SkillSlot*>&) const;
+template void PlayerCreature::saveSkillSlots(const unordered_map<SkillType_t, VampireSkillSlot*>&) const;
+template void PlayerCreature::saveSkillSlots(const unordered_map<SkillType_t, OustersSkillSlot*>&) const;
