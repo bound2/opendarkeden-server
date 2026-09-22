@@ -40,7 +40,12 @@ that followed it.
   a guild war sits there, every lookup for any zone throws
   `AssertionError`, including the castle shrine's owner change and the
   siege manager's checks.
-  > **Status:** recorded, not fixed (refactor/game-context-12)
+  > **Status:** fixed (fix/recorded-defects-4) — both loops now skip a war
+  > whose cast to `SiegeWar` fails instead of asserting it, so a scheduled
+  > guild war is passed over and the lookups keep answering for every
+  > other zone. Every caller already handles the `NULL` a zone with no
+  > siege returns. Whether a `GuildWar` should be matched by its own
+  > `getCastleZoneID` the way a siege is remains open.
 
 ## A shrine set with no owner names its race from an uninitialised pointer (2026-09-22)
 
