@@ -11,6 +11,28 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A skill off cooldown is sent a 4-billion-turn casting time (2026-09-22)
+
+- **`getRemainTurn` returns `Turn_t`, which is `DWORD`.** The body subtracts
+  the current time from the slot's run time, so a slot whose cooldown has
+  already elapsed — the normal state of every skill a character is not
+  mid-cast on — computes a negative remainder and converts it to a value
+  near 2^32. All three races do the same thing with it:
+  `Slayer::sendSlayerSkillInfo`, `Vampire::sendVampireSkillInfo` and
+  `Ousters::sendOustersSkillInfo` put it in the sub-info's *casting time*
+  field, and `SubSlayerSkillInfo`/`SubVampireSkillInfo`/`SubOustersSkillInfo`
+  write it to the client as four bytes. Login is safe — the load path calls
+  `setRunTime()`, which places the run time an interval ahead — but every
+  later send is not: `ZoneSpawn.cpp` sends the whole skill list on each zone
+  entry, and the four `CGSkillTo*` handlers resend it after a vampire cast.
+  The same conversion sits in `skill/SkillSlot.h` and `skill/RaceSkillSlot.h`
+  alike, so this is one defect behind three callers, not three defects.
+  Pinned as it stands by `race_skill_slot_tests`
+  (`ARunTimeAlreadyPastWrapsInsteadOfGoingNegative`); a fix has to decide
+  what a ready skill should report, which is a protocol question rather
+  than a refactor.
+  > **Status:** recorded, not fixed (refactor/skill-slot-base)
+
 ## ObjectManager created a volume info manager it never deleted (2026-09-17)
 
 - **`g_pVolumeInfoManager` was `new`ed in `ObjectManager`'s constructor and
