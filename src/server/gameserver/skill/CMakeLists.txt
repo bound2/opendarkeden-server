@@ -6,6 +6,7 @@ set(SKILL_HANDLER_SOURCES
     HitRoll.cpp
     SkillHandler.cpp
     SkillHandlerManager.cpp
+    RaceSkillSlot.cpp
     VampireSkillSlot.cpp
     OustersSkillSlot.cpp
     SkillSlot.cpp
