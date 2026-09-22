@@ -10,6 +10,7 @@
 #include "GCSkillToTileOK1.h"
 #include "GCSkillToTileOK2.h"
 #include "GCSkillToTileOK5.h"
+#include "GameContext.h"
 #include "ZoneUtil.h"
 
 SimpleTileMeleeSkill g_SimpleTileMeleeSkill;
@@ -47,7 +48,7 @@ void SimpleTileMeleeSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSk
         GCSkillToTileOK2 _GCSkillToTileOK2;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
@@ -281,7 +282,7 @@ void SimpleTileMeleeSkill::execute(Vampire* pVampire, int X, int Y, VampireSkill
         GCSkillToTileOK2 _GCSkillToTileOK2;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);
@@ -499,7 +500,7 @@ void SimpleTileMeleeSkill::execute(Ousters* pOusters, int X, int Y, OustersSkill
         GCSkillToTileOK2 _GCSkillToTileOK2;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillLevel_t SkillLevel = pOustersSkillSlot->getExpLevel();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
@@ -710,7 +711,7 @@ void SimpleTileMeleeSkill::execute(Monster* pMonster, int X, int Y, const SIMPLE
         GCSkillToTileOK2 _GCSkillToTileOK2;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
 
         bool bRangeCheck = verifyDistance(pMonster, X, Y, pSkillInfo->getRange());
 

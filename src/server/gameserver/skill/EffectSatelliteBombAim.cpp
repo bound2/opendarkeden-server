@@ -10,6 +10,7 @@
 #include "GCSkillToObjectOK2.h"
 #include "GCSkillToObjectOK4.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "HitRoll.h"
 #include "Monster.h"
@@ -188,7 +189,7 @@ void EffectSatelliteBombAim::unaffect(Creature* pCastCreature)
         bool bIncreaseExp = pSlayer->isRealWearingEx(Slayer::WEAR_RIGHTHAND);
         if (bIncreaseExp) {
             SkillSlot* pSkillSlot = pSlayer->hasSkill(SKILL_SATELLITE_BOMB);
-            SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_SATELLITE_BOMB);
+            SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SKILL_SATELLITE_BOMB);
             SkillDomainType_t DomainType = pSkillInfo->getDomainType();
             SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 

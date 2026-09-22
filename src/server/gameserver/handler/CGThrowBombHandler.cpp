@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGThrowBomb.h"
+#include "GameContext.h"
 
 #ifdef __GAME_SERVER__
 #include <list>
@@ -155,7 +156,7 @@ void CGThrowBombHandler::execute(CGThrowBomb* pPacket, Player* pPlayer)
         Damage_t MinDamage = pBomb->getMinDamage();
         Damage_t MaxDamage = pBomb->getMaxDamage();
         SkillSlot* pSkillSlot = pSlayer->hasSkill(SKILL_THROW_BOMB);
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_THROW_BOMB);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SKILL_THROW_BOMB);
         Level_t SkillLevel = pSkillSlot->getExpLevel();
         Damage_t RealDamage = MinDamage + (max(0, ((int)MaxDamage * (int)SkillLevel / 100) - MinDamage));
 

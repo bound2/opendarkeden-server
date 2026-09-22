@@ -11,6 +11,7 @@
 #include "GCSkillToObjectOK1.h"
 #include "GCSkillToObjectOK2.h"
 #include "GCSkillToObjectOK5.h"
+#include "GameContext.h"
 #include "HitRoll.h"
 #include "RankBonus.h"
 #include "SkillUtil.h"
@@ -49,7 +50,7 @@ void SetAfire::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         Range_t Range = 2 + pVampire->getSTR() / 20 + pVampire->getDEX() / 220 + pVampire->getINT() / 440;
         Range = min((Range_t)6, Range);
 

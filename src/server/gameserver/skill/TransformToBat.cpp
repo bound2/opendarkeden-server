@@ -16,6 +16,7 @@
 #include "GCSkillToSelfOK3.h"
 #include "GDRLairManager.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemUtil.h"
 #include "PKZoneInfoManager.h"
@@ -62,7 +63,7 @@ void TransformToBat::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordI
         GCSkillToInventoryOK1 _GCSkillToInventoryOK1;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t x = pVampire->getX();
         ZoneCoord_t y = pVampire->getY();
@@ -176,7 +177,7 @@ void TransformToBat::execute(Monster* pMonster)
         Assert(pZone != NULL);
 
         SkillType_t SkillType = SKILL_TRANSFORM_TO_BAT;
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t x = pMonster->getX();
         ZoneCoord_t y = pMonster->getY();

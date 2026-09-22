@@ -14,6 +14,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer object handler
@@ -72,7 +73,7 @@ void Regeneration::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
@@ -123,7 +124,8 @@ void Regeneration::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
             tile.addEffect(pEffect);
 
             // Raises experience.
-            SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+            SkillGrade Grade =
+                de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToTileOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToTileOK1);

@@ -12,6 +12,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
+#include "GameContext.h"
 
 SimpleMissileSkill g_SimpleMissileSkill;
 
@@ -52,7 +53,7 @@ void SimpleMissileSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Ski
         GCSkillToObjectOK4 _GCSkillToObjectOK4;
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
         bool bCriticalHit = false;
@@ -198,7 +199,7 @@ void SimpleMissileSkill::execute(Vampire* pVampire, ObjectID_t TargetObjectID, V
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         bool bCriticalHit = false;
         Damage_t Damage = 0;
 
@@ -366,7 +367,7 @@ void SimpleMissileSkill::execute(Ousters* pOusters, ObjectID_t TargetObjectID, O
             }
         }
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         bool bCriticalHit = false;
         Damage_t Damage = 0;
 
@@ -526,7 +527,7 @@ void SimpleMissileSkill::execute(Monster* pMonster, Creature* pEnemy, const SIMP
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         bool bCriticalHit = false;
         Damage_t Damage = 0;
 

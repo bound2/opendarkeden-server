@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[50];
+char g_managerStorage[51];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -167,6 +167,7 @@ TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
     OustersEXPInfoManager* pOustersEXPInfoManager = standIn<OustersEXPInfoManager>(25);
     RankBonusInfoManager* pRankBonusInfoManager = standIn<RankBonusInfoManager>(26);
     SkillDomainInfoManager* pSkillDomainInfoManager = standIn<SkillDomainInfoManager>(27);
+    SkillInfoManager* pSkillInfoManager = standIn<SkillInfoManager>(50);
     SkillPropertyManager* pSkillPropertyManager = standIn<SkillPropertyManager>(28);
     VampEXPInfoManager* pVampEXPInfoManager = standIn<VampEXPInfoManager>(29);
 
@@ -174,6 +175,7 @@ TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
     context.setOustersEXPInfoManager(pOustersEXPInfoManager);
     context.setRankBonusInfoManager(pRankBonusInfoManager);
     context.setSkillDomainInfoManager(pSkillDomainInfoManager);
+    context.setSkillInfoManager(pSkillInfoManager);
     context.setSkillPropertyManager(pSkillPropertyManager);
     context.setVampEXPInfoManager(pVampEXPInfoManager);
 
@@ -181,6 +183,7 @@ TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
     EXPECT_EQ(&context.oustersExp(), pOustersEXPInfoManager);
     EXPECT_EQ(&context.rankBonuses(), pRankBonusInfoManager);
     EXPECT_EQ(&context.skillDomains(), pSkillDomainInfoManager);
+    EXPECT_EQ(&context.skillInfos(), pSkillInfoManager);
     EXPECT_EQ(&context.skillProps(), pSkillPropertyManager);
     EXPECT_EQ(&context.vampireExp(), pVampEXPInfoManager);
 }
@@ -335,6 +338,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.rankBonuses(), AssertionError);
     EXPECT_THROW(context.shopTemplates(), AssertionError);
     EXPECT_THROW(context.skillDomains(), AssertionError);
+    EXPECT_THROW(context.skillInfos(), AssertionError);
     EXPECT_THROW(context.skillProps(), AssertionError);
     EXPECT_THROW(context.strings(), AssertionError);
     EXPECT_THROW(context.timeChecker(), AssertionError);

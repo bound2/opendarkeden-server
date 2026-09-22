@@ -16,6 +16,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
+#include "GameContext.h"
 #include "Reflection.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -56,7 +57,7 @@ void Aberration::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = decreaseConsumeMP(pVampire, pSkillInfo);
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);

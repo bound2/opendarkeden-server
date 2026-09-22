@@ -439,7 +439,4 @@ private:
     MP_t m_decreaseConsumeMP[300 + 1];
 };
 
-// Global Variable Definition
-extern SkillInfoManager* g_pSkillInfoManager;
-
 #endif // __SKILL_INFO_MANAGER_H__

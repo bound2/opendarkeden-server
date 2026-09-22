@@ -16,6 +16,7 @@
 #include "GCSkillToObjectOK1.h"
 #include "GCSkillToObjectOK2.h"
 #include "GCSkillToObjectOK5.h"
+#include "GameContext.h"
 #include "HitRoll.h"
 #include "MonsterCorpse.h"
 #include "RankBonus.h"
@@ -70,7 +71,7 @@ void BloodyScarify::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         Range_t Range = pSkillInfo->getRange();
 
         int RequiredMP = decreaseConsumeMP(pVampire, pSkillInfo);
@@ -179,7 +180,7 @@ void BloodyScarify::eatCorpse(Vampire* pVampire, Item* pCorpse, VampireSkillSlot
     GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
     SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
     Range_t Range = pSkillInfo->getRange();
 
     int RequiredMP = decreaseConsumeMP(pVampire, pSkillInfo);

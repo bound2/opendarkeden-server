@@ -14,6 +14,7 @@
 #include "GCSkillToTileOK3.h"
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
+#include "GameContext.h"
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -121,7 +122,7 @@ void Peace::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pS
         GCSkillToTileOK4 _GCSkillToTileOK4;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
@@ -188,7 +189,8 @@ void Peace::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pS
                 decreaseMana(pSlayer, RequiredMP, _GCSkillToTileOK1);
 
                 // Grant experience.
-                SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+                SkillGrade Grade =
+                    de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
                 Exp_t ExpUp = 10 * (Grade + 1) * 2;
 
                 shareAttrExp(pSlayer, ExpUp, param.STRMultiplier, param.DEXMultiplier, param.INTMultiplier,

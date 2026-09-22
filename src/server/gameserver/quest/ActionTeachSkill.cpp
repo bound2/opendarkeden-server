@@ -13,6 +13,7 @@
 #include "Creature.h"
 #include "GCNPCResponse.h"
 #include "GCTeachSkillInfo.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "NPC.h"
 #include "SkillInfo.h"
@@ -109,7 +110,7 @@ void ActionTeachSkill::executeSlayer(Creature* pCreature1, Creature* pCreature2)
     }
 
     Level_t DomainLevel = pSlayer->getSkillDomainLevel(m_DomainType);
-    SkillType_t SkillType = g_pSkillInfoManager->getSkillTypeByLevel(m_DomainType, DomainLevel);
+    SkillType_t SkillType = context().skillInfos().getSkillTypeByLevel(m_DomainType, DomainLevel);
 
 
     // Build the packet...
@@ -135,7 +136,7 @@ void ActionTeachSkill::executeVampire(Creature* pCreature1, Creature* pCreature2
 
     Level_t DomainLevel = pVampire->getLevel();
 
-    SkillType_t SkillType = g_pSkillInfoManager->getSkillTypeByLevel(m_DomainType, DomainLevel);
+    SkillType_t SkillType = context().skillInfos().getSkillTypeByLevel(m_DomainType, DomainLevel);
 
 
     // Build the packet...

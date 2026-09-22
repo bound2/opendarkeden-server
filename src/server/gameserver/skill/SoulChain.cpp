@@ -10,6 +10,7 @@
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
 #include "GDRLairManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PCFinder.h"
 #include "PKZoneInfoManager.h"
@@ -47,7 +48,7 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // Any Slayer grand master can use this skill.
         // It belongs to no domain, so the highest-level domain is used as the current one.
@@ -123,7 +124,8 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
             pSlayer->setFlag(Effect::EFFECT_CLASS_SOUL_CHAIN);
 
             // Raises experience.
-            SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+            SkillGrade Grade =
+                de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
 
             int STRPoint, DEXPoint, INTPoint;
@@ -212,7 +214,7 @@ void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkil
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t x = pVampire->getX();
         ZoneCoord_t y = pVampire->getY();
@@ -340,7 +342,7 @@ void SoulChain::execute(Ousters* pOusters, const string& targetName, OustersSkil
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t x = pOusters->getX();
         ZoneCoord_t y = pOusters->getY();

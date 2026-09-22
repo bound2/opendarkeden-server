@@ -9,6 +9,7 @@
 #include "GCModifyInformation.h"
 #include "GCSkillToObjectOK2.h"
 #include "GCSkillToObjectOK4.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Monster.h"
 #include "SkillInfo.h"
@@ -59,7 +60,7 @@ void EffectTileStorm::affect()
     Slayer* pSlayer = dynamic_cast<Slayer*>(pCastCreature);
 
     SkillSlot* pSkillSlot = pSlayer->hasSkill(m_SkillType);
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(m_SkillType);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(m_SkillType);
     SkillDomainType_t DomainType = pSkillInfo->getDomainType();
     SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 

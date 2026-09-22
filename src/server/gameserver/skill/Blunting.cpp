@@ -16,6 +16,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "Reflection.h"
 
@@ -61,7 +62,7 @@ void Blunting::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         SkillInput input(pOusters, pSkillSlot);
         SkillOutput output;

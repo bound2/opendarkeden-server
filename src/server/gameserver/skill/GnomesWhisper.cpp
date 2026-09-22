@@ -10,6 +10,7 @@
 #include "GCAddEffect.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer self handler
@@ -41,7 +42,7 @@ void GnomesWhisper::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // Compute the duration.
         SkillInput input(pOusters, pOustersSkillSlot);

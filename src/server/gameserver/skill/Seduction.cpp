@@ -14,6 +14,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "Reflection.h"
 
@@ -55,7 +56,7 @@ void Seduction::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSki
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // Hit bonus when Knowledge of Curse is present
         int HitBonus = 0;
@@ -286,7 +287,7 @@ void Seduction::executeMonster(Zone* pZone, Monster* pMonster, Creature* pEnemy)
     GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
     SkillType_t SkillType = SKILL_SEDUCTION;
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
     bool bRangeCheck = verifyDistance(pMonster, pEnemy, pSkillInfo->getRange());
     bool bHitRoll = HitRoll::isSuccessCurse(pSkillInfo->getLevel() / 2, pEnemy->getResist(MAGIC_DOMAIN_CURSE));

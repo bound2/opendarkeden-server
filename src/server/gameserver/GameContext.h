@@ -61,6 +61,7 @@ class RankBonusInfoManager;
 class ScriptManager;
 class ShopTemplateManager;
 class SkillDomainInfoManager;
+class SkillInfoManager;
 class SkillPropertyManager;
 class StringPool;
 class TimeChecker;
@@ -199,6 +200,9 @@ public:
     void setSkillDomainInfoManager(SkillDomainInfoManager* pSkillDomainInfoManager) {
         m_pSkillDomainInfoManager = pSkillDomainInfoManager;
     }
+    void setSkillInfoManager(SkillInfoManager* pSkillInfoManager) {
+        m_pSkillInfoManager = pSkillInfoManager;
+    }
     void setSkillPropertyManager(SkillPropertyManager* pSkillPropertyManager) {
         m_pSkillPropertyManager = pSkillPropertyManager;
     }
@@ -272,6 +276,7 @@ public:
     RankBonusInfoManager& rankBonuses() const;
     ShopTemplateManager& shopTemplates() const;
     SkillDomainInfoManager& skillDomains() const;
+    SkillInfoManager& skillInfos() const;
     SkillPropertyManager& skillProps() const;
     StringPool& strings() const;
     TimeChecker& timeChecker() const;
@@ -324,6 +329,7 @@ private:
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
     SkillDomainInfoManager* m_pSkillDomainInfoManager = nullptr;
+    SkillInfoManager* m_pSkillInfoManager = nullptr;
     SkillPropertyManager* m_pSkillPropertyManager = nullptr;
     StringPool* m_pStringPool = nullptr;
     TimeChecker* m_pTimeChecker = nullptr;

@@ -14,6 +14,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "SimpleMissileSkill.h"
 
@@ -49,7 +50,7 @@ void CauseCriticalWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
         }
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         Tile& rTile = pZone->getTile(pTargetCreature->getX(), pTargetCreature->getY());
@@ -105,7 +106,8 @@ void CauseCriticalWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
             // attach the effect,
             // and broadcast the effect.
             if (!pTargetCreature->isSlayer()) {
-                SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+                SkillGrade Grade =
+                    de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
                 Exp_t ExpUp = 10 * (Grade + 1);
                 shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToObjectOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToObjectOK1,

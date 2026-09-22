@@ -16,6 +16,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Vampire object handler
@@ -52,7 +53,7 @@ void Hymn::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkill
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);

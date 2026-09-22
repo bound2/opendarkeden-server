@@ -10,6 +10,7 @@
 #include "GCSkillToObjectOK2.h"
 #include "GCSkillToObjectOK4.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Monster.h"
 #include "PCFinder.h"
@@ -67,7 +68,7 @@ void EffectSpiritGuard::affect(Creature* pCastCreature)
     Slayer* pSlayer = dynamic_cast<Slayer*>(pCastCreature);
     Assert(pSlayer != NULL);
 
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_SPIRIT_GUARD);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SKILL_SPIRIT_GUARD);
     if (pSkillInfo == NULL) {
         return;
     }

@@ -14,6 +14,7 @@
 #include "GCRemoveEffect.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
+#include "GameContext.h"
 #include "SkillHandlerManager.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -48,7 +49,7 @@ void CrossCounter::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
@@ -72,7 +73,8 @@ void CrossCounter::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
             pSlayer->setFlag(Effect::EFFECT_CLASS_CROSS_COUNTER);
 
             // Raises experience.
-            SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+            SkillGrade Grade =
+                de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             if (bIncreaseDomainExp) {
                 shareAttrExp(pSlayer, ExpUp, 8, 1, 1, _GCSkillToSelfOK1);
@@ -129,13 +131,14 @@ bool CheckCrossCounter(Creature* pAttacker, Creature* pTargetCreature, Damage_t 
     }
 
     bool bSuccess = false;
+    SkillInfoManager& skillInfos = de::gameContext().skillInfos();
 
     // If the skill is active and the target is not paralyzed...
     if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_CROSS_COUNTER) &&
         !pTargetCreature->isFlag(Effect::EFFECT_CLASS_PARALYZE)) {
         Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
         SkillSlot* pCrossCounterSkillSlot = pTargetSlayer->hasSkill(SKILL_CROSS_COUNTER);
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_CROSS_COUNTER);
+        SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_CROSS_COUNTER);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         Zone* pZone = pAttacker->getZone();
 
@@ -164,7 +167,7 @@ bool CheckCrossCounter(Creature* pAttacker, Creature* pTargetCreature, Damage_t 
             GCCrossCounterOK3 _GCCrossCounterOK3;
 
             Level_t SkillLevel = pCrossCounterSkillSlot->getExpLevel();
-            SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(SkillLevel);
+            SkillGrade Grade = skillInfos.getGradeByDomainLevel(SkillLevel);
 
             ////////////////////////////////////////////////////////////
             // A different technique comes out depending on the skill grade.
@@ -184,25 +187,25 @@ bool CheckCrossCounter(Creature* pAttacker, Creature* pTargetCreature, Damage_t 
             if (Grade == SKILL_GRADE_APPRENTICE) {
                 Damage += pTargetSlayer->getDamage(ATTR_CURRENT);
             } else if (Grade == SKILL_GRADE_ADEPT) {
-                SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_DOUBLE_IMPACT);
+                SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_DOUBLE_IMPACT);
                 Damage_t SkillMinPoint = pSkillInfo->getMinDamage();
                 Damage_t SkillMaxPoint = pSkillInfo->getMaxDamage();
                 Damage += (int)(SkillMinPoint + (SkillMaxPoint - SkillMinPoint) * (double)(SkillLevel * 0.01));
                 CounterSkillType = SKILL_DOUBLE_IMPACT;
             } else if (Grade == SKILL_GRADE_EXPERT) {
-                SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_TRIPLE_SLASHER);
+                SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_TRIPLE_SLASHER);
                 Damage_t SkillMinPoint = pSkillInfo->getMinDamage();
                 Damage_t SkillMaxPoint = pSkillInfo->getMaxDamage();
                 Damage += (int)(SkillMinPoint + (SkillMaxPoint - SkillMinPoint) * (double)(SkillLevel * 0.01));
                 CounterSkillType = SKILL_TRIPLE_SLASHER;
             } else if (Grade == SKILL_GRADE_MASTER) {
-                SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_THUNDER_SPARK);
+                SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_THUNDER_SPARK);
                 Damage_t SkillMinPoint = pSkillInfo->getMinDamage();
                 Damage_t SkillMaxPoint = pSkillInfo->getMaxDamage();
                 Damage += (int)(SkillMinPoint + (SkillMaxPoint - SkillMinPoint) * (double)(SkillLevel * 0.01));
                 CounterSkillType = SKILL_THUNDER_SPARK;
             } else if (Grade == SKILL_GRADE_GRAND_MASTER) {
-                SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_RAINBOW_SLASHER);
+                SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_RAINBOW_SLASHER);
                 Damage_t SkillMinPoint = pSkillInfo->getMinDamage();
                 Damage_t SkillMaxPoint = pSkillInfo->getMaxDamage();
                 Damage += (int)(SkillMinPoint + (SkillMaxPoint - SkillMinPoint) * (double)(SkillLevel * 0.01));

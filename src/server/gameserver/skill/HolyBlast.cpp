@@ -17,6 +17,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "SimpleTileCureSkill.h"
 #include "ZoneUtil.h"
 
@@ -147,7 +148,7 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
         GCSkillToSelfOK1 _GCSkillToSelfOK1;
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 

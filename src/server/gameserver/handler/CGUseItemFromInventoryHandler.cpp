@@ -935,7 +935,7 @@ void CGUseItemFromInventoryHandler::executeOustersSummonItem(CGUseItemFromInvent
     bool bChargeCheck = (pSummonItem->getCharge() > 0) ? true : false;
 
     SkillType_t SkillType = SKILL_SUMMON_SYLPH;
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
     OustersSummonItemInfo* pItemInfo = dynamic_cast<OustersSummonItemInfo*>(
         de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
     Assert(pItemInfo != NULL);

@@ -15,6 +15,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -61,7 +62,7 @@ void Resurrect::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         ZoneCoord_t myX = pSlayer->getX();

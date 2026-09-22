@@ -14,6 +14,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -87,7 +88,7 @@ void SharpHail::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ousters
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // Compute the damage and the duration.
         SkillInput input(pOusters, pOustersSkillSlot);

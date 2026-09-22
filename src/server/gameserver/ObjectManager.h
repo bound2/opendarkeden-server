@@ -47,6 +47,7 @@ class RankBonusInfoManager;
 class ScriptManager;
 class ShopTemplateManager;
 class SkillDomainInfoManager;
+class SkillInfoManager;
 class SkillPropertyManager;
 class TelephoneCenter;
 class TimeChecker;
@@ -104,6 +105,7 @@ private:
     ScriptManager* m_pPublicScriptManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
     SkillDomainInfoManager* m_pSkillDomainInfoManager = nullptr;
+    SkillInfoManager* m_pSkillInfoManager = nullptr;
     SkillPropertyManager* m_pSkillPropertyManager = nullptr;
     TelephoneCenter* m_pTelephoneCenter = nullptr;
     TimeChecker* m_pTimeChecker = nullptr;

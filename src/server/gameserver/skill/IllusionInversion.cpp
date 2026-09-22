@@ -13,6 +13,7 @@
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "SimpleMissileSkill.h"
 
@@ -77,7 +78,7 @@ void IllusionInversion::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skil
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
         bool bCriticalHit = false;

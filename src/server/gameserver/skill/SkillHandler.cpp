@@ -9,6 +9,7 @@
 #include <math.h>
 
 #include "GCSkillFailed1.h"
+#include "GameContext.h"
 #include "LogClient.h"
 #include "Monster.h"
 #include "Party.h"
@@ -42,7 +43,7 @@ SkillInput::SkillInput(Slayer* pSlayer, SkillSlot* pSkillSlot) {
     PartySize = 1;
 
     SkillType_t SkillType = pSkillSlot->getSkillType();
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
     SkillDomainType_t domainType = pSkillInfo->getDomainType();
     DomainLevel = pSlayer->getSkillDomainLevel(domainType);
 }

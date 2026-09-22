@@ -11,6 +11,7 @@
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "ItemUtil.h"
 #include "Tile.h"
 #include "Zone.h"
@@ -45,7 +46,7 @@ void InstallTurret::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t X = pSlayer->getX();
         ZoneCoord_t Y = pSlayer->getY();

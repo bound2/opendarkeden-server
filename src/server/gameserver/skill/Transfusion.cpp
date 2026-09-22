@@ -17,6 +17,7 @@
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "Properties.h"
 #include "RankBonus.h"
 
@@ -65,7 +66,7 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // Knowledge of Innate adds its rank bonus points to the to-hit rate.
         int HitBonus = 0;

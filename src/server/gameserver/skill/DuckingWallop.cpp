@@ -12,6 +12,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "SimpleTileMissileSkill.h"
 #include "Utility.h"
@@ -156,7 +157,7 @@ void DuckingWallop::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ous
         GCSkillToTileOK2 _GCSkillToTileOK2;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);

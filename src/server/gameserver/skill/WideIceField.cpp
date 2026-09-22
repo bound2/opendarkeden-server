@@ -14,6 +14,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -36,7 +37,7 @@ void WideIceField::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = SKILL_WIDE_ICE_FIELD;
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         bool bHitRoll = HitRoll::isSuccessMagic(pMonster, pSkillInfo);
         Range_t Range = 5;

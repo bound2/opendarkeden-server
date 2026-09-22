@@ -542,7 +542,7 @@ bool canGiveSkillExp(Slayer* pSlayer, SkillDomainType_t SkillDomainType, SkillTy
 
     if (UseSkillType < SKILL_DOUBLE_IMPACT)
         return true;
-    SkillInfo* pUseSkillInfo = g_pSkillInfoManager->getSkillInfo(UseSkillType);
+    SkillInfo* pUseSkillInfo = de::gameContext().skillInfos().getSkillInfo(UseSkillType);
     if (SkillDomainType != pUseSkillInfo->getDomainType())
         return false;
 
@@ -554,7 +554,7 @@ void giveSkillExp(Slayer* pSlayer, SkillType_t SkillType, ModifyInfo& AttackerMI
         return;
 
     SkillSlot* pSkillSlot = pSlayer->getSkill(SkillType);
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
     if (pSkillSlot != NULL && pSkillInfo != NULL) {
         increaseSkillExp(pSlayer, pSkillInfo->getDomainType(), pSkillSlot, pSkillInfo, AttackerMI);
     }
@@ -1220,10 +1220,10 @@ void increaseSkillExp(Slayer* pSlayer, SkillDomainType_t DomainType, SkillSlot* 
     Level_t DomainLevel = pSlayer->getSkillDomainLevel(DomainType);
 
     // Read the domain's grade.
-    SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(DomainLevel);
+    SkillGrade Grade = de::gameContext().skillInfos().getGradeByDomainLevel(DomainLevel);
 
     // Read the limit level of the grade one above the current one.
-    Level_t LimitLevel = g_pSkillInfoManager->getLimitLevelByDomainGrade(SkillGrade(Grade + 1));
+    Level_t LimitLevel = de::gameContext().skillInfos().getLimitLevelByDomainGrade(SkillGrade(Grade + 1));
 
     if (CurrentLevel < LimitLevel) {
         // Compute the experience.
@@ -1380,7 +1380,8 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
 
     Level_t CurDomainLevel = pSlayer->getSkillDomainLevel(Domain);
     Level_t NewDomainLevel = CurDomainLevel;
-    SkillType_t LearnSkillType = g_pSkillInfoManager->getSkillTypeByLevel(Domain, CurDomainLevel);
+    SkillInfoManager& skillInfos = de::gameContext().skillInfos();
+    SkillType_t LearnSkillType = skillInfos.getSkillTypeByLevel(Domain, CurDomainLevel);
     Exp_t NewGoalExp = 0;
     bool availiable = false;
 
@@ -1426,7 +1427,7 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
             pSlayer->setSkillDomainLevel(Domain, NewDomainLevel);
 
 
-            SkillType_t NewLearnSkillType = g_pSkillInfoManager->getSkillTypeByLevel(Domain, NewDomainLevel);
+            SkillType_t NewLearnSkillType = skillInfos.getSkillTypeByLevel(Domain, NewDomainLevel);
 
             // Check whether a skill can be learned at the new level.
             if (NewLearnSkillType != 0) {
@@ -1476,7 +1477,7 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
 
 
             // Disable the skill learnable in that domain, if there is one.
-            SkillType_t eraseSkillType = g_pSkillInfoManager->getSkillTypeByLevel(DownDomainType, DownDomainLevel);
+            SkillType_t eraseSkillType = skillInfos.getSkillTypeByLevel(DownDomainType, DownDomainLevel);
             SkillSlot* pESkillSlot = pSlayer->hasSkill(eraseSkillType);
             if (pESkillSlot != NULL) {
                 pESkillSlot->setDisable();
@@ -1767,7 +1768,8 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
         pVampire->tinysave(sav.toString());
 
         // Announce any skill that the new level makes learnable.
-        SkillType_t NewLearnSkillType = g_pSkillInfoManager->getSkillTypeByLevel(SKILL_DOMAIN_VAMPIRE, curLevel);
+        SkillType_t NewLearnSkillType =
+            de::gameContext().skillInfos().getSkillTypeByLevel(SKILL_DOMAIN_VAMPIRE, curLevel);
         if (NewLearnSkillType != 0) {
             // When that skill is not learned yet, send the packet announcing it.
             if (pVampire->hasSkill(NewLearnSkillType) == NULL) {
@@ -1897,7 +1899,8 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
         pOusters->tinysave(sav.toString());
 
         // Announce any skill that the new level makes learnable.
-        SkillType_t NewLearnSkillType = g_pSkillInfoManager->getSkillTypeByLevel(SKILL_DOMAIN_OUSTERS, curLevel);
+        SkillType_t NewLearnSkillType =
+            de::gameContext().skillInfos().getSkillTypeByLevel(SKILL_DOMAIN_OUSTERS, curLevel);
         if (NewLearnSkillType != 0) {
             // When that skill is not learned yet, send the packet announcing it.
             if (pOusters->hasSkill(NewLearnSkillType) == NULL) {

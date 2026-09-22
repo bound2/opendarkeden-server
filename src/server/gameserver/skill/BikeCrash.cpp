@@ -8,6 +8,7 @@
 
 #include <list>
 
+#include "GameContext.h"
 #include "SimpleMeleeSkill.h"
 #include "SimpleTileMissileSkill.h"
 
@@ -26,7 +27,7 @@ void BikeCrash::execute(Slayer* pSlayer, ObjectID_t targetObjectID, SkillSlot* p
     ZoneCoord_t X = pTargetCreature->getX();
     ZoneCoord_t Y = pTargetCreature->getY();
 
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(getSkillType());
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(getSkillType());
     bool bRangeCheck = verifyDistance(pSlayer, pTargetCreature, pSkillInfo->getRange());
 
     if (!bRangeCheck || !pZone->moveFastPC(pSlayer, pSlayer->getX(), pSlayer->getY(), X, Y, getSkillType())) {

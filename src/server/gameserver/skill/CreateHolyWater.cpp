@@ -8,6 +8,7 @@
 
 #include "GCSkillToInventoryOK1.h"
 #include "GCSkillToInventoryOK2.h"
+#include "GameContext.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
 #include "item/HolyWater.h"
@@ -57,10 +58,11 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
         GCSkillToInventoryOK2 _GCSkillToInventoryOK2;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+        SkillGrade Grade =
+            de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
 
         ItemType_t waterType = pWater->getItemType();
 
@@ -172,7 +174,7 @@ bool CreateHolyWater::canMake(ItemType_t WaterType, int DomainLevel, int SkillLe
     __BEGIN_TRY
 
     bool rvalue = false;
-    SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(DomainLevel);
+    SkillGrade Grade = de::gameContext().skillInfos().getGradeByDomainLevel(DomainLevel);
     int ratio = 0;
 
     // The domain level limits the size of holy water that can be made.

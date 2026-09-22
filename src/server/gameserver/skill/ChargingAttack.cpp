@@ -9,6 +9,7 @@
 #include "GCSkillToObjectOK1.h"
 #include "GCSkillToObjectOK2.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Ousters object handler
@@ -49,7 +50,7 @@ void ChargingAttack::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouste
         GCSkillToObjectOK2 _GCSkillToObjectOK2;
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillLevel_t SkillLevel = pOustersSkillSlot->getExpLevel();
 
         SkillInput input(pOusters, pOustersSkillSlot);

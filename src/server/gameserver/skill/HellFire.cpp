@@ -16,6 +16,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 
 HellFire::HellFire() {
@@ -115,7 +116,7 @@ void HellFire::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t myX = pOusters->getX();
         ZoneCoord_t myY = pOusters->getY();

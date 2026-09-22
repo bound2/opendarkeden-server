@@ -14,6 +14,7 @@
 #include "GCDeleteObject.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK3.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "ZoneUtil.h"
 
@@ -47,7 +48,7 @@ void SummonCasket::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
         GCSkillToSelfOK3 _GCSkillToSelfOK3;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t x = pVampire->getX();
         ZoneCoord_t y = pVampire->getY();

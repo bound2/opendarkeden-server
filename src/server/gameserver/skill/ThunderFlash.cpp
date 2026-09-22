@@ -12,6 +12,7 @@
 #include "GCSkillToTileOK1.h"
 #include "GCSkillToTileOK2.h"
 #include "GCSkillToTileOK5.h"
+#include "GameContext.h"
 #include "ZoneUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -97,7 +98,7 @@ void ThunderFlash::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 

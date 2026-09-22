@@ -9,6 +9,7 @@
 #include "GCAddEffect.h"
 #include "GCDeleteEffectFromTile.h"
 #include "GCModifyInformation.h"
+#include "GameContext.h"
 #include "Monster.h"
 #include "Player.h"
 #include "SkillInfo.h"
@@ -76,9 +77,10 @@ void EffectTrapInstalled::affect(Creature* pCreature)
 
         SkillSlot* pSkillSlot = pCastSlayer->getSkill(SKILL_INSTALL_TRAP);
         if (pSkillSlot != NULL) {
-            SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_INSTALL_TRAP);
+            SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SKILL_INSTALL_TRAP);
             SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-            SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pCastSlayer->getSkillDomainLevel(DomainType));
+            SkillGrade Grade =
+                de::gameContext().skillInfos().getGradeByDomainLevel(pCastSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
 
             // Give experience when the trap is triggered.

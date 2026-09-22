@@ -14,6 +14,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Ousters object handler
@@ -65,7 +66,7 @@ void ExplosionWater::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouste
             return;
         }
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(getSkillType());
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(getSkillType());
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 3;
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);

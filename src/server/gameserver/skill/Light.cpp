@@ -10,6 +10,7 @@
 #include "GCAddEffect.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer self handler
@@ -34,7 +35,7 @@ void Light::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
@@ -90,7 +91,8 @@ void Light::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
 
             // EXP UP!
             SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-            SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+            SkillGrade Grade =
+                de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1) * 2;
 
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToSelfOK1);

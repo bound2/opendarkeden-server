@@ -11,6 +11,7 @@
 #include "GCSkillToTileOK3.h"
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
+#include "GameContext.h"
 #include "Geometry.h"
 
 SimpleLinearMeleeSkill g_SimpleLinearMeleeSkill;
@@ -53,7 +54,7 @@ void SimpleLinearMeleeSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
         GCSkillToTileOK4 _GCSkillToTileOK4;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         Level_t SkillLevel = pSkillSlot->getExpLevel();
 

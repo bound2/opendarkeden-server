@@ -13,6 +13,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -49,7 +50,7 @@ void AcidEruption::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_ACID)) {
@@ -173,7 +174,7 @@ void AcidEruption::execute(Monster* pMonster, Creature* pEnemy)
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
         SkillType_t SkillType = getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         bool bRangeCheck = verifyDistance(pMonster, pEnemy, pSkillInfo->getRange());
         bool bHitRoll = HitRoll::isSuccessMagic(pMonster, pSkillInfo);

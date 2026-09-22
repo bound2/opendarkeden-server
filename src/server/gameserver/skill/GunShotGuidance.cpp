@@ -16,6 +16,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "ItemUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -81,7 +82,7 @@ void GunShotGuidance::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Ski
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);

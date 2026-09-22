@@ -704,6 +704,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
     Assert(pSkillHandler != NULL);
 
     SkillInfo* pSkillInfo = NULL;
+    SkillInfoManager& skillInfos = de::gameContext().skillInfos();
 
     Timeval delay;
 
@@ -794,7 +795,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
     case SKILL_NOD_COPILA_ATTACK:
     case SKILL_NOD_COPILA_ATTACK_2:
 
-        pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        pSkillInfo = skillInfos.getSkillInfo(SkillType);
         Assert(pSkillInfo != NULL);
 
         if (SkillType == SKILL_GUN_SHOT_GUIDANCE || SkillType == SKILL_ICE_LANCE || SkillType == SKILL_ICE_HAIL) {
@@ -854,7 +855,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
         break;
 
     case SKILL_CRITICAL_GROUND:
-        pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        pSkillInfo = skillInfos.getSkillInfo(SkillType);
         Assert(pSkillInfo != NULL);
 
         // cout << "useSkill: " << pSkillInfo->getName().c_str() << endl;
@@ -870,7 +871,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
     case SKILL_PLAYING_WITH_FIRE:
     case SKILL_SUMMON_MIGA_ATTACK:
     case SKILL_SELF_DESTRUCTION:
-        pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        pSkillInfo = skillInfos.getSkillInfo(SkillType);
         Assert(pSkillInfo != NULL);
 
         // cout << "useSkill: " << pSkillInfo->getName().c_str() << endl;
@@ -884,7 +885,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
         break;
 
     case SKILL_GORE_GLAND_FIRE:
-        pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        pSkillInfo = skillInfos.getSkillInfo(SkillType);
         Assert(pSkillInfo != NULL);
 
         if (dist > pSkillInfo->getRange())
@@ -897,7 +898,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
     // QuickFire - -;
     ////////////////////////////////////////////////////////////
     case SKILL_QUICK_FIRE:
-        pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        pSkillInfo = skillInfos.getSkillInfo(SkillType);
         Assert(pSkillInfo != NULL);
 
         if (dist > pSkillInfo->getRange())

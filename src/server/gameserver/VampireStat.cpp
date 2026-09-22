@@ -103,7 +103,7 @@ void Vampire::initCastleSkill() {
         if (CastleSkillType == SKILL_MAX)
             continue;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(CastleSkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(CastleSkillType);
         Assert(pSkillInfo != NULL);
 
         Turn_t Delay = pSkillInfo->getMaxDelay();
