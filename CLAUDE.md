@@ -1,81 +1,128 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code (claude.ai/code) working in this repository: the
+**DarkEden** game server, an MMORPG server written in C++20 and split into
+three cooperating processes.
+
+## Rules and the tests that own them
+
+Every architectural rule below is owned by something that fails, never by a
+memory. The full ratchet table (R1–R18), with the command that measures each
+number and the reason it exists, is in `docs/RESTRUCTURING.md`;
+`tests/ratchet/ratchets.sh` is the enforcing copy, run by ctest as `ratchets`.
+
+| Rule | Owner | What fails when it is broken |
+|------|-------|------------------------------|
+| A packet's bytes never change silently | the golden fixtures in `tests/golden/`, compared by `wire_tests` | a byte diff in the golden — a protocol change the client repo must ship identically |
+| Every factory's packet id, name and max body size stay as inventoried | `tests/wire_layout_test.cpp` against `tests/wire-layout.txt` | the inventory diff (`tests/tools/wire_inventory_diff.sh` cross-checks the client's copy) |
+| A packet that touches the encrypter is pinned at codes 0..5 | `ratchets.sh`, looking for `tests/golden/<Name>.code5.hex` | "packets use the encrypter but have no per-code goldens"; exceptions live in `tests/ratchet/encrypter_exceptions.txt` |
+| Each server registers exactly the factories it registered before | `tests/tools/factory_registrations.pl` vs `tests/ratchet/factory_registrations.txt`, run by `ratchets.sh` | a membership diff, on an add **or** a drop |
+| `tests/generated/AllPacketFactories.inc` matches the kernel membership | `ratchets.sh` re-runs `tests/tools/gen_factory_list.sh` and diffs | "AllPacketFactories.inc is stale" |
+| A kernel file includes only kernel files and mentions no server-type macro or `__COMBAT__` (K1/K2/K3) | `tests/arch/check_includes.pl`, ctest `arch_includes` | the offending include or macro, named |
+| Packets carry no `execute()` — handlers register at the composition root | ratchet R4 | R4 above 0 |
+| No `executeQuery` outside `src/server/database/` and the `repository/` directories | ratchets R2/R3 | R2/R3 above 0 |
+| A critical section is never unlocked by hand | `tests/tools/critical_section_audit.pl`, ctest `critical_section_audit` | the file and line of the hand-written `unlock()` |
+| Zone-group state is touched only under that group's mutex | `ZoneGroup::assertOwned()` under `DE_OWNERSHIP_CHECKS` (Debug builds only) | `abort()` at the gateway |
+| Every seed `Player` row ships a current argon2id hash | `tests/password_hash_test.cpp`, which reads `initdb/DARKEDEN.sql` | the seed account missing from the test's password map |
+| Every `initdb/` table is InnoDB in `utf8mb4` / `utf8mb4_unicode_ci` | `ratchets.sh` | the table, named |
+| Every `src/**/*.cpp` is compiled by some target, every header is included | ratchets R15/R16 | the dead file, listed |
+| Repository SQL behaves against a real MySQL | `make integration-test` (`tests/integration/`, needs docker) | the failing statement |
+
+## Working in this repository
+
+- **The loop.** `make dev-test` builds the suite in the container and runs
+  all of ctest; `make test` does the same with a local C++20-capable
+  compiler *and library*. Run one before every push. The C++20 workflow
+  (`.github/workflows/cpp20.yml`) runs the suite and the production builds
+  only on master pushes/merges — feature branches are verified locally, to
+  conserve Actions minutes.
+- **Ratchet numbers only go down.** `ratchets.sh` fails in both directions:
+  above the baseline is new debt, below it is progress nobody wrote down.
+  When a number drops, tighten it in `tests/ratchet/ratchets.sh` **and** in
+  `docs/RESTRUCTURING.md` in the same commit. Every baseline comes from
+  running its command, never from an estimate.
+- **Task status lines.** `docs/RESTRUCTURING.md` is the living restructuring
+  plan. Each task has a checkbox and a `> **Status:**` line — `not started` |
+  `in progress (<what remains>)` | `done (<commit>)` | `dropped (<why>)` —
+  updated in the same commit as the work it describes. It records the current
+  state and what the next reader needs to act (conventions, open bugs, what
+  remains); the narrative of a change belongs in its PR description and
+  commit message. A task is `done` only once its **Owner** exists — the test
+  or mechanism that keeps the rule true from then on.
+- **Bugs found while restructuring** are recorded in `docs/FIXES.md` with the
+  same status convention rather than fixed silently.
+- **A failing golden or inventory diff is a protocol change**, not a test to
+  silence. The client repo keeps hand-maintained copies of every packet
+  class; ship the identical change there and link the two commits. Re-record
+  deliberately: `UPDATE_GOLDENS=1 ./bin/wire_tests`.
 
 ## Build Commands
 
 ### Building the project
+
 ```bash
-# Default: debug build
-make
-
-# Same as `make`
-make debug
-
-# Release build
-make release
-
-# Clean build artifacts
-make clean
+make            # Debug build (default)
+make debug      # same as `make`
+make release    # Release build
+make clean      # remove build/, bin/, lib/
 ```
 
-The project uses CMake. The Makefile wraps CMake commands for convenience:
-- `make` / `make debug` - Builds with CMake in Debug mode (`-DCMAKE_BUILD_TYPE=Debug`)
-- `make release` - Builds with CMake in Release mode (`-DCMAKE_BUILD_TYPE=Release`)
-- Build output binaries go to `bin/` directory
-- Build output libraries go to `lib/` directory
-
-For development, always choose debug build!
+The project uses CMake; the Makefile wraps it. `make` / `make debug`
+configures with `-DCMAKE_BUILD_TYPE=Debug`, `make release` with `Release`;
+both build with tests off (`-DDARKEDEN_BUILD_TESTS=OFF`). Binaries go to
+`bin/`, libraries to `lib/`. For development, always choose the debug build:
+`DE_OWNERSHIP_CHECKS` and the other assertions are Debug-only.
 
 ### Code formatting
+
 ```bash
-# Format all C++ code
-make fmt
-
-# Check format for modified files only (fast)
-make fmt-check
-
-# Check format for all files (slow)
-make fmt-check-all
+make fmt            # format all C++ code under src/ and tests/
+make fmt-check      # check the files you modified (fast)
+make fmt-check-all  # check every file (slow)
 ```
 
 The project uses clang-format with a `.clang-format` configuration file.
-- Format checking runs via GitHub Actions only on pushes/merges to master,
-  and checks files changed since the previous master tip, using whatever
-  clang-format `ubuntu-latest` installs (18.x as of 2026-08).
+- Format checking runs via GitHub Actions only on pushes/merges to master
+  (`.github/workflows/format-check.yml`), on the files changed since the
+  previous master tip, using whatever clang-format `ubuntu-latest` installs
+  (18.x as of 2026-08).
 - **Do not run bare `make fmt` before committing — the tree is not v18-clean.**
-  1,253 `src/` files were formatted with an older clang-format, so `make fmt`
-  reformats them all and buries your diff in unrelated churn. Format only what
-  you touched:
+  Most of `src/` was formatted with an older clang-format, so `make fmt`
+  reformats files you never touched and buries your diff in unrelated churn.
+  Format only what you touched:
   ```bash
   git diff --name-only master HEAD | grep -E '\.(cpp|h|hpp)$' | xargs clang-format -i
   ```
-- Touching a file that was never v18-formatted (the Exchange handlers were
-  merged unformatted) makes CI demand you reformat it. That is expected;
-  the reformat lands in your PR.
-- `make fmt` / `fmt-check-all` cover `src/` **and** `tests/`, matching what CI
-  checks.
+- Touching a file that was never v18-formatted makes CI demand you reformat
+  it. That is expected; the reformat lands in your PR.
+- `make fmt` / `fmt-check-all` cover `src/` **and** `tests/`, matching CI.
 
 ### Tests
 
 ```bash
-# Build and run the contract suite with a C++20-capable compiler AND library
-make test
-
-# Same suite, but built inside the container off a local workspace. On a
-# Windows host this is the one to use — see "Building in the container" below.
-make dev-test
-
-# MySQL-backed repository integration tier (throwaway MySQL 5.7 + initdb/
-# schema + the real MySQL*Repository impls). Needs docker + darkeden-dev.
-make integration-test
+make test              # build and run the suite with a local C++20 compiler
+make dev-test          # same suite, built in the container off a local
+                       # workspace. On a Windows host, this is the one to use.
+make integration-test  # MySQL-backed repository tier (throwaway MySQL 5.7 +
+                       # initdb/ schema + the real MySQL*Repository impls).
+                       # Needs docker + the darkeden-dev image.
 ```
 
 Prefer the pinned Zig container. Ubuntu 20.04's distro GCC 9 lacks the
-required library facilities; CMake checks `jthread`, `stop_token`, and
-stop-aware condition-variable waits at configure time. The C++20 workflow
-now runs the Debug suite and production builds only on master pushes/merges.
-PRs and feature-branch commits are verified locally to conserve Actions minutes.
+required library facilities; CMake checks `jthread`, `stop_token` and
+stop-aware condition-variable waits at configure time.
+
+Beyond the rules table above: the suite (in `tests/`) carries golden byte
+fixtures and loopback round-trips for every registered packet factory, and
+`tests/password_hash_test.cpp` pins the loginserver's argon2id hashing
+(`src/server/loginserver/PasswordHash.cpp`) against upstream argon2's own
+vectors. The whole packet set is compiled once, macro-free, in the
+`de-kernel` library — the same archive the deployed servers and the tests
+link; membership is `tests/arch/kernel_files.txt`, and `TestPackets` is only
+the define-free factory/validator trio on top of it. Kernel files may not
+mention server-type macros or `__COMBAT__` (K2), so the wire layer stays
+buildable — and identical — alone. (This is not the client's config, which
+defines `__GAME_CLIENT__=1`.)
 
 #### Building in the container
 
@@ -85,68 +132,42 @@ versus the container's own filesystem, and since every translation unit opens
 dozens of headers the build becomes I/O bound: a full build took ~20 minutes
 at ~20% CPU on 8 cores. `tools/devbuild.sh` syncs the build *inputs*
 (`cmake/`, `src/`, `tests/`, `third_party/`, `data/`, `initdb/`,
-`docker/start.sh` and the top-level CMake/Makefile — ~41 MB) into a
-container volume, builds there
-with Ninja and ccache, and copies only generated test data back. Same build: **~3.5 minutes at ~95% CPU**, and a no-op rebuild in
-seconds instead of minutes.
+`docker/start.sh` and the top-level CMakeLists/Makefile) into a container
+volume, builds there with Ninja and ccache, and copies only generated test
+data back (`tests/golden/`, `tests/generated/`, `tests/wire-layout.txt`).
+Same build: **~3.5 minutes at ~95% CPU**, and a no-op rebuild in seconds.
 
 ```bash
-make dev-test                      # build wire_tests + ctest
+make dev-test                          # build wire_tests + ctest
 bash tools/devbuild.sh test --record   # re-record goldens, then run
-make dev-build                     # all production targets
-make dev-shell                     # shell in the workspace
-make dev-clean                     # drop the workspace + compiler-cache volumes
+make dev-build                         # all production targets
+make dev-shell                         # shell in the workspace
+make dev-clean                         # drop the workspace + cache volumes
 ```
 
 Needs the image once: `docker build -f Dockerfile.dev -t darkeden-dev .`.
-It pins Zig 0.16.0 (Clang 21.1.0) and also carries Ninja, ccache and rsync.
-Artifacts live in compiler/target/build-type-specific directories in
-the volume, so `bin/` and `lib/` in the checkout are **not** updated by these
-targets. `bash tools/devbuild.sh output-dir` prints the active lane's artifact
-root.
-
-- The suite (in `tests/`) pins the client/server wire contract: golden byte
-  fixtures and loopback round-trips for representative packets, a generated
-  wire-layout inventory (`tests/wire-layout.txt`) over every packet factory,
-  and the shrink-only ratchets from `docs/RESTRUCTURING.md`
-  (`tests/ratchet/ratchets.sh`).
-- A failing golden or inventory diff is a **protocol change**: the client
-  repo's hand-maintained packet copies must ship the identical change.
-  Re-record deliberately with `UPDATE_GOLDENS=1 ./bin/wire_tests`.
-- Ratchet numbers only go down. When one drops, tighten the baseline in
-  `tests/ratchet/ratchets.sh` AND `docs/RESTRUCTURING.md` in the same commit.
-- The whole packet set is compiled once, macro-free, in the `de-kernel`
-  library (task 2.4) — the same archive the deployed servers and the tests
-  link; membership is `tests/arch/kernel_files.txt`. `TestPackets` is only
-  the define-free factory/validator trio on top of it. Kernel files may not
-  mention server-type macros or `__COMBAT__` (K2), so the wire layer stays
-  buildable — and identical — alone. (Note: this is not the client's
-  config, which defines __GAME_CLIENT__=1.)
-- `docs/RESTRUCTURING.md` is the living restructuring plan; update task
-  `> **Status:**` lines in the same commit as the work.
-- `tests/password_hash_test.cpp` pins the loginserver's argon2id password
-  hashing (`src/server/loginserver/PasswordHash.cpp`) against upstream
-  argon2's own vectors, and reads `initdb/DARKEDEN.sql` to check that every
-  seed `Player` row ships a current hash of its documented password. A new
-  seed account must be added to the test's map with its password.
+It pins Zig 0.16.0 (Clang 21.1.0) and carries Ninja, ccache and rsync.
+Artifacts live in compiler/target/build-type-specific directories in the
+volume, so `bin/` and `lib/` in the checkout are **not** updated by these
+targets; `bash tools/devbuild.sh output-dir` prints the artifact root. Two
+concurrent checkouts (git worktrees) sharing one workspace volume race the
+script's `rsync --delete`: give each its own `DEVBUILD_WORK_VOLUME` (the
+ccache and Zig cache volumes are safe to share). `DEVBUILD_JOBS=N` caps the
+build at N jobs and pins the container to N CPUs.
 
 ## Project Architecture
 
-This is the **DarkEden** game server - an MMORPG server written in C++20.
-
 ### Server Architecture
 
-The server is split into multiple coordinated processes:
+Three coordinated processes:
 
 1. **loginserver** - Handles authentication and character selection
 2. **sharedserver** - Manages shared data (e.g., guild info) across game servers
 3. **gameserver** - The main game logic server (one per world/zone group)
 
-### Build System Structure
-
-- **CMake** is the primary build system (CMakeLists.txt files throughout)
-- **Legacy Makefiles** exist in subdirectories but are superseded by CMake
-- Source files are organized by module under `src/`
+CMake is the build system; the `Makefile`s in `src/` subdirectories are
+legacy and superseded. No target globs its sources: every `.cpp` is named,
+which is what lets ratchet R15 call a source no target compiles dead.
 
 ### Key Directory Structure
 
@@ -155,82 +176,81 @@ src/
 ├── Core/                      # de-kernel: packets + shared utilities, no server-type dependencies
 │   ├── [GC|CG|CL|LC|GL|LG|GS|SG|GG]*.{h,cpp}   # Protocol packet classes, directly in Core/
 │   ├── [core utilities]       # Socket, datagram, player info, items, skills, etc.
-│   └── CMakeLists.txt         # Defines the de-kernel / packet libraries and Core library
+│   └── CMakeLists.txt         # de-kernel, Core, and the per-server packet libraries
 ├── domain/                    # de-core: pure formula functions (Formulas, SkillOutputFormulas), freestanding
 ├── server/
-│   ├── ManagedThread.h, CooperativeThread.h, Thread.h   # Worker thread backends
+│   ├── Thread.h, ManagedThread.h, CooperativeThread.h  # the worker-thread base
+│   ├── Mailbox.h, Snapshot.h  # cross-thread command queue, copy-on-write tables
 │   ├── database/              # Database abstraction layer and connection management
+│   ├── repository/            # ServerCore persistence seams, linked into all three binaries
 │   ├── gameserver/            # Main game server executable
-│   │   ├── handler/           # CG/LG/GG/SG packet handlers (registered at the composition root)
+│   │   ├── GamePacketDispatch.cpp   # composition root: packet id -> handler
+│   │   ├── handler/           # CG/GC/LG/GG/SG packet handler bodies
 │   │   ├── packetfill/        # Server-side packet fill helpers moved out of Core
 │   │   ├── repository/        # Persistence seams: *Repository.h interfaces + MySQL*Repository.cpp impls
-│   │   ├── skill/             # Skill system module
-│   │   ├── item/              # Item system module
-│   │   ├── war/               # War system module
-│   │   ├── couple/            # Couple/party system module
-│   │   ├── mission/           # Mission system module
-│   │   ├── ctf/               # Capture the flag module
-│   │   ├── quest/             # Quest system (with Lua scripting)
-│   │   ├── mofus/             # Game events module
-│   │   └── exchange/          # Player exchange/auction system
-│   ├── loginserver/           # Login server executable (CL/GL handlers in handler/)
-│   └── sharedserver/          # Shared server executable (GS handlers in handler/)
+│   │   ├── gm/                # GM and console command bodies behind a router
+│   │   ├── skill/, item/, war/, quest/   # Skill, item, war and (Lua-scripted) quest modules
+│   │   ├── guild/, party/, trade/, couple/, exchange/   # Social and trading decisions
+│   │   ├── ctf/, mission/, mofus/        # Capture the flag, missions, game events
+│   ├── loginserver/           # Login server executable (CL/GL/GM handlers, its own repository/)
+│   └── sharedserver/          # Shared server executable (GS handlers, its own repository/)
 third_party/
-└── tinyxml2/                  # Vendored XML parser (10.0.0), replaces xerces-c
+├── tinyxml2/                  # Vendored XML parser (10.0.0), replaces xerces-c
+└── argon2/                    # Vendored argon2 reference implementation (C API)
 ```
 
 ### Packet System
 
-Packets are the primary communication mechanism between servers and clients. They are organized by direction:
+Packets are the primary communication mechanism between servers and clients.
+Each is named for the link it rides, source letter first: **CG**/**GC**
+between client and gameserver, **CL**/**LC** between client and loginserver,
+**GL**/**LG** between game and login servers, **GS**/**SG** between game and
+shared servers, **GG** between gameservers, and **GM** for the server-info
+datagram a gameserver sends the loginserver.
 
-- **GC** (Game → Client): Server sends to client
-- **CG** (Client → Game): Client sends to game server
-- **LC** (Login → Client): Login server sends to client
-- **CL** (Client → Login): Client sends to login server
-- **GL** (Game → Login): Game server communicates with login server
-- **LG** (Login → Game): Login server communicates with game server
-- **GS** (Game → Shared): Game server communicates with shared server
-- **SG** (Shared → Game): Shared server responds to game server
-- **GG** (Game → Game): Inter-game-server communication
+Each packet lives in two layers:
+- `src/Core/PacketName.{h,cpp}` — the packet class (wire layout only; no
+  `execute()`), its `PacketNameFactory`, and the declaration of its handler.
+- `src/server/<server>/handler/PacketNameHandler.cpp` — the handler body.
+  There is no handler header: the class is declared beside the packet.
 
-Each packet type typically has two files, in different layers:
-- `src/Core/PacketName.{h,cpp}` - Packet class (wire layout only; no `execute()`)
-- `src/server/<server>/handler/PacketNameHandler.{h,cpp}` - Handler that
-  processes the packet, registered on the dispatch table at the server's
-  composition root (see task 2.3 in `docs/RESTRUCTURING.md`)
+The handler is bound to its packet id at the server's composition root —
+`GamePacketDispatch.cpp`, `LoginPacketDispatch.cpp`,
+`SharedPacketDispatch.cpp` — with `DE_REGISTER_PACKET_HANDLER(Name)`. Each
+root also declares the links it accepts as a `de::packet::DirectionSet`
+(`kReceivedDirections`), so registering a handler for a packet on a link the
+server does not receive is a compile error.
 
 Every `XFactory` states its packet's id, name and maximum body size as
-`static constexpr kPacketID` / `kName` / `kMaxSize`; the virtual getters return
-them. `src/Core/PacketMeta.h` names that contract (`de::PacketFactoryType`) and
-folds a pack of factories into a `constexpr` table (`de::packet::FactoryList`)
-that rejects duplicate or out-of-range ids at compile time.
-`PacketFactoryManager::init()` is four such lists concatenated per server
-(edit the lists, not an `addFactory` sequence), the dispatcher registers
-handlers by `XFactory::kPacketID`, and `tests/packet_meta_test.cpp` compiles
-the whole kernel into one list. A new packet needs the three constants in its
-factory or it will not satisfy the concept. See `docs/TOOLCHAIN.md` §3.
+`static constexpr kPacketID` / `kName` / `kMaxSize`; the virtual getters
+return them. `src/Core/PacketMeta.h` names that contract
+(`de::PacketFactoryType`) and folds a pack of factories into a `constexpr`
+table (`de::packet::FactoryList`) that rejects duplicate or out-of-range ids
+while compiling. `PacketFactoryManager::init()` is a `Concat` of four such
+lists — edit the lists, not an `addFactory` sequence — selected per server:
+the gameserver takes three, the loginserver two, the sharedserver one.
+`tests/packet_meta_test.cpp` compiles the whole kernel into one list. A new
+packet needs the three constants in its factory or it will not satisfy the
+concept. See `docs/TOOLCHAIN.md` §3 and `.claude/skills/add-packet`.
 
 ### Preprocessor Macros
 
-Key compile definitions that control behavior:
-- `__GAME_SERVER__` - Compiled for gameserver
-- `__LOGIN_SERVER__` - Compiled for loginserver
-- `__SHARED_SERVER__` - Compiled for sharedserver
-- `__COMBAT__` - Enables combat-related code
+Compile definitions that control behavior, set per target in the
+CMakeLists.txt files and never in a source: `__GAME_SERVER__` /
+`__LOGIN_SERVER__` / `__SHARED_SERVER__` say which server a translation unit
+is compiled for, `__COMBAT__` enables combat code (the gameserver targets
+define it), `__LINUX__` comes from the top-level `CMakeLists.txt`.
+
+A macro no build defines makes the block behind it dead text, so R14 holds
+the count of the ones that were removed at zero; do not reintroduce one.
 
 ### Configuration
 
-Server configurations are in `conf/`:
-- `gameserver.conf` - Game server configuration
-- `loginserver.conf` - Login server configuration
-- `sharedserver.conf` - Shared server configuration
-
-Important settings:
-- `HomePath` - Repository directory path (must be set correctly)
-- `DB_HOST` - Database IP address
-- `LoginServerIP` - Login server IP
-
-**Note**: Database `WorldDBInfo` and `GameServerInfo` tables must match config file settings.
+`conf/` holds `gameserver.conf`, `loginserver.conf` and `sharedserver.conf`.
+The settings that matter most: `HomePath` (the repository directory, which
+must be set correctly), `DB_HOST` (database address) and `LoginServerIP`.
+The `WorldDBInfo` and `GameServerInfo` database tables must agree with these
+files.
 
 ## Database Setup
 
@@ -250,9 +270,15 @@ every server pins its session to `utf8mb4` right after connecting
 library asks MySQL 5.7 for a collation it does not know, and the server then
 silently drops the session to latin1 and passes text through as raw bytes.
 The dumps' legacy EUC-KR and GBK text was re-encoded to real UTF-8 with
-`tools/reencode_legacy_dump.pl` (the script documents how each literal's
-language was decided; 24 symbol-art couple names that decode in no encoding
-were left as they were).
+`tools/reencode_legacy_dump.pl`, which documents how each literal's language
+was decided.
+
+All SQL lives behind repository seams: an interface `*Repository.h` with a
+`MySQL*Repository.cpp` implementation under a `repository/` directory,
+reached through a `default*Repository()` accessor. The header is the
+authority on its tables' quirks and carries an explicit "not enclosed" list
+of the SQL it does not cover — read it before adding a method. R2/R3 fail on
+an `executeQuery` written anywhere else.
 
 Databases:
 - `DARKEDEN` - Main game database
@@ -292,32 +318,25 @@ sudo apt install libmysqlclient-dev liblua5.1-dev zlib1g-dev
 
 ## Key Game Concepts
 
-### Races
-- **Slayer** - Human vampire hunters
-- **Vampire** - Vampire race
-- **Ousters** - Another playable race
-
-### Core Game Systems
-- **Zone/ZoneGroup** - Geographic areas where players exist
+- **Races** — **Slayer** (human vampire hunters), **Vampire**, **Ousters**,
+  one `PlayerCreature` subclass each
+- **Zone/ZoneGroup** - Geographic areas where players exist; **DynamicZone**
+  is instanced content (e.g. dungeons)
 - **Creature** - Base class for all entities (players, monsters, NPCs)
-- **PlayerCreature** - Player-controlled creatures (Slayer, Vampire, Ousters)
 - **Effect** - Time-based effects applied to creatures
 - **Skill** - Combat and utility abilities
 - **Guild/Party** - Social grouping systems
-- **DynamicZone** - Instanced content (e.g., dungeons)
 
 ## Thread ownership
 
-The gameserver's threading contract, as the code actually implements it
-(task 3.4 of `docs/RESTRUCTURING.md`). This documents the EXISTING design;
-known violations are listed at the end, not silently fixed.
+The gameserver's threading contract, as the code actually implements it.
 
 ### Threads in the gameserver process
 
 - **Main thread** — runs `GameServer::init()` (single-threaded startup:
   config, DB, zone loading), then `GameServer::start()`, which spawns the
-  threads below and finally becomes the `ClientManager::run()` infinite
-  loop: accepting client TCP connections and driving the pre-zone
+  threads below and finally becomes `ClientManager::run()`, an infinite
+  loop accepting client TCP connections and driving the pre-zone
   login/handshake phase before a player is handed to a zone group.
 - **`ZoneGroupThread` (one per `ZoneGroup`,** via
   `ThreadManager`/`ThreadPool`) — the owner of all zone-group state. Its
@@ -355,8 +374,9 @@ members. SIGTERM/SIGINT request process shutdown; main exits its client loop,
 requests every worker to stop, and joins them while dependencies remain alive.
 The process then uses `_Exit` to reclaim the legacy singleton graph without
 running its unaudited destructors. This does not add a world-save operation.
-A 30-second watchdog forces a nonzero exit if startup, I/O, or a heartbeat
-prevents shutdown. See `docs/TOOLCHAIN.md` for the full contract.
+A 30-second watchdog (`ServerShutdown::Deadline`) forces a nonzero exit if
+startup, I/O or a heartbeat prevents shutdown. See `docs/TOOLCHAIN.md` for
+the full contract.
 
 ### The mutation rule
 
@@ -393,15 +413,13 @@ must not throw: an `AssertionError` is a `Throwable`, and the
 `catch (Throwable&)` blocks sitting on these very paths would swallow it,
 turning a detected race into a silently half-applied mutation. The check
 is armed by `ZoneGroupThread::run()`, so single-threaded startup/loading
-is exempt. Coverage is exactly the eight `Zone` gateways
-`addPC` (both overloads)/`replacePC`/`addCreature`/`deleteCreature`/`moveCreature`
-plus `addCreatureToTile`/`deleteCreatureFromTile`, the tile-only pair that
-puts a creature on or takes it off one tile and touches nothing else — the
-move-mode swaps and the corpse paths go through them, so every creature
-write to a `Tile` outside `ZoneSpawn.cpp` and `ZoneMove.cpp`, where the
-gateways live, is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/
-`deleteItem` are **not** — the assert is a tripwire on the main gateways,
-not a full guarantee.
+is exempt. Coverage is exactly the eight `Zone` gateways — `addPC` (both
+overloads), `replacePC`, `addCreature`, `deleteCreature`, `moveCreature`,
+and the tile-only pair `addCreatureToTile`/`deleteCreatureFromTile` that
+the move-mode swaps and corpse paths use — so every creature write to a
+`Tile` outside `ZoneSpawn.cpp` and `ZoneMove.cpp`, where the gateways live,
+is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` are
+**not**: the assert is a tripwire on the main gateways, not a guarantee.
 
 ### Cross-thread communication
 
@@ -420,23 +438,22 @@ not a full guarantee.
   `IncomingPlayerManager` during login and zone transfer, a
   `ZonePlayerManager` on a zone thread in between) and the creature's zone
   pointer does not say which — it is set as soon as the character loads and
-  stays on the old zone during a transfer. So the box follows the player and
+  stays on the old zone during a transfer, so the box follows the player and
   keeps posting order across group changes. The zone manager, under the group
-  mutex, runs everything (for a player whose creature is in another
-  group's zone, the listing mismatch it already logs as ZPMCheck, only the
-  player-scoped ones); the main thread runs only `Scope::Player` commands (the kick flags), because the
-  zone the creature points at is ticking elsewhere — `Scope::Zone` commands
-  wait, in order, for a zone thread. A player who logs out with commands
-  pending runs their `ifGone` handlers instead (`~GamePlayer`, right after
-  the PCFinder removal, so exactly one of command/`ifGone` runs), for the
-  handlers whose offline branch matters, like charging a guild fee in the
-  database. Commands capture by value only; a `Guild*`/`GuildMember*` may be
-  deleted before they run. Commands run without the PCFinder lock, so they
-  may post to other players. `ZoneGroup` has a box of its own
-  (`ZoneGroup::post()`, drained at the top of the tick under the group
-  mutex) for group-level work from other threads; its producer is dynamic
-  zone recycling, which hands an instance's `init()` to the group that
-  owns it.
+  mutex, runs everything (for a player whose creature is in another group's
+  zone — the listing mismatch it already logs as ZPMCheck — only the
+  player-scoped ones); the main thread runs only `Scope::Player` commands
+  (the kick flags), because the zone the creature points at is ticking
+  elsewhere, so `Scope::Zone` commands wait in order for a zone thread. A
+  player who logs out with commands pending runs their `ifGone` handlers
+  instead (`~GamePlayer`, right after the PCFinder removal, so exactly one
+  of command/`ifGone` runs), for the handlers whose offline branch matters,
+  like charging a guild fee in the database. Commands capture by value only
+  (a `Guild*`/`GuildMember*` may be deleted before they run) and run without
+  the PCFinder lock, so they may post to other players. `ZoneGroup` has a box
+  of its own (`ZoneGroup::post()`, drained at the top of the tick under the
+  group mutex) for group-level work from other threads; its producer is
+  dynamic zone recycling, handing an instance's `init()` to its owner.
 - Tables that every thread reads and one thread occasionally extends — a
   group's zone map, the `ZoneInfoManager` lookups — are published
   copy-on-write through `de::Snapshot` (`src/server/Snapshot.h`): readers
@@ -451,68 +468,42 @@ not a full guarantee.
 - Players enter a zone group through the `ZonePlayerManager` under its
   lock; the zone thread integrates them on its next tick.
 
-### Known violations (each closed; the entries stay for the fix beside them)
+### Known violations (all closed; the rules they left behind)
 
-- ~~SG/LG/GG handlers **mutate** creature state holding only the `PCFinder`
-  lock~~ — **fixed** for the creature side: the six guild handlers and
-  `LGKickCharacter` post their gold / guild-id / kick-flag / zone-broadcast
-  work through `de::postToPlayer` (see "Cross-thread communication"). Now
-  the guild side is closed as far as the maps and flags go: `GuildManager`
-  and `Guild` lock their maps on both sides; `Guild::getMembers()` no
-  longer hands the live member map to a zone-thread reader (it is
-  `getMembers_NOLOCKED()` for the writer thread, readers copy the names
-  under the guild mutex, and the delete-guild handler empties the map
-  through `retireAllMembers()` under it); the per-member rank / log-on /
-  server flags and the member counters are atomics, with the rank change
-  and its counter update under the mutex together. The guild's own scalar
-  fields are closed the same way: the integral ones (id, type, race, state,
-  server group, zone) are relaxed atomics, and the strings (name, master,
-  date, intro) are copied in and out under `Guild::m_Mutex`, which stays a
-  leaf — the string accessors take it and nothing else, so any other lock
-  may be held across a call, but the mutex is not recursive and code already
-  holding it touches the members directly instead. Object lifetime is
-  handled by not freeing: `getGuild()` and `getMember()` return raw
-  pointers after releasing their locks, so a deleted guild or member is
-  retired (`GuildManager::m_RetiredGuilds`, `Guild::m_RetiredMembers`) and
-  stays readable, stale, until the managers are destroyed — the whole-table
-  `clear()` a sharedserver resync triggers retires too, never frees. Still
-  open: a zone thread reading a retired member sees its last rank.
-- ~~`EventMorph.cpp` mutates `Tile` contents directly~~ — **fixed**: no
-  creature is written to a `Tile` outside `ZoneSpawn.cpp` and `ZoneMove.cpp`
-  any more. The PC-swap sites (`EventMorph.cpp`, the two
-  `skill/Restore.cpp` sites) go through `Zone::replacePC`; the move-mode
-  swaps (`skill/TransformToBat.cpp`, `ZoneUtil.cpp`'s
-  burrow/unburrow/untransform, the `ghost` say command), the knockback and
-  NPC-warp moves, and the corpse paths that take a dead creature off the
-  map while its manager keeps it (`MonsterManager.cpp`, `PCManager.cpp`)
-  go through `Zone::addCreatureToTile` / `Zone::deleteCreatureFromTile`.
-  All three are gated.
-- ~~Cross-group `ZoneGroup::addZone()` race~~ — **fixed**: `DynamicZone.cpp`
-  (reached from `CGSelectWayPointHandler` / `ActionEnterQuestZone` on the
-  *requesting player's* zone thread) still inserts the new zone into the
-  template zone's group from that thread, but the group's zone map and
-  the `ZoneInfoManager` tables are now `de::Snapshot`s, so the iterating
-  heartbeat and every concurrent `getZone()` keep the map they loaded; a
-  recycled instance's `init()` is posted to the owning group
-  (`ZoneGroup::post()`); `DynamicZoneGroup` serialises selection/creation
-  under its own mutex and the instance status flag is atomic. Still not
-  gated by the assert (`addZone` is not a gateway), but no longer needs
-  to be.
-- ~~`GDRLairManager` locks correctly at most sites but not all~~ — **fixed**:
-  `GDRLairIcepole::start`, `GDRLairScene6::start` and `GDRLairEnding::start`
-  now take the owning group's mutex around their PCManager walks, effect
-  sweeps, inventory and registry writes, the same explicit
-  `__ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))` the file's other
-  sites use. None hits a gated gateway, so the assert still cannot see a
-  regression there. (The file's `addEffect_LOCKING` calls are not
-  violations: that path is served by the zone's locked effect manager
-  under `Zone::m_MutexEffect` on both sides.)
-- ~~Packets pipelined behind `CGReady` drained on the main thread after
-  `GPS_NORMAL` opened the validator gate, reaching the gateways with no
-  group mutex~~ — **fixed**: `GamePlayer::processCommand` stops the
-  main-thread (IncomingPlayerManager) drain once the status flips to
-  `GPS_NORMAL`; the zone thread's `ZonePlayerManager` drains the rest on
-  its next tick.
+- **SG/LG/GG handlers must not mutate creature state under the `PCFinder`
+  lock alone.** The six guild handlers and `LGKickCharacter` post their
+  gold / guild-id / kick-flag / zone-broadcast work through
+  `de::postToPlayer`. `GuildManager` and `Guild` lock their maps on both
+  sides: `getMembers_NOLOCKED()` is the writer thread's, readers copy the
+  member names under the guild mutex, and deleting a guild empties its map
+  through `retireAllMembers()`. The per-member flags and counters and the
+  guild's own integral fields are atomics; its strings are copied in and out
+  under `Guild::m_Mutex`, a non-recursive leaf the string accessors take and
+  nothing else. Lifetime is handled by not freeing: `getGuild()` and
+  `getMember()` return raw pointers after releasing their locks, so a
+  deleted guild or member is *retired* (`GuildManager::m_RetiredGuilds`,
+  `Guild::m_RetiredMembers`) and stays readable, stale, until the managers
+  are destroyed. **Still open:** a zone thread reading a retired member sees
+  its last rank.
+- **No creature is written to a `Tile` outside `ZoneSpawn.cpp` and
+  `ZoneMove.cpp`.** PC swaps go through `Zone::replacePC`; the move-mode
+  swaps, the knockback and NPC-warp moves, and the corpse paths that take a
+  dead creature off the map while its manager keeps it go through
+  `Zone::addCreatureToTile` / `Zone::deleteCreatureFromTile`, all gated.
+- **A zone map may be extended from another group's thread**, because the
+  group's zone map and the `ZoneInfoManager` tables are `de::Snapshot`s: the
+  iterating heartbeat and every concurrent `getZone()` keep the map they
+  loaded. A recycled instance's `init()` is posted to the owning group
+  (`ZoneGroup::post()`), `DynamicZoneGroup` serialises selection/creation
+  under its own mutex, and the instance status flag is atomic. `addZone` is
+  not a gateway, so the assert does not see this path.
+- **`GDRLairManager` takes the owning group's mutex at every site** that
+  walks its PCManager, sweeps effects or writes inventory and registries.
+  None of those sites hits a gated gateway.
+- **Packets pipelined behind `CGReady` are drained by the zone thread.**
+  `GamePlayer::processCommand` stops the main-thread
+  (`IncomingPlayerManager`) drain once the status flips to `GPS_NORMAL`, so
+  nothing reaches a gateway without the group mutex.
 
 ## Running the Servers
 
@@ -528,11 +519,20 @@ rather than `conf/`).
 
 ## Development Notes
 
-- Source file encoding is **UTF-8** (project was migrated from legacy encodings)
-- Use **English** as code comment, there are some legacy Korean or maybe garbled encoding, translate them to English whenever possible
-- C++20 is the required project language standard, verified with the pinned
+- Source file encoding is **UTF-8** (the project was migrated from legacy
+  encodings). R17 counts the source lines that still carry a non-ASCII byte;
+  all of them are string literals now, and it only goes down.
+- Write comments in **English**, and describe behaviour: no task numbers,
+  dates, review history or migration narrative in `src/` or `tests/`.
+  Translate the legacy Korean or mojibake comments you come across.
+- C++20 is the required language standard, verified with the pinned
   Zig/Clang container toolchain.
-- Threaded architecture with `ZoneGroupThread` for parallel zone processing
-- Extensive use of inheritance (Creature → PlayerCreature → Slayer/Vampire/Ousters)
-- Lua scripting is integrated for quest systems (see `quest/luaScript/`)
-- Exchange system in `gameserver/exchange/` handles player trading
+- Exceptions: `throw Error("text")`, never `throw "text"` — a bare literal
+  throws a `const char*`, a type nothing in the tree catches, so it walks
+  past every handler into a `catch (...)` backstop or `std::terminate`
+  (R11/R10b hold both at zero). Gameplay results use
+  `Outcome<Events, Rejection>` (`src/Core/Outcome.h`); exceptions are for
+  programming and configuration errors.
+- Deep inheritance is the house style (Creature → PlayerCreature →
+  Slayer/Vampire/Ousters), and Lua drives the quest system
+  (`quest/luaScript/`).

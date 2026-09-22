@@ -17,7 +17,10 @@ build-zig/
 # IDE & Editor
 .vscode/
 .idea/
-.claude/
+# Local Claude Code state stays out of the repo; .claude/skills/ is checked
+# in, because a skill is a shared checklist like the scripts under tests/.
+.claude/*
+!.claude/skills/
 *.swp
 *.swo
 *~

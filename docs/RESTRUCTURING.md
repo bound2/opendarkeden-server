@@ -819,7 +819,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   - Owner: R5 ratchet + convention grep test (no new `__BEGIN_TRY` in
     de-core sources).
 
-- [ ] **3.2 Repository extraction.** Pull inline `executeQuery` SQL out of
+- [x] **3.2 Repository extraction.** Pull inline `executeQuery` SQL out of
   game logic into `*Repository` classes behind interfaces (game logic takes
   the interface; the app wires the MySQL implementation). Sidecar convention
   adopted verbatim: **legacy schema quirks live in the repository on
@@ -827,58 +827,55 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   quarantined and documented *there*, never leaked into domain types. Order
   of attack: `PlayerCreature`/`Slayer`/`Vampire`/`Ousters` persistence first
   (biggest testability win), then Zone, then the long tail. Ratchets R2/R3.
-  > **Status:** in progress (2026-09-06) — 34 seams under
-  > `src/server/gameserver/repository/` (interface `*Repository.h`, impl
-  > `MySQL*Repository.cpp`, reached through `default*Repository()`
-  > accessors, never `g_p*` externs). R2 104→8 and R3 317→19 since the
-  > pilot; every extraction is one branch and one PR
-  > (`restructuring/*-repositor{y,ies}`, #18 through #85, then
-  > `restructuring/motorcycle-redeem` and
-  > `restructuring/quest-action-statements` and
-  > `restructuring/handler-bookkeeping` and
-  > `restructuring/comeback-event-handlers` and
-  > `restructuring/creatureutil-purge` and
-  > `restructuring/cgsay-statements`). The per-round
-  > narrative — what moved, what the two adversarial reviews caught, the
-  > byte-fidelity checks, the test list — lives in those PR descriptions
-  > and commit messages, not here. Each repository header carries its
-  > tables' quirks and an explicit **"not enclosed"** list of the SQL on
-  > the same tables the seam does not cover; read the header before
-  > extending a seam, and grep the whole tree (loginserver/,
-  > sharedserver/, unbuilt files included) before rewriting that list.
+  > **Status:** done (2026-09-22) — R2 104→0 and R3 317→0. No `executeQuery`
+  > is left anywhere in `src` outside `src/server/database/` and the
+  > `repository/` directories, so the two ratchets now hold the seam shut
+  > rather than track it shrinking: a statement written back into game logic
+  > fails `tests/ratchet/ratchets.sh`. 44 seams — 36 under
+  > `src/server/gameserver/repository/`, two in ServerCore
+  > (`src/server/repository/`, compiled into all three binaries), four in the
+  > loginserver and two in the sharedserver — each an interface
+  > `*Repository.h` with a `MySQL*Repository.cpp` implementation, reached
+  > through `default*Repository()` accessors, never `g_p*` externs.
   >
-  > **Seams** (the header is the authority): `BalanceInfo`, `GameInfo`,
-  > `ContentInfo`, `ZoneInfo`, `QuestInfo` — the read-only boot-time
-  > catalogues (exp/attr ladders, skill/monster/NPC/script/option info,
-  > zone config incl. ZoneEffectInfo, quest catalogues); `Character`
-  > (race-table loads, saves, tinysave), `Gold`, `Stash`, `SkillSave`,
-  > `RankBonus`, `BloodBibleSign` (read-only), `FlagSet`, `EffectSave`
-  > (the persisted effects), `SMSAddress`, `QuestItem`, `PlayRecord`,
-  > `Goods`, `Nickname` — per-character state; `ItemObject` (every
-  > `*Object` table's create/save/load/destroy behind a per-table spec
-  > row with object-shape and info-shape enums — a loader refuses a table
-  > of the wrong shape) and `Item` (trace logs, counters, UniqueItemInfo,
-  > TimeLimitItems, the ItemID registry probes); `Guild`, `Couple`,
-  > `Friend`, `Message`, `Session` (login/logout bookkeeping on the
+  > **Extending a seam: the header is the authority.** Each repository
+  > header carries its tables' quirks and an explicit **"not enclosed"**
+  > list of the SQL on the same tables the seam does not cover. Read that
+  > header before adding a method, and grep the whole tree (loginserver/
+  > and sharedserver/ included) before rewriting the list.
+  >
+  > **Seams:** `BalanceInfo`, `GameInfo`, `ContentInfo`, `ZoneInfo`,
+  > `QuestInfo` — the read-only boot-time catalogues (exp/attr ladders,
+  > skill/monster/NPC/script/option info, zone config incl. ZoneEffectInfo,
+  > quest catalogues); `Character` (race-table loads, saves, tinysave),
+  > `Gold`, `Stash`, `SkillSave`, `RankBonus`, `BloodBibleSign` (read-only),
+  > `FlagSet`, `EffectSave` (the persisted effects), `SMSAddress`,
+  > `QuestItem`, `PlayRecord`, `Goods`, `Nickname` — per-character state;
+  > `ItemObject` (every `*Object` table's create/save/load/destroy behind a
+  > per-table spec row with object-shape and info-shape enums — a loader
+  > refuses a table of the wrong shape) and `Item` (trace logs, counters,
+  > UniqueItemInfo, TimeLimitItems, the ItemID registry probes); `Guild`,
+  > `Couple`, `Friend`, `Message`, `Session` (login/logout bookkeeping on the
   > account and GuildMember rows), `WarInfo` (shrines, castles, sweepers,
   > schedules, histories, reinforcement, race-war limits), `FlagWar`,
   > `RegenZone`, `BulletinBoard`, `ComebackEvent`, `MofusPoint`,
-  > `SystemAvailability`, `SpecialEvent` (the one seam on the
-  > world-default connection — `getConnection(int)`, see its header),
-  > `CharacterPurge` (deletePC's 109-statement character-deletion list,
-  > one method, one Statement, in the original order — every table on
-  > it is another seam's, and those headers say so); `Exchange` (the
-  > Exchange feature's own access class relocated under the convention:
+  > `SystemAvailability`, `SpecialEvent` (the one seam on the world-default
+  > connection — `getConnection(int)`, see its header), `SMSMessage` (the SMS
+  > relay's three statements, on the `SMS_DB_*` connection it owns itself
+  > because the relay is not one of DatabaseManager's servers),
+  > `CharacterPurge` (deletePC's 109-statement character-deletion list, one
+  > method, one Statement, in the original order — every table on it is
+  > another seam's, and those headers say so); `Exchange` (the Exchange
+  > feature's own access class relocated under the convention:
   > ExchangeListing, ExchangeOrder, the AccountPoint / PointLedger
-  > statements that ask for a USERINFO connection and reach DARKEDEN,
-  > and the transaction pair — the header says what each does against
-  > the shipped schema). In ServerCore, under `src/server/repository/`
-  > and compiled into all three binaries: `PayPlay` (PaySystem's Player
-  > pay-play columns and the PC-room tables, on the dist connection) and
-  > `ServerInfo` (GameServerInfo with its NonPKServerList and
-  > CastleStatInfo flags, and WorldInfo). In the loginserver,
-  > under `src/server/loginserver/repository/` with a `Login` prefix
-  > (the integration binary links every impl, so names must not
+  > statements that ask for a USERINFO connection and reach DARKEDEN, and
+  > the transaction pair — the header says what each does against the
+  > shipped schema). In ServerCore, under `src/server/repository/`:
+  > `PayPlay` (PaySystem's Player pay-play columns and the PC-room tables,
+  > on the dist connection) and `ServerInfo` (GameServerInfo with its
+  > NonPKServerList and CastleStatInfo flags, and WorldInfo). In the
+  > loginserver, under `src/server/loginserver/repository/` with a `Login`
+  > prefix (the integration binary links every impl, so names must not
   > collide with the gameserver's): `LoginCharacterPurge`
   > (CLDeletePCHandler's ownership check, Slayer retirement, DeleteChar
   > record and 112-statement purge on the per-world connection, plus
@@ -902,16 +899,30 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > of GameServerGroupInfo, GameServerInfo, ZoneInfo's resurrection
   > columns and SSStringPool).
   >
-  > **Conventions the rounds settled** (each one cost a review finding):
+  > **Conventions a new method follows** (each one cost a review finding):
   > - Statements move **byte-for-byte**, quirks included (backticked
-  >   `Rank`, mixed-case keywords, copy-paste whitespace, `%ld` fed a
-  >   DWORD). 3.2 moves SQL; it does not fix it. A bug found in a
-  >   statement is recorded in the header, pinned by a test, and gets
-  >   its own PR.
+  >   `Rank`, mixed-case keywords, copy-paste whitespace). Moving SQL is
+  >   not fixing SQL. A bug found in a statement is recorded in the
+  >   header, pinned by a test, and gets its own PR.
   > - Repository SQL uses the parameterized `executeQuery` form, never
   >   string concatenation; StringStream chains become format strings
   >   with the same bytes. `executeQueryString` survives only where the
-  >   statement takes no arguments or must be logged verbatim.
+  >   statement takes no arguments, must be logged verbatim, or can
+  >   outrun the 2,048-byte format buffer in `Statement::executeQuery` —
+  >   the one case is `PlayRecordRepository::logPlayerTrade`, whose
+  >   TradeLog row is as long as the two traded inventories make it, and
+  >   the MySQL tier pins it past that width.
+  > - Every `executeQuery` conversion is the argument's own width: `%u`
+  >   for DWORD/WORD/BYTE, `%d` for int, `%ld` for `time_t`. A 32-bit
+  >   argument read through `%ld` takes whatever the upper half of the
+  >   register holds under the pinned Clang toolchain — a Fame of 777
+  >   landing as 4294967295, an `ItemID=%ld` UPDATE matching no row.
+  >   `Statement::executeQuery` carries
+  >   `__attribute__((format(printf, 2, 3)))` and the build compiles with
+  >   `-Wformat` (top-level `CMakeLists.txt`), so the compiler now says
+  >   so — except for a format reached through a pointer (the per-table
+  >   spec rows in the ItemObject, EffectSave and ComebackEvent seams),
+  >   which only the tier covers.
   > - Rows are typed to the driver getter the inline code called
   >   (`getInt`→int, `getBYTE`→BYTE, `getString`→std::string); the
   >   caller keeps its casts and narrowings. Loads return a vector read
@@ -922,45 +933,34 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   >   Different value only → one format string with a typed parameter.
   > - Column names chosen at runtime (by race, by sex) move into the
   >   seam with the statements; the game-side lookup table is deleted.
+  > - The Statement is freed on every path, success or failure:
+  >   `END_DB`, `END_DB_EX` and `MySQLSMSMessageRepository`'s
+  >   `END_DB_RETHROW` carry a catch-all that deletes it and rethrows
+  >   unchanged. A failed statement crosses the seam as a
+  >   `DatabaseError` (`src/server/database/DatabaseError.h`) that owns
+  >   its `DBError.log` line, and that line names the repository method,
+  >   not the caller.
   > - **Integration tier over fakes**: `mysql_repository_tests`
-  >   (tests/integration/, `make integration-test`, needs docker) runs
+  >   (`tests/integration/`, `make integration-test`, needs docker) runs
   >   the real impls against MySQL 5.7 loaded with `initdb/` and the
-  >   production sql_mode; 194 tests, all green since the width fix
-  >   (see the DWORD bullet below). A quirk is replayed there
-  >   before it is written down — the first rounds' fakes documented three
-  >   behaviours the server refuted. Only the six pilot-era seams keep a
-  >   fake (tests/support/). A seam whose callers are compiled out still
+  >   production sql_mode. A quirk is replayed there before it is
+  >   written down — the first rounds' fakes documented three behaviours
+  >   the server refuted. Only the six pilot-era seams keep a fake
+  >   (`tests/support/`). A seam whose callers are compiled out still
   >   gets a test: the compiler will never check them.
-  > - R2/R3 are **textual** greps. A commented-out block that names code
-  >   the conversion deleted is rewritten to name the seam method (it is
-  >   otherwise wrong); a self-contained commented-out block is deleted,
-  >   with the dead function around it when nothing calls it.
-  >
-  > **Knowing changes common to every seam:** the Statement is freed on
-  > every success path (the originals leaked one on dozens of paths,
-  > counted per round in the PRs); `DBError.log` and the `const char*`
-  > `END_DB` rethrows name the repository method, not the caller; a SQL
-  > failure crosses the seam as that `const char*`, so callers that
-  > caught `SQLQueryException` were rewritten to catch `const char*`
-  > (Mofus.cpp, whose swallow is load-bearing) or shown equivalent
-  > (CGConnectHandler, whose `catch (...)` above disconnects either
-  > way); `SELECT MAX()` empty-table guards that could never fire (MySQL
-  > answers one NULL row, which the original `atoi`'d and crashed on)
-  > now raise the intended Error. Two behavioural fixes made on purpose,
-  > each disclosed in its PR: `WarScheduler::load` ran its inner query
-  > on the Statement it was iterating and so loaded only the first guild
-  > war per zone; `GuildUnionManager::removeMasterGuild`'s non-master
-  > branch read a freed Result, so a non-master guild could never leave
-  > a union.
+  > - R2/R3 are **textual** greps, so a commented-out `executeQuery`
+  >   counts. A commented-out block that names code the conversion
+  >   deleted is rewritten to name the seam method (it is otherwise
+  >   wrong); a self-contained one is deleted, with the dead function
+  >   around it when nothing calls it.
   >
   > **Pre-existing bugs found, pinned by the tier, deliberately not
   > fixed** (each named in its header):
   > - `FriendList`/`FriendHistory` are not in `initdb/`; opening the
   >   friend list disconnects the client.
   > - The FlagWar roll-up's GROUP BY is refused under ONLY_FULL_GROUP_BY
-  >   (1055); the escaping `const char*` reaches `main.cpp`'s
-  >   `catch (...)`, so the first flag war to end takes the process
-  >   down. Dead by config: `ActiveFlagWar` is 0 in both shipped confs.
+  >   (1055), so the first flag war to end takes the process down. Dead
+  >   by config: `ActiveFlagWar` is 0 in both shipped confs.
   > - `RaceWarLimiter::clearPCList` reads the Name column as the race
   >   and indexes a three-element array with it.
   > - `GoodsRepository::takeOne` on a Num=0 row raises
@@ -972,98 +972,15 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   >   VampirePortalItem's zone loader reads eleven getters over an
   >   eight-column SELECT; CodeSheet's zone SELECT names columns its
   >   table lacks.
-  > - DWORD fields through `%lu`/`%ld` (exp saves, item ids, Key.Target)
-  >   worked only by GCC codegen and were preserved bit-for-bit by the
-  >   extraction rounds. **Under the pinned Zig/Clang 21 toolchain they
-  >   did not work (found 2026-09-06):** the integration tier on
-  >   unmodified master failed 11 of its 169 tests
-  >   (`CharacterMySQL.SlayerExpsTailLandsInFull` and ten
-  >   `ItemObjectMySQL` round-trips) because a 32-bit argument read
-  >   through a 64-bit conversion takes whatever the upper half of the
-  >   register holds — a Fame of 777 landed as 4294967295 (clamped by
-  >   the unsigned column), an UPDATE keyed by `ItemID=%ld` matched no
-  >   row (Fame_t and Exp_t are both DWORD). **Fixed the same day**
-  >   (`fix/varargs-width-conversions`): every conversion is now the
-  >   argument's own width — `%u` for the DWORD/WORD/BYTE arguments,
-  >   `%d` for the one int fed `%ld`, `%ld` for the `time_t` DayTime and
-  >   NextTime that were exact or that `%d` had been truncating — 449
-  >   conversions across seven seam impls and 48 `sprintf`-built tinysave
-  >   fragments, messages and one pointer print in game code. The bytes
-  >   MySQL receives are
-  >   identical for every value the argument can hold, so this is a
-  >   byte change in the source and not on the wire. To keep it fixed,
-  >   `Statement::executeQuery` now carries `__attribute__((format(printf,
-  >   2, 3)))` and the build compiles with `-Wformat` instead of
-  >   `-Wno-format`; the tree is warning-free under it. The one class it
-  >   cannot see is a format reached through a pointer (the per-table
-  >   spec rows in the ItemObject, EffectSave and ComebackEvent seams);
-  >   those were retyped by hand and the tier pins them.
   > - GuildUnionOffer's PK is OwnerGuildID alone, so an ESCAPE insert
   >   over a standing JOIN/QUIT row throws out of CGQuitUnionHandler.
   > - ActionShowGuildDialog gates guild creation on a hardcoded seven
   >   days ahead of the handler's QUIT_GUILD_PENALTY_TERM.
   >
-  > **Three one-line Core defects every seam inherits — all three now
-  > fixed:** `END_DB` threw `msg.c_str()` of a local string, so every
-  > handler received a dangling pointer — **fixed**, the macros throw a
-  > `DatabaseError` (`src/server/database/DatabaseError.h`) that owns the
-  > `DBError.log` line and the 34 handlers name that type
-  > (`docs/FIXES.md`); `__LEAVE_CRITICAL_SECTION` released only on
-  > `Throwable&`, so a repository call inside a critical section left its
-  > mutex held on failure — **fixed**, the section is a scoped guard that
-  > releases on any exit (`docs/FIXES.md`); `SAFE_DELETE(pStmt)` sits
-  > inside every try, so any other exception leaked the Statement —
-  > **fixed**, `END_DB`, `END_DB_EX` and
-  > `MySQLSMSMessageRepository`'s `END_DB_RETHROW` carry a catch-all that
-  > deletes the statement and rethrows unchanged (`docs/FIXES.md`).
-  >
-  > **What remains.** R2 is 0: the gameserver root holds no SQL, live or
-  > commented out. `TradeManager.cpp`'s TradeLog INSERT is
-  > `PlayRecordRepository::logPlayerTrade`, still assembled as a string
-  > and sent through `executeQueryString` because a trade's log is as
-  > long as the two inventories make it and `executeQuery`'s format
-  > buffer holds 2048 bytes; the MySQL tier pins it, including a content
-  > past that width. `SMSServiceThread.cpp`'s three relay statements are
-  > `SMSMessageRepository`, which owns the SMS_DB_* connection because
-  > the relay is not one of DatabaseManager's servers; live but dormant
-  > (`GameServer::start()` does not start the thread) and unpinnable by
-  > the tier, since `uds_msg` and `msg_queue` are not in `initdb/`.
-  > `CreatureUtil.cpp`'s commented-out `addOlympicStat` body is deleted
-  > (the function stays: its dozen callers record nothing).
-  > `EventMonsterNameManager`, `GameServerInfoManager` (a stale third
-  > copy), `GameWorldInfoManager` (a stale fork of ServerCore's live
-  > loader) and `MoonCardUtil` (a stale subset of `EventItemUtil.cpp`)
-  > are deleted — they were in no CMakeLists and never compiled (no
-  > `file(GLOB)` exists anywhere). R3 is 0 too. `item/EventBall.cpp`
-  > and its header are deleted: seven live statements against
-  > `EventBallObject` and `EventBallInfo`, neither table in `initdb/`,
-  > the file in no CMakeLists and the class named nowhere else.
-  > `item/SubInventory.{cpp,h}` and `war/SubInventoryItemPosition.{cpp,h}`
-  > go the same way: neither is in any CMakeLists (the war file sits in a
-  > commented-out entry), neither would compile — `Item::ITEM_CLASS_SUB_INVENTORY`
-  > and `POS_TYPE_SUB_INVENTORY` are declared nowhere, `SubInventoryFactory`
-  > is registered nowhere, and no file outside the pair includes either header. The
-  > `GEAR_SUB_INVENTORY` spec row in `MySQLItemObjectRepository.cpp` stays:
-  > the repository is data-driven and `SubInventoryObject` /
-  > `SubInventoryInfo` are both in `initdb/DARKEDEN.sql`, where the MySQL
-  > tier exercises them.
-  > `handler/CGSayHandler.cpp`'s last live statement went with the
-  > `*notice` operator command, whose entire body was an INSERT into
-  > `quick1001` on a hard-coded remote BBS host: the host, database,
-  > user and **password were literals in the source** and the GM's chat
-  > text was interpolated **unquoted and unescaped** (`docs/FIXES.md`).
-  > The command answered the player nothing, so its dispatch branch and
-  > its body are gone; the declaration stays in `src/Core/CGSay.h`,
-  > which the client repo mirrors.
-  > Everything else R3 counted was an `executeQuery` inside a comment
-  > block, deleted with the block: five `mission/` files (among them
-  > `EventQuestRewardManager`, whose only member was that commented-out
-  > body and which nothing constructs), the commented-out
-  > `EffectBloodyWallLoader` and `EffectGrayDarknessLoader` in both
-  > their headers and their implementations, `SiegeWar`'s
-  > `recordSiegeWarStart` and `recordSiegeWarEnd` (declarations, bodies
-  > and both call sites) and the loginserver's `addLogoutPlayerData`
-  > (declaration, body and its call from `disconnect`).
+  > `MySQLSMSMessageRepository` is the one seam the tier cannot pin:
+  > `uds_msg` and `msg_queue` are not in `initdb/`, and its thread is
+  > live but dormant (`GameServer::start()` does not start
+  > `SMSServiceThread`).
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).
@@ -1255,7 +1172,11 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
 
 
 **Phase exit criteria:** no hard gate — this phase *is* the ratchets trending
-down. Review checkpoint: when R2 hits 0, close 3.2 and re-baseline R3.
+down. The 3.2 checkpoint is passed: R2 reached 0, 3.2 is closed, and R3 is
+re-baselined at 0 with it. Both hold rather than shrink now — an
+`executeQuery` anywhere outside `src/server/database/` and the `repository/`
+directories fails `tests/ratchet/ratchets.sh`. R1 and R5 are the phase's
+remaining trend lines.
 
 ---
 
@@ -1387,18 +1308,50 @@ gating; `Zone.cpp` under 2,000 lines.
 
 ## Phase 5 — Process scaffolding (runs alongside all phases)
 
-- [ ] **5.1 Upgrade server CLAUDE.md to sidecar format.** From build manual to
+- [x] **5.1 Upgrade server CLAUDE.md to sidecar format.** From build manual to
   "non-obvious rules and gotchas that cost time to rediscover", each rule
   pointing at the test that owns it. Add the `make test` loop, the ratchet
   rules, and this document's status conventions.
-  > **Status:** not started
+  > **Status:** done (2026-09-22) — CLAUDE.md opens with a "Rules and the
+  > tests that own them" table (fourteen rules, each with its owning test or
+  > ratchet and the message it prints) and a "Working in this repository"
+  > section carrying the `make dev-test` / `make test` loop, the ratchet
+  > discipline, this document's `> **Status:**` conventions and
+  > `docs/FIXES.md`. The build, container, database and run-the-servers
+  > manuals stay; task and phase numbers are out of that file, because it is
+  > read by sessions that never open this one. Same length as before (538
+  > lines). Every claim was re-checked against the tree: the corrections were
+  > the handler header that does not exist (`handler/` holds only
+  > `*Handler.cpp`; the class is declared in the packet's Core header), the
+  > four `FactoryList`s that are never four per server, the missing
+  > directories (`gm/`, `guild/`, `party/`, `trade/`, the three
+  > `repository/` trees outside the gameserver, `third_party/argon2`), the
+  > thread backends that are one (`ManagedThread`), and the clang-format file
+  > count nothing measures. Keep it that way: a sentence in CLAUDE.md that no
+  > file or command backs is the failure mode this task exists to fix.
 
-- [ ] **5.2 `.claude/skills/add-packet` skill.** Modeled on sidecar's
+- [x] **5.2 `.claude/skills/add-packet` skill.** Modeled on sidecar's
   `add-sidecar-domain`: the checklist for adding/changing a packet — layout
   inventory regenerated in *both* repos, golden fixture added, shuffle
   branches covered, handler registered at the composition root (never on the
   packet), client-repo counterpart commit linked.
-  > **Status:** not started
+  > **Status:** done (2026-09-22) — `.claude/skills/add-packet/SKILL.md`, ten
+  > steps derived from what the tests already enforce rather than from
+  > habit: the `Packet.h` enumerator (appending is cheap, inserting shifts
+  > every later id in both repos), the factory's `kPacketID`/`kName`/
+  > `kMaxSize` and the `de::PacketFactoryType` concept, kernel membership
+  > in `tests/arch/kernel_files.txt` with K1/K2, the per-server
+  > `FactoryList` plus regenerating `tests/ratchet/factory_registrations.txt`,
+  > the handler at the composition root through
+  > `DE_REGISTER_PACKET_HANDLER` (and the `PacketValidator` set, needed only
+  > before `GPS_NORMAL`), `tests/tools/gen_factory_list.sh`, the golden
+  > fixture and its recording rule, the per-code goldens a shuffled packet
+  > needs, the inventory re-record in this repo and in the client's, and the
+  > `wire_inventory_diff.sh` cross-check with the counterpart commit linked
+  > in the PR. Every step names the file or command that proves it; steps
+  > that no check enforces say so (a plain packet's missing golden is the
+  > one). `.claude/skills/` is out of `.gitignore` so the skill is checked
+  > in, like the scripts under `tests/`.
 
 - [x] **5.3 Fix log.** When restructuring uncovers real bugs (1.4 layout
   diffs, races, double-frees), record them in `docs/FIXES.md` with sidecar's
