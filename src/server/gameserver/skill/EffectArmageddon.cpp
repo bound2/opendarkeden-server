@@ -56,13 +56,7 @@ void EffectArmageddon::affect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // Gets the creature that cast the effect.
-    // It can be NULL, since the creature may already have left the zone.
-    // by bezz. 2003.1.4
-
-
-    // Damage every second is disabled for now.
-
+    // The tick only rearms the effect; it deals no damage of its own.
     setNextTime(m_Delay);
 
     __END_CATCH

@@ -161,7 +161,6 @@ void EffectDragonTornado::affect(Creature* pCreature)
 
 
     } else if (pCreature->isVampire()) {
-        // When a Vampire cast it, Vampires are hit only on the center tile.
         Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
 
         ::setDamage(pVampire, m_Damage, pCastCreature, SKILL_DRAGON_TORNADO, &gcSkillToObjectOK6, &gcAttackerMI);

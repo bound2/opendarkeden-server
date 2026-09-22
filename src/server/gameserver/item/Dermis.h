@@ -78,7 +78,7 @@ public:
     virtual string toString() const;
 
 private:
-    Defense_t m_DefenseBonus; // To-hit bonus
+    Defense_t m_DefenseBonus; // defense bonus
     Protection_t m_ProtectionBonus;
     uint m_ItemLevel;
 };

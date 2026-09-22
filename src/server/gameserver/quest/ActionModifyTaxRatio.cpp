@@ -63,7 +63,8 @@ void ActionModifyTaxRatio::execute(Creature* pCreature1, Creature* pCreature2)
         deny.setCode(NPC_RESPONSE_NOT_GUILD_MASTER);
     }
 
-    // The player is the guild master.
+    // The castles the guild owns. The list is fetched whether or not the
+    // checks above already failed.
     list<CastleInfo*> pCastleInfoList = g_pCastleInfoManager->getGuildCastleInfos(guildID);
     if (bSuccess && pCastleInfoList.empty()) {
         // The guild owns no castle.

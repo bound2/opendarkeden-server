@@ -101,9 +101,11 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
     bool bUpgrade = false;
 
     // A different item is checked depending on the option.
-    // Conan: checks only the pendant/bijou.
-    // Vrykolakas: checks only the Tepes pendant/bijou.
-    // Caim: checks only the Bathory pendant/bijou.
+    // Conan: takes Bathory's bijou/pendant, falling back to Tepes' and then
+    //   to Gilles de Rais', which marks the trade as an upgrade.
+    // Vrykolakas: takes only Tepes' bijou/pendant.
+    // Caim: takes only Bathory's bijou/pendant.
+    // Gilles de Rais: takes only its own bijou/pendant, as an upgrade.
 
     if (m_Type == 0) // Conan, bijou
     {
@@ -282,9 +284,8 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
         Assert(pItemInfo != NULL);
 
         ///////////////////////////////////////////////////////////////////////////////
-        // The awkward part
-        //   The item has to be picked at random.
-        //   For now a single default item is used.
+        // The reward is rolled from the monster's treasure list: every treasure
+        // in the list is rolled in turn and the last one that yields an item wins.
         //////////////////////////////////////////////////////////////////////////////
         const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(MonsterType);
         TreasureList* pTreasureList = NULL;

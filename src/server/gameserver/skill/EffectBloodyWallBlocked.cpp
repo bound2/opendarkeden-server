@@ -146,9 +146,6 @@ void EffectBloodyWallBlocked::affect()
         }
     }
 
-    // Only once.
-
-
     __END_CATCH
 }
 

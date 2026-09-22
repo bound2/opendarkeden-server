@@ -43,7 +43,7 @@ void AttackMelee::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
             return;
         }
 
-        // A Slayer cannot attack bare-handed.
+        // Domain experience is earned only with a weapon in the right hand.
         bool bIncreaseDomainExp = pSlayer->isRealWearingEx(Slayer::WEAR_RIGHTHAND);
 
         // Get the basic attack skill slot.

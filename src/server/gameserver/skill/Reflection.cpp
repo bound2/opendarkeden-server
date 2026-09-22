@@ -129,14 +129,14 @@ bool CheckReflection(Creature* pAttacker, Creature* pTargetCreature, SkillType_t
             GCSkillToSelfOK1 _GCSkillToSelfOK1;
             GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
-            // Shows the reflection effect to the target itself.
+            // Shows the cure effect to the target itself.
             if (pTargetCreature->isPC()) {
                 _GCSkillToSelfOK1.setSkillType(SKILL_CURE_EFFECT);
                 _GCSkillToSelfOK1.setDuration(0);
                 pTargetCreature->getPlayer()->sendPacket(&_GCSkillToSelfOK1);
             }
 
-            // Shows the reflection effect to the others.
+            // Shows the cure effect to the others.
             _GCSkillToSelfOK2.setObjectID(pTargetCreature->getObjectID());
             _GCSkillToSelfOK2.setSkillType(SKILL_CURE_EFFECT);
             _GCSkillToSelfOK2.setDuration(0);

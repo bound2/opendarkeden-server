@@ -35,7 +35,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// Vampire object handler
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void VigorDrop::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -70,7 +70,7 @@ void VigorDrop::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Vampire tile handler
+// Slayer tile handler
 //  Handler used when the skill is used on a tile
 //////////////////////////////////////////////////////////////////////////////
 void VigorDrop::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)

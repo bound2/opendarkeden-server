@@ -111,7 +111,7 @@ void ActionRegenShop::execute(Creature* pCreature1, Creature* pCreature2)
     if (currentTime < m_NextRegen)
         return;
 
-    // First check that no player is nearby talking to the NPC.
+    // First check that no PC stands on a tile within five of the NPC.
     VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);
     int centerX = pNPC->getX();
     int centerY = pNPC->getY();
@@ -152,7 +152,6 @@ void ActionRegenShop::execute(Creature* pCreature1, Creature* pCreature2)
 
     try {
         // Drop every item the NPC holds and raise the shop version.
-        // Log once before clearing.
 
         pNPC->clearShopItem();
 
@@ -205,8 +204,8 @@ void ActionRegenShop::execute(Creature* pCreature1, Creature* pCreature2)
             else
                 trialMax = (int)(floor(SHOP_RACK_INDEX_MAX / combi[i]));
 
-            // If the shop type is normal, creating several copies of the same
-            // item is pointless, so create the item only once.
+            // On the normal and mysterious racks several copies of the same item
+            // are pointless, so the item is created only once.
             if (i == SHOP_RACK_NORMAL || i == SHOP_RACK_MYSTERIOUS)
                 trialMax = 1;
 

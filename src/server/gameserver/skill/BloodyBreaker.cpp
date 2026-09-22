@@ -138,8 +138,6 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
 
         Dir_t Dir = getDirectionToPosition(pVampire->getX(), pVampire->getY(), X, Y);
 
-        // Chance of a forced knockback.
-
         Player* pPlayer = pVampire->getPlayer();
         Zone* pZone = pVampire->getZone();
         Assert(pPlayer != NULL);
@@ -253,7 +251,7 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
 
                                 increaseAlignment(pVampire, pTargetCreature, _GCSkillToTileOK1);
 
-                                // On a critical hit, push the target back.
+                                // Half the rolls push the target back.
                                 if (bForceKnockback) {
                                     knockbackCreature(pZone, pTargetCreature, pVampire->getX(), pVampire->getY());
                                 }

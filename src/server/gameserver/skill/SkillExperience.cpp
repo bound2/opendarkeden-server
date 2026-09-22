@@ -579,13 +579,6 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
 
     // With an attacker present, check whether it is the same race.
     if (pAttacker != NULL) {
-        // This code keeps alignment from changing in the event arena.
-        // It would be better to put it in ZoneInfo and read it from Zone,
-        // but the zone ids are hard coded instead.
-        // 2002.8.21. by sigi
-
-        // zoneID==1005 || zoneID==1006)
-
         bSameRace = isSameRace(pTargetCreature, pAttacker);
 
         bool bPKOlympic = false;
@@ -1411,20 +1404,12 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
         // Reward code.
 
         // Domain goal experience
-        // Domain accumulated experience
         Exp_t GoalExp = pSlayer->getGoalExp(Domain);
 
-        // New goal experience
+        // New goal experience, which is all this code keeps: the domain has
+        // no accumulated experience of its own.
         NewGoalExp = max(0, (int)(GoalExp - Point));
 
-        // Accumulated experience should rise by as much as the goal experience fell.
-        // New accumulated experience
-
-
-        // Experience accumulates even at the maximum level.
-
-        // Set the new goal experience
-        // Set the new accumulated experience
         pSlayer->setGoalExp(Domain, NewGoalExp);
 
 
@@ -1447,8 +1432,8 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
             if (NewLearnSkillType != 0) {
                 // When that skill is not learned yet, send the packet announcing it.
                 if (pSlayer->hasSkill(NewLearnSkillType) == NULL) {
-                    // Put the newest skill of the leveled-up domain into GCLearnSkillReady's
-                    // m_SkillType, so the client can learn the next skill.
+                    // The packet carries only the domain that leveled up; the
+                    // client works out which skill that makes learnable.
                     GCLearnSkillReady readyPacket;
                     readyPacket.setSkillDomainType((SkillDomainType_t)Domain);
                     // send packet
@@ -1726,8 +1711,6 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
     Exp_t OldGoalExp = pVampire->getGoalExp();
     Exp_t NewGoalExp = max(0, (int)(OldGoalExp - Point));
 
-    // Accumulated experience should rise by as much as the goal experience fell.
-
     pVampire->setGoalExp(NewGoalExp);
 
 
@@ -1788,8 +1771,8 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
         if (NewLearnSkillType != 0) {
             // When that skill is not learned yet, send the packet announcing it.
             if (pVampire->hasSkill(NewLearnSkillType) == NULL) {
-                // Put the newest skill of the leveled-up domain into GCLearnSkillReady's
-                // m_SkillType, so the client can learn the next skill.
+                // The packet carries only the domain that leveled up; the
+                // client works out which skill that makes learnable.
                 GCLearnSkillReady readyPacket;
                 readyPacket.setSkillDomainType(SKILL_DOMAIN_VAMPIRE);
                 pVampire->getPlayer()->sendPacket(&readyPacket);
@@ -1918,8 +1901,8 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
         if (NewLearnSkillType != 0) {
             // When that skill is not learned yet, send the packet announcing it.
             if (pOusters->hasSkill(NewLearnSkillType) == NULL) {
-                // Put the newest skill of the leveled-up domain into GCLearnSkillReady's
-                // m_SkillType, so the client can learn the next skill.
+                // The packet carries only the domain that leveled up; the
+                // client works out which skill that makes learnable.
                 GCLearnSkillReady readyPacket;
                 readyPacket.setSkillDomainType(SKILL_DOMAIN_OUSTERS);
                 pOusters->getPlayer()->sendPacket(&readyPacket);

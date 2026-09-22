@@ -132,7 +132,7 @@ void Piercing::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot*
                     int tileX = (*ptitr).x;
                     int tileY = (*ptitr).y;
 
-                    // A creature inside the zone and outside a safe area can be hit.
+                    // Only tiles that lie inside the zone are examined.
                     if (rect.ptInRect(tileX, tileY)) {
                         // Get the tile.
                         Tile& tile = pZone->getTile(tileX, tileY);

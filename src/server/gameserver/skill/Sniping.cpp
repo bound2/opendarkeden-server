@@ -33,7 +33,7 @@ void Sniping::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        // Cannot be used if no weapon is equipped or it is not a gun.
+        // Cannot be used without a gun in the right hand, or while a relic is held.
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || isArmsWeapon(pItem) == false || pSlayer->hasRelicItem()) {
             executeSkillFailException(pSlayer, getSkillType());

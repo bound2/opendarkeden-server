@@ -174,11 +174,6 @@ void ActionGiveEventItem::execute(Creature* pCreature1, Creature* pCreature2)
         luaFileName = m_VampireFilename;
     }
 
-    //--------------------------------------------------------
-    // Code that ran this 1000 times to check the speed.
-    // The result was about 0.07 seconds.
-    //--------------------------------------------------------
-
     // Create the item from the result Lua computes.
     pLuaSelectItem->prepare();
 

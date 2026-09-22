@@ -128,8 +128,6 @@ void BloodCurse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
             pEffect->setDamage(output.Damage);
             pEffect->setNextTime(output.Duration);
 
-            // Store the name and party id for the priority system.
-
             // An effect attached to a tile must be assigned an object ID.
             ObjectRegistry& objectregister = pZone->getObjectRegistry();
             objectregister.registerObject(pEffect);

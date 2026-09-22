@@ -123,8 +123,8 @@ bool hasEnoughMana(Creature* pCaster, int RequiredMP) {
         if (pSlayer->isFlag(Effect::EFFECT_CLASS_SACRIFICE)) {
             int margin = RequiredMP - pSlayer->getMP(ATTR_CURRENT);
 
-            // If the requirement minus the current MP is above zero,
-            // the requirement is the larger, and the difference comes out of HP.
+            // When the requirement is above the current MP, the shortfall comes
+            // out of HP, with each HP point covering two points of it.
             if (margin > 0) {
                 margin = (int)pSlayer->getHP(ATTR_CURRENT) * 2 - (int)margin;
                 if (margin > 0)

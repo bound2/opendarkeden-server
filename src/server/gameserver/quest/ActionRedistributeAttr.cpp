@@ -90,8 +90,8 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    // Only as many stat points as the level divided by 2 can be turned into bonus points.
-    // So check whether that limit has already been reached.
+    // A vampire may turn at most as many stat points into bonus points as it
+    // has levels, so check whether that limit has already been reached.
     int RedistributedAttr = 0;
     {
         if (!defaultCharacterRepository().loadVampireRedistributeAttr(pVampire->getName(), RedistributedAttr)) {

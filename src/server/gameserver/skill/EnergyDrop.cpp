@@ -35,7 +35,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// Vampire object handler
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void EnergyDrop::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -70,8 +70,8 @@ void EnergyDrop::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Vampire tile handler
-//  Handler used when a Vampire uses the Energy Drop skill on a tile
+// Slayer tile handler
+//  Handler used when a Slayer uses the Energy Drop skill on a tile
 //////////////////////////////////////////////////////////////////////////////
 void EnergyDrop::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -129,7 +129,7 @@ void EnergyDrop::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
             SkillOutput output;
             computeOutput(input, output);
 
-            // Holy Smashing raises the damage by 10%.
+            // Holy Smashing adds its rank bonus points to the damage.
             if (pSlayer->hasRankBonus(RankBonus::RANK_BONUS_HOLY_SMASHING)) {
                 RankBonus* pRankBonus = pSlayer->getRankBonus(RankBonus::RANK_BONUS_HOLY_SMASHING);
                 Assert(pRankBonus != NULL);

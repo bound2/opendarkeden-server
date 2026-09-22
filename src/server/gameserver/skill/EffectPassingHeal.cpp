@@ -1,7 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectPassingHeal.cpp
 // Written by  : excel96
-// Description : Acid damage weakening effect created by PassingHeal.
+// Description : Effect created by PassingHeal that cures curse and poison
+// effects and heals the target.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "EffectPassingHeal.h"

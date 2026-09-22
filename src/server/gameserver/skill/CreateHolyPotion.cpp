@@ -50,8 +50,7 @@ void CreateHolyPotion::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordI
         // The source and target positions are the same only when the
         // bottle stack being converted into holy water holds exactly one item.
         // (The old bottle is deleted and the holy water is created in the same slot.)
-        // If the count is not 1, return.
-        // The whole stack converts at once, so this count check is not needed.
+        // If the count is not 1, the skill fails.
         if (bSamePosition && pPotion->getNum() != 1) {
             executeSkillFailException(pSlayer, getSkillType());
             return;

@@ -34,7 +34,7 @@ bool ConditionEnterCastleDungeon::isSatisfied(Creature* pCreature1, Creature* pC
 
     bPayPlay = true;
 
-    // Only someone who has paid can enter the castle.
+    // The pay-to-play gate is always open: bPayPlay is set true just above.
     if (bPayPlay) {
         bool hasGuildWar = g_pWarSystem->hasCastleActiveWar(m_CastleZoneID);
 

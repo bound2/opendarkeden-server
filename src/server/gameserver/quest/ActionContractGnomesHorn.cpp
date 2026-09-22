@@ -2,9 +2,9 @@
 // Filename    : ActionContractGnomesHorn.cpp
 // Written By  :
 // Description :
-// Action where the NPC sells items to the player. In practice it
-// starts the trade; all it does is send the player the NPC's
-// current shop version as a packet.
+// Action that seals the gnome's horn contract: it turns the player's
+// gnome's horn flag on, saves the flag set, and answers the client with
+// the gnome contract response.
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "ActionContractGnomesHorn.h"
@@ -19,8 +19,8 @@
 #include "Trigger.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// The ActionContractGnomesHorn action only sends the ShopVersion to the client, so
-// there are no parameters that need reading.
+// The ActionContractGnomesHorn action takes no parameters, so there is
+// nothing to read here.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionContractGnomesHorn::read(PropertyBuffer& propertyBuffer)
 

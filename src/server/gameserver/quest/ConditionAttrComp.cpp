@@ -143,7 +143,8 @@ bool ConditionAttrComp::isSatisfied(Creature* pCreature1, Creature* pCreature2, 
         }
     }
 
-    // Compare the level.
+    // Compare the level. A Slayer carries no level of its own here, so the
+    // condition passes for one without a comparison.
     if (m_ReqLevel > 0) {
         if (pCreature2->isSlayer()) {
             return true;

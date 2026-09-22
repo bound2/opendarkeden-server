@@ -20,7 +20,7 @@ public:
     ~SkillHandlerManager();
 
 public:
-    // Called from the game server object init().
+    // Called from ObjectManager::init().
     void init();
 
     // Registers a skill handler object.

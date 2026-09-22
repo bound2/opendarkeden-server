@@ -80,7 +80,7 @@ public:
     // Performs the critical hit roll.
     static bool isCriticalHit(Creature* pCreature, int CriticalBonus = 0);
 
-    // Checks whether the skill is a Slayer self skill.
+    // Checks whether the skill is a Slayer or an Ousters self skill.
     static bool isSlayerSelfSkill(SkillType_t skillType);
     static bool isOustersSelfSkill(SkillType_t skillType);
 

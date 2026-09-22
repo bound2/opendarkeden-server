@@ -129,11 +129,9 @@ bool verifyDistance(Creature* pCreature, ZoneCoord_t X, ZoneCoord_t Y, Range_t D
     // anyone who is not an Ousters cannot use the skill.
     else if ((AttackerZoneLevel & OUSTERS_SAFE_ZONE) && !pCreature->isOusters())
         return false;
-    // In a complete safe area neither Slayers nor Vampires can use the skill.
+    // In a complete safe area nobody may use the skill.
     else if (AttackerZoneLevel & COMPLETE_SAFE_ZONE)
         return false;
-
-    // If the defender is standing in a complete safe area the skill cannot be used.
 
     if ((abs(cx - X) <= Dist) && (abs(cy - Y) <= Dist))
         return true;
@@ -175,7 +173,7 @@ bool verifyDistance(Creature* pCreature, Creature* pTargetCreature, Range_t Dist
     // anyone who is not an Ousters cannot use the skill.
     else if ((AttackerZoneLevel & OUSTERS_SAFE_ZONE) && !pCreature->isOusters())
         return false;
-    // In a complete safe area neither Slayers nor Vampires can use the skill.
+    // In a complete safe area nobody may use the skill.
     else if (AttackerZoneLevel & COMPLETE_SAFE_ZONE)
         return false;
 

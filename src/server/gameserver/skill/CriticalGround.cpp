@@ -65,11 +65,6 @@ void CriticalGround::execute(Monster* pMonster)
 
         if (bRangeCheck && bMoveModeCheck) {
             //--------------------------------------------------------
-            // Make the Critical Ground skill visible.
-            //--------------------------------------------------------
-
-
-            //--------------------------------------------------------
             // Check which surrounding creatures are hit and knocked back.
             //--------------------------------------------------------
             SkillInput input(pMonster);

@@ -36,10 +36,8 @@ void BloodyTunnel::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
         Assert(pZone != NULL);
         Assert(pInventory != NULL);
 
-        // BloodyTunnel cannot be used in a war zone.
-        // The check goes by ZoneID for now; it should move into ZoneInfo.
-        ///*
-        //  Blocks the event arena and the OX event zones.
+        // BloodyTunnel cannot be used in a no-portal zone, a master lair,
+        // a castle or a holy land.
         if (pZone->isNoPortalZone() || pZone->isMasterLair() || pZone->isCastle() || pZone->isHolyLand()) {
             executeSkillFailException(pVampire, getSkillType());
             return;

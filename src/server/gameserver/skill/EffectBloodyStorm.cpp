@@ -43,7 +43,7 @@ bool EffectBloodyStorm::affectCreature(Creature* pTargetCreature, bool bAffectBy
     Zone* pZone = pTargetCreature->getZone();
 
     Creature* pAttacker = pZone->getCreature(m_UserObjectID);
-    // Computes the poison damage dealt to the target.
+    // Computes the magic damage the storm deals to the target.
     int StormDamage = computeMagicDamage(pTargetCreature, m_Damage, SKILL_BLOODY_STORM, m_bVampire, pAttacker);
 
     if (StormDamage > 0) {

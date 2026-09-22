@@ -38,7 +38,7 @@ bool ConditionEnterCastle::isSatisfied(Creature* pCreature1, Creature* pCreature
 
     bPayPlay = true;
 
-    // Only someone who has paid can enter the castle.
+    // The pay-to-play gate is always open: bPayPlay is set true just above.
     if (bPayPlay) {
         // Find the zone.
         Zone* pZone = getZoneByZoneID(m_TargetZoneID);
@@ -49,10 +49,7 @@ bool ConditionEnterCastle::isSatisfied(Creature* pCreature1, Creature* pCreature
             return true;
         }
 
-        // During a war between races, everyone must be let through regardless of race.
-        // During a war within a race, other races must not be let through.
-        // In peacetime entry goes through an NPC, so nobody may be let through.
-        // All of this has to be added when the war system is built.
+        // The castle's own portal rules decide whether this player may enter.
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
 
         return g_pCastleInfoManager->canPortalActivate(m_TargetZoneID, pPC);
