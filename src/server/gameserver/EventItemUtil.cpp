@@ -14,6 +14,8 @@
 #include "repository/ItemRepository.h"
 
 MoonCard getCardKind(PlayerCreature* pPC, Monster* pMonster) {
+    VariableManager& variables = de::gameContext().variables();
+
     int UserLevel, MonsterLevel = pMonster->getLevel();
 
     if (pPC->isSlayer()) {
@@ -39,13 +41,13 @@ MoonCard getCardKind(PlayerCreature* pPC, Monster* pMonster) {
     if (UserLevel > MonsterLevel + 20)
         return NO_CARD;
 
-    if (rand() % g_pVariableManager->getVariable(FULL_MOON_CARD_RATIO) == 0) {
+    if (rand() % variables.getVariable(FULL_MOON_CARD_RATIO) == 0) {
         return FULL_MOON;
-    } else if (rand() % g_pVariableManager->getVariable(OLD_MOON_CARD_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(OLD_MOON_CARD_RATIO) == 0) {
         return OLD_MOON;
-    } else if (rand() % g_pVariableManager->getVariable(NEW_MOON_CARD_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(NEW_MOON_CARD_RATIO) == 0) {
         return NEW_MOON;
-    } else if (rand() % g_pVariableManager->getVariable(HALF_MOON_CARD_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(HALF_MOON_CARD_RATIO) == 0) {
         return HALF_MOON;
     }
 
@@ -89,6 +91,8 @@ Item* getCardItem(MoonCard card) {
 }
 
 LuckyBag getLuckyBagKind(PlayerCreature* pPC, Monster* pMonster) {
+    VariableManager& variables = de::gameContext().variables();
+
     int UserLevel, MonsterLevel = pMonster->getLevel();
 
     if (pPC->isSlayer()) {
@@ -115,13 +119,13 @@ LuckyBag getLuckyBagKind(PlayerCreature* pPC, Monster* pMonster) {
     if (UserLevel > MonsterLevel + 30)
         return NO_LUCKY_BAG;
 
-    if (rand() % g_pVariableManager->getVariable(GREEN_LUCKY_BAG_RATIO) == 0) {
+    if (rand() % variables.getVariable(GREEN_LUCKY_BAG_RATIO) == 0) {
         return GREEN_LUCKY_BAG;
-    } else if (rand() % g_pVariableManager->getVariable(BLUE_LUCKY_BAG_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(BLUE_LUCKY_BAG_RATIO) == 0) {
         return BLUE_LUCKY_BAG;
-    } else if (rand() % g_pVariableManager->getVariable(GOLD_LUCKY_BAG_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(GOLD_LUCKY_BAG_RATIO) == 0) {
         return GOLD_LUCKY_BAG;
-    } else if (rand() % g_pVariableManager->getVariable(RED_LUCKY_BAG_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(RED_LUCKY_BAG_RATIO) == 0) {
         return RED_LUCKY_BAG;
     }
 
@@ -165,6 +169,8 @@ Item* getLuckyBagItem(LuckyBag luckybag) {
 }
 
 GiftBox getGiftBoxKind(PlayerCreature* pPC, Monster* pMonster) {
+    VariableManager& variables = de::gameContext().variables();
+
     int UserLevel, MonsterLevel = pMonster->getLevel();
 
     if (pPC->isSlayer()) {
@@ -192,13 +198,13 @@ GiftBox getGiftBoxKind(PlayerCreature* pPC, Monster* pMonster) {
         return NO_GIFT_BOX;
 
 
-    if (rand() % g_pVariableManager->getVariable(RED_GIFT_BOX_RATIO) == 0) {
+    if (rand() % variables.getVariable(RED_GIFT_BOX_RATIO) == 0) {
         return RED_GIFT_BOX;
-    } else if (rand() % g_pVariableManager->getVariable(BLUE_GIFT_BOX_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(BLUE_GIFT_BOX_RATIO) == 0) {
         return BLUE_GIFT_BOX;
-    } else if (rand() % g_pVariableManager->getVariable(GREEN_GIFT_BOX_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(GREEN_GIFT_BOX_RATIO) == 0) {
         return GREEN_GIFT_BOX;
-    } else if (rand() % g_pVariableManager->getVariable(YELLOW_GIFT_BOX_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(YELLOW_GIFT_BOX_RATIO) == 0) {
         return YELLOW_GIFT_BOX;
     }
 

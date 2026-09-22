@@ -2922,8 +2922,8 @@ void Slayer::divideAttrExp(AttrKind kind, Damage_t damage, ModifyInfo& modifyInf
 
     damage = (Damage_t)getPercentValue(damage, AttrExpTimebandFactor[getZoneTimeband(m_pZone)]);
 
-    if (g_pVariableManager->getExpRatio() > 100 && g_pVariableManager->getEventActivate() == 1)
-        damage = getPercentValue(damage, g_pVariableManager->getExpRatio());
+    if (de::gameContext().variables().getExpRatio() > 100 && de::gameContext().variables().getEventActivate() == 1)
+        damage = getPercentValue(damage, de::gameContext().variables().getExpRatio());
 
     // Double experience depending on the time of day.
     if (isAffectExp2X())
@@ -3007,7 +3007,7 @@ void Slayer::divideAttrExp(AttrKind kind, Damage_t damage, ModifyInfo& modifyInf
     if (levelUpMainAttr || levelUpSubAttrs[0] || levelUpSubAttrs[1]) {
         healCreatureForLevelUp(this, modifyInfo, &prev);
         sendEffectLevelUp(this);
-        if (g_pVariableManager->isNewbieTransportToGuild())
+        if (de::gameContext().variables().isNewbieTransportToGuild())
             checkNewbieTransportToGuild(this);
 
         char pField[256];

@@ -251,7 +251,7 @@ void Slayer::initAllStat(int numPartyMember) {
     int RaceWarHPBonus = 0;
 
     if (m_pZone->isHolyLand() || m_pZone->isLevelWarZone()) {
-        RaceWarHPBonus = getPercentValue(m_HP[ATTR_MAX], g_pVariableManager->getRaceWarHPBonus());
+        RaceWarHPBonus = getPercentValue(m_HP[ATTR_MAX], de::gameContext().variables().getRaceWarHPBonus());
     }
 
     int DragonEyeHPBonus = 0;
@@ -288,7 +288,7 @@ void Slayer::initAllStat(int numPartyMember) {
     // The bonus can now apply to either side regardless of who wins the war.
     int HPBonus = 0;
     {
-        int bonusRatio = g_pVariableManager->getCombatSlayerHPBonusRatio();
+        int bonusRatio = de::gameContext().variables().getCombatSlayerHPBonusRatio();
 
         if (bonusRatio > 0) {
             HPBonus = getPercentValue(m_HP[ATTR_MAX], bonusRatio);

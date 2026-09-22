@@ -153,7 +153,7 @@ void CGUseMessageItemFromInventoryHandler::executeEventTree(CGUseMessageItemFrom
     switch (pItem->getItemType()) {
     case 12:
         MType = 482;
-        time = g_pVariableManager->getVariable(CHRISTMAS_TREE_DECAY_TIME) / 10;
+        time = de::gameContext().variables().getVariable(CHRISTMAS_TREE_DECAY_TIME) / 10;
         break;
     case 26:
         MType = 650;

@@ -12,6 +12,7 @@
 #include "DB.h"
 #include "GCNPCResponse.h"
 #include "GSAddGuild.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "Ousters.h"
@@ -54,7 +55,7 @@ void CGRegistGuildHandler::execute(CGRegistGuild* pPacket, Player* pPlayer)
     request.name = pCreature->getName();
     request.guildName = pPacket->getGuildName();
     request.now = time(0);
-    request.penaltyTermDays = g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM);
+    request.penaltyTermDays = de::gameContext().variables().getVariable(QUIT_GUILD_PENALTY_TERM);
 
     // The founding thresholds are the race's own: a Slayer is judged by the
     // level of its highest skill domain and by its fame, the other two races

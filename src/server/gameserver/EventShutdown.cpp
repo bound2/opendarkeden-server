@@ -43,7 +43,7 @@ void EventShutdown::activate()
     }
 
     // Terminate the process.
-    if (g_pVariableManager->isKillDaemonCtl() == 1) {
+    if (de::gameContext().variables().isKillDaemonCtl() == 1) {
         kill(getppid(), 9);
     }
 

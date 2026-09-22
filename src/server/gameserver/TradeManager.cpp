@@ -9,6 +9,7 @@
 #include "EventItemUtil.h"
 #include "FlagSet.h"
 #include "GCTradeFinish.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -636,11 +637,11 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
         msg << itr->second->toString() << "\n";
 
     // Leave a money log.
-    if (tradeGold1 >= g_pVariableManager->getMoneyTraceLogLimit()) {
+    if (tradeGold1 >= de::gameContext().variables().getMoneyTraceLogLimit()) {
         remainMoneyTraceLog(pCreature1->getName(), pCreature2->getName(), ITEM_LOG_TRADE, DETAIL_TRADE, tradeGold1);
     }
 
-    if (tradeGold2 >= g_pVariableManager->getMoneyTraceLogLimit()) {
+    if (tradeGold2 >= de::gameContext().variables().getMoneyTraceLogLimit()) {
         remainMoneyTraceLog(pCreature2->getName(), pCreature1->getName(), ITEM_LOG_TRADE, DETAIL_TRADE, tradeGold2);
     }
 

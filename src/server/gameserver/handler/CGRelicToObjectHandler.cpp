@@ -400,7 +400,7 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
             // Set the relic table's safe time
             Timeval safeTime;
             getCurrentTime(safeTime);
-            safeTime.tv_sec += g_pVariableManager->getCombatBonusTime() * 60;
+            safeTime.tv_sec += de::gameContext().variables().getCombatBonusTime() * 60;
 
             // Send the victory message.
             GCSystemMessage gcSystemMessage;

@@ -899,5 +899,3 @@ string VariableManager::toString(VariableType vt) const {
 
     return msg.toString();
 }
-
-VariableManager* g_pVariableManager = NULL;

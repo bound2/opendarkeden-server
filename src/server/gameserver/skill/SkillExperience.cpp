@@ -120,8 +120,8 @@ RankExp_t computeRankExp(int myLevel, int otherLevel) // by sigi. 2002.12.31
 {
     // The formula lives in de-core; this adapter only supplies
     // the two server-configured percentages.
-    return decore::rankExp(myLevel, otherLevel, g_pVariableManager->getVariable(RANK_EXP_GAIN_PERCENT),
-                           g_pVariableManager->getPremiumExpBonusPercent());
+    return decore::rankExp(myLevel, otherLevel, de::gameContext().variables().getVariable(RANK_EXP_GAIN_PERCENT),
+                           de::gameContext().variables().getPremiumExpBonusPercent());
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -139,6 +139,8 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
     if (pAttacker == NULL || pDeadCreature == NULL || !pAttacker->isPC() || pDeadCreature->isAlive()) {
         return;
     }
+
+    VariableManager& variables = de::gameContext().variables();
 
     if (pDeadCreature->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pDeadCreature);
@@ -300,45 +302,45 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
             if (de::gameContext().eventQuestLoot().killed(pPC, pMonster))
                 pTable->setQuestHostName(pPC->getName());
 
-            if (pMonster->getQuestItem() == NULL && g_pVariableManager->getVariable(EVENT_NEW_YEAR_2005) != 0) {
+            if (pMonster->getQuestItem() == NULL && variables.getVariable(EVENT_NEW_YEAR_2005) != 0) {
                 Item* pItem = getNewYear2005Item(getNewYear2005ItemKind(pPC, pMonster));
                 pMonster->setQuestItem(pItem);
                 if (pItem != NULL)
                     logEventItemCount(pItem);
             }
 
-            if (pMonster->getQuestItem() == NULL && g_pVariableManager->isEventMoonCard()) {
+            if (pMonster->getQuestItem() == NULL && variables.isEventMoonCard()) {
                 Item* pItem = getCardItem(getCardKind(pPC, pMonster));
                 pMonster->setQuestItem(pItem);
             }
 
-            if (pMonster->getQuestItem() == NULL && g_pVariableManager->isEventLuckyBag()) {
+            if (pMonster->getQuestItem() == NULL && variables.isEventLuckyBag()) {
                 Item* pItem = getLuckyBagItem(getLuckyBagKind(pPC, pMonster));
                 pMonster->setQuestItem(pItem);
             }
 
-            if (pMonster->getQuestItem() == NULL && g_pVariableManager->getVariable(NICKNAME_PEN_EVENT) != 0 &&
+            if (pMonster->getQuestItem() == NULL && variables.getVariable(NICKNAME_PEN_EVENT) != 0 &&
                 canGiveEventItem(pPC, pMonster)) {
                 int value = rand() % 100000;
-                if (value < g_pVariableManager->getVariable(NICKNAME_PEN_RATIO)) {
+                if (value < variables.getVariable(NICKNAME_PEN_RATIO)) {
                     Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 22, list<OptionType_t>());
                     pMonster->setQuestItem(pItem);
                 }
             }
 
-            if (pMonster->getQuestItem() == NULL && g_pVariableManager->getVariable(CLOVER_EVENT) != 0 &&
+            if (pMonster->getQuestItem() == NULL && variables.getVariable(CLOVER_EVENT) != 0 &&
                 canGiveEventItem(pPC, pMonster)) {
                 int value = rand() % 100000;
-                if (value < g_pVariableManager->getVariable(CLOVER_RATIO)) {
+                if (value < variables.getVariable(CLOVER_RATIO)) {
                     Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_MOON_CARD, 3, list<OptionType_t>());
                     pMonster->setQuestItem(pItem);
                 }
             }
 
-            if (pMonster->getQuestItem() == NULL && g_pVariableManager->getVariable(PINE_CAKE_EVENT) != 0 &&
+            if (pMonster->getQuestItem() == NULL && variables.getVariable(PINE_CAKE_EVENT) != 0 &&
                 canGiveEventItem(pPC, pMonster)) {
                 int value = rand() % 100000;
-                if (value < g_pVariableManager->getVariable(PINE_CAKE_RATIO)) {
+                if (value < variables.getVariable(PINE_CAKE_RATIO)) {
                     int value = rand() % 10;
                     int add = 0;
                     if (value < 6)
@@ -352,14 +354,13 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
                 }
             }
 
-            if (g_pVariableManager->getVariable(NETMARBLE_CARD_EVENT) != 0 && pMonster->getQuestItem() == NULL &&
-                g_pVariableManager->getVariable(NETMARBLE_CARD_RATIO) > (rand() % 100000) &&
-                canGiveEventItem(pPC, pMonster)) {
+            if (variables.getVariable(NETMARBLE_CARD_EVENT) != 0 && pMonster->getQuestItem() == NULL &&
+                variables.getVariable(NETMARBLE_CARD_RATIO) > (rand() % 100000) && canGiveEventItem(pPC, pMonster)) {
                 Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_MOON_CARD, 2, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
 
-            if (g_pVariableManager->isHeadCount()) {
+            if (variables.isHeadCount()) {
                 GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pAttacker->getPlayer());
                 if (pGamePlayer != NULL) {
                     EventHeadCount* pEvent =
@@ -369,8 +370,7 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
                 }
             }
 
-            if (canGiveEventItem(pPC, pMonster) &&
-                rand() % 100000 < g_pVariableManager->getVariable(GOLD_MEDAL_RATIO)) {
+            if (canGiveEventItem(pPC, pMonster) && rand() % 100000 < variables.getVariable(GOLD_MEDAL_RATIO)) {
                 giveGoldMedal(pPC);
             }
 
@@ -391,34 +391,31 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
             }
 
             if (pMonster->getQuestItem() == NULL && canGiveEventItem(pPC, pMonster) &&
-                rand() % 100000 < g_pVariableManager->getVariable(OLYMPIC_ITEM_RATIO)) {
+                rand() % 100000 < variables.getVariable(OLYMPIC_ITEM_RATIO)) {
                 Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_MOON_CARD, 4, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
 
             if (pMonster->getQuestItem() == NULL && canGiveEventItem(pPC, pMonster) &&
-                rand() % 100000 < g_pVariableManager->getVariable(LUCK_CHARM_RATIO)) {
+                rand() % 100000 < variables.getVariable(LUCK_CHARM_RATIO)) {
                 Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_ITEM, 30, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
 
             if (pMonster->getQuestItem() == NULL && pMonster->getMonsterType() >= 769 &&
-                canGiveEventItem(pPC, pMonster) &&
-                rand() % 100000 < g_pVariableManager->getVariable(HOURGLASS_RATIO_S)) {
+                canGiveEventItem(pPC, pMonster) && rand() % 100000 < variables.getVariable(HOURGLASS_RATIO_S)) {
                 Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EFFECT_ITEM, 6, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
 
             if (pMonster->getQuestItem() == NULL && pMonster->getMonsterType() >= 769 &&
-                canGiveEventItem(pPC, pMonster) &&
-                rand() % 100000 < g_pVariableManager->getVariable(HOURGLASS_RATIO_M)) {
+                canGiveEventItem(pPC, pMonster) && rand() % 100000 < variables.getVariable(HOURGLASS_RATIO_M)) {
                 Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EFFECT_ITEM, 5, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
 
             if (pMonster->getQuestItem() == NULL && pMonster->getMonsterType() >= 769 &&
-                canGiveEventItem(pPC, pMonster) &&
-                rand() % 100000 < g_pVariableManager->getVariable(HOURGLASS_RATIO_L)) {
+                canGiveEventItem(pPC, pMonster) && rand() % 100000 < variables.getVariable(HOURGLASS_RATIO_L)) {
                 Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EFFECT_ITEM, 4, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
@@ -430,13 +427,13 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
                 pMonster->setQuestItem(pItem);
             }
 
-            if (g_pVariableManager->getVariable(PET_FOOD_EVENT) != 0 && pMonster->getQuestItem() == NULL &&
-                g_pVariableManager->getVariable(PET_FOOD_RATIO) > rand() % 100000 && canGiveEventItem(pPC, pMonster)) {
-                bool isHigher = g_pVariableManager->getVariable(HIGHER_PET_FOOD_RATIO) > rand() % 100;
+            if (variables.getVariable(PET_FOOD_EVENT) != 0 && pMonster->getQuestItem() == NULL &&
+                variables.getVariable(PET_FOOD_RATIO) > rand() % 100000 && canGiveEventItem(pPC, pMonster)) {
+                bool isHigher = variables.getVariable(HIGHER_PET_FOOD_RATIO) > rand() % 100;
 
                 int itemClassSeed = rand() % 100;
-                int RacePetFoodRatio = g_pVariableManager->getVariable(RACE_PET_FOOD_RATIO);
-                int RevivalSetRatio = g_pVariableManager->getVariable(REVIVAL_SET_RATIO);
+                int RacePetFoodRatio = variables.getVariable(RACE_PET_FOOD_RATIO);
+                int RevivalSetRatio = variables.getVariable(REVIVAL_SET_RATIO);
 
                 Item::ItemClass iClass = Item::ITEM_CLASS_PET_FOOD;
                 ItemType_t itemType = 1;
@@ -1054,6 +1051,8 @@ void shareAttrExp(Slayer* pSlayer, Damage_t Damage, BYTE STRMultiplier, BYTE DEX
     if (pSlayer->getZone() != NULL && pSlayer->getZone()->isDynamicZone())
         return;
 
+    VariableManager& variables = de::gameContext().variables();
+
     // Premium play grants more experience.
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pSlayer->getPlayer());
     Assert(pGamePlayer != NULL);
@@ -1061,17 +1060,17 @@ void shareAttrExp(Slayer* pSlayer, Damage_t Damage, BYTE STRMultiplier, BYTE DEX
     if (pGamePlayer->isPremiumPlay() ||
         pGamePlayer->isFamilyFreePass()) // pZone->isPayPlay() || pZone->isPremiumZone() )
     {
-        Damage = getPercentValue(Damage, g_pVariableManager->getPremiumExpBonusPercent());
-        STRMultiplier = getPercentValue(STRMultiplier, g_pVariableManager->getPremiumExpBonusPercent());
-        DEXMultiplier = getPercentValue(DEXMultiplier, g_pVariableManager->getPremiumExpBonusPercent());
-        INTMultiplier = getPercentValue(INTMultiplier, g_pVariableManager->getPremiumExpBonusPercent());
+        Damage = getPercentValue(Damage, variables.getPremiumExpBonusPercent());
+        STRMultiplier = getPercentValue(STRMultiplier, variables.getPremiumExpBonusPercent());
+        DEXMultiplier = getPercentValue(DEXMultiplier, variables.getPremiumExpBonusPercent());
+        INTMultiplier = getPercentValue(INTMultiplier, variables.getPremiumExpBonusPercent());
     }
 
     if (pGamePlayer->isPCRoomPlay()) {
-        Damage = getPercentValue(Damage, g_pVariableManager->getPCRoomExpBonusPercent());
-        STRMultiplier = getPercentValue(STRMultiplier, g_pVariableManager->getPCRoomExpBonusPercent());
-        DEXMultiplier = getPercentValue(DEXMultiplier, g_pVariableManager->getPCRoomExpBonusPercent());
-        INTMultiplier = getPercentValue(INTMultiplier, g_pVariableManager->getPCRoomExpBonusPercent());
+        Damage = getPercentValue(Damage, variables.getPCRoomExpBonusPercent());
+        STRMultiplier = getPercentValue(STRMultiplier, variables.getPCRoomExpBonusPercent());
+        DEXMultiplier = getPercentValue(DEXMultiplier, variables.getPCRoomExpBonusPercent());
+        INTMultiplier = getPercentValue(INTMultiplier, variables.getPCRoomExpBonusPercent());
     }
 
     int PartyID = pSlayer->getPartyID();
@@ -1110,12 +1109,12 @@ void shareVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
     if (pGamePlayer->isPremiumPlay() ||
         pGamePlayer->isFamilyFreePass()) // pZone->isPayPlay() || pZone->isPremiumZone() )
     {
-        Point = getPercentValue(Point, g_pVariableManager->getPremiumExpBonusPercent());
+        Point = getPercentValue(Point, de::gameContext().variables().getPremiumExpBonusPercent());
     }
 
     if (pGamePlayer->isPCRoomPlay()) // pZone->isPayPlay() || pZone->isPremiumZone() )
     {
-        Point = getPercentValue(Point, g_pVariableManager->getPCRoomExpBonusPercent());
+        Point = getPercentValue(Point, de::gameContext().variables().getPCRoomExpBonusPercent());
     }
 
     int PartyID = pVampire->getPartyID();
@@ -1152,11 +1151,11 @@ void shareOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo) {
     Assert(pGamePlayer != NULL);
 
     if (pGamePlayer->isPremiumPlay() || pGamePlayer->isFamilyFreePass()) {
-        Point = getPercentValue(Point, g_pVariableManager->getPremiumExpBonusPercent());
+        Point = getPercentValue(Point, de::gameContext().variables().getPremiumExpBonusPercent());
     }
 
     if (pGamePlayer->isPCRoomPlay()) {
-        Point = getPercentValue(Point, g_pVariableManager->getPCRoomExpBonusPercent());
+        Point = getPercentValue(Point, de::gameContext().variables().getPCRoomExpBonusPercent());
     }
 
     int PartyID = pOusters->getPartyID();
@@ -1211,6 +1210,8 @@ void increaseSkillExp(Slayer* pSlayer, SkillDomainType_t DomainType, SkillSlot* 
     if (pSlayer->getZone() != NULL && pSlayer->getZone()->isDynamicZone())
         return;
 
+    VariableManager& variables = de::gameContext().variables();
+
     // Experience is not raised when the new level cannot pass the current domain level.
     Level_t CurrentLevel = pSkillSlot->getExpLevel();
 
@@ -1231,9 +1232,9 @@ void increaseSkillExp(Slayer* pSlayer, SkillDomainType_t DomainType, SkillSlot* 
 
         Exp_t plusExp = 1;
 
-        if (g_pVariableManager->getEventActivate() == 1) {
-            plusExp = plusExp * g_pVariableManager->getExpRatio() / 100;
-            plusExp = getPercentValue(plusExp, g_pVariableManager->getPremiumExpBonusPercent());
+        if (variables.getEventActivate() == 1) {
+            plusExp = plusExp * variables.getExpRatio() / 100;
+            plusExp = getPercentValue(plusExp, variables.getPremiumExpBonusPercent());
             if (pSlayer->isFlag(Effect::EFFECT_CLASS_BONUS_EXP))
                 plusExp *= 2;
         }
@@ -1291,6 +1292,8 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
     if (pSlayer->getZone() != NULL && pSlayer->getZone()->isDynamicZone())
         return false;
 
+    VariableManager& variables = de::gameContext().variables();
+
     int PartyID = pSlayer->getPartyID();
 
     if (EnemyLevel != 0) {
@@ -1331,12 +1334,12 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
     if (pGamePlayer->isPremiumPlay() ||
         pGamePlayer->isFamilyFreePass()) // pZone->isPayPlay() || pZone->isPremiumZone() )
     {
-        Point = getPercentValueEx(Point, g_pVariableManager->getPremiumExpBonusPercent());
+        Point = getPercentValueEx(Point, variables.getPremiumExpBonusPercent());
     }
 
     if (pGamePlayer->isPCRoomPlay()) // pZone->isPayPlay() || pZone->isPremiumZone() )
     {
-        Point = getPercentValueEx(Point, g_pVariableManager->getPCRoomExpBonusPercent());
+        Point = getPercentValueEx(Point, variables.getPCRoomExpBonusPercent());
     }
 
     if (PartyID != 0) {
@@ -1366,8 +1369,8 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
     }
 
     // Apply the point increase configured in VariableManager.
-    if (g_pVariableManager->getExpRatio() > 100 && g_pVariableManager->getEventActivate() == 1)
-        Point = getPercentValue(Point, g_pVariableManager->getExpRatio());
+    if (variables.getExpRatio() > 100 && variables.getEventActivate() == 1)
+        Point = getPercentValue(Point, variables.getExpRatio());
 
     if (pSlayer->isFlag(Effect::EFFECT_CLASS_BONUS_EXP))
         Point *= 2;
@@ -1696,8 +1699,8 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
     Level_t curLevel = pVampire->getLevel();
 
     // Increase configured in VariableManager.
-    if (g_pVariableManager->getExpRatio() > 100 && g_pVariableManager->getEventActivate() == 1)
-        Point = getPercentValue(Point, g_pVariableManager->getExpRatio());
+    if (de::gameContext().variables().getExpRatio() > 100 && de::gameContext().variables().getEventActivate() == 1)
+        Point = getPercentValue(Point, de::gameContext().variables().getExpRatio());
 
     if (pVampire->isFlag(Effect::EFFECT_CLASS_BONUS_EXP))
         Point *= 2;
@@ -1823,8 +1826,8 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
         return;
 
     // Increase configured in VariableManager.
-    if (g_pVariableManager->getExpRatio() > 100 && g_pVariableManager->getEventActivate() == 1)
-        Point = getPercentValue(Point, g_pVariableManager->getExpRatio());
+    if (de::gameContext().variables().getExpRatio() > 100 && de::gameContext().variables().getEventActivate() == 1)
+        Point = getPercentValue(Point, de::gameContext().variables().getExpRatio());
 
     if (pOusters->isFlag(Effect::EFFECT_CLASS_BONUS_EXP))
         Point *= 2;

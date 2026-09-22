@@ -487,7 +487,7 @@ void PlayerCreature::whenQuestLevelUpgrade() {
             pGamePlayer->addEvent(pEvent);
     }
 
-    if (g_pVariableManager->getVariable(CHOBO_EVENT)) {
+    if (de::gameContext().variables().getVariable(CHOBO_EVENT)) {
         Level_t level = getLevel();
         if (level < 40 && (level % 5) == 0) {
             getGQuestManager()->getGQuestInventory().saveOne(getName(), 13 + (level / 5));
@@ -1076,14 +1076,16 @@ Exp_t PlayerCreature::getAdvancementClassGoalExp() const {
     return m_pAdvancementClass->getGoalExp();
 }
 bool PlayerCreature::increaseAdvancementClassExp(Exp_t exp, bool bApplyExpBonus) {
+    VariableManager& variables = de::gameContext().variables();
+
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayer);
     if (pGamePlayer != NULL) {
         if (bApplyExpBonus && (pGamePlayer->isPremiumPlay() || pGamePlayer->isFamilyFreePass())) {
-            exp = getPercentValue(exp, g_pVariableManager->getPremiumExpBonusPercent());
+            exp = getPercentValue(exp, variables.getPremiumExpBonusPercent());
         }
 
-        if (bApplyExpBonus && g_pVariableManager->getExpRatio() > 100 && g_pVariableManager->getEventActivate() == 1) {
-            exp = getPercentValue(exp, g_pVariableManager->getExpRatio());
+        if (bApplyExpBonus && variables.getExpRatio() > 100 && variables.getEventActivate() == 1) {
+            exp = getPercentValue(exp, variables.getExpRatio());
         }
 
         if (bApplyExpBonus && isAffectExp2X()) {

@@ -75,7 +75,7 @@ PartnerWaitingManager::~PartnerWaitingManager() {
 uint PartnerWaitingManager::waitForPartner(PlayerCreature* pWaitingPC, string RequestedPCName) {
     __BEGIN_TRY
 
-    if (!g_pVariableManager->isActivateCouple())
+    if (!de::gameContext().variables().isActivateCouple())
         return COUPLE_MESSAGE_NOT_EVENT_TERM;
 
     Assert(pWaitingPC != NULL);
@@ -144,7 +144,7 @@ bool PartnerWaitingManager::stopWaitForPartner(PlayerCreature* pWaitingPC) {
 uint PartnerWaitingManager::acceptPartner(PlayerCreature* pRequestedPC) {
     __BEGIN_TRY
 
-    if (!g_pVariableManager->isActivateCouple())
+    if (!de::gameContext().variables().isActivateCouple())
         return COUPLE_MESSAGE_NOT_EVENT_TERM;
 
     Assert(pRequestedPC != NULL);

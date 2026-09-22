@@ -251,7 +251,7 @@ uint WaitForMeet::canHavePartner(PlayerCreature* pPC) {
         return COUPLE_MESSAGE_NOT_PAY_PLAYER;
     if (pPC->getFlagSet()->isOn(FLAGSET_IS_COUPLE))
         return COUPLE_MESSAGE_ALREADY_COUPLE;
-    if (!g_pVariableManager->canRecouple())
+    if (!de::gameContext().variables().canRecouple())
         if (pPC->getFlagSet()->isOn(FLAGSET_WAS_COUPLE))
             return COUPLE_MESSAGE_WAS_COUPLE;
     if (pPC->getGold() < getCoupleRegisterFee(pPC))

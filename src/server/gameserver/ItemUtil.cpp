@@ -708,7 +708,7 @@ bool isUsableItem(Item* pItem, Creature* pUser) {
             return true;
         break;
     case Item::ITEM_CLASS_KEY:
-        if (g_pVariableManager->isSummonMotorcycle() && pUser->isSlayer())
+        if (de::gameContext().variables().isSummonMotorcycle() && pUser->isSlayer())
             return true;
         break;
     case Item::ITEM_CLASS_ETC:
@@ -1015,7 +1015,7 @@ bool isPossibleNextOption(ITEM_TEMPLATE* pTemplate) {
         Ratio_t selectRatio = rand() % baseMultiplier;
 
         // Apply the rare item looting probability.
-        nextOptionRatio = getPercentValue(nextOptionRatio, g_pVariableManager->getRareItemRatio());
+        nextOptionRatio = getPercentValue(nextOptionRatio, de::gameContext().variables().getRareItemRatio());
 
         // Probability check
         return selectRatio < nextOptionRatio;

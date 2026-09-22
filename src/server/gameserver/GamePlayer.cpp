@@ -980,7 +980,7 @@ bool GamePlayer::isPayPlaying() const {
 }
 
 void GamePlayer::setPCRoomLottoStartTime() {
-    if (!g_pVariableManager->isPCRoomLottoEvent())
+    if (!de::gameContext().variables().isPCRoomLottoEvent())
         return;
 
     if (!m_bPCRoomPlay)
@@ -990,7 +990,7 @@ void GamePlayer::setPCRoomLottoStartTime() {
 }
 
 void GamePlayer::savePCRoomLottoTime() {
-    if (!g_pVariableManager->isPCRoomLottoEvent())
+    if (!de::gameContext().variables().isPCRoomLottoEvent())
         return;
 
     if (!m_bPCRoomPlay)
@@ -1004,7 +1004,7 @@ void GamePlayer::savePCRoomLottoTime() {
 }
 
 void GamePlayer::checkPCRoomLotto(const Timeval& currentTime) {
-    if (!g_pVariableManager->isPCRoomLottoEvent())
+    if (!de::gameContext().variables().isPCRoomLottoEvent())
         return;
 
     if (!m_bPCRoomPlay)

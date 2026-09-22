@@ -210,7 +210,7 @@ void Ousters::initAllStat(int numPartyMember)
     int RaceWarHPBonus = 0;
 
     if (m_pZone->isHolyLand() || m_pZone->isLevelWarZone()) {
-        RaceWarHPBonus = getPercentValue(m_HP[ATTR_MAX], g_pVariableManager->getRaceWarHPBonus());
+        RaceWarHPBonus = getPercentValue(m_HP[ATTR_MAX], de::gameContext().variables().getRaceWarHPBonus());
     }
 
     int DragonEyeHPBonus = 0;

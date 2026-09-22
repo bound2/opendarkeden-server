@@ -14,6 +14,7 @@
 #include "GCNPCResponse.h"
 #include "GCShowGuildJoin.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -53,7 +54,7 @@ void CGTryJoinGuildHandler::execute(CGTryJoinGuild* pPacket, Player* pPlayer)
     attempt.name = pCreature->getName();
     attempt.guildExists = (pGuild != NULL);
     attempt.now = time(0);
-    attempt.penaltyTermDays = g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM);
+    attempt.penaltyTermDays = de::gameContext().variables().getVariable(QUIT_GUILD_PENALTY_TERM);
     attempt.waitMemberLimit = MAX_GUILDMEMBER_WAIT_COUNT;
     if (pGuild != NULL)
         attempt.waitMemberCount = pGuild->getWaitMemberCount();

@@ -2284,7 +2284,7 @@ void getNewbieTransportZoneInfo(Slayer* pSlayer, ZONE_COORD& zoneInfo) {
 
 void checkNewbieTransportToGuild(Slayer* pSlayer) {
     try {
-        if (pSlayer->isPLAYER() && g_pVariableManager->isNewbieTransportToGuild()) {
+        if (pSlayer->isPLAYER() && de::gameContext().variables().isNewbieTransportToGuild()) {
             // If the attribute sum is 40 and the zone is the field headquarters, send the player elsewhere.
             ZONE_COORD transportZone;
 

@@ -63,7 +63,7 @@ void ActionWarRegistration::execute(Creature* pCreature1, Creature* pCreature2)
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
     GuildID_t guildID = pPC->getGuildID();
 
-    if (!g_pVariableManager->isWarActive() || !g_pVariableManager->isActiveGuildWar()) {
+    if (!context().variables().isWarActive() || !context().variables().isActiveGuildWar()) {
         gcNPCResponse.setCode(NPC_RESPONSE_WAR_UNAVAILABLE);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
         return;
@@ -75,7 +75,7 @@ void ActionWarRegistration::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    Gold_t warRegistrationFee = g_pVariableManager->getVariable(WAR_REGISTRATION_FEE);
+    Gold_t warRegistrationFee = context().variables().getVariable(WAR_REGISTRATION_FEE);
     if (pPC->getGold() < warRegistrationFee) {
         gcNPCResponse.setCode(NPC_RESPONSE_NOT_ENOUGH_MONEY);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);

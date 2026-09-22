@@ -72,7 +72,7 @@ void RaceWar::executeStart()
 
 
     // Fix the time across Adam's holy land.
-    g_pHolyLandManager->fixTimeband(g_pVariableManager->getVariable(RACE_WAR_TIMEBAND));
+    g_pHolyLandManager->fixTimeband(de::gameContext().variables().getVariable(RACE_WAR_TIMEBAND));
 
     g_pHolyLandManager->killAllMonsters();
 

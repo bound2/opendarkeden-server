@@ -164,7 +164,7 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
 
     // For a Skull the price is recomputed with the head price multiplier from the Variable Manager
     if (pItem->getItemClass() == Item::ITEM_CLASS_SKULL) {
-        itemPrice = itemPrice * (g_pVariableManager->getHeadPriceBonus() / 100);
+        itemPrice = itemPrice * (de::gameContext().variables().getHeadPriceBonus() / 100);
     }
 
     // Leave an ItemTrace Log if one has to be left
@@ -474,7 +474,7 @@ void CGShopRequestSellHandler::executeOpAllSkull(CGShopRequestSell* pPacket, Pla
         }
     }
 
-    itemPrice = itemPrice * (g_pVariableManager->getHeadPriceBonus() / 100);
+    itemPrice = itemPrice * (de::gameContext().variables().getHeadPriceBonus() / 100);
 
     // Pay the player for the goods.
     pPC->increaseGoldEx(itemPrice);

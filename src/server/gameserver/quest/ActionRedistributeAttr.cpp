@@ -11,6 +11,7 @@
 #include "GCModifyInformation.h"
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "StringPool.h"
 #include "Vampire.h"
@@ -71,7 +72,7 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
 
     Vampire* pVampire = dynamic_cast<Vampire*>(pCreature2);
 
-    Gold_t ATTR_PRICE = g_pVariableManager->getVariable(VAMPIRE_REDISTRIBUTE_ATTR_PRICE);
+    Gold_t ATTR_PRICE = context().variables().getVariable(VAMPIRE_REDISTRIBUTE_ATTR_PRICE);
 
     // Not having the money is an error.
     if (pVampire->getGold() < ATTR_PRICE) {

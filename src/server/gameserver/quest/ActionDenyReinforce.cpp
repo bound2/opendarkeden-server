@@ -65,7 +65,7 @@ void ActionDenyReinforce::execute(Creature* pCreature1, Creature* pCreature2)
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
     GuildID_t guildID = pPC->getGuildID();
 
-    if (!g_pVariableManager->isWarActive() || !g_pVariableManager->isActiveGuildWar()) {
+    if (!context().variables().isWarActive() || !context().variables().isActiveGuildWar()) {
         gcNPCResponse.setCode(NPC_RESPONSE_WAR_UNAVAILABLE);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
         return;

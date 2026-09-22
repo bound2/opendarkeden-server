@@ -374,7 +374,7 @@ DWORD GDRLairEntrance::heartbeat(Timeval currentTime) {
     __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
 
     const PCManager* pPM = pZone->getPCManager();
-    int limit = g_pVariableManager->getVariable(GDR_LAIR_PC_LIMIT);
+    int limit = de::gameContext().variables().getVariable(GDR_LAIR_PC_LIMIT);
     // 0 means there is no player limit.
     if (limit != 0 && pPM->getSize() >= limit) {
         return GDR_LAIR_ICEPOLE;

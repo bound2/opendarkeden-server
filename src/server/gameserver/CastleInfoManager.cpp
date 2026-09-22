@@ -446,6 +446,8 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
 {
     __BEGIN_TRY
 
+    VariableManager& variables = de::gameContext().variables();
+
     CastleInfo* pCastleInfo = getCastleInfo(zoneID);
     if (pCastleInfo == NULL)
         return false;
@@ -459,11 +461,11 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
     Zone* pZone = getZoneByZoneID(zoneID);
 
     if (pCastleInfo->isCommon()) {
-        pCastleInfo->setEntranceFee(g_pVariableManager->getVariable(COMMON_CASTLE_ENTRANCE_FEE));
-        setItemTaxRatio(pZone, g_pVariableManager->getVariable(COMMON_CASTLE_ITEM_TAX_RATIO));
+        pCastleInfo->setEntranceFee(variables.getVariable(COMMON_CASTLE_ENTRANCE_FEE));
+        setItemTaxRatio(pZone, variables.getVariable(COMMON_CASTLE_ITEM_TAX_RATIO));
     } else {
-        pCastleInfo->setEntranceFee(g_pVariableManager->getVariable(GUILD_CASTLE_ENTRANCE_FEE));
-        setItemTaxRatio(pZone, g_pVariableManager->getVariable(GUILD_CASTLE_ITEM_TAX_RATIO));
+        pCastleInfo->setEntranceFee(variables.getVariable(GUILD_CASTLE_ENTRANCE_FEE));
+        setItemTaxRatio(pZone, variables.getVariable(GUILD_CASTLE_ITEM_TAX_RATIO));
     }
 
     StringStream msg;

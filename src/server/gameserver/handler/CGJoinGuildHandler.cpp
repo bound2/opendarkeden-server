@@ -12,6 +12,7 @@
 #include "DB.h"
 #include "GCNPCResponse.h"
 #include "GSAddGuildMember.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -54,7 +55,7 @@ void CGJoinGuildHandler::execute(CGJoinGuild* pPacket, Player* pPlayer)
     // means the client asked for something it was never offered. Nothing is
     // sent back.
     if (decideGuildJoinConfirm(defaultGuildRepository(), pCreature->getName(), time(0),
-                               g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM))
+                               de::gameContext().variables().getVariable(QUIT_GUILD_PENALTY_TERM))
             .isRejected())
         return;
 

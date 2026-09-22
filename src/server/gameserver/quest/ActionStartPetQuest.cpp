@@ -52,7 +52,7 @@ void ActionStartPetQuest::execute(Creature* pCreature1, Creature* pCreature2)
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
     Assert(pPC != NULL);
 
-    if (g_pVariableManager->getVariable(RACE_PET_QUEST) == 0) {
+    if (context().variables().getVariable(RACE_PET_QUEST) == 0) {
         GCSystemMessage gcSM;
         gcSM.setMessage(g_pStringPool->getString(STRID_NOT_SUPPORT));
 

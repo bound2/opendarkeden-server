@@ -60,6 +60,7 @@ class TimeChecker;
 class TimeManager;
 class UniqueItemManager;
 class VampEXPInfoManager;
+class VariableManager;
 class VisionInfoManager;
 class VolumeInfoManager;
 class WarSystem;
@@ -127,6 +128,7 @@ private:
     TimeManager* m_pTimeManager = nullptr;
     UniqueItemManager* m_pUniqueItemManager = nullptr;
     VampEXPInfoManager* m_pVampEXPInfoManager = nullptr;
+    VariableManager* m_pVariableManager = nullptr;
     VisionInfoManager* m_pVisionInfoManager = nullptr;
     VolumeInfoManager* m_pVolumeInfoManager = nullptr;
     WarSystem* m_pWarSystem = nullptr;

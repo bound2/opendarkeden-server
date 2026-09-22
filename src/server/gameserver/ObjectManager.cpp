@@ -142,7 +142,7 @@ ObjectManager::ObjectManager()
 
     g_pStringPool = new StringPool();
     m_pZoneInfoManager = new ZoneInfoManager();
-    g_pVariableManager = new VariableManager();
+    m_pVariableManager = new VariableManager();
     m_pItemInfoManager = new ItemInfoManager();
     m_pItemFactoryManager = new ItemFactoryManager();
     m_pVolumeInfoManager = new VolumeInfoManager();
@@ -170,7 +170,7 @@ ObjectManager::ObjectManager()
     de::GameContext& context = de::gameContext();
     context.setStringPool(g_pStringPool);
     context.setZoneInfoManager(m_pZoneInfoManager);
-    context.setVariableManager(g_pVariableManager);
+    context.setVariableManager(m_pVariableManager);
     context.setItemInfoManager(m_pItemInfoManager);
     context.setItemFactoryManager(m_pItemFactoryManager);
     context.setVolumeInfoManager(m_pVolumeInfoManager);
@@ -329,7 +329,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pWayPointManager);
     SAFE_DELETE(m_pGlobalPartyManager);
     SAFE_DELETE(g_pGameWorldInfoManager);
-    SAFE_DELETE(g_pVariableManager);
+    SAFE_DELETE(m_pVariableManager);
     SAFE_DELETE(m_pCombatInfoManager);
     SAFE_DELETE(m_pUniqueItemManager);
     SAFE_DELETE(m_pMasterLairInfoManager);
@@ -392,7 +392,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : StringPool Initialization Success....... \n");
 
     printf("ObjectManager::init() : VariableManager Initialization Start....... \n");
-    g_pVariableManager->init();
+    m_pVariableManager->init();
     printf("ObjectManager::init() : VariableManager Initialization Success....... \n");
 
     printf("ObjectManager::init() : ConditionFactoryManager Initialization Start\n");

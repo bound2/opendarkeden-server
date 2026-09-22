@@ -210,7 +210,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                 ;
             }
         } else if (keyword == "RedistGold") {
-            Gold_t price = g_pVariableManager->getVariable(VAMPIRE_REDISTRIBUTE_ATTR_PRICE);
+            Gold_t price = context().variables().getVariable(VAMPIRE_REDISTRIBUTE_ATTR_PRICE);
 
             char gold[15];
             sprintf(gold, "%u", price);

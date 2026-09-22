@@ -263,7 +263,7 @@ bool ResurrectLocationManager::getPosition(PlayerCreature* pPC, ZONE_COORD& zone
 
         // If a race war is running and the number of participants is limited
         if (!bFindPosition && de::gameContext().warSystem().hasActiveRaceWar() &&
-            g_pVariableManager->isActiveRaceWarLimiter()) {
+            de::gameContext().variables().isActiveRaceWarLimiter()) {
             ZoneInfo* pResZoneInfo = NULL;
 
             if (pPC->getResurrectZoneID() != 0) {

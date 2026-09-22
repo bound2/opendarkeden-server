@@ -65,7 +65,7 @@ void ActionJoinRaceWar::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    if (!g_pVariableManager->isWarActive() || context().warSystem().hasActiveRaceWar()) {
+    if (!context().variables().isWarActive() || context().warSystem().hasActiveRaceWar()) {
         gcNPCResponse.setCode(NPC_RESPONSE_WAR_UNAVAILABLE);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
         return;

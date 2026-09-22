@@ -41,7 +41,7 @@ Price_t PriceManager::getPrice(Item* pItem, MarketCond_t nDiscount, ShopRackType
     if (pItem->isTimeLimitItem())
         return (Price_t)50;
     if (pItem->getItemClass() == Item::ITEM_CLASS_MOON_CARD && pItem->getItemType() == 4) {
-        return (Price_t)g_pVariableManager->getVariable(CROWN_PRICE);
+        return (Price_t)de::gameContext().variables().getVariable(CROWN_PRICE);
     }
 
     // Get the item's original price.
@@ -129,7 +129,7 @@ Price_t PriceManager::getPrice(Item* pItem, MarketCond_t nDiscount, ShopRackType
     }
 
     // For a paying user in a pay zone.
-    if (g_pVariableManager->getVariable(PREMIUM_HALF_EVENT)) {
+    if (de::gameContext().variables().getVariable(PREMIUM_HALF_EVENT)) {
         if (pItem->getItemClass() == Item::ITEM_CLASS_POTION || pItem->getItemClass() == Item::ITEM_CLASS_SERUM ||
             pItem->getItemClass() == Item::ITEM_CLASS_LARVA || pItem->getItemClass() == Item::ITEM_CLASS_PUPA ||
             pItem->getItemClass() == Item::ITEM_CLASS_COMPOS_MEI) {

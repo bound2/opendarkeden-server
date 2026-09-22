@@ -127,7 +127,7 @@ void ActionGiveAccountEventItem::execute(Creature* pCreature1, Creature* pCreatu
     Item* pItem;
 
     // The event is not running.
-    if (!g_pVariableManager->isActiveGiveEventItem()) {
+    if (!context().variables().isActiveGiveEventItem()) {
         GCNPCResponse response;
         response.setCode(NPC_RESPONSE_GIVE_EVENT_ITEM_FAIL_NOW);
         pPlayer->sendPacket(&response);

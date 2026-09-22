@@ -545,7 +545,7 @@ int computeCreatureExp(Creature* pCreature, int percent, Ousters* pOusters)
         // Ousters are handled separately.
         if (pOusters != NULL) {
             return getPercentValue(getPercentValue((int)(pMonster->getOustersExp(pOusters)),
-                                                   g_pVariableManager->getVariable(MONSTER_EXP_RATIO)),
+                                                   de::gameContext().variables().getVariable(MONSTER_EXP_RATIO)),
                                    percent);
         }
 
@@ -569,7 +569,7 @@ int computeCreatureExp(Creature* pCreature, int percent, Ousters* pOusters)
     // Code for the stat compensation.
     // exp = (int)((float)exp * 1.5);
     exp = getPercentValue(exp, percent);
-    exp = getPercentValue(exp, g_pVariableManager->getVariable(MONSTER_EXP_RATIO));
+    exp = getPercentValue(exp, de::gameContext().variables().getVariable(MONSTER_EXP_RATIO));
 
     return exp;
 
@@ -1945,7 +1945,7 @@ void deletePC(PlayerCreature* pPC) {
 }
 
 bool isAffectExp2X() {
-    if (g_pVariableManager->getVariable(TIME_PERIOD_EXP_2X) != 0) {
+    if (de::gameContext().variables().getVariable(TIME_PERIOD_EXP_2X) != 0) {
         TimeChecker& timeChecker = de::gameContext().timeChecker();
         if (timeChecker.isInPeriod(TIME_PERIOD_AFTER_SCHOOL) || timeChecker.isInPeriod(TIME_PERIOD_AFTER_WORK) ||
             timeChecker.isInPeriod(TIME_PERIOD_MIDNIGHT)) {

@@ -1385,7 +1385,7 @@ int Monster::getOustersExp(Ousters* pOusters) {
 void Monster::clearEnemyLimitTime() {
     getCurrentTime(m_EnemyLimitTime);
 
-    m_EnemyLimitTime.tv_sec += g_pVariableManager->getEnemyLimitTime();
+    m_EnemyLimitTime.tv_sec += de::gameContext().variables().getEnemyLimitTime();
     m_EnemyLimitTime.tv_usec = 0;
 }
 

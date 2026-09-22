@@ -16,6 +16,7 @@
 #include "GCRemoveStoreItem.h"
 #include "GCShopSellOK.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "ItemUtil.h"
@@ -173,7 +174,7 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
         remainTraceLog(pItem, pStorePC->getName(), pPC->getName(), ITEM_LOG_TRADE, DETAIL_TRADE);
     }
 
-    if (price > g_pVariableManager->getMoneyTraceLogLimit()) {
+    if (price > de::gameContext().variables().getMoneyTraceLogLimit()) {
         remainMoneyTraceLog(pPC->getName(), pStorePC->getName(), ITEM_LOG_TRADE, DETAIL_TRADE, price);
     }
 

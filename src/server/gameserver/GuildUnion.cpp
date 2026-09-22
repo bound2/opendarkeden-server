@@ -450,7 +450,8 @@ uint GuildUnionOfferManager::offerJoin(GuildID_t gID, GuildID_t masterGID) {
         return YOU_HAVE_PENALTY;
     }
 
-    if (repository.countUnionMembers(pUnion->getUnionID()) >= g_pVariableManager->getVariable(GUILD_UNION_MAX)) {
+    if (repository.countUnionMembers(pUnion->getUnionID()) >=
+        de::gameContext().variables().getVariable(GUILD_UNION_MAX)) {
         return NOT_ENOUGH_SLOT;
     }
 
@@ -542,7 +543,7 @@ uint GuildUnionOfferManager::acceptJoin(GuildID_t gID) {
         return NO_TARGET_UNION;
     }
 
-    if (repository.countUnionMembers(uID) >= g_pVariableManager->getVariable(GUILD_UNION_MAX)) {
+    if (repository.countUnionMembers(uID) >= de::gameContext().variables().getVariable(GUILD_UNION_MAX)) {
         return NOT_ENOUGH_SLOT;
     }
 

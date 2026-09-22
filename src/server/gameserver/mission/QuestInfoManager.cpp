@@ -1,6 +1,7 @@
 #include "QuestInfoManager.h"
 
 #include "EventQuestAdvance.h"
+#include "GameContext.h"
 #include "GatherItemQuestInfo.h"
 #include "Item.h"
 #include "ItemRewardInfo.h"
@@ -59,7 +60,7 @@ void QuestInfoManager::addQuestInfo(QuestInfo* pQI)
 QuestMessage QuestInfoManager::canExecuteQuest(QuestID_t qID, PlayerCreature* pPC) const {
     __BEGIN_TRY
 
-    if (!g_pVariableManager->canApplyQuest())
+    if (!de::gameContext().variables().canApplyQuest())
         return START_FAIL_CANNOT_APPLY_QUEST;
     if (pPC->getQuestManager()->hasQuest(qID))
         return START_FAIL_DUPLICATED_QUEST_ID;

@@ -12,6 +12,7 @@
 #include "GCCannotAdd.h"
 #include "GCDeleteObject.h"
 #include "GCDeleteandPickUpOK.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Item.h"
 #include "ItemUtil.h"
@@ -191,7 +192,7 @@ void CGPickupMoneyHandler::execute(CGPickupMoney* pPacket, Player* pPlayer)
             }
 
             // Leave a money log if the amount warrants one
-            if ((itemGold - marginGold) >= g_pVariableManager->getMoneyTraceLogLimit()) {
+            if ((itemGold - marginGold) >= de::gameContext().variables().getMoneyTraceLogLimit()) {
                 char zoneName[15];
                 sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), ZoneX, ZoneY);
                 remainMoneyTraceLog(zoneName, pCreature->getName(), ITEM_LOG_MOVE, DETAIL_PICKUP,

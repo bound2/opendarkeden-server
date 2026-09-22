@@ -43,7 +43,7 @@ ClientManager::ClientManager()
 
     // Schedule the next ZoneGroup balancing time.
     getCurrentTime(m_BalanceZoneGroupTime);
-    m_BalanceZoneGroupTime.tv_sec += 5 * 60; // g_pVariableManager->getZoneGroupBalancingMinute()*60;
+    m_BalanceZoneGroupTime.tv_sec += 5 * 60; // de::gameContext().variables().getZoneGroupBalancingMinute()*60;
     m_bForceZoneGroupBalancing = false;
     m_bDefaultZoneGroupBalancing = false;
 
@@ -102,6 +102,8 @@ void ClientManager::run()
 {
     __BEGIN_TRY
     __BEGIN_DEBUG
+
+    VariableManager& variables = de::gameContext().variables();
 
     // ZoneGroup* pZoneGroup = g_pZoneGroupManager->getZoneGroup(1);
     // ZonePlayerManager* pZonePlayerManager = pZoneGroup->getZonePlayerManager();
@@ -180,7 +182,7 @@ void ClientManager::run()
 
         if (m_BalanceZoneGroupTime < currentTime) {
             zoneGroups.balanceZoneGroup(m_bForceZoneGroupBalancing, m_bDefaultZoneGroupBalancing);
-            m_BalanceZoneGroupTime.tv_sec = currentTime.tv_sec + g_pVariableManager->getZoneGroupBalancingMinute() * 60;
+            m_BalanceZoneGroupTime.tv_sec = currentTime.tv_sec + variables.getZoneGroupBalancingMinute() * 60;
 
             m_bForceZoneGroupBalancing = false;
             m_bDefaultZoneGroupBalancing = false;
@@ -211,11 +213,11 @@ void ClientManager::run()
         }
 
         // War handling
-        if (g_pVariableManager->isWarActive()) {
+        if (variables.isWarActive()) {
             de::gameContext().warSystem().heartbeat();
         }
 
-        if (g_pVariableManager->isActiveFlagWar()) {
+        if (variables.isActiveFlagWar()) {
             de::gameContext().flags().heartbeat();
         }
 

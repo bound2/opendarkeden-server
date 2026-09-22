@@ -211,7 +211,7 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
                         Success = true;
                     }
 
-                    if (g_pVariableManager->getVariable(NETMARBLE_CARD_EVENT) != 0 &&
+                    if (de::gameContext().variables().getVariable(NETMARBLE_CARD_EVENT) != 0 &&
                         pPrevItem->getItemClass() == Item::ITEM_CLASS_MOON_CARD && pPrevItem->getItemType() == 2 &&
                         pPrevItem->getNum() == 99) {
                         GCNoticeEvent gcNE;

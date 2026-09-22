@@ -104,7 +104,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
         }
 
         if (pPacket->getZoneID() == 1131) {
-            if (g_pVariableManager->getVariable(ACTIVE_LEVEL_WAR) == 0) {
+            if (de::gameContext().variables().getVariable(ACTIVE_LEVEL_WAR) == 0) {
                 GCSystemMessage gcSystemMessage;
                 gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER));
                 pGamePlayer->sendPacket(&gcSystemMessage);
@@ -162,7 +162,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
                 pos.x = 67;
                 pos.y = 165;
             }
-            if (!g_pVariableManager->isActiveRaceWarLimiter() ||
+            if (!de::gameContext().variables().isActiveRaceWarLimiter() ||
                 pCreature->isFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET)) {
                 pPC->getGQuestManager()->illegalWarp();
                 transportCreature(pCreature, pos.id, pos.x, pos.y, false);

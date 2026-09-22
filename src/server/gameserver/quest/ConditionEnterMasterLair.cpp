@@ -8,6 +8,7 @@
 
 #include "DB.h"
 #include "FlagSet.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "MasterLairManager.h"
 #include "PacketUtil.h"
@@ -25,7 +26,7 @@
 bool ConditionEnterMasterLair::isSatisfied(Creature* pCreature1, Creature* pCreature2, void* pParam) const
 
 {
-    if (!g_pVariableManager->isActiveMasterLair()) {
+    if (!de::gameContext().variables().isActiveMasterLair()) {
         return false;
     }
 

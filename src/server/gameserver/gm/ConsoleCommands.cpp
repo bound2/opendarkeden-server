@@ -487,7 +487,7 @@ void opShowWarList(GamePlayer* pGamePlayer, const string& value1, GCSystemMessag
 // *command startRaceWar
 void opStartRaceWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage,
                     bool& bSendPacket) {
-    if (!g_pVariableManager->isWarActive()) {
+    if (!de::gameContext().variables().isWarActive()) {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WAR_OFF_DO_WAR_ACITIVE_ON));
     } else if (de::gameContext().warSystem().startRaceWar()) {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_RACE_WAR_START));
@@ -550,10 +550,10 @@ void opRemoveRaceWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMess
 
 // *command LevelWar
 void opLevelWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage, bool& bSendPacket) {
-    if (!g_pVariableManager->isWarActive()) {
+    if (!de::gameContext().variables().isWarActive()) {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WAR_OFF_DO_WAR_ACITIVE_ON));
     }
-    if (g_pVariableManager->isActiveLevelWar()) {
+    if (de::gameContext().variables().isActiveLevelWar()) {
         ZoneID_t zoneID = atoi(value1.c_str());
 
         if (zoneID != 1131 && zoneID != 1132 && zoneID != 1133 && zoneID != 1134)
@@ -800,7 +800,7 @@ void opSetGold(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& g
         pGamePlayer->sendPacket(&gcMI);
 
         // Leave a money log when the amount warrants one
-        if (gold >= g_pVariableManager->getMoneyTraceLogLimit()) {
+        if (gold >= de::gameContext().variables().getMoneyTraceLogLimit()) {
             if (gold > 2000000000)
                 gold = 2000000000;
 

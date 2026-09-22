@@ -12,17 +12,19 @@
 #include "VariableManager.h"
 
 NewYear2005Item getNewYear2005ItemKind(PlayerCreature* pPC, Monster* pMonster) {
-    if (rand() % g_pVariableManager->getVariable(BOKJORY_RATIO) == 0) {
+    VariableManager& variables = de::gameContext().variables();
+
+    if (rand() % variables.getVariable(BOKJORY_RATIO) == 0) {
         return BOKJORY;
-    } else if (rand() % g_pVariableManager->getVariable(EVENT_BLACK_RICE_CAKE_SOUP_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(EVENT_BLACK_RICE_CAKE_SOUP_RATIO) == 0) {
         return EVENT_BLACK_RICE_CAKE_SOUP;
-    } else if (rand() % g_pVariableManager->getVariable(EVENT_MUGWORT_RICE_CAKE_SOUP_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(EVENT_MUGWORT_RICE_CAKE_SOUP_RATIO) == 0) {
         return EVENT_MUGWORT_RICE_CAKE_SOUP;
-    } else if (rand() % g_pVariableManager->getVariable(EVENT_RED_RICE_CAKE_SOUP_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(EVENT_RED_RICE_CAKE_SOUP_RATIO) == 0) {
         return EVENT_RED_RICE_CAKE_SOUP;
-    } else if (rand() % g_pVariableManager->getVariable(EVENT_GREEN_RICE_CAKE_SOUP_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(EVENT_GREEN_RICE_CAKE_SOUP_RATIO) == 0) {
         return EVENT_GREEN_RICE_CAKE_SOUP;
-    } else if (rand() % g_pVariableManager->getVariable(EVENT_BLUE_RICE_CAKE_SOUP_RATIO) == 0) {
+    } else if (rand() % variables.getVariable(EVENT_BLUE_RICE_CAKE_SOUP_RATIO) == 0) {
         return EVENT_BLUE_RICE_CAKE_SOUP;
     }
 

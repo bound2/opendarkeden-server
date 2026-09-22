@@ -196,7 +196,7 @@ void Vampire::initAllStat(int numPartyMember)
     int RaceWarHPBonus = 0;
 
     if (m_pZone->isHolyLand() || m_pZone->isLevelWarZone()) {
-        RaceWarHPBonus = getPercentValue(m_HP[ATTR_MAX], g_pVariableManager->getRaceWarHPBonus());
+        RaceWarHPBonus = getPercentValue(m_HP[ATTR_MAX], de::gameContext().variables().getRaceWarHPBonus());
     }
 
     int DragonEyeHPBonus = 0;
@@ -209,7 +209,7 @@ void Vampire::initAllStat(int numPartyMember)
     // For now the bonus can apply to either side, win or lose.
     int HPBonus = 0;
     {
-        int bonusRatio = g_pVariableManager->getCombatVampireHPBonusRatio();
+        int bonusRatio = de::gameContext().variables().getCombatVampireHPBonusRatio();
 
         if (bonusRatio > 0) {
             HPBonus = getPercentValue(m_HP[ATTR_MAX], bonusRatio);

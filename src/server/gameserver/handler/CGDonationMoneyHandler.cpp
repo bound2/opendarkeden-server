@@ -11,6 +11,7 @@
 #include "EffectDonation200501.h"
 #include "GCModifyInformation.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -58,7 +59,7 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
     int sumAfterGuild = 0;
 
     // Check that the donation event is active.
-    if (g_pVariableManager->getVariable(DONATION_EVENT_200501) != 1) {
+    if (de::gameContext().variables().getVariable(DONATION_EVENT_200501) != 1) {
         return;
     }
 

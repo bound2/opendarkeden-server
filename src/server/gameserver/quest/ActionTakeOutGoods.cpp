@@ -9,6 +9,7 @@
 
 #include "GCGoodsList.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GoodsInventory.h"
 #include "NPC.h"
@@ -48,7 +49,7 @@ void ActionTakeOutGoods::execute(Creature* pCreature1, Creature* pCreature2)
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
     Assert(pPC != NULL);
 
-    if (g_pVariableManager->getVariable(CAN_BUY_SHOP) == 0) {
+    if (context().variables().getVariable(CAN_BUY_SHOP) == 0) {
         GCNPCResponse gcNPCResponse;
         gcNPCResponse.setCode(NPC_RESPONSE_CANNOT_BUY);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);

@@ -310,7 +310,7 @@ void MonsterManager::parseEventMonsterList(const string& text, bool bReload)
 
 
             for (uint m = 0; m < maxMonsters; m++) {
-                if (g_pVariableManager->isActiveChiefMonster()) {
+                if (de::gameContext().variables().isActiveChiefMonster()) {
                     // Find an empty coordinate in the zone.
                     ZoneCoord_t x, y;
                     if (tx != -1) {
@@ -695,7 +695,7 @@ void MonsterManager::regenerateCreatures()
         }
     }
 
-    if (g_pVariableManager->isActiveChiefMonster() && m_pEventMonsterInfo != NULL) {
+    if (de::gameContext().variables().isActiveChiefMonster() && m_pEventMonsterInfo != NULL) {
         Timeval currentTime;
         getCurrentTime(currentTime);
 
@@ -1072,6 +1072,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
     __BEGIN_TRY
 
     ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
+    VariableManager& variables = de::gameContext().variables();
 
     if (pDeadMonster->getMonsterType() == 734) {
         if (pDeadMonster->getZoneID() >= 1500 && pDeadMonster->getZoneID() <= 1506) {
@@ -1088,7 +1089,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
         pDeadMonster->setQuestItem(NULL);
     }
 
-    if (g_pVariableManager->getVariable(PREMIUM_TRIAL_EVENT) != 0 && pDeadMonster->getMonsterType() == 705) {
+    if (variables.getVariable(PREMIUM_TRIAL_EVENT) != 0 && pDeadMonster->getMonsterType() == 705) {
         if (rand() % 100 < 30) {
             int Num = 5 + (rand() % 5); // 5~9
             for (int i = 0; i < Num; ++i) {
@@ -1115,8 +1116,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
     int PartialSumOfCakeRatio = 0;
     int itemBonusPercent = 0;
 
-    if (g_pVariableManager->getHarvestFestivalItemRatio() > 0 &&
-        rand() % g_pVariableManager->getHarvestFestivalItemRatio() == 0) {
+    if (variables.getHarvestFestivalItemRatio() > 0 && rand() % variables.getHarvestFestivalItemRatio() == 0) {
         // The item can be one of five kinds.
         ITEM_TEMPLATE ricecake_template;
         ricecake_template.NextOptionRatio = 0;
@@ -1163,7 +1163,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
     //----------------------------------------------------------------------
     // Add the Christmas firecracker.
     //----------------------------------------------------------------------
-    int fireCrackerRatio = g_pVariableManager->getVariable(CHRISTMAS_FIRE_CRACKER_RATIO);
+    int fireCrackerRatio = variables.getVariable(CHRISTMAS_FIRE_CRACKER_RATIO);
     if (fireCrackerRatio > 0) {
         int value = rand() % 10000;
         if (value < fireCrackerRatio) {
@@ -1182,7 +1182,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
     //----------------------------------------------------------------------
     // Add the Christmas tree part.
     //----------------------------------------------------------------------
-    int treePartRatio = g_pVariableManager->getVariable(CHRISTMAS_TREE_PART_RATIO);
+    int treePartRatio = variables.getVariable(CHRISTMAS_TREE_PART_RATIO);
     if (treePartRatio > 0) {
         int value = rand() % 10000;
         if (value < treePartRatio) {
@@ -1227,7 +1227,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
     //----------------------------------------------------------------------
     // Add the green gift box.
     //----------------------------------------------------------------------
-    int giftBoxRatio = g_pVariableManager->getVariable(CHRISTMAS_GIFT_BOX_RATIO);
+    int giftBoxRatio = variables.getVariable(CHRISTMAS_GIFT_BOX_RATIO);
     if (giftBoxRatio > 0) {
         int value = rand() % 10000;
         if (value < giftBoxRatio) {
@@ -1247,7 +1247,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
     // is handled here too because it must not go into Monster's m_pQuestItem.
     // (The lucky pouch does not really need to go into m_pQuestItem either.)
     //----------------------------------------------------------------------
-    if (g_pVariableManager->isEventGiftBox()) {
+    if (variables.isEventGiftBox()) {
         if (m_pZone != NULL) {
             Creature* pCreature = m_pZone->getCreature(pDeadMonster->getLastKiller());
 
@@ -1308,7 +1308,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
     }
 
     // Is this monster a chief monster?
-    bool bChiefMonsterBonus = pDeadMonster->isChief() && g_pVariableManager->isActiveChiefMonster();
+    bool bChiefMonsterBonus = pDeadMonster->isChief() && variables.isActiveChiefMonster();
 
 
     if (pTreasureList != NULL) {
@@ -1325,8 +1325,8 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
             int itemRatioBonus = 0;
 
             if (bChiefMonsterBonus) {
-                it.NextOptionRatio = g_pVariableManager->getChiefMonsterRareItemPercent();
-                itemRatioBonus = g_pVariableManager->getPremiumItemProbePercent();
+                it.NextOptionRatio = variables.getChiefMonsterRareItemPercent();
+                itemRatioBonus = variables.getPremiumItemProbePercent();
             } else {
                 it.NextOptionRatio = 0;
             }
@@ -1346,7 +1346,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                     pTreasure->setRndItemOptionMax(3);
                 } else
                     pTreasure->setRndItemOptionMax(2);
-                if (pTreasure->getRandomItem(&it, itemRatioBonus + g_pVariableManager->getPremiumItemProbePercent() +
+                if (pTreasure->getRandomItem(&it, itemRatioBonus + variables.getPremiumItemProbePercent() +
                                                       itemBonusPercent)) {
                     // by sigi. 2002.10.21
                     int upgradeLevel = upgradeItemTypeByLuck(luckLevel, ownerCreatureClass, it);
@@ -1386,7 +1386,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                     if (bChiefMonsterBonus
                         // For now this uses the same probability as rare items.
                         // Later it should be split out into a separate variable.
-                        && rand() % 100 < g_pVariableManager->getChiefMonsterRareItemPercent() &&
+                        && rand() % 100 < variables.getChiefMonsterRareItemPercent() &&
                         isPossibleUpgradeItemType(it.ItemClass)) {
                         // Upgrade the ItemType by one grade.
                         int upgradeCount = 1;
@@ -1412,7 +1412,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
 
                     // Jackpot event: add 8 more skulls.
                     if (isLottoZone && pItem->getItemClass() == Item::ITEM_CLASS_SKULL) {
-                        int lottoSkullRatio = g_pVariableManager->getVariable(LOTTO_SKULL_RATIO);
+                        int lottoSkullRatio = variables.getVariable(LOTTO_SKULL_RATIO);
                         if (lottoSkullRatio > 0) {
                             int value = rand() % 10000;
                             if (value < lottoSkullRatio) {
@@ -1428,7 +1428,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                     }
                 }
             } else {
-                if (pTreasure->getRandomItem(&it, g_pVariableManager->getItemProbRatio() + itemBonusPercent)) {
+                if (pTreasure->getRandomItem(&it, variables.getItemProbRatio() + itemBonusPercent)) {
                     pItem = itemFactories.createItem(it.ItemClass, it.ItemType, it.OptionType);
                     Assert(pItem != NULL);
                     if (pItem->getItemClass() == Item::ITEM_CLASS_RESURRECT_ITEM)
@@ -1455,10 +1455,10 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
 
             if (pItem != NULL && pItem->getItemClass() != Item::ITEM_CLASS_SKULL) {
                 if (bChiefMonsterBonus)
-                    nBonusItem = g_pVariableManager->getVariable(CHIEF_ITEM_BONUS_NUM);
+                    nBonusItem = variables.getVariable(CHIEF_ITEM_BONUS_NUM);
 
                 if (isLottoZone && isLottoWinning())
-                    nBonusItem = g_pVariableManager->getVariable(LOTTO_ITEM_BONUS_NUM);
+                    nBonusItem = variables.getVariable(LOTTO_ITEM_BONUS_NUM);
 
                 if (pDeadMonster->getMonsterType() == 765)
                     nBonusItem = 8;
@@ -1484,8 +1484,8 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                     if (bChiefMonsterBonus || pDeadMonster->getMonsterType() == 765 ||
                         pDeadMonster->getZoneID() == 1013) //  add by sonic 2006.101.
                     {
-                        it.NextOptionRatio = g_pVariableManager->getChiefMonsterRareItemPercent();
-                        itemRatioBonus = g_pVariableManager->getPremiumItemProbePercent();
+                        it.NextOptionRatio = variables.getChiefMonsterRareItemPercent();
+                        itemRatioBonus = variables.getPremiumItemProbePercent();
                     } else {
                         it.NextOptionRatio = 0;
                     }
@@ -1495,8 +1495,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                     // Item probability is doubled in pay zones.
                     Zone* pZone = pDeadMonster->getZone();
                     if (pZone->isPayPlay() || pZone->isPremiumZone()) {
-                        if (pTreasure->getRandomItem(&it, itemRatioBonus +
-                                                              g_pVariableManager->getPremiumItemProbePercent() +
+                        if (pTreasure->getRandomItem(&it, itemRatioBonus + variables.getPremiumItemProbePercent() +
                                                               itemBonusPercent)) {
                             // by sigi. 2002.10.21
                             int upgradeLevel = upgradeItemTypeByLuck(luckLevel, ownerCreatureClass, it);
@@ -1533,7 +1532,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                             if (bChiefMonsterBonus
                                 // For now this uses the same probability as rare items.
                                 // Later it should be split out into a separate variable.
-                                && rand() % 100 < g_pVariableManager->getChiefMonsterRareItemPercent() &&
+                                && rand() % 100 < variables.getChiefMonsterRareItemPercent() &&
                                 isPossibleUpgradeItemType(it.ItemClass)) {
                                 // Upgrade the ItemType by one grade.
                                 int upgradeCount = 1;
@@ -1568,7 +1567,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                                 pMonsterCorpse->addTreasure(pItem);
                         }
                     } else {
-                        if (pTreasure->getRandomItem(&it, g_pVariableManager->getItemProbRatio() + itemBonusPercent)) {
+                        if (pTreasure->getRandomItem(&it, variables.getItemProbRatio() + itemBonusPercent)) {
                             pItem = itemFactories.createItem(it.ItemClass, it.ItemType, it.OptionType);
                             Assert(pItem != NULL);
                             if (pItem->getItemClass() == Item::ITEM_CLASS_RESURRECT_ITEM)
@@ -1859,7 +1858,7 @@ string MonsterManager::toString() const
 
 
 bool isLottoWinning() {
-    int lottoItemRatio = g_pVariableManager->getVariable(LOTTO_ITEM_RATIO);
+    int lottoItemRatio = de::gameContext().variables().getVariable(LOTTO_ITEM_RATIO);
     if (lottoItemRatio > 0) {
         int value = rand() % 10000;
         if (value < lottoItemRatio) {

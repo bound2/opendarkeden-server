@@ -230,7 +230,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
 
             if (pBeltItem->getItemClass() == Item::ITEM_CLASS_KEY) {
-                if (!g_pVariableManager->isSummonMotorcycle() || pSlayer->hasRideMotorcycle() ||
+                if (!de::gameContext().variables().isSummonMotorcycle() || pSlayer->hasRideMotorcycle() ||
                     pBeltItem->getItemClass() != Item::ITEM_CLASS_KEY || pSlayer->isFlag(Effect::EFFECT_CLASS_COMA) ||
                     (pZone->getZoneLevel(pCreature->getX(), pCreature->getY()) & SAFE_ZONE) || pZone->isMasterLair() ||
                     pZone->isNoPortalZone() || (!pGamePlayer->isPremiumPlay() && !pGamePlayer->isPayPlaying()) ||
