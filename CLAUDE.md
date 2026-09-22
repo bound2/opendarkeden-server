@@ -231,7 +231,7 @@ lists — edit the lists, not an `addFactory` sequence — selected per server:
 the gameserver takes three, the loginserver two, the sharedserver one.
 `tests/packet_meta_test.cpp` compiles the whole kernel into one list. A new
 packet needs the three constants in its factory or it will not satisfy the
-concept. See `docs/TOOLCHAIN.md` §3.
+concept. See `docs/TOOLCHAIN.md` §3 and `.claude/skills/add-packet`.
 
 ### Preprocessor Macros
 

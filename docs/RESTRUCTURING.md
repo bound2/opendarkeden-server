@@ -1330,12 +1330,28 @@ gating; `Zone.cpp` under 2,000 lines.
   > count nothing measures. Keep it that way: a sentence in CLAUDE.md that no
   > file or command backs is the failure mode this task exists to fix.
 
-- [ ] **5.2 `.claude/skills/add-packet` skill.** Modeled on sidecar's
+- [x] **5.2 `.claude/skills/add-packet` skill.** Modeled on sidecar's
   `add-sidecar-domain`: the checklist for adding/changing a packet — layout
   inventory regenerated in *both* repos, golden fixture added, shuffle
   branches covered, handler registered at the composition root (never on the
   packet), client-repo counterpart commit linked.
-  > **Status:** not started
+  > **Status:** done (2026-09-22) — `.claude/skills/add-packet/SKILL.md`, ten
+  > steps derived from what the tests already enforce rather than from
+  > habit: the `Packet.h` enumerator (appending is cheap, inserting shifts
+  > every later id in both repos), the factory's `kPacketID`/`kName`/
+  > `kMaxSize` and the `de::PacketFactoryType` concept, kernel membership
+  > in `tests/arch/kernel_files.txt` with K1/K2, the per-server
+  > `FactoryList` plus regenerating `tests/ratchet/factory_registrations.txt`,
+  > the handler at the composition root through
+  > `DE_REGISTER_PACKET_HANDLER` (and the `PacketValidator` set, needed only
+  > before `GPS_NORMAL`), `tests/tools/gen_factory_list.sh`, the golden
+  > fixture and its recording rule, the per-code goldens a shuffled packet
+  > needs, the inventory re-record in this repo and in the client's, and the
+  > `wire_inventory_diff.sh` cross-check with the counterpart commit linked
+  > in the PR. Every step names the file or command that proves it; steps
+  > that no check enforces say so (a plain packet's missing golden is the
+  > one). `.claude/skills/` is out of `.gitignore` so the skill is checked
+  > in, like the scripts under `tests/`.
 
 - [x] **5.3 Fix log.** When restructuring uncovers real bugs (1.4 layout
   diffs, races, double-frees), record them in `docs/FIXES.md` with sidecar's
