@@ -163,30 +163,20 @@ string MonsterNameManager::getRandomName(Monster* pMonster)
 
     // Level_t MonsterLevel = pInfo->getLevel();
     string Name = "";
-    bool bContinue = true;
     int trial = 0;
 
-    while (bContinue && trial++ < 300) {
-        short nFirstNameIndex = -1;
-        short nMiddleNameIndex = -1;
-        short nLastNameIndex = -1;
+    // The name is the middle part alone, drawn again while the row that
+    // came up is empty.
+    while (Name == "" && trial++ < 300) {
+        short nMiddleNameIndex = rand() % m_nMiddleNameCount;
 
-        nMiddleNameIndex = rand() % m_nMiddleNameCount;
-
-        if (nFirstNameIndex != -1)
-            Name += m_pFirstName[nFirstNameIndex] + " ";
-        if (nMiddleNameIndex != -1)
-            Name += m_pMiddleName[nMiddleNameIndex] + " ";
-        if (nLastNameIndex != -1)
-            Name += m_pLastName[nLastNameIndex];
-
-        return Name;
+        Name = m_pMiddleName[nMiddleNameIndex];
     }
 
     // If trial goes over 300 no proper name was found,
     // so give it an arbitrary name.
     if (Name == "")
-        Name == "무명씨";
+        Name = "무명씨";
 
     return Name;
 

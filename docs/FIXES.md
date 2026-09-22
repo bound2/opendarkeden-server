@@ -105,7 +105,18 @@ that followed it.
   a last name alone up to level 33, first and last to 66, all three above.
   The event overload has the same loop shape but draws a sensible event
   name.
-  > **Status:** recorded, not fixed (refactor/commented-code-3)
+  The name is now the middle part alone with no trailing space, the loop
+  draws again while the row that came up is empty, and the fallback is an
+  assignment the 300th empty draw reaches. The banded design is **not**
+  restored and stays a design decision: the parts the database ships are up
+  to 13, 11 and 18 bytes, so its top band composes up to 44 bytes while
+  `GCAddMonster`, `GCAddMonsterFromBurrowing` and
+  `GCAddMonsterFromTransformation` all throw `InvalidProtocolException`
+  above a 32-byte name, and how to keep a three-part name inside that
+  field is not something the deleted comment says. The first and last
+  name tables stay loaded and unread, as they already were behind the
+  indices that were always -1.
+  > **Status:** fixed (fix/recorded-defects-2)
 
 ## The item factory's out-of-range guard is caught by its own handler (2026-09-22)
 
