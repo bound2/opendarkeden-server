@@ -76,7 +76,8 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
             HitBonus = pRankBonus->getPoint();
         }
 
-        // Spends 12% of the current HP and recovers the same amount.
+        // Spends 12% of the caster's current HP and heals the target by the
+        // same amount.
         int CurrentHP = pVampire->getHP(ATTR_CURRENT);
         int RequiredMP = CurrentHP * 12 / 100; // decreaseConsumeMP(pVampire, pSkillInfo);
         int RecoverHP = CurrentHP * 12 / 100;

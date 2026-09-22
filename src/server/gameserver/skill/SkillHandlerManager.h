@@ -20,7 +20,7 @@ public:
     ~SkillHandlerManager();
 
 public:
-    // Called from ObjectManager::init().
+    // Called from ObjectManager::load().
     void init();
 
     // Registers a skill handler object.

@@ -110,7 +110,7 @@ public:
 private:
     Durability_t m_Durability;      // Durability
     uint m_PocketCount;             // Number of pockets
-    Defense_t m_DefenseBonus;       // defense bonus
+    Defense_t m_DefenseBonus;       // Defense bonus
     Protection_t m_ProtectionBonus; // protection bonus
     uint m_ItemLevel;               // Item level
 };

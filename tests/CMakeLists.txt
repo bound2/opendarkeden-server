@@ -801,7 +801,9 @@ set_tests_properties(player_race_tests PROPERTIES TIMEOUT 60)
 # RaceSkillSlot carries the run-time arithmetic and the delay-change save
 # rule for both the vampire and the ousters slot. The slot compiles on its
 # own -- the only Core source it needs is the string stream the exception
-# stack traces are built with.
+# stack traces are built with. Without __GAME_SERVER__ the slot reads the
+# wall clock rather than the gameserver's per-tick gCurrentTime, so the
+# run-time tests allow a tick of drift.
 add_executable(race_skill_slot_tests EXCLUDE_FROM_ALL
     race_skill_slot_test.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/skill/RaceSkillSlot.cpp

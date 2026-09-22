@@ -907,7 +907,8 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         }
     }
 
-    // Water Barrier reduces the damage of everything but melee attacks.
+    // Water Barrier reduces the damage of the non-melee skills
+    // canBlockByWaterBarrier lists.
     if (pTargetCreature != NULL && pTargetCreature->isFlag(Effect::EFFECT_CLASS_WATER_BARRIER) &&
         !pSkillProperty->isMelee()) {
         // Basic skills have no SkillInfo.
@@ -2082,7 +2083,7 @@ bool canHit(Creature* pAttacker, Creature* pDefender, SkillType_t SkillType, Ski
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Computes the splash size an SG or SR shot covers at the firing distance.
+// Computes the splash size an SG shot covers at the firing distance.
 //////////////////////////////////////////////////////////////////////////////
 int computeArmsWeaponSplashSize(Item* pWeapon, int ox, int oy, int tx, int ty) {
     Assert(pWeapon != NULL);

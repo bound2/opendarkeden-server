@@ -32,7 +32,7 @@ public:
     }
 
 private:
-    ExpLevel_t m_ExpLevel; // Skill level
+    ExpLevel_t m_ExpLevel = 0; // Skill level
 };
 
 #endif // __OUSTERS_SKILL_SLOT_H__

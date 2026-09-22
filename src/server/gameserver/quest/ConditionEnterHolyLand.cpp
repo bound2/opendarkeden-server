@@ -25,8 +25,6 @@
 bool ConditionEnterHolyLand::isSatisfied(Creature* pCreature1, Creature* pCreature2, void* pParam) const
 
 {
-    // A check for whether a war is in progress still has to be added.
-
     Assert(pCreature2 != NULL);
     Assert(pCreature2->isPC());
 

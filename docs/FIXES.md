@@ -11,6 +11,53 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## The item factory's out-of-range guard is caught by its own handler (2026-09-22)
+
+- **`ItemFactoryManager::createItem` checks the item class and throws
+  `NoSuchElementException` inside a `try` whose `catch (Throwable&)` only
+  prints it,** so control falls through to `m_Factories[IClass]->createItem`
+  with the very index or null factory the guard rejected: an out-of-bounds
+  read of the factory array for a class past `ITEM_CLASS_MAX`, a null call
+  for an in-range class no factory registered. Not reachable from a client
+  packet: all 41 callers pass a literal class, a class read off an existing
+  item, or one from server-side data, and the GM item command is gated by
+  `isPossibleItem`, which asserts the range first. A corrupt database or
+  XML row (`ItemMineInfo` reads its class from the database) crashes where
+  the guard meant to log and skip. `getItemName` has the weaker shape of the
+  same defect: it builds its diagnostic and discards it, then indexes.
+  > **Status:** recorded, not fixed (refactor/game-context-9)
+
+## A lair-item trade leaks every winning treasure but the last (2026-09-22)
+
+- **`ActionTradeLairItem::execute` walks the monster type's treasure list
+  and calls `createItem` for every entry whose `getRandomItem` succeeds,
+  assigning each to the same `pItem1`,** so only the last survivor reaches
+  `registerObject` and the earlier ones are heap objects nothing frees. One
+  entry means no leak; several mean a leak on every trade, a repeatable NPC
+  action. `CGLotterySelectHandler` has the identical loop shape.
+  > **Status:** recorded, not fixed (fix/comment-accuracy-2)
+
+## Yellow Poison restores a fixed sight instead of the one it replaced (2026-09-22)
+
+- **`EffectYellowPoisonToCreature::unaffect` sets the sight to the literal
+  13 and only then removes the effect flag;** `m_OldSight`, which the affect
+  and the loader both write, is read nowhere. `EffectFlare::unaffect` and
+  `EffectLightness::unaffect` do it the right way round: remove the flag,
+  then `setSight(getEffectedSight())`. The default and Lightness sights are
+  13 too, so it diverges only under another sight effect: a creature blinded
+  by Flare and then poisoned gets full vision back the moment the poison
+  ticks out, and monsters, whose Flare restore reads the per-type sight,
+  are restored to a value that need not be theirs.
+  > **Status:** recorded, not fixed (fix/comment-accuracy-2)
+
+## The event item action dereferences a null selector for an Ousters (2026-09-22)
+
+- **`ActionGiveEventItem::execute` picks the Lua item selector in an
+  `isSlayer()` branch and an `isVampire()` branch, neither of which an
+  Ousters enters,** so `pLuaSelectItem` stays null and is dereferenced a
+  few lines down.
+  > **Status:** recorded, not fixed (fix/comment-accuracy-2)
+
 ## A skill off cooldown is sent a 4-billion-turn casting time (2026-09-22)
 
 - **`getRemainTurn` returns `Turn_t`, which is `DWORD`.** The body subtracts
@@ -21,12 +68,16 @@ that followed it.
   `Slayer::sendSlayerSkillInfo`, `Vampire::sendVampireSkillInfo` and
   `Ousters::sendOustersSkillInfo` put it in the sub-info's *casting time*
   field, and `SubSlayerSkillInfo`/`SubVampireSkillInfo`/`SubOustersSkillInfo`
-  write it to the client as four bytes. Login is safe — the load path calls
-  `setRunTime()`, which places the run time an interval ahead — but every
-  later send is not: `ZoneSpawn.cpp` sends the whole skill list on each zone
-  entry, and the four `CGSkillTo*` handlers resend it after a vampire cast.
-  The same conversion sits in `skill/SkillSlot.h` and `skill/RaceSkillSlot.h`
-  alike, so this is one defect behind three callers, not three defects.
+  write it to the client as four bytes. The load path calls `setRunTime()`,
+  which places the run time the stored delay ahead, and each race's
+  `addSkill` stores a delay of 0 for a newly learned skill, so a skill
+  learned and not yet cast is already past its run time by the time
+  `ZoneSpawn.cpp` sends the skill list on the first zone entry after login;
+  every later send repeats it — each zone entry, the four `CGSkillTo*`
+  handlers after a vampire cast, `EventMorph.cpp`, `PCManager.cpp` and
+  `skill/Restore.cpp`. The same body sits in `skill/SkillSlot.cpp` and
+  `skill/RaceSkillSlot.cpp` alike, so this is one defect behind three
+  callers, not three defects.
   Pinned as it stands by `race_skill_slot_tests`
   (`ARunTimeAlreadyPastWrapsInsteadOfGoingNegative`); a fix has to decide
   what a ready skill should report, which is a protocol question rather

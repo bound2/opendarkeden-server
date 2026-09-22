@@ -1235,7 +1235,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `ClientManager` and `LoginPlayerManager`. `ctf/` and `quest/` are the
   > converted subsystems: `FlagManager`, `ActionFactoryManager`, `Trigger` and
   > `TriggerParser` take the context in their constructors and every `Action`
-  > gets it from its factory; none calls `de::gameContext()`, the shim creation
+  > gets it from its factory; none of those calls `de::gameContext()`, the shim creation
   > sites and unconverted callers use. `game_context_tests` and
   > `login_context_tests` build a context over stand-in pointers with no server
   > linked, which the forward-declaration-only headers are for. R1: 325 → 36.
@@ -1375,7 +1375,7 @@ down. Review checkpoint: when R2 hits 0, close 3.2 and re-baseline R3.
   > so the next shrink is a reconciliation of one of those two types, not
   > another hoist. Line counts pinned by `ratchets.sh` R6h/R6i/R6j,
   > `__BEGIN_TRY` sites by R5.
-  - Owner: R6h/R6i/R6j ratchets; `player_race_tests`.
+  - Owner: R6h/R6i/R6j ratchets; `player_race_tests`; `race_skill_slot_tests`.
 
 **Phase exit criteria:** every GM command behind the router with declared
 gating; `Zone.cpp` under 2,000 lines.

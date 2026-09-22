@@ -407,7 +407,9 @@ public:
     // operations on that table that do not depend on which class it is:
     // the lookup, the two castle-skill removals and the save sweep. The
     // race supplies its slot type, and removeCastleSkillSlot its castle
-    // slot type -- only a slot of that class is deleted.
+    // slot type -- only a slot of that class is deleted. The bodies and
+    // the explicit instantiations for the three slot types are at the
+    // foot of PlayerCreature.cpp; a new slot type is added to that list.
     ////////////////////////////////////////////////////////////
 protected:
     template <class SlotType>
