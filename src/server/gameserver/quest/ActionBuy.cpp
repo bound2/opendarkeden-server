@@ -2,9 +2,9 @@
 // Filename    : ActionBuy.cpp
 // Written By  :
 // Description :
-// Action where the NPC buys items from the player. Like the Sell
-// action, it does nothing special; it only sends the player the
-// current shop version as a packet.
+// Action where the NPC buys items from the player. It acknowledges the
+// request with an NPC response, then sends the NPC's current buy and
+// sell market conditions.
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "ActionBuy.h"
@@ -16,8 +16,8 @@
 #include "NPC.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// The ActionBuy action only sends the ShopVersion to the client, so
-// there are no parameters that need reading.
+// The ActionBuy action takes no parameters, so there is nothing to read
+// here.
 //
 // If a shop that buys only certain kinds of item is wanted later,
 // a property can be added and read here. The NPC part would need

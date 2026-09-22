@@ -98,7 +98,8 @@ void ActionTeachSkill::executeSlayer(Creature* pCreature1, Creature* pCreature2)
 
     Assert(pPlayer != NULL);
 
-    // First check whether the skill can be learned.
+    // Nothing is taught while the domain still carries goal experience; the
+    // reply then names target level 0.
     if (pSlayer->getGoalExp(m_DomainType) != 0) {
         // Build the packet...
         teachinfo.setDomainType(m_DomainType);

@@ -38,14 +38,14 @@ bool ConditionEnterHolyLand::isSatisfied(Creature* pCreature1, Creature* pCreatu
 
     bPayPlay = true;
 
-    // Only someone who has paid can enter the castle.
+    // The pay-to-play gate is always open: bPayPlay is set true just above.
     if (bPayPlay) {
         // During a race war, if the number of participants is limited.
         if (g_pWarSystem->hasActiveRaceWar() && g_pVariableManager->isActiveRaceWarLimiter()) {
             Zone* pZone = getZoneByZoneID(m_TargetZoneID);
             Assert(pZone != NULL);
 
-            // When entering Adam's holy land
+            // Only a holy land is limited; any other zone is entered freely.
             if (!pZone->isHolyLand()) {
                 return true;
             }

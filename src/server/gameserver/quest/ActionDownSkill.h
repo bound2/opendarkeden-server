@@ -2,7 +2,7 @@
 // Filename    : ActionDownSkill.h
 // Written By  : excel96
 // Description :
-// Makes the client open the guild creation window through an NPC.
+// Makes the client open the skill-lowering window through an NPC.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_DOWN_SKILL_H__

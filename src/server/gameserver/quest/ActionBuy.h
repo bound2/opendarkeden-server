@@ -2,9 +2,9 @@
 // Filename    : ActionBuy.h
 // Written By  : excel96
 // Description :
-// Action where the NPC buys items from the player. Like the Sell action,
-// it does nothing special; it only sends the player the current shop
-// version as a packet.
+// Action where the NPC buys items from the player. It acknowledges the
+// request with an NPC response, then sends the NPC's current buy and
+// sell market conditions.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_BUY_H__

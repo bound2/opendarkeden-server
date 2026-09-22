@@ -2,7 +2,7 @@
 // Filename    : ActionDestroyGuild.h
 // Written By  :
 // Description :
-// Makes the client open the guild creation window through an NPC.
+// Makes the client open the guild disband window through an NPC.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_DESTROY_GUILD_H__
