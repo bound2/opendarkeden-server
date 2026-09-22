@@ -818,3 +818,22 @@ target_link_libraries(race_skill_slot_tests PRIVATE gtest_main Threads::Threads)
 add_dependencies(wire_tests race_skill_slot_tests)
 add_test(NAME race_skill_slot_tests COMMAND race_skill_slot_tests)
 set_tests_properties(race_skill_slot_tests PROPERTIES TIMEOUT 60)
+
+# --- slayer skill slot -----------------------------------------------------
+# SkillSlot is the slayer's slot and repeats the same run-time arithmetic.
+# It compiles on its own too; the one symbol it needs from the rest of the
+# gameserver is the skill-save repository, which the test stands in for.
+add_executable(skill_slot_tests EXCLUDE_FROM_ALL
+    skill_slot_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/skill/SkillSlot.cpp
+    ${CMAKE_SOURCE_DIR}/src/Core/StringStream.cpp
+)
+target_include_directories(skill_slot_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+)
+target_link_libraries(skill_slot_tests PRIVATE gtest_main Threads::Threads)
+add_dependencies(wire_tests skill_slot_tests)
+add_test(NAME skill_slot_tests COMMAND skill_slot_tests)
+set_tests_properties(skill_slot_tests PROPERTIES TIMEOUT 60)

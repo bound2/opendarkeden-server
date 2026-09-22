@@ -78,11 +78,14 @@ that followed it.
   `skill/Restore.cpp`. The same body sits in `skill/SkillSlot.cpp` and
   `skill/RaceSkillSlot.cpp` alike, so this is one defect behind three
   callers, not three defects.
-  Pinned as it stands by `race_skill_slot_tests`
-  (`ARunTimeAlreadyPastWrapsInsteadOfGoingNegative`); a fix has to decide
-  what a ready skill should report, which is a protocol question rather
-  than a refactor.
-  > **Status:** recorded, not fixed (refactor/skill-slot-base)
+  Both bodies now clamp: a run time that is already past reports no turns
+  left. The wire layout is unchanged and the client already handles the
+  value — `GCSkillInfoHandler` passes the casting time to
+  `SKILLINFO_NODE::SetAvailableTime`, whose zero means "usable now", the
+  same thing the wrapped value reached through its negative `int`. The
+  clamped rule is pinned by `race_skill_slot_tests` and by the new
+  `skill_slot_tests`, which covers the slayer slot's copy of the body.
+  > **Status:** fixed (fix/recorded-defects-1)
 
 ## ObjectManager created a volume info manager it never deleted (2026-09-17)
 

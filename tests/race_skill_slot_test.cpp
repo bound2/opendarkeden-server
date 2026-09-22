@@ -81,15 +81,22 @@ TEST(RaceSkillSlotTest, RemainingTurnsAreTenthsOfASecondUntilTheRunTime) {
     EXPECT_EQ(20u, slot.getRemainTurn(at(100, 0)));
 }
 
-TEST(RaceSkillSlotTest, ARunTimeAlreadyPastWrapsInsteadOfGoingNegative) {
-    // Turn_t is unsigned, so a slot that came off cooldown reports the
-    // remainder as a huge count rather than as the negative one the
-    // subtraction computes. GCSkillInfo puts this number on the wire as the
-    // skill's remaining casting time (docs/FIXES.md).
+TEST(RaceSkillSlotTest, ARunTimeAlreadyPastReportsNoRemainingTurns) {
+    // Turn_t is unsigned and GCSkillInfo puts this number on the wire as the
+    // skill's remaining casting time, so a slot that came off cooldown
+    // reports zero rather than the count near 2^32 the subtraction wraps to.
     RecordingSkillSlot slot;
 
+    // Whole seconds past, and a fraction of a second past.
     slot.placeRunTime(99, 0);
-    EXPECT_EQ((Turn_t)-10, slot.getRemainTurn(at(100, 0)));
+    EXPECT_EQ(0u, slot.getRemainTurn(at(100, 0)));
+
+    slot.placeRunTime(99, 900000);
+    EXPECT_EQ(0u, slot.getRemainTurn(at(100, 0)));
+
+    // The run time itself is no longer remaining.
+    slot.placeRunTime(100, 0);
+    EXPECT_EQ(0u, slot.getRemainTurn(at(100, 0)));
 }
 
 TEST(RaceSkillSlotTest, SettingTheRunTimePutsTheDelayAhead) {
