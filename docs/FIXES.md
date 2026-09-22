@@ -39,6 +39,20 @@ that followed it.
   `CastleShrineInfoManager` still applies the check. Restoring it needs the
   castle zone id the same block no longer computes and a decision on the
   three statements that went with it.
+  The zone id is there to be had -- a shrine set's guard shrines sit in the
+  castle zones, so the commented `getReturnGuardShrine().getZoneID()` is a
+  castle zone id and needs none of the guard-to-castle mapping the castle
+  counterpart does. What is missing is a war to ask. `WarSystem::
+  isModifyCastleOwner` answers out of `getActiveWar`, which only ever
+  returns a siege war whose castle zone matches, and asserts on a null one;
+  `Assert` throws in every build. The holy land's war is the race war, which
+  `getActiveWar` never returns and which overrides neither
+  `isModifyCastleOwner` nor `endWar`, both `false` on the `War` base. So the
+  castle's shape restored here throws on every matching blood bible placed
+  outside a siege on the owner's castle, and inside one asks a predicate --
+  the siege attacker flags -- that has nothing to say about a race. Which
+  war may flip a holy shrine's owner, and on what test, is a design
+  decision the commented code does not answer, so it stays recorded.
   > **Status:** recorded, not fixed (refactor/game-context-11)
 
 ## A random mine item is read off a row that may not exist (2026-09-22)
