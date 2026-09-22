@@ -119,111 +119,6 @@ bool Tile::addCreature(Creature* pCreature, bool bCheckEffect, bool bCheckPortal
             Portal* pPortal = getPortal();
             if (pPortal->activate(pCreature))
                 return false;
-
-            /*			if (pCreature->isSlayer())
-                        {
-                            Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-
-                            if (pPortal->getPortalClass() != PORTAL_CLASS_MULTI)
-                            {
-                                if (pPortal->getObjectType() == PORTAL_NORMAL || pPortal->getObjectType() ==
-               PORTAL_SLAYER
-                                        || pPortal->getObjectType() == PORTAL_GUILD || pPortal->getObjectType() ==
-               PORTAL_BATTLE)
-                                {
-                                    // For a triggered portal, throw the portal exception only when
-                                    // the trigger condition has been satisfied.
-                                    if (pPortal->getPortalClass() == PORTAL_CLASS_TRIGGERED)
-                                    {
-                                        if (pPortal->activate(pSlayer))
-                                        {
-                                            //throw PortalException();
-                                            // PortalException removed.
-                                            return false;
-                                        }
-                                    }
-
-                                    else if (!(pSlayer->hasRideMotorcycle() && pPortal->getObjectType() ==
-               PORTAL_SLAYER))
-                                    {
-                                        if (pPortal->activate(pSlayer))
-                                        {
-                                            //throw PortalException();
-                                            // PortalException removed.
-                                            return false;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else if (pCreature->isVampire())
-                        {
-                            Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-
-                            if (pPortal->getPortalClass() != PORTAL_CLASS_MULTI)
-                            {
-                                if (pPortal->getObjectType() == PORTAL_NORMAL || pPortal->getObjectType() ==
-               PORTAL_VAMPIRE
-                                        || pPortal->getObjectType() == PORTAL_GUILD || pPortal->getObjectType() ==
-               PORTAL_BATTLE)
-                                {
-                                    // For a triggered portal, throw the portal exception only when
-                                    // the trigger condition has been satisfied.
-                                    if (pPortal->getPortalClass() == PORTAL_CLASS_TRIGGERED)
-                                    {
-                                        if (pPortal->activate(pVampire))
-                                        {
-                                            //throw PortalException();
-                                            // PortalException removed.
-                                            return false;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (pPortal->activate(pVampire))
-                                        {
-                                            //throw PortalException();
-                                            // PortalException removed.
-                                            return false;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else if (pCreature->isOusters())
-                        {
-                            Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
-
-                            if (pPortal->getPortalClass() != PORTAL_CLASS_MULTI)
-                            {
-                                if (pPortal->getObjectType() == PORTAL_NORMAL || pPortal->getObjectType() ==
-               PORTAL_OUSTERS
-                                        || pPortal->getObjectType() == PORTAL_GUILD || pPortal->getObjectType() ==
-               PORTAL_BATTLE)
-                                {
-                                    // For a triggered portal, throw the portal exception only when
-                                    // the trigger condition has been satisfied.
-                                    if (pPortal->getPortalClass() == PORTAL_CLASS_TRIGGERED)
-                                    {
-                                        if (pPortal->activate(pOusters))
-                                        {
-                                            //throw PortalException();
-                                            // PortalException removed.
-                                            return false;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (pPortal->activate(pOusters))
-                                        {
-                                            //throw PortalException();
-                                            // PortalException removed.
-                                            return false;
-                                        }
-                                    }
-                                }
-                            }
-                        }*/
         }
     }
 
@@ -288,13 +183,6 @@ void Tile::deleteCreature(ObjectID_t creatureID) {
         Creature* pCreature = dynamic_cast<Creature*>(getObject(creatureID));
 
         // If an effect exists, remove it from the creature.
-        /*
-        if (hasEffect())
-        {
-            Effect* pEffect = getEffect();
-            pEffect->unaffect(pCreature);
-        }
-        */
 
         // NoSuchElementException removed.
         if (pCreature == NULL) {
@@ -401,13 +289,6 @@ void Tile::addItem(Item* pItem)
     Assert(!hasBuilding());
     Assert(!hasObstacle());
     Assert(!hasPortal());
-    /*
-        EffectDarkness* pDarkness;
-        if ((pDarkness = getEffect(Effect::EFFECT_CLASS_DARKNESS)))
-        {
-            pDarkness->affectObject(pItem, false);
-        }
-    */
     addObject(pItem);
 
     FLAG_SET(m_wFlags, TILE_ITEM);
@@ -565,17 +446,6 @@ void Tile::deleteEffect(ObjectID_t effectID) {
     // effect->unaffectTile();
 
     // Turn the flag off if no other magic remains.
-    /*
-    try
-    {
-        getObject(OBJECT_PRIORITY_EFFECT);
-    }
-    catch (NoSuchElementException)
-    {
-        // No magic remains, so turn it off.
-        FLAG_CLEAR(m_wFlags , TILE_EFFECT);
-    }
-    */
 
     // NoSuchElementException removed.
     if (getObject(OBJECT_PRIORITY_EFFECT) == NULL) {
@@ -840,11 +710,6 @@ void Tile::addObject(Object* pObject) {
     forward_list<Object*>::iterator before = m_Objects.end();
     forward_list<Object*>::iterator current = m_Objects.begin();
 
-    /*
-    // First put it into the sector.
-    m_pSector->addObject(pObject);
-    */
-
     for (; current != m_Objects.end(); before = current, current++) {
         // The object list is sorted in ascending order.
         // So loop until the ObjectPriority of the object being inserted is
@@ -903,11 +768,6 @@ void Tile::addObject(Object* pObject) {
 void Tile::deleteObject(ObjectID_t objectID) {
     __BEGIN_TRY
 
-    /*
-    // First delete it from the sector.
-    m_pSector->deleteObject(objectID);
-    */
-
     forward_list<Object*>::iterator before = m_Objects.end();
     forward_list<Object*>::iterator current = m_Objects.begin();
 
@@ -930,17 +790,6 @@ void Tile::deleteObject(ObjectID_t objectID) {
 
     Assert(false);
 
-    /*
-    if (before == m_Objects.end())
-    {
-        cout << objectID << "nothing at all" << endl;
-    }
-    else
-    {
-        cout << objectID << " " << (*before)->getObjectID() << endl;
-    }
-    */
-
     // NoSuchElementException removed.
     // throw NoSuchElementException("invalid object id");
 
@@ -955,12 +804,6 @@ void Tile::deleteObject(ObjectPriority objectPriority) {
 
     forward_list<Object*>::iterator before = m_Objects.end();
     forward_list<Object*>::iterator current = m_Objects.begin();
-
-    /*
-    // Delete it from the sector first...
-    Object* pObject = getObject(objectPriority);
-    m_pSector->deleteObject(pObject->getObjectID());
-    */
 
     for (; current != m_Objects.end(); before = current++) {
         if (objectPriority == (*current)->getObjectPriority()) {

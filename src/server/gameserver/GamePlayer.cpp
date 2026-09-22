@@ -119,9 +119,6 @@ GamePlayer::GamePlayer(Socket* pSocket)
 
     m_bFreePass = false;
 
-    //	if ( m_bPCRoomPlay )
-    //		m_ItemRatioBonusPoint = g_pVariableManager->getPCRoomItemRatioBonusPercent();
-    //	else
     m_ItemRatioBonusPoint = 0;
 
     m_PCRoomLottoStartTime.tv_sec = 0;
@@ -163,14 +160,7 @@ GamePlayer::~GamePlayer() noexcept {
             dropFlagToZone(m_pCreature, false);
             dropSweeperToZone(m_pCreature);
 
-            // try
-            //{
-            //  NoSuch removed. by sigi. 2002.5.2
             g_pPCFinder->deleteCreature(m_pCreature->getName());
-            //}
-            // catch (NoSuchElementException & t)
-            //{
-            //}
 
             // From here on postToPlayer() cannot find this player, so what
             // is still queued for it runs its ifGone handlers now. Each
@@ -447,12 +437,7 @@ void GamePlayer::processCommand(bool Option) {
                     verifySpeed(pPacket);
                     PacketDispatcher::dispatch(pPacket, this);
 #endif
-                } /*catch ( Throwable& t )
-               {
-                   filelog( "GPPC.txt", "%s PacketID : %d", t.toString().c_str(), packetID );
-                   throw DisconnectException("GamePlayer Error 1!");
-               }*/
-                catch (...) {
+                } catch (...) {
                     filelog("GamePlayerError.txt", "Player:[%s], IP:[%s],MAC:[%02x%02x%02x%02x%02x%02x],Packet is:%s",
                             m_ID.c_str(), getSocket()->getHost().c_str(), m_MacAddress[0], m_MacAddress[1],
                             m_MacAddress[2], m_MacAddress[3], m_MacAddress[4], m_MacAddress[5],
@@ -521,19 +506,6 @@ void GamePlayer::processCommand(bool Option) {
         }
     }
     // Commented out. by sigi. 2002.5.14
-    /*
-    catch (InvalidProtocolException & ipe)
-    {
-        // The session has to be force-closed -- by what means?
-        throw;
-    }
-    catch (Throwable & t)
-    {
-        //cerr << t.toString() << endl;
-        //cerr << "GamePlayer Throwable Exception Check!" << endl;
-        throw;
-    }
-    */
 
     __END_CATCH
 }
@@ -559,9 +531,6 @@ void GamePlayer::processOutput() {
 
         i = 100000;
     } catch (InvalidProtocolException& It) {
-        // cerr << "GamePlayer::processOutput Exception Check!!" << endl;
-        // cerr << It.toString() << endl;
-        // cerr << "an exception happened...... what is i?" << (int)i << endl;
         throw DisconnectException("Pipe broken; closing the connection");
     }
 
@@ -599,45 +568,7 @@ void GamePlayer::sendPacket(Packet* pPacket) {
         // cout << "GamePlayer::sendPacket() : " << pPacket->toString() << endl;
         // cout << "GamePlayer::sendPacket() PACKET SIZE : " << pPacket->getPacketSize() << endl;
 
-        /*
-        if (getCreature() != NULL)
-        {
-            PacketID_t packetID = pPacket->getPacketID();
-            switch (packetID)
-            {
-                case Packet::PACKET_GC_UPDATE_INFO:
-                case Packet::PACKET_GC_MOVE_OK:
-                case Packet::PACKET_GC_SET_POSITION:
-                    filelog("GamePlayer.txt", "SEND [%s],Name[%s],Host[%s]",
-                            pPacket->getPacketName().c_str(),
-                            getCreature()->getName().c_str(),
-                            getSocket()->getHost().c_str());
-                    break;
-                default:
-                    break;
-            }
-        }
-        else
-        {
-            PacketID_t packetID = pPacket->getPacketID();
-            switch (packetID)
-            {
-                case Packet::PACKET_GC_UPDATE_INFO:
-                case Packet::PACKET_GC_MOVE_OK:
-                case Packet::PACKET_GC_SET_POSITION:
-                    filelog("GamePlayer.txt", "SEND [%s],Name[NULL],Host[%s]",
-                            pPacket->getPacketName().c_str(),
-                            getSocket()->getHost().c_str());
-                    break;
-                default:
-                    break;
-            }
-        }
-        */
     } catch (InvalidProtocolException& It) {
-        // cout << "GamePlayer::sendPacket Exception Check!!" << endl;
-        // cout << It.toString() << endl;
-        // throw DisconnectException("cut the connection, the pipe broke");
     }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -937,306 +868,6 @@ bool GamePlayer::verifySpeed(Packet* pPacket) {
     // End by Coffee
     //////////////////////////////////////////////////////////////////////////
 
-    /*
-    // Read the speed of the creature.
-    if (m_pCreature == NULL || pPacket == NULL) {
-        return true;
-    }
-
-    // Cut the connection when the same packet arrives dozens of times early.
-    Timeval VerifyTime;
-    getCurrentTime(VerifyTime);
-
-    PacketID_t PacketID = pPacket->getPacketID();
-
-    bool SpeedCheck = true;
-
-    if (m_pCreature->isSlayer()) {
-
-        Slayer* pSlayer = dynamic_cast<Slayer*>(m_pCreature);
-        Speed_t AttackSpeed = pSlayer->getAttackSpeed();
-        BYTE Speed = 0;
-        if (AttackSpeed < 33) {
-            Speed = 0;
-        } else if (AttackSpeed < 67) {
-            Speed = 1;
-        } else {
-            Speed = 2;
-        }
-
-        if (PacketID == Packet::PACKET_CG_MOVE) {
-            // Compare the previous and current times: an early packet means a cheater.
-            if (VerifyTime <= m_MoveSpeedVerify) {
-                SpeedCheck = false;
-            }
-
-            getCurrentTime(m_MoveSpeedVerify);
-            getCurrentTime(m_AttackSpeedVerify);
-
-            // Store the earliest time the next move may arrive.
-            // Riding a motorcycle slows the movement down.
-
-            BYTE RealSpeed = 0;
-            if (pSlayer->hasRideMotorcycle())
-            {
-                //RealSpeed = 2;
-                RealSpeed = 1;
-            }
-            else // not a motorcycle.
-            {
-                //RealSpeed = 4;
-                RealSpeed = 2;
-            }
-
-            // Set the next time it may be used.
-            m_MoveSpeedVerify.tv_sec += RealSpeed / 10;
-            m_MoveSpeedVerify.tv_usec += RealSpeed* 100000;
-
-            m_AttackSpeedVerify.tv_sec += RealSpeed / 10;
-            m_AttackSpeedVerify.tv_usec += RealSpeed* 100000;
-        }
-        else if (PacketID == Packet::PACKET_CG_ATTACK)
-        {
-            if (VerifyTime <= m_AttackSpeedVerify)
-            {
-                SpeedCheck = false;
-            }
-            // Check which weapon is held.
-            Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
-            Item::ItemClass IClass = Item::ITEM_CLASS_SKULL;
-            if (pItem != NULL) {
-                IClass = pItem->getItemClass();
-            }
-
-            getCurrentTime(m_AttackSpeedVerify);
-            getCurrentTime(m_MoveSpeedVerify);
-
-            BYTE RealSpeed = 0;
-            // slow speed
-            if (Speed == 0)
-            {
-                switch (IClass)
-                {
-                    // 937
-                    case Item::ITEM_CLASS_SWORD :
-                        RealSpeed = 9;
-                        break;
-                    // 1187
-                    case Item::ITEM_CLASS_BLADE :
-                    case Item::ITEM_CLASS_CROSS :
-                    case Item::ITEM_CLASS_MACE :
-                        RealSpeed = 11;
-                        break;
-                    // 1250
-                    case Item::ITEM_CLASS_AR :
-                        RealSpeed = 12;
-                        break;
-                    // 1000
-                    case Item::ITEM_CLASS_SG :
-                        RealSpeed = 10;
-                        break;
-                    // 1375
-                    case Item::ITEM_CLASS_SR :
-                        RealSpeed = 13;
-                        break;
-                    // 1000
-                    case Item::ITEM_CLASS_SMG :
-                        RealSpeed = 10;
-                        break;
-                    // basic attack 875
-                    default :
-                        RealSpeed = 8;
-                        break;
-                }
-            }
-            else if (Speed == 1) // normal speed
-            {
-                switch (IClass)
-                {
-                    // 812
-                    case Item::ITEM_CLASS_SWORD :
-                        RealSpeed = 8;
-                        break;
-                    // 1062
-                    case Item::ITEM_CLASS_BLADE :
-                    case Item::ITEM_CLASS_CROSS :
-                    case Item::ITEM_CLASS_MACE :
-                        RealSpeed = 10;
-                        break;
-                    // 875
-                    case Item::ITEM_CLASS_AR :
-                        RealSpeed = 8;
-                        break;
-                    // 1125
-                    case Item::ITEM_CLASS_SG :
-                        RealSpeed = 11;
-                        break;
-                    // 1250
-                    case Item::ITEM_CLASS_SR :
-                        RealSpeed = 12;
-                        break;
-                    // 875
-                    case Item::ITEM_CLASS_SMG :
-                        RealSpeed = 8;
-                        break;
-                    // basic attack 875
-                    default :
-                        RealSpeed = 8;
-                        break;
-
-                }
-            }
-            else // fast speed
-            {
-                switch (IClass)
-                {
-                    // 687
-                    case Item::ITEM_CLASS_SWORD :
-                        RealSpeed = 6;
-                        break;
-                    // 938
-                    case Item::ITEM_CLASS_BLADE :
-                    case Item::ITEM_CLASS_CROSS :
-                    case Item::ITEM_CLASS_MACE :
-                        RealSpeed = 9;
-                        break;
-                    // 750
-                    case Item::ITEM_CLASS_AR :
-                        RealSpeed = 7;
-                        break;
-                    // 1000
-                    case Item::ITEM_CLASS_SG :
-                        RealSpeed = 10;
-                        break;
-                    // 1125
-                    case Item::ITEM_CLASS_SR :
-                        RealSpeed = 11;
-                        break;
-                    // 750
-                    case Item::ITEM_CLASS_SMG :
-                        RealSpeed = 7;
-                        break;
-                    // 875
-                    default :
-                        RealSpeed = 8;
-                        break;
-                }
-            }
-
-            // Speed relaxation policy
-            RealSpeed -= 2;
-
-            m_AttackSpeedVerify.tv_sec += RealSpeed / 10;
-            m_AttackSpeedVerify.tv_usec += ((RealSpeed % 10)* 100000);
-
-            m_MoveSpeedVerify.tv_sec += RealSpeed / 10;
-            m_MoveSpeedVerify.tv_usec += ((RealSpeed % 10)* 100000);
-
-        } else if (PacketID == Packet::PACKET_CG_SKILL_TO_OBJECT || PacketID == Packet::PACKET_CG_SKILL_TO_SELF ||
-    PacketID == Packet::PACKET_CG_SKILL_TO_TILE) {
-
-        } else {
-            SpeedCheck = true;
-        }
-    }
-    else if (m_pCreature->isVampire())
-    {
-        Vampire* pVampire = dynamic_cast<Vampire*>(m_pCreature);
-        Speed_t AttackSpeed = pVampire->getAttackSpeed();
-
-        BYTE Speed = 0;
-        if (AttackSpeed < 33)
-        {
-            Speed = 0;
-        }
-        else if (AttackSpeed < 67)
-        {
-            Speed = 1;
-        }
-        else
-        {
-            Speed = 2;
-        }
-
-        if (PacketID == Packet::PACKET_CG_MOVE)
-        {
-            // Compare the previous and current times: an early packet means a cheater.
-            if (VerifyTime <= m_MoveSpeedVerify)
-            {
-                SpeedCheck = false;
-            }
-
-            getCurrentTime(m_MoveSpeedVerify);
-            getCurrentTime(m_AttackSpeedVerify);
-
-            BYTE RealSpeed = 0;
-            // Store the earliest time the next move may arrive.
-            // Bat form is faster: four tiles per second.
-            if (pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT))
-            {
-                //RealSpeed = 2;
-                RealSpeed = 1;
-            }
-            else // the normal state moves two tiles per second.
-            {
-                //RealSpeed = 4;
-                RealSpeed = 2;
-            }
-
-            m_MoveSpeedVerify.tv_sec += (RealSpeed / 10);
-            m_AttackSpeedVerify.tv_sec += (RealSpeed / 10);
-
-            m_MoveSpeedVerify.tv_usec += (RealSpeed* 100000);
-            m_AttackSpeedVerify.tv_usec += (RealSpeed* 100000);
-        }
-        else if (PacketID == Packet::PACKET_CG_ATTACK)
-        {
-            if (VerifyTime <= m_AttackSpeedVerify)
-            {
-                SpeedCheck = false;
-            }
-
-            getCurrentTime(m_AttackSpeedVerify);
-            getCurrentTime(m_MoveSpeedVerify);
-
-            BYTE RealSpeed = 0;
-            if (Speed == 0) // slow speed 875
-            {
-                RealSpeed = 8;
-            }
-            else if (Speed == 1) // normal speed 875
-            {
-                RealSpeed = 8;
-            }
-            else // fast speed 812
-            {
-                RealSpeed = 8;
-            }
-
-            // Speed relaxation policy
-            RealSpeed -= 2;
-
-            m_AttackSpeedVerify.tv_sec += RealSpeed / 10;
-            m_AttackSpeedVerify.tv_usec += ((RealSpeed % 10)* 100000);
-
-            m_MoveSpeedVerify.tv_sec += RealSpeed / 10;
-            m_MoveSpeedVerify.tv_usec += ((RealSpeed % 10)* 100000);
-        }
-        else if (PacketID == Packet::PACKET_CG_SKILL_TO_OBJECT ||
-                  PacketID == Packet::PACKET_CG_SKILL_TO_SELF   ||
-                  PacketID == Packet::PACKET_CG_SKILL_TO_TILE)
-        {
-        }
-        else
-        {
-            SpeedCheck = true;
-        }
-    }
-    else
-    {
-    }
-    */
-
     return SpeedCheck;
 
     __END_CATCH
@@ -1269,17 +900,6 @@ void GamePlayer::setEncryptCode() {
 #ifdef __USE_ENCRYPTER__
     Assert(m_pCreature != NULL);
 
-    // Use the ObjectID for now.
-    // ObjectID_t 	objectID 	= m_pCreature->getObjectID();
-
-    // Manage it per zone.
-    //	ZoneID_t 	zoneID 		= m_pCreature->getZone()->getZoneID();
-    //	static int	serverID	= g_pConfig->getPropertyInt("ServerID");
-
-    //	if (objectID!=0)
-    //	{
-    // uchar code = (uchar)(objectID / zoneID + objectID);
-    // uchar code = (uchar)( ( ( zoneID >> 8 ) ^ zoneID ) ^ ( ( serverID + 1 ) << 4 ) );
     uchar code = m_pCreature->getZone()->getEncryptCode();
 
     SocketEncryptOutputStream* pEOS = dynamic_cast<SocketEncryptOutputStream*>(m_pOutputStream);

@@ -593,35 +593,6 @@ void Monster::act(const Timeval& currentTime)
         m_pBrain->setDelay(currentTime);
         return;
     }
-    /*
-    //#ifdef __XMAS_EVENT_CODE__
-
-        if (m_LastSpeechTime < currentTime && isEventMonster(this))
-        {
-            GCSay gcSay;
-            gcSay.setObjectID(getObjectID());
-
-            if (m_MonsterType == 358 || m_MonsterType == 359)
-            {
-                gcSay.setMessage(SantaSpeech[rand()%SantaSpeechMax]);
-            }
-            else if (m_MonsterType == 360 || m_MonsterType == 361)
-            {
-                gcSay.setMessage(RudolfSpeech[rand()%RudolfSpeechMax]);
-            }
-            else
-            {
-                Assert(false);
-            }
-
-            m_pZone->broadcastPacket(m_X, m_Y, &gcSay);
-
-            m_LastSpeechTime.tv_sec = currentTime.tv_sec + 30;
-            m_LastSpeechTime.tv_usec = currentTime.tv_usec;
-        }
-
-    //#endif
-    */
     // If there is an enemy, take a series of actions based on that enemy.
     if (hasEnemy()) {
         Creature* pEnemy = getPrimaryEnemy();
@@ -961,18 +932,6 @@ void Monster::addEnemy(Creature* pCreature)
                     for (itr = m_Enemies.begin(); itr != m_Enemies.end(); itr++) {
                         Creature* pEnemy = NULL;
 
-                        /*
-                        try
-                        {
-                            pEnemy = m_pZone->getCreature(*itr);
-                        }
-                        catch (NoSuchElementException& nsee)
-                        {
-                            //cerr << nsee.toString() << endl;
-                            pEnemy = NULL;
-                        }
-                        */
-
                         pEnemy = m_pZone->getCreature(*itr);
 
                         // If it is not in the zone, it can be removed.
@@ -1017,18 +976,6 @@ void Monster::addEnemy(Creature* pCreature)
 
                     for (itr = m_Enemies.begin(); itr != m_Enemies.end(); itr++) {
                         Creature* pEnemy = NULL;
-
-                        /*
-                        try
-                        {
-                            pEnemy = m_pZone->getCreature(*itr);
-                        }
-                        catch (NoSuchElementException& nsee)
-                        {
-                            //cerr << nsee.toString() << endl;
-                            pEnemy = NULL;
-                        }
-                        */
 
                         pEnemy = m_pZone->getCreature(*itr);
 
@@ -1275,17 +1222,6 @@ Creature* Monster::getPrimaryEnemy() const
     case ATTACK_LAST:
     case ATTACK_STRONGEST:
     case ATTACK_WEAKEST:
-        /*
-        try
-        {
-            pEnemy = m_pZone->getCreature(m_Enemies.front());
-        }
-        catch (NoSuchElementException& nsee)
-        {
-            //cerr << nsee.toString() << endl;
-            pEnemy = NULL;
-        }
-        */
 
         pEnemy = m_pZone->getCreature(m_Enemies.front());
 
@@ -1296,18 +1232,6 @@ Creature* Monster::getPrimaryEnemy() const
     case ATTACK_CLOSEST:
         dist = 255;
         for (itr = m_Enemies.begin(); itr != m_Enemies.end(); itr++) {
-            /*
-            try
-            {
-                pCreature = m_pZone->getCreature(*itr);
-            }
-            catch (NoSuchElementException& nsee)
-            {
-                //cerr << nsee.toString() << endl;
-                pCreature = NULL;
-            }
-            */
-
             pCreature = m_pZone->getCreature(*itr);
 
             if (pCreature != NULL) {
@@ -1325,18 +1249,6 @@ Creature* Monster::getPrimaryEnemy() const
     case ATTACK_FAREST:
         dist = 0;
         for (itr = m_Enemies.begin(); itr != m_Enemies.end(); itr++) {
-            /*
-            try
-            {
-                pCreature = m_pZone->getCreature(*itr);
-            }
-            catch (NoSuchElementException& nsee)
-            {
-                //cerr << nsee.toString() << endl;
-                pCreature = NULL;
-            }
-            */
-
             pCreature = m_pZone->getCreature(*itr);
 
             if (pCreature != NULL) {
@@ -1358,9 +1270,6 @@ Creature* Monster::getPrimaryEnemy() const
     }
 
     if (pEnemy == NULL) {
-        // cerr << "<ENEMY NULL ERROR>" << endl;
-        // cerr << "Monster's AttackOrder : " << AttackOrder2String[getAttackOrder()] << endl;
-        // cerr << "Enemy's ObjectID : " << m_Enemies.front();
     }
 
     return pEnemy;
@@ -1473,13 +1382,6 @@ int Monster::getOustersExp(Ousters* pOusters) {
     return (int)((double)total * percent);
 }
 
-/*
-void Monster::addPrecedence(Creature* pCreature, int damage)
-{
-    Assert(pCreature != NULL);
-    m_PrecedenceTable.addPrecedence(pCreature, damage);
-}
-*/
 void Monster::clearEnemyLimitTime() {
     getCurrentTime(m_EnemyLimitTime);
 

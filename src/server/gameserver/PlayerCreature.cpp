@@ -190,13 +190,6 @@ PlayerCreature::~PlayerCreature()
     if (m_pQuestManager != NULL)
         SAFE_DELETE(m_pQuestManager);
 
-    /*	for ( list<ItemNameInfo*>::iterator itr = m_ItemNameInfoList.begin(); itr != m_ItemNameInfoList.end(); itr++ )
-        {
-            ItemNameInfo* pInfo = *itr;
-            SAFE_DELETE( pInfo );
-        }
-        m_ItemNameInfoList.clear();*/
-
     if (m_pQuestItem != NULL)
         SAFE_DELETE(m_pQuestItem);
 
@@ -996,53 +989,6 @@ void PlayerCreature::loadGoods()
 
     __END_CATCH
 }
-
-/*
-bool PlayerCreature::deleteItemNameInfoList( ObjectID_t objectID )
-
-{
-    __BEGIN_TRY
-
-    list<ItemNameInfo*>::iterator itr = m_ItemNameInfoList.begin();
-
-    for( ; itr != m_ItemNameInfoList.end() ; itr++ )
-    {
-        ItemNameInfo* pInfo = *itr;
-        if( pInfo->getObjectID() == objectID )
-        {
-            SAFE_DELETE( pInfo );
-            m_ItemNameInfoList.erase( itr );
-
-            return true;
-        }
-    }
-
-    return false;
-
-    __END_CATCH
-}
-
-string PlayerCreature::getItemName( ObjectID_t objectID )
-
-{
-    __BEGIN_TRY
-
-    list<ItemNameInfo*>::iterator itr = m_ItemNameInfoList.begin();
-
-    for( ; itr != m_ItemNameInfoList.end() ; itr++ )
-    {
-        ItemNameInfo* pInfo = *itr;
-        if( pInfo->getObjectID() == objectID )
-        {
-            return pInfo->getName();
-        }
-    }
-
-    return NULL;
-
-    __END_CATCH
-}
-*/
 
 void PlayerCreature::addDefaultOptionSet(DefaultOptionSetType_t type)
 

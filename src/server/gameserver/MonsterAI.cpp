@@ -42,11 +42,6 @@ TPOINT getSafeTile(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y) {
     TPOINT ptAcid;
     ptAcid = findSuitablePositionForEffect(pZone, x, y, Effect::EFFECT_CLASS_ACID_SWAMP);
 
-    /*
-    TPOINT ptBloody;
-    ptBloody = findSuitablePositionForEffect( pZone, x, y, Effect::EFFECT_CLASS_BLOODY_WALL );
-    */
-
     return ptAcid;
 }
 
@@ -330,20 +325,6 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
     bool bCanMove = m_pBody->canMove(nx, ny);
 
     // For a master, the ground must have nothing harmful on it.
-    /*
-    if (bCanMove && m_pBody->isMaster())
-    {
-        Tile& tile = m_pBody->getZone()->getTile(nx, ny);
-        if (tile.hasEffect())
-        {
-            if (tile.getEffect(Effect::EFFECT_CLASS_ACID_SWAMP)!=NULL
-                && tile.getEffect(Effect::EFFECT_CLASS_GROUND_ATTACK)!=NULL)
-            {
-            }
-            else bCanMove = false;
-        }
-    }
-    */
 
     if (!bCanMove) {
         bBlocked[ndir] = true;
@@ -396,14 +377,6 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
             // overflow  : -1 -> 7 , -2 -> 6 , -3 -> 5 , ...
             // underflow :  8 -> 0 ,  9 -> 1 , 10 -> 2 , ...
             ////////////////////////////////////////////////////////////
-            // if (ndir >= DIR_MAX) // overflow
-            //{
-            //	ndir = Directions(DIR_MAX - ndir);
-            // }
-            // else if (ndir < 0) // underflow
-            //{
-            //	ndir = Directions(DIR_MAX + ndir);
-            // }
             ndir &= DIR_MAX_1;
 
             // Compute the next coordinates.
@@ -414,21 +387,6 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
             // The zone boundary must be checked while doing so.
             if (m_pBody->canMove(nx, ny)) {
                 // For a master, the ground must have nothing harmful on it.
-                /*
-                if (m_pBody->isMaster())
-                {
-                    Tile& tile = m_pBody->getZone()->getTile(nx, ny);
-                    if (tile.hasEffect())
-                    {
-                        if (tile.getEffect(Effect::EFFECT_CLASS_ACID_SWAMP)!=NULL
-                            && tile.getEffect(Effect::EFFECT_CLASS_GROUND_ATTACK)!=NULL)
-                        {
-                            found = true;
-                        }
-                    }
-                }
-                else
-                */
                 { found = true; }
             }
 
@@ -503,51 +461,8 @@ bool MonsterAI::moveWall(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, ZoneCo
     bool bCanMove = m_pBody->canMove(nx, ny);
 
     // For a master, the ground must have nothing harmful on it.
-    /*
-    if (bCanMove && m_pBody->isMaster())
-    {
-        Tile& tile = m_pBody->getZone()->getTile(nx, ny);
-        if (tile.hasEffect())
-        {
-            if (tile.getEffect(Effect::EFFECT_CLASS_ACID_SWAMP)!=NULL
-                && tile.getEffect(Effect::EFFECT_CLASS_GROUND_ATTACK)!=NULL)
-            {
-            }
-            else bCanMove = false;
-        }
-    }
-    */
 
     if (bCanMove) {
-        /*
-        Dir_t bestDir;
-
-        ////////////////////////////////////////////////////////////
-        // Find the best direction from (nx, ny) toward the destination.
-        ////////////////////////////////////////////////////////////
-        if (nx < ex)
-        {
-            if (ny < ey)      bestDir = RIGHTDOWN;
-            else if (ny > ey) bestDir = RIGHTUP;
-            else              bestDir = RIGHT;// m_pBody->getY() == ey
-        }
-        else if (nx > ex)
-        {
-            if (ny < ey)      bestDir = LEFTDOWN;
-            else if (ny > ey) bestDir = LEFTUP;
-            else              bestDir = LEFT;// m_pBody->getY() == ey
-        }
-        else
-        {
-            if (ny < ey)      bestDir = DOWN; // m_pBody->getX() == ex
-            else if (ny > ey) bestDir = UP;
-            else              bestDir = DIR_NONE; // m_pBody->getY() == ey
-        }
-
-        ZoneCoord_t bx = nx + dirMoveMask[bestDir].x;
-        ZoneCoord_t by = ny + dirMoveMask[bestDir].y;
-        */
-
         // Stop wall-following only when the best direction after moving
         // one tile is not blocked.
         // if (m_pBody->canMove(bx,by))
@@ -591,19 +506,7 @@ bool MonsterAI::moveWall(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, ZoneCo
 
         if (m_pBody->canMove(nx, ny)) {
             // Just go there unconditionally.
-            // Position where the wall has to be
-            // Dir_t 		dirWall = (ndir + dirWallInc) & DIR_MAX_1;
-            // ZoneCoord_t wallx 	= m_pBody->getX() + dirMoveMask[dirWall].x;
-            // ZoneCoord_t wally 	= m_pBody->getY() + dirMoveMask[dirWall].y;
-
-            // Impassable and not blocked by a creature means it is a wall.
-            // if (!m_pBody->canMove(wallx,wally)
-            //	&& !m_pBody->isBlockedByCreature(wallx,wally))
-            {
-                // cout << "FindWay : " << (int)dirWall << " - go : " << (int)ndir << " - " << m_pBody->getName() <<
-                // endl;
-                return true;
-            }
+            { return true; }
         }
         // If another creature blocks the way, stop wall-following.
         else if (m_pBody->isBlockedByCreature(nx, ny)) {
@@ -633,11 +536,6 @@ bool MonsterAI::move(ZoneCoord_t ex, ZoneCoord_t ey)
     Zone* pZone = m_pBody->getZone();
 
     // Moving while hidden causes trouble.
-    // if (m_pBody->isFlag(Effect::EFFECT_CLASS_HIDE))
-    //{
-    //	m_LastAction = LAST_ACTION_MOVE;
-    //	return true;
-    //}
 
     // Position and direction to move to
     ZoneCoord_t nx, ny;
@@ -1222,13 +1120,6 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
                 if (isValidZoneCoord(m_pBody->getZone(), newX, newY))
                     result = m_pBody->getZone()->moveFastMonster(m_pBody, myX, myY, newX, newY, SKILL_RAPID_GLIDING);
 
-                /*						if ( newX > 0 ) continue;
-                                        if ( newY < 0 ) continue;
-                                        if ( newX >= m_pBody->getZone()->getWidth() ) continue;
-                                        if ( newY >= m_pBody->getZone()->getHeight() ) continue;
-
-                                        if ( !m_pBody->getZone()->moveFastMonster( m_pBody, myX, myY, newX, newY,
-                   SKILL_RAPID_GLIDING ) ) continue;*/
                 __END_PROFILE_MONSTER("DIRECTIVE_ACTION_FAST_FLEE");
 
                 if (!result)
@@ -1373,28 +1264,6 @@ void MonsterAI::setDelay(const Timeval& currentTime)
         m_pBody->setNextTurn(currentTime + nexttime);
     }
 
-    /*
-    Timeval currentTime;
-    Timeval delay;
-
-    getCurrentTime(currentTime);
-
-    delay.tv_sec  = m_pBody->getDelay()/1000;
-    delay.tv_usec = (m_pBody->getDelay()%1000)*1000 + rand()%200000;
-
-    delay = delay + m_pBody->getAccuDelay();
-
-    m_pBody->clearAccuDelay();
-    m_pBody->setNextTurn(currentTime + delay);
-    */
-
-    /*
-    Timeval delay;
-    delay.tv_sec = 0;
-    delay.tv_usec = m_pBody->getDelay()* 1000 + rand() % 200000;
-    m_pBody->setNextTurn(m_pBody->getNextTurn() + delay);
-    */
-
     __END_CATCH
 }
 
@@ -1429,28 +1298,6 @@ void MonsterAI::setAttackDelay(const Timeval& currentTime)
         m_pBody->setNextTurn(currentTime + nexttime);
     }
 
-
-    /*
-    Timeval currentTime;
-    Timeval delay;
-
-    getCurrentTime(currentTime);
-
-    delay.tv_sec  = m_pBody->getAttackDelay()/1000;
-    delay.tv_usec = (m_pBody->getAttackDelay()%1000)*1000 + rand()%200000;
-
-    delay = delay + m_pBody->getAccuDelay();
-
-    m_pBody->clearAccuDelay();
-    m_pBody->setNextTurn(currentTime + delay);
-    */
-
-    /*
-    Timeval delay;
-    delay.tv_sec = 0;
-    delay.tv_usec = m_pBody->getAttackDelay()* 1000 + rand() % 200000;
-    m_pBody->setNextTurn(m_pBody->getNextTurn() + delay);
-    */
 
     __END_CATCH
 }
@@ -1820,66 +1667,8 @@ bool checkTimingMasterBloodDrain(Monster* pMonster, Creature* pEnemy) {
 
     return ratio < permitRatio;
 
-    /*
-    if (masterHPPercent < 3 || masterHPPercent > 70)
-    {
-        return false;
-    }
-    */
-
     // Anyone at all can be drained.
     // return true;
-
-    /*
-    int x = pEnemy->getX();
-    int y = pEnemy->getY();
-    int Splash = 30; // Check only 30 creatures.
-    int range = 3; // 7x7   //5;	// 11x11
-    list<Creature*> creatureList;
-    getSplashVictims(pMonster->getZone(), x, y, Creature::CREATURE_CLASS_MAX, creatureList, Splash, range);
-
-    list<Creature*>::iterator itr = creatureList.begin();
-    for (; itr != creatureList.end(); itr++)
-    {
-        Creature* pTargetCreature = (*itr);
-        Assert(pTargetCreature != NULL);
-
-        if (pMonster!=pTargetCreature
-            && pTargetCreature->isNPC()
-            // Skipping an already drained target is left out; a master does not check that.
-            //&& pTargetCreature->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN)
-            // Invulnerable, or immune to blood drain.
-            && pTargetCreature->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE)
-            && pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_BLOOD_DRAIN))
-        {
-            HP_t EnemyCurHP = 0;
-            HP_t EnemyMaxHP = 0;
-
-            if (pTargetCreature->isSlayer())
-            {
-                Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);
-                EnemyCurHP = pSlayer->getHP(ATTR_CURRENT);
-                EnemyMaxHP = pSlayer->getHP(ATTR_MAX);
-            }
-            else if (pTargetCreature->isVampire())
-            {
-                Vampire* pVampire = dynamic_cast<Vampire*>(pTargetCreature);
-                EnemyCurHP = pVampire->getHP(ATTR_CURRENT);
-                EnemyMaxHP = pVampire->getHP(ATTR_MAX);
-            }
-            else if (pTargetCreature->isMonster())
-            {
-                Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
-                EnemyCurHP = pMonster->getHP(ATTR_CURRENT);
-                EnemyMaxHP = pMonster->getHP(ATTR_MAX);
-            }
-
-            // A target below 50% HP gets drained.
-            if (EnemyCurHP*2 < EnemyMaxHP)
-                return true;
-        }
-    }
-    */
 
     return true;
 }
@@ -1922,13 +1711,6 @@ bool checkMasterSummonTiming(Monster* pMonster, Creature* pEnemy) {
     // Summoning is possible when the master is not yet fighting and
     // the zone holds no monster other than the master.
     bool bSummonTiming = !pMasterLairManager->isMasterReady() && pZone->getMonsterManager()->getSize() <= 1;
-
-    /*
-    if (bSummonTiming)
-        cout << "Master Not Ready" << endl;
-    else
-        cout << "Master Ready" << endl;
-        */
 
     return bSummonTiming;
 }
@@ -2107,17 +1889,8 @@ bool checkTimingDuplicateSelf(Monster* pMonster, Creature* pEnemy) {
         return false;
     }
 
-    // Check whether the zone the master is in is a master lair.
     Zone* pZone = pMonster->getZone();
     Assert(pZone != NULL);
-
-    /*
-    // Meaningless if it is not a master lair.
-    if (!pZone->isMasterLair())
-    {
-        return false;
-    }
-    */
 
     HP_t currentHP = pMonster->getHP(ATTR_CURRENT);
     HP_t maxHP = pMonster->getHP(ATTR_MAX);

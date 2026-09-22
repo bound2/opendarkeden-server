@@ -504,10 +504,6 @@ int computeCreatureExp(Creature* pCreature, int percent, Ousters* pOusters)
             exp = 0;
         } else {
             // change exp to 1,chengh modified 2005 11 06
-            /*Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-            exp += pSlayer->getSTR(ATTR_BASIC);
-            exp += pSlayer->getDEX(ATTR_BASIC);
-            exp += pSlayer->getINT(ATTR_BASIC);*/
             exp = 1;
         }
 
@@ -523,10 +519,6 @@ int computeCreatureExp(Creature* pCreature, int percent, Ousters* pOusters)
             exp = 0;
         else if (pOusters != NULL) {
             // change exp to 1,chengh modified 2005 11 06
-            /*Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-            exp += pVampire->getSTR(ATTR_MAX);
-            exp += pVampire->getDEX(ATTR_MAX);
-            exp += pVampire->getINT(ATTR_MAX);*/
             exp = 1;
         }
     } else if (pCreature->isOusters()) {
@@ -538,10 +530,6 @@ int computeCreatureExp(Creature* pCreature, int percent, Ousters* pOusters)
             exp = 0;
         } else {
             // change exp to 1,chengh modified 2005 11 06
-            /*Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
-            exp += pOusters->getSTR(ATTR_BASIC);
-            exp += pOusters->getDEX(ATTR_BASIC);
-            exp += pOusters->getINT(ATTR_BASIC);*/
             exp = 1;
         }
     } else if (pCreature->isMonster()) {
@@ -575,16 +563,6 @@ int computeCreatureExp(Creature* pCreature, int percent, Ousters* pOusters)
 
         // cout << pMonster->getName() << " exp = " << exp << "  percent=" << percent << endl;
         //  Compute the experience change caused by the Enhance field.
-        /*
-        const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(pMonster->getMonsterType());
-        int HPBoost = pMonsterInfo->getEnhanceHP();
-        int ToHitBoost = pMonsterInfo->getEnhanceToHit();
-        int DefenseBoost = pMonsterInfo->getEnhanceDefense();
-        int ProtectionBoost = pMonsterInfo->getEnhanceProtection();
-        int DamageBoost = pMonsterInfo->getEnhanceDamage();
-        int bonusPercent = (int)(HPBoost*0.4 + ToHitBoost*0.2 + DefenseBoost*0.4 + ProtectionBoost*0.3 +
-        DamageBoost*0.5); exp += getPercentValue(exp, bonusPercent);
-        */
     } else
         Assert(false);
 
@@ -614,10 +592,6 @@ int computeBloodDrainHealPoint(Creature* pCreature, int percent)
 
     if (pCreature->isSlayer()) {
         // change exp to 1,chengh modified 2005 11 06
-        /*Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-        exp += pSlayer->getSTR(ATTR_BASIC);
-        exp += pSlayer->getDEX(ATTR_BASIC);
-        exp += pSlayer->getINT(ATTR_BASIC);*/
         exp = 1;
 
         // When a slayer is blood-drained, swap the BLOODDRAIN and KILL exp values.
@@ -628,18 +602,8 @@ int computeBloodDrainHealPoint(Creature* pCreature, int percent)
                 percent = BLOODDRAIN_EXP;
         }
     } else if (pCreature->isVampire()) {
-        /*
-        Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-        exp += pVampire->getSTR(ATTR_MAX);
-        exp += pVampire->getDEX(ATTR_MAX);
-        exp += pVampire->getINT(ATTR_MAX);
-        */
     } else if (pCreature->isOusters()) {
         // change exp to 1,chengh modified 2005 11 06
-        /*Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
-        exp += pOusters->getSTR(ATTR_BASIC);
-        exp += pOusters->getDEX(ATTR_BASIC);
-        exp += pOusters->getINT(ATTR_BASIC);*/
         exp = 1;
     } else if (pCreature->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pCreature);
@@ -663,16 +627,6 @@ int computeBloodDrainHealPoint(Creature* pCreature, int percent)
 
         // cout << pMonster->getName() << " exp = " << exp << "  percent=" << percent << endl;
         //  Compute the experience change caused by the Enhance field.
-        /*
-        const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(pMonster->getMonsterType());
-        int HPBoost = pMonsterInfo->getEnhanceHP();
-        int ToHitBoost = pMonsterInfo->getEnhanceToHit();
-        int DefenseBoost = pMonsterInfo->getEnhanceDefense();
-        int ProtectionBoost = pMonsterInfo->getEnhanceProtection();
-        int DamageBoost = pMonsterInfo->getEnhanceDamage();
-        int bonusPercent = (int)(HPBoost*0.4 + ToHitBoost*0.2 + DefenseBoost*0.4 + ProtectionBoost*0.3 +
-        DamageBoost*0.5); exp += getPercentValue(exp, bonusPercent);
-        */
     } else
         Assert(false);
 
@@ -1470,34 +1424,6 @@ bool canDropToZone(Creature* pCreature, Item* pItem) {
 // Called for a grand master when the grand master effect cannot be sent to the client.
 // 2002. 1. 13. Sequoia
 // Not used.
-/*void confirmGrandMaster(Creature* pCreature)
-{
-    if( pCreature == NULL ) return;
-    if( !pCreature->isPC() ) return;
-
-    if( pCreature->isSlayer() )
-    {
-        Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-        Assert( pSlayer != NULL );
-
-        if( !pSlayer->isFlag( Effect::EFFECT_CLASS_GRAND_MASTER_SLAYER ) ) return;
-        EffectGrandMasterSlayer* pEffect = dynamic_cast<EffectGrandMasterSlayer*>( pSlayer->findEffect(
-Effect::EFFECT_CLASS_GRAND_MASTER_SLAYER ) ); if( pEffect == NULL ) return;
-
-        pEffect->affect();
-    }
-    else if( pCreature->isVampire() )
-    {
-        Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-        Assert( pVampire != NULL );
-
-        if( !pVampire->isFlag( Effect::EFFECT_CLASS_GRAND_MASTER_VAMPIRE ) ) return;
-        EffectGrandMasterVampire* pEffect = dynamic_cast<EffectGrandMasterVampire*>( pVampire->findEffect(
-Effect::EFFECT_CLASS_GRAND_MASTER_VAMPIRE ) ); if( pEffect == NULL ) return;
-
-        pEffect->affect();
-    }
-}*/
 
 bool getRaceFromDB(const string& Name, Race_t& race)
 
@@ -1622,9 +1548,6 @@ int changeSexEx(PlayerCreature* pPC) {
         else
             pSlayer->setSex(MALE);
 
-        //		char query[50];
-        //		sprintf( query, "SEX = '%s'", Sex2String[pPC->getSex()].c_str() );
-        //		pSlayer->tinysave(query);
     } else if (pPC->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pPC);
         Assert(pVampire != NULL);
@@ -1637,9 +1560,6 @@ int changeSexEx(PlayerCreature* pPC) {
         else
             pVampire->setSex(MALE);
 
-        //		char query[50];
-        //		sprintf( query, "SEX = '%s'", Sex2String[pPC->getSex()].c_str() );
-        //		pVampire->tinysave(query);
     } else
         return 3;
 
@@ -1742,45 +1662,6 @@ bool dropFlagToZone(PlayerCreature* pPC, Item* pItem)
         pItem->getEffectManager().addEffect(pLock);
     }
 
-    /*	if ( pt.x != -1 )           // if the drop succeeded
-        {
-            char pField[80];
-            sprintf(pField, "OwnerID='', Storage=%d, StorageID=%u, X=%d, Y=%d", STORAGE_ZONE, pZone->getZoneID(), pt.x,
-       pt.y); pItem->tinysave(pField);
-
-            Effect* pEffect = pPC->findEffect( Effect::EFFECT_CLASS_HAS_FLAG );
-            if ( pEffect != NULL ) pEffect->setDeadline(0);
-
-            if (!pItem->isFlag( Effect::EFFECT_CLASS_RELIC_LOCK ))
-            {
-                EffectRelicLock* pLock = new EffectRelicLock(pItem);
-                pLock->setDeadline( 10*10 ); // 10 seconds
-                pItem->setFlag( Effect::EFFECT_CLASS_RELIC_LOCK );
-                pItem->getEffectManager().addEffect( pLock );
-            }
-        }
-        else
-        {
-            VSRect rect(0, 0, pZone->getWidth()-1, pZone->getHeight()-1);
-            do
-            {
-                pt.x = rand()%(pZone->getWidth());
-                pt.y = rand()%(pZone->getHeight());
-            }
-            while ( !rect.ptInRect(pt.x, pt.y)
-                    || pZone->getTile(pt.x, pt.y).hasItem()
-                    || pZone->getTile(pt.x, pt.y).isBlocked(Creature::MOVE_MODE_WALKING)
-                    || ( (pZone->getZoneLevel(pt.x, pt.y))&SAFE_ZONE == 0 ) );
-            pt = pZone->addItem( pItem, pPC->getX(), pPC->getY(), false );
-            if ( pt.x == -1 )
-            {
-                filelog("FlagWar.log", "Still no place to drop the flag.");
-                //throw Error("No place to drop the flag.");
-                // No position to drop the flag was found.
-                return false;
-            }
-        }*/
-
     return true;
 }
 
@@ -1855,21 +1736,6 @@ void disableFlags(Creature* pCreature, Zone* pZone, SkillType_t SkillType) {
         if (pCreature->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
             addVisibleCreature(pZone, pCreature, true);
         }
-
-        /*		if (pCreature->isFlag(Effect::EFFECT_CLASS_EXTREME))
-                {
-                    if(!(SkillType == SKILL_ACID_TOUCH) && !(SkillType == SKILL_POISONOUS_HANDS) && !(SkillType ==
-           SKILL_BLOODY_NAIL))
-                    {
-                        EffectManager * pEffectManager = pCreature->getEffectManager();
-                        Assert( pEffectManager != NULL );
-                        Effect * pEffect = pEffectManager->findEffect( Effect::EFFECT_CLASS_EXTREME );
-                        if ( pEffect != NULL )
-                        {
-                            pEffect->setDeadline(0);
-                        }
-                    }
-                } */
 
     } else if (pCreature->isOusters()) {
     }

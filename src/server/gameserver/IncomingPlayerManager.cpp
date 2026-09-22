@@ -127,20 +127,6 @@ void IncomingPlayerManager::init()
     m_Timeout[0].tv_sec = 0;
     m_Timeout[0].tv_usec = 0;
 
-    /*
-    // Initialize the connection info manager.
-    // It should really come from the login server,
-    // but for now register 210.220.188.161 ~ 180.
-    char buf[20];
-    for (int i = 0 ; i < 20 ; i ++)
-    {
-        sprintf(buf,"210.220.188.%d",161+i);
-        ConnectionInfo* pConnectionInfo = new ConnectionInfo();
-        pConnectionInfo->setClientIP(buf);
-        g_pConnectionInfoManager.addConnectionInfo(pConnectionInfo);
-    }
-    */
-
     string dist_host = g_pConfig->getProperty("UI_DB_HOST");
     string dist_db = "DARKEDEN";
     string dist_user = g_pConfig->getProperty("UI_DB_USER");
@@ -233,14 +219,7 @@ void IncomingPlayerManager::select() {
     try {
         // Now call select() with m_XXXFDs[1].
         SocketAPI::select_ex(m_MaxFD + 1, &m_ReadFDs[1], &m_WriteFDs[1], &m_ExceptFDs[1], &m_Timeout[1]);
-    }
-    /*
-    catch (TimeoutException&)
-    {
-        // do nothing
-    }
-    */
-    catch (InterruptedException& ie) {
+    } catch (InterruptedException& ie) {
         // A signal should never arrive here.
         log(LOG_GAMESERVER_ERROR, "", "", ie.toString());
     }
@@ -1308,14 +1287,6 @@ void IncomingPlayerManager::heartbeat()
         } else if (pGamePlayer->getPlayerStatus() == GPS_AFTER_SENDING_GL_INCOMING_CONNECTION) {
             //			cout << "Logout..." << pGamePlayer->getID() << endl;
 
-            /*			Creature * pCreature = pGamePlayer->getCreature();
-
-                        // The player is leaving a PK zone.
-                        if ( pCreature != NULL && g_pPKZoneInfoManager->isPKZone( pCreature->getZoneID() ))
-                        {
-                            g_pPKZoneInfoManager->leavePKZone( pCreature->getZoneID() );
-                        }
-            */
             // Send GLIncomingConnection to the login server.
             // PlayerName and ClientIP are sent along with it.
             GLIncomingConnection glIncomingConnection;
@@ -1333,16 +1304,6 @@ void IncomingPlayerManager::heartbeat()
             }
 
             // cout << "ReconnectAddress = " << g_pConfig->getProperty("LoginServerIP").c_str() << ":" << port << endl;
-
-            /*
-            if (g_pConfig->getProperty("User") == "excel96")
-                g_pLoginServerManager->sendPacket(g_pConfig->getProperty("LoginServerIP") , port,
-            &glIncomingConnection); else if (g_pConfig->getProperty("User") == "elcastle")
-                g_pLoginServerManager->sendPacket(g_pConfig->getProperty("LoginServerIP") , port,
-            &glIncomingConnection); else if (g_pConfig->getProperty("User") == "elca")
-                g_pLoginServerManager->sendPacket(g_pConfig->getProperty("LoginServerIP") , port,
-            &glIncomingConnection);
-            */
 
             // Just send it.
             g_pLoginServerManager->sendPacket(g_pConfig->getProperty("LoginServerIP"), port, &glIncomingConnection);
@@ -1372,10 +1333,7 @@ void IncomingPlayerManager::heartbeat()
             Assert(pCreature != NULL);
 
             // getNewZone() is the Zone that is newly entered.
-            // Zone * pZone = pCreature->getZone();
-            // Assert(pZone != NULL);
             Zone* pZone = pCreature->getNewZone();
-            // Assert(pZone != NULL);
 
             // If newZone was not set, fall back to the existing zone.
             // load() does not set NewZone.
