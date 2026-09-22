@@ -88,7 +88,7 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
         }
 
     } else {
-        // The creature classes are only Slayer, Vampire, Monster and NPC,
+        // The creature classes are Slayer, Vampire, Ousters, Monster and NPC,
         // so reaching here means the attacker is an NPC.
         // NPC AI is not implemented, so this always returns.
         return false;
@@ -112,7 +112,7 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
         Defense = (Defense_t)getPercentValue(Defense, MonsterTimebandFactor[timeband]);
         isMonster = true;
     } else {
-        // The creature classes are only Slayer, Vampire, Monster and NPC,
+        // The creature classes are Slayer, Vampire, Ousters, Monster and NPC,
         // so reaching here means the defender is an NPC.
         // NPC AI is not implemented, so this always returns.
         return false;
@@ -361,9 +361,9 @@ bool HitRoll::isSuccessCurse(int MagicLevel, Resist_t resist) {
     // So the higher the level of the curse magic, the higher MagicLevel is.
     //
     // With MagicLevel 30 and resistance 20,
-    // curse_prob = 110 and the curse always succeeds.
+    // curse_prob = 95 and the curse lands 95 times in 100.
     // With MagicLevel 30 and resistance 100,
-    // curse_prob = 30 and the magic fails 70% of the time.
+    // curse_prob = 15 and the magic fails 85% of the time.
     int curse_prob = decore::curseRatio(MagicLevel, resist);
     int randomValue = rand() % 100;
 
@@ -383,9 +383,9 @@ bool HitRoll::isSuccessVampireCurse(int MagicLevel, Resist_t resist) {
     // So the higher the level of the curse magic, the higher MagicLevel is.
     //
     // With MagicLevel 30 and resistance 20,
-    // curse_prob = 110 and the curse always succeeds.
+    // curse_prob = 75 and the curse lands three times in four.
     // With MagicLevel 30 and resistance 100,
-    // curse_prob = 30 and the magic fails 70% of the time.
+    // curse_prob is floored at 5 and the magic fails 95% of the time.
     int curse_prob = decore::vampireCurseRatio(MagicLevel, resist);
 
     int randomValue = rand() % 100;
@@ -461,7 +461,7 @@ bool HitRoll::isSuccessRebuke(Slayer* pSlayer, SkillSlot* pSkillSlot, Creature* 
     if (pDefender->isSlayer())
         return false;
 
-    // Vampires of level 80 or above do not fall asleep.
+    // A Vampire or an Ousters of level 80 or above does not fall asleep.
     if (pDefender->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pDefender);
         if (pVampire->getLevel() >= 80)

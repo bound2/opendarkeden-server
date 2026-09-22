@@ -48,9 +48,7 @@ void JabbingVein::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         GCAttackArmsOK5 _GCAttackArmsOK5;
 
         // The skill needs a gun-type weapon in the right hand.
-        // Among gun weapons, SG and SR cannot use JabbingVein.
-        // SG and SR can use it now too.
-        // 2003. 1. 14  by bezz
+        // SG and SR guns are accepted as well.
         Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pWeapon == NULL || isArmsWeapon(pWeapon) == false)
         //			pWeapon->getItemClass() == Item::ITEM_CLASS_SG ||

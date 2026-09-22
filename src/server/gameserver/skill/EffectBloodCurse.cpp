@@ -115,7 +115,7 @@ void EffectBloodCurse::affect()
 
 
                     } else if (pCreature->isVampire()) {
-                        // A Vampire cast by a player does not hit Vampires at all.
+                        // When a player cast it, Vampires are not hit at all.
                         if (m_bPlayer) // && splash != 0 )
                             continue;
 

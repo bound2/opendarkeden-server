@@ -141,9 +141,6 @@ void GrayDarkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
 
             int edge = 1;
 
-            // With Wide GrayDarkness the range becomes 5*5 and the skill type changes.
-
-
             for (oY = -edge; oY <= edge; oY++)
                 for (oX = -edge; oX <= edge; oX++) {
                     int tileX = X + oX;

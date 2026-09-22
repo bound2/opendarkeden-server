@@ -105,9 +105,9 @@ void EffectBrambleHalo::affect(Creature* pCastCreature)
                 Creature* pCreature = tile.getCreature(Creature::MOVE_MODE_WALKING);
                 Assert(pCreature != NULL);
 
-                // The target itself, invulnerable creatures, Slayers and NPCs are not hit.
-                // Safe zone check
-                // 2003.1.10 by bezz, Sequoia
+                // The target itself, creatures that cannot be attacked, ones in a
+                // coma, Slayers, NPCs and creatures a zone level protects are
+                // not hit.
                 if (pCreature == m_pTarget || !canAttack(pCastCreature, pCreature) ||
                     pCreature->isFlag(Effect::EFFECT_CLASS_COMA) || pCreature->isSlayer() || pCreature->isNPC() ||
                     !checkZoneLevelToHitTarget(pCreature)) {

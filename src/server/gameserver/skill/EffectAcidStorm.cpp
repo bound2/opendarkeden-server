@@ -43,7 +43,7 @@ bool EffectAcidStorm::affectCreature(Creature* pTargetCreature, bool bAffectByMo
     Zone* pZone = pTargetCreature->getZone();
 
     Creature* pAttacker = pZone->getCreature(m_UserObjectID);
-    // Computes the poison damage dealt to the target.
+    // Computes the magic damage the storm deals to the target.
     int StormDamage = computeMagicDamage(pTargetCreature, m_Damage, SKILL_ACID_STORM, m_bVampire, pAttacker);
 
     if (StormDamage > 0) {

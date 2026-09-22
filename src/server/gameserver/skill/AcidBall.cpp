@@ -79,7 +79,7 @@ void AcidBall::execute(Monster* pMonster, Creature* pEnemy)
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // A master attacks several creatures at once.
+    // The master's multi-target attack is switched off; the branch never runs.
     if (0) // pMonster->isMaster())
     {
         int x = pMonster->getX();

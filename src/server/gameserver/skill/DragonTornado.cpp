@@ -84,9 +84,6 @@ void DragonTornado::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         }
     }
 
-    // Deals damage to the target, then attaches the effect.
-
-
     __END_CATCH
 }
 

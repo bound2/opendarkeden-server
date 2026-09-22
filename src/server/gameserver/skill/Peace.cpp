@@ -160,7 +160,7 @@ void Peace::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pS
                         if (bHitRoll) {
                             // Effect that keeps pMonster from attacking pSlayer first.
                             EffectPeace* pEffectPeace = new EffectPeace(pMonster, pSlayer->getObjectID());
-                            pEffectPeace->setDeadline(duration); // 150+pSlayer->getINT()); // (15+INT/10) sec * 10
+                            pEffectPeace->setDeadline(duration);
                             pMonster->addEffect(pEffectPeace);
                             pMonster->setFlag(Effect::EFFECT_CLASS_PEACE);
 

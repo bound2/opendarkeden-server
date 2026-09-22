@@ -89,7 +89,7 @@ void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 
         EffectBloodDrain* pEffectBloodDrain = NULL;
 
-        bool bEffected = false; // Set when any curse is present.
+        bool bEffected = false; // Set when any curable effect is present.
 
         if (pTargetSlayer->getHP(ATTR_CURRENT) < pTargetSlayer->getHP(ATTR_MAX)) {
             bHPCheck = true;
@@ -418,7 +418,7 @@ void CureAll::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
 
         EffectBloodDrain* pEffectBloodDrain = NULL;
 
-        bool bEffected = false; // Set when any curse is present.
+        bool bEffected = false; // Set when any curable effect is present.
         if (pSlayer->getHP(ATTR_CURRENT) < pSlayer->getHP(ATTR_MAX)) {
             bHPCheck = true;
         }

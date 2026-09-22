@@ -59,8 +59,7 @@ void EffectAberration::unaffect(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    // Restoring the stats requires clearing the flag and
-    // calling initAllStat.
+    // Clears the flag; the stats themselves are not recomputed here.
     pCreature->removeFlag(Effect::EFFECT_CLASS_ABERRATION);
 
     Zone* pZone = pCreature->getZone();

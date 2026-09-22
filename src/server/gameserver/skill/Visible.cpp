@@ -44,9 +44,6 @@ void Visible::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* 
 
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // Gets the skill level.
-
-
         VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();

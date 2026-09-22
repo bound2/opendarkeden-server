@@ -819,7 +819,6 @@ SkillHandler* SkillHandlerManager::getSkillHandler(SkillType_t SkillType)
 {
     __BEGIN_TRY
 
-    // When Wide Storm is held, the wide handling is done inside the original skill.
     if (m_SkillHandlers[SkillType] == NULL) {
         StringStream msg;
         msg << "None Skill Handler (Type : " << (int)SkillType << ")";

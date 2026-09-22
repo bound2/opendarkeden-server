@@ -57,8 +57,8 @@ void EffectYellowPoisonToCreature::unaffect(Creature* pCreature)
         Zone* pZone = pCreature->getZone();
         Player* pPlayer = pCreature->getPlayer();
 
-        // Sight may have been brightened by magic such as Light,
-        // so OldSight is not applied when it is darker than the current sight.
+        // The sight goes back to the default 13 rather than to whatever the
+        // creature had before the poison.
         Sight_t NewSight = 13;
         pCreature->setSight(NewSight);
 

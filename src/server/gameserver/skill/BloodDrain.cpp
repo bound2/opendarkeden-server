@@ -161,7 +161,7 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
             if (targetLevel > myLevel) {
                 drainDamage = targetMaxHP * (rand() % 6 + 10) / 100;
             } else {
-                // 1% more for every 5 levels of difference.
+                // 1% more for each level of difference, capped at 30%.
                 int damagePercent = min(30, (rand() % 6 + 10 + (myLevel - targetLevel)));
                 drainDamage = targetMaxHP * damagePercent / 100;
             }
@@ -409,7 +409,8 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
         HP_t maxHP = max((int)pMonster->getHP(ATTR_MAX), targetMaxHP);
         HP_t drainHP = maxHP * (rand() % 11 + 15) / 100; // 15~25%
 
-        // At most 1000 is recovered at once.
+        // At most 2000 is recovered at once from monster type 717 and up,
+        // 1000 from the rest.
         if (pMonster->getMonsterType() >= 717)
             drainHP = min((int)drainHP, 2000);
         else
@@ -437,7 +438,7 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
         if (targetLevel > myLevel) {
             drainDamage = targetMaxHP * (rand() % 6 + 10) / 100;
         } else {
-            // 1% more for every 5 levels of difference.
+            // 1% more for each level of difference, capped at 30%.
             int damagePercent = min(30, (rand() % 6 + 10 + (myLevel - targetLevel)));
             drainDamage = targetMaxHP * damagePercent / 100;
         }

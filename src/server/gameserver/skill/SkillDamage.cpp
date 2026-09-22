@@ -861,9 +861,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         }
     }
 
-    // Under the Armageddon effect the crystal orb takes the HP loss and the target is not attacked.
-    // For SKILL_ARMAGEDDON the damage is the effect itself, so it goes on to attack the target.
-
     if (pTargetCreature != NULL && pTargetCreature->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
         if (pMonster != NULL && pMonster->getMonsterType() == GROUND_ELEMENTAL_TYPE)
@@ -892,7 +889,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         pSkillProperty->isMagic()) {
         // Basic skills have no SkillInfo.
         if (SkillType >= SKILL_DOUBLE_IMPACT) {
-            // Blocks only Vampire magic damage.
+            // Blocks Vampire and Ousters magic damage.
             if (pSkillInfo->getDomainType() == SKILL_DOMAIN_VAMPIRE ||
                 pSkillInfo->getDomainType() == SKILL_DOMAIN_OUSTERS) {
                 // On a successful block, sends the effect.
@@ -910,7 +907,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
         }
     }
 
-    // Water Barrier reduces the damage only for gun attacks.
+    // Water Barrier reduces the damage of everything but melee attacks.
     if (pTargetCreature != NULL && pTargetCreature->isFlag(Effect::EFFECT_CLASS_WATER_BARRIER) &&
         !pSkillProperty->isMelee()) {
         // Basic skills have no SkillInfo.
@@ -1220,7 +1217,6 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
     // The target is a Slayer.
     ////////////////////////////////////////////////////////////
     if (pTargetCreature->isSlayer()) {
-        // An Ousters killed a Vampire.
         Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);
         bool bSetDamage = false;
 
@@ -1445,7 +1441,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
             }
         }
 
-        // Divine Shield absorbs part of the magic damage into MP.
+        // Divine Spirits absorbs part of the magic damage into MP.
         if (pOusters->isFlag(Effect::EFFECT_CLASS_DIVINE_SPIRITS) && pSkillProperty->isMagic()) {
             EffectDivineSpirits* pEffect =
                 dynamic_cast<EffectDivineSpirits*>(pOusters->findEffect(Effect::EFFECT_CLASS_DIVINE_SPIRITS));
@@ -1784,8 +1780,8 @@ void decreaseDurability(Creature* pCreature, Creature* pTargetCreature, SkillInf
     ulong value = 0;
 
     ////////////////////////////////////////////////////////////////
-    // Reduces the durability of the attacker's weapon.
-    // Presumably only a Slayer holds a weapon.
+    // Reduces the durability of the right-hand weapon of a Slayer,
+    // a Vampire or an Ousters attacker.
     ////////////////////////////////////////////////////////////////
     if (pCreature != NULL) {
         if (pCreature->isSlayer()) {
@@ -2086,7 +2082,7 @@ bool canHit(Creature* pAttacker, Creature* pDefender, SkillType_t SkillType, Ski
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Computes the SG and SR bonus by distance.
+// Computes the splash size an SG or SR shot covers at the firing distance.
 //////////////////////////////////////////////////////////////////////////////
 int computeArmsWeaponSplashSize(Item* pWeapon, int ox, int oy, int tx, int ty) {
     Assert(pWeapon != NULL);

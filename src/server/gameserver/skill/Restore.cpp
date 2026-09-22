@@ -275,9 +275,8 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             // Reload the quest item information.
             pNewSlayer->loadTimeLimitItem();
 
-            // Move the money the Vampire held to the Slayer.
-            // The money the Vampire held does not carry over to the Slayer.
-            // Set the new Slayer's money to 0.
+            // The money the Vampire held does not carry over to the Slayer:
+            // the new Slayer starts with none, in hand or in the stash.
             pNewSlayer->setGoldEx(0);
             pNewSlayer->setStashGoldEx(0);
 
@@ -559,8 +558,8 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
 
             pNewSlayer->loadTimeLimitItem();
 
-            // Move the money the Vampire held to the Slayer.
-            // Reset the Slayer's money.
+            // The money the Vampire held does not carry over to the Slayer:
+            // the new Slayer starts with none, in hand or in the stash.
             pNewSlayer->setGoldEx(0);
             pNewSlayer->setStashGoldEx(0);
 

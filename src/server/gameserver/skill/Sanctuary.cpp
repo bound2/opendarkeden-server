@@ -141,11 +141,7 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
                     if (rect.ptInRect(tileX, tileY)) {
                         Tile& tile = pZone->getTile(tileX, tileY);
 
-                        // If the effect can be added to this tile.
                         {
-                            // Delete the same effect if one is already present.
-                            // It was checked above.
-
                             // Create the effect object.
                             EffectSanctuary* pEffect = new EffectSanctuary(pZone, tileX, tileY, X, Y);
                             pEffect->setDeadline(output.Duration);
@@ -171,9 +167,7 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
                             const forward_list<Object*>& oList = tile.getObjectList();
                             for (forward_list<Object*>::const_iterator itr = oList.begin(); itr != oList.end(); itr++) {
                                 Object* pTarget = *itr;
-                                {
-                                    // Creates the effect class.
-                                }
+                                {}
 
                                 pEffect->affectObject(pTarget, false);
                             }

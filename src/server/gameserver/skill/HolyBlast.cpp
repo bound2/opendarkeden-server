@@ -294,7 +294,7 @@ void HolyBlast::execute(Slayer* pSlayer, int X, int Y, SkillSlot* pSkillSlot, co
                         }
 
                     }
-                    // Attack a creature of another race.
+                    // Otherwise attack: only a Vampire or a monster passes the race check.
                     else {
                         bool bPK = verifyPK(pSlayer, pTargetCreature);
                         bool bRaceCheck = pTargetCreature->isVampire() || pTargetCreature->isMonster();

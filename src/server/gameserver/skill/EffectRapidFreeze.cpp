@@ -175,8 +175,6 @@ void EffectRapidFreeze::affect()
                             }
                         }
 
-                        // Alignment computation
-
                         if (gcAttackerMI.getShortCount() != 0 || gcAttackerMI.getLongCount() != 0)
                             pCastCreature->getPlayer()->sendPacket(&gcAttackerMI);
                     }

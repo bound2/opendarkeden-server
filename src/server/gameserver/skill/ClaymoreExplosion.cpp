@@ -76,7 +76,7 @@ void ClaymoreExplosion::execute(Monster* pMonster)
                 param.addMask(m_pClaymoreExplosionMask[i].x, m_pClaymoreExplosionMask[i].y, 100);
             }
 
-            // Knock back the creatures that are hit.
+            // Hit the masked tiles; the knockback is not forced.
             g_SimpleTileMeleeSkill.execute(pMonster, x, y, param, result, 0, false);
             GCAddEffectToTile gcAE;
             gcAE.setXY(x, y);

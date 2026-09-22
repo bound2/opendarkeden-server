@@ -77,7 +77,7 @@ Damage_t computePureVampireDamage(Vampire* pVampire);
 // Computes the pure damage of an Ousters attacker.
 Damage_t computePureOustersDamage(Ousters* pOusters);
 
-// Computes the damage between a monster attacker and the defender.
+// Computes the pure damage of a monster attacker.
 Damage_t computePureMonsterDamage(Monster* pMonster);
 
 // Computes magic damage with resistance taken into account.

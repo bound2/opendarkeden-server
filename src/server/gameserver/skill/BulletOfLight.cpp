@@ -63,8 +63,6 @@ void BulletOfLight::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         SkillOutput output;
         computeOutput(input, output);
 
-        // Computes the to-hit penalty.
-
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);
         bool bTimeCheck = verifyRunTime(pSkillSlot);

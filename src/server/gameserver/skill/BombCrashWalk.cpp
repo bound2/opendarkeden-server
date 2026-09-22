@@ -53,7 +53,7 @@ void BombCrashWalk::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer tile handler
-//  Handler used when a Slayer uses the Wide Lightning skill on a tile
+//  Handler used when a Slayer uses the Bomb Crash Walk skill on a tile
 //////////////////////////////////////////////////////////////////////////////
 void BombCrashWalk::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 

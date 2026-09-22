@@ -154,12 +154,9 @@ void YellowPoison::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
                 if (pEffect->affectCreature(pTargetCreature, false) == true) {
                     bEffected = true;
 
-                    // The check above already tests for a Slayer, so
-                    // this if is certainly always true.
-                    // If YellowPoison is later changed to affect vampires and
-                    // monsters too, the isSlayer check above will be dropped,
-                    // so the isPC() check is put here in advance to keep a
-                    // monster from causing an error.
+                    // The check above accepts only Slayers and Ousters, so this
+                    // test is always true; it guards against a monster should the
+                    // race check ever be widened.
                     if (pTargetCreature->isPC()) {
                         Player* pTargetPlayer = pTargetCreature->getPlayer();
                         bool bCanSee = canSee(pTargetCreature, pVampire);
@@ -341,12 +338,9 @@ void YellowPoison::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
                 if (pEffect->affectCreature(pTargetCreature, false) == true) {
                     bEffected = true;
 
-                    // The check above already tests for a Slayer, so
-                    // this if is certainly always true.
-                    // If YellowPoison is later changed to affect vampires and
-                    // monsters too, the isSlayer check above will be dropped,
-                    // so the isPC() check is put here in advance to keep a
-                    // monster from causing an error.
+                    // The check above accepts only Slayers and Ousters, so this
+                    // test is always true; it guards against a monster should the
+                    // race check ever be widened.
                     if (pTargetCreature->isPC()) {
                         Player* pTargetPlayer = pTargetCreature->getPlayer();
                         bool bCanSee = canSee(pTargetCreature, pMonster);

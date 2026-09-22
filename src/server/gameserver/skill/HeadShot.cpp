@@ -55,7 +55,7 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         GCSkillToObjectOK4 _GCSkillToObjectOK4;
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
-        // The skill cannot be used if the equipped weapon is null, is not a gun, or is an SR.
+        // The skill cannot be used if the equipped weapon is null or is not a gun.
         Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pWeapon == NULL || !isArmsWeapon(pWeapon))
         // An SR can be used as well.
@@ -73,7 +73,8 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);
         bool bTimeCheck = verifyRunTime(pSkillSlot);
-        bool bRangeCheck = verifyDistance(pSlayer, pTargetCreature, pSkillInfo->getRange()); // Range fixed at 3
+        bool bRangeCheck =
+            verifyDistance(pSlayer, pTargetCreature, pSkillInfo->getRange()); // The range comes from the skill info
         bool bBulletCheck = (getRemainBullet(pWeapon) > 0) ? true : false;
 
         // The bullet count always drops.
@@ -137,7 +138,7 @@ void HeadShot::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
                     increaseAlignment(pSlayer, pTargetCreature, _GCSkillToObjectOK1);
                 }
 
-                // Drop the bullet count, save it, read the remaining bullets, wear down durability.
+                // The bullet count already dropped above; here the weapon wears down.
                 decreaseDurability(pSlayer, pTargetCreature, pSkillInfo, &_GCSkillToObjectOK1, &_GCSkillToObjectOK2);
 
                 // If the gun is still there, tell the client to drop the bullet count.

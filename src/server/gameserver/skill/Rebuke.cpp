@@ -137,8 +137,8 @@ void Rebuke::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffect
 
                             bHit = true;
 
-                            // Raises the alignment.
-                            // A Slayer target would mean something is wrong.
+                            // Remembers the highest enemy level and how many
+                            // enemies were hit; a Slayer target is not counted.
                             if (!pTargetCreature->isSlayer()) {
                                 if (maxEnemyLevel < pTargetCreature->getLevel())
                                     maxEnemyLevel = pTargetCreature->getLevel();

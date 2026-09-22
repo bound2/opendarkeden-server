@@ -2,7 +2,8 @@
 // Filename    : EffectPassingHeal.h
 // Written by  : excel96
 // Description :
-// Effect created by PassingHeal that heals and cures poison.
+// Effect created by PassingHeal that cures curse and poison effects and
+// heals the target.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_PASSING_HEAL__

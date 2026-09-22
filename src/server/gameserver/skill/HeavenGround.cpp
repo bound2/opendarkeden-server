@@ -213,7 +213,6 @@ void HeavenGround::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                     if (rect.ptInRect(tileX, tileY)) {
                         Tile& tile = pZone->getTile(tileX, tileY);
 
-                        // If the effect can be added to the current tile...
                         {
                             // Create the effect class.
                             EffectHeavenGround* pEffect = new EffectHeavenGround(pZone, tileX, tileY);

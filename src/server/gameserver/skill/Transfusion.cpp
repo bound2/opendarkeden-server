@@ -67,7 +67,7 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // Knowledge of Innate gives a hit bonus of 10.
+        // Knowledge of Innate adds its rank bonus points to the to-hit rate.
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE);
@@ -76,7 +76,7 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
             HitBonus = pRankBonus->getPoint();
         }
 
-        // Uses 15%.
+        // Spends 12% of the current HP and recovers the same amount.
         int CurrentHP = pVampire->getHP(ATTR_CURRENT);
         int RequiredMP = CurrentHP * 12 / 100; // decreaseConsumeMP(pVampire, pSkillInfo);
         int RecoverHP = CurrentHP * 12 / 100;

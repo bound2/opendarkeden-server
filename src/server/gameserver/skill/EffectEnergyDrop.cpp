@@ -81,7 +81,7 @@ bool EffectEnergyDrop::affectCreature(Creature* pTargetCreature, bool bAffectByM
 
         EffectEnergyDropToCreature* pEffectEnergyDropToCreature = new EffectEnergyDropToCreature(pTargetCreature);
 
-        // Set the name and party id for the priority system.
+        // Carry the caster's object id over to the creature effect.
         pEffectEnergyDropToCreature->setUserObjectID(m_UserObjectID);
 
         pEffectEnergyDropToCreature->setLevel(m_Level);

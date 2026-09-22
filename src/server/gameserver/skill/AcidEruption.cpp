@@ -203,8 +203,6 @@ void AcidEruption::execute(Monster* pMonster, Creature* pEnemy)
             pEnemy->addEffect(pEffectAcidEruption);
             pEnemy->setFlag(pEffectAcidEruption->getEffectClass());
 
-            // The effect is attached, so broadcast that.
-
             if (bCanSeeCaster) {
                 decreaseDurability(pMonster, pEnemy, pSkillInfo, NULL, &_GCSkillToObjectOK2);
             } else {

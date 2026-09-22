@@ -176,9 +176,6 @@ void EffectGroundAttack::unaffect()
                     gcSkillToObjectOK4.setSkillType(SKILL_ATTACK_MELEE);
                     gcSkillToObjectOK4.setDuration(0);
                     m_pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcSkillToObjectOK4, pCreature);
-
-                    // Handles the kill count when the caster kills pCreature.
-                    // by sigi. 2002.8.31
                 }
             }
         }

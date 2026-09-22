@@ -18,7 +18,7 @@
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// Vampire object handler
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void Whitsuntide::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -53,7 +53,7 @@ void Whitsuntide::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Vampire tile handler
+// Slayer tile handler
 //  Handler used when the skill is used on a tile
 //////////////////////////////////////////////////////////////////////////////
 void Whitsuntide::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
