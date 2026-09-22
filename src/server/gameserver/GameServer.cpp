@@ -15,7 +15,6 @@
 #include "DatabaseManager.h"
 #include "GameContext.h"
 #include "GameServerInfoManager.h"
-#include "LogClient.h"
 #include "LoginServerManager.h"
 #include "ObjectManager.h"
 #include "PacketFactoryManager.h"
@@ -225,8 +224,6 @@ void GameServer::start()
     // occurs.
     cout << ">>> ALL INITIALIZATIONS ARE COMPLETED SUCCESSFULLY." << endl;
     cout << ">>> STARTING ClientManager->start() INFINITE LOOP..." << endl;
-
-    log(LOG_SYSTEM, "", "", "Game Server Started");
 
     try {
         m_pClientManager->start();

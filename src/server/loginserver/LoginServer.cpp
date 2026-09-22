@@ -18,7 +18,6 @@
 #include "GameServerManager.h"
 #include "GameWorldInfoManager.h"
 #include "ItemDestroyer.h"
-#include "LogClient.h"
 #include "LoginContext.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"

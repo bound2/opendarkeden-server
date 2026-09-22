@@ -11,7 +11,6 @@
 
 #include "Assert.h"
 #include "GameContext.h"
-#include "LogClient.h"
 #include "MasterLairInfoManager.h"
 #include "MasterLairManager.h"
 #include "MonsterManager.h"

@@ -18,7 +18,6 @@
 #include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemFactoryManager.h"
-#include "LogClient.h"
 #include "NPC.h"
 #include "OptionInfo.h"
 #include "ShopTemplate.h"

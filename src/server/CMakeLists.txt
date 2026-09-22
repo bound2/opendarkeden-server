@@ -7,8 +7,6 @@
 # ============================================================================
 set(SERVER_CORE_SOURCES
     CondVar.cpp
-    LogData.cpp
-    LogClient.cpp
     Mutex.cpp
     PlayerManager.cpp
     GameWorldInfoManager.cpp

@@ -13,7 +13,6 @@
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "LevelWarZoneInfoManager.h"
-#include "LogClient.h"
 #include "Player.h"
 #include "Slayer.h"
 #include "SweeperBonusManager.h"

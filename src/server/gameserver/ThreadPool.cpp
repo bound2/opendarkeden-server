@@ -15,7 +15,6 @@
 #include <mutex>
 
 #include "Assert.h"
-#include "LogClient.h"
 #include "ManagedThread.h"
 #include "Thread.h"
 
@@ -90,8 +89,6 @@ void ThreadPool::start()
 {
     __BEGIN_TRY
 
-    log(LOG_DEBUG_MSG, "", "", "== ThreadPool has started ==");
-
     //////////////////////////////////////////////////
     // enter critical section
     //////////////////////////////////////////////////
@@ -102,9 +99,6 @@ void ThreadPool::start()
             // start threads
             Assert(*itr != NULL);
             (*itr)->start();
-
-            string msg = "== " + (*itr)->getName() + " has been started == ";
-            log(LOG_DEBUG_MSG, "", "", msg);
         }
 
         //////////////////////////////////////////////////
@@ -185,9 +179,6 @@ void ThreadPool::addThread(Thread* thread)
     // Insert the thread object at the end of the list.
     m_Threads.push_back(thread);
 
-    string msg = "== " + thread->getName() + " added to thread pool";
-    log(LOG_DEBUG_MSG, "", "", msg);
-
     //////////////////////////////////////////////////
     // leave critical section
     //////////////////////////////////////////////////
@@ -219,10 +210,6 @@ void ThreadPool::deleteThread(TID tid) {
         // The thread must already have exited.
         // If a subclass has a Mutex, getStatus() and setStatus() must be protected by it.
         Assert(temp != NULL && temp->getStatus() == Thread::EXIT);
-
-        StringStream msg;
-        msg << "== Thread[" << temp->getTID() << "] has been removed from ThreadPool ==";
-        log(LOG_DEBUG_MSG, "", "", msg.toString());
 
         // Delete the thread object.
         SAFE_DELETE(temp);

@@ -41,7 +41,7 @@ COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CCFLAGS) $(TARGET_ARCH) $(DEFS) $(INCL
 #----------------------------------------------------------------------
 # Server Core Library
 #----------------------------------------------------------------------
-SERVER_CORE_OBJS = CondVar.o LogData.o LogClient.o Mutex.o PlayerManager.o GameWorldInfoManager.o SystemAPI.o Thread.o ThreadAttr.o Timeval.o pthreadAPI.o Profile.o PacketProfile.o GameServerInfoManager.o PaySystem.o
+SERVER_CORE_OBJS = CondVar.o Mutex.o PlayerManager.o GameWorldInfoManager.o SystemAPI.o Thread.o ThreadAttr.o Timeval.o pthreadAPI.o Profile.o PacketProfile.o GameServerInfoManager.o PaySystem.o
 SERVER_CORE_LIB  = $(LIBDIR)/libServerCore.a
 
 SERVER_CORE_SRCS = $(SERVER_CORE_OBJS:.o=.cpp)

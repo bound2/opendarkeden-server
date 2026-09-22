@@ -15,7 +15,6 @@
 #include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
-#include "LogClient.h"
 #include "PaySystem.h"
 #include "PlayerCreature.h"
 #include "PlayerMailbox.h"
@@ -228,9 +227,8 @@ void ZonePlayerManager::select() {
         SocketAPI::select_ex(m_MaxFD + 1, &m_ReadFDs[1], &m_WriteFDs[1], &m_ExceptFDs[1], &m_Timeout[1]);
     }
     // do nothing
-    catch (InterruptedException& ie) {
+    catch (InterruptedException&) {
         // A signal is not expected here.
-        log(LOG_GAMESERVER_ERROR, "", "", ie.toString());
     }
 
     __END_CATCH

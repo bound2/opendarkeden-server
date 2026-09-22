@@ -13,7 +13,6 @@
 #include "GCUpdateInfo.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
-#include "LogClient.h"
 #include "PCSlayerInfo2.h"
 #include "PCVampireInfo2.h"
 #include "PacketUtil.h"

@@ -31,7 +31,6 @@
 #include "ItemGradeManager.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
-#include "LogClient.h"
 #include "MasterLairInfoManager.h"
 #include "Monster.h"
 #include "MonsterCorpse.h"

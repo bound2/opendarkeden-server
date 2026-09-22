@@ -30,7 +30,6 @@
 #include "Guild.h"
 #include "GuildManager.h"
 #include "IncomingPlayerManager.h"
-#include "LogClient.h"
 #include "LogDef.h"
 #include "NPCInfo.h"
 #include "NicknameBook.h"

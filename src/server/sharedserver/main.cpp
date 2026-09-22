@@ -16,7 +16,6 @@
 #include <sys/resource.h>
 
 #include "Exception.h"
-#include "LogClient.h"
 #include "Properties.h"
 #include "ServerShutdown.h"
 #include "SharedPacketDispatch.h"
@@ -83,23 +82,6 @@ int main(int argc, char* argv[]) {
         cout << e.toString() << endl;
     }
 
-    // Create the log manager, initialize it and activate it.
-    // The log manager has to catch even the errors that can occur while the login server
-    // initializes, so it must not be initialized inside the login server.
-    // It also has to be created and initialized before any other object is created
-    // and initialized.
-
-    try {
-        string LogServerIP = g_pConfig->getProperty("LogServerIP");
-        int LogServerPort = g_pConfig->getPropertyInt("LogServerPort");
-        openLogClient(LogServerIP, LogServerPort);
-        LogClient::setLogLevel(g_pConfig->getPropertyInt("LogLevel"));
-
-        log(LOG_SHAREDSERVER, "", "", "Shared Server Start");
-    } catch (Throwable& t) {
-        cout << t.toString() << endl;
-    }
-
     //
     // Create the login server object, initialize it and activate it.
     //
@@ -127,10 +109,7 @@ int main(int argc, char* argv[]) {
         ofile.close();
 
         // It means an exception or error not caught below occurred.
-        // In that case it must be logged at LEVEL1 (that is, logged unconditionally).
-        log(LOG_SHAREDSERVER_ERROR, "", "", e.toString());
-
-        // Print it on standard output too.
+        // Print it on standard output.
         cout << e.toString() << endl;
 
         // Stop the shared server; every sub-manager has to stop with it.

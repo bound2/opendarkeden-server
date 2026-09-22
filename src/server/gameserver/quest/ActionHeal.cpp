@@ -14,7 +14,6 @@
 #include "GCRemoveEffect.h"
 #include "GCStatusCurrentHP.h"
 #include "GamePlayer.h"
-#include "LogClient.h"
 #include "Ousters.h"
 #include "Slayer.h"
 #include "Vampire.h"
@@ -134,8 +133,6 @@ void ActionHeal::execute(Creature* pCreature1, Creature* pCreature2)
         pPlayer->sendPacket(&modifyPkt);
         pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &removePkt);
         pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &hpPkt, pSlayer);
-
-        log(LOG_HEAL, pSlayer->getName(), "");
     } else if (pCreature2->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pCreature2);
         GCModifyInformation modifyPkt;
@@ -156,8 +153,6 @@ void ActionHeal::execute(Creature* pCreature1, Creature* pCreature2)
         pPlayer->sendPacket(&modifyPkt);
         pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &removePkt);
         pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &hpPkt, pVampire);
-
-        log(LOG_HEAL, pVampire->getName(), "");
     } else if (pCreature2->isOusters()) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pCreature2);
         EffectManager* pEffectManager = pOusters->getEffectManager();
@@ -233,8 +228,6 @@ void ActionHeal::execute(Creature* pCreature1, Creature* pCreature2)
         pPlayer->sendPacket(&modifyPkt);
         pZone->broadcastPacket(pOusters->getX(), pOusters->getY(), &removePkt);
         pZone->broadcastPacket(pOusters->getX(), pOusters->getY(), &hpPkt, pOusters);
-
-        log(LOG_HEAL, pOusters->getName(), "");
     }
     __END_CATCH
 }

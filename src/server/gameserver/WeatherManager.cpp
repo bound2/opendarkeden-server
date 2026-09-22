@@ -14,7 +14,6 @@
 #include "GCLightning.h"
 #include "GameContext.h"
 #include "GameTime.h"
-#include "LogClient.h"
 #include "PKZoneInfoManager.h"
 #include "TimeManager.h"
 #include "WeatherInfo.h"
@@ -185,10 +184,6 @@ void WeatherManager::heartbeat()
         GCChangeWeather gcChangeWeather;
         gcChangeWeather.setWeather(m_CurrentWeather);
         gcChangeWeather.setWeatherLevel(m_WeatherLevel);
-
-        StringStream msg;
-        msg << "ZONE[" << m_pZone->getZoneID() << "] : " << gcChangeWeather.toString();
-        log(LOG_DEBUG_MSG, "", "", msg.toString());
 
         m_pZone->broadcastPacket(&gcChangeWeather, NULL);
     }

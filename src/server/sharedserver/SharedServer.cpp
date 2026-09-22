@@ -18,7 +18,6 @@
 #include "GameWorldInfoManager.h"
 #include "GuildManager.h"
 #include "HeartbeatManager.h"
-#include "LogClient.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
 #include "ResurrectLocationManager.h"

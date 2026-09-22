@@ -14,7 +14,6 @@
 #include "Assert.h"
 #include "DB.h"
 #include "GSRequestGuildInfo.h"
-#include "LogClient.h"
 #include "Properties.h"
 #include "SharedServerClient.h"
 #include "ThreadManager.h"

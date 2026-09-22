@@ -25,7 +25,6 @@
 #include "ItemFactoryManager.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
-#include "LogClient.h"
 #include "MonsterCorpse.h"
 #include "Ousters.h"
 #include "OustersCorpse.h"
@@ -297,8 +296,6 @@ void PCManager::processCreatures()
                                         SAFE_DELETE(pItem);
                                     }
 
-                                    log(LOG_DROP_ITEM_DIE, pSlayer->getName(), "");
-
                                     // Decrease the remaining drop count.
                                     DropItemNum--;
 
@@ -353,8 +350,6 @@ void PCManager::processCreatures()
                                         pItem->destroy();
                                         SAFE_DELETE(pItem);
                                     }
-
-                                    log(LOG_DROP_ITEM_DIE, pSlayer->getName(), "");
                                 }
                             }
                         }
@@ -433,8 +428,6 @@ void PCManager::processCreatures()
                                         SAFE_DELETE(pItem);
                                     }
 
-                                    log(LOG_DROP_ITEM_DIE, pVampire->getName(), "");
-
                                     // Decrease the remaining drop count.
                                     DropItemNum--;
 
@@ -487,8 +480,6 @@ void PCManager::processCreatures()
                                         pItem->destroy();
                                         SAFE_DELETE(pItem);
                                     }
-
-                                    log(LOG_DROP_ITEM_DIE, pVampire->getName(), "");
                                 }
                             }
                         }
@@ -552,8 +543,6 @@ void PCManager::processCreatures()
                                         SAFE_DELETE(pItem);
                                     }
 
-                                    log(LOG_DROP_ITEM_DIE, pOusters->getName(), "");
-
                                     // Decrease the remaining drop count.
                                     DropItemNum--;
 
@@ -605,8 +594,6 @@ void PCManager::processCreatures()
                                         pItem->destroy();
                                         SAFE_DELETE(pItem);
                                     }
-
-                                    log(LOG_DROP_ITEM_DIE, pOusters->getName(), "");
                                 }
                             }
                         }

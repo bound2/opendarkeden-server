@@ -18,7 +18,6 @@
 #include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemFactoryManager.h"
-#include "LogClient.h"
 #include "NPC.h"
 #include "OptionInfo.h"
 #include "ShopTemplate.h"
@@ -193,8 +192,6 @@ void ActionPrepareShop::execute(Creature* pCreature1, Creature* pCreature2)
                         pNPC->insertShopItem(i, count[i], pItem);
 
                         count[i] = count[i] + 1;
-
-                        log(LOG_SHOP_CREATE_ITEM, pNPC->getName(), "", pItem->toString());
                     }
                 }
             }

@@ -10,7 +10,6 @@
 
 #include "GCSkillFailed1.h"
 #include "GameContext.h"
-#include "LogClient.h"
 #include "Monster.h"
 #include "Party.h"
 #include "Player.h"

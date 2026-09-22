@@ -8,7 +8,6 @@
 
 #include "DB.h"
 #include "GMServerInfo.h"
-#include "LogClient.h"
 #include "Profile.h"
 #include "Properties.h"
 #include "Timeval.h"

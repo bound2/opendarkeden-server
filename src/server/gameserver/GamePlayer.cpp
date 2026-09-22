@@ -21,7 +21,6 @@
 #include "Guild.h"
 #include "GuildManager.h"
 #include "IncomingPlayerManager.h"
-#include "LogClient.h"
 #include "Ousters.h"
 #include "PCFinder.h"
 #include "PacketDispatcher.h"

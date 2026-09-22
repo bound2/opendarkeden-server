@@ -8,14 +8,13 @@
 
 #ifdef __GAME_SERVER__
 #include "Creature.h"
+#include "GCLearnSkillReady.h"
+#include "GCUseBonusPointFail.h"
+#include "GCUseBonusPointOK.h"
 #include "GamePlayer.h"
 #include "SkillHandlerManager.h"
 #include "SkillInfo.h"
 #include "SkillParentInfo.h"
-// #include "LogClient.h"
-#include "GCLearnSkillReady.h"
-#include "GCUseBonusPointFail.h"
-#include "GCUseBonusPointOK.h"
 #include "Slayer.h"
 #endif
 

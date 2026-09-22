@@ -16,7 +16,6 @@
 #include "Datagram.h"
 #include "DatagramPacket.h"
 #include "LGKickCharacter.h"
-#include "LogClient.h"
 #include "PacketDispatcher.h"
 #include "Properties.h"
 #include "ServerShutdown.h"
@@ -156,7 +155,6 @@ void GameServerManager::run() {
         cout << "GameServerManager thread exiting... " << endl;
         //::exit(1);
     } catch (Throwable& t) {
-        log(LOG_LOGINSERVER_ERROR, "", "", t.toString());
         cout << "GameServerManager thread exiting... : " << t.toString() << endl;
     }
 }

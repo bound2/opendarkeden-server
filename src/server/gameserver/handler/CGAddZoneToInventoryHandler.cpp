@@ -34,7 +34,6 @@
 #include "Item.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
-#include "LogClient.h"
 #include "OustersArmsband.h"
 #include "PacketUtil.h"
 #include "PlayerCreature.h"
@@ -306,8 +305,6 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
             // Notify nearby players that the ground item vanished.
             _GCDeleteObject.setObjectID(pItem->getObjectID());
             pZone->broadcastPacket(ZoneX, ZoneY, &_GCDeleteObject);
-
-            log(LOG_PICKUP_ITEM, pPC->getName(), "", pItem->toString());
 
             pItem->whenPCTake(pPC);
 

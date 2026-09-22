@@ -89,7 +89,7 @@ check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5170 "$R5"
 # skill-failure packets and the elemental lookups. Under the 2,000-line phase
 # exit criterion, so the ratchet is a pin rather than a god-file baseline now.
 R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
-check_ratchet R6a "SkillUtil.cpp lines" 685 "$R6a"
+check_ratchet R6a "SkillUtil.cpp lines" 684 "$R6a"
 # R6b shrinks as InitAllStat.cpp's per-race stat code leaves it: the Slayer,
 # Vampire and Ousters members -- the castle skills, the all-stat
 # recalculation and the item, option and blood bible contributions to it --
@@ -100,7 +100,7 @@ check_ratchet R6a "SkillUtil.cpp lines" 685 "$R6a"
 R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
 check_ratchet R6b "InitAllStat.cpp lines" 230 "$R6b"
 R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)
-check_ratchet R6c "HitRoll.cpp lines" 643 "$R6c"
+check_ratchet R6c "HitRoll.cpp lines" 642 "$R6c"
 R6d=$(wc -l < src/server/gameserver/skill/SkillFormula.cpp 2>/dev/null || echo missing)
 check_ratchet R6d "SkillFormula.cpp lines" 818 "$R6d"
 # R6e added with the 4.1 GM-command extraction: the 33 command bodies and
@@ -119,7 +119,7 @@ check_ratchet R6f "ConsoleCommands.cpp lines" 1575 "$R6f"
 # What is left is the zone's own state: tiles, effects, creature lookup, the
 # NPC registry and the heartbeat. Under the 2,000-line phase exit criterion.
 R6g=$(wc -l < src/server/gameserver/Zone.cpp 2>/dev/null || echo missing)
-check_ratchet R6g "Zone.cpp lines" 1274 "$R6g"
+check_ratchet R6g "Zone.cpp lines" 1273 "$R6g"
 
 # R6h-j: the three race classes. Persistence, gold, item-shape, inventory,
 # free-play and skill-slot-table bodies now live once on PlayerCreature; what
@@ -129,7 +129,7 @@ check_ratchet R6g "Zone.cpp lines" 1274 "$R6g"
 # substituting a wear enum or a persistence record type that is per-race, so
 # they shrink again only when one of those types is reconciled.
 R6h=$(wc -l < src/server/gameserver/Slayer.cpp 2>/dev/null || echo missing)
-check_ratchet R6h "Slayer.cpp lines" 3087 "$R6h"
+check_ratchet R6h "Slayer.cpp lines" 3086 "$R6h"
 R6i=$(wc -l < src/server/gameserver/Vampire.cpp 2>/dev/null || echo missing)
 check_ratchet R6i "Vampire.cpp lines" 2047 "$R6i"
 R6j=$(wc -l < src/server/gameserver/Ousters.cpp 2>/dev/null || echo missing)
@@ -438,8 +438,8 @@ rm -f "$r16_inc" "$r16_dead"
 # trees -- is done, so no comment carries legacy text any more. String
 # literals -- log lines, GM messages, the reserved-name table -- are left for
 # a pass of their own, because changing one changes what the server says
-# rather than how the source reads: every one of the 578 lines this count
-# still holds is a string literal, 88 in the gameserver's skill (14), quest
+# rather than how the source reads: every one of the 577 lines this count
+# still holds is a string literal, 87 in the gameserver's skill (13), quest
 # (72) and item (2) trees and 490 in the rest of the tree.
 #
 # Line-based, and the byte class is spelled the way R12 spells it: exclude
@@ -448,7 +448,7 @@ rm -f "$r16_inc" "$r16_dead"
 # working tree out of the count, which [^[:print:]] would not, and LC_ALL=C
 # keeps the range byte-wise where a locale would read it as characters.
 R17=$(LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R17 "source lines carrying non-ASCII bytes" 578 "$R17"
+check_ratchet R17 "source lines carrying non-ASCII bytes" 577 "$R17"
 
 # --- R18: commented-out code inside /* */ blocks ---------------------------
 # Code that was switched off years ago says nothing true about the running
@@ -533,9 +533,10 @@ else
 fi
 
 # --- Removed dead services must not return --------------------------------
-# China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
+# China billing, theoneserver, updateserver, cacheserver (all 2026-09-05),
+# and the log client that never opened its socket (2026-09-22).
 # Historical build logs and documentation are not build inputs.
-if grep -riE 'chinabilling|cbilling|theoneserver|TOpackets|updateserver|Upackets|__UPDATE_(SERVER|CLIENT)__|cacheserver' src \
+if grep -riE 'chinabilling|cbilling|theoneserver|TOpackets|updateserver|Upackets|__UPDATE_(SERVER|CLIENT)__|cacheserver|LogClient|LogData|openLogClient' src \
     --include='*.cpp' --include='*.h' --include='*.hpp' \
     --include='CMakeLists.txt' --include='*.cmake' --include='Makefile'; then
     echo "[FAIL] obsolete dead-service references remain in source/build files"

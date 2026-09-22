@@ -151,7 +151,14 @@ that followed it.
   connects, `LogClient::m_LogLevel` is read by nothing, every `log(...)`
   call in the tree is a no-op, and each `main()` still reads
   `LogServerIP`, `LogServerPort` and `LogLevel` from its config for it.
-  > **Status:** recorded, not fixed (refactor/commented-code-3)
+  The module is gone: its 66 call sites, the message locals that only fed
+  them, the class, its header, the `LogData` record it framed its messages
+  in, the two ServerCore entries that compiled them, and the three
+  configuration keys no other reader wanted. What the servers still write
+  is the file logs (`filelog` and the `FILELOG_*` macros) and the play
+  records the repositories keep; reinstating a log-server link would be a
+  new feature, not a repair.
+  > **Status:** fixed (refactor/dead-logclient)
 
 ## Duplicate Self is not gated on a master lair (2026-09-22)
 

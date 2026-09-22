@@ -30,7 +30,6 @@
 #include "ItemFactoryManager.h"
 #include "ItemInfo.h"
 #include "LevelWarZoneInfoManager.h"
-#include "LogClient.h"
 #include "MasterLairInfoManager.h"
 #include "MasterLairManager.h"
 #include "Monster.h"

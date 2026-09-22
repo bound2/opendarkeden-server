@@ -20,7 +20,6 @@
 #include "Exception.h"
 #include "GamePacketDispatch.h"
 #include "GameServer.h"
-#include "LogClient.h"
 #include "Properties.h"
 #include "ServerShutdown.h"
 #include "StringStream.h"
@@ -116,26 +115,6 @@ int main(int argc, char* argv[]) {
     } catch (Error& e) {
         // cout << e.toString() << endl;
     }
-
-    // Create the log manager, initialize it and start it.
-    // The log manager has to catch even errors that can happen while the game
-    // server initializes, so it may not be initialized inside the game server.
-    // It also has to be created and initialized before any other object is
-    // created or initialized.
-    try {
-        string LogServerIP = g_pConfig->getProperty("LogServerIP");
-        int LogServerPort = g_pConfig->getPropertyInt("LogServerPort");
-        int LogLevel = g_pConfig->getPropertyInt("LogLevel");
-        openLogClient(LogServerIP, LogServerPort);
-        LogClient::setLogLevel(LogLevel);
-
-        log(LOG_GAMESERVER, "", "", "Game Server Start");
-
-    } catch (Error& e) {
-        // cout << e.toString() << endl;
-    }
-
-    cout << ">>> LOGCLIENT INITIALZATION SUCCESS..." << endl;
 
     //
     // Create the game server object, initialize it and start it.

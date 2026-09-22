@@ -73,7 +73,6 @@
 #include "HitRoll.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
-#include "LogClient.h"
 #include "MasterLairInfoManager.h"
 #include "OustersEXPInfo.h"
 #include "PKZoneInfoManager.h"

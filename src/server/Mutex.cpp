@@ -6,7 +6,6 @@
 
 #include "Mutex.h"
 
-#include "LogClient.h"
 #include "MutexAttr.h"
 #include "StringStream.h"
 #include "Thread.h"
