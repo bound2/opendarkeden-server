@@ -407,15 +407,15 @@ SkillInfo* SkillInfoManager::getSkillInfo(SkillType_t SkillType) const {
     __END_CATCH
 }
 
-SkillType_t SkillInfoManager::getSkillTypeByLevel(SkillDomainType_t SkillDomain, SkillLevel_t SkillLevel) {
+SkillType_t SkillInfoManager::getSkillTypeByLevel(SkillDomainType_t SkillDomain, Level_t Level) {
     __BEGIN_TRY
 
     if (SkillDomain >= SKILL_DOMAIN_MAX)
         throw OutOfBoundException();
-    if (SkillLevel > SLAYER_MAX_DOMAIN_LEVEL)
+    if (Level > SLAYER_MAX_DOMAIN_LEVEL)
         throw OutOfBoundException();
 
-    return m_SkillLevelMap[SkillDomain][SkillLevel];
+    return m_SkillLevelMap[SkillDomain][Level];
 
     __END_CATCH
 }
