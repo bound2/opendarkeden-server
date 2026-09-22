@@ -89,7 +89,10 @@ that followed it.
   guard its siblings `checkMasterSummonTiming` and `checkMasterNotReady`
   both apply;** the guard was there, switched off in a comment block that
   is now deleted. A master outside its lair can duplicate itself.
-  > **Status:** recorded, not fixed (refactor/commented-code-3)
+  The guard is back, spelled as its two siblings spell it: a master whose
+  zone is not a master lair fails the condition, so the duplicate-self
+  directive is offered only inside a lair.
+  > **Status:** fixed (fix/recorded-defects-2)
 
 ## A random monster name is only ever its middle part (2026-09-22)
 
