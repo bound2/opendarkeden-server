@@ -189,6 +189,19 @@ void ActionGiveAccountEventItem::execute(Creature* pCreature1, Creature* pCreatu
         luaFileName = m_VampireFilename;
     }
 
+    // There is a selector script for a Slayer and one for a Vampire, and
+    // none for an Ousters; an Ousters leaves the dialogue with nothing
+    // rather than being served by no selector at all.
+    if (pLuaSelectItem == NULL) {
+        filelog("AccountEventItemError.txt", "[ No item selector ] : %s", pPC->getName().c_str());
+
+        GCNPCResponse quit;
+        quit.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
+        pPlayer->sendPacket(&quit);
+
+        return;
+    }
+
     // Create the item from the result Lua computes.
     pLuaSelectItem->prepare();
 

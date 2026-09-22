@@ -54,7 +54,14 @@ that followed it.
   item selector in a Slayer branch and a Vampire branch, so an Ousters
   leaves the pointer null and dereferences it,** the defect
   `ActionGiveEventItem` had before it refused the race instead.
-  > **Status:** recorded, not fixed (fix/recorded-defects-1)
+  Neither action has an Ousters selector to reach for: both read only a
+  `SlayerFilename` and a `VampireFilename`, and the slayer and vampire
+  classes remain the only selectors in the tree. So both now refuse the
+  way `ActionGiveEventItem` does -- the character is logged to the
+  action's own error file (`AccountEventItemError.txt`,
+  `XMasEventError.txt`) and the NPC dialogue closes. The same two-branch
+  selector choice is also in `ActionGiveTestServerReward`, untouched.
+  > **Status:** fixed (fix/recorded-defects-2)
 
 ## The movement and attack speed-hack check is gone (2026-09-22)
 

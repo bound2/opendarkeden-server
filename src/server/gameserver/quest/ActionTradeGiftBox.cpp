@@ -174,6 +174,19 @@ void ActionTradeGiftBox::execute(Creature* pCreature1, Creature* pCreature2)
         luaFileName = m_VampireFilename;
     }
 
+    // There is a selector script for a Slayer and one for a Vampire, and
+    // none for an Ousters; an Ousters leaves the dialogue with nothing
+    // rather than being served by no selector at all.
+    if (pLuaSelectItem == NULL) {
+        filelog("XMasEventError.txt", "[ No item selector ] : %s", pPC->getName().c_str());
+
+        GCNPCResponse quit;
+        quit.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
+        pPlayer->sendPacket(&quit);
+
+        return;
+    }
+
     //--------------------------------------------------------
     // Code that ran this 1000 times to check the speed.
     // The result was about 0.07 seconds.
