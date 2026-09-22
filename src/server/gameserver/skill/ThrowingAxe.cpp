@@ -14,6 +14,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -36,7 +37,7 @@ void ThrowingAxe::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = SKILL_THROWING_AXE;
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         bool bRangeCheck = verifyDistance(pMonster, X, Y, pSkillInfo->getRange());
         bool bHitRoll = HitRoll::isSuccessMagic(pMonster, pSkillInfo);

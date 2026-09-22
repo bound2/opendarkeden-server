@@ -15,6 +15,7 @@
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -82,7 +83,7 @@ void Whitsuntide::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         ZoneCoord_t myX = pSlayer->getX();

@@ -22,6 +22,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 
 SimpleTileCureSkill g_SimpleTileCureSkill;
 
@@ -50,7 +51,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, const 
         GCSkillToSelfOK1 _GCSkillToSelfOK1;
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
@@ -302,7 +303,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
         GCSkillToTileOK4 _GCSkillToTileOK4;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
@@ -535,7 +536,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y,
         GCSkillToTileOK4 _GCSkillToTileOK4;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();

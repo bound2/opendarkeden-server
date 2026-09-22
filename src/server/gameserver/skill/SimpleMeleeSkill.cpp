@@ -10,6 +10,7 @@
 #include "GCSkillToObjectOK1.h"
 #include "GCSkillToObjectOK2.h"
 #include "GCSkillToObjectOK5.h"
+#include "GameContext.h"
 
 SimpleMeleeSkill g_SimpleMeleeSkill;
 
@@ -60,7 +61,7 @@ void SimpleMeleeSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skill
         GCSkillToObjectOK2 _GCSkillToObjectOK2;
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
         bool bCriticalHit = false;
@@ -257,7 +258,7 @@ void SimpleMeleeSkill::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vam
         GCSkillToObjectOK2 _GCSkillToObjectOK2;
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         bool bCriticalHit = false;
         Damage_t Damage = 0;
 
@@ -402,7 +403,7 @@ void SimpleMeleeSkill::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ous
             }
         }
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         bool bCriticalHit = false;
         Damage_t Damage = 0;
 
@@ -547,7 +548,7 @@ void SimpleMeleeSkill::execute(Monster* pMonster, Creature* pEnemy, const SIMPLE
         GCSkillToObjectOK2 _GCSkillToObjectOK2;
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         bool bCriticalHit = false;
         Damage_t Damage = 0;
 

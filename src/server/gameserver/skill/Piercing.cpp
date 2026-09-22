@@ -12,6 +12,7 @@
 #include "GCSkillToTileOK3.h"
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
+#include "GameContext.h"
 #include "Geometry.h"
 #include "ItemUtil.h"
 
@@ -82,7 +83,7 @@ void Piercing::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot*
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         Level_t SkillLevel = pSkillSlot->getExpLevel();
 

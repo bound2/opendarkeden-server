@@ -9,6 +9,7 @@
 #include "GCSkillToObjectOK1.h"
 #include "GCSkillToObjectOK2.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer object handler
@@ -50,7 +51,7 @@ void FlashSliding::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
         GCSkillToObjectOK2 _GCSkillToObjectOK2;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 

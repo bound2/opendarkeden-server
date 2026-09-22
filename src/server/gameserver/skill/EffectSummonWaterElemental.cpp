@@ -12,6 +12,7 @@
 #include "GCSkillToObjectOK2.h"
 #include "GCSkillToObjectOK4.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "HitRoll.h"
 #include "Monster.h"
@@ -66,7 +67,7 @@ void EffectSummonWaterElemental::affect()
     Zone* pZone = pCastCreature->getZone();
     Assert(pZone != NULL);
 
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_SUMMON_WATER_ELEMENTAL);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SKILL_SUMMON_WATER_ELEMENTAL);
     OustersSkillSlot* pSkillSlot = pOusters->getSkill(SKILL_SUMMON_WATER_ELEMENTAL);
 
     bool bHitRoll = HitRoll::isSuccessMagic(pOusters, pSkillInfo, pSkillSlot);

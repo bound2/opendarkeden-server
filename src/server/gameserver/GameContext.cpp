@@ -208,6 +208,11 @@ SkillDomainInfoManager& GameContext::skillDomains() const {
     return *m_pSkillDomainInfoManager;
 }
 
+SkillInfoManager& GameContext::skillInfos() const {
+    Assert(m_pSkillInfoManager != nullptr);
+    return *m_pSkillInfoManager;
+}
+
 SkillPropertyManager& GameContext::skillProps() const {
     Assert(m_pSkillPropertyManager != nullptr);
     return *m_pSkillPropertyManager;

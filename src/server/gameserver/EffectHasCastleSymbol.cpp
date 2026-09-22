@@ -65,7 +65,7 @@ void EffectHasCastleSymbol::affect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pZone->getZoneID());
+    ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(pZone->getZoneID());
     Assert(pZoneInfo != NULL);
 
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
@@ -107,7 +107,7 @@ void EffectHasCastleSymbol::affect(Item* pItem)
     isCastle = g_pCastleInfoManager->getCastleZoneID(m_pZone->getZoneID(), castleZoneID);
 
     if (isCastle && g_pWarSystem->hasCastleActiveWar(castleZoneID)) {
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(m_pZone->getZoneID());
+        ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(m_pZone->getZoneID());
         Assert(pZoneInfo != NULL);
 
         // Announce the location.

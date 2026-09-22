@@ -9,6 +9,7 @@
 #include "GCDeleteObject.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK3.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "ZoneUtil.h"
 
@@ -35,7 +36,7 @@ void Hide::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEffectID_t 
         GCSkillToSelfOK3 _GCSkillToSelfOK3;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t x = pVampire->getX();
         ZoneCoord_t y = pVampire->getY();
@@ -122,7 +123,7 @@ void Hide::execute(Monster* pMonster)
         GCSkillToSelfOK3 _GCSkillToSelfOK3;
 
         SkillType_t SkillType = SKILL_HIDE;
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t x = pMonster->getX();
         ZoneCoord_t y = pMonster->getY();

@@ -10,6 +10,7 @@
 #include "GCSkillToInventoryOK1.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK3.h"
+#include "GameContext.h"
 #include "ZoneUtil.h"
 #include "item/VampirePortalItem.h"
 
@@ -70,7 +71,7 @@ void BloodyMarker::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
         GCSkillToInventoryOK1 _GCSkillToInventoryOK1;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = decreaseConsumeMP(pVampire, pSkillInfo);
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);

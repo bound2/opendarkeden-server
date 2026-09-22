@@ -103,7 +103,7 @@ void Slayer::initCastleSkill() {
         if (CastleSkillType == SKILL_MAX)
             continue;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(CastleSkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(CastleSkillType);
         Assert(pSkillInfo != NULL);
 
         Turn_t Delay = pSkillInfo->getMaxDelay();
@@ -274,7 +274,7 @@ void Slayer::initAllStat(int numPartyMember) {
 
     if (pLiveness != NULL && pLiveness->canUse()) {
         int level = m_SkillDomainLevels[SKILL_DOMAIN_GUN];
-        int grade = (int)g_pSkillInfoManager->getGradeByDomainLevel(level);
+        int grade = (int)de::gameContext().skillInfos().getGradeByDomainLevel(level);
 
         decore::LivenessBonus bonus = decore::livenessBonus(grade, level);
         HPBonusPercent = bonus.hpPercent;

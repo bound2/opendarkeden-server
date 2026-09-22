@@ -11,6 +11,7 @@
 #include "GCAttackArmsOK3.h"
 #include "GCAttackArmsOK4.h"
 #include "GCAttackArmsOK5.h"
+#include "GameContext.h"
 #include "ItemUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -59,7 +60,7 @@ void Trident::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
         bool bIncreaseExp = pSlayer->isRealWearingEx(Slayer::WEAR_RIGHTHAND);
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
@@ -203,7 +204,7 @@ void Trident::execute(Monster* pMonster, Creature* pEnemy)
         GCAttackArmsOK5 _GCAttackArmsOK5;
 
         SkillType_t SkillType = getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         SkillInput input(pMonster);
         SkillOutput output;

@@ -14,6 +14,7 @@
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
+#include "GameContext.h"
 #include "HitRoll.h"
 #include "RankBonus.h"
 
@@ -40,7 +41,7 @@ void StoneSkin::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, 
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // Hit bonus when Knowledge of Curse is present
         int HitBonus = 0;

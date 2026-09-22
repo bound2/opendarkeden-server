@@ -16,6 +16,7 @@
 #include "GCSkillToObjectOK6.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer self handler
@@ -47,7 +48,7 @@ void GroundBless::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 2;
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
@@ -147,7 +148,7 @@ void GroundBless::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         SkillInput input(pOusters, pSkillSlot);
         SkillOutput output;

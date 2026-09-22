@@ -10,6 +10,7 @@
 #include "GCSkillToObjectOK2.h"
 #include "GCSkillToObjectOK4.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Monster.h"
 #include "PCFinder.h"
@@ -67,7 +68,7 @@ void EffectBrambleHalo::affect(Creature* pCastCreature)
     Slayer* pSlayer = dynamic_cast<Slayer*>(pCastCreature);
     Assert(pSlayer != NULL);
 
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_Bramble_Halo);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SKILL_Bramble_Halo);
     if (pSkillInfo == NULL) {
         return;
     }

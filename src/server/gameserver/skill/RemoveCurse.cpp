@@ -19,6 +19,7 @@
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer object handler
@@ -54,7 +55,7 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         // by sigi. 2002.12.3
         SkillLevel_t SkillLevel = pSlayer->getINT() / 2; // pSkillSlot->getExpLevel();
@@ -140,7 +141,8 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
             }
 
             // Raises experience.
-            SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+            SkillGrade Grade =
+                de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToObjectOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToObjectOK1);
@@ -226,7 +228,7 @@ void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         // by sigi. 2002.12.3
         SkillLevel_t SkillLevel = pSlayer->getINT() / 2; // pSkillSlot->getExpLevel();
@@ -312,7 +314,8 @@ void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
             }
 
             // Raises experience.
-            SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+            SkillGrade Grade =
+                de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToSelfOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);

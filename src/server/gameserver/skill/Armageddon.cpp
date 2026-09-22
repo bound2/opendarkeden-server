@@ -15,6 +15,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "Vampire.h"
 
@@ -55,7 +56,7 @@ void Armageddon::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // Hit bonus when Knowledge of Blood is present
         int HitBonus = 0;

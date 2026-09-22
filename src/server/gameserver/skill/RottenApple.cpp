@@ -13,6 +13,7 @@
 #include "GCSkillToTileOK3.h"
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
+#include "GameContext.h"
 #include "PacketUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -77,7 +78,7 @@ void RottenApple::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
@@ -100,7 +101,8 @@ void RottenApple::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
             computeOutput(input, output);
 
             // Grant experience.
-            SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+            SkillGrade Grade =
+                de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToTileOK1);
 

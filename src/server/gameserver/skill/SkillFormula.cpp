@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "Monster.h"
 #include "SkillHandler.h"
 #include "Vampire.h"
@@ -425,19 +426,18 @@ void fromFormulaOutput(const decore::skillformula::SkillOutput& o, SkillOutput& 
         fromFormulaOutput(o, output);                                             \
     }
 
-// The three grade-switch formulas fetched the domain grade from
-// g_pSkillInfoManager mid-body; the adapter fetches it up front, keeping
-// the manager's out-of-range throw on exactly the invocations that could
-// throw before (the partially-written output an in-body throw left behind
-// was never observable: every caller's output is freshly zeroed and
+// The three grade-switch formulas fetched the domain grade from the skill info manager
+// mid-body; the adapter fetches it up front, keeping the manager's out-of-range throw on
+// exactly the invocations that could throw before (the partially-written output an in-body
+// throw left behind was never observable: every caller's output is freshly zeroed and
 // abandoned on the exception path).
-#define DE_SKILL_FORMULA_GRADE(ClassName)                                                    \
-    void ClassName::computeOutput(const SkillInput& input, SkillOutput& output) {            \
-        decore::skillformula::SkillInput in = toFormulaInput(input);                         \
-        in.DomainGrade = (int)g_pSkillInfoManager->getGradeByDomainLevel(input.DomainLevel); \
-        decore::skillformula::SkillOutput o;                                                 \
-        decore::skillformula::ClassName(in, o);                                              \
-        fromFormulaOutput(o, output);                                                        \
+#define DE_SKILL_FORMULA_GRADE(ClassName)                                                              \
+    void ClassName::computeOutput(const SkillInput& input, SkillOutput& output) {                      \
+        decore::skillformula::SkillInput in = toFormulaInput(input);                                   \
+        in.DomainGrade = (int)de::gameContext().skillInfos().getGradeByDomainLevel(input.DomainLevel); \
+        decore::skillformula::SkillOutput o;                                                           \
+        decore::skillformula::ClassName(in, o);                                                        \
+        fromFormulaOutput(o, output);                                                                  \
     }
 
 // HeadShot Asserts on a non-gun ItemClass; the Assert moves ahead of the

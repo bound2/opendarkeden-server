@@ -55,7 +55,7 @@ void EffectRelicPosition::affect(Item* pItem)
     __BEGIN_TRY
 
     // Get the zone info.
-    ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(m_ZoneID);
+    ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(m_ZoneID);
     Assert(pZoneInfo != NULL);
 
     if (pItem->getItemClass() == Item::ITEM_CLASS_RELIC) {

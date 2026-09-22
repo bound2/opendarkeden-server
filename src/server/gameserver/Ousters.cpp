@@ -1546,7 +1546,7 @@ void Ousters::sendOustersSkillInfo()
 
     GCSkillInfo gcSkillInfo;
     gcSkillInfo.setPCType(PC_OUSTERS);
-    SkillType_t LearnSkillType = g_pSkillInfoManager->getSkillTypeByLevel(SKILL_DOMAIN_OUSTERS, m_Level);
+    SkillType_t LearnSkillType = de::gameContext().skillInfos().getSkillTypeByLevel(SKILL_DOMAIN_OUSTERS, m_Level);
 
     if (LearnSkillType != 0) {
         if (hasSkill(LearnSkillType) == NULL) {
@@ -1702,12 +1702,7 @@ void Ousters::saveSkills(void) const {
 Sight_t Ousters::getEffectedSight() {
     __BEGIN_TRY
 
-    Sight_t sight = Creature::getEffectedSight();
-
-    if (sight == DEFAULT_SIGHT) {
-    }
-
-    return sight;
+    return Creature::getEffectedSight();
 
     __END_CATCH
 }
@@ -1887,7 +1882,7 @@ SkillBonus_t Ousters::getSkillPointCount(ElementalDomain eDomain) {
         OustersSkillSlot* pSlot = itr->second;
         if (pSlot->getSkillType() < SKILL_DOUBLE_IMPACT)
             continue;
-        SkillInfo* pInfo = g_pSkillInfoManager->getSkillInfo(pSlot->getSkillType());
+        SkillInfo* pInfo = de::gameContext().skillInfos().getSkillInfo(pSlot->getSkillType());
         if (pInfo == NULL)
             continue;
         if (pInfo->getElementalDomain() == eDomain) {
@@ -1933,7 +1928,7 @@ void Ousters::initPetQuestTarget() {
 }
 
 bool Ousters::canLearnSkill(SkillType_t skill) {
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(skill);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(skill);
     if (pSkillInfo == NULL)
         return false;
 
@@ -1943,7 +1938,7 @@ bool Ousters::canLearnSkill(SkillType_t skill) {
         for (; itr != m_SkillSlot.end(); ++itr) {
             if (itr->first < SKILL_DOUBLE_IMPACT)
                 continue;
-            SkillInfo* pHasSkillInfo = g_pSkillInfoManager->getSkillInfo(itr->first);
+            SkillInfo* pHasSkillInfo = de::gameContext().skillInfos().getSkillInfo(itr->first);
             if (pHasSkillInfo == NULL)
                 continue;
             // if ( pHasSkillInfo->getLevel() == pSkillInfo->getLevel() && !(pSkillInfo->getType() > 400 )) return

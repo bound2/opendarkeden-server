@@ -10,6 +10,7 @@
 #include "GCAddEffect.h"
 #include "GCSkillToTileOK1.h"
 #include "GCSkillToTileOK5.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer self handler
@@ -43,7 +44,7 @@ void BurningSolCharging::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, 
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);

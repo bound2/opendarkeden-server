@@ -14,6 +14,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -76,7 +77,7 @@ void SummonGoreGland::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, V
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = decreaseConsumeMP(pVampire, pSkillInfo);
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);

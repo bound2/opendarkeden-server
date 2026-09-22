@@ -13,6 +13,7 @@
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "Reflection.h"
 
@@ -54,7 +55,7 @@ void BiteOfDeath::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
         SkillType_t SkillType = getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = decreaseConsumeMP(pVampire, pSkillInfo);
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);

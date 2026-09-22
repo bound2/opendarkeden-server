@@ -15,6 +15,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer object handler
@@ -76,7 +77,7 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t myX = pSlayer->getX();
         ZoneCoord_t myY = pSlayer->getY();
@@ -220,7 +221,8 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
 
             // EXP UP!
             SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-            SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+            SkillGrade Grade =
+                de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
 
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToTileOK1);

@@ -19,6 +19,7 @@
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "Vampire.h"
 
@@ -62,7 +63,7 @@ void GreenStalker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // Knowledge of Poison gives a hit bonus of 10.
         int HitBonus = 0;
@@ -204,7 +205,7 @@ void GreenStalker::execute(Monster* pMonster, Creature* pEnemy)
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
         SkillType_t SkillType = SKILL_GREEN_STALKER;
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         bool bRangeCheck = verifyDistance(pMonster, pEnemy, pSkillInfo->getRange());
         bool bHitRoll = HitRoll::isSuccessMagic(pMonster, pSkillInfo);

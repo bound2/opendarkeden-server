@@ -34,7 +34,7 @@ check_ratchet() {
 
 # --- R1: g_p* global-singleton extern declarations -------------------------
 R1=$(grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R1 "global singleton externs" 36 "$R1"
+check_ratchet R1 "global singleton externs" 34 "$R1"
 
 # --- R2: files with inline SQL in the gameserver root ----------------------
 R2=$(grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h 2>/dev/null | wc -l)
@@ -133,7 +133,7 @@ check_ratchet R6h "Slayer.cpp lines" 3087 "$R6h"
 R6i=$(wc -l < src/server/gameserver/Vampire.cpp 2>/dev/null || echo missing)
 check_ratchet R6i "Vampire.cpp lines" 2047 "$R6i"
 R6j=$(wc -l < src/server/gameserver/Ousters.cpp 2>/dev/null || echo missing)
-check_ratchet R6j "Ousters.cpp lines" 1959 "$R6j"
+check_ratchet R6j "Ousters.cpp lines" 1954 "$R6j"
 
 # --- R7: pre-C++17 dynamic exception specifications ------------------------
 # The migration also normalized real `throw(expr)` expressions to `throw expr`

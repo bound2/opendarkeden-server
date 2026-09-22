@@ -142,7 +142,7 @@ ObjectManager::ObjectManager()
     FlagSet::initialize();
 
     g_pStringPool = new StringPool();
-    g_pZoneInfoManager = new ZoneInfoManager();
+    m_pZoneInfoManager = new ZoneInfoManager();
     g_pVariableManager = new VariableManager();
     m_pItemInfoManager = new ItemInfoManager();
     g_pItemFactoryManager = new ItemFactoryManager();
@@ -160,7 +160,7 @@ ObjectManager::ObjectManager()
     m_pWeatherInfoManager = new WeatherInfoManager();
     g_pMonsterInfoManager = new MonsterInfoManager();
     g_pSkillHandlerManager = new SkillHandlerManager();
-    g_pSkillInfoManager = new SkillInfoManager();
+    m_pSkillInfoManager = new SkillInfoManager();
     m_pSkillDomainInfoManager = new SkillDomainInfoManager();
     // g_pSkillParentInfoManager   = new SkillParentInfoManager ();
     g_pPCFinder = new PCFinder();
@@ -170,7 +170,7 @@ ObjectManager::ObjectManager()
     // here and deleted in this class's destructor.
     de::GameContext& context = de::gameContext();
     context.setStringPool(g_pStringPool);
-    context.setZoneInfoManager(g_pZoneInfoManager);
+    context.setZoneInfoManager(m_pZoneInfoManager);
     context.setVariableManager(g_pVariableManager);
     context.setItemInfoManager(m_pItemInfoManager);
     context.setItemFactoryManager(g_pItemFactoryManager);
@@ -184,6 +184,7 @@ ObjectManager::ObjectManager()
     context.setTimeManager(m_pTimeManager);
     context.setDarkLightInfoManager(m_pDarkLightInfoManager);
     context.setWeatherInfoManager(m_pWeatherInfoManager);
+    context.setSkillInfoManager(m_pSkillInfoManager);
     context.setSkillDomainInfoManager(m_pSkillDomainInfoManager);
     context.setPCFinder(g_pPCFinder);
 
@@ -296,7 +297,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pTelephoneCenter);
     SAFE_DELETE(m_pItemMineInfoManager);
     SAFE_DELETE(g_pOptionInfoManager);
-    SAFE_DELETE(g_pSkillInfoManager);
+    SAFE_DELETE(m_pSkillInfoManager);
     SAFE_DELETE(m_pSkillDomainInfoManager);
     SAFE_DELETE(g_pMonsterInfoManager);
     SAFE_DELETE(m_pItemInfoManager);
@@ -306,7 +307,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pTimeManager);
     SAFE_DELETE(m_pDirectiveSetManager);
     SAFE_DELETE(m_pMonsterNameManager);
-    SAFE_DELETE(g_pZoneInfoManager);
+    SAFE_DELETE(m_pZoneInfoManager);
     SAFE_DELETE(g_pZoneGroupManager);
     // SAFE_DELETE(g_pSkillParentInfoManager);
     SAFE_DELETE(g_pSkillHandlerManager);
@@ -468,7 +469,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : EffectLoaderManager Initialization Success\n");
 
     printf("ObjectManager::init() : ZoneInfoManager Initialization Start\n");
-    g_pZoneInfoManager->init();
+    m_pZoneInfoManager->init();
     printf("ObjectManager::init() : ZoneInfoManager Initialization Success\n");
 
     // by sigi. 2002.9.2
@@ -556,7 +557,7 @@ void ObjectManager::load()
     printf("ObjectManager::init() : SkillHandlerManager Initialization Success\n");
 
     printf("ObjectManager::init() : SkillInfoManager Initialization Start\n");
-    g_pSkillInfoManager->init();
+    m_pSkillInfoManager->init();
     printf("ObjectManager::init() : SkillInfoManager Initialization Success\n");
 
 

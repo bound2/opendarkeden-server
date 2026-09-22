@@ -8,6 +8,7 @@
 
 #include "CastleInfoManager.h"
 #include "Effect.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PacketUtil.h"
 #include "Slayer.h"
@@ -264,7 +265,7 @@ bool ResurrectLocationManager::getPosition(PlayerCreature* pPC, ZONE_COORD& zone
 
             if (pPC->getResurrectZoneID() != 0) {
                 try {
-                    pResZoneInfo = g_pZoneInfoManager->getZoneInfo(pPC->getResurrectZoneID());
+                    pResZoneInfo = de::gameContext().zoneInfos().getZoneInfo(pPC->getResurrectZoneID());
                 } catch (Throwable& t) {
                     filelog("ResurrectLocationError.txt", "%s", t.toString().c_str());
                 }

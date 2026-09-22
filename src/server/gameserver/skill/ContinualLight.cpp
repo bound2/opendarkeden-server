@@ -14,6 +14,7 @@
 #include "GCSkillToTileOK3.h"
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer tile handler
@@ -42,7 +43,7 @@ void ContinualLight::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skil
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
@@ -73,7 +74,8 @@ void ContinualLight::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skil
             SkillOutput output;
             computeOutput(input, output);
 
-            SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+            SkillGrade Grade =
+                de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
 
             int oX = 0, oY = 0;
 

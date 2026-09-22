@@ -13,6 +13,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "SkillUtil.h"
 
@@ -57,7 +58,7 @@ void MagnumSpear::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
 
         int HitBonus = 0;

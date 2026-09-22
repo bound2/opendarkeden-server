@@ -9,7 +9,7 @@
 // The structs mirror the gameserver's SkillInput/SkillOutput
 // (skill/SkillHandler.h) field-for-field so the bodies move without edits:
 // same field names, same enum values. Three impurities were externalized:
-//  - DomainGrade replaces g_pSkillInfoManager->getGradeByDomainLevel(
+//  - DomainGrade replaces SkillInfoManager::getGradeByDomainLevel(
 //    input.DomainLevel); only the three grade-using adapters fetch it
 //    (ContinualLight, Purify, DetectInvisibility), preserving the
 //    manager's out-of-range throw exactly where it could throw before.

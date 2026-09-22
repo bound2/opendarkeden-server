@@ -14,6 +14,7 @@
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK3.h"
 #include "GDRLairManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemUtil.h"
 #include "PKZoneInfoManager.h"
@@ -57,7 +58,7 @@ void TransformToWolf::execute(Vampire* pVampire, ObjectID_t InvenObjectID, Coord
         GCSkillToInventoryOK1 _GCSkillToInventoryOK1;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t x = pVampire->getX();
         ZoneCoord_t y = pVampire->getY();
@@ -155,7 +156,7 @@ void TransformToWolf::execute(Monster* pMonster)
         Assert(pZone != NULL);
 
         SkillType_t SkillType = SKILL_TRANSFORM_TO_WOLF;
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t x = pMonster->getX();
         ZoneCoord_t y = pMonster->getY();

@@ -12,6 +12,7 @@
 #include "GCSkillToObjectOK2.h"
 #include "GCSkillToObjectOK4.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "HitRoll.h"
 #include "Monster.h"
@@ -80,7 +81,7 @@ void EffectSummonFireElemental::affect()
         return;
     }
 
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_SUMMON_FIRE_ELEMENTAL);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SKILL_SUMMON_FIRE_ELEMENTAL);
     OustersSkillSlot* pSkillSlot = pOusters->getSkill(SKILL_SUMMON_FIRE_ELEMENTAL);
 
     bool bRaceCheck = pTargetCreature->isSlayer() || pTargetCreature->isVampire() || pTargetCreature->isMonster();

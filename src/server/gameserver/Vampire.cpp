@@ -1651,7 +1651,7 @@ void Vampire::sendVampireSkillInfo()
 
     GCSkillInfo gcSkillInfo;
     gcSkillInfo.setPCType(PC_VAMPIRE);
-    SkillType_t LearnSkillType = g_pSkillInfoManager->getSkillTypeByLevel(SKILL_DOMAIN_VAMPIRE, m_Level);
+    SkillType_t LearnSkillType = de::gameContext().skillInfos().getSkillTypeByLevel(SKILL_DOMAIN_VAMPIRE, m_Level);
 
     // Check whether there is a skill learnable at the current level.
     if (LearnSkillType != 0) {

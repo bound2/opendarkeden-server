@@ -11,6 +11,7 @@
 #include "GCOtherModifyInfo.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
+#include "GameContext.h"
 #include "PacketUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -43,7 +44,7 @@ void PotentialExplosion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
         GCSkillToSelfOK1 _GCSkillToSelfOK1;
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         ZoneCoord_t X = pSlayer->getX();
@@ -89,7 +90,8 @@ void PotentialExplosion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
             pSlayer->sendModifyInfo(prev);
 
             // Raises experience.
-            SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+            SkillGrade Grade =
+                de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 8, 1, 1, _GCSkillToSelfOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);

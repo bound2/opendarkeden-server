@@ -486,6 +486,3 @@ string SkillInfoManager::toString() const
 
     __END_CATCH
 }
-
-// Global Variable definition
-SkillInfoManager* g_pSkillInfoManager = NULL;

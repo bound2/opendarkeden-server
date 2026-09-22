@@ -10,6 +10,7 @@
 #include "GCSkillToObjectOK2.h"
 #include "GCSkillToObjectOK4.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "HitRoll.h"
 #include "Monster.h"
@@ -188,7 +189,7 @@ void EffectGunShotGuidanceAim::unaffect(Creature* pCastCreature)
         bool bIncreaseExp = pSlayer->isRealWearingEx(Slayer::WEAR_RIGHTHAND);
         if (bIncreaseExp) {
             SkillSlot* pSkillSlot = pSlayer->hasSkill(SKILL_GUN_SHOT_GUIDANCE);
-            SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_GUN_SHOT_GUIDANCE);
+            SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SKILL_GUN_SHOT_GUIDANCE);
             SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
             GCModifyInformation gcMI;
@@ -250,8 +251,8 @@ string EffectGunShotGuidanceAim::toString() const {
 
     StringStream msg;
     msg << "EffectGunShotGuidanceAim("
-        << "Zone:" << g_pZoneInfoManager->getZoneInfo(m_pZone->getZoneID())->getFullName() << ",X:" << (int)m_X
-        << ",Y:" << (int)m_Y << ",Damage:" << (int)m_Damage << ")";
+        << "Zone:" << de::gameContext().zoneInfos().getZoneInfo(m_pZone->getZoneID())->getFullName()
+        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Damage:" << (int)m_Damage << ")";
     return msg.toString();
 
     __END_CATCH

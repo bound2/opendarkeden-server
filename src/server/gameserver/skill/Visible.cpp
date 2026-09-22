@@ -17,6 +17,7 @@
 #include "GCSkillToTileOK3.h"
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
+#include "GameContext.h"
 #include "ZoneUtil.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -42,7 +43,7 @@ void Visible::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* 
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);
 
@@ -203,7 +204,7 @@ void Visible::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             return;
         }
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // Gets the skill level.
 

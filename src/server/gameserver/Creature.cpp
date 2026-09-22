@@ -8,6 +8,7 @@
 
 #include "Effect.h"
 #include "GCSay.h"
+#include "GameContext.h"
 #include "Party.h"
 #include "Slayer.h"
 #include "VisionInfo.h"
@@ -144,7 +145,7 @@ void Creature::setZoneID(ZoneID_t zoneID)
     __BEGIN_TRY
 
     try {
-        ZoneInfo* m_pZoneInfo = g_pZoneInfoManager->getZoneInfo(zoneID);
+        ZoneInfo* m_pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(zoneID);
         Assert(m_pZoneInfo != NULL);
 
         ZoneGroupID_t zoneGroupID = m_pZoneInfo->getZoneGroupID();

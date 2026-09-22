@@ -739,7 +739,7 @@ bool Slayer::load()
         pSkillSlot->setRunTime();
 
         // Check whether this skill can be used: fetch its SkillInfo.
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(pSkillSlot->getSkillType());
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(pSkillSlot->getSkillType());
         Assert(pSkillInfo != NULL);
 
         // If the current domain level is below the level the skill is
@@ -2066,7 +2066,7 @@ void Slayer::sendSlayerSkillInfo()
             // If it is not a basic attack skill...
             if (pSkillSlot->getSkillType() >= SKILL_DOUBLE_IMPACT) {
                 // Take the skill info.
-                pSkillInfo = g_pSkillInfoManager->getSkillInfo(pSkillSlot->getSkillType());
+                pSkillInfo = de::gameContext().skillInfos().getSkillInfo(pSkillSlot->getSkillType());
 
                 // Take the current skill's domain from the skill info.
                 SDomainType = pSkillInfo->getDomainType();
@@ -2094,7 +2094,7 @@ void Slayer::sendSlayerSkillInfo()
         gcSkillInfo.setPCType(PC_SLAYER);
 
         for (int i = 0; i < SKILL_DOMAIN_VAMPIRE; i++) {
-            SkillType_t LearnSkillType = g_pSkillInfoManager->getSkillTypeByLevel(i, m_SkillDomainLevels[i]);
+            SkillType_t LearnSkillType = de::gameContext().skillInfos().getSkillTypeByLevel(i, m_SkillDomainLevels[i]);
 
             // Check whether a skill can be learned at the current level.
             if (LearnSkillType != 0) {

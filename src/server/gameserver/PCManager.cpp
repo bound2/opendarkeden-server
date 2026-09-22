@@ -1109,7 +1109,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
     ZoneX = ResurrectCoord.x;
     ZoneY = ResurrectCoord.y;
 
-    pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZoneID);
+    pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZoneID);
     pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
 
     // Associate the Resurrect event with the player object.
@@ -1227,7 +1227,7 @@ void PCManager::transportAllCreatures(ZoneID_t ZoneID, ZoneCoord_t ZoneX, ZoneCo
                     pEventTransport->setZoneName("");
                     pEventTransport->setTargetZone(ResurrectCoord.id, ResurrectCoord.x, ResurrectCoord.y);
                 } else {
-                    ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZoneID);
+                    ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZoneID);
                     Assert(pZoneInfo != NULL);
 
                     pEventTransport->setDeadline(delay * 10);

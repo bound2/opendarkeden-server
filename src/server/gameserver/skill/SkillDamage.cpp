@@ -478,7 +478,7 @@ Damage_t computeMagicDamage(Creature* pTargetCreature, int Damage, SkillType_t S
                             Creature* pAttacker) {
     Assert(pTargetCreature != NULL);
 
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
     Assert(pSkillInfo != NULL);
 
     int MagicDomain = pSkillInfo->getMagicDomain();
@@ -837,10 +837,11 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
     bool bPhysicDamage = pSkillProperty->isPhysic();
     bool bMagicDamage = pSkillProperty->isMagic();
 
+    SkillInfoManager& skillInfos = de::gameContext().skillInfos();
     SkillInfo* pSkillInfo = NULL;
 
     if (SkillType >= SKILL_DOUBLE_IMPACT) {
-        pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        pSkillInfo = skillInfos.getSkillInfo(SkillType);
         Assert(pSkillInfo != NULL);
 
         BYTE domain = pSkillInfo->getDomainType();
@@ -947,8 +948,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
 
     if (pTargetCreature != NULL && pTargetCreature->isFlag(Effect::EFFECT_CLASS_STONE_SKIN) &&
         (SkillType >= SKILL_DOUBLE_IMPACT || SkillType == SKILL_ATTACK_ARMS)) {
-        if (SkillType == SKILL_ATTACK_ARMS ||
-            g_pSkillInfoManager->getSkillInfo(SkillType)->getDomainType() == SKILL_DOMAIN_GUN) {
+        if (SkillType == SKILL_ATTACK_ARMS || skillInfos.getSkillInfo(SkillType)->getDomainType() == SKILL_DOMAIN_GUN) {
             EffectStoneSkin* pStoneSkin =
                 dynamic_cast<EffectStoneSkin*>(pTargetCreature->findEffect(Effect::EFFECT_CLASS_STONE_SKIN));
             if (pStoneSkin != NULL) {
@@ -970,7 +970,7 @@ HP_t setDamage(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, 
     if (pAttacker != NULL && pAttacker->isOusters() && SkillType >= SKILL_DOUBLE_IMPACT) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pAttacker);
         Assert(pOusters != NULL);
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SkillType);
         Assert(pSkillInfo != NULL);
 
         if (pSkillProperty->isMagic()) {
@@ -2066,7 +2066,7 @@ bool canHit(Creature* pAttacker, Creature* pDefender, SkillType_t SkillType, Ski
     }
 
     // Returns whether the attack is possible for the skill type and the target's move mode.
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
     Assert(pSkillInfo != NULL);
 
     uint TType = pSkillInfo->getTarget();

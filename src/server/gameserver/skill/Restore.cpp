@@ -18,6 +18,7 @@
 #include "GCSkillToObjectOK1.h"
 #include "GCSkillToSelfOK1.h"
 #include "GSGuildMemberLogOn.h"
+#include "GameContext.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "ItemUtil.h"
@@ -62,7 +63,7 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
         GCMorphSlayer2 _GCMorphSlayer2;         // To the onlookers of the transformation.
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         bool bRangeCheck = verifyDistance(pSlayer, pFromCreature, pSkillInfo->getRange());
         bool bHitRoll = true;

@@ -47,6 +47,7 @@ class RankBonusInfoManager;
 class ScriptManager;
 class ShopTemplateManager;
 class SkillDomainInfoManager;
+class SkillInfoManager;
 class SkillPropertyManager;
 class TelephoneCenter;
 class TimeChecker;
@@ -57,6 +58,7 @@ class VisionInfoManager;
 class VolumeInfoManager;
 class WayPointManager;
 class WeatherInfoManager;
+class ZoneInfoManager;
 
 class ObjectManager {
 public:
@@ -104,6 +106,7 @@ private:
     ScriptManager* m_pPublicScriptManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
     SkillDomainInfoManager* m_pSkillDomainInfoManager = nullptr;
+    SkillInfoManager* m_pSkillInfoManager = nullptr;
     SkillPropertyManager* m_pSkillPropertyManager = nullptr;
     TelephoneCenter* m_pTelephoneCenter = nullptr;
     TimeChecker* m_pTimeChecker = nullptr;
@@ -114,6 +117,7 @@ private:
     VolumeInfoManager* m_pVolumeInfoManager = nullptr;
     WayPointManager* m_pWayPointManager = nullptr;
     WeatherInfoManager* m_pWeatherInfoManager = nullptr;
+    ZoneInfoManager* m_pZoneInfoManager = nullptr;
 };
 
 #endif

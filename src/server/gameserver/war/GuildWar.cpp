@@ -210,7 +210,7 @@ string GuildWar::getWarName() const
 
     try {
         pGuild = g_pGuildManager->getGuild(m_ChallangerGuildID);
-        pZoneInfo = g_pZoneInfoManager->getZoneInfo(m_CastleZoneID);
+        pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(m_CastleZoneID);
 
         if (pGuild == NULL || pZoneInfo == NULL)
             return "길드 전쟁";

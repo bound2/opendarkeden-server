@@ -8,6 +8,7 @@
 
 #include "GCSkillToInventoryOK1.h"
 #include "GCSkillToInventoryOK2.h"
+#include "GameContext.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
 #include "item/Potion.h"
@@ -60,10 +61,11 @@ void CreateHolyPotion::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordI
         GCSkillToInventoryOK2 _GCSkillToInventoryOK2;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
+        SkillGrade Grade =
+            de::gameContext().skillInfos().getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
 
         // The matching holy water type is the water type plus 11.
         ItemType_t waterType = pPotion->getItemType() + 11;

@@ -10,6 +10,7 @@
 #include "GCSkillToTileOK1.h"
 #include "GCSkillToTileOK5.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Vampire tile handler
@@ -46,7 +47,7 @@ void RapidGliding::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
         SkillOutput output;
         computeOutput(input, output);
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = decreaseConsumeMP(pVampire, pSkillInfo);
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);

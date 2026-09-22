@@ -10,6 +10,7 @@
 #include "GCSkillToObjectOK1.h"
 #include "GCSkillToObjectOK2.h"
 #include "GCSkillToObjectOK5.h"
+#include "GameContext.h"
 #include "HitRoll.h"
 #include "RankBonus.h"
 #include "SkillUtil.h"
@@ -56,7 +57,7 @@ void BloodyZenith::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         Range_t Range = 2 + pVampire->getSTR() / 80 + pVampire->getDEX() / 120 + pVampire->getINT() / 240;
         Range = min((Range_t)6, Range);
 
@@ -175,7 +176,7 @@ void BloodyZenith::execute(Monster* pMonster, Creature* pEnemy)
         GCSkillToObjectOK2 _GCSkillToObjectOK2;
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(getSkillType());
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(getSkillType());
 
         SkillInput input(pMonster);
         SkillOutput output;

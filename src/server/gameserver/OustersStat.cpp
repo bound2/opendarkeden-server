@@ -103,7 +103,7 @@ void Ousters::initCastleSkill() {
         if (CastleSkillType == SKILL_MAX)
             continue;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(CastleSkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(CastleSkillType);
         Assert(pSkillInfo != NULL);
 
         Turn_t Delay = pSkillInfo->getMaxDelay();
@@ -767,6 +767,9 @@ void Ousters::initAllStat(int numPartyMember)
             m_ToHit[ATTR_CURRENT] += getPercentValue(m_ToHit[ATTR_CURRENT], bonus);
         }
     }
+
+    SkillInfoManager& skillInfos = de::gameContext().skillInfos();
+
     if (isFlag(Effect::EFFECT_CLASS_REACTIVE_ARMOR)) {
         EffectReactiveArmor* pEffect =
             dynamic_cast<EffectReactiveArmor*>(findEffect(Effect::EFFECT_CLASS_REACTIVE_ARMOR));
@@ -774,7 +777,7 @@ void Ousters::initAllStat(int numPartyMember)
         if (pEffect != NULL) {
             bool unaffect = false;
             if (getSkill(SKILL_REACTIVE_ARMOR) != NULL) {
-                SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_REACTIVE_ARMOR);
+                SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_REACTIVE_ARMOR);
                 if (pSkillInfo != NULL && !satisfySkillRequire(pSkillInfo)) {
                     unaffect = true;
                 }
@@ -795,7 +798,7 @@ void Ousters::initAllStat(int numPartyMember)
     // Initialize the passive skills
     bool bCanUsePassive = false;
     if (hasSkill(SKILL_FIRE_OF_SOUL_STONE) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_FIRE_OF_SOUL_STONE);
+        SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_FIRE_OF_SOUL_STONE);
         Assert(pSkillInfo != NULL);
 
         if (satisfySkillRequire(pSkillInfo)) {
@@ -813,7 +816,7 @@ void Ousters::initAllStat(int numPartyMember)
 
     bCanUsePassive = false;
     if (hasSkill(SKILL_ICE_OF_SOUL_STONE) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_ICE_OF_SOUL_STONE);
+        SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_ICE_OF_SOUL_STONE);
         Assert(pSkillInfo != NULL);
 
         if (satisfySkillRequire(pSkillInfo)) {
@@ -831,7 +834,7 @@ void Ousters::initAllStat(int numPartyMember)
 
     bCanUsePassive = false;
     if (hasSkill(SKILL_SAND_OF_SOUL_STONE) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_SAND_OF_SOUL_STONE);
+        SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_SAND_OF_SOUL_STONE);
         Assert(pSkillInfo != NULL);
 
         if (satisfySkillRequire(pSkillInfo)) {
@@ -849,7 +852,7 @@ void Ousters::initAllStat(int numPartyMember)
 
     bCanUsePassive = false;
     if (hasSkill(SKILL_BLOCK_HEAD) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_BLOCK_HEAD);
+        SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_BLOCK_HEAD);
         Assert(pSkillInfo != NULL);
 
         if (satisfySkillRequire(pSkillInfo)) {
@@ -867,7 +870,7 @@ void Ousters::initAllStat(int numPartyMember)
 
     bCanUsePassive = false;
     if (hasSkill(SKILL_BLESS_FIRE) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_BLESS_FIRE);
+        SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_BLESS_FIRE);
         Assert(pSkillInfo != NULL);
 
         if (satisfySkillRequire(pSkillInfo)) {
@@ -885,7 +888,7 @@ void Ousters::initAllStat(int numPartyMember)
 
     bCanUsePassive = false;
     if (hasSkill(SKILL_WATER_SHIELD) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_WATER_SHIELD);
+        SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_WATER_SHIELD);
         Assert(pSkillInfo != NULL);
 
         if (satisfySkillRequire(pSkillInfo)) {
@@ -903,7 +906,7 @@ void Ousters::initAllStat(int numPartyMember)
 
     bCanUsePassive = false;
     if (hasSkill(SKILL_SAND_CROSS) != NULL) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_SAND_CROSS);
+        SkillInfo* pSkillInfo = skillInfos.getSkillInfo(SKILL_SAND_CROSS);
         Assert(pSkillInfo != NULL);
 
         if (satisfySkillRequire(pSkillInfo)) {

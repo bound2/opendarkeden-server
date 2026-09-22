@@ -16,6 +16,7 @@
 #include "GCSkillToObjectOK6.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer self handler
@@ -47,7 +48,7 @@ void SharpChakram::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlo
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);

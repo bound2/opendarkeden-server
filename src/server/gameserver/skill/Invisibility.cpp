@@ -10,6 +10,7 @@
 #include "GCDeleteObject.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
+#include "GameContext.h"
 #include "Monster.h"
 #include "RankBonus.h"
 
@@ -36,7 +37,7 @@ void Invisibility::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t x = pVampire->getX();
         ZoneCoord_t y = pVampire->getY();
@@ -128,7 +129,7 @@ void Invisibility::execute(Monster* pMonster)
         }
 
         SkillType_t SkillType = SKILL_INVISIBILITY;
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t x = pMonster->getX();
         ZoneCoord_t y = pMonster->getY();

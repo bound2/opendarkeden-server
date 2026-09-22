@@ -8,6 +8,7 @@
 #include "GCSkillToObjectOK2.h"
 #include "GCSkillToObjectOK4.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "HitRoll.h"
 #include "Monster.h"
@@ -168,7 +169,8 @@ string EffectCannonade::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectCannonade(" << "Zone:" << g_pZoneInfoManager->getZoneInfo(m_pZone->getZoneID())->getFullName()
+    msg << "EffectCannonade("
+        << "Zone:" << de::gameContext().zoneInfos().getZoneInfo(m_pZone->getZoneID())->getFullName()
         << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Damage:" << (int)m_Damage << ")";
     return msg.toString();
 

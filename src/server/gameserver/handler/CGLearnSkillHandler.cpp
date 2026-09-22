@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGLearnSkill.h"
+#include "GameContext.h"
 
 #ifdef __GAME_SERVER__
 #include <cstdio>
@@ -405,7 +406,7 @@ void CGLearnSkillHandler::execute(CGLearnSkill* pPacket, Player* pPlayer)
     // Check that the player is in a normal state.
     if (pGamePlayer->getPlayerStatus() == GPS_NORMAL) {
         // Check whether the NPC can teach it.
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(targetSkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(targetSkillType);
         Assert(pSkillInfo != NULL);
 
         if (pSkillInfo->getLevel() >= 150) {
@@ -524,7 +525,7 @@ void CGLearnSkillHandler::executeSlayerSkill(CGLearnSkill* pPacket, Player* pPla
     }
 
     // The skill can be learned when the level needed for it is below the current domain level.
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(targetSkillType);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(targetSkillType);
 
     // check skill type ,modified by chengh 2006 06 14
     if (pSkillInfo->getType() != SKILL_SOUL_CHAIN &&
@@ -624,7 +625,7 @@ void CGLearnSkillHandler::executeVampireSkill(CGLearnSkill* pPacket, Player* pPl
     bool bSuccess = false;
 
     // The skill can be learned when the level needed for it is below the current level.
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(targetSkillType);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(targetSkillType);
 
     // check skill type ,modified by chengh 2006 06 14
     if (pSkillInfo->getType() != SKILL_SOUL_CHAIN &&
@@ -693,7 +694,7 @@ void CGLearnSkillHandler::executeOustersSkill(CGLearnSkill* pPacket, Player* pPl
     Creature* pPC = pGamePlayer->getCreature();
     Ousters* pOusters = dynamic_cast<Ousters*>(pPC);
 
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(targetSkillType);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(targetSkillType);
 
 
     // check skill type ,modified by chengh 2006 06 14
@@ -851,7 +852,7 @@ bool CheckRequiredSkill(SkillInfo* pSkillInfo, Ousters* pOusters, int domain) {
     // Having any one of the required skills is enough.
     for (; itr != endItr; ++itr) {
         // When a required skill is in the ETC domain, which skill map it was learned from has to be checked.
-        SkillInfo* pParentSkillInfo = g_pSkillInfoManager->getSkillInfo(*itr);
+        SkillInfo* pParentSkillInfo = de::gameContext().skillInfos().getSkillInfo(*itr);
         if (pParentSkillInfo->getElementalDomain() == ELEMENTAL_DOMAIN_ETC) {
             if (!CheckRequiredSkill(pParentSkillInfo, pOusters, domain))
                 continue;

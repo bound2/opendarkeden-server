@@ -11,6 +11,84 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A vision info manager's debug string fell off the end of the function (2026-09-22)
+
+- **`VisionInfoManager::toString()` returned `string` and had no `return`:**
+  its whole body was a commented-out block, so the live function was a
+  try/catch frame around nothing. Falling off the end of a non-void
+  function is undefined behaviour; nothing calls it today. It now returns
+  the class name, the manager having no state to print.
+  > **Status:** fixed (refactor/game-context-10, stack top)
+
+## The lottery handler used the item it failed to roll (2026-09-22)
+
+- **`CGLotterySelectHandler` walks the treasure list and, when no entry
+  rolled an item, still called `setItemGender` on the item pointer and, in
+  its else branch, `setUnique`, `setTimeLimitItem` and `setQuestItem` on
+  it.** The pointer was uninitialised before the leak fix and null after
+  it, so the failure became a deterministic null call. The gender and the
+  fallback branch now run only for an item that exists; a player whose
+  roll produced nothing gets nothing, as the inventory branch already
+  allowed.
+  > **Status:** fixed (refactor/game-context-10, stack top)
+
+## A lair-item trade dereferences its mine info and item before checking them (2026-09-22)
+
+- **`ActionTradeLairItem` dereferences `pItemMineInfo->getItem()` unchecked
+  and calls `setItemGender` on its item before the null check that
+  follows it,** so a treasure whose roll produced nothing reaches
+  `setItemGender` with null, the shape the lottery handler had.
+  > **Status:** recorded, not fixed (fix/recorded-defects-1)
+
+## Two more event item actions crash on an Ousters (2026-09-22)
+
+- **`ActionGiveAccountEventItem` and `ActionTradeGiftBox` choose their Lua
+  item selector in a Slayer branch and a Vampire branch, so an Ousters
+  leaves the pointer null and dereferences it,** the defect
+  `ActionGiveEventItem` had before it refused the race instead.
+  > **Status:** recorded, not fixed (fix/recorded-defects-1)
+
+## The movement and attack speed-hack check is gone (2026-09-22)
+
+- **`GamePlayer::verifySpeed` keeps only the `CG_VERIFY_TIME` heartbeat
+  check, and its one caller discards the result.** Its per-race move and
+  attack timing check, 298 lines, sat inside a comment block since before the tree was imported and went with
+  the commented-out code; what remains for `CG_MOVE` is an empty `if` on
+  `m_MoveSpeedVerify` and a round-trip time computed into a local nothing
+  reads, and `m_AttackSpeedVerify` is written by nothing that decides on
+  it. Restoring the check is a design decision, not a fix.
+  > **Status:** recorded, not fixed (refactor/commented-code-3)
+
+## The log client never opens its socket (2026-09-22)
+
+- **Every `LogClient` member and every global `log(...)` had its whole body
+  commented out,** so `openLogClient()` allocates a client that never
+  connects, `LogClient::m_LogLevel` is read by nothing, every `log(...)`
+  call in the tree is a no-op, and each `main()` still reads
+  `LogServerIP`, `LogServerPort` and `LogLevel` from its config for it.
+  > **Status:** recorded, not fixed (refactor/commented-code-3)
+
+## Duplicate Self is not gated on a master lair (2026-09-22)
+
+- **`checkTimingDuplicateSelf` in `MonsterAI.cpp` lacks the master-lair
+  guard its siblings `checkMasterSummonTiming` and `checkMasterNotReady`
+  both apply;** the guard was there, switched off in a comment block that
+  is now deleted. A master outside its lair can duplicate itself.
+  > **Status:** recorded, not fixed (refactor/commented-code-3)
+
+## A random monster name is only ever its middle part (2026-09-22)
+
+- **The non-event `MonsterNameManager::getRandomName` draws a first and a
+  last name index it never uses, returns on the first pass of its retry
+  loop, and spells its fallback as a comparison (`Name == "..."`) rather
+  than an assignment,** so the fallback is unreachable and a named monster
+  gets its middle name followed by a trailing space, which reaches the
+  client. The design the deleted comment described was banded by level:
+  a last name alone up to level 33, first and last to 66, all three above.
+  The event overload has the same loop shape but draws a sensible event
+  name.
+  > **Status:** recorded, not fixed (refactor/commented-code-3)
+
 ## The item factory's out-of-range guard is caught by its own handler (2026-09-22)
 
 - **`ItemFactoryManager::createItem` checks the item class and throws
@@ -28,10 +106,18 @@ that followed it.
   Both guards now leave their function: the swallowing `catch` is gone, so
   `createItem`'s `NoSuchElementException` propagates through `__END_CATCH`
   to the caller, and `getItemName`, which nothing in the tree calls, throws
-  the diagnostic it had been building. Propagating rather than answering NULL is what the callers
-  support: of the 183 `createItem` call sites only 38 check the pointer
+  the diagnostic it had been building. Propagating rather than answering
+  NULL is what the callers support: of the 183 `createItem` call sites
+  only 38 check the pointer
   within five lines, so a NULL return would have moved the crash rather
-  than removed it. The logging the guard already did is unchanged.
+  than removed it. The logging the guard already did is unchanged. Three
+  in-range classes never get a factory (`ITEM_CLASS_CORPSE`,
+  `ITEM_CLASS_GQUEST_ITEM`, `ITEM_CLASS_BLOOD_BIBLE_SIGN`), so server data
+  naming one of them takes the null-factory branch. On a client packet the
+  exception ends in a clean disconnect; on the worker threads that catch
+  nothing per tick (`GDRLairManager::heartbeat`, the monster drop paths of
+  `ZoneGroup::heartbeat`) it reaches `ManagedThread` and stops the server,
+  where the old fall-through faulted on the same tick.
   > **Status:** fixed (fix/recorded-defects-1)
 
 ## A lair-item trade leaks every winning treasure but the last (2026-09-22)
@@ -55,9 +141,11 @@ that followed it.
 
 - **`EffectYellowPoisonToCreature::unaffect` sets the sight to the literal
   13 and only then removes the effect flag;** `m_OldSight`, which the affect
-  and the loader both write, is read nowhere. `EffectFlare::unaffect` and
-  `EffectLightness::unaffect` do it the right way round: remove the flag,
-  then `setSight(getEffectedSight())`. The default and Lightness sights are
+  and the loader both write, is read nowhere. `EffectLightness::unaffect`
+  does it the right way round: remove the flag, then
+  `setSight(getEffectedSight())`; `EffectFlare::unaffect` removes its flag
+  first too, then restores the sight it saved, or a monster's per-type
+  sight. The default and Lightness sights are
   13 too, so it diverges only under another sight effect: a creature blinded
   by Flare and then poisoned gets full vision back the moment the poison
   ticks out, and monsters, whose Flare restore reads the per-type sight,
@@ -65,6 +153,8 @@ that followed it.
   The flag now comes off first and the sight that follows is
   `getEffectedSight()`, so what is left is what the creature's remaining
   effects say: the Flare sight for one still flared, the default otherwise.
+  Only a player creature can carry the effect, so the per-type restore
+  Flare does for a monster is not needed here.
   `m_OldSight` stays as it is -- it is a persisted column
   (`EffectYellowPoisonToCreature.OldSight`, written by `create` and
   `save`), so the field and its writes are not dead, only its readers.

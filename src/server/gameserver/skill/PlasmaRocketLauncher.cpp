@@ -13,6 +13,7 @@
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
+#include "GameContext.h"
 #include "ItemUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -59,7 +60,7 @@ void PlasmaRocketLauncher::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, S
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         // Computes the penalty value.

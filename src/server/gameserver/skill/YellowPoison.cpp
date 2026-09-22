@@ -14,6 +14,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -78,7 +79,7 @@ void YellowPoison::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // Knowledge of Poison gives a hit bonus of 10.
         int HitBonus = 0;
@@ -282,7 +283,7 @@ void YellowPoison::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = SKILL_YELLOW_POISON;
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         bool bRangeCheck = verifyDistance(pMonster, X, Y, pSkillInfo->getRange());
         bool bHitRoll = HitRoll::isSuccessMagic(pMonster, pSkillInfo);

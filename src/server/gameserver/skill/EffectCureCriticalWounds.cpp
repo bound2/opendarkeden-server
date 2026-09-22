@@ -13,6 +13,7 @@
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "HitRoll.h"
 #include "Monster.h"
 #include "Player.h"
@@ -159,7 +160,7 @@ void EffectCureCriticalWounds::affect(Creature* pCreature)
             }
         }
 
-    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_CURE_CRITICAL_WOUNDS);
+    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SKILL_CURE_CRITICAL_WOUNDS);
 
     if (pSkillInfo != NULL && bCured) {
         SkillSlot* pSkillSlot = ((Slayer*)pCreature)->hasSkill(SKILL_CURE_CRITICAL_WOUNDS);

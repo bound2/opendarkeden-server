@@ -11,6 +11,7 @@
 #include "GCThrowItemOK1.h"
 #include "GCThrowItemOK2.h"
 #include "GCThrowItemOK3.h"
+#include "GameContext.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
 #include "item/HolyWater.h"
@@ -105,7 +106,7 @@ void ThrowHolyWater::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, ObjectI
                     // 2003. 1. 12 by bezz
                     // There is no SkillInfo for Throw Holy Water, so the point value of
                     // Create Holy Water is used.
-                    SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_CREATE_HOLY_WATER);
+                    SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SKILL_CREATE_HOLY_WATER);
                     increaseDomainExp(pSlayer, SKILL_DOMAIN_ENCHANT, pSkillInfo->getPoint(), gcAttackerMI,
                                       pTargetCreature->getLevel());
                 }

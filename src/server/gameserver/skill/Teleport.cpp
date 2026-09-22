@@ -10,6 +10,7 @@
 #include "GCSkillToTileOK1.h"
 #include "GCSkillToTileOK5.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Vampire tile handler
@@ -46,7 +47,7 @@ void Teleport::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
         SkillOutput output;
         computeOutput(input, output);
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 10;
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);

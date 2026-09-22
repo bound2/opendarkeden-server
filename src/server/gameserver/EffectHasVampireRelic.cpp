@@ -14,6 +14,7 @@
 #include "GCRemoveEffect.h"
 #include "GCStatusCurrentHP.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "Monster.h"
 #include "MonsterCorpse.h"
 #include "Player.h"
@@ -50,7 +51,7 @@ void EffectHasVampireRelic::affect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pZone->getZoneID());
+    ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(pZone->getZoneID());
     Assert(pZoneInfo != NULL);
 
     // Announce the location.

@@ -79,6 +79,9 @@ TEST(RaceSkillSlotTest, RemainingTurnsAreTenthsOfASecondUntilTheRunTime) {
 
     slot.placeRunTime(102, 0);
     EXPECT_EQ(20u, slot.getRemainTurn(at(100, 0)));
+
+    slot.placeRunTime(100, 40000);
+    EXPECT_EQ(0u, slot.getRemainTurn(at(100, 0)));
 }
 
 TEST(RaceSkillSlotTest, ARunTimeAlreadyPastReportsNoRemainingTurns) {

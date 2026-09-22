@@ -17,6 +17,7 @@
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 
 SimpleCureSkill g_SimpleCureSkill;
 
@@ -40,7 +41,7 @@ void SimpleCureSkill::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, const SIMP
         GCSkillToSelfOK1 _GCSkillToSelfOK1;
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
@@ -185,7 +186,7 @@ void SimpleCureSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillS
         GCSkillToObjectOK4 _GCSkillToObjectOK4;
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         bool bHPCheck = false;

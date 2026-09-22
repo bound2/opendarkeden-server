@@ -13,6 +13,7 @@
 #include "GCSkillToTileOK3.h"
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
+#include "GameContext.h"
 #include "ItemUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -197,7 +198,7 @@ void MultiShot::SGexecute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
         GCSkillToTileOK4 _GCSkillToTileOK4;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(getSkillType());
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(getSkillType());
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         Level_t SkillLevel = pSkillSlot->getExpLevel();
 
@@ -438,7 +439,7 @@ void MultiShot::ARSMGexecute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skil
         GCSkillToTileOK4 _GCSkillToTileOK4;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(getSkillType());
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(getSkillType());
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         Level_t SkillLevel = pSkillSlot->getExpLevel();
 

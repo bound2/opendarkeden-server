@@ -7,6 +7,7 @@
 #include "MasterLairInfoManager.h"
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "MonsterInfo.h"
 #include "ZoneInfo.h"
 #include "ZoneInfoManager.h"
@@ -223,7 +224,7 @@ void MasterLairInfoManager::load()
 
         ZoneID_t zoneID = row.zoneID;
 
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(zoneID);
+        ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(zoneID);
         Assert(pZoneInfo != NULL);
 
         pZoneInfo->setMasterLair();

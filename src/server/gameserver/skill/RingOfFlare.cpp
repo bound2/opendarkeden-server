@@ -10,6 +10,7 @@
 #include "GCAddEffect.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer self handler
@@ -49,7 +50,7 @@ void RingOfFlare::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 2;
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);

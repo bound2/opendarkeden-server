@@ -14,6 +14,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -76,7 +77,7 @@ void AcidSwamp::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // Knowledge of Acid adds its rank bonus to the to-hit rate.
         int HitBonus = 0;
@@ -285,7 +286,7 @@ void AcidSwamp::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillType_t SkillType = SKILL_ACID_SWAMP;
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         bool bRangeCheck = verifyDistance(pMonster, X, Y, pSkillInfo->getRange());
         bool bHitRoll = HitRoll::isSuccessMagic(pMonster, pSkillInfo);

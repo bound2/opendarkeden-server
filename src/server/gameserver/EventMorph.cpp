@@ -15,6 +15,7 @@
 #include "GCMorphVampire2.h"
 #include "GCUpdateInfo.h"
 #include "GSGuildMemberLogOn.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -351,7 +352,7 @@ void EventMorph::activate()
     //--------------------------------------------------------------------------------
     ZoneInfo* pZoneInfo;
     try {
-        pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZoneNum);
+        pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZoneNum);
     } catch (NoSuchElementException&) {
         cerr << "Critical Error : 포탈에 지정된 존 아이디가 틀리거나, ZoneInfoManager에 해당 존이 존재하지 않습니다."
              << endl;

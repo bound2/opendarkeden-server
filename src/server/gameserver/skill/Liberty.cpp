@@ -13,6 +13,7 @@
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer object handler
@@ -55,7 +56,7 @@ void Liberty::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkill
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 3;
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);

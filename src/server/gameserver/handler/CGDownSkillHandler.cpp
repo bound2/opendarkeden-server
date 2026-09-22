@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGDownSkill.h"
+#include "GameContext.h"
 
 #ifdef __GAME_SERVER__
 #include <cmath>
@@ -72,9 +73,10 @@ void CGDownSkillHandler::execute(CGDownSkill* pPacket, Player* pPlayer)
     }
 
     SkillInfo* pTargetSkillInfo = NULL;
+    SkillInfoManager& skillInfos = de::gameContext().skillInfos();
 
     try {
-        pTargetSkillInfo = g_pSkillInfoManager->getSkillInfo(targetSkillType);
+        pTargetSkillInfo = skillInfos.getSkillInfo(targetSkillType);
     } catch (Exception& e) {
         failpkt.setDesc(INVALID_SKILL);
         pPlayer->sendPacket(&failpkt);
@@ -95,12 +97,12 @@ void CGDownSkillHandler::execute(CGDownSkill* pPacket, Player* pPlayer)
         for (; itr != rRequiredSkills.end(); ++itr) {
             if (pOusters->hasSkill(*itr) != NULL) {
                 bool canDrop = false;
-                SkillInfo* pFollowingSkillInfo = g_pSkillInfoManager->getSkillInfo(*itr);
+                SkillInfo* pFollowingSkillInfo = skillInfos.getSkillInfo(*itr);
                 list<SkillType_t>& rRequireSkills = pFollowingSkillInfo->getRequireSkills();
                 list<SkillType_t>::iterator itr2 = rRequireSkills.begin();
                 for (; itr2 != rRequireSkills.end(); ++itr2) {
                     if ((*itr2) != targetSkillType && pOusters->hasSkill(*itr2) != NULL) {
-                        SkillInfo* pAlternativeSkillInfo = g_pSkillInfoManager->getSkillInfo(*itr2);
+                        SkillInfo* pAlternativeSkillInfo = skillInfos.getSkillInfo(*itr2);
                         if (getSkillMapID((ElementalDomain)pAlternativeSkillInfo->getElementalDomain()) ==
                             getSkillMapID((ElementalDomain)pTargetSkillInfo->getElementalDomain()))
                             canDrop = true;

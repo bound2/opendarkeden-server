@@ -15,6 +15,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -61,7 +62,7 @@ void SoulRebirth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         ZoneCoord_t myX = pOusters->getX();
         ZoneCoord_t myY = pOusters->getY();

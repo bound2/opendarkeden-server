@@ -1839,10 +1839,12 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
     }
 
 
+    ZoneInfoManager& zoneInfos = de::gameContext().zoneInfos();
+
     //  Block warp/zone movement according to ZoneInfo's OpenLevel.
     //  add by inthesky 2004.07.26
 
-    ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(TargetZoneID);
+    ZoneInfo* pZoneInfo = zoneInfos.getZoneInfo(TargetZoneID);
 
     // add by Sonic 2006.10.21
 
@@ -1888,7 +1890,7 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
     bool bNoMoney = false;
 
     try {
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(TargetZoneID);
+        ZoneInfo* pZoneInfo = zoneInfos.getZoneInfo(TargetZoneID);
 
         // A pay zone while the account is not paying.
         if (pZoneInfo != NULL && (pZoneInfo->isPayPlay() || pZoneInfo->isPremiumZone()) &&
@@ -1976,7 +1978,7 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
         // Save the creature's information.
         pCreature->save();
 
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(TargetZoneID);
+        ZoneInfo* pZoneInfo = zoneInfos.getZoneInfo(TargetZoneID);
         Assert(pZoneInfo != NULL);
 
         // Drop the Blood Bible when leaving the holy land with it.
@@ -2083,7 +2085,7 @@ Zone* getZoneByZoneID(ZoneID_t ZID)
 
     ZoneInfo* pZoneInfo = NULL;
     try {
-        pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZID);
+        pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZID);
     } catch (NoSuchElementException&) {
         StringStream msg;
         msg << "getZoneByZoneID() : No Such ZoneInfo [" << (int)ZID << "]";

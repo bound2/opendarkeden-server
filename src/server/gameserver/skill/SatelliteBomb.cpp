@@ -16,6 +16,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "ItemUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -88,7 +89,7 @@ void SatelliteBomb::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
         // Get the type of the skill being used.
         SkillType_t SkillType = pSkillSlot->getSkillType();
         // Get that skill's info from the skill info manager.
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // RequiredMP  the MP the skill consumes.
         // bManaCheck  whether the caster has enough MP.

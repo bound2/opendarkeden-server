@@ -13,6 +13,7 @@
 #include "GCSkillToObjectOK4.h"
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToObjectOK6.h"
+#include "GameContext.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Vampire object handler
@@ -52,7 +53,7 @@ void DeleoEfficio::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         SkillInput input(pOusters, pSkillSlot);
         SkillOutput output;

@@ -18,6 +18,7 @@
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "Reflection.h"
 #include "Vampire.h"
@@ -59,7 +60,7 @@ void PoisonMesh::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         GCSkillToObjectOK5 _GCSkillToObjectOK5;
         GCSkillToObjectOK6 _GCSkillToObjectOK6;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);

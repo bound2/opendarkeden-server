@@ -15,6 +15,7 @@
 
 #include <unordered_map>
 
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "LogClient.h"
@@ -523,7 +524,7 @@ bool ZoneGroupManager::makeDefaultLoadInfo(LOAD_INFOS& loadInfos)
             pInfo->id = zoneID;
 
             try {
-                pInfo->oldGroupID = g_pZoneInfoManager->getZoneInfo(zoneID)->getZoneGroupID();
+                pInfo->oldGroupID = de::gameContext().zoneInfos().getZoneInfo(zoneID)->getZoneGroupID();
             } catch (NoSuchElementException&) {
                 filelog("makeDefaultLoadInfoError.txt", "NoSuch ZoneInfo : %d", zoneID);
                 pInfo->oldGroupID = ID; // just let it through

@@ -41,7 +41,7 @@ void InstallMine::execute(Slayer* pSlayer, ObjectID_t, CoordInven_t X, CoordInve
         GCSkillToInventoryOK1 _GCSkillToInventoryOK1;
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();

@@ -407,7 +407,8 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
                 break;
             }
 
-            setItemGender(pItem, gender);
+            if (pItem != NULL)
+                setItemGender(pItem, gender);
 
             _TPOINT tp;
 
@@ -425,7 +426,7 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
                 pPC->getPlayer()->sendPacket(&gcCreateItem);
 
                 remainTraceLog(pItem, "GOD", pCreature->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
-            } else {
+            } else if (pItem != NULL) {
                 if (isUnique)
                     pItem->setUnique();
 

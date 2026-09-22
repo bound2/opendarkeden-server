@@ -14,6 +14,7 @@
 #include "GCSkillToObjectOK5.h"
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
+#include "GameContext.h"
 #include "HitRoll.h"
 #include "RankBonus.h"
 
@@ -40,7 +41,7 @@ void Extreme::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CE
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         // Knowledge of Innate gives a hit bonus of 10.
         int HitBonus = 0;
@@ -143,7 +144,7 @@ void Extreme::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkill
         GCSkillToObjectOK3 _GCSkillToObjectOK3;
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);

@@ -598,7 +598,7 @@ bool dropRelicToZone(Creature* pCreature, bool bSendPacket)
         Inventory* pInventory = pPC->getInventory();
         Assert(pInventory != NULL);
 
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pZone->getZoneID());
+        ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(pZone->getZoneID());
         Assert(pZoneInfo != NULL);
 
         // Look for a relic item in the inventory.

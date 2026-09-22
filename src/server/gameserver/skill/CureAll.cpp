@@ -26,6 +26,7 @@
 #include "GCSkillToSelfOK1.h"
 #include "GCSkillToSelfOK2.h"
 #include "GCStatusCurrentHP.h"
+#include "GameContext.h"
 #include "SimpleCureSkill.h"
 
 const uint CureAllBloodDrainLevel = 75;
@@ -71,7 +72,7 @@ void CureAll::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             return;
         }
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         Level_t SkillLevel = pSkillSlot->getExpLevel();
 
@@ -405,7 +406,7 @@ void CureAll::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
         GCSkillToSelfOK1 _GCSkillToSelfOK1;
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         Level_t SkillLevel = pSkillSlot->getExpLevel();
 

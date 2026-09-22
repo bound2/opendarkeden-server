@@ -12,6 +12,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "RankBonus.h"
 #include "SimpleTileMissileSkill.h"
 #include "ZoneUtil.h"
@@ -154,7 +155,7 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
         GCSkillToTileOK2 _GCSkillToTileOK2;
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(SkillType);
 
         int RequiredMP = decreaseConsumeMP(pVampire, pSkillInfo);
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);

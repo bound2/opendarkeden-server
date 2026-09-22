@@ -12,6 +12,7 @@
 #include "GCSkillToTileOK4.h"
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
+#include "GameContext.h"
 #include "ZoneUtil.h"
 
 SimpleTileMissileSkill g_SimpleTileMissileSkill;
@@ -52,7 +53,7 @@ void SimpleTileMissileSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
         GCSkillToTileOK5 _GCSkillToTileOK5;
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
@@ -310,7 +311,7 @@ void SimpleTileMissileSkill::execute(Vampire* pVampire, int X, int Y, VampireSki
         GCSkillToTileOK5 _GCSkillToTileOK5;
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
 
         int RequiredMP = decreaseConsumeMP(pVampire, pSkillInfo);
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);
@@ -537,7 +538,7 @@ void SimpleTileMissileSkill::execute(Ousters* pOusters, int X, int Y, OustersSki
         GCSkillToTileOK5 _GCSkillToTileOK5;
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
@@ -765,7 +766,7 @@ void SimpleTileMissileSkill::execute(Monster* pMonster, int X, int Y, const SIMP
         GCSkillToTileOK5 _GCSkillToTileOK5;
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(param.SkillType);
+        SkillInfo* pSkillInfo = de::gameContext().skillInfos().getSkillInfo(param.SkillType);
 
         bool bRangeCheck = verifyDistance(pMonster, X, Y, pSkillInfo->getRange());
         bool bHitRoll = HitRoll::isSuccessMagic(pMonster, pSkillInfo);
