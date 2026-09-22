@@ -50,14 +50,6 @@ SkillDomainInfoManager::SkillDomainInfoManager()
 
     {__BEGIN_TRY
 
-         /*
-          for (int i = 0 ; i < SKILL_DOMAIN_MAX; i ++) {
-              for(int j = 0; j <= 100; i++) {
-                  m_DomainInfoLists[i][j] = NULL;
-              }
-          }
-          */
-
          __END_CATCH}
 
 //--------------------------------------------------------------------

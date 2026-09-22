@@ -396,13 +396,7 @@ void makeGCUpdateInfo(GCUpdateInfo* pUpdateInfo, Creature* pCreature)
         if (pCreature->isFlag(Effect::EFFECT_CLASS_YELLOW_POISON_TO_CREATURE)) {
             pUpdateInfo->setDarkLevel(15);
             pUpdateInfo->setLightLevel(1);
-        }
-        //	else if (pCreature->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN))
-        //	{
-        //		pUpdateInfo->setDarkLevel(15);
-        //		pUpdateInfo->setLightLevel(3);
-        //	}
-        else {
+        } else {
             pUpdateInfo->setDarkLevel(13);
             pUpdateInfo->setLightLevel(6);
         }
@@ -502,14 +496,6 @@ void makeGCUpdateInfo(GCUpdateInfo* pUpdateInfo, Creature* pCreature)
 
     // ServerGroupID_t CurrentServerGroupID = g_pConfig->getPropertyInt( "ServerID" );
 
-    /*
-    if( CurrentServerGroupID == 0
-        || CurrentServerGroupID == 1
-        || CurrentServerGroupID == 2
-        || CurrentServerGroupID == 7 ) {
-        UserModify = 400;
-    }
-    */
     UserModify = 1000;
 
     if (ZoneUserNum < 100 + UserModify) {
@@ -1019,47 +1005,6 @@ void sendPayInfo(GamePlayer* pGamePlayer)
 {
     __BEGIN_TRY
 
-    /*
-    char str[80];
-    if (pGamePlayer->isPayPlaying())
-    {
-        Timeval currentTime;
-        getCurrentTime(currentTime);
-        Timeval payTime = pGamePlayer->getPayPlayTime(currentTime);
-
-        if (pGamePlayer->getPayPlayType()==PAY_PLAY_TYPE_PERSON)
-        {
-            strcpy(str, "[Personal] ");
-        }
-        else
-        {
-            strcpy(str, "[PC Room] ");
-        }
-
-        if (pGamePlayer->getPayType()==PAY_TYPE_FREE)
-        {
-            strcat(str, "This is a paid service, but the account is free.");
-        }
-        else if (pGamePlayer->getPayType()==PAY_TYPE_PERIOD)
-        {
-            sprintf(str, "%sUsable until %s.", str,
-    pGamePlayer->getPayPlayAvailableDateTime().toString().c_str());
-        }
-        else
-        {
-            sprintf(str, "%sUsage : %d / %d min", str, (payTime.tv_sec/60), pGamePlayer->getPayPlayAvailableHours());
-        }
-    }
-    else
-    {
-        strcpy(str, "Currently playing for free.");
-    }
-
-    GCSystemMessage gcSystemMessage;
-    gcSystemMessage.setMessage(str);
-    pGamePlayer->sendPacket (&gcSystemMessage);
-    */
-
     __END_CATCH
 }
 
@@ -1148,22 +1093,6 @@ bool makeGCWarScheduleList(GCWarScheduleList* pGCWarScheduleList, ZoneID_t zoneI
 
     return true;
 }
-
-/*void makeGCItemNameInfoList(GCItemNameInfoList* pInfo, PlayerCreature* pPC)
-
-{
-    __BEGIN_TRY
-
-    list<ItemNameInfo*>& itemNameInfos = pPC->getItemNameInfoList();
-    list<ItemNAmeInfo*>::const_iterator itr = itemNameInfos.begin();
-
-    for( ; itr != itemNameInfos.end() ; itr++ )
-    {
-        pInfo->addItemNameInfo( *itr );
-    }
-
-    __END_CATCH
-}*/
 
 void sendGCMiniGameScores(PlayerCreature* pPC, BYTE gameType, BYTE Level) {
     GCMiniGameScores gcMGS;

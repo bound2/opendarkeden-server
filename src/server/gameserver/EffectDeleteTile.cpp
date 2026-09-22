@@ -32,14 +32,6 @@ void EffectDeleteTile::affect()
     __BEGIN_TRY
 
     // Broadcast to the surroundings. -> probably not needed
-    /*	GCAddEffectToTile gcAddEffectToTile;
-        gcAddEffectToTile.setEffectID( getEffectClass() );
-        gcAddEffectToTile.setObjectID( getObjectID() );
-        gcAddEffectToTile.setXY( m_X, m_Y );
-        gcAddEffectToTile.setDuration( 999999 );
-
-        m_pZone->broadcastPacket( m_X, m_Y, &gcAddEffectToTile );
-    */
     __END_CATCH
 }
 

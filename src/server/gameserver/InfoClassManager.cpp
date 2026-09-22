@@ -161,13 +161,6 @@ ItemType_t InfoClassManager::getRandomItemType() const
     int ratio;
     int ratioSum = 0;
 
-    /*
-    cout << "m_TotalRatio = " << m_TotalRatio
-        << ", fail/succeed = " << failRatio<< "/" << succeedRatio
-        << ", newTotalRatio = " << newTotalRatio
-        << ", select = " << itemTypeRatio << endl;
-    */
-
     // Item 0 counts as a failure.
     for (uint i = 0; i <= m_InfoCount; i++) {
         ItemInfo* pInfo = m_pItemInfos[i];

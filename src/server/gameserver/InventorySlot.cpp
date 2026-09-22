@@ -10,18 +10,6 @@
 // class InventorySlot member methods
 //////////////////////////////////////////////////////////////////////////////
 
-/*
-InventorySlot::InventorySlot()
-
-{
-    __BEGIN_TRY
-
-    m_pItem = NULL;
-
-    __END_CATCH
-}
-*/
-
 InventorySlot::~InventorySlot()
 
 {
@@ -31,18 +19,6 @@ InventorySlot::~InventorySlot()
 
     __END_CATCH_NO_RETHROW
 }
-
-/*
-Item* InventorySlot::getItem()
-
-{
-    __BEGIN_TRY
-
-    return m_pItem;
-
-    __END_CATCH
-}
-*/
 
 void InventorySlot::addItem(Item* pItem)
 

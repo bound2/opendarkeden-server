@@ -103,15 +103,6 @@ void EventResurrect::activate()
     // Commented out.
     // pDeadPC->registerObject();
 
-    /*
-    // Prepare the GCUpdateInfo packet.
-    GCUpdateInfo gcUpdateInfo;
-
-    makeGCUpdateInfo(&gcUpdateInfo, pDeadPC);
-
-    m_pGamePlayer->sendPacket(&gcUpdateInfo);
-    */
-
     __END_DEBUG
     __END_CATCH
 }

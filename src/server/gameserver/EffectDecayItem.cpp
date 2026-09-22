@@ -122,16 +122,8 @@ void EffectDecayItem::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object
                         filelog("uniqueItem.txt", "[EffectDecayItem] %s", pTempItem->toString().c_str());
                     }
 
-                    // Leave an ItemTraceLog
-                    /*
-                     * Items on the zone floor that reach their expire time are all left out of the log.
-                    if ( pTempItem != NULL && pTempItem->isTraceItem() )
-                    {
-                        char zoneName[15];
-                        sprintf( zoneName, "%4d%3d%3d", pZone->getZoneID(), x, y);
-                        remainTraceLog( pTempItem, zoneName, "GOD", ITEM_LOG_DELETE, DETAIL_TIMEOUT);
-                    }
-                    */
+                    // An item that expires on the zone floor is left out of the
+                    // item trace log; only money is logged.
 
                     // Leave a money log
                     if (pTempItem->getItemClass() == Item::ITEM_CLASS_MONEY) {

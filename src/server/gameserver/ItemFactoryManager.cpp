@@ -508,19 +508,6 @@ Item::ItemClass ItemFactoryManager::getItemClassByName(const string& ClassName)
 
     return Item::ITEM_CLASS_MAX;
 
-    /*
-    unordered_map<string, Item::ItemClass>::const_iterator ClassType = m_ItemClassMap.find( ClassName );
-
-    if (ClassType==m_ItemClassMap.end())
-    {
-        return Item::ITEM_CLASS_RING;
-    }
-    else
-    {
-        return ClassType->second;
-    }
-    */
-
     __END_CATCH
 }
 

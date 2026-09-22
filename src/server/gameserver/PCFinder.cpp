@@ -102,21 +102,6 @@ void PCFinder::deleteCreature(const string& name)
         m_IDs.erase(itr2);
     }
 
-    /*	if ( pCreature->isPC() )
-        {
-            PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-            pair<multimap< GuildID_t, Creature* >::iterator, multimap< GuildID_t, Creature* >::iterator> range =
-       m_GuildMap.equal_range( pPC->getGuildID() ); for ( multimap<GuildID_t, Creature*>::iterator itr = range.first ;
-       itr != range.second ; ++itr )
-            {
-                if ( itr->second == pCreature )
-                {
-                    m_GuildMap.erase( itr );
-                    break;
-                }
-            }
-        }*/
-
     m_PCs.erase(itr);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -137,10 +122,6 @@ Creature* PCFinder::getCreature_LOCKED(const string& name) const
     itr = m_PCs.find(name);
 
     if (itr == m_PCs.end()) {
-        // cerr << "PCFinder::getCreature() : NoSuchElementException" << endl;
-        // cerr << "PCFinder::getCreature() : NoSuchCreature" << endl;
-        // m_Mutex.unlock();
-
         // throw NoSuchElementException();
         //  Do not throw NoSuchElementException here.
         return NULL;
@@ -167,10 +148,6 @@ Creature* PCFinder::getCreatureByID_LOCKED(const string& ID) const
     itr = m_IDs.find(ID);
 
     if (itr == m_IDs.end()) {
-        // cerr << "PCFinder::getCreature() : NoSuchElementException" << endl;
-        // cerr << "PCFinder::getCreature() : NoSuchCreature" << endl;
-        // m_Mutex.unlock();
-
         // throw NoSuchElementException();
         //  Do not throw NoSuchElementException here.
         return NULL;
@@ -291,87 +268,6 @@ list<Creature*> PCFinder::getGuildCreatures(GuildID_t gID, uint Num) {
 
     return ret;
 }
-
-/*
-// get creature with PC-name
-bool PCFinder::sendPacket (const string& name, Packet* pPacket) const
-    //NoSuchElementException , Error)
-{
-    __BEGIN_TRY
-
-    unordered_map< string , Creature* >::const_iterator itr;
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    itr = m_PCs.find(name);
-
-    if (itr == m_PCs.end())
-    {
-        m_Mutex.unlock();
-
-        return false;
-    }
-
-    // sendPacket
-    try {
-        Creature* pCreature = itr->second;
-        Player* pPlayer = pCreature->getPlayer();
-        pPlayer->sendPacket( pPacket );
-    } catch (Throwable& ) {
-        // Just ignore it.
-    }
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    __END_CATCH
-
-    return true;
-}
-
-// kick
-bool PCFinder::setKickCharacter (const string & name, const string& host, uint port) const
-    //NoSuchElementException , Error)
-{
-    __BEGIN_TRY
-
-    unordered_map< string , Creature* >::const_iterator itr;
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    itr = m_PCs.find(name);
-
-    if (itr == m_PCs.end())
-    {
-        //cerr << "PCFinder::getCreature() : NoSuchElementException" << endl;
-        //cerr << "PCFinder::getCreature() : NoSuchCreature" << endl;
-        m_Mutex.unlock();
-
-        //throw NoSuchElementException();
-        // Do not throw NoSuchElementException here.
-        return false;
-    }
-
-    Creature* pCreature = itr->second;
-    Player* pPlayer = pCreature->getPlayer();
-    GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>( pPlayer );
-    Assert(pGamePlayer!=NULL);
-
-    // Force the player to disconnect.
-    pGamePlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
-    pGamePlayer->setKickForLogin(true);
-
-    // Where the reply is sent after the disconnect.
-    pGamePlayer->setKickRequestHost( host );
-    pGamePlayer->setKickRequestPort( port );
-
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    __END_CATCH
-
-    return true;
-}
-*/
 
 void PCFinder::addNPC(NPC* pNPC) {
     __BEGIN_TRY

@@ -45,44 +45,11 @@ LogClient* logClient() {
     return s_pLogClient;
 }
 
-void log(short type, const string& source, const string& target) {
-    /*
-    // Checking the log type inside the LogClient::log() function would be tidier,
-    // but it is done in the global function to cut down the number of function
-    // calls as far as possible.
-    if (type < LogClient::getLogLevel())
-    {
-        logClient()->_log(type, source, target);
-    }
-    else { }
-    */
-}
+void log(short type, const string& source, const string& target) {}
 
-void log(short type, const string& source, const string& target, const string& content) {
-    /*
-    // Checking the log type inside the LogClient::log() function would be tidier,
-    // but it is done in the global function to cut down the number of function
-    // calls as far as possible.
-    if (type < LogClient::getLogLevel())
-    {
-        logClient()->_log(type, source, target, content);
-    }
-    else { }
-    */
-}
+void log(short type, const string& source, const string& target, const string& content) {}
 
-void log(short type, const string& source, const string& target, const string& content, short zoneid) {
-    /*
-    // Checking the log type inside the LogClient::log() function would be tidier,
-    // but it is done in the global function to cut down the number of function
-    // calls as far as possible.
-    if (type < LogClient::getLogLevel())
-    {
-        logClient()->_log(type, source, target, content, zoneid);
-    }
-    else { }
-    */
-}
+void log(short type, const string& source, const string& target, const string& content, short zoneid) {}
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -100,87 +67,12 @@ LogClient::~LogClient() {
     disconnect();
 }
 
-void LogClient::connect(string ip, short port) {
-    /*
-    if (m_bConnected)
-    {
-        cout << "LogClient::connect() : already connected" << endl;
-        return;
-    }
+void LogClient::connect(string ip, short port) {}
 
-    sockaddr_in serv_addr;
-    m_Socket = socket(AF_INET, SOCK_STREAM, 0);
+void LogClient::disconnect(void) {}
 
-    bzero(&serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(port);
+void LogClient::_log(short type, const string& source, const string& target) {}
 
-    int n = inet_pton(AF_INET, ip.c_str(), &serv_addr.sin_addr);
-    if (n <= 0)
-    {
-        cout << "LogClient::connect() : could not complete inet_pton" << endl;
-        exit(0);
-    }
+void LogClient::_log(short type, const string& source, const string& target, const string& content) {}
 
-    ::connect(m_Socket, (sockaddr*)&serv_addr, sizeof(serv_addr));
-
-    m_bConnected = true;
-    */
-}
-
-void LogClient::disconnect(void) {
-    /*
-    if (!m_bConnected)
-    {
-        cout << "LogClient::disconnect() : not connected yet" << endl;
-        return;
-    }
-
-    close(m_Socket);
-    */
-}
-
-void LogClient::_log(short type, const string& source, const string& target) {
-    /*
-    LogData data;
-
-    data.setType(type);
-    data.setSource(source);
-    data.setTarget(target);
-
-    //m_Sent += data.getSize();
-
-    data.write(m_Socket);
-    */
-}
-
-void LogClient::_log(short type, const string& source, const string& target, const string& content) {
-    /*
-    LogData data;
-
-    data.setType(type);
-    data.setSource(source);
-    data.setTarget(target);
-    data.setContent(content);
-
-    //m_Sent += data.getSize();
-
-    data.write(m_Socket);
-    */
-}
-
-void LogClient::_log(short type, const string& source, const string& target, const string& content, short zoneid) {
-    /*
-    LogData data;
-
-    data.setType(type);
-    data.setSource(source);
-    data.setTarget(target);
-    data.setContent(content);
-    data.setZoneID(zoneid);
-
-    //m_Sent += data.getSize();
-
-    data.write(m_Socket);
-    */
-}
+void LogClient::_log(short type, const string& source, const string& target, const string& content, short zoneid) {}

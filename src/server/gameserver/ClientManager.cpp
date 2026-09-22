@@ -155,22 +155,6 @@ void ClientManager::run()
         m_pIncomingPlayerManager->processCommands();
         // file << "IncomingPlayerManagerCommands:" << vstime.elapsed() << endl;
 
-        /*
-        try
-        {
-            pZonePlayerManager->select();
-            pZonePlayerManager->processExceptions();
-            pZonePlayerManager->processInputs();
-            pZonePlayerManager->processOutputs();
-        }
-        catch (TimeoutException)
-        {
-        }
-
-        pZonePlayerManager->processCommands();
-        pZoneGroup->heartbeat();
-        */
-
         // usleep(100);
 
         // Track current time; every 30 seconds purge expired ConnectionInfo in ConnectionInfoManager.
@@ -202,21 +186,6 @@ void ClientManager::run()
 
         // by sigi. 2002.12.30
         if (userGatewayTime < currentTime) {
-            /*			if (UserGateway::getInstance()->getTotalInfo() > 0)
-                        {
-                            int ZonePlayerNum 		= g_pZoneGroupManager->getPlayerNum();
-                            int IncomingPlayerNum 	= g_pIncomingPlayerManager->size();
-                            int TotalPlayerNum 		= ZonePlayerNum + IncomingPlayerNum;
-
-                            filelog("userGateway.log", "Users(%d+%d=%d), %s",
-                                                        ZonePlayerNum,
-                                                        IncomingPlayerNum,
-                                                        TotalPlayerNum,
-                                                        UserGateway::getInstance()->toString().c_str());
-
-                            UserGateway::getInstance()->clear();
-                        }*/
-
             // Check again after 10 seconds.
             userGatewayTime.tv_sec += 10;
         }

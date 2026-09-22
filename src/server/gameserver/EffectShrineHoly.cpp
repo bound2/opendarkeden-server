@@ -51,45 +51,6 @@ void EffectShrineHoly::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // Timeval      nextTime   = getNextTime();
-    // Timeval      deadLine   = getDeadline();
-    // Turn_t       RemainTime = deadLine.tv_sec - nextTime.tv_sec;
-    /*
-StringStream msg;
-
-if (pCreature->isSlayer())
-{
-    Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-
-    msg << pSlayer->getName();
-}
-else
-{
-    Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-
-    msg << pVampire->getName();
-}
-
-msg << " has taken the Slayer relic.";
-
-GCSystemMessage gcSystemMessage;
-
-gcSystemMessage.setType(SYSTEM_MESSAGE_COMBAT);
-gcSystemMessage.setMessage(msg.toString());
-
-g_pZoneGroupManager->broadcast( &gcSystemMessage );
-
-
-// Attach the effect.
-GCAddEffect gcAddEffect;
-gcAddEffect.setObjectID( pCreature->getObjectID() );
-gcAddEffect.setEffectID( getEffectClass() );
-gcAddEffect.setDuration( 65000 );
-pCreature->getZone()->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcAddEffect);
-
-setNextTime(m_Tick);
-*/
-
     __END_CATCH
 }
 

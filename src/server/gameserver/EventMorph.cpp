@@ -182,19 +182,6 @@ void EventMorph::activate()
     pVampire->setStashStatus(false); // Reset the OID assignment state to false...
     pSlayer->setStash(NULL);         // NULL out the slayer's to avoid a pointer error...
 
-    /*
-    // Swap the garbage
-    while (true)
-    {
-        Item* pGarbage = pSlayer->popItemFromGarbage();
-
-        // Break once there are no more...
-        if (pGarbage == NULL) break;
-
-        pVampire->addItemToGarbage(pGarbage);
-    }
-    */
-
 
     // Swap the flag set
     pVampire->deleteFlagSet();
@@ -437,17 +424,6 @@ void EventMorph::activate()
     // Allocate OIDs for the creature itself and the items it owns.
     // pVampire->registerObject();
 
-    /*
-    //--------------------------------------------------------------------------------
-    // Build the GCUpdateInfo packet.
-    //--------------------------------------------------------------------------------
-    GCUpdateInfo gcUpdateInfo;
-
-    makeGCUpdateInfo(&gcUpdateInfo, pVampire);
-
-    pGamePlayer->sendPacket(&gcUpdateInfo);
-    */
-
     //--------------------------------------------------
     // change player status
     //--------------------------------------------------
@@ -456,22 +432,6 @@ void EventMorph::activate()
 
     // What happens to the running EffectManager if this is deleted now?
     //----------------------------------
-
-    /*
-    Creature* pEventMorphCreature = m_pGamePlayer->getCreature();
-    Assert(pEventMorphCreature != m_pTargetCreature);
-    Assert(pEventMorphCreature != NULL);	// by sigi
-
-    Zone* pZone = pEventMorphCreature->getZone();
-    Assert(pZone != NULL);
-    */
-
-    /*
-    ofstream file("blood.txt", ios::out | ios::app);
-    file << "Slayer [" << pSlayer->getName() << "] turned into a vampire >> ";
-    file << getCurrentTimeStringEx() << endl;
-    file.close();
-    */
 
     log(LOG_SLAYER_TO_VAMPIRE, pFromCreature->getName(), "");
 

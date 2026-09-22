@@ -88,35 +88,6 @@ void WeatherManager::init()
     m_NextWeatherChangingTime = m_Tomorrow;
     m_NextLightning = m_Tomorrow;
 
-    /*
-    if (m_TodayWeather == WEATHER_CLEAR)
-    {
-        // A clear day stays clear.
-        m_Probability = 0;
-        m_CurrentWeather = WEATHER_CLEAR;
-        m_WeatherLevel = 0;
-
-        m_NextWeatherChangingTime = m_Tomorrow;
-        m_NextLightning = m_Tomorrow;
-    }
-    else
-    {
-        m_Probability = Dice(3,100) / 3;		// chance of rain or snow
-        m_CurrentWeather = (Dice(1,100) < m_Probability) ? m_TodayWeather : WEATHER_CLEAR ;
-        m_WeatherLevel = (m_CurrentWeather != WEATHER_CLEAR) ? Dice(3,20) / 3 : 0;
-
-        // Rain or snow falls for at most 20 real-time minutes.
-        // So the next weather change time is the current time + (1-20min)* 60sec.
-        // The period is kept short for testing.
-        //m_NextWeatherChangingTime = time(0) + Dice(1,20)* 60;
-        m_NextWeatherChangingTime = time(0) + 60;
-
-        // The period is kept short for testing.
-        //m_NextLightning = time(0) + 60;
-        m_NextLightning = time(0) + 10;
-    }
-    */
-
     //--------------------------------------------------------------------------------
     // Set the zone's current light and dark levels and the next change time.
     //--------------------------------------------------------------------------------

@@ -302,12 +302,6 @@ public:
     }
 
     // Rank.
-    /*	Rank_t  getRank() const  { return m_Rank; }
-    //	void    setRank(Rank_t rank)  { m_Rank = rank; }
-        RankExp_t   getRankExp() const  { return m_RankExp; }
-    //	void    setRankExp(RankExp_t exp)  { m_RankExp = exp; }
-        RankExp_t   getRankGoalExp() const  { return m_RankGoalExp; }
-    //	void    setRankGoalExp(RankExp_t RankGoalExp)  { m_RankGoalExp = RankGoalExp; }*/
 
 
     Bonus_t getBonus() const {
@@ -586,13 +580,6 @@ private:
 
     // level
     Level_t m_Level;
-
-    // Rank.
-    //	Rank_t 		m_Rank;
-    //	RankExp_t 	m_RankExp;
-    //	RankExp_t 	m_RankGoalExp;
-
-    //	Rank*		m_pRank;
 
     // exp bonus
     Bonus_t m_Bonus;

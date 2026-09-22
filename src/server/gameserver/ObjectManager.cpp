@@ -130,10 +130,6 @@
 #include "mission/EventQuestLootingManager.h"
 #include "war/DragonEyeManager.h"
 
-/*// Simple quest
-#include "mission/QuestInfoManager.h"
-#include "mission/RewardClassInfoManager.h"
-*/
 //////////////////////////////////////////////////////////////////////////////
 // class ObjectManager member methods
 //////////////////////////////////////////////////////////////////////////////
@@ -200,9 +196,6 @@ ObjectManager::ObjectManager()
     context.setConditionFactoryManager(m_pConditionFactoryManager);
     m_pActionFactoryManager = new ActionFactoryManager(context);
     context.setActionFactoryManager(m_pActionFactoryManager);
-    //	g_pDEXBalanceInfoManager    = new DEXBalanceInfoManager();
-    //	g_pSTRBalanceInfoManager    = new STRBalanceInfoManager();
-    //	g_pINTBalanceInfoManager    = new INTBalanceInfoManager();
     m_pVampEXPInfoManager = new VampEXPInfoManager();
     context.setVampEXPInfoManager(m_pVampEXPInfoManager);
     m_pOustersEXPInfoManager = new OustersEXPInfoManager();
@@ -225,11 +218,6 @@ ObjectManager::ObjectManager()
     m_pCombatInfoManager = new CombatInfoManager();
     context.setCombatInfoManager(m_pCombatInfoManager);
     m_pUniqueItemManager = new UniqueItemManager();
-
-    // by sigi. 2002.8.31
-    //	g_pRankEXPInfoManager[RANK_TYPE_SLAYER]	= new RankEXPInfoManager();
-    //	g_pRankEXPInfoManager[RANK_TYPE_VAMPIRE] = new RankEXPInfoManager();
-    //	g_pRankEXPInfoManager[RANK_TYPE_OUSTERS] = new RankEXPInfoManager();
 
     // by sigi. 2002.9.2
     m_pMasterLairInfoManager = new MasterLairInfoManager();
@@ -325,17 +313,12 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(g_pItemFactoryManager);
     SAFE_DELETE(m_pVolumeInfoManager);
     SAFE_DELETE(m_pItemLoaderManager);
-    //	SAFE_DELETE(g_pSTRBalanceInfoManager);
-    //	SAFE_DELETE(g_pDEXBalanceInfoManager);
-    //	SAFE_DELETE(g_pINTBalanceInfoManager);
     SAFE_DELETE(m_pShopTemplateManager);
     SAFE_DELETE(m_pEffectLoaderManager);
     SAFE_DELETE(m_pPriceManager);
     SAFE_DELETE(m_pVampEXPInfoManager);
     SAFE_DELETE(m_pOustersEXPInfoManager);
     SAFE_DELETE(g_pGuildManager);
-    //	SAFE_DELETE(g_pGuildRegistrationManager);
-    //	SAFE_DELETE(g_pGuildVoteManager);
     SAFE_DELETE(g_pResurrectLocationManager);
     SAFE_DELETE(m_pAlignmentManager);
     SAFE_DELETE(m_pWayPointManager);
@@ -344,10 +327,6 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(g_pVariableManager);
     SAFE_DELETE(m_pCombatInfoManager);
     SAFE_DELETE(m_pUniqueItemManager);
-    // by sigi. 2002.8.31
-    //	SAFE_DELETE(g_pRankEXPInfoManager[RANK_TYPE_SLAYER]);
-    //	SAFE_DELETE(g_pRankEXPInfoManager[RANK_TYPE_VAMPIRE]);
-    //	SAFE_DELETE(g_pRankEXPInfoManager[RANK_TYPE_OUSTERS]);
     SAFE_DELETE(m_pMasterLairInfoManager);
     SAFE_DELETE(g_pCastleInfoManager);
     SAFE_DELETE(m_pRankBonusInfoManager);
@@ -483,9 +462,6 @@ void ObjectManager::init()
 
     // Must be loaded before ZoneInfoManager.
     // Must be loaded after OptionInfo.
-    /*	printf("ObjectManager::load() : RewardClassInfoManager Initialization Start\n");
-        g_pRewardClassInfoManager->load();
-        printf("ObjectManager::load() : RewardClassInfoManager Initialization Success\n");*/
 
     printf("ObjectManager::init() : EffectLoaderManager Initialization Start\n");
     m_pEffectLoaderManager->init();
@@ -504,10 +480,6 @@ void ObjectManager::init()
     printf("ObjectManager::load() : CastleInfoManager Initialization Start\n");
     g_pCastleInfoManager->init(); // load after ZoneInfo and MonsterManager, before Zone
     printf("ObjectManager::load() : CastleInfoManager Initialization Success\n");
-
-    //	printf("ObjectManager::load() : HolyLandRaceBonus Initialization Start\n");
-    //	g_pHolyLandRaceBonus->refresh();
-    //	printf("ObjectManager::load() : HolyLandRaceBonus Initialization Success\n");
 
     printf("ObjectManager::init() : ZoneGroupManager Initialization Start\n");
     g_pZoneGroupManager->init();
@@ -569,18 +541,6 @@ void ObjectManager::load()
     // needs ZoneInfoManager to be initialized first.
     // So the initialization order is ZoneInfoManager -> ZoneGroupManager.
     //--------------------------------------------------------------------------------
-    // printf("ObjectManager::init() : ZoneInfoManager Initialization Start\n");
-    // g_pZoneInfoManager->init();
-    // printf("ObjectManager::init() : ZoneInfoManager Initialization Success\n");
-
-    // printf("ObjectManager::init() : ZoneGroupManager Initialization Start\n");
-    // g_pZoneGroupManager->init();
-    // printf("ObjectManager::init() : ZoneGroupManager Initialization Success\n");
-
-
-    // printf("ObjectManager::init() : SkillParentInfoManager Initialization Start\n");
-    // g_pSkillParentInfoManager->init();
-    // printf("ObjectManager::init() : SkillParentInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : GuildManager Initialization Start\n");
     if (g_pGuildManager != NULL)
@@ -641,14 +601,6 @@ void ObjectManager::load()
     m_pVisionInfoManager->init();
     printf("ObjectManager::init() : VisionInfoManager Initialization Success\n");
 
-    //	printf("ObjectManager::init() : GuildRegistrationManager Initialization Start\n");
-    //	g_pGuildRegistrationManager->init();
-    //	printf("ObjectManager::init() : GuildRegistrationManager Initialization Success\n");
-
-    //	printf("ObjectManager::init() : GuildVoteManager Initialization Start\n");
-    //	g_pGuildVoteManager->init();
-    //	printf("ObjectManager::init() : GuildVoteManager Initialization Success\n");
-
     printf("ObjectManager::load() : GameWorldInfoManager Initialization Start\n");
     g_pGameWorldInfoManager->load();
     printf("ObjectManager::load() : GameWorldInfoManager Initialization Success\n");
@@ -661,11 +613,7 @@ void ObjectManager::load()
     m_pUniqueItemManager->init();
     printf("ObjectManager::load() : UniqueItemManager Initialization Success\n");
 
-    // by sigi. 2002.8.31
     printf("ObjectManager::load() : RankExpTables Initialization Start\n");
-    //	g_pRankEXPInfoManager[RANK_TYPE_SLAYER]->init(RANK_TYPE_SLAYER);
-    //	g_pRankEXPInfoManager[RANK_TYPE_VAMPIRE]->init(RANK_TYPE_VAMPIRE);
-    //	g_pRankEXPInfoManager[RANK_TYPE_OUSTERS]->init(RANK_TYPE_OUSTERS);
 
     // by Sequoia 2004.1.8
     RankExpTable::s_RankExpTables[RANK_TYPE_SLAYER].load();
@@ -692,10 +640,6 @@ void ObjectManager::load()
     printf("ObjectManager::load() : PKZoneInfoManager Initialization Start\n");
     g_pPKZoneInfoManager->load();
     printf("ObjectManager::load() : PKZoneInfoManager Initialization Success\n");
-
-    //	printf("ObjectManager::load() : FameLimitInfoManager Initialization Start\n");
-    //	g_pFameLimitInfoManager->load();
-    //	printf("ObjectManager::load() : FameLimitInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : GameServerGroupInfoManager Initialization Start\n");
     m_pGameServerGroupInfoManager->init();
@@ -773,35 +717,6 @@ void ObjectManager::load()
     printf("ObjectManager::load() : DynamicZoneFactoryManager Initialization Start\n");
     m_pDynamicZoneFactoryManager->init();
     printf("ObjectManager::load() : DynamicZoneFactoryManager Initialization Success\n");
-
-    /*
-    printf("ObjectManager::load() : QuestInfoManager Initialization Start\n");
-    g_pQuestInfoManager->load();
-    printf("ObjectManager::load() : QuestInfoManager Initialization Success\n");
-    printf("ObjectManager::load() : DarkLightInfoManager Loading Start\n");
-    m_pDarkLightInfoManager->load();
-    printf("ObjectManager::load() : DarkLightInfoManager Loading Success\n");
-
-    printf("ObjectManager::load() : MonsterInfoManager Loading Start\n");
-    g_pMonsterInfoManager->load();
-    printf("ObjectManager::load() : MonsterInfoManager Loading Success\n");
-
-    printf("ObjectManager::load() : WeatherInfoManager Loading Start\n");
-    m_pWeatherInfoManager->load();
-    printf("ObjectManager::load() : WeatherInfoManager Loading Success\n");
-
-    printf("ObjectManager::load() : ZoneGroupManager Loading Start\n");
-    g_pZoneGroupManager->load();
-    printf("ObjectManager::load() : ZoneGroupManager Loading Success\n");
-
-    printf("ObjectManager::load() : ZoneInfoManager Loading Start\n");
-    g_pZoneInfoManager->load();
-    printf("ObjectManager::load() : ZoneInfoManager Loading Success\n");
-
-    printf("ObjectManager::load() : PublicScriptManager Loading Start\n");
-    m_pPublicScriptManager->load("");
-    printf("ObjectManager::load() : PublicScriptManager Loading Success\n");
-    */
 
     __END_CATCH
 }

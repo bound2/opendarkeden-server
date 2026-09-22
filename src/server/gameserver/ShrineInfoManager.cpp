@@ -378,18 +378,6 @@ void ShrineInfoManager::addShrineToZone(ShrineInfo& shrineInfo, ItemType_t itemT
 
         pShrine->getEffectManager().addEffect(pEffect);
     }
-    /*
-    else if ( shrineInfo.getShrineType() == ShrineInfo::SHRINE_HOLY )
-    {
-        pShrine->setFlag( Effect::EFFECT_CLASS_SHRINE_HOLY );
-
-        EffectShrineHoly* pEffect = new EffectShrineHoly(pShrine);
-        pEffect->setShrineID( itemType );
-        pEffect->setTick( 60 * 10 );
-
-        pShrine->getEffectManager().addEffect( pEffect );
-    }
-    */
 
     TPOINT tp = pZone->addItem(pShrine, shrineInfo.getX(), shrineInfo.getY(), true);
     Assert(tp.x != -1);
@@ -563,49 +551,6 @@ bool ShrineInfoManager::canPickupBloodBible(Race_t race, BloodBible* pBloodBible
     // The blood bible is used only in race wars.
     return true;
 
-    /*	// First find out which war this bible fragment belongs to.
-        ShrineSet* pShrineSet = getShrineSet( pBloodBible->getItemType() );
-
-        if ( pShrineSet == NULL )
-        {
-            return false;
-        }
-
-        ZoneID_t castleZoneID = pShrineSet->m_GuardShrine.getZoneID();
-
-        War* pWar = g_pWarSystem->getActiveWar( castleZoneID );
-
-        if ( pWar == NULL )
-        {
-            // Unexpected state.
-            filelog( "WarError.log", "Trying to pick up a bible fragment with no war running. ItemType: %u",
-       (int)pBloodBible->getItemType() ); return false;
-        }
-
-        if ( pWar->getWarType() == WAR_RACE )
-        {
-            // In a race war anybody may pick it up.
-            return true;
-        }
-        else if ( pWar->getWarType() == WAR_GUILD )
-        {
-            CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo( castleZoneID );
-
-            if ( pCastleInfo == NULL )
-            {
-                // Unexpected state.
-                filelog( "WarError.log", "Not a castle. ItemType: %u, ZoneID : %u", (int)pBloodBible->getItemType(),
-       (int)castleZoneID ); return false;
-            }
-
-            return ( race == pCastleInfo->getRace() );
-        }
-
-        // Unexpected state.
-        filelog( "WarError.log", "Strange war. WarType : %u", (int)pWar->getWarType() );
-
-        return false;
-        */
     __END_CATCH
 }
 
@@ -683,38 +628,6 @@ bool ShrineInfoManager::returnBloodBible(ShrineID_t shrineID, bool bLock) const
 }
 
 // Called only from the WarSystem.
-/*bool ShrineInfoManager::returnCastleBloodBible( ZoneID_t castleZoneID ) const
-
-{
-    __BEGIN_TRY
-
-    cout << "ShrineInfoManager::returnCastleBloodBible() is deprecated" << endl;
-    Assert(false);
-
-    return false;
-
-    bool bReturned = false;
-
-    HashMapShrineSetConstItor itr = m_ShrineSets.begin();
-
-    // The shrineID for castleZoneID cannot be looked up, so compare them one by one.
-    for (; itr!=m_ShrineSets.end(); itr++)
-    {
-        ShrineSet* pShrineSet = itr->second;
-
-        ZoneID_t guardZoneID = pShrineSet->m_GuardShrine.getZoneID();
-
-        if (castleZoneID==guardZoneID)
-        {
-            bReturned = bReturned || returnBloodBible( pShrineSet->m_ShrineID );
-        }
-    }
-
-    return bReturned;
-
-    __END_CATCH
-}
-*/
 // Called only from the WarSystem.
 bool ShrineInfoManager::returnAllBloodBible() const
 
@@ -761,14 +674,6 @@ bool ShrineInfoManager::returnBloodBible(Zone* pZone, BloodBible* pBloodBible) c
     ObjectID_t CorpseObjectID = GuardShrine.getObjectID();
 
     pZone->transportItemToCorpse(pBloodBible, pTargetZone, CorpseObjectID);
-
-    /*
-    StringStream msg;
-    msg << "Blood bible fragment (" << GuardShrine.getName()
-        << ") returned to the " << (pShrineSet->getOwnerRace()==RACE_SLAYER? "Slayer":"Vampire")
-        << " guard shrine (" << GuardShrine.getName()
-        << ").";
-    */
 
     char msg[300];
 
@@ -852,59 +757,6 @@ bool ShrineInfoManager::putBloodBible(PlayerCreature* pPC, Item* pItem, MonsterC
     __END_CATCH
 }
 
-/*bool ShrineInfoManager::removeShrineShield( Zone *pZone )
-
-{
-    __BEGIN_TRY
-
-    cout << "ShrineInfoManager::removeShrineShield() is deprecated" << endl;
-    Assert(false);
-
-    return false;
-
-    Assert(pZone != NULL);
-    HashMapShrineSetConstItor itr = m_ShrineSets.begin();
-
-    ZoneID_t castleZoneID = pZone->getZoneID();
-
-    // The shrineID for castleZoneID cannot be looked up, so compare them one by one.
-    for (; itr!=m_ShrineSets.end(); itr++)
-    {
-        ShrineSet* pShrineSet = itr->second;
-
-        ZoneID_t guardZoneID = pShrineSet->m_GuardShrine.getZoneID();
-
-        if (castleZoneID==guardZoneID)
-        {
-            Item* pItem = pZone->getItem( pShrineSet->m_GuardShrine.getObjectID() );
-
-            if (pItem != NULL
-                && pItem->getItemClass() == Item::ITEM_CLASS_CORPSE
-                && pItem->isFlag(Effect::EFFECT_CLASS_HAS_BLOOD_BIBLE)
-                && pItem->isFlag(Effect::EFFECT_CLASS_SHRINE_SHIELD) )
-            {
-                pItem->removeFlag(Effect::EFFECT_CLASS_SHRINE_SHIELD);
-
-                Corpse* pCorpse = dynamic_cast<Corpse*>(pItem);
-
-                EffectManager& EM = pItem->getEffectManager();
-                EM.deleteEffect(Effect::EFFECT_CLASS_SHRINE_SHIELD);
-
-                GCRemoveEffect gcRemoveEffect;
-                gcRemoveEffect.setObjectID(pItem->getObjectID());
-                gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_SHRINE_SHIELD);
-                pZone->broadcastPacket(pCorpse->getX(), pCorpse->getY(), &gcRemoveEffect);
-
-            }
-        }
-    }
-
-    return true;
-
-    __END_CATCH
-}
-*/
-
 bool ShrineInfoManager::removeAllShrineShield()
 
 {
@@ -973,63 +825,6 @@ bool ShrineInfoManager::removeShrineShield(ShrineInfo* pShrineInfo)
     __END_CATCH
 }
 
-/*bool ShrineInfoManager::addShrineShield(Zone *pZone)
-
-{
-    __BEGIN_TRY
-
-    cout << "ShrineInfoManager::addShrineShield_LOCKED( Zone *pZone ) is deprecated" << endl;
-    Assert( false );
-
-    return false;
-    Assert(pZone!=NULL);
-
-    bool bAdded = false;
-
-    __ENTER_CRITICAL_SECTION( (*pZone) )
-
-    bAdded = addShrineShield_LOCKED( pZone );
-
-    __LEAVE_CRITICAL_SECTION( (*pZone) )
-
-    return bAdded;
-
-    __END_CATCH
-}
-*/
-/*bool ShrineInfoManager::addShrineShield_LOCKED( Zone *pZone )
-
-{
-    __BEGIN_TRY
-
-    cout << "ShrineInfoManager::addShrineShield_LOCKED( Zone *pZone ) is deprecated" << endl;
-    Assert( false );
-
-    return false;
-
-    Assert(pZone != NULL);
-    HashMapShrineSetConstItor itr = m_ShrineSets.begin();
-
-    ZoneID_t castleZoneID = pZone->getZoneID();
-
-    // The shrineID for castleZoneID cannot be looked up, so compare them one by one.
-    for (; itr!=m_ShrineSets.end(); itr++)
-    {
-        ShrineSet* pShrineSet = itr->second;
-
-        ZoneID_t guardZoneID = pShrineSet->m_GuardShrine.getZoneID();
-
-        if (castleZoneID==guardZoneID)
-        {
-            addShrineShield( pShrineSet );
-        }
-    }
-
-    return true;
-
-    __END_CATCH
-}
-*/
 void ShrineInfoManager::addAllShrineShield()
 
 {

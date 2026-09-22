@@ -385,26 +385,6 @@ void TriggeredPortal::load(ZoneID_t zoneid, int left, int top, int right, int bo
 
     m_TriggerManager.load(zoneid, left, top, right, bottom);
 
-    /*
-    // If an AtFirst condition exists, run it and delete it.
-    if (m_TriggerManager.hasCondition(Condition::CONDITION_AT_FIRST))
-    {
-        list<Trigger*>&          triggers = m_TriggerManager.getTriggers();
-        list<Trigger*>::iterator itr      = triggers.begin();
-
-        for (; itr != triggers.end(); itr++)
-        {
-            Trigger* pTrigger = *itr;
-            if (pTrigger->hasCondition(Condition::CONDITION_AT_FIRST))
-            {
-                pTrigger->activate(NULL);
-                triggers.erase(itr);
-                break;
-            }
-        }
-    }
-    */
-
     __END_CATCH
 }
 

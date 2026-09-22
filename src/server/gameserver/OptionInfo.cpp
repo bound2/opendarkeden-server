@@ -161,77 +161,12 @@ bool isPossibleOptionClass(Item::ItemClass itemClass, OptionClass optionClass) {
         }
         break;
 
-        /* Disabled.
-        case Item::ITEM_CLASS_BLOOD_BIBLE :
-            switch (optionClass)
-            {
-                case OPTION_STR :
-                case OPTION_DEX :
-                case OPTION_INT :
-                case OPTION_HP :
-                case OPTION_LUCK :
-                case OPTION_ALL_RES :
-                case OPTION_ALL_ATTR :
-                case OPTION_VISION :
-                case OPTION_CONSUME_MP :
-                case OPTION_TRANS :
-                case OPTION_MAGIC_DAMAGE :
-                case OPTION_MELEE_DAMAGE :
-                case OPTION_GAMBLE_PRICE :
-                case OPTION_POTION_PRICE :
-                    return true;
-                break;
-
-                default :
-                    return false;
-
-            }
-            break;
-        */
-
     default:
         break;
     }
 
     return false;
 }
-
-/*
-bool OptionClassInfo::ApplyOption( PlayerCreature* pPC, int PlusPoint )
-{
-    if ( pPC == NULL ) return false;
-    if ( pPC->isSlayer() )
-    {
-        Slayer* pSlayer = dynamic_cast<Slayer*>(pPC);
-        return ApplyOption( pSlayer, PlusPoint );
-    }
-    else if ( pPC->isVampire() )
-    {
-        Vampire* pVampire = dynamic_cast<Vampire*>(pPC);
-        return ApplyOption( pVampire, PlusPoint );
-    }
-    else if ( pPC->isOusters() )
-    {
-        Ousters* pOusters = dynamic_cast<Ousters*>(pPC);
-        return ApplyOption( pOusters, PlusPoint );
-    }
-}
-
-bool OptionClassInfo::ApplyOption( Slayer* pSlayer, int PlusPoint )
-{
-    if ( pSlayer == NULL ) return false;
-}
-
-bool OptionClassInfo::ApplyOption( Vampire* pVampire, int PlusPoint )
-{
-    if ( pVampire == NULL ) return false;
-}
-
-bool OptionClassInfo::ApplyOption( Ousters* pOusters, int PlusPoint )
-{
-    if ( pOusters == NULL ) return false;
-}
-*/
 
 //////////////////////////////////////////////////////////////////////////////
 // class OptionInfo member methods

@@ -52,52 +52,9 @@ void EffectHasBloodBible::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // Timeval      nextTime   = getNextTime();
-    // Timeval      deadLine   = getDeadline();
-    // Turn_t       RemainTime = deadLine.tv_sec - nextTime.tv_sec;
-    /*
-StringStream msg;
-
-if (pCreature->isSlayer())
-{
-    Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-
-    msg << pSlayer->getName();
-}
-else
-{
-    Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-
-    msg << pVampire->getName();
-}
-
-msg << " has taken the Slayer relic.";
-
-GCSystemMessage gcSystemMessage;
-gcSystemMessage.setMessage(msg.toString());
-
-g_pZoneGroupManager->broadcast( &gcSystemMessage );
-*/
-
     // Get the zone.
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
-
-    /*
-    ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( pZone->getZoneID() );
-    Assert( pZoneInfo != NULL );
-
-    // Announce the location.
-    StringStream msg;
-    msg << pCreature->getName() << " (" << ( pCreature->isSlayer() ? "Slayer" : "Vampire" ) << ") at "
-        << pZoneInfo->getFullName() << "(" << (int)pCreature->getX() << ", " << (int)pCreature->getY()
-        << ") has a fragment of the Blood Bible (" << m_PartName << ").";
-
-    GCSystemMessage gcSystemMessage;
-    gcSystemMessage.setMessage(msg.toString());
-
-    g_pZoneGroupManager->broadcast( &gcSystemMessage );
-    */
 
     ShrineSet* pShrineSet = g_pShrineInfoManager->getShrineSet(m_Part);
     Assert(pShrineSet != NULL);
@@ -131,21 +88,6 @@ void EffectHasBloodBible::affect(Item* pItem)
 
     if (m_pZone == NULL)
         return;
-
-    /*
-    ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( m_pZone->getZoneID() );
-    Assert( pZoneInfo != NULL );
-
-    // Announce the location.
-    StringStream msg;
-    msg << pZoneInfo->getFullName() << "(" << (int)m_X << ", " << (int)m_Y
-        << ") has a fragment of the Blood Bible (" << m_PartName << ") on its shrine.";
-
-    GCSystemMessage gcSystemMessage;
-    gcSystemMessage.setMessage(msg.toString());
-
-    g_pZoneGroupManager->broadcast( &gcSystemMessage );
-    */
 
     ShrineSet* pShrineSet = g_pShrineInfoManager->getShrineSet(m_Part);
     Assert(pShrineSet != NULL);

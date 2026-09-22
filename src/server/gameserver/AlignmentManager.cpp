@@ -140,28 +140,8 @@ BYTE AlignmentManager::getDropItemNum(Alignment_t Alignment, bool isPK)
         Count = 3;
     }
 
-    /*
-    It is not known when this changed, but players with a good alignment
-    started dropping items. Something that used to be here was probably
-    lost while deleting comments in PCManager.cpp's killCreature(), so
-    for now this part is commented out to keep good-aligned players from
-    dropping items.
-    int Percent = getDropBonusPercentage(Alignment);
-
-    if (isPK)
-    {
-        Count = max(0, Count - 1);
-        Percent = Percent/2;
-    }
-
-    Count = max(0, Count);
-    Count = min(5, Count);
-
-    if (Random(1, 100) < Percent)
-    {
-        Count++;
-    }
-    */
+    // Only a bad alignment drops anything, and the count is the band's
+    // alone: neither the drop bonus roll nor the isPK reduction is applied.
 
     return (BYTE)Count;
 

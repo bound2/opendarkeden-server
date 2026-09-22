@@ -523,34 +523,9 @@ bool dropRelicToZone(PlayerCreature* pPC, Item* pItem)
         deleteRelicEffect(pPC, pItem);
 
         // Announce from time to time where the relic was dropped.
-        /*		if (!pItem->isFlag( Effect::EFFECT_CLASS_RELIC_POSITION))
-                {
-                    EffectRelicPosition* pPosition = new EffectRelicPosition(pItem);
-                    //pPosition->setNextTime(10);     // broadcast the message after 1 second
-                    pPosition->setTick( 1*60*10 );  // announce once a minute
-                    pPosition->setZoneID( pZone->getZoneID() );
-                    pPosition->setX( pt.x );
-                    pPosition->setY( pt.y );
-                    pPosition->setPart( pItem->getItemType() );
-                    pItem->setFlag( Effect::EFFECT_CLASS_RELIC_POSITION );
-                    pItem->getEffectManager().addEffect( pPosition );
-                    pPosition->affect();
-                }*/
 
 
         // Send every player a message saying the relic was dropped.
-        /*
-        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( pZone->getZoneID() );
-        Assert( pZoneInfo != NULL );
-
-        StringStream msg;
-        msg << pRelicInfo->getName() << " dropped at " << pZoneInfo->getFullName() << " ( " << pt.x << " , " << pt.y
-        << " ).";
-
-        GCSystemMessage message;
-        message.setMessage( msg.toString() );
-        g_pZoneGroupManager->broadcast( &message );
-        */
         if (!pItem->isFlag(Effect::EFFECT_CLASS_RELIC_LOCK)) {
             EffectRelicLock* pLock = new EffectRelicLock(pItem);
             pLock->setDeadline(10 * 10); // 10 seconds

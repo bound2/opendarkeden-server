@@ -210,15 +210,6 @@ Price_t PriceManager::getRepairPrice(Item* pItem, Creature* pCreature) const {
 
         originalPrice = finalPrice;
     }
-    /*
-    if (pItem->getOptionType() != 0)
-    {
-        OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(pItem->getOptionType());
-        Assert(pOptionInfo != NULL);
-        double priceMultiplier = (double)(pOptionInfo->getPriceMultiplier());
-        originalPrice = originalPrice * priceMultiplier / 100;
-    }
-    */
 
     // A damaged item loses price in proportion to the damage.
     double maxDurability = (double)computeMaxDurability(pItem);

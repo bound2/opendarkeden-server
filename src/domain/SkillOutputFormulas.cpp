@@ -239,9 +239,6 @@ void ShadowWalk(const SkillInput& input, SkillOutput& output) {
 void ChargingPower(const SkillInput& input, SkillOutput& output) {
     output.Damage = 5 + (input.SkillLevel / 20) + (input.DomainLevel / 30);
     output.Duration = (60 + input.SkillLevel * 3 / 2) * 10;
-    //	output.Duration = (30 + input.STR/10 + input.SkillLevel*10/12) * 10;
-    // 	output.Damage   = 1 + (input.STR + input.SkillLevel)/20;
-    //	output.Duration = (10 + input.SkillLevel/2) * 10;
     // output.Delay    = (5 - input.SkillLevel/33) * 10; // 5->2 sec
     output.Delay = output.Duration; // Delay and Duration are the same. by bezz 2003.3.5
 }
@@ -814,11 +811,6 @@ void Sacrifice(const SkillInput& input, SkillOutput& output) {
 }
 
 void CauseCriticalWounds(const SkillInput& input, SkillOutput& output) {
-    /*
-    output.Damage = 20 + input.SkillLevel/6;
-    output.Delay  = 10; // 1 sec
-    */
-
     // output.Damage = 3 + input.SkillLevel / 10; // 3-13
     //  by sigi. 2002.12.3
     output.Damage = 5 + input.INTE / 10 + input.SkillLevel / 5; // 3-13
@@ -827,13 +819,6 @@ void CauseCriticalWounds(const SkillInput& input, SkillOutput& output) {
 
     // Attack-type skills have no party bonus.
 }
-
-/*
-void CureAll::computeOutput(const SkillInput& input, SkillOutput& output)
-{
-    output.Delay = (4 - input.SkillLevel/33) * 10; // 4->1 sec
-}
-*/
 
 void RegenerationSkill(const SkillInput& input, SkillOutput& output) {}
 
@@ -1146,9 +1131,6 @@ void Mephisto(const SkillInput& input, SkillOutput& output) {
 }
 
 void Transfusion(const SkillInput& input, SkillOutput& output) {
-    // output.Damage   = min(60, 15 + (input.INTE-20)/5);
-    // output.Duration = (10 + (input.INTE-20)/10) * 10;
-    // output.Delay    = 5;//max(3, 6 - (input.INTE-20)/50) * 10;
     output.Delay = max(3, 6 - (input.INTE - 20) / 50) * 10;
 }
 
@@ -1210,24 +1192,6 @@ void AirShield(const SkillInput& input, SkillOutput& output) {
 }
 
 void BulletOfLight(const SkillInput& input, SkillOutput& output) {
-    /*	switch( input.IClass )
-        {
-            case Item::ITEM_CLASS_SMG:
-                output.Damage = 2 + ( input.SkillLevel / 10 );
-                break;
-            case Item::ITEM_CLASS_SG:
-                output.Damage = 3 + ( input.SkillLevel / 8 );
-                break;
-            case Item::ITEM_CLASS_AR:
-                output.Damage = 4 + ( input.SkillLevel / 6 );
-                break;
-            case Item::ITEM_CLASS_SR:
-                output.Damage = 5 + ( input.SkillLevel / 5 );
-                break;
-            default:
-                output.Damage = 0;
-                break;
-        }*/
     output.Damage = -20 + (input.SkillLevel * 2 / 3); // / 1.5 );
     output.ToHit = -10 + (input.SkillLevel / 2);      // / 1.5 );
     output.Delay = 2;                                 // 0.2 sec
@@ -2560,11 +2524,6 @@ void BombCrashWalk(const SkillInput& input, SkillOutput& output) {
     output.Damage = (input.STR / 8) + (input.SkillLevel / 3);
     output.Duration = 7; // 1 sec
     output.Tick = 1;     // 1 sec
-                         /*
-                         output.Damage = (20 + (input.STR/15) + (min(input.Range,10)*2))*3;
-                         output.Delay = (4 - min(input.Range,10)/5)*10;
-                         output.Duration = 20;//delay before the effect shows
-                         */
 }
 // Satellite Strike (human gunner new skill)
 void SatelliteBomb(const SkillInput& input, SkillOutput& output) {
@@ -2580,12 +2539,6 @@ void IllusionInversion(const SkillInput& input, SkillOutput& output) {
     // output.Damage = (( input.INTE / 5 )* 0.7) * ( 1 + ( input.SkillLevel / 33 ) );
     output.Delay = 170 - input.SkillLevel * 10 / 33;
     output.Range = 5;
-    /*
-    output.Damage	=  + input.SkillLevel / 2;
-    output.Duration	= 6; //0.6 sec
-    output.Delay	= 10;
-    output.Range	= 8;
-    */
 }
 // Heaven's Descent (human blessing new skill)
 void HeavenGround(const SkillInput& input, SkillOutput& output) {
@@ -2647,12 +2600,6 @@ void SacredStamp(const SkillInput& input, SkillOutput& output) {
     // output.Damage = (( input.INTE / 5 )* 0.7) * ( 1 + ( input.SkillLevel / 33 ) );
     output.Delay = 170 - input.SkillLevel * 10 / 33;
     output.Range = 5;
-    /*
-    output.Damage	=  + input.SkillLevel / 2;
-    output.Duration	= 6; //0.6 sec
-    output.Delay	= 10;
-    output.Range	= 8;
-    */
 }
 void BrambleHalo(const SkillInput& input, SkillOutput& output) {
     output.Duration = (10 + input.INTE / 20 + input.SkillLevel / 6) * 9;

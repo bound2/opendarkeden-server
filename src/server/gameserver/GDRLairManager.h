@@ -70,19 +70,6 @@ public:
 // After the lair entrance closes there are still 5 minutes to get through
 // the Illusions Way. It just burns 5 minutes; as soon as anyone gets
 // through, it moves straight to the Icepole state.
-/*class GDRLairIllusionsWayOnly : public TimerState
-{
-public:
-    DWORD	getStateType() const { return GDR_LAIR_ILLUSIONS_WAY_ONLY; }
-    GDRLairIllusionsWayOnly() : TimerState( GDR_LAIR_ICEPOLE, 600 ) { }
-    DWORD	heartbeat(Timeval currentTime);
-
-    void start();
-    void end();
-
-    State*	clone() { return new GDRLairIllusionsWayOnly(); }
-    string	toString() const { return "GDRLairIllusionsWayOnly"; }
-};*/
 
 // If a player got through the Illusions Way, they are given time to break
 // the ice pole. The pole is summoned at the start, and once it breaks an

@@ -171,13 +171,6 @@ public:
         m_TotalGrade = grade;
     }
 
-    /*
-    bool			ApplyOption( PlayerCreature* pPC, int PlusPoint );
-    bool			ApplyOption( Slayer* pSlayer, int PlusPoint );
-    bool			ApplyOption( Vampire* pVampire, int PlusPoint );
-    bool			ApplyOption( Ousters* pOusters, int PlusPoint );
-    */
-
 private:
     OptionClass m_OptionClass;
     string m_Name;

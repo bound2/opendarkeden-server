@@ -62,9 +62,6 @@ public:
 
     list<Creature*> getGuildCreatures(GuildID_t gID, uint Num);
 
-    /*	pair<multimap< GuildID_t, Creature* >::const_iterator, multimap< GuildID_t, Creature* >::const_iterator>
-            getGuildRange(GuildID_t gID) const { return m_GuildMap.equal_range(gID); }*/
-
     void lock() {
         m_Mutex.lock();
     }

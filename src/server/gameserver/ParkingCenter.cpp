@@ -34,26 +34,6 @@ MotorcycleBox::~MotorcycleBox()
         // Deleted through m_pZone because of an m_pZone synchronization problem.
         // by sigi. 2002.5.3
         m_pZone->deleteMotorcycle(m_X, m_Y, m_pMotorcycle);
-
-        /*
-        Tile & tile = m_pZone->getTile(m_X, m_Y);
-
-        if (tile.hasItem())
-        {
-            m_pZone->deleteItem(m_pMotorcycle, m_X, m_Y);
-        }
-        else
-        {
-            //cerr << "There is no motorcycle on that tile." << endl;
-        }
-
-        GCDeleteObject gcDeleteObject;
-        gcDeleteObject.setObjectID(m_pMotorcycle->getObjectID());
-
-        m_pZone->broadcastPacket(m_X, m_Y, &gcDeleteObject);
-
-        SAFE_DELETE(m_pMotorcycle);
-        */
     }
 
     m_pZone = NULL;

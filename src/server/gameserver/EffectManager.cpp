@@ -284,24 +284,6 @@ EffectInfo* EffectManager::getEffectInfo()
         Effect* pEffect = *itr;
         EffectID_t EffectID = pEffect->getSendEffectClass();
 
-        /*
-        bool bSend = true;
-
-        switch (EffectID)
-        {
-            // These effects are used on the server only, so they are not
-            // sent to the client.
-            case Effect::EFFECT_CLASS_AFTERMATH:
-            case Effect::EFFECT_CLASS_ALIGNMENT_RECOVERY:
-            case Effect::EFFECT_CLASS_ENEMY_ERASE:
-            case Effect::EFFECT_CLASS_RESTORE:
-                bSend = false;
-                break;
-            default:
-                break;
-        }
-        */
-
         // Each Effect's constructor decides whether it is an effect sent to the client.
         // by sigi. 2002.11.14
         bool bSend = pEffect->isBroadcastingEffect();
@@ -420,69 +402,6 @@ void EffectManager::addEffect(Effect* pEffect)
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-/*int EffectManager::heartbeat ()
-
-{
-    __BEGIN_TRY
-    __END_DEBUG
-
-    int rvalue = 0;
-
-    Timeval currentTime;
-    getCurrentTime(currentTime);
-
-    list<Effect*>::iterator before  = m_Effects.end();
-    list<Effect*>::iterator current = m_Effects.begin();
-
-    while (current != m_Effects.end())
-    {
-        Assert(*current != NULL);
-        Effect* pEffect = *current;
-
-        // Delete the effect once it has expired.
-        if (currentTime > pEffect->getDeadline())
-        {
-            if (before == m_Effects.end())
-            {
-                // first effect
-                m_Effects.erase(current);
-                current = m_Effects.begin();
-            }
-            else
-            {
-                // !first effect
-                m_Effects.erase(current);
-                current = before;
-                current ++;
-            }
-
-            // *CAUTION
-            // EffectBloodDrain changes the Slayer's data inside unaffect().
-            pEffect->unaffect();
-            SAFE_DELETE(pEffect);
-
-            rvalue++;
-        }
-        else
-        {
-            // Among the effects that have not expired,
-            // affect those whose next affect time has come.
-            if (currentTime > pEffect->getNextTime())
-            {
-                pEffect->affect();
-            }
-
-            before = current ++;
-        }
-
-    }
-
-    return rvalue;
-
-    __BEGIN_DEBUG
-    __END_CATCH
-}
-*/
 //////////////////////////////////////////////////////////////////////////////
 // Same as the heartbeat above,
 // only the way the time is obtained differs:

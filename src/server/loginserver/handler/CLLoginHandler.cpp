@@ -14,35 +14,6 @@
 // login is refused. A crashed server therefore has to reset every LogOn
 // column to LOGOFF as it comes back up.
 //////////////////////////////////////////////////////////////////////////////
-/*
-
-   // Columns the NetMarble integration needs in the Player table. by sigi. 2002.10.23
-
-   PlayerID,
-   Password,	// a different meaning here.
-   CurrentWorldID,
-   CurrentServerGroupID,
-   CurrentLoginServerID,
-   SpecialEventCount,
-   LogOn,
-   Access,
-   LoginIP,
-   PayType, PayPlayDate, PayPlayHours, PayPlayFlag
-   LastSlot,
-   LastLoginDate,
-   LoginIP
-
-
-   // What NetMarble has to do on its side
-   UPDATE Player SET Password='12345678' WHERE PlayerID='playerid';
-
-   if (getAffectedRowCount()==0)
-   {
-        INSERT INTO Player (PlayerID, Password) Values ('playerid', '12345678');
-   }
-
-
-*/
 
 #include "CLLogin.h"
 

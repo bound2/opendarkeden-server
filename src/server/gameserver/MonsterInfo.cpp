@@ -284,13 +284,6 @@ void MonsterInfo::parseSlayerTreasureString(const string& text)
     __BEGIN_TRY
 
     string newtext = trim(text);
-    /*
-    if (newtext.size() < 10)
-    {
-        cerr << "MonsterInfo::parseSlayerTreasureString() : Too short treasure string" << endl;
-        throw Error("MonsterInfo::parseSlayerTreasureString() : Too short treasure string");
-    }
-    */
 
     m_pSlayerTreasureList->parseString(newtext);
 
@@ -315,13 +308,6 @@ void MonsterInfo::parseVampireTreasureString(const string& text)
     __BEGIN_TRY
 
     string newtext = trim(text);
-    /*
-    if (newtext.size() < 10)
-    {
-        cerr << "MonsterInfo::parseVampireTreasureString() : Too short treasure string" << endl;
-        throw Error("MonsterInfo::parseVampireTreasureString() : Too short treasure string");
-    }
-    */
 
     m_pVampireTreasureList->parseString(newtext);
 
@@ -444,40 +430,8 @@ void MonsterInfo::addDefaultEffects(Creature* pCreature) const {
     for (; itr != m_DefaultEffects.end(); itr++) {
         Effect::EffectClass effectClass = *itr;
 
+        // Only the flag is raised; no Effect object is attached to the creature.
         pCreature->setFlag(effectClass);
-
-        // Actually attach the effect,
-        // because other places refer to it.
-        // Removed for now, because some other places assert(isSlayer()).
-        /*
-        switch (effectClass)
-        {
-            case Effect::EFFECT_CLASS_OBSERVING_EYE :
-            {
-                EffectObservingEye* pEffect = new EffectObservingEye(pCreature);
-                pEffect->setDeadline(99999);
-                pEffect->setDamageBonus(13);
-                pEffect->setCriticalHitBonus(50);
-                pEffect->setVisionBonus(1);
-                pEffect->setSkillLevel( 99 );
-
-                pCreature->addEffect(pEffect);
-            }
-            break;
-
-            case Effect::EFFECT_CLASS_DETECT_INVISIBILITY :
-            {
-                EffectDetectInvisibility* pEffectDetectInvisibility = new EffectDetectInvisibility(pCreature);
-                pEffectDetectInvisibility->setDeadline(99999);
-
-                pCreature->addEffect(pEffectDetectInvisibility);
-            }
-            break;
-
-            default :
-            break;
-        }
-        */
     }
 }
 
@@ -779,63 +733,6 @@ void MonsterInfoManager::reload(MonsterType_t monsterType)
         startType = monsterType;
         endType = monsterType + 1;
     }
-
-    /*		clearTreasures();
-
-                for (int i=startType; i<endType; i++)
-                {
-                    MonsterInfo* pInfo = m_MonsterInfos[i];
-                    if (pInfo != NULL)
-                    {
-                        if (pInfo->hasTreasure())
-                        {
-                            string slayer_filename  = g_pConfig->getProperty("HomePath") + "/data/" + pInfo->getHName()
-        + ".slayer.bin"; string vampire_filename = g_pConfig->getProperty("HomePath") + "/data/" + pInfo->getHName() +
-        ".vampire.bin"; string ousters_filename = g_pConfig->getProperty("HomePath") + "/data/" + pInfo->getHName() +
-        ".ousters.bin";
-
-                            TreasureList* pSlayerTreasureList = m_SlayerTreasureLists.getTreasure( slayer_filename );
-                            TreasureList* pVampireTreasureList = m_VampireTreasureLists.getTreasure( vampire_filename );
-                            TreasureList* pOustersTreasureList = m_OustersTreasureLists.getTreasure( ousters_filename );
-
-                            if (pSlayerTreasureList==NULL)
-                            {
-                                printf("Load - slayer_filename:%s\n", slayer_filename.c_str());
-
-                                pSlayerTreasureList = m_SlayerTreasureLists.loadTreasure( slayer_filename );
-                                Assert(pSlayerTreasureList!=NULL);
-                            }
-
-                            if (pVampireTreasureList==NULL)
-                            {
-                                printf("Load - vampire_filename:%s\n", vampire_filename.c_str());
-
-                                pVampireTreasureList = m_VampireTreasureLists.loadTreasure( vampire_filename );
-                                Assert(pVampireTreasureList!=NULL);
-                            }
-
-                            if (pOustersTreasureList==NULL)
-                            {
-                                printf("Load - ousters_filename:%s\n", ousters_filename.c_str());
-
-                                pOustersTreasureList = m_OustersTreasureLists.loadTreasure( ousters_filename );
-                                Assert(pOustersTreasureList!=NULL);
-                            }
-
-                            pInfo->setSlayerTreasureList(pSlayerTreasureList);
-                            pInfo->setVampireTreasureList(pVampireTreasureList);
-                            pInfo->setOustersTreasureList(pOustersTreasureList);
-
-                            // Verify.
-        //					cout << "MonsterType:" << pInfo->getMonsterType()
-        //						<< ",MonsterName:" << pInfo->getEName()
-        //						<< ",SlayerTreasure:" << pInfo->getSlayerTreasureList()->getTreasures().size()
-        //						<< ",VampireTreasure:" << pInfo->getVampireTreasureList()->getTreasures().size()
-        //						<< endl;
-                        }
-                    }
-                }
-        */
 
     __END_DEBUG
     __END_CATCH

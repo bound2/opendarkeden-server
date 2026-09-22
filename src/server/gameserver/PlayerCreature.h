@@ -380,12 +380,6 @@ public:
 
 public:
     // by sigi. 2002.12.3
-    /*	void	loadQuest() ;
-        bool 	hasQuest() const 	{ return m_pQuestManager!=NULL && !m_pQuestManager->isEmpty(); }
-        bool 	addQuest(Quest* pQuest) ;
-        bool 	checkEvent(QuestEvent* pQuest) ;
-        Quest* 	removeCompleteQuest() ;
-        void 	removeAllQuest() 	{ if (m_pQuestManager!=NULL) m_pQuestManager->release(); }*/
 
     virtual void initAllStatAndSend() = 0;
     virtual void initAllStat(int numPartyMember) = 0;
@@ -525,13 +519,6 @@ public:
     void setPhysicDamageReduce(Damage_t damage) {
         m_PhysicDamageReduce = damage;
     }
-
-    /*	bool				isEmptyItemNameInfoList() { return m_ItemNameInfoList.empty(); }
-        void				clearItemNameInfoList() { m_ItemNameInfoList.clear(); }
-        const list<ItemNameInfo*>& getItemNameInfoList() const { return m_ItemNameInfoList; }
-        void				addItemNameInfoList( ItemNameInfo* itemNameInfo ) {
-       m_ItemNameInfoList.push_back(itemNameInfo); } bool				deleteItemNameInfoList( ObjectID_t objectID ) ;
-        string				getItemName( ObjectID_t objectID ) ;*/
 
 protected:
     int m_ConsumeMPRatio;

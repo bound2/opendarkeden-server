@@ -97,21 +97,6 @@ void EventRegeneration::activate()
                 HP_t regenHP = 0;
                 HP_t newHP = 0;
 
-                /*
-                if (pVampire->isFlag(Effect::EFFECT_CLASS_HIDE))
-                {
-                    // While hiding, HP fills faster than usual.
-                    regenHP = getPercentValue(maxHP, 15 + pVampire->getHPRegen() + pVampire->getINT(ATTR_CURRENT)/60);
-                    newHP   = min((int)(oldHP + regenHP), (int)maxHP);
-                }
-                else
-                {
-                    // Normally...
-                    regenHP = getPercentValue(maxHP, 10 + pVampire->getHPRegen() + pVampire->getINT(ATTR_CURRENT)/60);
-                    newHP   = min((int)(oldHP + regenHP), (int)maxHP);
-                }
-                */
-
                 // Only the bat state is checked here.
                 // Hiding and lying in a coffin are not checked because the HP recovery
                 // for those states lives in Vampire::heartbeat().

@@ -189,14 +189,6 @@ void SiegeManager::putItem(PlayerCreature* pPC, MonsterCorpse* pCorpse, Item* pI
         return;
     }
 
-    /*	if ( !g_pCastleInfoManager->modifyCastleOwner( castleZoneID, pPC ) )
-        {
-            GCCannotAdd gcCA;
-            gcCA.setObjectID( pItem->getObjectID() );
-            pPC->getPlayer()->sendPacket( &gcCA );
-            return;
-        }*/
-
     if (!g_pWarSystem->isModifyCastleOwner(castleZoneID, pPC)) {
         GCCannotAdd gcCA;
         gcCA.setObjectID(pItem->getObjectID());

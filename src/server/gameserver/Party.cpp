@@ -238,16 +238,6 @@ void PartyInviteInfoManager::cancelInvite(Creature* pCreature)
         const string& GuestName = pInfo->getGuestName();
 
         Creature* pTargetCreature = NULL;
-        /*
-        try
-        {
-            pTargetCreature = pZone->getCreature(GuestName);
-        }
-        catch (NoSuchElementException)
-        {
-            pTargetCreature = NULL;
-        }
-        */
 
         pTargetCreature = pZone->getCreature(GuestName);
 
@@ -266,13 +256,6 @@ void PartyInviteInfoManager::cancelInvite(Creature* pCreature)
         deleteInviteInfo(HostName);
         deleteInviteInfo(GuestName);
     }
-    /*
-    else
-    {
-        cerr << "PartyInviteInfoManager::cancelInvite() : Error" << endl;
-        throw Error("PartyInviteInfoManager::cancelInvite() : Error");
-    }
-    */
 
     __END_CATCH
 }
@@ -307,11 +290,6 @@ void PartyInviteInfoManager::deleteInviteInfo(const string& HostName)
         m_InfoMap.erase(itr);
     }
 
-    /*
-    cerr << "PartyInviteInfoManager::deleteInviteInfo() : NoSuchElementException" << endl;
-    throw NoSuchElementException("PartyInviteInfoManager::deleteInviteInfo() : NoSuchElementException");
-    */
-
     __END_CATCH
 }
 
@@ -325,12 +303,6 @@ PartyInviteInfo* PartyInviteInfoManager::getInviteInfo(const string& HostName)
     if (itr == m_InfoMap.end()) {
         return NULL;
     }
-    /*
-    {
-        cerr << "PartyInviteInfoManager::getInviteInfo() : NoSuchElementException" << endl;
-        throw NoSuchElementException("PartyInviteInfoManager::getInviteInfo() : NoSuchElementException");
-    }
-    */
 
 
     return itr->second;
@@ -424,10 +396,6 @@ void Party::addMember(Creature* pCreature)
     if (itr == m_MemberMap.end()) {
         m_MemberMap[pCreature->getName()] = pCreature;
     } else {
-        /*
-        cerr << "Party::addMember() : DuplicatedException" << endl;
-        throw DuplicatedException("Party::addMember() : DuplicatedException");
-        */
     }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -2777,10 +2745,6 @@ bool GlobalPartyManager::deletePartyMember(int ID, Creature* pCreature)
     }
 
     Party* pParty = itr->second;
-
-    // cout << "Found the party." << endl;
-    // cout << pParty->toString() << endl;
-    // cout << "Name of the one being removed:" << pCreature->getName() << endl;
 
     // Tell the members that a member has been expelled from the party.
     GCPartyLeave gcPartyLeave;

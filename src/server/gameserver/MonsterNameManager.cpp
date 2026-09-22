@@ -173,51 +173,6 @@ string MonsterNameManager::getRandomName(Monster* pMonster)
 
         nMiddleNameIndex = rand() % m_nMiddleNameCount;
 
-        /*
-        if (0 < MonsterLevel && MonsterLevel <= 33)
-        {
-            // A low-grade vampire gets only a last name.
-            nFirstNameIndex  = -1;
-            nMiddleNameIndex = -1;
-            nLastNameIndex   = rand()%m_nLastNameCount;
-        }
-        else if (33 < MonsterLevel && MonsterLevel <= 66)
-        {
-            // A mid-grade vampire gets only a first and a last name.
-            nFirstNameIndex  = rand()%m_nFirstNameCount;
-            nMiddleNameIndex = -1;
-            nLastNameIndex   = rand()%m_nLastNameCount;
-        }
-        else
-        {
-            // A high-grade vampire gets every name part.
-            nFirstNameIndex  = rand()%m_nFirstNameCount;
-            nMiddleNameIndex = rand()%m_nMiddleNameCount;
-            nLastNameIndex   = rand()%m_nLastNameCount;
-        }
-        */
-
-        /*
-         * Names unique per zone are assigned later.
-         *
-        ulonglong NameKey = 0;
-
-        NameKey |= nFirstNameIndex  < 32;
-        NameKey |= nMiddleNameIndex < 16;
-        NameKey |= nLastNameIndex       ;
-
-        unordered_map<ulonglong, string>::iterator itr = m_UsedName.find(NameKey);
-
-        if (itr == m_UsedName.end())
-        {
-            if (nFirstNameIndex != -1)  Name += m_pFirstName[nFirstNameIndex] + " ";
-            if (nMiddleNameIndex != -1) Name += m_pMiddleName[nMiddleNameIndex] + " ";
-            if (nLastNameIndex != -1)   Name += m_pLastName[nLastNameIndex];
-
-            bContinue = false;
-        }
-        */
-
         if (nFirstNameIndex != -1)
             Name += m_pFirstName[nFirstNameIndex] + " ";
         if (nMiddleNameIndex != -1)

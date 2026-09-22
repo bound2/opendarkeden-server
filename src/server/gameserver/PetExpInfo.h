@@ -22,13 +22,6 @@ public:
 private:
     PetLevel_t m_PetLevel;
     PetExp_t m_PetGoalExp;
-
-    /*	static PetExp_t getTargetExp( PetLevel_t level ) { return 250 * level * level + 1000; }
-        static bool canLevelUp( PetLevel_t level, PetExp_t exp )
-        {
-            if ( level >= 50 ) return false;
-            return exp >= getTargetExp(level+1);
-        }*/
 };
 
 class PetExpInfoManager {

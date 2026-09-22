@@ -542,10 +542,6 @@ bool Ousters::load()
 
     m_pRank = new Rank(CurRank, RankGoalExp, RankExpTable::s_RankExpTables[RANK_TYPE_OUSTERS]);
 
-    //		setRank( pResult->getInt(++i) );
-    //		setRankExp( pResult->getInt(++i) );
-    //		setRankGoalExp( pResult->getInt(++i) );
-
     setHairColor(record.hairColor);
 
     // 2002.7.15 by sigi
@@ -629,35 +625,10 @@ bool Ousters::load()
     m_OustersInfo.setCoatColor(377);
     m_OustersInfo.setAdvancementLevel(getAdvancementClassLevel());
 
-    /*	OustersEXPInfo* pOustersEXPInfo = g_pOustersEXPInfoManager->getOustersEXPInfo(m_Level);
-
-        if ( (pOustersEXPInfo->getAccumExp() != m_Exp + m_GoalExp)
-            && m_Level > 1 && m_Level < OUSTERS_MAX_LEVEL )
-        {
-            m_Exp = pOustersEXPInfo->getAccumExp() - m_GoalExp;
-
-            char pField[80];
-            sprintf(pField, "Exp=%lu", m_Exp);
-            tinysave(pField);
-        }
-    */
     if (getRank() == 0) {
         saveInitialRank();
     }
 
-
-    /*	RankEXPInfo* pRankEXPInfo = g_pRankEXPInfoManager[RANK_TYPE_OUSTERS]->getRankEXPInfo(m_Rank);
-
-        if ((pRankEXPInfo->getAccumExp() != m_RankExp + m_RankGoalExp)
-            && m_Rank > 1 && m_Rank < OUSTERS_MAX_RANK)
-        {
-            m_RankExp = pRankEXPInfo->getAccumExp() - m_RankGoalExp;
-
-            char pField[80];
-            sprintf(pField, "RankExp=%lu", m_RankExp);
-            tinysave(pField);
-        }
-    */
 
     initAllStat();
 
@@ -1304,11 +1275,6 @@ bool Ousters::isRealWearing(Item* pItem) const
     if (pItem == NULL)
         return false;
 
-    /*	if ( m_pZone != NULL && m_pZone->isDynamicZone() && m_pZone->getDynamicZone()->getTemplateZoneID() == 4005 )
-        {
-            if ( !isOustersWeapon( pItem->getItemClass() ) ) return false;
-        }*/
-
     if (pItem->isTimeLimitItem()) {
         return true;
     }
@@ -1360,10 +1326,6 @@ bool Ousters::isRealWearing(Item* pItem) const
     }
 
     ReqLevel = min(ReqLevel, MAX_OUSTERS_LEVEL);
-    //	ReqSum = min((int)ReqSum, OUSTERS_MAX_SUM);
-    //	ReqSTR = min((int)ReqSTR, OUSTERS_MAX_ATTR);
-    //	ReqDEX = min((int)ReqDEX, OUSTERS_MAX_ATTR);
-    //	ReqINT = min((int)ReqINT, OUSTERS_MAX_ATTR);
 
     Attr_t CSTR = m_STR[ATTR_CURRENT];
     Attr_t CDEX = m_DEX[ATTR_CURRENT];
@@ -1541,49 +1503,6 @@ GearInfo* Ousters::getGearInfo() const
             GearSlotInfo* pGearSlotInfo = new GearSlotInfo();
             pItem->makePCItemInfo(*pGearSlotInfo);
             pGearSlotInfo->setSlotID(i);
-            /*
-                        pGearSlotInfo->setObjectID(pItem->getObjectID());
-                        pGearSlotInfo->setItemClass(pItem->getItemClass());
-                        pGearSlotInfo->setItemType(pItem->getItemType());
-                        pGearSlotInfo->setOptionType(pItem->getOptionTypeList());
-                        pGearSlotInfo->setDurability(pItem->getDurability());
-                        pGearSlotInfo->setSilver(pItem->getSilver());
-                        pGearSlotInfo->setEnchantLevel(pItem->getEnchantLevel());
-
-                        if (pItem->getItemClass() == Item::ITEM_CLASS_OUSTERS_ARMSBAND)
-                        {
-                            ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(),
-               pItem->getItemType());
-
-                            BYTE PocketNum = ((OustersArmsbandInfo*)pItemInfo)->getPocketCount();
-
-                            Inventory* pOustersArmsbandInventory = ((OustersArmsband*)pItem)->getInventory();
-
-                            BYTE SubItemCount = 0;
-
-                            for (int i = 0; i < PocketNum ; i++)
-                            {
-                                Item* pOustersArmsbandItem = pOustersArmsbandInventory->getItem(i, 0);
-                                if (pOustersArmsbandItem != NULL)
-                                {
-                                    SubItemInfo* pSubItemInfo = new SubItemInfo();
-                                    pSubItemInfo->setObjectID(pOustersArmsbandItem->getObjectID());
-                                    pSubItemInfo->setItemClass(pOustersArmsbandItem->getItemClass());
-                                    pSubItemInfo->setItemType(pOustersArmsbandItem->getItemType());
-                                    pSubItemInfo->setItemNum(pOustersArmsbandItem->getNum());
-                                    pSubItemInfo->setSlotID(i);
-
-                                    pGearSlotInfo->addListElement(pSubItemInfo);
-
-                                    SubItemCount++;
-                                }
-                            }
-                            pGearSlotInfo->setListNum(SubItemCount);
-                        }
-
-                        pGearSlotInfo->setSlotID(i);
-
-                        pGearSlotInfo->setMainColor(0);*/
 
             pGearInfo->addListElement(pGearSlotInfo);
         }
@@ -1786,10 +1705,6 @@ Sight_t Ousters::getEffectedSight() {
     Sight_t sight = Creature::getEffectedSight();
 
     if (sight == DEFAULT_SIGHT) {
-        //		if ( isFlag( Effect::EFFECT_CLASS_BLOOD_DRAIN ) )
-        //		{
-        //			sight = (Sight_t) 3;
-        //		}
     }
 
     return sight;
@@ -1847,42 +1762,6 @@ void Ousters::saveExps(void) const
 //
 //
 //----------------------------------------------------------------------
-/*void Ousters::getShapeInfo (DWORD& flag, Color_t colors[PCOustersInfo::OUSTERS_COLOR_MAX]) const
-//
-{
-    __BEGIN_DEBUG
-
-    Item* 						pItem;
-    //OptionInfo* 				pOptionInfo;
-    int							oustersBit;
-    int							oustersColor;
-    WearPart					Part;
-
-    flag = 0;
-
-    //-----------------------------------------------------------------
-    //-----------------------------------------------------------------
-    Part = WEAR_COAT;
-    pItem = m_pWearItem[Part];
-    oustersBit = 0;
-    oustersColor = 0;
-
-    if (pItem!=NULL && m_pRealWearingCheck[Part])
-    {
-        ItemType_t IType = pItem->getItemType();
-
-        colors[oustersColor] = getItemShapeColor( pItem );
-
-        flag = IType;
-    }
-    else
-    {
-        colors[oustersColor] = 377;
-        flag = (m_Sex? 0 : 1);
-    }
-
-    __END_DEBUG
-}*/
 
 
 //----------------------------------------------------------------------
@@ -1898,19 +1777,6 @@ void Ousters::saveInitialRank(void)
     int curRank = max(1, (m_Level + 3) / 4);
     m_pRank->SET_LEVEL(curRank);
 
-    /*	RankExp_t accumExp = 0;
-
-        if (curRank!=1)
-        {
-            RankEXPInfo* pBeforeExpInfo = g_pRankEXPInfoManager[RANK_TYPE_OUSTERS]->getRankEXPInfo(curRank-1);
-            accumExp = pBeforeExpInfo->getAccumExp();
-        }
-
-        RankEXPInfo* pNextExpInfo = g_pRankEXPInfoManager[RANK_TYPE_OUSTERS]->getRankEXPInfo(curRank);
-        Exp_t NextGoalExp = pNextExpInfo->getGoalExp();
-
-        setRankGoalExp(NextGoalExp);
-    */
     char pField[80];
     sprintf(pField, "`Rank`=%d, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
     tinysave(pField);
@@ -1921,15 +1787,6 @@ bool Ousters::addShape(Item::ItemClass IClass, ItemType_t IType, Color_t color) 
     bool bisChange = false;
 
     switch (IClass) {
-    /*case Item::ITEM_CLASS_OUSTERS_COAT:
-    {
-        bisChange = true;
-
-        m_OustersInfo.setCoatColor( color );
-        m_OustersInfo.setCoatType( IType );
-    }
-    break;
-*/
     default:
         break;
     }
@@ -1942,21 +1799,6 @@ bool Ousters::removeShape(Item::ItemClass IClass, bool bSendPacket) {
     bool bisChange = false;
 
     switch (IClass) {
-    /*case Item::ITEM_CLASS_OUSTERS_COAT :
-    {
-        m_OustersInfo.setCoatColor(377);
-        m_OustersInfo.setCoatType( 0 );
-
-        if (bSendPacket)	// by sigi. 2002.11.6
-        {
-            GCTakeOff pkt;
-            pkt.setObjectID(getObjectID());
-            pkt.setSlotID((SlotID_t)ADDON_COAT);
-            m_pZone->broadcastPacket(getX(), getY(), &pkt, this);
-        }
-    }
-    break;
-*/
     default:
         return false;
     }
