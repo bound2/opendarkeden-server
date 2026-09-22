@@ -11,6 +11,7 @@
 #include "GCModifyInformation.h"
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GuildManager.h"
 #include "PlayerCreature.h"
@@ -36,7 +37,7 @@ void CGModifyTaxRatioHandler::execute(CGModifyTaxRatio* pPacket, Player* pPlayer
 
     GuildID_t guildID = pPC->getGuildID();
 
-    list<CastleInfo*> pCastleInfoList = g_pCastleInfoManager->getGuildCastleInfos(guildID);
+    list<CastleInfo*> pCastleInfoList = de::gameContext().castleInfos().getGuildCastleInfos(guildID);
     if (pCastleInfoList.empty()) {
         GCNPCResponse fail;
         fail.setCode(NPC_RESPONSE_MODIFY_TAX_RATIO_FAIL);
@@ -66,7 +67,7 @@ void CGModifyTaxRatioHandler::execute(CGModifyTaxRatio* pPacket, Player* pPlayer
         return;
     }
 
-    g_pCastleInfoManager->setItemTaxRatio(pPC->getZone(), pPacket->getRatio() + 100);
+    de::gameContext().castleInfos().setItemTaxRatio(pPC->getZone(), pPacket->getRatio() + 100);
     GCNPCResponse ok;
     ok.setCode(NPC_RESPONSE_MODIFY_TAX_RATIO_OK);
     pGamePlayer->sendPacket(&ok);

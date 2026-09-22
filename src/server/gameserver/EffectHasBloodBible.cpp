@@ -71,7 +71,7 @@ void EffectHasBloodBible::affect(Creature* pCreature)
     pGCBBS->setY(pCreature->getY());
 
     //	g_pHolyLandManager->broadcast( pGCBBS );
-    g_pZoneGroupManager->broadcast(pGCBBS);
+    de::gameContext().zoneGroups().broadcast(pGCBBS);
     g_pShrineInfoManager->registerBloodBibleStatus(m_Part, pGCBBS);
 
     setNextTime(m_Tick);
@@ -103,7 +103,7 @@ void EffectHasBloodBible::affect(Item* pItem)
     pGCBBS->setY(m_Y);
 
     // Send the message only while a race war is running.
-    if (g_pWarSystem->hasActiveRaceWar()) {
+    if (de::gameContext().warSystem().hasActiveRaceWar()) {
         g_pHolyLandManager->broadcast(pGCBBS);
     }
 

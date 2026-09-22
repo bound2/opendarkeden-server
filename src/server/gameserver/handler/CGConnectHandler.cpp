@@ -96,6 +96,8 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
 
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
+
     // set MAC Address
     pGamePlayer->setMacAddress(pPacket->getMacAddress());
 
@@ -339,8 +341,8 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         // Add to the PCFinder.
         // Removal from the PCFinder happens only in ~GamePlayer().
         try {
-            g_pPCFinder->addCreature(pSlayer);
-        } catch (DuplicatedException& de) {
+            pcFinder.addCreature(pSlayer);
+        } catch (DuplicatedException& dupe) {
             bAlreadyConnected = true;
         }
 
@@ -397,8 +399,8 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         // Add to the PCFinder.
         // Removal from the PCFinder happens only in ~GamePlayer().
         try {
-            g_pPCFinder->addCreature(pVampire);
-        } catch (DuplicatedException& de) {
+            pcFinder.addCreature(pVampire);
+        } catch (DuplicatedException& dupe) {
             bAlreadyConnected = true;
         }
 
@@ -458,8 +460,8 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         // Add to the PCFinder.
         // Removal from the PCFinder happens only in ~GamePlayer().
         try {
-            g_pPCFinder->addCreature(pOusters);
-        } catch (DuplicatedException& de) {
+            pcFinder.addCreature(pOusters);
+        } catch (DuplicatedException& dupe) {
             bAlreadyConnected = true;
         }
 
@@ -544,7 +546,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     ZoneID_t castleZoneID;
     ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(pCreature->getZoneID());
 
-    bool isCastleZone = g_pCastleInfoManager->getCastleZoneID(pCreature->getZoneID(), castleZoneID);
+    bool isCastleZone = de::gameContext().castleInfos().getCastleZoneID(pCreature->getZoneID(), castleZoneID);
     bool isMasterLair = pZoneInfo->isMasterLair() || GDRLairManager::Instance().isGDRLairZone(pCreature->getZoneID());
     bool isPKZone = g_pPKZoneInfoManager->isPKZone(pCreature->getZoneID());
     bool isMaze = (pCreature->getZoneID() == 3001) || (pCreature->getZoneID() == 3002) ||

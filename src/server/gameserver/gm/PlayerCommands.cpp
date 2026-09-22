@@ -49,9 +49,11 @@ void opkick(GamePlayer* pGamePlayer, string msg, int i) {
     Creature* pTargetCreature = NULL;
 
     // NoSuch removed.
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    pTargetCreature = pcFinder.getCreature_LOCKED(Name);
     if (pTargetCreature == NULL) {
         return;
     }
@@ -66,7 +68,7 @@ void opkick(GamePlayer* pGamePlayer, string msg, int i) {
         filelog("change.txt", "[Kick]%s --> %s", pCreature->getName().c_str(), Name.c_str());
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
     __END_DEBUG_EX __END_CATCH
 }
@@ -89,9 +91,11 @@ void opmute(GamePlayer* pGamePlayer, string msg, int i) {
 
     Creature* pTargetCreature = NULL;
     // NoSuch removed.
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    pTargetCreature = pcFinder.getCreature_LOCKED(Name);
     if (pTargetCreature == NULL) {
         return;
     }
@@ -124,7 +128,7 @@ void opmute(GamePlayer* pGamePlayer, string msg, int i) {
         pTargetGamePlayer->sendPacket(&gcAddEffect);
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
     __END_DEBUG_EX __END_CATCH
 }
@@ -166,9 +170,11 @@ void opdenychat(GamePlayer* pGamePlayer, string msg, int i) {
     }
 
     // NoSuch removed.
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    pTargetCreature = pcFinder.getCreature_LOCKED(Name);
     if (pTargetCreature == NULL) {
         return;
     }
@@ -201,7 +207,7 @@ void opdenychat(GamePlayer* pGamePlayer, string msg, int i) {
         pTargetGamePlayer->sendPacket(&gcAddEffect);
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
     __END_DEBUG_EX __END_CATCH
 }
@@ -217,9 +223,11 @@ void opfreezing(GamePlayer* pGamePlayer, string msg, int i) {
     Creature* pTargetCreature = NULL;
 
     // NoSuch removed.
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    pTargetCreature = pcFinder.getCreature_LOCKED(Name);
     if (pTargetCreature == NULL) {
         return;
     }
@@ -228,7 +236,7 @@ void opfreezing(GamePlayer* pGamePlayer, string msg, int i) {
     GamePlayer* pTargetGamePlayer = dynamic_cast<GamePlayer*>(pTargetPlayer);
     pTargetGamePlayer->setPenaltyFlag(PENALTY_TYPE_FREEZING);
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
     __END_DEBUG_EX __END_CATCH
 }
@@ -267,9 +275,11 @@ void opinfo(GamePlayer* pGamePlayer, string msg, int i) {
 
     Creature* pTargetCreature = NULL;
     // NoSuch removed.
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    pTargetCreature = pcFinder.getCreature_LOCKED(Name);
     if (pTargetCreature == NULL) {
         return;
     }
@@ -316,7 +326,7 @@ void opinfo(GamePlayer* pGamePlayer, string msg, int i) {
 
     pGamePlayer->sendPacket(&gcSystemMessage);
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
     __END_DEBUG_EX __END_CATCH
 }
@@ -453,13 +463,15 @@ void optrace(GamePlayer* pGamePlayer, string msg, int i) {
     Creature* pTargetCreature = NULL;
 
     // NoSuch removed.
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
+
+    __ENTER_CRITICAL_SECTION(pcFinder)
 
     if (isNPCTrace) {
-        NPC* pNPC = g_pPCFinder->getNPC_LOCKED(Name);
+        NPC* pNPC = pcFinder.getNPC_LOCKED(Name);
         pTargetCreature = dynamic_cast<Creature*>(pNPC);
     } else {
-        pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
+        pTargetCreature = pcFinder.getCreature_LOCKED(Name);
     }
 
     if (pTargetCreature == NULL) {
@@ -476,7 +488,7 @@ void optrace(GamePlayer* pGamePlayer, string msg, int i) {
 
     transportCreature(pCreature, ZoneNum, ZoneX, ZoneY, false);
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
     __END_DEBUG_EX __END_CATCH
 }

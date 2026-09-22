@@ -138,7 +138,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
         }
 
         if (pPacket->getZoneID() == 72) {
-            if (!g_pWarSystem->hasActiveRaceWar()) {
+            if (!de::gameContext().warSystem().hasActiveRaceWar()) {
                 GCSystemMessage gcSystemMessage;
                 gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_WAR_IN_ACTIVE));
                 pGamePlayer->sendPacket(&gcSystemMessage);

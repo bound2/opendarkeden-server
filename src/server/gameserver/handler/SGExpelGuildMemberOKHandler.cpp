@@ -7,6 +7,7 @@
 //----------------------------------------------------------------------
 
 // include files
+#include "GameContext.h"
 #include "Properties.h"
 #include "SGExpelGuildMemberOK.h"
 
@@ -68,9 +69,11 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
         pGuild->deleteMember(pGuildMember->getName());
 
         // Send a message if connected.
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-        Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getName());
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        Creature* pCreature = pcFinder.getCreature_LOCKED(pPacket->getName());
         if (pCreature != NULL && pCreature->isPC()) {
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
@@ -90,7 +93,7 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
         }
 
         // Send the one who cancelled a message.
-        pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getSender());
+        pCreature = pcFinder.getCreature_LOCKED(pPacket->getSender());
         if (pCreature != NULL && pCreature->isPC()) {
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
@@ -109,7 +112,7 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
             pPlayer->sendPacket(&gcSystemMessage);
         }
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
     } else {
         ///////////////////////////////////////////////////////////
         // Expel from the guild.
@@ -181,9 +184,11 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
         }
 
         // Send the one who expelled a message. (send only: fine from this thread)
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-        Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getSender());
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        Creature* pCreature = pcFinder.getCreature_LOCKED(pPacket->getSender());
         if (pCreature != NULL && pCreature->isPC()) {
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
@@ -202,7 +207,7 @@ void SGExpelGuildMemberOKHandler::execute(SGExpelGuildMemberOK* pPacket)
             pPlayer->sendPacket(&gcSystemMessage);
         }
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
     }
 
 #endif

@@ -11,6 +11,41 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Placing a blood bible on the holy shrine flips its owner without the war check (2026-09-22)
+
+- **`ShrineInfoManager`'s holy-shrine branch tested `isMatchHolyShrine`
+  and the war system's `isModifyCastleOwner` together; the second conjunct
+  was commented out with the closing parenthesis inside the comment,** so
+  the live condition is the match alone, or a guard-shrine defender, and
+  its only surviving statement sets the shrine set's owner race. Any
+  player who places a matching blood bible there changes the owner with no
+  war-eligibility test; the `endWar` and `returnBloodBible` that followed
+  are commented out as well. The castle counterpart in
+  `CastleShrineInfoManager` still applies the check. Restoring it needs the
+  castle zone id the same block no longer computes and a decision on the
+  three statements that went with it.
+  > **Status:** recorded, not fixed (refactor/game-context-11)
+
+## A random mine item is read off a row that may not exist (2026-09-22)
+
+- **`ItemMineInfoManager::getRandomItem` draws an id in the caller's range
+  and dereferences `getItemMineInfo(id)` without checking it,** so a gap
+  in the `ItemMineInfo` rows faults the caller: the five hunting-pouch
+  branches of the use-item handler and the GQuest inventory handler, each
+  on a zone thread. The lair trade guards the same lookup one frame up.
+  The function now answers null for a missing row; the GQuest handler
+  already refuses a null item through `fitToPC`, and the pouch handler
+  refuses it too.
+  > **Status:** fixed (refactor/game-context-11, stack top)
+
+## A third event action crashes on an Ousters (2026-09-22)
+
+- **`ActionGiveTestServerReward` chooses its Lua item selector in a Slayer
+  branch and a Vampire branch and calls `prepare()` on it,** the defect
+  `ActionGiveEventItem`, `ActionGiveAccountEventItem` and
+  `ActionTradeGiftBox` had before they refused the race instead.
+  > **Status:** recorded, not fixed (fix/recorded-defects-2)
+
 ## A vision info manager's debug string fell off the end of the function (2026-09-22)
 
 - **`VisionInfoManager::toString()` returned `string` and had no `return`:**
@@ -202,7 +237,8 @@ that followed it.
   the action logs the character to `GiveEventItemError.txt`, closes the
   NPC dialogue the way its other refusals do, and returns. The same
   two-branch selector choice is in `ActionGiveAccountEventItem` and
-  `ActionTradeGiftBox`, both untouched.
+  `ActionTradeGiftBox`, which now refuse it too; `ActionGiveTestServerReward`
+  still carries it.
   > **Status:** fixed (fix/recorded-defects-1)
 
 ## A skill off cooldown is sent a 4-billion-turn casting time (2026-09-22)

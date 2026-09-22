@@ -128,8 +128,8 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             // pFromCreature, the original Vampire object, is about to be deleted,
             // so the value held in PCFinder would become garbage.
             // Therefore remove the Vampire pointer and add the new Slayer pointer.
-            g_pPCFinder->deleteCreature(pFromCreature->getName());
-            g_pPCFinder->addCreature(pNewSlayer);
+            de::gameContext().playerCreatures().deleteCreature(pFromCreature->getName());
+            de::gameContext().playerCreatures().addCreature(pNewSlayer);
 
             // Remove it from the guild's list of currently connected members.
             if (pVampire->getGuildID() != 0) {
@@ -423,8 +423,8 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
             // pFromCreature, the original Vampire object, is about to be deleted,
             // so the value held in PCFinder would become garbage.
             // Therefore remove the Vampire pointer and add the new Slayer pointer.
-            g_pPCFinder->deleteCreature(pFromCreature->getName());
-            g_pPCFinder->addCreature(pNewSlayer);
+            de::gameContext().playerCreatures().deleteCreature(pFromCreature->getName());
+            de::gameContext().playerCreatures().addCreature(pNewSlayer);
 
             // Remove it from the guild's list of currently connected members.
             if (pVampire->getGuildID() != 0) {

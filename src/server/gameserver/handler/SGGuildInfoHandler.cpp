@@ -7,6 +7,7 @@
 //----------------------------------------------------------------------
 
 // include files
+#include "GameContext.h"
 #include "Properties.h"
 #include "SGGuildInfo.h"
 
@@ -63,7 +64,8 @@ void SGGuildInfoHandler::execute(SGGuildInfo* pPacket)
             pGuildMember->setLogOn(pGuildMemberInfo->getLogOn());
 
 
-            if (pGuildMember->getLogOn() && g_pPCFinder->getCreature(pGuildMember->getName()) != NULL) {
+            if (pGuildMember->getLogOn() &&
+                de::gameContext().playerCreatures().getCreature(pGuildMember->getName()) != NULL) {
                 pGuild->addCurrentMember(pGuildMember->getName());
             }
 

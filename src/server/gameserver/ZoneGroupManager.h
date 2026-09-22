@@ -127,8 +127,4 @@ private:
     mutable Mutex m_Mutex;
 };
 
-// global variable declaration
-extern ZoneGroupManager* g_pZoneGroupManager;
-
-
 #endif

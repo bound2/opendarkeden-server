@@ -1,6 +1,7 @@
 #include "PartnerWaitingManager.h"
 
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "PCFinder.h"
 #include "PlayerCreature.h"
 #include "VariableManager.h"
@@ -83,9 +84,11 @@ uint PartnerWaitingManager::waitForPartner(PlayerCreature* pWaitingPC, string Re
 
     PlayerCreature* pTargetPC = NULL;
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    Creature* pTargetCreature = g_pPCFinder->getCreature_LOCKED(RequestedPCName);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    Creature* pTargetCreature = pcFinder.getCreature_LOCKED(RequestedPCName);
     if (pTargetCreature != NULL) {
         if (!pTargetCreature->isPC()) {
             return COUPLE_MESSAGE_LOGOFF;
@@ -95,7 +98,7 @@ uint PartnerWaitingManager::waitForPartner(PlayerCreature* pWaitingPC, string Re
         Assert(pTargetPC != NULL);
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
     if (pTargetPC == NULL)
         return COUPLE_MESSAGE_LOGOFF;

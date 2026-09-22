@@ -11,6 +11,7 @@
 #include "DB.h"
 #include "GCNoticeEvent.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "HolyLandRaceBonus.h"
 #include "Mutex.h"
 #include "PCManager.h"
@@ -39,7 +40,7 @@ WarID_t War::m_WarIDRegistry = 0;
 //--------------------------------------------------------------------------------
 War::War(WarState warState, WarID_t warID) : m_State(warState) {
     if (warID == 0) {
-        m_WarIDRegistry += g_pWarSystem->getWarIDSuccessor();
+        m_WarIDRegistry += de::gameContext().warSystem().getWarIDSuccessor();
         m_WarID = m_WarIDRegistry;
     } else {
         m_WarID = warID;
@@ -137,7 +138,7 @@ void War::sendWarStartMessage() const
     sprintf(str, g_pStringPool->c_str(STRID_WAR_START), getWarName().c_str());
 
     gcSystemMessage.setMessage(str);
-    g_pZoneGroupManager->broadcast(&gcSystemMessage);
+    de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
 
     filelog("WarLog.txt", "[WarID=%u] %s", (int)m_WarID, str);
 
@@ -157,7 +158,7 @@ void War::sendWarEndMessage() const
     sprintf(str, g_pStringPool->c_str(STRID_WAR_END), getWarName().c_str());
 
     gcSystemMessage.setMessage(str);
-    g_pZoneGroupManager->broadcast(&gcSystemMessage);
+    de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
 
     filelog("WarLog.txt", "[WarID=%u] %s", (int)m_WarID, str);
 

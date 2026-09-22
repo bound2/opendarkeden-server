@@ -28,6 +28,11 @@ BloodBibleBonusManager& GameContext::bloodBibleBonuses() const {
     return *m_pBloodBibleBonusManager;
 }
 
+CastleInfoManager& GameContext::castleInfos() const {
+    Assert(m_pCastleInfoManager != nullptr);
+    return *m_pCastleInfoManager;
+}
+
 CastleShrineInfoManager& GameContext::castleShrines() const {
     Assert(m_pCastleShrineInfoManager != nullptr);
     return *m_pCastleShrineInfoManager;
@@ -246,6 +251,11 @@ VariableManager& GameContext::variables() const {
 VolumeInfoManager& GameContext::volumeInfos() const {
     Assert(m_pVolumeInfoManager != nullptr);
     return *m_pVolumeInfoManager;
+}
+
+WarSystem& GameContext::warSystem() const {
+    Assert(m_pWarSystem != nullptr);
+    return *m_pWarSystem;
 }
 
 WayPointManager& GameContext::wayPoints() const {

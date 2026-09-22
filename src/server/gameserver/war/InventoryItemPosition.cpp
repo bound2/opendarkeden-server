@@ -9,6 +9,7 @@
 #include "Effect.h"
 #include "GCAddEffect.h"
 #include "GCDeleteInventoryItem.h"
+#include "GameContext.h"
 #include "Inventory.h"
 #include "Item.h"
 #include "PCFinder.h"
@@ -104,16 +105,18 @@ Creature* InventoryItemPosition::findCreature()
 
     Creature* pTargetCreature = NULL;
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    pTargetCreature = g_pPCFinder->getCreature_LOCKED(m_OwnerName);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    pTargetCreature = pcFinder.getCreature_LOCKED(m_OwnerName);
     if (pTargetCreature == NULL) {
         filelog("ItemError.log", "InventoryItemPosition:getItem() : 해당하는 Creature가 없습니다.");
 
         return NULL;
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
     return pTargetCreature;
 

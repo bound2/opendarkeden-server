@@ -10,6 +10,7 @@
 
 #include "Assert.h"
 #include "GMServerInfo.h"
+#include "GameContext.h"
 #include "LogDef.h"
 #include "LoginServerManager.h"
 #include "Properties.h"
@@ -229,7 +230,7 @@ void ConnectionInfoManager::heartbeat()
             ZoneGroup* pZoneGroup = NULL;
 
             try {
-                pZoneGroup = g_pZoneGroupManager->getZoneGroupByGroupID(i);
+                pZoneGroup = de::gameContext().zoneGroups().getZoneGroupByGroupID(i);
             } catch (NoSuchElementException& t) {
                 throw Error("Critical Error : ZoneInfoManager has no such zone group.");
             }

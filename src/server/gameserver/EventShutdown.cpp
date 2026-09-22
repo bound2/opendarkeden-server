@@ -28,7 +28,7 @@ void EventShutdown::activate()
     __BEGIN_TRY
 
     try {
-        const unordered_map<ZoneGroupID_t, ZoneGroup*>& zoneGroups = g_pZoneGroupManager->getZoneGroups();
+        const unordered_map<ZoneGroupID_t, ZoneGroup*>& zoneGroups = de::gameContext().zoneGroups().getZoneGroups();
         unordered_map<ZoneGroupID_t, ZoneGroup*>::const_iterator itr = zoneGroups.begin();
 
         for (; itr != zoneGroups.end(); itr++) {

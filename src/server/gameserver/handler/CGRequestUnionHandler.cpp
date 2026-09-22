@@ -12,6 +12,7 @@
 #include "GCGuildResponse.h"
 #include "GCModifyInformation.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -67,16 +68,18 @@ void CGRequestUnionHandler::execute(CGRequestUnion* pPacket, Player* pPlayer)
         if (pGuild != NULL) {
             string targetGuildMaster = pGuild->getMaster();
 
-            __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+            PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-            Creature* pCreature = g_pPCFinder->getCreature_LOCKED(targetGuildMaster);
+            __ENTER_CRITICAL_SECTION(pcFinder)
+
+            Creature* pCreature = pcFinder.getCreature_LOCKED(targetGuildMaster);
             if (pCreature != NULL) {
                 GCModifyInformation gcModifyInformation;
                 makeGCModifyInfoGuildUnion(&gcModifyInformation, pCreature);
                 pCreature->getPlayer()->sendPacket(&gcModifyInformation);
             }
 
-            __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+            __LEAVE_CRITICAL_SECTION(pcFinder)
         }
     }
 

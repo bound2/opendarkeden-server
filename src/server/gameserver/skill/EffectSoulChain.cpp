@@ -88,9 +88,11 @@ void EffectSoulChain::unaffect(Creature* pCreature)
     } else if (pPC->isSlayer() && dynamic_cast<Slayer*>(pPC)->hasRideMotorcycle()) {
     } else if (pPC->getStore()->isOpen()) {
     } else {
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-        Creature* pTargetCreature = g_pPCFinder->getCreature_LOCKED(m_TargetName);
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        Creature* pTargetCreature = pcFinder.getCreature_LOCKED(m_TargetName);
         if (pTargetCreature != NULL) {
             Zone* pTargetZone = pTargetCreature->getZone();
             if (pTargetZone != NULL) {
@@ -119,7 +121,7 @@ void EffectSoulChain::unaffect(Creature* pCreature)
             }
         }
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
     }
 
     if (!bValid) {

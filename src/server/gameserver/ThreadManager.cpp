@@ -9,6 +9,7 @@
 #include "ThreadManager.h"
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "LogClient.h"
 #include "Properties.h"
 #include "ThreadPool.h"
@@ -71,7 +72,8 @@ void ThreadManager::init()
 
     for (size_t i = 0; i < zoneGroupIDs.size(); i++) {
         ZoneGroupID_t zoneGroupID = zoneGroupIDs[i];
-        ZoneGroupThread* pZoneGroupThread = new ZoneGroupThread(g_pZoneGroupManager->getZoneGroup(zoneGroupID));
+        ZoneGroupThread* pZoneGroupThread =
+            new ZoneGroupThread(de::gameContext().zoneGroups().getZoneGroup(zoneGroupID));
         m_pZoneGroupThreadPool->addThread(pZoneGroupThread);
     }
 

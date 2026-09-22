@@ -96,7 +96,7 @@ void sendGCOtherModifyInfoGuildUnionByGuildID(uint gID)
     __BEGIN_TRY
 
     // Send it to the members who joined.
-    list<Creature*> cList = g_pPCFinder->getGuildCreatures(gID, 300);
+    list<Creature*> cList = de::gameContext().playerCreatures().getGuildCreatures(gID, 300);
     for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
         Creature* pOtherCreature = *itr;
         Zone* pZone = pOtherCreature->getZone();
@@ -133,7 +133,8 @@ void sendGCOtherModifyInfoGuildUnion(Creature* pTargetCreature)
     Assert(pTargetPlayerCreature != NULL);
 
     // Send it to the members who joined.
-    list<Creature*> cList = g_pPCFinder->getGuildCreatures(pTargetPlayerCreature->getGuildID(), 300);
+    list<Creature*> cList =
+        de::gameContext().playerCreatures().getGuildCreatures(pTargetPlayerCreature->getGuildID(), 300);
     for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
         Creature* pOtherCreature = *itr;
         if (pOtherCreature != NULL) {
@@ -476,14 +477,14 @@ void makeGCUpdateInfo(GCUpdateInfo* pUpdateInfo, Creature* pCreature)
     ////////////////////////////////////////////////////////////
     // Server status information.
     ////////////////////////////////////////////////////////////
-    ServerGroupID_t ZoneGroupCount = g_pZoneGroupManager->size();
+    ServerGroupID_t ZoneGroupCount = de::gameContext().zoneGroups().size();
     UserNum_t ZoneUserNum = 0;
 
     for (int i = 1; i < ZoneGroupCount + 1; i++) {
         ZoneGroup* pZoneGroup;
 
         try {
-            pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
+            pZoneGroup = de::gameContext().zoneGroups().getZoneGroup(i);
         } catch (NoSuchElementException&) {
             throw Error("Critical Error : ZoneInfoManager has no such zone group.");
         }

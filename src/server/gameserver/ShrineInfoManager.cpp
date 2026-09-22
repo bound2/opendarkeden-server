@@ -175,7 +175,7 @@ void ShrineSet::broadcastBloodBibleStatus()
 
     //	if ( m_pGCBBS != NULL ) g_pHolyLandManager->broadcast( m_pGCBBS );
     if (m_pGCBBS != NULL)
-        g_pZoneGroupManager->broadcast(m_pGCBBS);
+        de::gameContext().zoneGroups().broadcast(m_pGCBBS);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -529,7 +529,7 @@ bool ShrineInfoManager::isDefenderOfGuardShrine(PlayerCreature* pPC, MonsterCorp
 
     ZoneID_t castleZoneID = pZone->getZoneID();
 
-    CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
+    CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(castleZoneID);
     if (pCastleInfo == NULL)
         return false;
 
@@ -737,11 +737,10 @@ bool ShrineInfoManager::putBloodBible(PlayerCreature* pPC, Item* pItem, MonsterC
     // ZoneID_t castleZoneID = pShrineSet->getReturnGuardShrine().getZoneID();
 
     // Placing it in the matching shrine changes the owner and returns it to the guard shrine,
-    if (isMatchHolyShrine(pItem, pCorpse) // && g_pWarSystem->isModifyCastleOwner( castleZoneID, pPC ))
+    if (isMatchHolyShrine(pItem, pCorpse)
         // Placing it in the GuardShrine is allowed when the castle's race and the player's race match.
         || isDefenderOfGuardShrine(pPC, pCorpse) && isMatchGuardShrine(pItem, pCorpse, pPC)) {
         pShrineSet->setOwnerRace(pPC->getRace());
-        //        g_pWarSystem->endWar(pPC, castleZoneID);
 
         // War::executeEnd returns it when the war ends.
         //        returnBloodBible( shrineID, false );

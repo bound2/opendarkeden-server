@@ -141,6 +141,10 @@ Item* ItemMineInfoManager::getRandomItem(int minID, int maxID) {
 
     ItemMineInfo* pItemMineInfo = getItemMineInfo(Random(minID, maxID));
 
+    // A gap in the rows is a data fault; the caller refuses a null item.
+    if (pItemMineInfo == NULL)
+        return NULL;
+
     return pItemMineInfo->getItem();
 
     __END_CATCH

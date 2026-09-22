@@ -80,7 +80,7 @@ Gold_t CastleInfo::increaseTaxBalanceEx(Gold_t tax)
 
     if (!isCommon()) {
         sprintf(query, "TaxBalance=%d", (int)getTaxBalance());
-        g_pCastleInfoManager->tinysave(getZoneID(), query);
+        de::gameContext().castleInfos().tinysave(getZoneID(), query);
     }
 
     return getTaxBalance();
@@ -99,7 +99,7 @@ Gold_t CastleInfo::decreaseTaxBalanceEx(Gold_t tax)
 
     if (!isCommon()) {
         sprintf(query, "TaxBalance=%d", (int)getTaxBalance());
-        g_pCastleInfoManager->tinysave(getZoneID(), query);
+        de::gameContext().castleInfos().tinysave(getZoneID(), query);
     }
 
     return getTaxBalance();
@@ -529,7 +529,7 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setType(SYSTEM_MESSAGE_HOLY_LAND);
         gcSystemMessage.setMessage(msg);
-        g_pZoneGroupManager->broadcast(&gcSystemMessage);
+        de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
     }
 
     return true;
@@ -644,7 +644,8 @@ Gold_t CastleInfoManager::getEntranceFee(ZoneID_t zoneID, PlayerCreature* pPC) c
     const CastleInfo* pCastleInfo = getCastleInfo(zoneID);
 
     // If the castle is in war, entrance fee is waived.
-    if (pCastleInfo != NULL && !g_pWarSystem->hasCastleActiveWar(zoneID) && !g_pWarSystem->hasActiveRaceWar()) {
+    if (pCastleInfo != NULL && !de::gameContext().warSystem().hasCastleActiveWar(zoneID) &&
+        !de::gameContext().warSystem().hasActiveRaceWar()) {
         GuildID_t OwnerGuildID = pCastleInfo->getGuildID();
         GuildID_t PlayerGuildID = pPC->getGuildID();
         Gold_t EntranceFee = pCastleInfo->getEntranceFee();
@@ -747,7 +748,7 @@ bool CastleInfoManager::isPossibleEnter(ZoneID_t zoneID, PlayerCreature* pPC) co
         Race_t OwnerRace = pCastleInfo->getRace();
         Race_t PlayerRace = pPC->getRace(); //(pPC->isSlayer()? RACE_SLAYER : RACE_VAMPIRE);
 
-        if (g_pWarSystem->hasActiveRaceWar()) {
+        if (de::gameContext().warSystem().hasActiveRaceWar()) {
             if (hasOtherBloodBible(zoneID, pPC)) {
                 return false;
             } else {
@@ -769,6 +770,8 @@ bool CastleInfoManager::canPortalActivate(ZoneID_t zoneID, PlayerCreature* pPC) 
 {
     __BEGIN_TRY
 
+    WarSystem& warSystem = de::gameContext().warSystem();
+
     const CastleInfo* pCastleInfo = getCastleInfo(zoneID);
 
     if (pCastleInfo == NULL) {
@@ -776,7 +779,7 @@ bool CastleInfoManager::canPortalActivate(ZoneID_t zoneID, PlayerCreature* pPC) 
         Assert(false);
     }
 
-    if (g_pWarSystem->hasActiveRaceWar()) {
+    if (warSystem.hasActiveRaceWar()) {
         if (hasOtherBloodBible(zoneID, pPC)) {
             return false;
         } else {
@@ -784,8 +787,8 @@ bool CastleInfoManager::canPortalActivate(ZoneID_t zoneID, PlayerCreature* pPC) 
         }
     }
 
-    if (g_pWarSystem->hasCastleActiveWar(zoneID)) {
-        War* pWar = g_pWarSystem->getActiveWar(zoneID);
+    if (warSystem.hasCastleActiveWar(zoneID)) {
+        War* pWar = warSystem.getActiveWar(zoneID);
 
         if (pWar != NULL) {
             return pPC->getRace() == pCastleInfo->getRace();
@@ -853,7 +856,7 @@ bool CastleInfoManager::getResurrectPosition(PlayerCreature* pPC, ZONE_COORD& zo
     CastleInfo::ResurrectPriority resurrectPriority = CastleInfo::CASTLE_RESURRECT_PRIORITY_SECOND;
 
     ZoneID_t castleZoneID;
-    bool isCastleZone = g_pCastleInfoManager->getCastleZoneID(pPC->getResurrectZoneID(), castleZoneID);
+    bool isCastleZone = de::gameContext().castleInfos().getCastleZoneID(pPC->getResurrectZoneID(), castleZoneID);
 
     if (!isCastleZone)
         return false;
@@ -861,7 +864,8 @@ bool CastleInfoManager::getResurrectPosition(PlayerCreature* pPC, ZONE_COORD& zo
     CastleInfo* pCastleInfo = getCastleInfo(castleZoneID);
 
     if (pCastleInfo != NULL) {
-        if (pCastleInfo->getZoneID() != pPC->getResurrectZoneID() || g_pWarSystem->hasCastleActiveWar(castleZoneID)) {
+        if (pCastleInfo->getZoneID() != pPC->getResurrectZoneID() ||
+            de::gameContext().warSystem().hasCastleActiveWar(castleZoneID)) {
             // Resurrect outside the castle.
             // If the resurrect point is a castle dungeon, treat it as outside.
             // Hard-coded because each zone only supports one resurrect point.
@@ -1199,7 +1203,7 @@ SkillType_t CastleInfoManager::getCastleSkillType(ZoneID_t zoneID, GuildID_t gui
         }
 
         // If the castle is in a guild war, none is available.
-        if (g_pWarSystem->hasCastleActiveWar(zoneID)) {
+        if (de::gameContext().warSystem().hasCastleActiveWar(zoneID)) {
             return SKILL_MAX;
         }
 
@@ -1210,6 +1214,3 @@ SkillType_t CastleInfoManager::getCastleSkillType(ZoneID_t zoneID, GuildID_t gui
 
     __END_CATCH
 }
-
-// global variable definition
-CastleInfoManager* g_pCastleInfoManager = NULL;

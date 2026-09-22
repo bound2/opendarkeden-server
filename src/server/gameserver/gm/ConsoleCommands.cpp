@@ -420,13 +420,13 @@ void opSetCastleOwner(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
     if (pZone->isCastle()) {
         // *command setCastleOwner SlayerCommon makes it a Slayer common castle
         if (value1 == "SlayerCommon") {
-            g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_SLAYER, 99);
+            de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_SLAYER, 99);
         }
         // *command setCastleOwner VampireCommon makes it a Vampire common castle
         else if (value1 == "VampireCommon") {
-            g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_VAMPIRE, 0);
+            de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_VAMPIRE, 0);
         } else if (value1 == "OustersCommon") {
-            g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_OUSTERS, 66);
+            de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_OUSTERS, 66);
         }
         // *command setCastleOwner <character name> makes it that character's guild castle
         else {
@@ -434,7 +434,7 @@ void opSetCastleOwner(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
             Race_t race;
             if (getRaceFromDB(Name, race)) {
                 if (getGuildIDFromDB(Name, race, guildID)) {
-                    g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), race, guildID);
+                    de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), race, guildID);
                 } else {
                     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_DO_NOT_BELONG_TO_GUILD));
                     bSendPacket = true;
@@ -464,15 +464,15 @@ void opSetCastleOwnerGuild(GamePlayer* pGamePlayer, const string& value1, GCSyst
     Guild* pGuild = g_pGuildManager->getGuild(guildID);
 
     if (pZone != NULL && pZone->isCastle() && pGuild != NULL) {
-        g_pCastleInfoManager->modifyCastleOwner(zoneID, pGuild->getRace(), guildID);
+        de::gameContext().castleInfos().modifyCastleOwner(zoneID, pGuild->getRace(), guildID);
     } else if (pZone != NULL && pZone->isCastle() && guildID == 99) {
-        g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_SLAYER, 99);
+        de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_SLAYER, 99);
     }
     // *command setCastleOwner VampireCommon makes it a Vampire common castle
     else if (pZone != NULL && pZone->isCastle() && guildID == 0) {
-        g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_VAMPIRE, 0);
+        de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_VAMPIRE, 0);
     } else if (pZone != NULL && pZone->isCastle() && guildID == 66) {
-        g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_OUSTERS, 66);
+        de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_OUSTERS, 66);
     }
 }
 
@@ -480,7 +480,7 @@ void opSetCastleOwnerGuild(GamePlayer* pGamePlayer, const string& value1, GCSyst
 void opShowWarList(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage, bool& bSendPacket) {
     // Send the list of wars in progress.
 
-    g_pWarSystem->broadcastWarList(pGamePlayer);
+    de::gameContext().warSystem().broadcastWarList(pGamePlayer);
     bSendPacket = false;
 }
 
@@ -489,7 +489,7 @@ void opStartRaceWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessa
                     bool& bSendPacket) {
     if (!g_pVariableManager->isWarActive()) {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WAR_OFF_DO_WAR_ACITIVE_ON));
-    } else if (g_pWarSystem->startRaceWar()) {
+    } else if (de::gameContext().warSystem().startRaceWar()) {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_RACE_WAR_START));
     } else {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_ALREADY_WAR_STARTED_OF_SERVER_ERROR));
@@ -525,7 +525,7 @@ void opRemoveWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
         }
     }
 
-    if (g_pWarSystem->removeWar(zoneID)) {
+    if (de::gameContext().warSystem().removeWar(zoneID)) {
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_GUILD_WAR_REMOVED), (int)zoneID);
         gcSystemMessage.setMessage(msg);
@@ -540,7 +540,7 @@ void opRemoveWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
 // *command removeRaceWar
 void opRemoveRaceWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage,
                      bool& bSendPacket) {
-    if (g_pWarSystem->removeRaceWar()) {
+    if (de::gameContext().warSystem().removeRaceWar()) {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_RACE_WAR_REMOVED));
     } else {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_RACE_WAR_IN_ACTIVE));
@@ -851,7 +851,7 @@ void opNotifyWin(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
     gcNW.setGiftID(giftID);
     gcNW.setName(name);
 
-    g_pZoneGroupManager->broadcast(&gcNW);
+    de::gameContext().zoneGroups().broadcast(&gcNW);
     bSendPacket = false;
 }
 
@@ -1259,11 +1259,11 @@ void opForceNick(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
     Creature* pTargetCreature;
     Creature* pCreature = pGamePlayer->getCreature();
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    __ENTER_CRITICAL_SECTION(de::gameContext().playerCreatures())
 
-    pTargetCreature = g_pPCFinder->getCreature_LOCKED(name);
+    pTargetCreature = de::gameContext().playerCreatures().getCreature_LOCKED(name);
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(de::gameContext().playerCreatures())
 
     if (pTargetCreature == NULL || pTargetCreature->getZone() != pCreature->getZone() || !pTargetCreature->isPC()) {
         gcSystemMessage.setMessage("��ͼ�ϣ��޷��ҵ��ý�ɫ.");
@@ -1298,11 +1298,11 @@ void opRemoveNick(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage
     Creature* pTargetCreature;
     Creature* pCreature = pGamePlayer->getCreature();
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    __ENTER_CRITICAL_SECTION(de::gameContext().playerCreatures())
 
-    pTargetCreature = g_pPCFinder->getCreature_LOCKED(name);
+    pTargetCreature = de::gameContext().playerCreatures().getCreature_LOCKED(name);
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(de::gameContext().playerCreatures())
 
     if (pTargetCreature == NULL || pTargetCreature->getZone() != pCreature->getZone() || !pTargetCreature->isPC()) {
         gcSystemMessage.setMessage("��ͼ�ϣ��޷��ҵ��ý�ɫ.");
@@ -1401,9 +1401,9 @@ void opGuildRecall(GamePlayer* pGamePlayer, const string& value1, GCSystemMessag
         }
     }
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    __ENTER_CRITICAL_SECTION(de::gameContext().playerCreatures())
 
-    list<Creature*> clist = g_pPCFinder->getGuildCreatures(gid, 200);
+    list<Creature*> clist = de::gameContext().playerCreatures().getGuildCreatures(gid, 200);
 
     for (list<Creature*>::const_iterator itr = clist.begin(); itr != clist.end(); ++itr) {
         Creature* pTargetCreature = *itr;
@@ -1440,7 +1440,7 @@ void opGuildRecall(GamePlayer* pGamePlayer, const string& value1, GCSystemMessag
             break;
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(de::gameContext().playerCreatures())
 }
 
 // *command ResetSiege

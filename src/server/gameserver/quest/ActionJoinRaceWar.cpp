@@ -9,6 +9,7 @@
 #include "Creature.h"
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "NPC.h"
 #include "PlayerCreature.h"
@@ -64,7 +65,7 @@ void ActionJoinRaceWar::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    if (!g_pVariableManager->isWarActive() || g_pWarSystem->hasActiveRaceWar()) {
+    if (!g_pVariableManager->isWarActive() || context().warSystem().hasActiveRaceWar()) {
         gcNPCResponse.setCode(NPC_RESPONSE_WAR_UNAVAILABLE);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
         return;

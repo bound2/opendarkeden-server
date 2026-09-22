@@ -9,6 +9,7 @@
 #include "BroadcastFilter.h"
 #include "Creature.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "StringStream.h"
 #include "ZoneGroupManager.h"
@@ -47,7 +48,7 @@ void CGRangerSayHandler::execute(CGRangerSay* pPacket, Player* pPlayer)
     BroadcastFilterRace filter(race);
 
     // Broadcast to every user
-    g_pZoneGroupManager->pushBroadcastPacket(&gcSystemMessage, &filter);
+    de::gameContext().zoneGroups().pushBroadcastPacket(&gcSystemMessage, &filter);
 
 #endif
 

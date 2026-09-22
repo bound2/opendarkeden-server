@@ -14,6 +14,7 @@
 #include "GCModifyInformation.h"
 #include "GCOtherModifyInfo.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -114,9 +115,11 @@ void CGExpelGuildHandler::execute(CGExpelGuild* pPacket, Player* pPlayer)
         // Send the guild union information to the notified user again
 
         Creature* pTargetCreature = NULL;
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-        pTargetCreature = g_pPCFinder->getCreature_LOCKED(TargetGuildMaster);
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        pTargetCreature = pcFinder.getCreature_LOCKED(TargetGuildMaster);
         if (pTargetCreature == NULL) {
             return;
         }
@@ -124,7 +127,7 @@ void CGExpelGuildHandler::execute(CGExpelGuild* pPacket, Player* pPlayer)
         makeGCModifyInfoGuildUnion(&gcModifyInformation2, pTargetCreature);
         pTargetCreature->getPlayer()->sendPacket(&gcModifyInformation2);
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
 
         sendGCOtherModifyInfoGuildUnion(pTargetCreature);
         sendGCOtherModifyInfoGuildUnion(pCreature);

@@ -9,6 +9,7 @@
 
 #include "CastleInfoManager.h"
 #include "GCNPCAskDynamic.h"
+#include "GameContext.h"
 #include "PlayerCreature.h"
 #include "ShopRack.h"
 #include "couple/PartnerWaitingManager.h"
@@ -314,7 +315,7 @@ bool NPC::isEmpty(ShopRackType_t type) const {
 }
 
 int NPC::getTaxRatio(PlayerCreature* pPC) const {
-    return g_pCastleInfoManager->getItemTaxRatio(pPC, this);
+    return de::gameContext().castleInfos().getItemTaxRatio(pPC, this);
 }
 
 //////////////////////////////////////////////////////////////////////////////

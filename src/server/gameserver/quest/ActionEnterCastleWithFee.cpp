@@ -14,6 +14,7 @@
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
 #include "GCUpdateInfo.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "LogClient.h"
@@ -70,11 +71,13 @@ void ActionEnterCastleWithFee::execute(Creature* pNPC, Creature* pCreature)
 
     Assert(pPC != NULL);
 
+    CastleInfoManager& castleInfos = context().castleInfos();
+
     bool bTransport = true;
 
     if (bTransport) {
-        if (g_pCastleInfoManager->isPossibleEnter(m_ZoneID, pPC)) {
-            Gold_t fee = g_pCastleInfoManager->getEntranceFee(m_ZoneID, pPC);
+        if (castleInfos.isPossibleEnter(m_ZoneID, pPC)) {
+            Gold_t fee = castleInfos.getEntranceFee(m_ZoneID, pPC);
             Gold_t remain = pPC->getGold();
 
             if (remain < fee) {
@@ -91,7 +94,7 @@ void ActionEnterCastleWithFee::execute(Creature* pNPC, Creature* pCreature)
                 if (fee > 0) {
                     // Pay the entrance fee.
                     pPC->decreaseGoldEx(fee);
-                    g_pCastleInfoManager->increaseTaxBalance(m_ZoneID, fee);
+                    castleInfos.increaseTaxBalance(m_ZoneID, fee);
 
                     GCModifyInformation gcMI;
                     gcMI.addLongData(MODIFY_GOLD, pPC->getGold());

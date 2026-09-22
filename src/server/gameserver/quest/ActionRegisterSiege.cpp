@@ -10,6 +10,7 @@
 #include "Creature.h"
 #include "GCModifyInformation.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -91,7 +92,7 @@ void ActionRegisterSiege::execute(Creature* pCreature1, Creature* pCreature2)
     Assert(pWarScheduler != NULL);
 
 
-    CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_ZoneID);
+    CastleInfo* pCastleInfo = context().castleInfos().getCastleInfo(m_ZoneID);
     GuildID_t ownerGuildID = pCastleInfo->getGuildID();
 
     if (guildID == ownerGuildID) {

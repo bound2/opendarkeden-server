@@ -1120,8 +1120,8 @@ bool isAbleToPickupItem(Creature* pCreature, Item* pItem) {
             }
 
             ZoneID_t castleZoneID = 0;
-            if (g_pCastleInfoManager->getCastleZoneID(pCreature->getZone()->getZoneID(), castleZoneID)) {
-                CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
+            if (de::gameContext().castleInfos().getCastleZoneID(pCreature->getZone()->getZoneID(), castleZoneID)) {
+                CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(castleZoneID);
                 if (pCreature->getRace() != pCastleInfo->getRace())
                     return false;
             } else {

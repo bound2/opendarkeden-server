@@ -270,7 +270,7 @@ void CGShopRequestBuyHandler::executeNormal(CGShopRequestBuy* pPacket, Player* p
     pPC->decreaseGoldEx(itemMoney);
     filelog("Tax.log", "%s 가 %s 에게 %u 만큼을 세금으로 냈습니다.", pPC->getName().c_str(), pNPC->getName().c_str(),
             itemTax);
-    g_pCastleInfoManager->increaseTaxBalance(pNPC->getTaxingCastleZoneID(), itemTax);
+    de::gameContext().castleInfos().increaseTaxBalance(pNPC->getTaxingCastleZoneID(), itemTax);
 
 
     Item* pReturnItem = pInventory->addItemEx(x, y, pItem);

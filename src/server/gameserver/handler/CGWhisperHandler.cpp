@@ -11,6 +11,7 @@
 #include "GCWhisper.h"
 #include "GCWhisperFailed.h"
 #include "GGServerChat.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
 #include "LogNameManager.h"
@@ -44,9 +45,11 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
         bool Success = false;
 
         // Find the user by name.
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-        Creature* pTargetCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getName());
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        Creature* pTargetCreature = pcFinder.getCreature_LOCKED(pPacket->getName());
 
         // NoSuch removed.
         if (pTargetCreature != NULL) {
@@ -154,7 +157,7 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
             }
         }
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
     } catch (Throwable& t) {
         GCWhisperFailed gcWhisperFailed;
         pGamePlayer->sendPacket(&gcWhisperFailed);

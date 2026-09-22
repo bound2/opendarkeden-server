@@ -104,7 +104,7 @@ void EffectShutDown::affect(Creature* pCreature)
         ZoneGroup* pZoneGroup;
 
         try {
-            pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
+            pZoneGroup = de::gameContext().zoneGroups().getZoneGroup(i);
         } catch (NoSuchElementException&) {
             throw Error("Critical Error : ZoneInfoManager has no such zone group.");
         }
@@ -160,7 +160,7 @@ void EffectShutDown::unaffect()
         ZoneGroup* pZoneGroup;
 
         try {
-            pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
+            pZoneGroup = de::gameContext().zoneGroups().getZoneGroup(i);
         } catch (NoSuchElementException&) {
             throw Error("Critical Error : ZoneInfoManager has no such zone group.");
         }

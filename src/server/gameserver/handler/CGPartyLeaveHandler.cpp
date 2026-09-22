@@ -73,9 +73,11 @@ void CGPartyLeaveHandler::execute(CGPartyLeave* pPacket, Player* pPlayer)
 
 
         // Delete the expelled one from the local party.
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-        Creature* pTargetCreature = g_pPCFinder->getCreature_LOCKED(TargetName);
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        Creature* pTargetCreature = pcFinder.getCreature_LOCKED(TargetName);
 
         // NoSuch removed.
         if (pTargetCreature == NULL) {
@@ -90,7 +92,7 @@ void CGPartyLeaveHandler::execute(CGPartyLeave* pPacket, Player* pPlayer)
 
         pLocalPartyManager->deletePartyMember(PartyID, pTargetCreature);
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
     }
 
 #endif

@@ -9,6 +9,7 @@
 #include "GCCannotAdd.h"
 #include "GCDeleteInventoryItem.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Item.h"
 #include "Monster.h"
@@ -104,9 +105,9 @@ void SiegeManager::start(ZoneID_t zoneID) {
                                      {165, 106}, {166, 105}, {166, 108}, {167, 107}, {-1, -1}};
 
     ZoneID_t castleZoneID = 0;
-    g_pCastleInfoManager->getCastleZoneID(zoneID, castleZoneID);
+    de::gameContext().castleInfos().getCastleZoneID(zoneID, castleZoneID);
     MonsterType_t mType = 736;
-    CastleInfo* pInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
+    CastleInfo* pInfo = de::gameContext().castleInfos().getCastleInfo(castleZoneID);
     if (pInfo != NULL) {
         switch (pInfo->getRace()) {
         case RACE_VAMPIRE:
@@ -158,7 +159,7 @@ ZoneID_t SiegeManager::getSiegeZoneID(ZoneID_t castleZoneID) {
 void SiegeManager::putItem(PlayerCreature* pPC, MonsterCorpse* pCorpse, Item* pItem) {
     ZoneID_t zoneID = pPC->getZoneID();
     ZoneID_t castleZoneID = 0;
-    if (!g_pCastleInfoManager->getCastleZoneID(zoneID, castleZoneID)) {
+    if (!de::gameContext().castleInfos().getCastleZoneID(zoneID, castleZoneID)) {
         GCCannotAdd gcCA;
         gcCA.setObjectID(pItem->getObjectID());
         pPC->getPlayer()->sendPacket(&gcCA);
@@ -189,14 +190,14 @@ void SiegeManager::putItem(PlayerCreature* pPC, MonsterCorpse* pCorpse, Item* pI
         return;
     }
 
-    if (!g_pWarSystem->isModifyCastleOwner(castleZoneID, pPC)) {
+    if (!de::gameContext().warSystem().isModifyCastleOwner(castleZoneID, pPC)) {
         GCCannotAdd gcCA;
         gcCA.setObjectID(pItem->getObjectID());
         pPC->getPlayer()->sendPacket(&gcCA);
         return;
     }
 
-    g_pWarSystem->endWar(pPC, castleZoneID);
+    de::gameContext().warSystem().endWar(pPC, castleZoneID);
 
     Assert(pItem->getObjectID() == pPC->getExtraInventorySlotItem()->getObjectID());
     pPC->deleteItemFromExtraInventorySlot();
@@ -227,9 +228,11 @@ void SiegeManager::recallGuild(ZoneID_t currentZoneID, ZoneID_t siegeZoneID, Gui
 
     static TPOINT targetPos[7] = {{172, 38}, {172, 38}, {20, 232}, {20, 232}, {20, 232}, {20, 232}, {20, 232}};
 
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    list<Creature*> clist = g_pPCFinder->getGuildCreatures(guildID, num);
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    list<Creature*> clist = pcFinder.getGuildCreatures(guildID, num);
 
     for (list<Creature*>::iterator itr = clist.begin(); itr != clist.end(); ++itr) {
         Creature* pTargetCreature = *itr;
@@ -286,7 +289,7 @@ void SiegeManager::recallGuild(ZoneID_t currentZoneID, ZoneID_t siegeZoneID, Gui
             break;
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 }
 
 bool SiegeManager::isSiegeZone(ZoneID_t zID) {

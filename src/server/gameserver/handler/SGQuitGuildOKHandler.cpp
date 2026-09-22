@@ -7,6 +7,7 @@
 //----------------------------------------------------------------------
 
 // include files
+#include "GameContext.h"
 #include "Properties.h"
 #include "SGQuitGuildOK.h"
 
@@ -143,9 +144,11 @@ void SGQuitGuildOKHandler::execute(SGQuitGuildOK* pPacket)
     pGuild->deleteMember(memberName);
 
     // Send the guild master a message. (send only: fine from this thread)
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuild->getMaster());
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    Creature* pCreature = pcFinder.getCreature_LOCKED(pGuild->getMaster());
     if (pCreature != NULL && pCreature->isPC()) {
         Player* pPlayer = pCreature->getPlayer();
         Assert(pPlayer != NULL);
@@ -166,7 +169,7 @@ void SGQuitGuildOKHandler::execute(SGQuitGuildOK* pPacket)
         // The case where the guild master is not on the same server. how?
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
 
 #endif

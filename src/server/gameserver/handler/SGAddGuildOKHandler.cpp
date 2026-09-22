@@ -7,6 +7,7 @@
 //----------------------------------------------------------------------
 
 // include files
+#include "GameContext.h"
 #include "Properties.h"
 #include "SGAddGuildOK.h"
 
@@ -49,9 +50,11 @@ void SGAddGuildOKHandler::execute(SGAddGuildOK* pPacket)
     g_pGuildManager->addGuild(pGuild);
 
     // Notify guild master if online
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-    Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuild->getMaster());
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    Creature* pCreature = pcFinder.getCreature_LOCKED(pGuild->getMaster());
     if (pCreature != NULL && pCreature->isPC()) {
         Player* pPlayer = pCreature->getPlayer();
         Assert(pPlayer != NULL);
@@ -66,7 +69,7 @@ void SGAddGuildOKHandler::execute(SGAddGuildOK* pPacket)
         pPlayer->sendPacket(&gcSystemMessage);
     }
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
 
 #endif

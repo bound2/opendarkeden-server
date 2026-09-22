@@ -225,13 +225,15 @@ bool ResurrectLocationManager::getPosition(PlayerCreature* pPC, ZONE_COORD& zone
 
     Assert(pPC != NULL);
 
+    CastleInfoManager& castleInfos = de::gameContext().castleInfos();
+
     try {
         bool bFindPosition = false;
 
         ZoneID_t castleZoneID;
-        bool isCastleZone = g_pCastleInfoManager->getCastleZoneID(pPC->getResurrectZoneID(), castleZoneID);
+        bool isCastleZone = castleInfos.getCastleZoneID(pPC->getResurrectZoneID(), castleZoneID);
 
-        if (g_pWarSystem->hasActiveRaceWar() && pPC->getZone()->isHolyLand()) {
+        if (de::gameContext().warSystem().hasActiveRaceWar() && pPC->getZone()->isHolyLand()) {
             if (pPC->isSlayer()) {
                 if (rand() % 2)
                     castleZoneID = 1201;
@@ -251,7 +253,7 @@ bool ResurrectLocationManager::getPosition(PlayerCreature* pPC, ZONE_COORD& zone
                 castleZoneID = 0;
 
             if (castleZoneID != 0) {
-                CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
+                CastleInfo* pCastleInfo = castleInfos.getCastleInfo(castleZoneID);
                 if (pCastleInfo != NULL) {
                     pCastleInfo->getResurrectPosition(CastleInfo::CASTLE_RESURRECT_PRIORITY_FIRST, zoneCoord);
                     bFindPosition = true;
@@ -260,7 +262,8 @@ bool ResurrectLocationManager::getPosition(PlayerCreature* pPC, ZONE_COORD& zone
         }
 
         // If a race war is running and the number of participants is limited
-        if (!bFindPosition && g_pWarSystem->hasActiveRaceWar() && g_pVariableManager->isActiveRaceWarLimiter()) {
+        if (!bFindPosition && de::gameContext().warSystem().hasActiveRaceWar() &&
+            g_pVariableManager->isActiveRaceWarLimiter()) {
             ZoneInfo* pResZoneInfo = NULL;
 
             if (pPC->getResurrectZoneID() != 0) {
@@ -285,7 +288,7 @@ bool ResurrectLocationManager::getPosition(PlayerCreature* pPC, ZONE_COORD& zone
 
         if (!bFindPosition) {
             if (isCastleZone) {
-                if (!g_pCastleInfoManager->getResurrectPosition(pPC, zoneCoord)) {
+                if (!castleInfos.getResurrectPosition(pPC, zoneCoord)) {
                     if (!getRaceDefaultPosition(pPC->getRace(), zoneCoord)) {
                         throw Error("Critical Error : ResurrectInfo is not established!2");
                     }

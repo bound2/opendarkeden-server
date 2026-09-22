@@ -311,7 +311,7 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
 
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(msg);
-        g_pZoneGroupManager->broadcast(&gcSystemMessage);
+        de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
 
         Effect::EffectClass effectClass;
         Effect::EffectClass effectClassTable;
@@ -419,7 +419,7 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
             de::gameContext().combatInfo().setCombat(false);
 
             // Send the message to every user.
-            g_pZoneGroupManager->broadcast(&gcSystemMessage);
+            de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
 
             de::gameContext().combatInfo().computeModify();
         }

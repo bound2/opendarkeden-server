@@ -18,7 +18,7 @@ number and the reason it exists, is in `docs/RESTRUCTURING.md`;
 | A packet that touches the encrypter is pinned at codes 0..5 | `ratchets.sh`, looking for `tests/golden/<Name>.code5.hex` | "packets use the encrypter but have no per-code goldens"; exceptions live in `tests/ratchet/encrypter_exceptions.txt` |
 | Each server registers exactly the factories it registered before | `tests/tools/factory_registrations.pl` vs `tests/ratchet/factory_registrations.txt`, run by `ratchets.sh` | a membership diff, on an add **or** a drop |
 | `tests/generated/AllPacketFactories.inc` matches the kernel membership | `ratchets.sh` re-runs `tests/tools/gen_factory_list.sh` and diffs | "AllPacketFactories.inc is stale" |
-| A kernel file includes only kernel files and mentions no server-type macro or `__COMBAT__` (K1/K2/K3) | `tests/arch/check_includes.pl`, ctest `arch_includes` | the offending include or macro, named |
+| A kernel file includes only kernel files and mentions no server-type macro or `__COMBAT__` (K1/K2/K3); a core file includes no MySQL, Lua or socket-transport header (C1, shrink-only baseline in `tests/arch/baseline.txt`); `src/domain/` quote-includes only domain headers (D1) | `tests/arch/check_includes.pl`, ctest `arch_includes` | the offending include or macro, named |
 | Packets carry no `execute()` — handlers register at the composition root | ratchet R4 | R4 above 0 |
 | No `executeQuery` outside `src/server/database/` and the `repository/` directories | ratchets R2/R3 | R2/R3 above 0 |
 | A critical section is never unlocked by hand | `tests/tools/critical_section_audit.pl`, ctest `critical_section_audit` | the file and line of the hand-written `unlock()` |
@@ -71,7 +71,8 @@ The project uses CMake; the Makefile wraps it. `make` / `make debug`
 configures with `-DCMAKE_BUILD_TYPE=Debug`, `make release` with `Release`;
 both build with tests off (`-DDARKEDEN_BUILD_TESTS=OFF`). Binaries go to
 `bin/`, libraries to `lib/`. For development, always choose the debug build:
-`DE_OWNERSHIP_CHECKS` and the other assertions are Debug-only.
+`DE_OWNERSHIP_CHECKS` is armed only there. `Assert` and `__BEGIN_TRY` stay
+live in every configuration, because `NDEBUG` is never defined.
 
 ### Code formatting
 
@@ -113,7 +114,8 @@ required library facilities; CMake checks `jthread`, `stop_token` and
 stop-aware condition-variable waits at configure time.
 
 Beyond the rules table above: the suite (in `tests/`) carries golden byte
-fixtures and loopback round-trips for every registered packet factory, and
+fixtures and loopback round-trips for most registered packet factories (the
+wire-layout inventory covers all 465, the goldens 451), and
 `tests/password_hash_test.cpp` pins the loginserver's argon2id hashing
 (`src/server/loginserver/PasswordHash.cpp`) against upstream argon2's own
 vectors. The whole packet set is compiled once, macro-free, in the
@@ -179,7 +181,7 @@ src/
 │   └── CMakeLists.txt         # de-kernel, Core, and the per-server packet libraries
 ├── domain/                    # de-core: pure formula functions (Formulas, SkillOutputFormulas), freestanding
 ├── server/
-│   ├── Thread.h, ManagedThread.h, CooperativeThread.h  # the worker-thread base
+│   ├── Thread.h, ManagedThread.h  # the worker-thread base (CooperativeThread.h is reached only through ManagedThread)
 │   ├── Mailbox.h, Snapshot.h  # cross-thread command queue, copy-on-write tables
 │   ├── database/              # Database abstraction layer and connection management
 │   ├── repository/            # ServerCore persistence seams, linked into all three binaries
@@ -192,7 +194,7 @@ src/
 │   │   ├── skill/, item/, war/, quest/   # Skill, item, war and (Lua-scripted) quest modules
 │   │   ├── guild/, party/, trade/, couple/, exchange/   # Social and trading decisions
 │   │   ├── ctf/, mission/, mofus/        # Capture the flag, missions, game events
-│   ├── loginserver/           # Login server executable (CL/GL/GM handlers, its own repository/)
+│   ├── loginserver/           # Login server executable (CL/GL/GM handlers and one CG, its own repository/)
 │   └── sharedserver/          # Shared server executable (GS handlers, its own repository/)
 third_party/
 ├── tinyxml2/                  # Vendored XML parser (10.0.0), replaces xerces-c
@@ -226,9 +228,9 @@ Every `XFactory` states its packet's id, name and maximum body size as
 return them. `src/Core/PacketMeta.h` names that contract
 (`de::PacketFactoryType`) and folds a pack of factories into a `constexpr`
 table (`de::packet::FactoryList`) that rejects duplicate or out-of-range ids
-while compiling. `PacketFactoryManager::init()` is a `Concat` of four such
-lists — edit the lists, not an `addFactory` sequence — selected per server:
-the gameserver takes three, the loginserver two, the sharedserver one.
+while compiling. `PacketFactoryManager::init()` selects per server from four
+such lists — edit the lists, not an `addFactory` sequence: the gameserver
+`Concat`s three, the loginserver two, the sharedserver uses one as it is.
 `tests/packet_meta_test.cpp` compiles the whole kernel into one list. A new
 packet needs the three constants in its factory or it will not satisfy the
 concept. See `docs/TOOLCHAIN.md` §3 and `.claude/skills/add-packet`.
@@ -236,7 +238,9 @@ concept. See `docs/TOOLCHAIN.md` §3 and `.claude/skills/add-packet`.
 ### Preprocessor Macros
 
 Compile definitions that control behavior, set per target in the
-CMakeLists.txt files and never in a source: `__GAME_SERVER__` /
+CMakeLists.txt files — plus `LoginServer.h` and `SharedServer.h`, which
+define their own server macro so that including the header makes the
+translation unit that server's: `__GAME_SERVER__` /
 `__LOGIN_SERVER__` / `__SHARED_SERVER__` say which server a translation unit
 is compiled for, `__COMBAT__` enables combat code (the gameserver targets
 define it), `__LINUX__` comes from the top-level `CMakeLists.txt`.
@@ -276,8 +280,9 @@ was decided.
 All SQL lives behind repository seams: an interface `*Repository.h` with a
 `MySQL*Repository.cpp` implementation under a `repository/` directory,
 reached through a `default*Repository()` accessor. The header is the
-authority on its tables' quirks and carries an explicit "not enclosed" list
-of the SQL it does not cover — read it before adding a method. R2/R3 fail on
+authority on its tables' quirks and, where SQL on the same tables lives
+outside the seam, carries an explicit "not enclosed" list of it (nine
+headers do today) — read it before adding a method. R2/R3 fail on
 an `executeQuery` written anywhere else.
 
 Databases:
@@ -413,7 +418,8 @@ must not throw: an `AssertionError` is a `Throwable`, and the
 `catch (Throwable&)` blocks sitting on these very paths would swallow it,
 turning a detected race into a silently half-applied mutation. The check
 is armed by `ZoneGroupThread::run()`, so single-threaded startup/loading
-is exempt. Coverage is exactly the eight `Zone` gateways — `addPC` (both
+is exempt. `ZoneGroup::drainMailbox` asserts too; on `Zone` the coverage
+is exactly the eight gateways — `addPC` (both
 overloads), `replacePC`, `addCreature`, `deleteCreature`, `moveCreature`,
 and the tile-only pair `addCreatureToTile`/`deleteCreatureFromTile` that
 the move-mode swaps and corpse paths use — so every creature write to a
@@ -424,7 +430,8 @@ is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` are
 ### Cross-thread communication
 
 - Cross-thread packet handlers (SG/LG/GG, on the manager threads) reach
-  player creatures through `g_pPCFinder` under **its** critical section
+  player creatures through the player-creature finder
+  (`de::gameContext().playerCreatures()`) under **its** critical section
   (`getCreature_LOCKED`), then use `pPlayer->sendPacket(...)` — sending
   to a player's socket is the main legitimate cross-thread operation.
 - Anything beyond sending — gold, guild id, kick flags, a zone broadcast —
@@ -477,12 +484,14 @@ is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` are
   sides: `getMembers_NOLOCKED()` is the writer thread's, readers copy the
   member names under the guild mutex, and deleting a guild empties its map
   through `retireAllMembers()`. The per-member flags and counters and the
-  guild's own integral fields are atomics; its strings are copied in and out
+  guild's own integral fields are atomics, the rank change and its counter
+  update going under the mutex together; its strings are copied in and out
   under `Guild::m_Mutex`, a non-recursive leaf the string accessors take and
-  nothing else. Lifetime is handled by not freeing: `getGuild()` and
+  nothing else, so code already holding it touches the members directly. Lifetime is handled by not freeing: `getGuild()` and
   `getMember()` return raw pointers after releasing their locks, so a
   deleted guild or member is *retired* (`GuildManager::m_RetiredGuilds`,
-  `Guild::m_RetiredMembers`) and stays readable, stale, until the managers
+  `Guild::m_RetiredMembers`; the whole-table `clear()` a sharedserver resync
+  triggers retires too, never frees) and stays readable, stale, until the managers
   are destroyed. **Still open:** a zone thread reading a retired member sees
   its last rank.
 - **No creature is written to a `Tile` outside `ZoneSpawn.cpp` and

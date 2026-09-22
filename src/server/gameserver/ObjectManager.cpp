@@ -153,7 +153,7 @@ ObjectManager::ObjectManager()
     m_pItemMineInfoManager = new ItemMineInfoManager();
     m_pDirectiveSetManager = new DirectiveSetManager();
     m_pMonsterNameManager = new MonsterNameManager();
-    g_pZoneGroupManager = new ZoneGroupManager();
+    m_pZoneGroupManager = new ZoneGroupManager();
     m_pTimeManager = new TimeManager();
     m_pDarkLightInfoManager = new DarkLightInfoManager();
     m_pVisionInfoManager = new VisionInfoManager();
@@ -163,7 +163,7 @@ ObjectManager::ObjectManager()
     m_pSkillInfoManager = new SkillInfoManager();
     m_pSkillDomainInfoManager = new SkillDomainInfoManager();
     // g_pSkillParentInfoManager   = new SkillParentInfoManager ();
-    g_pPCFinder = new PCFinder();
+    m_pPCFinder = new PCFinder();
 
     // The context is given the managers created above so that a subsystem
     // can be handed them explicitly. It does not own them: they are created
@@ -180,13 +180,13 @@ ObjectManager::ObjectManager()
     context.setItemMineInfoManager(m_pItemMineInfoManager);
     context.setDirectiveSetManager(m_pDirectiveSetManager);
     context.setMonsterNameManager(m_pMonsterNameManager);
-    context.setZoneGroupManager(g_pZoneGroupManager);
+    context.setZoneGroupManager(m_pZoneGroupManager);
     context.setTimeManager(m_pTimeManager);
     context.setDarkLightInfoManager(m_pDarkLightInfoManager);
     context.setWeatherInfoManager(m_pWeatherInfoManager);
     context.setSkillInfoManager(m_pSkillInfoManager);
     context.setSkillDomainInfoManager(m_pSkillDomainInfoManager);
-    context.setPCFinder(g_pPCFinder);
+    context.setPCFinder(m_pPCFinder);
 
     g_pParkingCenter = new ParkingCenter();
     m_pTelephoneCenter = new TelephoneCenter();
@@ -224,14 +224,16 @@ ObjectManager::ObjectManager()
     m_pMasterLairInfoManager = new MasterLairInfoManager();
     context.setMasterLairInfoManager(m_pMasterLairInfoManager);
     // 2003. 1. 20. by bezz,Sequoia
-    g_pCastleInfoManager = new CastleInfoManager();
+    m_pCastleInfoManager = new CastleInfoManager();
+    context.setCastleInfoManager(m_pCastleInfoManager);
 
     m_pRankBonusInfoManager = new RankBonusInfoManager();
     context.setRankBonusInfoManager(m_pRankBonusInfoManager);
 
     //	g_pHolyLandRaceBonus	= new HolyLandRaceBonus();
 
-    g_pWarSystem = new WarSystem();
+    m_pWarSystem = new WarSystem();
+    context.setWarSystem(m_pWarSystem);
 
     g_pShrineInfoManager = new ShrineInfoManager();
     m_pCastleShrineInfoManager = new CastleShrineInfoManager();
@@ -292,7 +294,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pActionFactoryManager);
     SAFE_DELETE(m_pConditionFactoryManager);
     SAFE_DELETE(m_pPublicScriptManager);
-    SAFE_DELETE(g_pPCFinder);
+    SAFE_DELETE(m_pPCFinder);
     SAFE_DELETE(g_pParkingCenter);
     SAFE_DELETE(m_pTelephoneCenter);
     SAFE_DELETE(m_pItemMineInfoManager);
@@ -308,7 +310,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pDirectiveSetManager);
     SAFE_DELETE(m_pMonsterNameManager);
     SAFE_DELETE(m_pZoneInfoManager);
-    SAFE_DELETE(g_pZoneGroupManager);
+    SAFE_DELETE(m_pZoneGroupManager);
     // SAFE_DELETE(g_pSkillParentInfoManager);
     SAFE_DELETE(g_pSkillHandlerManager);
     SAFE_DELETE(g_pItemFactoryManager);
@@ -329,10 +331,10 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pCombatInfoManager);
     SAFE_DELETE(m_pUniqueItemManager);
     SAFE_DELETE(m_pMasterLairInfoManager);
-    SAFE_DELETE(g_pCastleInfoManager);
+    SAFE_DELETE(m_pCastleInfoManager);
     SAFE_DELETE(m_pRankBonusInfoManager);
     //	SAFE_DELETE(g_pHolyLandRaceBonus);
-    SAFE_DELETE(g_pWarSystem);
+    SAFE_DELETE(m_pWarSystem);
     SAFE_DELETE(g_pShrineInfoManager);
     SAFE_DELETE(m_pCastleShrineInfoManager);
 
@@ -437,7 +439,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : ItemMineInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : WarID Initialization Start\n");
-    g_pWarSystem->setWarIDSuccessor(g_pConfig->getPropertyInt("ServerCount"));
+    m_pWarSystem->setWarIDSuccessor(g_pConfig->getPropertyInt("ServerCount"));
     War::initWarIDRegistry();
     printf("ObjectManager::init() : WarID Initialization Success\n");
 
@@ -479,11 +481,11 @@ void ObjectManager::init()
 
     // by bezz,Sequoia. 2003. 1. 20.
     printf("ObjectManager::load() : CastleInfoManager Initialization Start\n");
-    g_pCastleInfoManager->init(); // load after ZoneInfo and MonsterManager, before Zone
+    m_pCastleInfoManager->init(); // load after ZoneInfo and MonsterManager, before Zone
     printf("ObjectManager::load() : CastleInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : ZoneGroupManager Initialization Start\n");
-    g_pZoneGroupManager->init();
+    m_pZoneGroupManager->init();
     printf("ObjectManager::init() : ZoneGroupManager Initialization Success\n");
 
     printf("ObjectManager::load() : BloodBibleBonusManager Initialization Start\n");
@@ -631,7 +633,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : RankBonusInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : WarSystem Initialization Start\n");
-    g_pWarSystem->init();
+    m_pWarSystem->init();
     printf("ObjectManager::load() : WarSystem Initialization Success\n");
 
     printf("ObjectManager::load() : RaceWarLimiter Initialization Start\n");

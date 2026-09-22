@@ -132,9 +132,11 @@ void oprecall(GamePlayer* pGamePlayer, string msg, int i) {
 
 
         // NoSuch removed.
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
 
-        pTCreature = g_pPCFinder->getCreature_LOCKED(Name);
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        pTCreature = pcFinder.getCreature_LOCKED(Name);
 
         if (pTCreature == NULL) {
             return;
@@ -213,7 +215,7 @@ void oprecall(GamePlayer* pGamePlayer, string msg, int i) {
             }
         }
 
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        __LEAVE_CRITICAL_SECTION(pcFinder)
 
         j = i;
     }

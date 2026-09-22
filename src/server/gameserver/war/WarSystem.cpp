@@ -32,8 +32,6 @@
 
 WarID_t WarSystem::s_WarIDSuccessor = 0;
 
-WarSystem* g_pWarSystem = NULL;
-
 WarSystem::WarSystem()
 
 {
@@ -202,7 +200,7 @@ bool WarSystem::addWar(War* pWar)
 
         __LEAVE_CRITICAL_SECTION(m_MutexWarList)
 
-        g_pZoneGroupManager->broadcast(&gcWarList);
+        de::gameContext().zoneGroups().broadcast(&gcWarList);
     }
 
 
@@ -336,6 +334,8 @@ Work* WarSystem::heartbeat()
 
     Work* pWork = NULL;
 
+    ZoneGroupManager& zoneGroups = de::gameContext().zoneGroups();
+
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     addQueuedWar();
@@ -356,13 +356,13 @@ Work* WarSystem::heartbeat()
 
                 GCNoticeEvent gcNE;
                 gcNE.setCode(NOTICE_EVENT_RACE_WAR_IN_20);
-                g_pZoneGroupManager->broadcast(&gcNE);
+                zoneGroups.broadcast(&gcNE);
             } else if (lastSec < 5 * 60 && !m_b5Minutes) {
                 m_b5Minutes = true;
 
                 GCNoticeEvent gcNE;
                 gcNE.setCode(NOTICE_EVENT_RACE_WAR_IN_5);
-                g_pZoneGroupManager->broadcast(&gcNE);
+                zoneGroups.broadcast(&gcNE);
             }
             if (m_b20Minutes && !g_pVariableManager->isAutoStartRaceWar()) {
                 if (lastSec > 20 * 60)
@@ -372,7 +372,7 @@ Work* WarSystem::heartbeat()
             if (lastSec < 0 && !g_pVariableManager->isAutoStartRaceWar()) {
                 GCNoticeEvent gcNE;
                 gcNE.setCode(NOTICE_EVENT_RACE_WAR_STARTED_IN_OTHER_SERVER);
-                g_pZoneGroupManager->broadcast(&gcNE);
+                zoneGroups.broadcast(&gcNE);
 
                 VSDateTime warStartTime = WarScheduler::getNextWarDateTime(WAR_RACE, VSDateTime::currentDateTime());
                 dynamic_cast<RaceWar*>(m_pRaceWarSchedule->getWork())->setWarStartTime(warStartTime);

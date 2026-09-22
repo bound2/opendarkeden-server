@@ -11,6 +11,7 @@
 
 #include "Creature.h"
 #include "Exception.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PCFinder.h"
 #include "PlayerCreature.h"
@@ -32,7 +33,7 @@ constexpr std::size_t kDepthWarning = 100;
 // asserts (throws) on a null player, and LGKickCharacter's author noted
 // that case does occur, so it is treated as "not here".
 GamePlayer* findLoggedInPlayer(const std::string& name) {
-    Creature* pCreature = g_pPCFinder->getCreature_LOCKED(name);
+    Creature* pCreature = de::gameContext().playerCreatures().getCreature_LOCKED(name);
     if (pCreature == nullptr || !pCreature->isPC())
         return nullptr;
     try {
@@ -89,7 +90,9 @@ template <typename Take> std::size_t runPending(GamePlayer& player, PlayerCreatu
 } // namespace
 
 bool postToPlayer(const std::string& name, PlayerCommand command, GoneCommand ifGone, Scope scope) {
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
+
+    __ENTER_CRITICAL_SECTION(pcFinder)
 
     GamePlayer* pGamePlayer = findLoggedInPlayer(name);
     if (pGamePlayer == nullptr)
@@ -101,7 +104,7 @@ bool postToPlayer(const std::string& name, PlayerCommand command, GoneCommand if
     pGamePlayer->mailbox().post(PostedPlayerCommand{std::move(command), std::move(ifGone), scope});
     return true;
 
-    __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 }
 
 std::size_t drainPlayerMailbox(GamePlayer& player, const ZonePlayerManager& owner) {

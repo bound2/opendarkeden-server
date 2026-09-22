@@ -61,7 +61,7 @@ if (!@files) {
 # hand-written call on the same object would use:
 #
 #   m_Mutex                    -> "m_Mutex."          and "m_Mutex->"
-#   (*g_pPCFinder)             -> "g_pPCFinder->"     and "g_pPCFinder."
+#   (*pZone)                   -> "pZone->"           and "pZone."
 #   (*(pZone->getZoneGroup())) -> "pZone->getZoneGroup()->" / "...()."
 #----------------------------------------------------------------------
 sub strip_parens {

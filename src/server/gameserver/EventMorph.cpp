@@ -148,8 +148,8 @@ void EventMorph::activate()
     // The Creature pointer changes when morphing into a vampire, so the
     // pointer registered before becomes useless.
     // The new Creature pointer has to be registered instead.
-    g_pPCFinder->deleteCreature(pFromCreature->getName());
-    g_pPCFinder->addCreature(pVampire);
+    de::gameContext().playerCreatures().deleteCreature(pFromCreature->getName());
+    de::gameContext().playerCreatures().addCreature(pVampire);
 
     // Remove from the guild's currently-connected list.
     if (pSlayer->getGuildID() != 99) {
@@ -361,7 +361,7 @@ void EventMorph::activate()
 
     ZoneGroup* pZoneGroup;
     try {
-        pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
+        pZoneGroup = de::gameContext().zoneGroups().getZoneGroup(pZoneInfo->getZoneGroupID());
     } catch (NoSuchElementException&) {
         cerr << "Critical Error : 현재로는 게임 서버는 1대뿐이당.." << endl;
 

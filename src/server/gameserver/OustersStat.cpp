@@ -92,14 +92,15 @@ void Ousters::initCastleSkill() {
     if (!getZone()->isHolyLand())
         return;
 
-    list<CastleInfo*> pCastleInfoList = g_pCastleInfoManager->getGuildCastleInfos(getGuildID());
+    list<CastleInfo*> pCastleInfoList = de::gameContext().castleInfos().getGuildCastleInfos(getGuildID());
     if (pCastleInfoList.empty())
         return;
 
     list<CastleInfo*>::iterator itr = pCastleInfoList.begin();
 
     for (; itr != pCastleInfoList.end(); itr++) {
-        SkillType_t CastleSkillType = g_pCastleInfoManager->getCastleSkillType((*itr)->getZoneID(), getGuildID());
+        SkillType_t CastleSkillType =
+            de::gameContext().castleInfos().getCastleSkillType((*itr)->getZoneID(), getGuildID());
         if (CastleSkillType == SKILL_MAX)
             continue;
 
@@ -959,7 +960,7 @@ int Ousters::getBloodBibleSignOpenNum() const {
 
     Fame_t fame = getFame();
 
-    if (!g_pWarSystem->canApplyBloodBibleSign())
+    if (!de::gameContext().warSystem().canApplyBloodBibleSign())
         return 0;
 
     return decore::oustersBloodBibleSignOpenNum(fame, openNumLimit);

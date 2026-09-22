@@ -5,6 +5,7 @@
 #include "Assert.h"
 #include "DB.h"
 #include "GCWarScheduleList.h"
+#include "GameContext.h"
 #include "GuildWar.h"
 #include "Properties.h"
 #include "SiegeWar.h"
@@ -69,7 +70,7 @@ bool WarScheduler::makeGCWarScheduleList(GCWarScheduleList* pGCWarScheduleList) 
     // When the automatic start is configured, the race war information always goes in.
     if (g_pVariableManager->isAutoStartRaceWar()) {
         WarScheduleInfo* pWSI = new WarScheduleInfo;
-        if (g_pWarSystem->addRaceWarScheduleInfo(pWSI)) {
+        if (de::gameContext().warSystem().addRaceWarScheduleInfo(pWSI)) {
             pGCWarScheduleList->addWarScheduleInfo(pWSI);
         } else {
             SAFE_DELETE(pWSI);

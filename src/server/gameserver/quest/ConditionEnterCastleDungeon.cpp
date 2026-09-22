@@ -8,6 +8,7 @@
 
 #include "CastleInfoManager.h"
 #include "FlagSet.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PacketUtil.h"
 #include "PaySystem.h"
@@ -34,9 +35,9 @@ bool ConditionEnterCastleDungeon::isSatisfied(Creature* pCreature1, Creature* pC
 
     // The pay-to-play gate is always open: bPayPlay is set true just above.
     if (bPayPlay) {
-        bool hasGuildWar = g_pWarSystem->hasCastleActiveWar(m_CastleZoneID);
+        bool hasGuildWar = de::gameContext().warSystem().hasCastleActiveWar(m_CastleZoneID);
 
-        CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
+        CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(m_CastleZoneID);
         Assert(pCastleInfo != NULL);
 
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
@@ -54,7 +55,7 @@ bool ConditionEnterCastleDungeon::isSatisfied(Creature* pCreature1, Creature* pC
 
         if (hasGuildWar) {
             GuildID_t AttackGuildID;
-            g_pWarSystem->getAttackGuildID(m_CastleZoneID, AttackGuildID);
+            de::gameContext().warSystem().getAttackGuildID(m_CastleZoneID, AttackGuildID);
             if (GuildID == AttackGuildID) {
                 return true;
             }

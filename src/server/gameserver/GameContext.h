@@ -25,6 +25,7 @@
 class ActionFactoryManager;
 class AlignmentManager;
 class BloodBibleBonusManager;
+class CastleInfoManager;
 class CastleShrineInfoManager;
 class CastleSkillInfoManager;
 class ClientManager;
@@ -69,6 +70,7 @@ class TimeManager;
 class VampEXPInfoManager;
 class VariableManager;
 class VolumeInfoManager;
+class WarSystem;
 class WayPointManager;
 class WeatherInfoManager;
 class ZoneGroupManager;
@@ -91,6 +93,9 @@ public:
     }
     void setBloodBibleBonusManager(BloodBibleBonusManager* pBloodBibleBonusManager) {
         m_pBloodBibleBonusManager = pBloodBibleBonusManager;
+    }
+    void setCastleInfoManager(CastleInfoManager* pCastleInfoManager) {
+        m_pCastleInfoManager = pCastleInfoManager;
     }
     void setCastleShrineInfoManager(CastleShrineInfoManager* pCastleShrineInfoManager) {
         m_pCastleShrineInfoManager = pCastleShrineInfoManager;
@@ -224,6 +229,9 @@ public:
     void setVolumeInfoManager(VolumeInfoManager* pVolumeInfoManager) {
         m_pVolumeInfoManager = pVolumeInfoManager;
     }
+    void setWarSystem(WarSystem* pWarSystem) {
+        m_pWarSystem = pWarSystem;
+    }
     void setWayPointManager(WayPointManager* pWayPointManager) {
         m_pWayPointManager = pWayPointManager;
     }
@@ -240,6 +248,7 @@ public:
     ActionFactoryManager& actionFactories() const;
     AlignmentManager& alignments() const;
     BloodBibleBonusManager& bloodBibleBonuses() const;
+    CastleInfoManager& castleInfos() const;
     CastleShrineInfoManager& castleShrines() const;
     CastleSkillInfoManager& castleSkills() const;
     ClientManager& clients() const;
@@ -284,6 +293,7 @@ public:
     VampEXPInfoManager& vampireExp() const;
     VariableManager& variables() const;
     VolumeInfoManager& volumeInfos() const;
+    WarSystem& warSystem() const;
     WayPointManager& wayPoints() const;
     WeatherInfoManager& weatherInfos() const;
     ZoneGroupManager& zoneGroups() const;
@@ -293,6 +303,7 @@ private:
     ActionFactoryManager* m_pActionFactoryManager = nullptr;
     AlignmentManager* m_pAlignmentManager = nullptr;
     BloodBibleBonusManager* m_pBloodBibleBonusManager = nullptr;
+    CastleInfoManager* m_pCastleInfoManager = nullptr;
     CastleShrineInfoManager* m_pCastleShrineInfoManager = nullptr;
     CastleSkillInfoManager* m_pCastleSkillInfoManager = nullptr;
     ClientManager* m_pClientManager = nullptr;
@@ -337,6 +348,7 @@ private:
     VampEXPInfoManager* m_pVampEXPInfoManager = nullptr;
     VariableManager* m_pVariableManager = nullptr;
     VolumeInfoManager* m_pVolumeInfoManager = nullptr;
+    WarSystem* m_pWarSystem = nullptr;
     WayPointManager* m_pWayPointManager = nullptr;
     WeatherInfoManager* m_pWeatherInfoManager = nullptr;
     ZoneGroupManager* m_pZoneGroupManager = nullptr;

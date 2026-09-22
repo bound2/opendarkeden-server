@@ -7,6 +7,7 @@
 #include "GCAddEffectToTile.h"
 #include "GCRegenZoneStatus.h"
 #include "GCRemoveEffect.h"
+#include "GameContext.h"
 #include "HolyLandManager.h"
 #include "Monster.h"
 #include "MonsterCorpse.h"
@@ -210,7 +211,7 @@ void RegenZoneManager::changeRegenZoneOwner(MonsterCorpse* pTower, Race_t race) 
     map<uint, RegenZoneInfo*>::iterator itr = m_RegenZoneInfos.begin();
     map<uint, RegenZoneInfo*>::iterator endItr = m_RegenZoneInfos.end();
 
-    if (!g_pWarSystem->hasActiveRaceWar())
+    if (!de::gameContext().warSystem().hasActiveRaceWar())
         return;
 
     for (; itr != endItr; ++itr) {
@@ -370,7 +371,7 @@ void RegenZoneManager::regeneratePC(PlayerCreature* pPC, uint ID) {
             return;
             break;
         };
-        CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(targetPos.id);
+        CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(targetPos.id);
         if (pCastleInfo != NULL) {
             pCastleInfo->getResurrectPosition(CastleInfo::CASTLE_RESURRECT_PRIORITY_FIRST, targetPos);
         }

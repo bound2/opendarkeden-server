@@ -14,6 +14,7 @@
 #include "GCSystemMessage.h"
 #include "GCWarScheduleList.h"
 #include "GGCommand.h"
+#include "GameContext.h"
 #include "GameServerInfoManager.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -60,7 +61,7 @@ int SiegeWar::getGuildSide(GuildID_t guildID) const {
             return 3 + i;
     }
 
-    CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
+    CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(m_CastleZoneID);
     Assert(pCastleInfo != NULL);
 
     GuildID_t OwnerGuildID = pCastleInfo->getGuildID();
@@ -99,7 +100,7 @@ void SiegeWar::executeStart()
     clearReinforceRegisters();
 
     // This part would be better moved into CastleInfo later.
-    CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
+    CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(m_CastleZoneID);
     Assert(pCastleInfo != NULL);
 
     ZoneID_t siegeZoneID = SiegeManager::Instance().getSiegeZoneID(m_CastleZoneID);
@@ -121,13 +122,15 @@ void SiegeWar::executeEnd()
 {
     __BEGIN_TRY
 
+    CastleInfoManager& castleInfos = de::gameContext().castleInfos();
+
     //----------------------------------------------------------------------------
     // Report that the war has ended.
     //----------------------------------------------------------------------------
     sendWarEndMessage();
 
     if (m_bModifyCastleOwner) {
-        g_pCastleInfoManager->modifyCastleOwner(m_CastleZoneID, m_WinnerRace, m_WinnerGuildID);
+        castleInfos.modifyCastleOwner(m_CastleZoneID, m_WinnerRace, m_WinnerGuildID);
 
 
         char sCommand[100];
@@ -164,7 +167,7 @@ void SiegeWar::executeEnd()
         }
     } else {
         // Set WinnerGuildID to the current owner
-        CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
+        CastleInfo* pCastleInfo = castleInfos.getCastleInfo(m_CastleZoneID);
         m_WinnerGuildID = pCastleInfo->getGuildID();
     }
 
@@ -172,7 +175,7 @@ void SiegeWar::executeEnd()
     // The war application fee is piled onto the castle.
     // (it is assumed the castle owner changed with the war result.)
     //----------------------------------------------------------------------------
-    g_pCastleInfoManager->increaseTaxBalance(m_CastleZoneID, m_RegistrationFee);
+    castleInfos.increaseTaxBalance(m_CastleZoneID, m_RegistrationFee);
     m_RegistrationFee = 0;
     // tinysave("war application fee=0") <-- is that needed?
 
@@ -209,7 +212,7 @@ bool SiegeWar::isModifyCastleOwner(PlayerCreature* pPC)
 
     Assert(pPC != NULL);
 
-    CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
+    CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(m_CastleZoneID);
     Assert(pCastleInfo != NULL);
 
     if (pPC->isFlag(Effect::EFFECT_CLASS_SIEGE_ATTACKER_1))
@@ -286,7 +289,7 @@ void SiegeWar::sendWarEndMessage() const
     GCNoticeEvent gcNoticeEvent;
     gcNoticeEvent.setCode(NOTICE_EVENT_WAR_OVER);
     gcNoticeEvent.setParameter(m_CastleZoneID);
-    g_pZoneGroupManager->broadcast(&gcNoticeEvent);
+    de::gameContext().zoneGroups().broadcast(&gcNoticeEvent);
 
     __END_CATCH
 }
@@ -325,7 +328,7 @@ void SiegeWar::makeWarInfo(WarInfo* pWarInfo) const
     //---------------------------------------------------
     // Get the current castle owner
     //---------------------------------------------------
-    CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(getCastleZoneID());
+    CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(getCastleZoneID());
     if (pCastleInfo == NULL) {
         filelog("WarError.log", "CastleInfo가 없다(%d)", getCastleZoneID());
         return;

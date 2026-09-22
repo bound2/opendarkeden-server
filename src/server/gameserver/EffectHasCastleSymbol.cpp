@@ -82,7 +82,7 @@ void EffectHasCastleSymbol::affect(Creature* pCreature)
     gcSystemMessage.setMessage(msg);
 
 
-    g_pCastleInfoManager->broadcastShrinePacket(m_Part, &gcSystemMessage);
+    de::gameContext().castleInfos().broadcastShrinePacket(m_Part, &gcSystemMessage);
     //	g_pZoneGroupManager->broadcast( &gcSystemMessage );
 
     setNextTime(m_Tick);
@@ -104,9 +104,9 @@ void EffectHasCastleSymbol::affect(Item* pItem)
     ZoneID_t castleZoneID;
     bool isCastle;
 
-    isCastle = g_pCastleInfoManager->getCastleZoneID(m_pZone->getZoneID(), castleZoneID);
+    isCastle = de::gameContext().castleInfos().getCastleZoneID(m_pZone->getZoneID(), castleZoneID);
 
-    if (isCastle && g_pWarSystem->hasCastleActiveWar(castleZoneID)) {
+    if (isCastle && de::gameContext().warSystem().hasCastleActiveWar(castleZoneID)) {
         ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(m_pZone->getZoneID());
         Assert(pZoneInfo != NULL);
 
@@ -119,7 +119,7 @@ void EffectHasCastleSymbol::affect(Item* pItem)
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(msg);
 
-        g_pCastleInfoManager->broadcastShrinePacket(m_Part, &gcSystemMessage);
+        de::gameContext().castleInfos().broadcastShrinePacket(m_Part, &gcSystemMessage);
         //		g_pZoneGroupManager->broadcast( &gcSystemMessage );
     }
 

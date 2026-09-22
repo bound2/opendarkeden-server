@@ -114,6 +114,8 @@ void ClientManager::run()
     getCurrentTime(userGatewayTime);
     userGatewayTime.tv_sec += 10;
 
+    ZoneGroupManager& zoneGroups = de::gameContext().zoneGroups();
+
     while (!ServerShutdown::isRequested()) {
         // ofstream file("ClientManager.txt", ios::out | ios::app);
         // StringStream msg;
@@ -177,7 +179,7 @@ void ClientManager::run()
         }
 
         if (m_BalanceZoneGroupTime < currentTime) {
-            g_pZoneGroupManager->balanceZoneGroup(m_bForceZoneGroupBalancing, m_bDefaultZoneGroupBalancing);
+            zoneGroups.balanceZoneGroup(m_bForceZoneGroupBalancing, m_bDefaultZoneGroupBalancing);
             m_BalanceZoneGroupTime.tv_sec = currentTime.tv_sec + g_pVariableManager->getZoneGroupBalancingMinute() * 60;
 
             m_bForceZoneGroupBalancing = false;
@@ -193,7 +195,7 @@ void ClientManager::run()
         // by sigi. 2002.9.26
         if (!m_EventManager.isEmpty()) {
             try {
-                g_pZoneGroupManager->lockZoneGroups();
+                zoneGroups.lockZoneGroups();
 
                 __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -201,16 +203,16 @@ void ClientManager::run()
 
                 __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-                g_pZoneGroupManager->unlockZoneGroups();
+                zoneGroups.unlockZoneGroups();
             } catch (Throwable& t) {
                 filelog("eventManagerBug.txt", "ClientManager::EventManager::heartbeat - %s", t.toString().c_str());
-                g_pZoneGroupManager->unlockZoneGroups();
+                zoneGroups.unlockZoneGroups();
             }
         }
 
         // War handling
         if (g_pVariableManager->isWarActive()) {
-            g_pWarSystem->heartbeat();
+            de::gameContext().warSystem().heartbeat();
         }
 
         if (g_pVariableManager->isActiveFlagWar()) {

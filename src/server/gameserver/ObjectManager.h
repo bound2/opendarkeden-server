@@ -18,6 +18,7 @@
 class ActionFactoryManager;
 class AlignmentManager;
 class BloodBibleBonusManager;
+class CastleInfoManager;
 class CastleShrineInfoManager;
 class CastleSkillInfoManager;
 class CombatInfoManager;
@@ -42,6 +43,7 @@ class ItemMineInfoManager;
 class MasterLairInfoManager;
 class MonsterNameManager;
 class OustersEXPInfoManager;
+class PCFinder;
 class PriceManager;
 class RankBonusInfoManager;
 class ScriptManager;
@@ -56,8 +58,10 @@ class UniqueItemManager;
 class VampEXPInfoManager;
 class VisionInfoManager;
 class VolumeInfoManager;
+class WarSystem;
 class WayPointManager;
 class WeatherInfoManager;
+class ZoneGroupManager;
 class ZoneInfoManager;
 
 class ObjectManager {
@@ -77,6 +81,7 @@ private:
     ActionFactoryManager* m_pActionFactoryManager = nullptr;
     AlignmentManager* m_pAlignmentManager = nullptr;
     BloodBibleBonusManager* m_pBloodBibleBonusManager = nullptr;
+    CastleInfoManager* m_pCastleInfoManager = nullptr;
     CastleShrineInfoManager* m_pCastleShrineInfoManager = nullptr;
     CastleSkillInfoManager* m_pCastleSkillInfoManager = nullptr;
     CombatInfoManager* m_pCombatInfoManager = nullptr;
@@ -101,6 +106,7 @@ private:
     MasterLairInfoManager* m_pMasterLairInfoManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;
     OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
+    PCFinder* m_pPCFinder = nullptr;
     PriceManager* m_pPriceManager = nullptr;
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
@@ -115,8 +121,10 @@ private:
     VampEXPInfoManager* m_pVampEXPInfoManager = nullptr;
     VisionInfoManager* m_pVisionInfoManager = nullptr;
     VolumeInfoManager* m_pVolumeInfoManager = nullptr;
+    WarSystem* m_pWarSystem = nullptr;
     WayPointManager* m_pWayPointManager = nullptr;
     WeatherInfoManager* m_pWeatherInfoManager = nullptr;
+    ZoneGroupManager* m_pZoneGroupManager = nullptr;
     ZoneInfoManager* m_pZoneInfoManager = nullptr;
 };
 

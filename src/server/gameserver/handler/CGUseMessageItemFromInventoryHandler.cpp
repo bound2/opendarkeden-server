@@ -14,6 +14,7 @@
 #include "GCCannotUse.h"
 #include "GCSystemMessage.h"
 #include "GCUseOK.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameWorldInfoManager.h"
 #include "Inventory.h"
@@ -190,7 +191,7 @@ void CGUseMessageItemFromInventoryHandler::executeEventTree(CGUseMessageItemFrom
     // In a castle only the owning guild's members can use it.
     if (!pPC->isGOD()) {
         if (pZone->isCastle()) {
-            if (!g_pCastleInfoManager->isCastleMember(pZone->getZoneID(), pPC)) {
+            if (!de::gameContext().castleInfos().isCastleMember(pZone->getZoneID(), pPC)) {
                 GCCannotUse _GCCannotUse;
                 _GCCannotUse.setObjectID(pPacket->getObjectID());
                 pGamePlayer->sendPacket(&_GCCannotUse);
@@ -283,7 +284,7 @@ void CGUseMessageItemFromInventoryHandler::executeEventFromMessage(CGUseMessageI
     message += color.c_str();
     _GCSystemMessage.setMessage(message);
     _GCSystemMessage.setType(SYSTEM_MESSAGE_PLAYER);
-    g_pZoneGroupManager->broadcast(&_GCSystemMessage);
+    de::gameContext().zoneGroups().broadcast(&_GCSystemMessage);
     GCUseOK gcUseOK;
     pGamePlayer->sendPacket(&gcUseOK);
 
