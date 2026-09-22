@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -32,7 +33,7 @@ Larva::Larva()
 Larva::Larva(ItemType_t itemType, const list<OptionType_t>& optionType, ItemNum_t Num)
 
     : m_ItemType(itemType), m_Num(Num) {
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Larva::Larva() : Invalid item type or option type");
         throw Error("Larva::Larva() : Invalid item type or optionType");
     }
@@ -50,7 +51,7 @@ void Larva::create(const string& ownerID, Storage storage, StorageID_t storageID
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -131,7 +132,7 @@ VolumeWidth_t Larva::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType)->getVolumeWidth();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -145,7 +146,7 @@ VolumeHeight_t Larva::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType)->getVolumeHeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -159,7 +160,7 @@ Weight_t Larva::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType)->getWeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -169,7 +170,8 @@ int Larva::getHPAmount(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
+    LarvaInfo* pInfo =
+        dynamic_cast<LarvaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getHPAmount();
 
     __END_CATCH
@@ -180,7 +182,8 @@ int Larva::getMPAmount(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
+    LarvaInfo* pInfo =
+        dynamic_cast<LarvaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getMPAmount();
 
     __END_CATCH
@@ -191,7 +194,8 @@ int Larva::getHPDelay(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
+    LarvaInfo* pInfo =
+        dynamic_cast<LarvaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getHPDelay();
 
     __END_CATCH
@@ -202,7 +206,8 @@ int Larva::getMPDelay(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
+    LarvaInfo* pInfo =
+        dynamic_cast<LarvaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getMPDelay();
 
     __END_CATCH
@@ -213,7 +218,8 @@ int Larva::getHPQuantity(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
+    LarvaInfo* pInfo =
+        dynamic_cast<LarvaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getHPQuantity();
 
     __END_CATCH
@@ -224,7 +230,8 @@ int Larva::getMPQuantity(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
+    LarvaInfo* pInfo =
+        dynamic_cast<LarvaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getMPQuantity();
 
     __END_CATCH
@@ -235,7 +242,8 @@ int Larva::getHPRecoveryUnit(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
+    LarvaInfo* pInfo =
+        dynamic_cast<LarvaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getHPRecoveryUnit();
 
     __END_CATCH
@@ -246,7 +254,8 @@ int Larva::getMPRecoveryUnit(void) const
 {
     __BEGIN_TRY
 
-    LarvaInfo* pInfo = dynamic_cast<LarvaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
+    LarvaInfo* pInfo =
+        dynamic_cast<LarvaInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_LARVA, m_ItemType));
     return pInfo->getMPRecoveryUnit();
 
     __END_CATCH

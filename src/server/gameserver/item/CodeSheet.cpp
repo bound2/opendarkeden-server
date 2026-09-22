@@ -10,6 +10,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -66,7 +67,7 @@ void CodeSheet::create(const string& ownerID, Storage storage, StorageID_t stora
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -138,7 +139,7 @@ VolumeWidth_t CodeSheet::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CODE_SHEET, m_ItemType)->getVolumeWidth();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_CODE_SHEET, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -152,7 +153,7 @@ VolumeHeight_t CodeSheet::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CODE_SHEET, m_ItemType)->getVolumeHeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_CODE_SHEET, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -166,7 +167,7 @@ Weight_t CodeSheet::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CODE_SHEET, m_ItemType)->getWeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_CODE_SHEET, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -242,7 +243,10 @@ void CodeSheetLoader::load(Creature* pCreature)
             pCodeSheet->setObjectID(rows[r].objectID);
             pCodeSheet->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CODE_SHEET, pCodeSheet->getItemType())->isUnique())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_CODE_SHEET, pCodeSheet->getItemType())
+                    ->isUnique())
                 pCodeSheet->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

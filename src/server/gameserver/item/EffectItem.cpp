@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -37,7 +38,7 @@ EffectItem::EffectItem(ItemType_t itemType, const list<OptionType_t>& optionType
     setItemType(itemType);
     setNum(Num);
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "EffectItem::EffectItem() : Invalid item type or option type");
         throw Error("EffectItem::EffectItem() : Invalid item type or optionType");
     }
@@ -51,7 +52,7 @@ void EffectItem::create(const string& ownerID, Storage storage, StorageID_t stor
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)

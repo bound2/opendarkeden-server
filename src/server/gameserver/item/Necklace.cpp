@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -40,7 +41,7 @@ Necklace::Necklace(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Necklace::Necklace() : Invalid item type or option type");
         throw Error("Necklace::Necklace() : Invalid item type or optionType");
     }
@@ -58,7 +59,7 @@ void Necklace::create(const string& ownerID, Storage storage, StorageID_t storag
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -208,7 +209,10 @@ void NecklaceLoader::load(Creature* pCreature)
             pNecklace->setObjectID(rows[r].objectID);
             pNecklace->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_NECKLACE, pNecklace->getItemType())->isUnique())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_NECKLACE, pNecklace->getItemType())
+                    ->isUnique())
                 pNecklace->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

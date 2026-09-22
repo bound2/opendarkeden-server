@@ -9,6 +9,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -41,7 +42,7 @@ VampireWeapon::VampireWeapon(ItemType_t itemType, const list<OptionType_t>& opti
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "VampireWeapon::VampireWeapon() : Invalid item type or option type");
         throw Error("VampireWeapon::VampireWeapon() : Invalid item type or optionType");
     }
@@ -59,7 +60,7 @@ void VampireWeapon::create(const string& ownerID, Storage storage, StorageID_t s
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -211,7 +212,9 @@ void VampireWeaponLoader::load(Creature* pCreature)
             pVampireWeapon->setObjectID(rows[r].objectID);
             pVampireWeapon->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_WEAPON, pVampireWeapon->getItemType())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_VAMPIRE_WEAPON, pVampireWeapon->getItemType())
                     ->isUnique())
                 pVampireWeapon->setUnique();
 

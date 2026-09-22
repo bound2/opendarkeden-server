@@ -12,6 +12,7 @@
 #include "GCAddItemToItemVerify.h"
 #include "GCCannotUse.h"
 #include "GCUseOK.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -77,8 +78,8 @@ void CGMixItemHandler::execute(CGMixItem* pPacket, Player* pPlayer)
         return;
     }
 
-    MixingItemInfo* pInfo =
-        dynamic_cast<MixingItemInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+    MixingItemInfo* pInfo = dynamic_cast<MixingItemInfo*>(
+        de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
     Assert(pInfo != NULL);
 
     switch (pInfo->getType()) {
@@ -148,7 +149,8 @@ void CGMixItemHandler::executeMix(CGMixItem* pPacket, Player* pPlayer, Item* pIt
         return;
     }
 
-    ItemInfo* pInfo1 = g_pItemInfoManager->getItemInfo(pTargetItem1->getItemClass(), pTargetItem1->getItemType());
+    ItemInfo* pInfo1 =
+        de::gameContext().itemInfos().getItemInfo(pTargetItem1->getItemClass(), pTargetItem1->getItemType());
     int GradeDiff = pTargetItem1->getGrade() - pTargetItem2->getGrade();
     Grade_t TargetGrade =
         (pTargetItem1->getGrade() > pTargetItem2->getGrade()) ? pTargetItem1->getGrade() : pTargetItem2->getGrade();
@@ -161,8 +163,8 @@ void CGMixItemHandler::executeMix(CGMixItem* pPacket, Player* pPlayer, Item* pIt
         return;
     }
 
-    MixingItemInfo* pInfo =
-        dynamic_cast<MixingItemInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+    MixingItemInfo* pInfo = dynamic_cast<MixingItemInfo*>(
+        de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
     Assert(pInfo != NULL);
 
     MixingItemInfo::Target target = pInfo->getTarget();
@@ -351,15 +353,16 @@ void CGMixItemHandler::executeDetach(CGMixItem* pPacket, Player* pPlayer, Item* 
         return;
     }
 
-    ItemInfo* pTargetInfo = g_pItemInfoManager->getItemInfo(pTargetItem->getItemClass(), pTargetItem->getItemType());
+    ItemInfo* pTargetInfo =
+        de::gameContext().itemInfos().getItemInfo(pTargetItem->getItemClass(), pTargetItem->getItemType());
 
     if (pTargetInfo->isUnique() || pTargetItem->isTimeLimitItem() || pTargetItem->getOptionTypeSize() != 2) {
         sendCannotUse(pPacket, pPlayer);
         return;
     }
 
-    MixingItemInfo* pInfo =
-        dynamic_cast<MixingItemInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+    MixingItemInfo* pInfo = dynamic_cast<MixingItemInfo*>(
+        de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
     Assert(pInfo != NULL);
 
     MixingItemInfo::Target target = pInfo->getTarget();
@@ -513,15 +516,16 @@ void CGMixItemHandler::executeClearOption(CGMixItem* pPacket, Player* pPlayer, I
 
     Item::ItemClass iClass = pTargetItem->getItemClass();
 
-    ItemInfo* pTargetInfo = g_pItemInfoManager->getItemInfo(pTargetItem->getItemClass(), pTargetItem->getItemType());
+    ItemInfo* pTargetInfo =
+        de::gameContext().itemInfos().getItemInfo(pTargetItem->getItemClass(), pTargetItem->getItemType());
 
     if (pTargetInfo->isUnique() || pTargetItem->isTimeLimitItem() || pTargetItem->getOptionTypeSize() != 1) {
         sendCannotUse(pPacket, pPlayer);
         return;
     }
 
-    MixingItemInfo* pInfo =
-        dynamic_cast<MixingItemInfo*>(g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType()));
+    MixingItemInfo* pInfo = dynamic_cast<MixingItemInfo*>(
+        de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType()));
     Assert(pInfo != NULL);
 
     MixingItemInfo::Target target = pInfo->getTarget();

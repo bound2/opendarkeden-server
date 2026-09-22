@@ -33,6 +33,7 @@
 #include "GCAddItemToItemVerify.h"
 #include "GCCreateItem.h"
 #include "GCDeleteInventoryItem.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -132,7 +133,7 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
         //---------------------------------------------------------
         case Item::ITEM_CLASS_EVENT_STAR: {
             ItemInfo* pItemInfo =
-                g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_EVENT_STAR, pMouseItem->getItemType());
+                de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_EVENT_STAR, pMouseItem->getItemType());
             Assert(pItemInfo != NULL);
 
             EventStarInfo* pEventStarInfo = dynamic_cast<EventStarInfo*>(pItemInfo);
@@ -177,8 +178,8 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
                 return;
             }
 
-            PetEnchantItemInfo* pItemInfo = dynamic_cast<PetEnchantItemInfo*>(
-                g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PET_ENCHANT_ITEM, pMouseItem->getItemType()));
+            PetEnchantItemInfo* pItemInfo = dynamic_cast<PetEnchantItemInfo*>(de::gameContext().itemInfos().getItemInfo(
+                Item::ITEM_CLASS_PET_ENCHANT_ITEM, pMouseItem->getItemType()));
             Assert(pItemInfo != NULL);
 
             PetItem* pPetItem = dynamic_cast<PetItem*>(pItem);
@@ -409,7 +410,7 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
             }
 
             MixingItemInfo* pItemInfo = dynamic_cast<MixingItemInfo*>(
-                g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MIXING_ITEM, pMouseItem->getItemType()));
+                de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_MIXING_ITEM, pMouseItem->getItemType()));
             Assert(pItemInfo != NULL);
 
             if (pItemInfo->getType() != MixingItemInfo::TYPE_DETACH) {
@@ -471,7 +472,7 @@ void executeUpGrade(GamePlayer* pGamePlayer, Item* pMouseItem, Item* pItem) {
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
     Inventory* pInventory = pPC->getInventory();
 
-    const ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    const ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
 
     int Ratio = 50;
 
@@ -506,7 +507,7 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
 
     // The failure chance is decided by itemType.
-    const ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    const ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
 
     // The item to enchant does not have exactly two options,
     // is a unique item,
@@ -684,7 +685,7 @@ void executeEnchantRareOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* p
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
 
     // The failure chance is decided by itemType.
-    const ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    const ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
 
     // The item to enchant does not have exactly two options,
     // is a unique item,
@@ -910,7 +911,7 @@ void executeEnchantOption(GamePlayer* pGamePlayer, Item* pMouseItem, Item* pItem
     int optionSize = pItem->getOptionTypeSize();
 
     // The failure chance is decided by itemType.
-    const ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    const ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
 
     // The item to enchant has no option,
     // is a rare item,
@@ -1079,7 +1080,7 @@ void executeTransKit(GamePlayer* pGamePlayer, Item* pMouseItem, Item* pItem) {
     GCAddItemToItemVerify gcResult;
     uint optionChange;
 
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
     if (pItemInfo->getReqGender() == GENDER_BOTH || pItemInfo->getReqGender() == GENDER_MAX || pItemInfo->isUnique() ||
         pMouseItem->getNum() != 1) {
         gcResult.setCode(ADD_ITEM_TO_ITEM_VERIFY_TRANS_IMPOSSIBLE);

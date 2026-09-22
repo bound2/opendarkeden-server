@@ -10,6 +10,7 @@
 #include "GCGetOffMotorCycle.h"
 #include "GCGetOffMotorCycleFailed.h"
 #include "GCGetOffMotorCycleOK.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Slayer.h"
 #include "ctf/FlagManager.h"
@@ -60,7 +61,7 @@ void CGGetOffMotorCycleHandler::execute(CGGetOffMotorCycle* pPacket, Player* pPl
         if (pZone->getZoneLevel(x, y) & SAFE_ZONE) {
             if (pSlayer->isGOD() || pSlayer->isDM())
                 bSuccess = true;
-        } else if (!g_pFlagManager->isInPoleField(ZONE_COORD(pZone->getZoneID(), x, y))) {
+        } else if (!de::gameContext().flags().isInPoleField(ZONE_COORD(pZone->getZoneID(), x, y))) {
             bSuccess = true;
         }
     }

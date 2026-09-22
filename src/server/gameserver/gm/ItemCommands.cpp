@@ -11,6 +11,7 @@
 #include "DatabaseError.h"
 #include "GCCreateItem.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemFactoryManager.h"
 #include "ItemInfoManager.h"
@@ -125,7 +126,7 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
 
 
     // Return when it is not an item that can really be created.
-    if (!g_pItemInfoManager->isPossibleItem(ItemClass, ItemType, optionTypes)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(ItemClass, ItemType, optionTypes)) {
         StringStream msg;
         msg << g_pStringPool->getString(STRID_CANNOT_CREATE_ITEM_2) << ItemClass2ShortString[ItemClass] << ", "
             << (int)ItemType << ", " << getOptionTypeToString(optionTypes);
@@ -139,7 +140,7 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
     }
 
     //  Should a unique item made by create have its count limited too?
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(ItemClass, ItemType);
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(ItemClass, ItemType);
     Assert(pItemInfo != NULL);
 
     // For a unique item

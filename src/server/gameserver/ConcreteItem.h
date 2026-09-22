@@ -2,6 +2,7 @@
 #define __CONCRETE_ITEM_H__
 
 #include "DB.h"
+#include "GameContext.h"
 #include "Item.h"
 #include "ItemInfo.h"
 #include "ItemInfoManager.h"
@@ -26,7 +27,7 @@ public:
         return ItemObjectTableName[getItemClass()];
     }
     ItemInfo* getItemInfo() const {
-        return g_pItemInfoManager->getItemInfo(getItemClass(), getItemType());
+        return de::gameContext().itemInfos().getItemInfo(getItemClass(), getItemType());
     }
 
     ItemType_t getItemType() const {

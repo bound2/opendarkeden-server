@@ -6,6 +6,7 @@
 #include "CoupleRingBase.h"
 
 #include "CoupleRing.h"
+#include "GameContext.h"
 #include "ItemInfo.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
@@ -43,10 +44,10 @@ ItemInfo* CoupleRingBase::getItemInfo(ItemType_t itemType, Race_t race)
 
     switch (race) {
     case RACE_SLAYER:
-        return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COUPLE_RING, itemType);
+        return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_COUPLE_RING, itemType);
         break;
     case RACE_VAMPIRE:
-        return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_COUPLE_RING, itemType);
+        return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_VAMPIRE_COUPLE_RING, itemType);
         break;
     default:
         Assert(false);

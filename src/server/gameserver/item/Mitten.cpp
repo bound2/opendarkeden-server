@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -38,7 +39,7 @@ Mitten::Mitten(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Mitten::Mitten() : Invalid item type or option type");
         throw Error("Mitten::Mitten() : Invalid item type or optionType");
     }
@@ -56,7 +57,7 @@ void Mitten::create(const string& ownerID, Storage storage, StorageID_t storageI
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -205,7 +206,7 @@ void MittenLoader::load(Creature* pCreature)
             pMitten->setObjectID(rows[r].objectID);
             pMitten->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MITTEN, pMitten->getItemType())->isUnique())
+            if (de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_MITTEN, pMitten->getItemType())->isUnique())
                 pMitten->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

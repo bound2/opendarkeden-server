@@ -148,7 +148,7 @@ ObjectManager::ObjectManager()
     g_pStringPool = new StringPool();
     g_pZoneInfoManager = new ZoneInfoManager();
     g_pVariableManager = new VariableManager();
-    g_pItemInfoManager = new ItemInfoManager();
+    m_pItemInfoManager = new ItemInfoManager();
     g_pItemFactoryManager = new ItemFactoryManager();
     m_pVolumeInfoManager = new VolumeInfoManager();
     m_pItemLoaderManager = new ItemLoaderManager();
@@ -176,6 +176,7 @@ ObjectManager::ObjectManager()
     context.setStringPool(g_pStringPool);
     context.setZoneInfoManager(g_pZoneInfoManager);
     context.setVariableManager(g_pVariableManager);
+    context.setItemInfoManager(m_pItemInfoManager);
     context.setItemFactoryManager(g_pItemFactoryManager);
     context.setVolumeInfoManager(m_pVolumeInfoManager);
     context.setItemLoaderManager(m_pItemLoaderManager);
@@ -272,7 +273,8 @@ ObjectManager::ObjectManager()
     // g_pQuestInfoManager = new QuestInfoManager();
     // g_pRewardClassInfoManager = new RewardClassInfoManager();
 
-    g_pFlagManager = new FlagManager(context);
+    m_pFlagManager = new FlagManager(context);
+    context.setFlagManager(m_pFlagManager);
     m_pDefaultOptionSetInfoManager = new DefaultOptionSetInfoManager();
     context.setDefaultOptionSetInfoManager(m_pDefaultOptionSetInfoManager);
 
@@ -309,7 +311,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(g_pSkillInfoManager);
     SAFE_DELETE(m_pSkillDomainInfoManager);
     SAFE_DELETE(g_pMonsterInfoManager);
-    SAFE_DELETE(g_pItemInfoManager);
+    SAFE_DELETE(m_pItemInfoManager);
     SAFE_DELETE(m_pWeatherInfoManager);
     SAFE_DELETE(m_pVisionInfoManager);
     SAFE_DELETE(m_pDarkLightInfoManager);
@@ -372,7 +374,7 @@ ObjectManager::~ObjectManager()
     // SAFE_DELETE(g_pQuestInfoManager);
     // SAFE_DELETE(g_pRewardClassInfoManager);
 
-    SAFE_DELETE(g_pFlagManager);
+    SAFE_DELETE(m_pFlagManager);
     SAFE_DELETE(m_pDefaultOptionSetInfoManager);
 
     SAFE_DELETE(g_pLevelWarZoneInfoManager);
@@ -447,7 +449,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : SweeperBonusManager Initialization Success....... \n");
 
     printf("ObjectManager::init() : ItemInfoManager Initialization Start\n");
-    g_pItemInfoManager->init();
+    m_pItemInfoManager->init();
     printf("ObjectManager::init() : ItemInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : ItemMineInfoManager Initialization Start\n");
@@ -712,7 +714,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : EventQuestLootingManager Initialization Success\n");
 
     printf("ObjectManager::load() : FlagManager Initialization Start\n");
-    g_pFlagManager->init();
+    m_pFlagManager->init();
     printf("ObjectManager::load() : FlagManager Initialization Success\n");
 
     printf("ObjectManager::load() : RegenZoneManager Initialization Start\n");

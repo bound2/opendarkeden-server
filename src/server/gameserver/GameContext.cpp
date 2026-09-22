@@ -118,6 +118,11 @@ EventQuestLootingManager& GameContext::eventQuestLoot() const {
     return *m_pEventQuestLootingManager;
 }
 
+FlagManager& GameContext::flags() const {
+    Assert(m_pFlagManager != nullptr);
+    return *m_pFlagManager;
+}
+
 GameServerGroupInfoManager& GameContext::gameServerGroups() const {
     Assert(m_pGameServerGroupInfoManager != nullptr);
     return *m_pGameServerGroupInfoManager;
@@ -141,6 +146,11 @@ IncomingPlayerManager& GameContext::incomingPlayers() const {
 ItemFactoryManager& GameContext::itemFactories() const {
     Assert(m_pItemFactoryManager != nullptr);
     return *m_pItemFactoryManager;
+}
+
+ItemInfoManager& GameContext::itemInfos() const {
+    Assert(m_pItemInfoManager != nullptr);
+    return *m_pItemInfoManager;
 }
 
 ItemLoaderManager& GameContext::itemLoaders() const {

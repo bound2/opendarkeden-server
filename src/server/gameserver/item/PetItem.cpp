@@ -10,6 +10,7 @@
 #include "CreatureUtil.h"
 #include "DB.h"
 #include "EffectHasPet.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
@@ -45,7 +46,7 @@ PetItem::PetItem(ItemType_t itemType, const list<OptionType_t>& optionType)
     m_ItemType = itemType;
     m_pPetInfo = NULL;
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "PetItem::PetItem() : Invalid item type or option type");
         throw Error("PetItem::PetItem() : Invalid item type or optionType");
     }
@@ -59,7 +60,7 @@ void PetItem::create(const string& ownerID, Storage storage, StorageID_t storage
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -206,7 +207,7 @@ VolumeWidth_t PetItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PET_ITEM, m_ItemType)->getVolumeWidth();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PET_ITEM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -216,7 +217,7 @@ VolumeHeight_t PetItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PET_ITEM, m_ItemType)->getVolumeHeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PET_ITEM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -226,7 +227,7 @@ Weight_t PetItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PET_ITEM, m_ItemType)->getWeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PET_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }

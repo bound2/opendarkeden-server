@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -37,7 +38,7 @@ VampireAmulet::VampireAmulet(ItemType_t itemType, const list<OptionType_t>& opti
     setOptionType(optionType);
 
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "VampireAmulet::VampireAmulet() : Invalid item type or option type");
         throw Error("VampireAmulet::VampireAmulet() : Invalid item type or optionType");
     }
@@ -56,7 +57,7 @@ void VampireAmulet::create(const string& ownerID, Storage storage, StorageID_t s
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -207,7 +208,9 @@ void VampireAmuletLoader::load(Creature* pCreature)
             pVampireAmulet->setObjectID(rows[r].objectID);
             pVampireAmulet->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_AMULET, pVampireAmulet->getItemType())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_VAMPIRE_AMULET, pVampireAmulet->getItemType())
                     ->isUnique())
                 pVampireAmulet->setUnique();
 

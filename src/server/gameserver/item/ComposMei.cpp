@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -39,7 +40,7 @@ ComposMei::ComposMei(ItemType_t itemType, const list<OptionType_t>& optionType, 
 {
     setItemType(itemType);
     setNum(Num);
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "ComposMei::ComposMei() : Invalid item type or option type");
         throw Error("ComposMei::ComposMei() : Invalid item type or optionType");
     }
@@ -57,7 +58,7 @@ void ComposMei::create(const string& ownerID, Storage storage, StorageID_t stora
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -136,8 +137,8 @@ int ComposMei::getHPAmount(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo =
-        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
+    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getHPAmount();
 
     __END_CATCH
@@ -148,8 +149,8 @@ int ComposMei::getMPAmount(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo =
-        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
+    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getMPAmount();
 
     __END_CATCH
@@ -160,8 +161,8 @@ int ComposMei::getHPDelay(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo =
-        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
+    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getHPDelay();
 
     __END_CATCH
@@ -172,8 +173,8 @@ int ComposMei::getMPDelay(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo =
-        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
+    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getMPDelay();
 
     __END_CATCH
@@ -184,8 +185,8 @@ int ComposMei::getHPQuantity(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo =
-        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
+    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getHPQuantity();
 
     __END_CATCH
@@ -196,8 +197,8 @@ int ComposMei::getMPQuantity(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo =
-        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
+    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getMPQuantity();
 
     __END_CATCH
@@ -208,8 +209,8 @@ int ComposMei::getHPRecoveryUnit(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo =
-        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
+    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getHPRecoveryUnit();
 
     __END_CATCH
@@ -220,8 +221,8 @@ int ComposMei::getMPRecoveryUnit(void) const
 {
     __BEGIN_TRY
 
-    ComposMeiInfo* pInfo =
-        dynamic_cast<ComposMeiInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
+    ComposMeiInfo* pInfo = dynamic_cast<ComposMeiInfo*>(
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_COMPOS_MEI, getItemType()));
     return pInfo->getMPRecoveryUnit();
 
     __END_CATCH

@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -36,7 +37,7 @@ ShoulderArmor::ShoulderArmor(ItemType_t itemType, const list<OptionType_t>& opti
     setOptionType(optionType);
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "ShoulderArmor::ShoulderArmor() : Invalid item type or option type");
         throw Error("ShoulderArmor::ShoulderArmor() : Invalid item type or optionType");
     }
@@ -55,7 +56,7 @@ void ShoulderArmor::create(const string& ownerID, Storage storage, StorageID_t s
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -206,7 +207,9 @@ void ShoulderArmorLoader::load(Creature* pCreature)
             pShoulderArmor->setObjectID(rows[r].objectID);
             pShoulderArmor->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SHOULDER_ARMOR, pShoulderArmor->getItemType())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_SHOULDER_ARMOR, pShoulderArmor->getItemType())
                     ->isUnique())
                 pShoulderArmor->setUnique();
 

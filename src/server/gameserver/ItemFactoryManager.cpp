@@ -35,6 +35,7 @@
 #include "EventStar.h"
 #include "EventTree.h"
 #include "Fascia.h"
+#include "GameContext.h"
 #include "Glove.h"
 #include "Helm.h"
 #include "HolyWater.h"
@@ -466,7 +467,7 @@ Item* ItemFactoryManager::createItem(Item::ItemClass IClass, ItemType_t ItemType
     Item* pItem = m_Factories[IClass]->createItem(ItemType, OptionType);
 
     pItem->setTraceItem(bTraceLog(pItem));
-    pItem->setUnique(g_pItemInfoManager->getItemInfo(IClass, ItemType)->isUnique());
+    pItem->setUnique(de::gameContext().itemInfos().getItemInfo(IClass, ItemType)->isUnique());
 
     return pItem;
 

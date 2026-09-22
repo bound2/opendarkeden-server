@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -35,7 +36,7 @@ Serum::Serum(ItemType_t itemType, const list<OptionType_t>& optionType)
     m_ItemType = itemType;
     m_Num = 1;
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Serum::Serum() : Invalid item type or option type");
         throw Error("Serum::Serum() : Invalid item type or optionType");
     }
@@ -53,7 +54,7 @@ void Serum::create(const string& ownerID, Storage storage, StorageID_t storageID
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -116,7 +117,7 @@ VolumeWidth_t Serum::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType)->getVolumeWidth();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -130,7 +131,7 @@ VolumeHeight_t Serum::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType)->getVolumeHeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -144,7 +145,7 @@ Weight_t Serum::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType)->getWeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -152,21 +153,24 @@ Weight_t Serum::getWeight() const
 int Serum::getHPAmount(void) const
 
 {
-    SerumInfo* pInfo = dynamic_cast<SerumInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType));
+    SerumInfo* pInfo =
+        dynamic_cast<SerumInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType));
     return pInfo->getHPAmount();
 }
 
 int Serum::getPeriod(void) const
 
 {
-    SerumInfo* pInfo = dynamic_cast<SerumInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType));
+    SerumInfo* pInfo =
+        dynamic_cast<SerumInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType));
     return pInfo->getPeriod();
 }
 
 int Serum::getCount(void) const
 
 {
-    SerumInfo* pInfo = dynamic_cast<SerumInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType));
+    SerumInfo* pInfo =
+        dynamic_cast<SerumInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType));
     return pInfo->getCount();
 }
 

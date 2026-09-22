@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -32,7 +33,7 @@ Bomb::Bomb()
 Bomb::Bomb(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     : m_ItemType(itemType) {
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Bomb::Bomb() : Invalid item type or option type");
         throw Error("Bomb::Bomb() : Invalid item type or optionType");
     }
@@ -52,7 +53,7 @@ void Bomb::create(const string& ownerID, Storage storage, StorageID_t storageID,
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -117,7 +118,7 @@ VolumeWidth_t Bomb::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getVolumeWidth();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -131,7 +132,7 @@ VolumeHeight_t Bomb::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getVolumeHeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -145,7 +146,7 @@ Weight_t Bomb::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getWeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -155,7 +156,7 @@ Damage_t Bomb::getMinDamage() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getMinDamage();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getMinDamage();
 
     __END_CATCH
 }
@@ -165,7 +166,7 @@ Damage_t Bomb::getMaxDamage() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getMaxDamage();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_BOMB, m_ItemType)->getMaxDamage();
 
     __END_CATCH
 }

@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGTameMonster.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 
 #ifdef __GAME_SERVER__
@@ -59,8 +60,8 @@ void CGTameMonsterHandler::execute(CGTameMonster* pPacket, Player* pPlayer)
     if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_PET_FOOD || pItem->getNum() != 1)
         return;
 
-    PetFoodInfo* pPetFoodInfo =
-        dynamic_cast<PetFoodInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PET_FOOD, pItem->getItemType()));
+    PetFoodInfo* pPetFoodInfo = dynamic_cast<PetFoodInfo*>(
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_PET_FOOD, pItem->getItemType()));
     Assert(pPetFoodInfo != NULL);
 
     Inventory* pInventory = pPC->getInventory();

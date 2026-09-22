@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -32,7 +33,7 @@ Water::Water(ItemType_t itemType, const list<OptionType_t>& optionType)
     m_ItemType = itemType;
     m_Num = 1;
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Water::Water() : Invalid item type or option type");
         throw Error("Water::Water() : Invalid item type or optionType");
     }
@@ -49,7 +50,7 @@ void Water::create(const string& ownerID, Storage storage, StorageID_t storageID
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -112,7 +113,7 @@ VolumeWidth_t Water::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_WATER, m_ItemType)->getVolumeWidth();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_WATER, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -126,7 +127,7 @@ VolumeHeight_t Water::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_WATER, m_ItemType)->getVolumeHeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_WATER, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -140,7 +141,7 @@ Weight_t Water::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_WATER, m_ItemType)->getWeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_WATER, m_ItemType)->getWeight();
 
     __END_CATCH
 }

@@ -282,7 +282,7 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
                 makeGCAddMonsterCorpse(&gcAddMonsterCorpse, pMonsterCorpse, pt.x, pt.y);
                 broadcastPacket(pt.x, pt.y, &gcAddMonsterCorpse);
 
-                isFlag = g_pFlagManager->isFlagPole(pMonsterCorpse);
+                isFlag = de::gameContext().flags().isFlagPole(pMonsterCorpse);
 
                 // Corpses disappear faster in the master lair.
                 if (isMasterLair()) {
@@ -309,7 +309,7 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
                 pMonsterCorpse->setY(pt.y);
                 pMonsterCorpse->setZone(this);
 
-                isShrine = pMonsterCorpse->isShrine() && !g_pFlagManager->isFlagPole(pMonsterCorpse);
+                isShrine = pMonsterCorpse->isShrine() && !de::gameContext().flags().isFlagPole(pMonsterCorpse);
 
                 // A shrine is shown on the minimap.
                 if (isShrine) {
@@ -740,7 +740,7 @@ bool Zone::addRelicItem(int relicIndex)
 
 
     const RelicInfo* pRelicInfo =
-        dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
+        dynamic_cast<RelicInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
 
     int cx = pRelicInfo->x;
     int cy = pRelicInfo->y;

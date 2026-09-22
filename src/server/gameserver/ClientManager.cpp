@@ -245,7 +245,7 @@ void ClientManager::run()
         }
 
         if (g_pVariableManager->isActiveFlagWar()) {
-            g_pFlagManager->heartbeat();
+            de::gameContext().flags().heartbeat();
         }
 
         // Remove it.

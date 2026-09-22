@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -39,7 +40,7 @@ Helm::Helm(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Helm::Helm() : Invalid item type or option type");
         throw Error("Helm::Helm() : Invalid item type or optionType");
     }
@@ -57,7 +58,7 @@ void Helm::create(const string& ownerID, Storage storage, StorageID_t storageID,
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -207,7 +208,7 @@ void HelmLoader::load(Creature* pCreature)
             pHelm->setObjectID(rows[r].objectID);
             pHelm->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_HELM, pHelm->getItemType())->isUnique())
+            if (de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_HELM, pHelm->getItemType())->isUnique())
                 pHelm->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

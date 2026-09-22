@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -39,14 +40,14 @@ OustersArmsband::OustersArmsband(ItemType_t itemType, const list<OptionType_t>& 
     setItemType(itemType);
     setOptionType(optionType);
     OustersArmsbandInfo* pOustersArmsbandInfo = dynamic_cast<OustersArmsbandInfo*>(
-        g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_ARMSBAND, getItemType()));
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_OUSTERS_ARMSBAND, getItemType()));
 
     m_pInventory = new Inventory(pOustersArmsbandInfo->getPocketCount(), 1);
 
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersArmsband::OustersArmsband() : Invalid item type or option type");
         throw Error("OustersArmsband::OustersArmsband() : Invalid item type or optionType");
     }
@@ -73,7 +74,7 @@ void OustersArmsband::create(const string& ownerID, Storage storage, StorageID_t
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -217,7 +218,7 @@ PocketNum_t OustersArmsband::getPocketCount(void) const
     __BEGIN_TRY
 
     OustersArmsbandInfo* pOustersArmsbandInfo = dynamic_cast<OustersArmsbandInfo*>(
-        g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_ARMSBAND, getItemType()));
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_OUSTERS_ARMSBAND, getItemType()));
     Assert(pOustersArmsbandInfo != NULL);
     return pOustersArmsbandInfo->getPocketCount();
 
@@ -308,12 +309,15 @@ void OustersArmsbandLoader::load(Creature* pCreature)
             pOustersArmsband->setObjectID(rows[r].objectID);
             pOustersArmsband->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_ARMSBAND, pOustersArmsband->getItemType())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_OUSTERS_ARMSBAND, pOustersArmsband->getItemType())
                     ->isUnique())
                 pOustersArmsband->setUnique();
 
-            OustersArmsbandInfo* pOustersArmsbandInfo = dynamic_cast<OustersArmsbandInfo*>(
-                g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_ARMSBAND, pOustersArmsband->getItemType()));
+            OustersArmsbandInfo* pOustersArmsbandInfo =
+                dynamic_cast<OustersArmsbandInfo*>(de::gameContext().itemInfos().getItemInfo(
+                    Item::ITEM_CLASS_OUSTERS_ARMSBAND, pOustersArmsband->getItemType()));
             Inventory* pOustersArmsbandInventory = new Inventory(pOustersArmsbandInfo->getPocketCount(), 1);
 
             pOustersArmsband->setInventory(pOustersArmsbandInventory);

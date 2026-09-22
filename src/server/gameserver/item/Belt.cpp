@@ -7,6 +7,7 @@
 #include "Belt.h"
 
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -41,14 +42,14 @@ Belt::Belt(ItemType_t itemType, const list<OptionType_t>& optionType)
     setOptionType(optionType);
 
     BeltInfo* pBeltInfo =
-        dynamic_cast<BeltInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BELT, getItemType()));
+        dynamic_cast<BeltInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_BELT, getItemType()));
 
     m_pInventory = new Inventory(pBeltInfo->getPocketCount(), 1);
 
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Belt::Belt() : Invalid item type or option type");
         throw Error("Belt::Belt() : Invalid item type or optionType");
     }
@@ -77,7 +78,7 @@ void Belt::create(const string& ownerID, Storage storage, StorageID_t storageID,
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -220,7 +221,7 @@ PocketNum_t Belt::getPocketCount(void) const
     __BEGIN_TRY
 
     BeltInfo* pBeltInfo =
-        dynamic_cast<BeltInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BELT, getItemType()));
+        dynamic_cast<BeltInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_BELT, getItemType()));
     Assert(pBeltInfo != NULL);
     return pBeltInfo->getPocketCount();
 
@@ -313,11 +314,11 @@ void BeltLoader::load(Creature* pCreature)
             pBelt->setObjectID(rows[r].objectID);
             pBelt->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BELT, pBelt->getItemType())->isUnique())
+            if (de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_BELT, pBelt->getItemType())->isUnique())
                 pBelt->setUnique();
 
-            BeltInfo* pBeltInfo =
-                dynamic_cast<BeltInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BELT, pBelt->getItemType()));
+            BeltInfo* pBeltInfo = dynamic_cast<BeltInfo*>(
+                de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_BELT, pBelt->getItemType()));
             Inventory* pBeltInventory = new Inventory(pBeltInfo->getPocketCount(), 1);
 
             pBelt->setInventory(pBeltInventory);

@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -36,7 +37,7 @@ CoreZap::CoreZap(ItemType_t itemType, const list<OptionType_t>& optionType)
     setItemType(itemType);
     setOptionType(optionType);
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "CoreZap::CoreZap() : Invalid item type or option type");
         throw Error("CoreZap::CoreZap() : Invalid item type or optionType");
     }
@@ -54,7 +55,7 @@ void CoreZap::create(const string& ownerID, Storage storage, StorageID_t storage
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -192,7 +193,10 @@ void CoreZapLoader::load(Creature* pCreature)
             pCoreZap->setObjectID(rows[r].objectID);
             pCoreZap->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CORE_ZAP, pCoreZap->getItemType())->isUnique())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_CORE_ZAP, pCoreZap->getItemType())
+                    ->isUnique())
                 pCoreZap->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

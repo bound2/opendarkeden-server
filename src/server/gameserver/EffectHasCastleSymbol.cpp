@@ -16,6 +16,7 @@
 #include "GCRemoveEffect.h"
 #include "GCStatusCurrentHP.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GuildManager.h"
 #include "ItemInfoManager.h"
 #include "Monster.h"
@@ -167,8 +168,8 @@ void EffectHasCastleSymbol::setPart(int part)
 {
     __BEGIN_TRY
 
-    const CastleSymbolInfo* pCastleSymbolInfo =
-        dynamic_cast<const CastleSymbolInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CASTLE_SYMBOL, part));
+    const CastleSymbolInfo* pCastleSymbolInfo = dynamic_cast<const CastleSymbolInfo*>(
+        de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_CASTLE_SYMBOL, part));
 
     if (pCastleSymbolInfo != NULL) {
         m_Part = part;

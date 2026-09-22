@@ -2,6 +2,7 @@
 #include "ItemRewardInfo.h"
 
 #include "GCCreateItem.h"
+#include "GameContext.h"
 #include "Inventory.h"
 #include "ItemFactoryManager.h"
 #include "ItemInfoManager.h"
@@ -35,7 +36,7 @@ QuestMessage ItemRewardInfo::canGiveReward(PlayerCreature* pPC) const
     __BEGIN_TRY
 
     Inventory* pInventory = pPC->getInventory();
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(m_IClass, m_IType);
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(m_IClass, m_IType);
 
     _TPOINT tp;
 

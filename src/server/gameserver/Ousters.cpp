@@ -1376,7 +1376,7 @@ bool Ousters::isRealWearing(Item* pItem) const
     }
 
     Item::ItemClass IClass = pItem->getItemClass();
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(IClass, pItem->getItemType());
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(IClass, pItem->getItemType());
 
     Level_t ReqAdvancedLevel = pItemInfo->getReqAdvancedLevel();
     if (ReqAdvancedLevel > 0 && (!isAdvanced() || getAdvancementClassLevel() < ReqAdvancedLevel))
@@ -1604,7 +1604,7 @@ GearInfo* Ousters::getGearInfo() const
 
                         if (pItem->getItemClass() == Item::ITEM_CLASS_OUSTERS_ARMSBAND)
                         {
-                            ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(),
+                            ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(),
                pItem->getItemType());
 
                             BYTE PocketNum = ((OustersArmsbandInfo*)pItemInfo)->getPocketCount();

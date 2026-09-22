@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -39,7 +40,7 @@ VampireCoat::VampireCoat(ItemType_t itemType, const list<OptionType_t>& optionTy
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "VampireCoat::VampireCoat() : Invalid item type or option type");
         throw Error("VampireCoat::VampireCoat() : Invalid item type or optionType");
     }
@@ -57,7 +58,7 @@ void VampireCoat::create(const string& ownerID, Storage storage, StorageID_t sto
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -205,7 +206,10 @@ void VampireCoatLoader::load(Creature* pCreature)
             pVampireCoat->setObjectID(rows[r].objectID);
             pVampireCoat->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_COAT, pVampireCoat->getItemType())->isUnique())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_VAMPIRE_COAT, pVampireCoat->getItemType())
+                    ->isUnique())
                 pVampireCoat->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

@@ -147,6 +147,4 @@ private:
     bool m_bHasFlagWar = false;
 };
 
-extern FlagManager* g_pFlagManager;
-
 #endif

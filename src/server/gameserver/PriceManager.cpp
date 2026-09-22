@@ -8,6 +8,7 @@
 #include "PriceManager.h"
 
 #include "Creature.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Item.h"
 #include "ItemInfoManager.h"
@@ -44,7 +45,7 @@ Price_t PriceManager::getPrice(Item* pItem, MarketCond_t nDiscount, ShopRackType
     }
 
     // Get the item's original price.
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
     double originalPrice = pItemInfo->getPrice();
     double finalPrice = 0;
 
@@ -166,7 +167,7 @@ Price_t PriceManager::getPrice(Item* pItem, MarketCond_t nDiscount, ShopRackType
 //////////////////////////////////////////////////////////////////////////////
 Price_t PriceManager::getRepairPrice(Item* pItem, Creature* pCreature) const {
     // Get the item's original price.
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
     double originalPrice = pItemInfo->getPrice();
     double finalPrice = 0;
 
@@ -267,7 +268,7 @@ Price_t PriceManager::getSilverCoatingPrice(Item* pItem, Creature* pCreature) co
         return 0;
     }
 
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
     double maxSilver = pItemInfo->getMaxSilver();
     double finalPrice = 0;
 
@@ -399,7 +400,7 @@ Price_t PriceManager::getMysteriousPrice(Item::ItemClass itemClass, Creature* pC
     multiplier = max(1, multiplier);
 
     // Get the average price.
-    InfoClassManager* pInfoClass = g_pItemInfoManager->getInfoManager(itemClass);
+    InfoClassManager* pInfoClass = de::gameContext().itemInfos().getInfoManager(itemClass);
     Assert(pInfoClass != NULL);
 
     // Average price * attribute ratio.

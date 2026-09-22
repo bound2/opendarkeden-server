@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -36,7 +37,7 @@ Shoes::Shoes(ItemType_t itemType, const list<OptionType_t>& optionType)
     setOptionType(optionType);
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Shoes::Shoes() : Invalid item type or option type");
         throw Error("Shoes::Shoes() : Invalid item type or optionType");
     }
@@ -53,7 +54,7 @@ void Shoes::create(const string& ownerID, Storage storage, StorageID_t storageID
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -203,7 +204,7 @@ void ShoesLoader::load(Creature* pCreature)
             pShoes->setObjectID(rows[r].objectID);
             pShoes->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SHOES, pShoes->getItemType())->isUnique())
+            if (de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_SHOES, pShoes->getItemType())->isUnique())
                 pShoes->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

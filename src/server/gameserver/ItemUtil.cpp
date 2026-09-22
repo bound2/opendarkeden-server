@@ -248,7 +248,7 @@ bool isSuitableMagazine(const Item* pGun, const Item* pMagazine, bool hasVivid) 
 
     ItemType_t magazineType = pMagazine->getItemType();
     MagazineInfo* pInfo =
-        dynamic_cast<MagazineInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MAGAZINE, magazineType));
+        dynamic_cast<MagazineInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_MAGAZINE, magazineType));
 
     switch (pGun->getItemClass()) {
     case Item::ITEM_CLASS_SG:
@@ -531,7 +531,7 @@ Durability_t computeMaxDurability(Item* pItem) {
     if (pItem == NULL)
         return 0;
 
-    //	ItemInfo*    pItemInfo     = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    //	ItemInfo*    pItemInfo     = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
     //	unsigned long maxDurability = pItemInfo->getDurability();
 
     unsigned long maxDurability = pItem->getMaxDurability();
@@ -576,7 +576,7 @@ Bullet_t reloadArmsItem(Item* pGun, Item* pMagazine) {
 
     Item::ItemClass IClass = pGun->getItemClass();
     ItemType_t MagazineType = pMagazine->getItemType();
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MAGAZINE, MagazineType);
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_MAGAZINE, MagazineType);
     MagazineInfo* pMagazineInfo = dynamic_cast<MagazineInfo*>(pItemInfo);
     Bullet_t BulletCount = pMagazineInfo->getMaxBullets();
     Silver_t Silver = pMagazineInfo->getMaxSilver();
@@ -1042,7 +1042,7 @@ bool isPossibleNextOption(ITEM_TEMPLATE* pTemplate) {
 
     try {
         // Get the probability that the next option is attached, per item kind.
-        ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pTemplate->ItemClass, pTemplate->ItemType);
+        ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pTemplate->ItemClass, pTemplate->ItemType);
         Ratio_t nextItemRatio = pItemInfo->getNextOptionRatio();
 
         // Get the probability of the next option, given the options already attached.
@@ -1103,7 +1103,7 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
 
     Assert(pCreature != NULL);
 
-    InfoClassManager* pInfoClass = g_pItemInfoManager->getInfoManager(itemClass);
+    InfoClassManager* pInfoClass = de::gameContext().itemInfos().getInfoManager(itemClass);
     Assert(pInfoClass != NULL);
 
     ItemType_t itemType = 0;
@@ -1149,7 +1149,7 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
             itemType = pInfoClass->getRandomItemType();
 
             // Check whether the level allows creating this itemType.
-            pItemInfo = g_pItemInfoManager->getItemInfo(itemClass, itemType);
+            pItemInfo = de::gameContext().itemInfos().getItemInfo(itemClass, itemType);
 
             ReqSTR2 = ReqSTR = pItemInfo->getReqSTR();
             ReqDEX2 = ReqDEX = pItemInfo->getReqDEX();
@@ -1293,7 +1293,7 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
             itemType = pInfoClass->getRandomItemType();
 
             // Check whether the level allows creating this itemType.
-            pItemInfo = g_pItemInfoManager->getItemInfo(itemClass, itemType);
+            pItemInfo = de::gameContext().itemInfos().getItemInfo(itemClass, itemType);
 
             ReqLevel2 = ReqLevel = pItemInfo->getReqLevel();
             ReqGender = pItemInfo->getReqGender();
@@ -1408,7 +1408,7 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
             itemType = pInfoClass->getRandomItemType();
 
             // Check whether the level allows creating this itemType.
-            pItemInfo = g_pItemInfoManager->getItemInfo(itemClass, itemType);
+            pItemInfo = de::gameContext().itemInfos().getItemInfo(itemClass, itemType);
 
             ReqLevel2 = ReqLevel = pItemInfo->getReqLevel();
 
@@ -1618,7 +1618,7 @@ ItemType_t getUpgradeItemType(Item::ItemClass IClass, ItemType_t itemType, ItemT
     if (upgradeCount == 0)
         return itemType;
 
-    InfoClassManager* pInfoClass = g_pItemInfoManager->getInfoManager(IClass);
+    InfoClassManager* pInfoClass = de::gameContext().itemInfos().getInfoManager(IClass);
     Assert(pInfoClass != NULL);
 
     // Item upgrade information goes into the DB. Here it advances to the next ItemType the given number of times.
@@ -1675,7 +1675,7 @@ ItemType_t getUpgradeItemType(Item::ItemClass IClass, ItemType_t itemType, ItemT
 }
 
 ItemType_t getDowngradeItemType(Item::ItemClass IClass, ItemType_t itemType) {
-    InfoClassManager* pInfoClass = g_pItemInfoManager->getInfoManager(IClass);
+    InfoClassManager* pInfoClass = de::gameContext().itemInfos().getInfoManager(IClass);
     Assert(pInfoClass != NULL);
 
     for (int i = 0; i < pInfoClass->getInfoCount(); ++i) {
@@ -2296,7 +2296,8 @@ void saveDissectionItem(Creature* pCreature, Item* pTreasure, int x, int y)
     } break;
 
     default: {
-        ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pTreasure->getItemClass(), pTreasure->getItemType());
+        ItemInfo* pItemInfo =
+            de::gameContext().itemInfos().getItemInfo(pTreasure->getItemClass(), pTreasure->getItemType());
         Assert(pItemInfo != NULL);
 
         // For a unique item,
@@ -2536,7 +2537,7 @@ void setItemGender(Item* pItem, GenderRestriction gender) {
     if (gender == GENDER_BOTH || gender == GENDER_MAX)
         return;
 
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
     if (pItemInfo->getReqGender() == gender)
         return;
     if (pItemInfo->getReqGender() == GENDER_BOTH || pItemInfo->getReqGender() == GENDER_MAX)
@@ -2681,7 +2682,7 @@ Item* createItemByGoodsID(DWORD goodsID) {
     bool bTimeLimit = pGoodsInfo->isTimeLimit();
     int Hour = pGoodsInfo->getHour();
 
-    if (!g_pItemInfoManager->isPossibleItem(ItemClass, ItemType, optionTypeList)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(ItemClass, ItemType, optionTypeList)) {
         filelog("buyItemBug.txt", "buyID(%d) ¿¡ ÇØ´çÇÏ´Â ¾ÆÀÌÅÛÀº ¸¸µé ¼ö ¾ø½À´Ï´Ù.", (int)goodsID);
         return NULL;
     }

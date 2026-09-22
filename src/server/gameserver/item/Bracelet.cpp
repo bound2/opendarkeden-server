@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -38,7 +39,7 @@ Bracelet::Bracelet(ItemType_t itemType, const list<OptionType_t>& optionType)
     setOptionType(optionType);
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Bracelet::Bracelet() : Invalid item type or option type");
         cerr << "Bracelet::Bracelet() : Invalid item type or optionType" << endl;
         throw Error("Bracelet::Bracelet() : Invalid item type or optionType");
@@ -56,7 +57,7 @@ void Bracelet::create(const string& ownerID, Storage storage, StorageID_t storag
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -206,7 +207,10 @@ void BraceletLoader::load(Creature* pCreature)
             pBracelet->setObjectID(rows[r].objectID);
             pBracelet->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_BRACELET, pBracelet->getItemType())->isUnique())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_BRACELET, pBracelet->getItemType())
+                    ->isUnique())
                 pBracelet->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

@@ -89,7 +89,7 @@ void EventReloadInfo::activate()
 
     case ITEM_INFO: {
         // m_InfoValue is the Class of the ItemInfo to load.
-        g_pItemInfoManager->getInfoManager((Item::ItemClass)m_InfoValue)->reload();
+        de::gameContext().itemInfos().getInfoManager((Item::ItemClass)m_InfoValue)->reload();
     } break;
 
     case LOG_USER_INFO:

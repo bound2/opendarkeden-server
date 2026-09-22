@@ -1129,7 +1129,7 @@ bool isAbleToPickupItem(Creature* pCreature, Item* pItem) {
         // Only a relic that does not exist yet can be picked up.
         case Item::ITEM_CLASS_RELIC: {
             const RelicInfo* pRelicInfo =
-                dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, itemtype));
+                dynamic_cast<RelicInfo*>(de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_RELIC, itemtype));
 
             if (pRelicInfo->relicType == RELIC_TYPE_SLAYER &&
                     !pCreature->isFlag(Effect::EFFECT_CLASS_HAS_SLAYER_RELIC) ||
@@ -1210,7 +1210,7 @@ bool isAbleToPickupItem(Creature* pCreature, Item* pItem) {
 
     // A player already holding a flag cannot pick up a flag.
     if (pItem->isFlagItem()) {
-        if (!g_pFlagManager->hasFlagWar())
+        if (!de::gameContext().flags().hasFlagWar())
             return false;
         if (pCreature->isFlag(Effect::EFFECT_CLASS_HAS_FLAG))
             return false;

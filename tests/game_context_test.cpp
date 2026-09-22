@@ -17,10 +17,10 @@
 // The per-item-class tables get no test here. ItemLoaderManager's loaders
 // and ItemInfoManager's info managers are eighty-seven concrete classes
 // each, so filling either table means dragging in the whole gameserver and
-// reading one means talking to the database. Neither can be a context
-// accessor either: keying one needs Item::ItemClass, a nested enum this
-// header cannot forward-declare. The R1 ratchet is what pins that the
-// globals those tables replaced stay gone.
+// reading one means talking to the database. Neither table can be an
+// accessor of its own either: keying one needs Item::ItemClass, a nested
+// enum this header cannot forward-declare. The R1 ratchet is what pins
+// that the globals those tables replaced stay gone.
 //----------------------------------------------------------------------
 
 #include <gtest/gtest.h>
@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[48];
+char g_managerStorage[50];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -110,12 +110,15 @@ TEST(GameContextTest, ItemDescriptionManagersAreReadBack) {
     de::GameContext context;
 
     DefaultOptionSetInfoManager* pDefaultOptionSetInfoManager = standIn<DefaultOptionSetInfoManager>(15);
+    ItemInfoManager* pItemInfoManager = standIn<ItemInfoManager>(48);
     VolumeInfoManager* pVolumeInfoManager = standIn<VolumeInfoManager>(16);
 
     context.setDefaultOptionSetInfoManager(pDefaultOptionSetInfoManager);
+    context.setItemInfoManager(pItemInfoManager);
     context.setVolumeInfoManager(pVolumeInfoManager);
 
     EXPECT_EQ(&context.optionSets(), pDefaultOptionSetInfoManager);
+    EXPECT_EQ(&context.itemInfos(), pItemInfoManager);
     EXPECT_EQ(&context.volumeInfos(), pVolumeInfoManager);
 }
 
@@ -125,16 +128,19 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     CastleShrineInfoManager* pCastleShrineInfoManager = standIn<CastleShrineInfoManager>(17);
     DragonEyeManager* pDragonEyeManager = standIn<DragonEyeManager>(18);
     EventQuestLootingManager* pEventQuestLootingManager = standIn<EventQuestLootingManager>(19);
+    FlagManager* pFlagManager = standIn<FlagManager>(49);
     WayPointManager* pWayPointManager = standIn<WayPointManager>(20);
 
     context.setCastleShrineInfoManager(pCastleShrineInfoManager);
     context.setDragonEyeManager(pDragonEyeManager);
     context.setEventQuestLootingManager(pEventQuestLootingManager);
+    context.setFlagManager(pFlagManager);
     context.setWayPointManager(pWayPointManager);
 
     EXPECT_EQ(&context.castleShrines(), pCastleShrineInfoManager);
     EXPECT_EQ(&context.dragonEyes(), pDragonEyeManager);
     EXPECT_EQ(&context.eventQuestLoot(), pEventQuestLootingManager);
+    EXPECT_EQ(&context.flags(), pFlagManager);
     EXPECT_EQ(&context.wayPoints(), pWayPointManager);
 }
 
@@ -310,10 +316,12 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.dynamicZones(), AssertionError);
     EXPECT_THROW(context.effectLoaders(), AssertionError);
     EXPECT_THROW(context.eventQuestLoot(), AssertionError);
+    EXPECT_THROW(context.flags(), AssertionError);
     EXPECT_THROW(context.gameServerGroups(), AssertionError);
     EXPECT_THROW(context.goodsInfos(), AssertionError);
     EXPECT_THROW(context.incomingPlayers(), AssertionError);
     EXPECT_THROW(context.itemFactories(), AssertionError);
+    EXPECT_THROW(context.itemInfos(), AssertionError);
     EXPECT_THROW(context.itemLoaders(), AssertionError);
     EXPECT_THROW(context.itemMineInfos(), AssertionError);
     EXPECT_THROW(context.masterLairInfos(), AssertionError);

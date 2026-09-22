@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "OptionInfo.h"
@@ -162,7 +163,7 @@ void TreasureItemType::loadFromFile(int itemClass, ifstream& file)
     file.read((char*)&OptionTypeCount, sizeof(int));
 
     list<OptionType_t> optionNULL;
-    if (!g_pItemInfoManager->isPossibleItem((Item::ItemClass)itemClass, m_ItemType, optionNULL)) {
+    if (!de::gameContext().itemInfos().isPossibleItem((Item::ItemClass)itemClass, m_ItemType, optionNULL)) {
         StringStream msg;
         msg << "TreasureItemType::loadFromFile() : Invalid Item Type!\n"
             << "ItemClass:" << ItemClass2String[itemClass] << ",ItemType:" << (int)m_ItemType << "\n";
@@ -207,7 +208,7 @@ void TreasureItemType::parseString(int itemClass, const string& text)
     m_Ratio = atoi(trim(text.substr(j + 1, k - j - 1)).c_str());
 
     list<OptionType_t> optionNULL;
-    if (!g_pItemInfoManager->isPossibleItem((Item::ItemClass)itemClass, m_ItemType, optionNULL)) {
+    if (!de::gameContext().itemInfos().isPossibleItem((Item::ItemClass)itemClass, m_ItemType, optionNULL)) {
         StringStream msg;
         msg << "TreasureItemType::parseString() : Invalid Item Type!\n"
             << "ItemClass:" << ItemClass2String[itemClass] << ",ItemType:" << (int)m_ItemType << "\n";
@@ -491,7 +492,7 @@ bool TreasureItemClass::getRandomItem(ITEM_TEMPLATE* pTemplate)
         if (itemTypeRatio < ratioSum) {
             pTemplate->ItemType = pTIT->getItemType();
 
-            ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pTemplate->ItemClass, pTemplate->ItemType);
+            ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pTemplate->ItemClass, pTemplate->ItemType);
             Assert(pItemInfo != NULL);
 
             if (pItemInfo->isUnique()) {

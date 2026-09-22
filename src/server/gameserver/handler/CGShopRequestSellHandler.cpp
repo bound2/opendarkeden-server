@@ -528,7 +528,7 @@ void CGShopRequestSellHandler::executeOpSwapAdvancementItem(CGShopRequestSell* p
     Grade_t iGrade = 0;
     FlagSetType fType = FLAGSET_MAX;
 
-    ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
+    ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
     Assert(pItemInfo != NULL);
 
     switch (pItem->getItemClass()) {

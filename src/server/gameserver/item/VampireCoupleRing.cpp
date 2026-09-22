@@ -40,7 +40,7 @@ VampireCoupleRing::VampireCoupleRing(ItemType_t itemType, const list<OptionType_
     : m_ItemType(itemType), m_OptionType(optionType) {
     __BEGIN_TRY
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "VampireCoupleRing::VampireCoupleRing() : Invalid item type or option type");
         throw Error("VampireCoupleRing::VampireCoupleRing() : Invalid item type or optionType");
     }
@@ -57,7 +57,7 @@ void VampireCoupleRing::create(const string& ownerID, Storage storage, StorageID
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -113,7 +113,10 @@ VolumeWidth_t VampireCoupleRing::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_COUPLE_RING, m_ItemType)->getVolumeWidth();
+    return de::gameContext()
+        .itemInfos()
+        .getItemInfo(Item::ITEM_CLASS_VAMPIRE_COUPLE_RING, m_ItemType)
+        ->getVolumeWidth();
 
     __END_CATCH
 }
@@ -123,7 +126,10 @@ VolumeHeight_t VampireCoupleRing::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_COUPLE_RING, m_ItemType)->getVolumeHeight();
+    return de::gameContext()
+        .itemInfos()
+        .getItemInfo(Item::ITEM_CLASS_VAMPIRE_COUPLE_RING, m_ItemType)
+        ->getVolumeHeight();
 
     __END_CATCH
 }
@@ -133,7 +139,7 @@ Weight_t VampireCoupleRing::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_COUPLE_RING, m_ItemType)->getWeight();
+    return de::gameContext().itemInfos().getItemInfo(Item::ITEM_CLASS_VAMPIRE_COUPLE_RING, m_ItemType)->getWeight();
 
     __END_CATCH
 }

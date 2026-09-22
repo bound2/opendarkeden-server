@@ -143,8 +143,8 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                 return;
             }
 
-            if (g_pFlagManager->isFlagPole(pMonsterCorpse)) {
-                if (!g_pFlagManager->hasFlagWar())
+            if (de::gameContext().flags().isFlagPole(pMonsterCorpse)) {
+                if (!de::gameContext().flags().hasFlagWar())
                     return;
             } else if (pZone->getLevelWarManager() != NULL && pZone->getLevelWarManager()->isSafe(pMonsterCorpse)) {
                 if (!pZone->getLevelWarManager()->hasWar())
@@ -294,11 +294,11 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                     return; //(|| pMonsterCorpse->isNextTreasureHead() ) return;
             }
 
-            if (pMonsterCorpse != NULL && g_pFlagManager->isFlagPole(pMonsterCorpse)) {
-                if (!g_pFlagManager->hasFlagWar())
+            if (pMonsterCorpse != NULL && de::gameContext().flags().isFlagPole(pMonsterCorpse)) {
+                if (!de::gameContext().flags().hasFlagWar())
                     return;
                 // The same race cannot pull it out..
-                if (g_pFlagManager->getFlagPoleRace(pMonsterCorpse) == pPC->getRace())
+                if (de::gameContext().flags().getFlagPoleRace(pMonsterCorpse) == pPC->getRace())
                     return;
 
                 TPOINT tp;
@@ -462,7 +462,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                 TPOINT tp;
 
                 if (!pInventory->getEmptySlot(pTreasure, tp) || pCorpse->getItemType() != MONSTER_CORPSE ||
-                    !g_pFlagManager->getFlag(pPC, dynamic_cast<MonsterCorpse*>(pCorpse))) {
+                    !de::gameContext().flags().getFlag(pPC, dynamic_cast<MonsterCorpse*>(pCorpse))) {
                     // Put it back in.
                     pCorpse->addTreasure(pTreasure);
 
@@ -545,8 +545,9 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                                 Assert(false);
                             }
 
-                            const SweeperInfo* pSweeperInfo = dynamic_cast<SweeperInfo*>(
-                                g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, pTreasure->getItemType()));
+                            const SweeperInfo* pSweeperInfo =
+                                dynamic_cast<SweeperInfo*>(de::gameContext().itemInfos().getItemInfo(
+                                    Item::ITEM_CLASS_SWEEPER, pTreasure->getItemType()));
 
                             char msg[100];
                             sprintf(msg, g_pStringPool->c_str(STRID_PULL_OUT_SWEEPER), safeRace,

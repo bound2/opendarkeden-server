@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -39,7 +40,7 @@ VampireEarring::VampireEarring(ItemType_t itemType, const list<OptionType_t>& op
 
     setDurability(computeMaxDurability(this));
 
-    if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
+    if (!de::gameContext().itemInfos().isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "VampireEarring::VampireEarring() : Invalid item type or option type");
         throw Error("VampireEarring::VampireEarring() : Invalid item type or optionType");
     }
@@ -58,7 +59,7 @@ void VampireEarring::create(const string& ownerID, Storage storage, StorageID_t 
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        m_ItemIDRegistry += g_pItemInfoManager->getItemIDSuccessor();
+        m_ItemIDRegistry += de::gameContext().itemInfos().getItemIDSuccessor();
         m_ItemID = m_ItemIDRegistry;
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -209,7 +210,9 @@ void VampireEarringLoader::load(Creature* pCreature)
             pVampireEarring->setObjectID(rows[r].objectID);
             pVampireEarring->setItemType(rows[r].itemType);
 
-            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_EARRING, pVampireEarring->getItemType())
+            if (de::gameContext()
+                    .itemInfos()
+                    .getItemInfo(Item::ITEM_CLASS_VAMPIRE_EARRING, pVampireEarring->getItemType())
                     ->isUnique())
                 pVampireEarring->setUnique();
 
