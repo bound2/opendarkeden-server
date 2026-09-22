@@ -106,12 +106,6 @@ Vampire::Vampire()
     for (int i = 0; i < VAMPIRE_WEAR_MAX; i++)
         m_pWearItem[i] = NULL;
 
-    // Initialize the hot keys.
-    //	for (int i = 0; i < 8; i++)
-    //	{
-    //		m_HotKey[i] = 0;
-    //	}
-
     m_SilverDamage = 0;
     m_ClanType = 0;
 
@@ -583,10 +577,6 @@ bool Vampire::load()
 
     m_pRank = new Rank(CurRank, RankGoalExp, RankExpTable::s_RankExpTables[RANK_TYPE_VAMPIRE]);
 
-    //		setRank( pResult->getInt(++i) );
-    //		setRankExp( pResult->getInt(++i) );
-    //		setRankGoalExp( pResult->getInt(++i) );
-
     // Recompute and set maxHP.
     // 2002.7.15 by sigi
     // If the formula changes, computeHP in AbilityBalance.cpp must change too.
@@ -675,14 +665,6 @@ bool Vampire::load()
     //----------------------------------------------------------------------
     // Initialize the Vampire Outlook Information.
     //----------------------------------------------------------------------
-    /*
-    ItemType_t coatType = 0;
-    Item* pItem = m_pWearItem[WEAR_BODY];
-    if (pItem!=NULL)
-    {
-        coatType = pItem->getItemType();
-    }
-    */
 
     m_VampireInfo.setCoatType(0);
     m_VampireInfo.setCoatColor(JACKET_BASIC);
@@ -737,13 +719,6 @@ void Vampire::save() const
     record.x = (int)m_X;
     record.y = (int)m_Y;
     defaultCharacterRepository().saveVampireVitals(m_Name, record);
-
-    /*
-    //--------------------------------------------------
-    // Save the inventory's items.
-    //--------------------------------------------------
-    m_pInventory->save(m_Name);
-    */
 
 
     //--------------------------------------------------
@@ -1379,11 +1354,6 @@ bool Vampire::isRealWearing(Item* pItem) const
     if (pItem == NULL)
         return false;
 
-    /*	if ( m_pZone != NULL && m_pZone->isDynamicZone() && m_pZone->getDynamicZone()->getTemplateZoneID() == 4004 )
-        {
-            if ( !isVampireWeapon( pItem->getItemClass() ) ) return false;
-        }*/
-
     ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
 
     Level_t ReqAdvancedLevel = pItemInfo->getReqAdvancedLevel();
@@ -1537,11 +1507,6 @@ PCVampireInfo2* Vampire::getVampireInfo2()
     pInfo->setRank(getRank());
     pInfo->setRankExp(getRankGoalExp());
 
-    //	for (int i = 0; i < 8; i++)
-    //	{
-    //		pInfo->setHotKey(i, m_HotKey[i]);
-    //	}
-
     pInfo->setCompetence(m_CompetenceShape);
     pInfo->setGuildID(m_GuildID);
     pInfo->setGuildName(getGuildName());
@@ -1583,18 +1548,6 @@ PCVampireInfo3 Vampire::getVampireInfo3() const
 
     // by sigi. 2002.9.10
     m_VampireInfo.setRank(getRank());
-
-    /*
-    Item* pItem = m_pWearItem[WEAR_BODY];
-    if (pItem!=NULL)
-    {
-        m_VampireInfo.setCoatType( pItem->getItemType() );
-    }
-    else
-    {
-        m_VampireInfo.setCoatType( 0 );
-    }
-    */
 
 
     if (m_Flag.test(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF)) {
@@ -1647,53 +1600,6 @@ GearInfo* Vampire::getGearInfo() const
 
             GearSlotInfo* pGearSlotInfo = new GearSlotInfo();
             pItem->makePCItemInfo(*pGearSlotInfo);
-
-            /*			pGearSlotInfo->setObjectID(pItem->getObjectID());
-                        pGearSlotInfo->setItemClass(pItem->getItemClass());
-                        pGearSlotInfo->setItemType(pItem->getItemType());
-                        pGearSlotInfo->setOptionType(pItem->getOptionTypeList());
-                        pGearSlotInfo->setDurability(pItem->getDurability());
-                        pGearSlotInfo->setSilver(pItem->getSilver());
-                        pGearSlotInfo->setEnchantLevel(pItem->getEnchantLevel());*/
-
-            /*
-            // A belt needs the extra information of its sub items.
-            if (IClass == Item::ITEM_CLASS_BELT) {
-
-                // Get the item info.
-                ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
-
-                // Get the number of pockets.
-                BYTE PocketNum = ((BeltInfo*)pItemInfo)->getPocketCount();
-
-                // Get the belt's inventory.
-                Inventory* pBeltInventory = ((Belt*)pItem)->getInventory();
-
-                BYTE SubItemCount = 0;
-
-                // Read item information for as many pockets as there are.
-                for (int i = 0; i < PocketNum ; i++) {
-
-                    Item* pBeltItem = pBeltInventory->getItem(i, 0);
-
-                    if (pBeltItem != NULL) {
-
-                        SubItemInfo* pSubItemInfo = new SubItemInfo();
-                        pSubItemInfo->setObjectID(pBeltItem->getObjectID());
-                        pSubItemInfo->setItemClass(pBeltItem->getItemClass());
-                        pSubItemInfo->setItemType(pBeltItem->getItemType());
-                        pSubItemInfo->setItemNum(pBeltItem->getNum());
-                        pSubItemInfo->setSlotID(i);
-
-                        pGearSlotInfo->addListElement(pSubItemInfo);
-
-                        SubItemCount++;
-                    }
-                }
-
-                pGearSlotInfo->setListNum(SubItemCount);
-            }
-            */
 
             pGearSlotInfo->setSlotID(i);
 
@@ -1778,12 +1684,6 @@ void Vampire::saveSilverDamage(Silver_t damage)
     __BEGIN_TRY
 
     setSilverDamage(damage);
-
-    /*
-    StringStream sql;
-    sql << "SilverDamage = " << (int)m_SilverDamage;
-    tinysave(sql.toString());
-    */
 
     // by sigi. 2002.5.15
     char pField[80];
@@ -1871,53 +1771,6 @@ void Vampire::heartbeat(const Timeval& currentTime)
             m_HPRegenTime.tv_usec = m_HPRegenTime.tv_usec;
         }
     }
-
-    /*
-
-    list<Item*> ItemList;
-    VolumeHeight_t Height = m_pInventory->getHeight();
-    VolumeWidth_t Width = m_pInventory->getWidth();
-
-    for (int j = 0; j < Height; j++)
-    {
-        for (int i = 0 ; i < Width ; i ++)
-        {
-            if (m_pInventory->hasItem(i, j))
-            {
-                Item* pItem = m_pInventory->getItem(i , j);
-                VolumeWidth_t ItemWidth = pItem->getVolumeWidth();
-
-                list<Item*>::iterator itr = find(ItemList.begin() , ItemList.end() , pItem);
-
-                if (itr == ItemList.end())
-                {
-                    ItemList.push_back(pItem);
-                    // Continue the search from the position after the item's width.
-                    i = i + ItemWidth - 1;
-                }
-            }
-        }
-    }
-
-    for (int i = 0; i < VAMPIRE_WEAR_MAX; i++)
-    {
-        Item* pItem = m_pWearItem[i];
-        if (pItem != NULL) ItemList.push_back(pItem);
-    }
-
-    Item* pSlotItem = m_pExtraInventorySlot->getItem();
-    if (pSlotItem != NULL)
-    {
-        ItemList.push_back(pSlotItem);
-    }
-
-    for (list<Item*>::iterator itr = ItemList.begin(); itr != ItemList.end(); itr++)
-    {
-        Item* pItem = *itr;
-        pItem->getEffectManager()->heartbeat();
-    }
-
-    */
 
     __END_DEBUG
     __END_CATCH
@@ -2025,21 +1878,6 @@ void Vampire::saveExps(void) const
     // If the server is not down and you log out normally
     // If you don't explicitly save, the part that goes up below 10 will be blown away.
     // So save here.
-    /*
-    StringStream sql;
-    sql << "UPDATE Vampire SET "
-        << "Alignment = " << m_Alignment
-        << ",Fame = " << m_Fame
-        << ",Exp = " << m_Exp
-        << ",GoalExp = " << m_GoalExp;
-
-    if (m_SilverDamage != 0)
-    {
-        sql << ",SilverDamage = " << m_SilverDamage;
-    }
-
-    sql << " WHERE Name = '" << m_Name << "'";
-    */
 
     VampireExpsRecord record;
     record.alignment = m_Alignment;
@@ -2126,36 +1964,10 @@ void Vampire::saveInitialRank(void)
     int curRank = max(1, (m_Level + 3) / 4);
     m_pRank->SET_LEVEL(curRank);
 
-    /*	RankExp_t accumExp = 0;
-
-        if (curRank!=1)
-        {
-            RankEXPInfo* pBeforeExpInfo = g_pRankEXPInfoManager[RANK_TYPE_VAMPIRE]->getRankEXPInfo(curRank-1);
-            accumExp = pBeforeExpInfo->getAccumExp();
-        }
-
-        RankEXPInfo* pNextExpInfo = g_pRankEXPInfoManager[RANK_TYPE_VAMPIRE]->getRankEXPInfo(curRank);
-        Exp_t NextGoalExp = pNextExpInfo->getGoalExp();
-
-        setRankGoalExp(NextGoalExp);
-    */
-
     char pField[80];
     sprintf(pField, "`Rank`=%d, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
     tinysave(pField);
     setRankExpSaveCount(0);
-    /*
-    sendModifyInfo(prev);
-
-    if (m_pZone != NULL)
-    {
-        GCOtherModifyInfo gcOtherModifyInfo;
-        gcOtherModifyInfo.setObjectID(getObjectID());
-        gcOtherModifyInfo.addShortData(MODIFY_RANK, curRank);
-
-        m_pZone->broadcastPacket(m_X, m_Y, &gcOtherModifyInfo, this);
-    }
-    */
 }
 
 bool Vampire::addShape(Item::ItemClass IClass, ItemType_t IType, Color_t color) {

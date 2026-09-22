@@ -89,9 +89,9 @@ are enforced so far.
 | `src/server/gameserver/InitAllStat.cpp` | 230 (was 4,787 before the split by race into `SlayerStat.cpp` / `VampireStat.cpp` / `OustersStat.cpp`, leaving `PlayerCreature::applyBloodBibleSign` and `Monster::initAllStat`; under the 2,000-line phase exit criterion, so R6b pins it rather than baselining a god file; enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 114 (was 4,720 before the 4.1 command extraction; enforced by `ratchets.sh` R6e) |
 | `src/server/gameserver/gm/ConsoleCommands.cpp` | 1,575 (the 61 `*command` sub-command bodies, one function per name; enforced by `ratchets.sh` R6f) |
-| `src/server/gameserver/Slayer.cpp` | 3,516 (was 4,046 before the 4.3 hoists; enforced by `ratchets.sh` R6h) |
-| `src/server/gameserver/Vampire.cpp` | 2,235 (was 2,783 before the 4.3 hoists; enforced by `ratchets.sh` R6i) |
-| `src/server/gameserver/Ousters.cpp` | 2,117 (was 2,548 before the 4.3 hoists; enforced by `ratchets.sh` R6j) |
+| `src/server/gameserver/Slayer.cpp` | 3,087 (was 4,046 before the 4.3 hoists, 3,516 before the commented-out code went; enforced by `ratchets.sh` R6h) |
+| `src/server/gameserver/Vampire.cpp` | 2,047 (was 2,783 before the 4.3 hoists, 2,235 before the commented-out code went; enforced by `ratchets.sh` R6i) |
+| `src/server/gameserver/Ousters.cpp` | 1,959 (was 2,548 before the 4.3 hoists, 2,117 before the commented-out code went; enforced by `ratchets.sh` R6j) |
 | `src/server/gameserver/skill/SkillFormula.cpp` | 818 (was 3,081 before the 3.3 computeOutput extraction — now thin adapters + the 11 dice-roll formulas; enforced by `ratchets.sh` R6d) |
 | `src/server/gameserver/skill/HitRoll.cpp` | 643 (not a god file — an extraction-target pin, locked in with its 3.3 extraction; enforced by `ratchets.sh` R6c) |
 

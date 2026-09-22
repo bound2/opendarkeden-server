@@ -129,11 +129,11 @@ check_ratchet R6g "Zone.cpp lines" 1274 "$R6g"
 # substituting a wear enum or a persistence record type that is per-race, so
 # they shrink again only when one of those types is reconciled.
 R6h=$(wc -l < src/server/gameserver/Slayer.cpp 2>/dev/null || echo missing)
-check_ratchet R6h "Slayer.cpp lines" 3516 "$R6h"
+check_ratchet R6h "Slayer.cpp lines" 3087 "$R6h"
 R6i=$(wc -l < src/server/gameserver/Vampire.cpp 2>/dev/null || echo missing)
-check_ratchet R6i "Vampire.cpp lines" 2235 "$R6i"
+check_ratchet R6i "Vampire.cpp lines" 2047 "$R6i"
 R6j=$(wc -l < src/server/gameserver/Ousters.cpp 2>/dev/null || echo missing)
-check_ratchet R6j "Ousters.cpp lines" 2117 "$R6j"
+check_ratchet R6j "Ousters.cpp lines" 1959 "$R6j"
 
 # --- R7: pre-C++17 dynamic exception specifications ------------------------
 # The migration also normalized real `throw(expr)` expressions to `throw expr`

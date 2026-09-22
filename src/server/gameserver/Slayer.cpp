@@ -141,12 +141,6 @@ Slayer::Slayer()
         m_PhoneSlot[i] = 0;
     }
 
-    // Initialize the hot keys.
-    //	for (int i = 0; i < 4; i++)
-    //	{
-    //		m_HotKey[i] = 0;
-    //	}
-
     // Initialize the MP regeneration time.
     getCurrentTime(m_MPRegenTime);
 
@@ -456,13 +450,7 @@ void Slayer::checkItemTimeLimit() {
         }
     }
 
-    // Check the motorcycle.
-    // The motorcycle has no time limit for now because it is complicated.
-    /*	{
-            if (m_pMotorcycle != NULL && wasteIfTimeLimitExpired( m_pMotorcycle ) )
-            {
-            }
-        }*/
+    // The motorcycle is left out of the sweep: it carries no time limit.
 
     __END_CATCH
 }
@@ -565,16 +553,6 @@ void Slayer::loadItem(bool checkTimeLimit)
     // Compute the attributes from the equipped gear.
     initAllStat();
 
-    // cout << "Slayer::loadItem() : STR[CURRENT]" << (int)m_STR[ATTR_CURRENT] << endl;
-    // cout << "Slayer::loadItem() : STR[MAX]" << (int)m_STR[ATTR_MAX] << endl;
-    // cout << "Slayer::loadItem() : STR[BASIC]" << (int)m_STR[ATTR_BASIC] << endl;
-    // cout << "Slayer::loadItem() : DEX[CURRENT]" << (int)m_DEX[ATTR_CURRENT] << endl;
-    // cout << "Slayer::loadItem() : DEX[MAX]" << (int)m_DEX[ATTR_MAX] << endl;
-    // cout << "Slayer::loadItem() : DEX[BASIC]" << (int)m_DEX[ATTR_BASIC] << endl;
-    // cout << "Slayer::loadItem() : INT[CURRENT]" << (int)m_INT[ATTR_CURRENT] << endl;
-    // cout << "Slayer::loadItem() : INT[MAX]" << (int)m_INT[ATTR_MAX] << endl;
-    // cout << "Slayer::loadItem() : INT[BASIC]" << (int)m_INT[ATTR_BASIC] << endl;
-
     __END_CATCH
 }
 
@@ -657,16 +635,6 @@ bool Slayer::load()
     m_pRank = new Rank(CurRank, RankGoalExp, RankExpTable::s_RankExpTables[RANK_TYPE_SLAYER]);
     //		cout << getRankGoalExp() << endl;
 
-    // cout << "Slayer::load() : STR[CURRENT]" << (int)m_STR[ATTR_CURRENT] << endl;
-    // cout << "Slayer::load() : STR[MAX]" << (int)m_STR[ATTR_MAX] << endl;
-    // cout << "Slayer::load() : STR[BASIC]" << (int)m_STR[ATTR_BASIC] << endl;
-    // cout << "Slayer::load() : DEX[CURRENT]" << (int)m_DEX[ATTR_CURRENT] << endl;
-    // cout << "Slayer::load() : DEX[MAX]" << (int)m_DEX[ATTR_MAX] << endl;
-    // cout << "Slayer::load() : DEX[BASIC]" << (int)m_DEX[ATTR_BASIC] << endl;
-    // cout << "Slayer::load() : INT[CURRENT]" << (int)m_INT[ATTR_CURRENT] << endl;
-    // cout << "Slayer::load() : INT[MAX]" << (int)m_INT[ATTR_MAX] << endl;
-    // cout << "Slayer::load() : INT[BASIC]" << (int)m_INT[ATTR_BASIC] << endl;
-
     m_HP[ATTR_CURRENT] = record.currentHP;
     m_HP[ATTR_MAX] = record.maxHP;
     m_HP[ATTR_BASIC] = 0;
@@ -689,9 +657,6 @@ bool Slayer::load()
     setSkillDomainLevel(SKILL_DOMAIN_GUN, record.gunLevel);
     //		setSkillDomainExp  (SKILL_DOMAIN_GUN,     pResult->getInt(++i));
     setGoalExp(SKILL_DOMAIN_GUN, record.gunGoalExp);
-    // setSkillDomainLevel(SKILL_DOMAIN_RIFLE   , pResult->getInt(++i));
-    // setSkillDomainExp(SKILL_DOMAIN_RIFLE   , pResult->getInt(++i));
-    // setGoalExp(SKILL_DOMAIN_RIFLE	  , pResult->getInt(++i));
     setSkillDomainLevel(SKILL_DOMAIN_ENCHANT, record.enchantLevel);
     //		setSkillDomainExp  (SKILL_DOMAIN_ENCHANT, pResult->getInt(++i));
     setGoalExp(SKILL_DOMAIN_ENCHANT, record.enchantGoalExp);
@@ -871,11 +836,6 @@ void Slayer::save() const
     record.x = (int)m_X;
     record.y = (int)m_Y;
     defaultCharacterRepository().saveSlayerVitals(m_Name, record);
-
-    /*
-    // Save the inventory's items.
-    m_pInventory->save(m_Name);
-    */
 
     // Save the effects.
     m_pEffectManager->save(m_Name);
@@ -1484,120 +1444,6 @@ void Slayer::wearItem(WearPart Part)
     Color_t color = getItemShapeColor(pItem, pOptionInfo);
 
     bisChange = changeShape(pItem, color);
-    /*
-    // Change the outfit if the item can really be worn.
-    if (m_pRealWearingCheck[Part])
-    {
-        switch (IClass)
-        {
-            case Item::ITEM_CLASS_MACE:
-                bisWeapon = true;
-                bisChange = true;
-                //m_SlayerInfo.setWeaponType(WEAPON_MACE);
-                m_SlayerInfo.setWeaponType(WEAPON_CROSS);
-                m_SlayerInfo.setWeaponColor( color );
-                break;
-            case Item::ITEM_CLASS_CROSS:
-                bisWeapon = true;
-                bisChange = true;
-                m_SlayerInfo.setWeaponType(WEAPON_CROSS);
-                m_SlayerInfo.setWeaponColor( color );
-                break;
-            case Item::ITEM_CLASS_BLADE:
-                bisWeapon = true;
-                bisChange = true;
-                m_SlayerInfo.setWeaponType(WEAPON_BLADE);
-                m_SlayerInfo.setWeaponColor( color );
-                break;
-            case Item::ITEM_CLASS_AR:
-                bisWeapon = true;
-                bisChange = true;
-                m_SlayerInfo.setWeaponType(WEAPON_AR);
-                m_SlayerInfo.setWeaponColor( color );
-                break;
-            case Item::ITEM_CLASS_SR:
-                bisWeapon = true;
-                bisChange = true;
-                m_SlayerInfo.setWeaponType(WEAPON_SR);
-                m_SlayerInfo.setWeaponColor( color );
-                break;
-            case Item::ITEM_CLASS_SMG:
-                bisWeapon = true;
-                bisChange = true;
-                m_SlayerInfo.setWeaponType(WEAPON_SMG);
-                m_SlayerInfo.setWeaponColor( color );
-                break;
-            case Item::ITEM_CLASS_SG:
-                bisWeapon = true;
-                bisChange = true;
-                m_SlayerInfo.setWeaponType(WEAPON_SG);
-                m_SlayerInfo.setWeaponColor( color );
-                break;
-            case Item::ITEM_CLASS_HELM:
-                bisChange = true;
-                m_SlayerInfo.setHelmetType(getHelmetType(IType));
-                m_SlayerInfo.setHelmetColor( color );
-                break;
-            case Item::ITEM_CLASS_SHIELD:
-                bisChange = true;
-                m_SlayerInfo.setShieldType(getShieldType(IType));
-                m_SlayerInfo.setShieldColor( color );
-                break;
-            case Item::ITEM_CLASS_SWORD:
-                bisWeapon = true;
-                bisChange = true;
-                m_SlayerInfo.setWeaponType(WEAPON_SWORD);
-                m_SlayerInfo.setWeaponColor( color );
-                break;
-            case Item::ITEM_CLASS_COAT:
-                bisChange = true;
-                m_SlayerInfo.setJacketType(getJacketType(IType));
-                m_SlayerInfo.setJacketColor( color );
-                break;
-            case Item::ITEM_CLASS_TROUSER:
-                bisChange = true;
-                m_SlayerInfo.setPantsType(getPantsType(IType));
-                m_SlayerInfo.setPantsColor( color );
-                break;
-            case Item::ITEM_CLASS_RING :
-                bisChange = false;
-                break;
-            case Item::ITEM_CLASS_BRACELET :
-                bisChange = false;
-                break;
-            case Item::ITEM_CLASS_NECKLACE :
-                bisChange = false;
-                break;
-            default:
-                break;
-        }
-    }
-    */
-
-    /*
-    if (bisWeapon)
-    {
-        // If Striking is attached to the weapon...
-        EffectManager* pEffectManager = pItem->getEffectManager();
-        if (pEffectManager->isEffect(Effect::EFFECT_CLASS_STRIKING))
-        {
-            Effect* pEffect = pEffectManager->findEffect(Effect::EFFECT_CLASS_STRIKING);
-            // Check the current time.
-            Timeval currentTime;
-            getCurrentTime(currentTime);
-
-            // Work out the remaining time.
-            Timeval DeadLine = pEffect->getDeadline();
-            Turn_t Duration = DeadLine.tv_sec - currentTime.tv_sec;
-
-            GCAddEffect gcAddEffect;
-            gcAddEffect.setObjectID(getObjectID());
-            gcAddEffect.setEffectID(Effect::EFFECT_CLASS_STRIKING);
-            gcAddEffect.setDuration(Duration*10);
-            m_pZone->broadcastPacket(m_X, m_Y, &gcAddEffect);
-        }
-    }
-    */
 
     // Change the outfit if the item can really be worn.
     if (m_pRealWearingCheck[Part])
@@ -1760,22 +1606,6 @@ void Slayer::takeOffItem(WearPart Part, bool bAddOnMouse, bool bSendModifyInfo)
         break;
     }
 
-    /*
-    if (bisWeapon)
-    {
-        // If Striking is attached to the weapon...
-        EffectManager* pEffectManager = pItem->getEffectManager();
-
-        if (pEffectManager->isEffect(Effect::EFFECT_CLASS_STRIKING))
-        {
-            GCRemoveEffect removeEffect;
-            removeEffect.setObjectID(getObjectID());
-            removeEffect.addEffectList(Effect::EFFECT_CLASS_STRIKING);
-            m_pZone->broadcastPacket(m_X, m_Y, &removeEffect);
-        }
-    }
-    */
-
     if (m_pZone != NULL) {
         GCOtherModifyInfo gcOtherModifyInfo;
         makeGCOtherModifyInfo(&gcOtherModifyInfo, this, &prev);
@@ -1841,11 +1671,6 @@ bool Slayer::isRealWearing(Item* pItem) const
 
     if (pItem == NULL)
         return false;
-
-    /*	if ( m_pZone != NULL && m_pZone->isDynamicZone() && m_pZone->getDynamicZone()->getTemplateZoneID() == 4003 )
-        {
-            if ( !isSlayerWeapon( pItem->getItemClass() ) ) return false;
-        }*/
 
     ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(), pItem->getItemType());
 
@@ -1915,13 +1740,6 @@ bool Slayer::isRealWearing(Item* pItem) const
             if (ReqSum != 0)
                 ReqSum += (pOptionInfo->getReqSum());
         }
-
-        /*
-        ReqSTR = max((int)ReqSTR, pOptionInfo->getReqSTR());
-        ReqDEX = max((int)ReqDEX, pOptionInfo->getReqDEX());
-        ReqINT = max((int)ReqINT, pOptionInfo->getReqINT());
-        ReqSum = max((int)ReqSum, pOptionInfo->getReqSum());
-        */
     }
 
     // 2003.1.6 by Sequoia, Bezz
@@ -2077,16 +1895,6 @@ PCSlayerInfo2* Slayer::getSlayerInfo2() const
     // Alignment
     pInfo->setAlignment(m_Alignment);
 
-    // cout << "STR[CURRENT]" << (int)m_STR[ATTR_CURRENT] << endl;
-    // cout << "STR[MAX]" << (int)m_STR[ATTR_MAX] << endl;
-    // cout << "STR[BASIC]" << (int)m_STR[ATTR_BASIC] << endl;
-    // cout << "DEX[CURRENT]" << (int)m_DEX[ATTR_CURRENT] << endl;
-    // cout << "DEX[MAX]" << (int)m_DEX[ATTR_MAX] << endl;
-    // cout << "DEX[BASIC]" << (int)m_DEX[ATTR_BASIC] << endl;
-    // cout << "INT[CURRENT]" << (int)m_INT[ATTR_CURRENT] << endl;
-    // cout << "INT[MAX]" << (int)m_INT[ATTR_MAX] << endl;
-    // cout << "INT[BASIC]" << (int)m_INT[ATTR_BASIC] << endl;
-
     // Attributes
     pInfo->setSTR(m_STR[ATTR_CURRENT], ATTR_CURRENT);
     pInfo->setSTR(m_STR[ATTR_MAX], ATTR_MAX);
@@ -2099,9 +1907,6 @@ PCSlayerInfo2* Slayer::getSlayerInfo2() const
     pInfo->setINT(m_INT[ATTR_BASIC], ATTR_BASIC);
 
     // Attribute experience
-    //	pInfo->setSTRExp(m_STRExp);
-    //	pInfo->setDEXExp(m_DEXExp);
-    //	pInfo->setINTExp(m_INTExp);
     pInfo->setSTRExp(getSTRGoalExp());
     pInfo->setDEXExp(getDEXGoalExp());
     pInfo->setINTExp(getINTGoalExp());
@@ -2124,11 +1929,6 @@ PCSlayerInfo2* Slayer::getSlayerInfo2() const
                           m_GoalExp[SKILL_DOMAIN_ENCHANT]);
     pInfo->setSkillDomain(SKILL_DOMAIN_HEAL, m_SkillDomainLevels[SKILL_DOMAIN_HEAL], m_GoalExp[SKILL_DOMAIN_HEAL]);
     pInfo->setSight(m_Sight);
-
-    //	for (int i = 0; i < 4; i++)
-    //	{
-    //		pInfo->setHotKey(i, m_HotKey[i]);
-    //	}
 
     // A competence of 0 or 1 must be drawn with the
     // game master sprite.
@@ -2209,83 +2009,6 @@ GearInfo* Slayer::getGearInfo() const
             pItem->makePCItemInfo(*pGearSlotInfo);
 
             pGearSlotInfo->setSlotID(i);
-
-            /*
-                        pGearSlotInfo->setObjectID(pItem->getObjectID());
-                        pGearSlotInfo->setItemClass(pItem->getItemClass());
-                        pGearSlotInfo->setItemType(pItem->getItemType());
-                        pGearSlotInfo->setOptionType(pItem->getOptionTypeList());
-                        pGearSlotInfo->setDurability(pItem->getDurability());
-                        pGearSlotInfo->setSilver(pItem->getSilver());
-                        pGearSlotInfo->setEnchantLevel(pItem->getEnchantLevel());
-
-                        if (IClass == Item::ITEM_CLASS_AR)
-                        {
-                            AR* pAR = dynamic_cast<AR*>(pItem);
-                            pGearSlotInfo->setItemNum(pAR->getBulletCount());
-                        }
-                        else if (IClass == Item::ITEM_CLASS_SG)
-                        {
-                            SG* pSG = dynamic_cast<SG*>(pItem);
-                            pGearSlotInfo->setItemNum(pSG->getBulletCount());
-                        }
-                        else if (IClass == Item::ITEM_CLASS_SMG)
-                        {
-                            SMG* pSMG = dynamic_cast<SMG*>(pItem);
-                            pGearSlotInfo->setItemNum(pSMG->getBulletCount());
-                        }
-                        else if (IClass == Item::ITEM_CLASS_SR)
-                        {
-                            SR* pSR = dynamic_cast<SR*>(pItem);
-                            pGearSlotInfo->setItemNum(pSR->getBulletCount());
-                        }
-                        else
-                        {
-                            pGearSlotInfo->setItemNum(pItem->getNum());
-                        }
-
-                        // A belt needs extra information about its sub items.
-                        if (IClass == Item::ITEM_CLASS_BELT) {
-
-                            // Take the item info.
-                            ItemInfo* pItemInfo = de::gameContext().itemInfos().getItemInfo(pItem->getItemClass(),
-               pItem->getItemType());
-
-                            // Take the number of pockets.
-                            BYTE PocketNum = ((BeltInfo*)pItemInfo)->getPocketCount();
-
-                            // Take the belt's inventory.
-                            Inventory* pBeltInventory = ((Belt*)pItem)->getInventory();
-
-                            BYTE SubItemCount = 0;
-
-                            // Read the item information for each pocket.
-                            for (int i = 0; i < PocketNum ; i++) {
-
-                                Item* pBeltItem = pBeltInventory->getItem(i, 0);
-
-                                if (pBeltItem != NULL) {
-
-                                    SubItemInfo* pSubItemInfo = new SubItemInfo();
-                                    pSubItemInfo->setObjectID(pBeltItem->getObjectID());
-                                    pSubItemInfo->setItemClass(pBeltItem->getItemClass());
-                                    pSubItemInfo->setItemType(pBeltItem->getItemType());
-                                    pSubItemInfo->setItemNum(pBeltItem->getNum());
-                                    pSubItemInfo->setSlotID(i);
-
-                                    pGearSlotInfo->addListElement(pSubItemInfo);
-
-                                    SubItemCount++;
-                                }
-                            }
-
-                            pGearSlotInfo->setListNum(SubItemCount);
-                        }
-
-                        pGearSlotInfo->setSlotID(i);
-
-                        // Main Color of the top and the bottom; just set to 0 for now.
-                        pGearSlotInfo->setMainColor(0);*/
 
             pGearInfo->addListElement(pGearSlotInfo);
         }
@@ -2412,12 +2135,6 @@ void Slayer::setGoldEx(Gold_t gold)
 
     setGold(gold);
 
-    /*
-    StringStream sql;
-    sql << "Gold = " << (int)m_Gold;
-
-    tinysave(sql.toString());
-    */
     char pField[80];
     sprintf(pField, "Gold = %u", m_Gold);
     tinysave(pField);
@@ -2492,80 +2209,6 @@ void Slayer::heartbeat(const Timeval& currentTime)
             }
         }
     }
-
-    /*
-    list<Item*> ItemList;
-    VolumeHeight_t Height = m_pInventory->getHeight();
-    VolumeWidth_t Width = m_pInventory->getWidth();
-
-    for (int j = 0; j < Height; j++)
-    {
-        for (int i = 0 ; i < Width ; i ++)
-        {
-            if (m_pInventory->hasItem(i, j))
-            {
-                Item* pItem = m_pInventory->getItem(i , j);
-                VolumeWidth_t ItemWidth = pItem->getVolumeWidth();
-
-                list<Item*>::iterator itr = find(ItemList.begin() , ItemList.end() , pItem);
-
-                if (itr == ItemList.end())
-                {
-                    ItemList.push_back(pItem);
-
-                    // Search from the next position after the item's width.
-                    i = i + ItemWidth - 1;
-                }
-            }
-        }
-    }
-
-    for (int i = 0; i < WEAR_MAX; i++)
-    {
-        Item* pItem = m_pWearItem[i];
-
-        if (pItem != NULL)
-        {
-            if (i == WEAR_RIGHTHAND && isTwohandWeapon(pItem)) continue;
-            ItemList.push_back(pItem);
-        }
-    }
-
-    Item* pSlotItem = m_pExtraInventorySlot->getItem();
-    if (pSlotItem != NULL)
-    {
-        ItemList.push_back(pSlotItem);
-    }
-
-    for (list<Item*>::iterator itr = ItemList.begin(); itr != ItemList.end(); itr++)
-    {
-        Item* pItem  = (*itr);
-
-        EffectManager* pItemEffectManager = pItem->getEffectManager();
-        if (pItemEffectManager != NULL)
-        {
-            int rvalue = pItemEffectManager->heartbeat();
-
-            // rvalue is the number of effects the effect manager deleted.
-            // A non-zero count means effects were deleted.
-            // Since effects were deleted, recompute the attributes.
-            // This code exists because of Striking.
-            // Striking attaches to the item rather than the creature, so
-            // the creature's attributes had to be recomputed on unaffect
-            // and there was no good place for it, hence this workaround.
-            // This was solved by making the Striking effect attach to the
-            // creature instead of to the item.
-            //if (rvalue != 0)
-            //{
-            //	SLAYER_RECORD prev;
-            //	getSlayerRecord(prev);
-            //	initAllStat();
-            //	sendRealWearingInfo();
-            //	sendModifyInfo(prev);
-            //}
-        }
-    }
-    */
 
     __END_DEBUG
 }
@@ -2851,14 +2494,6 @@ void Slayer::getShapeInfo(DWORD& flag, Color_t colors[PCSlayerInfo::SLAYER_COLOR
     if (pItem != NULL && m_pRealWearingCheck[Part]) {
         ItemType_t IType = pItem->getItemType();
 
-        /*
-        if (pItem->getOptionType() != 0)
-        {
-            pOptionInfo = g_pOptionInfoManager->getOptionInfo(pItem->getOptionType());
-            colors[slayerColor] = (pOptionInfo==NULL? 377 : pOptionInfo->getColor());
-        }
-        */
-
         //		colors[slayerColor] = (pItem->isUnique()? UNIQUE_OPTION : pItem->getFirstOptionType());
         if (pItem->isTimeLimitItem())
             colors[slayerColor] = QUEST_OPTION;
@@ -2881,14 +2516,6 @@ void Slayer::getShapeInfo(DWORD& flag, Color_t colors[PCSlayerInfo::SLAYER_COLOR
     slayerColor = PCSlayerInfo::SLAYER_COLOR_JACKET;
     if (pItem != NULL && m_pRealWearingCheck[Part]) {
         ItemType_t IType = pItem->getItemType();
-
-        /*
-        if (pItem->getOptionType() != 0)
-        {
-            pOptionInfo = g_pOptionInfoManager->getOptionInfo(pItem->getOptionType());
-            colors[slayerColor] = (pOptionInfo==NULL? 377 : pOptionInfo->getColor());
-        }
-        */
 
         //		colors[slayerColor] = (pItem->isUnique()? UNIQUE_OPTION : pItem->getFirstOptionType());
 
@@ -2915,14 +2542,6 @@ void Slayer::getShapeInfo(DWORD& flag, Color_t colors[PCSlayerInfo::SLAYER_COLOR
     if (pItem != NULL && m_pRealWearingCheck[Part]) {
         ItemType_t IType = pItem->getItemType();
 
-        /*
-        if (pItem->getOptionType() != 0)
-        {
-            pOptionInfo = g_pOptionInfoManager->getOptionInfo(pItem->getOptionType());
-            colors[slayerColor] = (pOptionInfo==NULL? 377 : pOptionInfo->getColor());
-        }
-        */
-
         //		colors[slayerColor] = (pItem->isUnique()? UNIQUE_OPTION : pItem->getFirstOptionType());
 
         if (pItem->isTimeLimitItem())
@@ -2948,14 +2567,6 @@ void Slayer::getShapeInfo(DWORD& flag, Color_t colors[PCSlayerInfo::SLAYER_COLOR
     slayerColor = PCSlayerInfo::SLAYER_COLOR_SHIELD;
     if (pItem != NULL && m_pRealWearingCheck[Part] && pItem->getItemClass() == Item::ITEM_CLASS_SHIELD) {
         ItemType_t IType = pItem->getItemType();
-
-        /*
-        if (pItem->getOptionType() != 0)
-        {
-            pOptionInfo = g_pOptionInfoManager->getOptionInfo(pItem->getOptionType());
-            colors[slayerColor] = (pOptionInfo==NULL? 377 : pOptionInfo->getColor());
-        }
-        */
 
         //		colors[slayerColor] = (pItem->isUnique()? UNIQUE_OPTION : pItem->getFirstOptionType());
 
@@ -3001,14 +2612,6 @@ void Slayer::getShapeInfo(DWORD& flag, Color_t colors[PCSlayerInfo::SLAYER_COLOR
         else if (pItem->getItemClass() == Item::ITEM_CLASS_MACE)
             weaponType = WEAPON_MACE; // MACE;
 
-        /*
-        if (pItem->getOptionType() != 0)
-        {
-            pOptionInfo = g_pOptionInfoManager->getOptionInfo(pItem->getOptionType());
-            colors[slayerColor] = (pOptionInfo==NULL? 377 : pOptionInfo->getColor());
-        }
-        */
-
         // colors[slayerColor] = (pItem->isUnique()? UNIQUE_OPTION : pItem->getFirstOptionType());
 
         if (pItem->isUnique())
@@ -3039,42 +2642,10 @@ void Slayer::saveInitialRank(void)
 
     int curRank = max(1, (maxDomainLevel + 3) / 4);
     m_pRank->SET_LEVEL(curRank);
-    /*
-        SLAYER_RECORD prev;
-        getSlayerRecord(prev);
-
-        RankExp_t accumExp = 0;
-
-        setRank(curRank);
-
-        if (curRank!=1)
-        {
-            RankEXPInfo* pBeforeExpInfo = g_pRankEXPInfoManager[RANK_TYPE_SLAYER]->getRankEXPInfo(curRank-1);
-            accumExp = pBeforeExpInfo->getAccumExp();
-        }
-
-        RankEXPInfo* pNextExpInfo = g_pRankEXPInfoManager[RANK_TYPE_SLAYER]->getRankEXPInfo(curRank);
-        Exp_t NextGoalExp = pNextExpInfo->getGoalExp();
-
-        setRankGoalExp(NextGoalExp);
-    */
     char pField[80];
     sprintf(pField, "`Rank`=%d, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
     tinysave(pField);
     setRankExpSaveCount(0);
-
-    /*
-    sendModifyInfo(prev);
-
-    if (m_pZone != NULL)
-    {
-        GCOtherModifyInfo gcOtherModifyInfo;
-        gcOtherModifyInfo.setObjectID(getObjectID());
-        gcOtherModifyInfo.addShortData(MODIFY_RANK, curRank);
-
-        m_pZone->broadcastPacket(m_X, m_Y, &gcOtherModifyInfo, this);
-    }
-    */
 }
 
 Slayer::WearPart Slayer::getWearPart(Item::ItemClass IClass) const {
