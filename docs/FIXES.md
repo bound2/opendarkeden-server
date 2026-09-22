@@ -76,7 +76,15 @@ that followed it.
   `isSlayer()` branch and an `isVampire()` branch, neither of which an
   Ousters enters,** so `pLuaSelectItem` stays null and is dereferenced a
   few lines down.
-  > **Status:** recorded, not fixed (fix/comment-accuracy-2)
+  There is no Ousters selector to reach for: the action reads a
+  `SlayerFilename` and a `VampireFilename` and nothing else, and
+  `LuaTradeEventSlayerItem` and `LuaTradeEventVampireItem` are the only
+  two selector classes in the tree. So a null selector is now a refusal:
+  the action logs the character to `GiveEventItemError.txt`, closes the
+  NPC dialogue the way its other refusals do, and returns. The same
+  two-branch selector choice is in `ActionGiveAccountEventItem` and
+  `ActionTradeGiftBox`, both untouched.
+  > **Status:** fixed (fix/recorded-defects-1)
 
 ## A skill off cooldown is sent a 4-billion-turn casting time (2026-09-22)
 
