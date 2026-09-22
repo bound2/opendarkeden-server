@@ -62,7 +62,13 @@ that followed it.
   by Flare and then poisoned gets full vision back the moment the poison
   ticks out, and monsters, whose Flare restore reads the per-type sight,
   are restored to a value that need not be theirs.
-  > **Status:** recorded, not fixed (fix/comment-accuracy-2)
+  The flag now comes off first and the sight that follows is
+  `getEffectedSight()`, so what is left is what the creature's remaining
+  effects say: the Flare sight for one still flared, the default otherwise.
+  `m_OldSight` stays as it is -- it is a persisted column
+  (`EffectYellowPoisonToCreature.OldSight`, written by `create` and
+  `save`), so the field and its writes are not dead, only its readers.
+  > **Status:** fixed (fix/recorded-defects-1)
 
 ## The event item action dereferences a null selector for an Ousters (2026-09-22)
 
