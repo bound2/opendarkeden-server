@@ -122,7 +122,7 @@ public:
 
 private:
     Durability_t m_Durability; // Durability
-    Defense_t m_DefenseBonus;  // defense bonus
+    Defense_t m_DefenseBonus;  // Defense bonus
     Protection_t m_ProtectionBonus;
     uint m_ItemLevel;
 };

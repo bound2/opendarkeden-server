@@ -42,7 +42,6 @@ void BloodyTunnel::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
             executeSkillFailException(pVampire, getSkillType());
             return;
         }
-        //*/
 
 
         Item* pItem = pInventory->getItem(X, Y);

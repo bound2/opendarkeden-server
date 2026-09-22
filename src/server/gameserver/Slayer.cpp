@@ -990,19 +990,8 @@ bool Slayer::isEmptyPhoneSlot()
 }
 
 // Look up whether a given Skill exists and return its SkillSlot.
-SkillSlot* Slayer::getSkill(SkillType_t SkillType) const
-
-{
-    __BEGIN_TRY
-
-    unordered_map<SkillType_t, SkillSlot*>::const_iterator itr = m_SkillSlot.find(SkillType);
-    if (itr != m_SkillSlot.end()) {
-        return itr->second;
-    }
-
-    return NULL;
-
-    __END_CATCH
+SkillSlot* Slayer::getSkill(SkillType_t SkillType) const {
+    return findSkillSlot(m_SkillSlot, SkillType);
 }
 
 // Register a SkillSlot under its skill type; a duplicate slot is deleted.
@@ -1083,59 +1072,12 @@ void Slayer::addSkill(SkillType_t SkillType)
     __END_CATCH
 }
 
-// Remove a holy-land skill.
-void Slayer::removeCastleSkill(SkillType_t SkillType)
-
-{
-    __BEGIN_TRY
-
-    // Only holy-land skills may be removed.
-    if (de::gameContext().castleSkills().getZoneID(SkillType) == 0)
-        return;
-
-    unordered_map<SkillType_t, SkillSlot*>::iterator itr = m_SkillSlot.find(SkillType);
-
-    if (itr != m_SkillSlot.end()) {
-        CastleSkillSlot* pCastleSkillSlot = dynamic_cast<CastleSkillSlot*>(itr->second);
-
-        SAFE_DELETE(pCastleSkillSlot);
-
-        m_SkillSlot.erase(itr);
-    }
-
-    __END_CATCH
+void Slayer::removeCastleSkill(SkillType_t SkillType) {
+    removeCastleSkillSlot<SkillSlot, CastleSkillSlot>(m_SkillSlot, SkillType);
 }
 
-// Remove every holy-land skill the character has.
-void Slayer::removeAllCastleSkill()
-
-{
-    __BEGIN_TRY
-
-    unordered_map<SkillType_t, SkillSlot*>::iterator itr = m_SkillSlot.begin();
-
-    while (itr != m_SkillSlot.end()) {
-        if (itr->second != NULL) {
-            SkillSlot* pSkillSlot = itr->second;
-            if (de::gameContext().castleSkills().getZoneID(pSkillSlot->getSkillType()) == 0) {
-                // Not a holy-land skill, so move on to the next one.
-                ++itr;
-                continue;
-            }
-
-            // A holy-land skill is removed. Mind the iterator use.
-            SAFE_DELETE(pSkillSlot);
-            unordered_map<SkillType_t, SkillSlot*>::iterator prevItr = itr;
-
-            ++itr;
-            m_SkillSlot.erase(prevItr);
-        } else {
-            // Unexpected state.
-            Assert(false);
-        }
-    }
-
-    __END_CATCH
+void Slayer::removeAllCastleSkill() {
+    removeAllCastleSkillSlots(m_SkillSlot);
 }
 
 // Slayer::wearItem()
@@ -2776,23 +2718,8 @@ SkillDomainType_t Slayer::getHighestSkillDomain() const
     __END_CATCH
 }
 
-void Slayer::saveSkills(void) const
-
-{
-    __BEGIN_TRY
-
-    unordered_map<SkillType_t, SkillSlot*>::const_iterator itr = m_SkillSlot.begin();
-    for (; itr != m_SkillSlot.end(); itr++) {
-        SkillSlot* pSkillSlot = itr->second;
-        Assert(pSkillSlot != NULL);
-
-        // If it is not a basic attack skill...
-        if (pSkillSlot->getSkillType() >= SKILL_DOUBLE_IMPACT) {
-            pSkillSlot->save(m_Name);
-        }
-    }
-
-    __END_CATCH
+void Slayer::saveSkills(void) const {
+    saveSkillSlots(m_SkillSlot);
 }
 
 void Slayer::saveGears(void) const

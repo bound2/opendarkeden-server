@@ -102,10 +102,11 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 
     // A different item is checked depending on the option.
     // Conan: takes Bathory's bijou/pendant, falling back to Tepes' and then
-    //   to Gilles de Rais', which marks the trade as an upgrade.
+    //   to Gilles de Rais'.
     // Vrykolakas: takes only Tepes' bijou/pendant.
     // Caim: takes only Bathory's bijou/pendant.
-    // Gilles de Rais: takes only its own bijou/pendant, as an upgrade.
+    // Gilles de Rais: takes only its own bijou/pendant.
+    // bUpgrade records which fallback was taken and nothing reads it.
 
     if (m_Type == 0) // Conan, bijou
     {

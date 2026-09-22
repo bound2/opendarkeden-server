@@ -727,19 +727,8 @@ SkillBonus_t Ousters::getSumOfUsedSkillBonus() const
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-OustersSkillSlot* Ousters::getSkill(SkillType_t SkillType) const
-
-{
-    __BEGIN_TRY
-
-    unordered_map<SkillType_t, OustersSkillSlot*>::const_iterator itr = m_SkillSlot.find(SkillType);
-    if (itr != m_SkillSlot.end()) {
-        return itr->second;
-    }
-
-    return NULL;
-
-    __END_CATCH
+OustersSkillSlot* Ousters::getSkill(SkillType_t SkillType) const {
+    return findSkillSlot(m_SkillSlot, SkillType);
 }
 
 void Ousters::addSkill(SkillType_t SkillType)
@@ -835,53 +824,12 @@ void Ousters::removeSkill(SkillType_t SkillType)
     __END_CATCH
 }
 
-void Ousters::removeCastleSkill(SkillType_t SkillType)
-
-{
-    __BEGIN_TRY
-
-    if (de::gameContext().castleSkills().getZoneID(SkillType) == 0)
-        return;
-
-    unordered_map<SkillType_t, OustersSkillSlot*>::iterator itr = m_SkillSlot.find(SkillType);
-
-    if (itr != m_SkillSlot.end()) {
-        OustersCastleSkillSlot* pCastleSkillSlot = dynamic_cast<OustersCastleSkillSlot*>(itr->second);
-
-        SAFE_DELETE(pCastleSkillSlot);
-
-        m_SkillSlot.erase(itr);
-    }
-
-    __END_CATCH
+void Ousters::removeCastleSkill(SkillType_t SkillType) {
+    removeCastleSkillSlot<OustersSkillSlot, OustersCastleSkillSlot>(m_SkillSlot, SkillType);
 }
 
-void Ousters::removeAllCastleSkill()
-
-{
-    __BEGIN_TRY
-
-    unordered_map<SkillType_t, OustersSkillSlot*>::iterator itr = m_SkillSlot.begin();
-
-    while (itr != m_SkillSlot.end()) {
-        if (itr->second != NULL) {
-            OustersSkillSlot* pSkillSlot = itr->second;
-            if (de::gameContext().castleSkills().getZoneID(pSkillSlot->getSkillType()) == 0) {
-                ++itr;
-                continue;
-            }
-
-            SAFE_DELETE(pSkillSlot);
-            unordered_map<SkillType_t, OustersSkillSlot*>::iterator prevItr = itr;
-
-            ++itr;
-            m_SkillSlot.erase(prevItr);
-        } else {
-            Assert(false);
-        }
-    }
-
-    __END_CATCH
+void Ousters::removeAllCastleSkill() {
+    removeAllCastleSkillSlots(m_SkillSlot);
 }
 
 
@@ -1828,22 +1776,8 @@ string Ousters::toString() const
     __END_CATCH
 }
 
-void Ousters::saveSkills(void) const
-
-{
-    __BEGIN_TRY
-
-    unordered_map<SkillType_t, OustersSkillSlot*>::const_iterator itr = m_SkillSlot.begin();
-    for (; itr != m_SkillSlot.end(); itr++) {
-        OustersSkillSlot* pOustersSkillSlot = itr->second;
-        Assert(pOustersSkillSlot != NULL);
-
-        if (pOustersSkillSlot->getSkillType() >= SKILL_DOUBLE_IMPACT) {
-            pOustersSkillSlot->save(m_Name);
-        }
-    }
-
-    __END_CATCH
+void Ousters::saveSkills(void) const {
+    saveSkillSlots(m_SkillSlot);
 }
 
 Sight_t Ousters::getEffectedSight() {
