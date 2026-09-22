@@ -42,7 +42,14 @@ that followed it.
   `registerObject` and the earlier ones are heap objects nothing frees. One
   entry means no leak; several mean a leak on every trade, a repeatable NPC
   action. `CGLotterySelectHandler` has the identical loop shape.
-  > **Status:** recorded, not fixed (fix/comment-accuracy-2)
+  Both loops now `SAFE_DELETE` the pointer before overwriting it, so the
+  roll the player is given is still the last winning one and the earlier
+  ones are freed as they are replaced. The lottery handler's pointer also
+  starts at NULL, which it needs to be deleted safely; it was left
+  indeterminate. Still open there, and untouched: when no treasure in the
+  list rolls an item, the body goes on to sex, store and log an item it
+  does not have.
+  > **Status:** fixed (fix/recorded-defects-1)
 
 ## Yellow Poison restores a fixed sight instead of the one it replaced (2026-09-22)
 
