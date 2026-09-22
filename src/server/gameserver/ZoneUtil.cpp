@@ -1985,8 +1985,9 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
         // It is dropped when carried out into the castle dungeon too.
         if (pCreature->isFlag(Effect::EFFECT_CLASS_HAS_BLOOD_BIBLE)) {
             if (pZone->isHolyLand()) {
-                if (!pZoneInfo->isHolyLand() || (!pZoneInfo->isCastle() && g_pCastleInfoManager->isSameCastleZone(
-                                                                               pZone->getZoneID(), TargetZoneID)))
+                if (!pZoneInfo->isHolyLand() ||
+                    (!pZoneInfo->isCastle() &&
+                     de::gameContext().castleInfos().isSameCastleZone(pZone->getZoneID(), TargetZoneID)))
                     dropRelicToZone(pCreature);
             }
         }
@@ -1994,7 +1995,7 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
         // Drop the castle symbol when leaving the castle with it.
         if (pCreature->isFlag(Effect::EFFECT_CLASS_HAS_CASTLE_SYMBOL)) {
             if (pZone->isHolyLand() && !pZoneInfo->isHolyLand() ||
-                !g_pCastleInfoManager->isSameCastleZone(pCreature->getZone()->getZoneID(), TargetZoneID)
+                !de::gameContext().castleInfos().isSameCastleZone(pCreature->getZone()->getZoneID(), TargetZoneID)
                 // The castle cannot be entered; the castle symbol lives on the castle basement map.
                 || pZoneInfo->isCastle()) {
                 dropRelicToZone(pCreature);

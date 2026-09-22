@@ -13,6 +13,7 @@
 #include "GCDeleteInventoryItem.h"
 #include "GCRemoveEffect.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GlobalItemPosition.h"
 #include "GlobalItemPositionLoader.h"
 #include "GuildWar.h"
@@ -123,7 +124,7 @@ ZoneID_t CastleShrineInfoManager::getGuardShrineZoneID(ZoneID_t castleZoneID) co
         ZoneID_t guardZoneID = pShrineSet->m_GuardShrine.getZoneID();
         ZoneID_t guardCastleZoneID;
 
-        if (g_pCastleInfoManager->getCastleZoneID(guardZoneID, guardCastleZoneID)) {
+        if (de::gameContext().castleInfos().getCastleZoneID(guardZoneID, guardCastleZoneID)) {
             if (castleZoneID == guardCastleZoneID) {
                 return guardZoneID;
             }
@@ -325,14 +326,14 @@ bool CastleShrineInfoManager::isDefenderOfGuardShrine(PlayerCreature* pPC, Monst
     ZoneID_t guardZoneID = pZone->getZoneID();
     ZoneID_t castleZoneID;
 
-    bool isCastle = g_pCastleInfoManager->getCastleZoneID(guardZoneID, castleZoneID);
+    bool isCastle = de::gameContext().castleInfos().getCastleZoneID(guardZoneID, castleZoneID);
     Assert(isCastle == true);
 
     War* pWar = g_pWarSystem->getActiveWar(castleZoneID);
     if (pWar == NULL)
         return false;
 
-    CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
+    CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(castleZoneID);
     if (pCastleInfo == NULL)
         return false;
 
@@ -371,7 +372,7 @@ bool CastleShrineInfoManager::canPickupCastleSymbol(Race_t race, CastleSymbol* p
     ZoneID_t guardZoneID = pShrineSet->m_GuardShrine.getZoneID();
     ZoneID_t castleZoneID;
 
-    bool isCastle = g_pCastleInfoManager->getCastleZoneID(guardZoneID, castleZoneID);
+    bool isCastle = de::gameContext().castleInfos().getCastleZoneID(guardZoneID, castleZoneID);
     Assert(isCastle == true);
 
     War* pWar = g_pWarSystem->getActiveWar(castleZoneID);
@@ -384,7 +385,7 @@ bool CastleShrineInfoManager::canPickupCastleSymbol(Race_t race, CastleSymbol* p
     }
 
     if (pWar->getWarType() == WAR_GUILD) {
-        CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
+        CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(castleZoneID);
 
         if (pCastleInfo == NULL) {
             // Unexpected state.
@@ -491,7 +492,7 @@ bool CastleShrineInfoManager::returnAllCastleSymbol(ZoneID_t castleZoneID) const
         ZoneID_t guardZoneID = pShrineSet->m_GuardShrine.getZoneID();
         ZoneID_t guardCastleZoneID;
 
-        if (g_pCastleInfoManager->getCastleZoneID(guardZoneID, guardCastleZoneID)) {
+        if (de::gameContext().castleInfos().getCastleZoneID(guardZoneID, guardCastleZoneID)) {
             if (castleZoneID == guardCastleZoneID) {
                 bReturned = returnCastleSymbol(pShrineSet->m_ShrineID) || bReturned;
             }
@@ -539,7 +540,7 @@ bool CastleShrineInfoManager::returnCastleSymbol(Zone* pZone, CastleSymbol* pCas
     GCSystemMessage msgPkt;
     msgPkt.setMessage(msg);
 
-    g_pCastleInfoManager->broadcastShrinePacket(shrineID, &msgPkt);
+    de::gameContext().castleInfos().broadcastShrinePacket(shrineID, &msgPkt);
 
     return true;
 
@@ -583,7 +584,7 @@ bool CastleShrineInfoManager::putCastleSymbol(PlayerCreature* pPC, Item* pItem, 
     ZoneID_t guardZoneID = pShrineSet->m_GuardShrine.getZoneID();
     ZoneID_t castleZoneID;
 
-    bool isCastle = g_pCastleInfoManager->getCastleZoneID(guardZoneID, castleZoneID);
+    bool isCastle = de::gameContext().castleInfos().getCastleZoneID(guardZoneID, castleZoneID);
     Assert(isCastle == true);
 
     // Placing it in the matching shrine ends the war and returns it to the guard shrine,

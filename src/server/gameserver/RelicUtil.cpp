@@ -738,7 +738,7 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
             GCSystemMessage gcSystemMessage;
             gcSystemMessage.setMessage(msg);
             // g_pZoneGroupManager->broadcast( &gcSystemMessage );
-            g_pCastleInfoManager->broadcastShrinePacket(pItem->getItemType(), &gcSystemMessage);
+            de::gameContext().castleInfos().broadcastShrinePacket(pItem->getItemType(), &gcSystemMessage);
 
 
             // Update the bible fragment item's position.
@@ -785,12 +785,12 @@ void sendRelicWarpEffect(Corpse* pCorpse)
         ZoneID_t relicZoneID = pCorpse->getZone()->getZoneID();
         ZoneID_t castleZoneID;
 
-        bool isCastle = g_pCastleInfoManager->getCastleZoneID(relicZoneID, castleZoneID);
+        bool isCastle = de::gameContext().castleInfos().getCastleZoneID(relicZoneID, castleZoneID);
 
         if (!isCastle)
             return;
 
-        CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
+        CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(castleZoneID);
         Assert(pCastleInfo != NULL);
 
         if (pCastleInfo->getRace() == RACE_SLAYER) {

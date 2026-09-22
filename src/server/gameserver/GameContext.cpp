@@ -28,6 +28,11 @@ BloodBibleBonusManager& GameContext::bloodBibleBonuses() const {
     return *m_pBloodBibleBonusManager;
 }
 
+CastleInfoManager& GameContext::castleInfos() const {
+    Assert(m_pCastleInfoManager != nullptr);
+    return *m_pCastleInfoManager;
+}
+
 CastleShrineInfoManager& GameContext::castleShrines() const {
     Assert(m_pCastleShrineInfoManager != nullptr);
     return *m_pCastleShrineInfoManager;

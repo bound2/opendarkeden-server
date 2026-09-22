@@ -9,6 +9,7 @@
 #include "CastleInfoManager.h"
 #include "DB.h"
 #include "FlagSet.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PacketUtil.h"
 #include "PaySystem.h"
@@ -50,7 +51,7 @@ bool ConditionEnterCastle::isSatisfied(Creature* pCreature1, Creature* pCreature
         // The castle's own portal rules decide whether this player may enter.
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
 
-        return g_pCastleInfoManager->canPortalActivate(m_TargetZoneID, pPC);
+        return de::gameContext().castleInfos().canPortalActivate(m_TargetZoneID, pPC);
     }
 
     return false;

@@ -9,6 +9,7 @@
 #include "CastleInfoManager.h"
 #include "Creature.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -64,7 +65,7 @@ void ActionShowTaxBalance::execute(Creature* pCreature1, Creature* pCreature2)
     }
 
     // The player is the guild master.
-    list<CastleInfo*> pCastleInfoList = g_pCastleInfoManager->getGuildCastleInfos(guildID);
+    list<CastleInfo*> pCastleInfoList = context().castleInfos().getGuildCastleInfos(guildID);
     if (bSuccess && pCastleInfoList.empty()) {
         // The guild owns no castle.
         bSuccess = false;

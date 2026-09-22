@@ -5,6 +5,7 @@
 
 #include "GuildManager.h"
 
+#include "GameContext.h"
 #include "Guild.h"
 #include "Properties.h"
 #include "StringStream.h"
@@ -190,24 +191,25 @@ void GuildManager::deleteGuild(GuildID_t id) {
         throw NoSuchElementException();
 
 #ifdef __GAME_SERVER__
+    CastleInfoManager& castles = de::gameContext().castleInfos();
 
-    list<CastleInfo*> pGuildCastleInfoList = g_pCastleInfoManager->getGuildCastleInfos(id);
+    list<CastleInfo*> pGuildCastleInfoList = castles.getGuildCastleInfos(id);
 
     if (!pGuildCastleInfoList.empty()) {
         // The guild owns a castle, so it has to be turned into a public castle.
         list<CastleInfo*>::iterator itr = pGuildCastleInfoList.begin();
         for (; itr != pGuildCastleInfoList.end(); itr++) {
             if ((*itr)->getRace() == RACE_SLAYER)
-                g_pCastleInfoManager->modifyCastleOwner((*itr)->getZoneID(), RACE_SLAYER, 99);
+                castles.modifyCastleOwner((*itr)->getZoneID(), RACE_SLAYER, 99);
             else if ((*itr)->getRace() == RACE_VAMPIRE)
-                g_pCastleInfoManager->modifyCastleOwner((*itr)->getZoneID(), RACE_VAMPIRE, 0);
+                castles.modifyCastleOwner((*itr)->getZoneID(), RACE_VAMPIRE, 0);
             else
-                g_pCastleInfoManager->modifyCastleOwner((*itr)->getZoneID(), RACE_OUSTERS, 66);
+                castles.modifyCastleOwner((*itr)->getZoneID(), RACE_OUSTERS, 66);
         }
     }
 
     {
-        const unordered_map<ZoneID_t, CastleInfo*>& castleInfos = g_pCastleInfoManager->getCastleInfos();
+        const unordered_map<ZoneID_t, CastleInfo*>& castleInfos = castles.getCastleInfos();
 
         unordered_map<ZoneID_t, CastleInfo*>::const_iterator itr = castleInfos.begin();
         unordered_map<ZoneID_t, CastleInfo*>::const_iterator endItr = castleInfos.end();

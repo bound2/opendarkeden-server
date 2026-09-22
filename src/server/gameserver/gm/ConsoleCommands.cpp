@@ -420,13 +420,13 @@ void opSetCastleOwner(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
     if (pZone->isCastle()) {
         // *command setCastleOwner SlayerCommon makes it a Slayer common castle
         if (value1 == "SlayerCommon") {
-            g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_SLAYER, 99);
+            de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_SLAYER, 99);
         }
         // *command setCastleOwner VampireCommon makes it a Vampire common castle
         else if (value1 == "VampireCommon") {
-            g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_VAMPIRE, 0);
+            de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_VAMPIRE, 0);
         } else if (value1 == "OustersCommon") {
-            g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_OUSTERS, 66);
+            de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_OUSTERS, 66);
         }
         // *command setCastleOwner <character name> makes it that character's guild castle
         else {
@@ -434,7 +434,7 @@ void opSetCastleOwner(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
             Race_t race;
             if (getRaceFromDB(Name, race)) {
                 if (getGuildIDFromDB(Name, race, guildID)) {
-                    g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), race, guildID);
+                    de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), race, guildID);
                 } else {
                     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_DO_NOT_BELONG_TO_GUILD));
                     bSendPacket = true;
@@ -464,15 +464,15 @@ void opSetCastleOwnerGuild(GamePlayer* pGamePlayer, const string& value1, GCSyst
     Guild* pGuild = g_pGuildManager->getGuild(guildID);
 
     if (pZone != NULL && pZone->isCastle() && pGuild != NULL) {
-        g_pCastleInfoManager->modifyCastleOwner(zoneID, pGuild->getRace(), guildID);
+        de::gameContext().castleInfos().modifyCastleOwner(zoneID, pGuild->getRace(), guildID);
     } else if (pZone != NULL && pZone->isCastle() && guildID == 99) {
-        g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_SLAYER, 99);
+        de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_SLAYER, 99);
     }
     // *command setCastleOwner VampireCommon makes it a Vampire common castle
     else if (pZone != NULL && pZone->isCastle() && guildID == 0) {
-        g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_VAMPIRE, 0);
+        de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_VAMPIRE, 0);
     } else if (pZone != NULL && pZone->isCastle() && guildID == 66) {
-        g_pCastleInfoManager->modifyCastleOwner(pZone->getZoneID(), RACE_OUSTERS, 66);
+        de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_OUSTERS, 66);
     }
 }
 

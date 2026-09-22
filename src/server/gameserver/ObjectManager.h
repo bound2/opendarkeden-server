@@ -18,6 +18,7 @@
 class ActionFactoryManager;
 class AlignmentManager;
 class BloodBibleBonusManager;
+class CastleInfoManager;
 class CastleShrineInfoManager;
 class CastleSkillInfoManager;
 class CombatInfoManager;
@@ -79,6 +80,7 @@ private:
     ActionFactoryManager* m_pActionFactoryManager = nullptr;
     AlignmentManager* m_pAlignmentManager = nullptr;
     BloodBibleBonusManager* m_pBloodBibleBonusManager = nullptr;
+    CastleInfoManager* m_pCastleInfoManager = nullptr;
     CastleShrineInfoManager* m_pCastleShrineInfoManager = nullptr;
     CastleSkillInfoManager* m_pCastleSkillInfoManager = nullptr;
     CombatInfoManager* m_pCombatInfoManager = nullptr;

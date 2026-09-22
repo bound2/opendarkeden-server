@@ -111,7 +111,7 @@ void EffectRelicPosition::affect(Item* pItem)
         gcSystemMessage.setType(SYSTEM_MESSAGE_HOLY_LAND);
         gcSystemMessage.setMessage(msg);
 
-        g_pCastleInfoManager->broadcastShrinePacket(m_Part, &gcSystemMessage);
+        de::gameContext().castleInfos().broadcastShrinePacket(m_Part, &gcSystemMessage);
 
         setNextTime(m_Tick);
         //		g_pZoneGroupManager->broadcast( &gcSystemMessage );

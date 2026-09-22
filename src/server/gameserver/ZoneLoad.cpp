@@ -251,7 +251,7 @@ void Zone::init()
         break;
     }
 
-    m_bCastleZone = g_pCastleInfoManager->isCastleZone(m_ZoneID);
+    m_bCastleZone = de::gameContext().castleInfos().isCastleZone(m_ZoneID);
 
     __END_CATCH
 }
@@ -265,6 +265,8 @@ void Zone::load(bool bOutput)
     __BEGIN_TRY
     __BEGIN_DEBUG
     try {
+        CastleInfoManager& castleInfos = de::gameContext().castleInfos();
+
         DWORD versionLen;
         char* pVersionLen = (char*)(&versionLen);
         WORD zoneID;
@@ -294,7 +296,7 @@ void Zone::load(bool bOutput)
             g_pHolyLandManager->addHolyLand(this);
         }
 
-        if (g_pCastleInfoManager->getCastleInfo(m_ZoneID) != NULL) {
+        if (castleInfos.getCastleInfo(m_ZoneID) != NULL) {
             setCastle(true);
         } else {
             setCastle(false);
@@ -621,11 +623,9 @@ void Zone::load(bool bOutput)
 
                         if ((pTargetZoneInfo->isPayPlay() && !pZoneInfo->isPayPlay()) ||
                             pTargetZoneInfo->isMasterLair() ||
-                            (pTargetZoneInfo->isCastle() &&
-                             !g_pCastleInfoManager->isCastleZone(targetZoneID, m_ZoneID)) ||
+                            (pTargetZoneInfo->isCastle() && !castleInfos.isCastleZone(targetZoneID, m_ZoneID)) ||
                             (pTargetZoneInfo->isHolyLand() && !pZoneInfo->isHolyLand()) ||
-                            (isCastle() &&
-                             g_pCastleInfoManager->isCastleZone(m_ZoneID, pTargetZoneInfo->getZoneID()))) {
+                            (isCastle() && castleInfos.isCastleZone(m_ZoneID, pTargetZoneInfo->getZoneID()))) {
                             bDeleteOldPortal = true;
                         }
 
@@ -725,8 +725,7 @@ void Zone::load(bool bOutput)
                         // (The castle dungeon counts as inside the castle.)
                         // by bezz, Sequoia 2003. 1.20.
                         //----------------------------------------
-                        else if (pTargetZoneInfo->isCastle() &&
-                                 !g_pCastleInfoManager->isCastleZone(targetZoneID, m_ZoneID)) {
+                        else if (pTargetZoneInfo->isCastle() && !castleInfos.isCastleZone(targetZoneID, m_ZoneID)) {
                             TriggeredPortal* pPortal = new TriggeredPortal();
                             getObjectRegistry().registerObject(pPortal);
 
@@ -763,8 +762,7 @@ void Zone::load(bool bOutput)
                         // The entrance into the castle's underground dungeon.
                         // by Sequoia
                         //----------------------------------------
-                        else if (isCastle() &&
-                                 g_pCastleInfoManager->isCastleZone(m_ZoneID, pTargetZoneInfo->getZoneID())) {
+                        else if (isCastle() && castleInfos.isCastleZone(m_ZoneID, pTargetZoneInfo->getZoneID())) {
                             TriggeredPortal* pPortal = new TriggeredPortal();
                             getObjectRegistry().registerObject(pPortal);
 
@@ -1331,10 +1329,10 @@ void Zone::reload(bool bOutput)
                         if ((pTargetZoneInfo->isPayPlay() && !pZoneInfo->isPayPlay()) ||
                             pTargetZoneInfo->isMasterLair() ||
                             (pTargetZoneInfo->isCastle() &&
-                             !g_pCastleInfoManager->isCastleZone(targetZoneID, m_ZoneID)) ||
+                             !de::gameContext().castleInfos().isCastleZone(targetZoneID, m_ZoneID)) ||
                             (pTargetZoneInfo->isHolyLand() && !pZoneInfo->isHolyLand()) ||
                             (isCastle() &&
-                             g_pCastleInfoManager->isCastleZone(m_ZoneID, pTargetZoneInfo->getZoneID()))) {
+                             de::gameContext().castleInfos().isCastleZone(m_ZoneID, pTargetZoneInfo->getZoneID()))) {
                             bDeleteOldPortal = true;
                         }
 

@@ -224,7 +224,8 @@ ObjectManager::ObjectManager()
     m_pMasterLairInfoManager = new MasterLairInfoManager();
     context.setMasterLairInfoManager(m_pMasterLairInfoManager);
     // 2003. 1. 20. by bezz,Sequoia
-    g_pCastleInfoManager = new CastleInfoManager();
+    m_pCastleInfoManager = new CastleInfoManager();
+    context.setCastleInfoManager(m_pCastleInfoManager);
 
     m_pRankBonusInfoManager = new RankBonusInfoManager();
     context.setRankBonusInfoManager(m_pRankBonusInfoManager);
@@ -329,7 +330,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pCombatInfoManager);
     SAFE_DELETE(m_pUniqueItemManager);
     SAFE_DELETE(m_pMasterLairInfoManager);
-    SAFE_DELETE(g_pCastleInfoManager);
+    SAFE_DELETE(m_pCastleInfoManager);
     SAFE_DELETE(m_pRankBonusInfoManager);
     //	SAFE_DELETE(g_pHolyLandRaceBonus);
     SAFE_DELETE(g_pWarSystem);
@@ -479,7 +480,7 @@ void ObjectManager::init()
 
     // by bezz,Sequoia. 2003. 1. 20.
     printf("ObjectManager::load() : CastleInfoManager Initialization Start\n");
-    g_pCastleInfoManager->init(); // load after ZoneInfo and MonsterManager, before Zone
+    m_pCastleInfoManager->init(); // load after ZoneInfo and MonsterManager, before Zone
     printf("ObjectManager::load() : CastleInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : ZoneGroupManager Initialization Start\n");

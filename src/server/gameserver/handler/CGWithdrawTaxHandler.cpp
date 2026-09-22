@@ -10,6 +10,7 @@
 #include "CastleInfoManager.h"
 #include "GCModifyInformation.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GuildManager.h"
 #include "PlayerCreature.h"
@@ -36,7 +37,7 @@ void CGWithdrawTaxHandler::execute(CGWithdrawTax* pPacket, Player* pPlayer)
     GuildID_t guildID = pPC->getGuildID();
     Gold_t gold = pPacket->getGold();
 
-    list<CastleInfo*> pCastleInfoList = g_pCastleInfoManager->getGuildCastleInfos(guildID);
+    list<CastleInfo*> pCastleInfoList = de::gameContext().castleInfos().getGuildCastleInfos(guildID);
     if (pCastleInfoList.empty()) {
         GCNPCResponse fail;
         fail.setCode(NPC_RESPONSE_WITHDRAW_TAX_FAIL);

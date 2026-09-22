@@ -65,7 +65,7 @@ void RaceWar::executeStart()
     // is not set yet while this runs.
 
     // During a war, fighting inside the castle is free
-    g_pCastleInfoManager->releaseAllSafeZone();
+    de::gameContext().castleInfos().releaseAllSafeZone();
 
     // Every guardian shrine shield disappears.
     g_pShrineInfoManager->removeAllShrineShield();
@@ -161,9 +161,9 @@ void RaceWar::executeEnd()
 
     g_pShrineInfoManager->addAllShrineShield();
 
-    g_pCastleInfoManager->resetAllSafeZone();
+    de::gameContext().castleInfos().resetAllSafeZone();
 
-    g_pCastleInfoManager->transportAllOtherRace();
+    de::gameContext().castleInfos().transportAllOtherRace();
 
 
     // Broadcast the blood bible positions across Adam's holy land.
@@ -282,7 +282,7 @@ void RaceWar::makeWarInfo(WarInfo* pWarInfo) const
     RaceWarInfo* pRaceWarInfo = dynamic_cast<RaceWarInfo*>(pWarInfo);
     Assert(pRaceWarInfo != NULL);
 
-    const unordered_map<ZoneID_t, CastleInfo*>& castleInfos = g_pCastleInfoManager->getCastleInfos();
+    const unordered_map<ZoneID_t, CastleInfo*>& castleInfos = de::gameContext().castleInfos().getCastleInfos();
 
     unordered_map<ZoneID_t, CastleInfo*>::const_iterator itr = castleInfos.begin();
 

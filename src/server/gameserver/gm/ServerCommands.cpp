@@ -673,7 +673,7 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
             Zone* pZone = pCreature->getZone();
             if (set_value.size() != 0) {
                 int Tax = atoi(set_value.c_str());
-                g_pCastleInfoManager->setItemTaxRatio(pZone, Tax);
+                de::gameContext().castleInfos().setItemTaxRatio(pZone, Tax);
             } else {
                 gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WRONG_ITEM_TAX_RATIO));
             }
@@ -1027,7 +1027,7 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
         Zone* pZone = getZoneByZoneID(zoneID);
         if (pZone != NULL) {
             // Elsewhere the NPCs do not seem to be created
-            CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(zoneID);
+            CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(zoneID);
 
             if (pCastleInfo != NULL)
                 pZone->loadNPCs(pCastleInfo->getRace());

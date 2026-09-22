@@ -90,9 +90,8 @@ MonsterManager::MonsterManager(Zone* pZone)
     Assert(pZone != NULL);
     m_pZone = pZone;
 
-    Assert(g_pCastleInfoManager != NULL);
     m_CastleZoneID = 0;
-    g_pCastleInfoManager->getCastleZoneID(m_pZone->getZoneID(), m_CastleZoneID);
+    de::gameContext().castleInfos().getCastleZoneID(m_pZone->getZoneID(), m_CastleZoneID);
 
     m_nEventMonster = 0;
     m_pEventMonsterInfo = NULL;
@@ -640,7 +639,7 @@ void MonsterManager::regenerateCreatures()
 
         // A guild war is in progress.
         if (m_CastleZoneID != 0 && g_pWarSystem->hasCastleActiveWar(m_CastleZoneID)) {
-            CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
+            CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(m_CastleZoneID);
             if (pCastleInfo != NULL) {
                 GuildID_t OwnerGuildID = pCastleInfo->getGuildID();
 

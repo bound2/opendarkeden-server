@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[51];
+char g_managerStorage[52];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -125,18 +125,21 @@ TEST(GameContextTest, ItemDescriptionManagersAreReadBack) {
 TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     de::GameContext context;
 
+    CastleInfoManager* pCastleInfoManager = standIn<CastleInfoManager>(51);
     CastleShrineInfoManager* pCastleShrineInfoManager = standIn<CastleShrineInfoManager>(17);
     DragonEyeManager* pDragonEyeManager = standIn<DragonEyeManager>(18);
     EventQuestLootingManager* pEventQuestLootingManager = standIn<EventQuestLootingManager>(19);
     FlagManager* pFlagManager = standIn<FlagManager>(49);
     WayPointManager* pWayPointManager = standIn<WayPointManager>(20);
 
+    context.setCastleInfoManager(pCastleInfoManager);
     context.setCastleShrineInfoManager(pCastleShrineInfoManager);
     context.setDragonEyeManager(pDragonEyeManager);
     context.setEventQuestLootingManager(pEventQuestLootingManager);
     context.setFlagManager(pFlagManager);
     context.setWayPointManager(pWayPointManager);
 
+    EXPECT_EQ(&context.castleInfos(), pCastleInfoManager);
     EXPECT_EQ(&context.castleShrines(), pCastleShrineInfoManager);
     EXPECT_EQ(&context.dragonEyes(), pDragonEyeManager);
     EXPECT_EQ(&context.eventQuestLoot(), pEventQuestLootingManager);
@@ -302,6 +305,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.actionFactories(), AssertionError);
     EXPECT_THROW(context.alignments(), AssertionError);
     EXPECT_THROW(context.bloodBibleBonuses(), AssertionError);
+    EXPECT_THROW(context.castleInfos(), AssertionError);
     EXPECT_THROW(context.castleShrines(), AssertionError);
     EXPECT_THROW(context.castleSkills(), AssertionError);
     EXPECT_THROW(context.clients(), AssertionError);

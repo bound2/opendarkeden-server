@@ -1,6 +1,7 @@
 #include "HolyLandRaceBonus.h"
 
 #include "CastleInfoManager.h"
+#include "GameContext.h"
 
 HolyLandRaceBonus::HolyLandRaceBonus() {
     refresh();
@@ -16,7 +17,7 @@ void HolyLandRaceBonus::refresh()
     // Clear the previous ones.
     clear();
 
-    const unordered_map<ZoneID_t, CastleInfo*>& castleInfos = g_pCastleInfoManager->getCastleInfos();
+    const unordered_map<ZoneID_t, CastleInfo*>& castleInfos = de::gameContext().castleInfos().getCastleInfos();
     unordered_map<ZoneID_t, CastleInfo*>::const_iterator itr = castleInfos.begin();
 
 

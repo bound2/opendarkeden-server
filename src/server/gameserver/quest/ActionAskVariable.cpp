@@ -12,6 +12,7 @@
 #include "GCNPCAskVariable.h"
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -75,6 +76,8 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
     Assert(pPC != NULL);
 
+    CastleInfoManager& castleInfos = context().castleInfos();
+
     GCNPCAskVariable gcNPCAskVariable;
     gcNPCAskVariable.setObjectID(pCreature1->getObjectID());
     gcNPCAskVariable.setScriptID(m_ScriptID);
@@ -98,8 +101,8 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
 
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
 
-            Gold_t value = g_pCastleInfoManager->getEntranceFee(zoneID, pPC);
-            Race_t race = g_pCastleInfoManager->getCastleInfo(zoneID)->getRace();
+            Gold_t value = castleInfos.getEntranceFee(zoneID, pPC);
+            Race_t race = castleInfos.getCastleInfo(zoneID)->getRace();
 
             char strValue[20];
             // Free for everyone during a race war.
@@ -120,7 +123,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                 sprintf(strValue, "%s", (sGold + " " + g_pStringPool->getString(STRID_GELD)).c_str());
             }
 
-            if (g_pCastleInfoManager->isPossibleEnter(zoneID, pPC))
+            if (castleInfos.isPossibleEnter(zoneID, pPC))
                 pParam->setValue(strValue);
             else
                 pParam->setValue(g_pStringPool->getString(STRID_NO_ENTER));
@@ -131,7 +134,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
             if (zoneID == 0)
                 throw Error("Invalid Script Variable. Keyword : CastleOwner. Invalid ZoneID");
 
-            CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(zoneID);
+            CastleInfo* pCastleInfo = castleInfos.getCastleInfo(zoneID);
             string result;
             if (pCastleInfo != NULL) {
                 if (pCastleInfo->isCommon()) {
@@ -169,7 +172,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
             if (zoneID == 0)
                 throw Error("Invalid Script Variable. Keyword : CastleOwner. Invalid ZoneID");
 
-            CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(zoneID);
+            CastleInfo* pCastleInfo = castleInfos.getCastleInfo(zoneID);
             if (pCastleInfo != NULL) {
                 pParam->setValue(pCastleInfo->getName());
             } else {
@@ -219,13 +222,13 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
         } else if (keyword == "CastleResurrectFee") {
             ZoneID_t zoneID = atoi(pInfo->getParameter(0).c_str());
 
-            CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(zoneID);
+            CastleInfo* pCastleInfo = castleInfos.getCastleInfo(zoneID);
             if (pCastleInfo != NULL) {
                 Gold_t value = pCastleInfo->getEntranceFee();
 
                 PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
 
-                if (g_pCastleInfoManager->isCastleMember(zoneID, pPC))
+                if (castleInfos.isCastleMember(zoneID, pPC))
                     value = 0;
 
                 char gold[15];

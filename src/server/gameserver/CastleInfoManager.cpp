@@ -80,7 +80,7 @@ Gold_t CastleInfo::increaseTaxBalanceEx(Gold_t tax)
 
     if (!isCommon()) {
         sprintf(query, "TaxBalance=%d", (int)getTaxBalance());
-        g_pCastleInfoManager->tinysave(getZoneID(), query);
+        de::gameContext().castleInfos().tinysave(getZoneID(), query);
     }
 
     return getTaxBalance();
@@ -99,7 +99,7 @@ Gold_t CastleInfo::decreaseTaxBalanceEx(Gold_t tax)
 
     if (!isCommon()) {
         sprintf(query, "TaxBalance=%d", (int)getTaxBalance());
-        g_pCastleInfoManager->tinysave(getZoneID(), query);
+        de::gameContext().castleInfos().tinysave(getZoneID(), query);
     }
 
     return getTaxBalance();
@@ -853,7 +853,7 @@ bool CastleInfoManager::getResurrectPosition(PlayerCreature* pPC, ZONE_COORD& zo
     CastleInfo::ResurrectPriority resurrectPriority = CastleInfo::CASTLE_RESURRECT_PRIORITY_SECOND;
 
     ZoneID_t castleZoneID;
-    bool isCastleZone = g_pCastleInfoManager->getCastleZoneID(pPC->getResurrectZoneID(), castleZoneID);
+    bool isCastleZone = de::gameContext().castleInfos().getCastleZoneID(pPC->getResurrectZoneID(), castleZoneID);
 
     if (!isCastleZone)
         return false;
@@ -1210,6 +1210,3 @@ SkillType_t CastleInfoManager::getCastleSkillType(ZoneID_t zoneID, GuildID_t gui
 
     __END_CATCH
 }
-
-// global variable definition
-CastleInfoManager* g_pCastleInfoManager = NULL;

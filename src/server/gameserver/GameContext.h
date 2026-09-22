@@ -25,6 +25,7 @@
 class ActionFactoryManager;
 class AlignmentManager;
 class BloodBibleBonusManager;
+class CastleInfoManager;
 class CastleShrineInfoManager;
 class CastleSkillInfoManager;
 class ClientManager;
@@ -91,6 +92,9 @@ public:
     }
     void setBloodBibleBonusManager(BloodBibleBonusManager* pBloodBibleBonusManager) {
         m_pBloodBibleBonusManager = pBloodBibleBonusManager;
+    }
+    void setCastleInfoManager(CastleInfoManager* pCastleInfoManager) {
+        m_pCastleInfoManager = pCastleInfoManager;
     }
     void setCastleShrineInfoManager(CastleShrineInfoManager* pCastleShrineInfoManager) {
         m_pCastleShrineInfoManager = pCastleShrineInfoManager;
@@ -240,6 +244,7 @@ public:
     ActionFactoryManager& actionFactories() const;
     AlignmentManager& alignments() const;
     BloodBibleBonusManager& bloodBibleBonuses() const;
+    CastleInfoManager& castleInfos() const;
     CastleShrineInfoManager& castleShrines() const;
     CastleSkillInfoManager& castleSkills() const;
     ClientManager& clients() const;
@@ -293,6 +298,7 @@ private:
     ActionFactoryManager* m_pActionFactoryManager = nullptr;
     AlignmentManager* m_pAlignmentManager = nullptr;
     BloodBibleBonusManager* m_pBloodBibleBonusManager = nullptr;
+    CastleInfoManager* m_pCastleInfoManager = nullptr;
     CastleShrineInfoManager* m_pCastleShrineInfoManager = nullptr;
     CastleSkillInfoManager* m_pCastleSkillInfoManager = nullptr;
     ClientManager* m_pClientManager = nullptr;

@@ -105,9 +105,9 @@ void SiegeManager::start(ZoneID_t zoneID) {
                                      {165, 106}, {166, 105}, {166, 108}, {167, 107}, {-1, -1}};
 
     ZoneID_t castleZoneID = 0;
-    g_pCastleInfoManager->getCastleZoneID(zoneID, castleZoneID);
+    de::gameContext().castleInfos().getCastleZoneID(zoneID, castleZoneID);
     MonsterType_t mType = 736;
-    CastleInfo* pInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
+    CastleInfo* pInfo = de::gameContext().castleInfos().getCastleInfo(castleZoneID);
     if (pInfo != NULL) {
         switch (pInfo->getRace()) {
         case RACE_VAMPIRE:
@@ -159,7 +159,7 @@ ZoneID_t SiegeManager::getSiegeZoneID(ZoneID_t castleZoneID) {
 void SiegeManager::putItem(PlayerCreature* pPC, MonsterCorpse* pCorpse, Item* pItem) {
     ZoneID_t zoneID = pPC->getZoneID();
     ZoneID_t castleZoneID = 0;
-    if (!g_pCastleInfoManager->getCastleZoneID(zoneID, castleZoneID)) {
+    if (!de::gameContext().castleInfos().getCastleZoneID(zoneID, castleZoneID)) {
         GCCannotAdd gcCA;
         gcCA.setObjectID(pItem->getObjectID());
         pPC->getPlayer()->sendPacket(&gcCA);

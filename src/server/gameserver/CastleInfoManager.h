@@ -200,6 +200,4 @@ private:
     unordered_map<ZoneID_t, ZoneID_t> m_CastleZoneIDs;
 };
 
-extern CastleInfoManager* g_pCastleInfoManager;
-
 #endif // __CASTlE_INFO_MANAGER_H__

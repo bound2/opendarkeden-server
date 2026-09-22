@@ -8,6 +8,7 @@
 
 #include "CastleInfoManager.h"
 #include "FlagSet.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PacketUtil.h"
 #include "PaySystem.h"
@@ -36,7 +37,7 @@ bool ConditionEnterCastleDungeon::isSatisfied(Creature* pCreature1, Creature* pC
     if (bPayPlay) {
         bool hasGuildWar = g_pWarSystem->hasCastleActiveWar(m_CastleZoneID);
 
-        CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
+        CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(m_CastleZoneID);
         Assert(pCastleInfo != NULL);
 
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);

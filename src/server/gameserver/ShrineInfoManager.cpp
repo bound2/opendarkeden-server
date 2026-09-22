@@ -529,7 +529,7 @@ bool ShrineInfoManager::isDefenderOfGuardShrine(PlayerCreature* pPC, MonsterCorp
 
     ZoneID_t castleZoneID = pZone->getZoneID();
 
-    CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(castleZoneID);
+    CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(castleZoneID);
     if (pCastleInfo == NULL)
         return false;
 

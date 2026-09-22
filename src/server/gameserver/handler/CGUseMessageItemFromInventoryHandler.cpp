@@ -191,7 +191,7 @@ void CGUseMessageItemFromInventoryHandler::executeEventTree(CGUseMessageItemFrom
     // In a castle only the owning guild's members can use it.
     if (!pPC->isGOD()) {
         if (pZone->isCastle()) {
-            if (!g_pCastleInfoManager->isCastleMember(pZone->getZoneID(), pPC)) {
+            if (!de::gameContext().castleInfos().isCastleMember(pZone->getZoneID(), pPC)) {
                 GCCannotUse _GCCannotUse;
                 _GCCannotUse.setObjectID(pPacket->getObjectID());
                 pGamePlayer->sendPacket(&_GCCannotUse);
