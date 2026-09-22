@@ -1308,11 +1308,27 @@ gating; `Zone.cpp` under 2,000 lines.
 
 ## Phase 5 — Process scaffolding (runs alongside all phases)
 
-- [ ] **5.1 Upgrade server CLAUDE.md to sidecar format.** From build manual to
+- [x] **5.1 Upgrade server CLAUDE.md to sidecar format.** From build manual to
   "non-obvious rules and gotchas that cost time to rediscover", each rule
   pointing at the test that owns it. Add the `make test` loop, the ratchet
   rules, and this document's status conventions.
-  > **Status:** not started
+  > **Status:** done (2026-09-22) — CLAUDE.md opens with a "Rules and the
+  > tests that own them" table (fourteen rules, each with its owning test or
+  > ratchet and the message it prints) and a "Working in this repository"
+  > section carrying the `make dev-test` / `make test` loop, the ratchet
+  > discipline, this document's `> **Status:**` conventions and
+  > `docs/FIXES.md`. The build, container, database and run-the-servers
+  > manuals stay; task and phase numbers are out of that file, because it is
+  > read by sessions that never open this one. Same length as before (538
+  > lines). Every claim was re-checked against the tree: the corrections were
+  > the handler header that does not exist (`handler/` holds only
+  > `*Handler.cpp`; the class is declared in the packet's Core header), the
+  > four `FactoryList`s that are never four per server, the missing
+  > directories (`gm/`, `guild/`, `party/`, `trade/`, the three
+  > `repository/` trees outside the gameserver, `third_party/argon2`), the
+  > thread backends that are one (`ManagedThread`), and the clang-format file
+  > count nothing measures. Keep it that way: a sentence in CLAUDE.md that no
+  > file or command backs is the failure mode this task exists to fix.
 
 - [ ] **5.2 `.claude/skills/add-packet` skill.** Modeled on sidecar's
   `add-sidecar-domain`: the checklist for adding/changing a packet — layout
