@@ -339,6 +339,25 @@ add_test(NAME login_context_tests COMMAND login_context_tests
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(login_context_tests PROPERTIES TIMEOUT 30)
 
+# The sharedserver's own context registry (docs/RESTRUCTURING.md task 3.5),
+# built the same way: the context's translation unit, de-kernel for Assert,
+# and nothing of the sharedserver. A failing Assert appends to
+# assertion_failed.log in the working directory, hence the build-tree
+# WORKING_DIRECTORY (same reason as scheduler_tests).
+add_executable(shared_context_tests EXCLUDE_FROM_ALL
+    shared_context_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/sharedserver/SharedContext.cpp
+)
+target_include_directories(shared_context_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/sharedserver
+)
+target_link_libraries(shared_context_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests shared_context_tests)
+add_test(NAME shared_context_tests COMMAND shared_context_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(shared_context_tests PROPERTIES TIMEOUT 30)
+
 add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)
 target_include_directories(shutdown_probe PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
 target_link_libraries(shutdown_probe PRIVATE Threads::Threads)
