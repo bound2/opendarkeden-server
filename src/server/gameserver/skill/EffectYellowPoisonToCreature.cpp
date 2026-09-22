@@ -65,18 +65,20 @@ void EffectYellowPoisonToCreature::unaffect(Creature* pCreature)
         Sight_t NewSight = pCreature->getEffectedSight();
         pCreature->setSight(NewSight);
 
-        // Sends the vision information to the client.
-        GCModifyInformation _GCModifyInformation;
-        _GCModifyInformation.addShortData(MODIFY_VISION, NewSight);
-        pPlayer->sendPacket(&_GCModifyInformation);
+        if (pPlayer != NULL) {
+            // Sends the vision information to the client.
+            GCModifyInformation _GCModifyInformation;
+            _GCModifyInformation.addShortData(MODIFY_VISION, NewSight);
+            pPlayer->sendPacket(&_GCModifyInformation);
 
-        // When Yellow Poison wears off, the scan is updated and the brightness adjusted.
+            // When Yellow Poison wears off, the scan is updated and the brightness adjusted.
 
-        GCChangeDarkLight gcChangeDarkLight;
-        gcChangeDarkLight.setDarkLevel(pZone->getDarkLevel());
-        gcChangeDarkLight.setLightLevel(pZone->getLightLevel());
+            GCChangeDarkLight gcChangeDarkLight;
+            gcChangeDarkLight.setDarkLevel(pZone->getDarkLevel());
+            gcChangeDarkLight.setLightLevel(pZone->getLightLevel());
 
-        pPlayer->sendPacket(&gcChangeDarkLight);
+            pPlayer->sendPacket(&gcChangeDarkLight);
+        }
 
 
         // Saves the sight when it wears off.
