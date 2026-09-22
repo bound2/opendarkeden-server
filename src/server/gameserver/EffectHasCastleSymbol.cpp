@@ -106,7 +106,7 @@ void EffectHasCastleSymbol::affect(Item* pItem)
 
     isCastle = de::gameContext().castleInfos().getCastleZoneID(m_pZone->getZoneID(), castleZoneID);
 
-    if (isCastle && g_pWarSystem->hasCastleActiveWar(castleZoneID)) {
+    if (isCastle && de::gameContext().warSystem().hasCastleActiveWar(castleZoneID)) {
         ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(m_pZone->getZoneID());
         Assert(pZoneInfo != NULL);
 

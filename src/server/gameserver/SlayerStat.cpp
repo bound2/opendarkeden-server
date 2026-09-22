@@ -1095,7 +1095,7 @@ int Slayer::getBloodBibleSignOpenNum() const {
 
     Fame_t fame = getFame();
 
-    if (!g_pWarSystem->canApplyBloodBibleSign())
+    if (!de::gameContext().warSystem().canApplyBloodBibleSign())
         return 0;
 
     SkillDomainType_t domain = getHighestSkillDomain();

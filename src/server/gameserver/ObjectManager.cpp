@@ -232,7 +232,8 @@ ObjectManager::ObjectManager()
 
     //	g_pHolyLandRaceBonus	= new HolyLandRaceBonus();
 
-    g_pWarSystem = new WarSystem();
+    m_pWarSystem = new WarSystem();
+    context.setWarSystem(m_pWarSystem);
 
     g_pShrineInfoManager = new ShrineInfoManager();
     m_pCastleShrineInfoManager = new CastleShrineInfoManager();
@@ -333,7 +334,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pCastleInfoManager);
     SAFE_DELETE(m_pRankBonusInfoManager);
     //	SAFE_DELETE(g_pHolyLandRaceBonus);
-    SAFE_DELETE(g_pWarSystem);
+    SAFE_DELETE(m_pWarSystem);
     SAFE_DELETE(g_pShrineInfoManager);
     SAFE_DELETE(m_pCastleShrineInfoManager);
 
@@ -438,7 +439,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : ItemMineInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : WarID Initialization Start\n");
-    g_pWarSystem->setWarIDSuccessor(g_pConfig->getPropertyInt("ServerCount"));
+    m_pWarSystem->setWarIDSuccessor(g_pConfig->getPropertyInt("ServerCount"));
     War::initWarIDRegistry();
     printf("ObjectManager::init() : WarID Initialization Success\n");
 
@@ -632,7 +633,7 @@ void ObjectManager::load()
     printf("ObjectManager::load() : RankBonusInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : WarSystem Initialization Start\n");
-    g_pWarSystem->init();
+    m_pWarSystem->init();
     printf("ObjectManager::load() : WarSystem Initialization Success\n");
 
     printf("ObjectManager::load() : RaceWarLimiter Initialization Start\n");

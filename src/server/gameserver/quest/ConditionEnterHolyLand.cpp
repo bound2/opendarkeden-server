@@ -8,6 +8,7 @@
 
 #include "DB.h"
 #include "FlagSet.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PacketUtil.h"
 #include "PaySystem.h"
@@ -39,7 +40,7 @@ bool ConditionEnterHolyLand::isSatisfied(Creature* pCreature1, Creature* pCreatu
     // The pay-to-play gate is always open: bPayPlay is set true just above.
     if (bPayPlay) {
         // During a race war, if the number of participants is limited.
-        if (g_pWarSystem->hasActiveRaceWar() && g_pVariableManager->isActiveRaceWarLimiter()) {
+        if (de::gameContext().warSystem().hasActiveRaceWar() && g_pVariableManager->isActiveRaceWarLimiter()) {
             Zone* pZone = getZoneByZoneID(m_TargetZoneID);
             Assert(pZone != NULL);
 

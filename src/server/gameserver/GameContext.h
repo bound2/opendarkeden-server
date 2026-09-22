@@ -70,6 +70,7 @@ class TimeManager;
 class VampEXPInfoManager;
 class VariableManager;
 class VolumeInfoManager;
+class WarSystem;
 class WayPointManager;
 class WeatherInfoManager;
 class ZoneGroupManager;
@@ -228,6 +229,9 @@ public:
     void setVolumeInfoManager(VolumeInfoManager* pVolumeInfoManager) {
         m_pVolumeInfoManager = pVolumeInfoManager;
     }
+    void setWarSystem(WarSystem* pWarSystem) {
+        m_pWarSystem = pWarSystem;
+    }
     void setWayPointManager(WayPointManager* pWayPointManager) {
         m_pWayPointManager = pWayPointManager;
     }
@@ -289,6 +293,7 @@ public:
     VampEXPInfoManager& vampireExp() const;
     VariableManager& variables() const;
     VolumeInfoManager& volumeInfos() const;
+    WarSystem& warSystem() const;
     WayPointManager& wayPoints() const;
     WeatherInfoManager& weatherInfos() const;
     ZoneGroupManager& zoneGroups() const;
@@ -343,6 +348,7 @@ private:
     VampEXPInfoManager* m_pVampEXPInfoManager = nullptr;
     VariableManager* m_pVariableManager = nullptr;
     VolumeInfoManager* m_pVolumeInfoManager = nullptr;
+    WarSystem* m_pWarSystem = nullptr;
     WayPointManager* m_pWayPointManager = nullptr;
     WeatherInfoManager* m_pWeatherInfoManager = nullptr;
     ZoneGroupManager* m_pZoneGroupManager = nullptr;

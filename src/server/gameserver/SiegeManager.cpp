@@ -190,14 +190,14 @@ void SiegeManager::putItem(PlayerCreature* pPC, MonsterCorpse* pCorpse, Item* pI
         return;
     }
 
-    if (!g_pWarSystem->isModifyCastleOwner(castleZoneID, pPC)) {
+    if (!de::gameContext().warSystem().isModifyCastleOwner(castleZoneID, pPC)) {
         GCCannotAdd gcCA;
         gcCA.setObjectID(pItem->getObjectID());
         pPC->getPlayer()->sendPacket(&gcCA);
         return;
     }
 
-    g_pWarSystem->endWar(pPC, castleZoneID);
+    de::gameContext().warSystem().endWar(pPC, castleZoneID);
 
     Assert(pItem->getObjectID() == pPC->getExtraInventorySlotItem()->getObjectID());
     pPC->deleteItemFromExtraInventorySlot();

@@ -329,7 +329,7 @@ bool CastleShrineInfoManager::isDefenderOfGuardShrine(PlayerCreature* pPC, Monst
     bool isCastle = de::gameContext().castleInfos().getCastleZoneID(guardZoneID, castleZoneID);
     Assert(isCastle == true);
 
-    War* pWar = g_pWarSystem->getActiveWar(castleZoneID);
+    War* pWar = de::gameContext().warSystem().getActiveWar(castleZoneID);
     if (pWar == NULL)
         return false;
 
@@ -375,7 +375,7 @@ bool CastleShrineInfoManager::canPickupCastleSymbol(Race_t race, CastleSymbol* p
     bool isCastle = de::gameContext().castleInfos().getCastleZoneID(guardZoneID, castleZoneID);
     Assert(isCastle == true);
 
-    War* pWar = g_pWarSystem->getActiveWar(castleZoneID);
+    War* pWar = de::gameContext().warSystem().getActiveWar(castleZoneID);
 
     if (pWar == NULL) {
         // Unexpected state.
@@ -588,8 +588,8 @@ bool CastleShrineInfoManager::putCastleSymbol(PlayerCreature* pPC, Item* pItem, 
     Assert(isCastle == true);
 
     // Placing it in the matching shrine ends the war and returns it to the guard shrine,
-    if (isMatchHolyShrine(pItem, pCorpse) && g_pWarSystem->isModifyCastleOwner(castleZoneID, pPC)) {
-        g_pWarSystem->endWar(pPC, castleZoneID);
+    if (isMatchHolyShrine(pItem, pCorpse) && de::gameContext().warSystem().isModifyCastleOwner(castleZoneID, pPC)) {
+        de::gameContext().warSystem().endWar(pPC, castleZoneID);
 
         // War::executeEnd returns it when the war ends.
         //        returnCastleSymbol( shrineID, false );

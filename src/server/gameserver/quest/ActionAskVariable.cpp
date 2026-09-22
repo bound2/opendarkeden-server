@@ -107,7 +107,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
             char strValue[20];
             // Free for everyone during a race war.
             // During a guild war only the race allowed into the castle enters free.
-            if (g_pWarSystem->hasActiveRaceWar() || g_pWarSystem->hasCastleActiveWar(zoneID)) {
+            if (context().warSystem().hasActiveRaceWar() || context().warSystem().hasCastleActiveWar(zoneID)) {
                 sprintf(strValue, "%s", g_pStringPool->getString(STRID_FREE).c_str());
             } else if (race == RACE_SLAYER) {
                 char gold[15];

@@ -40,7 +40,7 @@ WarID_t War::m_WarIDRegistry = 0;
 //--------------------------------------------------------------------------------
 War::War(WarState warState, WarID_t warID) : m_State(warState) {
     if (warID == 0) {
-        m_WarIDRegistry += g_pWarSystem->getWarIDSuccessor();
+        m_WarIDRegistry += de::gameContext().warSystem().getWarIDSuccessor();
         m_WarID = m_WarIDRegistry;
     } else {
         m_WarID = warID;

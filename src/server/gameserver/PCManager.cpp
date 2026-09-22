@@ -116,6 +116,8 @@ void PCManager::processCreatures()
 {
     __BEGIN_TRY
 
+    WarSystem& warSystem = de::gameContext().warSystem();
+
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
 
@@ -138,7 +140,7 @@ void PCManager::processCreatures()
 
 
                 // Call initAllStat so the HolyLandRaceBonus is applied.
-                if (m_bRefreshHolyLandPlayer && !g_pWarSystem->hasActiveRaceWar()) {
+                if (m_bRefreshHolyLandPlayer && !warSystem.hasActiveRaceWar()) {
                     SLAYER_RECORD prev;
 
                     pSlayer->getSlayerRecord(prev);
@@ -181,7 +183,7 @@ void PCManager::processCreatures()
                 }
 
                 // Call initAllStat so the HolyLandRaceBonus is applied.
-                if (m_bRefreshHolyLandPlayer && !g_pWarSystem->hasActiveRaceWar()) {
+                if (m_bRefreshHolyLandPlayer && !warSystem.hasActiveRaceWar()) {
                     VAMPIRE_RECORD prev;
 
                     pVampire->getVampireRecord(prev);
@@ -913,7 +915,7 @@ void PCManager::processCreatures()
         }
 
         // Not sent during a war.
-        if (m_bRefreshHolyLandPlayer && !g_pWarSystem->hasActiveRaceWar()) {
+        if (m_bRefreshHolyLandPlayer && !warSystem.hasActiveRaceWar()) {
             // Broadcast the blood bible bonus information across Adam's holy land.
             GCHolyLandBonusInfo gcHolyLandBonusInfo;
             de::gameContext().bloodBibleBonuses().makeHolyLandBonusInfo(gcHolyLandBonusInfo);

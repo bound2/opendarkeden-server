@@ -634,11 +634,11 @@ void MonsterManager::regenerateCreatures()
     // Prevent monster regeneration during a war.
     if (m_pZone->isHolyLand()) {
         // A race war is in progress.
-        if (g_pWarSystem->hasActiveRaceWar())
+        if (de::gameContext().warSystem().hasActiveRaceWar())
             return;
 
         // A guild war is in progress.
-        if (m_CastleZoneID != 0 && g_pWarSystem->hasCastleActiveWar(m_CastleZoneID)) {
+        if (m_CastleZoneID != 0 && de::gameContext().warSystem().hasCastleActiveWar(m_CastleZoneID)) {
             CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(m_CastleZoneID);
             if (pCastleInfo != NULL) {
                 GuildID_t OwnerGuildID = pCastleInfo->getGuildID();

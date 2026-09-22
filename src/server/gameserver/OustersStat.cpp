@@ -960,7 +960,7 @@ int Ousters::getBloodBibleSignOpenNum() const {
 
     Fame_t fame = getFame();
 
-    if (!g_pWarSystem->canApplyBloodBibleSign())
+    if (!de::gameContext().warSystem().canApplyBloodBibleSign())
         return 0;
 
     return decore::oustersBloodBibleSignOpenNum(fame, openNumLimit);

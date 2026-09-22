@@ -212,7 +212,7 @@ void ClientManager::run()
 
         // War handling
         if (g_pVariableManager->isWarActive()) {
-            g_pWarSystem->heartbeat();
+            de::gameContext().warSystem().heartbeat();
         }
 
         if (g_pVariableManager->isActiveFlagWar()) {

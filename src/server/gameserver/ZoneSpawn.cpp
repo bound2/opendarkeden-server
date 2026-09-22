@@ -218,6 +218,8 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
     Assert(pCreature != NULL);
     Assert(pCreature->isPC());
 
+    WarSystem& warSystem = de::gameContext().warSystem();
+
     TPOINT pt = findSuitablePosition(this, cx, cy, pCreature->getMoveMode());
 
     if (pt.x != -1) {
@@ -444,9 +446,9 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         //-----------------------------------------------------------------
         // While a war is running, send the war information.
         //-----------------------------------------------------------------
-        if (g_pWarSystem->isWarActive()) {
+        if (warSystem.isWarActive()) {
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-            g_pWarSystem->sendGCWarList(pPC->getPlayer());
+            warSystem.sendGCWarList(pPC->getPlayer());
         }
 
         if (de::gameContext().flags().hasFlagWar() && de::gameContext().flags().isFlagAllowedZone(getZoneID())) {
@@ -470,7 +472,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         //}
 
         if (isHolyLand()) {
-            if (g_pWarSystem->hasActiveRaceWar()) {
+            if (warSystem.hasActiveRaceWar()) {
                 PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
                 g_pShrineInfoManager->sendBloodBibleStatus(pPC);
 
@@ -570,10 +572,10 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
             }
 
             if (g_pVariableManager->isWarActive() && g_pVariableManager->isAutoStartRaceWar() &&
-                g_pWarSystem->isRaceWarToday()) {
+                warSystem.isRaceWarToday()) {
                 GCNoticeEvent gcNoticeEvent;
                 gcNoticeEvent.setCode(NOTICE_EVENT_RACE_WAR_SOON);
-                gcNoticeEvent.setParameter(g_pWarSystem->getRaceWarTimeParam());
+                gcNoticeEvent.setParameter(warSystem.getRaceWarTimeParam());
                 pPC->getPlayer()->sendPacket(&gcNoticeEvent);
             }
 
@@ -655,7 +657,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
             }
         }
 
-        if (g_pWarSystem->isSkyBlack()) {
+        if (warSystem.isSkyBlack()) {
             GCNoticeEvent gcNE;
             gcNE.setCode(NOTICE_EVENT_RACE_WAR_IN_5);
             pPC->getPlayer()->sendPacket(&gcNE);

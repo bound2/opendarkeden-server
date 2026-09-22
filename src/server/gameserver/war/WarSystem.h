@@ -131,6 +131,4 @@ private:
     bool m_b5Minutes;
 };
 
-extern WarSystem* g_pWarSystem;
-
 #endif

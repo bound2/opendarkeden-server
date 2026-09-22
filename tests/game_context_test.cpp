@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[52];
+char g_managerStorage[53];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -130,6 +130,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     DragonEyeManager* pDragonEyeManager = standIn<DragonEyeManager>(18);
     EventQuestLootingManager* pEventQuestLootingManager = standIn<EventQuestLootingManager>(19);
     FlagManager* pFlagManager = standIn<FlagManager>(49);
+    WarSystem* pWarSystem = standIn<WarSystem>(52);
     WayPointManager* pWayPointManager = standIn<WayPointManager>(20);
 
     context.setCastleInfoManager(pCastleInfoManager);
@@ -137,6 +138,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     context.setDragonEyeManager(pDragonEyeManager);
     context.setEventQuestLootingManager(pEventQuestLootingManager);
     context.setFlagManager(pFlagManager);
+    context.setWarSystem(pWarSystem);
     context.setWayPointManager(pWayPointManager);
 
     EXPECT_EQ(&context.castleInfos(), pCastleInfoManager);
@@ -144,6 +146,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     EXPECT_EQ(&context.dragonEyes(), pDragonEyeManager);
     EXPECT_EQ(&context.eventQuestLoot(), pEventQuestLootingManager);
     EXPECT_EQ(&context.flags(), pFlagManager);
+    EXPECT_EQ(&context.warSystem(), pWarSystem);
     EXPECT_EQ(&context.wayPoints(), pWayPointManager);
 }
 
@@ -349,6 +352,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.vampireExp(), AssertionError);
     EXPECT_THROW(context.variables(), AssertionError);
     EXPECT_THROW(context.volumeInfos(), AssertionError);
+    EXPECT_THROW(context.warSystem(), AssertionError);
     EXPECT_THROW(context.wayPoints(), AssertionError);
     EXPECT_THROW(context.weatherInfos(), AssertionError);
     EXPECT_THROW(context.worldTime(), AssertionError);

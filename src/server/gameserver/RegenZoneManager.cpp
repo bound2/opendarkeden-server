@@ -211,7 +211,7 @@ void RegenZoneManager::changeRegenZoneOwner(MonsterCorpse* pTower, Race_t race) 
     map<uint, RegenZoneInfo*>::iterator itr = m_RegenZoneInfos.begin();
     map<uint, RegenZoneInfo*>::iterator endItr = m_RegenZoneInfos.end();
 
-    if (!g_pWarSystem->hasActiveRaceWar())
+    if (!de::gameContext().warSystem().hasActiveRaceWar())
         return;
 
     for (; itr != endItr; ++itr) {

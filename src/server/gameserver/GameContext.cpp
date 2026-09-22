@@ -253,6 +253,11 @@ VolumeInfoManager& GameContext::volumeInfos() const {
     return *m_pVolumeInfoManager;
 }
 
+WarSystem& GameContext::warSystem() const {
+    Assert(m_pWarSystem != nullptr);
+    return *m_pWarSystem;
+}
+
 WayPointManager& GameContext::wayPoints() const {
     Assert(m_pWayPointManager != nullptr);
     return *m_pWayPointManager;

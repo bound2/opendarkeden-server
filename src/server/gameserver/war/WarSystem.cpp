@@ -32,8 +32,6 @@
 
 WarID_t WarSystem::s_WarIDSuccessor = 0;
 
-WarSystem* g_pWarSystem = NULL;
-
 WarSystem::WarSystem()
 
 {

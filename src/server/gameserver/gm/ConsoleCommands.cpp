@@ -480,7 +480,7 @@ void opSetCastleOwnerGuild(GamePlayer* pGamePlayer, const string& value1, GCSyst
 void opShowWarList(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage, bool& bSendPacket) {
     // Send the list of wars in progress.
 
-    g_pWarSystem->broadcastWarList(pGamePlayer);
+    de::gameContext().warSystem().broadcastWarList(pGamePlayer);
     bSendPacket = false;
 }
 
@@ -489,7 +489,7 @@ void opStartRaceWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessa
                     bool& bSendPacket) {
     if (!g_pVariableManager->isWarActive()) {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WAR_OFF_DO_WAR_ACITIVE_ON));
-    } else if (g_pWarSystem->startRaceWar()) {
+    } else if (de::gameContext().warSystem().startRaceWar()) {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_RACE_WAR_START));
     } else {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_ALREADY_WAR_STARTED_OF_SERVER_ERROR));
@@ -525,7 +525,7 @@ void opRemoveWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
         }
     }
 
-    if (g_pWarSystem->removeWar(zoneID)) {
+    if (de::gameContext().warSystem().removeWar(zoneID)) {
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_GUILD_WAR_REMOVED), (int)zoneID);
         gcSystemMessage.setMessage(msg);
@@ -540,7 +540,7 @@ void opRemoveWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
 // *command removeRaceWar
 void opRemoveRaceWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage,
                      bool& bSendPacket) {
-    if (g_pWarSystem->removeRaceWar()) {
+    if (de::gameContext().warSystem().removeRaceWar()) {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_RACE_WAR_REMOVED));
     } else {
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_RACE_WAR_IN_ACTIVE));

@@ -169,7 +169,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
 
                 isCastle = de::gameContext().castleInfos().getCastleZoneID(pZone->getZoneID(), castleZoneID);
 
-                if (isCastle && g_pWarSystem->hasCastleActiveWar(castleZoneID)) {
+                if (isCastle && de::gameContext().warSystem().hasCastleActiveWar(castleZoneID)) {
                     // Guild war handling
 
                     // In a castle the defending side cannot click.
@@ -180,7 +180,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                     hasWar = true;
                 }
 
-                if (g_pWarSystem->hasActiveRaceWar()) {
+                if (de::gameContext().warSystem().hasActiveRaceWar()) {
                     // Race war handling
 
                     // In a castle the defending side cannot click.

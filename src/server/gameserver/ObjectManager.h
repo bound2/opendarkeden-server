@@ -58,6 +58,7 @@ class UniqueItemManager;
 class VampEXPInfoManager;
 class VisionInfoManager;
 class VolumeInfoManager;
+class WarSystem;
 class WayPointManager;
 class WeatherInfoManager;
 class ZoneGroupManager;
@@ -120,6 +121,7 @@ private:
     VampEXPInfoManager* m_pVampEXPInfoManager = nullptr;
     VisionInfoManager* m_pVisionInfoManager = nullptr;
     VolumeInfoManager* m_pVolumeInfoManager = nullptr;
+    WarSystem* m_pWarSystem = nullptr;
     WayPointManager* m_pWayPointManager = nullptr;
     WeatherInfoManager* m_pWeatherInfoManager = nullptr;
     ZoneGroupManager* m_pZoneGroupManager = nullptr;

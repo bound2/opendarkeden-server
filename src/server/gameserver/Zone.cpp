@@ -772,7 +772,7 @@ void Zone::heartbeat()
                 War* pWar = dynamic_cast<War*>(pWork);
                 Assert(pWar != NULL);
 
-                g_pWarSystem->addWarDelayed(pWar);
+                de::gameContext().warSystem().addWarDelayed(pWar);
             }
         }
 

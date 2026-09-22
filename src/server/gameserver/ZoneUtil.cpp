@@ -1894,7 +1894,8 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
 
         // A pay zone while the account is not paying.
         if (pZoneInfo != NULL && (pZoneInfo->isPayPlay() || pZoneInfo->isPremiumZone()) &&
-            !pGamePlayer->isPayPlaying() && !(g_pWarSystem->hasActiveRaceWar() && pZoneInfo->isHolyLand())) {
+            !pGamePlayer->isPayPlaying() &&
+            !(de::gameContext().warSystem().hasActiveRaceWar() && pZoneInfo->isHolyLand())) {
             cout << "ZoneUtil.cpp step 4" << endl;
 
             bool bEnterZone = true;

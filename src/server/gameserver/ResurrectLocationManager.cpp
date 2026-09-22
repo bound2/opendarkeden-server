@@ -233,7 +233,7 @@ bool ResurrectLocationManager::getPosition(PlayerCreature* pPC, ZONE_COORD& zone
         ZoneID_t castleZoneID;
         bool isCastleZone = castleInfos.getCastleZoneID(pPC->getResurrectZoneID(), castleZoneID);
 
-        if (g_pWarSystem->hasActiveRaceWar() && pPC->getZone()->isHolyLand()) {
+        if (de::gameContext().warSystem().hasActiveRaceWar() && pPC->getZone()->isHolyLand()) {
             if (pPC->isSlayer()) {
                 if (rand() % 2)
                     castleZoneID = 1201;
@@ -262,7 +262,8 @@ bool ResurrectLocationManager::getPosition(PlayerCreature* pPC, ZONE_COORD& zone
         }
 
         // If a race war is running and the number of participants is limited
-        if (!bFindPosition && g_pWarSystem->hasActiveRaceWar() && g_pVariableManager->isActiveRaceWarLimiter()) {
+        if (!bFindPosition && de::gameContext().warSystem().hasActiveRaceWar() &&
+            g_pVariableManager->isActiveRaceWarLimiter()) {
             ZoneInfo* pResZoneInfo = NULL;
 
             if (pPC->getResurrectZoneID() != 0) {

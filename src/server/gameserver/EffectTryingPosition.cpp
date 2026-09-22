@@ -6,6 +6,7 @@
 #include "GCAddEffectToTile.h"
 #include "GCDeleteEffectFromTile.h"
 #include "GCRemoveEffect.h"
+#include "GameContext.h"
 #include "MonsterCorpse.h"
 #include "PlayerCreature.h"
 #include "RegenZoneManager.h"
@@ -32,7 +33,7 @@ void EffectTryingPosition::affect(Creature* pCreature) {
 
     if (!pCreature->isPC())
         return;
-    if (!g_pWarSystem->hasActiveRaceWar())
+    if (!de::gameContext().warSystem().hasActiveRaceWar())
         return;
     if (pCreature->getMoveMode() != Creature::MOVE_MODE_WALKING)
         return;

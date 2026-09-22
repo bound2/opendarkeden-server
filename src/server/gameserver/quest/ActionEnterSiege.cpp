@@ -16,6 +16,7 @@
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
 #include "GCUpdateInfo.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GuildManager.h"
 #include "PlayerCreature.h"
@@ -58,7 +59,7 @@ void ActionEnterSiege::execute(Creature* pNPC, Creature* pCreature)
     Assert(pCreature->isPC());
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pCreature->getPlayer());
-    if (!g_pWarSystem->hasCastleActiveWar(m_ZoneID)) {
+    if (!context().warSystem().hasCastleActiveWar(m_ZoneID)) {
         GCSystemMessage gcSM;
         gcSM.setMessage("Ö»ÄÜÔÚ½øÐÐ¹¥³ÇÕ½ÖÐ½øÈë.");
         pGamePlayer->sendPacket(&gcSM);
@@ -79,7 +80,7 @@ void ActionEnterSiege::execute(Creature* pNPC, Creature* pCreature)
     Assert(siegeZoneID != 0);
 
 
-    SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(g_pWarSystem->getActiveWar(m_ZoneID));
+    SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(context().warSystem().getActiveWar(m_ZoneID));
     if (pSiegeWar == NULL) {
         GCSystemMessage gcSM;
         gcSM.setMessage("µÚ1¸ö·þÎñÆ÷·¢Éú¹ÊÕÏ£¬ÇëÓëÔËÓªÉÌÁªÏµ.");

@@ -803,7 +803,7 @@ bool Slayer::load()
         setFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET);
     }
 
-    if (m_pZone->isHolyLand() && g_pWarSystem->hasActiveRaceWar() &&
+    if (m_pZone->isHolyLand() && de::gameContext().warSystem().hasActiveRaceWar() &&
         !isFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET)) {
         ZONE_COORD ResurrectCoord;
         g_pResurrectLocationManager->getPosition(this, ResurrectCoord);
