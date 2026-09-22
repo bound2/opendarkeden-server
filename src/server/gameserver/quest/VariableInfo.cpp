@@ -61,7 +61,7 @@ void VariableInfo::parse()
     do {
         j = parameters.find_first_of(ParamSeperator, i);
 
-        // seperator 가 없다면 마지막 값이다.
+        // No separator means this is the last value.
         if (j == string::npos) {
             j = parameters.size();
             bEnd = true;

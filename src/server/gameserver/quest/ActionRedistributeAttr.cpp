@@ -50,7 +50,7 @@ void ActionRedistributeAttr::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -65,7 +65,7 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
     Player* pPlayer = pCreature2->getPlayer();
     Assert(pPlayer != NULL);
 
-    // 먼저 클라이언트를 위해 GCNPCResponse를 보내준다.
+    // Send GCNPCResponse to the client first.
     GCNPCResponse okpkt;
     pPlayer->sendPacket(&okpkt);
 
@@ -73,9 +73,9 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
 
     Gold_t ATTR_PRICE = g_pVariableManager->getVariable(VAMPIRE_REDISTRIBUTE_ATTR_PRICE);
 
-    // 돈을 가지고 있지 않다면 에러다.
+    // Not having the money is an error.
     if (pVampire->getGold() < ATTR_PRICE) {
-        // 먼저 대화창을 닫게 한다.
+        // Close the dialogue window first.
         GCNPCResponse gcNPCResponse;
         gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
         pPlayer->sendPacket(&gcNPCResponse);
@@ -90,8 +90,8 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    // 레벨 나누기 2만큼의 능력치만 보너스 포인트로 전환할 수 있다.
-    // 그러므로 이미 그 한계를 다 채우지는 않았는지 검사한다.
+    // Only as many stat points as the level divided by 2 can be turned into bonus points.
+    // So check whether that limit has already been reached.
     int RedistributedAttr = 0;
     {
         if (!defaultCharacterRepository().loadVampireRedistributeAttr(pVampire->getName(), RedistributedAttr)) {
@@ -100,7 +100,7 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
         }
 
         if (RedistributedAttr >= pVampire->getLevel()) {
-            // 먼저 대화창을 닫게 한다.
+            // Close the dialogue window first.
             GCNPCResponse gcNPCResponse;
             gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
             pPlayer->sendPacket(&gcNPCResponse);
@@ -113,18 +113,18 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
         }
     }
 
-    // 능력치를 변경하기에 앞서 기존의 능력치를 저장한다.
+    // Save the previous stats before changing them.
     VAMPIRE_RECORD prev;
     pVampire->getVampireRecord(prev);
 
     StringStream sql;
     StringStream sql2;
 
-    // STR 재분배
+    // STR redistribution
     if (m_AttrType == 0) {
-        // 순수힘이 20이하라면 더 이상 재분배할 수가 없다.
+        // Cannot redistribute any further once base STR is 20 or less.
         if (pVampire->getSTR(ATTR_BASIC) <= 20) {
-            // 먼저 대화창을 닫게 한다.
+            // Close the dialogue window first.
             GCNPCResponse gcNPCResponse;
             gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
             pPlayer->sendPacket(&gcNPCResponse);
@@ -139,10 +139,10 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
         pVampire->setSTR(pVampire->getSTR(ATTR_BASIC) - 1, ATTR_BASIC);
         sql << "STR = " << (int)pVampire->getSTR(ATTR_BASIC);
     }
-    // DEX 재분배
+    // DEX redistribution
     else if (m_AttrType == 1) {
         if (pVampire->getDEX(ATTR_BASIC) <= 20) {
-            // 먼저 대화창을 닫게 한다.
+            // Close the dialogue window first.
             GCNPCResponse gcNPCResponse;
             gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
             pPlayer->sendPacket(&gcNPCResponse);
@@ -157,10 +157,10 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
         pVampire->setDEX(pVampire->getDEX(ATTR_BASIC) - 1, ATTR_BASIC);
         sql << "DEX = " << (int)pVampire->getDEX(ATTR_BASIC);
     }
-    // INT 재분배
+    // INT redistribution
     else if (m_AttrType == 2) {
         if (pVampire->getINT(ATTR_BASIC) <= 20) {
-            // 먼저 대화창을 닫게 한다.
+            // Close the dialogue window first.
             GCNPCResponse gcNPCResponse;
             gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
             pPlayer->sendPacket(&gcNPCResponse);
@@ -178,9 +178,9 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
         Assert(false);
     }
 
-    // 줄어든 능력치를 세이브하고,
-    // 능력치가 줄어들었으니, 보너스를 늘린다.
-    // 그리고 돈을 줄인다.
+    // Save the reduced stat,
+    // raise the bonus since the stat went down,
+    // and take the gold.
     pVampire->tinysave(sql.toString());
     pVampire->setBonus(pVampire->getBonus() + 1);
     sql2 << "Bonus = " << (int)pVampire->getBonus();
@@ -196,7 +196,7 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
     pVampire->sendRealWearingInfo();
     pPlayer->sendPacket(&gcMI);
 
-    // 변환한 능력치의 양을 저장해야 한다.
+    // Store the amount of stats converted.
     defaultCharacterRepository().saveVampireRedistributeAttr(RedistributedAttr + 1, pVampire->getName());
 
     __END_CATCH

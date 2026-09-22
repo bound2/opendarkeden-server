@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectTileStorm.h
 // Written by  : elca@ewestsoft.com
-// Description : 성직마법 TileStorm의 Effect를 처리해주기 위한 클래스이다.
+// Description : Handles the Effect of the priest magic TileStorm.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_TILE_STORM__
@@ -79,9 +79,9 @@ private:
     int m_Damage;
     ObjectID_t m_UserObjectID;
     SkillType_t m_SkillType;
-    int m_StormTime; // 데미지를 몇 번 가하는가?
-    Turn_t m_Tick;   // 몇 턴 간격으로 떨어지는가?
-    bool m_bLarge;   // true 면 5x5 false면 3x3
+    int m_StormTime; // How many times damage is dealt
+    Turn_t m_Tick;   // Interval in turns between hits
+    bool m_bLarge;   // true for 5x5, false for 3x3
 };
 
 //////////////////////////////////////////////////////////////////////////////

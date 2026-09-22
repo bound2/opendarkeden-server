@@ -12,7 +12,7 @@
 #include "GCSkillToSelfOK2.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void GnomesWhisper::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot, CEffectID_t CEffectID)
 
@@ -43,7 +43,7 @@ void GnomesWhisper::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // 지속 시간을 계산한다.
+        // Compute the duration.
         SkillInput input(pOusters, pOustersSkillSlot);
         SkillOutput output;
         computeOutput(input, output);
@@ -59,7 +59,7 @@ void GnomesWhisper::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected && bSatisfyRequire) {
             decreaseMana(pOusters, RequiredMP, _GCSkillToSelfOK1);
 
-            // 이팩트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectGnomesWhisper* pEffect = new EffectGnomesWhisper(pOusters);
             pEffect->setDeadline(output.Duration);
             pEffect->setLevel(input.SkillLevel);

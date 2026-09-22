@@ -18,7 +18,7 @@
 #include "ZoneUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 셀프 핸들러
+// Vampire self handler
 //////////////////////////////////////////////////////////////////////////////
 void SummonCasket::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -52,7 +52,7 @@ void SummonCasket::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
         ZoneCoord_t x = pVampire->getX();
         ZoneCoord_t y = pVampire->getY();
 
-        // Knowledge of Summon 이 있다면 hit bonus 10
+        // Knowledge of Summon gives a hit bonus of 10.
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_SUMMON)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_SUMMON);
@@ -78,7 +78,7 @@ void SummonCasket::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
             computeOutput(input, output);
 
 
-            // 뱀파이어를 땅 위에서 삭제하기 이전에 기술 패킷들을 날린다.
+            // Sends the skill packets before removing the Vampire from the ground.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(output.Duration);
@@ -91,14 +91,14 @@ void SummonCasket::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
             pZone->broadcastPacket(x, y, &_GCSkillToSelfOK3, pVampire);
 
             //---------------------------------------------------------------
-            // 기존의 지속 마법 효과를 제거한다.
+            // Remove the existing lasting magic effects.
             //---------------------------------------------------------------
             EffectManager* pEffectManager = pVampire->getEffectManager();
             Assert(pEffectManager != NULL);
 
             Effect* pCheckEffect = NULL;
 
-            // 사용자의 level을 구한다.
+            // Get the user level.
             int userLevel = pVampire->getLevel();
 
             Effect::EffectClass effectClass;
@@ -141,7 +141,7 @@ void SummonCasket::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
 
 
             //---------------------------------------------------------------
-            // 이펙트 오브젝트를 생성해 붙인다.
+            // Create the effect object and attach it.
             //---------------------------------------------------------------
             EffectSummonCasket* pEffect = new EffectSummonCasket(pVampire);
             pEffect->setDeadline(99999999);
@@ -149,7 +149,7 @@ void SummonCasket::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
             pVampire->addEffect(pEffect);
             pVampire->setFlag(Effect::EFFECT_CLASS_CASKET);
 
-            // SUMMON CASKET 에 의해 변하는 능력치가 변한다.. 2002.12.13  by bezz.
+            // Apply the stat changes caused by SUMMON CASKET.
             VAMPIRE_RECORD prev;
 
             pVampire->getVampireRecord(prev);
@@ -176,7 +176,7 @@ void SummonCasket::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 셀프 핸들러
+// Monster self handler
 //////////////////////////////////////////////////////////////////////////////
 void SummonCasket::execute(Monster* pMonster)
 

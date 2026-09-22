@@ -46,7 +46,7 @@ void ActionEnterSiege::read(PropertyBuffer& pb)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// ¾×¼ÇÀ» ½ÇÇàÇÑ´Ù.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionEnterSiege::execute(Creature* pNPC, Creature* pCreature)
 
@@ -104,7 +104,7 @@ void ActionEnterSiege::execute(Creature* pNPC, Creature* pCreature)
 
     static TPOINT targetPos[7] = {{172, 38}, {172, 38}, {20, 232}, {20, 232}, {20, 232}, {20, 232}, {20, 232}};
 
-    // ¼ÒÈ¯ÀÚÀÇ Á¸°ú ÁÂÇ¥.
+    // Siege zone and the entry point for the guild's side.
     ZoneID_t ZoneNum = siegeZoneID;
     Coord_t ZoneX = targetPos[side - 1].x;
     Coord_t ZoneY = targetPos[side - 1].y;

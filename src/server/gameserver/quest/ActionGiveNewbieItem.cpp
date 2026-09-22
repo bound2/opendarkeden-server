@@ -59,7 +59,7 @@ void ActionGiveNewbieItem::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionGiveNewbieItem::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -74,11 +74,11 @@ void ActionGiveNewbieItem::execute(Creature* pCreature1, Creature* pCreature2)
     Player* pPlayer = pCreature2->getPlayer();
     Assert(pPlayer != NULL);
 
-    // 먼저 클라이언트를 위해 GCNPCResponse를 보내준다.
+    // Send GCNPCResponse to the client first.
     GCNPCResponse okpkt;
     pPlayer->sendPacket(&okpkt);
 
-    // 초보자가 슬레이어가 아닌 경우는 없다.
+    // A newbie is always a Slayer.
     if (!pCreature2->isSlayer())
         return;
 
@@ -88,16 +88,16 @@ void ActionGiveNewbieItem::execute(Creature* pCreature1, Creature* pCreature2)
     Zone* pZone = pSlayer->getZone();
 
     ////////////////////////////////////////////////////////////
-    // 진짜 초보인지를 검사한다.
-    // 0번을 초보 아이템 받았다 플래그로 정했다.
-    // 이것은 어디까지나 땜빵 코드다.
+    // Check that the character really is a newbie.
+    // Flag 0 marks that the newbie items were already received.
+    // This is a stopgap.
     ////////////////////////////////////////////////////////////
 
     if (pFlagSet->isOn(0))
         return;
 
     ////////////////////////////////////////////////////////////
-    // 각 아이템 클래스에 따라 아이템을 생성한다.
+    // Create the items for each item class.
     ////////////////////////////////////////////////////////////
     Item* pItem[10] = {
         NULL,
@@ -110,82 +110,82 @@ void ActionGiveNewbieItem::execute(Creature* pCreature1, Creature* pCreature2)
     list<OptionType_t> nullList;
 
     if (m_ItemClass == Item::ITEM_CLASS_SWORD) {
-        // 무기
+        // Weapon
         pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_SWORD, 0, nullList);
-        // 포션
+        // Potion
         pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
     } else if (m_ItemClass == Item::ITEM_CLASS_BLADE) {
-        // 무기
+        // Weapon
         pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_BLADE, 0, nullList);
-        // 포션
+        // Potion
         pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
     } else if (m_ItemClass == Item::ITEM_CLASS_CROSS) {
-        // 무기
+        // Weapon
         pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_CROSS, 0, nullList);
-        // 포션
+        // Potion
         pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
         pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
         pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
     } else if (m_ItemClass == Item::ITEM_CLASS_MACE) {
-        // 무기
+        // Weapon
         pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_MACE, 0, nullList);
-        // 포션
+        // Potion
         pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
         pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
         pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
     } else if (m_ItemClass == Item::ITEM_CLASS_AR) {
-        // 무기
+        // Weapon
         pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_AR, 0, nullList);
-        // 포션
+        // Potion
         pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
         pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
-        // 탄창
+        // Magazine
         pItem[5] = CREATE_ITEM(Item::ITEM_CLASS_MAGAZINE, 2, nullList);
         Magazine* pMagazine = dynamic_cast<Magazine*>(pItem[5]);
         pMagazine->setNum(9);
     } else if (m_ItemClass == Item::ITEM_CLASS_SR) {
-        // 무기
+        // Weapon
         pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_SR, 0, nullList);
-        // 포션
+        // Potion
         pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
         pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
-        // 탄창
+        // Magazine
         pItem[5] = CREATE_ITEM(Item::ITEM_CLASS_MAGAZINE, 6, nullList);
         Magazine* pMagazine = dynamic_cast<Magazine*>(pItem[5]);
         pMagazine->setNum(9);
     } else if (m_ItemClass == Item::ITEM_CLASS_SG) {
-        // 무기
+        // Weapon
         pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_SG, 0, nullList);
-        // 포션
+        // Potion
         pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
         pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
-        // 탄창
+        // Magazine
         pItem[5] = CREATE_ITEM(Item::ITEM_CLASS_MAGAZINE, 0, nullList);
         Magazine* pMagazine = dynamic_cast<Magazine*>(pItem[5]);
         pMagazine->setNum(9);
     } else if (m_ItemClass == Item::ITEM_CLASS_SMG) {
-        // 무기
+        // Weapon
         pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_SMG, 0, nullList);
-        // 포션
+        // Potion
         pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
         pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
         pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
-        // 탄창
+        // Magazine
         pItem[5] = CREATE_ITEM(Item::ITEM_CLASS_MAGAZINE, 4, nullList);
         Magazine* pMagazine = dynamic_cast<Magazine*>(pItem[5]);
         pMagazine->setNum(9);
@@ -194,8 +194,8 @@ void ActionGiveNewbieItem::execute(Creature* pCreature1, Creature* pCreature2)
     }
 
     ////////////////////////////////////////////////////////////
-    // 생성한 아이템을 등록하고, DB에 저장하고,
-    // 클라이언트에게 정보를 날려준다.
+    // Register the created items, save them to the database and
+    // send the information to the client.
     ////////////////////////////////////////////////////////////
     ObjectRegistry& OR = pZone->getObjectRegistry();
     TPOINT pt;
@@ -232,7 +232,7 @@ void ActionGiveNewbieItem::execute(Creature* pCreature1, Creature* pCreature2)
         }
     }
 
-    // 돈도 준다네...
+    // Gold is handed out as well.
     // by sigi. 2002.9.18
     pSlayer->increaseGoldEx(500);
     GCModifyInformation gcModifyInformation;
@@ -240,20 +240,20 @@ void ActionGiveNewbieItem::execute(Creature* pCreature1, Creature* pCreature2)
     pPlayer->sendPacket(&gcModifyInformation);
 
     ////////////////////////////////////////////////////////////
-    // 아이템을 받았으니, 현재 FlagSet을 저장한다.
-    // 0번을 초보 아이템 받았다 플래그로 정했다.
-    // 이것은 어디까지나 땜빵 코드다.
+    // The items were handed out, so save the current FlagSet.
+    // Flag 0 marks that the newbie items were already received.
+    // This is a stopgap.
     ////////////////////////////////////////////////////////////
     pFlagSet->turnOn(FLAGSET_RECEIVE_NEWBIE_ITEM);
 
     if (m_ItemClass == Item::ITEM_CLASS_SWORD || m_ItemClass == Item::ITEM_CLASS_BLADE) {
-        // 무사일 경우 1
+        // Fighter: 1
         pFlagSet->turnOn(FLAGSET_RECEIVE_NEWBIE_ITEM_FIGHTER);
     } else if (m_ItemClass == Item::ITEM_CLASS_CROSS || m_ItemClass == Item::ITEM_CLASS_MACE) {
-        // 성직자일 경우 2
+        // Cleric: 2
         pFlagSet->turnOn(FLAGSET_RECEIVE_NEWBIE_ITEM_CLERIC);
     } else {
-        // 군인일 경우 3
+        // Gunner: 3
         pFlagSet->turnOn(FLAGSET_RECEIVE_NEWBIE_ITEM_GUNNER);
     }
 

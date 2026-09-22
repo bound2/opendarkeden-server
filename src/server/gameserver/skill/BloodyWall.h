@@ -35,7 +35,7 @@ public:
     void computeOutput(const SkillInput& input, SkillOutput& output);
 
 private:
-    POINT m_BloodyWallMask[8][5]; // 8방향, 5개씩
+    POINT m_BloodyWallMask[8][5]; // 8 directions, 5 tiles each
 };
 
 // global variable declaration

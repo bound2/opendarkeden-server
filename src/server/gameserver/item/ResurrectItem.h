@@ -70,8 +70,8 @@ private:
     ItemType_t m_ItemType;
     ItemNum_t m_Num;
 
-    static Mutex m_Mutex;             // 아이템 ID 관련 락
-    static ItemID_t m_ItemIDRegistry; // 클래스별 고유 아이템 아이디 발급기
+    static Mutex m_Mutex;             // Lock for the item ID registry
+    static ItemID_t m_ItemIDRegistry; // Per-class unique item ID generator
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -81,8 +81,8 @@ private:
 class ResurrectItemInfo : public ItemInfo {
 public:
     enum ResurrectType {
-        HP_1,   // HP가 1인 상태로 부활
-        HP_FULL // HP가 꽉찬 상태로 부활
+        HP_1,   // Resurrect with HP at 1
+        HP_FULL // Resurrect with HP full
     };
 
 public:

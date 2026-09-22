@@ -55,7 +55,7 @@ void ActionEnterEventZone::read(PropertyBuffer& pb)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionEnterEventZone::execute(Creature* pNPC, Creature* pCreature)
 
@@ -100,7 +100,7 @@ void ActionEnterEventZone::execute(Creature* pNPC, Creature* pCreature)
             Slayer* pSlayer = dynamic_cast<Slayer*>(pPC);
             Assert(pSlayer != NULL);
 
-            // 오토바이를 타고 있으면 오토바이에서 내린다.
+            // Get off the motorcycle if riding one.
             if (pSlayer->hasRideMotorcycle()) {
                 pSlayer->getOffMotorcycle();
             }
@@ -110,7 +110,7 @@ void ActionEnterEventZone::execute(Creature* pNPC, Creature* pCreature)
             Ousters* pOusters = dynamic_cast<Ousters*>(pPC);
             Assert(pOusters != NULL);
 
-            // 실프 타고 있으면 내려준다
+            // Dismount the sylph if the creature is riding one.
             if (pOusters->isFlag(Effect::EFFECT_CLASS_SUMMON_SYLPH)) {
                 Effect* pEffect = pOusters->findEffect(Effect::EFFECT_CLASS_SUMMON_SYLPH);
                 if (pEffect != NULL)

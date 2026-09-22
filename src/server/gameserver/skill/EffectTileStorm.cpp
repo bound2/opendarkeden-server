@@ -48,11 +48,11 @@ void EffectTileStorm::affect()
 
     Assert(m_pZone != NULL);
 
-    // ����ڸ� �����´�.
-    // !! �̹� ���� ������ �� �����Ƿ� NULL�� �� �� �ִ�.
+    // Get the skill user.
+    // !! It can be NULL because the caster may already have left the zone.
     // by bezz. 2003.1.4
     Creature* pCastCreature = m_pZone->getCreature(m_UserObjectID);
-    // ĳ���Ͱ� ������ �����Ѵ�.
+    // Return if the caster is gone.
     if (pCastCreature == NULL)
         return;
 
@@ -80,8 +80,8 @@ void EffectTileStorm::affect()
     Level_t maxEnemyLevel = 0;
     uint EnemyNum = 0;
 
-    // ���� ����Ʈ�� �پ��ִ� Ÿ���� �޾ƿ´�.
-    // �߽�Ÿ�� + ���÷��� Ÿ��
+    // Collect the tiles the effect covers.
+    // The center tile plus the splash tiles.
     for (int oX = -diff; oX <= diff; oX++)
         for (int oY = -diff; oY <= diff; oY++) {
             int tileX = m_X + oX;
@@ -112,13 +112,13 @@ void EffectTileStorm::affect()
                     bool bHitRoll = HitRoll::isSuccess(pSlayer, pTargetCreature, SkillLevel);
 
                     if (bPK && bZoneLevelCheck && bHitRoll) {
-                        // ���� �������� ��ų ������ ���ʽ��� ���� ���� �������� ���Ѵ�.
+                        // Compute the final damage from the base damage plus the skill bonus.
                         bool bCriticalHit = false;
                         Damage_t FinalDamage = 0;
                         FinalDamage += computeDamage(pSlayer, pTargetCreature, SkillLevel / 2, bCriticalHit);
                         FinalDamage += m_Damage;
 
-                        // ��...�� ũ�� �߰� ����...�ʻ� ��� �ڵ�
+                        // Scale the damage by the tile's place in the blast pattern.
                         int DamageModifier = StormDamageModify[oX + 2][oY + 2];
                         Damage_t TileDamage = getPercentValue(FinalDamage, DamageModifier);
 
@@ -140,7 +140,7 @@ void EffectTileStorm::affect()
                                 maxDamage = TileDamage;
 
                             if (pTargetCreature->isPC()) {
-                                // ������ ���� �����̾��
+                                // Reports the hit to the target as a plain melee attack.
                                 _GCSkillToObjectOK2.setObjectID(1);
                                 _GCSkillToObjectOK2.setSkillType(SKILL_ATTACK_MELEE);
                                 _GCSkillToObjectOK2.setDuration(0);
@@ -173,7 +173,7 @@ void EffectTileStorm::affect()
         pSlayer->getPlayer()->sendPacket(&gcMI);
     }
 
-    // ������ ����!!
+    // Count down the storm time.
     m_StormTime--;
     if (m_StormTime <= 0)
         setDeadline(0);

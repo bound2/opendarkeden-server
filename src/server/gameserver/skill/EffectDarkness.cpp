@@ -29,10 +29,10 @@ EffectDarkness::EffectDarkness(Zone* pZone, ZoneCoord_t ZoneX, ZoneCoord_t ZoneY
 
 //////////////////////////////////////////////////////////////////////////////
 // EffectDarkness::affectCreature()
-// bAffectByMove가 false면 제자리에서 당하는 것이므로..
-// 외부의 SkillOK에서 modify info를 보낸다. 따라서 GCModifyInformation을
-// 보낼 필요가 없다.
-// pTarget의 시야가 변한  경우 true를 return
+// When bAffectByMove is false the target is affected in place, so the outer
+// SkillOK packet sends the modify info and there is no need to send
+// GCModifyInformation here.
+// Returns true when pTarget's sight changed.
 //////////////////////////////////////////////////////////////////////////////
 bool EffectDarkness::affectObject(Object* pTarget, bool bAffectByMove)
 
@@ -42,11 +42,11 @@ bool EffectDarkness::affectObject(Object* pTarget, bool bAffectByMove)
     bool bAffected = false;
     if (pTarget->getObjectClass() == Object::OBJECT_CLASS_CREATURE) {
         Creature* pTargetCreature = dynamic_cast<Creature*>(pTarget);
-        // 이미 걸려있는 경우에는 다시 걸지 않는다.
+        // The effect is not applied again if it is already on the target.
         if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_DARKNESS)) {
             return false;
         }
-        // 슬레이어일 경우에만 걸린다.
+        // Only Slayers and Ousters are affected.
         if (pTargetCreature->isSlayer() || pTargetCreature->isOusters()) {
             bAffected = true;
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_DARKNESS);

@@ -77,7 +77,7 @@ BloodyWall::BloodyWall() {
 };
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodyWall::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                          CEffectID_t CEffectID)
@@ -95,7 +95,7 @@ void BloodyWall::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature)) {
             executeSkillFailException(pVampire, getSkillType());
             return;
@@ -111,7 +111,7 @@ void BloodyWall::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 타일 핸들러
+// Vampire tile handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodyWall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireSkillSlot* pVampireSkillSlot,
                          CEffectID_t CEffectID)
@@ -143,7 +143,7 @@ void BloodyWall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
         ZoneCoord_t myX = pVampire->getX();
         ZoneCoord_t myY = pVampire->getY();
 
-        // Knowledge of Blood 가 있다면 hit bonus 10
+        // Knowledge of Blood supplies the hit bonus.
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_BLOOD)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_BLOOD);
@@ -166,7 +166,7 @@ void BloodyWall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bTileCheck) {
             decreaseMana(pVampire, RequiredMP, _GCSkillToTileOK1);
 
-            // 이펙트의 지속시간을 계산한다.
+            // Compute the effect's duration.
             SkillInput input(pVampire);
             SkillOutput output;
             computeOutput(input, output);
@@ -188,16 +188,16 @@ void BloodyWall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
                     if (tile.getEffect(Effect::EFFECT_CLASS_HEAVEN_GROUND) != NULL)
                         continue;
 
-                    // 현재 타일에다 이펙트를 추가할 수 있다면...
+                    // If an effect can be added to this tile...
                     if (tile.canAddEffect()) {
-                        // 같은 effect가 있으면 지운다.
+                        // Delete the same effect if one is already there.
                         Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_BLOODY_WALL);
                         if (pOldEffect != NULL) {
                             ObjectID_t effectID = pOldEffect->getObjectID();
                             pZone->deleteEffect(effectID); // fix me
                         }
 
-                        // 이펙트 클래스를 생성한다.
+                        // Create the effect class.
                         EffectBloodyWall* pEffect = new EffectBloodyWall(pZone, tileX, tileY);
                         pEffect->setCasterName(pVampire->getName());
                         pEffect->setCasterID(pVampire->getObjectID());
@@ -208,7 +208,7 @@ void BloodyWall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
                         pEffect->setNextTime(0);
                         pEffect->setTick(output.Tick);
 
-                        // Tile에 붙이는 Effect는 ObjectID를 등록받아야 한다.
+                        // An Effect attached to a Tile must have its ObjectID registered.
                         ObjectRegistry& objectregister = pZone->getObjectRegistry();
                         objectregister.registerObject(pEffect);
                         pZone->addEffect(pEffect);
@@ -287,8 +287,8 @@ void BloodyWall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
 
             list<Creature*> watcherList = pZone->getWatcherList(myX, myY, pVampire);
 
-            // watcherList에서 cList에 속하지 않고, caster(pVampire)를 볼 수 없는 경우는
-            // OK4를 보내고.. cList에 추가한다.
+            // Watchers that are not in cList and cannot see the caster (pVampire)
+            // are sent OK4 and added to cList.
             for (list<Creature*>::const_iterator itr = watcherList.begin(); itr != watcherList.end(); itr++) {
                 bool bBelong = false;
                 for (list<Creature*>::const_iterator tItr = cList.begin(); tItr != cList.end(); tItr++)
@@ -342,7 +342,7 @@ void BloodyWall::execute(Monster* pMonster, Creature* pEnemy)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 셀프 핸들러
+// Monster self handler
 //////////////////////////////////////////////////////////////////////////////
 void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
@@ -369,7 +369,7 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         ZoneCoord_t myX = pMonster->getX();
         ZoneCoord_t myY = pMonster->getY();
 
-        // 마스터는 무조건~~
+        // The master passes unconditionally.
         bool bRangeCheck = pMonster->isMaster() || verifyDistance(pMonster, X, Y, pSkillInfo->getRange());
 
         bool bHitRoll = pMonster->isMaster() || HitRoll::isSuccessMagic(pMonster, pSkillInfo);
@@ -380,7 +380,7 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             bTileCheck = true;
 
         if (bRangeCheck && bHitRoll && bTileCheck) {
-            // 이펙트의 지속시간을 계산한다.
+            // Compute the effect's duration.
             SkillInput input(pMonster);
             SkillOutput output;
             computeOutput(input, output);
@@ -399,16 +399,16 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
                     Tile& tile = pZone->getTile(tileX, tileY);
                     if (tile.getEffect(Effect::EFFECT_CLASS_HEAVEN_GROUND) != NULL)
                         continue;
-                    // 현재 타일에다 이펙트를 추가할 수 있다면...
+                    // If an effect can be added to this tile...
                     if (tile.canAddEffect()) {
-                        // 같은 effect가 있으면 지운다.
+                        // Delete the same effect if one is already there.
                         Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_BLOODY_WALL);
                         if (pOldEffect != NULL) {
                             ObjectID_t effectID = pOldEffect->getObjectID();
                             pZone->deleteEffect(effectID); // fix me
                         }
 
-                        // 이펙트 클래스를 생성한다.
+                        // Create the effect class.
                         EffectBloodyWall* pEffect = new EffectBloodyWall(pZone, tileX, tileY);
                         pEffect->setCasterName(pMonster->getName());
                         pEffect->setCasterID(pMonster->getObjectID());
@@ -419,7 +419,7 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
                         pEffect->setNextTime(0);
                         pEffect->setTick(output.Tick);
 
-                        // Tile에 붙이는 Effect는 ObjectID를 등록받아야 한다.
+                        // An Effect attached to a Tile must have its ObjectID registered.
                         ObjectRegistry& objectregister = pZone->getObjectRegistry();
                         objectregister.registerObject(pEffect);
 
@@ -496,8 +496,8 @@ void BloodyWall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
             list<Creature*> watcherList = pZone->getWatcherList(myX, myY, pMonster);
 
-            // watcherList에서 cList에 속하지 않고, caster(pMonster)를 볼 수 없는 경우는
-            // OK4를 보내고.. cList에 추가한다.
+            // Watchers that are not in cList and cannot see the caster (pMonster)
+            // are sent OK4 and added to cList.
             for (list<Creature*>::const_iterator itr = watcherList.begin(); itr != watcherList.end(); itr++) {
                 bool bBelong = false;
                 for (list<Creature*>::const_iterator tItr = cList.begin(); tItr != cList.end(); tItr++)

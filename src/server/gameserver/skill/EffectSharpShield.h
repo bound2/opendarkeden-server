@@ -55,8 +55,8 @@ public:
     }
 
 private:
-    EffectClass m_ClientEffectClass; // 클라이언트에 보내줄때 쓰는 이펙트 클래스 아이디
-    Damage_t m_Damage;               // 때린놈한테 주는 데미지
+    EffectClass m_ClientEffectClass; // Effect class id sent to the client
+    Damage_t m_Damage;               // Damage dealt to the attacker
 };
 
 //////////////////////////////////////////////////////////////////////////////

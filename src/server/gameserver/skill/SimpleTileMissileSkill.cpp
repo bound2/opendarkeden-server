@@ -31,8 +31,8 @@ void SimpleTileMissileSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        // 만일 이 기술이 특별한 무기가 있어야 시전할 수 있는 기술이라면...
-        // 그 계열의 무기를 들고 있는지를 체크해서 아니라면 실패다.
+        // If this skill requires a specific weapon to cast,
+        // check the equipped weapon class and fail if it does not match.
         bool bIncreaseExp = true;
 
         if (param.ItemClass != Item::ITEM_CLASS_MAX) {
@@ -62,10 +62,10 @@ void SimpleTileMissileSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
         bool bRangeCheck = verifyDistance(pSlayer, X, Y, pSkillInfo->getRange());
 
         if (bManaCheck && bTimeCheck && bRangeCheck) {
-            // 마나를 떨어뜨린다.
+            // Consume the mana.
             decreaseMana(pSlayer, RequiredMP, _GCSkillToTileOK1);
 
-            // 좌표와 방향을 구한다.
+            // Work out the coordinates and the direction.
             ZoneCoord_t myX = pSlayer->getX();
             ZoneCoord_t myY = pSlayer->getY();
             Dir_t dir = calcDirection(myX, myY, X, Y);
@@ -90,9 +90,9 @@ void SimpleTileMissileSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                 int tileY = Y + mask.y;
                 int penalty = mask.penalty;
 
-                // 현재 타일이 존 내부이고, 안전지대가 아니라면 맞을 가능성이 있다.
+                // A tile inside the zone that is not a safe zone can be hit.
                 if (rect.ptInRect(tileX, tileY)) {
-                    // 타일을 받아온다.
+                    // Get the tile.
                     Tile& tile = pZone->getTile(tileX, tileY);
 
                     list<Creature*> targetList;
@@ -154,7 +154,7 @@ void SimpleTileMissileSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                                 MaxDamage = max(Damage, MaxDamage);
                                 TotalDamage += Damage;
 
-                                // 페널티는 기본적으로 100이다.
+                                // The penalty is 100 by default.
                                 Damage = getPercentValue(Damage, penalty);
 
                                 ObjectID_t targetObjectID = pTargetCreature->getObjectID();
@@ -164,18 +164,18 @@ void SimpleTileMissileSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                                 _GCSkillToTileOK2.addCListElement(targetObjectID);
                                 _GCSkillToTileOK5.addCListElement(targetObjectID);
 
-                                // 일단 맞는 놈이 받을 패킷은 널 상태로 한 채로, 데미지를 준다.
+                                // Apply the damage, leaving the target's packet null for now.
                                 setDamage(pTargetCreature, Damage, pSlayer, param.SkillType, NULL, &_GCSkillToTileOK1);
                                 computeAlignmentChange(pTargetCreature, Damage, pSlayer, NULL, &_GCSkillToTileOK1);
 
                                 increaseAlignment(pSlayer, pTargetCreature, _GCSkillToTileOK1);
 
-                                // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+                                // On a critical hit, push the target back.
                                 if (bCriticalHit || bForceKnockback) {
                                     knockbackCreature(pZone, pTargetCreature, pSlayer->getX(), pSlayer->getY());
                                 }
 
-                                // 타겟이 슬레이어가 아닐 경우에만 맞춘 걸로 간주한다.
+                                // Count it as a hit only when the target is not a Slayer.
                                 if (!pTargetCreature->isSlayer()) {
                                     bHit = true;
                                     if (maxEnemyLevel < pTargetCreature->getLevel())
@@ -205,7 +205,7 @@ void SimpleTileMissileSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                 }
             }
 
-            // 공격자의 아이템 내구성을 떨어뜨린다.
+            // Wear down the attacker's item durability.
             if (pSkillInfo->getDomainType() != SKILL_DOMAIN_GUN) {
                 decreaseDurability(pSlayer, NULL, pSkillInfo, &_GCSkillToTileOK1, NULL);
             } else {
@@ -238,7 +238,7 @@ void SimpleTileMissileSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
+            // Send the packet to everyone affected by this skill.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
                 Assert(pTargetCreature != NULL);
@@ -246,7 +246,7 @@ void SimpleTileMissileSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                 if (pTargetCreature->isPC()) {
                     _GCSkillToTileOK2.clearList();
 
-                    // HP의 변경사항을 패킷에다 기록한다.
+                    // Record the HP change in the packet.
                     HP_t targetHP = 0;
                     if (pTargetCreature->isSlayer()) {
                         targetHP = (dynamic_cast<Slayer*>(pTargetCreature))->getHP(ATTR_CURRENT);
@@ -258,14 +258,14 @@ void SimpleTileMissileSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
 
                     _GCSkillToTileOK2.addShortData(MODIFY_CURRENT_HP, targetHP);
 
-                    // 아이템의 내구력을 떨어뜨린다.
+                    // Wear down the target's item durability.
                     decreaseDurability(NULL, pTargetCreature, pSkillInfo, NULL, &_GCSkillToTileOK2);
 
 
-                    // 패킷을 보내준다.
+                    // Send the packet.
                     pTargetCreature->getPlayer()->sendPacket(&_GCSkillToTileOK2);
                 } else if (pTargetCreature->isMonster()) {
-                    // 당근 적으로 인식한다.
+                    // The monster takes the caster as an enemy.
                     Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
                     pMonster->addEnemy(pSlayer);
                 }
@@ -325,10 +325,10 @@ void SimpleTileMissileSkill::execute(Vampire* pVampire, int X, int Y, VampireSki
         }
 
         if (bManaCheck && bTimeCheck && bRangeCheck) {
-            // 마나를 떨어뜨린다.
+            // Consume the mana.
             decreaseMana(pVampire, RequiredMP, _GCSkillToTileOK1);
 
-            // 좌표와 방향을 구한다.
+            // Work out the coordinates and the direction.
             ZoneCoord_t myX = pVampire->getX();
             ZoneCoord_t myY = pVampire->getY();
             Dir_t dir = calcDirection(myX, myY, X, Y);
@@ -347,9 +347,9 @@ void SimpleTileMissileSkill::execute(Vampire* pVampire, int X, int Y, VampireSki
                 int tileY = Y + mask.y;
                 int penalty = mask.penalty;
 
-                // 현재 타일이 존 내부이고, 안전지대가 아니라면 맞을 가능성이 있다.
+                // A tile inside the zone that is not a safe zone can be hit.
                 if (rect.ptInRect(tileX, tileY)) {
-                    // 타일을 받아온다.
+                    // Get the tile.
                     Tile& tile = pZone->getTile(tileX, tileY);
 
                     list<Creature*> targetList;
@@ -409,7 +409,7 @@ void SimpleTileMissileSkill::execute(Vampire* pVampire, int X, int Y, VampireSki
                                     Damage += param.SkillDamage;
                                 }
 
-                                // 페널티는 기본적으로 100이다.
+                                // The penalty is 100 by default.
                                 Damage = getPercentValue(Damage, penalty);
 
                                 ObjectID_t targetObjectID = pTargetCreature->getObjectID();
@@ -419,13 +419,13 @@ void SimpleTileMissileSkill::execute(Vampire* pVampire, int X, int Y, VampireSki
                                 _GCSkillToTileOK2.addCListElement(targetObjectID);
                                 _GCSkillToTileOK5.addCListElement(targetObjectID);
 
-                                // 일단 맞는 놈이 받을 패킷은 널 상태로 한 채로, 데미지를 준다.
+                                // Apply the damage, leaving the target's packet null for now.
                                 setDamage(pTargetCreature, Damage, pVampire, param.SkillType, NULL, &_GCSkillToTileOK1);
                                 computeAlignmentChange(pTargetCreature, Damage, pVampire, NULL, &_GCSkillToTileOK1);
 
                                 increaseAlignment(pVampire, pTargetCreature, _GCSkillToTileOK1);
 
-                                // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+                                // On a critical hit, push the target back.
                                 if (bCriticalHit || bForceKnockback) {
                                     knockbackCreature(pZone, pTargetCreature, pVampire->getX(), pVampire->getY());
                                 }
@@ -440,7 +440,7 @@ void SimpleTileMissileSkill::execute(Vampire* pVampire, int X, int Y, VampireSki
                 }
             }
 
-            // 공격자의 아이템 내구성을 떨어뜨린다.
+            // Wear down the attacker's item durability.
             decreaseDurability(pVampire, NULL, pSkillInfo, &_GCSkillToTileOK1, NULL);
 
             _GCSkillToTileOK1.setSkillType(param.SkillType);
@@ -466,7 +466,7 @@ void SimpleTileMissileSkill::execute(Vampire* pVampire, int X, int Y, VampireSki
 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
+            // Send the packet to everyone affected by this skill.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
                 Assert(pTargetCreature != NULL);
@@ -474,7 +474,7 @@ void SimpleTileMissileSkill::execute(Vampire* pVampire, int X, int Y, VampireSki
                 if (pTargetCreature->isPC()) {
                     _GCSkillToTileOK2.clearList();
 
-                    // HP의 변경사항을 패킷에다 기록한다.
+                    // Record the HP change in the packet.
                     HP_t targetHP = 0;
                     if (pTargetCreature->isSlayer()) {
                         targetHP = (dynamic_cast<Slayer*>(pTargetCreature))->getHP(ATTR_CURRENT);
@@ -486,13 +486,13 @@ void SimpleTileMissileSkill::execute(Vampire* pVampire, int X, int Y, VampireSki
 
                     _GCSkillToTileOK2.addShortData(MODIFY_CURRENT_HP, targetHP);
 
-                    // 아이템의 내구력을 떨어뜨린다.
+                    // Wear down the target's item durability.
                     decreaseDurability(NULL, pTargetCreature, pSkillInfo, NULL, &_GCSkillToTileOK2);
 
-                    // 패킷을 보내준다.
+                    // Send the packet.
                     pTargetCreature->getPlayer()->sendPacket(&_GCSkillToTileOK2);
                 } else if (pTargetCreature->isMonster()) {
-                    // 당근 적으로 인식한다.
+                    // The monster takes the caster as an enemy.
                     Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
                     pMonster->addEnemy(pVampire);
                 }
@@ -545,10 +545,10 @@ void SimpleTileMissileSkill::execute(Ousters* pOusters, int X, int Y, OustersSki
         bool bRangeCheck = verifyDistance(pOusters, X, Y, pSkillInfo->getRange());
 
         if (bManaCheck && bTimeCheck && bRangeCheck) {
-            // 마나를 떨어뜨린다.
+            // Consume the mana.
             decreaseMana(pOusters, RequiredMP, _GCSkillToTileOK1);
 
-            // 좌표와 방향을 구한다.
+            // Work out the coordinates and the direction.
             ZoneCoord_t myX = pOusters->getX();
             ZoneCoord_t myY = pOusters->getY();
             Dir_t dir = calcDirection(myX, myY, X, Y);
@@ -574,9 +574,9 @@ void SimpleTileMissileSkill::execute(Ousters* pOusters, int X, int Y, OustersSki
                     canSteal = false;
                 }
 
-                // 현재 타일이 존 내부이고, 안전지대가 아니라면 맞을 가능성이 있다.
+                // A tile inside the zone that is not a safe zone can be hit.
                 if (rect.ptInRect(tileX, tileY)) {
-                    // 타일을 받아온다.
+                    // Get the tile.
                     Tile& tile = pZone->getTile(tileX, tileY);
 
                     list<Creature*> targetList;
@@ -637,7 +637,7 @@ void SimpleTileMissileSkill::execute(Ousters* pOusters, int X, int Y, OustersSki
 
                                 computeCriticalBonus(pOusters, param.SkillType, Damage, bCriticalHit);
 
-                                // 페널티는 기본적으로 100이다.
+                                // The penalty is 100 by default.
                                 Damage = getPercentValue(Damage, penalty);
 
                                 ObjectID_t targetObjectID = pTargetCreature->getObjectID();
@@ -647,14 +647,14 @@ void SimpleTileMissileSkill::execute(Ousters* pOusters, int X, int Y, OustersSki
                                 _GCSkillToTileOK2.addCListElement(targetObjectID);
                                 _GCSkillToTileOK5.addCListElement(targetObjectID);
 
-                                // 일단 맞는 놈이 받을 패킷은 널 상태로 한 채로, 데미지를 준다.
+                                // Apply the damage, leaving the target's packet null for now.
                                 setDamage(pTargetCreature, Damage, pOusters, param.SkillType, NULL, &_GCSkillToTileOK1,
                                           true, canSteal);
                                 computeAlignmentChange(pTargetCreature, Damage, pOusters, NULL, &_GCSkillToTileOK1);
 
                                 increaseAlignment(pOusters, pTargetCreature, _GCSkillToTileOK1);
 
-                                // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+                                // On a critical hit, push the target back.
                                 if (bCriticalHit || bForceKnockback) {
                                     knockbackCreature(pZone, pTargetCreature, pOusters->getX(), pOusters->getY());
                                 }
@@ -669,7 +669,7 @@ void SimpleTileMissileSkill::execute(Ousters* pOusters, int X, int Y, OustersSki
                 }
             }
 
-            // 공격자의 아이템 내구성을 떨어뜨린다.
+            // Wear down the attacker's item durability.
             decreaseDurability(pOusters, NULL, pSkillInfo, &_GCSkillToTileOK1, NULL);
 
             _GCSkillToTileOK1.setSkillType(param.SkillType);
@@ -698,7 +698,7 @@ void SimpleTileMissileSkill::execute(Ousters* pOusters, int X, int Y, OustersSki
 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
+            // Send the packet to everyone affected by this skill.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
                 Assert(pTargetCreature != NULL);
@@ -706,7 +706,7 @@ void SimpleTileMissileSkill::execute(Ousters* pOusters, int X, int Y, OustersSki
                 if (pTargetCreature->isPC()) {
                     _GCSkillToTileOK2.clearList();
 
-                    // HP의 변경사항을 패킷에다 기록한다.
+                    // Record the HP change in the packet.
                     HP_t targetHP = 0;
                     if (pTargetCreature->isSlayer()) {
                         targetHP = (dynamic_cast<Slayer*>(pTargetCreature))->getHP(ATTR_CURRENT);
@@ -718,13 +718,13 @@ void SimpleTileMissileSkill::execute(Ousters* pOusters, int X, int Y, OustersSki
 
                     _GCSkillToTileOK2.addShortData(MODIFY_CURRENT_HP, targetHP);
 
-                    // 아이템의 내구력을 떨어뜨린다.
+                    // Wear down the target's item durability.
                     decreaseDurability(NULL, pTargetCreature, pSkillInfo, NULL, &_GCSkillToTileOK2);
 
-                    // 패킷을 보내준다.
+                    // Send the packet.
                     pTargetCreature->getPlayer()->sendPacket(&_GCSkillToTileOK2);
                 } else if (pTargetCreature->isMonster()) {
-                    // 당근 적으로 인식한다.
+                    // The monster takes the caster as an enemy.
                     Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
                     pMonster->addEnemy(pOusters);
                 }
@@ -774,7 +774,7 @@ void SimpleTileMissileSkill::execute(Monster* pMonster, int X, int Y, const SIMP
             bRangeCheck = true;
 
         if (bRangeCheck && bHitRoll) {
-            // 좌표와 방향을 구한다.
+            // Work out the coordinates and the direction.
             ZoneCoord_t myX = pMonster->getX();
             ZoneCoord_t myY = pMonster->getY();
             Dir_t dir = calcDirection(myX, myY, X, Y);
@@ -793,9 +793,9 @@ void SimpleTileMissileSkill::execute(Monster* pMonster, int X, int Y, const SIMP
                 int tileY = Y + mask.y;
                 int penalty = mask.penalty;
 
-                // 현재 타일이 존 내부이고, 안전지대가 아니라면 맞을 가능성이 있다.
+                // A tile inside the zone that is not a safe zone can be hit.
                 if (rect.ptInRect(tileX, tileY)) {
-                    // 타일을 받아온다.
+                    // Get the tile.
                     Tile& tile = pZone->getTile(tileX, tileY);
 
                     list<Creature*> targetList;
@@ -819,7 +819,7 @@ void SimpleTileMissileSkill::execute(Monster* pMonster, int X, int Y, const SIMP
 
                         cout << pMonster->getName() << " checks enemy " << pEnemy->getName() << endl;
 
-                        // 공격 대상이 맞는 경우에..
+                        // When the creature is a valid attack target...
                         if (pMonster->isEnemyToAttack(pEnemy)) {
                             bool bPK = verifyPK(pMonster, pEnemy);
                             bool bRaceCheck = !pEnemy->isNPC(); // pEnemy->isSlayer() || pEnemy->isVampire();
@@ -840,7 +840,7 @@ void SimpleTileMissileSkill::execute(Monster* pMonster, int X, int Y, const SIMP
                                     Damage += param.SkillDamage;
                                 }
 
-                                // 페널티는 기본적으로 100이다.
+                                // The penalty is 100 by default.
                                 Damage = getPercentValue(Damage, penalty);
 
 
@@ -852,14 +852,14 @@ void SimpleTileMissileSkill::execute(Monster* pMonster, int X, int Y, const SIMP
 
                                 if (param.SkillType == SKILL_GORE_GLAND_FIRE ||
                                     param.SkillType == SKILL_SUMMON_MIGA_ATTACK) {
-                                    // 일단 맞는 놈이 받을 패킷은 널 상태로 한 채로, 데미지를 준다.
+                                    // Deal the damage with no packets for the creature that is hit.
                                     setDamage(pEnemy, Damage, pMonster, param.SkillType, NULL, NULL, false);
                                 } else {
                                     setDamage(pEnemy, Damage, pMonster, param.SkillType, NULL, NULL);
                                 }
 
 
-                                // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+                                // On a critical hit, push the target back.
                                 if (bCriticalHit || bForceKnockback) {
                                     knockbackCreature(pZone, pEnemy, pMonster->getX(), pMonster->getY());
                                 }
@@ -883,7 +883,7 @@ void SimpleTileMissileSkill::execute(Monster* pMonster, int X, int Y, const SIMP
             _GCSkillToTileOK5.setRange(dir);
             _GCSkillToTileOK5.setDuration(0);
 
-            // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
+            // Send the packet to everyone affected by this skill.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pEnemy = *itr;
                 Assert(pEnemy != NULL);
@@ -891,7 +891,7 @@ void SimpleTileMissileSkill::execute(Monster* pMonster, int X, int Y, const SIMP
                 if (pEnemy->isPC()) {
                     _GCSkillToTileOK2.clearList();
 
-                    // HP의 변경사항을 패킷에다 기록한다.
+                    // Record the HP change in the packet.
                     HP_t targetHP = 0;
                     if (pEnemy->isSlayer()) {
                         targetHP = (dynamic_cast<Slayer*>(pEnemy))->getHP(ATTR_CURRENT);
@@ -903,14 +903,14 @@ void SimpleTileMissileSkill::execute(Monster* pMonster, int X, int Y, const SIMP
 
                     _GCSkillToTileOK2.addShortData(MODIFY_CURRENT_HP, targetHP);
 
-                    // 아이템의 내구력을 떨어뜨린다.
+                    // Wear down the target's item durability.
                     decreaseDurability(NULL, pEnemy, pSkillInfo, NULL, &_GCSkillToTileOK2);
 
-                    // 패킷을 보내준다.
+                    // Send the packet.
                     pEnemy->getPlayer()->sendPacket(&_GCSkillToTileOK2);
 
                 } else if (pEnemy->isMonster()) {
-                    // 당근 적으로 인식한다.
+                    // The monster takes the caster as an enemy.
                     Monster* pTargetMonster = dynamic_cast<Monster*>(pEnemy);
                     pTargetMonster->addEnemy(pMonster);
                 }

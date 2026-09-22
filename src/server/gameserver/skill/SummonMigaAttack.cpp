@@ -12,8 +12,8 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 생성자
-// 마스크를 초기화한다.
+// Constructor
+// Initializes the mask.
 //////////////////////////////////////////////////////////////////////////////
 SummonMigaAttack::SummonMigaAttack() {
     __BEGIN_TRY
@@ -22,7 +22,7 @@ SummonMigaAttack::SummonMigaAttack() {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 셀프 핸들러
+// Monster self handler
 //////////////////////////////////////////////////////////////////////////////
 void SummonMigaAttack::execute(Monster* pMonster)
 
@@ -44,7 +44,7 @@ void SummonMigaAttack::execute(Monster* pMonster)
 
         if (bRangeCheck) {
             //--------------------------------------------------------
-            // 주위에 knockback되는맞는 애들을 체크해준다.
+            // Check which surrounding creatures are hit and knocked back.
             //--------------------------------------------------------
             SkillInput input(pMonster);
             SkillOutput output;

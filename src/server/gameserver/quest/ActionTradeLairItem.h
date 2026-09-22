@@ -38,7 +38,7 @@ public:
     }
 
 private:
-    ItemType_t m_Type; // 받을 축구공의 수
+    ItemType_t m_Type; // Which lair item is traded
 };
 
 

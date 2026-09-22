@@ -55,7 +55,7 @@ void EffectSummonWaterElemental::affect()
     Item* pWeapon = pOusters->getWearItem(Ousters::WEAR_RIGHTHAND);
     if (pWeapon == NULL || pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_WRISTLET ||
         !pOusters->isRealWearingEx(Ousters::WEAR_RIGHTHAND)) {
-        // 중간에 리스틀릿을 빼버리면 이펙트도 사라진다.
+        // Removing the wristlet ends the effect.
         setDeadline(0);
         return;
     }
@@ -78,8 +78,8 @@ void EffectSummonWaterElemental::affect()
 
         int PartyID = pOusters->getPartyID();
         if (PartyID != 0) {
-            // 파티에 가입되어 있다면 로컬 파티 매니저를 통해
-            // 주위의 파티원들과 경험치를 공유한다.
+            // When the Ousters is in a party, the local party manager
+            // shares the healing with nearby party members.
             LocalPartyManager* pLPM = pOusters->getLocalPartyManager();
             Assert(pLPM != NULL);
             healed = pLPM->shareWaterElementalHeal(PartyID, pOusters, HealPoint);
@@ -139,7 +139,7 @@ void EffectSummonWaterElemental::unaffect(Creature* pCreature)
     Assert(pCreature != NULL);
     Assert(pCreature->isOusters());
 
-    // 플래그를 끈다.
+    // Turns off the flag.
     pCreature->removeFlag(Effect::EFFECT_CLASS_WATER_ELEMENTAL);
 
     Zone* pZone = pCreature->getZone();
@@ -148,7 +148,7 @@ void EffectSummonWaterElemental::unaffect(Creature* pCreature)
     Ousters* pTargetOusters = dynamic_cast<Ousters*>(pCreature);
     Assert(pTargetOusters != NULL);
 
-    // 이펙트를 삭제하라고 알려준다.
+    // Tells clients to remove the effect.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_WATER_ELEMENTAL);

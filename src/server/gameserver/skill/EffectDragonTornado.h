@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectDragonTornado.h
 // Written by  : elca@ewestsoft.com
-// Description : 성직마법 DragonTornado의 Effect를 처리해주기 위한 클래스이다.
+// Description : Class that handles the Effect of the clerical magic DragonTornado.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_DRAGON_TORNADO__

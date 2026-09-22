@@ -36,7 +36,7 @@ void ActionJoinRaceWar::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionJoinRaceWar::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -56,7 +56,7 @@ void ActionJoinRaceWar::execute(Creature* pCreature1, Creature* pCreature2)
 
     static int isJoinRaceWar = g_pConfig->getPropertyInt("JoinRaceWar");
 
-    // 서버 자체에 종족 전쟁 참가 신청 기능이 꺼져있는 경우
+    // Race war applications are turned off on this server.
     if (!isJoinRaceWar) {
         gcNPCResponse.setCode(NPC_RESPONSE_RACE_WAR_GO_FIRST_SERVER);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);

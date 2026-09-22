@@ -44,8 +44,8 @@ void EffectSharpHail::affect()
 
     Assert(m_pZone != NULL);
 
-    // 이펙트 사용자를 가져온다.
-    // 존에 없을 수 있으므로 NULL 이 될 수 있다.
+    // Get the creature that cast this effect.
+    // It may have left the zone, so this can be NULL.
     Creature* pCastCreature = m_pZone->getCreature(m_UserObjectID);
 
     if (pCastCreature == NULL && !isForce()) {
@@ -54,10 +54,10 @@ void EffectSharpHail::affect()
         return;
     }
 
-    // 현재 이펙트가 붙어있는 타일을 받아온다.
+    // Get the tile this effect is attached to.
     Tile& tile = m_pZone->getTile(m_X, m_Y);
 
-    // 타일 안에 존재하는 오브젝트들을 검색한다.
+    // Walk the objects on the tile.
     const forward_list<Object*>& oList = tile.getObjectList();
     forward_list<Object*>::const_iterator itr = oList.begin();
     for (; itr != oList.end(); itr++) {
@@ -70,8 +70,8 @@ void EffectSharpHail::affect()
             Creature* pCreature = dynamic_cast<Creature*>(pObject);
             Assert(pCreature != NULL);
 
-            // 무적상태 체크. by sigi. 2002.9.5
-            // 산 면역. by sigi. 2002.9.13
+            // Check for invulnerability.
+            // Acid immunity.
             if (pCastCreature != NULL &&
                 (!canAttack(pCastCreature, pCreature) || pCreature->isFlag(Effect::EFFECT_CLASS_COMA) ||
                  !canHit(pCastCreature, pCreature, SKILL_SHARP_HAIL, getLevel()))) {
@@ -79,7 +79,7 @@ void EffectSharpHail::affect()
             }
 
             // 2003.1.10 by Sequoia
-            // 안전지대 체크
+            // Safe zone check.
             if (!checkZoneLevelToHitTarget(pCreature))
                 continue;
             if (pCastCreature != NULL && !HitRoll::isSuccess(pCastCreature, pCreature))
@@ -121,9 +121,9 @@ void EffectSharpHail::affect()
                     Assert(pPlayer != NULL);
                     pPlayer->sendPacket(&gcDefenderMI);
                 } else
-                    continue; // 아우스터즈나 NPC 상대로... -_-
+                    continue; // Skips NPCs and Ousters outside a forced cast.
 
-                // 죽었으면 경험치준다. 음.....
+                // Grant experience if the target died.
                 if (pCastCreature != NULL) {
                     if (pCreature->isDead() && pCastCreature->isOusters()) {
                         Ousters* pCastOusters = dynamic_cast<Ousters*>(pCastCreature);

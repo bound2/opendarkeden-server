@@ -34,8 +34,8 @@ void ActionStashOpen::execute(Creature* pCreature1, Creature* pCreature2)
     Assert(pCreature1->isNPC());
     Assert(pCreature2->isPC());
 
-    // 만일 플레이어가 아직 이 존에서 보관함에 관련된 OID를
-    // 할당받지 않았다면 여기서 할당해 준다.
+    // If the player has not been assigned the stash-related OIDs in this
+    // zone yet, assign them here.
     if (pCreature2->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature2);
         if (!pSlayer->getStashStatus())

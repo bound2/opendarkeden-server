@@ -2,7 +2,7 @@
 // Filename    : ConditionAnsweredBy.h
 // Written By  :
 // Description :
-// PC가 NPC의 질문에 대답했을 경우에 발생하는 컨디션이다.
+// The condition raised when the PC answers an NPC's question.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ANSWEREDBY_H__
@@ -27,7 +27,7 @@ public:
     }
     virtual bool isPassive() const {
         return true;
-    } // 패킷에 반응을 하니까... passive condition이다.
+    } // Reacts to a packet, so this is a passive condition.
     virtual bool isNeutral() const {
         return false;
     }

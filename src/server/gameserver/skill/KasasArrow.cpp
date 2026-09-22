@@ -10,7 +10,7 @@
 #include "SimpleMissileSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터즈 오브젝트 핸들러
+// Ousters object handler
 //////////////////////////////////////////////////////////////////////////////
 void KasasArrow::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                          CEffectID_t CEffectID)

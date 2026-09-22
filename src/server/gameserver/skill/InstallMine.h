@@ -26,7 +26,7 @@ public:
         return SKILL_INSTALL_MINE;
     }
 
-    // 인벤토리용 기술이다.
+    // Skill that targets the inventory.
     void execute(Slayer* pSlayer, ObjectID_t, CoordInven_t X, CoordInven_t Y, CoordInven_t TargetX,
                  CoordInven_t TargetY, SkillSlot* pSkillSlot);
 

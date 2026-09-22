@@ -16,7 +16,7 @@
 #include "ItemUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void XRLMissile::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -35,13 +35,13 @@ void XRLMissile::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature)) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
         }
 
-        // 이펙트의 효과와 지속시간을 계산한다.
+        // Computes the strength and the duration of the effect.
         SkillInput input(pSlayer, pSkillSlot);
         SkillOutput output;
         input.Range = getDistance(pSlayer->getX(), pSlayer->getY(), pTargetCreature->getX(), pTargetCreature->getY());
@@ -61,7 +61,7 @@ void XRLMissile::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
-        // 페널티 값을 계산한다.
+        // Computes the penalty value.
         int ToHitPenalty = getPercentValue(pSlayer->getToHit(), output.ToHit);
 
         bool bIncreaseDomainExp = pSlayer->isRealWearingEx(Slayer::WEAR_RIGHTHAND);
@@ -81,17 +81,17 @@ void XRLMissile::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected && bPK && bBulletCheck) {
             printf("check OK\n");
-            // 마나를 줄인다.
+            // Reduces mana.
             decreaseMana(pSlayer, RequiredMP, _GCSkillToObjectOK1);
 
             Bullet_t RemainBullet = 0;
             decreaseBullet(pWeapon);
-            // 한발쓸때마다 저장할 필요 없다. by sigi. 2002.5.9
+            // The weapon is not saved on every shot.
             RemainBullet = getRemainBullet(pWeapon);
 
 
             if (!pTargetCreature->isSlayer()) {
-                // 경험치를 올려준다.
+                // Raises experience.
                 //
                 if (bIncreaseDomainExp) {
                     increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToObjectOK1,
@@ -101,7 +101,7 @@ void XRLMissile::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
                 increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToObjectOK1);
             }
 
-            // 이펙트를 생성해서 붙인다.
+            // Creates the effect and attaches it.
             EffectXRLMissile* pEffect = new EffectXRLMissile(pTargetCreature);
             Assert(pEffect != NULL);
             pEffect->setNextTime(output.Duration);
@@ -111,7 +111,7 @@ void XRLMissile::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
             pTargetCreature->addEffect(pEffect);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_XRL_Missile);
 
-            // 패킷을 준비해서 보낸다.
+            // Prepare the packet and send it.
             _GCSkillToObjectOK1.setSkillType(SkillType);
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);

@@ -83,11 +83,11 @@ void EffectTransformToWerwolf::unaffect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 원래 모습으로 되돌리고, 플래그를 제거한다.
+    // Restores the original appearance and removes the flag.
     addUntransformCreature(pZone, pCreature, false);
     pCreature->removeFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WERWOLF);
 
-    // 능력치를 원래대로 되돌린다.
+    // Restores the stats to their original values.
     if (pCreature->isVampire()) {
         Vampire* pTargetVampire = dynamic_cast<Vampire*>(pCreature);
         VAMPIRE_RECORD prev;

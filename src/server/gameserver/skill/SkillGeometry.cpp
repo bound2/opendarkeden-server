@@ -92,15 +92,15 @@
 #include "mission/QuestManager.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// (OX,OY)¿Í (TX,TY) »çÀÌÀÇ °Å¸®¸¦ ±¸ÇÑ´Ù.
+// Returns the distance between (OX,OY) and (TX,TY).
 //////////////////////////////////////////////////////////////////////////////
 Range_t getDistance(ZoneCoord_t Ox, ZoneCoord_t Oy, ZoneCoord_t Tx, ZoneCoord_t Ty) {
-    // Pure geometry — lives in de-core.
+    // Pure geometry, implemented in de-core.
     return decore::tileDistance(Ox, Oy, Tx, Ty);
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½ºÅ³À» ¾µ ¼ö ÀÖ´Â Àû´çÇÑ °Å¸®ÀÎ°¡¸¦ °ËÁõÇÑ´Ù.
+// Checks whether the distance is close enough to use the skill.
 //////////////////////////////////////////////////////////////////////////////
 bool verifyDistance(Creature* pCreature, ZoneCoord_t X, ZoneCoord_t Y, Range_t Dist) {
     Assert(pCreature != NULL);
@@ -113,27 +113,27 @@ bool verifyDistance(Creature* pCreature, ZoneCoord_t X, ZoneCoord_t Y, Range_t D
 
     ZoneLevel_t AttackerZoneLevel = pZone->getZoneLevel(cx, cy);
 
-    // ¾Æ´ãÀÇ ¼ºÁö³ª PKÁ¸ ³»ÀÇ ¾ÈÀüÁö´ë¿¡¼­´Â ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // Skills cannot be used in Adam's holy land or in a safe area inside a PK zone.
     if ((AttackerZoneLevel & SAFE_ZONE) && (g_pPKZoneInfoManager->isPKZone(pZone->getZoneID()) || pZone->isHolyLand()))
         return false;
 
-    // °ø°ÝÀÚ°¡ ¼­ ÀÖ´Â À§Ä¡°¡ ½½·¹ÀÌ¾î ¾ÈÀüÁö´ë¶ó¸é,
-    // ½½·¹ÀÌ¾î°¡ ¾Æ´Ñ ÀÚ´Â ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // If the attacker is standing in a Slayer safe area,
+    // anyone who is not a Slayer cannot use the skill.
     if ((AttackerZoneLevel & SLAYER_SAFE_ZONE) && !pCreature->isSlayer())
         return false;
-    // °ø°ÝÀÚ°¡ ¼­ ÀÖ´Â À§Ä¡°¡ ¹ìÆÄÀÌ¾î ¾ÈÀüÁö´ë¶ó¸é,
-    // ¹ìÆÄÀÌ¾î°¡ ¾Æ´Ñ ÀÚ´Â ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // If the attacker is standing in a Vampire safe area,
+    // anyone who is not a Vampire cannot use the skill.
     else if ((AttackerZoneLevel & VAMPIRE_SAFE_ZONE) && !pCreature->isVampire())
         return false;
-    // °ø°ÝÀÚ°¡ ¼­ ÀÖ´Â À§Ä¡°¡ ¾Æ¿ì½ºÅÍ½º ¾ÈÀüÁö´ë¶ó¸é,
-    // ¾Æ¿ì½ºÅÍ½º°¡ ¾Æ´Ñ ÀÚ´Â ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // If the attacker is standing in an Ousters safe area,
+    // anyone who is not an Ousters cannot use the skill.
     else if ((AttackerZoneLevel & OUSTERS_SAFE_ZONE) && !pCreature->isOusters())
         return false;
-    // ¿ÏÀü ¾ÈÀüÁö´ë¶ó¸é ½½·¹ÀÌ¾îµç ¹ìÆÄÀÌ¾îµç ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // In a complete safe area neither Slayers nor Vampires can use the skill.
     else if (AttackerZoneLevel & COMPLETE_SAFE_ZONE)
         return false;
 
-    // ¹æ¾îÀÚ°¡ ¼­ ÀÖ´Â °÷ÀÌ ¿ÏÀüÁö´ë¶ó¸é ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // If the defender is standing in a complete safe area the skill cannot be used.
 
     if ((abs(cx - X) <= Dist) && (abs(cy - Y) <= Dist))
         return true;
@@ -142,7 +142,7 @@ bool verifyDistance(Creature* pCreature, ZoneCoord_t X, ZoneCoord_t Y, Range_t D
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½ºÅ³À» ¾µ ¼ö ÀÖ´Â Àû´çÇÑ °Å¸®ÀÎ°¡¸¦ °ËÁõÇÑ´Ù.
+// Checks whether the distance is close enough to use the skill.
 //////////////////////////////////////////////////////////////////////////////
 bool verifyDistance(Creature* pCreature, Creature* pTargetCreature, Range_t Dist) {
     Assert(pCreature != NULL);
@@ -159,39 +159,39 @@ bool verifyDistance(Creature* pCreature, Creature* pTargetCreature, Range_t Dist
     ZoneLevel_t AttackerZoneLevel = pZone->getZoneLevel(ox, oy);
     ZoneLevel_t DefenderZoneLevel = pZone->getZoneLevel(tx, ty);
 
-    // ¾Æ´ãÀÇ ¼ºÁö³ª PKÁ¸ ³»ÀÇ ¾ÈÀüÁö´ë¿¡¼­´Â ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // Skills cannot be used in Adam's holy land or in a safe area inside a PK zone.
     if ((AttackerZoneLevel & SAFE_ZONE) && (g_pPKZoneInfoManager->isPKZone(pZone->getZoneID()) || pZone->isHolyLand()))
         return false;
 
-    // °ø°ÝÀÚ°¡ ¼­ ÀÖ´Â À§Ä¡°¡ ½½·¹ÀÌ¾î ¾ÈÀüÁö´ë¶ó¸é,
-    // ½½·¹ÀÌ¾î°¡ ¾Æ´Ñ ÀÚ´Â ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // If the attacker is standing in a Slayer safe area,
+    // anyone who is not a Slayer cannot use the skill.
     if ((AttackerZoneLevel & SLAYER_SAFE_ZONE) && !pCreature->isSlayer())
         return false;
-    // °ø°ÝÀÚ°¡ ¼­ ÀÖ´Â À§Ä¡°¡ ¹ìÆÄÀÌ¾î ¾ÈÀüÁö´ë¶ó¸é,
-    // ¹ìÆÄÀÌ¾î°¡ ¾Æ´Ñ ÀÚ´Â ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // If the attacker is standing in a Vampire safe area,
+    // anyone who is not a Vampire cannot use the skill.
     else if ((AttackerZoneLevel & VAMPIRE_SAFE_ZONE) && !pCreature->isVampire())
         return false;
-    // °ø°ÝÀÚ°¡ ¼­ ÀÖ´Â À§Ä¡°¡ ¾Æ¿ì½ºÅÍ½º ¾ÈÀüÁö´ë¶ó¸é,
-    // ¾Æ¿ì½ºÅÍ½º°¡ ¾Æ´Ñ ÀÚ´Â ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // If the attacker is standing in an Ousters safe area,
+    // anyone who is not an Ousters cannot use the skill.
     else if ((AttackerZoneLevel & OUSTERS_SAFE_ZONE) && !pCreature->isOusters())
         return false;
-    // ¿ÏÀü ¾ÈÀüÁö´ë¶ó¸é ½½·¹ÀÌ¾îµç ¹ìÆÄÀÌ¾îµç ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // In a complete safe area neither Slayers nor Vampires can use the skill.
     else if (AttackerZoneLevel & COMPLETE_SAFE_ZONE)
         return false;
 
-    // ¹æ¾îÀÚ°¡ ¼­ ÀÖ´Â À§Ä¡°¡ ½½·¹ÀÌ¾î ¾ÈÀüÁö´ëÀÌ°í,
-    // ¹æ¾îÀÚ°¡ ½½·¹ÀÌ¾î¶ó¸é ±â¼úÀº ¸ÂÁö ¾Ê´Â´Ù.
+    // If the defender is standing in a Slayer safe area
+    // and the defender is a Slayer, the skill does not hit.
     if ((DefenderZoneLevel & SLAYER_SAFE_ZONE) && pTargetCreature->isSlayer())
         return false;
-    // ¹æ¾îÀÚ°¡ ¼­ ÀÖ´Â À§Ä¡°¡ ¹ìÆÄÀÌ¾î ¾ÈÀüÁö´ëÀÌ°í,
-    // ¹æ¾îÀÚ°¡ ¹ìÆÄÀÌ¾î¶ó¸é ±â¼úÀº ¸ÂÁö ¾Ê´Â´Ù.
+    // If the defender is standing in a Vampire safe area
+    // and the defender is a Vampire, the skill does not hit.
     else if ((DefenderZoneLevel & VAMPIRE_SAFE_ZONE) && pTargetCreature->isVampire())
         return false;
-    // ¹æ¾îÀÚ°¡ ¼­ ÀÖ´Â À§Ä¡°¡ ¾Æ¿ì½ºÅÍ½º ¾ÈÀüÁö´ëÀÌ°í,
-    // ¹æ¾îÀÚ°¡ ¾Æ¿ì½ºÅÍ½º¶ó¸é ±â¼úÀº ¸ÂÁö ¾Ê´Â´Ù.
+    // If the defender is standing in an Ousters safe area
+    // and the defender is an Ousters, the skill does not hit.
     else if ((DefenderZoneLevel & OUSTERS_SAFE_ZONE) && pTargetCreature->isOusters())
         return false;
-    // ¿ÏÀü ¾ÈÀüÁö´ë¶ó¸é ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
+    // In a complete safe area the skill cannot be used.
     else if (DefenderZoneLevel & COMPLETE_SAFE_ZONE)
         return false;
 
@@ -202,14 +202,14 @@ bool verifyDistance(Creature* pCreature, Creature* pTargetCreature, Range_t Dist
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ÁöÁ¤µÈ ÁÂÇ¥ ÁÖÀ§ÀÇ ½ºÇÃ·¡½Ã µ¥¹ÌÁö¸¦ ¸ÂÀ» Å©¸®ÃÄ¸¦ »Ì¾Æ¿Â´Ù.
+// Collects the creatures that take splash damage around the given coordinates.
 //////////////////////////////////////////////////////////////////////////////
 int getSplashVictims(Zone* pZone, int cx, int cy, Creature::CreatureClass CClass, list<Creature*>& creatureList,
                      int splash) {
     VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);
 
-    // ÇØ´ç Å©¸®ÃÄ°¡ ½½·¹ÀÌ¾î¶ó¸é, ±× ½½·¹ÀÌ¾î¸¸ ¸Â°í,
-    // ÁÖÀ§ÀÇ ´Ù¸¥ ½½·¹ÀÌ¾îµéÀº ¸ÂÁö ¾Ê´Â´Ù.
+    // If the creature class is Slayer, only that one Slayer is hit,
+    // and the other Slayers around it are not.
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
         if (rect.ptInRect(cx, cy)) {
             Tile& rTile = pZone->getTile(cx, cy);
@@ -220,7 +220,7 @@ int getSplashVictims(Zone* pZone, int cx, int cy, Creature::CreatureClass CClass
                     creatureList.push_back(pCreature);
                 }
             }
-            // ÇöÀç·Î¼­´Â ³¯¾Æ´Ù´Ï´Â ½½·¹ÀÌ¾î´Â ¾øÁö¸¸...
+            // There are no flying Slayers at the moment, but...
             if (rTile.hasCreature(Creature::MOVE_MODE_FLYING)) {
                 Creature* pCreature = rTile.getCreature(Creature::MOVE_MODE_FLYING);
                 if (pCreature->getCreatureClass() == CClass) {
@@ -246,10 +246,10 @@ int getSplashVictims(Zone* pZone, int cx, int cy, Creature::CreatureClass CClass
                 Creature* pCreature = rTile.getCreature(Creature::MOVE_MODE_WALKING);
 
                 if (CClass == Creature::CREATURE_CLASS_MAX) {
-                    // CREATURE_CLASS_MAX°¡ ÆÄ¶ó¹ÌÅÍ·Î ³Ñ¾î¿À´Â °æ¿ì¿¡´Â ¹«Á¶°Ç ´õÇÏÀÚ.
+                    // Add unconditionally when CREATURE_CLASS_MAX is passed as the parameter.
                     creatureVector.push_back(pCreature);
                 } else if (pCreature->getCreatureClass() == CClass) {
-                    // ¾Æ´Ñ °æ¿ì¿¡´Â CreatureClass°¡ °°Àº °æ¿ì¿¡¸¸ ´õÇÑ´Ù.
+                    // Otherwise add only creatures of the same CreatureClass.
                     creatureVector.push_back(pCreature);
                 }
             }
@@ -257,35 +257,35 @@ int getSplashVictims(Zone* pZone, int cx, int cy, Creature::CreatureClass CClass
             if (rTile.hasCreature(Creature::MOVE_MODE_FLYING)) {
                 Creature* pCreature = rTile.getCreature(Creature::MOVE_MODE_FLYING);
                 if (CClass == Creature::CREATURE_CLASS_MAX) {
-                    // CREATURE_CLASS_MAX°¡ ÆÄ¶ó¹ÌÅÍ·Î ³Ñ¾î¿À´Â °æ¿ì¿¡´Â ¹«Á¶°Ç ´õÇÏÀÚ.
+                    // Add unconditionally when CREATURE_CLASS_MAX is passed as the parameter.
                     creatureVector.push_back(pCreature);
                 } else if (pCreature->getCreatureClass() == CClass) {
-                    // ¾Æ´Ñ °æ¿ì¿¡´Â CreatureClass°¡ °°Àº °æ¿ì¿¡¸¸ ´õÇÑ´Ù.
+                    // Otherwise add only creatures of the same CreatureClass.
                     creatureVector.push_back(pCreature);
                 }
             }
         }
     }
 
-    // ½ºÇÃ·¡½Ã µ¥¹ÌÁö¸¦ ÀÔÈú ³ðµéÀÇ ¼ýÀÚº¸´Ù ÇöÀç ÀÖ´Â Å©¸®ÃÄ°¡ Àû´Ù¸é,
-    // ¸ðµÎ ½ºÇÃ·¡½Ã µ¥¹ÌÁö¸¦ ÀÔÈ÷¸é µÈ´Ù.
+    // If fewer creatures are present than the splash damage count,
+    // all of them take splash damage.
     if ((int)creatureVector.size() <= splash) {
         for (int i = 0; i < (int)creatureVector.size(); i++) {
             creatureList.push_back(creatureVector[i]);
         }
     }
-    // ½ºÇÃ·¡½Ã µ¥¹ÌÁö¸¦ ÀÔÈú ³ðº¸´Ù ÇöÀç Á¸ÀçÇÏ´Â Å©¸®ÃÄµéÀÌ ¸¹´Ù¸é,
-    // ÀÌ Áß¿¡ splash ¼ýÀÚ¸¸Å­ÀÇ Å©¸®ÃÄ¸¦ ÀÓÀÇ·Î »Ì¾Æ¾ß ÇÑ´Ù.
+    // If more creatures are present than the splash damage count,
+    // splash of them have to be picked at random.
     else {
-        // Á¦ÀÏ Ã³À½¿¡ 6³ðÀÌ ÀÖ°í, ÀÌ Áß¿¡ 4³ðÀ» »Ì¾Æ¾ß ÇÑ´Ù°í
-        // °¡Á¤ÇÏ¸é, size = 6ÀÌ µÈ´Ù.
-        // Indexes ¹è¿­¿¡´Â (0, 1, 2, 3, 4, 5, -1...)ÀÌ µé¾î°£´Ù.
-        // ÀÌ Áß¿¡ 2¸¦ »Ì¾Ò´Ù°í °¡Á¤ÇÏÀÚ.
-        // ±×·¯¸é ÀÌ ¹è¿­¿¡¼­ 2¸¦ Á¦°ÅÇØ Áà¾ß ÇÑ´Ù.
-        // µÚ¿¡¼­ºÎÅÍ ¾ÕÀ¸·Î ÇÑÄ­¾¿ ¿Å°ÜÁà¾ß ÇÑ´Ù.
+        // Suppose there are 6 of them at first and 4 have to be picked;
+        // then size = 6.
+        // The Indexes array holds (0, 1, 2, 3, 4, 5, -1...).
+        // Suppose 2 is picked out of them.
+        // Then 2 has to be removed from the array,
+        // shifting the entries after it one slot forward.
         // (0, 1, 3, 4, 5, 5...)
-        // ±× ´ÙÀ½ »çÀÌÁî¸¦ ÁÙÀÌ°í, ´Ù½Ã ±× Áß¿¡¼­ ÇÏ³ª¸¦ ·£´ýÀ¸·Î
-        // »Ì¾Æ°¡¸é °ãÄ¡Áö ¾Ê´Â Å©¸®ÃÄÀÇ ¸®½ºÆ®¸¦ ¾òÀ» ¼ö ÀÖ´Ù.
+        // Shrinking the size and picking one of the rest at random again
+        // yields a list of creatures with no duplicates.
         std::vector<int> Indexes(creatureVector.size(), -1);
         int i;
         int size = creatureVector.size();
@@ -310,7 +310,7 @@ int getSplashVictims(Zone* pZone, int cx, int cy, Creature::CreatureClass CClass
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ÁöÁ¤µÈ ÁÂÇ¥ ÁÖÀ§ÀÇ Å©¸®Ã³¸¦ Ã£¾Æ¼­ ³Ñ°ÜÁØ´Ù.
+// Finds the creatures around the given coordinates and hands them back.
 //////////////////////////////////////////////////////////////////////////////
 int getSplashVictims(Zone* pZone, int cx, int cy, Creature::CreatureClass CClass, list<Creature*>& creatureList,
                      int splash, int range) {
@@ -332,10 +332,10 @@ int getSplashVictims(Zone* pZone, int cx, int cy, Creature::CreatureClass CClass
                     Creature* pCreature = rTile.getCreature(Creature::MOVE_MODE_WALKING);
 
                     if (CClass == Creature::CREATURE_CLASS_MAX) {
-                        // CREATURE_CLASS_MAX°¡ ÆÄ¶ó¹ÌÅÍ·Î ³Ñ¾î¿À´Â °æ¿ì¿¡´Â ¹«Á¶°Ç ´õÇÏÀÚ.
+                        // Add unconditionally when CREATURE_CLASS_MAX is passed as the parameter.
                         creatureVector.push_back(pCreature);
                     } else if (pCreature->getCreatureClass() == CClass) {
-                        // ¾Æ´Ñ °æ¿ì¿¡´Â CreatureClass°¡ °°Àº °æ¿ì¿¡¸¸ ´õÇÑ´Ù.
+                        // Otherwise add only creatures of the same CreatureClass.
                         creatureVector.push_back(pCreature);
                     }
                 }
@@ -343,10 +343,10 @@ int getSplashVictims(Zone* pZone, int cx, int cy, Creature::CreatureClass CClass
                 if (rTile.hasCreature(Creature::MOVE_MODE_FLYING)) {
                     Creature* pCreature = rTile.getCreature(Creature::MOVE_MODE_FLYING);
                     if (CClass == Creature::CREATURE_CLASS_MAX) {
-                        // CREATURE_CLASS_MAX°¡ ÆÄ¶ó¹ÌÅÍ·Î ³Ñ¾î¿À´Â °æ¿ì¿¡´Â ¹«Á¶°Ç ´õÇÏÀÚ.
+                        // Add unconditionally when CREATURE_CLASS_MAX is passed as the parameter.
                         creatureVector.push_back(pCreature);
                     } else if (pCreature->getCreatureClass() == CClass) {
-                        // ¾Æ´Ñ °æ¿ì¿¡´Â CreatureClass°¡ °°Àº °æ¿ì¿¡¸¸ ´õÇÑ´Ù.
+                        // Otherwise add only creatures of the same CreatureClass.
                         creatureVector.push_back(pCreature);
                     }
                 }
@@ -354,25 +354,25 @@ int getSplashVictims(Zone* pZone, int cx, int cy, Creature::CreatureClass CClass
         }
     }
 
-    // ½ºÇÃ·¡½Ã µ¥¹ÌÁö¸¦ ÀÔÈú ³ðµéÀÇ ¼ýÀÚº¸´Ù ÇöÀç ÀÖ´Â Å©¸®ÃÄ°¡ Àû´Ù¸é,
-    // ¸ðµÎ ½ºÇÃ·¡½Ã µ¥¹ÌÁö¸¦ ÀÔÈ÷¸é µÈ´Ù.
+    // If fewer creatures are present than the splash damage count,
+    // all of them take splash damage.
     if ((int)creatureVector.size() <= splash) {
         for (int i = 0; i < (int)creatureVector.size(); i++) {
             creatureList.push_back(creatureVector[i]);
         }
     }
-    // ½ºÇÃ·¡½Ã µ¥¹ÌÁö¸¦ ÀÔÈú ³ðº¸´Ù ÇöÀç Á¸ÀçÇÏ´Â Å©¸®ÃÄµéÀÌ ¸¹´Ù¸é,
-    // ÀÌ Áß¿¡ splash ¼ýÀÚ¸¸Å­ÀÇ Å©¸®ÃÄ¸¦ ÀÓÀÇ·Î »Ì¾Æ¾ß ÇÑ´Ù.
+    // If more creatures are present than the splash damage count,
+    // splash of them have to be picked at random.
     else {
-        // Á¦ÀÏ Ã³À½¿¡ 6³ðÀÌ ÀÖ°í, ÀÌ Áß¿¡ 4³ðÀ» »Ì¾Æ¾ß ÇÑ´Ù°í
-        // °¡Á¤ÇÏ¸é, size = 6ÀÌ µÈ´Ù.
-        // Indexes ¹è¿­¿¡´Â (0, 1, 2, 3, 4, 5, -1...)ÀÌ µé¾î°£´Ù.
-        // ÀÌ Áß¿¡ 2¸¦ »Ì¾Ò´Ù°í °¡Á¤ÇÏÀÚ.
-        // ±×·¯¸é ÀÌ ¹è¿­¿¡¼­ 2¸¦ Á¦°ÅÇØ Áà¾ß ÇÑ´Ù.
-        // µÚ¿¡¼­ºÎÅÍ ¾ÕÀ¸·Î ÇÑÄ­¾¿ ¿Å°ÜÁà¾ß ÇÑ´Ù.
+        // Suppose there are 6 of them at first and 4 have to be picked;
+        // then size = 6.
+        // The Indexes array holds (0, 1, 2, 3, 4, 5, -1...).
+        // Suppose 2 is picked out of them.
+        // Then 2 has to be removed from the array,
+        // shifting the entries after it one slot forward.
         // (0, 1, 3, 4, 5, 5...)
-        // ±× ´ÙÀ½ »çÀÌÁî¸¦ ÁÙÀÌ°í, ´Ù½Ã ±× Áß¿¡¼­ ÇÏ³ª¸¦ ·£´ýÀ¸·Î
-        // »Ì¾Æ°¡¸é °ãÄ¡Áö ¾Ê´Â Å©¸®ÃÄÀÇ ¸®½ºÆ®¸¦ ¾òÀ» ¼ö ÀÖ´Ù.
+        // Shrinking the size and picking one of the rest at random again
+        // yields a list of creatures with no duplicates.
         std::vector<int> Indexes(creatureVector.size(), -1);
         int i;
         int size = creatureVector.size();
@@ -399,9 +399,9 @@ int getSplashVictims(Zone* pZone, int cx, int cy, Creature::CreatureClass CClass
 //----------------------------------------------------------------------
 // Set Direction To Creature
 //----------------------------------------------------------------------
-// ´Ù¸¥ Creature¸¦ ÇâÇØ¼­ ¹Ù¶óº»´Ù.
+// Faces another Creature.
 //----------------------------------------------------------------------
-// 8¹æÇâ¿¡ µû¸¥ ±âÁØÀÌ µÇ´Â ±â¿ï±â : °¡·Î/¼¼·Î ºñÀ²°ú °ü·Ã
+// Slope thresholds for the 8 directions: relates to the width/height ratio.
 //----------------------------------------------------------------------
 const float BASIS_DIRECTION_LOW = 0.35f;
 
@@ -410,14 +410,14 @@ const float BASIS_DIRECTION_HIGH = 3.0f;
 Dir_t getDirectionToPosition(int originX, int originY, int destX, int destY) {
     int stepX = destX - originX, stepY = destY - originY;
 
-    // 0ÀÏ ¶§ check
-    float k = (stepX == 0) ? 0 : (float)(stepY) / stepX; // ±â¿ï±â
+    // Check for 0.
+    float k = (stepX == 0) ? 0 : (float)(stepY) / stepX; // Slope
 
     //--------------------------------------------------
-    // ¹æÇâÀ» Á¤ÇØ¾ß ÇÑ´Ù.
+    // Decide the direction.
     //--------------------------------------------------
     if (stepY == 0) {
-        // XÃà
+        // X axis
         // - -;;
         if (stepX == 0)
             return DOWN;
@@ -425,13 +425,13 @@ Dir_t getDirectionToPosition(int originX, int originY, int destX, int destY) {
             return RIGHT;
         else
             return LEFT;
-    } else if (stepY < 0) // UPÂÊÀ¸·Î
+    } else if (stepY < 0) // Upward
     {
-        // yÃà À§
+        // Up the y axis
         if (stepX == 0) {
             return UP;
         }
-        // 1»çºÐ¸é
+        // Quadrant 1
         else if (stepX > 0) {
             if (k < -BASIS_DIRECTION_HIGH)
                 return UP;
@@ -440,7 +440,7 @@ Dir_t getDirectionToPosition(int originX, int originY, int destX, int destY) {
             else
                 return RIGHT;
         }
-        // 2»çºÐ¸é
+        // Quadrant 2
         else {
             if (k > BASIS_DIRECTION_HIGH)
                 return UP;
@@ -450,13 +450,13 @@ Dir_t getDirectionToPosition(int originX, int originY, int destX, int destY) {
                 return LEFT;
         }
     }
-    // ¾Æ·¡ÂÊ
+    // Downward
     else {
-        // yÃà ¾Æ·¡
+        // Down the y axis
         if (stepX == 0) {
             return DOWN;
         }
-        // 4»çºÐ¸é
+        // Quadrant 4
         else if (stepX > 0) {
             if (k > BASIS_DIRECTION_HIGH)
                 return DOWN;
@@ -465,7 +465,7 @@ Dir_t getDirectionToPosition(int originX, int originY, int destX, int destY) {
             else
                 return RIGHT;
         }
-        // 3»çºÐ¸é
+        // Quadrant 3
         else {
             if (k < -BASIS_DIRECTION_HIGH)
                 return DOWN;
@@ -477,14 +477,14 @@ Dir_t getDirectionToPosition(int originX, int originY, int destX, int destY) {
     }
 }
 
-// Á¡°ú Á¡»çÀÌ¸¦ °É¾î¼­ °¥ ¼ö ÀÖ´Â°¡? ( Å©¸®ÃÄ·Î ¸·Èù °æ¿ì´Â Á¦¿Ü )
+// Can one walk from point to point? (cases blocked by a creature excluded)
 bool isPassLine(Zone* pZone, ZoneCoord_t sX, ZoneCoord_t sY, ZoneCoord_t eX, ZoneCoord_t eY, bool blockByCreature) {
     list<TPOINT> tpList;
 
     if (pZone == NULL)
         return false;
 
-    // µÎ Á¡»çÀÌÀÇ Áø¼±À» ÀÌ·ç´Â Á¡µéÀ» ±¸ÇÑ´Ù.
+    // Finds the points that make up the straight line between the two points.
     getLinePoint(sX, sY, eX, eY, tpList);
 
     if (tpList.empty())
@@ -500,7 +500,7 @@ bool isPassLine(Zone* pZone, ZoneCoord_t sX, ZoneCoord_t sY, ZoneCoord_t eX, Zon
             return false;
 
         if (tp.x == sX && tp.y == sY) {
-            // ½ÃÀÛÁ¡Àº Ã¼Å© ¾ÈÇÑ´Ù.
+            // The starting point is not checked.
             continue;
         }
 
@@ -513,8 +513,8 @@ bool isPassLine(Zone* pZone, ZoneCoord_t sX, ZoneCoord_t sY, ZoneCoord_t eX, Zon
             return false;
         }
 
-        // ´ë°¢¼±À¸·Î ¹Ù²ï °æ¿ì, ÇÑÂÊ ¹æÇâÀ¸·Î¸¸ °¥¼ö ÀÖ¾îµµ °¡´ÉÇÏ´Ù.
-        // (1,1) -> (2,2) ÀÎ °æ¿ì, (1,2) ³ª (2,1) µÑ Áß¿¡ ÇÏ³ª¸¸ Áö³ª°¥ ¼ö ÀÖ¾îµµ Áö³ª°¥ ¼ö ÀÖ´Ù°í º»´Ù.
+        // On a diagonal step, being able to pass on just one side is enough.
+        // For (1,1) -> (2,2), passing through either (1,2) or (2,1) counts as passable.
         if (prev.x != tp.x && prev.y != tp.y) {
             if (!rect.ptInRect(tp.x, prev.y))
                 return false;
@@ -535,7 +535,7 @@ bool isPassLine(Zone* pZone, ZoneCoord_t sX, ZoneCoord_t sY, ZoneCoord_t eX, Zon
     return true;
 }
 
-// µÎ Á¡»çÀÌÀÇ Áø¼±À» ÀÌ·ç´Â Á¡µéÀ» ±¸ÇÑ´Ù.
+// Finds the points that make up the straight line between the two points.
 void getLinePoint(ZoneCoord_t sX, ZoneCoord_t sY, ZoneCoord_t eX, ZoneCoord_t eY, list<TPOINT>& tpList) {
     int xLength = abs(sX - eX);
     int yLength = abs(sY - eY);

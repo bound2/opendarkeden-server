@@ -15,7 +15,7 @@
 #include "ZoneUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void Sniping::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -33,7 +33,7 @@ void Sniping::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        // 무장하고 있는 무기가 널이거나, 총이 아니라면 사용할 수 없다.
+        // Cannot be used if no weapon is equipped or it is not a gun.
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || isArmsWeapon(pItem) == false || pSlayer->hasRelicItem()) {
             executeSkillFailException(pSlayer, getSkillType());
@@ -68,9 +68,9 @@ void Sniping::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 클래스를 만들어 붙인다.
-            // 능력치 재계산은 EffectFadeOut이 unaffect되면서,
-            // 즉 EffectSnipingMode가 붙으면서 이루어진다.
+            // Create the effect class and attach it.
+            // Stats are recalculated when EffectFadeOut is unaffected,
+            // that is, when EffectSnipingMode is attached.
             EffectFadeOut* pEffect = new EffectFadeOut(pSlayer);
             pEffect->setDuration(output.Duration);
             pEffect->setDeadline(40);
@@ -78,14 +78,14 @@ void Sniping::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffec
             pSlayer->addEffect(pEffect);
             pSlayer->setFlag(Effect::EFFECT_CLASS_FADE_OUT);
 
-            // 경험치를 올린다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 8, 1, _GCSkillToSelfOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
 
-            // 패킷을 보낸다.
+            // Send the packet.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(0);
@@ -133,7 +133,7 @@ void Sniping::checkRevealRatio(Creature* pCreature, int base, int divisor) {
     pEffectSM->setRevealRatio(pEffectSM->getRevealRatio() + penalty);
 
     if (rand() % 100 < pEffectSM->getRevealRatio()) {
-        //  이펙트가 꺼지도록 한다.
+        // Turn the effect off.
         //  2003. 1. 17 by bezz
         pEffectSM->setDeadline(0);
     }

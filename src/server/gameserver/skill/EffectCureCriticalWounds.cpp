@@ -93,14 +93,14 @@ void EffectCureCriticalWounds::affect(Creature* pCreature)
                                     Assert(pEffectBloodDrain != NULL);
 
                                     if (pEffectBloodDrain->getLevel() < CriticalBloodDrainLevel) {
-                                        // 흡혈 아르바이트를 방지하기 위한 후유증 이펙트를 붙여준다.
+                                        // Attaches an aftermath effect that prevents blood drain farming.
                                         if (pSlayer->isFlag(Effect::EFFECT_CLASS_AFTERMATH)) {
                                             Effect* pEffect = pSlayer->findEffect(Effect::EFFECT_CLASS_AFTERMATH);
                                             EffectAftermath* pEffectAftermath = dynamic_cast<EffectAftermath*>(pEffect);
-                                            pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                                            pEffectAftermath->setDeadline(5 * 600); // Lasts for 5 minutes.
                                         } else {
                                             EffectAftermath* pEffectAftermath = new EffectAftermath(pSlayer);
-                                            pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                                            pEffectAftermath->setDeadline(5 * 600); // Lasts for 5 minutes.
                                             pSlayer->addEffect(pEffectAftermath);
                                             pSlayer->setFlag(Effect::EFFECT_CLASS_AFTERMATH);
                                             pEffectAftermath->create(pSlayer->getName());
@@ -167,7 +167,7 @@ void EffectCureCriticalWounds::affect(Creature* pCreature)
             Slayer* pCastSlayer = dynamic_cast<Slayer*>(pCreature);
             GCModifyInformation gcMI;
             SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-            // 경험치를 올려준다.
+            // Raises experience.
             shareAttrExp(pCastSlayer, ExpUp, 1, 1, 8, gcMI);
             increaseDomainExp(pCastSlayer, DomainType, ExpUp, gcMI);
             increaseSkillExp(pCastSlayer, DomainType, pSkillSlot, pSkillInfo, gcMI);

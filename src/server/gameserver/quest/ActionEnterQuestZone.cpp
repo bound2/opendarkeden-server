@@ -45,7 +45,7 @@ void ActionEnterQuestZone::read(PropertyBuffer& pb)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionEnterQuestZone::execute(Creature* pNPC, Creature* pCreature)
 
@@ -64,11 +64,11 @@ void ActionEnterQuestZone::execute(Creature* pNPC, Creature* pCreature)
     bool bTransport = true;
 
     if (bTransport) {
-        // Dynamic 존인지 확인.
+        // Check whether the target is a dynamic zone.
         int targetDynamicZoneType = context().dynamicZoneInfos().getDynamicZoneTypeByZoneID(m_ZoneID);
 
         if (targetDynamicZoneType != DYNAMIC_ZONE_MAX) {
-            // Dynamic 존일 경우
+            // The target is a dynamic zone.
             DynamicZoneGroup* pDynamicZoneGroup = context().dynamicZones().getDynamicZoneGroup(targetDynamicZoneType);
             Assert(pDynamicZoneGroup != NULL);
 
@@ -83,7 +83,7 @@ void ActionEnterQuestZone::execute(Creature* pNPC, Creature* pCreature)
                 pAlterOfBlood->setRace(pPC->getRace());
             }
         } else {
-            // Dynamic 존이 아닐 경우
+            // The target is not a dynamic zone.
             transportCreature(pCreature, m_ZoneID, m_X, m_Y, true);
         }
     } else {

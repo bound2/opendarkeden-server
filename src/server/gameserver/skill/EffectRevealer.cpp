@@ -18,7 +18,7 @@ EffectRevealer::EffectRevealer(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // 디텍트 히든은 슬레이어만이 쓸 수 있다.
+    // Only a Slayer can use this effect.
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
 
@@ -56,17 +56,17 @@ void EffectRevealer::unaffect(Creature* pCreature)
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
 
-    // 플래그를 제거한다.
+    // Removes the flag.
     pCreature->removeFlag(Effect::EFFECT_CLASS_REVEALER);
 
-    // 마법의 힘으로 보고 있던 크리쳐들을 삭제한다.
+    // Removes the creatures that were visible through the magic.
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
     pZone->updateMineScan(pCreature);
-    // 이제 hidden도 본다.
+    // Hidden creatures are scanned as well.
     pZone->updateHiddenScan(pCreature);
 
-    // 이펙트가 사라졌다고 알려준다.
+    // Tells clients that the effect is gone.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_REVEALER);

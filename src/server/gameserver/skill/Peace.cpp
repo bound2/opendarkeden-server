@@ -17,7 +17,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void Peace::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -47,7 +47,7 @@ void Peace::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void Peace::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -147,30 +147,30 @@ void Peace::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pS
                 Creature* pTargetCreature = (*itr);
                 Assert(pTargetCreature != NULL);
 
-                // 몬스터인 경우만 체크한다.
-                // 뱀파이어 마스터는 나중에 제외시켜야한다.
+                // Only monsters are checked.
+                // Vampire masters need to be excluded later.
                 if (pTargetCreature->isMonster()) {
                     Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
                     Assert(pMonster != NULL);
 
-                    // 살아있고, 이미 Peace에 걸린 경우가 아닌 경우에 마법 건다.
+                    // Cast the spell only if the monster is alive and not already under Peace.
                     if (pMonster->isAlive() && !pMonster->isFlag(Effect::EFFECT_CLASS_PEACE)) {
                         bool bHitRoll = HitRoll::isSuccessMagic(pSlayer, pSkillInfo, pSkillSlot);
 
                         if (bHitRoll) {
-                            // pMonster가 pSlayer를 먼저 공격하지 않는 Effect
+                            // Effect that keeps pMonster from attacking pSlayer first.
                             EffectPeace* pEffectPeace = new EffectPeace(pMonster, pSlayer->getObjectID());
-                            pEffectPeace->setDeadline(duration); // 150+pSlayer->getINT()); // (15+INT/10)초*10
+                            pEffectPeace->setDeadline(duration); // 150+pSlayer->getINT()); // (15+INT/10) sec * 10
                             pMonster->addEffect(pEffectPeace);
                             pMonster->setFlag(Effect::EFFECT_CLASS_PEACE);
 
-                            // 이미 때리고 있는 경우라면 제거..
+                            // Drop the Slayer from the enemy list if it is already being attacked.
                             pMonster->deleteEnemy(pSlayer->getObjectID());
 
 
                             bSuccess = true;
 
-                            // 타겟 list를 패킷에 추가한다.
+                            // Add the target to the packet's list.
 
                             _GCSkillToTileOK1.addCListElement(pMonster->getObjectID());
                             _GCSkillToTileOK2.addCListElement(pMonster->getObjectID());
@@ -184,10 +184,10 @@ void Peace::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pS
             }
 
             if (bSuccess) {
-                // 성공해야 마나를 떨어뜨린다.
+                // Mana is consumed only on success.
                 decreaseMana(pSlayer, RequiredMP, _GCSkillToTileOK1);
 
-                // 경험치를 올려준다. (일단 detect hidden에서 긁었다. -_-;)
+                // Grant experience.
                 SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
                 Exp_t ExpUp = 10 * (Grade + 1) * 2;
 
@@ -237,8 +237,8 @@ void Peace::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pS
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
 
-            // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
-            // 몬스터라서 없다 - -;
+            // Send the packet to everyone affected by this skill.
+            // None, because the affected creatures are monsters.
 
             cList = pZone->broadcastSkillPacket(myX, myY, X, Y, &_GCSkillToTileOK5, cList);
 

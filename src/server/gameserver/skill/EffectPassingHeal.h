@@ -2,7 +2,7 @@
 // Filename    : EffectPassingHeal.h
 // Written by  : excel96
 // Description :
-// PassingHeal에 의해서 생성되는 산성 데미지 약화 이펙트이다.
+// Effect created by PassingHeal that heals and cures poison.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_PASSING_HEAL__

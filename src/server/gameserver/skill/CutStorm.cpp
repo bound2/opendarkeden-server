@@ -11,7 +11,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void CutStorm::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -26,7 +26,7 @@ void CutStorm::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         Zone* pZone = pSlayer->getZone();
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -42,7 +42,7 @@ void CutStorm::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void CutStorm::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 

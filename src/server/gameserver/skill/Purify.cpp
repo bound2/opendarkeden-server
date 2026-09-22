@@ -17,7 +17,7 @@
 #include "ZoneUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void Purify::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -34,7 +34,7 @@ void Purify::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSki
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -50,7 +50,7 @@ void Purify::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSki
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 타일 핸들러
+// Slayer tile handler
 //////////////////////////////////////////////////////////////////////////////
 void Purify::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -105,7 +105,7 @@ void Purify::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* p
             Range_t Range = output.Range;
 
             int oX = 0, oY = 0;
-            list<Creature*> cList; // 당하는 분들 list
+            list<Creature*> cList; // List of affected creatures
             for (oY = -Range; oY <= Range; oY++) {
                 for (oX = -Range; oX <= Range; oX++) {
                     int tileX = X + oX;
@@ -114,7 +114,7 @@ void Purify::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* p
                     if (rect.ptInRect(tileX, tileY)) {
                         Tile& tile = pZone->getTile(tileX, tileY);
 
-                        // 현재 타일에 땅 속에 있는 크리쳐가 존재한다면...
+                        // If a burrowing creature is on the current tile...
                         if (tile.hasCreature(Creature::MOVE_MODE_BURROWING)) {
                             Creature* pTargetCreature = tile.getCreature(Creature::MOVE_MODE_BURROWING);
                             Assert(pTargetCreature != NULL);
@@ -136,7 +136,7 @@ void Purify::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* p
                                 UnBurrow = true;
 
                             if (UnBurrow) {
-                                // 땅속에서 끄집어내진 놈들 리스트에 추가한다.
+                                // Add it to the list of creatures pulled out of the ground.
                                 cList.push_back(pTargetCreature);
 
                                 ObjectID_t targetObjectID = pTargetCreature->getObjectID();
@@ -145,7 +145,7 @@ void Purify::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* p
                                 _GCSkillToTileOK2.addCListElement(targetObjectID);
                                 _GCSkillToTileOK5.addCListElement(targetObjectID);
 
-                                // 땅 속에 들어있는 놈을 꺼내어, 데미지를 준다.
+                                // Pull the burrowed creature out and deal damage to it.
                                 addUnburrowCreature(pZone, pTargetCreature, tileX, tileY, pTargetCreature->getDir());
                                 setDamage(pTargetCreature, Damage, pSlayer, SkillType, &_GCSkillToTileOK2,
                                           &_GCSkillToTileOK1);
@@ -155,7 +155,7 @@ void Purify::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* p
                 }
             }
 
-            // 경험치를 올린다.
+            // Raises experience.
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToTileOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToTileOK1);
@@ -195,7 +195,7 @@ void Purify::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* p
             _GCSkillToTileOK5.setRange(Range);
             _GCSkillToTileOK5.setDuration(0);
 
-            // 땅 속에서 끄집어내진 놈들에게 체력이 닳았다는 것을 알려줘야한다.
+            // Tell the creatures pulled out of the ground that their HP dropped.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
 

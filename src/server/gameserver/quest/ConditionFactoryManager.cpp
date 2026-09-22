@@ -50,10 +50,10 @@ ConditionFactoryManager::ConditionFactoryManager()
 
     Assert(m_Size > 0);
 
-    // 컨디션팩토리배열을 생성한다.
+    // Create the condition factory array.
     m_Factories = new ConditionFactory*[m_Size];
 
-    // 팩토리에 대한 포인터들을 NULL 로 초기화한다.
+    // Initialize the factory pointers to NULL.
     for (int i = 0; i < m_Size; i++)
         m_Factories[i] = NULL;
 
@@ -71,7 +71,7 @@ ConditionFactoryManager::~ConditionFactoryManager()
 
     Assert(m_Factories != NULL);
 
-    // 각각의 컨디션팩토리들을 삭제한다.
+    // Delete each condition factory.
     for (int i = 0; i < m_Size; i++) {
         if (m_Factories[i] != NULL) {
             delete m_Factories[i];
@@ -79,7 +79,7 @@ ConditionFactoryManager::~ConditionFactoryManager()
         }
     }
 
-    // 컨디션팩토리배열을 삭제한다.
+    // Delete the condition factory array.
     delete[] m_Factories;
     m_Factories = NULL;
 
@@ -88,7 +88,7 @@ ConditionFactoryManager::~ConditionFactoryManager()
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 정의된 모든 컨디션팩토리들을 여기에 추가한다.
+// Adds every defined condition factory here.
 ////////////////////////////////////////////////////////////////////////////////
 void ConditionFactoryManager::init()
 
@@ -148,7 +148,7 @@ void ConditionFactoryManager::addFactory(ConditionFactory* pFactory)
         throw Error(msg.toString());
     }
 
-    // 컨디션팩토리를 등록한다.
+    // Register the condition factory.
     m_Factories[pFactory->getConditionType()] = pFactory;
 
     __END_CATCH
@@ -184,8 +184,8 @@ string ConditionFactoryManager::getConditionName(ConditionType_t conditionType) 
 {
     __BEGIN_TRY
 
-    // 컨디션 타입이 범위를 넘어섬으로 인해서 Seg.Fault 가 발생하지 않도록.
-    // 이런 사용자는 당장 짤라야 한다.
+    // Guard against a segfault from a condition type that is out of range.
+    // An unknown type is logged and throws an Error.
     if (conditionType >= m_Size || m_Factories[conditionType] == NULL) {
         StringStream msg;
         msg << "invalid condition type (" << conditionType << ")";

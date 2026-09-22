@@ -59,8 +59,8 @@ void EffectHallucination::unaffect(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    // 능력치를 정상적으로 되돌리기 위해서는 플래그를 끄고,
-    // initAllStat을 불러야 한다.
+    // Restoring the stats requires clearing the flag and
+    // calling initAllStat.
     pCreature->removeFlag(Effect::EFFECT_CLASS_HALLUCINATION);
 
     Zone* pZone = pCreature->getZone();

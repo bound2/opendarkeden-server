@@ -51,12 +51,12 @@ void EffectSnipingMode::unaffect(Creature* pCreature)
 
 
     Assert(pCreature != NULL);
-    Assert(pCreature->isSlayer()); // 슬레이어말고는 걸리지 않는다.
+    Assert(pCreature->isSlayer()); // Only a Slayer can be affected.
 
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // addUnSnipingModeCreature() 내부에서 플래그를 끄므로...
+    // addUnSnipingModeCreature() turns the flag off itself.
     addUnSnipingModeCreature(pZone, pCreature, false);
 
     Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);

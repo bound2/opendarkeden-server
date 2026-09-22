@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectPenetrateWheel.h
 // Written by  : rallser
-// Description : 성직마법PenetrateWheel의 Effect를 처리해주기 위한 클래스이다.
+// Description : Class that handles the Effect of the clerical magic PenetrateWheel.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_Penetrate_Wheel__

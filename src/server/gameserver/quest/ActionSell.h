@@ -2,9 +2,9 @@
 // Filename    : ActionSell.h
 // Written By  :
 // Description :
-// NPC가 아이템을 플레이어에게 파는 액션이다. 실제로는 거래를
-// 시작하게 만드는 액션이며, 하는 일은 플레이어에게 현재 NPC의
-// 상점 버전을 패킷으로 보내주는 일 뿐이다.
+// Action where the NPC sells items to the player. In practice it
+// starts the trade; all it does is send the player the NPC's
+// current shop version as a packet.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_SELL_H__

@@ -14,7 +14,7 @@
 const uint CriticalBloodDrainLevel = 74;
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void CureCriticalWounds::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -45,7 +45,7 @@ void CureCriticalWounds::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToSelfOK1);
 
-            // 경험치를 올려준다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
 
@@ -53,13 +53,13 @@ void CureCriticalWounds::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
 
-            // 이펙트의 효과와 지속시간을 계산한다.
+            // Compute the effect value and the duration.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             input.TargetType = SkillInput::TARGET_OTHER;
             computeOutput(input, output);
 
-            // 이펙트를 생성해서 붙인다
+            // Create the effect and attach it
             EffectCureCriticalWounds* pECCW = new EffectCureCriticalWounds(pSlayer);
             pECCW->setDeadline(output.Duration);
             pECCW->setPoint(output.Damage);
@@ -69,7 +69,7 @@ void CureCriticalWounds::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
             pSlayer->addEffect(pECCW);
             pSlayer->setFlag(Effect::EFFECT_CLASS_CURE_CRITICAL_WOUNDS);
 
-            // 패킷을 준비해서 보낸다.
+            // Prepare the packet and send it.
             ZoneCoord_t myX = pSlayer->getX();
             ZoneCoord_t myY = pSlayer->getY();
 
@@ -84,7 +84,7 @@ void CureCriticalWounds::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
             pPlayer->sendPacket(&_GCSkillToSelfOK1);
             pZone->broadcastPacket(myX, myY, &_GCSkillToSelfOK2, pSlayer);
 
-            // 이펙트가 붙었다고 알려준다.
+            // Notifies that the effect has been attached.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pSlayer->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_CURE_CRITICAL_WOUNDS);

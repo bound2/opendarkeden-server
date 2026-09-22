@@ -17,7 +17,7 @@
 #include "war/WarSystem.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -49,8 +49,8 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
         SkillType_t SkillType = pSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // 이 스킬은 모든 슬레이어 그랜드 마스터라면 쓸 수 있다.
-        // 도메인데 종속된 스킬이 아니므로 도메인 중 최고 레벨을 현재 도메인으로 한다.
+        // Any Slayer grand master can use this skill.
+        // It belongs to no domain, so the highest-level domain is used as the current one.
         SkillDomainType_t DomainType = pSlayer->getHighestSkillDomain();
 
         ZoneCoord_t x = pSlayer->getX();
@@ -63,30 +63,30 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
         if (pTarget != NULL) {
             Zone* pTargetZone = pTarget->getZone();
             if (pTargetZone != NULL) {
-                // Target 체크
-                // 같은 종족이어야 한다.
+                // Target checks
+                // Must be the same race.
                 bool bSlayer = pTarget->isSlayer();
-                // 일반 유저이여야 된다.
+                // Must be an ordinary user.
                 bool bPLAYER = pTarget->getCompetence() == PLAYER;
                 bool bMasterLair =
                     pTargetZone->isMasterLair() || GDRLairManager::Instance().isGDRLairZone(pTargetZone->getZoneID());
-                // 유료 서비스 사용이 가능한가?
+                // Can the paid service be used?
                 bool bValidPay = pGamePlayer->loginPayPlay(pGamePlayer->getSocket()->getHost(), pGamePlayer->getID()) ||
                                  pGamePlayer->isFamilyFreePass() ||
                                  !g_pZoneInfoManager->getZoneInfo(pTargetZone->getZoneID())->isPayPlay();
 
-                // 야전사령부, 시외곽지역, 이벤트경기장, 이벤트OX, 테메리에로는 갈 수 없다.
+                // Cannot follow into the field HQ, the outskirts, the event arena, the OX event, or Temerie.
                 bool bValidZone = pTargetZone->getZoneID() != 2101 && pTargetZone->getZoneID() != 2102 &&
                                   pTargetZone->getZoneID() != 1005 && pTargetZone->getZoneID() != 1006 &&
                                   pTargetZone->getZoneID() != 1122 && pTargetZone->getZoneID() != 1131 &&
                                   pTargetZone->getZoneID() != 1132 && pTargetZone->getZoneID() != 1133 &&
                                   pTargetZone->getZoneID() != 1134 && !pTargetZone->isCastleZone() &&
-                                  // 성이나 마스터 레어로도 쫓아갈 수 없다. 2003. 1.20. by bezz, Sequoia
-                                  // 아담의 성지 내로도 쫓아갈 수 없다. 2003. 2. 8. by Sequoia
+                                  // Cannot follow into a castle or a master lair either.
+                                  // Cannot follow into Adam's holy land either.
                                   (!g_pWarSystem->hasActiveRaceWar() || !pTargetZone->isHolyLand()) &&
                                   !pTargetZone->isCastle() && !pTargetZone->isMasterLair() &&
                                   !g_pPKZoneInfoManager->isPKZone(pTargetZone->getZoneID()) &&
-                                  // 다이나믹 존으로도 갈 수 없다.
+                                  // Cannot go into a dynamic zone either.
                                   !pTargetZone->isDynamicZone();
 
                 bValidTarget = bSlayer && bPLAYER && !bMasterLair && bValidPay && bValidZone;
@@ -109,7 +109,7 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
             SkillOutput output;
             computeOutput(input, output);
 
-            // 10 초 동안 움직일 수 없도록 이펙트를 붙인다.
+            // Attach an effect that blocks movement for 10 seconds.
             EffectSoulChain* pEffect = new EffectSoulChain(pSlayer);
             pEffect->setDuration(output.Duration);
             pEffect->setDeadline(100);
@@ -122,7 +122,7 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
             pZone->addEffect(pEffect);
             pSlayer->setFlag(Effect::EFFECT_CLASS_SOUL_CHAIN);
 
-            // 경험치를 올린다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
 
@@ -152,7 +152,7 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
 
-            // 패킷을 보낸다.
+            // Send the packet.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(0);
@@ -181,7 +181,7 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 셀프
+// Vampire self
 //////////////////////////////////////////////////////////////////////////////
 void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkillSlot* pSkillSlot,
                         CEffectID_t CEffectID)
@@ -224,20 +224,20 @@ void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkil
         if (pTarget != NULL) {
             Zone* pTargetZone = pTarget->getZone();
             if (pTargetZone != NULL) {
-                // Target 체크
-                // 같은 종족이어야 한다.
+                // Target checks
+                // Must be the same race.
                 bool bVampire = pTarget->isVampire();
-                // 일반 유저이여야 된다.
+                // Must be an ordinary user.
                 bool bPLAYER = pTarget->getCompetence() == PLAYER;
-                // 마스터 레어로는 이동할 수 없다.
+                // Moving to a master lair is not allowed.
                 bool bMasterLair =
                     pTargetZone->isMasterLair() || GDRLairManager::Instance().isGDRLairZone(pTargetZone->getZoneID());
-                // 유료 서비스 사용이 가능한가?
+                // Can the paid service be used?
                 bool bValidPay = pGamePlayer->loginPayPlay(pGamePlayer->getSocket()->getHost(), pGamePlayer->getID()) ||
                                  pGamePlayer->isFamilyFreePass() ||
                                  !g_pZoneInfoManager->getZoneInfo(pTargetZone->getZoneID())->isPayPlay();
 
-                // 야전사령부, 시외곽지역, 이벤트경기장, 이벤트OX, 테메리에로는 갈 수 없다.
+                // Cannot follow into the field HQ, the outskirts, the event arena, the OX event, or Temerie.
                 bool bValidZone = pTargetZone->getZoneID() != 2101 && pTargetZone->getZoneID() != 2102 &&
                                   pTargetZone->getZoneID() != 1005 && pTargetZone->getZoneID() != 1006 &&
                                   pTargetZone->getZoneID() != 1122 && pTargetZone->getZoneID() != 1131 &&
@@ -246,7 +246,7 @@ void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkil
                                   (!g_pWarSystem->hasActiveRaceWar() || !pTargetZone->isHolyLand()) &&
                                   !pTargetZone->isCastle() && !pTargetZone->isMasterLair() &&
                                   !g_pPKZoneInfoManager->isPKZone(pTargetZone->getZoneID()) &&
-                                  // 다이나믹 존으로도 갈 수 없다.
+                                  // Cannot go into a dynamic zone either.
                                   !pTargetZone->isDynamicZone();
 
                 bValidTarget = bVampire && bPLAYER && !bMasterLair && bValidPay && bValidZone;
@@ -269,7 +269,7 @@ void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkil
             SkillOutput output;
             computeOutput(input, output);
 
-            // 10 초 동안 움직일 수 없도록 이펙트를 붙인다.
+            // Attach an effect that blocks movement for 10 seconds.
             EffectSoulChain* pEffect = new EffectSoulChain(pVampire);
             pEffect->setDuration(output.Duration);
             pEffect->setDeadline(100);
@@ -309,7 +309,7 @@ void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkil
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터즈 셀프
+// Ousters self
 //////////////////////////////////////////////////////////////////////////////
 void SoulChain::execute(Ousters* pOusters, const string& targetName, OustersSkillSlot* pSkillSlot,
                         CEffectID_t CEffectID)
@@ -352,20 +352,20 @@ void SoulChain::execute(Ousters* pOusters, const string& targetName, OustersSkil
         if (pTarget != NULL) {
             Zone* pTargetZone = pTarget->getZone();
             if (pTargetZone != NULL) {
-                // Target 체크
-                // 같은 종족이어야 한다.
+                // Target checks
+                // Must be the same race.
                 bool bOusters = pTarget->isOusters();
-                // 일반 유저이여야 된다.
+                // Must be an ordinary user.
                 bool bPLAYER = pTarget->getCompetence() == PLAYER;
-                // 마스터 레어로는 이동할 수 없다.
+                // Moving to a master lair is not allowed.
                 bool bMasterLair =
                     pTargetZone->isMasterLair() || GDRLairManager::Instance().isGDRLairZone(pTargetZone->getZoneID());
-                // 유료 서비스 사용이 가능한가?
+                // Can the paid service be used?
                 bool bValidPay = pGamePlayer->loginPayPlay(pGamePlayer->getSocket()->getHost(), pGamePlayer->getID()) ||
                                  pGamePlayer->isFamilyFreePass() ||
                                  !g_pZoneInfoManager->getZoneInfo(pTargetZone->getZoneID())->isPayPlay();
 
-                // 야전사령부, 시외곽지역, 이벤트경기장, 이벤트OX, 테메리에로는 갈 수 없다.
+                // Cannot follow into the field HQ, the outskirts, the event arena, the OX event, or Temerie.
                 bool bValidZone = pTargetZone->getZoneID() != 2101 && pTargetZone->getZoneID() != 2102 &&
                                   pTargetZone->getZoneID() != 1005 && pTargetZone->getZoneID() != 1006 &&
                                   pTargetZone->getZoneID() != 1122 && pTargetZone->getZoneID() != 1131 &&
@@ -374,7 +374,7 @@ void SoulChain::execute(Ousters* pOusters, const string& targetName, OustersSkil
                                   (!g_pWarSystem->hasActiveRaceWar() || !pTargetZone->isHolyLand()) &&
                                   !pTargetZone->isCastle() && !pTargetZone->isMasterLair() &&
                                   !g_pPKZoneInfoManager->isPKZone(pTargetZone->getZoneID()) &&
-                                  // 다이나믹 존으로도 갈 수 없다.
+                                  // Cannot go into a dynamic zone either.
                                   !pTargetZone->isDynamicZone();
 
                 bValidTarget = bOusters && bPLAYER && !bMasterLair && bValidPay && bValidZone;
@@ -397,7 +397,7 @@ void SoulChain::execute(Ousters* pOusters, const string& targetName, OustersSkil
             SkillOutput output;
             computeOutput(input, output);
 
-            // 10 초 동안 움직일 수 없도록 이펙트를 붙인다.
+            // Attach an effect that blocks movement for 10 seconds.
             EffectSoulChain* pEffect = new EffectSoulChain(pOusters);
             pEffect->setDuration(output.Duration);
             pEffect->setDeadline(100);

@@ -18,7 +18,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void Extreme::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CEffectID_t CEffectID)
 
@@ -42,7 +42,7 @@ void Extreme::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CE
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // Knowledge of Innate 가 있다면 hit bonus 10
+        // Knowledge of Innate gives a hit bonus of 10.
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE);
@@ -61,26 +61,26 @@ void Extreme::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CE
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected) {
             decreaseMana(pVampire, RequiredMP, _GCSkillToSelfOK1);
 
-            // 스킬 레벨에 따라 데미지 보너스가 달라진다.
+            // The damage bonus varies with the skill level.
             SkillInput input(pVampire);
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectExtreme* pEffect = new EffectExtreme(pVampire);
             pEffect->setDeadline(output.Duration);
             pEffect->setDamageBonus(output.Damage);
             pVampire->addEffect(pEffect);
             pVampire->setFlag(Effect::EFFECT_CLASS_EXTREME);
 
-            // 이로 인하여 바뀌는 능력치를 보낸다.
+            // Send the stats that this changes.
             VAMPIRE_RECORD prev;
             pVampire->getVampireRecord(prev);
             pVampire->initAllStat();
             pVampire->sendRealWearingInfo();
             pVampire->sendModifyInfo(prev);
 
-            // 패킷을 만들어 보낸다.
+            // Build the packet and send it.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(output.Duration);
@@ -93,7 +93,7 @@ void Extreme::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CE
 
             pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &_GCSkillToSelfOK2, pVampire);
 
-            // 이펙트가 붙었다고 알려준다.
+            // Notifies that the effect has been attached.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pVampire->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_EXTREME);
@@ -132,7 +132,7 @@ void Extreme::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkill
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pVampire, getSkillType());
             return;
@@ -163,26 +163,26 @@ void Extreme::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkill
 
             decreaseMana(pVampire, RequiredMP, _GCSkillToObjectOK1);
 
-            // 스킬 레벨에 따라 데미지 보너스가 달라진다.
+            // The damage bonus varies with the skill level.
             SkillInput input(pVampire);
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectExtreme* pEffect = new EffectExtreme(pTargetVampire);
             pEffect->setDeadline(output.Duration);
             pEffect->setDamageBonus(output.Damage);
             pTargetVampire->addEffect(pEffect);
             pTargetVampire->setFlag(Effect::EFFECT_CLASS_EXTREME);
 
-            // 이로 인하여 바뀌는 능력치를 보낸다.
+            // Send the stats that this changes.
             VAMPIRE_RECORD prev;
             pTargetVampire->getVampireRecord(prev);
             pTargetVampire->initAllStat();
             pTargetVampire->sendRealWearingInfo();
             pTargetVampire->sendModifyInfo(prev);
 
-            // 패킷을 만들어 보낸다.
+            // Build the packet and send it.
             _GCSkillToObjectOK1.setSkillType(SkillType);
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setDuration(output.Duration);
@@ -212,7 +212,7 @@ void Extreme::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkill
             cList.push_back(pVampire);
             pZone->broadcastPacket(myX, myY, &_GCSkillToObjectOK3, cList);
 
-            // 이펙트가 붙었다고 알려준다.
+            // Notifies that the effect has been attached.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pTargetVampire->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_EXTREME);
@@ -267,7 +267,7 @@ void Extreme::execute(Vampire* pVampire)
                 if (!rect.ptInRect(tileX, tileY))
                     continue;
 
-                // 타일 위에! 뱀파이어가 있는지 본다!
+                // Checks whether a Vampire is on the tile.
                 Tile& tile = pZone->getTile(tileX, tileY);
                 Creature* pTargetCreature = NULL;
                 if (tile.hasCreature(Creature::MOVE_MODE_WALKING))
@@ -281,19 +281,19 @@ void Extreme::execute(Vampire* pVampire)
 
                     Vampire* pTargetVampire = dynamic_cast<Vampire*>(pTargetCreature);
 
-                    // 스킬 레벨에 따라 데미지 보너스가 달라진다.
+                    // The damage bonus varies with the skill level.
                     SkillInput input(pVampire);
                     SkillOutput output;
                     computeOutput(input, output);
 
-                    // 이펙트 클래스를 만들어 붙인다.
+                    // Creates the effect class and attaches it.
                     EffectExtreme* pEffect = new EffectExtreme(pTargetVampire);
                     pEffect->setDeadline(output.Duration);
                     pEffect->setDamageBonus(output.Damage);
                     pTargetVampire->addEffect(pEffect);
                     pTargetVampire->setFlag(Effect::EFFECT_CLASS_EXTREME);
 
-                    // 이로 인하여 바뀌는 능력치를 보낸다.
+                    // Sends the stats that change as a result.
                     VAMPIRE_RECORD prev;
                     pTargetVampire->getVampireRecord(prev);
                     pTargetVampire->initAllStat();
@@ -301,7 +301,7 @@ void Extreme::execute(Vampire* pVampire)
                     pTargetVampire->sendModifyInfo(prev);
 
 
-                    // 이펙트가 붙었다고 알려준다.
+                    // Notifies that the effect has been attached.
                     GCAddEffect gcAddEffect;
                     gcAddEffect.setObjectID(pTargetVampire->getObjectID());
                     gcAddEffect.setEffectID(Effect::EFFECT_CLASS_EXTREME);

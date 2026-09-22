@@ -25,7 +25,7 @@
 bool ConditionEnterCastle::isSatisfied(Creature* pCreature1, Creature* pCreature2, void* pParam) const
 
 {
-    // 나중에 전쟁중인지 체크해야 된다
+    // A check for whether a war is in progress still has to be added.
 
     Assert(pCreature2 != NULL);
     Assert(pCreature2->isPC());
@@ -38,21 +38,21 @@ bool ConditionEnterCastle::isSatisfied(Creature* pCreature1, Creature* pCreature
 
     bPayPlay = true;
 
-    // 돈 낸 사람만 castle 에 들어갈 수 있다.
+    // Only someone who has paid can enter the castle.
     if (bPayPlay) {
-        // 존을 찾는다.
+        // Find the zone.
         Zone* pZone = getZoneByZoneID(m_TargetZoneID);
         Assert(pZone != NULL);
 
-        // castle 이 아니면 체크할 필요가 없는거다.
+        // If it is not a castle, there is nothing to check.
         if (!pZone->isCastle()) {
             return true;
         }
 
-        // 종족간 전쟁중에는 종족에 상관없이 누구나 통과시켜야 한다.
-        // 동족간 전쟁중에는 타종족을 통과시켜서는 안 된다.
-        // 평시에는 NPC를 통해야 하므로 누구도 통과시킬 수 없다.
-        // 전쟁시스템 만들때 이거 다 추가시켜야 된다. 2003. 1.20.
+        // During a war between races, everyone must be let through regardless of race.
+        // During a war within a race, other races must not be let through.
+        // In peacetime entry goes through an NPC, so nobody may be let through.
+        // All of this has to be added when the war system is built.
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
 
         return g_pCastleInfoManager->canPortalActivate(m_TargetZoneID, pPC);

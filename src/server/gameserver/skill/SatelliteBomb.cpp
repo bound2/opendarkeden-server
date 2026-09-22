@@ -19,44 +19,44 @@
 #include "ItemUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// ÈËÀà ÎÀÐÇºä»÷¼¼ÄÜ 180¼¶
+// Slayer object handler for the satellite bomb skill
 //////////////////////////////////////////////////////////////////////////////
 void SatelliteBomb::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
 {
     __BEGIN_TRY
 
-    // Êý¾Ý°²È«ÑéÖ¤
+    // Validate the arguments.
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
 
     try {
-        // »ñÈ¡µ±Ç°µØÍ¼,²¢½øÐÐ°²È«ÑéÖ¤.¸ù¾ÝÄ¿±êIDÈ¡µÃ¶ÔÏó
+        // Get the zone, check it, and look the target up by its object id.
         Zone* pZone = pSlayer->getZone();
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
 
-        // ¼ì²âÄ¿±ê¹¥»÷¿ÉÄÜÐÔ
+        // Check whether the target can be attacked.
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
-            // Í¨Öª¿Í»§¶ËÊ¹ÓÃ¼¼ÄÜÊ§°Ü
+            // Tell the client the skill failed.
             executeSkillFailException(pSlayer, getSkillType());
             return;
         }
-        // Ê¹ÓÃ¼¼ÄÜ
+        // Run the skill on the target's tile.
         execute(pSlayer, pTargetCreature->getX(), pTargetCreature->getY(), pSkillSlot, CEffectID);
     }
-    // ´íÎó´¦Àí
+    // Error handling.
     catch (Throwable& t) {
-        // Í¨Öª¿Í»§¶ËÊ¹ÓÃ¼¼ÄÜÊ§°Ü
+        // Tell the client the skill failed.
         executeSkillFailException(pSlayer, getSkillType());
     }
     __END_CATCH
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¼¼ÄÜÔËÐÐº¯Êý pSlayer->Ê¹ÓÃ¼¼ÄÜ¶ÔÏó  X,Y->×ø±ê pSkillSlot->¼¼ÄÜÐÅÏ¢  CEffectID->Ð§¹ûID
+// Skill entry point: pSlayer the caster, X,Y the target tile, pSkillSlot the skill slot, CEffectID the effect id
 //////////////////////////////////////////////////////////////////////////////
 void SatelliteBomb::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -64,18 +64,18 @@ void SatelliteBomb::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
     __BEGIN_TRY
 
     try {
-        // ¸ù¾ÝSlayer È¡µÃPlayer¶ÔÏóÖ¸Õë
+        // Get the Player that owns this Slayer.
         Player* pPlayer = pSlayer->getPlayer();
-        // ¸ù¾ÝSlayer È¡µÃµ±Ç°µØÍ¼Ö¸Õë
+        // Get the zone the Slayer is in.
         Zone* pZone = pSlayer->getZone();
-        // ´íÎó´¦Àí
+        // Both have to be present.
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        // ¼ì²âÊÇ·ñÓÐ×°±¸ÎäÆ÷
+        // Check that a gun is equipped in the right hand.
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || isArmsWeapon(pItem) == false) {
-            // Í¨Öª¿Í»§¶ËÊ¹ÓÃ¼¼ÄÜÊ§°Ü
+            // Tell the client the skill failed.
             executeSkillFailException(pSlayer, getSkillType());
             return;
         }
@@ -85,17 +85,17 @@ void SatelliteBomb::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
         GCSkillToTileOK4 _GCSkillToTileOK4;
         GCSkillToTileOK5 _GCSkillToTileOK5;
         GCSkillToTileOK6 _GCSkillToTileOK6;
-        // »ñÈ¡µ±Ç°Ê¹ÓÃ¼¼ÄÜÀàÐÍ
+        // Get the type of the skill being used.
         SkillType_t SkillType = pSkillSlot->getSkillType();
-        // »ñÈ¡Êý¾Ý¿âµ±Ç°Ê¹ÓÃ¼¼ÄÜÐÅÏ¢
+        // Get that skill's info from the skill info manager.
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // RequiredMP  »ñÈ¡¼¼ÄÜÐèÒªÏûºÄµÄMPÖµ.
-        // bManaCheck  ¼ì²âµ±Ç°Ê¹ÓÃ¶ÔÏóÊÇ·ñÓÐ×ã¹»µÄMPÖµÏûºÄ.
-        // bTimeCheck  ¼ì²âµ±Ç°¼¼ÄÜÊ¹ÓÃÊ±¼ä¼ä¸ôÊÇ·ñ³¬³ö.
-        // bRangeCheck ¼ì²â¼¼ÄÜÊ¹ÓÃ¾àÀë.
-        // bEffected   ¼ì²âµ±Ç°¼¼ÄÜÊÇ·ñÔÚÊ¹ÓÃÖÐ.
-        // bTileCheck  ¼ì²âµ±Ç°µØÍ¼Ê¹ÓÃ¿ÉÄÜÐÔ
+        // RequiredMP  the MP the skill consumes.
+        // bManaCheck  whether the caster has enough MP.
+        // bTimeCheck  whether the skill's delay has elapsed.
+        // bRangeCheck whether the target tile is in range.
+        // bEffected   whether the skill is already active on the caster.
+        // bTileCheck  whether the target tile can take an effect.
         int RequiredMP = pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);
         bool bTimeCheck = verifyRunTime(pSkillSlot);
@@ -111,30 +111,30 @@ void SatelliteBomb::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
         }
         bool bUseSkill = false;
         bUseSkill = true;
-        // Èç¹ûÈ«²¿¼ì²âÍ¨¹ý,ÔòÖ´ÐÐ¼¼ÄÜº¯Êý.
+        // Run the skill only when every check passes.
         if (bManaCheck && bTimeCheck && bRangeCheck && !bEffected && bTileCheck && bUseSkill) {
-            // ÉèÖÃÊ¹ÓÃ½ÇÉ«MP¼õÉÙ
+            // Consume the MP.
             decreaseMana(pSlayer, RequiredMP, _GCSkillToTileOK1);
 
-            // ´´½¨¼¼ÄÜÊäÈëÊä³ö±äÁ¿,²¢¼ÆËã¼¼ÄÜÉËº¦µÈÐÅÏ¢.
+            // Build the skill input and output and compute the skill's values.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             computeOutput(input, output);
 
             Tile& tile = pZone->getTile(X, Y);
 
-            // Èç¹ûEFFECT_CLASS_SKILL_SATELLITE_BOMB_POINT¼¼ÄÜÐ§¹ûÔÚÊ¹ÓÃÖÐ,ÒÆ³ýÐ§¹û.
+            // Remove an existing SATELLITE_BOMB_POINT effect from the tile.
             Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_SKILL_SATELLITE_BOMB_POINT);
             if (pOldEffect != NULL) {
                 ObjectID_t effectID = pOldEffect->getObjectID();
                 pZone->deleteEffect(effectID);
             }
 
-            // ´´½¨Ê¹ÓÃ½ÇÉ«Ð§¹û
+            // Create the aim effect.
             EffectSatelliteBombAim* pEffect = new EffectSatelliteBombAim(pSlayer, pZone, X, Y);
-            // ÉèÖÃÐ§¹ûÉËº¦
+            // Set the effect's damage.
             pEffect->setDamage(output.Damage);
-            // ÉèÖÃÐ§¹ûÊ¹ÓÃÊ±¼ä
+            // Set the effect's duration.
             pEffect->setDeadline(output.Duration);
 
             pSlayer->addEffect(pEffect);
@@ -178,7 +178,7 @@ void SatelliteBomb::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
             pZone->broadcastPacket(myX, myY, &_GCSkillToTileOK3, cList);
             pZone->broadcastPacket(X, Y, &_GCSkillToTileOK4, cList);
 
-            // SatelliteBombAim ÀÌÆåÆ®¸¦ ºê·ÎµåÄ³½ºÆÃ ÇÑ´Ù.
+            // Broadcast the SatelliteBombAim effect.
             GCAddEffect gcAddAimEffect;
             gcAddAimEffect.setObjectID(pSlayer->getObjectID());
             gcAddAimEffect.setEffectID(Effect::EFFECT_CLASS_SKILL_SATELLITE_BOMB_AIM);
@@ -186,7 +186,7 @@ void SatelliteBomb::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
             pZone->broadcastPacket(myX, myY, &gcAddAimEffect);
 
             ///////////////////////////////////////////////////////////////////
-            // SatelliteBombPoint ÀÌÆåÆ®¸¦ ¸¸µé¾î¼­ ºÙÀÌ°í ºê·ÎµåÄ³½ºÆÃ ÇÑ´Ù.
+            // Create the SatelliteBombPoint effect, attach it and broadcast it.
             ///////////////////////////////////////////////////////////////////
             EffectSatelliteBombPoint* pPointEffect = new EffectSatelliteBombPoint(pZone, X, Y);
             pPointEffect->setDeadline(output.Duration);
@@ -245,19 +245,19 @@ void SatelliteBomb::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y) {
             ZoneCoord_t myX = pMonster->getX();
             ZoneCoord_t myY = pMonster->getY();
 
-            // °°Àº ÀÌÆåÆ®°¡ ÀÌ¹Ì Á¸ÀçÇÑ´Ù¸é »èÁ¦ÇÑ´Ù.
+            // Delete the same effect if it is already there.
             Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_SKILL_SATELLITE_BOMB_POINT);
             if (pOldEffect != NULL) {
                 ObjectID_t effectID = pOldEffect->getObjectID();
                 pZone->deleteEffect(effectID);
             }
 
-            // µ¥¹ÌÁö¿Í Áö¼Ó ½Ã°£À» °è»êÇÑ´Ù.
+            // Compute the damage and the duration.
             SkillInput input(pMonster);
             SkillOutput output;
             computeOutput(input, output);
 
-            // ÀÌÆåÆ® ¿ÀºêÁ§Æ®¸¦ »ý¼ºÇÑ´Ù.
+            // Create the effect object.
             EffectSatelliteBombAim* pEffect = new EffectSatelliteBombAim(pMonster, pZone, X, Y);
             pEffect->setDeadline(output.Duration);
             pEffect->setDamage(output.Damage);
@@ -291,7 +291,7 @@ void SatelliteBomb::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y) {
             pZone->broadcastPacket(myX, myY, &_GCSkillToTileOK3, cList);
             pZone->broadcastPacket(X, Y, &_GCSkillToTileOK4, cList);
 
-            // SatelliteBombAim ÀÌÆåÆ®¸¦ ºê·ÎµåÄ³½ºÆÃ ÇÑ´Ù.
+            // Broadcast the SatelliteBombAim effect.
             GCAddEffect gcAddAimEffect;
             gcAddAimEffect.setObjectID(pMonster->getObjectID());
             gcAddAimEffect.setEffectID(Effect::EFFECT_CLASS_SKILL_SATELLITE_BOMB_AIM);

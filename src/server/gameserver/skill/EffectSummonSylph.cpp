@@ -35,7 +35,7 @@ void EffectSummonSylph::unaffect(Creature* pCreature)
     Assert(pCreature != NULL);
     Assert(pCreature->isOusters());
 
-    // 플래그를 끈다.
+    // Turns off the flag.
     pCreature->removeFlag(Effect::EFFECT_CLASS_SUMMON_SYLPH);
 
     Zone* pZone = pCreature->getZone();
@@ -51,7 +51,7 @@ void EffectSummonSylph::unaffect(Creature* pCreature)
     pTargetOusters->sendRealWearingInfo();
     pTargetOusters->sendModifyInfo(prev);
 
-    // 이펙트를 삭제하라고 알려준다.
+    // Tells clients to remove the effect.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(getSendEffectClass());

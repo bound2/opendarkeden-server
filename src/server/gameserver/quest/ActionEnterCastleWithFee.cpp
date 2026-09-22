@@ -54,7 +54,7 @@ void ActionEnterCastleWithFee::read(PropertyBuffer& pb)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionEnterCastleWithFee::execute(Creature* pNPC, Creature* pCreature)
 
@@ -80,7 +80,7 @@ void ActionEnterCastleWithFee::execute(Creature* pNPC, Creature* pCreature)
             if (remain < fee) {
                 static char buf[200];
                 sprintf(buf, g_pStringPool->c_str(STRID_NOT_ENOUGH_ENTRANCE_FEE), (int)fee);
-                // 돈이 모자란다.
+                // Not enough gold.
                 GCSystemMessage message;
                 message.setType(SYSTEM_MESSAGE_HOLY_LAND);
                 message.setMessage(buf);
@@ -89,7 +89,7 @@ void ActionEnterCastleWithFee::execute(Creature* pNPC, Creature* pCreature)
                 bTransport = false;
             } else {
                 if (fee > 0) {
-                    // 입장료를 낸다.
+                    // Pay the entrance fee.
                     pPC->decreaseGoldEx(fee);
                     g_pCastleInfoManager->increaseTaxBalance(m_ZoneID, fee);
 

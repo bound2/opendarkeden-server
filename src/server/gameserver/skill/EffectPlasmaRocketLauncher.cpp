@@ -88,7 +88,7 @@ void EffectPlasmaRocketLauncher::affect(Creature* pCreature)
 
                     if (!(pZone->getZoneLevel() & COMPLETE_SAFE_ZONE) && !pCreature2->isDead() &&
                         !pCreature2->isFlag(Effect::EFFECT_CLASS_COMA)
-                        // 무적상태 체크. by sigi. 2002.9.5
+                        // Invincibility check.
                         && canAttack(pAttacker, pCreature2)) {
                         GCModifyInformation gcMI, gcAttackerMI;
                         setDamage(pCreature2, m_Point, pAttacker, SKILL_PLASMA_ROCKET_LAUNCHER, &gcMI, &gcAttackerMI);

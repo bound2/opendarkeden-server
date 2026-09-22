@@ -20,7 +20,7 @@
 #include "Reflection.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void Blunting::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pSkillSlot,
                        CEffectID_t CEffectID)
@@ -42,9 +42,9 @@ void Blunting::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
 
         Item* pWeapon = pOusters->getWearItem(Ousters::WEAR_RIGHTHAND);
 
-        // NPC는 공격할 수 없다.
-        // 저주 면역. by sigi. 2002.9.13
-        // NoSuch제거. by sigi. 2002.5.2
+        // NPCs cannot be attacked.
+        // It also fails if the target is immune to curses.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_CURSE) ||
             !canAttack(pOusters, pTargetCreature) || pTargetCreature->isNPC() || pWeapon == NULL ||
             pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_CHAKRAM ||
@@ -89,13 +89,13 @@ void Blunting::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
 
             bool bCanSeeCaster = canSee(pTargetCreature, pOusters);
 
-            // pTargetCreature가 저주마법을 반사하는 경우
+            // The target reflects curse magic back at the caster.
             if (CheckReflection(pOusters, pTargetCreature, getSkillType())) {
                 pTargetCreature = (Creature*)pOusters;
                 TargetObjectID = pOusters->getObjectID();
             }
 
-            // 이펙트 오브젝트를 생성해 붙인다.
+            // Create the effect object and attach it.
             EffectBlunting* pEffect = new EffectBlunting(pTargetCreature);
             pEffect->setDeadline(output.Duration);
             pEffect->setLevel(47 + (pSkillSlot->getExpLevel() / 2));
@@ -103,7 +103,7 @@ void Blunting::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
             pTargetCreature->addEffect(pEffect);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_BLUNTING);
 
-            // 능력치를 계산해서 보내준다.
+            // Computes the stats and sends them.
             if (pTargetCreature->isSlayer()) {
                 Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
 
@@ -172,10 +172,10 @@ void Blunting::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
             _GCSkillToObjectOK6.setSkillType(SkillType);
             _GCSkillToObjectOK6.setDuration(output.Duration);
 
-            if (bCanSeeCaster) // 10은 땜빵 수치다.
+            if (bCanSeeCaster) // 10 is a stopgap value.
             {
                 computeAlignmentChange(pTargetCreature, 10, pOusters, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
-            } else // 10은 땜빵 수치다.
+            } else // 10 is a stopgap value.
             {
                 computeAlignmentChange(pTargetCreature, 10, pOusters, &_GCSkillToObjectOK6, &_GCSkillToObjectOK1);
             }

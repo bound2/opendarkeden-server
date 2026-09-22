@@ -16,7 +16,7 @@
 #include "Zone.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프
+// Slayer self
 //////////////////////////////////////////////////////////////////////////////
 void InstallTurret::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -88,7 +88,7 @@ void InstallTurret::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t 
             pSlayer->sendRealWearingInfo();
             pSlayer->addModifyInfo(prev, _GCSkillToSelfOK1);
 
-            // 패킷을 만들어 보낸다.
+            // Build the packet and send it.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(output.Duration);

@@ -32,7 +32,7 @@ void ActionShowGuildDialog::read(PropertyBuffer& propertyBuffer)
     __BEGIN_TRY
 
     try {
-        // 다이얼로그의 종류
+        // Type of the dialog
         m_Type = (GuildDialog_t)propertyBuffer.getPropertyInt("Type");
     } catch (NoSuchElementException& nsee) {
         throw Error(nsee.toString());
@@ -43,7 +43,7 @@ void ActionShowGuildDialog::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -68,29 +68,29 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
 
     if (m_Type == GUILD_DIALOG_REGIST) {
         ////////////////////////////////////////////////////////////////////////////////
-        // 길드 등록을 선택했을 경우
+        // The player chose guild registration
         ////////////////////////////////////////////////////////////////////////////////
-        // 다른 길드 소속인지 체크
+        // Check whether the player belongs to another guild
         int Rank = 0;
         string ExpireDate;
 
         {
             if (defaultGuildRepository().loadMemberRankExpireDate(pCreature->getName(), Rank, ExpireDate)) {
-                // 길드 등록 정보가 있다. expire date를 보고 결정한다.
+                // Guild registration info exists. Decide from the expire date.
 
                 if (ExpireDate.size() == 7) {
-                    // 다른 길드에서 탈퇴한 경우에는 일주일 동안 길드를 만들 수 없다.
+                    // A player who left another guild cannot create a guild for a week.
                     if (Rank == GuildMember::GUILDMEMBER_RANK_LEAVE) {
-                        // 현재는 길드 소속 상태가 아니다. 하지만 expire date 에서 7일이 지나야 한다.
+                        // Not in a guild now, but 7 days must pass from the expire date.
                         time_t daytime = time(0);
                         tm Time;
                         Time.tm_year = atoi(ExpireDate.substr(0, 3).c_str());
                         Time.tm_mon = atoi(ExpireDate.substr(3, 2).c_str());
                         Time.tm_mday = atoi(ExpireDate.substr(5, 2).c_str());
 
-                        if (difftime(daytime, mktime(&Time)) < 604800) // 실시간 7일이 지났는가?
+                        if (difftime(daytime, mktime(&Time)) < 604800) // Have 7 real-time days passed?
                         {
-                            // 시간이 일주일 ...어쩌고
+                            // Less than a week since leaving the previous guild.
                             if (pCreature->isSlayer()) {
                                 GCNPCResponse response;
                                 response.setCode(NPC_RESPONSE_TEAM_REGIST_FAIL_QUIT_TIMEOUT);
@@ -109,7 +109,7 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
                         }
                     }
                 } else {
-                    // 다른 길드에 가입되어있는 경우
+                    // Already a member of another guild
                     if (pCreature->isSlayer()) {
                         GCNPCResponse response;
                         response.setCode(NPC_RESPONSE_TEAM_REGIST_FAIL_ALREADY_JOIN);
@@ -136,34 +136,34 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
 
             SkillDomainType_t highest = pSlayer->getHighestSkillDomain();
 
-            if (pSlayer->getSkillDomainLevel(highest) < REQUIRE_SLAYER_MASTER_SKILL_DOMAIN_LEVEL) // 레벨 50 이상
+            if (pSlayer->getSkillDomainLevel(highest) < REQUIRE_SLAYER_MASTER_SKILL_DOMAIN_LEVEL) // Level 50 or higher
             {
-                // 레벨이 낮음
+                // Level too low
                 GCNPCResponse response;
                 response.setCode(NPC_RESPONSE_TEAM_REGIST_FAIL_LEVEL);
                 pPlayer->sendPacket(&response);
 
                 return;
             }
-            if (pSlayer->getGold() < REQUIRE_SLAYER_MASTER_GOLD) // 등록비 1억
+            if (pSlayer->getGold() < REQUIRE_SLAYER_MASTER_GOLD) // Registration fee
             {
-                // 등록비가 모자람
+                // Not enough money for the registration fee
                 GCNPCResponse response;
                 response.setCode(NPC_RESPONSE_TEAM_REGIST_FAIL_MONEY);
                 pPlayer->sendPacket(&response);
 
                 return;
             }
-            if (pSlayer->getFame() < REQUIRE_SLAYER_MASTER_FAME[highest]) // 명성
+            if (pSlayer->getFame() < REQUIRE_SLAYER_MASTER_FAME[highest]) // Fame
             {
-                // 명성이 모자람
+                // Not enough fame
                 GCNPCResponse response;
                 response.setCode(NPC_RESPONSE_TEAM_REGIST_FAIL_FAME);
                 pPlayer->sendPacket(&response);
 
                 return;
             }
-            // 길드 등록 창을 띄우도록 메시지를 보낸다.
+            // Send the message that opens the guild registration window.
             GCNPCResponse response;
             response.setCode(NPC_RESPONSE_GUILD_SHOW_REGIST);
             response.setParameter(REQUIRE_SLAYER_MASTER_GOLD);
@@ -172,28 +172,28 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
             Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
             Assert(pVampire != NULL);
 
-            // 등록 가능 여부 체크
-            if (pVampire->getLevel() < REQUIRE_VAMPIRE_MASTER_LEVEL) // 레벨 50이상
+            // Check whether registration is possible
+            if (pVampire->getLevel() < REQUIRE_VAMPIRE_MASTER_LEVEL) // Level 50 or higher
             {
-                // 레벨이 낮음
+                // Level too low
                 GCNPCResponse response;
                 response.setCode(NPC_RESPONSE_CLAN_REGIST_FAIL_LEVEL);
                 pPlayer->sendPacket(&response);
 
                 return;
             }
-            if (pVampire->getGold() < REQUIRE_VAMPIRE_MASTER_GOLD) // 등록비 1억
+            if (pVampire->getGold() < REQUIRE_VAMPIRE_MASTER_GOLD) // Registration fee
             {
-                // 등록비가 모자람
+                // Not enough money for the registration fee
                 GCNPCResponse response;
                 response.setCode(NPC_RESPONSE_CLAN_REGIST_FAIL_MONEY);
                 pPlayer->sendPacket(&response);
 
                 return;
             }
-            //				// 명성이 모자람
+            //				// Not enough fame
             //
-            // 길드 등록 창을 띄우도록 메시지를 보낸다.
+            // Send the message that opens the guild registration window.
             GCNPCResponse response;
             response.setCode(NPC_RESPONSE_GUILD_SHOW_REGIST);
 
@@ -203,19 +203,19 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
             Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
             Assert(pOusters != NULL);
 
-            // 등록 가능 여부 체크
-            if (pOusters->getLevel() < REQUIRE_OUSTERS_MASTER_LEVEL) // 레벨 50이상
+            // Check whether registration is possible
+            if (pOusters->getLevel() < REQUIRE_OUSTERS_MASTER_LEVEL) // Level 50 or higher
             {
-                // 레벨이 낮음
+                // Level too low
                 GCNPCResponse response;
                 response.setCode(NPC_RESPONSE_GUILD_REGIST_FAIL_LEVEL);
                 pPlayer->sendPacket(&response);
 
                 return;
             }
-            if (pOusters->getGold() < REQUIRE_OUSTERS_MASTER_GOLD) // 등록비 1억
+            if (pOusters->getGold() < REQUIRE_OUSTERS_MASTER_GOLD) // Registration fee
             {
-                // 등록비가 모자람
+                // Not enough money for the registration fee
                 GCNPCResponse response;
                 response.setCode(NPC_RESPONSE_GUILD_REGIST_FAIL_MONEY);
                 pPlayer->sendPacket(&response);
@@ -223,7 +223,7 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
                 return;
             }
 
-            // 길드 등록 창을 띄우도록 메시지를 보낸다.
+            // Send the message that opens the guild registration window.
             GCNPCResponse response;
             response.setCode(NPC_RESPONSE_GUILD_SHOW_REGIST);
 
@@ -264,7 +264,7 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
 
         pPlayer->sendPacket(&gcActiveGuildList);
     } else if (m_Type == GUILD_DIALOG_QUIT) {
-        // 길드 탈퇴 창을 띄우지 않고 길드 탈퇴를 확정한 것으로 간주한다.
+        // Treat the leave as confirmed without opening the guild leave window.
         Guild* pGuild = NULL;
 
         int guildID = 0;
@@ -272,7 +272,7 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
             pGuild = g_pGuildManager->getGuild(guildID);
         }
 
-        // 길드 상태가 활동중이거나 대기중이어야 한다.
+        // The guild state must be active or waiting.
         if (pGuild == NULL ||
             (pGuild->getState() != Guild::GUILD_STATE_ACTIVE && pGuild->getState() != Guild::GUILD_STATE_WAIT)) {
             GCNPCResponse response;
@@ -282,7 +282,7 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
             return;
         }
 
-        // 플레이어가 길드의 멤버인지 확인한다.
+        // Check that the player is a member of the guild.
         GuildMember* pGuildMember = pGuild->getMember(pCreature->getName());
         if (pGuildMember == NULL) {
             GCNPCResponse response;
@@ -292,7 +292,7 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
             return;
         }
 
-        // 활동 중인 길드의 마스터라면 탈퇴를 무시한다.
+        // Ignore the leave if the player is the master of an active guild.
         if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER &&
             pGuild->getState() == Guild::GUILD_STATE_ACTIVE) {
             GCNPCResponse response;

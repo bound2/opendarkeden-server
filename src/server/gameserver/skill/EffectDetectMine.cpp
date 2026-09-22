@@ -43,7 +43,7 @@ void EffectDetectMine::unaffect(Creature* pCreature)
     Assert(pCreature != NULL);
 
     pCreature->removeFlag(Effect::EFFECT_CLASS_REVEALER);
-    // detect hidden의 힘으로 볼수 있었던 hidden creature를 삭제해야한다.
+    // Removes the mines that were visible through the effect.
     Zone* pZone = pCreature->getZone();
     pZone->updateMineScan(pCreature);
 

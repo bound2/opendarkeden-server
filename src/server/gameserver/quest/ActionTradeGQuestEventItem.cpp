@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : ActionTradeGQuestEventItem.cpp
-// Written By  : 장홍창
 // Description :
 ////////////////////////////////////////////////////////////////////////////////
 #include "ActionTradeGQuestEventItem.h"
@@ -47,7 +46,7 @@ void ActionTradeGQuestEventItem::read(PropertyBuffer& propertyBuffer)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionTradeGQuestEventItem::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -67,7 +66,7 @@ void ActionTradeGQuestEventItem::execute(Creature* pCreature1, Creature* pCreatu
 
     GQuestInventory& inven = pPC->getGQuestManager()->getGQuestInventory();
 
-    // 먼저 클라이언트를 위해 GCNPCResponse를 보내준다.
+    // Send GCNPCResponse to the client first.
     GCNPCResponse okpkt;
     pPlayer->sendPacket(&okpkt);
 

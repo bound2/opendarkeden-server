@@ -111,7 +111,7 @@ void EffectPenetrateWheel::unaffect(Creature* pCreature) {
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 이펙트가 사라졌다고 알려준다.
+    // Tells clients that the effect is gone.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(getSendEffectClass());

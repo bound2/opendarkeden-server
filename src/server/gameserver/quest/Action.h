@@ -2,7 +2,7 @@
 // Filename    : Action.h
 // Written By  :
 // Description :
-// 트리거의 조건이 만족할 경우 실행되어야 하는 액션을 나타내는 클래스
+// Class representing the action to run when a trigger's condition is satisfied.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_H__
@@ -26,43 +26,43 @@ class Creature;
 class Action {
 public:
     enum ActionTypes {
-        ACTION_SET_POSITION,            // 위치를 지정한다.
-        ACTION_WANDER,                  // 일정 범위를 방황한다.
-        ACTION_SAY,                     // 일정 스크립트를 말한다.
-        ACTION_RANDOM_SAY,              // 일정 스크립트를 브로드캐스팅한다.
-        ACTION_ASK,                     // 플레이어에게 질문을 한다.
-        ACTION_QUIT_DIALOGUE,           // 클라이언트로 하여금 대화창을 닫게 한다.
-        ACTION_PREPARE_SHOP,            // 상점을 준비한다.
-        ACTION_SELL,                    // 플레이어에게 아이템을 판다.
-        ACTION_BUY,                     // 플레이어로부터 물건을 사들인다.
-        ACTION_REGEN_SHOP,              // 상점 안에 있는 아이템을 재정리한다.
-        ACTION_PREPARE_TEACH,           // 기술을 가르칠 준비를 한다.
-        ACTION_TEACH_SKILL,             // 플레이어에게 기술을 가르쳐준다.
-        ACTION_HEAL,                    // 플레이어를 치료해준다.
-        ACTION_REDEEM_MOTORCYCLE,       // 모터사이클을 반환해준다.
-        ACTION_SEARCH_MOTORCYCLE,       // 플레이어의 오토바이 위치를 말해준다.
-        ACTION_REPAIR,                  // 플레이어의 아이템을 수리해준다.
-        ACTION_STASH_SELL,              // 보관함 사기 인터페이스를 열도록 한다.
-        ACTION_STASH_OPEN,              // 보관함 인터페이스를 열도록 한다.
-        ACTION_RESTORE,                 // 뱀파이어를 슬레이어로 변환해 준다.
-        ACTION_SET_RESURRECT_ZONE,      // 부활 위치를 지정한다.
-        ACTION_SILVER_COATING,          // 아이템에다 은 도금을 해준다.
-        ACTION_CREATE_GUILD,            // 길드 생성 인터페이스를 열게 한다.
-        ACTION_DESTROY_GUILD,           // 길드 해체 인터페이스를 열게 한다.
-        ACTION_TUTORIAL,                // 튜토리얼 인터페이스를 열게 한다.
-        ACTION_GIVE_NEWBIE_ITEM,        // 초보자용 아이템 선택 인터페이스를 열게 한다.
-        ACTION_ACTIVATE_PORTAL,         // 포탈을 작동시킨다.
-        ACTION_TURN_ON_FLAG,            // 플래그를 켜고 저장한다.
-        ACTION_TURN_OFF_FLAG,           // 플래그를 끄고 저장한다.
-        ACTION_SYSTEM_MESSAGE,          // 시스템 메시지를 날린다.
-        ACTION_TAKE_DONATION,           // 기부를 받는다.
-        ACTION_CALL_HELICOPTER,         // 헬기 인터페이스를 열게 한다.
-        ACTION_REGEN_EVENT_SHOP,        // 이벤트용 상점을 갱신한다.
-        ACTION_SAY_DYNAMIC,             // 일정 스크립트를 말한다.
-        ACTION_ASK_DYNAMIC,             // 플레이어에게 질문을 한다.
+        ACTION_SET_POSITION,            // Set the position.
+        ACTION_WANDER,                  // Wander within a set range.
+        ACTION_SAY,                     // Say a given script.
+        ACTION_RANDOM_SAY,              // Broadcast a given script.
+        ACTION_ASK,                     // Ask the player a question.
+        ACTION_QUIT_DIALOGUE,           // Make the client close the dialogue window.
+        ACTION_PREPARE_SHOP,            // Prepare the shop.
+        ACTION_SELL,                    // Sell an item to the player.
+        ACTION_BUY,                     // Buy goods from the player.
+        ACTION_REGEN_SHOP,              // Restock the items in the shop.
+        ACTION_PREPARE_TEACH,           // Prepare to teach a skill.
+        ACTION_TEACH_SKILL,             // Teach a skill to the player.
+        ACTION_HEAL,                    // Heal the player.
+        ACTION_REDEEM_MOTORCYCLE,       // Return the motorcycle.
+        ACTION_SEARCH_MOTORCYCLE,       // Tell the player where their motorcycle is.
+        ACTION_REPAIR,                  // Repair the player's item.
+        ACTION_STASH_SELL,              // Open the stash purchase interface.
+        ACTION_STASH_OPEN,              // Open the stash interface.
+        ACTION_RESTORE,                 // Turn a Vampire back into a Slayer.
+        ACTION_SET_RESURRECT_ZONE,      // Set the resurrection position.
+        ACTION_SILVER_COATING,          // Silver-coat an item.
+        ACTION_CREATE_GUILD,            // Open the guild creation interface.
+        ACTION_DESTROY_GUILD,           // Open the guild disband interface.
+        ACTION_TUTORIAL,                // Open the tutorial interface.
+        ACTION_GIVE_NEWBIE_ITEM,        // Open the newbie item selection interface.
+        ACTION_ACTIVATE_PORTAL,         // Activate the portal.
+        ACTION_TURN_ON_FLAG,            // Turn the flag on and save it.
+        ACTION_TURN_OFF_FLAG,           // Turn the flag off and save it.
+        ACTION_SYSTEM_MESSAGE,          // Send a system message.
+        ACTION_TAKE_DONATION,           // Take a donation.
+        ACTION_CALL_HELICOPTER,         // Open the helicopter interface.
+        ACTION_REGEN_EVENT_SHOP,        // Refresh the event shop.
+        ACTION_SAY_DYNAMIC,             // Say a given script.
+        ACTION_ASK_DYNAMIC,             // Ask the player a question.
         ACTION_GIVE_SPECIAL_EVENT_ITEM, //
         ACTION_REDISTRIBUTE_ATTR,       //
-        ACTION_GIVE_GARBAGE_ITEM,       // 가비지 아이템을 준다.
+        ACTION_GIVE_GARBAGE_ITEM,       // Give a garbage item.
 
         // ACTION_TALK ,
         // ACTION_RANDOM_TALK ,
@@ -101,27 +101,27 @@ public:
 
         ACTION_GIVE_TEST_SERVER_REWARD,
 
-        // 성에 들어가는 Action
+        // Action for entering a castle
         // 2003. 1.20. by bezz,Sequoia
         ACTION_ENTER_CASTLE_WITH_FEE,
 
-        // 성에 쌓여있는 세금의 잔액을 보여준다.
+        // Show the tax balance accumulated in the castle.
         ACTION_SHOW_TAX_BALANCE,
 
         ACTION_ASK_VARIABLE,
 
-        // 전쟁 신청 관련 액션들
+        // War registration actions
         ACTION_WAR_REGISTRATION,
         ACTION_SHOW_WAR_SCHEDULE,
 
-        // 종족 전쟁 신청
+        // Race war registration
         ACTION_JOIN_RACE_WAR,
 
-        // 이벤트 선물 아이템
-        ACTION_GIVE_EVENT_ITEM,         // 캐릭별로 줄 때
-        ACTION_GIVE_ACCOUNT_EVENT_ITEM, // 계정별로 줄 때
+        // Event gift items
+        ACTION_GIVE_EVENT_ITEM,         // Given per character
+        ACTION_GIVE_ACCOUNT_EVENT_ITEM, // Given per account
 
-        // 커플 매니저 관련 초기화 액션
+        // Couple manager initialization actions
         ACTION_INIT_PARTNER_WAITING_MANAGER,
         ACTION_WAIT_FOR_MEET_COUPLE,
         ACTION_WAIT_FOR_APART_COUPLE,
@@ -165,39 +165,39 @@ public:
         ACTION_ACTIVATE_MAZE_ENTER,
         ACTION_ACTIVATE_MAZE_RETURN,
 
-        ACTION_SYSTEM_MESSAGE_PER_RACE, // 시스템 메시지를 날린다.
+        ACTION_SYSTEM_MESSAGE_PER_RACE, // Send a system message.
 
         ACTION_WARP_LEVEL_WAR_ZONE,
 
-        ACTION_CHECK_PARTNER_NAME, // 파트너 이름 확인
+        ACTION_CHECK_PARTNER_NAME, // Check the partner name
 
-        ACTION_START_PET_QUEST, // 2차 펫 퀘스트를 시작한다.
+        ACTION_START_PET_QUEST, // Start the second pet quest.
 
-        ACTION_PET_WITHDRAW, // 펫 찾을래요
-        ACTION_PET_DEPOSIT,  // 펫 맡길래요
+        ACTION_PET_WITHDRAW, // Withdraw the pet
+        ACTION_PET_DEPOSIT,  // Deposit the pet
 
-        ACTION_ENTER_EVENT_ZONE, // 이벤트 존으로 들어갈래요.
-        ACTION_ENTER_GDR_LAIR,   // 일루젼스 웨이에서 질드레 레어로 들어가기
+        ACTION_ENTER_EVENT_ZONE, // Enter the event zone.
+        ACTION_ENTER_GDR_LAIR,   // Enter the Gilles de Rais lair from Illusion's Way
 
-        ACTION_TRADE_GQUEST_EVENT_ITEM, // 이벤트 퀘스트 아이템
+        ACTION_TRADE_GQUEST_EVENT_ITEM, // Event quest item
 
-        ACTION_ENTER_SIEGE, // 공성전 참가(공성 지역으로 이동)
+        ACTION_ENTER_SIEGE, // Join the siege war (move to the siege area)
 
-        ACTION_REGISTER_SIEGE,     // 공성 신청
-        ACTION_REGISTER_REINFORCE, // 수비측 참전 신청
-        ACTION_ACCEPT_REINFORCE,   // 수비측 참전 신청 수락
-        ACTION_DENY_REINFORCE,     // 수비측 참전 신청 거부
+        ACTION_REGISTER_SIEGE,     // Register for the siege
+        ACTION_REGISTER_REINFORCE, // Register to fight for the defenders
+        ACTION_ACCEPT_REINFORCE,   // Accept a defender participation request
+        ACTION_DENY_REINFORCE,     // Deny a defender participation request
 
-        ACTION_RECALL_SIEGE,       // 공성전에 길드원 데려오기
-        ACTION_SELECT_BLOOD_BIBLE, // 피의 성서 대여
-        ACTION_CLEAR_BLOOD_BIBLE,  // 피의 성서 제거
+        ACTION_RECALL_SIEGE,       // Bring guild members to the siege war
+        ACTION_SELECT_BLOOD_BIBLE, // Lend out the Blood Bible
+        ACTION_CLEAR_BLOOD_BIBLE,  // Remove the Blood Bible
 
-        ACTION_MODIFY_TAX_RATIO,      // 세율 조절
-        ACTION_SWAP_ADVANCEMENT_ITEM, // 승직 아이템 교환
+        ACTION_MODIFY_TAX_RATIO,      // Adjust the tax rate
+        ACTION_SWAP_ADVANCEMENT_ITEM, // Exchange an advancement item
 
-        ACTION_SHOW_DONATION_DIALOG,               // 기부창 보여주기
-        ACTION_ENTER_QUEST_ZONE,                   // DynamicZone 입장
-        ACTION_SHOW_CONFIRM_GET_EVENT_ITEM_DIALOG, // 이벤트 아이템 받기 확인창
+        ACTION_SHOW_DONATION_DIALOG,               // Show the donation window
+        ACTION_ENTER_QUEST_ZONE,                   // Enter a DynamicZone
+        ACTION_SHOW_CONFIRM_GET_EVENT_ITEM_DIALOG, // Event item receipt confirmation window
 
         ACTION_MAX
     };

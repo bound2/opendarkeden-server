@@ -19,7 +19,7 @@ bool ConditionIsGuildMember::isSatisfied(Creature* pCreature1, Creature* pCreatu
 
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
 
-    // 길드 이름을 가져와서 있으면 길드원이다.
+    // A PC that has a guild name is a guild member.
     if (pPC->getGuildName().size() != 0)
         return true;
 

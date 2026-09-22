@@ -34,7 +34,7 @@ void ThunderStorm::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // 목표위치+4방향
+    // The target tile and the area around it.
     param.addMask(0, 0, 100);
     param.addMask(-1, -1, 100);
     param.addMask(0, -1, 100);
@@ -45,8 +45,8 @@ void ThunderStorm::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
     param.addMask(0, 1, 100);
     param.addMask(1, 1, 100);
 
-    // 자신의 주변에 떨어뜨린다.
-    // 아니다.. --;
+    // The masks above drop the bolts around the target tile,
+    // not around the caster.
 
     g_SimpleTileMissileSkill.execute(pSlayer, X, Y, pSkillSlot, param, result);
 
@@ -55,7 +55,7 @@ void ThunderStorm::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void ThunderStorm::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 

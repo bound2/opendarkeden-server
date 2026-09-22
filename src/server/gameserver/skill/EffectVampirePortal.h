@@ -2,8 +2,8 @@
 // Filename    : EffectVampirePortal.h
 // Written by  : excel96
 // Description :
-// 뱀파이어가 포탈을 열 경우, 포탈을 연 곳과 목표 지점에 동시에 생기는
-// 타일에 붙은 뱀파이어 포탈 이펙트이다.
+// A Vampire opening a portal creates this tile effect both at the spot
+// where the portal was opened and at the destination.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_VAMPIRE_PORTAL__
@@ -75,10 +75,10 @@ public:
     }
 
 private:
-    string m_OwnerID;       // 이 포탈의 주인
-    ZONE_COORD m_ZoneCoord; // 포탈의 목표 존 ID 및 좌표
-    Duration_t m_Duration;  // 마법의 지속 시간
-    int m_Count;            // 이 포탈을 사용할 수 있는 최대 횟수
+    string m_OwnerID;       // Owner of this portal
+    ZONE_COORD m_ZoneCoord; // Destination zone id and coordinates
+    Duration_t m_Duration;  // Duration of the magic
+    int m_Count;            // Maximum number of uses for this portal
 };
 
 #endif // __EFFECT_VAMPIRE_PORTAL__

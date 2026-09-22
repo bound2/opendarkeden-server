@@ -101,11 +101,11 @@ bool OustersArmsband::destroy()
     __BEGIN_TRY
 
     //-------------------------------------------------------
-    // 암스밴드에 남아있는 아이템이 있다면 안에 있는 아이템들도
-    // destroy 해줘야 한다.
-    // 암스밴드 같은 경우는 위에서 delete하면서 아이템을 삭제
-    // 하기 때문에 여기서는 delete해주지 않기로 한다...
-    // 쓸모가 없다면 위에서 필히 벨트를 지워야 한다.
+    // If any items are left in the armsband, the items inside would have to be
+    // destroyed as well.
+    // For an armsband the items are already deleted by the delete above, so they
+    // are not deleted here.
+    // If the belt is no longer needed it has to be deleted above.
     //-------------------------------------------------------
     for (int i = 0; i < m_pInventory->getHeight(); i++) {
         for (int j = 0; j < m_pInventory->getWidth(); j++) {
@@ -153,7 +153,7 @@ void OustersArmsband::save(const string& ownerID, Storage storage, StorageID_t s
                                              storageID, (int)x, (int)y, optionField, getDurability(), getGrade(),
                                              (int)getEnchantLevel(), m_ItemID);
 
-    // 일일이 아이템을 하나씩 꺼내서 바로 UPDATE 하도록 한다.
+    // Take the items out one by one and UPDATE each of them right away.
     for (int i = 0; i < m_pInventory->getHeight(); i++) {
         for (int j = 0; j < m_pInventory->getWidth(); j++) {
             Item* pItem = m_pInventory->getItem(j, 0);
@@ -171,7 +171,7 @@ void OustersArmsband::makePCItemInfo(PCItemInfo& result) const {
 
     BYTE SubItemCount = 0;
 
-    // 포켓의 숫자만큼 아이템의 정보를 읽어 들인다.
+    // Read as many item infos as the belt has pockets.
     for (int i = 0; i < getPocketCount(); i++) {
         Item* pOustersArmsbandItem = getInventory()->getItem(i, 0);
 

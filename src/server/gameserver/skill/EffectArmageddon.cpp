@@ -56,12 +56,12 @@ void EffectArmageddon::affect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 이펙트를 건 크리쳐를 가져온다.
-    // !! 이미 존을 떠났을 수도 있으므로 NULL 이 될 수 있다.
+    // Gets the creature that cast the effect.
+    // It can be NULL, since the creature may already have left the zone.
     // by bezz. 2003.1.4
 
 
-    // 매초 데미지 주는거 잠시 막아놓음. by Sequoia
+    // Damage every second is disabled for now.
 
     setNextTime(m_Delay);
 
@@ -78,13 +78,13 @@ void EffectArmageddon::unaffect(Creature* pCreature)
     Assert(pCreature != NULL);
 
 
-    // 플래그를 끈다.
+    // Turns off the flag.
     pCreature->removeFlag(Effect::EFFECT_CLASS_ARMAGEDDON);
 
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 이펙트를 삭제하라고 알려준다.
+    // Tells clients to remove the effect.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_ARMAGEDDON);
@@ -125,7 +125,7 @@ void EffectArmageddon::decreaseHP(Damage_t damage) {
     HP_t RemainHP = max(0, m_HP - damage);
 
     setHP(RemainHP);
-    // 남은 HP가 0일 경우 다음 EffectManager::heartbeat() 에서 이펙트를 날려준다.
+    // When the remaining HP is 0, the next EffectManager::heartbeat() drops the effect.
     if (RemainHP == 0)
         setDeadline(0);
 }

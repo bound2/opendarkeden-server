@@ -10,7 +10,7 @@
 #include "SimpleTileMissileSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터즈 오브젝트 핸들러
+// Ousters object handler
 //////////////////////////////////////////////////////////////////////////////
 void IceLance::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                        CEffectID_t CEffectID)
@@ -27,7 +27,7 @@ void IceLance::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pOusters, getSkillType());
 

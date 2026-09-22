@@ -12,7 +12,7 @@
 #include "GCSkillToSelfOK2.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void Reflection::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -48,19 +48,19 @@ void Reflection::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToSelfOK1);
 
-            // 지속 시간을 계산한다.
+            // Compute the duration.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이팩트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectReflection* pEffect = new EffectReflection(pSlayer);
             pEffect->setDeadline(output.Duration);
             pEffect->setLevel(SkillLevel);
             pSlayer->addEffect(pEffect);
             pSlayer->setFlag(Effect::EFFECT_CLASS_REFLECTION);
 
-            // 경험치를 올린다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToSelfOK1);
@@ -97,17 +97,17 @@ void Reflection::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
 }
 
 
-// Reflection이 되는가?
+// Does reflection happen?
 bool CheckReflection(Creature* pAttacker, Creature* pTargetCreature, SkillType_t SkillType) {
     __BEGIN_TRY
 
 
-    // 슬레이어만이 이 기술을 쓸 수 있다.
+    // Only a Slayer can use this skill.
     if (pAttacker == NULL || pTargetCreature == NULL || pTargetCreature->isSlayer() == false) {
         return false;
     }
 
-    // 기술이 걸려있고, 현재 마비 상태가 아니라면...
+    // If the skill is active and the target is not paralyzed...
     if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_REFLECTION) &&
         !pTargetCreature->isFlag(Effect::EFFECT_CLASS_PARALYZE)) {
         Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
@@ -120,23 +120,23 @@ bool CheckReflection(Creature* pAttacker, Creature* pTargetCreature, SkillType_t
         Assert(pSkillInfo != NULL);
         Assert(pZone != NULL);
 
-        // hitroll이 성공했다면...
+        // If the hit roll succeeds...
 
         int SuccessRate = 30 + pSkillSlot->getExpLevel() / 5;
-        SuccessRate = min(SuccessRate, 50); // 최대 50%
+        SuccessRate = min(SuccessRate, 50); // At most 50%
 
         if (rand() % 100 < SuccessRate) {
             GCSkillToSelfOK1 _GCSkillToSelfOK1;
             GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
-            // 본인에게 reflection effect를 붙여준다.
+            // Shows the reflection effect to the target itself.
             if (pTargetCreature->isPC()) {
                 _GCSkillToSelfOK1.setSkillType(SKILL_CURE_EFFECT);
                 _GCSkillToSelfOK1.setDuration(0);
                 pTargetCreature->getPlayer()->sendPacket(&_GCSkillToSelfOK1);
             }
 
-            // 다른 사람들에게 reflection effect를 보여준다.
+            // Shows the reflection effect to the others.
             _GCSkillToSelfOK2.setObjectID(pTargetCreature->getObjectID());
             _GCSkillToSelfOK2.setSkillType(SKILL_CURE_EFFECT);
             _GCSkillToSelfOK2.setDuration(0);

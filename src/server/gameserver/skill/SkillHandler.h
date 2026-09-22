@@ -25,7 +25,7 @@
 #include "ZoneUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 매크로, 상수, 함수 헤더
+// Macros, constants and function headers
 //////////////////////////////////////////////////////////////////////////////
 
 #define MAKEWORD(U, D) (WORD)((WORD)(U) << 8 | (WORD)(D))
@@ -75,12 +75,12 @@ public:
     }
 
 public:
-    int Damage;   // 데미지 또는 효과치
-    int Duration; // 지속 시간을 가지는 기술일 경우, 지속 시간
-    int Tick;     // 일정 주기마다 영향을 주는 기술일 경우, 그 일정 주기
-    int ToHit;    // 데미지와 함께 명중률도 같이 변화시키는 기술일 경우.
-    int Range;    // 숙련도, INT 등에 따라 영향 범위가 변하는 기술일 경우.
-    int Delay;    // 다음으로 기술을 쓸 수 있는 시간
+    int Damage;   // Damage or effect value
+    int Duration; // Duration, for a skill that has one
+    int Tick;     // Interval, for a skill that takes effect periodically
+    int ToHit;    // To-hit rate, for a skill that changes it along with damage
+    int Range;    // Area of effect, for a skill whose range varies with mastery or INT
+    int Delay;    // Time until the skill can be used again
 };
 
 
@@ -129,15 +129,15 @@ public:
                          CoordInven_t TargetX, CoordInven_t TargetY, VampireSkillSlot* pVampireSkillSlot);
     virtual void execute(Ousters* pOusters, ObjectID_t TargetObjectID, CoordInven_t X, CoordInven_t Y,
                          CoordInven_t TargetX, CoordInven_t TargetY, OustersSkillSlot* pOustersSkillSlot);
-    // Throw Holy Water용...
+    // For Throw Holy Water.
     virtual void execute(Slayer* pSlayer, ObjectID_t TargetObjectID, ObjectID_t ItemObjectID, CoordInven_t X,
                          CoordInven_t Y);
-    // Absorb Soul 용
+    // For Absorb Soul
     virtual void execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord_t TargetZoneX, ZoneCoord_t TargetZoneY,
                          ObjectID_t InvenObjectID, CoordInven_t X, CoordInven_t Y, CoordInven_t TargetX,
                          CoordInven_t TargetY);
 
-    // Target이 이름으로 식별되는 경우
+    // Used when the target is identified by name
     // ex) SoulChain .
     virtual void execute(PlayerCreature* pPC, const string& TargetName, SkillSlot* pSkillSlot, CEffectID_t CEffectID);
     virtual void execute(Slayer* pSlayer, const string& TargetName, SkillSlot* pSkillSlot, CEffectID_t CEffectID);

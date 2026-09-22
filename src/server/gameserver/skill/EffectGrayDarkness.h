@@ -49,7 +49,7 @@ public:
 private:
     Attr_t m_Level;
     Duration_t m_Duration;
-    Timeval m_StartTime; // 기술이 시작된 시간.
+    Timeval m_StartTime; // Time the skill started
 };
 
 #endif // __EFFECT_GRAY_DARKNESS__

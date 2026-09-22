@@ -55,7 +55,7 @@ void EffectSummonFireElemental::affect()
     Item* pWeapon = pOusters->getWearItem(Ousters::WEAR_RIGHTHAND);
     if (pWeapon == NULL || pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_WRISTLET ||
         !pOusters->isRealWearingEx(Ousters::WEAR_RIGHTHAND)) {
-        // 중간에 리스틀릿을 빼버리면 이펙트도 사라진다.
+        // Removing the wristlet ends the effect.
         setDeadline(0);
         return;
     }
@@ -137,7 +137,7 @@ void EffectSummonFireElemental::unaffect(Creature* pCreature)
     Assert(pCreature != NULL);
     Assert(pCreature->isOusters());
 
-    // 플래그를 끈다.
+    // Turns off the flag.
     pCreature->removeFlag(Effect::EFFECT_CLASS_FIRE_ELEMENTAL);
 
     Zone* pZone = pCreature->getZone();
@@ -146,7 +146,7 @@ void EffectSummonFireElemental::unaffect(Creature* pCreature)
     Ousters* pTargetOusters = dynamic_cast<Ousters*>(pCreature);
     Assert(pTargetOusters != NULL);
 
-    // 이펙트를 삭제하라고 알려준다.
+    // Tells clients to remove the effect.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_FIRE_ELEMENTAL);

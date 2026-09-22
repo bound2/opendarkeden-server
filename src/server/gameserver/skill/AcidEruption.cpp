@@ -16,7 +16,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void AcidEruption::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                            CEffectID_t CEffectID)
@@ -36,7 +36,7 @@ void AcidEruption::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
 
-        // NPC는 공격할 수가 없다.
+        // An NPC cannot be attacked.
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, SkillType);
             return;
@@ -152,7 +152,7 @@ void AcidEruption::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 오브젝트 핸들러
+// Monster object handler
 //////////////////////////////////////////////////////////////////////////////
 void AcidEruption::execute(Monster* pMonster, Creature* pEnemy)
 
@@ -193,7 +193,7 @@ void AcidEruption::execute(Monster* pMonster, Creature* pEnemy)
 
             Damage_t Damage = computeMagicDamage(pEnemy, output.Damage, SkillType);
 
-            // 이펙트 오브젝트를 생성해서 붙인다.
+            // Create the effect object and attach it.
             EffectAcidEruption* pEffectAcidEruption = new EffectAcidEruption(pEnemy);
             pEffectAcidEruption->setDamage(Damage);
             pEffectAcidEruption->setTick(5);
@@ -203,7 +203,7 @@ void AcidEruption::execute(Monster* pMonster, Creature* pEnemy)
             pEnemy->addEffect(pEffectAcidEruption);
             pEnemy->setFlag(pEffectAcidEruption->getEffectClass());
 
-            // 이펙트가 붙었으니, 붙었다고 브로드캐스팅해준다.
+            // The effect is attached, so broadcast that.
 
             if (bCanSeeCaster) {
                 decreaseDurability(pMonster, pEnemy, pSkillInfo, NULL, &_GCSkillToObjectOK2);

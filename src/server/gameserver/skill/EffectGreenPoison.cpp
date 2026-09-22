@@ -40,12 +40,12 @@ bool EffectGreenPoison::affectCreature(Creature* pTargetCreature, bool bAffectBy
 
     Assert(pTargetCreature != NULL);
 
-    // 상대에게 이미 poison 이펙트가 걸려져 있는 경우에는 걸리지 않는다.
+    // Not applied if the target already has the acid storm effect.
     if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_POISON)) {
         return false;
     }
 
-    // 안전지대인지 체크한다.
+    // Check whether it is a safe zone.
     // 2003.1.10 by bezz.Sequoia
     if (!checkZoneLevelToHitTarget(pTargetCreature)) {
         return false;
@@ -54,22 +54,22 @@ bool EffectGreenPoison::affectCreature(Creature* pTargetCreature, bool bAffectBy
     Zone* pZone = pTargetCreature->getZone();
 
     Creature* pAttacker = pZone->getCreature(m_UserObjectID);
-    // 상대방에게 미칠 독 데미지를 계산한다.
+    // Computes the poison damage dealt to the target.
     int PoisonDamage = computeMagicDamage(pTargetCreature, m_Damage, SKILL_GREEN_POISON, m_bVampire, pAttacker);
 
     if (PoisonDamage > 0) {
-        // 포이즌 이펙트를 생성해서, 타겟 크리쳐에 붙이고, 플래그를 켜준다.
+        // Create the effect, attach it to the target creature and set the flag.
         EffectPoison* pEffectPoison = new EffectPoison(pTargetCreature);
         pEffectPoison->setLevel(m_Level);
         pEffectPoison->setPoint(PoisonDamage);
-        pEffectPoison->setDeadline(m_Duration); // 이부분 바꿔야 한다.
-        pEffectPoison->setTick(50);             // 이부분도 바꿔야 한다.
+        pEffectPoison->setDeadline(m_Duration); // This part needs to be changed.
+        pEffectPoison->setTick(50);             // This part needs to be changed too.
         pEffectPoison->setUserObjectID(m_UserObjectID);
         pEffectPoison->affect(pTargetCreature);
         pTargetCreature->addEffect(pEffectPoison);
         pTargetCreature->setFlag(Effect::EFFECT_CLASS_POISON);
 
-        // 이펙트가 붙었다고 주변에 알려준다.
+        // Tells the surroundings that the effect was attached.
         GCAddEffect gcAddEffect;
         gcAddEffect.setObjectID(pTargetCreature->getObjectID());
         gcAddEffect.setEffectID(Effect::EFFECT_CLASS_POISON);
@@ -164,7 +164,7 @@ void EffectGreenPoisonLoader::load(Zone* pZone)
                         pEffect->setNextTime(value2);
                         pEffect->setDamage(value3);
 
-                        // 존 및 타일에다가 이펙트를 추가한다.
+                        // Register the effect in the zone and add it to the tile.
                         pZone->registerObject(pEffect);
                         tile.addEffect(pEffect);
                     }

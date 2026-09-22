@@ -73,12 +73,12 @@ public:
     }
 
 private:
-    ItemType_t m_ItemType;     // 아이템 타입
-    Durability_t m_Durability; // 내구성
+    ItemType_t m_ItemType;     // Item type
+    Durability_t m_Durability; // Durability
     EnchantLevel_t m_EnchantLevel;
 
-    static Mutex m_Mutex;             // 아이템 ID 관련 락
-    static ItemID_t m_ItemIDRegistry; // 클래스별 고유 아이템 아이디 발급기
+    static Mutex m_Mutex;             // Lock for the item ID registry
+    static ItemID_t m_ItemIDRegistry; // Per-class unique item ID generator
 };
 
 
@@ -88,7 +88,7 @@ private:
 
 const int maxRelic = 2;
 
-// Relic Type, 성물의 본래 소유
+// Relic type: the race the relic originally belongs to
 enum RelicType { RELIC_TYPE_SLAYER, RELIC_TYPE_VAMPIRE };
 
 extern const string RelicType2String[maxRelic];
@@ -147,8 +147,8 @@ public:
     virtual string toString() const;
 
 private:
-    Durability_t m_Durability; // 내구성
-    Defense_t m_DefenseBonus;  // 명중률 보너스
+    Durability_t m_Durability; // Durability
+    Defense_t m_DefenseBonus;  // To-hit bonus
     Protection_t m_ProtectionBonus;
     uint m_ItemLevel;
 };

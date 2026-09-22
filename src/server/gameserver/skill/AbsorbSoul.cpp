@@ -22,13 +22,13 @@
 #include "item/Pupa.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터스 오브젝트 핸들러
+// Ousters object handler
 //////////////////////////////////////////////////////////////////////////////
-// 스킬의 결과를 2번 날려줘야 된다.
-// 라바 만들기에 대한 것 하나 하고
-// 흡영에 관한 것 하나.
-// 그래서 처음에 조건 체크하다가 실패할 경우에
-// SkillFail 패킷을 2번 보내준다.
+// The skill result has to be sent twice:
+// one for turning the larva into a pupa,
+// and one for the soul absorption itself.
+// So when an early condition check fails,
+// the SkillFail packet is sent twice.
 // ///////////////////////////////////////////////////////////////////////////
 void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord_t TargetZoneX, ZoneCoord_t TargetZoneY,
                          ObjectID_t ItemObjectID, CoordInven_t InvenX, CoordInven_t InvenY, CoordInven_t TargetInvenX,
@@ -38,7 +38,7 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
     __BEGIN_TRY
 
     Assert(pOusters != NULL);
-    // 클라이언트에 락이 걸려있으면 검증 패킷을 2번 보내줘야 된다.
+    // When the client is locked, the verification packet has to be sent twice.
     bool bClientLocked = InvenX != 255;
 
     try {
@@ -47,7 +47,7 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        // 죽은 시체가 Creature 일 수도 있고 Item 일 수도 있다..
+        // The corpse may still be a Creature, or it may already be an Item.
         Item* pTargetItem = pZone->getItem(TargetObjectID);
         Creature* pTargetCreature = NULL;
 
@@ -59,9 +59,9 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
             executeAbsorbSoulSkillFail(pOusters, getSkillType(), TargetObjectID, false, bClientLocked);
             return;
         }
-        // NPC는 공격할 수가 없다.
-        // 무적상태 체크. by sigi.2002.9.5
-        // 안 죽은 애는 영 빨 수 없다. by Sequoia.2003. 3. 20
+        // An NPC cannot be attacked.
+        // Invulnerability check.
+        // A creature that is not in a coma cannot have its soul absorbed.
         if (pTargetCreature != NULL) {
             if (pTargetCreature->isNPC() || !canAttack(pOusters, pTargetCreature) ||
                 !pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
@@ -92,7 +92,7 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
         GCSkillToTileOK5 _GCSkillToTileOK5;
 
 
-        // 타 종족의 시체에 흡영을 한 경우 (아직 시체가 Creature 인 경우)
+        // Soul absorption on another race's corpse, while the corpse is still a Creature.
         if (pTargetCreature != NULL) //&& bRangeCheck)
         {
             int targetLevel = 0;
@@ -110,17 +110,17 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
                 targetLevel = pMonster->getLevel();
             }
 
-            // 푸파 만들기에 대한 처리가 먼저 되어야 한다.
-            // 라바를 푸파로 만들어줘야 한다
-            // 따로 함수로 때서 밑에서 구현 할 것임
-            // SkillOK를 보내기 전에 아이템에 대한 처리 패킷을 먼저 보내야 한다. 반!드!시!
+            // The pupa creation has to be handled first.
+            // The larva is turned into a pupa.
+            // That is done by a separate function below.
+            // The item packets must go out before SkillOK, without exception.
             if (InvenX != 255)
                 makeLarvaToPupa(pOusters, targetLevel, ItemObjectID, InvenX, InvenY, TargetInvenX, TargetInvenY);
 
-            // 흡영에 대한 경험치는?? - 나중에 수정 ??
+            // Soul absorption itself grants no experience.
 
-            // 흡영을 하게 되면 흡영한 사람의 EP가 올라간다.
-            // 올라가는 양은 Creature Exp에 비례한다.
+            // Absorbing a soul raises the absorber's MP.
+            // The gain is proportional to the creature's experience value.
             MP_t CurrentMP = pOusters->getMP();
             MP_t MaxMP = pOusters->getMP(ATTR_MAX);
             MP_t HealPoint = 0;
@@ -136,7 +136,7 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
 
             MP_t NewMP = min((int)MaxMP * 3, (int)CurrentMP + (int)HealPoint);
 
-            // 아우스터즈의 MP를 세팅한다.
+            // Set the Ousters' MP.
             pOusters->setMP(NewMP);
 
             GCModifyInformation gcMI;
@@ -183,8 +183,8 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
             cList.push_back(pOusters);
             pZone->broadcastPacket(pOusters->getX(), pOusters->getY(), &_GCSkillToTileOK5, cList);
 
-            // 아음 -_- 흡영 당한 후에 또 흡영 못하게 막아야 되고
-            // 흡영 당한 후에 부활 안 되도록 막아야함
+            // Once drained, the target cannot be drained again,
+            // and it cannot be resurrected afterwards.
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_CANNOT_ABSORB_SOUL);
 
             pOusters->getGQuestManager()->blooddrain();
@@ -214,16 +214,16 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
                 return;
             }
 
-            // 푸파 만들기에 대한 처리가 먼저 되어야 한다.
-            // 라바를 푸파로 만들어줘야 한다
-            // 따로 함수로 때서 밑에서 구현 할 것임
-            // SkillOK를 보내기 전에 아이템에 대한 처리 패킷을 먼저 보내야 한다. 반!드!시!
+            // The pupa creation has to be handled first.
+            // The larva is turned into a pupa.
+            // That is done by a separate function below.
+            // The item packets must go out before SkillOK, without exception.
             if (bClientLocked)
                 makeLarvaToPupa(pOusters, targetLevel, ItemObjectID, InvenX, InvenY, TargetInvenX, TargetInvenY);
 
-            // 흡영을 하게 되면 흡영한 사람의 SP가 올라간다.
-            // 이거 어떻게 될지 나중에 더 봐야될듯
-            // HealPoint == Exp 임 -_-
+            // Absorbing a soul raises the absorber's MP.
+            // The gain is a percentage of the corpse's experience value,
+            // and that percentage falls off once MP is already above the maximum.
             MP_t CurrentMP = pOusters->getMP();
             MP_t MaxMP = pOusters->getMP(ATTR_MAX);
             MP_t HealPoint = 0;
@@ -239,7 +239,7 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
 
             MP_t NewMP = min((int)MaxMP * 3, (int)CurrentMP + (int)HealPoint);
 
-            // 아우스터즈의 MP를 세팅한다.
+            // Set the Ousters' MP.
             pOusters->setMP(NewMP);
 
             GCModifyInformation gcMI;
@@ -269,7 +269,7 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
             cList.push_back(pOusters);
             pZone->broadcastPacket(pOusters->getX(), pOusters->getY(), &_GCSkillToTileOK5, cList);
 
-            // 아음 -_- 흡영 당한 후에 또 흡영 못하게 막아야 됨
+            // Once drained, the item cannot be drained again.
             pTargetItem->setFlag(Effect::EFFECT_CLASS_CANNOT_ABSORB_SOUL);
 
             pOusters->getGQuestManager()->blooddrain();
@@ -307,46 +307,46 @@ void AbsorbSoul::makeLarvaToPupa(Ousters* pOusters, int TargetLevel, ObjectID_t 
 
     ItemType_t LarvaType = pLarva->getItemType();
 
-    //  확률 4배로 증가
+    // The chance is quadrupled.
     int ratio = (200 * TargetLevel) / (pOusters->getLevel() * (pLarva->getItemType() + 1));
 
-    // 푸파 만들기 실패
+    // Pupa creation failed.
     if ((rand() % 100) > ratio) {
         executeSkillFailException(pOusters, getSkillType());
         return;
     }
 
-    // 확률은 넘었으니 -_- 푸파를 만들어볼까
+    // The roll succeeded, so build the pupa.
     list<OptionType_t> optionNULL;
     Item* pPupa = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_PUPA, pLarva->getItemType(), optionNULL);
 
-    // 라바의 갯수를 줄여준다.
-    // 이 함수 안에서 라바의 갯수가 자동적으로 하나 줄어들고,
-    // 만일 1개인 라바였다면 인벤토리 및 DB에서 삭제되게 된다.
+    // Decrease the larva count.
+    // The call drops the count by one and
+    // deletes the larva from the inventory and the database if it was the last one.
     decreaseItemNum(pLarva, pInventory, pOusters->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
 
-    // 기존의 푸파를 가져온다.
+    // Fetch the pupa already sitting in the target slot.
     Item* pPrevPupa = pInventory->getItem(TargetInvenX, TargetInvenY);
 
     GCSkillToInventoryOK1 gcSkillToInventoryOK1;
 
     if (pPrevPupa != NULL) {
-        // 기존에 더할 푸파가 있다면
+        // There is already a pupa to stack onto.
 
         if (!canStack(pPrevPupa, pPupa) || pPrevPupa->getNum() >= ItemMaxStack[(int)pPrevPupa->getItemClass()]) {
             executeSkillFailException(pOusters, getSkillType());
             return;
         }
 
-        // 갯수를 하나 증가시키고 저장한다.
+        // Increase the count by one and save it.
         pPrevPupa->setNum(pPrevPupa->getNum() + 1);
         pPrevPupa->save(pOusters->getName(), STORAGE_INVENTORY, 0, TargetInvenX, TargetInvenY);
 
-        // 위부분의 decreaseItemNum() 함수 부분에서 아이템 숫자를 감소시키므로,
-        // 여기서 다시 인벤토리의 아이템 숫자를 증가시킨다.
+        // decreaseItemNum() above dropped the inventory's item count,
+        // so raise it back here.
         pInventory->increaseNum();
 
-        // 만들어진 푸파는 기존의 푸파에 더해졌으므로 삭제한다.
+        // The new pupa was merged into the existing one, so delete it.
         SAFE_DELETE(pPupa);
 
         gcSkillToInventoryOK1.setObjectID(pPrevPupa->getObjectID());
@@ -354,7 +354,7 @@ void AbsorbSoul::makeLarvaToPupa(Ousters* pOusters, int TargetLevel, ObjectID_t 
         ObjectRegistry& OR = pZone->getObjectRegistry();
         OR.registerObject(pPupa);
 
-        // 푸파를 Inventory 에 집어넣고 DB에다가 생성한다.
+        // Put the pupa in the inventory and create it in the database.
         pInventory->addItem(TargetInvenX, TargetInvenY, pPupa);
         pPupa->create(pOusters->getName(), STORAGE_INVENTORY, 0, TargetInvenX, TargetInvenY);
 

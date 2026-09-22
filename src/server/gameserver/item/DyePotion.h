@@ -40,8 +40,8 @@ public:
 
 public:
 private:
-    static Mutex m_Mutex;             // 아이템 ID 관련 락
-    static ItemID_t m_ItemIDRegistry; // 클래스별 고유 아이템 아이디 발급기
+    static Mutex m_Mutex;             // Lock for the item ID registry
+    static ItemID_t m_ItemIDRegistry; // Per-class unique item ID generator
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -51,12 +51,12 @@ private:
 class DyePotionInfo : public ItemInfo {
 public:
     enum ITEM_FUNCTION {
-        FUNCTION_HAIR = 0,          // 머리색을 바꾼다.
-        FUNCTION_SKIN = 1,          // 피부색을 바꾼다.
-        FUNCTION_SEX = 2,           // 성별을 바꾼다.
-        FUNCTION_BAT = 3,           // 박쥐 색을 바꾼다.
-        FUNCTION_REGEN = 4,         // 회복~
-        FUNCTION_MASTER_EFFECT = 5, // 마스터 이펙트 색을 바꾼다.
+        FUNCTION_HAIR = 0,          // Changes the hair color.
+        FUNCTION_SKIN = 1,          // Changes the skin color.
+        FUNCTION_SEX = 2,           // Changes the sex.
+        FUNCTION_BAT = 3,           // Changes the bat color.
+        FUNCTION_REGEN = 4,         // Recovery.
+        FUNCTION_MASTER_EFFECT = 5, // Changes the master effect color.
     };
 
 public:
@@ -81,8 +81,8 @@ public:
     }
 
 
-    BYTE m_fFunction;    // 기능
-    int m_FunctionValue; // 기능과 관련된 값
+    BYTE m_fFunction;    // Function
+    int m_FunctionValue; // Value that goes with the function
 };
 
 //////////////////////////////////////////////////////////////////////////////

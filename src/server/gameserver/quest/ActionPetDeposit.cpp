@@ -32,7 +32,7 @@ void ActionPetDeposit::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionPetDeposit::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -50,7 +50,7 @@ void ActionPetDeposit::execute(Creature* pCreature1, Creature* pCreature2)
     GCPetStashList gcPetStashList;
     makeGCPetStashList(&gcPetStashList, pPC);
 
-    /* 팻보관함이 뜨기 전에 대화창을 닫아주어야 하기에 날린다.*/
+    /* Close the dialogue window before the pet stash opens. */
     GCNPCResponse response;
     response.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
     pPC->getPlayer()->sendPacket(&response);

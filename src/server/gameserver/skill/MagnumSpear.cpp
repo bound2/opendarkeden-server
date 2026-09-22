@@ -17,7 +17,7 @@
 #include "SkillUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터즈 오브젝트 핸들러
+// Ousters object handler
 //////////////////////////////////////////////////////////////////////////////
 void MagnumSpear::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                           CEffectID_t CEffectID)
@@ -44,7 +44,7 @@ void MagnumSpear::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
 
-        // NPC는 공격할 수가 없다.
+        // An NPC cannot be attacked.
         if (pTargetCreature == NULL || !canAttack(pOusters, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, SkillType);
             return;

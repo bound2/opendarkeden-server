@@ -2,8 +2,8 @@
 // Filename    : EffectFadeOut.cpp
 // Written by  : elca
 // Description :
-// 군인기술 Sniping 또는 뱀파이어 기술 Invisibility로 인해서
-// 현재 점점 희미해져가고 있는(사라지고 있는) 크리쳐에 붙는 이펙트이다.
+// Effect attached to a creature that is fading out because of the soldier
+// skill Sniping or the Vampire skill Invisibility.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "EffectFadeOut.h"
@@ -63,9 +63,9 @@ void EffectFadeOut::unaffect(Creature* pCreature)
     ZoneCoord_t y = pCreature->getY();
     pCreature->removeFlag(Effect::EFFECT_CLASS_FADE_OUT);
 
-    // 군인기술 Sniping에 의한 것이라면...
+    // Caused by the soldier skill Sniping.
     if (m_isSniping) {
-        // 슬레이어만이 해당된다.
+        // Only a Slayer applies.
         Assert(pCreature->isSlayer());
         Assert(pCreature->isFlag(Effect::EFFECT_CLASS_SNIPING_MODE) == false);
         Assert(pCreature->findEffect(Effect::EFFECT_CLASS_SNIPING_MODE) == NULL);
@@ -77,7 +77,7 @@ void EffectFadeOut::unaffect(Creature* pCreature)
         pSlayer->addEffect(pEffect);
         pSlayer->setFlag(Effect::EFFECT_CLASS_SNIPING_MODE);
 
-        // 이펙트를 붙였으니, 능력치를 재계산한다.
+        // The effect was attached, so recompute the stats.
         SLAYER_RECORD prev;
         pSlayer->getSlayerRecord(prev);
         pSlayer->initAllStat();
@@ -86,16 +86,16 @@ void EffectFadeOut::unaffect(Creature* pCreature)
 
         addSnipingModeCreature(pZone, pCreature, x, y);
     }
-    // 뱀파이어 기술 Invisibility에 의한 것이라면...
+    // Caused by the Vampire skill Invisibility.
     else {
-        // 뱀파이어나 몬스터만이 해당된다.
+        // Only a Vampire or a monster applies.
         Assert(pCreature->isVampire() || pCreature->isMonster());
         Assert(pCreature->isFlag(Effect::EFFECT_CLASS_INVISIBILITY) == false);
         Assert(pCreature->findEffect(Effect::EFFECT_CLASS_INVISIBILITY) == NULL);
 
         EffectInvisibility* pEffect = new EffectInvisibility(pCreature);
         pEffect->setNextTime(10);
-        pEffect->setDeadline(99999999); // 무한이다.
+        pEffect->setDeadline(99999999); // Effectively unlimited.
         pCreature->addEffect(pEffect);
 
         addInvisibleCreature(pZone, pCreature, x, y);

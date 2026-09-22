@@ -17,7 +17,7 @@
 #include "SimpleMissileSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î ¿ÀºêÁ§Æ® ÇÚµé·¯
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void IllusionInversion::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot,
                                 CEffectID_t CEffectID)
@@ -44,7 +44,7 @@ void IllusionInversion::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skil
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // Holy Smashing ÀÌ ÀÖ´Ù¸é µ¥¹ÌÁö Áõ°¡
+    // Soul Smashing increases the damage.
     if (pSlayer->hasRankBonus(RankBonus::RANK_BONUS_SOUL_SMASHING)) {
         RankBonus* pRankBonus = pSlayer->getRankBonus(RankBonus::RANK_BONUS_SOUL_SMASHING);
         Assert(pRankBonus != NULL);
@@ -84,15 +84,15 @@ void IllusionInversion::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skil
         Damage_t Damage = 0;
 
         if (param.bAdd) {
-            // ÆÄ¶ó¹ÌÅÍ·Î Àü´ÞµÈ µ¥¹ÌÁö °ªÀÌ ´õÇØÁö´Â µ¥¹ÌÁö¶ó¸é,
-            // ÀÏ¹Ý µ¥¹ÌÁö¸¦ °è»ê ÈÄ, µ¥¹ÌÁö¸¦ ´õÇØ¾ß ÇÑ´Ù.
-            // ÆÄ¶ó¹ÌÅÍ·Î Àü´ÞµÈ µ¥¹ÌÁö °ªÀÌ Á÷Á¢ÀûÀ¸·Î ¾²ÀÌ´Â µ¥¹ÌÁö¶ó¸é,
-            // ÀÌ ºÎºÐ±îÁö µé¾î¿ÀÁö ¾ÊÀ¸¹Ç·Î, ¹ØÀÇ ºÎºÐ±îÁö 0À¸·Î Àü´ÞµÈ´Ù.
+            // If the damage passed in as a parameter is additive,
+            // the normal damage is computed first and then added to it.
+            // If the parameter damage is used directly,
+            // this block is skipped and 0 is carried into the code below.
             Damage += computeDamage(pSlayer, pTargetCreature, SkillLevel / 5, bCriticalHit);
         }
 
         if (param.bMagicDamage) {
-            // ¸¸ÀÏ ½ºÅ³ µ¥¹ÌÁö°¡ ¸¶¹ý µ¥¹ÌÁö¶ó¸é, ¸¶¹ý µ¥¹ÌÁö °è»ê ÇÔ¼ö¸¦ ÀÌ¿ëÇØ °è»êÀ» ÇØÁØ´Ù.
+            // Magic skill damage is computed with the magic damage function.
             Damage += computeMagicDamage(pTargetCreature, param.SkillDamage, param.SkillType);
         } else {
             Damage += param.SkillDamage;
@@ -123,12 +123,12 @@ void IllusionInversion::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skil
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bPK && bUseSkill) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToObjectOK1);
 
-            // µ¥¹ÌÁö¸¦ °¡ÇÏ°í, ³»±¸µµ¸¦ ¶³¾î¶ß¸°´Ù.
+            // Apply the damage and reduce durability.
             setDamage(pTargetCreature, Damage, pSlayer, param.SkillType, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
             computeAlignmentChange(pTargetCreature, Damage, pSlayer, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
             decreaseDurability(pSlayer, pTargetCreature, NULL, &_GCSkillToObjectOK1, &_GCSkillToObjectOK2);
 
-            // Å¸°ÙÀÌ ½½·¹ÀÌ¾î°¡ ¾Æ´Ñ °æ¿ì¿¡¸¸ °æÇèÄ¡¸¦ ¿Ã·ÁÁØ´Ù.
+            // Experience is granted only when the target is not a Slayer.
             if (!pTargetCreature->isSlayer()) {
                 shareAttrExp(pSlayer, Damage, param.STRMultiplier, param.DEXMultiplier, param.INTMultiplier,
                              _GCSkillToObjectOK1);
@@ -137,7 +137,7 @@ void IllusionInversion::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skil
                 increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToObjectOK1);
                 increaseAlignment(pSlayer, pTargetCreature, _GCSkillToObjectOK1);
             }
-            // ÎüÈ¡Ä¿±êHP
+            // Restore HP by half the damage dealt.
             HP_t HealPoint = Damage;
             HP_t CurrentHP = pSlayer->getHP();
             HP_t MaxHP = pSlayer->getHP(ATTR_MAX);

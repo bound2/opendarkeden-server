@@ -11,7 +11,7 @@
 const uint SeriousBloodDrainLevel = 49;
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void CureSeriousWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot,
                                 CEffectID_t CEffectID)
@@ -43,7 +43,7 @@ void CureSeriousWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skil
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void CureSeriousWounds::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 

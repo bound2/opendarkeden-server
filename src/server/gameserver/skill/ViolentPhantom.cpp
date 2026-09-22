@@ -10,8 +10,8 @@
 #include "SimpleTileMeleeSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 생성자
-// 마스크를 초기화한다.
+// Constructor
+// Initializes the mask.
 //////////////////////////////////////////////////////////////////////////////
 ViolentPhantom::ViolentPhantom() {
     __BEGIN_TRY
@@ -31,7 +31,7 @@ ViolentPhantom::ViolentPhantom() {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void ViolentPhantom::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                              CEffectID_t CEffectID)
@@ -49,7 +49,7 @@ void ViolentPhantom::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampi
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pVampire, getSkillType());
 
@@ -66,7 +66,7 @@ void ViolentPhantom::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampi
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 타일 핸들러
+// Vampire tile handler
 //////////////////////////////////////////////////////////////////////////////
 void ViolentPhantom::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireSkillSlot* pVampireSkillSlot,
                              CEffectID_t CEffectID)
@@ -97,7 +97,7 @@ void ViolentPhantom::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Va
         param.addMask(m_pViolentPhantomMask[i].x, m_pViolentPhantomMask[i].y, 100);
     }
 
-    // Knowledge of Blood 가 있다면 hit bonus 10
+    // Knowledge of Blood gives a hit bonus of 10.
     g_SimpleTileMeleeSkill.execute(pVampire, X, Y, pVampireSkillSlot, param, result, CEffectID);
 
 
@@ -105,7 +105,7 @@ void ViolentPhantom::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Va
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 타일 핸들러
+// Monster tile handler
 //////////////////////////////////////////////////////////////////////////////
 void ViolentPhantom::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 

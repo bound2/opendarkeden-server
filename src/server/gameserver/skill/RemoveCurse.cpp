@@ -21,7 +21,7 @@
 #include "GCSkillToSelfOK2.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -40,8 +40,8 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // 슬레이어 외에는 치료할 수 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // Only Slayers can be cured.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || pTargetCreature->isSlayer() == false) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -63,7 +63,7 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         bool bParalyze = false;
         bool bSeduction = false;
         bool bDeath = false;
-        bool bEffected = false; // 아무 저주나 걸려 있으면 켠다.
+        bool bEffected = false; // Set when any curse is present.
 
         EffectDoom* pEffectDoom = NULL;
         EffectParalyze* pEffectParalyze = NULL;
@@ -104,8 +104,8 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         bool bTimeCheck = verifyRunTime(pSkillSlot);
         bool bRangeCheck = verifyDistance(pSlayer, pTargetCreature, pSkillInfo->getRange());
 
-        // 마나가 있고, 시간이 됐고, 거리가 적당하며,
-        // 저주가 하나라도 걸려있어야 한다.
+        // There must be mana, the delay must have passed, the distance must be right,
+        // At least one curse must be active.
         if (bManaCheck && bTimeCheck && bRangeCheck && bEffected) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToObjectOK1);
 
@@ -113,8 +113,8 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
             SkillOutput output;
             computeOutput(input, output);
 
-            // 각각의 저주를 삭제하고,
-            // 패킷에다 이펙트 삭제하라고 더한다.
+            // Clear each curse and
+            // add it to the packet as an effect to remove.
             GCRemoveEffect gcRemoveEffect;
             gcRemoveEffect.setObjectID(pTargetCreature->getObjectID());
 
@@ -139,14 +139,14 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
                 gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_DEATH);
             }
 
-            // 경험치를 올린다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToObjectOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToObjectOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToObjectOK1);
 
-            // 패킷을 만들어 보낸다.
+            // Build the packet and send it.
             ZoneCoord_t myX = pSlayer->getX();
             ZoneCoord_t myY = pSlayer->getY();
             ZoneCoord_t targetX = pTargetCreature->getX();
@@ -204,7 +204,7 @@ void RemoveCurse::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -235,7 +235,7 @@ void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
         bool bParalyze = false;
         bool bSeduction = false;
         bool bDeath = false;
-        bool bEffected = false; // 아무 독이나 걸려있으면 켠다.
+        bool bEffected = false; // Set when any of the curses is active.
 
         EffectDoom* pEffectDoom = NULL;
         EffectParalyze* pEffectParalyze = NULL;
@@ -276,8 +276,8 @@ void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
         bool bTimeCheck = verifyRunTime(pSkillSlot);
         bool bRangeCheck = checkZoneLevelToUseSkill(pSlayer);
 
-        // 마나가 있고, 시간이 됐고, 거리가 적당하며,
-        // 저주가 하나라도 걸려있어야 한다.
+        // There must be mana, the delay must have passed, the distance must be right,
+        // At least one curse must be active.
         if (bManaCheck && bTimeCheck && bRangeCheck && bEffected) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToSelfOK1);
 
@@ -285,8 +285,8 @@ void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
             SkillOutput output;
             computeOutput(input, output);
 
-            // 각각의 저주를 제거하고,
-            // 패킷에다 이펙트 삭제하라고 더한다.
+            // Remove each of the curses,
+            // add it to the packet as an effect to remove.
             GCRemoveEffect gcRemoveEffect;
             gcRemoveEffect.setObjectID(pSlayer->getObjectID());
 
@@ -311,7 +311,7 @@ void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
                 gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_DEATH);
             }
 
-            // 경험치를 올린다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToSelfOK1);
@@ -332,7 +332,7 @@ void RemoveCurse::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
             pPlayer->sendPacket(&_GCSkillToSelfOK1);
             pZone->broadcastPacket(myX, myY, &_GCSkillToSelfOK2, pSlayer);
 
-            // 기술이 풀렸다는 것을 알려준다아.
+            // Notifies that the skill has been removed.
             pZone->broadcastPacket(myX, myY, &gcRemoveEffect);
 
             pSkillSlot->setRunTime(output.Delay);

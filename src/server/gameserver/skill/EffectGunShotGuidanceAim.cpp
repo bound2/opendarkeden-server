@@ -58,11 +58,11 @@ void EffectGunShotGuidanceAim::unaffect(Creature* pCastCreature)
 
     Assert(pCastCreature != NULL);
 
-    // 이펙트 플레그가 없다면 죽었다거나 하는 문제로 transport 하지 않겠다는걸 의미한다.
+    // A missing effect flag means the caster died and will not be transported.
     if (!pCastCreature->isFlag(Effect::EFFECT_CLASS_GUN_SHOT_GUIDANCE_AIM))
         return;
 
-    // Effect를 없애고 알린다.
+    // Removes the effect and announces it.
     pCastCreature->removeFlag(Effect::EFFECT_CLASS_GUN_SHOT_GUIDANCE_AIM);
 
     GCRemoveEffect gcRemoveEffect;
@@ -71,7 +71,7 @@ void EffectGunShotGuidanceAim::unaffect(Creature* pCastCreature)
 
     m_pZone->broadcastPacket(pCastCreature->getX(), pCastCreature->getY(), &gcRemoveEffect);
 
-    VSRect rect(0, 0, m_pZone->getWidth() - 1, m_pZone->getHeight() - 1); // -1 추가 by sigi. 2003.1.10
+    VSRect rect(0, 0, m_pZone->getWidth() - 1, m_pZone->getHeight() - 1); // Last valid tile coordinates
 
     bool bHit = false;
     Damage_t maxDamage = 0;
@@ -90,7 +90,7 @@ void EffectGunShotGuidanceAim::unaffect(Creature* pCastCreature)
             if (!rect.ptInRect(X, Y))
                 continue;
 
-            // 타일안에 존재하는 오브젝트를 가져온다.
+            // Fetches the objects on the tile.
             Tile& tile = m_pZone->getTile(X, Y);
             const forward_list<Object*>& oList = tile.getObjectList();
             forward_list<Object*>::const_iterator itr = oList.begin();
@@ -106,7 +106,7 @@ void EffectGunShotGuidanceAim::unaffect(Creature* pCastCreature)
                     Creature* pCreature = dynamic_cast<Creature*>(pObject);
                     Assert(pCreature != NULL);
 
-                    // 자신은 맞지 않는다. 무적도 안 맞는다. 슬레이어는 맞지 않는다.
+                    // Skips the target itself, anything that cannot be attacked, and creatures in a coma.
                     if (pCreature == m_pTarget || !canAttack(pCastCreature, pCreature) ||
                         pCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
                         continue;
@@ -134,7 +134,7 @@ void EffectGunShotGuidanceAim::unaffect(Creature* pCastCreature)
                     bool bHitRoll = HitRoll::isSuccess(pCastCreature, pCreature, bonus);
 
                     if (bPK && bZoneLevelCheck && bHitRoll) {
-                        // 원래 데미지와 스킬 데미지 보너스를 더한 최종 데미지를 구한다.
+                        // Computes the final damage: the base damage plus the skill damage bonus.
                         Damage_t FinalDamage = 0;
                         FinalDamage = computeDamage(pCastCreature, pCreature);
                         FinalDamage += Damage;
@@ -142,12 +142,12 @@ void EffectGunShotGuidanceAim::unaffect(Creature* pCastCreature)
                         if (pCreature->isPC() && pCreature->getCreatureClass() != pCastCreature->getCreatureClass()) {
                             GCModifyInformation gcMI;
                             ::setDamage(pCreature, FinalDamage, pCastCreature, SKILL_GUN_SHOT_GUIDANCE,
-                                        &gcMI); // ::추가 by Sequoia
+                                        &gcMI); // Global setDamage
 
                             pCreature->getPlayer()->sendPacket(&gcMI);
 
-                            // 맞는 동작을 보여준다.
-                            gcSkillToObjectOK2.setObjectID(1); // 의미 없다.
+                            // Shows the hit animation.
+                            gcSkillToObjectOK2.setObjectID(1); // Unused
                             gcSkillToObjectOK2.setSkillType(SKILL_ATTACK_MELEE);
                             gcSkillToObjectOK2.setDuration(0);
                             pCreature->getPlayer()->sendPacket(&gcSkillToObjectOK2);
@@ -157,7 +157,7 @@ void EffectGunShotGuidanceAim::unaffect(Creature* pCastCreature)
                             Monster* pMonster = dynamic_cast<Monster*>(pCreature);
 
                             ::setDamage(pMonster, FinalDamage, pCastCreature,
-                                        SKILL_GUN_SHOT_GUIDANCE); // ::추가 by Sequoia
+                                        SKILL_GUN_SHOT_GUIDANCE); // Global setDamage
 
                             pMonster->addEnemy(pCastCreature);
                             bHit = true;
@@ -200,12 +200,12 @@ void EffectGunShotGuidanceAim::unaffect(Creature* pCastCreature)
         }
     }
 
-    // 포격 이펙트를 보여주도록 한다.
+    // Shows the cannonade effect.
     GCAddEffectToTile gcAddEffectToTile;
     gcAddEffectToTile.setObjectID(pCastCreature->getObjectID());
     gcAddEffectToTile.setEffectID(Effect::EFFECT_CLASS_GUN_SHOT_GUIDANCE_FIRE);
     gcAddEffectToTile.setXY(m_X, m_Y);
-    gcAddEffectToTile.setDuration(10); // 별 의미없다. 걍 1초
+    gcAddEffectToTile.setDuration(10); // Arbitrary, just one second
 
     m_pZone->broadcastPacket(m_X, m_Y, &gcAddEffectToTile);
 
@@ -226,8 +226,8 @@ void EffectGunShotGuidanceAim::unaffect()
     if (m_pZone != NULL && m_pZone == pCreature->getZone()) {
         unaffect(pCreature);
     } else {
-        // 조준 도중 죽었거나 이동했다는 의미이므로 이펙트를 없애고 브로드캐스팅한다.
-        // Effect를 없애고 알린다.
+        // The caster died or moved while aiming, so the effect is removed and broadcast.
+        // Removes the effect and announces it.
         Zone* pZone = pCreature->getZone();
         Assert(pZone != NULL);
 

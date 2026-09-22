@@ -16,7 +16,7 @@
 #include "Zone.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프
+// Slayer self
 //////////////////////////////////////////////////////////////////////////////
 void InstallTrap::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -34,7 +34,7 @@ void InstallTrap::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        // 무장하고 있는 무기가 널이거나, 검이 아니라면 기술을 쓸 수 없다.
+        // The skill cannot be used if no weapon is equipped or it is not a sword.
         Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pWeapon == NULL || !isArmsWeapon(pWeapon)) {
             executeSkillFailException(pSlayer, getSkillType());
@@ -67,7 +67,7 @@ void InstallTrap::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectTrapInstalled* pEffect = new EffectTrapInstalled(pZone, X, Y);
             pEffect->setDeadline(output.Duration);
             pEffect->setUserOID(pSlayer->getObjectID());
@@ -77,9 +77,9 @@ void InstallTrap::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
             pZone->addEffect(pEffect);
             rTile.addEffect(pEffect);
 
-            // 경험치를 올린다.
+            // Raises experience.
 
-            // 패킷을 만들어 보낸다.
+            // Build the packet and send it.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(output.Duration);

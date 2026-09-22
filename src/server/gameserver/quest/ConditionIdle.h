@@ -2,9 +2,9 @@
 // Filename    : ConditionIdle.h
 // Written By  :
 // Description :
-// NPC 또는 몬스터가 평소에 하는 행위를 지정할 때 사용된다.
-// 아무런 사건이 없을 경우, 관련된 액션이 실행된다.
-// 이 컨디션은 트리거의 가장 끝에 배치되어야 한다.
+// Used to specify what an NPC or a monster does normally.
+// When nothing else happens, the associated action runs.
+// This condition must be placed at the very end of the trigger.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __IDLE_H__

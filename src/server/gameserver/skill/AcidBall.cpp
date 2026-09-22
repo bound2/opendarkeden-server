@@ -10,7 +10,7 @@
 #include "SimpleMissileSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void AcidBall::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                        CEffectID_t CEffectID)
@@ -37,7 +37,7 @@ void AcidBall::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // Knowledge of Acid 가 있다면 hit bonus 10
+    // Knowledge of Acid gives a hit bonus of 10.
     int HitBonus = 0;
     if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_ACID)) {
         RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_ACID);
@@ -53,7 +53,7 @@ void AcidBall::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 오브젝트 핸들러
+// Monster object handler
 //////////////////////////////////////////////////////////////////////////////
 void AcidBall::execute(Monster* pMonster, Creature* pEnemy)
 
@@ -79,13 +79,13 @@ void AcidBall::execute(Monster* pMonster, Creature* pEnemy)
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // 마스터는 여러마리 공격한다.
+    // A master attacks several creatures at once.
     if (0) // pMonster->isMaster())
     {
         int x = pMonster->getX();
         int y = pMonster->getY();
 
-        int Splash = 3 + rand() % 5; // 3~7 마리
+        int Splash = 3 + rand() % 5; // 3 to 7 creatures
         int range = 2;               // 5x5
         list<Creature*> creatureList;
         getSplashVictims(pMonster->getZone(), x, y, Creature::CREATURE_CLASS_MAX, creatureList, Splash, range);

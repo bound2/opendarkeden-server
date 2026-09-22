@@ -71,8 +71,8 @@ void EffectGroundAttack::unaffect()
 
     Assert(m_pZone != NULL);
 
-    // 시전자를 가져온다.
-    // !! 이미 존을 나갔을 수 있으므로 NULL이 될 수 잇다.
+    // Gets the caster.
+    // It can be NULL, since the caster may already have left the zone.
     // by bezz. 2003.1.4
     Creature* pCastCreature = m_pZone->getCreature(m_UserObjectID);
 
@@ -83,8 +83,8 @@ void EffectGroundAttack::unaffect()
 
     VSRect rect(0, 0, m_pZone->getWidth() - 1, m_pZone->getHeight() - 1);
 
-    // 현재 이펙트가 붙어있는 타일을 받아온다.
-    // 중심타일 + 스플래쉬 타일
+    // Get the tile this effect is attached to.
+    // Center tile plus the splash tiles.
     for (int x = -1; x <= 1; x++) {
         for (int y = -1; y <= 1; y++) {
             int X = m_X + x;
@@ -94,12 +94,12 @@ void EffectGroundAttack::unaffect()
                 continue;
             Tile& tile = m_pZone->getTile(X, Y);
 
-            // 가운데는 100%
-            // 주위에는 50% damage
+            // The center takes 100%.
+            // 50% damage around it
             bool bCenterEffect = (x == 0 && y == 0);
             int DamagePercent = (bCenterEffect ? m_DamagePercent : (m_DamagePercent >> 1));
 
-            // 타일 안에 존재하는 오브젝트들을 검색한다.
+            // Walk the objects on the tile.
             const forward_list<Object*>& oList = tile.getObjectList();
             forward_list<Object*>::const_iterator itr = oList.begin();
             for (; itr != oList.end(); itr++) {
@@ -112,7 +112,7 @@ void EffectGroundAttack::unaffect()
                     Creature* pCreature = dynamic_cast<Creature*>(pObject);
                     Assert(pCreature != NULL);
 
-                    // 무적상태 체크. by sigi. 2002.9.5
+                    // Check for invulnerability.
                     if (!canAttack(pCastCreature, pCreature)) {
                         continue;
                     }
@@ -162,10 +162,10 @@ void EffectGroundAttack::unaffect()
                         ::setDamage(pMonster, Damage, pCastCreature, SKILL_GROUND_ATTACK);
                     }
 
-                    // user한테는 맞는 모습을 보여준다.
+                    // Show the target player the hit animation.
                     if (pCreature->isPC()) {
                         GCSkillToObjectOK2 gcSkillToObjectOK2;
-                        gcSkillToObjectOK2.setObjectID(1); // 의미 없다.
+                        gcSkillToObjectOK2.setObjectID(1); // Has no meaning.
                         gcSkillToObjectOK2.setSkillType(SKILL_ATTACK_MELEE);
                         gcSkillToObjectOK2.setDuration(0);
                         pCreature->getPlayer()->sendPacket(&gcSkillToObjectOK2);
@@ -177,7 +177,7 @@ void EffectGroundAttack::unaffect()
                     gcSkillToObjectOK4.setDuration(0);
                     m_pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcSkillToObjectOK4, pCreature);
 
-                    // m_CasterName이 pCreature를 죽인 경우의 KillCount 처리
+                    // Handles the kill count when the caster kills pCreature.
                     // by sigi. 2002.8.31
                 }
             }

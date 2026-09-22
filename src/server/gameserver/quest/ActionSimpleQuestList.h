@@ -2,7 +2,7 @@
 // Filename    : ActionSimpleQuestList.h
 // Written By  : excel96
 // Description :
-// Creature가 PC에게 질문을 던진다. 이 대사는 NPC 대화창에 출력된다.
+// The creature asks the PC a question. The line is printed in the NPC dialogue window.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_SIMPLE_QUEST_LIST_H__
@@ -33,7 +33,7 @@ public:
     }
 
 private:
-    ScriptID_t m_ScriptID; // 말할 대사 아이디
+    ScriptID_t m_ScriptID; // ID of the script line to say
 };
 
 

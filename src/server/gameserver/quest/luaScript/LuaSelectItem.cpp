@@ -16,7 +16,7 @@ int LuaSelectItem::executeFile(const string& filename)
     lua_getglobal(m_pState->getState(), "ItemClass");
     lua_getglobal(m_pState->getState(), "ItemType");
     lua_getglobal(m_pState->getState(), "OptionType");
-    lua_getglobal(m_pState->getState(), "OptionType2"); // -_-; 한개 더 추가되면 list로 바꾸자~
+    lua_getglobal(m_pState->getState(), "OptionType2"); // Switch to a list if one more is added.
 
     m_ItemClass = (Item::ItemClass)lua_tonumber(m_pState->getState(), 1);
     m_ItemType = (ItemType_t)lua_tonumber(m_pState->getState(), 2);

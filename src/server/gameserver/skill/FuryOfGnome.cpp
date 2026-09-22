@@ -16,7 +16,7 @@
 #include "SimpleTileMissileSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void FuryOfGnome::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                           CEffectID_t CEffectID)
@@ -33,7 +33,7 @@ void FuryOfGnome::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pOusters, getSkillType());
 
@@ -127,20 +127,20 @@ void FuryOfGnome::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouste
                     if (tile.getEffect(Effect::EFFECT_CLASS_TRYING_POSITION))
                         continue;
 
-                    // 현재 타일에다 이펙트를 추가할 수 있다면...
+                    // If an effect can be added to this tile...
                     if (tile.canAddEffect()) {
-                        // 같은 effect가 있으면 지운다.
+                        // Delete the same effect if one is already there.
                         Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_FURY_OF_GNOME);
                         if (pOldEffect != NULL) {
                             ObjectID_t effectID = pOldEffect->getObjectID();
                             pZone->deleteEffect(effectID); // fix me
                         }
 
-                        // 이펙트 클래스를 생성한다.
+                        // Create the effect class.
                         EffectFuryOfGnome* pEffect = new EffectFuryOfGnome(pZone, targetX, targetY);
                         pEffect->setDeadline(output.Duration);
 
-                        // Tile에 붙이는 Effect는 ObjectID를 등록받아야 한다.
+                        // An Effect attached to a Tile must have its ObjectID registered.
                         ObjectRegistry& objectregister = pZone->getObjectRegistry();
                         objectregister.registerObject(pEffect);
                         pZone->addEffect(pEffect);

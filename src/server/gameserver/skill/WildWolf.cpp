@@ -24,7 +24,7 @@
 #include "Zone.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void WildWolf::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                        CEffectID_t CEffectID)
@@ -53,8 +53,8 @@ void WildWolf::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
             return;
         }
 
-        // NPC는 공격할 수가 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // A missing target fails the skill instead of throwing.
         if (!canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
             return;
@@ -90,7 +90,7 @@ void WildWolf::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
             bool bCriticalHit = false;
             Damage += computeDamage(pVampire, pTargetCreature, 0, bCriticalHit);
 
-            // 마나를 깍는다.
+            // Consume the mana.
             decreaseMana(pVampire, RequiredMP, _GCSkillToObjectOK1);
 
             EffectSetAfire* pEffect = new EffectSetAfire(pTargetCreature);
@@ -103,7 +103,7 @@ void WildWolf::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
 
             increaseAlignment(pVampire, pTargetCreature, _GCSkillToObjectOK1);
 
-            // 패킷을 보낸다.
+            // Send the packet.
             _GCSkillToObjectOK1.setSkillType(getSkillType());
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);
@@ -202,22 +202,22 @@ void WildWolf::eatCorpse(Vampire* pVampire, Item* pCorpse, VampireSkillSlot* pVa
             Effect* pEffect = pVampire->findEffect(Effect::EFFECT_CLASS_HP_RECOVERY);
             EffectHPRecovery* pEffectHPRecoveryEffect = dynamic_cast<EffectHPRecovery*>(pEffect);
 
-            // 몇번 더 해야 한다는 것을 갱신해 준다.
+            // Update how many more times the recovery has to run.
             Turn_t OldCount = pEffectHPRecoveryEffect->getPeriod();
             Turn_t NewPeriod = OldCount + Period;
             pEffectHPRecoveryEffect->setPeriod(NewPeriod);
             pEffectHPRecoveryEffect->setDeadline(NewPeriod * RegenPeriod);
 
-            // 회복 시작하라는 패킷을 자신에게 보낸다.
+            // Send the recovery start packet to the caster.
             GCHPRecoveryStartToSelf gcHPRecoveryStartToSelf;
-            gcHPRecoveryStartToSelf.setPeriod(NewPeriod);     // 몇번 회복하나?
-            gcHPRecoveryStartToSelf.setDelay(RegenPeriod);    // 몇 초 단위로 하나?
-            gcHPRecoveryStartToSelf.setQuantity(RegenHPUnit); // 한번에 얼마나 회복하나?
+            gcHPRecoveryStartToSelf.setPeriod(NewPeriod);     // Number of recovery ticks
+            gcHPRecoveryStartToSelf.setDelay(RegenPeriod);    // Seconds between ticks
+            gcHPRecoveryStartToSelf.setQuantity(RegenHPUnit); // Amount recovered each tick
 
             pVampire->getPlayer()->sendPacket(&gcHPRecoveryStartToSelf);
 
-            // 회복 시작하라는 패킷을 다른이들에게 보낸다.
-            // 회복 갱신 패킷, 시작과 똑 같은 패킷을 보낸다.
+            // Send the recovery start packet to the others.
+            // The refresh packet is the same packet as the start packet.
             GCHPRecoveryStartToOthers gcHPRecoveryStartToOthers;
             gcHPRecoveryStartToOthers.setObjectID(pVampire->getObjectID());
             gcHPRecoveryStartToOthers.setPeriod(NewPeriod);
@@ -237,7 +237,7 @@ void WildWolf::eatCorpse(Vampire* pVampire, Item* pCorpse, VampireSkillSlot* pVa
 
             pVampire->addEffect(pEffectHPRecovery);
 
-            // 회복 시작하라는 패킷을 자신에게 보낸다.
+            // Send the recovery start packet to the caster.
             GCHPRecoveryStartToSelf gcHPRecoveryStartToSelf;
             gcHPRecoveryStartToSelf.setPeriod(Period);
             gcHPRecoveryStartToSelf.setDelay(RegenPeriod);
@@ -245,7 +245,7 @@ void WildWolf::eatCorpse(Vampire* pVampire, Item* pCorpse, VampireSkillSlot* pVa
 
             pVampire->getPlayer()->sendPacket(&gcHPRecoveryStartToSelf);
 
-            // 회복 시작하라는 패킷을 보는이들에게 보낸다.
+            // Send the recovery start packet to the watchers.
             GCHPRecoveryStartToOthers gcHPRecoveryStartToOthers;
             gcHPRecoveryStartToOthers.setObjectID(pVampire->getObjectID());
             gcHPRecoveryStartToOthers.setPeriod(Period);
@@ -255,7 +255,7 @@ void WildWolf::eatCorpse(Vampire* pVampire, Item* pCorpse, VampireSkillSlot* pVa
             pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &gcHPRecoveryStartToOthers, pVampire);
         }
 
-        // 패킷을 보낸다.
+        // Send the packet.
         _GCSkillToObjectOK1.setSkillType(getSkillType());
         _GCSkillToObjectOK1.setCEffectID(0);
         _GCSkillToObjectOK1.setTargetObjectID(pTargetCorpse->getObjectID());
@@ -277,13 +277,13 @@ void WildWolf::eatCorpse(Vampire* pVampire, Item* pCorpse, VampireSkillSlot* pVa
 
         pVampireSkillSlot->setRunTime(output.Delay);
 
-        // 사라지는 패킷을 날린다.
+        // Broadcast the packet that makes the corpse disappear.
         GCDeleteObject gcDO;
         gcDO.setObjectID(pTargetCorpse->getObjectID());
         pZone->broadcastPacket(pTargetCorpse->getX(), pTargetCorpse->getY(), &gcDO);
-        // 존에서 지운다.
+        // Delete it from the zone.
         pZone->deleteItem(pTargetCorpse, pTargetCorpse->getX(), pTargetCorpse->getY());
-        // 존안에서 실제적으로 포인터를 없애지는 않으므로 포인터를 삭제 시켜 줘야 한다.
+        // The zone does not actually free the pointer, so delete it here.
         SAFE_DELETE(pTargetCorpse);
     }
 

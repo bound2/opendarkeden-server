@@ -38,7 +38,7 @@ public:
     }
 
 private:
-    Effect::EffectClass m_Index; // 플래그의 값
+    Effect::EffectClass m_Index; // Flag value
 };
 
 //////////////////////////////////////////////////////////////////////////////

@@ -2,9 +2,9 @@
 // Filename    : ActionWarpInZone.h
 // Written By  :
 // Description :
-// 현재 위치에서 왔다갔다 방황하는 크리처를 표현할때 사용하는 액션이다.
-// 크리처가 현재 위치를 중심으로 반경 r 안의 사각 영역에서
-// M 퍼센트의 확률로 이동하게 된다.
+// Action used to represent a creature wandering back and forth around its current position.
+// The creature moves inside the square area of radius r centered on its
+// current position, with a probability of M percent.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_WARP_IN_ZONE_H__

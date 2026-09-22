@@ -113,7 +113,7 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////////
-// À¯·áÈ­Á¸ °æÇèÄ¡ »Ç³ª½º
+// Premium zone experience bonus.
 //////////////////////////////////////////////////////////////////////////////
 
 
@@ -126,17 +126,17 @@ RankExp_t computeRankExp(int myLevel, int otherLevel) // by sigi. 2002.12.31
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Creature¸¦ Á×¿´À»¶§ÀÇ È¿°ú
+// Effect of killing a creature.
 //
-// Á×Àº »ç¶÷¿¡°Ô KillCount¸¦ Áõ°¡½ÃÄÑÁØ´Ù. --> °è±Þ °æÇèÄ¡
+// Gives the killer rank experience for the kill.
 // by sigi. 2002.8.31
 //////////////////////////////////////////////////////////////////////////////
 void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
-    // [Ã³¸®ÇÒ ÇÊ¿ä ¾ø´Â °æ¿ì]
-    // °ø°ÝÇÑ »ç¶÷ÀÌ ¾ø°Å³ª
-    // Á×Àº¾Ö°¡ ¾ø°Å³ª
-    // °ø°ÝÇÑ »ç¶÷ÀÌ »ç¶÷ÀÌ ¾Æ´Ï°Å³ª -_-;
-    // Á×Àº¾Ö°¡ Á×Àº°Ô ¾Æ´Ï¸é -_-;
+    // [Cases that need no handling]
+    // no attacker,
+    // no dead creature,
+    // the attacker is not a PC,
+    // or the target is not actually dead.
     if (pAttacker == NULL || pDeadCreature == NULL || !pAttacker->isPC() || pDeadCreature->isAlive()) {
         return;
     }
@@ -152,34 +152,34 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
     int otherLevel = 0;
 
     if (pAttacker->isSlayer()) {
-        // ½½·¹ÀÌ¾î°¡ ½½·¹ÀÌ¾î¸¦ Á×ÀÎ °æ¿ì
+        // A Slayer killed a Slayer.
         if (pDeadCreature->isSlayer())
             return;
 
         Slayer* pSlayer = dynamic_cast<Slayer*>(pAttacker);
         myLevel = pSlayer->getHighestSkillDomainLevel();
 
-        // ½½·¹ÀÌ¾îÀÏ °æ¿ì ¹«±â¸¦ µé°í ÀÖÁö ¾Ê´Ù¸é ¹«½ÃÇÑ´Ù.
+        // A Slayer with no weapon in hand is ignored.
         if (!pSlayer->isRealWearingEx(Slayer::WEAR_RIGHTHAND))
             return;
 
-        // ½½·¹ÀÌ¾î°¡ ¹ìÆÄÀÌ¾î¸¦ Á×ÀÎ °æ¿ì
+        // A Slayer killed a Vampire.
         if (pDeadCreature->isVampire()) {
             Vampire* pVampire = dynamic_cast<Vampire*>(pDeadCreature);
             otherLevel = pVampire->getLevel();
         }
-        // ½½·¹ÀÌ¾î°¡ ¾Æ¿ì½ºÅÍ½º¸¦ Á×ÀÎ °æ¿ì
+        // A Slayer killed an Ousters.
         else if (pDeadCreature->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pDeadCreature);
             otherLevel = pOusters->getLevel();
         }
-        // ½½·¹ÀÌ¾î°¡ ¸ó½ºÅÍ¸¦ Á×ÀÎ °æ¿ì
+        // A Slayer killed a monster.
         else if (pDeadCreature->isMonster()) {
             Monster* pMonster = dynamic_cast<Monster*>(pDeadCreature);
 
-            // ¸¶½ºÅÍ´Â MasterLairManager¿¡¼­ Ã³¸®ÇÑ´Ù.
+            // A master is handled by MasterLairManager.
             if (pMonster->isMaster()) {
-                // last killÇÑ »ç¶÷Àº °æÇèÄ¡ ÇÑ¹ø ´õ ¸Ô´Â´Ù.
+                // The one who lands the last kill gains experience once more.
                 pSlayer->increaseRankExp(MASTER_KILL_RANK_EXP);
                 return;
             }
@@ -188,30 +188,30 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
         } else
             return;
     } else if (pAttacker->isVampire()) {
-        // ¹ìÆÄÀÌ¾î°¡ ¹ìÆÄÀÌ¾î¸¦ Á×ÀÎ °æ¿ì
+        // A Vampire killed a Vampire.
         if (pDeadCreature->isVampire())
             return;
 
         Vampire* pVampire = dynamic_cast<Vampire*>(pAttacker);
         myLevel = pVampire->getLevel();
 
-        // ¹ìÆÄÀÌ¾î°¡ ½½·¹ÀÌ¾î¸¦ Á×ÀÎ °æ¿ì
+        // A Vampire killed a Slayer.
         if (pDeadCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pDeadCreature);
             otherLevel = pSlayer->getHighestSkillDomainLevel();
         }
-        // ¹ìÆÄÀÌ¾î°¡ ¾Æ¿ì½ºÅÍ½º¸¦ Á×ÀÎ °æ¿ì
+        // A Vampire killed an Ousters.
         else if (pDeadCreature->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pDeadCreature);
             otherLevel = pOusters->getLevel();
         }
-        // ¹ìÆÄÀÌ¾î°¡ ¸ó½ºÅÍ¸¦ Á×ÀÎ °æ¿ì
+        // A Vampire killed a monster.
         else if (pDeadCreature->isMonster()) {
             Monster* pMonster = dynamic_cast<Monster*>(pDeadCreature);
 
-            // ¸¶½ºÅÍ´Â MasterLairManager¿¡¼­ Ã³¸®ÇÑ´Ù.
+            // A master is handled by MasterLairManager.
             if (pMonster->isMaster()) {
-                // last killÇÑ »ç¶÷Àº °æÇèÄ¡ ÇÑ¹ø ´õ ¸Ô´Â´Ù.
+                // The one who lands the last kill gains experience once more.
                 pVampire->increaseRankExp(MASTER_KILL_RANK_EXP);
                 return;
             }
@@ -220,30 +220,30 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
         } else
             return;
     } else if (pAttacker->isOusters()) {
-        // ¾Æ¿ì½ºÅÍ½º°¡ ¾Æ¿ì½ºÅÍ½º¸¦ Á×ÀÎ °æ¿ì
+        // An Ousters killed an Ousters.
         if (pDeadCreature->isOusters())
             return;
 
         Ousters* pOusters = dynamic_cast<Ousters*>(pAttacker);
         myLevel = pOusters->getLevel();
 
-        // ¾Æ¿ì½ºÅÍ½º°¡°¡ ½½·¹ÀÌ¾î¸¦ Á×ÀÎ °æ¿ì
+        // An Ousters killed a Slayer.
         if (pDeadCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pDeadCreature);
             otherLevel = pSlayer->getHighestSkillDomainLevel();
         }
-        // ¾Æ¿ì½ºÅÍÁî°¡ ¹ìÆÄÀÌ¾î¸¦ Á×ÀÎ °æ¿ì
+        // An Ousters killed a Vampire.
         if (pDeadCreature->isVampire()) {
             Vampire* pVampire = dynamic_cast<Vampire*>(pDeadCreature);
             otherLevel = pVampire->getLevel();
         }
-        // ¹ìÆÄÀÌ¾î°¡ ¸ó½ºÅÍ¸¦ Á×ÀÎ °æ¿ì
+        // A Vampire killed a monster.
         else if (pDeadCreature->isMonster()) {
             Monster* pMonster = dynamic_cast<Monster*>(pDeadCreature);
 
-            // ¸¶½ºÅÍ´Â MasterLairManager¿¡¼­ Ã³¸®ÇÑ´Ù.
+            // A master is handled by MasterLairManager.
             if (pMonster->isMaster()) {
-                // last killÇÑ »ç¶÷Àº °æÇèÄ¡ ÇÑ¹ø ´õ ¸Ô´Â´Ù.
+                // The one who lands the last kill gains experience once more.
                 pOusters->increaseRankExp(MASTER_KILL_RANK_EXP);
                 return;
             }
@@ -476,8 +476,8 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
 
     int PartyID = pPC->getPartyID();
     if (PartyID != 0) {
-        // ÆÄÆ¼¿¡ °¡ÀÔµÇ¾î ÀÖ´Ù¸é ·ÎÄÃ ÆÄÆ¼ ¸Å´ÏÀú¸¦ ÅëÇØ
-        // ÁÖÀ§ÀÇ ÆÄÆ¼¿øµé°ú °æÇèÄ¡¸¦ °øÀ¯ÇÑ´Ù.
+        // When the player is in a party, the experience is shared with the
+        // nearby party members through the local party manager.
         LocalPartyManager* pLPM = pPC->getLocalPartyManager();
         Assert(pLPM != NULL);
         pLPM->shareRankExp(PartyID, pAttacker, otherLevel);
@@ -489,7 +489,7 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
             pAttackPC->increaseAdvancementClassExp(computeCreatureExp(pDeadCreature, 1), true);
         }
 
-        // ÆÄÆ¼¿¡ °¡ÀÔµÇ¾îÀÖÁö ¾Ê´Ù¸é È¥ÀÚ ¿Ã¶ó°£´Ù.
+        // Without a party the player gains it alone.
         RankExp_t rankExp = computeRankExp(myLevel, otherLevel);
 
         if (pDeadCreature->isMonster()) {
@@ -561,14 +561,14 @@ void giveSkillExp(Slayer* pSlayer, SkillType_t SkillType, ModifyInfo& AttackerMI
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¼ºÇâÀ» º¯°æÇÑ´Ù.
-// ±â¼úÀ» »ç¿ëÇÏ°Å³ª, PK¸¦ ÇÒ ¶§ »ý±â´Â ¼ºÇâ º¯È­¸¦ °è»êÇÏ´Â ÇÔ¼ö´Ù.
+// Changes alignment.
+// Computes the alignment change caused by using a skill or by PK.
 //////////////////////////////////////////////////////////////////////////////
 void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature* pAttacker, ModifyInfo* pMI,
                             ModifyInfo* pAttackerMI) {
     Assert(pTargetCreature != NULL);
 
-    // PKÁ¸¿¡¼­´Â ¼ºÇâÀÌ º¯ÇÏÁö ¾Ê´Â´Ù.
+    // Alignment does not change in a PK zone.
     if (g_pPKZoneInfoManager->isPKZone(pAttacker->getZoneID()))
         return;
 
@@ -577,11 +577,11 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
 
     bool bSameRace = false;
 
-    // °ø°ÝÀÚ°¡ ÀÖ´Ù¸é, °°Àº Á¾Á·Àº ¾Æ´ÑÁö Ã¼Å©ÇÑ´Ù.
+    // With an attacker present, check whether it is the same race.
     if (pAttacker != NULL) {
-        // ÀÌº¥Æ® °æ±âÀå¿¡¼­´Â ¼ºÇâÀÌ ¾È¹Ù²î°Ô µÇ´Â ÄÚµåÀÌ´Ù.
-        // ZoneInfo¿¡ ³Ö°í, Zone¿¡¼­ ÀÐÀ» ¼ö ÀÖ°Ô ÇÏ¸é ÁÁ°ÚÁö¸¸,
-        // °©ÀÚ±â ¶³¾îÁø ÀÏÀÌ¶ó ±ÍÂú´Ù´Â ÀÌÀ¯·Î ÇÏµå ÄÚµùÀÌ´Ù. - -;
+        // This code keeps alignment from changing in the event arena.
+        // It would be better to put it in ZoneInfo and read it from Zone,
+        // but the zone ids are hard coded instead.
         // 2002.8.21. by sigi
 
         // zoneID==1005 || zoneID==1006)
@@ -602,7 +602,7 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
             break;
         }
 
-        // °°Àº Á¾Á·ÀÌ ¾Æ´Ï¸é ¿Ã¸²ÇÈ ±Ý¸Þ´Þ~
+        // Killing a different race scores an olympic point.
         if (!bSameRace && bPKOlympic && pTargetCreature->isPC() && pTargetCreature->isDead() &&
             !GDRLairManager::Instance().isGDRLairZone(pTargetCreature->getZoneID())) {
             PlayerCreature* pAttackPC = dynamic_cast<PlayerCreature*>(pAttacker);
@@ -617,7 +617,7 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
             return;
     }
 
-    // °°Àº Á¾Á·ÀÌ¶ó¸é ¼ºÇâ¿¡ º¯È­°¡ »ý±æ ¼ö ÀÖ´Ù.
+    // Alignment can change when both are the same race.
     if (bSameRace) {
         PlayerCreature* pAttackPC = dynamic_cast<PlayerCreature*>(pAttacker);
         PlayerCreature* pTargetPC = dynamic_cast<PlayerCreature*>(pTargetCreature);
@@ -630,7 +630,7 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
 
         Alignment_t ModifyAlignment = 0;
 
-        // °¨¼ÒÇÏ´Â °ÍÀÎÁö Áõ°¡ÇÏ´Â °ÍÀÎÁö ¾Ë¾ÆµÐ´Ù.
+        // Remember whether the change is a decrease or an increase.
         bool bdecrease = false;
         if (pTargetPC->isDead()) {
             ModifyAlignment =
@@ -640,7 +640,7 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
                 ModifyAlignment = ModifyAlignment * 10;
                 bdecrease = true;
             } else if (ModifyAlignment > 0) {
-                // (ÇÇ»ìÀÚ ·¹º§) / (»ìÇØÀÚ ·¹º§) * (±âÁ¸ ¼ºÇâ È¹µæ·®) :// max = (±âÁ¸ ¼ºÇâ È¹µæ·®)
+                // (victim level) / (killer level) * (base alignment gain), capped at the base gain
 
                 if (pAttackPC->getLevel() - 10 <= pTargetPC->getLevel() &&
                     !pTargetPC->isFlag(Effect::EFFECT_CLASS_PUNISH_COUNTED)) {
@@ -692,15 +692,15 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
         EffectManager* pAttackEffectManager = pAttackPC->getEffectManager();
         EffectManager* pTargetEffectManager = pTargetPC->getEffectManager();
 
-        // ¼ºÇâ¿¡ °ü°è ¾øÀÌ Á¤´ç¹æÀ§¿¡ ÇØ´çµÇÁö ¾Ê´Â »ç¶÷À» ¶§¸®¸é ¹«Á¶°Ç »ó´ë¹æ¿¡°Ô Á¤´ç¹æÀ§ ±ÇÇÑÀ» ÁØ´Ù.
+        // Regardless of alignment, hitting someone who has no self-defense claim always grants them one.
         if (!pAttackPC->hasEnemy(TargetName) &&
             de::gameContext().alignments().getAlignmentType(TargetAlignment) >= NEUTRAL) {
             GCAddInjuriousCreature gcAddInjuriousCreature;
             gcAddInjuriousCreature.setName(AttackName);
             pTargetPC->getPlayer()->sendPacket(&gcAddInjuriousCreature);
 
-            // °ø°Ý´çÇÏ´Â »ç¶÷¿¡°Ô ¼±°øÀÚ ¸®½ºÆ®¿¡ Ãß°¡ÇÏ°í
-            // 5ºÐ µÚ¿¡ »ç¶óÁø´Ù´Â ÀÌÆåÆ®¸¦ ºÙÀÎ´Ù.
+            // Add the attacker to the victim's aggressor list and attach an
+            // effect that clears it after five minutes.
             pTargetPC->addEnemy(AttackName);
 
             EffectEnemyErase* pEffectEnemyErase = new EffectEnemyErase(pTargetPC);
@@ -710,27 +710,27 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
             pTargetEffectManager->addEffect(pEffectEnemyErase);
         }
 
-        // »ó´ë°¡ ³ª¿¡°Ô Á¤´ç¹æÀ§ÀÇ ´ë»óÀÌ°í »ó´ë¸¦ Á×¿´À» °æ¿ì ÀÌÆåÆ®¸¦ Áö¿öÁØ´Ù.
+        // Erase the effect once the target is a self-defense target of mine and has been killed.
         if (pAttackPC->hasEnemy(TargetName) && pTargetPC->isDead()) {
             EffectEnemyErase* pAttackerEffect =
                 (EffectEnemyErase*)pAttackEffectManager->findEffect(Effect::EFFECT_CLASS_ENEMY_ERASE, TargetName);
 
             if (pAttackerEffect != NULL) {
-                // ¼±°øÀÚ ¸®½ºÆ®¿¡ ÀÖ´Ù´Â ¸»Àº ¼±°øÀÚ¸¦ Áö¿öÁÖ´Â ÀÌÆåÆ®°¡ ¹«Á¶°Ç ÀÖ´Ù´Â ¾ê±âÀÌ´Ù. µû¶ó¼­ NULLÀÌ µÉ ¼ö
-                // ¾ø´Ù.
+                // Being on the aggressor list means the effect that clears it always exists, so it
+                // cannot be NULL.
                 Assert(pAttackerEffect != NULL);
                 Assert(pAttackerEffect->getEffectClass() == Effect::EFFECT_CLASS_ENEMY_ERASE);
-                // Áö¿öÁØ´Ù.
+                // Erase it.
                 pAttackerEffect->setDeadline(0);
             }
         }
 
-        // ¼±°øÀÚÀÇ ¸®½ºÆ®¿¡ ¹æ¾îÀÚÀÇ ÀÌ¸§ÀÌ ÀÖ°í, ÀÚ½ÅÀÇ ¼ºÇâÀÌ Good ¶Ç´Â Neutral ÀÌ¶ó¸é Á¤´ç¹æÀ§·Î ÀÎÁ¤ÇÏ°í, ¼ºÇâÀÌ
-        // ¶³¾îÁöÁö´Â ¾Ê°Ô ÇÑ´Ù.
+        // When the defender's name is on the aggressor list and the attacker's alignment is Good
+        // or Neutral, the kill counts as self-defense and the alignment is not lowered.
         if (!(bdecrease && pAttackPC->hasEnemy(TargetName) &&
               de::gameContext().alignments().getAlignmentType(AttackAlignment) >= NEUTRAL)) {
-            // ¿Ã¶ó°¡µç ³»·Á°¡µç ¸ÕÀú ¼ÂÆÃÀ» ÇØ ³õ¾Æ¾ß ÇÑ´ç.
-            // ¸ÕÀú ¼ÂÆÃÀ» ÇØ ³õ´Â´Ù.
+            // Whether it goes up or down, the value has to be set first.
+            // Set it here.
             if (pAttackerMI && ModifyAlignment != 0) {
                 if (pAttackPC->isSlayer()) {
                     Slayer* pSlayer = dynamic_cast<Slayer*>(pAttackPC);
@@ -786,32 +786,32 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
                 }
             }
 
-            // ¼ºÇâÀÌ °¨¼ÒµÉ¶§ ÀÌÆåÆ®¸¦ ÅëÇÏ¿© 10¹è¸¦ ÁÙÀÎ´ÙÀ½ ¼­¼­È÷ È¸º¹½ÃÅ°´Â ¹æ¹ýÀÌ´Ù.
+            // When alignment drops it is cut tenfold, then recovered gradually by an effect.
             if (bdecrease) {
-                // ¸¸¾à ¹æ¾îÀÚÀÇ ¼±°øÀÚ ¸®½ºÆ®¿¡ ³» ÀÌ¸§ÀÌ ÀÖ´Ù¸é, °ø°ÝÀÚ´Â ³ª»Û³ÑÀÌ´Ù.
-                // ¼±°øÀÚÀÇ ¸®½ºÆ®¿¡ ÀÌ¸§ÀÌ ÀÖ´Ù´Â °ÍÀº ¾ÆÁ÷ ÀÌÆåÆ®°¡ ºÙ¾îÀÖ´Ù´Â ¾ê±âÀÌ´Ù.
-                // ¼ºÇâÀ» È¸º¹½ÃÅ°´Â ÀÌÆåÆ®´Â ÇÑ¼ø°£¿¡ ÇÏ³ª ÀÌÇÏ·Î Á¸ÀçÇÒ ¼ö ÀÖ´Ù. Áßº¹µÇÁö ¾Ê´Â´Ù.
+                // My name on the defender's aggressor list makes the attacker the bad one.
+                // Being on the aggressor list means the effect is still attached.
+                // At most one alignment recovery effect exists at a time; they do not stack.
                 EffectAlignmentRecovery* pAttackerEffect =
                     (EffectAlignmentRecovery*)pAttackEffectManager->findEffect(Effect::EFFECT_CLASS_ALIGNMENT_RECOVERY);
-                // ÀÌÆåÆ®¸¦ ¹Þ¾Æ¿Í¼­ °ªÀ» ´Ù½Ã ¼ÂÆÃÇÑ´Ù.
-                // ¾Æ¸¶µµ ¼±°øÀÚÀÇ ÀÌ¸§¿¡ ³»°¡ ÀÖÀ¸¹Ç·Î ÀÌÆåÆ®´Â ÇÊ½Ã ÀÖÀ» °ÍÀÌ´Ù.
-                // ÇÏ³ª µ¿±â°¡ ±úÁú ¼ö ÀÖ´Â »óÈ²ÀÌ ±úÁú ¼ö ÀÖÀ¸¹Ç·Î, µ¥µå¶óÀÎÀ» ¾à°£ ±æ°Ô Àâµµ·Ï ÇÑ´Ù.
+                // Fetch the effect and set its values again.
+                // The effect is certainly there, since my name is on the aggressor list.
+                // Synchronization can still break, so the deadline is set a little longer.
 
                 if (pAttackerEffect != NULL) {
-                    // ¾ó¸¶³ª È¸º¹½ÃÅ³ °Í °ÍÀÎ°¡?
+                    // How much to recover in total.
                     Alignment_t Amount = abs(ModifyAlignment / 10 * 9);
 
-                    // ¾ó¸¶¾¿ È¸º¹½ÃÅ³ °ÍÀÎ°¡? 10¾¿
+                    // How much per tick: 10.
                     Alignment_t Quantity = 10;
 
-                    // È¸º¹ ÁÖ±â´Â ¾ó¸¶ÀÎ°¡? 30ÃÊ
+                    // How long between ticks: 30 seconds.
                     int DelayProvider = 300;
 
-                    // ¸î¹ø È¸º¹½ÃÅ³ °ÍÀÎ°¡?
+                    // How many times to recover.
                     double temp = (double)((double)Amount / (double)Quantity);
                     int Period = (uint)floor(temp);
 
-                    // ´Ù È¸º¹½ÃÅ°´Âµ¥ °É¸®´Â ½Ã°£Àº ¾ó¸¶ÀÎ°¡?
+                    // How long the whole recovery takes.
                     Turn_t Deadline = Period * DelayProvider;
 
                     pAttackerEffect->setQuantity(Quantity);
@@ -819,28 +819,28 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
                     pAttackerEffect->setDeadline(Deadline);
                     pAttackerEffect->setDelay(DelayProvider);
                 } else {
-                    // ¾ø´Ù¸é ÃÖÃÊ·Î ¼±°øÇÏ´Â °ÍÀÌ´Ù »õ ÀÌÆåÆ®¸¦ »ý¼ºÇØ¼­ ºÙÀÌ°í 5ºÐ°£ Áö¼Ó µÉ °ÍÀÌ´Ù.
-                    // ¹æ¾îÀÚ¿¡°Ô »ç¶óÁö´Â ÀÌÆåÆ®¸¦ ºÙ¿©¾ß ÇÔÀ» ÀØÁö ¸»¾Æ¾ß ÇÑ´Ù.
-                    // »ç¶óÁö´Â °ÍÀº »ó´ëÀÇ ÀÌÆåÆ® ¸Þ´ÏÁ®¿¡ ¼ÓÇØÀÖ´Ù.
-                    // 30ÃÊ¸¶´Ù 10¾¿ ¼ºÇâÀ» È¸º¹½ÃÅ°´Â ÀÌÆåÆ®¸¦ °ø°ÝÀÚ¿¡°Ô ºÙÀÎ´Ù.
+                    // With no effect this is the first aggression, so a new one is attached for five minutes.
+                    // Do not forget that the defender needs the erasing effect attached too.
+                    // The erasing effect belongs to the other side's effect manager.
+                    // Attach an effect to the attacker that recovers 10 alignment every 30 seconds.
 
-                    // ¾ó¸¶³ª È¸º¹½ÃÅ³ °Í °ÍÀÎ°¡?
+                    // How much to recover in total.
                     Alignment_t Amount = abs(ModifyAlignment / 10 * 9);
 
-                    // ¾ó¸¶¾¿ È¸º¹½ÃÅ³ °ÍÀÎ°¡? 10¾¿
+                    // How much per tick: 10.
                     Alignment_t Quantity = 10;
 
-                    // È¸º¹ ÁÖ±â´Â ¾ó¸¶ÀÎ°¡? 30ÃÊ
+                    // How long between ticks: 30 seconds.
                     int DelayProvider = 300;
 
-                    // ¸î¹ø È¸º¹½ÃÅ³ °ÍÀÎ°¡?
+                    // How many times to recover.
                     double temp = (double)((double)Amount / (double)Quantity);
                     int Period = (uint)floor(temp);
 
-                    // ´Ù È¸º¹½ÃÅ°´Âµ¥ °É¸®´Â ½Ã°£Àº ¾ó¸¶ÀÎ°¡?
+                    // How long the whole recovery takes.
                     Turn_t Deadline = Period * DelayProvider;
 
-                    // ¸ÕÀú È¸º¹ ÀÌÆåÆ®¸¦ ºÙÀÎ´Ù.
+                    // Attach the recovery effect first.
                     EffectAlignmentRecovery* pEffectAlignmentRecovery = new EffectAlignmentRecovery();
 
                     pEffectAlignmentRecovery->setTarget(pAttackPC);
@@ -853,16 +853,16 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
                     pAttackEffectManager->addEffect(pEffectAlignmentRecovery);
                 }
 
-                // ¹æ¾îÀÚ¿¡°Ô ºÙ¾îÀÖ´Â ÀÌÆåÆ®ÀÇ µ¥µå¶óÀÎÀ» ´Ù½Ã ¼ÂÆÃ ÇØ ÁÖ¾î¾ß ÇÑ´Ù.
+                // The deadline of the effect on the defender has to be set again.
                 EffectEnemyErase* pDefenderEffect =
                     (EffectEnemyErase*)pTargetEffectManager->findEffect(Effect::EFFECT_CLASS_ENEMY_ERASE, AttackName);
 
                 if (pDefenderEffect != NULL) {
-                    // ¼±°øÀÚ ¸®½ºÆ®¿¡ ÀÖ´Ù´Â ¸»Àº ¼±°øÀÚ¸¦ Áö¿öÁÖ´Â ÀÌÆåÆ®°¡ ¹«Á¶°Ç ÀÖ´Ù´Â ¾ê±âÀÌ´Ù. µû¶ó¼­ NULLÀÌ µÉ
-                    // ¼ö ¾ø´Ù.
+                    // Being on the aggressor list means the effect that clears it always exists, so it
+                    // cannot be NULL.
                     Assert(pDefenderEffect != NULL);
                     Assert(pDefenderEffect->getEffectClass() == Effect::EFFECT_CLASS_ENEMY_ERASE);
-                    // 5ºÐÀ¸·Î ¼ÂÆÃ
+                    // Set to five minutes.
                     pDefenderEffect->setDeadline(36000);
                     pDefenderEffect->save(TargetName);
                 }
@@ -872,25 +872,25 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î ¹× ¹ìÆÄÀÌ¾î°¡ ¸÷À» Á×ÀÏ ¶§ ¼ºÇâÀ» ¾à°£¾¿ È¸º¹½ÃÅ²´Ù.
+// Recovers a little alignment when a Slayer or Vampire kills a monster.
 //////////////////////////////////////////////////////////////////////////////
 void increaseAlignment(Creature* pCreature, Creature* pEnemy, ModifyInfo& mi) {
     Assert(pCreature != NULL);
     Assert(pEnemy != NULL);
 
-    // PKÁ¸¿¡¼­´Â ¼ºÇâÀ» ¾È ¿Ã·ÁÁØ´Ù.
+    // Alignment is not raised in a PK zone.
     if (g_pPKZoneInfoManager->isPKZone(pCreature->getZoneID()))
         return;
 
-    // ´ÙÀÌ³ª¹Í Á¸ ¾È¿¡¼­´Â ¼ºÇâÀ» ¾È ¿Ã·ÁÁØ´Ù.
+    // Alignment is not raised inside a dynamic zone.
     if (pCreature->getZone() != NULL && pCreature->getZone()->isDynamicZone())
         return;
 
-    // ¸ó½ºÅÍ°¡ ¾ÆÁ÷ »ì¾ÆÀÖÀ» °æ¿ì¿¡´Â ¼ºÇâÀÌ º¯È­µÇÁö ¾Ê´Â´Ù.
+    // Alignment does not change while the monster is still alive.
     if (!pEnemy->isDead())
         return;
 
-    // ÀûÀÌ NPCÀÌ°Å³ª, µ¿Á·³¢¸® °ø°ÝÇÏ´Â °æ¿ì¿¡´Â ¼ºÇâÀ» Áõ°¡½ÃÅ°Áö ¾Ê´Â´Ù.
+    // Alignment is not raised when the enemy is an NPC or of the same race.
     if (pEnemy->isNPC())
         return;
     if (pCreature->isSlayer() && pEnemy->isSlayer())
@@ -906,14 +906,14 @@ void increaseAlignment(Creature* pCreature, Creature* pEnemy, ModifyInfo& mi) {
     if (pCreature->isSlayer()) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
 
-        // ÇöÀç ¼ºÇâ °ªÀ» ÀÐ¾î¿Â´Ù.
+        // Read the current alignment value.
         OldAlignValue = pSlayer->getAlignment();
 
-        // ¼ºÇâÀÌ 0ÀÌ»óÀÎ °æ¿ì¿¡´Â ¸ó½ºÅÍ¸¦ Á×¿©µµ ¼ºÇâÀÇ º¯È­°¡ ¾ø´Ù.
+        // Alignment above 0 does not change from killing a monster.
         if (OldAlignValue > 0)
             return;
 
-        // ¿Ã¶ó°¥ ¼ºÇâÀÇ ¼öÄ¡¸¦ °è»êÇÑ´Ù.
+        // Compute how much alignment to gain.
         if (pEnemy->isMonster()) {
             Monster* pMonster = dynamic_cast<Monster*>(pEnemy);
             Assert(pMonster != NULL);
@@ -931,7 +931,7 @@ void increaseAlignment(Creature* pCreature, Creature* pEnemy, ModifyInfo& mi) {
         NewAlignValue = OldAlignValue + NewAlignValue;
 
         if (OldAlignValue != NewAlignValue) {
-            // ÆÐÅ¶¿¡´Ù ¼ºÇâÀÌ ¹Ù²î¾ú´Ù°í ¾Ë·ÁÁØ´Ù.
+            // Report the alignment change in the packet.
             mi.addShortData(MODIFY_ALIGNMENT, NewAlignValue);
 
             WORD AlignmentSaveCount = pSlayer->getAlignmentSaveCount();
@@ -948,14 +948,14 @@ void increaseAlignment(Creature* pCreature, Creature* pEnemy, ModifyInfo& mi) {
     } else if (pCreature->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
 
-        // ÇöÀç ¼ºÇâ °ªÀ» ÀÐ¾î¿Â´Ù.
+        // Read the current alignment value.
         OldAlignValue = pVampire->getAlignment();
 
-        // ¼ºÇâÀÌ 0ÀÌ»óÀÎ °æ¿ì¿¡´Â ¸ó½ºÅÍ¸¦ Á×¿©µµ ¼ºÇâÀÇ º¯È­°¡ ¾ø´Ù.
+        // Alignment above 0 does not change from killing a monster.
         if (OldAlignValue > 0)
             return;
 
-        // ¿Ã¶ó°¥ ¼ºÇâÀÇ ¼öÄ¡¸¦ °è»êÇÑ´Ù.
+        // Compute how much alignment to gain.
         NewAlignValue = 0;
         if (pEnemy->isMonster()) {
             Monster* pMonster = dynamic_cast<Monster*>(pEnemy);
@@ -976,7 +976,7 @@ void increaseAlignment(Creature* pCreature, Creature* pEnemy, ModifyInfo& mi) {
         NewAlignValue = OldAlignValue + NewAlignValue;
 
         if (OldAlignValue != NewAlignValue) {
-            // ÆÐÅ¶¿¡´Ù ¼ºÇâÀÌ ¹Ù²î¾ú´Ù°í ¾Ë·ÁÁØ´Ù.
+            // Report the alignment change in the packet.
             mi.addShortData(MODIFY_ALIGNMENT, NewAlignValue);
 
             WORD AlignmentSaveCount = pVampire->getAlignmentSaveCount();
@@ -991,14 +991,14 @@ void increaseAlignment(Creature* pCreature, Creature* pEnemy, ModifyInfo& mi) {
     } else if (pCreature->isOusters()) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
 
-        // ÇöÀç ¼ºÇâ °ªÀ» ÀÐ¾î¿Â´Ù.
+        // Read the current alignment value.
         OldAlignValue = pOusters->getAlignment();
 
-        // ¼ºÇâÀÌ 0ÀÌ»óÀÎ °æ¿ì¿¡´Â ¸ó½ºÅÍ¸¦ Á×¿©µµ ¼ºÇâÀÇ º¯È­°¡ ¾ø´Ù.
+        // Alignment above 0 does not change from killing a monster.
         if (OldAlignValue > 0)
             return;
 
-        // ¿Ã¶ó°¥ ¼ºÇâÀÇ ¼öÄ¡¸¦ °è»êÇÑ´Ù.
+        // Compute how much alignment to gain.
         NewAlignValue = 0;
         if (pEnemy->isMonster()) {
             Monster* pMonster = dynamic_cast<Monster*>(pEnemy);
@@ -1019,7 +1019,7 @@ void increaseAlignment(Creature* pCreature, Creature* pEnemy, ModifyInfo& mi) {
         NewAlignValue = OldAlignValue + NewAlignValue;
 
         if (OldAlignValue != NewAlignValue) {
-            // ÆÐÅ¶¿¡´Ù ¼ºÇâÀÌ ¹Ù²î¾ú´Ù°í ¾Ë·ÁÁØ´Ù.
+            // Report the alignment change in the packet.
             mi.addShortData(MODIFY_ALIGNMENT, NewAlignValue);
 
             WORD AlignmentSaveCount = pOusters->getAlignmentSaveCount();
@@ -1033,7 +1033,7 @@ void increaseAlignment(Creature* pCreature, Creature* pEnemy, ModifyInfo& mi) {
         }
     }
 
-    // ¼ºÇâ ´Ü°è°¡ ¹Ù²î¸é ´Ù¸¥ »ç¶÷µé¿¡°Ôµµ ¾Ë·ÁÁà¾ß ÇÑ´Ù.  by sigi. 2002.1.6
+    // A change of alignment tier has to be announced to everyone else.
     Alignment beforeAlignment = de::gameContext().alignments().getAlignmentType(OldAlignValue);
     Alignment afterAlignment = de::gameContext().alignments().getAlignmentType(NewAlignValue);
 
@@ -1049,21 +1049,21 @@ void increaseAlignment(Creature* pCreature, Creature* pEnemy, ModifyInfo& mi) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ÆÄÆ¼ °ü·Ã ½½·¹ÀÌ¾î °æÇèÄ¡ °è»ê ÇÔ¼ö
+// Party-aware Slayer experience computation.
 //////////////////////////////////////////////////////////////////////////////
 void shareAttrExp(Slayer* pSlayer, Damage_t Damage, BYTE STRMultiplier, BYTE DEXMultiplier, BYTE INTMultiplier,
                   ModifyInfo& _ModifyInfo) {
     Assert(pSlayer != NULL);
 
-    // PKÁ¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ÁÖÁö ¾Ê´Â´Ù.
+    // No experience is given inside a PK zone.
     if (g_pPKZoneInfoManager->isPKZone(pSlayer->getZoneID()))
         return;
 
-    // ´ÙÀÌ³ª¹Í Á¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ÁÖÁö ¾Ê´Â´Ù.
+    // No experience is given inside a dynamic zone.
     if (pSlayer->getZone() != NULL && pSlayer->getZone()->isDynamicZone())
         return;
 
-    // À¯·áÈ­ Á¸¿¡¼­´Â °æÇèÄ¡¸¦ ´õ ¹Þ´Â´Ù.
+    // Premium play grants more experience.
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pSlayer->getPlayer());
     Assert(pGamePlayer != NULL);
 
@@ -1085,34 +1085,34 @@ void shareAttrExp(Slayer* pSlayer, Damage_t Damage, BYTE STRMultiplier, BYTE DEX
 
     int PartyID = pSlayer->getPartyID();
     if (PartyID != 0) {
-        // ÆÄÆ¼¿¡ °¡ÀÔµÇ¾î ÀÖ´Ù¸é ·ÎÄÃ ÆÄÆ¼ ¸Å´ÏÀú¸¦ ÅëÇØ
-        // ÁÖÀ§ÀÇ ÆÄÆ¼¿øµé°ú °æÇèÄ¡¸¦ °øÀ¯ÇÑ´Ù.
+        // When the player is in a party, the experience is shared with the
+        // nearby party members through the local party manager.
         LocalPartyManager* pLPM = pSlayer->getLocalPartyManager();
         Assert(pLPM != NULL);
         pLPM->shareAttrExp(PartyID, pSlayer, Damage, STRMultiplier, DEXMultiplier, INTMultiplier, _ModifyInfo);
     } else {
-        // ÆÄÆ¼¿¡ °¡ÀÔµÇ¾îÀÖÁö ¾Ê´Ù¸é È¥ÀÚ ¿Ã¶ó°£´Ù.
+        // Without a party the player gains it alone.
         divideAttrExp(pSlayer, Damage, STRMultiplier, DEXMultiplier, INTMultiplier, _ModifyInfo);
     }
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ÆÄÆ¼ °ü·Ã ¹ìÆÄÀÌ¾î °æÇèÄ¡ °è»ê ÇÔ¼ö
+// Party-aware Vampire experience computation.
 //////////////////////////////////////////////////////////////////////////////
 void shareVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
     Assert(pVampire != NULL);
     if (Point <= 0)
         return;
 
-    // PKÁ¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ¹ÞÁö ¾Ê´Â´Ù.
+    // No experience is gained inside a PK zone.
     if (g_pPKZoneInfoManager->isPKZone(pVampire->getZoneID()))
         return;
 
-    // ´ÙÀÌ³ª¹Í Á¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ¾È ¿Ã·ÁÁØ´Ù.
+    // No experience is gained inside a dynamic zone.
     if (pVampire->getZone() != NULL && pVampire->getZone()->isDynamicZone())
         return;
 
-    // À¯·áÈ­ Á¸¿¡¼­´Â °æÇèÄ¡¸¦ ´õ ¹Þ´Â´Ù.
+    // Premium play grants more experience.
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pVampire->getPlayer());
     Assert(pGamePlayer != NULL);
 
@@ -1129,34 +1129,34 @@ void shareVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
 
     int PartyID = pVampire->getPartyID();
     if (PartyID != 0) {
-        // ÆÄÆ¼¿¡ °¡ÀÔµÇ¾î ÀÖ´Ù¸é ·ÎÄÃ ÆÄÆ¼ ¸Å´ÏÀú¸¦ ÅëÇØ
-        // ÁÖÀ§ÀÇ ÆÄÆ¼¿øµé°ú °æÇèÄ¡¸¦ °øÀ¯ÇÑ´Ù.
+        // When the player is in a party, the experience is shared with the
+        // nearby party members through the local party manager.
         LocalPartyManager* pLPM = pVampire->getLocalPartyManager();
         Assert(pLPM != NULL);
         pLPM->shareVampireExp(PartyID, pVampire, Point, _ModifyInfo);
     } else {
-        // ÆÄÆ¼¿¡ °¡ÀÔµÇ¾îÀÖÁö ¾Ê´Ù¸é È¥ÀÚ ¿Ã¶ó°£´Ù.
+        // Without a party the player gains it alone.
         increaseVampExp(pVampire, Point, _ModifyInfo);
     }
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ÆÄÆ¼ °ü·Ã ¾Æ¿ì½ºÅÍ½º °æÇèÄ¡ °è»ê ÇÔ¼ö
+// Party-aware Ousters experience computation.
 //////////////////////////////////////////////////////////////////////////////
 void shareOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo) {
     Assert(pOusters != NULL);
     if (Point <= 0)
         return;
 
-    // PKÁ¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ¹ÞÁö ¾Ê´Â´Ù.
+    // No experience is gained inside a PK zone.
     if (g_pPKZoneInfoManager->isPKZone(pOusters->getZoneID()))
         return;
 
-    // ´ÙÀÌ³ª¹Í Á¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ¾È ¿Ã·ÁÁØ´Ù.
+    // No experience is gained inside a dynamic zone.
     if (pOusters->getZone() != NULL && pOusters->getZone()->isDynamicZone())
         return;
 
-    // À¯·áÈ­ Á¸¿¡¼­´Â °æÇèÄ¡¸¦ ´õ ¹Þ´Â´Ù.
+    // Premium play grants more experience.
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pOusters->getPlayer());
     Assert(pGamePlayer != NULL);
 
@@ -1170,32 +1170,32 @@ void shareOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo) {
 
     int PartyID = pOusters->getPartyID();
     if (PartyID != 0) {
-        // ÆÄÆ¼¿¡ °¡ÀÔµÇ¾î ÀÖ´Ù¸é ·ÎÄÃ ÆÄÆ¼ ¸Å´ÏÀú¸¦ ÅëÇØ
-        // ÁÖÀ§ÀÇ ÆÄÆ¼¿øµé°ú °æÇèÄ¡¸¦ °øÀ¯ÇÑ´Ù.
+        // When the player is in a party, the experience is shared with the
+        // nearby party members through the local party manager.
         LocalPartyManager* pLPM = pOusters->getLocalPartyManager();
         Assert(pLPM != NULL);
         pLPM->shareOustersExp(PartyID, pOusters, Point, _ModifyInfo);
     } else {
-        // ÆÄÆ¼¿¡ °¡ÀÔµÇ¾îÀÖÁö ¾Ê´Ù¸é È¥ÀÚ ¿Ã¶ó°£´Ù.
+        // Without a party the player gains it alone.
         increaseOustersExp(pOusters, Point, _ModifyInfo);
     }
 }
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î ´É·ÂÄ¡ (STR, DEX, INT) °æÇèÄ¡¸¦ °è»êÇÑ´Ù.
+// Computes Slayer stat (STR, DEX, INT) experience.
 //////////////////////////////////////////////////////////////////////////////
 void divideAttrExp(Slayer* pSlayer, Damage_t Damage, BYTE STRMultiplier, BYTE DEXMultiplier, BYTE INTMultiplier,
                    ModifyInfo& _ModifyInfo, int numPartyMember) {
     Assert(pSlayer != NULL);
 
-    // STR Æ÷ÀÎÆ®°¡ Á¦ÀÏ Å©´Ù.
+    // STR has the largest multiplier.
     if (STRMultiplier > DEXMultiplier && STRMultiplier > INTMultiplier) {
         pSlayer->divideAttrExp(ATTR_KIND_STR, Damage, _ModifyInfo);
-        // DEX Æ÷ÀÎÆ®°¡ Á¦ÀÏ Å©´Ù.
+        // DEX has the largest multiplier.
     } else if (DEXMultiplier > STRMultiplier && DEXMultiplier > INTMultiplier) {
         pSlayer->divideAttrExp(ATTR_KIND_DEX, Damage, _ModifyInfo);
-        // INT Æ÷ÀÎÆ®°¡ Á¦ÀÏ Å©´Ù.
+        // INT has the largest multiplier.
     } else if (INTMultiplier > STRMultiplier && INTMultiplier > DEXMultiplier) {
         pSlayer->divideAttrExp(ATTR_KIND_INT, Damage, _ModifyInfo);
     }
@@ -1204,38 +1204,36 @@ void divideAttrExp(Slayer* pSlayer, Damage_t Damage, BYTE STRMultiplier, BYTE DE
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î ±â¼ú °æÇèÄ¡¸¦ °è»êÇÑ´Ù.
+// Computes Slayer skill experience.
 //////////////////////////////////////////////////////////////////////////////
 void increaseSkillExp(Slayer* pSlayer, SkillDomainType_t DomainType, SkillSlot* pSkillSlot, SkillInfo* pSkillInfo,
                       ModifyInfo& _ModifyInfo) {
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
     Assert(pSkillInfo != NULL);
-    // Edit By Coffee 2007-4-16È¥µô¶þ×ªºó¼¼ÄÜ²»ÄÜÉý¼¶ÎÊÌâ
-    // end
 
-    // PKÁ¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ÁÖÁö ¾Ê´Â´Ù.
+    // No experience is given inside a PK zone.
     if (g_pPKZoneInfoManager->isPKZone(pSlayer->getZoneID()))
         return;
 
-    // ´ÙÀÌ³ª¹Í Á¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ÁÖÁö ¾Ê´Â´Ù.
+    // No experience is given inside a dynamic zone.
     if (pSlayer->getZone() != NULL && pSlayer->getZone()->isDynamicZone())
         return;
 
-    // ¸¸¾à NewLevelÀÌ ÇöÀçÀÇ µµ¸ÞÀÎ ·¹º§¿¡¼­ ³ÑÀ» ¼ö ¾ø´Â °æ¿ì¿¡´Â °æÇèÄ¡¸¦ ¿Ã·ÁÁÖÁö ¾Ê´Â´Ù.
+    // Experience is not raised when the new level cannot pass the current domain level.
     Level_t CurrentLevel = pSkillSlot->getExpLevel();
 
-    // ÇöÀç ½½·¹ÀÌ¾îÀÇ µµ¸ÞÀÎÀ» ¹Þ¾Æ¿Â´Ù.
+    // Read the Slayer's current domain level.
     Level_t DomainLevel = pSlayer->getSkillDomainLevel(DomainType);
 
-    // µµ¸ÞÀÎÀÇ ´Ü°è¸¦ ¹Þ¾Æ¿Â´Ù.
+    // Read the domain's grade.
     SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(DomainLevel);
 
-    // ÇöÀç ´Ü°è¿¡¼­ + 1 ÇÑ ´Ü°èÀÇ Á¦ÇÑ ·¹º§À» ¹Þ¾Æ¿Â´Ù.
+    // Read the limit level of the grade one above the current one.
     Level_t LimitLevel = g_pSkillInfoManager->getLimitLevelByDomainGrade(SkillGrade(Grade + 1));
 
     if (CurrentLevel < LimitLevel) {
-        // °æÇèÄ¡¸¦ °è»êÇÑ´Ù.
+        // Compute the experience.
         Exp_t MaxExp = pSkillInfo->getSubSkill();
         Exp_t OldExp = pSkillSlot->getExp();
         Exp_t NewExp;
@@ -1249,7 +1247,7 @@ void increaseSkillExp(Slayer* pSlayer, SkillDomainType_t DomainType, SkillSlot* 
                 plusExp *= 2;
         }
 
-        // °æÇèÄ¡ µÎ¹è
+        // Double experience.
         if (isAffectExp2X())
             plusExp *= 2;
 
@@ -1263,7 +1261,7 @@ void increaseSkillExp(Slayer* pSlayer, SkillDomainType_t DomainType, SkillSlot* 
         ulong longData = (((ulong)pSkillSlot->getSkillType()) << 16) | (ulong)(NewExp / 10);
         _ModifyInfo.addLongData(MODIFY_SKILL_EXP, longData);
 
-        // ÄüÆÄÀÌ¾î´Â ³ªÁß¿¡ DB¸¦ ¼öÁ¤ÇØ¾ß ÇÒ °ÍÀÌ´Ù.
+        // Quick fire will need a database change later.
         if (CurrentLevel != NewLevel) {
             pSkillSlot->setExpLevel(NewLevel);
             pSkillSlot->save();
@@ -1285,7 +1283,7 @@ void increaseSkillExp(Slayer* pSlayer, SkillDomainType_t DomainType, SkillSlot* 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î °è¿­ °æÇèÄ¡¸¦ °è»êÇÑ´Ù.
+// Computes Slayer domain experience.
 //////////////////////////////////////////////////////////////////////////////
 bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, ModifyInfo& _ModifyInfo,
                        Level_t EnemyLevel, int TargetNum) {
@@ -1294,11 +1292,11 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
     if (pSlayer->isAdvanced())
         return false;
 
-    // PK Á¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ÁÖÁö ¾Ê´Â´Ù.
+    // No experience is given inside a PK zone.
     if (g_pPKZoneInfoManager->isPKZone(pSlayer->getZoneID()))
         return false;
 
-    // ´ÙÀÌ³ª¹Í Á¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ÁÖÁö ¾Ê´Â´Ù.
+    // No experience is given inside a dynamic zone.
     if (pSlayer->getZone() != NULL && pSlayer->getZone()->isDynamicZone())
         return false;
 
@@ -1324,8 +1322,8 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
         Point = Point * (TargetNum + 1) / 3;
 
 
-    // ÀÌ¹Ì ÁöÁ¤µÈ domain¿¡ ¸Â´Â ¹«±â¸¦ µé°í ÀÖ´Ù°í °¡Á¤ÇÏ°í..
-    // ¹«±â type¿¡ µû¶ó¼­ SkillPoint¸¦ ´Ù¸£°Ô ÁØ´Ù.
+    // Assuming the weapon held already matches the given domain,
+    // the skill points granted vary with the weapon type.
     // by sigi. 2002.10.30
     Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
     if (pWeapon != NULL) {
@@ -1335,7 +1333,7 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
     }
 
 
-    // À¯·áÈ­ Á¸¿¡¼­´Â °æÇèÄ¡¸¦ ´õ ¹Þ´Â´Ù.
+    // Premium play grants more experience.
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pSlayer->getPlayer());
     Assert(pGamePlayer != NULL);
 
@@ -1376,14 +1374,14 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
         }
     }
 
-    // VariableManager¿¡ ÀÇÇÑ PointÁõ°¡Ä¡¸¦ °è»êÇÑ´Ù.
+    // Apply the point increase configured in VariableManager.
     if (g_pVariableManager->getExpRatio() > 100 && g_pVariableManager->getEventActivate() == 1)
         Point = getPercentValue(Point, g_pVariableManager->getExpRatio());
 
     if (pSlayer->isFlag(Effect::EFFECT_CLASS_BONUS_EXP))
         Point *= 2;
 
-    // °æÇèÄ¡ µÎ¹è
+    // Double experience.
     if (isAffectExp2X())
         Point *= 2;
 
@@ -1393,9 +1391,9 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
     Exp_t NewGoalExp = 0;
     bool availiable = false;
 
-    // ÇöÀç ·¹º§¿¡¼­ ¹è¿ï ¼ö ÀÖ´Â ±â¼úÀÌ ÀÖ´ÂÁö º»´Ù.
+    // Check whether a skill can be learned at the current level.
     if (LearnSkillType != 0) {
-        // ¹è¿ï ¼ö ÀÖ´Â ±â¼úÀÌ ÀÖ°í ÀÌ¹Ì ¹è¿î »óÅÂ¶ó¸é Domain °æÇèÄ¡¸¦ ¿Ã·ÁÁØ´Ù.
+        // Domain experience rises only when that skill is already learned.
         if (pSlayer->hasSkill(LearnSkillType)) {
             availiable = true;
         }
@@ -1406,36 +1404,36 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
     if (availiable) {
         bool isLevelUp = false;
 
-        // ½Ã°£´ë¿¡ µû¶ó ¿Ã¶ó°¡´Â °æÇèÄ¡°¡ ´Þ¶óÁø´Ù.
+        // The experience gained varies with the time of day.
         Point = (Exp_t)getPercentValue(Point, DomainExpTimebandFactor[getZoneTimeband(pSlayer->getZone())]);
 
 
-        // º¸»ó¿ë ÄÚµå
+        // Reward code.
 
-        // µµ¸ÞÀÎ ¸ñÇ¥ °æÇèÄ¡
-        // µµ¸ÞÀÎ ´©Àû °æÇèÄ¡
+        // Domain goal experience
+        // Domain accumulated experience
         Exp_t GoalExp = pSlayer->getGoalExp(Domain);
 
-        // »õ·Î¿î ¸ñÇ¥ °æÇèÄ¡
+        // New goal experience
         NewGoalExp = max(0, (int)(GoalExp - Point));
 
-        // ´©Àû °æÇèÄ¡¿¡´Â ¸ñÇ¥°æÇèÄ¡°¡ ÁÙ¾îµç ¸¸Å­ ¿Ã¶ó°¡¾ß Á¤»óÀÌ´Ù.
-        // »õ·Î¿î ´©Àû °æÇèÄ¡
+        // Accumulated experience should rise by as much as the goal experience fell.
+        // New accumulated experience
 
 
-        // ·¹º§ÀÌ ÃÖ°í¿¡ ´ÞÇÑ »ç¶÷ÀÌ¶óµµ °æÇèÄ¡´Â ½×ÀÎ´Ù.
+        // Experience accumulates even at the maximum level.
 
-        // »õ·Î¿î ¸ñÇ¥ °æÇèÄ¡ ¼ÂÆÃ
-        // »õ·Î¿î ´©Àû °æÇèÄ¡ ¼ÂÆÃ
+        // Set the new goal experience
+        // Set the new accumulated experience
         pSlayer->setGoalExp(Domain, NewGoalExp);
 
 
-        // ¸ñÇ¥ °æÇèÄ¡°¡ 0 ÀÌ¶ó¸é, ·¹º§¾÷À» ÇÒ ¼ö ÀÖ´Â »óÅÂÀÎ°¡¸¦ °Ë»çÇÑ´Ù.
+        // With the goal experience at 0, check whether a level up is possible.
         if (NewGoalExp == 0 && CurDomainLevel != SLAYER_MAX_DOMAIN_LEVEL) {
-            // µµ¸ÞÀÎ ·¹º§À» ¿Ã·ÁÁÖ°í, ±×¿¡ µû¸¥ ±â¼úÀ» ¹è¿ï ¼ö ÀÖ´Ù¸é ±â¼úÀ» ¹è¿ï ¼ö ÀÖ´Ù´Â °ÍÀ» ¾Ë·ÁÁØ´Ù.
+            // Raise the domain level and announce any skill that becomes learnable.
             NewDomainLevel = CurDomainLevel + 1;
 
-            // µµ¸ÞÀÎ ÀÎÆ÷ ¸Þ´ÏÁ®¸¦ ¸¸µé¾î¼­ ¸ñÇ¥ °æÇèÄ¡¸¦ ¼ÂÆÃÇÏ°í ·¹º§À» Àç ¼³Á¤ ÇÑ´Ù.
+            // Take the goal experience from the domain info and reset the level.
             NewGoalExp =
                 de::gameContext().skillDomains().getDomainInfo((SkillDomain)Domain, NewDomainLevel)->getGoalExp();
 
@@ -1445,12 +1443,12 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
 
             SkillType_t NewLearnSkillType = g_pSkillInfoManager->getSkillTypeByLevel(Domain, NewDomainLevel);
 
-            // ÇöÀç ·¹º§¿¡¼­ ¹è¿ï ¼ö ÀÖ´Â ±â¼úÀÌ ÀÖ´ÂÁö º»´Ù.
+            // Check whether a skill can be learned at the new level.
             if (NewLearnSkillType != 0) {
-                // ¹è¿ï ¼ö ÀÖ´Â ±â¼úÀÌ ÀÖ°í ÀÌ¹Ì ¹è¿ìÁö ¾ÊÀº »óÅÂ¶ó¸é ±â¼úÀ» ¹è¿ï ¼ö ÀÖ´Ù´Â ÆÐÅ¶À» ³¯¸°´Ù.
+                // When that skill is not learned yet, send the packet announcing it.
                 if (pSlayer->hasSkill(NewLearnSkillType) == NULL) {
-                    // GCLearnSkillReadyÀÇ m_SkillType¿¡ level upµÈ µµ¸ÞÀÎÀÇ °¡Àå ÃÖ±Ù
-                    // ±â¼úÀ» ´ëÀÔÇÑ´Ù. Áï, Å¬¶óÀÌ¾ðÆ® ±× ´ÙÀ½ ½ºÅ³À» ¹è¿ï¼ö ÀÖ´Ù...
+                    // Put the newest skill of the leveled-up domain into GCLearnSkillReady's
+                    // m_SkillType, so the client can learn the next skill.
                     GCLearnSkillReady readyPacket;
                     readyPacket.setSkillDomainType((SkillDomainType_t)Domain);
                     // send packet
@@ -1464,8 +1462,8 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
 
         Level_t DomainLevelSum = pSlayer->getSkillDomainLevelSum();
 
-        // ·¹º§¾÷ÀÌ µÇ¾úÀ» °æ¿ì, µµ¸ÞÀÎ ÃÑÇÕÀÌ 100À» ³Ñ´Â´Ù¸é ÇöÀç µµ¸ÞÀÎÀ» Á¦¿ÜÇÑ
-        // µµ¸ÞÀÎ Áß¿¡¼­ °¡Àå ³ôÀº µµ¸ÞÀÎ ·¹º§À» ¶³¾î¶ß·Á¾ß ÇÑ´Ù.
+        // On a level up, when the sum of domain levels passes the maximum, the highest
+        // domain level other than the current domain has to be lowered.
         if (isLevelUp && DomainLevelSum > SLAYER_MAX_DOMAIN_LEVEL) {
             SDomain ds[SKILL_DOMAIN_VAMPIRE];
 
@@ -1474,10 +1472,10 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
                 ds[i].DomainLevel = pSlayer->getSkillDomainLevel((SkillDomain)i);
             }
 
-            // ÇöÁ¦ µµ¸ÞÀÎÀ» Á¦¿ÜÇÑ °¡Àå Å« ¼ýÀÚ¸¦ Ã£´Â´Ù.
+            // Find the highest level excluding the current domain.
             stable_sort(ds, ds + SKILL_DOMAIN_VAMPIRE, isBig());
 
-            // ¼ÒÆÃÀ» ÇÏ°í ³­ ´ÙÀ½ Á¦ÀÏ À§¿¡ ÀÖ´Â ½ºÆ®·°ÃÄ°¡ °¡Àå ³ôÀº ·¹º§À» °¡Áö°í ÀÖ´Â µµ¸ÞÀÎÀÌ´Ù.
+            // After the sort, the first entry is the domain with the highest level.
             int j = 0;
             while (ds[j].DomainType == Domain) {
                 j++;
@@ -1487,33 +1485,33 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
                 }
             }
 
-            // °á±¹ ds[j]ÀÇ °ªÀº ÇöÀç µµ¸ÞÀÎ°ú °°Áö ¾ÊÀº °¡Àå ³ôÀº ·¹º§ÀÇ µµ¸ÞÀÎÀÌ´Ù.
+            // So ds[j] is the highest level domain that is not the current one.
             SkillDomainType_t DownDomainType = ds[j].DomainType;
             Level_t DownDomainLevel = ds[j].DomainLevel;
 
 
-            // ÇöÀç µµ¸ÞÀÎ¿¡¼­ ¹è¿ï ¼ö ÀÖ´Â ±â¼úÀÌ ÀÖ´Ù¸é Disable ½ÃÅ²´Ù.
+            // Disable the skill learnable in that domain, if there is one.
             SkillType_t eraseSkillType = g_pSkillInfoManager->getSkillTypeByLevel(DownDomainType, DownDomainLevel);
             SkillSlot* pESkillSlot = pSlayer->hasSkill(eraseSkillType);
             if (pESkillSlot != NULL) {
                 pESkillSlot->setDisable();
             }
 
-            // µµ¸ÞÀÎÀÇ ·¹º§À» ¶³¾îÆ®¸°´Ù.
+            // Lower the domain level.
             DownDomainLevel--;
 
-            // ´Ù¿î µµ¸ÞÀÎÀÇ ·¹º§À» ¼ÂÆÃÇÑ´Ù.
+            // Store the lowered domain's level.
             pSlayer->setSkillDomainLevel(DownDomainType, DownDomainLevel);
 
-            // ´Ù¿î µµ¸ÞÀÎÀÇ ¸ñÇ¥ °æÇèÄ¡¸¦ Ã£¾Æ¿Â´Ù.
-            // ´Ù¿î µµ¸ÞÀÎÀÇ ´©Àû °æÇèÄ¡¸¦ Ã£¾Æ¿Â´Ù.
+            // Look up the lowered domain's goal experience.
+            // Look up the lowered domain's accumulated experience.
             Exp_t DownDomainGoalExp = de::gameContext()
                                           .skillDomains()
                                           .getDomainInfo((SkillDomain)DownDomainType, DownDomainLevel)
                                           ->getGoalExp();
 
-            // ´Ù¿î ±×·¹ÀÌµåµÈ ¸ñÇ¥ °æÇèÄ¡·Î Àç ¼ÂÆÃÇÑ´Ù.
-            // ´Ù¿î ±×·¹ÀÌµå µÇ¾úÀ¸¹Ç·Î ±× ·¹º§¿¡ ¸Â´Â µµ¸ÞÀÎ °æÇèÄ¡¸¦ ¼ÂÆÃÇÑ´Ù.
+            // Reset it to the downgraded goal experience.
+            // After the downgrade, the domain experience matching that level is set.
             pSlayer->setGoalExp(DownDomainType, DownDomainGoalExp);
 
             StringStream DownSave;
@@ -1543,7 +1541,7 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
             } else {
             }
 
-            // ¶³¾î¶ß¸° µµ¸ÞÀÎ ·¹º§À» ¼¼ÀÌºêÇÑ´Ù.
+            // Save the lowered domain level.
             pSlayer->tinysave(DownSave.toString());
         }
 
@@ -1654,10 +1652,10 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
         } else {
         }
 
-        // GrandMasterÀÎ °æ¿ì´Â Effect¸¦ ºÙ¿©ÁØ´Ù.
+        // A grand master gets the effect attached.
         // by sigi. 2002.11.8
         if (isLevelUp && DomainLevelSum >= GRADE_GRAND_MASTER_LIMIT_LEVEL) {
-            // ÇÏ³ª°¡ 100·¾ ³Ñ°í ¾ÆÁ÷ Effect°¡ ¾È ºÙ¾îÀÖ´Ù¸é..
+            // One domain is past the grand master level and the effect is not attached yet.
             if (pSlayer->getHighestSkillDomainLevel() >= GRADE_GRAND_MASTER_LIMIT_LEVEL &&
                 !pSlayer->isFlag(Effect::EFFECT_CLASS_GRAND_MASTER_SLAYER)) {
                 EffectGrandMasterSlayer* pEffect = new EffectGrandMasterSlayer(pSlayer);
@@ -1665,7 +1663,7 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
 
                 pSlayer->getEffectManager()->addEffect(pEffect);
 
-                // affect()¾È¿¡¼­.. Flag°É¾îÁÖ°í, ÁÖÀ§¿¡ broadcastµµ ÇØÁØ´Ù.
+                // affect() sets the flag and broadcasts to the surroundings.
                 pEffect->affect();
             } else if (pSlayer->getHighestSkillDomainLevel() == 130 || pSlayer->getHighestSkillDomainLevel() == 150) {
                 Effect* pEffect = pSlayer->findEffect(Effect::EFFECT_CLASS_GRAND_MASTER_SLAYER);
@@ -1676,14 +1674,14 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
 
         pSlayer->setDomainExpSaveCount(DomainExpSaveCount);
 
-        // ¹º°¡ ·¹º§¾÷Çß´Ù¸é Ã¼·ÂÀ» Ã¼¿öÁØ´Ù.
+        // Refill health on any level up.
         if (isLevelUp) {
             SLAYER_RECORD prev;
             pSlayer->getSlayerRecord(prev);
             pSlayer->initAllStat();
             healCreatureForLevelUp(pSlayer, _ModifyInfo, &prev);
 
-            // ·¹º§¾÷ ÀÌÆåÆ®µµ º¸¿©ÁØ´Ù. by sigi. 2002.11.9
+            // Show the level up effect as well.
             sendEffectLevelUp(pSlayer);
 
             pSlayer->whenQuestLevelUpgrade();
@@ -1694,7 +1692,7 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¹ìÆÄÀÌ¾î °æÇèÄ¡¸¦ °è»êÇÑ´Ù.
+// Computes Vampire experience.
 //////////////////////////////////////////////////////////////////////////////
 void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
     Assert(pVampire != NULL);
@@ -1703,24 +1701,24 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
     if (pVampire->isAdvanced())
         return;
 
-    // ¹ÚÁã »óÅÂÀÏ¶§´Â °æÇèÄ¡¸¦ È¹µæÇÏÁö ¸øÇÑ´Ù.
+    // No experience is gained while in bat form.
     if (pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT))
         return;
 
-    // ´ÙÀÌ³ª¹Í Á¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ¾È ¿Ã·ÁÁØ´Ù.
+    // No experience is gained inside a dynamic zone.
     if (pVampire->getZone() != NULL && pVampire->getZone()->isDynamicZone())
         return;
 
     Level_t curLevel = pVampire->getLevel();
 
-    // VariableManager¿¡ ÀÇÇÑ Áõ°¡
+    // Increase configured in VariableManager.
     if (g_pVariableManager->getExpRatio() > 100 && g_pVariableManager->getEventActivate() == 1)
         Point = getPercentValue(Point, g_pVariableManager->getExpRatio());
 
     if (pVampire->isFlag(Effect::EFFECT_CLASS_BONUS_EXP))
         Point *= 2;
 
-    // °æÇèÄ¡ µÎ¹è
+    // Double experience.
     if (isAffectExp2X())
         Point *= 2;
 
@@ -1728,19 +1726,19 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
     Exp_t OldGoalExp = pVampire->getGoalExp();
     Exp_t NewGoalExp = max(0, (int)(OldGoalExp - Point));
 
-    // ´©Àû °æÇèÄ¡¿¡´Â ¸ñÇ¥ °æÇèÄ¡°¡ ÁÙ¾îµç ¸¸Å­ ÇÃ·¯½º ÇÏ¿©¾ß ÇÑ´Ù.
+    // Accumulated experience should rise by as much as the goal experience fell.
 
     pVampire->setGoalExp(NewGoalExp);
 
 
-    // ¸ñÇ¥ °æÇèÄ¡°¡ 0ÀÌ ¾Æ´Ï°Å³ª, ÇöÀç ·¹º§ÀÌ 115 ÀÌ»óÀÌ¶ó¸é °æÇèÄ¡¸¸ ÀúÀåÇÏ°í,
-    // ·¹º§Àº ¿Ã¶ó°¡Áö ¾Ê´Â´Ù.
+    // When the goal experience is not 0 or the level is already at the maximum, only the
+    // experience is stored and the level does not rise.
     if (NewGoalExp > 0 || curLevel == VAMPIRE_MAX_LEVEL) {
         _ModifyInfo.addLongData(MODIFY_VAMP_GOAL_EXP, NewGoalExp);
         WORD ExpSaveCount = pVampire->getExpSaveCount();
 
-        // °æÇèÄ¡ ¼¼ÀÌºê Ä«¿îÆ®°¡ ÀÏÁ¤ ¼öÄ¡¿¡ ´Ù´Ù¸£¸é ¼¼ÀÌºêÇÏ°í,
-        // Ä«¿îÆ®¸¦ ÃÊ±âÈ­½ÃÄÑ ÁØ´Ù.
+        // Once the experience save count reaches its threshold, save and
+        // reset the count.
         if (ExpSaveCount > VAMPIRE_EXP_SAVE_PERIOD) {
             StringStream attrsave;
             attrsave << "GoalExp = " << NewGoalExp;
@@ -1752,7 +1750,7 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
 
         pVampire->setExpSaveCount(ExpSaveCount);
     } else {
-        //  ·¹º§ ¾÷!!
+        // Level up.
         VAMPIRE_RECORD prev;
         pVampire->getVampireRecord(prev);
 
@@ -1765,8 +1763,7 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
         Bonus_t bonus = pVampire->getBonus();
 
         {
-            // ·¹º§¿¡ »ó°üÄ¡ ¾Ê°í, ¹«Á¶°Ç 3À¸·Î º¯°æµÇ¾ú´Ù.
-            // 2001.12.12 ±è¼º¹Î
+            // The bonus is always 3, regardless of level.
             bonus += 3;
         }
 
@@ -1786,13 +1783,13 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
             << ",GoalExp = " << (int)NextGoalExp << ",Bonus = " << (int)bonus;
         pVampire->tinysave(sav.toString());
 
-        // ·¹º§ÀÌ ¿Ã¶ó¼­ »õ·Î ¹è¿ï ¼ö ÀÖ´Â ±â¼úÀÌ »ý°å´Ù¸é ±â¼úÀ» ¹è¿ï ¼ö ÀÖ´Ù°í ¾Ë¸°´Ù.
+        // Announce any skill that the new level makes learnable.
         SkillType_t NewLearnSkillType = g_pSkillInfoManager->getSkillTypeByLevel(SKILL_DOMAIN_VAMPIRE, curLevel);
         if (NewLearnSkillType != 0) {
-            // ¹è¿ï ¼ö ÀÖ´Â ±â¼úÀÌ ÀÖ°í ÀÌ¹Ì ¹è¿ìÁö ¾ÊÀº »óÅÂ¶ó¸é ±â¼úÀ» ¹è¿ï ¼ö ÀÖ´Ù´Â ÆÐÅ¶À» ³¯¸°´Ù.
+            // When that skill is not learned yet, send the packet announcing it.
             if (pVampire->hasSkill(NewLearnSkillType) == NULL) {
-                // GCLearnSkillReadyÀÇ m_SkillType¿¡ level upµÈ µµ¸ÞÀÎÀÇ °¡Àå ÃÖ±Ù
-                // ±â¼úÀ» ´ëÀÔÇÑ´Ù. Áï, Å¬¶óÀÌ¾ðÆ® ±× ´ÙÀ½ ½ºÅ³À» ¹è¿ï¼ö ÀÖ´Ù...
+                // Put the newest skill of the leveled-up domain into GCLearnSkillReady's
+                // m_SkillType, so the client can learn the next skill.
                 GCLearnSkillReady readyPacket;
                 readyPacket.setSkillDomainType(SKILL_DOMAIN_VAMPIRE);
                 pVampire->getPlayer()->sendPacket(&readyPacket);
@@ -1801,13 +1798,13 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
 
         healCreatureForLevelUp(pVampire, _ModifyInfo, &prev);
 
-        // ·¹º§¾÷ ÀÌÆåÆ®µµ º¸¿©ÁØ´Ù. by sigi. 2002.11.9
+        // Show the level up effect as well.
         sendEffectLevelUp(pVampire);
 
         pVampire->whenQuestLevelUpgrade();
 
-        // GrandMasterÀÎ °æ¿ì´Â Effect¸¦ ºÙ¿©ÁØ´Ù.
-        // 100·¾ ³Ñ°í ¾ÆÁ÷ Effect°¡ ¾È ºÙ¾îÀÖ´Ù¸é..
+        // A grand master gets the effect attached.
+        // The level is past the grand master level and the effect is not attached yet.
         // by sigi. 2002.11.9
         if (curLevel >= GRADE_GRAND_MASTER_LIMIT_LEVEL &&
             !pVampire->isFlag(Effect::EFFECT_CLASS_GRAND_MASTER_VAMPIRE)) {
@@ -1816,7 +1813,7 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
 
             pVampire->getEffectManager()->addEffect(pEffect);
 
-            // affect()¾È¿¡¼­.. Flag°É¾îÁÖ°í, ÁÖÀ§¿¡ broadcastµµ ÇØÁØ´Ù.
+            // affect() sets the flag and broadcasts to the surroundings.
             pEffect->affect();
         } else if (curLevel == 130 || curLevel == 150) {
             Effect* pEffect = pVampire->findEffect(Effect::EFFECT_CLASS_GRAND_MASTER_VAMPIRE);
@@ -1827,7 +1824,7 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ¾Æ¿ì½ºÅÍ½º °æÇèÄ¡¸¦ °è»êÇÑ´Ù.
+// Computes Ousters experience.
 //////////////////////////////////////////////////////////////////////////////
 void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo) {
     Assert(pOusters != NULL);
@@ -1838,29 +1835,29 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
 
     Level_t curLevel = pOusters->getLevel();
 
-    // ´ÙÀÌ³ª¹Í Á¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ¾È ¿Ã·ÁÁØ´Ù.
+    // No experience is gained inside a dynamic zone.
     if (pOusters->getZone() != NULL && pOusters->getZone()->isDynamicZone())
         return;
 
-    // VariableManager¿¡ ÀÇÇÑ Áõ°¡
+    // Increase configured in VariableManager.
     if (g_pVariableManager->getExpRatio() > 100 && g_pVariableManager->getEventActivate() == 1)
         Point = getPercentValue(Point, g_pVariableManager->getExpRatio());
 
     if (pOusters->isFlag(Effect::EFFECT_CLASS_BONUS_EXP))
         Point *= 2;
 
-    // °æÇèÄ¡ µÎ¹è
+    // Double experience.
     if (isAffectExp2X())
         Point *= 2;
 
-    // ½Ã°£´ë¿¡ µû¶ó ¿Ã¶ó°¡´Â °æÇèÄ¡°¡ ´Þ¶óÁø´Ù.
+    // The experience gained varies with the time of day.
     Point = (Exp_t)getPercentValue(Point, DomainExpTimebandFactor[getZoneTimeband(pOusters->getZone())]);
 
 
     Exp_t OldGoalExp = pOusters->getGoalExp();
     Exp_t NewGoalExp = max(0, (int)(OldGoalExp - Point));
 
-    // ´©Àû °æÇèÄ¡¿¡´Â ¸ñÇ¥ °æÇèÄ¡°¡ ÁÙ¾îµç ¸¸Å­ ÇÃ·¯½º ÇÏ¿©¾ß ÇÑ´Ù.
+    // Accumulated experience should rise by as much as the goal experience fell.
 
     pOusters->setGoalExp(NewGoalExp);
 
@@ -1869,8 +1866,8 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
         WORD ExpSaveCount = pOusters->getExpSaveCount();
         _ModifyInfo.addLongData(MODIFY_OUSTERS_GOAL_EXP, NewGoalExp);
 
-        // °æÇèÄ¡ ¼¼ÀÌºê Ä«¿îÆ®°¡ ÀÏÁ¤ ¼öÄ¡¿¡ ´Ù´Ù¸£¸é ¼¼ÀÌºêÇÏ°í,
-        // Ä«¿îÆ®¸¦ ÃÊ±âÈ­½ÃÄÑ ÁØ´Ù.
+        // Once the experience save count reaches its threshold, save and
+        // reset the count.
         if (ExpSaveCount > OUSTERS_EXP_SAVE_PERIOD) {
             StringStream attrsave;
             attrsave << "GoalExp = " << NewGoalExp;
@@ -1882,7 +1879,7 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
 
         pOusters->setExpSaveCount(ExpSaveCount);
     } else {
-        // ·¹º§ ¾÷!!
+        // Level up.
         OUSTERS_RECORD prev;
         pOusters->getOustersRecord(prev);
 
@@ -1916,13 +1913,13 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
             << ",GoalExp = " << (int)NextGoalExp << ",Bonus = " << (int)bonus << ",SkillBonus = " << (int)skillBonus;
         pOusters->tinysave(sav.toString());
 
-        // ·¹º§ÀÌ ¿Ã¶ó¼­ »õ·Î ¹è¿ï ¼ö ÀÖ´Â ±â¼úÀÌ »ý°å´Ù¸é ±â¼úÀ» ¹è¿ï ¼ö ÀÖ´Ù°í ¾Ë¸°´Ù.
+        // Announce any skill that the new level makes learnable.
         SkillType_t NewLearnSkillType = g_pSkillInfoManager->getSkillTypeByLevel(SKILL_DOMAIN_OUSTERS, curLevel);
         if (NewLearnSkillType != 0) {
-            // ¹è¿ï ¼ö ÀÖ´Â ±â¼úÀÌ ÀÖ°í ÀÌ¹Ì ¹è¿ìÁö ¾ÊÀº »óÅÂ¶ó¸é ±â¼úÀ» ¹è¿ï ¼ö ÀÖ´Ù´Â ÆÐÅ¶À» ³¯¸°´Ù.
+            // When that skill is not learned yet, send the packet announcing it.
             if (pOusters->hasSkill(NewLearnSkillType) == NULL) {
-                // GCLearnSkillReadyÀÇ m_SkillType¿¡ level upµÈ µµ¸ÞÀÎÀÇ °¡Àå ÃÖ±Ù
-                // ±â¼úÀ» ´ëÀÔÇÑ´Ù. Áï, Å¬¶óÀÌ¾ðÆ® ±× ´ÙÀ½ ½ºÅ³À» ¹è¿ï¼ö ÀÖ´Ù...
+                // Put the newest skill of the leveled-up domain into GCLearnSkillReady's
+                // m_SkillType, so the client can learn the next skill.
                 GCLearnSkillReady readyPacket;
                 readyPacket.setSkillDomainType(SKILL_DOMAIN_OUSTERS);
                 pOusters->getPlayer()->sendPacket(&readyPacket);
@@ -1931,13 +1928,13 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
 
         healCreatureForLevelUp(pOusters, _ModifyInfo, &prev);
 
-        // ·¹º§¾÷ ÀÌÆåÆ®µµ º¸¿©ÁØ´Ù. by sigi. 2002.11.9
+        // Show the level up effect as well.
         sendEffectLevelUp(pOusters);
 
         pOusters->whenQuestLevelUpgrade();
 
-        // GrandMasterÀÎ °æ¿ì´Â Effect¸¦ ºÙ¿©ÁØ´Ù.
-        // 100·¾ ³Ñ°í ¾ÆÁ÷ Effect°¡ ¾È ºÙ¾îÀÖ´Ù¸é..
+        // A grand master gets the effect attached.
+        // The level is past the grand master level and the effect is not attached yet.
         // by sigi. 2002.11.9
         if (curLevel >= GRADE_GRAND_MASTER_LIMIT_LEVEL &&
             !pOusters->isFlag(Effect::EFFECT_CLASS_GRAND_MASTER_OUSTERS)) {
@@ -1946,7 +1943,7 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
 
             pOusters->getEffectManager()->addEffect(pEffect);
 
-            // affect()¾È¿¡¼­.. Flag°É¾îÁÖ°í, ÁÖÀ§¿¡ broadcastµµ ÇØÁØ´Ù.
+            // affect() sets the flag and broadcasts to the surroundings.
             pEffect->affect();
         } else if (curLevel == 130 || curLevel == 150) {
             Effect* pEffect = pOusters->findEffect(Effect::EFFECT_CLASS_GRAND_MASTER_OUSTERS);
@@ -1957,21 +1954,21 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ½½·¹ÀÌ¾î ¹× ¹ìÆÄÀÌ¾î ¸í¼ºÀ» °è»êÇÑ´Ù.
+// Computes Slayer and Vampire fame.
 //////////////////////////////////////////////////////////////////////////////
 void increaseFame(Creature* pCreature, uint amount) {
     if (pCreature == NULL)
         return;
 
-    // PKÁ¸ ¾È¿¡¼­´Â ¸í¼ºÀ» ¿Ã·ÁÁÖÁö ¾Ê´Â´Ù.
+    // Fame is not raised inside a PK zone.
     if (g_pPKZoneInfoManager->isPKZone(pCreature->getZoneID()))
         return;
 
-    // ´ÙÀÌ³ª¹Í Á¸¾È¿¡¼­´Â ¸í¼ºÀ» ¿Ã·ÁÁÖÁö ¾Ê´Â´Ù.
+    // Fame is not raised inside a dynamic zone.
     if (pCreature->getZone() != NULL && pCreature->getZone()->isDynamicZone())
         return;
 
-    // ·ÎÄÃ ÆÄÆ¼°¡ Á¸ÀçÇÑ´Ù¸é, ÆÄÆ¼¿øÀÇ ¼ýÀÚ¿¡ µû¶ó¼­ ¿Ã¶ó°¡´Â ¼öÄ¡°¡ º¯ÇÑ´Ù.
+    // With a local party, the amount gained varies with the number of party members.
     int PartyID = pCreature->getPartyID();
     if (PartyID != 0) {
         LocalPartyManager* pLPM = pCreature->getLocalPartyManager();
@@ -2020,7 +2017,7 @@ void increaseFame(Creature* pCreature, uint amount) {
 
             pSlayer->setFameSaveCount(FameSaveCount);
 
-            // ¼¼ÀÌºêÇÏµç ¾È ÇÏµç, ¸í¼ºÄ¡ ¼¼ÆÃÀº ÇØÁà¾ß ÇÑ´Ù.
+            // The fame value is set whether or not it is saved.
             pSlayer->setFame(NewFame);
         }
     } else if (pCreature->isVampire()) {
@@ -2042,7 +2039,7 @@ void increaseFame(Creature* pCreature, uint amount) {
 
             pVampire->setFameSaveCount(FameSaveCount);
 
-            // ¼¼ÀÌºêÇÏµç ¾È ÇÏµç, ¸í¼ºÄ¡ ¼¼ÆÃÀº ÇØÁà¾ß ÇÑ´Ù.
+            // The fame value is set whether or not it is saved.
             pVampire->setFame(NewFame);
         }
     } else if (pCreature->isOusters()) {
@@ -2064,43 +2061,43 @@ void increaseFame(Creature* pCreature, uint amount) {
 
             pOusters->setFameSaveCount(FameSaveCount);
 
-            // ¼¼ÀÌºêÇÏµç ¾È ÇÏµç, ¸í¼ºÄ¡ ¼¼ÆÃÀº ÇØÁà¾ß ÇÑ´Ù.
+            // The fame value is set whether or not it is saved.
             pOusters->setFame(NewFame);
         }
     }
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ´É·ÂÄ¡°¡ ÇÏ³ª¶óµµ »ó½ÂÇßÀ» ¶§, HP¿Í MP¸¦ ¸¸¶¥À¸·Î Ã¤¿öÁÖ´Â ÇÔ¼ö´Ù.
-// ½½·¹ÀÌ¾î¿ë -- 2002.01.14 ±è¼º¹Î
+// Fills HP and MP to full when any stat has risen.
+// For Slayers.
 //////////////////////////////////////////////////////////////////////////////
 void healCreatureForLevelUp(Slayer* pSlayer, ModifyInfo& _ModifyInfo, SLAYER_RECORD* prev) {
-    // ´É·ÂÄ¡¸¦ Àç°è»êÇÑ´Ù.
+    // Recompute the stats.
     pSlayer->initAllStat();
 
-    // ´É·ÂÄ¡°¡ »ó½ÂÇßÀ¸´Ï ¹«¾ð°¡ ºÎ°¡ÀûÀÎ ´É·ÂÄ¡°¡ º¯ÇßÀ¸¹Ç·Î º¸³»ÁØ´Ù.
+    // Stats rose, so the derived values changed and are sent out.
     pSlayer->sendRealWearingInfo();
     pSlayer->addModifyInfo(*prev, _ModifyInfo);
 
     if (pSlayer->isDead())
         return;
 
-    // ´É·ÂÄ¡°¡ ÇÏ³ª¶óµµ »ó½ÂÇß´Ù¸é HP¿Í MP¸¦ ¸¸¶¥À¸·Î Ã¤¿öÁØ´Ù.
+    // Fill HP and MP to full when any stat has risen.
     HP_t OldHP = pSlayer->getHP(ATTR_CURRENT);
     HP_t OldMP = pSlayer->getMP(ATTR_CURRENT);
 
-    // ¸¸¶¥ Ã¤¿ì±â...
+    // Fill to full.
     pSlayer->setHP(pSlayer->getHP(ATTR_MAX), ATTR_CURRENT);
     pSlayer->setMP(pSlayer->getMP(ATTR_MAX), ATTR_CURRENT);
 
     HP_t NewHP = pSlayer->getHP(ATTR_CURRENT);
     HP_t NewMP = pSlayer->getMP(ATTR_CURRENT);
 
-    // HP°¡ ¹Ù²î¾ú´Ù¸é...
+    // HP changed.
     if (OldHP != NewHP) {
         _ModifyInfo.addShortData(MODIFY_CURRENT_HP, NewHP);
 
-        // ¹Ù²ï Ã¼·ÂÀ» ÁÖÀ§¿¡ ºê·ÎµåÄ³½ºÆÃÇØÁØ´Ù.
+        // Broadcast the new health to the surroundings.
         GCStatusCurrentHP gcStatusCurrentHP;
         gcStatusCurrentHP.setObjectID(pSlayer->getObjectID());
         gcStatusCurrentHP.setCurrentHP(NewHP);
@@ -2109,21 +2106,20 @@ void healCreatureForLevelUp(Slayer* pSlayer, ModifyInfo& _ModifyInfo, SLAYER_REC
         pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &gcStatusCurrentHP, pSlayer);
     }
 
-    // MP°¡ ¹Ù²î¾ú´Ù¸é...
+    // MP changed.
     if (OldMP != NewMP) {
         _ModifyInfo.addShortData(MODIFY_CURRENT_MP, NewMP);
     }
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ´É·ÂÄ¡°¡ »ó½ÂÇßÀ» ¶§, HP¸¦ ¸¸¶¥À¸·Î Ã¤¿öÁÖ´Â ÇÔ¼ö´Ù. ¹ìÆÄÀÌ¾î¿ë
-// -- 2002.01.14 ±è¼º¹Î
+// Fills HP to full when stats have risen. For Vampires.
 //////////////////////////////////////////////////////////////////////////////
 void healCreatureForLevelUp(Vampire* pVampire, ModifyInfo& _ModifyInfo, VAMPIRE_RECORD* prev) {
-    // ´É·ÂÄ¡¸¦ Àç°è»êÇÑ´Ù.
+    // Recompute the stats.
     pVampire->initAllStat();
 
-    // ´É·ÂÄ¡°¡ »ó½ÂÇßÀ¸´Ï ¹«¾ð°¡ ºÎ°¡ÀûÀÎ ´É·ÂÄ¡°¡ º¯ÇßÀ¸¹Ç·Î º¸³»ÁØ´Ù.
+    // Stats rose, so the derived values changed and are sent out.
     pVampire->sendRealWearingInfo();
     pVampire->addModifyInfo(*prev, _ModifyInfo);
 
@@ -2132,16 +2128,16 @@ void healCreatureForLevelUp(Vampire* pVampire, ModifyInfo& _ModifyInfo, VAMPIRE_
 
     HP_t OldHP = pVampire->getHP(ATTR_CURRENT);
 
-    // ¸¸¶¥ Ã¤¿ì±â...
+    // Fill to full.
     pVampire->setHP(pVampire->getHP(ATTR_MAX), ATTR_CURRENT);
 
     HP_t NewHP = pVampire->getHP(ATTR_CURRENT);
 
-    // HP°¡ ¹Ù²î¾ú´Ù¸é...
+    // HP changed.
     if (OldHP != NewHP) {
         _ModifyInfo.addShortData(MODIFY_CURRENT_HP, NewHP);
 
-        // ¹Ù²ï Ã¼·ÂÀ» ÁÖÀ§¿¡ ºê·ÎµåÄ³½ºÆÃÇØÁØ´Ù.
+        // Broadcast the new health to the surroundings.
         GCStatusCurrentHP gcStatusCurrentHP;
         gcStatusCurrentHP.setObjectID(pVampire->getObjectID());
         gcStatusCurrentHP.setCurrentHP(NewHP);
@@ -2152,14 +2148,14 @@ void healCreatureForLevelUp(Vampire* pVampire, ModifyInfo& _ModifyInfo, VAMPIRE_
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ´É·ÂÄ¡°¡ »ó½ÂÇßÀ» ¶§, HP, MP¸¦ ¸¸¶¥À¸·Î Ã¤¿öÁÖ´Â ÇÔ¼ö´Ù. ¾Æ¿ì½ºÅÍ½º¿ë
+// Fills HP and MP to full when stats have risen. For Ousters.
 // -- 2003.04.19 by bezz
 //////////////////////////////////////////////////////////////////////////////
 void healCreatureForLevelUp(Ousters* pOusters, ModifyInfo& _ModifyInfo, OUSTERS_RECORD* prev) {
-    // ´É·ÂÄ¡¸¦ Àç°è»êÇÑ´Ù.
+    // Recompute the stats.
     pOusters->initAllStat();
 
-    // ´É·ÂÄ¡°¡ »ó½ÂÇßÀ¸´Ï ¹«¾ð°¡ ºÎ°¡ÀûÀÎ ´É·ÂÄ¡°¡ º¯ÇßÀ¸¹Ç·Î º¸³»ÁØ´Ù.
+    // Stats rose, so the derived values changed and are sent out.
     pOusters->sendRealWearingInfo();
     pOusters->addModifyInfo(*prev, _ModifyInfo);
 
@@ -2169,18 +2165,18 @@ void healCreatureForLevelUp(Ousters* pOusters, ModifyInfo& _ModifyInfo, OUSTERS_
     HP_t OldHP = pOusters->getHP(ATTR_CURRENT);
     MP_t OldMP = pOusters->getMP(ATTR_CURRENT);
 
-    // ¸¸¶¥ Ã¤¿ì±â...
+    // Fill to full.
     pOusters->setHP(pOusters->getHP(ATTR_MAX), ATTR_CURRENT);
     pOusters->setMP(pOusters->getMP(ATTR_MAX), ATTR_CURRENT);
 
     HP_t NewHP = pOusters->getHP(ATTR_CURRENT);
     MP_t NewMP = pOusters->getMP(ATTR_CURRENT);
 
-    // HP°¡ ¹Ù²î¾ú´Ù¸é...
+    // HP changed.
     if (OldHP != NewHP) {
         _ModifyInfo.addShortData(MODIFY_CURRENT_HP, NewHP);
 
-        // ¹Ù²ï Ã¼·ÂÀ» ÁÖÀ§¿¡ ºê·ÎµåÄ³½ºÆÃÇØÁØ´Ù.
+        // Broadcast the new health to the surroundings.
         GCStatusCurrentHP gcStatusCurrentHP;
         gcStatusCurrentHP.setObjectID(pOusters->getObjectID());
         gcStatusCurrentHP.setCurrentHP(NewHP);

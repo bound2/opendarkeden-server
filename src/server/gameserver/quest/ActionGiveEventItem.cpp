@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : ActionGiveEventItem.cpp
-// Written By  : 장홍창
 // Description :
 ////////////////////////////////////////////////////////////////////////////////
 #include "ActionGiveEventItem.h"
@@ -89,7 +88,7 @@ void ActionGiveEventItem::read(PropertyBuffer& propertyBuffer)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionGiveEventItem::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -122,7 +121,7 @@ void ActionGiveEventItem::execute(Creature* pCreature1, Creature* pCreature2)
 
     Item* pItem;
 
-    // 이벤트 진행 기간이 아닌 경우
+    // Outside the event period.
     if (!g_pVariableManager->isActiveGiveEventItem()) {
         GCNPCResponse response;
         response.setCode(NPC_RESPONSE_GIVE_EVENT_ITEM_FAIL_NOW);
@@ -135,9 +134,9 @@ void ActionGiveEventItem::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    // 이 값과 관련해서
-    // 캐릭터 생성시에 FlagSet을 바꿔줘야한다. (default ON 으로)
-    // 이미 선물을 교환해 갔다면
+    // For this value the FlagSet must be set up at character creation
+    // (default ON).
+    // The gift has already been exchanged.
     if (pFlagSet->isOn(m_FlagSetType)) {
         GCNPCResponse response;
         response.setCode(NPC_RESPONSE_GIVE_EVENT_ITEM_FAIL);
@@ -154,7 +153,7 @@ void ActionGiveEventItem::execute(Creature* pCreature1, Creature* pCreature2)
     string luaFileName;
 
     if (pPC->isSlayer()) {
-        // 루아에 슬레이어 능력치의 합을 set한다.
+        // Set the sum of the Slayer's stats in Lua.
         Slayer* pSlayer = dynamic_cast<Slayer*>(pPC);
         Assert(pSlayer != NULL);
 
@@ -165,7 +164,7 @@ void ActionGiveEventItem::execute(Creature* pCreature1, Creature* pCreature2)
         luaFileName = m_SlayerFilename;
 
     } else if (pPC->isVampire()) {
-        // 루아에 뱀파이어의 레벨을 set한다.
+        // Set the Vampire's level in Lua.
         Vampire* pVampire = dynamic_cast<Vampire*>(pPC);
         Assert(pVampire != NULL);
 
@@ -176,11 +175,11 @@ void ActionGiveEventItem::execute(Creature* pCreature1, Creature* pCreature2)
     }
 
     //--------------------------------------------------------
-    // 속도 체크를 위해서 1000번 돌려보는 코드
-    // 결과는.. 0.07초 정도 나왔다. 감덩~ -_-;
+    // Code that ran this 1000 times to check the speed.
+    // The result was about 0.07 seconds.
     //--------------------------------------------------------
 
-    // 루아의 계산 결과를 받아 아이템을 생성한다.
+    // Create the item from the result Lua computes.
     pLuaSelectItem->prepare();
 
     int result = pLuaSelectItem->executeFile(luaFileName);
@@ -207,7 +206,7 @@ void ActionGiveEventItem::execute(Creature* pCreature1, Creature* pCreature2)
         return;
     }
 
-    // 선물(Item)을 만든다.
+    // Build the gift item.
     list<OptionType_t> optionTypeList;
     if (OptionType != 0)
         optionTypeList.push_back(OptionType);
@@ -235,12 +234,12 @@ void ActionGiveEventItem::execute(Creature* pCreature1, Creature* pCreature2)
     CoordInven_t X = pt.x;
     CoordInven_t Y = pt.y;
 
-    // 선물을 인벤토리에 추가한다.
+    // Add the gift to the inventory.
     pZone->getObjectRegistry().registerObject(pItem);
     pInventory->addItem(X, Y, pItem);
     pItem->create(pPC->getName(), STORAGE_INVENTORY, 0, X, Y);
 
-    // ItemTraceLog 를 남긴다
+    // Leave an ItemTraceLog.
     if (pItem != NULL && pItem->isTraceItem()) {
         remainTraceLog(pItem, pCreature1->getName(), pCreature2->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
 
@@ -248,18 +247,18 @@ void ActionGiveEventItem::execute(Creature* pCreature1, Creature* pCreature2)
                           pCreature1->getX(), pCreature1->getY());
     }
 
-    // 클라이언트에 선물이 추가되었음을 알린다.
+    // Tell the client the gift was added.
     GCCreateItem gcCreateItem;
     makeGCCreateItem(&gcCreateItem, pItem, X, Y);
     pPlayer->sendPacket(&gcCreateItem);
 
-    // Flag을 켠다.
+    // Turn the flag on.
     pFlagSet->turnOn(m_FlagSetType);
 
-    // Flag을 저장한다.
+    // Save the flag.
     pFlagSet->save(pPC->getName());
 
-    // 아이템 교환이 이루어 졌다고 클라이언트에 알린다.
+    // Tell the client the item exchange took place.
     GCNPCResponse response;
     response.setCode(NPC_RESPONSE_GIVE_EVENT_ITEM_OK);
     pPlayer->sendPacket(&response);

@@ -42,7 +42,7 @@ void ActionWanderZone::read(PropertyBuffer& propertyBuffer)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionWanderZone::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -62,7 +62,7 @@ void ActionWanderZone::execute(Creature* pCreature1, Creature* pCreature2)
     const int right = pZone->getWidth() - 5;
     const int bottom = pZone->getHeight() - 5;
 
-    // 이번 턴에 움직일 것인지 체크한다.
+    // Check whether to move on this turn.
     uint diceResult = Dice(1, 100);
 
     if (diceResult < m_MovePercentage) {
@@ -73,14 +73,14 @@ void ActionWanderZone::execute(Creature* pCreature1, Creature* pCreature2)
         ZoneCoord_t nx = 0;
         ZoneCoord_t ny = 0;
 
-        // 움직이기로 했다면, 어느 방향으로 움직일 것인지 체크한다.
-        // 일단 갈 수 있는 방향의 목록부터 작성한다.
+        // If it moves, check which direction it moves in.
+        // First build the list of directions it can go.
         for (uint i = 0; i < 8; i++) {
             nx = cx + d[i].x;
             ny = cy + d[i].y;
 
-            // 다음 도착 지점은 (x,y,r) 영역 안에 존재하면서,
-            // NPC가 움직일 수 있는 - 블락되지 않은 - 타일이어야 한다.
+            // The next destination must lie inside the (x,y,r) area and be a tile
+            // the NPC can move onto, that is, one that is not blocked.
             if (pCreature1->canMove(nx, ny) && (nx >= left && nx <= right) && (ny >= top && ny <= bottom)) {
                 movableDir[i] = true;
                 movableDirCount++;
@@ -89,8 +89,8 @@ void ActionWanderZone::execute(Creature* pCreature1, Creature* pCreature2)
             }
         }
 
-        // 만약 현재 위치에서 움직일 수 없다면, 정지한다.
-        // 움직일 수 있다면.. 움직인다.
+        // If it cannot move from the current position, it stays put.
+        // If it can move, it moves.
         if (movableDirCount > 0) {
             Dir_t nextDir = pCreature1->getDir();
             bool changeDir = false;
@@ -105,7 +105,7 @@ void ActionWanderZone::execute(Creature* pCreature1, Creature* pCreature2)
             if (changeDir) {
                 uint j = rand() % movableDirCount + 1;
 
-                uint k = 0; // movableDir[l] == true 인 방향의 인덱스
+                uint k = 0; // Index of the direction among those with movableDir[l] == true
                 for (uint l = 0; l < 8; l++) {
                     if (movableDir[l] && ++k == j) {
                         nextDir = l;

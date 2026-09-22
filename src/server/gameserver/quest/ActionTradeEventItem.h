@@ -34,7 +34,7 @@ public:
     }
 
 private:
-    int m_GoalAmount; // 받을 축구공의 수
+    int m_GoalAmount; // Number of soccer balls to receive
 };
 
 

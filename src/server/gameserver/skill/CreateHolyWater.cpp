@@ -34,8 +34,8 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
         Assert(pZone != NULL);
         Assert(pInventory != NULL);
 
-        // 성수를 만들 대상이 널이거나, 보통 물이 아니거나,
-        // OID가 틀리다면 사용할 수 없다.
+        // The item cannot be used if it is null, is not plain water,
+        // or the object id does not match.
         Item* pWater = pInventory->getItem(X, Y);
         if (pWater == NULL || pWater->getItemClass() != Item::ITEM_CLASS_WATER ||
             pWater->getObjectID() != InvenObjectID) {
@@ -47,11 +47,11 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
         if (X == TargetX && Y == TargetY)
             bSamePosition = true;
 
-        // 대상 위치와 타겟 위치가 같게 날아오는 경우는
-        // 성수로 변환하고자 하는 물병의 숫자가 1인 경우이다.
-        // (이전의 물병을 삭제하고, 같은 위치에 성수를 생성한다는 의미이다.)
-        // 1이 아니라면 리턴해야한다.
-        // 이제 한개씩만 아니라 물병이 몽땅 다 바뀌므로 체크할 필요 없다.
+        // The source and target positions are the same only when the
+        // bottle stack being converted into holy water holds exactly one item.
+        // (The old bottle is deleted and the holy water is created in the same slot.)
+        // If the count is not 1, return.
+        // The whole stack converts at once, so this count check is not needed.
 
         GCSkillToInventoryOK1 _GCSkillToInventoryOK1;
         GCSkillToInventoryOK2 _GCSkillToInventoryOK2;
@@ -77,28 +77,28 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
             SkillOutput output;
             computeOutput(input, output);
 
-            // 원래 보통 물의 ItemType을 이용해 홀리워터를 생성한다.
-            // 이는 Water와 HolyWater의 ItemType이 1:1 대응이 되기 때문에
-            // 가능한 코드이다.
+            // Create the holy water from the plain water's item type.
+            // This works because the Water and HolyWater item types correspond
+            // one to one.
             list<OptionType_t> optionNULL;
             Item* pHolyWater = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_HOLYWATER, waterType, optionNULL);
-            // 이제 개수도 세팅해준다.
+            // Sets the count as well.
             pHolyWater->setNum(pWater->getNum());
 
-            // 물병의 갯수를 줄여준다.
-            // 이 함수 안에서 물병의 갯수가 자동적으로 하나 줄어들고,
-            // 만일 1개인 물병이었다면 인벤토리 및 DB에서 삭제되게 된다.
-            // 이제 몇개든 상관없이 몽땅 바꿔버린다.
+            // Decrease the bottle count.
+            // Inside this function the bottle count drops by one automatically,
+            // and a last remaining bottle is deleted from the inventory and the DB.
+            // Converts the whole stack, however many there are.
             pInventory->deleteItem(X, Y);
             pWater->destroy();
             SAFE_DELETE(pWater);
 
             Item* pPrevHolyWater = pInventory->getItem(TargetX, TargetY);
 
-            // 기존의 성수 객체가 있다는 말은 쌓아야 한다는 말이다.
+            // An existing holy water object in the slot means the new one is stacked onto it.
             if (pPrevHolyWater != NULL) {
                 if (canStack(pPrevHolyWater, pHolyWater) == false) {
-                    // 같은 타입의 성수가 아닐 때인데... 이런 경우가 어떻게 하면 생길까...
+                    // The existing holy water is of a different type; not expected to happen.
                     SAFE_DELETE(pHolyWater);
 
                     executeSkillFailException(pSlayer, getSkillType());
@@ -106,32 +106,32 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
                     return;
                 }
 
-                // 갯수를 하나 증가시키고 저장한다.
+                // Increase the count by one and save.
                 pPrevHolyWater->setNum(pPrevHolyWater->getNum() + pHolyWater->getNum());
                 pPrevHolyWater->save(pSlayer->getName(), STORAGE_INVENTORY, 0, TargetX, TargetY);
 
-                // 위부분의 decreaseItemNum() 함수 부분에서 아이템 숫자를 감소시키므로,
-                // 여기서 다시 인벤토리의 아이템 숫자를 증가시킨다.
+                // The decreaseItemNum() call above decreased the item count, so the
+                // inventory item count is increased again here.
                 pInventory->increaseNum(pHolyWater->getNum());
 
-                // 방금 만들어진 성수는 기존의 성수에 더해졌으므로 삭제한다.
+                // The newly created holy water was merged into the existing one, so delete it.
                 SAFE_DELETE(pHolyWater);
 
                 _GCSkillToInventoryOK1.setObjectID(pPrevHolyWater->getObjectID());
             }
-            // 기존의 성수 객체가 없다는 말은 성수 객체를 DB에 생성해야 한다는 말이다.
+            // No existing holy water object means it must be created in the DB.
             else {
                 ObjectRegistry& OR = pZone->getObjectRegistry();
                 OR.registerObject(pHolyWater);
 
-                // 성수를 Inventory로 집어 넣고 DB에다가 생성한다.
+                // Put the holy water into the inventory and create it in the DB.
                 pInventory->addItem(TargetX, TargetY, pHolyWater);
                 pHolyWater->create(pSlayer->getName(), STORAGE_INVENTORY, 0, TargetX, TargetY);
 
                 _GCSkillToInventoryOK1.setObjectID(pHolyWater->getObjectID());
             }
 
-            // 패킷을 보낸다.
+            // Send the packet.
             _GCSkillToInventoryOK1.setSkillType(SkillType);
             _GCSkillToInventoryOK1.setItemType(waterType);
             _GCSkillToInventoryOK1.setCEffectID(0);
@@ -153,12 +153,11 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
 
             pSkillSlot->setRunTime(output.Delay);
         } else {
-            //  성수 만들기 같은 경우에는, 실패했을 때 딜레이가 없기 때문에,
-            //  클라이언트에게서 패킷이 상당히 빠르게 연속적으로 날아온다.
-            //  이 때, 실패 패킷을 브로드 캐스팅하게 되면, 옆에 있는 사람이 보기에는
-            //  캐스팅 동작이 매우 빠르게 연속적으로 표시된다. (스피드핵 쓰는 것처럼...)
-            //  그래서 이 부분에서 브로드캐스팅을 하지 않고, 본인에게만 패킷을 날려준다.
-            //  2002-02-06 김성민
+            //  Making holy water has no delay on failure, so the client sends packets in
+            //  very rapid succession. Broadcasting the failure packet would make
+            //  bystanders see the casting animation repeat extremely fast, as if a
+            //  speed hack were in use. So nothing is broadcast here and the packet
+            //  goes only to the caster.
             executeSkillFailException(pSlayer, getSkillType());
         }
     } catch (Throwable& t) {
@@ -176,24 +175,24 @@ bool CreateHolyWater::canMake(ItemType_t WaterType, int DomainLevel, int SkillLe
     SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(DomainLevel);
     int ratio = 0;
 
-    // 도메인 레벨에 따라 만들 수 있는 성수의 크기에 제한이 있다.
-    // 그런데 도메인 레벨이 마스터 이상일 경우에는 패널티가 없어야 하는데,
-    // 이는 어떻게 처리할 수 있을까?
+    // The domain level limits the size of holy water that can be made.
+    // A domain level of master or above should carry no penalty, but that is
+    // not handled.
     if (WaterType == 2 && Grade >= SKILL_GRADE_EXPERT) {
-        // 엑스퍼트 이상은 되어야 라지 홀리 워터를 만들 수 있다.
+        // Expert or above is required to make large holy water.
         rvalue = true;
         ratio = 50 + SkillLevel - 50;
     } else if (WaterType == 1 && Grade >= SKILL_GRADE_ADEPT) {
-        // 어뎁트 이상은 되어야 미디엄 홀리 워터를 만들 수 잇다.
+        // Adept or above is required to make medium holy water.
         rvalue = true;
         ratio = 50 + SkillLevel - 30;
     } else if (WaterType == 0 && Grade >= SKILL_GRADE_APPRENTICE) {
-        // 어프렌티스 이상은 되어야 스몰 홀리 워터를 만들 수 있다.
+        // Apprentice or above is required to make small holy water.
         rvalue = true;
         ratio = 50 + SkillLevel - 10;
     }
 
-    // 일단 만들 수 있는 확률이 있다면 확률 체크를 한다.
+    // If it can be made at all, roll the chance.
     if (rvalue) {
         if ((rand() % 100) < ratio)
             return true;

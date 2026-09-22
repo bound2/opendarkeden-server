@@ -34,7 +34,7 @@ void ActionSetPosition::read(PropertyBuffer& propertyBuffer)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionSetPosition::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -47,15 +47,15 @@ void ActionSetPosition::execute(Creature* pCreature1, Creature* pCreature2)
         Assert(!pCreature1->isPC());
 
         ////////////////////////////////////////////////////////////////////////////////
-        // 크리처의 존을 지정한다.
-        // 내부에서 ZoneInfoManager, ZoneGroupManager 를
-        // 검색해서 적절하게 존 포인터를 지정해준다.
+        // Set the creature's zone.
+        // Internally this searches the ZoneInfoManager and ZoneGroupManager
+        // and sets the proper zone pointer.
         ////////////////////////////////////////////////////////////////////////////////
         pCreature1->setZoneID(m_ZoneID);
 
         ////////////////////////////////////////////////////////////////////////////////
-        // 존에 크리처를 추가한다.
-        // 내부에서 크리처의 좌표, 방향을 지정해준다.
+        // Add the creature to the zone.
+        // Internally this sets the creature's coordinates and direction.
         ////////////////////////////////////////////////////////////////////////////////
         Zone* pZone = pCreature1->getZone();
         Assert(pZone != NULL);

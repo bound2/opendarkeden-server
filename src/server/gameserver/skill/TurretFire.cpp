@@ -27,10 +27,10 @@ void TurretFire::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
 
     bool bBulletCheck = (getRemainBullet(pWeapon) > 0) ? true : false;
 
-    // 총알 숫자는 무조건 떨어뜨린다.
+    // The bullet count always goes down.
     Bullet_t RemainBullet = 0;
     if (bBulletCheck) {
-        // 총알 숫자를 떨어뜨리고, 저장하고, 남은 총알 숫자를 받아온다.
+        // Lowers the bullet count, stores it and reads back the remaining count.
         decreaseBullet(pWeapon);
         RemainBullet = getRemainBullet(pWeapon);
     } else {
@@ -56,7 +56,7 @@ void TurretFire::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // 목표위치+4방향
+    // The target tile and the area around it.
     param.addMask(0, 0, 100);
     param.addMask(-1, -1, 100);
     param.addMask(0, -1, 100);
@@ -73,7 +73,7 @@ void TurretFire::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void TurretFire::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 

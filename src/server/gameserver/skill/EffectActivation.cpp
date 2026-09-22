@@ -16,7 +16,7 @@ EffectActivation::EffectActivation(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // 디텍트 히든은 슬레이어만이 쓸 수 있다.
+    // Only a Slayer can use this effect.
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
 
@@ -54,13 +54,13 @@ void EffectActivation::unaffect(Creature* pCreature)
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
 
-    // 플래그를 제거한다.
+    // Removes the flag.
     pCreature->removeFlag(Effect::EFFECT_CLASS_ACTIVATION);
 
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 이펙트가 사라졌다고 알려준다.
+    // Tells clients that the effect is gone.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_ACTIVATION);

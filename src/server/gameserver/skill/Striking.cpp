@@ -16,7 +16,7 @@
 #include "GCSkillToSelfOK2.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void Striking::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -35,8 +35,8 @@ void Striking::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // 슬레이어 외에는 걸 수 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // Can only be cast on a Slayer.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || pTargetCreature->isSlayer() == false) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -71,7 +71,7 @@ void Striking::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 오브젝트를 생성해서 붙인다.
+            // Create the effect object and attach it.
             EffectStriking* pEffect = new EffectStriking(pTargetSlayer);
             pEffect->setDeadline(output.Duration);
             pEffect->setTargetItem(pItem);
@@ -79,14 +79,14 @@ void Striking::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
             pTargetSlayer->setFlag(Effect::EFFECT_CLASS_STRIKING);
             pTargetSlayer->addEffect(pEffect);
 
-            // 이펙트를 붙였으니 계산을 새로 한다.
+            // The effect is attached, so recalculate the stats.
             SLAYER_RECORD prev;
             pTargetSlayer->getSlayerRecord(prev);
             pTargetSlayer->initAllStat();
             pTargetSlayer->sendRealWearingInfo();
             pTargetSlayer->addModifyInfo(prev, _GCSkillToObjectOK2);
 
-            // 경험치를 올린다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToObjectOK1);
@@ -153,7 +153,7 @@ void Striking::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void Striking::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -198,7 +198,7 @@ void Striking::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 오브젝트를 생성해서 붙인다.
+            // Create the effect object and attach it.
             EffectStriking* pEffect = new EffectStriking(pSlayer);
             pEffect->setDeadline(output.Duration);
             pEffect->setDamageBonus(output.Damage);
@@ -206,21 +206,21 @@ void Striking::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
             pSlayer->setFlag(Effect::EFFECT_CLASS_STRIKING);
             pSlayer->addEffect(pEffect);
 
-            // 이펙트를 붙였으니 계산을 새로 한다.
+            // The effect is attached, so recalculate the stats.
             SLAYER_RECORD prev;
             pSlayer->getSlayerRecord(prev);
             pSlayer->initAllStat();
             pSlayer->sendRealWearingInfo();
             pSlayer->addModifyInfo(prev, _GCSkillToSelfOK1);
 
-            // 경험치를 올린다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToSelfOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
 
-            // 패킷을 날린다.
+            // Send the packet.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(0);

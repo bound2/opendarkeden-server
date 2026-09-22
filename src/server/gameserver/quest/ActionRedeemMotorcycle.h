@@ -2,8 +2,8 @@
 // Filename    : ActionRedeemMotorcycle.h
 // Written By  :
 // Description :
-// 플레이어가 게임에 들어왔을 때, 오토바이가 어디 있건, 플레이어의 앞에
-// 오토바이 객체를 생성해 주는 역할을 한다.
+// When a player enters the game, creates a motorcycle object in front of the
+// player, wherever the motorcycle actually is.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_REDEEM_MOTORCYCLE_H__

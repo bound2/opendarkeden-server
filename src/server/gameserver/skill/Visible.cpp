@@ -34,17 +34,17 @@ void Visible::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* 
     Assert(pSkillSlot != NULL);
 
     try {
-        // Player를 받아온다.
+        // Gets the player.
         Player* pPlayer = pSlayer->getPlayer();
 
-        // Zone을 받아온다.
+        // Gets the zone.
         Zone* pZone = pSlayer->getZone();
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
 
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // 기술의 레벨을 받아온다.
+        // Gets the skill level.
 
 
         VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);
@@ -55,7 +55,7 @@ void Visible::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* 
         bool bRangeCheck = verifyDistance(pSlayer, X, Y, pSkillInfo->getRange());
         bool bHit = false;
 
-        // 기술성공률 검증.
+        // Verify the skill success rate.
         if (bManaCheck && bTimeCheck && bRangeCheck) {
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
@@ -91,8 +91,8 @@ void Visible::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* 
                             bool bEffected = pTargetCreature->isFlag(Effect::EFFECT_CLASS_INVISIBILITY);
 
                             if (bHitRoll && bEffected) {
-                                // 주위에 GCAddXXX를 보내고, effect manager에서 effect를 삭제하고, GCRemoveEffect를
-                                // 보낸다.
+                                // Sends GCAddXXX around, deletes the effect from the effect manager, and
+                                // sends GCRemoveEffect.
                                 addVisibleCreature(pZone, pTargetCreature, true);
 
                                 _GCSkillToTileOK2.setObjectID(pSlayer->getObjectID());
@@ -187,10 +187,10 @@ void Visible::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
     Assert(pSkillSlot != NULL);
 
     try {
-        // Player를 받아온다.
+        // Gets the player.
         Player* pPlayer = pSlayer->getPlayer();
 
-        // Zone을 받아온다.
+        // Gets the zone.
         Zone* pZone = pSlayer->getZone();
 
         Creature* pTargetCreature = NULL;
@@ -208,7 +208,7 @@ void Visible::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // 기술의 레벨을 받아온다.
+        // Gets the skill level.
 
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
@@ -218,7 +218,7 @@ void Visible::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
         bool bHit = false;
 
 
-        // 기술성공률 검증.
+        // Verify the skill success rate.
         if (bManaCheck && bTimeCheck && bRangeCheck) {
             Coord_t myX = pSlayer->getX(), myY = pSlayer->getY();
             Coord_t X = pTargetCreature->getX(), Y = pTargetCreature->getY();
@@ -262,8 +262,8 @@ void Visible::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
                             bool bEffected = pTargetCreature->isFlag(Effect::EFFECT_CLASS_INVISIBILITY);
 
                             if (bHitRoll && bEffected) {
-                                // 주위에 GCAddXXX를 보내고, effect manager에서 effect를 삭제하고, GCRemoveEffect를
-                                // 보낸다.
+                                // Sends GCAddXXX around, deletes the effect from the effect manager, and
+                                // sends GCRemoveEffect.
                                 addVisibleCreature(pZone, pTargetCreature, true);
 
                                 _GCSkillToTileOK2.setObjectID(pSlayer->getObjectID());

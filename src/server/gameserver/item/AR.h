@@ -42,8 +42,8 @@ public:
     void makePCItemInfo(PCItemInfo& result) const;
 
 private:
-    static Mutex m_Mutex;             // 아이템 ID 관련 락
-    static ItemID_t m_ItemIDRegistry; // 클래스별 고유 아이템 아이디 발급기
+    static Mutex m_Mutex;             // Lock for the item ID registry
+    static ItemID_t m_ItemIDRegistry; // Per-class unique item ID generator
 };
 
 
@@ -116,14 +116,14 @@ public:
     virtual string toString() const;
 
 private:
-    Durability_t m_Durability; // 내구성
-    Damage_t m_MinDamage;      // 최소 데미지
-    Damage_t m_MaxDamage;      // 최대 데미지
-    Range_t m_Range;           // 사정거리
-    ToHit_t m_ToHitBonus;      // 명중률 보너스
-    Speed_t m_Speed;           // 공격 속도
-    uint m_ItemLevel;          // 아이템의 레벨
-    int m_CriticalBonus;       // 아이템마다 다른 크리티컬 확률
+    Durability_t m_Durability; // Durability
+    Damage_t m_MinDamage;      // Minimum damage
+    Damage_t m_MaxDamage;      // Maximum damage
+    Range_t m_Range;           // Attack range
+    ToHit_t m_ToHitBonus;      // To-hit bonus
+    Speed_t m_Speed;           // Attack speed
+    uint m_ItemLevel;          // Item level
+    int m_CriticalBonus;       // Critical chance, which differs per item
 };
 
 

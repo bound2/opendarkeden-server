@@ -2,7 +2,7 @@
 // Filename    : ActionCreateGuild.h
 // Written By  : excel96
 // Description :
-// NPC를 통해 클라이언트로 하여금 길드 생성창을 띄우게 한다.
+// Makes the client open the guild creation window through an NPC.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_CREATE_GUILD_H__

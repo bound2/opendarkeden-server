@@ -18,7 +18,7 @@
 #include "GCSkillToObjectOK6.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void Hymn::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -37,8 +37,8 @@ void Hymn::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkill
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // NPCs cannot be attacked.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -79,7 +79,7 @@ void Hymn::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkill
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 오브젝트를 생성해 붙인다.
+            // Create the effect object and attach it.
             EffectHymn* pEffect = new EffectHymn(pTargetCreature);
             pEffect->setDeadline(output.Duration);
             pEffect->setLevel(pSkillInfo->getLevel() / 2);
@@ -88,7 +88,7 @@ void Hymn::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkill
             pTargetCreature->addEffect(pEffect);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_HYMN);
 
-            // 능력치를 계산해서 보내준다.
+            // Computes the stats and sends them.
             if (pTargetCreature->isVampire()) {
                 Vampire* pTargetVampire = dynamic_cast<Vampire*>(pTargetCreature);
                 VAMPIRE_RECORD prev;
@@ -160,10 +160,10 @@ void Hymn::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkill
             _GCSkillToObjectOK6.setSkillType(SkillType);
             _GCSkillToObjectOK6.setDuration(output.Duration);
 
-            if (bCanSeeCaster) // 10은 땜빵 수치다.
+            if (bCanSeeCaster) // 10 is a stopgap value.
             {
                 computeAlignmentChange(pTargetCreature, 10, pSlayer, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
-            } else // 10은 땜빵 수치다.
+            } else // 10 is a stopgap value.
             {
                 computeAlignmentChange(pTargetCreature, 10, pSlayer, &_GCSkillToObjectOK6, &_GCSkillToObjectOK1);
             }

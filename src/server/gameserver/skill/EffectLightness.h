@@ -2,7 +2,7 @@
 // Filename    : EffectLightness.h
 // Written by  : excel96
 // Description :
-// Lightness에 의해서 생성되는 산성 데미지 약화 이펙트이다.
+// Effect created by Lightness that changes the creature sight.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_LIGHTNESS__

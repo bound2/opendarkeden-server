@@ -34,8 +34,8 @@ void Flare::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC이거나, 슬레이어에게는 Flare를 쓸 수가 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // Flare cannot be used on an NPC or a Slayer.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || pTargetCreature->isNPC() || pTargetCreature->isSlayer()) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -63,31 +63,31 @@ void Flare::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
             pTargetCreature->getCompetence() == 3) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToObjectOK1);
 
-            // 지속 시간을 계산한다.
+            // Compute the duration.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectFlare* pEffect = new EffectFlare(pTargetCreature);
             pEffect->setOldSight(pTargetCreature->getSight());
-            // 제거할때 level체크하기 위햇서.by sigi. 2002.6.21
+            // Keeps the level for the check made when the effect is removed.
             pEffect->setLevel(pSkillInfo->getLevel());
             pEffect->setDeadline(output.Duration);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_FLARE);
             pTargetCreature->addEffect(pEffect);
 
-            // 이펙트를 적용시킨다.
+            // Apply the effect.
             pEffect->affect(pTargetCreature);
 
-            // 경험치를 올린다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToObjectOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToObjectOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToObjectOK1);
 
-            // 패킷을 준비한다.
+            // Prepare the packet.
             ZoneCoord_t targetX = pTargetCreature->getX();
             ZoneCoord_t targetY = pTargetCreature->getY();
             ZoneCoord_t myX = pSlayer->getX();

@@ -19,7 +19,7 @@
 #include "PacketUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void ObservingEye::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -60,10 +60,10 @@ void ObservingEye::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트를 만들어 붙인다.
+            // Creates the effect and attaches it.
             EffectObservingEye* pEffect = new EffectObservingEye(pSlayer);
             pEffect->setDeadline(output.Duration);
-            // output.Damage를 vision으로 설정하자.
+            // Use output.Damage as the vision bonus.
             pEffect->setDamageBonus(output.Damage * 2 - 1);
             pEffect->setCriticalHitBonus(output.Damage * 10 - 49);
             pEffect->setVisionBonus(output.Damage);
@@ -71,17 +71,17 @@ void ObservingEye::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
             pSlayer->setFlag(Effect::EFFECT_CLASS_OBSERVING_EYE);
             pSlayer->addEffect(pEffect);
 
-            // 이 이펙트가 붙음으로써, 안 보이던 것이 보인다.
+            // With this effect attached, what was hidden becomes visible.
             pZone->updateInvisibleScan(pSlayer);
 
-            // 이펙트를 붙였으니, 능력치를 재계산한다.
+            // Recomputes the stats now that the effect is attached.
             SLAYER_RECORD prev;
             pSlayer->getSlayerRecord(prev);
             pSlayer->initAllStat();
             pSlayer->sendRealWearingInfo();
             pSlayer->addModifyInfo(prev, _GCSkillToSelfOK1);
 
-            // 경험치를 올려준다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 8, 1, _GCSkillToSelfOK1);

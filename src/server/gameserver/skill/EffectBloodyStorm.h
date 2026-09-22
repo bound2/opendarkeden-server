@@ -67,7 +67,7 @@ private:
     int m_Level;   // EffectBloodyStorm level;
     bool m_bVampire;
     Duration_t m_Duration;      // EffectBloodyStorm Duration;
-    Duration_t m_StormDuration; // BloodyStorm Effect 지속 시간
+    Duration_t m_StormDuration; // BloodyStorm effect duration
     ObjectID_t m_UserObjectID;
 };
 

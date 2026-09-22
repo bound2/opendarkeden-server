@@ -40,13 +40,13 @@ void EffectBloodyWallBlocked::affect()
 
     Assert(m_pZone != NULL);
 
-    // 현재 이펙트가 붙어있는 타일을 받아온다.
+    // Get the tile this effect is attached to.
     Tile& tile = m_pZone->getTile(m_X, m_Y);
 
     HP_t CurrentHP = 0;
     HP_t RemainHP = 0;
 
-    // 타일 안에 존재하는 오브젝트들을 검색한다.
+    // Walk the objects on the tile.
     const forward_list<Object*>& oList = tile.getObjectList();
     forward_list<Object*>::const_iterator itr = oList.begin();
     for (; itr != oList.end(); itr++) {
@@ -59,8 +59,8 @@ void EffectBloodyWallBlocked::affect()
             Creature* pCreature = dynamic_cast<Creature*>(pObject);
             Assert(pCreature != NULL);
 
-            // 무적상태 체크. by sigi. 2002.9.5
-            // 산 면역. by sigi. 2002.9.13
+            // Check for invulnerability.
+            // Acid immunity.
             if (!canAttack(NULL, pCreature) || pCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_BLOOD_DRAIN) ||
                 pCreature->isFlag(Effect::EFFECT_CLASS_COMA) || pCreature->isDead()) {
                 continue;
@@ -84,7 +84,7 @@ void EffectBloodyWallBlocked::affect()
                     Assert(pPlayer != NULL);
                     pPlayer->sendPacket(&gcMI);
 
-                    // 변한 HP를 브로드캐스팅해준다.
+                    // Broadcasts the changed HP.
                     GCStatusCurrentHP pkt;
                     pkt.setObjectID(pSlayer->getObjectID());
                     pkt.setCurrentHP(RemainHP);
@@ -104,7 +104,7 @@ void EffectBloodyWallBlocked::affect()
                     Assert(pPlayer != NULL);
                     pPlayer->sendPacket(&gcMI);
 
-                    // 변한 HP를 브로드캐스팅해준다.
+                    // Broadcasts the changed HP.
                     GCStatusCurrentHP pkt;
                     pkt.setObjectID(pOusters->getObjectID());
                     pkt.setCurrentHP(RemainHP);
@@ -118,14 +118,14 @@ void EffectBloodyWallBlocked::affect()
                     pMonster->setHP(RemainHP, ATTR_CURRENT);
 
                     if (m_CasterName != "") {
-                        // 시전자의 데미지를 추가해 준다.
-                        // 맞는 놈이 몬스터이고, 공격자가 사람이라면,
-                        // 데미지에 따라서 변하는 우선권 테이블을 갱신해 주어야 한다.
+                        // Records the damage for the caster.
+                        // When the one being hit is a monster and the attacker is a player,
+                        // the precedence table that varies with damage has to be updated.
                         pMonster->addPrecedence(m_CasterName, m_PartyID, AcidDamage);
                         pMonster->setLastHitCreatureClass(Creature::CREATURE_CLASS_VAMPIRE);
                     }
 
-                    // 변한 HP를 브로드캐스팅해준다.
+                    // Broadcasts the changed HP.
                     GCStatusCurrentHP pkt;
                     pkt.setObjectID(pMonster->getObjectID());
                     pkt.setCurrentHP(RemainHP);
@@ -133,7 +133,7 @@ void EffectBloodyWallBlocked::affect()
                 }
 
 
-                // m_CasterName이 pCreature를 죽인 경우의 KillCount 처리
+                // KillCount handling for when m_CasterName kills pCreature.
                 // by sigi. 2002.8.31
                 if (pCreature->isDead()) {
                     Creature* pAttacker = m_pZone->getCreature(m_CasterName);
@@ -146,7 +146,7 @@ void EffectBloodyWallBlocked::affect()
         }
     }
 
-    // 한번만..
+    // Only once.
 
 
     __END_CATCH

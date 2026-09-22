@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectReloadTimer.h
 // Written by  : crazydog
-// Description : 탄창 reload dealy를 위한 effect
+// Description : Effect for the magazine reload delay
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_RELOAD_TIMER__
@@ -50,11 +50,11 @@ public:
     }
 
 private:
-    CoordInven_t m_invenX; // 인벤토리에서 리로드할 때의 좌표
-    CoordInven_t m_invenY; // 인벤토리에서 리로드할 때의 좌표
-    ObjectID_t m_ObjectID; // 탄창 object id
-    SlotID_t m_SlotID;     // 벨트에서 리로드할 때의 벨트 slot id
-    bool m_bFromInventory; // 인벤토리에서 직접 리로드하는가?
+    CoordInven_t m_invenX; // Coordinates when reloading from the inventory
+    CoordInven_t m_invenY; // Coordinates when reloading from the inventory
+    ObjectID_t m_ObjectID; // Magazine object id
+    SlotID_t m_SlotID;     // Belt slot id when reloading from the belt
+    bool m_bFromInventory; // Reloads directly from the inventory?
 };
 
 

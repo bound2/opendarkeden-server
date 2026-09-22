@@ -12,7 +12,7 @@
 #include "GCSkillToObjectOK5.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void LarSlash::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -31,14 +31,14 @@ void LarSlash::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
         }
 
-        // 무장하고 있는 무기가 널이거나, SWORD가 아니라면 쓸 수 없다.
+        // The skill needs a sword in the right hand.
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_SWORD) {
             executeSkillFailException(pSlayer, getSkillType());
@@ -58,7 +58,7 @@ void LarSlash::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 
         bool bCriticalHit = false;
 
-        // 기본 데미지에 스킬 데미지를 더한다.
+        // Adds the skill damage to the base damage.
         SkillInput input(pSlayer, pSkillSlot);
         SkillOutput output;
         computeOutput(input, output);
@@ -74,25 +74,25 @@ void LarSlash::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         bool bCanHit = canHit(pSlayer, pTargetCreature, SkillType);
         bool bPK = verifyPK(pSlayer, pTargetCreature);
 
-        // 마나가 있어야 하고, 시간과 거리 체크에 성공하고,
-        // hitroll에 성공하고, 크로스 카운터가 걸려있지 않다면, 성공이다.
+        // Succeeds when there is enough mana, the time and range checks pass,
+        // the hit roll succeeds and no cross counter is active.
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bCanHit && bPK) {
             CheckCrossCounter(pSlayer, pTargetCreature, Damage, pSkillInfo->getRange());
 
             decreaseMana(pSlayer, RequiredMP, _GCSkillToObjectOK1);
 
 
-            // 데미지를 주고, 내구도를 떨어뜨린다.
+            // Apply the damage and reduce durability.
             setDamage(pTargetCreature, Damage, pSlayer, SkillType, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
             computeAlignmentChange(pTargetCreature, Damage, pSlayer, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
             decreaseDurability(pSlayer, pTargetCreature, pSkillInfo, &_GCSkillToObjectOK1, &_GCSkillToObjectOK2);
 
-            // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+            // A critical hit knocks the target back.
             if (bCriticalHit) {
                 knockbackCreature(pZone, pTargetCreature, pSlayer->getX(), pSlayer->getY());
             }
 
-            // 타겟이 슬레이어가 아닌 경우에만 경험치를 올려준다.
+            // Experience is raised only when the target is not a Slayer.
             if (!pTargetCreature->isSlayer()) {
                 if (bIncreaseExp) {
                     shareAttrExp(pSlayer, Damage, 8, 1, 1, _GCSkillToObjectOK1);
@@ -103,7 +103,7 @@ void LarSlash::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
                 increaseAlignment(pSlayer, pTargetCreature, _GCSkillToObjectOK1);
             }
 
-            // 패킷을 준비하고, 보낸다.
+            // Prepares the packet and sends it.
             _GCSkillToObjectOK1.setSkillType(SkillType);
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);

@@ -14,7 +14,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 셀프
+// Vampire self
 //////////////////////////////////////////////////////////////////////////////
 void Invisibility::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -41,7 +41,7 @@ void Invisibility::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
         ZoneCoord_t x = pVampire->getX();
         ZoneCoord_t y = pVampire->getY();
 
-        // Knowledge of Innate 가 있다면 hit bonus 10
+        // Knowledge of Innate gives a hit bonus of 10.
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE);
@@ -70,9 +70,9 @@ void Invisibility::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
             SkillOutput output;
             computeOutput(input, output);
 
-            // 점점 사라지는 이펙트를 생성해서 붙인다.
-            // 실제로 사라지는 것은 이 이펙트 내부에서다.
-            // (한번에 '팍'하고 사라지는 게 아니라서 붙이는 이펙트다.)
+            // Create the fade-out effect and attach it.
+            // The actual disappearance happens inside that effect.
+            // (It is attached because the vampire does not vanish all at once.)
             EffectFadeOut* pEffect = new EffectFadeOut(pVampire);
             pEffect->setDuration(output.Duration);
             pEffect->setDeadline(40);
@@ -106,7 +106,7 @@ void Invisibility::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 셀프 핸들러
+// Monster self handler
 //////////////////////////////////////////////////////////////////////////////
 void Invisibility::execute(Monster* pMonster)
 
@@ -143,9 +143,9 @@ void Invisibility::execute(Monster* pMonster)
             SkillOutput output;
             computeOutput(input, output);
 
-            // 점점 사라지는 이펙트를 생성해서 붙인다.
-            // 실제로 사라지는 것은 이 이펙트 내부에서다.
-            // (한번에 '팍'하고 사라지는 게 아니라서 붙이는 이펙트다.)
+            // Create the fade-out effect and attach it.
+            // The actual disappearance happens inside that effect.
+            // (It is attached because the vampire does not vanish all at once.)
             EffectFadeOut* pEffect = new EffectFadeOut(pMonster);
             pEffect->setDuration(output.Duration);
             pEffect->setDeadline(40);

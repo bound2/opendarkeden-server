@@ -2,9 +2,9 @@
 // Filename    : ActionContractGnomesHorn.cpp
 // Written By  :
 // Description :
-// NPC가 아이템을 플레이어에게 파는 액션이다. 실제로는 거래를
-// 시작하게 만드는 액션이며, 하는 일은 플레이어에게 현재 NPC의
-// 상점 버전을 패킷으로 보내주는 일 뿐이다.
+// Action where the NPC sells items to the player. In practice it
+// starts the trade; all it does is send the player the NPC's
+// current shop version as a packet.
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "ActionContractGnomesHorn.h"
@@ -19,8 +19,8 @@
 #include "Trigger.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-// ActionContractGnomesHorn 액션은 그냥 클라이언트에게 ShopVersion을 보내주는 것이므로,
-// 특별히 읽어들여야 할 파라미터가 없다.
+// The ActionContractGnomesHorn action only sends the ShopVersion to the client, so
+// there are no parameters that need reading.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionContractGnomesHorn::read(PropertyBuffer& propertyBuffer)
 
@@ -31,7 +31,7 @@ void ActionContractGnomesHorn::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionContractGnomesHorn::execute(Creature* pCreature1, Creature* pCreature2)
 

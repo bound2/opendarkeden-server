@@ -71,7 +71,7 @@ void EffectRegeneration::affect(Zone* pZone, ZoneCoord_t Cx, ZoneCoord_t Cy)
             if (!rect.ptInRect(X, Y))
                 continue;
 
-            // 타일안에 존재하는 오브젝트를 가져온다.
+            // Fetches the objects on the tile.
             Tile& tile = pZone->getTile(X, Y);
 
             const forward_list<Object*>& oList = tile.getObjectList();
@@ -81,7 +81,7 @@ void EffectRegeneration::affect(Zone* pZone, ZoneCoord_t Cx, ZoneCoord_t Cy)
                     Creature* pCreature = dynamic_cast<Creature*>(pTargetObject);
                     Assert(pCreature != NULL);
 
-                    // 코마가 걸려있거나 죽은 애는 치료 안해준다.
+                    // A creature in a coma or already dead is not healed.
                     // 2003. 3. 11. Sequoia
                     if (pCreature->isSlayer() && !pCreature->isFlag(Effect::EFFECT_CLASS_COMA) &&
                         !pCreature->isDead()) {

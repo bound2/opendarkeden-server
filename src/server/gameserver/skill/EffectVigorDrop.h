@@ -2,16 +2,14 @@
 // Project     : DARKEDEN
 // Module      : Skill - Effect
 // File Name   : EffectVigorDrop.h
-// Writer      : 장홍창
 // Date        : 2002.3.28
 // Description :
-//               해당 Effect는 Vigor Drop이 땅으로 떨어질때의 Effect를 구현하기
-//               위한 Effect이다.
+//               This effect implements what happens when Vigor Drop falls to the
+//               falls to the ground.
 //
 // History
 //     DATE      WRITER         DESCRIPTION
 // =========== =========== =====================================================
-// 2002.3.28    장홍창      header file 작성
 //
 //
 
@@ -77,7 +75,7 @@ private:
     Turn_t m_Tick;              // EffectVigorDrop turn;
     int m_Level;                // EffectVigorDrop level;
     Duration_t m_Duration;      // EffectVigorDrop Duration;
-    Duration_t m_StormDuration; // VigorDrop Effect 지속 시간
+    Duration_t m_StormDuration; // VigorDrop effect duration
 };
 
 class EffectVigorDropLoader : public EffectLoader {

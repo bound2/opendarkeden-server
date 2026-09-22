@@ -2,7 +2,7 @@
 // Filename    : EffectProtectionFromAcid.h
 // Written by  : excel96
 // Description :
-// ProtectionFromAcid에 의해서 생성되는 산성 데미지 약화 이펙트이다.
+// Effect created by ProtectionFromAcid that raises acid resistance.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_PROTECTION_FROM_ACID__

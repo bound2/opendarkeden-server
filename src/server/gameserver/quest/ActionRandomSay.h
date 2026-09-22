@@ -41,8 +41,8 @@ public:
     }
 
 private:
-    ScriptID_t m_StartScriptID; // 말할 대사 아이디 시작 ID
-    ScriptID_t m_EndScriptID;   // 말할 대사 아이디 끝 ID
+    ScriptID_t m_StartScriptID; // First script ID of the line to say
+    ScriptID_t m_EndScriptID;   // Last script ID of the line to say
 };
 
 

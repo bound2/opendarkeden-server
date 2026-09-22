@@ -13,8 +13,8 @@
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 생성자
-// 마스크를 초기화한다.
+// Constructor
+// Initializes the mask.
 //////////////////////////////////////////////////////////////////////////////
 IceWave::IceWave() {
     __BEGIN_TRY
@@ -46,7 +46,7 @@ IceWave::IceWave() {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 셀프 핸들러
+// Monster self handler
 //////////////////////////////////////////////////////////////////////////////
 void IceWave::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
@@ -88,7 +88,7 @@ void IceWave::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
         if (bRangeCheck && bMoveModeCheck) {
             //--------------------------------------------------------
-            // 주위에 knockback되는맞는 애들을 체크해준다.
+            // Check which surrounding creatures are hit and knocked back.
             //--------------------------------------------------------
             SkillInput input(pMonster);
             SkillOutput output;
@@ -128,7 +128,7 @@ void IceWave::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
                     param.addMask(m_pIceWaveMask[i].x, m_pIceWaveMask[i].y, 100);
             }
 
-            // 강제로 맞는 애들을 knockback 시킨다.
+            // Knock back the creatures that are hit.
             bool bForceKnockback = false;
             g_SimpleTileMeleeSkill.execute(pMonster, x, y, param, result, 0, bForceKnockback);
         } else {

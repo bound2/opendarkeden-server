@@ -53,10 +53,10 @@ public:
     void makePCItemInfo(PCItemInfo& result) const;
 
 private:
-    Inventory* m_pInventory; // 인벤토리
+    Inventory* m_pInventory; // Inventory
 
-    static Mutex m_Mutex;             // 아이템 ID 관련 락
-    static ItemID_t m_ItemIDRegistry; // 클래스별 고유 아이템 아이디 발급기
+    static Mutex m_Mutex;             // Lock for the item ID registry
+    static ItemID_t m_ItemIDRegistry; // Per-class unique item ID generator
 };
 
 
@@ -108,8 +108,8 @@ public:
     virtual string toString() const;
 
 private:
-    Durability_t m_Durability; // 내구성
-    uint m_PocketCount;        // 포켓의 개수
+    Durability_t m_Durability; // Durability
+    uint m_PocketCount;        // Number of pockets
     Defense_t m_DefenseBonus;
     Protection_t m_ProtectionBonus;
     uint m_ItemLevel;

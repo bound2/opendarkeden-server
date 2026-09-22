@@ -84,7 +84,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, const 
 
                 EffectBloodDrain* pEffectBloodDrain = NULL;
 
-                bHPCheck = false; // 크리쳐를 체크할때 마다 새로 세팅해야하지 않을까? 2002.05.31 by bezz
+                bHPCheck = false; // Reset for each creature that is checked.
 
                 if (pTargetCreature->isSlayer() && !pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
                     HP_t CurrentHP = dynamic_cast<Slayer*>(pTargetCreature)->getHP(ATTR_CURRENT);
@@ -110,7 +110,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, const 
                     if (bHitRoll && bHPCheck && pTargetCreature->isAlive()) {
                         Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
 
-                        // 힐 효과 broadcast
+                        // Broadcast the heal effect.
                         // by sigi. 2002.6.1
                         ///*
                         _GCSkillToSelfOK1.setSkillType(SKILL_CURE_EFFECT);
@@ -125,16 +125,16 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, const 
                         //*/
 
 
-                        // 흡혈당한 상태라면 흡혈 상태를 날려준다.
+                        // If the target is under blood drain, clear the blood drain state.
                         if (pEffectBloodDrain != NULL && pEffectBloodDrain->getLevel() < param.Level) {
-                            // 흡혈 아르바이트를 방지하기 위한 후유증 이펙트를 붙여준다.
+                            // Attach an aftermath effect to prevent blood drain farming.
                             if (pTargetSlayer->isFlag(Effect::EFFECT_CLASS_AFTERMATH)) {
                                 Effect* pEffect = pTargetSlayer->findEffect(Effect::EFFECT_CLASS_AFTERMATH);
                                 EffectAftermath* pEffectAftermath = dynamic_cast<EffectAftermath*>(pEffect);
-                                pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                                pEffectAftermath->setDeadline(5 * 600); // Lasts for 5 minutes.
                             } else {
                                 EffectAftermath* pEffectAftermath = new EffectAftermath(pTargetSlayer);
-                                pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                                pEffectAftermath->setDeadline(5 * 600); // Lasts for 5 minutes.
                                 pTargetSlayer->addEffect(pEffectAftermath);
                                 pTargetSlayer->setFlag(Effect::EFFECT_CLASS_AFTERMATH);
                                 pEffectAftermath->create(pTargetSlayer->getName());
@@ -160,11 +160,11 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, const 
                             pZone->broadcastPacket(pTargetSlayer->getX(), pTargetSlayer->getY(), &gcRemoveEffect);
                         }
 
-                        // HP를 세팅한다.
+                        // Set the HP.
                         HP_t CurrentHP = pTargetSlayer->getHP(ATTR_CURRENT);
                         HP_t MaxHP = pTargetSlayer->getHP(ATTR_MAX);
 
-                        // 실제 회복 수치를 계산한다.
+                        // Compute the actual amount healed.
                         if (CurrentHP + HealPoint <= MaxHP) {
                             RealHealPoint = max((unsigned int)0, HealPoint);
                         } else {
@@ -181,7 +181,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, const 
             }
 
             if (bheal) {
-                // 경험치를 올려준다.
+                // Raises experience.
                 shareAttrExp(pSlayer, RealHealPoint, param.STRMultiplier, param.DEXMultiplier, param.INTMultiplier,
                              _GCSkillToTileOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToTileOK1);
@@ -225,7 +225,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, const 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
             cList.push_back(pSlayer);
-            // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
+            // Send the packet to everyone affected by this skill.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
                 Assert(pTargetCreature != NULL);
@@ -244,12 +244,12 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, const 
 
                     _GCSkillToTileOK2.addShortData(MODIFY_CURRENT_HP, targetHP);
 
-                    // 패킷을 보내준다.
+                    // Send the packet.
                     Player* pPlayer = pTargetCreature->getPlayer();
                     Assert(pPlayer != NULL);
                     pPlayer->sendPacket(&_GCSkillToTileOK2);
 
-                    // HP를 브로드캐스팅한다.
+                    // Broadcast the HP.
                     GCStatusCurrentHP gcStatusCurrentHP;
                     gcStatusCurrentHP.setObjectID(pTargetCreature->getObjectID());
                     gcStatusCurrentHP.setCurrentHP(targetHP);
@@ -290,7 +290,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pSlayer, param.SkillType);
             return;
@@ -337,7 +337,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
                 EffectBloodDrain* pEffectBloodDrain = NULL;
                 bool bSlayer = false;
 
-                bHPCheck = false; // 크리쳐를 체크할때 마다 새로 세팅해야하지 않을까? 2002.05.31 by bezz
+                bHPCheck = false; // Reset for each creature that is checked.
 
                 if (pTargetCreature->isSlayer() && !pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
                     HP_t CurrentHP = dynamic_cast<Slayer*>(pTargetCreature)->getHP(ATTR_CURRENT);
@@ -366,16 +366,16 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
                     Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
                     Assert(pTargetSlayer != NULL);
 
-                    // 흡혈당한 상태라면 흡혈 상태를 날려준다.
+                    // If the target is under blood drain, clear the blood drain state.
                     if (pEffectBloodDrain != NULL && pEffectBloodDrain->getLevel() < param.Level) {
-                        // 흡혈 아르바이트를 방지하기 위한 후유증 이펙트를 붙여준다.
+                        // Attach an aftermath effect to prevent blood drain farming.
                         if (pTargetSlayer->isFlag(Effect::EFFECT_CLASS_AFTERMATH)) {
                             Effect* pEffect = pTargetSlayer->findEffect(Effect::EFFECT_CLASS_AFTERMATH);
                             EffectAftermath* pEffectAftermath = dynamic_cast<EffectAftermath*>(pEffect);
-                            pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                            pEffectAftermath->setDeadline(5 * 600); // Lasts for 5 minutes.
                         } else {
                             EffectAftermath* pEffectAftermath = new EffectAftermath(pTargetSlayer);
-                            pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                            pEffectAftermath->setDeadline(5 * 600); // Lasts for 5 minutes.
                             pTargetSlayer->addEffect(pEffectAftermath);
                             pTargetSlayer->setFlag(Effect::EFFECT_CLASS_AFTERMATH);
                             pEffectAftermath->create(pTargetSlayer->getName());
@@ -401,11 +401,11 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
                         pZone->broadcastPacket(pTargetSlayer->getX(), pTargetSlayer->getY(), &gcRemoveEffect);
                     }
 
-                    // HP를 세팅한다.
+                    // Set the HP.
                     HP_t CurrentHP = pTargetSlayer->getHP(ATTR_CURRENT);
                     HP_t MaxHP = pTargetSlayer->getHP(ATTR_MAX);
 
-                    // 실제 회복 수치를 계산한다.
+                    // Compute the actual amount healed.
                     if (CurrentHP + HealPoint <= MaxHP) {
                         RealHealPoint = max((unsigned int)0, HealPoint);
                     } else {
@@ -421,7 +421,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
             }
 
             if (bheal) {
-                // 경험치를 올려준다.
+                // Raises experience.
                 shareAttrExp(pSlayer, RealHealPoint, param.STRMultiplier, param.DEXMultiplier, param.INTMultiplier,
                              _GCSkillToTileOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToTileOK1);
@@ -465,7 +465,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
             cList.push_back(pSlayer);
-            // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
+            // Send the packet to everyone affected by this skill.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
                 Assert(pTargetCreature != NULL);
@@ -484,12 +484,12 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
 
                     _GCSkillToTileOK2.addShortData(MODIFY_CURRENT_HP, targetHP);
 
-                    // 패킷을 보내준다.
+                    // Send the packet.
                     Player* pPlayer = pTargetCreature->getPlayer();
                     Assert(pPlayer != NULL);
                     pPlayer->sendPacket(&_GCSkillToTileOK2);
 
-                    // HP를 브로드캐스팅한다.
+                    // Broadcast the HP.
                     GCStatusCurrentHP gcStatusCurrentHP;
                     gcStatusCurrentHP.setObjectID(pTargetCreature->getObjectID());
                     gcStatusCurrentHP.setCurrentHP(targetHP);
@@ -567,7 +567,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y,
                 EffectBloodDrain* pEffectBloodDrain = NULL;
 
                 bool bSlayer = false;
-                bHPCheck = false; // 크리쳐를 체크할때 마다 새로 세팅해야하지 않을까? 2002.05.31 by bezz
+                bHPCheck = false; // Reset for each creature that is checked.
                 if (pTargetCreature->isSlayer() && !pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
                     HP_t CurrentHP = dynamic_cast<Slayer*>(pTargetCreature)->getHP(ATTR_CURRENT);
                     HP_t MaxHP = dynamic_cast<Slayer*>(pTargetCreature)->getHP(ATTR_MAX);
@@ -595,16 +595,16 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y,
                     Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
                     Assert(pTargetSlayer != NULL);
 
-                    // 흡혈당한 상태라면 흡혈 상태를 날려준다.
+                    // If the target is under blood drain, clear the blood drain state.
                     if (pEffectBloodDrain != NULL && pEffectBloodDrain->getLevel() < param.Level) {
-                        // 흡혈 아르바이트를 방지하기 위한 후유증 이펙트를 붙여준다.
+                        // Attach an aftermath effect to prevent blood drain farming.
                         if (pTargetSlayer->isFlag(Effect::EFFECT_CLASS_AFTERMATH)) {
                             Effect* pEffect = pTargetSlayer->findEffect(Effect::EFFECT_CLASS_AFTERMATH);
                             EffectAftermath* pEffectAftermath = dynamic_cast<EffectAftermath*>(pEffect);
-                            pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                            pEffectAftermath->setDeadline(5 * 600); // Lasts for 5 minutes.
                         } else {
                             EffectAftermath* pEffectAftermath = new EffectAftermath(pTargetSlayer);
-                            pEffectAftermath->setDeadline(5 * 600); // 5분 동안 지속된다.
+                            pEffectAftermath->setDeadline(5 * 600); // Lasts for 5 minutes.
                             pTargetSlayer->addEffect(pEffectAftermath);
                             pTargetSlayer->setFlag(Effect::EFFECT_CLASS_AFTERMATH);
                             pEffectAftermath->create(pTargetSlayer->getName());
@@ -631,11 +631,11 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y,
                         pZone->broadcastPacket(pTargetSlayer->getX(), pTargetSlayer->getY(), &gcRemoveEffect);
                     }
 
-                    // HP를 세팅한다.
+                    // Set the HP.
                     HP_t CurrentHP = pTargetSlayer->getHP(ATTR_CURRENT);
                     HP_t MaxHP = pTargetSlayer->getHP(ATTR_MAX);
 
-                    // 실제 회복 수치를 계산한다.
+                    // Compute the actual amount healed.
                     if (CurrentHP + HealPoint <= MaxHP) {
                         RealHealPoint = max((unsigned int)0, HealPoint);
                     } else {
@@ -651,7 +651,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y,
             }
 
             if (bheal) {
-                // 경험치를 올려준다.
+                // Raises experience.
                 shareAttrExp(pSlayer, RealHealPoint, param.STRMultiplier, param.DEXMultiplier, param.INTMultiplier,
                              _GCSkillToTileOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToTileOK1);
@@ -695,7 +695,7 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y,
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
             cList.push_back(pSlayer);
-            // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
+            // Send the packet to everyone affected by this skill.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
                 Assert(pTargetCreature != NULL);
@@ -714,12 +714,12 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y,
 
                     _GCSkillToTileOK2.addShortData(MODIFY_CURRENT_HP, targetHP);
 
-                    // 패킷을 보내준다.
+                    // Send the packet.
                     Player* pPlayer = pTargetCreature->getPlayer();
                     Assert(pPlayer != NULL);
                     pPlayer->sendPacket(&_GCSkillToTileOK2);
 
-                    // HP를 브로드캐스팅한다.
+                    // Broadcast the HP.
                     GCStatusCurrentHP gcStatusCurrentHP;
                     gcStatusCurrentHP.setObjectID(pTargetCreature->getObjectID());
                     gcStatusCurrentHP.setCurrentHP(targetHP);

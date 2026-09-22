@@ -48,7 +48,7 @@ void ActionRecallSiege::read(PropertyBuffer& pb)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// ¾×¼ÇÀ» ½ÇÇàÇÑ´Ù.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionRecallSiege::execute(Creature* pNPC, Creature* pCreature)
 
@@ -82,7 +82,7 @@ void ActionRecallSiege::execute(Creature* pNPC, Creature* pCreature)
         return;
     }
 
-    // ¼±ÅÃÇÑ ±æµå¸¦ °¡Á®¿Â´Ù.
+    // Get the guild the PC belongs to.
     Guild* pGuild = g_pGuildManager->getGuild(pPC->getGuildID());
     if (pGuild == NULL)
         return;

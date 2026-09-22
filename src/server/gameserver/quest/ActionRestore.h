@@ -2,7 +2,7 @@
 // Filename    : ActionRestore.h
 // Written By  :
 // Description :
-// 뱀파이어가 된 플레이어를 슬레이어로 돌려주는 액션이다.
+// Action that turns a player who became a Vampire back into a Slayer.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_RESTORE_H__

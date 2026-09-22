@@ -13,7 +13,7 @@
 #include "ZoneUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 셀프 핸들러
+// Vampire self handler
 //////////////////////////////////////////////////////////////////////////////
 void Hide::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -40,7 +40,7 @@ void Hide::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEffectID_t 
         ZoneCoord_t x = pVampire->getX();
         ZoneCoord_t y = pVampire->getY();
 
-        // Knowledge of Innate 가 있다면 hit bonus 10
+        // Knowledge of Innate gives a hit bonus of 10.
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_INNATE);
@@ -65,7 +65,7 @@ void Hide::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEffectID_t 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bTileCheck && bMoveModeCheck && !bEffected) {
             decreaseMana(pVampire, RequiredMP, _GCSkillToSelfOK1);
 
-            // 뱀파이어를 땅 위에서 삭제하기 이전에 기술 패킷들을 날린다.
+            // Sends the skill packets before removing the Vampire from the ground.
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
             _GCSkillToSelfOK1.setDuration(0);
@@ -77,12 +77,12 @@ void Hide::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEffectID_t 
             pPlayer->sendPacket(&_GCSkillToSelfOK1);
             pZone->broadcastPacket(x, y, &_GCSkillToSelfOK3, pVampire);
 
-            // 땅 위에 나와있는 뱀파이어 삭제하라고 알린다.
+            // Tells clients to delete the Vampire standing on the ground.
             GCDeleteObject gcDO;
             gcDO.setObjectID(pVampire->getObjectID());
             pZone->broadcastPacket(x, y, &gcDO, pVampire);
 
-            // 땅 속에다가 뱀파이어를 추가한다.
+            // Adds the Vampire underground.
             addBurrowingCreature(pZone, pVampire, x, y);
 
             pSkillSlot->setRunTime();
@@ -98,7 +98,7 @@ void Hide::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEffectID_t 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 셀프 핸들러
+// Monster self handler
 //////////////////////////////////////////////////////////////////////////////
 void Hide::execute(Monster* pMonster)
 
@@ -134,19 +134,19 @@ void Hide::execute(Monster* pMonster)
         bool bEffected = pMonster->isFlag(Effect::EFFECT_CLASS_HIDE);
 
         if (bRangeCheck && bHitRoll && bTileCheck && bMoveModeCheck && !bEffected) {
-            // 몬스터를 땅 위에서 삭제하기 이전에 기술 패킷들을 날린다.
+            // Sends the skill packets before removing the monster from the ground.
             _GCSkillToSelfOK3.setXY(x, y);
             _GCSkillToSelfOK3.setDuration(0);
             _GCSkillToSelfOK3.setSkillType(SkillType);
 
             pZone->broadcastPacket(x, y, &_GCSkillToSelfOK3);
 
-            // 땅 위에 나와있는 몬스터 삭제하라고 알린다.
+            // Tells clients to delete the monster standing on the ground.
             GCDeleteObject gcDO;
             gcDO.setObjectID(pMonster->getObjectID());
             pZone->broadcastPacket(x, y, &gcDO);
 
-            // 땅 속에다가 몬스터를 추가한다.
+            // Adds the monster underground.
             addBurrowingCreature(pZone, pMonster, x, y);
         } else {
             executeSkillFailNormal(pMonster, getSkillType(), NULL);

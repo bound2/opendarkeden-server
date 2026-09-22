@@ -15,7 +15,7 @@
 #include "GCSkillToSelfOK2.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void ProtectionFromAcid::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot,
                                  CEffectID_t CEffectID)
@@ -35,7 +35,7 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Ski
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !pTargetCreature->isSlayer()) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -57,23 +57,23 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Ski
         bool bEffected = pTargetCreature->isFlag(Effect::EFFECT_CLASS_PROTECTION_FROM_ACID);
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected) {
-            // 마나를 줄인다.
+            // Reduces mana.
             decreaseMana(pSlayer, RequiredMP, _GCSkillToObjectOK1);
 
-            // 경험치를 올려준다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToObjectOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToObjectOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToObjectOK1);
 
-            // 이펙트의 효과와 지속시간을 계산한다.
+            // Compute the effect value and the duration.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             input.TargetType = SkillInput::TARGET_OTHER;
             computeOutput(input, output);
 
-            // 이펙트를 생성해서 붙인다.
+            // Creates the effect and attaches it.
             EffectProtectionFromAcid* pEPFP = new EffectProtectionFromAcid(pTargetCreature);
             Assert(pEPFP != NULL);
             pEPFP->setDeadline(output.Duration);
@@ -92,7 +92,7 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Ski
                 Assert(false);
             }
 
-            // 패킷을 준비해서 보낸다.
+            // Prepare the packet and send it.
             _GCSkillToObjectOK1.setSkillType(SkillType);
             _GCSkillToObjectOK1.setCEffectID(CEffectID);
             _GCSkillToObjectOK1.setTargetObjectID(TargetObjectID);
@@ -122,7 +122,7 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Ski
 
             pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &_GCSkillToObjectOK5, cList);
 
-            // 이펙트가 붙었다고 알려준다.
+            // Notifies that the effect has been attached.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pTargetCreature->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_PROTECTION_FROM_ACID);
@@ -142,7 +142,7 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Ski
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void ProtectionFromAcid::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -174,20 +174,20 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToSelfOK1);
 
-            // 경험치를 올려준다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToSelfOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
             increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
 
-            // 이펙트의 효과와 지속시간을 계산한다.
+            // Compute the effect value and the duration.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             input.TargetType = SkillInput::TARGET_SELF;
             computeOutput(input, output);
 
-            // 이펙트를 생성해서 붙인다
+            // Create the effect and attach it
             EffectProtectionFromAcid* pEPFP = new EffectProtectionFromAcid(pSlayer);
             pEPFP->setDeadline(output.Duration);
             pEPFP->setResist(output.Damage);
@@ -199,7 +199,7 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
             pSlayer->initAllStat();
             pSlayer->addModifyInfo(prev, _GCSkillToSelfOK1);
 
-            // 패킷을 준비해서 보낸다.
+            // Prepare the packet and send it.
             ZoneCoord_t myX = pSlayer->getX();
             ZoneCoord_t myY = pSlayer->getY();
 
@@ -214,7 +214,7 @@ void ProtectionFromAcid::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffect
             pPlayer->sendPacket(&_GCSkillToSelfOK1);
             pZone->broadcastPacket(myX, myY, &_GCSkillToSelfOK2, pSlayer);
 
-            // 이펙트가 붙었다고 알려준다.
+            // Notifies that the effect has been attached.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pSlayer->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_PROTECTION_FROM_ACID);

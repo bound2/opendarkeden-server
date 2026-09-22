@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : ActionInitPartnerWaitingManager.h
-// Description : NPC가 초기화될때 특정 NPC는 커플 등록 매니저를 초기화시켜줘야 된다.
+// Description : When an NPC is initialized, certain NPCs must reset the couple registration manager.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_INIT_PARTNER_WAITING_MANAGER_H__

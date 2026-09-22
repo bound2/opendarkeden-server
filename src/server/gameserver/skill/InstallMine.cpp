@@ -43,7 +43,7 @@ void InstallMine::execute(Slayer* pSlayer, ObjectID_t, CoordInven_t X, CoordInve
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
         SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
-        // 명중률.
+        // To-hit rate
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);
@@ -58,7 +58,7 @@ void InstallMine::execute(Slayer* pSlayer, ObjectID_t, CoordInven_t X, CoordInve
         Assert(pInventory != NULL);
 
         if (bManaCheck && bTimeCheck && bRangeCheck) {
-            // mine을 찾는다.
+            // Finds the mine.
             Item* pItem = pInventory->getItem(X, Y);
             if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_MINE) {
                 bInstallAction = true;
@@ -67,7 +67,7 @@ void InstallMine::execute(Slayer* pSlayer, ObjectID_t, CoordInven_t X, CoordInve
         }
 
 
-        // 기술의 성패를 따진다.
+        // Decides whether the skill succeeds.
         if (bInstallAction) {
             GCSkillToInventoryOK1 _GCSkillToInventoryOK1;
 
@@ -90,8 +90,8 @@ void InstallMine::execute(Slayer* pSlayer, ObjectID_t, CoordInven_t X, CoordInve
             pInstallMine->setInstallerPartyID(pSlayer->getPartyID());
             pInstallMine->setFlag(Effect::EFFECT_CLASS_INSTALL);
 
-            // 아이템 사라지는게 3분인거 때문에 지뢰도 사라졌는데..
-            // 10분으로 고정. by sigi. 2002.11.3
+            // Items disappear after three minutes, which took the mine with them, so
+            // the mine's lifetime is fixed at ten minutes.
             TPOINT pt = pZone->addItem(pInstallMine, slayerX, slayerY, true, 6000);
 
             // EXP up
@@ -115,7 +115,7 @@ void InstallMine::execute(Slayer* pSlayer, ObjectID_t, CoordInven_t X, CoordInve
 
             pPlayer->sendPacket(&_GCSkillToInventoryOK1);
 
-            // mine을 볼 수 없게 된 자들에게는 삭제
+            // Deletes the mine for those who can no longer see it.
             addInstalledMine(pZone, pInstallMine, pt.x, pt.y);
 
 

@@ -101,7 +101,7 @@ namespace {
 // The body every initItemIDRegistry shares: the class's registry starts at
 // the highest ItemID already in its object table (an empty table assigns
 // nothing and leaves the static's zero), rounded up to the next
-// ItemIDSuccessor multiple plus the ItemIDBase. `label` is what the boot log prints — the class name for
+// ItemIDSuccessor multiple plus the ItemIDBase. `label` is what the boot log prints - the class name for
 // most classes, the table name or a shortened name for a few, carried over
 // verbatim from the hand-expanded originals.
 void initItemIDRegistryFromTable(Mutex& mutex, ItemID_t& registry, const char* table, const char* label) {

@@ -11,7 +11,7 @@
 #include "SimpleMeleeSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void DragonTornado::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -47,12 +47,12 @@ void DragonTornado::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         Creature* pCreature = pZone->getCreature(TargetObjectID);
 
         if (pCreature != NULL) {
-            // 몬스터인 경우만 delay를 추가한다.
-            // player들은 client에서 처리하게 되어있다.
+            // Only monsters get a delay added.
+            // Players are handled on the client.
             if (pCreature->isMonster()) {
                 Monster* pMonster = dynamic_cast<Monster*>(pCreature);
 
-                // delay설정 ( + 1초 )
+                // Sets the delay (+1 second)
                 if (!pMonster->isMaster()) {
                     Timeval delay;
                     delay.tv_sec = 1;
@@ -84,7 +84,7 @@ void DragonTornado::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         }
     }
 
-    // 상대에게 데미지를 준 다음 이펙트를 붙여준다.
+    // Deals damage to the target, then attaches the effect.
 
 
     __END_CATCH

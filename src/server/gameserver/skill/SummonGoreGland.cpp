@@ -17,7 +17,7 @@
 #include "RankBonus.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void SummonGoreGland::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                               CEffectID_t CEffectID)
@@ -35,8 +35,8 @@ void SummonGoreGland::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vamp
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        if (pTargetCreature == NULL // The zone returns NULL when the target is gone.
             || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
             return;
@@ -52,7 +52,7 @@ void SummonGoreGland::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vamp
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 타일 핸들러
+// Vampire tile handler
 //////////////////////////////////////////////////////////////////////////////
 void SummonGoreGland::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, VampireSkillSlot* pVampireSkillSlot,
                               CEffectID_t CEffectID)
@@ -93,9 +93,9 @@ void SummonGoreGland::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, V
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bTileCheck) {
             decreaseMana(pVampire, RequiredMP, _GCSkillToTileOK1);
 
-            Range_t Range = 1; // 항상 1이다.
+            Range_t Range = 1; // Always 1.
 
-            // 데미지와 지속 시간을 계산한다.
+            // Compute the damage and the duration.
             SkillInput input(pVampire);
             SkillOutput output;
             computeOutput(input, output);

@@ -250,7 +250,7 @@ void VampireCoupleRingLoader::load(Creature* pCreature)
             pVampireCoupleRing->setName(rows[r].name);
             pVampireCoupleRing->setPartnerItemID(rows[r].partnerItemID);
 
-            // 파트너 아이템이 없거나 더 이상 커플이 아니면 아이템을 지워준다.
+            // Delete the item when the partner item is gone or the two are no longer a couple.
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
             if (pPC != NULL && (!de::gameContext().couples().isCouple(pPC, pVampireCoupleRing->getName()) ||
                                 !pVampireCoupleRing->hasPartnerItem())) {
@@ -260,7 +260,7 @@ void VampireCoupleRingLoader::load(Creature* pCreature)
                 pVampireCoupleRing->tinysave(sql);
                 SAFE_DELETE(pVampireCoupleRing);
 
-                // FlagSet 도 날려준다.
+                // Clear the FlagSet as well.
                 pPC->getFlagSet()->turnOff(FLAGSET_IS_COUPLE);
                 pPC->getFlagSet()->save(pPC->getName());
                 continue;

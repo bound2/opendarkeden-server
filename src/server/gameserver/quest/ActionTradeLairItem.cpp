@@ -1,18 +1,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Filename    : ActionTradeLairItem.cpp
-// Written By  : 장홍창
 // Description :
-//               레어 마스터를 죽였을 경우 생기는 아이템을
-//               NPC와 교환하는 로직이다.
-//               생성되는 아이템은 Random하게 결정된다. ( 이 경우 Gameble을
-//               잘 이용하면 쉬울 듯 하다)
+//               Exchanges the item dropped when a lair master is killed
+//               with an NPC.
+//               The created item is decided at random. (Using Gamble well
+//               would probably make this easy.)
 //
 //
 // History.
 //
 //  Date        Writer         Description
 // ---------- ----------- ------------------------------------------------------
-// 2002.09.04   장홍창     신규 생성
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "ActionTradeLairItem.h"
@@ -55,7 +53,7 @@ void ActionTradeLairItem::read(PropertyBuffer& propertyBuffer)
     __BEGIN_TRY
 
     try {
-        // 받을 돈의 양을 읽어들인다.
+        // Read the amount of money to receive.
         m_Type = (ItemType_t)propertyBuffer.getPropertyInt("Type");
     } catch (NoSuchElementException& nsee) {
         throw Error(nsee.toString());
@@ -65,7 +63,7 @@ void ActionTradeLairItem::read(PropertyBuffer& propertyBuffer)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -94,7 +92,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 
     Inventory* pInventory = pPC->getInventory();
 
-    // 먼저 아이템을 가지고 있는가를 체크한다.
+    // First check whether the player holds the item.
     Item* pMasterItem = NULL;
     MonsterType_t MonsterType = 0;
 
@@ -102,12 +100,12 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
     Item* pItem1 = NULL;
     bool bUpgrade = false;
 
-    // 옵션에 따라서 다른 아이템을 검사해야 한다.
-    // 코난 : 팬던트/ 비쥬만 체크한다.
-    // 브리콜라카스: 테페즈 펜던트/비쥬만 체크해야 한다
-    // 카임 : 바토리 팬던트/비쥬만 체크해야 한다.
+    // A different item is checked depending on the option.
+    // Conan: checks only the pendant/bijou.
+    // Vrykolakas: checks only the Tepes pendant/bijou.
+    // Caim: checks only the Bathory pendant/bijou.
 
-    if (m_Type == 0) // 코난, 비쥬
+    if (m_Type == 0) // Conan, bijou
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 0);
         MonsterType = BATORI_TYPE;
@@ -116,12 +114,12 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
             pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 2);
             MonsterType = TEPEZ_TYPE;
             if (pMasterItem == NULL) {
-                pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 8); // 질드레 비쥬
+                pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 8); // Gilles de Rais bijou
                 MonsterType = GDR_TYPE;
                 bUpgrade = true;
             }
         }
-    } else if (m_Type == 1) // 코난, 팬던트
+    } else if (m_Type == 1) // Conan, pendant
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 1);
         MonsterType = BATORI_TYPE;
@@ -130,46 +128,46 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
             pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 3);
             MonsterType = TEPEZ_TYPE;
             if (pMasterItem == NULL) {
-                pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 9); // 질드레 펜던트
+                pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 9); // Gilles de Rais pendant
                 MonsterType = GDR_TYPE;
                 bUpgrade = true;
             }
         }
-    } else if (m_Type == 2) // 브리콜라카스, 비쥬
+    } else if (m_Type == 2) // Vrykolakas, bijou
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 2);
-        // 비쥬
+        // Bijou
         MonsterType = TEPEZ_TYPE;
-    } else if (m_Type == 3) // 브리콜라카스, 팬던트
+    } else if (m_Type == 3) // Vrykolakas, pendant
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 3);
-        // 펜던트
+        // Pendant
         MonsterType = TEPEZ_TYPE;
-    } else if (m_Type == 4) // 카임, 비쥬
+    } else if (m_Type == 4) // Caim, bijou
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 0);
-        // 비쥬
+        // Bijou
         MonsterType = BATORI_TYPE;
-    } else if (m_Type == 5) // 카임, 팬던트
+    } else if (m_Type == 5) // Caim, pendant
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 1);
-        // 펜던트
+        // Pendant
         MonsterType = BATORI_TYPE;
-    } else if (m_Type == 10) // 질드레, 비쥬
+    } else if (m_Type == 10) // Gilles de Rais, bijou
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 8);
         bUpgrade = true;
         MonsterType = GDR_TYPE;
-    } else if (m_Type == 11) // 질드레, 팬던트
+    } else if (m_Type == 11) // Gilles de Rais, pendant
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 9);
         bUpgrade = true;
         MonsterType = GDR_TYPE;
-    } else if (m_Type == 6) // 젬스톤이지롱~
+    } else if (m_Type == 6) // Gemstone
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 4);
         MonsterType = BATORI_TYPE;
-    } else if (m_Type == 7) // 보름달~
+    } else if (m_Type == 7) // Full moon
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 5);
         ItemMineInfo* pItemMineInfo;
@@ -180,7 +178,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 
             Attr_t totalAttr = pSlayer->getTotalAttr(ATTR_BASIC);
 
-            if (totalAttr <= 130) // 하드코딩 ㅜ.ㅠ
+            if (totalAttr <= 130) // Hardcoded
                 pItemMineInfo = itemMineInfos.getItemMineInfo(0);
             else if (totalAttr <= 210)
                 pItemMineInfo = itemMineInfos.getItemMineInfo(1);
@@ -227,7 +225,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 
         pItem1 = pItemMineInfo->getItem();
         setItemGender(pItem1, (pPC->getSex() == FEMALE) ? GENDER_FEMALE : GENDER_MALE);
-    } else if (m_Type == 8) // 그믐달~
+    } else if (m_Type == 8) // Dark moon
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 6);
 
@@ -240,7 +238,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
         }
 
         setItemGender(pItem1, (pPC->getSex() == FEMALE) ? GENDER_FEMALE : GENDER_MALE);
-    } else if (m_Type == 9) // 빨간색 복주머니
+    } else if (m_Type == 9) // Red lucky pouch
     {
         pMasterItem = pInventory->findItem(Item::ITEM_CLASS_QUEST_ITEM, 7);
 
@@ -252,8 +250,8 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
             pItem1 = itemMineInfos.getRandomItem(97, 112);
         }
     } else {
-        // 거래를 위한 NPC의 Property가 잘못되었다. 이런 경우에는
-        // 운영팀으로 문의를 하면 바로 처리를 할 수 있다.
+        // The NPC's trade property is wrong, so the player is told that the
+        // operations team can sort it out right away.
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NPC_ERROR));
         pPlayer->sendPacket(&gcSystemMessage);
@@ -284,14 +282,14 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
         Assert(pItemInfo != NULL);
 
         ///////////////////////////////////////////////////////////////////////////////
-        // 가장 난감한 부분
-        //   아이템을 랜덤하게 선택해야 한다.
-        //   일단은 기본 아이템 하나로 한다.
+        // The awkward part
+        //   The item has to be picked at random.
+        //   For now a single default item is used.
         //////////////////////////////////////////////////////////////////////////////
         const MonsterInfo* pMonsterInfo = g_pMonsterInfoManager->getMonsterInfo(MonsterType);
         TreasureList* pTreasureList = NULL;
 
-        // 종족에 따라서 주는 아이템도 달라야 한다.
+        // The item given differs by race as well.
         if (pCreature2->isSlayer())
             pTreasureList = pMonsterInfo->getSlayerTreasureList();
         else if (pCreature2->isVampire())
@@ -311,7 +309,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
             it.ItemClass = Item::ITEM_CLASS_MAX;
             it.ItemType = 0;
 
-            // QuestItem 마다 다른.. 옵션이 2개 붙을 확률
+            // Chance of a second option, which differs per quest item.
             it.NextOptionRatio = pItemInfo->getBonusRatio();
 
 
@@ -345,7 +343,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
     pItem1->setGrade(min(7, ItemGradeManager::Instance().getRandomBeadGrade()));
     pZone->registerObject(pItem1);
 
-    // 만약 inventory에 공간이 있다면, 넣는다.
+    // If the inventory has room, put them in.
     if (pInventory->addItem(pItem1, pt)) {
         pItem1->create(pPC->getName(), STORAGE_INVENTORY, 0, pt.x, pt.y);
 
@@ -355,26 +353,26 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 
         pPlayer->sendPacket(&gcCreateItem);
 
-        // ItemTraceLog 를 남긴다
+        // Leave an ItemTraceLog.
         if (pItem1 != NULL && pItem1->isTraceItem()) {
             remainTraceLog(pItem1, pCreature1->getName(), pCreature2->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
         }
 
-        // 기존의 아이템을 없앤다
+        // Remove the existing item.
         GCDeleteInventoryItem gcDeleteInventoryItem;
         gcDeleteInventoryItem.setObjectID(pMasterItem->getObjectID());
         pPlayer->sendPacket(&gcDeleteInventoryItem);
 
-        // 서버에서 없애준다.
-        pInventory->deleteItem(pMasterItem->getObjectID()); // 좌표로 바꿔주면 좋을건데..
-        // ItemTraceLog 를 남긴다
+        // Remove it on the server side.
+        pInventory->deleteItem(pMasterItem->getObjectID()); // Deleting by coordinates would be nicer here.
+        // Leave an ItemTraceLog.
         if (pMasterItem != NULL && pMasterItem->isTraceItem()) {
             remainTraceLog(pMasterItem, pCreature2->getName(), pCreature1->getName(), ITEM_LOG_DELETE, DETAIL_EVENTNPC);
         }
         pMasterItem->destroy();
         SAFE_DELETE(pMasterItem);
 
-        // 사용자에게 성공 메시지 출력
+        // Print a success message to the user.
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TRADE_SUCCESS));
         pPlayer->sendPacket(&gcSystemMessage);

@@ -26,7 +26,7 @@
 DarkBluePoison g_DarkBluePoison;
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void DarkBluePoison::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                              CEffectID_t CEffectID)
@@ -46,8 +46,8 @@ void DarkBluePoison::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampi
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수가 없다.
-        // NoSuch제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
             return;
@@ -63,7 +63,7 @@ void DarkBluePoison::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampi
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
-        // Knowledge of Poison 이 있다면 hit bonus 10
+        // Knowledge of Poison gives a hit bonus of 10.
         int HitBonus = 0;
         if (pVampire->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_POISON)) {
             RankBonus* pRankBonus = pVampire->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_POISON);
@@ -95,11 +95,11 @@ void DarkBluePoison::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampi
 
             Damage_t Damage = computeMagicDamage(pTargetCreature, output.Damage, SkillType, true, pVampire);
 
-            // 아우스터즈는 절반의 시간만 받는다.
+            // Ousters get only half the duration.
             if (pTargetCreature->isOusters())
                 output.Duration /= 2;
 
-            // 이펙트 오브젝트를 생성해서 붙인다.
+            // Create the effect object and attach it.
             EffectDarkBluePoison* pEffectDarkBluePoison = new EffectDarkBluePoison(pTargetCreature);
             pEffectDarkBluePoison->setDamage(Damage);
             pEffectDarkBluePoison->setLevel(pSkillInfo->getLevel() / 2);
@@ -109,7 +109,7 @@ void DarkBluePoison::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampi
             pTargetCreature->addEffect(pEffectDarkBluePoison);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_DARKBLUE_POISON);
 
-            // 이펙트가 붙었으니, 붙었다고 브로드캐스팅해준다.
+            // The effect is attached, so broadcast that.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pTargetCreature->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_DARKBLUE_POISON);
@@ -184,7 +184,7 @@ void DarkBluePoison::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampi
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void DarkBluePoison::execute(Monster* pMonster, Creature* pEnemy)
 
@@ -226,7 +226,7 @@ void DarkBluePoison::execute(Monster* pMonster, Creature* pEnemy)
 
             Damage_t Damage = computeMagicDamage(pEnemy, output.Damage, SkillType);
 
-            // 이펙트 오브젝트를 생성해서 붙인다.
+            // Create the effect object and attach it.
             EffectDarkBluePoison* pEffectDarkBluePoison = new EffectDarkBluePoison(pEnemy);
             pEffectDarkBluePoison->setDamage(Damage);
             pEffectDarkBluePoison->setLevel(pSkillInfo->getLevel() / 2);
@@ -236,7 +236,7 @@ void DarkBluePoison::execute(Monster* pMonster, Creature* pEnemy)
             pEnemy->addEffect(pEffectDarkBluePoison);
             pEnemy->setFlag(Effect::EFFECT_CLASS_DARKBLUE_POISON);
 
-            // 이펙트가 붙었으니, 붙었다고 브로드캐스팅해준다.
+            // The effect is attached, so broadcast that.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pEnemy->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_DARKBLUE_POISON);

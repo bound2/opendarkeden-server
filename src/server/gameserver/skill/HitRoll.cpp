@@ -22,7 +22,7 @@
 #include "EffectPrecedence.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 일반 공격 hitroll 함수
+// Hit roll for a normal attack
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus) {
     Assert(pAttacker != NULL);
@@ -31,7 +31,7 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
     Zone* pZone = pAttacker->getZone();
     Assert(pZone != NULL);
 
-    // 무적상태 체크. by sigi. 2002.9.5
+    // Checks for the invulnerable state.
     if (pDefender->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE)) {
         return false;
     }
@@ -43,7 +43,7 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
 
     bool isMonster = false;
 
-    // 공격자의 투힛을 계산한다.
+    // Compute the attacker's to-hit.
     if (pAttacker->isSlayer()) {
         Slayer* pSlayerAttacker = dynamic_cast<Slayer*>(pAttacker);
         Assert(pSlayerAttacker != NULL);
@@ -57,8 +57,8 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
         ToHit = pVampireAttacker->getToHit();
         ToHit = (ToHit_t)getPercentValue(ToHit, VampireTimebandFactor[timeband]);
 
-        // 언젠가 최적화를 하게 된다면.. -_-;
-        // Creature에다가 Penalty관련 member들을 넣는게 나을 것이다.
+        // If this is optimized some day,
+        // it would be better to put the penalty-related members into Creature.
         if (pAttacker->isFlag(Effect::EFFECT_CLASS_HYMN)) {
             EffectHymn* pHymn =
                 dynamic_cast<EffectHymn*>(pAttacker->getEffectManager()->findEffect(Effect::EFFECT_CLASS_HYMN));
@@ -78,8 +78,8 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
         ToHit = (ToHit_t)getPercentValue(ToHit, MonsterTimebandFactor[timeband]);
         isMonster = true;
 
-        // 언젠가 최적화를 하게 된다면.. -_-;
-        // Creature에다가 Penalty관련 member들을 넣는게 나을 것이다.
+        // If this is optimized some day,
+        // it would be better to put the penalty-related members into Creature.
         if (pAttacker->isFlag(Effect::EFFECT_CLASS_HYMN)) {
             EffectHymn* pHymn =
                 dynamic_cast<EffectHymn*>(pAttacker->getEffectManager()->findEffect(Effect::EFFECT_CLASS_HYMN));
@@ -88,13 +88,13 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
         }
 
     } else {
-        // 현재 크리쳐의 클래스는 Slayer, Vampire, Monster, NPC 뿐인데...
-        // 이까지 왔다는 말은 공격자가 NPC라는 말이지.
-        // NPC AI는 구현되지 않은 상태이므로, 무조건 리턴이다.
+        // The creature classes are only Slayer, Vampire, Monster and NPC,
+        // so reaching here means the attacker is an NPC.
+        // NPC AI is not implemented, so this always returns.
         return false;
     }
 
-    // 방어자의 디펜스를 계산해 준다.
+    // Compute the defender's defense.
     if (pDefender->isSlayer()) {
         Slayer* pSlayerDefender = dynamic_cast<Slayer*>(pDefender);
         Defense = pSlayerDefender->getDefense();
@@ -112,9 +112,9 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
         Defense = (Defense_t)getPercentValue(Defense, MonsterTimebandFactor[timeband]);
         isMonster = true;
     } else {
-        // 현재 크리쳐의 클래스는 Slayer, Vampire, Monster, NPC 뿐인데...
-        // 이까지 왔다는 말은 방어자가 NPC라는 말이지.
-        // NPC AI는 구현되지 않은 상태이므로, 무조건 리턴이다.
+        // The creature classes are only Slayer, Vampire, Monster and NPC,
+        // so reaching here means the defender is an NPC.
+        // NPC AI is not implemented, so this always returns.
         return false;
     }
 
@@ -130,12 +130,12 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 일반 공격 hitroll 함수
+// Hit roll for a normal attack
 //////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어용 마법 hitroll 함수
+// Hit roll for Slayer magic
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessMagic(Slayer* pSlayer, SkillInfo* pSkillInfo, SkillSlot* pSkillSlot) {
     Assert(pSlayer != NULL);
@@ -154,7 +154,7 @@ bool HitRoll::isSuccessMagic(Slayer* pSlayer, SkillInfo* pSkillInfo, SkillSlot* 
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어용 마법 hitroll 함수
+// Hit roll for Vampire magic
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessMagic(Vampire* pVampire, SkillInfo* pSkillInfo, VampireSkillSlot* pVampireSkillSlot,
                              int BonusPoint) {
@@ -175,7 +175,7 @@ bool HitRoll::isSuccessMagic(Vampire* pVampire, SkillInfo* pSkillInfo, VampireSk
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터스용 마법 hitroll 함수
+// Hit roll for Ousters magic
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessMagic(Ousters* pOusters, SkillInfo* pSkillInfo, OustersSkillSlot* pOustersSkillSlot,
                              int BonusPoint) {
@@ -195,7 +195,7 @@ bool HitRoll::isSuccessMagic(Ousters* pOusters, SkillInfo* pSkillInfo, OustersSk
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터용 일반 마법 명중 굴림 함수
+// Hit roll for normal monster magic
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessMagic(Monster* pMonster, SkillInfo* pSkillInfo) {
     Assert(pMonster != NULL);
@@ -209,10 +209,10 @@ bool HitRoll::isSuccessMagic(Monster* pMonster, SkillInfo* pSkillInfo) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 및 몬스터용 흡혈 명중 굴림 함수
+// Blood drain hit roll for Vampires and monsters
 //////////////////////////////////////////////////////////////////////////////
-// multiplier는 보통은 3이다. 즉.. 33%이하가 흡혈 가능수치인데..
-// 마스터인 경우에는 multiplier를 2로 해서.. 50% 이하가 흡혈 가능수치로 사용
+// multiplier is normally 3, so a target at 33% HP or below can be drained.
+// For a master it is 2, so 50% or below is the drainable threshold.
 // by sigi. 2002.9.16
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int multiplier) {
@@ -222,13 +222,13 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
     Zone* pZone = pAttacker->getZone();
     Assert(pZone != NULL);
 
-    // 무적상태 체크. by sigi. 2002.9.5
+    // Checks for the invulnerable state.
     if (pDefender->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE)) {
         return false;
     }
 
 
-    const int normalMultiplier = 3; // master flag를 parameter로 받고 이건 빼야한다. - -;
+    const int normalMultiplier = 3; // Drop this once a master flag is passed in as a parameter.
     bool bHPCheck = false;
     bool bEffected = false;
     uint timeband = pZone->getTimeband();
@@ -238,8 +238,8 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
     int OtherLevel = 0;
     int ratio = 0;
 
-    // 타겟이 피를 빨 수 있는 상태인지,
-    // 디펜스가 얼마인지, 레벨이 얼마인지를 계산한다.
+    // Works out whether the target can be drained,
+    // what its defense is and what its level is.
     if (pDefender->isSlayer()) {
         Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pDefender);
         int MaxHP = pTargetSlayer->getHP(ATTR_MAX);
@@ -258,8 +258,8 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
 
         OtherLevel = (int)(OtherLevel / 350);
 
-        // 체력이 아직 1/3이 넘거나,
-        // 이미 흡혈을 당한 상태라면 흡혈을 할 수 없다.
+        // Blood cannot be drained if HP is still above 1/3
+        // or the target has already been drained.
         if (!bHPCheck || bEffected)
             return false;
     } else if (pDefender->isVampire()) {
@@ -274,8 +274,8 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
 
         Defense = (Defense_t)getPercentValue(Defense, VampireTimebandFactor[timeband]);
 
-        // 체력이 아직 1/3이 넘거나,
-        // 이미 흡혈을 당한 상태라면 흡혈을 할 수 없다.
+        // Blood cannot be drained if HP is still above 1/3
+        // or the target has already been drained.
         if (!bHPCheck || bEffected)
             return false;
     } else if (pDefender->isOusters()) {
@@ -288,8 +288,8 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
         Defense = pTargetOusters->getDefense() + pTargetOusters->getLevel() / 5;
         OtherLevel = pTargetOusters->getLevel();
 
-        // 체력이 아직 1/3이 넘거나,
-        // 이미 흡혈을 당한 상태라면 흡혈을 할 수 없다.
+        // Blood cannot be drained if HP is still above 1/3
+        // or the target has already been drained.
         if (!bHPCheck || bEffected)
             return false;
     } else if (pDefender->isMonster()) {
@@ -304,22 +304,22 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
 
         Defense = (Defense_t)getPercentValue(Defense, MonsterTimebandFactor[timeband]);
 
-        // 체력이 아직 1/3이 넘거나,
-        // 이미 흡혈을 당한 상태라면 흡혈을 할 수 없다.
+        // Blood cannot be drained if HP is still above 1/3
+        // or the target has already been drained.
         if (!bHPCheck || bEffected)
             return false;
 
-        // 만일 우선권이 이미 세팅되어 있는 몬스터라면...
-        // 흡혈할 수 있는 조건은 우선권을 가진 자이거나, 우선권을 가진 파티에 속한 자여야 한다.
+        // If the monster already has precedence set,
+        // draining requires holding precedence or belonging to the party that holds it.
         if (pTargetMonster->isFlag(Effect::EFFECT_CLASS_PRECEDENCE)) {
             EffectPrecedence* pEffectPrecedence =
                 dynamic_cast<EffectPrecedence*>(pTargetMonster->findEffect(Effect::EFFECT_CLASS_PRECEDENCE));
             Assert(pEffectPrecedence != NULL);
 
-            // 우선권을 가진 자가 아니라면...
+            // If this is not the holder of precedence,
             if (pAttacker->getName() != pEffectPrecedence->getHostName()) {
-                // 아무 파티에도 가입되어 있지 않거나,
-                // 파티에 가입되어 있는데, 호스트 파티 ID가 아니라면, 흡혈할 수 없다.
+                // draining fails when the attacker is in no party at all,
+                // or is in a party that is not the host party.
                 if (pAttacker->getPartyID() == 0 || pAttacker->getPartyID() != pEffectPrecedence->getHostPartyID()) {
                     return false;
                 }
@@ -328,7 +328,7 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
     } else
         Assert(false);
 
-    // 공격자의 투힛 및 레벨을 계산한다.
+    // Compute the attacker's to-hit and level.
     if (pAttacker->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pAttacker);
 
@@ -354,52 +354,52 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 저주 마법 히트롤 함수
+// Hit roll for curse magic
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessCurse(int MagicLevel, Resist_t resist) {
-    // MagicLevel은 뱀파이어가 그 마법을 배우는 데 필요한 레벨이다.
-    // 즉 높은 레벨의 저주 마법일수록 MagicLevel이 높아진다.
+    // MagicLevel is the level a Vampire needs to learn that magic.
+    // So the higher the level of the curse magic, the higher MagicLevel is.
     //
-    // MagicLevel이 30이고, 저항이 20이라면...
-    // curse_prob = 110이고, 저주는 항상 성공하게 된다.
-    // MagicLevel이 30이고, 저항이 100이라면...
-    // curse_prob = 30이고, 마법은 70% 확률로 실패하게 된다.
+    // With MagicLevel 30 and resistance 20,
+    // curse_prob = 110 and the curse always succeeds.
+    // With MagicLevel 30 and resistance 100,
+    // curse_prob = 30 and the magic fails 70% of the time.
     int curse_prob = decore::curseRatio(MagicLevel, resist);
     int randomValue = rand() % 100;
 
-    // 아, 씨바. 저주 걸렸다.
+    // The curse lands.
     if (randomValue < curse_prob)
         return true;
 
-    // 저항력에 의해서 걸리지 않았다. 아싸리...
+    // Resistance kept it from landing.
     return false;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 저주 마법 히트롤 함수 - 뱀파이어가 저주를 걸때
+// Hit roll for curse magic - when a Vampire casts the curse
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessVampireCurse(int MagicLevel, Resist_t resist) {
-    // MagicLevel은 뱀파이어가 그 마법을 배우는 데 필요한 레벨을 2로 나눈
-    // 것이다. 즉 높은 레벨의 저주 마법일수록 MagicLevel이 높아진다.
+    // MagicLevel is half the level a Vampire needs to learn that magic.
+    // So the higher the level of the curse magic, the higher MagicLevel is.
     //
-    // MagicLevel이 30이고, 저항이 20이라면...
-    // curse_prob = 110이고, 저주는 항상 성공하게 된다.
-    // MagicLevel이 30이고, 저항이 100이라면...
-    // curse_prob = 30이고, 마법은 70% 확률로 실패하게 된다.
+    // With MagicLevel 30 and resistance 20,
+    // curse_prob = 110 and the curse always succeeds.
+    // With MagicLevel 30 and resistance 100,
+    // curse_prob = 30 and the magic fails 70% of the time.
     int curse_prob = decore::vampireCurseRatio(MagicLevel, resist);
 
     int randomValue = rand() % 100;
 
-    // 아, 씨바. 저주 걸렸다.
+    // The curse lands.
     if (randomValue < curse_prob)
         return true;
 
-    // 저항력에 의해서 걸리지 않았다. 아싸리...
+    // Resistance kept it from landing.
     return false;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// CurePoison 명중굴림 함수
+// Hit roll for CurePoison
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessCurePoison(int Base, int SkillLevel, int Difficulty, int MagicLevel, int MinRatio) {
     // Minimum ratio added by Sequoia 2003. 3. 20
@@ -411,12 +411,12 @@ bool HitRoll::isSuccessCurePoison(int Base, int SkillLevel, int Difficulty, int 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Flare 명중굴림 함수
+// Hit roll for Flare
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessFlare(Creature* pTargetCreature, int SkillLevel) {
     Assert(pTargetCreature != NULL);
 
-    // 무적상태 체크. by sigi. 2002.9.5
+    // Checks for the invulnerable state.
     if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE))
         return false;
 
@@ -443,7 +443,7 @@ bool HitRoll::isSuccessFlare(Creature* pTargetCreature, int SkillLevel) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// RemoveCurse 명중굴림 함수
+// Hit roll for RemoveCurse
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessRemoveCurse(int Base, int SkillLevel, int Difficulty, int MagicLevel, int MinRatio /* = 0 */) {
     // Minimum ratio added by Sequoia 2003. 3. 20
@@ -455,13 +455,13 @@ bool HitRoll::isSuccessRemoveCurse(int Base, int SkillLevel, int Difficulty, int
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Rebuke 명중굴림 함수
+// Hit roll for Rebuke
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessRebuke(Slayer* pSlayer, SkillSlot* pSkillSlot, Creature* pDefender) {
     if (pDefender->isSlayer())
         return false;
 
-    // 80레벨 이상의 뱀파이어는 잠들지 않는다.
+    // Vampires of level 80 or above do not fall asleep.
     if (pDefender->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pDefender);
         if (pVampire->getLevel() >= 80)
@@ -472,7 +472,7 @@ bool HitRoll::isSuccessRebuke(Slayer* pSlayer, SkillSlot* pSkillSlot, Creature* 
             return false;
     }
 
-    // 마스터 (바토리, 테페즈)는 잠들지 않는다.
+    // Masters (Bathory, Tepes) do not fall asleep.
     if (pDefender->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pDefender);
         if (pMonster->isMaster())
@@ -489,7 +489,7 @@ bool HitRoll::isSuccessRebuke(Slayer* pSlayer, SkillSlot* pSkillSlot, Creature* 
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Magic Elusion 명중굴림 함수
+// Hit roll for Magic Elusion
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessMagicElusion(Slayer* pSlayer) {
     Attr_t SUM = pSlayer->getTotalAttr(ATTR_CURRENT);
@@ -499,7 +499,7 @@ bool HitRoll::isSuccessMagicElusion(Slayer* pSlayer) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Posion Mesh 명중굴림 함수
+// Hit roll for Poison Mesh
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessPoisonMesh(Vampire* pVampire) {
     int Ratio = decore::poisonMeshRatio(pVampire->getLevel());
@@ -508,7 +508,7 @@ bool HitRoll::isSuccessPoisonMesh(Vampire* pVampire) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Illusion Of Avenge 명중굴림 함수
+// Hit roll for Illusion Of Avenge
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessIllusionOfAvenge(Slayer* pSlayer) {
     Attr_t SUM = pSlayer->getTotalAttr(ATTR_CURRENT);
@@ -518,7 +518,7 @@ bool HitRoll::isSuccessIllusionOfAvenge(Slayer* pSlayer) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Will Of Life 명중굴림 함수
+// Hit roll for Will Of Life
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessWillOfLife(Vampire* pVampire) {
     int Ratio = decore::willOfLifeRatio(pVampire->getLevel());
@@ -528,7 +528,7 @@ bool HitRoll::isSuccessWillOfLife(Vampire* pVampire) {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// 크리티컬 히트 롤을 수행한다.
+// Performs the critical hit roll.
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isCriticalHit(Creature* pCreature, int CriticalBonus) {
     Assert(pCreature != NULL);
@@ -542,7 +542,7 @@ bool HitRoll::isCriticalHit(Creature* pCreature, int CriticalBonus) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 스킬인가를 체크하는 함수
+// Checks whether the skill is a Slayer self skill
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSlayerSelfSkill(SkillType_t skillType) {
     switch (skillType) {

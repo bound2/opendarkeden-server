@@ -36,7 +36,7 @@ void ActionGiveItem::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionGiveItem::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -63,7 +63,7 @@ void ActionGiveItem::execute(Creature* pCreature1, Creature* pCreature2)
     Assert(pInventory != NULL);
 
     if (!pInventory->getEmptySlot(pItem, pt)) {
-        // ConditionHasInvenSpace 컨디션과 반드시 함께 써야만 한다.
+        // This action must always be paired with the ConditionHasInvenSpace condition.
         throw Error("ActionGiveItem: no room in the inventory; pair this action with ConditionHasInvenSpace.");
     }
 
@@ -79,7 +79,7 @@ void ActionGiveItem::execute(Creature* pCreature1, Creature* pCreature2)
         remainTraceLogNew(pItem, pCreature2->getName(), ITL_GET, ITLD_EVENTNPC, pCreature2->getZone()->getZoneID());
     }
 
-    // 클라이언트에 선물이 추가되었음을 알린다.
+    // Tell the client the gift was added.
     GCCreateItem gcCreateItem;
     makeGCCreateItem(&gcCreateItem, pItem, X, Y);
     pPlayer->sendPacket(&gcCreateItem);

@@ -118,8 +118,8 @@ void EffectDummyDrake::unaffect()
 
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
-    // ¶ÁÈ¡5*5·¶Î§ÄÚ¶ÔÏó,²¢´´½¨ÉËº¦
-    // ´´½¨Ä¿±êÉËº¦
+    // Take the objects within a 5*5 range and damage them.
+    // Damage the target.
     affect(pCreature);
 
     int cx = pCreature->getX();
@@ -148,7 +148,7 @@ void EffectDummyDrake::unaffect()
                     continue;
                 if (pTargetCreature->isFlag(getEffectClass()))
                     continue;
-                // ´´½¨ÉËº¦
+                // Apply the damage.
                 affect(pTargetCreature);
             }
         }

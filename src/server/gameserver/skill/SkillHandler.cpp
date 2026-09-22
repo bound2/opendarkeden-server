@@ -250,7 +250,7 @@ void SkillHandler::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, CoordInve
     }
 }
 
-// Create Holy Water 용 execute
+// execute for Create Holy Water
 void SkillHandler::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, ObjectID_t ItemObjectID, CoordInven_t X,
                            CoordInven_t Y)
 
@@ -349,11 +349,11 @@ void SkillHandler::execute(Monster* pMonster, Creature* pEnemy)
 
 void SkillHandler::execute(Monster* pMonster, ZoneCoord_t x, ZoneCoord_t y) {}
 
-// Mine & Bomb 관련
-const int ETypeCount = 5;                             // 폭발의 종류
-const int tilesByEType[ETypeCount] = {3, 3, 5, 5, 9}; // 폭발 타입에 따른 피해 타일의 수.
+// Mine & Bomb related
+const int ETypeCount = 5;                             // Number of explosion types
+const int tilesByEType[ETypeCount] = {3, 3, 5, 5, 9}; // Number of damaged tiles per explosion type.
 
-// 방향 왼쪽 부터 밑으로 돈다.
+// Tiles are listed from the left of the direction, going around.
 const int xOffsetByEType0[DIR_MAX][3] = {{-1, 0, 1}, {-1, 0, 1}, {0, 0, 0}, {-1, 0, 1},
                                          {-1, 0, 1}, {-1, 0, 1}, {0, 0, 0}, {-1, 0, 1}};
 

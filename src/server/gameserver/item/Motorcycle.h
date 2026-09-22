@@ -108,13 +108,13 @@ public:
     }
 
 private:
-    ItemType_t m_ItemType;           // 아이템 타입
-    list<OptionType_t> m_OptionType; // 옵션 타입
-    Durability_t m_Durability;       // 내구성
-    Inventory* m_pInventory;         // 인벤토리
+    ItemType_t m_ItemType;           // Item type
+    list<OptionType_t> m_OptionType; // Option type
+    Durability_t m_Durability;       // Durability
+    Inventory* m_pInventory;         // Inventory
 
-    static Mutex m_Mutex;             // 아이템 ID 관련 락
-    static ItemID_t m_ItemIDRegistry; // 클래스별 고유 아이템 아이디 발급기
+    static Mutex m_Mutex;             // Lock for the item ID registry
+    static ItemID_t m_ItemIDRegistry; // Per-class unique item ID generator
 };
 
 
@@ -138,7 +138,7 @@ public:
     virtual string toString() const;
 
 private:
-    Durability_t m_Durability; // 내구성
+    Durability_t m_Durability; // Durability
 };
 
 

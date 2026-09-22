@@ -9,7 +9,7 @@
 #include "SimpleLinearMeleeSkill.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void WindDivider::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -24,7 +24,7 @@ void WindDivider::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         Zone* pZone = pSlayer->getZone();
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -40,7 +40,7 @@ void WindDivider::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void WindDivider::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -60,8 +60,8 @@ void WindDivider::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
     param.STRMultiplier = 8;
     param.DEXMultiplier = 1;
     param.INTMultiplier = 1;
-    // 공중에 있는 몬스터를 체크하기 위하여 임의로 날린다.
-    // 1 번은 공중 공격 가능, 2 번은 땅속 공격 가능
+    // Set arbitrarily so that monsters in the air are checked.
+    // 1 can hit airborne targets, 2 can hit burrowed targets.
     param.Level = 1;
     param.bMagicHitRoll = false;
     param.bMagicDamage = false;

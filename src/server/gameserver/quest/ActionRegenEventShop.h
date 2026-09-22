@@ -2,7 +2,7 @@
 // Filename    : ActionRegenEventShop.h
 // Written By  : excel96
 // Description :
-// 크리스마스 이벤트용 상점을 갱신하는 액션
+// Action that refreshes the shop for the Christmas event
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_REGEN_EVENT_SHOP_H__
@@ -41,8 +41,8 @@ public:
 
 private:
     list<ShopTemplateID_t> m_List; // Shop template ID list
-    Timeval m_Period;              // 상점을 리젠할 주기
-    Timeval m_NextRegen;           // 다음 상점 리젠 시간
+    Timeval m_Period;              // Shop regeneration period
+    Timeval m_NextRegen;           // Next shop regeneration time
 };
 
 

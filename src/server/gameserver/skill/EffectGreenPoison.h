@@ -66,9 +66,9 @@ public:
     bool affectCreature(Creature* pCreature, bool bAffectByMove);
 
 private:
-    int m_Level;           // 마법의 MagicLevel
-    Damage_t m_Damage;     // 마법의 데미지
-    Duration_t m_Duration; // 마법의 지속 시간
+    int m_Level;           // Magic level of the spell
+    Damage_t m_Damage;     // Damage of the spell
+    Duration_t m_Duration; // Duration of the spell
     ObjectID_t m_UserObjectID;
     bool m_bVampire;
 };

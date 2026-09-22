@@ -33,7 +33,7 @@ public:
     void computeOutput(const SkillInput& input, SkillOutput& output);
 
 private:
-    POINT m_IceFieldMask[4][9]; // 4단계, 9개씩
+    POINT m_IceFieldMask[4][9]; // 4 stages, 9 tiles each
     int m_MaskNum[4];
 };
 

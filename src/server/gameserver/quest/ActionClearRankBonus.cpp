@@ -38,7 +38,7 @@ void ActionClearRankBonus::read(PropertyBuffer& propertyBuffer)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionClearRankBonus::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -57,7 +57,7 @@ void ActionClearRankBonus::execute(Creature* pCreature1, Creature* pCreature2)
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
     Assert(pPC != NULL);
 
-    // 일단 창을 닫고 본다.
+    // Close the dialogue window first.
     GCNPCResponse response;
 
     Gold_t clearFee = 0;

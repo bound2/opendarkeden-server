@@ -12,7 +12,7 @@
 #include "GCSkillToSelfOK2.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void WaterBarrier::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot, CEffectID_t CEffectID)
 
@@ -54,12 +54,12 @@ void WaterBarrier::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlo
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected && bSatisfyRequire) {
             decreaseMana(pOusters, RequiredMP, _GCSkillToSelfOK1);
 
-            // 지속 시간을 계산한다.
+            // Compute the duration.
             SkillInput input(pOusters, pOustersSkillSlot);
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이팩트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectWaterBarrier* pEffect = new EffectWaterBarrier(pOusters);
             pEffect->setDeadline(output.Duration);
             pEffect->setBonus(output.Damage);

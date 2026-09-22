@@ -2,8 +2,8 @@
 // Filename    : ActionShowGuildDialog.h
 // Written By  :
 // Description :
-// Creature가 주어진 대사를 말한다. 이 대사는 크리처의 머리 위의 말풍선으로
-// 출력된다.
+// The creature speaks the given script line. The line is shown in a speech
+// bubble above the creature's head.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_SHOW_GUILD_DIALOG_H__
@@ -32,10 +32,10 @@ public:
     virtual string toString() const;
 
     enum GUILDDIALOG {
-        GUILD_DIALOG_REGIST = 0, // 길드 등록 창
-        GUILD_DIALOG_WAIT_LIST,  // 길드 등록 대기 리스트
-        GUILD_DIALOG_LIST,       // 길드 리스트
-        GUILD_DIALOG_QUIT,       // 길드 탈퇴 창
+        GUILD_DIALOG_REGIST = 0, // Guild registration window
+        GUILD_DIALOG_WAIT_LIST,  // Guild registration waiting list
+        GUILD_DIALOG_LIST,       // Guild list
+        GUILD_DIALOG_QUIT,       // Guild leave window
 
         GUILD_DIALOG_MAX
     };

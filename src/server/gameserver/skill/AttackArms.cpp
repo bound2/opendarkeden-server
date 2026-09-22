@@ -22,7 +22,7 @@
 #include "ItemUtil.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
 
@@ -40,14 +40,14 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NPC는 공격할 수 없다.
-        if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
+        // NPCs cannot be attacked.
+        if (pTargetCreature == NULL // The zone returns NULL when the target is gone.
             || !canAttack(pSlayer, pTargetCreature)) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
         }
 
-        // 패킷을 준비하고...
+        // Prepare the packets.
         GCAttackArmsOK1 _GCAttackArmsOK1;
         GCAttackArmsOK2 _GCAttackArmsOK2;
         GCAttackArmsOK3 _GCAttackArmsOK3;
@@ -57,12 +57,12 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
         _GCAttackArmsOK5.setSkillSuccess(false);
         _GCAttackArmsOK1.setSkillSuccess(false);
 
-        // 스킬 슬랏을 받아온다.
+        // Get the skill slot.
         SkillSlot* pSkillSlot = pSlayer->getSkill(SKILL_ATTACK_ARMS);
         Assert(pSkillSlot != NULL);
 
-        // 슬레이어가 쓰고 있는 아이템을 가져온다.
-        // 맨손이거나, 총 종류의 무기가 아니라면 에러다.
+        // Get the item the Slayer is wielding.
+        // Bare hands or a weapon that is not a gun is an error.
         Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pWeapon == NULL || isArmsWeapon(pWeapon) == false) {
             executeSkillFailException(pSlayer, getSkillType());
@@ -73,15 +73,15 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
 
         bool bBulletCheck = (getRemainBullet(pWeapon) > 0) ? true : false;
 
-        // 총알은 무조건 떨어뜨린다.
+        // Spend a bullet whenever the gun has one.
         Bullet_t RemainBullet = 0;
         if (bBulletCheck) {
             decreaseBullet(pWeapon);
-            // 한발쓸때마다 저장할 필요 없다. by sigi. 2002.5.9
+            // The weapon is not saved on every shot.
             RemainBullet = getRemainBullet(pWeapon);
         }
 
-        // 총에 총알이 남아있다면...
+        // If the gun had a bullet loaded...
         if (bBulletCheck) {
             SkillDomainType_t DomainType = SKILL_DOMAIN_GUN;
             int ToHitBonus = 0;
@@ -95,7 +95,7 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
             int Splash = computeArmsWeaponSplashSize(pWeapon, myX, myY, targetX, targetY);
 
             ////////////////////////////////////////////////////////////////////////////////
-            // SG가 아닌 다른 총의 일반 공격
+            // Normal attack for guns other than the SG.
             ////////////////////////////////////////////////////////////////////////////////
             if (Splash == 0) {
                 ToHitBonus = computeArmsWeaponToHitBonus(pWeapon, myX, myY, targetX, targetY);
@@ -106,8 +106,7 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
                 bool bRangeCheck = verifyDistance(pSlayer, pTargetCreature, pWeapon->getRange());
                 bool bPK = verifyPK(pSlayer, pTargetCreature);
 
-                // 공격자와 상대의 아이템 내구성 떨어트림.
-                // 밑에 있던걸 이쪽으로 옮겼다. by sigi. 2002.5.13
+                // Drop the durability of the attacker's and the target's items.
                 decreaseDurability(pSlayer, pTargetCreature, NULL, &_GCAttackArmsOK1, &_GCAttackArmsOK2);
 
                 if (bHitRoll && bTimeCheck && bRangeCheck && bPK) {
@@ -118,7 +117,7 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
                     setDamage(pTargetCreature, Damage, pSlayer, getSkillType(), &_GCAttackArmsOK2, &_GCAttackArmsOK1);
                     computeAlignmentChange(pTargetCreature, Damage, pSlayer, &_GCAttackArmsOK2, &_GCAttackArmsOK1);
 
-                    // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+                    // A critical hit knocks the target back.
                     if (bCriticalHit) {
                         knockbackCreature(pZone, pTargetCreature, myX, myY);
                     }
@@ -168,11 +167,11 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
                 pZone->broadcastPacket(targetX, targetY, &_GCAttackArmsOK4, cList);
             }
             ////////////////////////////////////////////////////////////////////////////////
-            // SG는 기본적으로 splash가 들어간다.
+            // The SG always applies splash damage.
             ////////////////////////////////////////////////////////////////////////////////
             else {
-                Damage_t Damage = 0; // 마지막으로 입힌 데미지를 저장하기 위한 변수.
-                bool bHit = false;   // 한 명이라도 맞았는가를 저장하기 위한 변수.
+                Damage_t Damage = 0; // Holds the last damage dealt.
+                bool bHit = false;   // True once at least one target was hit.
 
                 GCSkillToTileOK1 _GCSkillToTileOK1;
                 GCSkillToTileOK2 _GCSkillToTileOK2;
@@ -205,8 +204,8 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
 
                         Damage = computeDamage(pSlayer, pEnemy, 0, bCriticalHit);
 
-                        // 메인 타겟을 제외하고는, 스플래시 데미지를 입는데,
-                        // 스플래시 데미지는 일반 데미지의 50%이다.
+                        // Everyone except the main target takes splash damage, which
+                        // is 50% of the normal damage.
                         if (pTargetCreature != pEnemy) {
                             Damage = Damage / 2;
                         }
@@ -222,12 +221,12 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
 
                         increaseAlignment(pSlayer, pEnemy, _GCSkillToTileOK1);
 
-                        // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+                        // A critical hit knocks the target back.
                         if (bCriticalHit) {
                             knockbackCreature(pZone, pEnemy, myX, myY);
                         }
 
-                        // 타겟이 슬레이어가 아닐 경우에만 경험치를 올려준다.
+                        // Experience is granted only when the target is not a Slayer.
                         if (!pTargetCreature->isSlayer()) {
                             bHit = true;
                             if (maxEnemyLevel < pTargetCreature->getLevel())
@@ -242,7 +241,7 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
                     increaseDomainExp(pSlayer, DomainType, 1, _GCSkillToTileOK1, maxEnemyLevel, EnemyNum);
                 }
 
-                // 총알 숫자를 줄이고, 총알 숫자를 저장하고, 남은 총알 숫자를 받은 다음에 내구력을 떨어뜨린다.
+                // Report the remaining bullet count, then drop the durability.
                 _GCSkillToTileOK1.addShortData(MODIFY_BULLET, RemainBullet);
 
                 decreaseDurability(pSlayer, NULL, NULL, &_GCSkillToTileOK1, NULL);
@@ -281,7 +280,7 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
 
                 pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-                // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
+                // Send the packet to every creature affected by this skill.
                 for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                     Creature* pVictim = *itr;
                     Assert(pVictim != NULL);
@@ -333,7 +332,7 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 몬스터 오브젝트 핸들러
+// Monster object handler
 //////////////////////////////////////////////////////////////////////////////
 void AttackArms::execute(Monster* pMonster, Creature* pEnemy)
 
@@ -368,7 +367,7 @@ void AttackArms::execute(Monster* pMonster, Creature* pEnemy)
             Damage_t Damage = computeDamage(pMonster, pEnemy, 0, bCriticalHit);
             setDamage(pEnemy, Damage, pMonster, SKILL_ATTACK_ARMS, &_GCAttackArmsOK2, NULL);
 
-            // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+            // A critical hit knocks the target back.
             if (bCriticalHit) {
                 knockbackCreature(pZone, pEnemy, pMonster->getX(), pMonster->getY());
             }
@@ -386,7 +385,7 @@ void AttackArms::execute(Monster* pMonster, Creature* pEnemy)
 
                 pTargetMonster->addEnemy(pMonster);
 
-                // 마스터는 딜레이없다.
+                // A master monster imposes no delay.
                 if (!pMonster->isMaster()) {
                     Timeval NextTurn = pMonster->getNextTurn();
                     Timeval DelayTurn;
@@ -398,7 +397,7 @@ void AttackArms::execute(Monster* pMonster, Creature* pEnemy)
                 }
             }
 
-            // 공격자와 상대의 아이템 내구성 떨어트림.
+            // Drop the durability of the attacker's and the target's items.
             decreaseDurability(pMonster, pEnemy, NULL, NULL, &_GCAttackArmsOK2);
 
             ZoneCoord_t targetX = pEnemy->getX();

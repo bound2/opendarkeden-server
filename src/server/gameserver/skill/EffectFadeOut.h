@@ -2,8 +2,8 @@
 // Filename    : EffectFadeOut.h
 // Written by  : elca@ewestsoft.com
 // Description :
-// 군인기술 Sniping 또는 뱀파이어 기술 Invisibility로 인해서
-// 현재 점점 희미해져가고 있는(사라지고 있는) 크리쳐에 붙는 이펙트이다.
+// Effect attached to a creature that is fading out because of the soldier
+// skill Sniping or the Vampire skill Invisibility.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __EFFECT_FADE_OUT__

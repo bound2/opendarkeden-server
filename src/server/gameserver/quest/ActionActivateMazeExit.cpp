@@ -55,7 +55,7 @@ void ActionActivateMazeExit::read(PropertyBuffer& pb)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionActivateMazeExit::execute(Creature* pNPC, Creature* pCreature)
 
@@ -66,7 +66,7 @@ void ActionActivateMazeExit::execute(Creature* pNPC, Creature* pCreature)
     Assert(pCreature != NULL);
     Assert(pCreature->isPC());
 
-    // 미로 출구는 유료존 체크 안하고 보내준다. 젠장 -_-
+    // The maze exit lets the player through without the pay-zone check.
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
     Assert(pPC != NULL);
 

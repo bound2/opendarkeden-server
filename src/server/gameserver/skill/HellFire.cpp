@@ -47,7 +47,7 @@ HellFire::HellFire() {
 };
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터즈 오브젝트 핸들러
+// Ousters object handler
 //////////////////////////////////////////////////////////////////////////////
 void HellFire::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlot* pOustersSkillSlot,
                        CEffectID_t CEffectID)
@@ -65,7 +65,7 @@ void HellFire::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pOusters, pTargetCreature)) {
             executeSkillFailException(pOusters, getSkillType());
             return;
@@ -81,7 +81,7 @@ void HellFire::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 아우스터즈 타일 핸들러
+// Ousters tile handler
 //////////////////////////////////////////////////////////////////////////////
 void HellFire::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersSkillSlot* pOustersSkillSlot,
                        CEffectID_t CEffectID)
@@ -120,7 +120,7 @@ void HellFire::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
         ZoneCoord_t myX = pOusters->getX();
         ZoneCoord_t myY = pOusters->getY();
 
-        // 이펙트의 지속시간을 계산한다.
+        // Computes the effect duration.
         SkillInput input(pOusters, pOustersSkillSlot);
         SkillOutput output;
         computeOutput(input, output);
@@ -166,16 +166,16 @@ void HellFire::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
                     if (tile.getEffect(Effect::EFFECT_CLASS_HEAVEN_GROUND))
                         continue;
 
-                    // 현재 타일에다 이펙트를 추가할 수 있다면...
+                    // If an effect can be added to this tile...
                     if (tile.canAddEffect()) {
-                        // 같은 effect가 있으면 지운다.
+                        // Delete the same effect if one is already there.
                         Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_HELLFIRE);
                         if (pOldEffect != NULL) {
                             ObjectID_t effectID = pOldEffect->getObjectID();
                             pZone->deleteEffect(effectID); // fix me
                         }
 
-                        // 이펙트 클래스를 생성한다.
+                        // Create the effect class.
                         EffectHellFire* pEffect = new EffectHellFire(pZone, tileX, tileY);
                         pEffect->setCasterName(pOusters->getName());
                         pEffect->setCasterID(pOusters->getObjectID());
@@ -185,7 +185,7 @@ void HellFire::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
                         pEffect->setNextTime(0);
                         pEffect->setTick(output.Tick);
 
-                        // Tile에 붙이는 Effect는 ObjectID를 등록받아야 한다.
+                        // An Effect attached to a Tile must have its ObjectID registered.
                         ObjectRegistry& objectregister = pZone->getObjectRegistry();
                         objectregister.registerObject(pEffect);
                         pZone->addEffect(pEffect);
@@ -276,8 +276,8 @@ void HellFire::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
 
             list<Creature*> watcherList = pZone->getWatcherList(myX, myY, pOusters);
 
-            // watcherList에서 cList에 속하지 않고, caster(pOusters)를 볼 수 없는 경우는
-            // OK4를 보내고.. cList에 추가한다.
+            // Watchers outside cList that cannot see the caster are sent OK4 and added to cList.
+            // are sent OK4 and added to cList.
             for (list<Creature*>::const_iterator itr = watcherList.begin(); itr != watcherList.end(); itr++) {
                 bool bBelong = false;
                 for (list<Creature*>::const_iterator tItr = cList.begin(); tItr != cList.end(); tItr++)

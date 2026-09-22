@@ -17,7 +17,7 @@
 #include "GCSkillToTileOK6.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void Sanctuary::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -34,7 +34,7 @@ void Sanctuary::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
@@ -50,7 +50,7 @@ void Sanctuary::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 타일 핸들러
+// Slayer tile handler
 //////////////////////////////////////////////////////////////////////////////
 void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -93,7 +93,7 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
             bTileCheck = true;
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bTileCheck) {
-            // 이펙트의 지속시간을 계산한다.
+            // Compute the effect's duration.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             computeOutput(input, output);
@@ -106,7 +106,7 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
 
             ObjectRegistry& objectregister = pZone->getObjectRegistry();
 
-            // 일단 이미 sanctuary가 있는지 검색한다.
+            // First checks whether a magic elusion effect is already there.
             for (oY = -1; oY <= 1; oY++)
                 for (oX = -1; oX <= 1; oX++) {
                     int tileX = X + oX;
@@ -117,8 +117,8 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
                         if (tile.canAddEffect()) {
                             Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_SANCTUARY);
 
-                            // 이미 있다면
-                            // 기술 실패다.
+                            // If one is already there,
+                            // the skill fails.
                             if (pOldEffect != NULL) {
                                 executeSkillFailNormal(pSlayer, getSkillType(), NULL);
 
@@ -131,7 +131,7 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
                     }
                 }
 
-            // 실패하면 마나가 줄면 안 되므로 여기서 줄여준다.
+            // Mana must not be consumed on failure, so it is decreased here.
             decreaseMana(pSlayer, RequiredMP, _GCSkillToTileOK1);
 
             for (oY = -1; oY <= 1; oY++)
@@ -141,19 +141,19 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
                     if (rect.ptInRect(tileX, tileY)) {
                         Tile& tile = pZone->getTile(tileX, tileY);
 
-                        // 현재 타일에다 이펙트를 추가할 수 있다면...
+                        // If the effect can be added to this tile.
                         {
-                            // 같은 effect가 있으면 지운다.
-                            // 위에서 체크했다.
+                            // Delete the same effect if one is already present.
+                            // It was checked above.
 
-                            // 이펙트 클래스를 생성한다.
+                            // Create the effect object.
                             EffectSanctuary* pEffect = new EffectSanctuary(pZone, tileX, tileY, X, Y);
                             pEffect->setDeadline(output.Duration);
                             pEffect->setLevel(pSlayer->getINT());
                             pEffect->setDuration(output.Duration);
                             pEffect->setStartTime();
 
-                            // Tile에 붙이는 Effect는 ObjectID를 등록받아야 한다.
+                            // An effect attached to a tile must be assigned an object ID.
                             objectregister.registerObject(pEffect);
                             pZone->addEffect(pEffect);
                             tile.addEffect(pEffect);
@@ -172,7 +172,7 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
                             for (forward_list<Object*>::const_iterator itr = oList.begin(); itr != oList.end(); itr++) {
                                 Object* pTarget = *itr;
                                 {
-                                    // 이펙트 클래스를 생성한다.
+                                    // Creates the effect class.
                                 }
 
                                 pEffect->affectObject(pTarget, false);
@@ -181,9 +181,9 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
                     }
                 }
 
-            // client에서는 effect생성되는 시간이 있어서
-            // 타이밍 맞출려면.. 시간을 좀 빼줘야 한다. -_-;
-            output.Duration -= 20; // 2초 뺀다.
+            // The client needs time to create the effect, so the duration is
+            // reduced a little to keep the timing in sync.
+            output.Duration -= 20; // Subtracts 2 seconds.
 
             _GCSkillToTileOK1.setSkillType(SkillType);
             _GCSkillToTileOK1.setCEffectID(CEffectID);
@@ -248,8 +248,8 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
 
             list<Creature*> watcherList = pZone->getWatcherList(myX, myY, pSlayer);
 
-            // watcherList에서 cList에 속하지 않고, caster(pSlayer)를 볼 수 없는 경우는
-            // OK4를 보내고.. cList에 추가한다.
+            // Watchers that are not in cList and cannot see the caster (pSlayer)
+            // are sent OK4 and added to cList.
             for (list<Creature*>::const_iterator itr = watcherList.begin(); itr != watcherList.end(); itr++) {
                 bool bBelong = false;
                 for (list<Creature*>::const_iterator tItr = cList.begin(); tItr != cList.end(); tItr++)
@@ -290,7 +290,7 @@ void Sanctuary::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void Sanctuary::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 

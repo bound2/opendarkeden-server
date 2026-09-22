@@ -66,7 +66,7 @@ void EffectTyphoon::unaffect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 이펙트가 사라졌다고 알려준다.
+    // Tells clients that the effect is gone.
     pCreature->removeFlag(Effect::EFFECT_CLASS_TYPHOON);
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());

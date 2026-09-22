@@ -2,8 +2,8 @@
 // Filename    : ActionSay.h
 // Written By  :
 // Description :
-// Creature가 주어진 대사를 말한다. 이 대사는 크리처의 머리 위의 말풍선으로
-// 출력된다.
+// The creature speaks the given script line. The line is shown in a speech
+// bubble above the creature's head.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __ACTION_SAY_H__
@@ -36,7 +36,7 @@ public:
     }
 
 private:
-    ScriptID_t m_ScriptID; // 말할 대사 아이디
+    ScriptID_t m_ScriptID; // ID of the script line to say
 };
 
 //////////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : EffectStormPoison.cpp
-// Written by  : 장홍창
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -58,22 +57,22 @@ void EffectStormPoison::affect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 사용자를 가져온다.
-    // !! 이미 존을 나갔을 수 있으므로 NULL이 될 수 있다.
+    // Get the user.
+    // It may be NULL: the creature may already have left the zone.
     // by bezz. 2003.3.13
     Creature* pCastCreature = pZone->getCreature(m_UserObjectID);
-    // 캐스터가 없으면 무시한다.
+    // Ignore it if the caster is gone.
     if (pCastCreature == NULL)
         return;
 
-    // EffectStormPoison은 AcidStorm, PoisonStorm, BloodyStorm위를 지나갈때 붙는다.
-    // 이는 3번의 연속 데미지를 주고 사라진다.
+    // EffectStormPoison is attached when walking over AcidStorm, PoisonStorm or BloodyStorm.
+    // It deals damage three times in a row and then disappears.
 
     Damage_t StormDamage = m_Point;
     GCModifyInformation GCAttackerMI;
 
     if (!(pZone->getZoneLevel() & COMPLETE_SAFE_ZONE)
-        // 무적상태 체크. by sigi. 2002.9.5
+        // Invincibility check.
         && canAttack(pCastCreature, pCreature)) {
         if (pCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -109,9 +108,9 @@ void EffectStormPoison::affect(Creature* pCreature)
             pVampire->getPlayer()->sendPacket(&GCAttackerMI);
         }
 
-        // m_CasterName이 pCreature를 죽인 경우의 KillCount 처리
+        // Handles the kill count when the caster kills pCreature.
         // by sigi. 2002.9.9
-        // set damage 를 불러서 처리한다. 주석 처리
+        // Handled by calling setDamage, so this is commented out.
         // by bezz. 2002.12.31
     }
 
@@ -144,7 +143,7 @@ void EffectStormPoison::unaffect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // 이펙트가 사라졌다고 알려준다.
+    // Tells clients that the effect is gone.
     GCRemoveEffect gcRemoveEffect;
     gcRemoveEffect.setObjectID(pCreature->getObjectID());
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_STORM_POSION);

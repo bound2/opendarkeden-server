@@ -45,7 +45,7 @@ void ActionWarpInZone::read(PropertyBuffer& propertyBuffer)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// 액션을 실행한다.
+// Execute the action.
 ////////////////////////////////////////////////////////////////////////////////
 void ActionWarpInZone::execute(Creature* pCreature1, Creature* pCreature2)
 
@@ -56,7 +56,7 @@ void ActionWarpInZone::execute(Creature* pCreature1, Creature* pCreature2)
 
     Assert(pCreature1->isNPC());
 
-    // 이번 턴에 움직일 것인지 체크한다.
+    // Check whether to move on this turn.
     uint diceResult = Dice(1, 100);
 
     if (diceResult < m_MovePercentage) {
@@ -71,7 +71,7 @@ void ActionWarpInZone::execute(Creature* pCreature1, Creature* pCreature2)
             tx = rand() % (pZone->getWidth() - 10) + 5;
             ty = rand() % (pZone->getHeight() - 10) + 5;
 
-            // 10 넘게 못 찾으면 걍 둔다.
+            // Give up after ten failed tries.
             if (++count > 10)
                 return;
         }

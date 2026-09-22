@@ -34,8 +34,8 @@ void SimpleLinearMeleeSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        // 만일 이 기술이 특별한 무기가 있어야 시전할 수 있는 기술이라면...
-        // 그 계열의 무기를 들고 있는지를 체크해서 아니라면 실패다.
+        // If this skill requires a specific weapon to cast,
+        // check the equipped weapon class and fail if it does not match.
         bool bIncreaseExp = true;
         if (param.ItemClass != Item::ITEM_CLASS_MAX) {
             Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
@@ -63,10 +63,10 @@ void SimpleLinearMeleeSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
         bool bRangeCheck = verifyDistance(pSlayer, X, Y, pSkillInfo->getRange());
 
         if (bManaCheck && bTimeCheck && bRangeCheck) {
-            // MP를 떨어뜨린다.
+            // Consumes MP.
             decreaseMana(pSlayer, RequiredMP, _GCSkillToTileOK1);
 
-            // 좌표와 방향을 구한다.
+            // Work out the coordinates and the direction.
             ZoneCoord_t myX = pSlayer->getX();
             ZoneCoord_t myY = pSlayer->getY();
             Dir_t dir = calcDirection(myX, myY, X, Y);
@@ -91,9 +91,9 @@ void SimpleLinearMeleeSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                 int tileX = (*ptitr).x;
                 int tileY = (*ptitr).y;
 
-                // 존 내부이고, 안전지대가 아니라면 맞을 확률이 있다.
+                // Inside the zone and outside a safe area there is a chance of being hit.
                 if (rect.ptInRect(tileX, tileY)) {
-                    // 타일을 받아온다.
+                    // Get the tile.
                     Tile& tile = pZone->getTile(tileX, tileY);
 
                     list<Creature*> targetList;
@@ -145,7 +145,7 @@ void SimpleLinearMeleeSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                             bHitRoll = HitRoll::isSuccess(pSlayer, pTargetCreature, SkillLevel / 2);
                         }
 
-                        // 도 계열의 기술은 맞지 않더라도 7%의 데미지를 가진다 - by bezz
+                        // Blade skills deal 7% damage even when they miss.
                         if (param.ItemClass == Item::ITEM_CLASS_BLADE && !bHitRoll) {
                             bHitRoll = true;
                             bSetMinDamage = true;
@@ -170,7 +170,7 @@ void SimpleLinearMeleeSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                                 Damage += param.SkillDamage;
                             }
 
-                            // HitRoll 에서 실패한 도 계열의 기술의 경우 7%의 데미지를 갖도록 한다 - by bezz
+                            // A blade skill that failed its hit roll deals 7% damage.
                             if (bSetMinDamage) {
                                 Damage = getPercentValue(Damage, 7);
                             }
@@ -184,18 +184,18 @@ void SimpleLinearMeleeSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                             _GCSkillToTileOK2.addCListElement(targetObjectID);
                             _GCSkillToTileOK5.addCListElement(targetObjectID);
 
-                            // 일단 맞는 놈이 받을 패킷은 널 상태로 한 채로, 데미지를 준다.
+                            // Apply the damage with the target's own packet left NULL.
                             setDamage(pTargetCreature, Damage, pSlayer, param.SkillType, NULL, &_GCSkillToTileOK1);
                             computeAlignmentChange(pTargetCreature, Damage, pSlayer, NULL, &_GCSkillToTileOK1);
 
                             increaseAlignment(pSlayer, pTargetCreature, _GCSkillToTileOK1);
 
-                            // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
+                            // On a critical hit, knocks the target back.
                             if (bCriticalHit) {
                                 knockbackCreature(pZone, pTargetCreature, pSlayer->getX(), pSlayer->getY());
                             }
 
-                            // 타겟이 슬레이어가 아닌 경우에만 맞춘 걸로 간주한다.
+                            // Counts as a hit only when the target is not a Slayer.
                             if (!pTargetCreature->isSlayer()) {
                                 bHit = true;
                                 if (maxEnemyLevel < pTargetCreature->getLevel())
@@ -253,7 +253,7 @@ void SimpleLinearMeleeSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
+            // Send the packet to everyone affected by this skill.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
                 Assert(pTargetCreature != NULL);
@@ -261,7 +261,7 @@ void SimpleLinearMeleeSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                 if (pTargetCreature->isPC()) {
                     _GCSkillToTileOK2.clearList();
 
-                    // HP의 변경사항을 패킷에다 기록한다.
+                    // Record the HP change in the packet.
                     HP_t targetHP = 0;
                     if (pTargetCreature->isSlayer()) {
                         targetHP = (dynamic_cast<Slayer*>(pTargetCreature))->getHP(ATTR_CURRENT);
@@ -272,13 +272,13 @@ void SimpleLinearMeleeSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                     }
                     _GCSkillToTileOK2.addShortData(MODIFY_CURRENT_HP, targetHP);
 
-                    // 아이템의 내구력을 떨어뜨린다.
+                    // Wear down the target's item durability.
                     decreaseDurability(NULL, pTargetCreature, pSkillInfo, NULL, &_GCSkillToTileOK2);
 
-                    // 패킷을 보내준다.
+                    // Send the packet.
                     pTargetCreature->getPlayer()->sendPacket(&_GCSkillToTileOK2);
                 } else if (pTargetCreature->isMonster()) {
-                    // 당근 적으로 인식한다.
+                    // The monster takes the caster as an enemy.
                     Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
                     pMonster->addEnemy(pSlayer);
                 }

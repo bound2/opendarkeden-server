@@ -16,7 +16,7 @@
 #include "GCSkillToTileOK6.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 오브젝트 핸들러
+// Slayer object handler
 //////////////////////////////////////////////////////////////////////////////
 void Regeneration::execute(Slayer* pSlayer, ObjectID_t ObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -34,7 +34,7 @@ void Regeneration::execute(Slayer* pSlayer, ObjectID_t ObjectID, SkillSlot* pSki
 
         Creature* pTargetCreature = pZone->getCreature(ObjectID);
 
-        // NoSuch제거. by sigi. 2002.5.2
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, getSkillType());
 
@@ -94,7 +94,7 @@ void Regeneration::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected && bTileCheck) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToTileOK1);
 
-            // 스킬 정보를 계산한다.
+            // Compute the skill output.
             SkillInput input(pSlayer, pSkillSlot);
             SkillOutput output;
             computeOutput(input, output);
@@ -109,7 +109,7 @@ void Regeneration::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                 pZone->deleteEffect(effectID);
             }
 
-            // 이팩트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectRegeneration* pEffect = new EffectRegeneration(pZone, X, Y);
             pEffect->setDeadline(output.Duration);
             pEffect->setDamage(output.Damage);
@@ -122,7 +122,7 @@ void Regeneration::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
             pZone->addEffect(pEffect);
             tile.addEffect(pEffect);
 
-            // 경험치를 올린다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToTileOK1);

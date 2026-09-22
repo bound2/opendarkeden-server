@@ -18,7 +18,7 @@
 #include "GCStatusCurrentHP.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void MindControl::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -59,7 +59,7 @@ void MindControl::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트를 만들어 붙인다.
+            // Creates the effect and attaches it.
             EffectMindControl* pEffect = new EffectMindControl(pSlayer);
             pEffect->setDeadline(output.Duration);
             pEffect->setDefenseBonus(output.Damage);
@@ -67,14 +67,14 @@ void MindControl::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
             pSlayer->setFlag(Effect::EFFECT_CLASS_MIND_CONTROL);
             pSlayer->addEffect(pEffect);
 
-            // 이펙트를 붙였으니, 능력치를 재계산한다.
+            // Recomputes the stats now that the effect is attached.
             SLAYER_RECORD prev;
             pSlayer->getSlayerRecord(prev);
             pSlayer->initAllStat();
             pSlayer->sendRealWearingInfo();
             pSlayer->addModifyInfo(prev, _GCSkillToSelfOK1);
 
-            // 경험치를 올려준다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             shareAttrExp(pSlayer, ExpUp, 1, 8, 1, _GCSkillToSelfOK1);

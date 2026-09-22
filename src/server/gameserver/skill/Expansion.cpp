@@ -13,7 +13,7 @@
 #include "GCStatusCurrentHP.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void Expansion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -31,7 +31,7 @@ void Expansion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        // 무장하고 있는 무기가 널이거나, 도가 아니라면 사용할 수 없다.
+        // Cannot be used if no weapon is equipped or it is not a blade.
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_SWORD) {
             executeSkillFailException(pSlayer, getSkillType());
@@ -64,17 +64,17 @@ void Expansion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
             SkillOutput output;
             computeOutput(input, output);
 
-            // 이펙트 클래스를 만들어 붙인다.
+            // Create the effect class and attach it.
             EffectExpansion* pEffect = new EffectExpansion(pSlayer);
             pEffect->setDeadline(output.Duration);
             pEffect->setHPBonus(output.Damage);
             pSlayer->addEffect(pEffect);
             pSlayer->setFlag(Effect::EFFECT_CLASS_EXPANSION);
 
-            // 이펙트를 적용시킨다.
+            // Apply the effect.
             pEffect->affect(pSlayer);
 
-            // 경험치를 올린다.
+            // Raises experience.
             SkillGrade Grade = g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType));
             Exp_t ExpUp = 10 * (Grade + 1);
             if (bIncreaseDomainExp) {

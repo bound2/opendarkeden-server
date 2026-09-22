@@ -21,7 +21,7 @@
 #include "Slayer.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 타일 핸들러
+// Slayer tile handler
 //////////////////////////////////////////////////////////////////////////////
 void MagicElusion::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 
@@ -63,7 +63,7 @@ void MagicElusion::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
         if (rect.ptInRect(X, Y))
             bTileCheck = true;
 
-        // 이펙트의 지속시간을 계산한다.
+        // Computes the effect duration.
         SkillInput input(pSlayer, pSkillSlot);
         SkillOutput output;
         computeOutput(input, output);
@@ -80,7 +80,7 @@ void MagicElusion::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
 
             ObjectRegistry& objectregister = pZone->getObjectRegistry();
 
-            // 일단 이미 sanctuary가 있는지 검색한다.
+            // First checks whether a magic elusion effect is already there.
             for (oY = -1; oY <= 1; oY++)
                 for (oX = -1; oX <= 1; oX++) {
                     int tileX = X + oX;
@@ -91,8 +91,8 @@ void MagicElusion::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                         if (tile.canAddEffect()) {
                             Effect* pOldEffect = tile.getEffect(Effect::EFFECT_CLASS_MAGIC_ELUSION);
 
-                            // 이미 있다면
-                            // 기술 실패다.
+                            // If one is already there,
+                            // the skill fails.
                             if (pOldEffect != NULL) {
                                 executeSkillFailNormal(pSlayer, getSkillType(), NULL);
 
@@ -112,11 +112,11 @@ void MagicElusion::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                     if (rect.ptInRect(tileX, tileY)) {
                         Tile& tile = pZone->getTile(tileX, tileY);
 
-                        // 이펙트 클래스를 생성한다.
+                        // Create the effect class.
                         EffectMagicElusion* pEffect = new EffectMagicElusion(pZone, tileX, tileY);
                         pEffect->setDeadline(output.Duration);
 
-                        // Tile에 붙이는 Effect는 ObjectID를 등록받아야 한다.
+                        // An Effect attached to a Tile must have its ObjectID registered.
                         objectregister.registerObject(pEffect);
                         pZone->addEffect(pEffect);
                         tile.addEffect(pEffect);
@@ -131,7 +131,7 @@ void MagicElusion::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
 
                             pZone->broadcastPacket(X, Y, &gcAddEffectToTile, pSlayer);
                         } else {
-                            // 가운데 이펙트가 아니면 브로드캐스팅해주지 않는다.
+                            // Effects other than the center one are not broadcast.
                             pEffect->setBroadcastingEffect(false);
                         }
 
@@ -212,8 +212,8 @@ void MagicElusion::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
 
             list<Creature*> watcherList = pZone->getWatcherList(myX, myY, pSlayer);
 
-            // watcherList에서 cList에 속하지 않고, caster(pSlayer)를 볼 수 없는 경우는
-            // OK4를 보내고.. cList에 추가한다.
+            // Watchers that are not in cList and cannot see the caster (pSlayer)
+            // are sent OK4 and added to cList.
             for (list<Creature*>::const_iterator itr = watcherList.begin(); itr != watcherList.end(); itr++) {
                 bool bBelong = false;
                 for (list<Creature*>::const_iterator tItr = cList.begin(); tItr != cList.end(); tItr++)
@@ -249,7 +249,7 @@ void MagicElusion::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// 슬레이어 셀프 핸들러
+// Slayer self handler
 //////////////////////////////////////////////////////////////////////////////
 void MagicElusion::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectID)
 

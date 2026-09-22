@@ -67,8 +67,8 @@ void EffectBloodDrain::unaffect(Creature* pFromCreature)
 
         Assert(pPlayer != NULL);
 
-        // GamePlayer에 Event를 붙여서 heartbeat를 다 수행한후 지워준다.
-        // 동기화 문제가 없을까? -_-; 다이어그램 상으론 문제가 없쥐만 -_-;
+        // Attaches an event to the GamePlayer so it is removed after the heartbeat runs.
+        // According to the diagram there is no synchronization problem here.
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
 
         pGamePlayer->deleteEvent(Event::EVENT_CLASS_REGENERATION);
@@ -87,7 +87,7 @@ void EffectBloodDrain::unaffect(Creature* pFromCreature)
 
         destroy(pFromCreature->getName());
     } else {
-        // 시야 복구.
+        // Restores the sight.
         Assert(pFromCreature->isOusters());
 
         Player* pPlayer = pFromCreature->getPlayer();
@@ -110,7 +110,7 @@ void EffectBloodDrain::unaffect(Creature* pFromCreature)
             pFromCreature->getPlayer()->sendPacket(&gcChangeDarkLight);
         }
 
-        // DB에서 지워뿐다.
+        // Deletes it from the database.
         destroy(pFromCreature->getName());
     }
 

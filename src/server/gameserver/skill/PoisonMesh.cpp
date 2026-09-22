@@ -23,7 +23,7 @@
 #include "Vampire.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// 뱀파이어 오브젝트 핸들러
+// Vampire object handler
 //////////////////////////////////////////////////////////////////////////////
 void PoisonMesh::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkillSlot* pVampireSkillSlot,
                          CEffectID_t CEffectID)
@@ -44,9 +44,9 @@ void PoisonMesh::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
 
-        // NPC는 공격할 수가 없다.
-        // 면역이거나. by sigi. 2002.9.13
-        // NoSuch제거. by sigi. 2002.5.2
+        // An NPC cannot be attacked.
+        // It also fails if the target is immune.
+        // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
             return;
@@ -86,7 +86,7 @@ void PoisonMesh::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
             bool bCanSeeCaster = canSee(pTargetCreature, pVampire);
 
 
-            // 이펙트 오브젝트를 생성해서 붙인다.
+            // Create the effect object and attach it.
             EffectPoisonMesh* pEffectPoisonMesh = new EffectPoisonMesh(pTargetCreature);
             pEffectPoisonMesh->setDeadline(output.Duration);
             pEffectPoisonMesh->setNextTime(0);
@@ -95,7 +95,7 @@ void PoisonMesh::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
             pTargetCreature->addEffect(pEffectPoisonMesh);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_POISON_MESH);
 
-            // 이펙트가 붙었다는 것을 브로드캐스팅해준다.
+            // Broadcasts that the effect has been attached.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pTargetCreature->getObjectID());
             gcAddEffect.setEffectID(Effect::EFFECT_CLASS_POISON_MESH);
@@ -127,10 +127,10 @@ void PoisonMesh::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
             _GCSkillToObjectOK6.setSkillType(SkillType);
             _GCSkillToObjectOK6.setDuration(output.Duration);
 
-            if (bCanSeeCaster) // 10은 땜빵 수치다.
+            if (bCanSeeCaster) // 10 is a stopgap value.
             {
                 computeAlignmentChange(pTargetCreature, 10, pVampire, &_GCSkillToObjectOK2, &_GCSkillToObjectOK1);
-            } else // 10은 땜빵 수치다.
+            } else // 10 is a stopgap value.
             {
                 computeAlignmentChange(pTargetCreature, 10, pVampire, &_GCSkillToObjectOK6, &_GCSkillToObjectOK1);
             }
