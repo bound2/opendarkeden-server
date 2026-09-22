@@ -802,7 +802,7 @@ bool Zone::addRelicItem(int relicIndex)
 
         // Create the relic.
         list<OptionType_t> optionNULL;
-        Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_RELIC, relicIndex, optionNULL);
+        Item* pItem = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_RELIC, relicIndex, optionNULL);
         Assert(pItem != NULL);
 
 

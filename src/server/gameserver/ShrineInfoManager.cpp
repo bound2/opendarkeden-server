@@ -111,7 +111,7 @@ Item* ShrineSet::createBloodBibleInGuardShrine()
     Assert(pShrine != NULL);
 
     list<OptionType_t> optionNULL;
-    Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_BLOOD_BIBLE, m_ItemType, optionNULL);
+    Item* pItem = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_BLOOD_BIBLE, m_ItemType, optionNULL);
     Assert(pItem != NULL);
 
     char strZoneID[10];

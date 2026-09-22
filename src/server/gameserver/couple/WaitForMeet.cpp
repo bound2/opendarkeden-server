@@ -204,7 +204,7 @@ CoupleRingBase* WaitForMeet::giveCoupleRing(PlayerCreature* pPC, string partnerN
     list<OptionType_t> optionList;
     optionList.push_back(getRandomOptionType(pPC));
 
-    Item* pNewItem = g_pItemFactoryManager->createItem(getItemClass(pPC), getItemType(pPC), optionList);
+    Item* pNewItem = de::gameContext().itemFactories().createItem(getItemClass(pPC), getItemType(pPC), optionList);
     CoupleRingBase* pCoupleItem = dynamic_cast<CoupleRingBase*>(pNewItem);
     Assert(pCoupleItem != NULL);
     pCoupleItem->setName(partnerName);

@@ -10,6 +10,7 @@
 #include "Assert.h"
 #include "GCCreateItem.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -124,7 +125,7 @@ void CGGetEventItemHandler::executeCombackItem(CGGetEventItem* pPacket, Player* 
                     return;
                 }
 
-                Item* pItem = g_pItemFactoryManager->createItem(iClass, iType, optionType);
+                Item* pItem = de::gameContext().itemFactories().createItem(iClass, iType, optionType);
                 if (pItem == NULL) {
                     GCNPCResponse response;
                     response.setCode(NPC_RESPONSE_SHOW_COMMON_MESSAGE_DIALOG);
@@ -249,43 +250,41 @@ void CGGetEventItemHandler::executeCombackPremiumItem(CGGetEventItem* pPacket, P
 
                 Item* pItem[5] = {NULL, NULL, NULL, NULL, NULL};
 
+                ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
+
                 // Option DAM_3
                 list<OptionType_t> optionType;
                 optionType.push_back(50); // DAM+3
 
                 if (race == RACE_SLAYER) {
-                    pItem[0] =
-                        g_pItemFactoryManager->createItem(Item::ITEM_CLASS_NECKLACE, 8, optionType); // Blood Cross
-                    pItem[1] = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_BRACELET, 8,
-                                                                 optionType); // Cross Bracelet
-                    pItem[2] = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_BRACELET, 8,
-                                                                 optionType); // Cross Bracelet
-                    pItem[3] =
-                        g_pItemFactoryManager->createItem(Item::ITEM_CLASS_RING, 8, optionType); // Platinum Spiral
-                    pItem[4] =
-                        g_pItemFactoryManager->createItem(Item::ITEM_CLASS_RING, 8, optionType); // Platinum Spiral
+                    pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_NECKLACE, 8, optionType); // Blood Cross
+                    pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_BRACELET, 8,
+                                                        optionType); // Cross Bracelet
+                    pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_BRACELET, 8,
+                                                        optionType);                           // Cross Bracelet
+                    pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_RING, 8, optionType); // Platinum Spiral
+                    pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_RING, 8, optionType); // Platinum Spiral
                 } else if (race == RACE_VAMPIRE) {
-                    pItem[0] = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 8,
-                                                                 optionType); // Black Ankh
-                    pItem[1] = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_BRACELET, 7,
-                                                                 optionType); // Viper Bracelet
-                    pItem[2] = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_RING, 8,
-                                                                 optionType); // Ring of Skulls
-                    pItem[3] = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_EARRING, 8,
-                                                                 optionType); // The Cat's Eye
-                    pItem[4] =
-                        g_pItemFactoryManager->createItem(Item::ITEM_CLASS_VAMPIRE_AMULET, 8, optionType); // Odal
+                    pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 8,
+                                                        optionType); // Black Ankh
+                    pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_BRACELET, 7,
+                                                        optionType); // Viper Bracelet
+                    pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_RING, 8,
+                                                        optionType); // Ring of Skulls
+                    pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_EARRING, 8,
+                                                        optionType); // The Cat's Eye
+                    pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_AMULET, 8, optionType); // Odal
                 } else if (race == RACE_OUSTERS) {
-                    pItem[0] = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_OUSTERS_RING, 8,
-                                                                 optionType); // Mekzan's Ring
-                    pItem[1] = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_OUSTERS_RING, 8,
-                                                                 optionType); // Mekzan's Ring
-                    pItem[2] = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_OUSTERS_PENDENT, 8,
-                                                                 optionType); // Mekzan's Ring
-                    pItem[3] = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_OUSTERS_PENDENT, 8,
-                                                                 optionType); // Fiery Pendant
-                    pItem[4] = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_OUSTERS_PENDENT, 8,
-                                                                 optionType); // Fiery Pendant
+                    pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_OUSTERS_RING, 8,
+                                                        optionType); // Mekzan's Ring
+                    pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_OUSTERS_RING, 8,
+                                                        optionType); // Mekzan's Ring
+                    pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_OUSTERS_PENDENT, 8,
+                                                        optionType); // Mekzan's Ring
+                    pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_OUSTERS_PENDENT, 8,
+                                                        optionType); // Fiery Pendant
+                    pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_OUSTERS_PENDENT, 8,
+                                                        optionType); // Fiery Pendant
                 } else {
                     GCNPCResponse response;
                     response.setCode(NPC_RESPONSE_SHOW_COMMON_MESSAGE_DIALOG);
@@ -482,7 +481,7 @@ void CGGetEventItemHandler::executeCombackRecommendItem(CGGetEventItem* pPacket,
                     return;
                 }
 
-                Item* pItem = g_pItemFactoryManager->createItem(iClass, iType, optionType);
+                Item* pItem = de::gameContext().itemFactories().createItem(iClass, iType, optionType);
                 if (pItem == NULL) {
                     GCNPCResponse response;
                     response.setCode(NPC_RESPONSE_SHOW_COMMON_MESSAGE_DIALOG);

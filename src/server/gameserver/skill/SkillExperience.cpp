@@ -147,6 +147,8 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
             pMonster->setLastKiller(pAttacker->getObjectID());
     }
 
+    ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
+
     int myLevel = 0;
     int otherLevel = 0;
 
@@ -284,7 +286,7 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
                 pLPM->shareGDRLairEnter(pPC->getPartyID(), pPC);
             }
 
-            Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_ITEM, 29, list<OptionType_t>());
+            Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_ITEM, 29, list<OptionType_t>());
             pMonster->setQuestItem(pItem);
         }
 
@@ -319,8 +321,7 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
                 canGiveEventItem(pPC, pMonster)) {
                 int value = rand() % 100000;
                 if (value < g_pVariableManager->getVariable(NICKNAME_PEN_RATIO)) {
-                    Item* pItem =
-                        g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 22, list<OptionType_t>());
+                    Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 22, list<OptionType_t>());
                     pMonster->setQuestItem(pItem);
                 }
             }
@@ -329,8 +330,7 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
                 canGiveEventItem(pPC, pMonster)) {
                 int value = rand() % 100000;
                 if (value < g_pVariableManager->getVariable(CLOVER_RATIO)) {
-                    Item* pItem =
-                        g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MOON_CARD, 3, list<OptionType_t>());
+                    Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_MOON_CARD, 3, list<OptionType_t>());
                     pMonster->setQuestItem(pItem);
                 }
             }
@@ -347,8 +347,7 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
                         add = 1;
                     else
                         add = 2;
-                    Item* pItem =
-                        g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_ETC, 15 + add, list<OptionType_t>());
+                    Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_ETC, 15 + add, list<OptionType_t>());
                     pMonster->setQuestItem(pItem);
                 }
             }
@@ -356,7 +355,7 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
             if (g_pVariableManager->getVariable(NETMARBLE_CARD_EVENT) != 0 && pMonster->getQuestItem() == NULL &&
                 g_pVariableManager->getVariable(NETMARBLE_CARD_RATIO) > (rand() % 100000) &&
                 canGiveEventItem(pPC, pMonster)) {
-                Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MOON_CARD, 2, list<OptionType_t>());
+                Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_MOON_CARD, 2, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
 
@@ -393,41 +392,41 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
 
             if (pMonster->getQuestItem() == NULL && canGiveEventItem(pPC, pMonster) &&
                 rand() % 100000 < g_pVariableManager->getVariable(OLYMPIC_ITEM_RATIO)) {
-                Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MOON_CARD, 4, list<OptionType_t>());
+                Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_MOON_CARD, 4, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
 
             if (pMonster->getQuestItem() == NULL && canGiveEventItem(pPC, pMonster) &&
                 rand() % 100000 < g_pVariableManager->getVariable(LUCK_CHARM_RATIO)) {
-                Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_ITEM, 30, list<OptionType_t>());
+                Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_ITEM, 30, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
 
             if (pMonster->getQuestItem() == NULL && pMonster->getMonsterType() >= 769 &&
                 canGiveEventItem(pPC, pMonster) &&
                 rand() % 100000 < g_pVariableManager->getVariable(HOURGLASS_RATIO_S)) {
-                Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EFFECT_ITEM, 6, list<OptionType_t>());
+                Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EFFECT_ITEM, 6, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
 
             if (pMonster->getQuestItem() == NULL && pMonster->getMonsterType() >= 769 &&
                 canGiveEventItem(pPC, pMonster) &&
                 rand() % 100000 < g_pVariableManager->getVariable(HOURGLASS_RATIO_M)) {
-                Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EFFECT_ITEM, 5, list<OptionType_t>());
+                Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EFFECT_ITEM, 5, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
 
             if (pMonster->getQuestItem() == NULL && pMonster->getMonsterType() >= 769 &&
                 canGiveEventItem(pPC, pMonster) &&
                 rand() % 100000 < g_pVariableManager->getVariable(HOURGLASS_RATIO_L)) {
-                Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EFFECT_ITEM, 4, list<OptionType_t>());
+                Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EFFECT_ITEM, 4, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
 
             if (pMonster->getZone()->isDynamicZone() &&
                 pMonster->getZone()->getDynamicZone()->getTemplateZoneID() == 4002 &&
                 pMonster->getQuestItem() == NULL && (rand() % 20) == 0) {
-                Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_ITEM, 31, list<OptionType_t>());
+                Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_ITEM, 31, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
 
@@ -467,7 +466,7 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
                 if (iClass == Item::ITEM_CLASS_PET_FOOD && isHigher)
                     ++itemType;
 
-                Item* pItem = g_pItemFactoryManager->createItem(iClass, itemType, list<OptionType_t>());
+                Item* pItem = itemFactories.createItem(iClass, itemType, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
             }
         }

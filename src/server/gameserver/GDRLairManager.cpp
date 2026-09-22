@@ -997,7 +997,7 @@ void GDRLairScene6::start() {
             //				itemType = ((goodOneIndex[1]==i||goodOneIndex[2]==i)? 9:8);
 
             list<OptionType_t> nullList;
-            pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_QUEST_ITEM, itemType, nullList);
+            pItem = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_QUEST_ITEM, itemType, nullList);
 
             (pZone->getObjectRegistry()).registerObject(pItem);
 
@@ -1126,7 +1126,7 @@ void GDRLairEnding::start() {
                 grade++;
 
                 list<OptionType_t> nullList;
-                pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_CORE_ZAP, itemType, nullList);
+                pItem = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_CORE_ZAP, itemType, nullList);
                 pItem->setGrade(grade);
                 filelog("GDRLair.log", "%s �� �ھ����� �޾ҽ��ϴ�. : %d/%d",
                         pPC->getName().c_str(), itemType, grade);
@@ -1135,7 +1135,8 @@ void GDRLairEnding::start() {
                     itemType = 9;
                     filelog("GDRLair.log", "%s �� ���Ʈ�� �޾ҽ��ϴ�.", pPC->getName().c_str());
                     list<OptionType_t> nullList;
-                    pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_QUEST_ITEM, itemType, nullList);
+                    pItem =
+                        de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_QUEST_ITEM, itemType, nullList);
                 } else {
                     // No reward for this one, so skip it.
                     continue;

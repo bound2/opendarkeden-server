@@ -824,7 +824,7 @@ void CGShopRequestSellHandler::executeOpSwapAdvancementItem(CGShopRequestSell* p
         return;
     }
 
-    Item* pNewItem = g_pItemFactoryManager->createItem(iClass, iType, pItem->getOptionTypeList());
+    Item* pNewItem = de::gameContext().itemFactories().createItem(iClass, iType, pItem->getOptionTypeList());
     if (pNewItem == NULL) {
         sendFailPacket(pPacket, pPlayer);
         return;

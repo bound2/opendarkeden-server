@@ -9,6 +9,7 @@
 #ifdef __GAME_SERVER__
 #include "FlagSet.h"
 #include "GCCreateItem.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Item.h"
 #include "ItemFactoryManager.h"
@@ -64,81 +65,83 @@ void CGRequestNewbieItemHandler::execute(CGRequestNewbieItem* pPacket, Player* p
 
     list<OptionType_t> optionNULL;
 
+    ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
+
     if (IClass == Item::ITEM_CLASS_SWORD) {
         // Starter weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_SWORD, 0, optionNULL);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_SWORD, 0, optionNULL);
         // Healing items
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
     } else if (IClass == Item::ITEM_CLASS_BLADE) {
         // Starter weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_BLADE, 0, optionNULL);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_BLADE, 0, optionNULL);
         // Healing items
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
     } else if (IClass == Item::ITEM_CLASS_CROSS) {
         // Starter weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_CROSS, 0, optionNULL);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_CROSS, 0, optionNULL);
         // Healing items
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
     } else if (IClass == Item::ITEM_CLASS_MACE) {
         // Starter weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_MACE, 0, optionNULL);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_MACE, 0, optionNULL);
         // Healing items
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
     } else if (IClass == Item::ITEM_CLASS_AR) {
         // Starter weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_AR, 0, optionNULL);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_AR, 0, optionNULL);
         // Healing items
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
         // Ammo magazine
-        pItem[5] = CREATE_ITEM(Item::ITEM_CLASS_MAGAZINE, 1, optionNULL);
+        pItem[5] = itemFactories.createItem(Item::ITEM_CLASS_MAGAZINE, 1, optionNULL);
         dynamic_cast<Magazine*>(pItem[5])->setNum(9);
     } else if (IClass == Item::ITEM_CLASS_SR) {
         // Starter weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_SR, 0, optionNULL);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_SR, 0, optionNULL);
         // Healing items
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
         // Ammo magazine
-        pItem[5] = CREATE_ITEM(Item::ITEM_CLASS_MAGAZINE, 4, optionNULL);
+        pItem[5] = itemFactories.createItem(Item::ITEM_CLASS_MAGAZINE, 4, optionNULL);
         dynamic_cast<Magazine*>(pItem[5])->setNum(9);
     } else if (IClass == Item::ITEM_CLASS_SG) {
         // Starter weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_SG, 0, optionNULL);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_SG, 0, optionNULL);
         // Healing items
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
         // Ammo magazine
-        pItem[5] = CREATE_ITEM(Item::ITEM_CLASS_MAGAZINE, 0, optionNULL);
+        pItem[5] = itemFactories.createItem(Item::ITEM_CLASS_MAGAZINE, 0, optionNULL);
         dynamic_cast<Magazine*>(pItem[5])->setNum(9);
     } else if (IClass == Item::ITEM_CLASS_SMG) {
         // Starter weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_SMG, 0, optionNULL);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_SMG, 0, optionNULL);
         // Healing items
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, optionNULL);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, optionNULL);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 4, optionNULL);
         // Ammo magazine
-        pItem[5] = CREATE_ITEM(Item::ITEM_CLASS_MAGAZINE, 3, optionNULL);
+        pItem[5] = itemFactories.createItem(Item::ITEM_CLASS_MAGAZINE, 3, optionNULL);
         dynamic_cast<Magazine*>(pItem[5])->setNum(9);
     } else {
         return;

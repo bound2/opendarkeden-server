@@ -196,7 +196,7 @@ Item* CastleShrineInfoManager::addShrineToZone(ShrineInfo& shrineInfo, ItemType_
         // if ( AddBible[ itemType ] )
         {
             list<OptionType_t> optionNULL;
-            pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_CASTLE_SYMBOL, itemType, optionNULL);
+            pItem = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_CASTLE_SYMBOL, itemType, optionNULL);
             Assert(pItem != NULL);
 
             char strZoneID[10];

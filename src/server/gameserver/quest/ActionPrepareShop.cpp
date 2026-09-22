@@ -181,7 +181,7 @@ void ActionPrepareShop::execute(Creature* pCreature1, Creature* pCreature2)
                     }
 
                     // Create the item itself.
-                    Item* pItem = g_pItemFactoryManager->createItem(IClass, itemType, optionTypes);
+                    Item* pItem = context().itemFactories().createItem(IClass, itemType, optionTypes);
                     Assert(pItem != NULL);
 
                     // Register it in the zone's object registry.

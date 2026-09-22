@@ -62,7 +62,7 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
     ItemType_t OptionType = 255;
 
     string ItemClassName = trim(msg.substr(j + 1, k - j - 1));
-    Item::ItemClass ItemClass = g_pItemFactoryManager->getItemClassByName(ItemClassName);
+    Item::ItemClass ItemClass = de::gameContext().itemFactories().getItemClassByName(ItemClassName);
 
     // ItemClass being MAX means it was not found by that name.
     // In that case it has to be checked whether the item class was given directly as a number.
@@ -145,7 +145,7 @@ void opcreate(GamePlayer* pGamePlayer, string msg, int i) {
 
     // For a unique item
 
-    Item* pItem = g_pItemFactoryManager->createItem((Item::ItemClass)ItemClass, ItemType, optionTypes);
+    Item* pItem = de::gameContext().itemFactories().createItem((Item::ItemClass)ItemClass, ItemType, optionTypes);
     pItem->setCreateType(Item::CREATE_TYPE_CREATE);
     pItem->setNum(1);
 

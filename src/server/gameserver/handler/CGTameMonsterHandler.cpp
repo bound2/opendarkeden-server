@@ -70,7 +70,7 @@ void CGTameMonsterHandler::execute(CGTameMonster* pPacket, Player* pPlayer)
 
     ItemType_t petType = PET_COMMON;
     PetItem* pPetItem = dynamic_cast<PetItem*>(
-        g_pItemFactoryManager->createItem(Item::ITEM_CLASS_PET_ITEM, petType, list<OptionType_t>()));
+        de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_PET_ITEM, petType, list<OptionType_t>()));
     Assert(pPetItem != NULL);
 
     _TPOINT pt;

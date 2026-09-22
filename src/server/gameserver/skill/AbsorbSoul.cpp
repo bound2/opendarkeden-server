@@ -13,6 +13,7 @@
 #include "GCSkillToTileOK2.h"
 #include "GCSkillToTileOK5.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
 #include "OustersCorpse.h"
@@ -318,7 +319,8 @@ void AbsorbSoul::makeLarvaToPupa(Ousters* pOusters, int TargetLevel, ObjectID_t 
 
     // The roll succeeded, so build the pupa.
     list<OptionType_t> optionNULL;
-    Item* pPupa = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_PUPA, pLarva->getItemType(), optionNULL);
+    Item* pPupa =
+        de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_PUPA, pLarva->getItemType(), optionNULL);
 
     // Decrease the larva count.
     // The call drops the count by one and

@@ -70,7 +70,7 @@ QuestMessage ItemRewardInfo::giveReward(PlayerCreature* pPC) const
         break;
     }
 
-    Item* pItem = g_pItemFactoryManager->createItem(m_IClass, m_IType, m_OptionType);
+    Item* pItem = de::gameContext().itemFactories().createItem(m_IClass, m_IType, m_OptionType);
     if (pItem == NULL) {
         return FAIL_BUG;
     }

@@ -1397,7 +1397,7 @@ Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, in
     list<OptionType_t> optionTypes;
     if (optionType != 0)
         optionTypes.push_back(optionType);
-    Item* pItem = g_pItemFactoryManager->createItem(itemClass, itemType, optionTypes);
+    Item* pItem = de::gameContext().itemFactories().createItem(itemClass, itemType, optionTypes);
 
     pItem->setGrade(min(6, ItemGradeManager::Instance().getRandomGambleGrade()));
 
@@ -1680,7 +1680,8 @@ bool addNewbieItemToInventory(Slayer* pSlayer, bool sendPacket)
     Item::ItemClass bestWeapon = getBestNewbieWeaponClass(pSlayer);
 
     for (int i = 0; i < maxNewbieItemNum; i++) {
-        Item* pItem = g_pItemFactoryManager->createItem(NewbieItems[i].itemClass, NewbieItems[i].itemType, olist);
+        Item* pItem =
+            de::gameContext().itemFactories().createItem(NewbieItems[i].itemClass, NewbieItems[i].itemType, olist);
         pItem->setCreateType(Item::CREATE_TYPE_GAME);
         objectRegister.registerObject(pItem);
 
@@ -1754,10 +1755,10 @@ bool addNewbieItemToGear(Slayer* pSlayer, bool sendPacket)
     list<OptionType_t> olist;
 
     if (!pSlayer->isWear(Slayer::WEAR_BODY) && !pSlayer->isWear(Slayer::WEAR_LEG)) {
-        Item* pCoat =
-            g_pItemFactoryManager->createItem(Item::ITEM_CLASS_COAT, ((pSlayer->getSex() == MALE) ? 0 : 1), olist);
-        Item* pTrouser =
-            g_pItemFactoryManager->createItem(Item::ITEM_CLASS_TROUSER, ((pSlayer->getSex() == MALE) ? 0 : 1), olist);
+        Item* pCoat = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_COAT,
+                                                                   ((pSlayer->getSex() == MALE) ? 0 : 1), olist);
+        Item* pTrouser = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_TROUSER,
+                                                                      ((pSlayer->getSex() == MALE) ? 0 : 1), olist);
         pCoat->setCreateType(Item::CREATE_TYPE_GAME);
         pTrouser->setCreateType(Item::CREATE_TYPE_GAME);
 
@@ -1818,8 +1819,8 @@ bool addNewbieItemToInventory(Ousters* pOusters, bool sendPacket /*= false */) {
     if (pInventory->getItemNum() != 0)
         return false;
 
-    Item* pPupa = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_PUPA, 0, list<OptionType_t>());
-    Item* pLarva = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_LARVA, 0, list<OptionType_t>());
+    Item* pPupa = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_PUPA, 0, list<OptionType_t>());
+    Item* pLarva = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_LARVA, 0, list<OptionType_t>());
 
     Assert(pPupa != NULL);
     Assert(pLarva != NULL);
@@ -1859,7 +1860,8 @@ bool addNewbieItemToGear(Ousters* pOusters, bool sendPacket /*= false */) {
     if (pOusters->getWearItem(Ousters::WEAR_RIGHTHAND) != NULL)
         return false;
 
-    Item* pWeapon = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_OUSTERS_CHAKRAM, 0, list<OptionType_t>());
+    Item* pWeapon =
+        de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_OUSTERS_CHAKRAM, 0, list<OptionType_t>());
     Assert(pWeapon != NULL);
 
     pWeapon->setCreateType(Item::CREATE_TYPE_GAME);
@@ -2350,7 +2352,7 @@ Item* createItemByGoodsID(DWORD goodsID) {
         return NULL;
     }
 
-    Item* pItem = g_pItemFactoryManager->createItem(ItemClass, ItemType, optionTypeList);
+    Item* pItem = de::gameContext().itemFactories().createItem(ItemClass, ItemType, optionTypeList);
     if (pItem == NULL) {
         filelog("buyItemBug.txt", "buyID(%d) ¿¡ ÇØ´çÇÏ´Â ¾ÆÀÌÅÛ ¸¸µé±â¿¡ ½ÇÆÐÇß½À´Ï´Ù.", (int)goodsID);
         return NULL;
@@ -2458,8 +2460,8 @@ Item* fitToPC(Item* pItem, PlayerCreature* pPC) {
         }
 
         if (targetClass != Item::ITEM_CLASS_MAX && targetClass != pItem->getItemClass()) {
-            Item* pNewItem =
-                g_pItemFactoryManager->createItem(targetClass, pItem->getItemType() + add, pItem->getOptionTypeList());
+            Item* pNewItem = de::gameContext().itemFactories().createItem(targetClass, pItem->getItemType() + add,
+                                                                          pItem->getOptionTypeList());
             if (pNewItem != NULL) {
                 SAFE_DELETE(pItem);
                 pItem = pNewItem;
@@ -2508,8 +2510,8 @@ Item* fitToPC(Item* pItem, PlayerCreature* pPC) {
         if (targetClass == pItem->getItemClass()) {
             pItem->setItemType(pItem->getItemType() + add);
         } else {
-            Item* pNewItem =
-                g_pItemFactoryManager->createItem(targetClass, pItem->getItemType() + add, pItem->getOptionTypeList());
+            Item* pNewItem = de::gameContext().itemFactories().createItem(targetClass, pItem->getItemType() + add,
+                                                                          pItem->getOptionTypeList());
             if (pNewItem != NULL) {
                 SAFE_DELETE(pItem);
                 pItem = pNewItem;

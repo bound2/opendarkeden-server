@@ -10,6 +10,7 @@
 #include "Assert.h"
 #include "GCCreateItem.h"
 #include "GCUsePowerPointResult.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -116,7 +117,7 @@ void CGUsePowerPointHandler::execute(CGUsePowerPoint* pPacket, Player* pPlayer)
     if (bFind) {
         // Create and add the item
         list<OptionType_t> nullOption;
-        Item* pItem = g_pItemFactoryManager->createItem(itemClass, itemType, nullOption);
+        Item* pItem = de::gameContext().itemFactories().createItem(itemClass, itemType, nullOption);
 
         pPC->getZone()->registerObject(pItem);
 

@@ -536,8 +536,3 @@ string ItemFactoryManager::toString() const
 
     __END_CATCH
 }
-
-//////////////////////////////////////////////////
-// global variable declaration
-//////////////////////////////////////////////////
-ItemFactoryManager* g_pItemFactoryManager = NULL;

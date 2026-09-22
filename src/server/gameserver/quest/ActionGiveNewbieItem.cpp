@@ -10,6 +10,7 @@
 #include "GCCreateItem.h"
 #include "GCModifyInformation.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Item.h"
 #include "ItemFactoryManager.h"
@@ -109,84 +110,86 @@ void ActionGiveNewbieItem::execute(Creature* pCreature1, Creature* pCreature2)
 
     list<OptionType_t> nullList;
 
+    ItemFactoryManager& itemFactories = context().itemFactories();
+
     if (m_ItemClass == Item::ITEM_CLASS_SWORD) {
         // Weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_SWORD, 0, nullList);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_SWORD, 0, nullList);
         // Potion
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
     } else if (m_ItemClass == Item::ITEM_CLASS_BLADE) {
         // Weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_BLADE, 0, nullList);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_BLADE, 0, nullList);
         // Potion
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
     } else if (m_ItemClass == Item::ITEM_CLASS_CROSS) {
         // Weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_CROSS, 0, nullList);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_CROSS, 0, nullList);
         // Potion
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
     } else if (m_ItemClass == Item::ITEM_CLASS_MACE) {
         // Weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_MACE, 0, nullList);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_MACE, 0, nullList);
         // Potion
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
     } else if (m_ItemClass == Item::ITEM_CLASS_AR) {
         // Weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_AR, 0, nullList);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_AR, 0, nullList);
         // Potion
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
         // Magazine
-        pItem[5] = CREATE_ITEM(Item::ITEM_CLASS_MAGAZINE, 2, nullList);
+        pItem[5] = itemFactories.createItem(Item::ITEM_CLASS_MAGAZINE, 2, nullList);
         Magazine* pMagazine = dynamic_cast<Magazine*>(pItem[5]);
         pMagazine->setNum(9);
     } else if (m_ItemClass == Item::ITEM_CLASS_SR) {
         // Weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_SR, 0, nullList);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_SR, 0, nullList);
         // Potion
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
         // Magazine
-        pItem[5] = CREATE_ITEM(Item::ITEM_CLASS_MAGAZINE, 6, nullList);
+        pItem[5] = itemFactories.createItem(Item::ITEM_CLASS_MAGAZINE, 6, nullList);
         Magazine* pMagazine = dynamic_cast<Magazine*>(pItem[5]);
         pMagazine->setNum(9);
     } else if (m_ItemClass == Item::ITEM_CLASS_SG) {
         // Weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_SG, 0, nullList);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_SG, 0, nullList);
         // Potion
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
         // Magazine
-        pItem[5] = CREATE_ITEM(Item::ITEM_CLASS_MAGAZINE, 0, nullList);
+        pItem[5] = itemFactories.createItem(Item::ITEM_CLASS_MAGAZINE, 0, nullList);
         Magazine* pMagazine = dynamic_cast<Magazine*>(pItem[5]);
         pMagazine->setNum(9);
     } else if (m_ItemClass == Item::ITEM_CLASS_SMG) {
         // Weapon
-        pItem[0] = CREATE_ITEM(Item::ITEM_CLASS_SMG, 0, nullList);
+        pItem[0] = itemFactories.createItem(Item::ITEM_CLASS_SMG, 0, nullList);
         // Potion
-        pItem[1] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[2] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 0, nullList);
-        pItem[3] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
-        pItem[4] = CREATE_ITEM(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[1] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[2] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 0, nullList);
+        pItem[3] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
+        pItem[4] = itemFactories.createItem(Item::ITEM_CLASS_POTION, 5, nullList);
         // Magazine
-        pItem[5] = CREATE_ITEM(Item::ITEM_CLASS_MAGAZINE, 4, nullList);
+        pItem[5] = itemFactories.createItem(Item::ITEM_CLASS_MAGAZINE, 4, nullList);
         Magazine* pMagazine = dynamic_cast<Magazine*>(pItem[5]);
         pMagazine->setNum(9);
     } else {

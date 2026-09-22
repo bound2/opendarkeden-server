@@ -102,7 +102,7 @@ void CreateMine::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
             computeOutput(input, output);
 
             list<OptionType_t> optionNULL;
-            Item* pMine = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MINE, MineType, optionNULL);
+            Item* pMine = de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_MINE, MineType, optionNULL);
 
             // Decrease the bottle count.
             // Inside this function the bottle count drops by one automatically,

@@ -144,7 +144,7 @@ ObjectManager::ObjectManager()
     m_pZoneInfoManager = new ZoneInfoManager();
     g_pVariableManager = new VariableManager();
     m_pItemInfoManager = new ItemInfoManager();
-    g_pItemFactoryManager = new ItemFactoryManager();
+    m_pItemFactoryManager = new ItemFactoryManager();
     m_pVolumeInfoManager = new VolumeInfoManager();
     m_pItemLoaderManager = new ItemLoaderManager();
     m_pShopTemplateManager = new ShopTemplateManager();
@@ -172,7 +172,7 @@ ObjectManager::ObjectManager()
     context.setZoneInfoManager(m_pZoneInfoManager);
     context.setVariableManager(g_pVariableManager);
     context.setItemInfoManager(m_pItemInfoManager);
-    context.setItemFactoryManager(g_pItemFactoryManager);
+    context.setItemFactoryManager(m_pItemFactoryManager);
     context.setVolumeInfoManager(m_pVolumeInfoManager);
     context.setItemLoaderManager(m_pItemLoaderManager);
     context.setShopTemplateManager(m_pShopTemplateManager);
@@ -312,7 +312,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pZoneGroupManager);
     // SAFE_DELETE(g_pSkillParentInfoManager);
     SAFE_DELETE(g_pSkillHandlerManager);
-    SAFE_DELETE(g_pItemFactoryManager);
+    SAFE_DELETE(m_pItemFactoryManager);
     SAFE_DELETE(m_pVolumeInfoManager);
     SAFE_DELETE(m_pItemLoaderManager);
     SAFE_DELETE(m_pShopTemplateManager);
@@ -447,7 +447,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : VolumeInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : ItemFactory Initialization Start\n");
-    g_pItemFactoryManager->init();
+    m_pItemFactoryManager->init();
     printf("ObjectManager::init() : ItemFactory Initialization Success\n");
 
     printf("ObjectManager::init() : ItemLoaderManager Initialization Start\n");

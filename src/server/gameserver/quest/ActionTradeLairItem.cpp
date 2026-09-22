@@ -326,7 +326,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
                 // dropped here rather than left with no owner.
                 SAFE_DELETE(pItem1);
 
-                pItem1 = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
+                pItem1 = context().itemFactories().createItem(it.ItemClass, it.ItemType, it.OptionType);
                 Assert(pItem1 != NULL);
             }
         }

@@ -11,6 +11,7 @@
 
 #include "GCDeleteObject.h"
 #include "GCDeleteandPickUpOK.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Item.h"
 #include "ItemFactoryManager.h"
@@ -69,21 +70,22 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
         // Check that the player holds as much money as it wants to drop.
         Item* pItem = NULL;
         list<OptionType_t> optionNULL;
+        ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
         if (pPC->isSlayer()) {
             if (pSlayer->getGold() < amount)
                 return;
 
-            pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MONEY, 0, optionNULL);
+            pItem = itemFactories.createItem(Item::ITEM_CLASS_MONEY, 0, optionNULL);
         } else if (pPC->isVampire()) {
             if (pVampire->getGold() < amount)
                 return;
 
-            pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MONEY, 1, optionNULL);
+            pItem = itemFactories.createItem(Item::ITEM_CLASS_MONEY, 1, optionNULL);
         } else if (pPC->isOusters()) {
             if (pOusters->getGold() < amount)
                 return;
 
-            pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MONEY, 2, optionNULL);
+            pItem = itemFactories.createItem(Item::ITEM_CLASS_MONEY, 2, optionNULL);
         }
 
         // Create the money item.

@@ -955,7 +955,7 @@ void opload(GamePlayer* pGamePlayer, string msg, int i) {
                 (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
                 gcSystemMessage.toString().c_str());
     } else if (load_type == "item_info") {
-        Item::ItemClass ItemClass = g_pItemFactoryManager->getItemClassByName(load_value);
+        Item::ItemClass ItemClass = de::gameContext().itemFactories().getItemClassByName(load_value);
 
         // ItemClass being MAX means it was not found by that name.
         // In that case it has to be checked whether the item class was given directly as a number.

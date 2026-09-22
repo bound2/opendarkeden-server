@@ -8,6 +8,7 @@
 
 #include "Creature.h"
 #include "GCCreateItem.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Inventory.h"
 #include "ItemFactoryManager.h"
@@ -54,7 +55,7 @@ void ActionGiveItem::execute(Creature* pCreature1, Creature* pCreature2)
 
     list<OptionType_t> optionTypeList;
 
-    Item* pItem = g_pItemFactoryManager->createItem(m_ItemClass, m_ItemType, optionTypeList);
+    Item* pItem = context().itemFactories().createItem(m_ItemClass, m_ItemType, optionTypeList);
     Assert(pItem != NULL);
 
     _TPOINT pt;

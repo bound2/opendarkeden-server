@@ -1071,11 +1071,12 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
 {
     __BEGIN_TRY
 
+    ItemFactoryManager& itemFactories = de::gameContext().itemFactories();
+
     if (pDeadMonster->getMonsterType() == 734) {
         if (pDeadMonster->getZoneID() >= 1500 && pDeadMonster->getZoneID() <= 1506) {
             ItemType_t iType = pDeadMonster->getZoneID() - min((int)pDeadMonster->getZoneID(), 1501);
-            Item* pItem =
-                g_pItemFactoryManager->createItem(Item::ITEM_CLASS_CASTLE_SYMBOL, iType, list<OptionType_t>());
+            Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_CASTLE_SYMBOL, iType, list<OptionType_t>());
             pMonsterCorpse->setZone(pDeadMonster->getZone());
             pMonsterCorpse->addTreasure(pItem);
         }
@@ -1091,7 +1092,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
         if (rand() % 100 < 30) {
             int Num = 5 + (rand() % 5); // 5~9
             for (int i = 0; i < Num; ++i) {
-                Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_LUCKY_BAG, 3, list<OptionType_t>());
+                Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_LUCKY_BAG, 3, list<OptionType_t>());
                 pMonsterCorpse->addTreasure(pItem);
             }
         }
@@ -1148,8 +1149,8 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
 
 
         if (bOK) {
-            Item* pItem = g_pItemFactoryManager->createItem(ricecake_template.ItemClass, ricecake_template.ItemType,
-                                                            ricecake_template.OptionType);
+            Item* pItem = itemFactories.createItem(ricecake_template.ItemClass, ricecake_template.ItemType,
+                                                   ricecake_template.OptionType);
 
             Assert(pItem != NULL);
 
@@ -1171,7 +1172,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
 
             // Create the item.
             list<OptionType_t> optionType;
-            Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_ETC, fireCrackerType, optionType);
+            Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_ETC, fireCrackerType, optionType);
 
             // Put it into the monster corpse.
             pMonsterCorpse->addTreasure(pItem);
@@ -1190,7 +1191,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
 
             // Create the item.
             list<OptionType_t> optionType;
-            Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_TREE, treeItemType, optionType);
+            Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_TREE, treeItemType, optionType);
 
             // Put it into the monster corpse.
             pMonsterCorpse->addTreasure(pItem);
@@ -1206,7 +1207,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
             PayZonecheckIn = 50;
             if (value < PayZonecheckIn) {
                 list<OptionType_t> optionType;
-                Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_STAR, treeItemType, optionType);
+                Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_STAR, treeItemType, optionType);
                 pMonsterCorpse->addTreasure(pItem);
             }
         }
@@ -1216,7 +1217,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
             PayZonecheckIn = 3000;
             if (value < PayZonecheckIn) {
                 list<OptionType_t> optionType;
-                Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MOON_CARD, treeItemType, optionType);
+                Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_MOON_CARD, treeItemType, optionType);
                 pMonsterCorpse->addTreasure(pItem);
             }
         }
@@ -1232,7 +1233,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
         if (value < giftBoxRatio) {
             // Create the green gift box.
             list<OptionType_t> optionType;
-            Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 0, optionType);
+            Item* pItem = itemFactories.createItem(Item::ITEM_CLASS_EVENT_GIFT_BOX, 0, optionType);
 
             // Put it into the monster corpse.
             pMonsterCorpse->addTreasure(pItem);
@@ -1393,7 +1394,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                         it.ItemType = getUpgradeItemType(it.ItemClass, it.ItemType, upgradeCount);
                     }
 
-                    pItem = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
+                    pItem = itemFactories.createItem(it.ItemClass, it.ItemType, it.OptionType);
                     Assert(pItem != NULL);
                     if (pItem->getItemClass() == Item::ITEM_CLASS_RESURRECT_ITEM)
                         countResurrectItem();
@@ -1417,7 +1418,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                             if (value < lottoSkullRatio) {
                                 // Create and add 8 more skulls.
                                 for (int i = 0; i < 8; i++) {
-                                    pItem = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
+                                    pItem = itemFactories.createItem(it.ItemClass, it.ItemType, it.OptionType);
                                     pMonsterCorpse->addTreasure(pItem);
                                     if (pItem->getItemClass() == Item::ITEM_CLASS_RESURRECT_ITEM)
                                         countResurrectItem();
@@ -1428,7 +1429,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                 }
             } else {
                 if (pTreasure->getRandomItem(&it, g_pVariableManager->getItemProbRatio() + itemBonusPercent)) {
-                    pItem = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
+                    pItem = itemFactories.createItem(it.ItemClass, it.ItemType, it.OptionType);
                     Assert(pItem != NULL);
                     if (pItem->getItemClass() == Item::ITEM_CLASS_RESURRECT_ITEM)
                         countResurrectItem();
@@ -1550,7 +1551,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                                 // end
                             }
 
-                            pItem = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
+                            pItem = itemFactories.createItem(it.ItemClass, it.ItemType, it.OptionType);
                             Assert(pItem != NULL);
                             if (pItem->getItemClass() == Item::ITEM_CLASS_RESURRECT_ITEM)
                                 countResurrectItem();
@@ -1568,7 +1569,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
                         }
                     } else {
                         if (pTreasure->getRandomItem(&it, g_pVariableManager->getItemProbRatio() + itemBonusPercent)) {
-                            pItem = g_pItemFactoryManager->createItem(it.ItemClass, it.ItemType, it.OptionType);
+                            pItem = itemFactories.createItem(it.ItemClass, it.ItemType, it.OptionType);
                             Assert(pItem != NULL);
                             if (pItem->getItemClass() == Item::ITEM_CLASS_RESURRECT_ITEM)
                                 countResurrectItem();
@@ -1599,8 +1600,8 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
 
     // Monsters that must be given a skull.
     if (pMonsterInfo->getSkullType() != 0) {
-        Item* pSkull = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_SKULL, pMonsterInfo->getSkullType(),
-                                                         list<OptionType_t>());
+        Item* pSkull =
+            itemFactories.createItem(Item::ITEM_CLASS_SKULL, pMonsterInfo->getSkullType(), list<OptionType_t>());
         if (pSkull != NULL) {
             pMonsterCorpse->addTreasure(pSkull);
         }
