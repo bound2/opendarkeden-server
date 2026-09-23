@@ -22,6 +22,7 @@
 #include "PacketValidator.h"
 #include "ResurrectLocationManager.h"
 #include "ServerShutdown.h"
+#include "SharedContext.h"
 #include "StringPool.h"
 #include "database/DatabaseManager.h"
 #include "types/ServerType.h"
@@ -40,11 +41,12 @@ SharedServer::SharedServer() {
     g_pDatabaseManager = new DatabaseManager();
 
     // create guild manager
-    g_pGuildManager = new GuildManager();
+    m_pGuildManager = new GuildManager();
+    de::sharedContext().setGuildManager(m_pGuildManager);
 
     // create some info managers
-    g_pGameServerInfoManager = new GameServerInfoManager();
-    g_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
+    m_pGameServerInfoManager = new GameServerInfoManager();
+    m_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
 
     // create packet factory manager, packet validator
     // (They must be created and initialized before the client manager and the server-to-server manager.)
@@ -52,7 +54,8 @@ SharedServer::SharedServer() {
     g_pPacketValidator = new PacketValidator();
 
     // create inter-server communication manager
-    g_pGameServerManager = new GameServerManager();
+    m_pGameServerManager = new GameServerManager();
+    de::sharedContext().setGameServerManager(m_pGameServerManager);
 
     // create client manager
     m_pHeartbeatManager = new HeartbeatManager();
@@ -61,9 +64,10 @@ SharedServer::SharedServer() {
     g_pGameWorldInfoManager = new GameWorldInfoManager();
 
     // create ResurrectLocationManager
-    g_pResurrectLocationManager = new ResurrectLocationManager();
+    m_pResurrectLocationManager = new ResurrectLocationManager();
 
-    g_pStringPool = new StringPool();
+    m_pStringPool = new StringPool();
+    de::sharedContext().setStringPool(m_pStringPool);
 
     __END_CATCH
 }
@@ -80,16 +84,16 @@ SharedServer::~SharedServer() noexcept(false) {
     __BEGIN_TRY
 
     SAFE_DELETE(m_pHeartbeatManager);
-    SAFE_DELETE(g_pGameServerManager);
+    SAFE_DELETE(m_pGameServerManager);
     SAFE_DELETE(g_pPacketValidator);
     SAFE_DELETE(g_pPacketFactoryManager);
-    SAFE_DELETE(g_pGameServerInfoManager);
-    SAFE_DELETE(g_pGameServerGroupInfoManager);
-    SAFE_DELETE(g_pGuildManager);
+    SAFE_DELETE(m_pGameServerInfoManager);
+    SAFE_DELETE(m_pGameServerGroupInfoManager);
+    SAFE_DELETE(m_pGuildManager);
     SAFE_DELETE(g_pDatabaseManager);
     SAFE_DELETE(g_pGameWorldInfoManager);
-    SAFE_DELETE(g_pResurrectLocationManager);
-    SAFE_DELETE(g_pStringPool);
+    SAFE_DELETE(m_pResurrectLocationManager);
+    SAFE_DELETE(m_pStringPool);
 
     __END_CATCH
 }
@@ -108,14 +112,14 @@ void SharedServer::init() {
     // Initialize the database manager.
     g_pDatabaseManager->init();
 
-    g_pStringPool->load();
+    m_pStringPool->load();
 
     // Initialize the guild manager.
-    g_pGuildManager->init();
+    m_pGuildManager->init();
 
     // initialize some info managers
-    g_pGameServerInfoManager->init();
-    g_pGameServerGroupInfoManager->init();
+    m_pGameServerInfoManager->init();
+    m_pGameServerGroupInfoManager->init();
 
     g_pGameWorldInfoManager->init();
 
@@ -124,10 +128,10 @@ void SharedServer::init() {
     g_pPacketValidator->init();
 
     // Initialize the server-to-server communication manager.
-    g_pGameServerManager->init();
+    m_pGameServerManager->init();
 
     // ResurrectLocationManager initialization
-    g_pResurrectLocationManager->init();
+    m_pResurrectLocationManager->init();
 
     // Once everything is ready, initialize the client manager and so
     // be ready for networking.
@@ -147,7 +151,7 @@ void SharedServer::start() {
 
     cout << "---------- Start SharedServer ---------" << endl;
     // Start the server-to-server communication manager.
-    g_pGameServerManager->start();
+    m_pGameServerManager->start();
 
     //
     // Start the client manager.
@@ -185,10 +189,10 @@ void SharedServer::stop() {
 
     // Request the stop before joining, then join while every manager the
     // worker uses (config, database, guild manager) is still alive.
-    g_pGameServerManager->stop();
-    g_pGameServerManager->join();
+    m_pGameServerManager->stop();
+    m_pGameServerManager->join();
     try {
-        g_pGameServerManager->rethrowFailure();
+        m_pGameServerManager->rethrowFailure();
     } catch (Throwable& error) {
         cerr << "GameServerManager: " << error.toString() << endl;
     } catch (const std::exception& error) {

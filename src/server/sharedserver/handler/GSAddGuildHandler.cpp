@@ -19,6 +19,7 @@
 #include "Properties.h"
 #include "SGAddGuildMemberOK.h"
 #include "SGAddGuildOK.h"
+#include "SharedContext.h"
 
 #endif
 
@@ -77,7 +78,7 @@ void GSAddGuildHandler::execute(GSAddGuild* pPacket, Player* pPlayer)
 
     pGuild->create();
 
-    g_pGuildManager->addGuild(pGuild);
+    de::sharedContext().guilds().addGuild(pGuild);
 
     // The master is the guild's first member.
     GuildMember* pGuildMember = new GuildMember();
@@ -99,7 +100,7 @@ void GSAddGuildHandler::execute(GSAddGuild* pPacket, Player* pPlayer)
     sgAddGuildOK.setGuildMaster(pGuild->getMaster());
     sgAddGuildOK.setGuildIntro(pGuild->getIntro());
 
-    g_pGameServerManager->broadcast(&sgAddGuildOK);
+    de::sharedContext().gameServers().broadcast(&sgAddGuildOK);
 
     SGAddGuildMemberOK sgAddGuildMemberOK;
     sgAddGuildMemberOK.setGuildID(pGuildMember->getGuildID());
@@ -107,7 +108,7 @@ void GSAddGuildHandler::execute(GSAddGuild* pPacket, Player* pPlayer)
     sgAddGuildMemberOK.setGuildMemberRank(pGuildMember->getRank());
     sgAddGuildMemberOK.setServerGroupID(pPacket->getServerGroupID());
 
-    g_pGameServerManager->broadcast(&sgAddGuildMemberOK);
+    de::sharedContext().gameServers().broadcast(&sgAddGuildMemberOK);
 
 #endif
 

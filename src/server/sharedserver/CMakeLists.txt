@@ -11,6 +11,7 @@ set(SHAREDSERVER_SOURCES
     handler/GSModifyGuildMemberHandler.cpp
     handler/GSQuitGuildHandler.cpp
     handler/GSRequestGuildInfoHandler.cpp
+    SharedContext.cpp
     SharedPacketDispatch.cpp
     Guild.cpp
     GuildDecision.cpp

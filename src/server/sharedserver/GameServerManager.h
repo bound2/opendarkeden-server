@@ -102,7 +102,4 @@ private:
     GameServerPlayer* m_pGameServerPlayers[nMaxGameServers];
 };
 
-// external variable declaration
-extern GameServerManager* g_pGameServerManager;
-
 #endif

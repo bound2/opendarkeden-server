@@ -18,6 +18,7 @@
 #include "GuildManager.h"
 #include "Properties.h"
 #include "SGGuildMemberLogOnOK.h"
+#include "SharedContext.h"
 
 #endif
 
@@ -36,7 +37,7 @@ void GSGuildMemberLogOnHandler::execute(GSGuildMemberLogOn* pPacket, Player* pPl
         Assert(pPacket != NULL);
 
     // Get the guild.
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::sharedContext().guilds().getGuild(pPacket->getGuildID());
     // try { Assert(pGuild != NULL); } catch (Throwable& ) { return; }
     if (pGuild == NULL)
         return;
@@ -58,7 +59,7 @@ void GSGuildMemberLogOnHandler::execute(GSGuildMemberLogOn* pPacket, Player* pPl
 
 
     // Send the packet to the game server.
-    g_pGameServerManager->broadcast(&sgGuildMemberLogOnOK);
+    de::sharedContext().gameServers().broadcast(&sgGuildMemberLogOnOK);
 
 #endif
 

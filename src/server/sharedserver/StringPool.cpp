@@ -82,5 +82,3 @@ const char* StringPool::c_str(uint strID) noexcept(false) {
 
     __END_CATCH
 }
-
-StringPool* g_pStringPool = NULL;

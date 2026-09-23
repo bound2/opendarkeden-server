@@ -67,8 +67,4 @@ private:
     WorldID_t m_MaxWorldID;
 };
 
-
-// global variable declaration
-extern GameServerGroupInfoManager* g_pGameServerGroupInfoManager;
-
 #endif

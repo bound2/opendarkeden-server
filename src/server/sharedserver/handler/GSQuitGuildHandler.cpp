@@ -17,6 +17,7 @@
 #include "GuildManager.h"
 #include "GuildStepRunner.h"
 #include "Properties.h"
+#include "SharedContext.h"
 #include "StringPool.h"
 
 #endif
@@ -40,7 +41,7 @@ void GSQuitGuildHandler::execute(GSQuitGuild* pPacket, Player* pPlayer)
     static_assert(kGuildMemberRankSubmaster == GuildMember::GUILDMEMBER_RANK_SUBMASTER);
     static_assert(kGuildStateCancel == Guild::GUILD_STATE_CANCEL);
 
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::sharedContext().guilds().getGuild(pPacket->getGuildID());
 
     QuitGuildRequest request;
     request.guildID = pPacket->getGuildID();
@@ -68,7 +69,8 @@ void GSQuitGuildHandler::execute(GSQuitGuild* pPacket, Player* pPlayer)
             request.submasterRefund = RETURN_SLAYER_SUBMASTER_GOLD;
 
             if (isKnownGuildRace(request.guildRace))
-                request.cancelMessageEmpty = g_pStringPool->getString(guildCancelMessageFor(request.guildRace)).empty();
+                request.cancelMessageEmpty =
+                    de::sharedContext().strings().getString(guildCancelMessageFor(request.guildRace)).empty();
 
             HashMapGuildMember& Members = pGuild->getMembers();
             for (HashMapGuildMemberItor itr = Members.begin(); itr != Members.end(); itr++)

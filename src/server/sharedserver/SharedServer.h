@@ -18,7 +18,13 @@
 #include "Exception.h"
 #include "Types.h"
 
+class GameServerGroupInfoManager;
+class GameServerInfoManager;
+class GameServerManager;
+class GuildManager;
 class HeartbeatManager;
+class ResurrectLocationManager;
+class StringPool;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -49,8 +55,16 @@ public:
 private:
     bool m_Stopped = false;
 
-    // Nothing outside this class reads it.
+    // The managers the shared server owns. Each is registered on
+    // de::sharedContext() as it is created, except the four nothing outside
+    // this class reads.
+    GuildManager* m_pGuildManager = nullptr;
+    GameServerInfoManager* m_pGameServerInfoManager = nullptr;
+    GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
+    GameServerManager* m_pGameServerManager = nullptr;
     HeartbeatManager* m_pHeartbeatManager = nullptr;
+    ResurrectLocationManager* m_pResurrectLocationManager = nullptr;
+    StringPool* m_pStringPool = nullptr;
 };
 
 #endif

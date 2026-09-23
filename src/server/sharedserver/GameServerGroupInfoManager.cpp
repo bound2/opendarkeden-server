@@ -200,6 +200,3 @@ string GameServerGroupInfoManager::toString() const {
 
     __END_CATCH
 }
-
-// global variable definition
-GameServerGroupInfoManager* g_pGameServerGroupInfoManager = NULL;
