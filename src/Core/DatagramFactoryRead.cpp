@@ -3,7 +3,7 @@
 // Filename    : DatagramFactoryRead.cpp
 // Description : The factory-backed receive path of Datagram, split out
 //               of Datagram.cpp: constructing the packet object goes
-//               through g_pPacketFactoryManager, which the kernel must
+//               through the packet factory table, which the kernel must
 //               not depend on, so this function compiles in Core while
 //               the rest of the framing lives in de-kernel.
 //
@@ -17,6 +17,7 @@
 #include "Assert.h"
 #include "Datagram.h"
 #include "DatagramPacket.h"
+#include "KernelContext.h"
 #include "Packet.h"
 #include "PacketFactoryManager.h"
 
@@ -54,7 +55,7 @@ void Datagram::read(DatagramPacket*& pPacket) {
         throw InvalidProtocolException("invalid packet id");
 
     // abnormal packet size
-    if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID))
+    if (packetSize > de::kernelContext().packetFactories().getPacketMaxSize(packetID))
         throw InvalidProtocolException("too large packet size");
 
     // the datagram is smaller than the packet claims to be
@@ -71,7 +72,7 @@ void Datagram::read(DatagramPacket*& pPacket) {
         throw InvalidProtocolException("packet is not UDP");
     }
 
-    pPacket = (DatagramPacket*)g_pPacketFactoryManager->createPacket(packetID);
+    pPacket = (DatagramPacket*)de::kernelContext().packetFactories().createPacket(packetID);
 
     Assert(pPacket != NULL);
 

@@ -17,6 +17,7 @@
 #include "GameWorldInfoManager.h"
 #include "GuildManager.h"
 #include "HeartbeatManager.h"
+#include "KernelContext.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
 #include "ResurrectLocationManager.h"
@@ -50,8 +51,10 @@ SharedServer::SharedServer() {
 
     // create packet factory manager, packet validator
     // (They must be created and initialized before the client manager and the server-to-server manager.)
-    g_pPacketFactoryManager = new PacketFactoryManager();
-    g_pPacketValidator = new PacketValidator();
+    m_pPacketFactoryManager = new PacketFactoryManager();
+    de::kernelContext().setPacketFactoryManager(m_pPacketFactoryManager);
+    m_pPacketValidator = new PacketValidator();
+    de::kernelContext().setPacketValidator(m_pPacketValidator);
 
     // create inter-server communication manager
     m_pGameServerManager = new GameServerManager();
@@ -85,8 +88,8 @@ SharedServer::~SharedServer() noexcept(false) {
 
     SAFE_DELETE(m_pHeartbeatManager);
     SAFE_DELETE(m_pGameServerManager);
-    SAFE_DELETE(g_pPacketValidator);
-    SAFE_DELETE(g_pPacketFactoryManager);
+    SAFE_DELETE(m_pPacketValidator);
+    SAFE_DELETE(m_pPacketFactoryManager);
     SAFE_DELETE(m_pGameServerInfoManager);
     SAFE_DELETE(m_pGameServerGroupInfoManager);
     SAFE_DELETE(m_pGuildManager);
@@ -124,8 +127,8 @@ void SharedServer::init() {
     g_pGameWorldInfoManager->init();
 
     // Initialize the packet factory manager / packet validator before the client manager.
-    g_pPacketFactoryManager->init();
-    g_pPacketValidator->init();
+    m_pPacketFactoryManager->init();
+    m_pPacketValidator->init();
 
     // Initialize the server-to-server communication manager.
     m_pGameServerManager->init();

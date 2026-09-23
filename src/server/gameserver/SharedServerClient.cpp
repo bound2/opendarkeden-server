@@ -11,6 +11,7 @@
 #include "Assert.h"
 #include "Guild.h"
 #include "GuildManager.h"
+#include "KernelContext.h"
 #include "PacketDispatcher.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
@@ -66,6 +67,8 @@ void SharedServerClient::processCommand() {
     PacketSize_t packetSize;
     Packet* pPacket = NULL;
 
+    PacketFactoryManager& packetFactories = de::kernelContext().packetFactories();
+
     try {
         // Process every complete packet in the input buffer.
         while (true) {
@@ -90,7 +93,7 @@ void SharedServerClient::processCommand() {
 
             try {
                 // An oversized packet is treated as a protocol error.
-                if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID)) {
+                if (packetSize > packetFactories.getPacketMaxSize(packetID)) {
                     filelog("SharedServerClient.txt", "Too Larget Packet Size, RECV [%d],PacketSize[%d]");
 
                     throw InvalidProtocolException("too large packet size");
@@ -103,7 +106,7 @@ void SharedServerClient::processCommand() {
                 // Reaching here means the input buffer holds at least one complete packet.
                 // The packet factory manager creates the packet structure from the packet id.
                 // A bad packet id is handled by the packet factory manager.
-                pPacket = g_pPacketFactoryManager->createPacket(packetID);
+                pPacket = packetFactories.createPacket(packetID);
 
                 // Now initialize this packet structure.
                 // The read() defined by the packet subclass is called through the virtual
@@ -123,7 +126,7 @@ void SharedServerClient::processCommand() {
 #endif
             } catch (IgnorePacketException& igpe) {
                 // An oversized packet is treated as a protocol error.
-                if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID))
+                if (packetSize > packetFactories.getPacketMaxSize(packetID))
                     throw InvalidProtocolException("too large packet size");
 
                 // Check that the input buffer holds a whole packet's worth of data.

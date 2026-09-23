@@ -22,6 +22,8 @@ class GameServerGroupInfoManager;
 class GameServerManager;
 class GuildManager;
 class HeartbeatManager;
+class PacketFactoryManager;
+class PacketValidator;
 class ResurrectLocationManager;
 class SharedGameServerInfoManager;
 class StringPool;
@@ -57,7 +59,9 @@ private:
 
     // The managers the shared server owns. Each is registered on
     // de::sharedContext() as it is created, except the four nothing outside
-    // this class reads.
+    // this class reads and the packet factory table and the validator, which
+    // go on de::KernelContext because every binary fills it with a set of
+    // its own.
     GuildManager* m_pGuildManager = nullptr;
     SharedGameServerInfoManager* m_pGameServerInfoManager = nullptr;
     GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
@@ -65,6 +69,8 @@ private:
     HeartbeatManager* m_pHeartbeatManager = nullptr;
     ResurrectLocationManager* m_pResurrectLocationManager = nullptr;
     StringPool* m_pStringPool = nullptr;
+    PacketFactoryManager* m_pPacketFactoryManager = nullptr;
+    PacketValidator* m_pPacketValidator = nullptr;
 };
 
 #endif

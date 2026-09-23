@@ -18,6 +18,7 @@
 #include "GameServerManager.h"
 #include "GameWorldInfoManager.h"
 #include "ItemDestroyer.h"
+#include "KernelContext.h"
 #include "LoginContext.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
@@ -52,8 +53,10 @@ LoginServer::LoginServer() {
 
     // create packet factory manager, packet validator
     // (They must be created and initialized before the client manager and the server-to-server manager.)
-    g_pPacketFactoryManager = new PacketFactoryManager();
-    g_pPacketValidator = new PacketValidator();
+    m_pPacketFactoryManager = new PacketFactoryManager();
+    de::kernelContext().setPacketFactoryManager(m_pPacketFactoryManager);
+    m_pPacketValidator = new PacketValidator();
+    de::kernelContext().setPacketValidator(m_pPacketValidator);
 
     // create inter-server communication manager
     m_pGameServerManager = new GameServerManager();
@@ -101,14 +104,14 @@ LoginServer::~LoginServer() noexcept(false) {
         m_pGameServerManager = NULL;
     }
 
-    if (g_pPacketValidator != NULL) {
-        delete g_pPacketValidator;
-        g_pPacketValidator = NULL;
+    if (m_pPacketValidator != NULL) {
+        delete m_pPacketValidator;
+        m_pPacketValidator = NULL;
     }
 
-    if (g_pPacketFactoryManager != NULL) {
-        delete g_pPacketFactoryManager;
-        g_pPacketFactoryManager = NULL;
+    if (m_pPacketFactoryManager != NULL) {
+        delete m_pPacketFactoryManager;
+        m_pPacketFactoryManager = NULL;
     }
 
     if (m_pZoneGroupInfoManager != NULL) {
@@ -167,8 +170,8 @@ void LoginServer::init() {
     g_pGameWorldInfoManager->init();
 
     // Initialize the packet factory manager / packet validator before the client manager.
-    g_pPacketFactoryManager->init();
-    g_pPacketValidator->init();
+    m_pPacketFactoryManager->init();
+    m_pPacketValidator->init();
 
     m_pUserInfoManager->init();
 

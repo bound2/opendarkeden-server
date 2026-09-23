@@ -12,6 +12,7 @@
 #include "DatabaseError.h"
 #include "GameServerInfoManager.h"
 #include "GameServerManager.h"
+#include "KernelContext.h"
 #include "LCLoginError.h"
 #include "LCLoginOK.h"
 #include "LCPCList.h"
@@ -159,6 +160,8 @@ void LoginPlayer::processCommand(bool Option) {
         PacketSize_t packetSize;
         Packet* pPacket;
 
+        PacketFactoryManager& packetFactories = de::kernelContext().packetFactories();
+
         // Process every complete packet sitting in the input buffer.
         while (true) {
             // Read as many bytes as the packet header from the input stream.
@@ -180,8 +183,8 @@ void LoginPlayer::processCommand(bool Option) {
 
             // DEBUG by tiancaiamao
             StringStream msg;
-            msg << "RECV PACKET from " << m_ID << ", " << g_pPacketFactoryManager->getPacketName(packetID) << "("
-                << packetID << ") " << szPacketHeader + packetSize << "/" << m_pInputStream->length() << eos;
+            msg << "RECV PACKET from " << m_ID << ", " << packetFactories.getPacketName(packetID) << "(" << packetID
+                << ") " << szPacketHeader + packetSize << "/" << m_pInputStream->length() << eos;
             cout << msg.toString() << endl;
 
             // A strange packet id counts as a protocol error.
@@ -191,14 +194,14 @@ void LoginPlayer::processCommand(bool Option) {
 
             try {
                 // Check that the packet order is valid.
-                if (!g_pPacketValidator->isValidPacketID(getPlayerStatus(), packetID)) {
+                if (!de::kernelContext().packetValidator().isValidPacketID(getPlayerStatus(), packetID)) {
                     // DEBUG by tiancaiamao
                     cout << "player status: " << getPlayerStatus() << " receive packet: " << packetID << endl;
                     throw InvalidProtocolException("invalid packet order");
                 }
 
                 // A packet size that is too large counts as a protocol error.
-                if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID))
+                if (packetSize > packetFactories.getPacketMaxSize(packetID))
                     throw InvalidProtocolException("too large packet size");
 
                 // Check that the input buffer holds as many bytes as the packet size.
@@ -215,7 +218,7 @@ void LoginPlayer::processCommand(bool Option) {
                 // Getting here means the input buffer holds at least one complete packet.
                 // The packet structure can be created from the packet factory manager with the packet id.
                 // A wrong packet id is handled by the packet factory manager.
-                pPacket = g_pPacketFactoryManager->createPacket(packetID);
+                pPacket = packetFactories.createPacket(packetID);
 
                 // Now initialize this packet structure.
                 // The read() defined in the packet subclass is called through the virtual
@@ -246,7 +249,7 @@ void LoginPlayer::processCommand(bool Option) {
                 // drop it from the input stream and do not execute it.
 
                 // A packet size that is too large counts as a protocol error.
-                if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID))
+                if (packetSize > packetFactories.getPacketMaxSize(packetID))
                     throw InvalidProtocolException("too large packet size");
 
                 // Check that the input buffer holds as many bytes as the packet size.

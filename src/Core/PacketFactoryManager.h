@@ -55,6 +55,4 @@ private:
     ushort m_Size;
 };
 
-extern PacketFactoryManager* g_pPacketFactoryManager;
-
 #endif

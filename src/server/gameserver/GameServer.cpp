@@ -15,6 +15,7 @@
 #include "DatabaseManager.h"
 #include "GameContext.h"
 #include "GameServerInfoManager.h"
+#include "KernelContext.h"
 #include "LoginServerManager.h"
 #include "ObjectManager.h"
 #include "PacketFactoryManager.h"
@@ -55,8 +56,10 @@ GameServer::GameServer()
         m_pObjectManager = new ObjectManager();
 
         // create packet factory manager , packet validator
-        g_pPacketFactoryManager = new PacketFactoryManager();
-        g_pPacketValidator = new PacketValidator();
+        m_pPacketFactoryManager = new PacketFactoryManager();
+        de::kernelContext().setPacketFactoryManager(m_pPacketFactoryManager);
+        m_pPacketValidator = new PacketValidator();
+        de::kernelContext().setPacketValidator(m_pPacketValidator);
 
         // create thread manager
         m_pThreadManager = new ThreadManager();
@@ -108,8 +111,8 @@ GameServer::~GameServer()
     SAFE_DELETE(m_pThreadManager);
     SAFE_DELETE(m_pClientManager);
     SAFE_DELETE(m_pObjectManager);
-    SAFE_DELETE(g_pPacketValidator);
-    SAFE_DELETE(g_pPacketFactoryManager);
+    SAFE_DELETE(m_pPacketValidator);
+    SAFE_DELETE(m_pPacketFactoryManager);
     SAFE_DELETE(m_pLoginServerManager);
     SAFE_DELETE(m_pSharedServerManager);
 #ifdef __MOFUS__
@@ -152,10 +155,10 @@ void GameServer::init()
     cout << "GameServer::init() : ThreadManager Initialization Success..." << endl;
 
     // Initialize the packet factory manager and packet validator before the client manager.
-    g_pPacketFactoryManager->init();
+    m_pPacketFactoryManager->init();
     cout << "GameServer::init() : PacketFactoryManager Initialization Success..." << endl;
 
-    g_pPacketValidator->init();
+    m_pPacketValidator->init();
     cout << "GameServer::init() : PacketValidator Initialization Success..." << endl;
 
     // Now prepare the inter-server communication.

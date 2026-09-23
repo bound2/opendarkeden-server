@@ -208,8 +208,8 @@
 //                 registration cannot be dropped for that: a server
 //                 process builds one factory table, and the game
 //                 server's UDP path resolves the same one -
-//                 Datagram::read(DatagramPacket*&) asks
-//                 g_pPacketFactoryManager for the packet, and
+//                 Datagram::read(DatagramPacket*&) asks the factory
+//                 table on the kernel context for the packet, and
 //                 Datagram::isDatagram names PACKET_CG_PORT_CHECK - so
 //                 the entry is what lets the packet arrive at all. Its
 //                 handler reads the sender address out of the datagram

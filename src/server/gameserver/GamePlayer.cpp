@@ -21,6 +21,7 @@
 #include "Guild.h"
 #include "GuildManager.h"
 #include "IncomingPlayerManager.h"
+#include "KernelContext.h"
 #include "Ousters.h"
 #include "PCFinder.h"
 #include "PacketDispatcher.h"
@@ -302,6 +303,8 @@ void GamePlayer::processCommand(bool Option) {
 
     Packet* pPacket = NULL;
 
+    PacketFactoryManager& packetFactories = de::kernelContext().packetFactories();
+
     try {
         // Handle a user under penalty here.
         // A penalised user can hit any exception,
@@ -366,7 +369,7 @@ void GamePlayer::processCommand(bool Option) {
 
             try {
                 // Verify that the packet order is correct.
-                if (!g_pPacketValidator->isValidPacketID(getPlayerStatus(), packetID)) {
+                if (!de::kernelContext().packetValidator().isValidPacketID(getPlayerStatus(), packetID)) {
                     filelog("GamePlayer.txt", "Not Valid Packet, RECV [%d],ID[%s],Host[%s]", packetID, m_ID.c_str(),
                             //						getCreature()->getName().c_str(),
                             getSocket()->getHost().c_str());
@@ -382,9 +385,9 @@ void GamePlayer::processCommand(bool Option) {
                 }
 
                 // An over-large packet counts as a protocol error.
-                if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID)) {
+                if (packetSize > packetFactories.getPacketMaxSize(packetID)) {
                     filelog("GamePlayer.txt", "Too Larget Packet Size, RECV [%d],PacketSize[%d/%d],ID[%s],Host[%s]",
-                            packetID, packetSize, g_pPacketFactoryManager->getPacketMaxSize(packetID), m_ID.c_str(),
+                            packetID, packetSize, packetFactories.getPacketMaxSize(packetID), m_ID.c_str(),
                             //						getCreature()->getName().c_str(),
                             getSocket()->getHost().c_str());
                     throw InvalidProtocolException("too large packet size");
@@ -402,7 +405,7 @@ void GamePlayer::processCommand(bool Option) {
                 // At this point the input buffer holds at least one complete packet.
                 // The packet factory manager builds the packet structure from the id.
                 // A bad packet id is handled inside the factory manager.
-                pPacket = g_pPacketFactoryManager->createPacket(packetID);
+                pPacket = packetFactories.createPacket(packetID);
 
                 // Initialise the packet structure.
                 // The read() defined in the packet subclass is called through the virtual
@@ -474,7 +477,7 @@ void GamePlayer::processCommand(bool Option) {
                 // so drop it from the input stream and do not run it.
 
                 // An over-large packet counts as a protocol error.
-                if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID)) {
+                if (packetSize > packetFactories.getPacketMaxSize(packetID)) {
                     filelog("GamePlayer.txt",
                             "Too Larget Packet Size[Ignore], RECV [%d],PacketSize[%d],Name[%s],Host[%s]", packetID,
                             packetSize, ((getCreature() == NULL) ? "NULL" : getCreature()->getName().c_str()),
