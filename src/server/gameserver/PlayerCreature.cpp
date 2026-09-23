@@ -1319,6 +1319,16 @@ void PlayerCreature::saveAlignment(Alignment_t alignment) {
     __END_CATCH
 }
 
+void PlayerCreature::saveInitialRank() {
+    int curRank = max(1, (getLevel() + 3) / 4);
+    m_pRank->SET_LEVEL(curRank);
+
+    char pField[80];
+    sprintf(pField, "`Rank`=%d, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
+    tinysave(pField);
+    setRankExpSaveCount(0);
+}
+
 IP_t PlayerCreature::getIP(void) const {
     Assert(m_pPlayer != NULL);
     Socket* pSocket = m_pPlayer->getSocket();

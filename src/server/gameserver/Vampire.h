@@ -533,8 +533,6 @@ public:
     //	void increaseVampExp(Exp_t Point);
     //	void increaseRankExp(RankExp_t Point);
 
-    void saveInitialRank(void);
-
 public:
     void initPetQuestTarget();
     int getBloodBibleSignOpenNum() const;

@@ -345,6 +345,12 @@ public:
         m_RankExpSaveCount = count;
     }
 
+    // Derive the rank from the character's level and write Rank, RankExp
+    // and RankGoalExp back to the database. getLevel() is the seam that
+    // carries the per-race difference: a slayer's level is its highest
+    // skill-domain level, the other two races' their stored level.
+    void saveInitialRank();
+
     virtual Alignment_t getAlignment() const = 0;
     virtual void setAlignment(Alignment_t Alignment) = 0;
 

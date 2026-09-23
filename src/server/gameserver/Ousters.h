@@ -550,8 +550,6 @@ public:
     //	void increaseOustersExp(Exp_t Point);
     //	void increaseRankExp(RankExp_t Point);
 
-    void saveInitialRank(void);
-
     //////////////////////////////
     // Elemental attribute functions
     //////////////////////////////

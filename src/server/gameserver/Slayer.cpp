@@ -2629,24 +2629,6 @@ void Slayer::getShapeInfo(DWORD& flag, Color_t colors[PCSlayerInfo::SLAYER_COLOR
 }
 
 
-//----------------------------------------------------------------------
-// save InitialRank
-//----------------------------------------------------------------------
-// Save the initial values of Rank, RankExp and RankGoalExp.
-//----------------------------------------------------------------------
-void Slayer::saveInitialRank(void)
-
-{
-    int maxDomainLevel = getHighestSkillDomainLevel();
-
-    int curRank = max(1, (maxDomainLevel + 3) / 4);
-    m_pRank->SET_LEVEL(curRank);
-    char pField[80];
-    sprintf(pField, "`Rank`=%d, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
-    tinysave(pField);
-    setRankExpSaveCount(0);
-}
-
 Slayer::WearPart Slayer::getWearPart(Item::ItemClass IClass) const {
     switch (IClass) {
     case Item::ITEM_CLASS_COAT:

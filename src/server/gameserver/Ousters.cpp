@@ -1739,25 +1739,6 @@ void Ousters::saveGears(void) const
 //----------------------------------------------------------------------
 
 
-//----------------------------------------------------------------------
-// save InitialRank
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-void Ousters::saveInitialRank(void)
-
-{
-    OUSTERS_RECORD prev;
-    getOustersRecord(prev);
-
-    int curRank = max(1, (m_Level + 3) / 4);
-    m_pRank->SET_LEVEL(curRank);
-
-    char pField[80];
-    sprintf(pField, "`Rank`=%d, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
-    tinysave(pField);
-    setRankExpSaveCount(0);
-}
-
 bool Ousters::addShape(Item::ItemClass IClass, ItemType_t IType, Color_t color) {
     bool bisChange = false;
 

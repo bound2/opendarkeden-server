@@ -627,7 +627,6 @@ public:
     }
 
     uint getSlayerLevel(void) const;
-    void saveInitialRank(void);
 
 
     WORD getDomainExpSaveCount(void) const {

@@ -1925,26 +1925,6 @@ void Vampire::getShapeInfo(DWORD& flag, Color_t colors[PCVampireInfo::VAMPIRE_CO
 }
 
 
-//----------------------------------------------------------------------
-// save InitialRank
-//----------------------------------------------------------------------
-// Save the initial values of Rank, RankExp and RankGoalExp.
-//----------------------------------------------------------------------
-void Vampire::saveInitialRank(void)
-
-{
-    VAMPIRE_RECORD prev;
-    getVampireRecord(prev);
-
-    int curRank = max(1, (m_Level + 3) / 4);
-    m_pRank->SET_LEVEL(curRank);
-
-    char pField[80];
-    sprintf(pField, "`Rank`=%d, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
-    tinysave(pField);
-    setRankExpSaveCount(0);
-}
-
 bool Vampire::addShape(Item::ItemClass IClass, ItemType_t IType, Color_t color) {
     bool bisChange = false;
 
