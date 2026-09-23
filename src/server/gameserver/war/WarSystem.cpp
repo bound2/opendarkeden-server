@@ -550,8 +550,12 @@ WarSchedule* WarSystem::getActiveWarSchedule_LOCKED(ZoneID_t zoneID)
         }
 
         if (pWar->getWarType() == WAR_GUILD) {
+            // GuildWar reports WAR_GUILD as well and is a sibling of SiegeWar,
+            // not one of it. Only a siege is matched by castle zone here, so a
+            // war that is not one is skipped.
             SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-            Assert(pSiegeWar != NULL);
+            if (pSiegeWar == NULL)
+                continue;
 
             if (pSiegeWar->getCastleZoneID() == zoneID) {
                 return pWarSchedule;
@@ -580,8 +584,12 @@ War* WarSystem::getActiveWar(ZoneID_t zoneID) const
             continue;
 
         if (pWar->getWarType() == WAR_GUILD) {
+            // GuildWar reports WAR_GUILD as well and is a sibling of SiegeWar,
+            // not one of it. Only a siege is matched by castle zone here, so a
+            // war that is not one is skipped.
             SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-            Assert(pSiegeWar != NULL);
+            if (pSiegeWar == NULL)
+                continue;
 
             if (pSiegeWar->getCastleZoneID() == zoneID) {
                 return pWar;

@@ -22,7 +22,13 @@ that followed it.
   Every other exit of the function frees the probe and answers. Whether
   to refund and roll the shop version back, or to place the item first,
   is a design decision.
-  > **Status:** recorded, not fixed (refactor/game-context-12)
+  > **Status:** fixed (fix/recorded-defects-4) — the no-tile branch now
+  > refunds the price with `increaseGoldEx`, the exact inverse of the
+  > `decreaseGoldEx` that charged it, frees the probe key and answers
+  > `GCShopBuyFail` with `GC_SHOP_BUY_FAIL_NOT_ENOUGH_SPACE`, the way the
+  > function's earlier exits do. The shop version is deliberately left
+  > raised: a raised version only makes the client re-fetch the rack,
+  > which still holds the motorcycle.
 
 ## A scheduled guild war makes every active-war lookup assert (2026-09-22)
 
@@ -34,7 +40,12 @@ that followed it.
   a guild war sits there, every lookup for any zone throws
   `AssertionError`, including the castle shrine's owner change and the
   siege manager's checks.
-  > **Status:** recorded, not fixed (refactor/game-context-12)
+  > **Status:** fixed (fix/recorded-defects-4) — both loops now skip a war
+  > whose cast to `SiegeWar` fails instead of asserting it, so a scheduled
+  > guild war is passed over and the lookups keep answering for every
+  > other zone. Every caller already handles the `NULL` a zone with no
+  > siege returns. Whether a `GuildWar` should be matched by its own
+  > `getCastleZoneID` the way a siege is remains open.
 
 ## A shrine set with no owner names its race from an uninitialised pointer (2026-09-22)
 

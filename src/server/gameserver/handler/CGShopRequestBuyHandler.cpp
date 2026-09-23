@@ -474,12 +474,22 @@ void CGShopRequestBuyHandler::executeMotorcycle(CGShopRequestBuy* pPacket, Playe
     // Then write to the DB that the motorcycle was sold.
     TPOINT pt = pZone->addItem(pItem, pPC->getX(), pPC->getY(), false);
     if (pt.x == -1) {
-        // Erase the motorcycle just sold from the NPC on the server side.
-
-        //  The motorcycle could not be added to the zone. Just return.
         cerr << "######################################################" << endl;
         cerr << "# CRITICAL ERROR!!! Cannot add MOTORCYCLE to ZONE!!! #" << endl;
         cerr << "######################################################" << endl;
+
+        // The zone has no free tile for the motorcycle, so nothing was sold:
+        // the rack still holds the item, the player gets the gold back, and
+        // the client is told there was no space, the way the exits above do.
+        // Only the shop version stays raised; a raised version just makes the
+        // client re-fetch the rack.
+        pPC->increaseGoldEx(itemMoney);
+
+        GCShopBuyFail gcShopBuyFail;
+        gcShopBuyFail.setCode(GC_SHOP_BUY_FAIL_NOT_ENOUGH_SPACE);
+        gcShopBuyFail.setAmount(0);
+        pPlayer->sendPacket(&gcShopBuyFail);
+        SAFE_DELETE(pTestKey);
         return;
     }
     pItem->create(pPC->getName(), STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
