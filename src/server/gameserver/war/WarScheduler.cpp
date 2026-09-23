@@ -367,6 +367,10 @@ void WarScheduler::cancelGuildSchedules()
 bool WarScheduler::hasSchedule(GuildID_t gID) {
     __BEGIN_TRY
 
+    // The callers are on other threads, so the walk takes the mutex every
+    // sibling takes.
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
     const RecentSchedules::container_type& schedules = m_RecentSchedules.getSchedules();
     RecentSchedules::const_iterator itr = schedules.begin();
 
@@ -383,6 +387,8 @@ bool WarScheduler::hasSchedule(GuildID_t gID) {
             return true;
         }
     }
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     return false;
 

@@ -733,7 +733,7 @@ void opHeal(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSy
             pVampire->setHP(hp);
 
             if (pVampire->getSilverDamage() != 0) {
-                pVampire->setSilverDamage(0);
+                pVampire->saveSilverDamage(0);
                 GCModifyInformation gcMI;
                 gcMI.addShortData(MODIFY_SILVER_DAMAGE, 0);
                 pGamePlayer->sendPacket(&gcMI);
@@ -744,7 +744,7 @@ void opHeal(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSy
             pOusters->setHP(hp);
 
             if (pOusters->getSilverDamage() != 0) {
-                pOusters->setSilverDamage(0);
+                pOusters->saveSilverDamage(0);
                 GCModifyInformation gcMI;
                 gcMI.addShortData(MODIFY_SILVER_DAMAGE, 0);
                 pGamePlayer->sendPacket(&gcMI);

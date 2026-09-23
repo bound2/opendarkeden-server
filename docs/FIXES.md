@@ -20,8 +20,13 @@ that followed it.
   about to execute under its own lock. Deleting a guild whose castle has a
   pending war frees a war under the zone thread's scheduler heartbeat. The
   fix is to post the cancel to the owning zone group rather than reach
-  across.
-  > **Status:** recorded, not fixed (fix/recorded-defects-5)
+  across. `hasSchedule` takes the mutex now, and the reload is posted to
+  the zone's group with `ZoneGroup::post()`, so it runs on the thread that
+  executes those wars, under the group mutex; the command captures the
+  zone and looks the scheduler up again, because a zone reload replaces
+  it. Still open: the GM `reloadinfo` of a war schedule
+  (`EventReloadInfo`) calls `load()` from the main thread the same way.
+  > **Status:** fixed (fix/recorded-defects-6)
 
 ## The sharedserver's player table is indexed by raw descriptor with no bound (2026-09-23)
 
@@ -29,8 +34,13 @@ that followed it.
   into a table of a hundred slots with no check against its size,** and the
   input and output loops walk the table from the lowest to the highest
   descriptor seen. A game-server link whose socket descriptor is a hundred
-  or more overruns the array.
-  > **Status:** recorded, not fixed (refactor/shared-twin-classes)
+  or more overruns the array. The add bound-checks the descriptor now, the
+  way the gameserver's `PlayerManager` does, and the accept path logs the
+  refused host and deletes the player, which closes the socket. The
+  loginserver's `GameServerManager` owns a datagram socket and no table,
+  and both `ClientManager`s reach their players through `PlayerManager`,
+  whose add, delete and get all bound-check.
+  > **Status:** fixed (fix/recorded-defects-6)
 
 ## A duplicate game-server connection would be freed twice (2026-09-23)
 
@@ -39,8 +49,11 @@ that followed it.
   player's destructor closes and deletes that socket itself. Latent: the
   add never reports a duplicate today, having no duplicate check. The
   branch for a missing element also builds a message with the offending
-  host and port that nothing prints.
-  > **Status:** recorded, not fixed (refactor/shared-twin-classes)
+  host and port that nothing prints. The socket now has one owner: the
+  duplicate branch deletes only the player, the outer handler deletes
+  whichever of the two exists, and the missing-element message goes to the
+  log the file already writes.
+  > **Status:** fixed (fix/recorded-defects-6)
 
 ## Registering a siege beside a scheduled guild war schedules a second war (2026-09-23)
 
@@ -68,8 +81,10 @@ that followed it.
   a vampire a GM healed keeps the stale value across logout and reloads
   with it, while every in-game cure persists its result at once. The
   ousters row writes the column unconditionally. The repository header
-  documents the skip and the integration tier pins it as it stands.
-  > **Status:** recorded, not fixed (refactor/exps-record)
+  documents the skip and the integration tier pins it as it stands. The GM
+  heal calls `saveSilverDamage(0)` now, for both races, so the clear is
+  written the moment it is made, like every cure's.
+  > **Status:** fixed (fix/recorded-defects-6)
 
 ## A reinforcement condition null-checked the wrong pointer (2026-09-23)
 
@@ -104,8 +119,9 @@ that followed it.
   right for a guild war and throws for a siege, the defender side a siege
   knows being on `SiegeWar`. Latent: nothing calls the castle manager's
   method; the dissection handler reaches `ShrineInfoManager`'s, which
-  consults no war.
-  > **Status:** recorded, not fixed (refactor/game-context-13)
+  consults no war. The castle manager's method and its declaration are
+  gone, so the cast that could not answer for a siege is gone with them.
+  > **Status:** fixed (fix/recorded-defects-6, deleted as uncalled)
 
 ## The string pool is rewritten under readers on reload (2026-09-23)
 

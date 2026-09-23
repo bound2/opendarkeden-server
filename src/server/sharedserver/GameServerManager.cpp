@@ -477,6 +477,10 @@ void GameServerManager::acceptNewConnection() {
     // NonBlockingIOException cannot be thrown either.
     Socket* client = NULL;
 
+    // From its construction on the player owns the socket and its destructor
+    // closes and deletes it, so exactly one of the two is freed below.
+    GameServerPlayer* pGameServerPlayer = NULL;
+
     try {
         client = m_pServerSocket->accept();
     } catch (Throwable& t) {
@@ -504,20 +508,26 @@ void GameServerManager::acceptNewConnection() {
 
 
         // Create the player object with the client socket as parameter.
-        GameServerPlayer* pGameServerPlayer = new GameServerPlayer(client);
+        pGameServerPlayer = new GameServerPlayer(client);
 
         // Register it with the IPM.
         try {
             addGameServerPlayer(pGameServerPlayer);
         } catch (DuplicatedException&) {
-            client->close();
-            SAFE_DELETE(client);
+            SAFE_DELETE(pGameServerPlayer);
+            return;
+        } catch (OutOfBoundException&) {
+            filelog("SSGSManager.txt", "REFUSED %s:%u : socket descriptor %d does not fit the game server table",
+                    client->getHost().c_str(), client->getPort(), (int)client->getSOCKET());
+
+            // Deleting the player closes the socket.
             SAFE_DELETE(pGameServerPlayer);
             return;
         }
     } catch (NoSuchElementException&) {
         StringStream msg2;
         msg2 << "ILLEGAL ACCESS FROM " << client->getHost() << ":" << client->getPort();
+        filelog("SSGSManager.txt", "%s", msg2.toString().c_str());
 
         // The connection is not authenticated, so cut it.
         client->send("Error : Unauthorized access", 27);
@@ -525,7 +535,9 @@ void GameServerManager::acceptNewConnection() {
         SAFE_DELETE(client);
     } catch (Throwable& t) {
         try {
-            if (client != NULL) {
+            if (pGameServerPlayer != NULL) {
+                SAFE_DELETE(pGameServerPlayer);
+            } else if (client != NULL) {
                 SAFE_DELETE(client);
             }
         } catch (Throwable& t) {
@@ -549,6 +561,11 @@ void GameServerManager::addGameServerPlayer(GameServerPlayer* pGameServerPlayer)
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     SOCKET fd = pGameServerPlayer->getSocket()->getSOCKET();
+
+    // The table is indexed by the descriptor, so one it cannot hold is refused
+    // rather than stored past its end.
+    if (fd < 0 || fd >= (SOCKET)nMaxGameServers)
+        throw OutOfBoundException();
 
     // Readjust m_MinFD and m_MaxFD.
     m_MinFD = min(fd, m_MinFD);

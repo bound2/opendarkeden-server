@@ -16,7 +16,6 @@
 #include "GameContext.h"
 #include "GlobalItemPosition.h"
 #include "GlobalItemPositionLoader.h"
-#include "GuildWar.h"
 #include "Item.h"
 #include "ItemFactoryManager.h"
 #include "MonsterCorpse.h"
@@ -308,50 +307,6 @@ bool CastleShrineInfoManager::isMatchHolyShrine(Item* pItem, MonsterCorpse* pMon
     // symbol equals the MonsterType of the MonsterCorpse passed in and the ObjectID matches too.
     return pShrineSet->m_HolyShrine.getMonsterType() == pMonsterCorpse->getMonsterType() &&
            pShrineSet->m_HolyShrine.getObjectID() == pMonsterCorpse->getObjectID();
-
-    __END_CATCH
-}
-
-bool CastleShrineInfoManager::isDefenderOfGuardShrine(PlayerCreature* pPC, MonsterCorpse* pShrine) const
-
-{
-    __BEGIN_TRY
-
-    Zone* pZone = pShrine->getZone();
-    Assert(pZone != NULL);
-
-    // Not a castle -- fail.
-
-
-    ZoneID_t guardZoneID = pZone->getZoneID();
-    ZoneID_t castleZoneID;
-
-    bool isCastle = de::gameContext().castleInfos().getCastleZoneID(guardZoneID, castleZoneID);
-    Assert(isCastle == true);
-
-    War* pWar = de::gameContext().warSystem().getActiveWar(castleZoneID);
-    if (pWar == NULL)
-        return false;
-
-    CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(castleZoneID);
-    if (pCastleInfo == NULL)
-        return false;
-
-    if (pWar->getWarType() == WAR_GUILD) {
-        GuildWar* pGuildWar = dynamic_cast<GuildWar*>(pWar);
-        Assert(pGuildWar != NULL);
-
-        if (pCastleInfo->isCommon()) {
-            // For a common castle anyone but the attacking guild is a defender.
-            return pPC->getGuildID() != pGuildWar->getChallangerGuildID();
-        } else {
-            // In a same-race war, when the castle is not common the owning guild is the defender.
-            if (pPC->getGuildID() == pCastleInfo->getGuildID())
-                return true;
-        }
-    }
-
-    return false;
 
     __END_CATCH
 }
