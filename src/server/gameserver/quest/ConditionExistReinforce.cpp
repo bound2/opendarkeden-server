@@ -38,7 +38,7 @@ bool ConditionExistReinforce::isSatisfied(Creature* pCreature1, Creature* pCreat
         pNextWork = pNextSchedule->getWork();
 
     SiegeWar* pNextWar = dynamic_cast<SiegeWar*>(pNextWork);
-    if (pNextWork == NULL)
+    if (pNextWar == NULL)
         return false;
 
     GuildID_t gID = pNextWar->recentReinforceGuild();

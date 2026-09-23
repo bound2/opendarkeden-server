@@ -253,11 +253,7 @@ void ConnectionInfoManager::heartbeat()
             }
         }
 
-        // MonitorClient no longer takes this value and uses it.
-        // g_pLoginServerManager->sendPacket(g_pConfig->getProperty("MonitorClientIP1") ,
-        // g_pConfig->getPropertyInt("MonitorClient1UDPORT"), &gmServerInfo);
-        // g_pLoginServerManager->sendPacket(g_pConfig->getProperty("MonitorClientIP2") ,
-        // g_pConfig->getPropertyInt("MonitorClient2UDPORT"), &gmServerInfo);
+        // MonitorClient no longer takes this value.
 
         static int portNum = g_pConfig->getPropertyInt("LoginServerUDPPortNum");
         static const string& loginServerIP = g_pConfig->getProperty("LoginServerIP");

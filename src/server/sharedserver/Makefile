@@ -51,7 +51,7 @@ COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CCFLAGS) $(TARGET_ARCH) $(DEFS) $(INCL
 #----------------------------------------------------------------------
 OBJS = \
 	Guild.o GuildManager.o ResurrectLocationManager.o GameServerPlayer.o \
-	HeartbeatManager.o GameServerInfoManager.o \
+	HeartbeatManager.o SharedGameServerInfoManager.o \
 	GameServerGroupInfoManager.o GameServerManager.o \
 	SharedServer.o main.o StringPool.o \
 
