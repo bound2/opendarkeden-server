@@ -161,7 +161,11 @@ that followed it.
   corpse's is a comment above the return. Nothing calls it today, so the
   function is a stub a future caller would trust; the comparison it meant
   names an accessor that does not exist in that spelling.
-  > **Status:** recorded, not fixed (fix/recorded-defects-3)
+  > **Status:** fixed (fix/recorded-defects-5) — deleted, uncalled. The
+  > function had no caller in any of the three servers and none in the
+  > history: it arrives with the original import and is untouched since, so
+  > nothing loses a check. A caller that needs the comparison writes it
+  > against the blood bible and the corpse it holds.
 
 ## The event monster name overload returns before its retry loop can retry (2026-09-22)
 

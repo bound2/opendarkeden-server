@@ -583,22 +583,6 @@ War* WarSystem::getActiveWar(ZoneID_t zoneID) const
     __END_CATCH
 }
 
-bool WarSystem::isEndCondition(Item* pItem, MonsterCorpse* pMonsterCorpse)
-
-{
-    __BEGIN_TRY
-
-    Assert(pItem != NULL);
-    Assert(pMonsterCorpse != NULL);
-
-    // Do pItem and pMonsterCorpse match?
-    // return pBloodBibleItem->getBibleMonsterType()==pMonsterCorpse->getMonter()->getMonsterType()
-
-    return true;
-
-    __END_CATCH
-}
-
 bool WarSystem::isModifyCastleOwner(ZoneID_t castleZoneID, PlayerCreature* pPC)
 
 {
