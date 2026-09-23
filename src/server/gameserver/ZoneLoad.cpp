@@ -292,7 +292,7 @@ void Zone::load(bool bOutput)
 
         // A Holy Land is registered with the HolyLandManager.
         if (isHolyLand()) {
-            g_pHolyLandManager->addHolyLand(this);
+            de::gameContext().holyLands().addHolyLand(this);
         }
 
         if (castleInfos.getCastleInfo(m_ZoneID) != NULL) {

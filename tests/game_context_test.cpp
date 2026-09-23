@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[63];
+char g_managerStorage[64];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -136,6 +136,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     DragonEyeManager* pDragonEyeManager = standIn<DragonEyeManager>(18);
     EventQuestLootingManager* pEventQuestLootingManager = standIn<EventQuestLootingManager>(19);
     FlagManager* pFlagManager = standIn<FlagManager>(49);
+    HolyLandManager* pHolyLandManager = standIn<HolyLandManager>(63);
     LevelWarZoneInfoManager* pLevelWarZoneInfoManager = standIn<LevelWarZoneInfoManager>(60);
     ParkingCenter* pParkingCenter = standIn<ParkingCenter>(59);
     ShrineInfoManager* pShrineInfoManager = standIn<ShrineInfoManager>(62);
@@ -147,6 +148,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     context.setDragonEyeManager(pDragonEyeManager);
     context.setEventQuestLootingManager(pEventQuestLootingManager);
     context.setFlagManager(pFlagManager);
+    context.setHolyLandManager(pHolyLandManager);
     context.setLevelWarZoneInfoManager(pLevelWarZoneInfoManager);
     context.setParkingCenter(pParkingCenter);
     context.setShrineInfoManager(pShrineInfoManager);
@@ -158,6 +160,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     EXPECT_EQ(&context.dragonEyes(), pDragonEyeManager);
     EXPECT_EQ(&context.eventQuestLoot(), pEventQuestLootingManager);
     EXPECT_EQ(&context.flags(), pFlagManager);
+    EXPECT_EQ(&context.holyLands(), pHolyLandManager);
     EXPECT_EQ(&context.levelWarZones(), pLevelWarZoneInfoManager);
     EXPECT_EQ(&context.parking(), pParkingCenter);
     EXPECT_EQ(&context.shrines(), pShrineInfoManager);
@@ -367,6 +370,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.gameServerGroups(), AssertionError);
     EXPECT_THROW(context.goodsInfos(), AssertionError);
     EXPECT_THROW(context.guilds(), AssertionError);
+    EXPECT_THROW(context.holyLands(), AssertionError);
     EXPECT_THROW(context.incomingPlayers(), AssertionError);
     EXPECT_THROW(context.itemFactories(), AssertionError);
     EXPECT_THROW(context.itemInfos(), AssertionError);

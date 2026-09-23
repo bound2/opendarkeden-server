@@ -76,7 +76,7 @@ void EffectRelicPosition::affect(Item* pItem)
         gcSystemMessage.setType(SYSTEM_MESSAGE_COMBAT);
         gcSystemMessage.setMessage(msg);
 
-        g_pHolyLandManager->broadcast(&gcSystemMessage);
+        de::gameContext().holyLands().broadcast(&gcSystemMessage);
 
         setNextTime(m_Tick);
     } else if (pItem->getItemClass() == Item::ITEM_CLASS_BLOOD_BIBLE) {

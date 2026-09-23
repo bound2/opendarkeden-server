@@ -148,6 +148,11 @@ GuildManager& GameContext::guilds() const {
     return *m_pGuildManager;
 }
 
+HolyLandManager& GameContext::holyLands() const {
+    Assert(m_pHolyLandManager != nullptr);
+    return *m_pHolyLandManager;
+}
+
 IncomingPlayerManager& GameContext::incomingPlayers() const {
     Assert(m_pIncomingPlayerManager != nullptr);
     return *m_pIncomingPlayerManager;

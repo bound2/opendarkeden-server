@@ -906,7 +906,7 @@ void PCManager::processCreatures()
             // Broadcast the blood bible bonus information across Adam's holy land.
             GCHolyLandBonusInfo gcHolyLandBonusInfo;
             de::gameContext().bloodBibleBonuses().makeHolyLandBonusInfo(gcHolyLandBonusInfo);
-            g_pHolyLandManager->broadcast(&gcHolyLandBonusInfo);
+            de::gameContext().holyLands().broadcast(&gcHolyLandBonusInfo);
         }
 
 

@@ -68,7 +68,4 @@ private:
     mutable Mutex m_Mutex;
 };
 
-// global variable declaration
-extern HolyLandManager* g_pHolyLandManager;
-
 #endif

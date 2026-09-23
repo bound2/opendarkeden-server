@@ -227,7 +227,7 @@ bool WarSystem::addWar(War* pWar)
         de::gameContext().shrines().broadcastBloodBibleStatus();
 
         // Send out everyone not taking part in the race war.
-        g_pHolyLandManager->remainRaceWarPlayers();
+        de::gameContext().holyLands().remainRaceWarPlayers();
     }
 
     return true;

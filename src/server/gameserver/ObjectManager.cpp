@@ -244,7 +244,8 @@ ObjectManager::ObjectManager()
     m_pCastleShrineInfoManager = new CastleShrineInfoManager();
     context.setCastleShrineInfoManager(m_pCastleShrineInfoManager);
 
-    g_pHolyLandManager = new HolyLandManager();
+    m_pHolyLandManager = new HolyLandManager();
+    context.setHolyLandManager(m_pHolyLandManager);
 
     m_pBloodBibleBonusManager = new BloodBibleBonusManager();
     context.setBloodBibleBonusManager(m_pBloodBibleBonusManager);
@@ -345,7 +346,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pShrineInfoManager);
     SAFE_DELETE(m_pCastleShrineInfoManager);
 
-    SAFE_DELETE(g_pHolyLandManager);
+    SAFE_DELETE(m_pHolyLandManager);
 
     SAFE_DELETE(m_pBloodBibleBonusManager);
 

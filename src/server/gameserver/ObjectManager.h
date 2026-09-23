@@ -38,6 +38,7 @@ class GameServerGroupInfoManager;
 class GlobalPartyManager;
 class GoodsInfoManager;
 class GuildManager;
+class HolyLandManager;
 class ItemFactoryManager;
 class ItemInfoManager;
 class ItemLoaderManager;
@@ -112,6 +113,7 @@ private:
     GlobalPartyManager* m_pGlobalPartyManager = nullptr;
     GoodsInfoManager* m_pGoodsInfoManager = nullptr;
     GuildManager* m_pGuildManager = nullptr;
+    HolyLandManager* m_pHolyLandManager = nullptr;
     ItemFactoryManager* m_pItemFactoryManager = nullptr;
     ItemInfoManager* m_pItemInfoManager = nullptr;
     ItemLoaderManager* m_pItemLoaderManager = nullptr;

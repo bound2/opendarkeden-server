@@ -702,7 +702,7 @@ bool dissectionRelicItem(Corpse* pCorpse, Item* pItem, const TPOINT& pt)
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(msg);
         // g_pZoneGroupManager->broadcast( &gcSystemMessage );
-        g_pHolyLandManager->broadcast(&gcSystemMessage);
+        de::gameContext().holyLands().broadcast(&gcSystemMessage);
 
         // Update the bible fragment item's position.
         if (!pItem->isFlag(Effect::EFFECT_CLASS_RELIC_POSITION)) {

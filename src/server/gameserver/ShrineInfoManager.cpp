@@ -695,7 +695,7 @@ bool ShrineInfoManager::returnBloodBible(Zone* pZone, BloodBible* pBloodBible) c
     GCSystemMessage msgPkt;
     msgPkt.setMessage(msg);
 
-    g_pHolyLandManager->broadcast(&msgPkt);
+    de::gameContext().holyLands().broadcast(&msgPkt);
 
     return true;
 

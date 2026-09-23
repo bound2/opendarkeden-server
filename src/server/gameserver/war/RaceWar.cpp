@@ -72,9 +72,9 @@ void RaceWar::executeStart()
 
 
     // Fix the time across Adam's holy land.
-    g_pHolyLandManager->fixTimeband(de::gameContext().variables().getVariable(RACE_WAR_TIMEBAND));
+    de::gameContext().holyLands().fixTimeband(de::gameContext().variables().getVariable(RACE_WAR_TIMEBAND));
 
-    g_pHolyLandManager->killAllMonsters();
+    de::gameContext().holyLands().killAllMonsters();
 
     RegenZoneManager::getInstance()->putTryingPosition();
     RegenZoneManager::getInstance()->broadcastStatus();
@@ -172,7 +172,7 @@ void RaceWar::executeEnd()
     shrines.broadcastBloodBibleStatus();
 
     // Let the time that was fixed across Adam's holy land run again.
-    g_pHolyLandManager->resumeTimeband();
+    de::gameContext().holyLands().resumeTimeband();
 
     // Remove every entry from the war participant list.
     RaceWarLimiter::clearPCList();

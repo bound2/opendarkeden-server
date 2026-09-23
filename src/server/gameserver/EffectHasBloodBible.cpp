@@ -104,7 +104,7 @@ void EffectHasBloodBible::affect(Item* pItem)
 
     // Send the message only while a race war is running.
     if (de::gameContext().warSystem().hasActiveRaceWar()) {
-        g_pHolyLandManager->broadcast(pGCBBS);
+        de::gameContext().holyLands().broadcast(pGCBBS);
     }
 
     de::gameContext().shrines().registerBloodBibleStatus(m_Part, pGCBBS);

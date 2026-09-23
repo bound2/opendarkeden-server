@@ -48,6 +48,7 @@ class GameServerGroupInfoManager;
 class GlobalPartyManager;
 class GoodsInfoManager;
 class GuildManager;
+class HolyLandManager;
 class IncomingPlayerManager;
 class ItemFactoryManager;
 class ItemInfoManager;
@@ -175,6 +176,9 @@ public:
     }
     void setGuildManager(GuildManager* pGuildManager) {
         m_pGuildManager = pGuildManager;
+    }
+    void setHolyLandManager(HolyLandManager* pHolyLandManager) {
+        m_pHolyLandManager = pHolyLandManager;
     }
     void setIncomingPlayerManager(IncomingPlayerManager* pIncomingPlayerManager) {
         m_pIncomingPlayerManager = pIncomingPlayerManager;
@@ -312,6 +316,7 @@ public:
     GlobalPartyManager& parties() const;
     GoodsInfoManager& goodsInfos() const;
     GuildManager& guilds() const;
+    HolyLandManager& holyLands() const;
     IncomingPlayerManager& incomingPlayers() const;
     ItemFactoryManager& itemFactories() const;
     ItemInfoManager& itemInfos() const;
@@ -377,6 +382,7 @@ private:
     GlobalPartyManager* m_pGlobalPartyManager = nullptr;
     GoodsInfoManager* m_pGoodsInfoManager = nullptr;
     GuildManager* m_pGuildManager = nullptr;
+    HolyLandManager* m_pHolyLandManager = nullptr;
     IncomingPlayerManager* m_pIncomingPlayerManager = nullptr;
     ItemFactoryManager* m_pItemFactoryManager = nullptr;
     ItemInfoManager* m_pItemInfoManager = nullptr;
