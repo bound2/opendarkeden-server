@@ -20,8 +20,13 @@ that followed it.
   about to execute under its own lock. Deleting a guild whose castle has a
   pending war frees a war under the zone thread's scheduler heartbeat. The
   fix is to post the cancel to the owning zone group rather than reach
-  across.
-  > **Status:** recorded, not fixed (fix/recorded-defects-5)
+  across. `hasSchedule` takes the mutex now, and the reload is posted to
+  the zone's group with `ZoneGroup::post()`, so it runs on the thread that
+  executes those wars, under the group mutex; the command captures the
+  zone and looks the scheduler up again, because a zone reload replaces
+  it. Still open: the GM `reloadinfo` of a war schedule
+  (`EventReloadInfo`) calls `load()` from the main thread the same way.
+  > **Status:** fixed (fix/recorded-defects-6)
 
 ## The sharedserver's player table is indexed by raw descriptor with no bound (2026-09-23)
 

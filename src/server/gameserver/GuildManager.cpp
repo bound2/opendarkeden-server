@@ -16,6 +16,7 @@
 #include "GuildUnion.h"
 #include "PlayerCreature.h"
 #include "Zone.h"
+#include "ZoneGroup.h"
 #include "ZoneGroupManager.h"
 #include "ZoneInfoManager.h"
 #include "ZoneUtil.h"
@@ -206,7 +207,19 @@ void GuildManager::deleteGuild(GuildID_t id) {
             if (pZone != NULL) {
                 WarScheduler* pWarScheduler = pZone->getWarScheduler();
                 if (pWarScheduler != NULL && pWarScheduler->hasSchedule(id)) {
-                    pWarScheduler->load();
+                    // A scheduler belongs to its zone's group, whose thread runs
+                    // its heartbeat and executes the wars it hands out. Reloading
+                    // it here, on the shared-server link thread, would delete war
+                    // objects that thread is holding, so the reload is posted to
+                    // the owner and runs under the group mutex. The scheduler is
+                    // looked up again there because a zone reload replaces it.
+                    ZoneGroup* pZoneGroup = pZone->getZoneGroup();
+                    if (pZoneGroup != NULL)
+                        pZoneGroup->post([pZone] {
+                            WarScheduler* pScheduler = pZone->getWarScheduler();
+                            if (pScheduler != NULL)
+                                pScheduler->load();
+                        });
                 }
             }
         }
