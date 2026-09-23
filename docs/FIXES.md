@@ -114,8 +114,9 @@ that followed it.
   right for a guild war and throws for a siege, the defender side a siege
   knows being on `SiegeWar`. Latent: nothing calls the castle manager's
   method; the dissection handler reaches `ShrineInfoManager`'s, which
-  consults no war.
-  > **Status:** recorded, not fixed (refactor/game-context-13)
+  consults no war. The castle manager's method and its declaration are
+  gone, so the cast that could not answer for a siege is gone with them.
+  > **Status:** fixed (fix/recorded-defects-6, deleted as uncalled)
 
 ## The string pool is rewritten under readers on reload (2026-09-23)
 

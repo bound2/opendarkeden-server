@@ -66,7 +66,6 @@ public:
 
 public:
     bool isMatchHolyShrine(Item* pItem, MonsterCorpse* pMonsterCorpse) const;
-    bool isDefenderOfGuardShrine(PlayerCreature* pPC, MonsterCorpse* pShrine) const;
     bool canPickupCastleSymbol(Race_t race, CastleSymbol* pCastleSymbol) const;
     bool getMatchGuardShrinePosition(Item* pItem, ZoneItemPosition& zip) const;
 
