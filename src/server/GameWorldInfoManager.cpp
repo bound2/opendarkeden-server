@@ -198,6 +198,3 @@ string GameWorldInfoManager::toString() const {
 
     __END_CATCH
 }
-
-// global variable definition
-GameWorldInfoManager* g_pGameWorldInfoManager = NULL;

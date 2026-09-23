@@ -21,6 +21,7 @@
 class ClientManager;
 class GameServerGroupInfoManager;
 class GameServerManager;
+class GameWorldInfoManager;
 class ItemDestroyer;
 class PacketFactoryManager;
 class PacketValidator;
@@ -69,6 +70,7 @@ private:
     ClientManager* m_pClientManager = nullptr;
     ItemDestroyer* m_pItemDestroyer = nullptr;
     UserInfoManager* m_pUserInfoManager = nullptr;
+    GameWorldInfoManager* m_pGameWorldInfoManager = nullptr;
     PacketFactoryManager* m_pPacketFactoryManager = nullptr;
     PacketValidator* m_pPacketValidator = nullptr;
 };

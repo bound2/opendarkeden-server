@@ -13,6 +13,7 @@
 #include "GameWorldInfoManager.h"
 #include "LCWorldList.h"
 #include "LoginPlayer.h"
+#include "ServerContext.h"
 #include "WorldInfo.h"
 #include "repository/LoginAccountRepository.h"
 #endif
@@ -34,7 +35,7 @@ void CLGetWorldListHandler::execute(CLGetWorldList* pPacket, Player* pPlayer)
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
     try {
-        int Num = g_pGameWorldInfoManager->getSize();
+        int Num = de::serverContext().worldInfos().getSize();
 
 
         // Worlds are numbered from 1, so the table has one unused slot at 0.
@@ -42,7 +43,7 @@ void CLGetWorldListHandler::execute(CLGetWorldList* pPacket, Player* pPlayer)
 
         for (int i = 1; i < Num + 1; i++) {
             WorldInfo* pWorldInfo = new WorldInfo();
-            GameWorldInfo* pGameWorldInfo = g_pGameWorldInfoManager->getGameWorldInfo(i);
+            GameWorldInfo* pGameWorldInfo = de::serverContext().worldInfos().getGameWorldInfo(i);
             pWorldInfo->setID(pGameWorldInfo->getID());
             pWorldInfo->setName(pGameWorldInfo->getName());
 

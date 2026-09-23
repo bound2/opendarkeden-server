@@ -20,6 +20,7 @@
 
 class GameServerGroupInfoManager;
 class GameServerManager;
+class GameWorldInfoManager;
 class GuildManager;
 class HeartbeatManager;
 class PacketFactoryManager;
@@ -69,6 +70,7 @@ private:
     HeartbeatManager* m_pHeartbeatManager = nullptr;
     ResurrectLocationManager* m_pResurrectLocationManager = nullptr;
     StringPool* m_pStringPool = nullptr;
+    GameWorldInfoManager* m_pGameWorldInfoManager = nullptr;
     PacketFactoryManager* m_pPacketFactoryManager = nullptr;
     PacketValidator* m_pPacketValidator = nullptr;
 };

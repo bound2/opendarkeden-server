@@ -22,6 +22,7 @@
 #include "LoginContext.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
+#include "ServerContext.h"
 #include "ServerShutdown.h"
 #include "UserInfoManager.h"
 #include "ZoneGroupInfoManager.h"
@@ -73,7 +74,8 @@ LoginServer::LoginServer() {
     de::loginContext().setUserInfoManager(m_pUserInfoManager);
 
     // create GameWorldInfoManager
-    g_pGameWorldInfoManager = new GameWorldInfoManager();
+    m_pGameWorldInfoManager = new GameWorldInfoManager();
+    de::serverContext().setGameWorldInfoManager(m_pGameWorldInfoManager);
 
     __END_CATCH
 }
@@ -141,9 +143,9 @@ LoginServer::~LoginServer() noexcept(false) {
         delete m_pUserInfoManager;
         m_pUserInfoManager = NULL;
     }
-    if (g_pGameWorldInfoManager != NULL) {
-        delete g_pGameWorldInfoManager;
-        g_pGameWorldInfoManager = NULL;
+    if (m_pGameWorldInfoManager != NULL) {
+        delete m_pGameWorldInfoManager;
+        m_pGameWorldInfoManager = NULL;
     }
 
     __END_CATCH
@@ -167,7 +169,7 @@ void LoginServer::init() {
     m_pZoneInfoManager->init();
     m_pZoneGroupInfoManager->init();
 
-    g_pGameWorldInfoManager->init();
+    m_pGameWorldInfoManager->init();
 
     // Initialize the packet factory manager / packet validator before the client manager.
     m_pPacketFactoryManager->init();

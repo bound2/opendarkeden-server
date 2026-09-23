@@ -18,6 +18,7 @@
 #include "Profile.h"
 #include "Properties.h"
 #include "ReconnectLoginInfoManager.h"
+#include "ServerContext.h"
 #include "ServerShutdown.h"
 #include "Timeval.h"
 
@@ -173,9 +174,7 @@ void ClientManager::run() {
         }
 
         if (ReloadNextTime < currentTime) {
-            if (g_pGameWorldInfoManager != NULL) {
-                g_pGameWorldInfoManager->load();
-            }
+            de::serverContext().worldInfos().load();
 
             de::loginContext().gameServerGroups().load();
 

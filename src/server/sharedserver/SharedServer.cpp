@@ -21,6 +21,7 @@
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
 #include "ResurrectLocationManager.h"
+#include "ServerContext.h"
 #include "ServerShutdown.h"
 #include "SharedContext.h"
 #include "SharedGameServerInfoManager.h"
@@ -64,7 +65,8 @@ SharedServer::SharedServer() {
     m_pHeartbeatManager = new HeartbeatManager();
 
     // create GameWorldInfoManager
-    g_pGameWorldInfoManager = new GameWorldInfoManager();
+    m_pGameWorldInfoManager = new GameWorldInfoManager();
+    de::serverContext().setGameWorldInfoManager(m_pGameWorldInfoManager);
 
     // create ResurrectLocationManager
     m_pResurrectLocationManager = new ResurrectLocationManager();
@@ -94,7 +96,7 @@ SharedServer::~SharedServer() noexcept(false) {
     SAFE_DELETE(m_pGameServerGroupInfoManager);
     SAFE_DELETE(m_pGuildManager);
     SAFE_DELETE(g_pDatabaseManager);
-    SAFE_DELETE(g_pGameWorldInfoManager);
+    SAFE_DELETE(m_pGameWorldInfoManager);
     SAFE_DELETE(m_pResurrectLocationManager);
     SAFE_DELETE(m_pStringPool);
 
@@ -124,7 +126,7 @@ void SharedServer::init() {
     m_pGameServerInfoManager->init();
     m_pGameServerGroupInfoManager->init();
 
-    g_pGameWorldInfoManager->init();
+    m_pGameWorldInfoManager->init();
 
     // Initialize the packet factory manager / packet validator before the client manager.
     m_pPacketFactoryManager->init();

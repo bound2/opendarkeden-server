@@ -29,6 +29,7 @@
 #include "Properties.h"
 #include "ResurrectLocationManager.h"
 #include "ScriptManager.h"
+#include "ServerContext.h"
 #include "ShopTemplate.h"
 #include "SkillDomainInfoManager.h"
 #include "SkillHandlerManager.h"
@@ -220,7 +221,8 @@ ObjectManager::ObjectManager()
     context.setWayPointManager(m_pWayPointManager);
     m_pGlobalPartyManager = new GlobalPartyManager();
     context.setGlobalPartyManager(m_pGlobalPartyManager);
-    g_pGameWorldInfoManager = new GameWorldInfoManager();
+    m_pGameWorldInfoManager = new GameWorldInfoManager();
+    de::serverContext().setGameWorldInfoManager(m_pGameWorldInfoManager);
     m_pCombatInfoManager = new CombatInfoManager();
     context.setCombatInfoManager(m_pCombatInfoManager);
     m_pUniqueItemManager = new UniqueItemManager();
@@ -336,7 +338,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pAlignmentManager);
     SAFE_DELETE(m_pWayPointManager);
     SAFE_DELETE(m_pGlobalPartyManager);
-    SAFE_DELETE(g_pGameWorldInfoManager);
+    SAFE_DELETE(m_pGameWorldInfoManager);
     SAFE_DELETE(m_pVariableManager);
     SAFE_DELETE(m_pCombatInfoManager);
     SAFE_DELETE(m_pUniqueItemManager);
@@ -615,7 +617,7 @@ void ObjectManager::load()
     printf("ObjectManager::init() : VisionInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : GameWorldInfoManager Initialization Start\n");
-    g_pGameWorldInfoManager->load();
+    m_pGameWorldInfoManager->load();
     printf("ObjectManager::load() : GameWorldInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : CombatInfoManager Initialization Start\n");

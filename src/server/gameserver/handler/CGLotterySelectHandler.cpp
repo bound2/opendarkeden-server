@@ -26,6 +26,7 @@
 #include "PacketUtil.h"
 #include "PlayerCreature.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "Slayer.h"
 #include "Vampire.h"
 #include "ZoneGroupManager.h"
@@ -132,7 +133,7 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
             // Broadcast to all worlds via server command
             char sCommand[200];
             string worldName =
-                g_pGameWorldInfoManager->getGameWorldInfo(g_pConfig->getPropertyInt("WorldID"))->getName();
+                de::serverContext().worldInfos().getGameWorldInfo(g_pConfig->getPropertyInt("WorldID"))->getName();
             sprintf(sCommand, "*allworld *command NotifyWin %s(%s) %u", pCreature->getName().c_str(), worldName.c_str(),
                     pPC->getLottoRewardID());
             de::gm::opworld(NULL, sCommand, 0, false);
