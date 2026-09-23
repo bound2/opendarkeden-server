@@ -11,10 +11,10 @@ Four live call sites, all `LoadFromFile`, all at gameserver startup:
 
 | Call site | File | Size |
 |---|---|---|
-| `GQuestInfo.cpp:100` | `data/SimpleGQuest.xml` | 17 KB |
-| `GQuestInfo.cpp:116` | `data/EventGQuest.xml` | 24 KB |
-| `GQuestCheckPoint.cpp:15` | `data/EventCheckPoint.xml` | 4.4 KB |
-| `GQuestCheckPoint.cpp:46` | `data/TravelWay.xml` | 3.8 KB |
+| `GQuestInfoManager::load` (`src/server/gameserver/GQuestInfo.cpp`) | `data/SimpleGQuest.xml` | 17 KB |
+| `GQuestInfoManager::load` (same function) | `data/EventGQuest.xml` | 24 KB |
+| `GQuestCheckPoint::load` (`src/server/gameserver/GQuestCheckPoint.cpp`) | `data/EventCheckPoint.xml` | 4.4 KB |
+| `GQuestCheckPoint::load` (same function) | `data/TravelWay.xml` | 3.8 KB |
 
 48 KB, read once. `data/EventGQuestB.xml` is never loaded. Every `SaveToFile`
 call in the tree is commented out, and `LoadFromMem` had no callers, so the
@@ -139,10 +139,15 @@ toolchain configuration, for example
 
 ### Why it works here
 
-The source is unusually portable for its age: no `__attribute__`, no
-`#pragma GCC`, no inline asm, no `__builtin_*`, no `typeof`. The only compiler
-extension in the tree is `__PRETTY_FUNCTION__` (108 uses), which clang
-supports.
+The source is unusually portable for its age: no `#pragma GCC`, no inline
+asm, no `__builtin_*`, no `typeof`. The compiler extension it leaned on was
+`__PRETTY_FUNCTION__`, which clang supports and which
+`std::source_location` has since replaced everywhere (ratchet R8 holds the
+non-comment uses at 0 — see "Diagnostics without location macros"). One
+deliberate extension is left, `Statement::executeQuery`'s
+`__attribute__((format(printf, 2, 3)))` in `src/server/database/Statement.h`,
+which is what makes `-Wformat` check every repository statement's
+conversions; clang supports it too.
 
 Dropping xerces was the prerequisite. `zig c++` links LLVM's libc++, not GNU
 libstdc++, and `SXml.cpp` caught `const XMLException&` across the xerces
@@ -462,8 +467,9 @@ now at zero, counts the legacy `read(m_X, szX)` sequences that remain.
 ### Compile-time packet metadata
 
 Every packet factory now states its static facts as constant expressions:
-`static constexpr` `kPacketID`, `kName` and `kMaxSize` members, with the four
-virtuals delegating to them (`src/Core/PacketMeta.h` documents the contract).
+`static constexpr` `kPacketID`, `kName` and `kMaxSize` members, with the three
+getters delegating to them and `createPacket` the only virtual that still does
+work (`src/Core/PacketMeta.h` documents the contract).
 `kMaxSize` is brace-initialised, so a body-size expression that no longer fits
 `PacketSize_t` is a narrowing error where it is written; the `Info::getMaxSize`
 helpers the expressions call are `constexpr` too, and the one that lived in a
@@ -562,7 +568,7 @@ quirks (no separator between the function name and the expression, function
 names only in the stack trace) are preserved deliberately. Because
 `std::source_location` is portable, the dead `__WIN32__` / `__WIN_CONSOLE__` /
 `__MFC__` branches of `Assert`, `__BEGIN_DEBUG` and `__END_DEBUG` are gone.
-`Assert1.h` - a near-duplicate included by ~116 files - is now a one-line
+`Assert1.h` - a near-duplicate included by ~110 files - is now a one-line
 forwarder to `Assert.h`, and its never-compiled twin `Assert1.cpp` (a copy of
 the old implementation, in no build list) is deleted.
 `tests/diagnostics_test.cpp` pins the message layout, the reported
@@ -577,7 +583,7 @@ the rule is line-based, so they do not count.
 platform-specific stubs in `FileAPI.cpp` / `SocketAPI.cpp` throw, and its
 default constructor takes the enclosing function from a defaulted
 `std::source_location`: `throw UnsupportedError()` reports the stub's own name,
-with no argument at the throw site, so all ~90 of them are spelled the same
+with no argument at the throw site, so all 73 of them are spelled the same
 way. The `const string&` constructor still serves the sites that pass their own
 text. The same defaulted parameter carries the direct `addStack()` call in
 `GamePlayer.cpp` and the two `Party.cpp` debug prints. Every one of those
@@ -638,7 +644,7 @@ any of the three processes waits on a sleep for a worker (the pool, the
 managers and the three `main`s were checked), so there is no seam for a
 `std::latch` to replace.
 
-The 463 critical sections in `src/` are now RAII. `__ENTER_CRITICAL_SECTION(x)`
+The 459 critical sections in `src/` are now RAII. `__ENTER_CRITICAL_SECTION(x)`
 declares a scoped `CriticalSection` guard (`src/Core/Exception.h`) over any
 BasicLockable — `Mutex`, `Zone`, `ZoneGroup`, `PCFinder`, `ObjectRegistry` — and
 `__LEAVE_CRITICAL_SECTION` closes that block; the guard calls exactly `lock()`
@@ -687,7 +693,7 @@ lifetime bug.
 
 - Declarative packet layouts (a per-packet field table the codec is generated
   from) would be a protocol migration, not a language cleanup: the client
-  repository keeps a hand-written copy of each of the 466 codecs, so a layout
+  repository keeps a hand-written copy of each of the 465 codecs, so a layout
   DSL on the server side alone changes nothing on the wire and doubles the
   places a field is described. The goldens, the measured-length frame and
   `WireString.h` are the pin that makes the hand-written codecs safe to keep.
