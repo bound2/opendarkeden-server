@@ -476,8 +476,9 @@ visibility can't express.
   > rest of the framing could be kernel — and links `de-kernel` PUBLIC, so
   > consumers are unchanged. The per-server packet libraries are the three
   > per-server `#if` files (`PacketFactoryManager`/`PacketIDSet`/
-  > `PacketValidator`); `PlayerStatus.h` and `libcpsso.h` stay app-side for
-  > the same reason. There are no hand-kept per-direction source lists any
+  > `PacketValidator`); `PlayerStatus.h` stays app-side for the same reason
+  > (the billing SSO header held out with it is gone with the billing
+  > module). There are no hand-kept per-direction source lists any
   > more: membership is `tests/arch/kernel_files.txt` alone, which
   > `src/Core/CMakeLists.txt` and `gen_factory_list.sh` both read.
   >
@@ -633,7 +634,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > prefix (the integration binary links every impl, so names must not
   > collide with the gameserver's): `LoginCharacterPurge`
   > (CLDeletePCHandler's ownership check, Slayer retirement, DeleteChar
-  > record and 112-statement purge on the per-world connection, plus
+  > record and 110-statement purge on the per-world connection, plus
   > ItemDestroyer's uncalled 41-table sweep); `LoginAccount` (the Player
   > row through a session — the three login projections, the LogOn /
   > LoginIP / server-id writes that answer whether a row changed, the
@@ -1065,10 +1066,12 @@ shrink-only work.
 - [x] **5.3 Fix log.** When restructuring uncovers real bugs (1.4 layout
   diffs, races, double-frees), record them in `docs/FIXES.md` with sidecar's
   `> **Status:**` convention rather than fixing silently.
-  > **Status:** done — `docs/FIXES.md` created with the 1.4 max-size
-  > reconcile entries (2026-08-31); the earlier Exchange defect set stays
-  > recorded inline in 1.4 where it was written. Ongoing discipline, not a
-  > one-shot: new finds keep landing there.
+  > **Status:** done — `docs/FIXES.md`, oldest entry the 1.4 max-size
+  > reconcile (2026-08-31). The Exchange defect set predates the file; the
+  > rules it left behind and the items still open are in 1.4's status.
+  > Ongoing discipline, not a one-shot: new finds keep landing in
+  > `docs/FIXES.md`, and an entry is flipped to `fixed` in the same commit
+  > as the fix, never later.
 
 - [x] **5.4 Language standard: C++11 → C++20 required.**
   Assessed 2026-08-30. No open task was *blocked* on the standard, but 3.1
