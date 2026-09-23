@@ -113,7 +113,4 @@ private:
     mutable Mutex m_MutexRemove;
 };
 
-// global variable declaration
-extern ParkingCenter* g_pParkingCenter;
-
 #endif

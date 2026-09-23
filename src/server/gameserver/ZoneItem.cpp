@@ -368,7 +368,7 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
             // A motorcycle does not disappear over time.
             if (IClass == Item::ITEM_CLASS_MOTORCYCLE) {
                 // Clear the check in case this is a transport.
-                MotorcycleBox* pMotorcycleBox = g_pParkingCenter->getMotorcycleBox(pItem->getItemID());
+                MotorcycleBox* pMotorcycleBox = de::gameContext().parking().getMotorcycleBox(pItem->getItemID());
 
                 if (pMotorcycleBox != NULL) {
                     Motorcycle* pMotorcycle = pMotorcycleBox->getMotorcycle();

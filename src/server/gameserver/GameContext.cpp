@@ -208,6 +208,11 @@ PKZoneInfoManager& GameContext::pkZoneInfos() const {
     return *m_pPKZoneInfoManager;
 }
 
+ParkingCenter& GameContext::parking() const {
+    Assert(m_pParkingCenter != nullptr);
+    return *m_pParkingCenter;
+}
+
 PriceManager& GameContext::prices() const {
     Assert(m_pPriceManager != nullptr);
     return *m_pPriceManager;

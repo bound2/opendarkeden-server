@@ -1014,6 +1014,8 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
+    ParkingCenter& parking = de::gameContext().parking();
+
     // The enclosing function checked plenty of errors, so
     // the error checking here is cut right down.
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
@@ -1086,8 +1088,8 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
     }
 
 
-    if (g_pParkingCenter->hasMotorcycleBox(targetID)) {
-        MotorcycleBox* pMotorcycleBox = g_pParkingCenter->getMotorcycleBox(targetID);
+    if (parking.hasMotorcycleBox(targetID)) {
+        MotorcycleBox* pMotorcycleBox = parking.getMotorcycleBox(targetID);
 
         if (pMotorcycleBox != NULL && !pMotorcycleBox->isTransport()) {
             Zone* pMotorZone = pMotorcycleBox->getZone();
@@ -1176,7 +1178,7 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
             // Register the motorcycle with the Parking Center.
             MotorcycleBox* pBox = new MotorcycleBox(pMotorcycle, pZone, pt.x, pt.y);
             Assert(pBox != NULL);
-            g_pParkingCenter->addMotorcycleBox(pBox);
+            parking.addMotorcycleBox(pBox);
         }
 
 

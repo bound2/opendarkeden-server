@@ -7,6 +7,7 @@
 #include "ItemRack.h"
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "Item.h"
 #include "ParkingCenter.h"
 #include "item/Key.h"
@@ -40,8 +41,8 @@ ItemRack::~ItemRack() {
             if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_KEY) {
                 Key* pKey = dynamic_cast<Key*>(pItem);
                 // Simply remove it from the zone here.
-                if (g_pParkingCenter->hasMotorcycleBox(pKey->getTarget())) {
-                    g_pParkingCenter->deleteMotorcycleBox(pKey->getTarget());
+                if (de::gameContext().parking().hasMotorcycleBox(pKey->getTarget())) {
+                    de::gameContext().parking().deleteMotorcycleBox(pKey->getTarget());
                 }
             }
 

@@ -222,7 +222,7 @@ void ClientManager::run()
         }
 
         // Remove it.
-        g_pParkingCenter->heartbeat();
+        de::gameContext().parking().heartbeat();
 
         // Sleep 1ms to reduce CPU usage.
     } // while

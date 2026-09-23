@@ -168,8 +168,8 @@ Slayer::~Slayer()
 
             // Doing this in IncomingPlayerManager causes problems.
             // So just get rid of the motorcycle here.
-            if (g_pParkingCenter->hasMotorcycleBox(m_pMotorcycle->getItemID())) {
-                g_pParkingCenter->deleteMotorcycleBox(m_pMotorcycle->getItemID());
+            if (de::gameContext().parking().hasMotorcycleBox(m_pMotorcycle->getItemID())) {
+                de::gameContext().parking().deleteMotorcycleBox(m_pMotorcycle->getItemID());
             }
 
             m_pMotorcycle = NULL;
@@ -1843,7 +1843,7 @@ void Slayer::getOffMotorcycle()
                 (int)pt.x, (int)pt.y);
         m_pMotorcycle->tinysave(pField);
 
-        MotorcycleBox* pMotorcycleBox = g_pParkingCenter->getMotorcycleBox(m_pMotorcycle->getItemID());
+        MotorcycleBox* pMotorcycleBox = de::gameContext().parking().getMotorcycleBox(m_pMotorcycle->getItemID());
 
         if (pMotorcycleBox != NULL) {
             pMotorcycleBox->setZone(m_pZone);
@@ -1858,8 +1858,8 @@ void Slayer::getOffMotorcycle()
     } else {
         // If too many other items are lying around, just delete the Box itself.
         // It has to be claimed again.
-        if (g_pParkingCenter->hasMotorcycleBox(m_pMotorcycle->getItemID())) {
-            g_pParkingCenter->deleteMotorcycleBox(m_pMotorcycle->getItemID());
+        if (de::gameContext().parking().hasMotorcycleBox(m_pMotorcycle->getItemID())) {
+            de::gameContext().parking().deleteMotorcycleBox(m_pMotorcycle->getItemID());
         }
     }
 

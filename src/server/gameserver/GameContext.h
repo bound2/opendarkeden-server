@@ -60,6 +60,7 @@ class OptionInfoManager;
 class OustersEXPInfoManager;
 class PCFinder;
 class PKZoneInfoManager;
+class ParkingCenter;
 class PriceManager;
 class Properties;
 class RankBonusInfoManager;
@@ -208,6 +209,9 @@ public:
     void setPKZoneInfoManager(PKZoneInfoManager* pPKZoneInfoManager) {
         m_pPKZoneInfoManager = pPKZoneInfoManager;
     }
+    void setParkingCenter(ParkingCenter* pParkingCenter) {
+        m_pParkingCenter = pParkingCenter;
+    }
     void setPriceManager(PriceManager* pPriceManager) {
         m_pPriceManager = pPriceManager;
     }
@@ -308,6 +312,7 @@ public:
     OustersEXPInfoManager& oustersExp() const;
     PCFinder& playerCreatures() const;
     PKZoneInfoManager& pkZoneInfos() const;
+    ParkingCenter& parking() const;
     PriceManager& prices() const;
     ScriptManager& publicScripts() const;
     RankBonusInfoManager& rankBonuses() const;
@@ -369,6 +374,7 @@ private:
     OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
     PKZoneInfoManager* m_pPKZoneInfoManager = nullptr;
+    ParkingCenter* m_pParkingCenter = nullptr;
     PriceManager* m_pPriceManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;

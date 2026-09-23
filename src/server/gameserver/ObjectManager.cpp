@@ -190,7 +190,8 @@ ObjectManager::ObjectManager()
     context.setSkillDomainInfoManager(m_pSkillDomainInfoManager);
     context.setPCFinder(m_pPCFinder);
 
-    g_pParkingCenter = new ParkingCenter();
+    m_pParkingCenter = new ParkingCenter();
+    context.setParkingCenter(m_pParkingCenter);
     m_pTelephoneCenter = new TelephoneCenter();
     m_pPublicScriptManager = new ScriptManager();
     context.setPublicScriptManager(m_pPublicScriptManager);
@@ -299,7 +300,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pConditionFactoryManager);
     SAFE_DELETE(m_pPublicScriptManager);
     SAFE_DELETE(m_pPCFinder);
-    SAFE_DELETE(g_pParkingCenter);
+    SAFE_DELETE(m_pParkingCenter);
     SAFE_DELETE(m_pTelephoneCenter);
     SAFE_DELETE(m_pItemMineInfoManager);
     SAFE_DELETE(m_pOptionInfoManager);

@@ -148,6 +148,9 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
+
+    ParkingCenter& parking = de::gameContext().parking();
+
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Creature* pCreature = pGamePlayer->getCreature();
 
@@ -276,10 +279,10 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 }
 
 
-                if (g_pParkingCenter->hasMotorcycleBox(targetID)) {
+                if (parking.hasMotorcycleBox(targetID)) {
                     cout << "기존에 불려진 오토바이가 있습니다" << endl;
 
-                    MotorcycleBox* pMotorcycleBox = g_pParkingCenter->getMotorcycleBox(targetID);
+                    MotorcycleBox* pMotorcycleBox = parking.getMotorcycleBox(targetID);
 
                     if (pMotorcycleBox != NULL && !pMotorcycleBox->isTransport()) {
                         Zone* pMotorZone = pMotorcycleBox->getZone();
@@ -372,7 +375,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                         // Register the motorcycle with the Parking Center.
                         MotorcycleBox* pBox = new MotorcycleBox(pMotorcycle, pZone, pt.x, pt.y);
                         Assert(pBox != NULL);
-                        g_pParkingCenter->addMotorcycleBox(pBox);
+                        parking.addMotorcycleBox(pBox);
 
                         // It burns out.
                         CGRideMotorCycle cgRide;

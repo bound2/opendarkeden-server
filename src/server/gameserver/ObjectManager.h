@@ -49,6 +49,7 @@ class OptionInfoManager;
 class OustersEXPInfoManager;
 class PCFinder;
 class PKZoneInfoManager;
+class ParkingCenter;
 class PriceManager;
 class RankBonusInfoManager;
 class ScriptManager;
@@ -120,6 +121,7 @@ private:
     OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
     PKZoneInfoManager* m_pPKZoneInfoManager = nullptr;
+    ParkingCenter* m_pParkingCenter = nullptr;
     PriceManager* m_pPriceManager = nullptr;
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
