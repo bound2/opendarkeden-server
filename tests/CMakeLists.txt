@@ -377,6 +377,26 @@ add_test(NAME kernel_context_tests COMMAND kernel_context_tests
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(kernel_context_tests PROPERTIES TIMEOUT 30)
 
+# The registry for the managers ServerCore defines (docs/RESTRUCTURING.md
+# task 3.5), built over stand-in pointers: this links the context's
+# translation unit and de-kernel (for Assert) and nothing of ServerCore --
+# so the suite needs neither MySQL nor a server. A failing Assert appends to
+# assertion_failed.log in the working directory, hence the build-tree
+# WORKING_DIRECTORY (same reason as scheduler_tests).
+add_executable(server_context_tests EXCLUDE_FROM_ALL
+    server_context_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/ServerContext.cpp
+)
+target_include_directories(server_context_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server
+)
+target_link_libraries(server_context_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests server_context_tests)
+add_test(NAME server_context_tests COMMAND server_context_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(server_context_tests PROPERTIES TIMEOUT 30)
+
 add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)
 target_include_directories(shutdown_probe PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
 target_link_libraries(shutdown_probe PRIVATE Threads::Threads)
