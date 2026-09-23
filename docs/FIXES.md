@@ -76,8 +76,10 @@ that followed it.
   a vampire a GM healed keeps the stale value across logout and reloads
   with it, while every in-game cure persists its result at once. The
   ousters row writes the column unconditionally. The repository header
-  documents the skip and the integration tier pins it as it stands.
-  > **Status:** recorded, not fixed (refactor/exps-record)
+  documents the skip and the integration tier pins it as it stands. The GM
+  heal calls `saveSilverDamage(0)` now, for both races, so the clear is
+  written the moment it is made, like every cure's.
+  > **Status:** fixed (fix/recorded-defects-6)
 
 ## A reinforcement condition null-checked the wrong pointer (2026-09-23)
 
