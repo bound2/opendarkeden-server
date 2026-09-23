@@ -105,7 +105,7 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
                 if (pCreature->isPC()) {
                     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
 
-                    g_pResurrectLocationManager->getPosition(pPC, ResurrectCoord);
+                    de::gameContext().resurrectLocations().getPosition(pPC, ResurrectCoord);
 
                     ZoneID = ResurrectCoord.id;
                     ZoneX = ResurrectCoord.x;

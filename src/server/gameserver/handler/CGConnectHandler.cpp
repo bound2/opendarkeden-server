@@ -564,7 +564,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         Assert(pPC != NULL);
 
         if (isCastleZone || isMasterLair || isPKZone || isMaze || isEventZone || isBeginnerZone || isDynamicZone) {
-            if (g_pResurrectLocationManager->getPosition(pPC, zoneCoord)) {
+            if (de::gameContext().resurrectLocations().getPosition(pPC, zoneCoord)) {
                 pCreature->setZoneID(zoneCoord.id);
                 pCreature->setXY(zoneCoord.x, zoneCoord.y);
             }

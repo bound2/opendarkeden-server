@@ -553,7 +553,7 @@ bool Ousters::load()
         setZoneID(zoneID);
     } catch (Error& e) {
         ZONE_COORD ResurrectCoord;
-        g_pResurrectLocationManager->getOustersPosition(1311, ResurrectCoord);
+        de::gameContext().resurrectLocations().getOustersPosition(1311, ResurrectCoord);
         setZoneID(ResurrectCoord.id);
         setX(ResurrectCoord.x);
         setY(ResurrectCoord.y);
@@ -639,7 +639,7 @@ bool Ousters::load()
     if (m_pZone->isHolyLand() && de::gameContext().warSystem().hasActiveRaceWar() &&
         !isFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET)) {
         ZONE_COORD ResurrectCoord;
-        g_pResurrectLocationManager->getPosition(this, ResurrectCoord);
+        de::gameContext().resurrectLocations().getPosition(this, ResurrectCoord);
         setZoneID(ResurrectCoord.id);
         setX(ResurrectCoord.x);
         setY(ResurrectCoord.y);

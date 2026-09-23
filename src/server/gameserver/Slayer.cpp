@@ -697,7 +697,7 @@ bool Slayer::load()
         // a guild hideout exists on one game server only, so a character
         // connecting to another game server cannot enter it.
         ZONE_COORD ResurrectCoord;
-        g_pResurrectLocationManager->getSlayerPosition(12, ResurrectCoord);
+        de::gameContext().resurrectLocations().getSlayerPosition(12, ResurrectCoord);
         setZoneID(ResurrectCoord.id);
         setX(ResurrectCoord.x);
         setY(ResurrectCoord.y);
@@ -805,7 +805,7 @@ bool Slayer::load()
     if (m_pZone->isHolyLand() && de::gameContext().warSystem().hasActiveRaceWar() &&
         !isFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET)) {
         ZONE_COORD ResurrectCoord;
-        g_pResurrectLocationManager->getPosition(this, ResurrectCoord);
+        de::gameContext().resurrectLocations().getPosition(this, ResurrectCoord);
         setZoneID(ResurrectCoord.id);
         setX(ResurrectCoord.x);
         setY(ResurrectCoord.y);

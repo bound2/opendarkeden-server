@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[64];
+char g_managerStorage[65];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -139,6 +139,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     HolyLandManager* pHolyLandManager = standIn<HolyLandManager>(63);
     LevelWarZoneInfoManager* pLevelWarZoneInfoManager = standIn<LevelWarZoneInfoManager>(60);
     ParkingCenter* pParkingCenter = standIn<ParkingCenter>(59);
+    ResurrectLocationManager* pResurrectLocationManager = standIn<ResurrectLocationManager>(64);
     ShrineInfoManager* pShrineInfoManager = standIn<ShrineInfoManager>(62);
     WarSystem* pWarSystem = standIn<WarSystem>(52);
     WayPointManager* pWayPointManager = standIn<WayPointManager>(20);
@@ -151,6 +152,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     context.setHolyLandManager(pHolyLandManager);
     context.setLevelWarZoneInfoManager(pLevelWarZoneInfoManager);
     context.setParkingCenter(pParkingCenter);
+    context.setResurrectLocationManager(pResurrectLocationManager);
     context.setShrineInfoManager(pShrineInfoManager);
     context.setWarSystem(pWarSystem);
     context.setWayPointManager(pWayPointManager);
@@ -163,6 +165,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     EXPECT_EQ(&context.holyLands(), pHolyLandManager);
     EXPECT_EQ(&context.levelWarZones(), pLevelWarZoneInfoManager);
     EXPECT_EQ(&context.parking(), pParkingCenter);
+    EXPECT_EQ(&context.resurrectLocations(), pResurrectLocationManager);
     EXPECT_EQ(&context.shrines(), pShrineInfoManager);
     EXPECT_EQ(&context.warSystem(), pWarSystem);
     EXPECT_EQ(&context.wayPoints(), pWayPointManager);
@@ -391,6 +394,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.prices(), AssertionError);
     EXPECT_THROW(context.publicScripts(), AssertionError);
     EXPECT_THROW(context.rankBonuses(), AssertionError);
+    EXPECT_THROW(context.resurrectLocations(), AssertionError);
     EXPECT_THROW(context.sharedServer(), AssertionError);
     EXPECT_THROW(context.shopTemplates(), AssertionError);
     EXPECT_THROW(context.shrines(), AssertionError);

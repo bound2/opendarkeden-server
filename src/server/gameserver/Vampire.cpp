@@ -592,7 +592,7 @@ bool Vampire::load()
         // connecting to another game server cannot enter it.
         // Move to the hideout entrance instead.
         ZONE_COORD ResurrectCoord;
-        g_pResurrectLocationManager->getVampirePosition(1003, ResurrectCoord);
+        de::gameContext().resurrectLocations().getVampirePosition(1003, ResurrectCoord);
         setZoneID(ResurrectCoord.id);
         setX(ResurrectCoord.x);
         setY(ResurrectCoord.y);
@@ -689,7 +689,7 @@ bool Vampire::load()
     if (m_pZone->isHolyLand() && de::gameContext().warSystem().hasActiveRaceWar() &&
         !isFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET)) {
         ZONE_COORD ResurrectCoord;
-        g_pResurrectLocationManager->getPosition(this, ResurrectCoord);
+        de::gameContext().resurrectLocations().getPosition(this, ResurrectCoord);
         setZoneID(ResurrectCoord.id);
         setX(ResurrectCoord.x);
         setY(ResurrectCoord.y);

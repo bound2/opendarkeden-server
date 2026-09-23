@@ -68,6 +68,7 @@ class PriceManager;
 class Properties;
 class RankBonusInfoManager;
 class ScriptManager;
+class ResurrectLocationManager;
 class SharedServerManager;
 class ShopTemplateManager;
 class ShrineInfoManager;
@@ -234,6 +235,9 @@ public:
     void setRankBonusInfoManager(RankBonusInfoManager* pRankBonusInfoManager) {
         m_pRankBonusInfoManager = pRankBonusInfoManager;
     }
+    void setResurrectLocationManager(ResurrectLocationManager* pResurrectLocationManager) {
+        m_pResurrectLocationManager = pResurrectLocationManager;
+    }
     void setSharedServerManager(SharedServerManager* pSharedServerManager) {
         m_pSharedServerManager = pSharedServerManager;
     }
@@ -335,6 +339,7 @@ public:
     PriceManager& prices() const;
     ScriptManager& publicScripts() const;
     RankBonusInfoManager& rankBonuses() const;
+    ResurrectLocationManager& resurrectLocations() const;
     SharedServerManager& sharedServer() const;
     ShopTemplateManager& shopTemplates() const;
     ShrineInfoManager& shrines() const;
@@ -401,6 +406,7 @@ private:
     PriceManager* m_pPriceManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
+    ResurrectLocationManager* m_pResurrectLocationManager = nullptr;
     SharedServerManager* m_pSharedServerManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
     ShrineInfoManager* m_pShrineInfoManager = nullptr;

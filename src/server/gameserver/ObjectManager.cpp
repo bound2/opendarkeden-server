@@ -212,7 +212,8 @@ ObjectManager::ObjectManager()
     context.setGuildManager(m_pGuildManager);
     //	g_pGuildRegistrationManager = new GuildRegistrationManager();
     //	g_pGuildVoteManager         = new GuildVoteManager();
-    g_pResurrectLocationManager = new ResurrectLocationManager();
+    m_pResurrectLocationManager = new ResurrectLocationManager();
+    context.setResurrectLocationManager(m_pResurrectLocationManager);
     m_pAlignmentManager = new AlignmentManager();
     context.setAlignmentManager(m_pAlignmentManager);
     m_pWayPointManager = new WayPointManager();
@@ -330,7 +331,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pVampEXPInfoManager);
     SAFE_DELETE(m_pOustersEXPInfoManager);
     SAFE_DELETE(m_pGuildManager);
-    SAFE_DELETE(g_pResurrectLocationManager);
+    SAFE_DELETE(m_pResurrectLocationManager);
     SAFE_DELETE(m_pAlignmentManager);
     SAFE_DELETE(m_pWayPointManager);
     SAFE_DELETE(m_pGlobalPartyManager);
@@ -577,7 +578,7 @@ void ObjectManager::load()
 
 
     printf("ObjectManager::init() : ResurrectLocationManager Initialization Start\n");
-    g_pResurrectLocationManager->init();
+    m_pResurrectLocationManager->init();
     printf("ObjectManager::init() : ResurrectLocationManager Initialization Success\n");
 
     // balnce info manager init//abcd

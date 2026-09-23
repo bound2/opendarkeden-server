@@ -1162,7 +1162,7 @@ void Zone::remainRaceWarPlayers()
                 Assert(pPC != NULL);
 
                 ZONE_COORD ZC;
-                g_pResurrectLocationManager->getPosition(pPC, ZC);
+                de::gameContext().resurrectLocations().getPosition(pPC, ZC);
 
                 ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZC.id);
                 Assert(pZoneInfo != NULL);
@@ -1232,7 +1232,7 @@ void Zone::remainPayPlayer()
                 Assert(pPC != NULL);
 
                 ZONE_COORD ZC;
-                g_pResurrectLocationManager->getPosition(pPC, ZC);
+                de::gameContext().resurrectLocations().getPosition(pPC, ZC);
 
                 ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZC.id);
                 Assert(pZoneInfo != NULL);

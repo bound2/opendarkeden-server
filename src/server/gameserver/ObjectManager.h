@@ -54,6 +54,7 @@ class PKZoneInfoManager;
 class ParkingCenter;
 class PriceManager;
 class RankBonusInfoManager;
+class ResurrectLocationManager;
 class ScriptManager;
 class ShopTemplateManager;
 class ShrineInfoManager;
@@ -129,6 +130,7 @@ private:
     ParkingCenter* m_pParkingCenter = nullptr;
     PriceManager* m_pPriceManager = nullptr;
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
+    ResurrectLocationManager* m_pResurrectLocationManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
     ShrineInfoManager* m_pShrineInfoManager = nullptr;

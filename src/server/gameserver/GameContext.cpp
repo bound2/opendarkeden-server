@@ -243,6 +243,11 @@ RankBonusInfoManager& GameContext::rankBonuses() const {
     return *m_pRankBonusInfoManager;
 }
 
+ResurrectLocationManager& GameContext::resurrectLocations() const {
+    Assert(m_pResurrectLocationManager != nullptr);
+    return *m_pResurrectLocationManager;
+}
+
 SharedServerManager& GameContext::sharedServer() const {
     Assert(m_pSharedServerManager != nullptr);
     return *m_pSharedServerManager;

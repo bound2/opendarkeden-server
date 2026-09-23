@@ -1072,7 +1072,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
     // resurrection position.
     else if (pkZoneInfos.isPKZone(pPC->getZoneID())) {
         if (!pkZoneInfos.getResurrectPosition(pPC->getZoneID(), ResurrectCoord))
-            g_pResurrectLocationManager->getPosition(pPC, ResurrectCoord);
+            de::gameContext().resurrectLocations().getPosition(pPC, ResurrectCoord);
     }
     // Illusion Way 1.
     else if (pPC->getZoneID() == 1410) {
@@ -1093,7 +1093,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
             ResurrectCoord.y = 232;
         }
     } else {
-        g_pResurrectLocationManager->getPosition(pPC, ResurrectCoord);
+        de::gameContext().resurrectLocations().getPosition(pPC, ResurrectCoord);
     }
 
     ZoneID = ResurrectCoord.id;
@@ -1211,7 +1211,7 @@ void PCManager::transportAllCreatures(ZoneID_t ZoneID, ZoneCoord_t ZoneX, ZoneCo
                     ZONE_COORD ResurrectCoord;
                     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
                     Assert(pPC != NULL);
-                    g_pResurrectLocationManager->getPosition(pPC, ResurrectCoord);
+                    de::gameContext().resurrectLocations().getPosition(pPC, ResurrectCoord);
 
                     // 10 seconds
                     pEventTransport->setDeadline(100);
