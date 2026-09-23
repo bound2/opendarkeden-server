@@ -11,6 +11,35 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A guild war is scheduled but never becomes active (2026-09-22)
+
+- **`WarSystem::addWar` and `WarSystem::heartbeat` make the same cast the
+  lookups made: every `WAR_GUILD` war is `dynamic_cast` to `SiegeWar` and
+  the result asserted,** and in `addWar` the assert sits after
+  `addSchedule`, so a `GuildWar` is put on the recent schedules and the
+  throw aborts the rest: it never reaches the active wars, never triggers
+  the holy-land refresh or the war-list broadcast, `hasCastleActiveWar`
+  stays false for its castle, and at its end the heartbeat asserts twice
+  more. The lookups no longer throw on it; the registration is the rest of
+  the defect. `GuildWar` carries a castle zone id and its own owner-change
+  and end-war overrides, so matching it by zone the way a siege is matched
+  is the shape a fix would take.
+  > **Status:** recorded, not fixed (fix/recorded-defects-4)
+
+## Two servers link different classes under one name (2026-09-22)
+
+- **`GameServerInfoManager` and `GameServerGroupInfoManager` exist as
+  different classes of the same name in ServerCore and in the sharedserver
+  (and the loginserver for the second),** compiled into one binary through
+  the ServerCore archive. The sharedserver's `g_pGameServerInfoManager`
+  definition duplicated ServerCore's until its retirement onto
+  `SharedServer`; the twin classes remain, an ODR hazard that holds only
+  while nothing pulls the archive's copy in. `GameServerManager.cpp` in the
+  sharedserver also initialises a local from itself
+  (`GameServerPlayer* pGameServerPlayer = pGameServerPlayer;`), and its
+  `heartbeat()` locks its mutex and does nothing, uncalled.
+  > **Status:** recorded, not fixed (refactor/shared-context-1)
+
 ## A motorcycle that cannot be placed is paid for and never delivered (2026-09-22)
 
 - **`CGShopRequestBuyHandler::executeMotorcycle` charges the player and

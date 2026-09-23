@@ -1176,8 +1176,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `g_pLevelWarZoneInfoManager` (15 each), `g_pLoginServerManager` and
   > `g_pShrineInfoManager` (14), `g_pHolyLandManager` (13),
   > `g_pResurrectLocationManager` and `g_pSweeperBonusManager` (12) and
-  > the mofus pair (4 each) — then the sharedserver's own six and the
-  > externs the binaries share out of `src/Core` and `src/server` —
+  > the mofus pair (4 each) — then the externs the binaries share out of
+  > `src/Core` and `src/server` —
   > `g_pConfig` (77) and `g_pDatabaseManager` (67) the largest of those;
   > `g_pPacketValidator` and the `g_pGameServer*Manager` twins fit none:
   > each server creates one of its own.
