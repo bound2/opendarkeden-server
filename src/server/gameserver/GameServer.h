@@ -17,6 +17,8 @@
 
 class ClientManager;
 class LoginServerManager;
+class MPacketManager;
+class MPlayerManager;
 class ObjectManager;
 class SharedServerManager;
 class ThreadManager;
@@ -38,11 +40,15 @@ private:
     void sysinit();
     void goBackground();
 
-    // Managers this class creates and deletes. The client manager and the
-    // login and shared server links are registered on de::GameContext; the
-    // other two are reached only from here.
+    // Managers this class creates and deletes. The client manager, the login
+    // and shared server links and the mofus pair are registered on
+    // de::GameContext; the other two are reached only from here. The mofus
+    // pair is created only where the module is built, so its members stay
+    // null otherwise, as its globals did.
     ClientManager* m_pClientManager = nullptr;
     LoginServerManager* m_pLoginServerManager = nullptr;
+    MPacketManager* m_pMPacketManager = nullptr;
+    MPlayerManager* m_pMPlayerManager = nullptr;
     ObjectManager* m_pObjectManager = nullptr;
     SharedServerManager* m_pSharedServerManager = nullptr;
     ThreadManager* m_pThreadManager = nullptr;

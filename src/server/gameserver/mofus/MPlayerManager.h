@@ -50,7 +50,4 @@ private:
     mutable Mutex m_Mutex;
 };
 
-// global variable declaration
-extern MPlayerManager* g_pMPlayerManager;
-
 #endif

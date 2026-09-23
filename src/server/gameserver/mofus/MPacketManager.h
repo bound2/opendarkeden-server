@@ -48,8 +48,4 @@ private:
     IMPL* m_pImpl;
 };
 
-
-// global variable
-extern MPacketManager* g_pMPacketManager;
-
 #endif

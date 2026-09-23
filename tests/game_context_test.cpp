@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[66];
+char g_managerStorage[68];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -250,6 +250,19 @@ TEST(GameContextTest, InterServerLinkManagersAreReadBack) {
     EXPECT_EQ(&context.sharedServer(), pSharedServerManager);
 }
 
+TEST(GameContextTest, MofusManagersAreReadBack) {
+    de::GameContext context;
+
+    MPacketManager* pMPacketManager = standIn<MPacketManager>(66);
+    MPlayerManager* pMPlayerManager = standIn<MPlayerManager>(67);
+
+    context.setMPacketManager(pMPacketManager);
+    context.setMPlayerManager(pMPlayerManager);
+
+    EXPECT_EQ(&context.mofusPackets(), pMPacketManager);
+    EXPECT_EQ(&context.mofusPlayers(), pMPlayerManager);
+}
+
 TEST(GameContextTest, CharacterLoadingManagersAreReadBack) {
     de::GameContext context;
 
@@ -385,6 +398,8 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.levelWarZones(), AssertionError);
     EXPECT_THROW(context.loginServer(), AssertionError);
     EXPECT_THROW(context.masterLairInfos(), AssertionError);
+    EXPECT_THROW(context.mofusPackets(), AssertionError);
+    EXPECT_THROW(context.mofusPlayers(), AssertionError);
     EXPECT_THROW(context.monsterInfos(), AssertionError);
     EXPECT_THROW(context.monsterNames(), AssertionError);
     EXPECT_THROW(context.optionInfos(), AssertionError);

@@ -188,6 +188,16 @@ LoginServerManager& GameContext::loginServer() const {
     return *m_pLoginServerManager;
 }
 
+MPacketManager& GameContext::mofusPackets() const {
+    Assert(m_pMPacketManager != nullptr);
+    return *m_pMPacketManager;
+}
+
+MPlayerManager& GameContext::mofusPlayers() const {
+    Assert(m_pMPlayerManager != nullptr);
+    return *m_pMPlayerManager;
+}
+
 MasterLairInfoManager& GameContext::masterLairInfos() const {
     Assert(m_pMasterLairInfoManager != nullptr);
     return *m_pMasterLairInfoManager;

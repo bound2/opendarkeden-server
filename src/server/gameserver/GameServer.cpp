@@ -70,8 +70,10 @@ GameServer::GameServer()
         de::gameContext().setSharedServerManager(m_pSharedServerManager);
 
 #ifdef __MOFUS__
-        g_pMPlayerManager = new MPlayerManager();
-        g_pMPacketManager = new MPacketManager();
+        m_pMPlayerManager = new MPlayerManager();
+        de::gameContext().setMPlayerManager(m_pMPlayerManager);
+        m_pMPacketManager = new MPacketManager();
+        de::gameContext().setMPacketManager(m_pMPacketManager);
 #endif
 
         // create client manager
@@ -111,8 +113,8 @@ GameServer::~GameServer()
     SAFE_DELETE(m_pLoginServerManager);
     SAFE_DELETE(m_pSharedServerManager);
 #ifdef __MOFUS__
-    SAFE_DELETE(g_pMPlayerManager);
-    SAFE_DELETE(g_pMPacketManager);
+    SAFE_DELETE(m_pMPlayerManager);
+    SAFE_DELETE(m_pMPacketManager);
 #endif
     SAFE_DELETE(g_pGameServerInfoManager);
     SAFE_DELETE(g_pDatabaseManager);
@@ -165,10 +167,10 @@ void GameServer::init()
     cout << "GameServer::init() : SharedServerManager Initialization Success..." << endl;
 
 #ifdef __MOFUS__
-    g_pMPacketManager->init();
+    m_pMPacketManager->init();
     cout << "GameServer::init() : MPacketManager Initialization Success..." << endl;
 
-    g_pMPlayerManager->init();
+    m_pMPlayerManager->init();
     cout << "GameServer::init() : MPlayerManager Initialization Success..." << endl;
 #endif
 
@@ -206,7 +208,7 @@ void GameServer::start()
     m_pSharedServerManager->start();
 
 #ifdef __MOFUS__
-    g_pMPlayerManager->start();
+    m_pMPlayerManager->start();
     cout << ">>> STARTING MOFUS PLAYER MANAGER..." << endl;
 #endif
 
@@ -267,7 +269,7 @@ void GameServer::stop()
     // remain alive until BOTH auxiliary and zone workers have finished.
     std::vector<ManagedThread*> workers{m_pLoginServerManager, m_pSharedServerManager, &GDRLairManager::Instance()};
 #ifdef __MOFUS__
-    workers.push_back(g_pMPlayerManager);
+    workers.push_back(m_pMPlayerManager);
 #endif
     for (auto* worker : workers)
         worker->stop();

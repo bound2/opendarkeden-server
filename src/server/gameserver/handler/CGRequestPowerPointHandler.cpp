@@ -9,6 +9,7 @@
 #ifdef __GAME_SERVER__
 #include "Assert1.h"
 #include "Creature.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "mofus/Mofus.h"
 
@@ -37,7 +38,7 @@ void CGRequestPowerPointHandler::execute(CGRequestPowerPoint* pPacket, Player* p
 
 
 #ifdef __MOFUS__
-    g_pMPlayerManager->addJob(pGamePlayer->getID(), pCreature->getName(), pPacket->getCellNum());
+    de::gameContext().mofusPlayers().addJob(pGamePlayer->getID(), pCreature->getName(), pPacket->getCellNum());
 #endif
 
 #endif
