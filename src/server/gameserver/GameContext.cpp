@@ -178,6 +178,11 @@ LevelWarZoneInfoManager& GameContext::levelWarZones() const {
     return *m_pLevelWarZoneInfoManager;
 }
 
+LoginServerManager& GameContext::loginServer() const {
+    Assert(m_pLoginServerManager != nullptr);
+    return *m_pLoginServerManager;
+}
+
 MasterLairInfoManager& GameContext::masterLairInfos() const {
     Assert(m_pMasterLairInfoManager != nullptr);
     return *m_pMasterLairInfoManager;

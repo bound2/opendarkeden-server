@@ -265,12 +265,12 @@ void ConnectionInfoManager::heartbeat()
         static int loginServerBaseUDPPort = g_pConfig->getPropertyInt("LoginServerBaseUDPPort");
 
         // Default
-        g_pLoginServerManager->sendPacket(loginServerIP, loginServerUDPPort, &gmServerInfo);
+        de::gameContext().loginServer().sendPacket(loginServerIP, loginServerUDPPort, &gmServerInfo);
 
         // The other ports
         if (portNum > 1) {
             for (int j = 0; j < portNum; j++) {
-                g_pLoginServerManager->sendPacket(loginServerIP, loginServerBaseUDPPort + j, &gmServerInfo);
+                de::gameContext().loginServer().sendPacket(loginServerIP, loginServerBaseUDPPort + j, &gmServerInfo);
             }
         }
     }

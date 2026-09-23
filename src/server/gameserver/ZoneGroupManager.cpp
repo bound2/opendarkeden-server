@@ -581,7 +581,7 @@ void ZoneGroupManager::lockZoneGroups()
     //------------------------------------------------------------------
     // LoginServerManager UNLOCK
     //------------------------------------------------------------------
-    g_pLoginServerManager->lock();
+    de::gameContext().loginServer().lock();
 
     //------------------------------------------------------------------
     //
@@ -621,7 +621,7 @@ void ZoneGroupManager::unlockZoneGroups()
     //------------------------------------------------------------------
     // LoginServerManager UNLOCK
     //------------------------------------------------------------------
-    g_pLoginServerManager->unlock();
+    de::gameContext().loginServer().unlock();
 
 
     __END_CATCH

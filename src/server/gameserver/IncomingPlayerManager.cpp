@@ -1186,8 +1186,8 @@ void IncomingPlayerManager::heartbeat()
                     glKickVerify.setID(pGamePlayer->getSocket()->getSOCKET());
                     glKickVerify.setPCName(pGamePlayer->getCreature()->getName());
 
-                    g_pLoginServerManager->sendPacket(pGamePlayer->getKickRequestHost(),
-                                                      pGamePlayer->getKickRequestPort(), &glKickVerify);
+                    de::gameContext().loginServer().sendPacket(pGamePlayer->getKickRequestHost(),
+                                                               pGamePlayer->getKickRequestPort(), &glKickVerify);
 
                     cout << "LGKickVerify Send Packet to ServerIP : " << pGamePlayer->getKickRequestHost() << endl;
                     cout << "LGKickVerify Send Packet to ServerPort : " << pGamePlayer->getKickRequestPort() << endl;
@@ -1292,7 +1292,8 @@ void IncomingPlayerManager::heartbeat()
             // cout << "ReconnectAddress = " << g_pConfig->getProperty("LoginServerIP").c_str() << ":" << port << endl;
 
             // Just send it.
-            g_pLoginServerManager->sendPacket(g_pConfig->getProperty("LoginServerIP"), port, &glIncomingConnection);
+            de::gameContext().loginServer().sendPacket(g_pConfig->getProperty("LoginServerIP"), port,
+                                                       &glIncomingConnection);
         }
 
         // filelog("ZoneHeartbeatTrace.txt", "After pop front");

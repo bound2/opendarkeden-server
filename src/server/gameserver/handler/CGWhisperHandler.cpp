@@ -142,8 +142,8 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
                             ggServerChat.setMessage(pPacket->getMessage());
                             ggServerChat.setRace(pCreature->getRace());
 
-                            g_pLoginServerManager->sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(),
-                                                              &ggServerChat);
+                            de::gameContext().loginServer().sendPacket(pGameServerInfo->getIP(),
+                                                                       pGameServerInfo->getUDPPort(), &ggServerChat);
                         } else {
                             GCWhisperFailed gcWhisperFailed;
                             pGamePlayer->sendPacket(&gcWhisperFailed);

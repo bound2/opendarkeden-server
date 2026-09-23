@@ -54,6 +54,7 @@ class ItemInfoManager;
 class ItemLoaderManager;
 class ItemMineInfoManager;
 class LevelWarZoneInfoManager;
+class LoginServerManager;
 class MasterLairInfoManager;
 class MonsterInfoManager;
 class MonsterNameManager;
@@ -192,6 +193,9 @@ public:
     void setLevelWarZoneInfoManager(LevelWarZoneInfoManager* pLevelWarZoneInfoManager) {
         m_pLevelWarZoneInfoManager = pLevelWarZoneInfoManager;
     }
+    void setLoginServerManager(LoginServerManager* pLoginServerManager) {
+        m_pLoginServerManager = pLoginServerManager;
+    }
     void setMasterLairInfoManager(MasterLairInfoManager* pMasterLairInfoManager) {
         m_pMasterLairInfoManager = pMasterLairInfoManager;
     }
@@ -310,6 +314,7 @@ public:
     ItemLoaderManager& itemLoaders() const;
     ItemMineInfoManager& itemMineInfos() const;
     LevelWarZoneInfoManager& levelWarZones() const;
+    LoginServerManager& loginServer() const;
     MasterLairInfoManager& masterLairInfos() const;
     MonsterInfoManager& monsterInfos() const;
     MonsterNameManager& monsterNames() const;
@@ -373,6 +378,7 @@ private:
     ItemLoaderManager* m_pItemLoaderManager = nullptr;
     ItemMineInfoManager* m_pItemMineInfoManager = nullptr;
     LevelWarZoneInfoManager* m_pLevelWarZoneInfoManager = nullptr;
+    LoginServerManager* m_pLoginServerManager = nullptr;
     MasterLairInfoManager* m_pMasterLairInfoManager = nullptr;
     MonsterInfoManager* m_pMonsterInfoManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;

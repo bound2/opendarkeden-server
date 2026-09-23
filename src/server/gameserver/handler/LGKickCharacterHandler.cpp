@@ -13,6 +13,7 @@
 
 #include "Creature.h"
 #include "GLKickVerify.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "LogDef.h"
 #include "LoginServerManager.h"
@@ -49,7 +50,7 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
             glKickVerify.setID(requestID);
             glKickVerify.setPCName(pcName);
 
-            g_pLoginServerManager->sendPacket(host, port, &glKickVerify);
+            de::gameContext().loginServer().sendPacket(host, port, &glKickVerify);
         };
 
         // The kick flags are GamePlayer state, read by whichever manager

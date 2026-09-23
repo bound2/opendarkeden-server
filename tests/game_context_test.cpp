@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[61];
+char g_managerStorage[62];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -228,10 +228,13 @@ TEST(GameContextTest, ClientSessionManagersAreReadBack) {
 TEST(GameContextTest, InterServerLinkManagersAreReadBack) {
     de::GameContext context;
 
+    LoginServerManager* pLoginServerManager = standIn<LoginServerManager>(61);
     SharedServerManager* pSharedServerManager = standIn<SharedServerManager>(58);
 
+    context.setLoginServerManager(pLoginServerManager);
     context.setSharedServerManager(pSharedServerManager);
 
+    EXPECT_EQ(&context.loginServer(), pLoginServerManager);
     EXPECT_EQ(&context.sharedServer(), pSharedServerManager);
 }
 
@@ -367,6 +370,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.itemLoaders(), AssertionError);
     EXPECT_THROW(context.itemMineInfos(), AssertionError);
     EXPECT_THROW(context.levelWarZones(), AssertionError);
+    EXPECT_THROW(context.loginServer(), AssertionError);
     EXPECT_THROW(context.masterLairInfos(), AssertionError);
     EXPECT_THROW(context.monsterInfos(), AssertionError);
     EXPECT_THROW(context.monsterNames(), AssertionError);

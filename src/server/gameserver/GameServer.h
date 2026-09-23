@@ -16,6 +16,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 class ClientManager;
+class LoginServerManager;
 class ObjectManager;
 class SharedServerManager;
 class ThreadManager;
@@ -38,9 +39,10 @@ private:
     void goBackground();
 
     // Managers this class creates and deletes. The client manager and the
-    // shared server link are registered on de::GameContext; the other two
-    // are reached only from here.
+    // login and shared server links are registered on de::GameContext; the
+    // other two are reached only from here.
     ClientManager* m_pClientManager = nullptr;
+    LoginServerManager* m_pLoginServerManager = nullptr;
     ObjectManager* m_pObjectManager = nullptr;
     SharedServerManager* m_pSharedServerManager = nullptr;
     ThreadManager* m_pThreadManager = nullptr;

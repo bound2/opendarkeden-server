@@ -236,6 +236,3 @@ void LoginServerManager::sendPacket(const string& host, uint port, DatagramPacke
     __END_DEBUG
     __END_CATCH
 }
-
-// global variable definition
-LoginServerManager* g_pLoginServerManager = NULL;

@@ -49,7 +49,4 @@ private:
     mutable Mutex m_Mutex;
 };
 
-// global variable declaration
-extern LoginServerManager* g_pLoginServerManager;
-
 #endif
