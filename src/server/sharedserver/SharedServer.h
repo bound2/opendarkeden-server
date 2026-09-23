@@ -19,11 +19,11 @@
 #include "Types.h"
 
 class GameServerGroupInfoManager;
-class GameServerInfoManager;
 class GameServerManager;
 class GuildManager;
 class HeartbeatManager;
 class ResurrectLocationManager;
+class SharedGameServerInfoManager;
 class StringPool;
 
 //////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ private:
     // de::sharedContext() as it is created, except the four nothing outside
     // this class reads.
     GuildManager* m_pGuildManager = nullptr;
-    GameServerInfoManager* m_pGameServerInfoManager = nullptr;
+    SharedGameServerInfoManager* m_pGameServerInfoManager = nullptr;
     GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
     GameServerManager* m_pGameServerManager = nullptr;
     HeartbeatManager* m_pHeartbeatManager = nullptr;

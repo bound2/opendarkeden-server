@@ -13,7 +13,6 @@
 
 #include "Assert.h"
 #include "GameServerGroupInfoManager.h"
-#include "GameServerInfoManager.h"
 #include "GameServerManager.h"
 #include "GameWorldInfoManager.h"
 #include "GuildManager.h"
@@ -23,6 +22,7 @@
 #include "ResurrectLocationManager.h"
 #include "ServerShutdown.h"
 #include "SharedContext.h"
+#include "SharedGameServerInfoManager.h"
 #include "StringPool.h"
 #include "database/DatabaseManager.h"
 #include "types/ServerType.h"
@@ -45,7 +45,7 @@ SharedServer::SharedServer() {
     de::sharedContext().setGuildManager(m_pGuildManager);
 
     // create some info managers
-    m_pGameServerInfoManager = new GameServerInfoManager();
+    m_pGameServerInfoManager = new SharedGameServerInfoManager();
     m_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
 
     // create packet factory manager, packet validator

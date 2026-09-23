@@ -19,10 +19,8 @@
 // Not enclosed (SQL on the same tables elsewhere in the tree):
 //  - GameServerGroupInfo: the loginserver's GameServerGroupInfoManager.cpp
 //    and the gameserver's MySQLGameInfoRepository.cpp.
-//  - GameServerInfo: ServerCore's GameServerInfoManager.cpp (compiled into
-//    all three binaries), the loginserver's UserInfoManager.cpp, and the
-//    gameserver's GameServerInfoManager.cpp (in no CMakeLists; never
-//    compiled).
+//  - GameServerInfo: ServerCore's ServerInfoRepository, which reads the
+//    whole table for every binary; it is the only other statement on it.
 //  - ZoneInfo: the gameserver's MySQLZoneInfoRepository.cpp and the
 //    loginserver's ZoneInfoManager.cpp. The sharedserver reads only the
 //    Slayer and Vampire resurrection columns; the Ousters columns exist

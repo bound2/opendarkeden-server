@@ -71,8 +71,6 @@ public:
         m_Mutex.unlock();
     }
 
-    void heartbeat();
-
 private:
     // TCP server socket and socket descriptor
     ServerSocket* m_pServerSocket;
@@ -98,8 +96,9 @@ private:
     mutable Mutex m_Mutex;
 
 
-    // Array of game server pointers, indexed by socket descriptor.
-    GameServerPlayer* m_pGameServerPlayers[nMaxGameServers];
+    // Array of game server pointers, indexed by socket descriptor. Every
+    // slot starts empty: the loops read slots no connection has filled.
+    GameServerPlayer* m_pGameServerPlayers[nMaxGameServers] = {};
 };
 
 #endif

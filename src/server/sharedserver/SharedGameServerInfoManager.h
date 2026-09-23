@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
-// Filename    : GameServerInfoManager.h
+// Filename    : SharedGameServerInfoManager.h
 // Written By  : reiot@ewestsoft.com
 // Description :
 //////////////////////////////////////////////////////////////////////////////
@@ -10,31 +10,31 @@
 #include <unordered_map>
 
 #include "Exception.h"
-#include "GameServerInfo.h"
+#include "SharedGameServerInfo.h"
 #include "Types.h"
 
-typedef unordered_map<ServerID_t, GameServerInfo*> HashMapGameServerInfo;
-typedef HashMapGameServerInfo::iterator HashMapGameServerInfoItor;
+typedef unordered_map<ServerID_t, SharedGameServerInfo*> HashMapSharedGameServerInfo;
+typedef HashMapSharedGameServerInfo::iterator HashMapSharedGameServerInfoItor;
 
 //////////////////////////////////////////////////////////////////////////////
-// class GameServerInfoManager;
-// Holds an unordered_map of GameServerInfo keyed by the game server ID
+// class SharedGameServerInfoManager;
+// Holds an unordered_map of SharedGameServerInfo keyed by the game server ID
 // internally.
-// Holds the GameServerInfo of a single World.
+// Holds the SharedGameServerInfo of a single World.
 //////////////////////////////////////////////////////////////////////////////
 
-class GameServerInfoManager {
+class SharedGameServerInfoManager {
 public:
-    GameServerInfoManager();
-    ~GameServerInfoManager();
+    SharedGameServerInfoManager();
+    ~SharedGameServerInfoManager();
 
 public:
     void init();
     void load();
 
-    void addGameServerInfo(GameServerInfo* pGameServerInfo, const ServerGroupID_t ServerGroupID);
+    void addGameServerInfo(SharedGameServerInfo* pGameServerInfo, const ServerGroupID_t ServerGroupID);
     void deleteGameServerInfo(const ServerID_t ServerID, const ServerGroupID_t ServerGroupID);
-    GameServerInfo* getGameServerInfo(const ServerID_t ServerID, const ServerGroupID_t ServerGroupID) const;
+    SharedGameServerInfo* getGameServerInfo(const ServerID_t ServerID, const ServerGroupID_t ServerGroupID) const;
     uint getSize(const ServerGroupID_t ServerGroupID) const {
         return m_pGameServerInfos[ServerGroupID].size();
     }
@@ -46,10 +46,10 @@ public:
     }
 
 private:
-    // hash map of GameServerInfo
+    // hash map of SharedGameServerInfo
     // key   : GameServerID_t
-    // value : GameServerInfo *
-    HashMapGameServerInfo* m_pGameServerInfos;
+    // value : SharedGameServerInfo *
+    HashMapSharedGameServerInfo* m_pGameServerInfos;
     int m_MaxServerGroupID;
 };
 

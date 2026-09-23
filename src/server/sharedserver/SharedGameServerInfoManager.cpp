@@ -1,28 +1,28 @@
 //////////////////////////////////////////////////////////////////////////////
-// Filename    : GameServerInfoManager.cpp
+// Filename    : SharedGameServerInfoManager.cpp
 // Written By  : Reiot
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
-#include "GameServerInfoManager.h"
+#include "SharedGameServerInfoManager.h"
 
 #include "Properties.h"
 #include "repository/SharedConfigRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
-// class GameServerInfoManager member methods
+// class SharedGameServerInfoManager member methods
 //////////////////////////////////////////////////////////////////////////////
 
-GameServerInfoManager::GameServerInfoManager() {}
+SharedGameServerInfoManager::SharedGameServerInfoManager() {}
 
 
-GameServerInfoManager::~GameServerInfoManager() {
+SharedGameServerInfoManager::~SharedGameServerInfoManager() {
     // Delete only the second of each pair in the hash map, i.e. the
-    // GameServerInfo objects, and leave the pairs themselves. (Note that
+    // SharedGameServerInfo objects, and leave the pairs themselves. (Note that
     // they live on the heap, so they must be deleted explicitly. GSIM being
     // destructed means the login server is shutting down anyway.)
     for (int i = 0; i < m_MaxServerGroupID; i++) {
-        HashMapGameServerInfoItor itr = m_pGameServerInfos[i].begin();
+        HashMapSharedGameServerInfoItor itr = m_pGameServerInfos[i].begin();
         for (; itr != m_pGameServerInfos[i].end(); itr++) {
             SAFE_DELETE(itr->second);
         }
@@ -37,10 +37,10 @@ GameServerInfoManager::~GameServerInfoManager() {
 }
 
 
-void GameServerInfoManager::init() {
+void SharedGameServerInfoManager::init() {
     __BEGIN_TRY
 
-    // just load data from GameServerInfo table
+    // just load data from SharedGameServerInfo table
     load();
 
     // just print to cout
@@ -49,7 +49,7 @@ void GameServerInfoManager::init() {
     __END_CATCH
 }
 
-void GameServerInfoManager::load() {
+void SharedGameServerInfoManager::load() {
     __BEGIN_TRY
 
     SharedConfigRepository& repo = defaultSharedConfigRepository();
@@ -65,7 +65,7 @@ void GameServerInfoManager::load() {
 
     m_MaxServerGroupID = maxGroupID + 1;
 
-    m_pGameServerInfos = new HashMapGameServerInfo[m_MaxServerGroupID];
+    m_pGameServerInfos = new HashMapSharedGameServerInfo[m_MaxServerGroupID];
 
     cout << "MAX SERVER GROUP = " << m_MaxServerGroupID << endl;
 
@@ -76,7 +76,7 @@ void GameServerInfoManager::load() {
         const SharedGameServerRow& row = rows[i];
 
         if (row.worldID == WorldID) {
-            GameServerInfo* pGameServerInfo = new GameServerInfo();
+            SharedGameServerInfo* pGameServerInfo = new SharedGameServerInfo();
 
             pGameServerInfo->setServerID(row.serverID);
             pGameServerInfo->setNickname(row.nickname);
@@ -96,14 +96,15 @@ void GameServerInfoManager::load() {
     __END_CATCH
 }
 
-void GameServerInfoManager::addGameServerInfo(GameServerInfo* pGameServerInfo, const ServerGroupID_t ServerGroupID) {
+void SharedGameServerInfoManager::addGameServerInfo(SharedGameServerInfo* pGameServerInfo,
+                                                    const ServerGroupID_t ServerGroupID) {
     __BEGIN_TRY
 
     if (ServerGroupID >= m_MaxServerGroupID) {
         throw DuplicatedException("ServerGroupID over Bounce");
     }
 
-    HashMapGameServerInfoItor itr = m_pGameServerInfos[ServerGroupID].find(pGameServerInfo->getServerID());
+    HashMapSharedGameServerInfoItor itr = m_pGameServerInfos[ServerGroupID].find(pGameServerInfo->getServerID());
 
     if (itr != m_pGameServerInfos[ServerGroupID].end()) {
         throw DuplicatedException("duplicated game-server ServerID");
@@ -114,17 +115,17 @@ void GameServerInfoManager::addGameServerInfo(GameServerInfo* pGameServerInfo, c
     __END_CATCH
 }
 
-void GameServerInfoManager::deleteGameServerInfo(const ServerID_t ServerID, const ServerGroupID_t ServerGroupID) {
+void SharedGameServerInfoManager::deleteGameServerInfo(const ServerID_t ServerID, const ServerGroupID_t ServerGroupID) {
     __BEGIN_TRY
 
     if (ServerGroupID >= m_MaxServerGroupID) {
         throw DuplicatedException("ServerGroupID over Bounce");
     }
 
-    HashMapGameServerInfoItor itr = m_pGameServerInfos[ServerGroupID].find(ServerID);
+    HashMapSharedGameServerInfoItor itr = m_pGameServerInfos[ServerGroupID].find(ServerID);
 
     if (itr != m_pGameServerInfos[ServerGroupID].end()) {
-        // Delete the GameServerInfo.
+        // Delete the SharedGameServerInfo.
         delete itr->second;
 
         // Erase the pair.
@@ -138,18 +139,18 @@ void GameServerInfoManager::deleteGameServerInfo(const ServerID_t ServerID, cons
 }
 
 
-GameServerInfo* GameServerInfoManager::getGameServerInfo(const ServerID_t ServerID,
-                                                         const ServerGroupID_t ServerGroupID) const {
+SharedGameServerInfo* SharedGameServerInfoManager::getGameServerInfo(const ServerID_t ServerID,
+                                                                     const ServerGroupID_t ServerGroupID) const {
     __BEGIN_TRY
 
-    GameServerInfo* pGameServerInfo = NULL;
+    SharedGameServerInfo* pGameServerInfo = NULL;
 
     if (ServerGroupID >= m_MaxServerGroupID) {
         // When no such game server info object could be found
         throw NoSuchElementException();
     }
 
-    HashMapGameServerInfoItor itr = m_pGameServerInfos[ServerGroupID].find(ServerID);
+    HashMapSharedGameServerInfoItor itr = m_pGameServerInfos[ServerGroupID].find(ServerID);
 
     if (itr != m_pGameServerInfos[ServerGroupID].end()) {
         pGameServerInfo = itr->second;
@@ -163,7 +164,7 @@ GameServerInfo* GameServerInfoManager::getGameServerInfo(const ServerID_t Server
     __END_CATCH
 }
 
-string GameServerInfoManager::toString() const {
+string SharedGameServerInfoManager::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
@@ -173,7 +174,7 @@ string GameServerInfoManager::toString() const {
         if (m_pGameServerInfos[i].empty()) {
             msg << "EMPTY";
         } else {
-            HashMapGameServerInfoItor itr = m_pGameServerInfos[i].begin();
+            HashMapSharedGameServerInfoItor itr = m_pGameServerInfos[i].begin();
             for (; itr != m_pGameServerInfos[i].end(); itr++) {
                 msg << itr->second->toString() << '\n';
             }

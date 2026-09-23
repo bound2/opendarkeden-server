@@ -374,8 +374,6 @@ void GameServerManager::processOutputs() {
                         cerr << t.toString() << endl;
                     }
 
-                    GameServerPlayer* pGameServerPlayer = pGameServerPlayer;
-
                     deleteGameServerPlayer(i);
 
                     delete pGameServerPlayer;
@@ -625,16 +623,6 @@ void GameServerManager::deleteGameServerPlayer(SOCKET fd) {
     FD_CLR(fd, &m_WriteFDs[1]);
     FD_CLR(fd, &m_ExceptFDs[0]);
     FD_CLR(fd, &m_ExceptFDs[1]);
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    __END_CATCH
-}
-
-void GameServerManager::heartbeat() {
-    __BEGIN_TRY
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
