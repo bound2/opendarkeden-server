@@ -196,9 +196,19 @@ src/
 │   │   ├── ctf/, mission/, mofus/        # Capture the flag, missions, game events
 │   ├── loginserver/           # Login server executable (CL/GL/GM handlers and one CG, its own repository/)
 │   └── sharedserver/          # Shared server executable (GS handlers, its own repository/)
+tests/
+├── arch/                      # kernel_files.txt (de-kernel's source list), check_includes.pl, baseline.txt
+├── ratchet/                   # ratchets.sh and the files it pins
+├── tools/                     # generators and audits ctest runs
+└── golden/, generated/, support/, integration/  # fixtures, generated lists, fakes, MySQL tier
+docs/
+├── RESTRUCTURING.md           # the living plan: tasks, statuses, the R1-R18 table
+├── FIXES.md                   # the fix log
+└── TOOLCHAIN.md               # Zig/Clang, C++20 adoption, wire and diagnostics contracts
 third_party/
 ├── tinyxml2/                  # Vendored XML parser (10.0.0), replaces xerces-c
 └── argon2/                    # Vendored argon2 reference implementation (C API)
+.claude/skills/add-packet/     # checklist for adding or changing a packet
 ```
 
 ### Packet System
@@ -279,10 +289,22 @@ was decided.
 
 All SQL lives behind repository seams: an interface `*Repository.h` with a
 `MySQL*Repository.cpp` implementation under a `repository/` directory,
-reached through a `default*Repository()` accessor. The header is the
-authority on its tables' quirks and, where SQL on the same tables lives
-outside the seam, carries an explicit "not enclosed" list of it (nine
-headers do today) — read it before adding a method. R2/R3 fail on
+reached through a `default*Repository()` accessor, never a `g_p*` extern.
+There are 44 — 36 under `src/server/gameserver/repository/`, two in
+ServerCore (`src/server/repository/`, compiled into all three binaries),
+four in the loginserver and two in the sharedserver, the last two sets
+prefixed `Login`/`Shared` because the integration binary links every impl.
+The header is the authority on its tables' quirks and, where SQL on the
+same tables lives outside the seam, carries an explicit `Not enclosed`
+list of it (nine headers do today; grep for the phrase) — read it before
+adding a method. Statements move byte-for-byte, quirks included, and use
+the parameterized `executeQuery` form with each argument's own conversion
+(`%u` for DWORD/WORD/BYTE, `%d` for int, `%ld` for `time_t`). Where two
+races share a row shape the record is shared and the table is chosen in
+the seam: `CharacterExpsRecord` with
+`saveExps(ownerName, race, record)`, over `characterRaceTable()`
+(`repository/CharacterRace.h`), which `characterRaceOf()`
+(`gameserver/PlayerRace.h`) maps the game's `Race_t` onto. R2/R3 fail on
 an `executeQuery` written anywhere else.
 
 Databases:
@@ -358,7 +380,12 @@ The gameserver's threading contract, as the code actually implements it.
 - **`SharedServerManager` thread** — TCP link to the sharedserver;
   dispatches **SG** packets on its own thread under its own `m_Mutex`.
 - **`MPlayerManager` (mofus), `GDRLairManager`** — auxiliary threads with
-  their own loops. (`SMSServiceThread` is a `ManagedThread` too, but
+  their own loops, stopped and joined with the managers above.
+  `MPlayerManager` is a `GameServer` member; `GDRLairManager` is still a
+  singleton (`GDRLairManager::Instance()`). The mofus pair sits behind
+  `#ifdef __MOFUS__`, which `mofus/Mofus.h` defines unconditionally, so it
+  is always built — the guard reads like a switch and is not one.
+  (`SMSServiceThread` is a `ManagedThread` too, but
   `GameServer::start()` never starts it; its queue is only filled by
   `CGSMSSendHandler`. Neither billing integration is in the tree: the
   external billing link had a thread of its own, and the China one its own
@@ -475,7 +502,7 @@ is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` are
 - Players enter a zone group through the `ZonePlayerManager` under its
   lock; the zone thread integrates them on its next tick.
 
-### Known violations (all closed; the rules they left behind)
+### Known violations (each closed; the rules they left behind, and one residual)
 
 - **SG/LG/GG handlers must not mutate creature state under the `PCFinder`
   lock alone.** The six guild handlers and `LGKickCharacter` post their
