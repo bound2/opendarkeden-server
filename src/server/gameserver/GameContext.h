@@ -77,6 +77,7 @@ class SkillHandlerManager;
 class SkillInfoManager;
 class SkillPropertyManager;
 class StringPool;
+class SweeperBonusManager;
 class TimeChecker;
 class TimeManager;
 class VampEXPInfoManager;
@@ -262,6 +263,9 @@ public:
     void setStringPool(StringPool* pStringPool) {
         m_pStringPool = pStringPool;
     }
+    void setSweeperBonusManager(SweeperBonusManager* pSweeperBonusManager) {
+        m_pSweeperBonusManager = pSweeperBonusManager;
+    }
     void setTimeChecker(TimeChecker* pTimeChecker) {
         m_pTimeChecker = pTimeChecker;
     }
@@ -348,6 +352,7 @@ public:
     SkillInfoManager& skillInfos() const;
     SkillPropertyManager& skillProps() const;
     StringPool& strings() const;
+    SweeperBonusManager& sweeperBonuses() const;
     TimeChecker& timeChecker() const;
     TimeManager& worldTime() const;
     VampEXPInfoManager& vampireExp() const;
@@ -415,6 +420,7 @@ private:
     SkillInfoManager* m_pSkillInfoManager = nullptr;
     SkillPropertyManager* m_pSkillPropertyManager = nullptr;
     StringPool* m_pStringPool = nullptr;
+    SweeperBonusManager* m_pSweeperBonusManager = nullptr;
     TimeChecker* m_pTimeChecker = nullptr;
     TimeManager* m_pTimeManager = nullptr;
     VampEXPInfoManager* m_pVampEXPInfoManager = nullptr;

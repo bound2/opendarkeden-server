@@ -653,7 +653,7 @@ void MonsterManager::regenerateCreatures()
     // A level-based war is in progress.
     ZoneID_t zoneID = m_pZone->getZoneID();
     if (zoneID == 1131 || zoneID == 1132 || zoneID == 1133 || zoneID == 1134) {
-        if (!g_pSweeperBonusManager->isAble(zoneID))
+        if (!de::gameContext().sweeperBonuses().isAble(zoneID))
             return;
     }
 

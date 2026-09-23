@@ -484,10 +484,10 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
             }
         }
 
-        if (g_pSweeperBonusManager->isAble(getZoneID()) &&
+        if (de::gameContext().sweeperBonuses().isAble(getZoneID()) &&
             de::gameContext().levelWarZones().isCreatureBonusZone(pCreature, getZoneID())) {
             GCSweeperBonusInfo gcSweeperBonusInfo;
-            g_pSweeperBonusManager->makeSweeperBonusInfo(gcSweeperBonusInfo);
+            de::gameContext().sweeperBonuses().makeSweeperBonusInfo(gcSweeperBonusInfo);
             pCreature->getPlayer()->sendPacket(&gcSweeperBonusInfo);
         }
 

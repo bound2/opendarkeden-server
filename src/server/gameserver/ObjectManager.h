@@ -63,6 +63,7 @@ class SkillHandlerManager;
 class SkillInfoManager;
 class SkillPropertyManager;
 class StringPool;
+class SweeperBonusManager;
 class TelephoneCenter;
 class TimeChecker;
 class TimeManager;
@@ -139,6 +140,7 @@ private:
     SkillInfoManager* m_pSkillInfoManager = nullptr;
     SkillPropertyManager* m_pSkillPropertyManager = nullptr;
     StringPool* m_pStringPool = nullptr;
+    SweeperBonusManager* m_pSweeperBonusManager = nullptr;
     TelephoneCenter* m_pTelephoneCenter = nullptr;
     TimeChecker* m_pTimeChecker = nullptr;
     TimeManager* m_pTimeManager = nullptr;

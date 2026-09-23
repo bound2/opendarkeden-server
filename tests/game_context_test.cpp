@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[65];
+char g_managerStorage[66];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -199,6 +199,7 @@ TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
     SkillDomainInfoManager* pSkillDomainInfoManager = standIn<SkillDomainInfoManager>(27);
     SkillInfoManager* pSkillInfoManager = standIn<SkillInfoManager>(50);
     SkillPropertyManager* pSkillPropertyManager = standIn<SkillPropertyManager>(28);
+    SweeperBonusManager* pSweeperBonusManager = standIn<SweeperBonusManager>(65);
     VampEXPInfoManager* pVampEXPInfoManager = standIn<VampEXPInfoManager>(29);
 
     context.setGoodsInfoManager(pGoodsInfoManager);
@@ -207,6 +208,7 @@ TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
     context.setSkillDomainInfoManager(pSkillDomainInfoManager);
     context.setSkillInfoManager(pSkillInfoManager);
     context.setSkillPropertyManager(pSkillPropertyManager);
+    context.setSweeperBonusManager(pSweeperBonusManager);
     context.setVampEXPInfoManager(pVampEXPInfoManager);
 
     EXPECT_EQ(&context.goodsInfos(), pGoodsInfoManager);
@@ -215,6 +217,7 @@ TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
     EXPECT_EQ(&context.skillDomains(), pSkillDomainInfoManager);
     EXPECT_EQ(&context.skillInfos(), pSkillInfoManager);
     EXPECT_EQ(&context.skillProps(), pSkillPropertyManager);
+    EXPECT_EQ(&context.sweeperBonuses(), pSweeperBonusManager);
     EXPECT_EQ(&context.vampireExp(), pVampEXPInfoManager);
 }
 
@@ -403,6 +406,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.skillInfos(), AssertionError);
     EXPECT_THROW(context.skillProps(), AssertionError);
     EXPECT_THROW(context.strings(), AssertionError);
+    EXPECT_THROW(context.sweeperBonuses(), AssertionError);
     EXPECT_THROW(context.timeChecker(), AssertionError);
     EXPECT_THROW(context.vampireExp(), AssertionError);
     EXPECT_THROW(context.variables(), AssertionError);

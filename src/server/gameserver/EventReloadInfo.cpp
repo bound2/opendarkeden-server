@@ -162,7 +162,7 @@ void EventReloadInfo::activate()
         break;
 
     case SWEEPER_OWNER:
-        g_pSweeperBonusManager->reloadOwner(m_InfoValue);
+        de::gameContext().sweeperBonuses().reloadOwner(m_InfoValue);
         break;
 
     default:

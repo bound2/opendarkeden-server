@@ -261,6 +261,3 @@ string SweeperBonusManager::toString() const
 
     __END_CATCH
 }
-
-// Global Variable definition
-SweeperBonusManager* g_pSweeperBonusManager = NULL;

@@ -232,9 +232,9 @@ void Ousters::initAllStat(int numPartyMember)
     // Each Blood Bible bonus option is applied.
     //////////////////////////////////////////////////////////////////////////////
 
-    if (g_pSweeperBonusManager->isAble(getZoneID()) &&
+    if (de::gameContext().sweeperBonuses().isAble(getZoneID()) &&
         de::gameContext().levelWarZones().isCreatureBonusZone(this, getZoneID())) {
-        const SweeperBonusHashMap& sweeperBonuses = g_pSweeperBonusManager->getSweeperBonuses();
+        const SweeperBonusHashMap& sweeperBonuses = de::gameContext().sweeperBonuses().getSweeperBonuses();
 
         SweeperBonusHashMapConstItor itr = sweeperBonuses.begin();
         SweeperBonusHashMapConstItor endItr = sweeperBonuses.end();

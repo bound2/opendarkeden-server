@@ -188,7 +188,7 @@ bool SweeperSetManager::putSweeper(Item* pSweeper, MonsterCorpse* pSafe) {
 
     saveSweeperOwner(pSweeper->getItemType(), safeType, getSafeIndex(pSafe));
 
-    g_pSweeperBonusManager->getSweeperBonus(pSweeper->getItemType())->setRace(getSafeIndex(pSafe));
+    de::gameContext().sweeperBonuses().getSweeperBonus(pSweeper->getItemType())->setRace(getSafeIndex(pSafe));
 
     EffectKeepSweeper* pEffect = new EffectKeepSweeper(pSafe);
     pEffect->setPart(pSweeper->getItemType());

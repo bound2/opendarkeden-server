@@ -279,7 +279,8 @@ ObjectManager::ObjectManager()
 
     m_pLevelWarZoneInfoManager = new LevelWarZoneInfoManager();
     context.setLevelWarZoneInfoManager(m_pLevelWarZoneInfoManager);
-    g_pSweeperBonusManager = new SweeperBonusManager();
+    m_pSweeperBonusManager = new SweeperBonusManager();
+    context.setSweeperBonusManager(m_pSweeperBonusManager);
     m_pDragonEyeManager = new DragonEyeManager();
     context.setDragonEyeManager(m_pDragonEyeManager);
     m_pTimeChecker = new TimeChecker();
@@ -369,7 +370,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pDefaultOptionSetInfoManager);
 
     SAFE_DELETE(m_pLevelWarZoneInfoManager);
-    SAFE_DELETE(g_pSweeperBonusManager);
+    SAFE_DELETE(m_pSweeperBonusManager);
     SAFE_DELETE(m_pDragonEyeManager);
     SAFE_DELETE(m_pTimeChecker);
 
@@ -436,7 +437,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : OptionInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : SweeperBonusManager Initialization Start....... \n");
-    g_pSweeperBonusManager->init();
+    m_pSweeperBonusManager->init();
     printf("ObjectManager::init() : SweeperBonusManager Initialization Success....... \n");
 
     printf("ObjectManager::init() : ItemInfoManager Initialization Start\n");

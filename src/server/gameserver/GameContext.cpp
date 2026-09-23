@@ -288,6 +288,11 @@ StringPool& GameContext::strings() const {
     return *m_pStringPool;
 }
 
+SweeperBonusManager& GameContext::sweeperBonuses() const {
+    Assert(m_pSweeperBonusManager != nullptr);
+    return *m_pSweeperBonusManager;
+}
+
 TimeChecker& GameContext::timeChecker() const {
     Assert(m_pTimeChecker != nullptr);
     return *m_pTimeChecker;
