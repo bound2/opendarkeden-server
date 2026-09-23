@@ -7,6 +7,7 @@
 //----------------------------------------------------------------------
 
 // include files
+#include "GameContext.h"
 #include "Properties.h"
 #include "SGGuildMemberLogOnOK.h"
 
@@ -33,7 +34,7 @@ void SGGuildMemberLogOnOKHandler::execute(SGGuildMemberLogOnOK* pPacket)
         Assert(pPacket != NULL);
 
     // Get the guild.
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
     try {
         Assert(pGuild != NULL);
     } catch (Throwable&) {

@@ -9,6 +9,7 @@
 #include "Creature.h"
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Ousters.h"
 #include "Slayer.h"
@@ -65,7 +66,7 @@ void ActionSetResurrectZone::execute(Creature* pCreature1, Creature* pCreature2)
     }
 
     GCSystemMessage msg;
-    msg.setMessage(g_pStringPool->getString(STRID_SET_RESURRECTION_POSITION));
+    msg.setMessage(context().strings().getString(STRID_SET_RESURRECTION_POSITION));
     pPlayer->sendPacket(&msg);
 
     __END_CATCH

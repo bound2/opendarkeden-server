@@ -88,9 +88,11 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX __BEGIN_DEBUG
 
+        GuildManager& guilds = de::gameContext().guilds();
+
 #ifdef __GAME_SERVER__
 
-        Assert(pPacket != NULL);
+    Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
@@ -349,7 +351,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         if (!bAlreadyConnected) {
             // Add to the guild's current member list.
             if (pSlayer->getGuildID() != 99) {
-                Guild* pGuild = g_pGuildManager->getGuild(pSlayer->getGuildID());
+                Guild* pGuild = guilds.getGuild(pSlayer->getGuildID());
                 if (pGuild != NULL) {
                     // Tell the sharedserver about the connection and update the DB too.
                     try {
@@ -407,7 +409,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         if (!bAlreadyConnected) {
             // Add to the guild's current member list.
             if (pVampire->getGuildID() != 0) {
-                Guild* pGuild = g_pGuildManager->getGuild(pVampire->getGuildID());
+                Guild* pGuild = guilds.getGuild(pVampire->getGuildID());
                 if (pGuild != NULL) {
                     // Tell the sharedserver about the connection and update the DB too.
                     try {
@@ -468,7 +470,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         if (!bAlreadyConnected) {
             // Add to the guild's current member list.
             if (pOusters->getGuildID() != 66) {
-                Guild* pGuild = g_pGuildManager->getGuild(pOusters->getGuildID());
+                Guild* pGuild = guilds.getGuild(pOusters->getGuildID());
                 if (pGuild != NULL) {
                     // Tell the sharedserver about the connection and update the DB too.
                     try {

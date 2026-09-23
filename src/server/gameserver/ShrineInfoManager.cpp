@@ -656,6 +656,8 @@ bool ShrineInfoManager::returnBloodBible(Zone* pZone, BloodBible* pBloodBible) c
 {
     __BEGIN_TRY
 
+    StringPool& strings = de::gameContext().strings();
+
     Assert(pZone != NULL);
     Assert(pBloodBible != NULL);
 
@@ -679,14 +681,14 @@ bool ShrineInfoManager::returnBloodBible(Zone* pZone, BloodBible* pBloodBible) c
 
     const char* race = "";
     if (pShrineSet->getOwnerRace() == RACE_SLAYER) {
-        race = g_pStringPool->c_str(STRID_SLAYER);
+        race = strings.c_str(STRID_SLAYER);
     } else if (pShrineSet->getOwnerRace() == RACE_VAMPIRE) {
-        race = g_pStringPool->c_str(STRID_VAMPIRE);
+        race = strings.c_str(STRID_VAMPIRE);
     } else if (pShrineSet->getOwnerRace() == RACE_OUSTERS) {
-        race = g_pStringPool->c_str(STRID_OUSTERS);
+        race = strings.c_str(STRID_OUSTERS);
     }
 
-    sprintf(msg, g_pStringPool->c_str(STRID_RETURN_TO_GUARD_SHRINE_BLOOD_BIBLE), GuardShrine.getName().c_str(), race,
+    sprintf(msg, strings.c_str(STRID_RETURN_TO_GUARD_SHRINE_BLOOD_BIBLE), GuardShrine.getName().c_str(), race,
             //					(pShrineSet->getOwnerRace()==RACE_SLAYER? g_pStringPool->c_str( STRID_SLAYER ) :
             // g_pStringPool->c_str( STRID_VAMPIRE ) ),
             GuardShrine.getName().c_str());

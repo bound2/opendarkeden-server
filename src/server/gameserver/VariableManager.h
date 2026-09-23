@@ -757,6 +757,4 @@ private:
     VARIABLE_NAME m_VariableNames;
 };
 
-extern VariableManager* g_pVariableManager;
-
 #endif // __VARIABLE_H__

@@ -764,7 +764,7 @@ void Zone::heartbeat()
 
         // A zone with a WarScheduler is a castle.
         // by sigi. 2003.1.24
-        if (m_pWarScheduler != NULL && g_pVariableManager->isWarActive()) {
+        if (m_pWarScheduler != NULL && de::gameContext().variables().isWarActive()) {
             Work* pWork = m_pWarScheduler->heartbeat();
 
             if (pWork != NULL) {
@@ -775,7 +775,7 @@ void Zone::heartbeat()
             }
         }
 
-        if (m_pLevelWarManager != NULL && g_pVariableManager->isActiveLevelWar()) {
+        if (m_pLevelWarManager != NULL && de::gameContext().variables().isActiveLevelWar()) {
             m_pLevelWarManager->heartbeat();
             // LevelWar zones need this because the paid/free user access limit varies by time.
             m_pLevelWarManager->freeUserTimeCheck();
@@ -1137,7 +1137,7 @@ void Zone::remainRaceWarPlayers()
 
     try {
         // Ignore this when the participant limit is not active.
-        if (!g_pVariableManager->isActiveRaceWarLimiter())
+        if (!de::gameContext().variables().isActiveRaceWarLimiter())
             return;
 
         __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -1243,15 +1243,15 @@ void Zone::remainPayPlayer()
                 pEventTransport->setTargetZone(ZC.id, ZC.x, ZC.y);
                 pEventTransport->setZoneName(pZoneInfo->getFullName());
 
+                StringPool& strings = de::gameContext().strings();
                 char msg[100];
-
-                sprintf(msg, g_pStringPool->c_str(STRID_LEVEL_WAR_ZONE_FREE_CLOSE_1));
+                sprintf(msg, strings.c_str(STRID_LEVEL_WAR_ZONE_FREE_CLOSE_1));
 
                 GCSystemMessage gcSystemMessage;
                 gcSystemMessage.setMessage(msg);
                 pPlayer->sendPacket(&gcSystemMessage);
 
-                sprintf(msg, g_pStringPool->c_str(STRID_LEVEL_WAR_ZONE_FREE_CLOSE_2), pZoneInfo->getFullName().c_str());
+                sprintf(msg, strings.c_str(STRID_LEVEL_WAR_ZONE_FREE_CLOSE_2), pZoneInfo->getFullName().c_str());
 
                 gcSystemMessage.setMessage(msg);
                 pPlayer->sendPacket(&gcSystemMessage);

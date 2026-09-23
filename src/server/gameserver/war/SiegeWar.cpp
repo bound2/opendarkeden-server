@@ -304,12 +304,12 @@ void SiegeWar::makeWarScheduleInfo(WarScheduleInfo* pWSI) const
     for (int i = 0; i < 5; ++i) {
         pWSI->challengerGuildID[i] = m_ChallangerGuildID[i];
         if (m_ChallangerGuildID[i] != 0)
-            pWSI->challengerGuildName[i] = g_pGuildManager->getGuildName(m_ChallangerGuildID[i]);
+            pWSI->challengerGuildName[i] = de::gameContext().guilds().getGuildName(m_ChallangerGuildID[i]);
     }
 
     pWSI->reinforceGuildID = m_ReinforceGuildID;
     if (m_ReinforceGuildID != 0)
-        pWSI->reinforceGuildName = g_pGuildManager->getGuildName(m_ReinforceGuildID);
+        pWSI->reinforceGuildName = de::gameContext().guilds().getGuildName(m_ReinforceGuildID);
 
     __END_CATCH
 }
@@ -349,7 +349,7 @@ void SiegeWar::makeWarInfo(WarInfo* pWarInfo) const
     string attackGuildName;
     string defenseGuildName;
 
-    attackGuildName = g_pGuildManager->getGuildName(m_ChallangerGuildID[0]);
+    attackGuildName = de::gameContext().guilds().getGuildName(m_ChallangerGuildID[0]);
     if (m_ChallangerGuildCount > 1) {
         char buffer[40];
         snprintf(buffer, 40, "%s외 %u개", attackGuildName.c_str(), m_ChallangerGuildCount - 1);
@@ -359,7 +359,7 @@ void SiegeWar::makeWarInfo(WarInfo* pWarInfo) const
     if (pCastleInfo->isCommon())
         defenseGuildName = commonGuild;
     else
-        defenseGuildName = g_pGuildManager->getGuildName(ownGuildID);
+        defenseGuildName = de::gameContext().guilds().getGuildName(ownGuildID);
 
     pGuildWarInfo->setAttackGuildName(attackGuildName);
     pGuildWarInfo->setDefenseGuildName(defenseGuildName);
@@ -387,7 +387,7 @@ string SiegeWar::toString() const
 BYTE SiegeWar::canReinforce(GuildID_t gID) {
     if (m_ReinforceGuildID != 0)
         return NPC_RESPONSE_ALREADY_REINFORCE_ACCEPTED;
-    if (g_pGuildManager->hasWarSchedule(gID))
+    if (de::gameContext().guilds().hasWarSchedule(gID))
         return NPC_RESPONSE_WAR_ALREADY_REGISTERED;
 
     WarInfoRepository& repository = defaultWarInfoRepository();

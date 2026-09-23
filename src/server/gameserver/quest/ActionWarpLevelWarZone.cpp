@@ -9,6 +9,7 @@
 #include "Creature.h"
 #include "GCSystemMessage.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "LevelWarManager.h"
 #include "LevelWarZoneInfoManager.h"
@@ -53,7 +54,7 @@ void ActionWarpLevelWarZone::execute(Creature* pCreature1, Creature* pCreature2)
 
     // A character whose level is too high cannot enter.
     if (g_pLevelWarZoneInfoManager->getCreatureLevelGrade(pCreature2) == -1) {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TO_HIGH_LEVEL_FOR_LEVEL_WAR));
+        gcSystemMessage.setMessage(context().strings().getString(STRID_TO_HIGH_LEVEL_FOR_LEVEL_WAR));
         pGamePlayer->sendPacket(&gcSystemMessage);
         return;
     }

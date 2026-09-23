@@ -446,6 +446,9 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
 {
     __BEGIN_TRY
 
+    StringPool& strings = de::gameContext().strings();
+    VariableManager& variables = de::gameContext().variables();
+
     CastleInfo* pCastleInfo = getCastleInfo(zoneID);
     if (pCastleInfo == NULL)
         return false;
@@ -459,11 +462,11 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
     Zone* pZone = getZoneByZoneID(zoneID);
 
     if (pCastleInfo->isCommon()) {
-        pCastleInfo->setEntranceFee(g_pVariableManager->getVariable(COMMON_CASTLE_ENTRANCE_FEE));
-        setItemTaxRatio(pZone, g_pVariableManager->getVariable(COMMON_CASTLE_ITEM_TAX_RATIO));
+        pCastleInfo->setEntranceFee(variables.getVariable(COMMON_CASTLE_ENTRANCE_FEE));
+        setItemTaxRatio(pZone, variables.getVariable(COMMON_CASTLE_ITEM_TAX_RATIO));
     } else {
-        pCastleInfo->setEntranceFee(g_pVariableManager->getVariable(GUILD_CASTLE_ENTRANCE_FEE));
-        setItemTaxRatio(pZone, g_pVariableManager->getVariable(GUILD_CASTLE_ITEM_TAX_RATIO));
+        pCastleInfo->setEntranceFee(variables.getVariable(GUILD_CASTLE_ENTRANCE_FEE));
+        setItemTaxRatio(pZone, variables.getVariable(GUILD_CASTLE_ITEM_TAX_RATIO));
     }
 
     StringStream msg;
@@ -478,25 +481,25 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
         char msg[100];
         if (guildID == SlayerCommon) {
             // msg << pCastleInfo->getName() << " castle became a Slayer common castle.";
-            sprintf(msg, g_pStringPool->c_str(STRID_BECOME_SLAYER_COMMON_CASTLE), pCastleInfo->getName().c_str());
+            sprintf(msg, strings.c_str(STRID_BECOME_SLAYER_COMMON_CASTLE), pCastleInfo->getName().c_str());
         } else if (guildID == VampireCommon) {
             // msg << pCastleInfo->getName() << " castle became a Vampire common castle.";
-            sprintf(msg, g_pStringPool->c_str(STRID_BECOME_VAMPIRE_COMMON_CASTLE), pCastleInfo->getName().c_str());
+            sprintf(msg, strings.c_str(STRID_BECOME_VAMPIRE_COMMON_CASTLE), pCastleInfo->getName().c_str());
         } else if (guildID == OustersCommon) {
             sprintf(msg, "%s castle became an Ousters common castle.", pCastleInfo->getName().c_str());
         } else {
-            Guild* pGuild = g_pGuildManager->getGuild(guildID);
+            Guild* pGuild = de::gameContext().guilds().getGuild(guildID);
 
             if (pGuild == NULL) {
                 filelog("CastleError.log", "Unknown guildID : %d", (int)guildID);
             } else {
                 if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
                     // msg << pGuild->getName() << " team conquered the castle.";
-                    sprintf(msg, g_pStringPool->c_str(STRID_BECOME_SLAYER_GUILD_CASTLE), pGuild->getName().c_str(),
+                    sprintf(msg, strings.c_str(STRID_BECOME_SLAYER_GUILD_CASTLE), pGuild->getName().c_str(),
                             pCastleInfo->getName().c_str());
                 } else {
                     // msg << pGuild->getName() << " clan conquered the castle.";
-                    sprintf(msg, g_pStringPool->c_str(STRID_BECOME_VAMPIRE_GUILD_CASTLE), pGuild->getName().c_str(),
+                    sprintf(msg, strings.c_str(STRID_BECOME_VAMPIRE_GUILD_CASTLE), pGuild->getName().c_str(),
                             pCastleInfo->getName().c_str());
                 }
             }

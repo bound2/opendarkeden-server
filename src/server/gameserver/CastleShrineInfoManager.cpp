@@ -534,8 +534,8 @@ bool CastleShrineInfoManager::returnCastleSymbol(Zone* pZone, CastleSymbol* pCas
     // shrine (" << GuardShrine.getName() << ").";
 
     char msg[200];
-    sprintf(msg, g_pStringPool->c_str(STRID_RETURN_TO_GUARD_SHRINE_CASTLE_SYMBOL), GuardShrine.getName().c_str(),
-            GuardShrine.getName().c_str());
+    sprintf(msg, de::gameContext().strings().c_str(STRID_RETURN_TO_GUARD_SHRINE_CASTLE_SYMBOL),
+            GuardShrine.getName().c_str(), GuardShrine.getName().c_str());
 
     GCSystemMessage msgPkt;
     msgPkt.setMessage(msg);

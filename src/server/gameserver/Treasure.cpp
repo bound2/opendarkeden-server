@@ -466,7 +466,7 @@ bool TreasureItemClass::getRandomItem(ITEM_TEMPLATE* pTemplate)
 
             if (pItemInfo->isUnique()) {
                 int okRatio = rand() % 10000;
-                int uniqueRatio = g_pVariableManager->getUniqueItemRatio();
+                int uniqueRatio = de::gameContext().variables().getUniqueItemRatio();
 
                 if (okRatio < uniqueRatio &&
                     UniqueItemManager::isPossibleCreate(pTemplate->ItemClass, pTemplate->ItemType)) {
@@ -683,8 +683,8 @@ bool Treasure::getRandomItem(ITEM_TEMPLATE* pTemplate)
 
 
     double EventMultiplier = 0.0;
-    if (g_pVariableManager->getEventActivate() == 1)
-        EventMultiplier = g_pVariableManager->getItemProbRatio() / 100;
+    if (de::gameContext().variables().getEventActivate() == 1)
+        EventMultiplier = de::gameContext().variables().getItemProbRatio() / 100;
     else
         EventMultiplier = 1;
 

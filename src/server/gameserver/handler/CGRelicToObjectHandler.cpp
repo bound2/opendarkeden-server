@@ -176,6 +176,8 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
 {
     __BEGIN_TRY
 
+    StringPool& strings = de::gameContext().strings();
+
 #ifdef __GAME_SERVER__
 
     // When a relic is put into the matching relic table..
@@ -306,7 +308,7 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
 
 
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_PUT_RELIC_TO_RELIC_TABLE), pPlayerCreature->getName().c_str(),
+        sprintf(msg, strings.c_str(STRID_PUT_RELIC_TO_RELIC_TABLE), pPlayerCreature->getName().c_str(),
                 pRelicInfo->getName().c_str());
 
         GCSystemMessage gcSystemMessage;
@@ -400,7 +402,7 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
             // Set the relic table's safe time
             Timeval safeTime;
             getCurrentTime(safeTime);
-            safeTime.tv_sec += g_pVariableManager->getCombatBonusTime() * 60;
+            safeTime.tv_sec += de::gameContext().variables().getCombatBonusTime() * 60;
 
             // Send the victory message.
             GCSystemMessage gcSystemMessage;
@@ -408,10 +410,10 @@ void CGRelicToObjectHandler::executeRelic(CGRelicToObject* pPacket, Player* pPla
             pTableEffect->setSafeTime(safeTime);
 
             if (bSlayer) {
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_COMBAT_SLAYER_WIN));
+                gcSystemMessage.setMessage(strings.getString(STRID_COMBAT_SLAYER_WIN));
                 de::gameContext().combatInfo().setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_SLAYER);
             } else {
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_COMBAT_VAMPIRE_WIN));
+                gcSystemMessage.setMessage(strings.getString(STRID_COMBAT_VAMPIRE_WIN));
                 de::gameContext().combatInfo().setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
             }
 
@@ -630,6 +632,8 @@ void CGRelicToObjectHandler::executeSweeper(CGRelicToObject* pPacket, Player* pP
 {
     __BEGIN_TRY
 
+    StringPool& strings = de::gameContext().strings();
+
 #ifdef __GAME_SERVER__
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
@@ -696,18 +700,18 @@ void CGRelicToObjectHandler::executeSweeper(CGRelicToObject* pPacket, Player* pP
         // Broadcast a system message to the zone when it is planted
         char race[15];
         if (pCreature->isSlayer()) {
-            sprintf(race, g_pStringPool->c_str(STRID_SLAYER));
+            sprintf(race, strings.c_str(STRID_SLAYER));
         } else if (pCreature->isVampire()) {
-            sprintf(race, g_pStringPool->c_str(STRID_VAMPIRE));
+            sprintf(race, strings.c_str(STRID_VAMPIRE));
         } else if (pCreature->isOusters()) {
-            sprintf(race, g_pStringPool->c_str(STRID_OUSTERS));
+            sprintf(race, strings.c_str(STRID_OUSTERS));
         } else {
             Assert(false);
         }
 
         char msg[100];
 
-        sprintf(msg, g_pStringPool->c_str(STRID_PUT_SWEEPER), pCreature->getName().c_str(), race,
+        sprintf(msg, strings.c_str(STRID_PUT_SWEEPER), pCreature->getName().c_str(), race,
                 pSweeperInfo->getName().c_str());
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(msg);

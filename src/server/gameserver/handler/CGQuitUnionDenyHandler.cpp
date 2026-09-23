@@ -12,6 +12,7 @@
 #include "DB.h"
 #include "GCGuildResponse.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -53,7 +54,7 @@ void CGQuitUnionDenyHandler::execute(CGQuitUnionDeny* pPacket, Player* pPlayer)
     }
 
     // Is the requester the master of its own guild, and is the union's master guild my guild?
-    if (!g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature) ||
+    if (!de::gameContext().guilds().isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature) ||
         pUnion->getMasterGuildID() != pPlayerCreature->getGuildID()) {
         // Send GC_GUILD_RESPONSE.
         // Content: not the guild master.
@@ -71,7 +72,7 @@ void CGQuitUnionDenyHandler::execute(CGQuitUnionDeny* pPacket, Player* pPlayer)
 
     ////////////////////
 
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
 
     if (pGuild == NULL) {
         return;
@@ -79,7 +80,8 @@ void CGQuitUnionDenyHandler::execute(CGQuitUnionDeny* pPacket, Player* pPlayer)
     string TargetGuildMaster = pGuild->getMaster();
 
 
-    defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(376));
+    defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster,
+                                                 de::gameContext().strings().c_str(376));
 
 #endif // __GAME_SERVER__
 

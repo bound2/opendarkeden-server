@@ -52,6 +52,8 @@ void EventReloadInfo::activate()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
+    StringPool& strings = de::gameContext().strings();
+
     //(m_pGamePlayer != NULL);// may be NULL.
 
     switch (m_InfoType) {
@@ -106,7 +108,7 @@ void EventReloadInfo::activate()
     } break;
 
     case STRING_POOL: {
-        g_pStringPool->load();
+        strings.load();
     } break;
 
     case WAR_SCHEDULE_INFO: {
@@ -128,13 +130,13 @@ void EventReloadInfo::activate()
                     // wars scheduled.";
 
                     char msg[100];
-                    sprintf(msg, g_pStringPool->c_str(STRID_WAR_SCHEDULE_INFO), (int)zoneID, pWarScheduler->getSize());
+                    sprintf(msg, strings.c_str(STRID_WAR_SCHEDULE_INFO), (int)zoneID, pWarScheduler->getSize());
                     gcSystemMessage.setMessage(msg);
                 } else {
-                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_THIS_ZONE_IS_NOT_CASTLE));
+                    gcSystemMessage.setMessage(strings.getString(STRID_THIS_ZONE_IS_NOT_CASTLE));
                 }
             } else {
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_SUCH_ZONE));
+                gcSystemMessage.setMessage(strings.getString(STRID_NO_SUCH_ZONE));
             }
 
             m_pGamePlayer->sendPacket(&gcSystemMessage);
@@ -146,7 +148,7 @@ void EventReloadInfo::activate()
 
         if (m_pGamePlayer != NULL) {
             GCSystemMessage gcSystemMessage;
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_LOAD_BLOOD_BIBLE_OWNER_INFO));
+            gcSystemMessage.setMessage(strings.getString(STRID_LOAD_BLOOD_BIBLE_OWNER_INFO));
             m_pGamePlayer->sendPacket(&gcSystemMessage);
         }
     } break;

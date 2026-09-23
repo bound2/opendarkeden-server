@@ -15,6 +15,7 @@
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
 #include "GCUpdateInfo.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "Ousters.h"
@@ -62,6 +63,8 @@ void ActionEnterEventZone::execute(Creature* pNPC, Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
+    StringPool& strings = context().strings();
+
     Assert(pCreature != NULL);
     Assert(pCreature->isPC());
 
@@ -76,7 +79,7 @@ void ActionEnterEventZone::execute(Creature* pNPC, Creature* pCreature)
         transportCreature(pPC, pPC->getZone()->getZoneID(), pPC->getX(), pPC->getY(), true);
 
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER));
+        gcSystemMessage.setMessage(strings.getString(STRID_CANNOT_ENTER));
         pGamePlayer->sendPacket(&gcSystemMessage);
 
         return;
@@ -86,7 +89,7 @@ void ActionEnterEventZone::execute(Creature* pNPC, Creature* pCreature)
         transportCreature(pPC, pPC->getZone()->getZoneID(), pPC->getX(), pPC->getY(), true);
 
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_PKZONE_PC_LIMITED));
+        gcSystemMessage.setMessage(strings.getString(STRID_PKZONE_PC_LIMITED));
         pGamePlayer->sendPacket(&gcSystemMessage);
 
         return;
@@ -130,7 +133,7 @@ void ActionEnterEventZone::execute(Creature* pNPC, Creature* pCreature)
                           pEventZoneInfo->getEnterY(), true);
     } else {
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER));
+        gcSystemMessage.setMessage(strings.getString(STRID_CANNOT_ENTER));
         pGamePlayer->sendPacket(&gcSystemMessage);
     }
 

@@ -214,6 +214,8 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
     __BEGIN_PROFILE_ZONE("Z_ADD_PC")
 
+    VariableManager& variables = de::gameContext().variables();
+
     Assert(pCreature != NULL);
     Assert(pCreature->isPC());
 
@@ -373,8 +375,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         //////////////////////////////////////////////////////////////////////////////
         // Tell the client when PREMIUM_HALF_EVENT is on and this is a pay zone.
         //////////////////////////////////////////////////////////////////////////////
-        if (g_pVariableManager->getVariable(PREMIUM_HALF_EVENT) &&
-            (m_ZoneID == 61 || m_ZoneID == 64 || m_ZoneID == 1007)) {
+        if (variables.getVariable(PREMIUM_HALF_EVENT) && (m_ZoneID == 61 || m_ZoneID == 64 || m_ZoneID == 1007)) {
             GCNoticeEvent gcNoticeEvent;
             gcNoticeEvent.setCode(NOTICE_EVENT_PREMIUM_HALF_START);
 
@@ -516,13 +517,13 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
             GCNoticeEvent gcNoticeEvent2;
             gcNoticeEvent2.setCode(NOTICE_EVENT_LOGIN_JUST_NOW);
-            gcNoticeEvent2.setParameter(g_pVariableManager->getHeadPriceBonus());
+            gcNoticeEvent2.setParameter(variables.getHeadPriceBonus());
 
             pPC->getPlayer()->sendPacket(&gcNoticeEvent2);
 
             pPC->setFlag(Effect::EFFECT_CLASS_JUST_LOGIN);
 
-            if (g_pVariableManager->getVariable(CHOBO_EVENT)) {
+            if (variables.getVariable(CHOBO_EVENT)) {
                 pPC->getGQuestManager()->getGQuestInventory().saveOne(pPC->getName(), 13);
                 pPC->getPlayer()->sendPacket(pPC->getGQuestManager()->getGQuestInventory().getInventoryPacket());
                 gcNoticeEvent.setCode(NOTICE_EVENT_GIVE_PRESENT_1);
@@ -551,10 +552,10 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
                 pPC->getPlayer()->sendPacket(&response);
             }
 
-            if (g_pVariableManager->getVariable(TODAY_IS_HOLYDAY)) {
+            if (variables.getVariable(TODAY_IS_HOLYDAY)) {
                 GCNoticeEvent gcNoticeEvent;
                 gcNoticeEvent.setCode(NOTICE_EVENT_HOLYDAY);
-                gcNoticeEvent.setParameter(g_pVariableManager->getVariable(TODAY_IS_HOLYDAY));
+                gcNoticeEvent.setParameter(variables.getVariable(TODAY_IS_HOLYDAY));
 
                 pPC->getPlayer()->sendPacket(&gcNoticeEvent);
             }
@@ -570,15 +571,14 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
                 pPC->getPlayer()->sendPacket(&gcNoticeEvent);
             }
 
-            if (g_pVariableManager->isWarActive() && g_pVariableManager->isAutoStartRaceWar() &&
-                warSystem.isRaceWarToday()) {
+            if (variables.isWarActive() && variables.isAutoStartRaceWar() && warSystem.isRaceWarToday()) {
                 GCNoticeEvent gcNoticeEvent;
                 gcNoticeEvent.setCode(NOTICE_EVENT_RACE_WAR_SOON);
                 gcNoticeEvent.setParameter(warSystem.getRaceWarTimeParam());
                 pPC->getPlayer()->sendPacket(&gcNoticeEvent);
             }
 
-            if (g_pVariableManager->isActiveLevelWar()) {
+            if (variables.isActiveLevelWar()) {
                 ZoneID_t levelWarZoneId = g_pLevelWarZoneInfoManager->getCreatureZoneID(pCreature);
 
                 if (levelWarZoneId != 1) {
@@ -614,7 +614,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
             GCNoticeEvent gcNoticeEvent;
             gcNoticeEvent.setCode(NOTICE_EVENT_LOGIN_JUST_NOW);
-            gcNoticeEvent.setParameter(g_pVariableManager->getHeadPriceBonus());
+            gcNoticeEvent.setParameter(variables.getHeadPriceBonus());
 
             pPC->getPlayer()->sendPacket(&gcNoticeEvent);
 
@@ -641,12 +641,12 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         {
             GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(pPC->getGuildID());
             if (pUnion != NULL) {
-                if (g_pGuildManager->isGuildMaster(pPC->getGuildID(), pPC))
+                if (de::gameContext().guilds().isGuildMaster(pPC->getGuildID(), pPC))
 
                     if (pUnion->getMasterGuildID() == pPC->getGuildID())
 
                         // Is the requester the master of its own guild, and is the union's master guild this guild?
-                        if (g_pGuildManager->isGuildMaster(pPC->getGuildID(), pPC) &&
+                        if (de::gameContext().guilds().isGuildMaster(pPC->getGuildID(), pPC) &&
                             pUnion->getMasterGuildID() == pPC->getGuildID()) {
                             if (GuildUnionOfferManager::Instance().makeOfferList(pUnion->getUnionID(),
                                                                                  gcUnionOfferList)) {

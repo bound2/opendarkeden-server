@@ -8,6 +8,7 @@
 // include files
 #include "InfoClassManager.h"
 
+#include "GameContext.h"
 #include "ItemInfo.h"
 #include "VariableManager.h"
 
@@ -153,9 +154,9 @@ ItemType_t InfoClassManager::getRandomItemType() const
     if (m_TotalRatio == 0 || m_InfoCount == 0)
         return 0;
 
-    int gambleRatio = g_pVariableManager->getGambleItemTypeRatio(); // 200%
-    int failRatio = m_pItemInfos[0]->getRatio();                    // The ratio of item 0 is the failure probability.
-    int succeedRatio = m_TotalRatio - failRatio;                    // Everything but item 0 is the success probability.
+    int gambleRatio = de::gameContext().variables().getGambleItemTypeRatio(); // 200%
+    int failRatio = m_pItemInfos[0]->getRatio(); // The ratio of item 0 is the failure probability.
+    int succeedRatio = m_TotalRatio - failRatio; // Everything but item 0 is the success probability.
     int newTotalRatio = failRatio + getPercentValue(succeedRatio, gambleRatio); // fail + success*gambleRatio
     int itemTypeRatio = rand() % newTotalRatio;
     int ratio;

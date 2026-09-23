@@ -12,6 +12,7 @@
 #include "GCActiveGuildList.h"
 #include "GCSystemMessage.h"
 #include "GCWaitGuildList.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildInfo.h"
@@ -59,7 +60,7 @@ void CGRequestGuildListHandler::execute(CGRequestGuildList* pPacket, Player* pPl
         else
             return;
 
-        g_pGuildManager->makeWaitGuildList(gcWaitGuildList, race);
+        de::gameContext().guilds().makeWaitGuildList(gcWaitGuildList, race);
 
         pPlayer->sendPacket(&gcWaitGuildList);
 
@@ -79,7 +80,7 @@ void CGRequestGuildListHandler::execute(CGRequestGuildList* pPacket, Player* pPl
         else
             return;
 
-        g_pGuildManager->makeActiveGuildList(gcActiveGuildList, race);
+        de::gameContext().guilds().makeActiveGuildList(gcActiveGuildList, race);
 
         pPlayer->sendPacket(&gcActiveGuildList);
 

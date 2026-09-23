@@ -109,7 +109,7 @@ void oprecall(GamePlayer* pGamePlayer, string msg, int i) {
 
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
     if (pPC->isPLAYER()) {
-        if (g_pGuildManager->isGuildMaster(pPC->getGuildID(), pPC)) {
+        if (de::gameContext().guilds().isGuildMaster(pPC->getGuildID(), pPC)) {
             if (!SiegeManager::Instance().isSiegeZone(pPC->getZoneID())) {
                 return;
             }

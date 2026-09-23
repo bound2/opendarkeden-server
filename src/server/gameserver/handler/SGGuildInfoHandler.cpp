@@ -31,14 +31,16 @@ void SGGuildInfoHandler::execute(SGGuildInfo* pPacket)
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
+        GuildManager& guilds = de::gameContext().guilds();
+
 #ifdef __GAME_SERVER__
 
-        Assert(pPacket != NULL);
+    Assert(pPacket != NULL);
 
-    g_pGuildManager->lock();
+    guilds.lock();
 
     // Delete every guild.
-    g_pGuildManager->clear_NOBLOCKED();
+    guilds.clear_NOBLOCKED();
 
     GuildInfo2* pGuildInfo = NULL;
 
@@ -72,10 +74,10 @@ void SGGuildInfoHandler::execute(SGGuildInfo* pPacket)
             pGuild->addMember(pGuildMember);
         }
 
-        g_pGuildManager->addGuild_NOBLOCKED(pGuild);
+        guilds.addGuild_NOBLOCKED(pGuild);
     }
 
-    g_pGuildManager->unlock();
+    guilds.unlock();
 
 #endif
 

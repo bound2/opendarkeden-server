@@ -8,6 +8,7 @@
 
 #ifdef __GAME_SERVER__
 #include "GSQuitGuild.h"
+#include "GameContext.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "Player.h"
@@ -34,7 +35,7 @@ void CGQuitGuildHandler::execute(CGQuitGuild* pPacket, Player* pPlayer)
     Assert(pPlayerCreature != NULL);
 
     // Get the guild the player belongs to.
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
     try {
         Assert(pGuild != NULL);
     } catch (Throwable& t) {

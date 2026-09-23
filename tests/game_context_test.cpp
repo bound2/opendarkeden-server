@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[56];
+char g_managerStorage[57];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -275,14 +275,17 @@ TEST(GameContextTest, PlayerGroupingManagersAreReadBack) {
 
     CoupleManager* pCoupleManager = standIn<CoupleManager>(43);
     GlobalPartyManager* pGlobalPartyManager = standIn<GlobalPartyManager>(44);
+    GuildManager* pGuildManager = standIn<GuildManager>(56);
     IncomingPlayerManager* pIncomingPlayerManager = standIn<IncomingPlayerManager>(45);
 
     context.setCoupleManager(pCoupleManager);
     context.setGlobalPartyManager(pGlobalPartyManager);
+    context.setGuildManager(pGuildManager);
     context.setIncomingPlayerManager(pIncomingPlayerManager);
 
     EXPECT_EQ(&context.couples(), pCoupleManager);
     EXPECT_EQ(&context.parties(), pGlobalPartyManager);
+    EXPECT_EQ(&context.guilds(), pGuildManager);
     EXPECT_EQ(&context.incomingPlayers(), pIncomingPlayerManager);
 }
 
@@ -338,6 +341,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.flags(), AssertionError);
     EXPECT_THROW(context.gameServerGroups(), AssertionError);
     EXPECT_THROW(context.goodsInfos(), AssertionError);
+    EXPECT_THROW(context.guilds(), AssertionError);
     EXPECT_THROW(context.incomingPlayers(), AssertionError);
     EXPECT_THROW(context.itemFactories(), AssertionError);
     EXPECT_THROW(context.itemInfos(), AssertionError);

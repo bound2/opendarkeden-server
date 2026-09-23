@@ -10,6 +10,7 @@
 #include "Creature.h"
 #include "GCShowGuildInfo.h"
 #include "GCShowWaitGuildInfo.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -35,7 +36,7 @@ void CGSelectGuildHandler::execute(CGSelectGuild* pPacket, Player* pPlayer)
     Creature* pCreature = dynamic_cast<Creature*>(pGamePlayer->getCreature());
 
     // Get the selected guild.
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
 
 
     if (pGuild == NULL) {

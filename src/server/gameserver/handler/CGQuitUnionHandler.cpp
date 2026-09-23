@@ -63,7 +63,7 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
 
 
     // Is the requester the master of the guild it belongs to?
-    if (!g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature)
+    if (!de::gameContext().guilds().isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature)
         //|| pUnion->getMasterGuildID() != pPlayerCreature->getGuildID()
     ) {
         // Send GC_GUILD_RESPONSE.
@@ -86,7 +86,7 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
     // Withdraw by force
     else if (pPacket->getQuitMethod() == CGQuitUnion::QUIT_QUICK) {
         // The guild master's master id..
-        string TargetGuildMaster = g_pGuildManager->getGuild(pUnion->getMasterGuildID())->getMaster();
+        string TargetGuildMaster = de::gameContext().guilds().getGuild(pUnion->getMasterGuildID())->getMaster();
 
         if (GuildUnionManager::Instance().removeGuild(pUnion->getUnionID(), pPlayerCreature->getGuildID())) {
             gcGuildResponse.setCode(GuildUnionOfferManager::OK);
@@ -97,8 +97,8 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             MessageRepository& messages = defaultMessageRepository();
             GuildRepository& guilds = defaultGuildRepository();
 
-            string escapeGuildName = g_pGuildManager->getGuildName(pPlayerCreature->getGuildID());
-            string escapeGuildNotice = "[" + escapeGuildName + "] " + g_pStringPool->c_str(378);
+            string escapeGuildName = de::gameContext().guilds().getGuildName(pPlayerCreature->getGuildID());
+            string escapeGuildNotice = "[" + escapeGuildName + "] " + de::gameContext().strings().c_str(378);
 
             messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, escapeGuildNotice);
             guilds.insertEscapeOffer(tempUnionID, pPacket->getGuildID());
@@ -106,7 +106,8 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             // See whether the union has members.. and if not?
             if (guilds.countUnionMembersSpelled(UNION_SQL_PLAIN, tempUnionID) == 0) {
                 guilds.deleteUnionInfoOnly(UNION_SQL_PLAIN, tempUnionID);
-                messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(379));
+                messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster,
+                                           de::gameContext().strings().c_str(379));
                 GuildUnionManager::Instance().reload();
             }
 

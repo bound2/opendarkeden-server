@@ -9,6 +9,7 @@
 #include "Creature.h"
 #include "GCNPCResponse.h"
 #include "GCWarScheduleList.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -56,7 +57,7 @@ void ActionShowWarSchedule::execute(Creature* pCreature1, Creature* pCreature2)
 
     GCWarScheduleList gcWarScheduleList;
 
-    if (g_pVariableManager->isWarActive() && makeGCWarScheduleList(&gcWarScheduleList, m_ZoneID)) {
+    if (context().variables().isWarActive() && makeGCWarScheduleList(&gcWarScheduleList, m_ZoneID)) {
         pPC->getPlayer()->sendPacket(&gcWarScheduleList);
     } else {
         GCNPCResponse gcNPCResponse;

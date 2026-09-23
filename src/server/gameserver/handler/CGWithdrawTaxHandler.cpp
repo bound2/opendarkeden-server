@@ -57,10 +57,10 @@ void CGWithdrawTaxHandler::execute(CGWithdrawTax* pPacket, Player* pPlayer)
         }
     }
 
-    if (!g_pGuildManager->isGuildMaster(guildID, pPC) // not the guild master.
-        || !bOwner                                    // not a castle this player's guild has taken.
-        || gold == 0                                  // is this a joke?
-        || pCastleInfo->getTaxBalance() < gold        // not enough money.
+    if (!de::gameContext().guilds().isGuildMaster(guildID, pPC) // not the guild master.
+        || !bOwner                                              // not a castle this player's guild has taken.
+        || gold == 0                                            // is this a joke?
+        || pCastleInfo->getTaxBalance() < gold                  // not enough money.
     ) {
         GCNPCResponse fail;
         fail.setCode(NPC_RESPONSE_WITHDRAW_TAX_FAIL);

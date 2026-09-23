@@ -95,7 +95,7 @@ void CGTameMonsterHandler::execute(CGTameMonster* pPacket, Player* pPlayer)
 
     int ratio = rand() % 100;
 
-    if (g_pVariableManager->getVariable(PET_DAY_EVENT) != 0) {
+    if (de::gameContext().variables().getVariable(PET_DAY_EVENT) != 0) {
         ratio = 100;
     }
 

@@ -191,9 +191,8 @@ const Turn_t DELAY_MASTER_LAIR_DECAY_MASTER_CORPSE = 50; // 5 seconds
 //--------------------------------------------------------------------------------
 // Drop an item at a given position.
 // Zone ::addItem()
-// Scans the 7x7 area and drops the item on a free square. If, unluckily, no free
-// square exists, an exception is thrown so that handling that case is left to the
-// caller.
+// Scans the 7x7 area and drops the item on a free square. If no free square
+// exists, it answers (-1, -1) and the caller handles that case.
 //--------------------------------------------------------------------------------
 TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCreature, Turn_t decayTurn,
                      ObjectID_t DropPetOID)

@@ -14,6 +14,7 @@
 #include "GCNPCResponse.h"
 #include "GCShowGuildJoin.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -47,13 +48,13 @@ void CGTryJoinGuildHandler::execute(CGTryJoinGuild* pPacket, Player* pPlayer)
     Creature* pCreature = pGamePlayer->getCreature();
     Assert(pCreature != NULL);
 
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
 
     GuildJoinAttempt attempt;
     attempt.name = pCreature->getName();
     attempt.guildExists = (pGuild != NULL);
     attempt.now = time(0);
-    attempt.penaltyTermDays = g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM);
+    attempt.penaltyTermDays = de::gameContext().variables().getVariable(QUIT_GUILD_PENALTY_TERM);
     attempt.waitMemberLimit = MAX_GUILDMEMBER_WAIT_COUNT;
     if (pGuild != NULL)
         attempt.waitMemberCount = pGuild->getWaitMemberCount();
@@ -115,7 +116,7 @@ void CGTryJoinGuildHandler::execute(CGTryJoinGuild* pPacket, Player* pPlayer)
         // A full waiting list is the one refusal that also says why.
         if (rejection.reason == GUILD_JOIN_REJECT_WAIT_LIST_FULL) {
             GCSystemMessage msg;
-            msg.setMessage(g_pStringPool->getString(STRID_GUILD_WAIT_MEMBER_FULL));
+            msg.setMessage(de::gameContext().strings().getString(STRID_GUILD_WAIT_MEMBER_FULL));
             pPlayer->sendPacket(&msg);
         }
 

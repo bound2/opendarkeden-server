@@ -552,7 +552,7 @@ void CGLearnSkillHandler::executeSlayerSkill(CGLearnSkill* pPacket, Player* pPla
 
     if (pSlayer->hasSkill(targetSkillType)) {
         GCSystemMessage gcSM;
-        gcSM.setMessage(g_pStringPool->getString(STRID_ALREAY_LEARN_SKILL));
+        gcSM.setMessage(de::gameContext().strings().getString(STRID_ALREAY_LEARN_SKILL));
         pPlayer->sendPacket(&gcSM);
     }
 

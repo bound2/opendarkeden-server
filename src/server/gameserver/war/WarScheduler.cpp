@@ -68,7 +68,7 @@ bool WarScheduler::makeGCWarScheduleList(GCWarScheduleList* pGCWarScheduleList) 
     }
 
     // When the automatic start is configured, the race war information always goes in.
-    if (g_pVariableManager->isAutoStartRaceWar()) {
+    if (de::gameContext().variables().isAutoStartRaceWar()) {
         WarScheduleInfo* pWSI = new WarScheduleInfo;
         if (de::gameContext().warSystem().addRaceWarScheduleInfo(pWSI)) {
             pGCWarScheduleList->addWarScheduleInfo(pWSI);
@@ -269,7 +269,7 @@ VSDateTime WarScheduler::getNextWarDateTime(WarType_t warType, const VSDateTime&
     VSDateTime nextWarDateTime;
     VSTime nextWarTime;
 
-    if (g_pVariableManager->isWarPeriodWeek()) // that is a bit much
+    if (de::gameContext().variables().isWarPeriodWeek()) // that is a bit much
     {
         switch (warType) {
         case WAR_GUILD:

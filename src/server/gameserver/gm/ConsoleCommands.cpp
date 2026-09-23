@@ -150,7 +150,7 @@ void opBalanceZoneGroup(GamePlayer* pGamePlayer, const string& value1, GCSystemM
 
     de::gameContext().clients().setBalanceZoneGroup(0, true, defaultZoneGroup);
 
-    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_ZONE_GROUP_BALANCING));
+    gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_ZONE_GROUP_BALANCING));
 }
 
 // *command regenMasterLair
@@ -171,9 +171,9 @@ void opRegenMasterLair(GamePlayer* pGamePlayer, const string& value1, GCSystemMe
 
         pMasterLairManager->startEvent();
 
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_MASTER_LAIR_REGEN));
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_MASTER_LAIR_REGEN));
     } else {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NOT_IN_MASTER_LAIR));
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_NOT_IN_MASTER_LAIR));
     }
 }
 
@@ -194,7 +194,7 @@ void opShowMasterLairStatus(GamePlayer* pGamePlayer, const string& value1, GCSys
 
         gcSystemMessage.setMessage(pMasterLairManager->toString());
     } else {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NOT_IN_MASTER_LAIR));
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_NOT_IN_MASTER_LAIR));
     }
 }
 
@@ -207,7 +207,7 @@ void opInvincible(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage
 
     if (value1 == "on") {
         char msg[50];
-        sprintf(msg, g_pStringPool->c_str(STRID_INVINCIBLE), "ON");
+        sprintf(msg, de::gameContext().strings().c_str(STRID_INVINCIBLE), "ON");
 
         if (bInvincible)
             gcSystemMessage.setMessage(msg);
@@ -218,7 +218,7 @@ void opInvincible(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage
         filelog("change.txt", "[%s]%s", pCreature->getName().c_str(), gcSystemMessage.toString().c_str());
     } else if (value1 == "off") {
         char msg[50];
-        sprintf(msg, g_pStringPool->c_str(STRID_INVINCIBLE), "OFF");
+        sprintf(msg, de::gameContext().strings().c_str(STRID_INVINCIBLE), "OFF");
 
         if (!bInvincible)
             gcSystemMessage.setMessage(msg);
@@ -242,7 +242,7 @@ void opGhost(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcS
 
     if (value1 == "on") {
         char msg[50];
-        sprintf(msg, g_pStringPool->c_str(STRID_GHOST), "ON");
+        sprintf(msg, de::gameContext().strings().c_str(STRID_GHOST), "ON");
 
         if (bGhost)
             gcSystemMessage.setMessage(msg);
@@ -274,13 +274,13 @@ void opGhost(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcS
 
                 gcSystemMessage.setMessage(msg);
             } else {
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_AIR_BLOCKED));
+                gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_AIR_BLOCKED));
             }
         }
         filelog("change.txt", "[%s]%s", pCreature->getName().c_str(), gcSystemMessage.toString().c_str());
     } else if (value1 == "off") {
         char msg[50];
-        sprintf(msg, g_pStringPool->c_str(STRID_GHOST), "OFF");
+        sprintf(msg, de::gameContext().strings().c_str(STRID_GHOST), "OFF");
 
         if (!bGhost)
             gcSystemMessage.setMessage(msg);
@@ -325,7 +325,7 @@ void opGhost(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcS
                     pZone->broadcastPacket(&gcAddOusters, pCreature);
                 }
             } else {
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_GROUND_BLOCKED));
+                gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_GROUND_BLOCKED));
             }
         }
 
@@ -338,7 +338,7 @@ void opGhost(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcS
 // *command clearInventory
 void opClearInventory(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage,
                       bool& bSendPacket) {
-    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLEAR_INVENTORY));
+    gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_CLEAR_INVENTORY));
 
     Creature* pCreature = pGamePlayer->getCreature();
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
@@ -436,16 +436,16 @@ void opSetCastleOwner(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
                 if (getGuildIDFromDB(Name, race, guildID)) {
                     de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), race, guildID);
                 } else {
-                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_DO_NOT_BELONG_TO_GUILD));
+                    gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_DO_NOT_BELONG_TO_GUILD));
                     bSendPacket = true;
                 }
             } else {
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_SUCH_CHARACTOR));
+                gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_NO_SUCH_CHARACTOR));
                 bSendPacket = true;
             }
         }
     } else {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NOT_IN_CASTLE));
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_NOT_IN_CASTLE));
         bSendPacket = true;
     }
 }
@@ -461,7 +461,7 @@ void opSetCastleOwnerGuild(GamePlayer* pGamePlayer, const string& value1, GCSyst
     bSendPacket = false;
 
     Zone* pZone = getZoneByZoneID(zoneID);
-    Guild* pGuild = g_pGuildManager->getGuild(guildID);
+    Guild* pGuild = de::gameContext().guilds().getGuild(guildID);
 
     if (pZone != NULL && pZone->isCastle() && pGuild != NULL) {
         de::gameContext().castleInfos().modifyCastleOwner(zoneID, pGuild->getRace(), guildID);
@@ -487,12 +487,12 @@ void opShowWarList(GamePlayer* pGamePlayer, const string& value1, GCSystemMessag
 // *command startRaceWar
 void opStartRaceWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage,
                     bool& bSendPacket) {
-    if (!g_pVariableManager->isWarActive()) {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WAR_OFF_DO_WAR_ACITIVE_ON));
+    if (!de::gameContext().variables().isWarActive()) {
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_WAR_OFF_DO_WAR_ACITIVE_ON));
     } else if (de::gameContext().warSystem().startRaceWar()) {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_RACE_WAR_START));
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_RACE_WAR_START));
     } else {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_ALREADY_WAR_STARTED_OF_SERVER_ERROR));
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_ALREADY_WAR_STARTED_OF_SERVER_ERROR));
     }
     bSendPacket = true;
 }
@@ -527,11 +527,11 @@ void opRemoveWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
 
     if (de::gameContext().warSystem().removeWar(zoneID)) {
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_GUILD_WAR_REMOVED), (int)zoneID);
+        sprintf(msg, de::gameContext().strings().c_str(STRID_GUILD_WAR_REMOVED), (int)zoneID);
         gcSystemMessage.setMessage(msg);
     } else {
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_NO_GUILD_WAR_IN_ACTIVE), (int)zoneID);
+        sprintf(msg, de::gameContext().strings().c_str(STRID_NO_GUILD_WAR_IN_ACTIVE), (int)zoneID);
         gcSystemMessage.setMessage(msg);
     }
     bSendPacket = true;
@@ -541,19 +541,19 @@ void opRemoveWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
 void opRemoveRaceWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage,
                      bool& bSendPacket) {
     if (de::gameContext().warSystem().removeRaceWar()) {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_RACE_WAR_REMOVED));
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_RACE_WAR_REMOVED));
     } else {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_RACE_WAR_IN_ACTIVE));
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_NO_RACE_WAR_IN_ACTIVE));
     }
     bSendPacket = true;
 }
 
 // *command LevelWar
 void opLevelWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage, bool& bSendPacket) {
-    if (!g_pVariableManager->isWarActive()) {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_WAR_OFF_DO_WAR_ACITIVE_ON));
+    if (!de::gameContext().variables().isWarActive()) {
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_WAR_OFF_DO_WAR_ACITIVE_ON));
     }
-    if (g_pVariableManager->isActiveLevelWar()) {
+    if (de::gameContext().variables().isActiveLevelWar()) {
         ZoneID_t zoneID = atoi(value1.c_str());
 
         if (zoneID != 1131 && zoneID != 1132 && zoneID != 1133 && zoneID != 1134)
@@ -577,7 +577,7 @@ void opSaveBloodBibleOwner(GamePlayer* pGamePlayer, const string& value1, GCSyst
                            bool& bSendPacket) {
     g_pShrineInfoManager->saveBloodBibleOwner();
 
-    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_SAVE_BLOOD_BIBLE_OWNER_INFO_IN_DB));
+    gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_SAVE_BLOOD_BIBLE_OWNER_INFO_IN_DB));
 
     bSendPacket = true;
 }
@@ -601,7 +601,7 @@ void opKillAllMonster(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
             }
         }
 
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_KILL_ALL_MONSTER_IN_ZONE));
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_KILL_ALL_MONSTER_IN_ZONE));
     }
 }
 
@@ -631,7 +631,7 @@ void opKillAllPC(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
             }
         }
 
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_KILL_ALL_MONSTER_IN_ZONE));
+        gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_KILL_ALL_MONSTER_IN_ZONE));
     }
 }
 
@@ -641,7 +641,7 @@ void opShowZonePCNum(GamePlayer* pGamePlayer, const string& value1, GCSystemMess
     if (pGamePlayer != NULL) {
         WORD num = pGamePlayer->getCreature()->getZone()->getPCManager()->getSize();
         char msg[100];
-        sprintf(msg, g_pStringPool->getString(STRID_PC_NUM).c_str(), num);
+        sprintf(msg, de::gameContext().strings().getString(STRID_PC_NUM).c_str(), num);
         gcSystemMessage.setMessage(msg);
     }
 }
@@ -655,7 +655,7 @@ void opShowPKZonePCNum(GamePlayer* pGamePlayer, const string& value1, GCSystemMe
             int num = de::gameContext().pkZoneInfos().getPKZoneInfo(zoneID)->getCurrentPCNum();
 
             char msg[100];
-            sprintf(msg, g_pStringPool->getString(STRID_PC_NUM).c_str(), num);
+            sprintf(msg, de::gameContext().strings().getString(STRID_PC_NUM).c_str(), num);
             gcSystemMessage.setMessage(msg);
         } else {
             bSendPacket = false;
@@ -800,7 +800,7 @@ void opSetGold(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& g
         pGamePlayer->sendPacket(&gcMI);
 
         // Leave a money log when the amount warrants one
-        if (gold >= g_pVariableManager->getMoneyTraceLogLimit()) {
+        if (gold >= de::gameContext().variables().getMoneyTraceLogLimit()) {
             if (gold > 2000000000)
                 gold = 2000000000;
 

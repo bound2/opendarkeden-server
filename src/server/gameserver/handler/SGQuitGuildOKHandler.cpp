@@ -40,12 +40,14 @@ void SGQuitGuildOKHandler::execute(SGQuitGuildOK* pPacket)
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
+        StringPool& strings = de::gameContext().strings();
+
 #ifdef __GAME_SERVER__
 
-        Assert(pPacket != NULL);
+    Assert(pPacket != NULL);
 
     // Get the guild.
-    Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
     // try { Assert(pGuild != NULL); } catch (Throwable& ) { return; }
     if (pGuild == NULL)
         return;
@@ -119,11 +121,11 @@ void SGQuitGuildOKHandler::execute(SGQuitGuildOK* pPacket)
             // Send the guild withdrawal message.
             GCSystemMessage gcSystemMessage;
             if (guildRace == Guild::GUILD_RACE_SLAYER)
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_QUIT_TEAM));
+                gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_QUIT_TEAM));
             else if (guildRace == Guild::GUILD_RACE_VAMPIRE)
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_QUIT_CLAN));
+                gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_QUIT_CLAN));
             else if (guildRace == Guild::GUILD_RACE_OUSTERS)
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_QUIT_CLAN));
+                gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_QUIT_CLAN));
             player.sendPacket(&gcSystemMessage);
 
             if (guildState == Guild::GUILD_STATE_ACTIVE) {
@@ -156,11 +158,11 @@ void SGQuitGuildOKHandler::execute(SGQuitGuildOK* pPacket)
 
         char msg[100];
         if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)
-            sprintf(msg, g_pStringPool->c_str(STRID_QUIT_TEAM_2), memberName.c_str());
+            sprintf(msg, strings.c_str(STRID_QUIT_TEAM_2), memberName.c_str());
         else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE)
-            sprintf(msg, g_pStringPool->c_str(STRID_QUIT_CLAN_2), memberName.c_str());
+            sprintf(msg, strings.c_str(STRID_QUIT_CLAN_2), memberName.c_str());
         else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS)
-            sprintf(msg, g_pStringPool->c_str(STRID_QUIT_CLAN_2), memberName.c_str());
+            sprintf(msg, strings.c_str(STRID_QUIT_CLAN_2), memberName.c_str());
 
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(msg);

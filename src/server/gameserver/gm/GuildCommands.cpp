@@ -12,6 +12,7 @@
 #include "GCSystemMessage.h"
 #include "GGCommand.h"
 #include "GSModifyGuildMember.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
 #include "Guild.h"
@@ -52,7 +53,7 @@ void opguild(string msg, int i, Creature* pCreature) {
         GuildID_t guildID = atoi(variable.substr(0, a).c_str());
         string master = trim(variable.substr(a + 1));
 
-        Guild* pGuild = g_pGuildManager->getGuild(guildID);
+        Guild* pGuild = de::gameContext().guilds().getGuild(guildID);
         if (pGuild == NULL) {
             GCSystemMessage msg;
             msg.setMessage("No such Guild");

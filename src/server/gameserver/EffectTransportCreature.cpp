@@ -12,6 +12,7 @@
 
 #include "Assert.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "Player.h"
 #include "Slayer.h"
 #include "StringPool.h"
@@ -87,7 +88,7 @@ void EffectTransportCreature::affect(Creature* pCreature)
     // msg << (int)RemainTime << " seconds until the move to " << m_ZoneName << ".";
 
     char msg[50];
-    sprintf(msg, g_pStringPool->c_str(STRID_TRANSPORT_CREATURE), (int)RemainTime, m_ZoneName.c_str());
+    sprintf(msg, de::gameContext().strings().c_str(STRID_TRANSPORT_CREATURE), (int)RemainTime, m_ZoneName.c_str());
 
     string sMsg(msg);
 

@@ -11,6 +11,7 @@
 #include "GCModifyInformation.h"
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "StringPool.h"
 #include "Vampire.h"
@@ -57,6 +58,8 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
 {
     __BEGIN_TRY
 
+    StringPool& strings = context().strings();
+
     Assert(pCreature1 != NULL);
     Assert(pCreature2 != NULL);
     Assert(pCreature1->isNPC());
@@ -71,7 +74,7 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
 
     Vampire* pVampire = dynamic_cast<Vampire*>(pCreature2);
 
-    Gold_t ATTR_PRICE = g_pVariableManager->getVariable(VAMPIRE_REDISTRIBUTE_ATTR_PRICE);
+    Gold_t ATTR_PRICE = context().variables().getVariable(VAMPIRE_REDISTRIBUTE_ATTR_PRICE);
 
     // Not having the money is an error.
     if (pVampire->getGold() < ATTR_PRICE) {
@@ -82,7 +85,7 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
 
 
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_NOT_ENOUGH_MONEY), pVampire->getName().c_str());
+        sprintf(msg, strings.c_str(STRID_NOT_ENOUGH_MONEY), pVampire->getName().c_str());
 
         GCSystemMessage gcSM;
         gcSM.setMessage(msg);
@@ -107,7 +110,7 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
 
 
             GCSystemMessage gcSM;
-            gcSM.setMessage(g_pStringPool->getString(STRID_TRANS_BONUS_POINT));
+            gcSM.setMessage(strings.getString(STRID_TRANS_BONUS_POINT));
             pPlayer->sendPacket(&gcSM);
             return;
         }
@@ -131,7 +134,7 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
 
 
             GCSystemMessage gcSM;
-            gcSM.setMessage(g_pStringPool->getString(STRID_STR_LOW_LIMIT));
+            gcSM.setMessage(strings.getString(STRID_STR_LOW_LIMIT));
             pPlayer->sendPacket(&gcSM);
             return;
         }
@@ -149,7 +152,7 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
 
 
             GCSystemMessage gcSM;
-            gcSM.setMessage(g_pStringPool->getString(STRID_DEX_LOW_LIMIT));
+            gcSM.setMessage(strings.getString(STRID_DEX_LOW_LIMIT));
             pPlayer->sendPacket(&gcSM);
             return;
         }
@@ -167,7 +170,7 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
 
 
             GCSystemMessage gcSM;
-            gcSM.setMessage(g_pStringPool->getString(STRID_INT_LOW_LIMIT));
+            gcSM.setMessage(strings.getString(STRID_INT_LOW_LIMIT));
             pPlayer->sendPacket(&gcSM);
             return;
         }

@@ -64,7 +64,7 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
         // No stored count means the account did not join the event.
         if (!defaultSpecialEventRepository().loadCount(pPlayer->getID(), count)) {
             char buf[100];
-            sprintf(buf, g_pStringPool->c_str(STRID_DO_NOT_JOIN_BLOOD_WAR_EVENT), pPlayer->getID().c_str());
+            sprintf(buf, context().strings().c_str(STRID_DO_NOT_JOIN_BLOOD_WAR_EVENT), pPlayer->getID().c_str());
 
             GCSystemMessage gcSystemMessage;
             gcSystemMessage.setMessage(buf);
@@ -78,7 +78,7 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
     // received the event item.
     if (count <= 0) {
         char buf[100];
-        sprintf(buf, g_pStringPool->c_str(STRID_ALREADY_TAKE_BLOOD_WAR_EVET_ITEM), pPlayer->getID().c_str());
+        sprintf(buf, context().strings().c_str(STRID_ALREADY_TAKE_BLOOD_WAR_EVET_ITEM), pPlayer->getID().c_str());
 
         GCSystemMessage gcSystemMessage;
         gcSystemMessage.setMessage(buf);

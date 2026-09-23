@@ -135,7 +135,7 @@ void War::sendWarStartMessage() const
 
     GCSystemMessage gcSystemMessage;
     char str[80];
-    sprintf(str, g_pStringPool->c_str(STRID_WAR_START), getWarName().c_str());
+    sprintf(str, de::gameContext().strings().c_str(STRID_WAR_START), getWarName().c_str());
 
     gcSystemMessage.setMessage(str);
     de::gameContext().zoneGroups().broadcast(&gcSystemMessage);
@@ -155,7 +155,7 @@ void War::sendWarEndMessage() const
 
     GCSystemMessage gcSystemMessage;
     char str[80];
-    sprintf(str, g_pStringPool->c_str(STRID_WAR_END), getWarName().c_str());
+    sprintf(str, de::gameContext().strings().c_str(STRID_WAR_END), getWarName().c_str());
 
     gcSystemMessage.setMessage(str);
     de::gameContext().zoneGroups().broadcast(&gcSystemMessage);

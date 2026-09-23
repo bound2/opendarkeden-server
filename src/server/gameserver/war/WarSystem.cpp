@@ -111,12 +111,12 @@ VSDateTime WarSystem::getWarEndTime(WarType_t warType) const {
     switch (warType) {
     // A guild war lasts 1 hour
     case WAR_GUILD:
-        seconds = g_pVariableManager->getVariable(GUILD_WAR_TIME);
+        seconds = de::gameContext().variables().getVariable(GUILD_WAR_TIME);
         break;
 
     // A race war lasts 2 hours
     case WAR_RACE:
-        seconds = g_pVariableManager->getVariable(RACE_WAR_TIME);
+        seconds = de::gameContext().variables().getVariable(RACE_WAR_TIME);
         break;
     }
 
@@ -335,6 +335,7 @@ Work* WarSystem::heartbeat()
     Work* pWork = NULL;
 
     ZoneGroupManager& zoneGroups = de::gameContext().zoneGroups();
+    VariableManager& variables = de::gameContext().variables();
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -364,12 +365,12 @@ Work* WarSystem::heartbeat()
                 gcNE.setCode(NOTICE_EVENT_RACE_WAR_IN_5);
                 zoneGroups.broadcast(&gcNE);
             }
-            if (m_b20Minutes && !g_pVariableManager->isAutoStartRaceWar()) {
+            if (m_b20Minutes && !variables.isAutoStartRaceWar()) {
                 if (lastSec > 20 * 60)
                     m_b20Minutes = m_b5Minutes = false;
             }
 
-            if (lastSec < 0 && !g_pVariableManager->isAutoStartRaceWar()) {
+            if (lastSec < 0 && !variables.isAutoStartRaceWar()) {
                 GCNoticeEvent gcNE;
                 gcNE.setCode(NOTICE_EVENT_RACE_WAR_STARTED_IN_OTHER_SERVER);
                 zoneGroups.broadcast(&gcNE);
@@ -418,7 +419,7 @@ Work* WarSystem::heartbeat()
     }
 
     // Start the race war automatically.
-    if (m_pRaceWarSchedule != NULL && !m_bHasRaceWar && g_pVariableManager->isAutoStartRaceWar()) {
+    if (m_pRaceWarSchedule != NULL && !m_bHasRaceWar && variables.isAutoStartRaceWar()) {
         checkStartRaceWar();
         m_bRaceWarToday = VSDateTime::currentDateTime().daysTo(m_pRaceWarSchedule->getScheduledTime()) <= 4;
     }
@@ -744,6 +745,8 @@ void WarSystem::broadcastWarList(GamePlayer* pGamePlayer) const
 {
     __BEGIN_TRY
 
+    StringPool& strings = de::gameContext().strings();
+
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     const RecentSchedules::container_type& schedules = m_RecentSchedules.getSchedules();
@@ -753,7 +756,7 @@ void WarSystem::broadcastWarList(GamePlayer* pGamePlayer) const
     bool warExist = false;
 
     if (isEmpty()) {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_WAR_IN_ACTIVE));
+        gcSystemMessage.setMessage(strings.getString(STRID_NO_WAR_IN_ACTIVE));
         pGamePlayer->sendPacket(&gcSystemMessage);
 
         return;
@@ -772,14 +775,14 @@ void WarSystem::broadcastWarList(GamePlayer* pGamePlayer) const
 
 
         char msg[100];
-        sprintf(msg, g_pStringPool->c_str(STRID_WAR_STATUS), pWar->getWarName().c_str(),
+        sprintf(msg, strings.c_str(STRID_WAR_STATUS), pWar->getWarName().c_str(),
                 (pSchedule->getScheduledTime()).toString().c_str());
         gcSystemMessage.setMessage(msg);
         pGamePlayer->sendPacket(&gcSystemMessage);
     }
 
     if (!warExist) {
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_WAR_IN_ACTIVE));
+        gcSystemMessage.setMessage(strings.getString(STRID_NO_WAR_IN_ACTIVE));
         pGamePlayer->sendPacket(&gcSystemMessage);
     }
 

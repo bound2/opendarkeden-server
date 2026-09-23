@@ -68,6 +68,8 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
 {
     __BEGIN_TRY
 
+    StringPool& strings = context().strings();
+
     Assert(pCreature1 != NULL);
     Assert(pCreature2 != NULL);
     Assert(pCreature1->isNPC());
@@ -108,25 +110,25 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
             // Free for everyone during a race war.
             // During a guild war only the race allowed into the castle enters free.
             if (context().warSystem().hasActiveRaceWar() || context().warSystem().hasCastleActiveWar(zoneID)) {
-                sprintf(strValue, "%s", g_pStringPool->getString(STRID_FREE).c_str());
+                sprintf(strValue, "%s", strings.getString(STRID_FREE).c_str());
             } else if (race == RACE_SLAYER) {
                 char gold[15];
                 sprintf(gold, "%u", value);
                 string sGold(gold);
                 convertCommaString(sGold);
-                sprintf(strValue, "%s", (sGold + " " + g_pStringPool->getString(STRID_REI)).c_str());
+                sprintf(strValue, "%s", (sGold + " " + strings.getString(STRID_REI)).c_str());
             } else {
                 char gold[15];
                 sprintf(gold, "%u", value);
                 string sGold(gold);
                 convertCommaString(sGold);
-                sprintf(strValue, "%s", (sGold + " " + g_pStringPool->getString(STRID_GELD)).c_str());
+                sprintf(strValue, "%s", (sGold + " " + strings.getString(STRID_GELD)).c_str());
             }
 
             if (castleInfos.isPossibleEnter(zoneID, pPC))
                 pParam->setValue(strValue);
             else
-                pParam->setValue(g_pStringPool->getString(STRID_NO_ENTER));
+                pParam->setValue(strings.getString(STRID_NO_ENTER));
         } else if (keyword == "CastleOwner") {
             // Look up the castle owner and fill it in.
             ZoneID_t zoneID = atoi(pInfo->getParameter(0).c_str());
@@ -141,25 +143,25 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     // A common castle.
                     if (pCastleInfo->getRace() == Guild::GUILD_RACE_SLAYER) {
                         // A Slayer common castle.
-                        result = g_pStringPool->getString(STRID_SLAYER_COMMON_CASTLE);
+                        result = strings.getString(STRID_SLAYER_COMMON_CASTLE);
                     } else if (pCastleInfo->getRace() == Guild::GUILD_RACE_VAMPIRE) {
                         // A Vampire common castle.
-                        result = g_pStringPool->getString(STRID_VAMPIRE_COMMON_CASTLE);
+                        result = strings.getString(STRID_VAMPIRE_COMMON_CASTLE);
                     } else {
-                        result = g_pStringPool->getString(STRID_OUSTERS_COMMON_CASTLE);
+                        result = strings.getString(STRID_OUSTERS_COMMON_CASTLE);
                     }
                 } else {
                     // A castle owned by a guild.
-                    Guild* pGuild = g_pGuildManager->getGuild(pCastleInfo->getGuildID());
+                    Guild* pGuild = context().guilds().getGuild(pCastleInfo->getGuildID());
                     if (pGuild == NULL)
-                        result = g_pStringPool->getString(STRID_NO_MASTER_CASTLE);
+                        result = strings.getString(STRID_NO_MASTER_CASTLE);
                     else
                         //						result = pGuild->getName() + ( (pGuild->getRace() ==
                         // RACE_SLAYER)?"Team":"Clan" ) + "'s castle";
                         result = pGuild->getName() +
-                                 ((pGuild->getRace() == RACE_SLAYER) ? (g_pStringPool->getString(STRID_TEAM))
-                                                                     : (g_pStringPool->getString(STRID_CLAN))) +
-                                 g_pStringPool->getString(STRID_S_CASTLE);
+                                 ((pGuild->getRace() == RACE_SLAYER) ? (strings.getString(STRID_TEAM))
+                                                                     : (strings.getString(STRID_CLAN))) +
+                                 strings.getString(STRID_S_CASTLE);
                 }
 
                 pParam->setValue(result);
@@ -200,7 +202,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                 pParam->setValue("없는");
             } else {
                 GuildID_t gID = pNextWar->recentReinforceGuild();
-                Guild* pGuild = g_pGuildManager->getGuild(gID);
+                Guild* pGuild = context().guilds().getGuild(gID);
                 if (pGuild == NULL)
                     pParam->setValue("없는");
                 else
@@ -210,7 +212,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                 ;
             }
         } else if (keyword == "RedistGold") {
-            Gold_t price = g_pVariableManager->getVariable(VAMPIRE_REDISTRIBUTE_ATTR_PRICE);
+            Gold_t price = context().variables().getVariable(VAMPIRE_REDISTRIBUTE_ATTR_PRICE);
 
             char gold[15];
             sprintf(gold, "%u", price);
@@ -239,11 +241,11 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                 char strValue[20];
 
                 if (pCastleInfo->getRace() == RACE_SLAYER) {
-                    sprintf(strValue, "%s", (sGold + " " + g_pStringPool->getString(STRID_REI)).c_str());
+                    sprintf(strValue, "%s", (sGold + " " + strings.getString(STRID_REI)).c_str());
                 } else if (pCastleInfo->getRace() == RACE_VAMPIRE) {
-                    sprintf(strValue, "%s", (sGold + " " + g_pStringPool->getString(STRID_GELD)).c_str());
+                    sprintf(strValue, "%s", (sGold + " " + strings.getString(STRID_GELD)).c_str());
                 } else {
-                    sprintf(strValue, "%s", (sGold + " " + g_pStringPool->getString(STRID_ZARD)).c_str());
+                    sprintf(strValue, "%s", (sGold + " " + strings.getString(STRID_ZARD)).c_str());
                 }
 
                 pParam->setValue(strValue);
@@ -259,34 +261,34 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     Attr_t grade = pSlayer->getQuestGrade();
 
                     if (grade < 61) {
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_2_1));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_1));
                     } else if (grade < 96) {
                         pParam->setValue("에슬라니아 북서");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_2_2));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_2));
                     } else if (grade < 131) {
                         pParam->setValue("에슬라니아 북동");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_2_3));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_3));
                     } else if (grade < 171) {
                         pParam->setValue("에슬라니아 남서");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_2_4));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_4));
                     } else if (grade < 211) {
                         pParam->setValue("에슬라니아 던전");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_2_5));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_5));
                     } else if (grade < 241) {
                         pParam->setValue("드로베타 남서");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_2_6));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_6));
                     } else if (grade < 271) {
                         pParam->setValue("드로베타 남동");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_2_7));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_7));
                     } else if (grade < 291) {
                         pParam->setValue("티모르호수 남서");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_2_8));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_8));
                     } else if (grade < 301) {
                         pParam->setValue("티모르호수 남동");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_2_9));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_9));
                     } else {
                         pParam->setValue("라옴던전 2층");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_2_10));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_10));
                     }
                 } else if (pCreature2->isVampire()) {
                     Vampire* pVampire = dynamic_cast<Vampire*>(pCreature2);
@@ -294,34 +296,34 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
 
                     if (level < 11) {
                         pParam->setValue("바토리 던전 2층");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_2_1));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_1));
                     } else if (level < 21) {
                         pParam->setValue("림보 남동");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_2_2));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_2));
                     } else if (level < 31) {
                         pParam->setValue("림보 북동");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_2_3));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_3));
                     } else if (level < 41) {
                         pParam->setValue("림보 북서");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_2_4));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_4));
                     } else if (level < 51) {
                         pParam->setValue("티모르 호수 북동");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_2_5));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_5));
                     } else if (level < 61) {
                         pParam->setValue("로딘산 남서");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_2_6));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_6));
                     } else if (level < 71) {
                         pParam->setValue("로딘산 남동");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_2_7));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_7));
                     } else if (level < 81) {
                         pParam->setValue("아이센 던전 1층");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_2_8));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_8));
                     } else if (level < 91) {
                         pParam->setValue("아이센 던전 2층");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_2_9));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_9));
                     } else {
                         pParam->setValue("아담의 성지 동쪽");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_2_10));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_10));
                     }
                 } else if (pCreature2->isOusters()) {
                     Ousters* pOusters = dynamic_cast<Ousters*>(pCreature2);
@@ -329,46 +331,46 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
 
                     if (level < 11) {
                         pParam->setValue("하니알 던전 1층");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_2_1));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_1));
                     } else if (level < 21) {
                         pParam->setValue("하니알 던전 2층");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_2_2));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_2));
                     } else if (level < 31) {
                         pParam->setValue("카스탈로 북동");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_2_3));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_3));
                     } else if (level < 41) {
                         pParam->setValue("고르고바 터널");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_2_4));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_4));
                     } else if (level < 51) {
                         pParam->setValue("드로베타 북동");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_2_5));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_5));
                     } else if (level < 61) {
                         pParam->setValue("드로베타 북서");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_2_6));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_6));
                     } else if (level < 71) {
                         pParam->setValue("로딘산 북동");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_2_7));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_7));
                     } else if (level < 81) {
                         pParam->setValue("로딘산 북서");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_2_8));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_8));
                     } else if (level < 91) {
                         pParam->setValue("라센 내성 2층");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_2_9));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_9));
                     } else {
                         pParam->setValue("라옴 던전 2층");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_2_10));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_10));
                     }
                 }
             } else if (questLevel == 3) {
                 if (pCreature2->isSlayer()) {
                     pParam->setValue("에슬라니아 남서");
-                    pParam->setValue(g_pStringPool->getString(STRID_SLAYER_MINE_ENTER));
+                    pParam->setValue(strings.getString(STRID_SLAYER_MINE_ENTER));
                 } else if (pCreature2->isVampire()) {
                     pParam->setValue("림보 북동");
-                    pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_MINE_ENTER));
+                    pParam->setValue(strings.getString(STRID_VAMPIRE_MINE_ENTER));
                 } else if (pCreature2->isOusters()) {
                     pParam->setValue("카스탈로 북동");
-                    pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_MINE_ENTER));
+                    pParam->setValue(strings.getString(STRID_OUSTERS_MINE_ENTER));
                 } else {
                     filelog("EventBug.txt", "ActionAskVariable : 3단계 퀘스트 존 찾는데 플레이어가 이상하다.");
                 }
@@ -379,19 +381,19 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
 
                     if (grade < 131) {
                         pParam->setValue("에슬라니아 북서");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_4_1));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_4_1));
                     } else if (grade < 211) {
                         pParam->setValue("에슬라니아 던전");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_4_2));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_4_2));
                     } else if (grade < 271) {
                         pParam->setValue("드로베타 남동");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_4_3));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_4_3));
                     } else if (grade < 300) {
                         pParam->setValue("티모르 남동");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_4_4));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_4_4));
                     } else {
                         pParam->setValue("라옴 던전 2층");
-                        pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_4_5));
+                        pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_4_5));
                     }
                 } else if (pCreature2->isVampire()) {
                     Vampire* pVampire = dynamic_cast<Vampire*>(pCreature2);
@@ -399,19 +401,19 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
 
                     if (level < 31) {
                         pParam->setValue("림보 남동");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_4_1));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_4_1));
                     } else if (level < 51) {
                         pParam->setValue("림보 북서");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_4_2));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_4_2));
                     } else if (level < 71) {
                         pParam->setValue("드로베타 남서");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_4_3));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_4_3));
                     } else if (level < 91) {
                         pParam->setValue("아이센 던전 1층");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_4_4));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_4_4));
                     } else {
                         pParam->setValue("아이센 던전 2층");
-                        pParam->setValue(g_pStringPool->getString(STRID_VAMPIRE_QUESTZONE_4_5));
+                        pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_4_5));
                     }
                 } else if (pCreature2->isOusters()) {
                     Ousters* pOusters = dynamic_cast<Ousters*>(pCreature2);
@@ -419,19 +421,19 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
 
                     if (level < 31) {
                         pParam->setValue("카스탈로 북동");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_4_1));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_4_1));
                     } else if (level < 51) {
                         pParam->setValue("드로베타 북서");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_4_2));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_4_2));
                     } else if (level < 71) {
                         pParam->setValue("로딘산 남서");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_4_3));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_4_3));
                     } else if (level < 91) {
                         pParam->setValue("티모르 남동");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_4_4));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_4_4));
                     } else {
                         pParam->setValue("라옴 던전 1층");
-                        pParam->setValue(g_pStringPool->getString(STRID_OUSTERS_QUESTZONE_4_5));
+                        pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_4_5));
                     }
                 } else {
                     filelog("EventBug.txt", "ActionAskVariable : 4단계 퀘스트 존 찾는데 플레이어가 이상하다.");
@@ -449,75 +451,75 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     Attr_t grade = pSlayer->getQuestGrade();
 
                     if (grade < 61) {
-                        pParam->setValue(g_pStringPool->getString(STRID_YELLOW_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_YELLOW_ZIMAT));
                     } else if (grade < 96) {
-                        pParam->setValue(g_pStringPool->getString(STRID_GREEN_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_GREEN_ZIMAT));
                     } else if (grade < 131) {
-                        pParam->setValue(g_pStringPool->getString(STRID_BLUE_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_BLUE_ZIMAT));
                     } else if (grade < 171) {
-                        pParam->setValue(g_pStringPool->getString(STRID_RED_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_RED_ZIMAT));
                     } else if (grade < 211) {
-                        pParam->setValue(g_pStringPool->getString(STRID_BLACK_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_BLACK_ZIMAT));
                     } else if (grade < 241) {
-                        pParam->setValue(g_pStringPool->getString(STRID_YELLOW_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_YELLOW_ZIRCON));
                     } else if (grade < 271) {
-                        pParam->setValue(g_pStringPool->getString(STRID_GREEN_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_GREEN_ZIRCON));
                     } else if (grade < 291) {
-                        pParam->setValue(g_pStringPool->getString(STRID_BLUE_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_BLUE_ZIRCON));
                     } else if (grade < 301) {
-                        pParam->setValue(g_pStringPool->getString(STRID_RED_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_RED_ZIRCON));
                     } else {
-                        pParam->setValue(g_pStringPool->getString(STRID_BLACK_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_BLACK_ZIRCON));
                     }
                 } else if (pCreature2->isVampire()) {
                     Vampire* pVampire = dynamic_cast<Vampire*>(pCreature2);
                     Level_t level = pVampire->getLevel();
 
                     if (level < 11) {
-                        pParam->setValue(g_pStringPool->getString(STRID_YELLOW_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_YELLOW_ZIMAT));
                     } else if (level < 21) {
-                        pParam->setValue(g_pStringPool->getString(STRID_GREEN_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_GREEN_ZIMAT));
                     } else if (level < 31) {
-                        pParam->setValue(g_pStringPool->getString(STRID_BLUE_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_BLUE_ZIMAT));
                     } else if (level < 41) {
-                        pParam->setValue(g_pStringPool->getString(STRID_RED_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_RED_ZIMAT));
                     } else if (level < 51) {
-                        pParam->setValue(g_pStringPool->getString(STRID_BLACK_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_BLACK_ZIMAT));
                     } else if (level < 61) {
-                        pParam->setValue(g_pStringPool->getString(STRID_YELLOW_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_YELLOW_ZIRCON));
                     } else if (level < 71) {
-                        pParam->setValue(g_pStringPool->getString(STRID_GREEN_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_GREEN_ZIRCON));
                     } else if (level < 81) {
-                        pParam->setValue(g_pStringPool->getString(STRID_BLUE_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_BLUE_ZIRCON));
                     } else if (level < 91) {
-                        pParam->setValue(g_pStringPool->getString(STRID_RED_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_RED_ZIRCON));
                     } else {
-                        pParam->setValue(g_pStringPool->getString(STRID_BLACK_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_BLACK_ZIRCON));
                     }
                 } else if (pCreature2->isOusters()) {
                     Ousters* pOusters = dynamic_cast<Ousters*>(pCreature2);
                     Level_t level = pOusters->getLevel();
 
                     if (level < 11) {
-                        pParam->setValue(g_pStringPool->getString(STRID_YELLOW_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_YELLOW_ZIMAT));
                     } else if (level < 21) {
-                        pParam->setValue(g_pStringPool->getString(STRID_GREEN_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_GREEN_ZIMAT));
                     } else if (level < 31) {
-                        pParam->setValue(g_pStringPool->getString(STRID_BLUE_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_BLUE_ZIMAT));
                     } else if (level < 41) {
-                        pParam->setValue(g_pStringPool->getString(STRID_RED_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_RED_ZIMAT));
                     } else if (level < 51) {
-                        pParam->setValue(g_pStringPool->getString(STRID_BLACK_ZIMAT));
+                        pParam->setValue(strings.getString(STRID_BLACK_ZIMAT));
                     } else if (level < 61) {
-                        pParam->setValue(g_pStringPool->getString(STRID_YELLOW_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_YELLOW_ZIRCON));
                     } else if (level < 71) {
-                        pParam->setValue(g_pStringPool->getString(STRID_GREEN_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_GREEN_ZIRCON));
                     } else if (level < 81) {
-                        pParam->setValue(g_pStringPool->getString(STRID_BLUE_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_BLUE_ZIRCON));
                     } else if (level < 91) {
-                        pParam->setValue(g_pStringPool->getString(STRID_RED_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_RED_ZIRCON));
                     } else {
-                        pParam->setValue(g_pStringPool->getString(STRID_BLACK_ZIRCON));
+                        pParam->setValue(strings.getString(STRID_BLACK_ZIRCON));
                     }
                 }
             } else if (questLevel == 5) {
@@ -526,45 +528,45 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     Attr_t grade = pSlayer->getQuestGrade();
 
                     if (grade < 131) {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_1));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_1));
                     } else if (grade < 211) {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_2));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_2));
                     } else if (grade < 271) {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_3));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_3));
                     } else if (grade < 301) {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_4));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_4));
                     } else {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_5));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_5));
                     }
                 } else if (pCreature2->isVampire()) {
                     Vampire* pVampire = dynamic_cast<Vampire*>(pCreature2);
                     Level_t level = pVampire->getLevel();
 
                     if (level < 31) {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_1));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_1));
                     } else if (level < 51) {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_2));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_2));
                     } else if (level < 71) {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_3));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_3));
                     } else if (level < 91) {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_4));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_4));
                     } else {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_5));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_5));
                     }
                 } else if (pCreature2->isOusters()) {
                     Ousters* pOusters = dynamic_cast<Ousters*>(pCreature2);
                     Level_t level = pOusters->getLevel();
 
                     if (level < 31) {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_1));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_1));
                     } else if (level < 51) {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_2));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_2));
                     } else if (level < 71) {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_3));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_3));
                     } else if (level < 91) {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_4));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_4));
                     } else {
-                        pParam->setValue(g_pStringPool->getString(STRID_QUEST_MONSTER_5));
+                        pParam->setValue(strings.getString(STRID_QUEST_MONSTER_5));
                     }
                 } else {
                     filelog("EventBug.txt", "ActionAskVariable : 4단계 퀘스트 몬스터 찾는데 플레이어가 이상하다.");

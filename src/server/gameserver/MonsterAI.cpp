@@ -1128,7 +1128,7 @@ void MonsterAI::deal(Creature* pEnemy, const Timeval& currentTime)
                 parameter = pDirective->getParameter();
                 GCSay gcSay;
                 gcSay.setObjectID(m_pBody->getObjectID());
-                gcSay.setMessage(g_pStringPool->getString(parameter));
+                gcSay.setMessage(de::gameContext().strings().getString(parameter));
                 gcSay.setColor(0x00ffffff);
                 m_pBody->getZone()->broadcastPacket(m_pBody->getX(), m_pBody->getY(), &gcSay);
             }
@@ -1216,7 +1216,7 @@ void MonsterAI::actDeadAction(Creature* pEnemy)
                 int parameter = pDirective->getParameter();
                 GCSay gcSay;
                 gcSay.setObjectID(m_pBody->getObjectID());
-                gcSay.setMessage(g_pStringPool->getString(parameter));
+                gcSay.setMessage(de::gameContext().strings().getString(parameter));
                 gcSay.setColor(0x00ffffff);
                 m_pBody->getZone()->broadcastPacket(m_pBody->getX(), m_pBody->getY(), &gcSay);
             }
@@ -1630,6 +1630,7 @@ bool checkTimingMasterBloodDrain(Monster* pMonster, Creature* pEnemy) {
     //	return false;
 
     Assert(pMonster != NULL);
+    VariableManager& variables = de::gameContext().variables();
 
     if (pEnemy == NULL) {
         return false;
@@ -1640,10 +1641,10 @@ bool checkTimingMasterBloodDrain(Monster* pMonster, Creature* pEnemy) {
     // Blood drain probability
     // int startHPPercent 	= 70,	startBDPercent 	= 10;
     // int endHPPercent 	= 30, 	endBDPercent 	= 30;
-    int startHPPercent = g_pVariableManager->getMasterBloodDrainStartHP();
-    int startBDPercent = g_pVariableManager->getMasterBloodDrainStartBD();
-    int endHPPercent = g_pVariableManager->getMasterBloodDrainEndHP();
-    int endBDPercent = g_pVariableManager->getMasterBloodDrainEndBD();
+    int startHPPercent = variables.getMasterBloodDrainStartHP();
+    int startBDPercent = variables.getMasterBloodDrainStartBD();
+    int endHPPercent = variables.getMasterBloodDrainEndHP();
+    int endBDPercent = variables.getMasterBloodDrainEndBD();
 
     // Do not drain blood when HP is 70% or more.
     if (masterHPPercent >= startHPPercent)

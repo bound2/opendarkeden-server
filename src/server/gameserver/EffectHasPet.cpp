@@ -11,6 +11,7 @@
 #include "GCAddEffect.h"
 #include "GCModifyInformation.h"
 #include "GCRemoveEffect.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "PetExpInfo.h"
 #include "PetInfo.h"
@@ -129,7 +130,7 @@ void EffectHasPet::affect(Creature* pCreature)
             if (!pGamePlayer->isPayPlaying())
                 exp = 12;
 
-            exp = getPercentValue(exp, g_pVariableManager->getPetExpRatio());
+            exp = getPercentValue(exp, de::gameContext().variables().getPetExpRatio());
 
             if (increasePetExp(pPetInfo, exp)) {
                 sendPetInfo(pGamePlayer, true, false);

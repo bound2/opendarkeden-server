@@ -139,7 +139,7 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
 
     // Does the creature hold an EffectMasterLairPass for the current zone?
     if (pCreature->isFlag(Effect::EFFECT_CLASS_MASTER_LAIR_PASS)) {
-        if (g_pVariableManager->isRetryMasterLair()) {
+        if (de::gameContext().variables().isRetryMasterLair()) {
             Effect* pEffect = pCreature->getEffectManager()->findEffect(Effect::EFFECT_CLASS_MASTER_LAIR_PASS);
             Assert(pEffect != NULL);
 
@@ -172,7 +172,7 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
     }
 
     // if (m_nPassPlayer >= m_nMaxPassPlayer)
-    if (m_nPassPlayer >= g_pVariableManager->getVariable(MASTER_LAIR_PLAYER_NUM)) // by sigi. 2002.12.31
+    if (m_nPassPlayer >= de::gameContext().variables().getVariable(MASTER_LAIR_PLAYER_NUM)) // by sigi. 2002.12.31
     {
         // cout << "[" << (int)m_pZone->getZoneID() << "] MasterLairManager: Already Maximum Players: "
         //<< m_pZone->getPCManager()->getSize() << " / " << m_nPassPlayer << "/" << m_nMaxPassPlayer << endl;
@@ -248,7 +248,7 @@ bool MasterLairManager::leaveCreature(Creature* pCreature)
 
     // When re-entry after leaving (or dying) is not allowed, remove the
     // EffectMasterLairPass on the way out.
-    if (!g_pVariableManager->isRetryMasterLair()) {
+    if (!de::gameContext().variables().isRetryMasterLair()) {
         if (pCreature->isFlag(Effect::EFFECT_CLASS_MASTER_LAIR_PASS)) {
             pCreature->getEffectManager()->deleteEffect(Effect::EFFECT_CLASS_MASTER_LAIR_PASS);
             pCreature->removeFlag(Effect::EFFECT_CLASS_MASTER_LAIR_PASS);
@@ -493,7 +493,7 @@ void MasterLairManager::processEventWaitingRegen()
     // When the regen time arrives,
     //   wait for players.
     if (currentTime >= m_RegenTime) {
-        if (g_pVariableManager->isActiveMasterLair()) {
+        if (de::gameContext().variables().isActiveMasterLair()) {
             activeEventWaitingPlayer();
         } else {
             // Otherwise wait until the next regen time.

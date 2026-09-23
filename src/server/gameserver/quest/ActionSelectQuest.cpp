@@ -11,6 +11,7 @@
 #include "GCNPCResponse.h"
 #include "GCSelectQuestID.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "NPC.h"
 #include "PlayerCreature.h"
@@ -72,7 +73,7 @@ void ActionSelectQuest::execute(Creature* pCreature1, Creature* pCreature2)
     list<QuestID_t> quests;
     pNPC->getQuestInfoManager()->getPossibleQuestIDs(pPC, back_inserter(quests));
 
-    if (g_pVariableManager->bSendQuestInfo()) {
+    if (context().variables().bSendQuestInfo()) {
         GCMonsterKillQuestInfo gcMKQInfo;
         list<QuestInfo*> QIs;
         pNPC->getQuestInfoManager()->getMonsterKillQuests(quests.begin(), quests.end(), back_inserter(QIs));

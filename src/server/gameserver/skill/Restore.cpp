@@ -133,7 +133,7 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 
             // Remove it from the guild's list of currently connected members.
             if (pVampire->getGuildID() != 0) {
-                Guild* pGuild = g_pGuildManager->getGuild(pVampire->getGuildID());
+                Guild* pGuild = de::gameContext().guilds().getGuild(pVampire->getGuildID());
                 if (pGuild != NULL) {
                     pGuild->deleteCurrentMember(pVampire->getName());
 
@@ -428,7 +428,7 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
 
             // Remove it from the guild's list of currently connected members.
             if (pVampire->getGuildID() != 0) {
-                Guild* pGuild = g_pGuildManager->getGuild(pVampire->getGuildID());
+                Guild* pGuild = de::gameContext().guilds().getGuild(pVampire->getGuildID());
                 if (pGuild != NULL)
                     pGuild->deleteCurrentMember(pVampire->getName());
                 else

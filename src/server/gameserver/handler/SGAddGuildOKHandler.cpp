@@ -33,10 +33,12 @@ void SGAddGuildOKHandler::execute(SGAddGuildOK* pPacket)
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
+        StringPool& strings = de::gameContext().strings();
+
 #ifdef __GAME_SERVER__
 
-        // Allocate a new guild object
-        Guild* pGuild = new Guild();
+    // Allocate a new guild object
+    Guild* pGuild = new Guild();
     pGuild->setID(pPacket->getGuildID());
     pGuild->setName(pPacket->getGuildName());
     pGuild->setRace(pPacket->getGuildRace());
@@ -47,7 +49,7 @@ void SGAddGuildOKHandler::execute(SGAddGuildOK* pPacket)
     pGuild->setIntro(pPacket->getGuildIntro());
 
     // Add to guild manager
-    g_pGuildManager->addGuild(pGuild);
+    de::gameContext().guilds().addGuild(pGuild);
 
     // Notify guild master if online
     PCFinder& pcFinder = de::gameContext().playerCreatures();
@@ -61,11 +63,11 @@ void SGAddGuildOKHandler::execute(SGAddGuildOK* pPacket)
 
         GCSystemMessage gcSystemMessage;
         if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TEAM_REGISTERED));
+            gcSystemMessage.setMessage(strings.getString(STRID_TEAM_REGISTERED));
         else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE)
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_REGISTERED));
+            gcSystemMessage.setMessage(strings.getString(STRID_CLAN_REGISTERED));
         else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS)
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_REGISTERED));
+            gcSystemMessage.setMessage(strings.getString(STRID_CLAN_REGISTERED));
         pPlayer->sendPacket(&gcSystemMessage);
     }
 

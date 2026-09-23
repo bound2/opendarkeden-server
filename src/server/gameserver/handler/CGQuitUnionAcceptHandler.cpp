@@ -60,7 +60,7 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
     }
 
     // Is the requester the master of its own guild, and is the union's master guild my guild?
-    if (!g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature) ||
+    if (!de::gameContext().guilds().isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature) ||
         pUnion->getMasterGuildID() != pPlayerCreature->getGuildID()) {
         // Send GC_GUILD_RESPONSE.
         // Content: not the guild master.
@@ -78,7 +78,7 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
     ////////////////////
 
     if (result == GuildUnionOfferManager::OK) {
-        Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+        Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
 
         if (pGuild == NULL) {
             return;
@@ -88,7 +88,8 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
 
         GuildRepository& guilds = defaultGuildRepository();
 
-        defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(375));
+        defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster,
+                                                     de::gameContext().strings().c_str(375));
 
         // What if I am the only one left after accepting the withdrawal?
         if (guilds.countUnionMembersSpelled(UNION_SQL_PLAIN, pUnion->getUnionID()) == 0) {

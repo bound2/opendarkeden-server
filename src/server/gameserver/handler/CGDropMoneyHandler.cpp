@@ -105,7 +105,7 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
 
 
             // Leave a money log if the amount warrants one
-            if (amount >= g_pVariableManager->getMoneyTraceLogLimit()) {
+            if (amount >= de::gameContext().variables().getMoneyTraceLogLimit()) {
                 char zoneName[15];
                 sprintf(zoneName, "%4d%3d%3d", pZone->getZoneID(), ZoneX, ZoneY);
                 remainMoneyTraceLog(pPC->getName(), zoneName, ITEM_LOG_MOVE, DETAIL_DROP, amount);

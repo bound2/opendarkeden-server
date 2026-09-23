@@ -140,9 +140,9 @@ ObjectManager::ObjectManager()
 
     FlagSet::initialize();
 
-    g_pStringPool = new StringPool();
+    m_pStringPool = new StringPool();
     m_pZoneInfoManager = new ZoneInfoManager();
-    g_pVariableManager = new VariableManager();
+    m_pVariableManager = new VariableManager();
     m_pItemInfoManager = new ItemInfoManager();
     m_pItemFactoryManager = new ItemFactoryManager();
     m_pVolumeInfoManager = new VolumeInfoManager();
@@ -168,9 +168,9 @@ ObjectManager::ObjectManager()
     // can be handed them explicitly. It does not own them: they are created
     // here and deleted in this class's destructor.
     de::GameContext& context = de::gameContext();
-    context.setStringPool(g_pStringPool);
+    context.setStringPool(m_pStringPool);
     context.setZoneInfoManager(m_pZoneInfoManager);
-    context.setVariableManager(g_pVariableManager);
+    context.setVariableManager(m_pVariableManager);
     context.setItemInfoManager(m_pItemInfoManager);
     context.setItemFactoryManager(m_pItemFactoryManager);
     context.setVolumeInfoManager(m_pVolumeInfoManager);
@@ -206,7 +206,8 @@ ObjectManager::ObjectManager()
     context.setPriceManager(m_pPriceManager);
     m_pEffectLoaderManager = new EffectLoaderManager();
     context.setEffectLoaderManager(m_pEffectLoaderManager);
-    g_pGuildManager = new GuildManager();
+    m_pGuildManager = new GuildManager();
+    context.setGuildManager(m_pGuildManager);
     //	g_pGuildRegistrationManager = new GuildRegistrationManager();
     //	g_pGuildVoteManager         = new GuildVoteManager();
     g_pResurrectLocationManager = new ResurrectLocationManager();
@@ -292,7 +293,7 @@ ObjectManager::~ObjectManager()
 {
     __BEGIN_TRY
 
-    SAFE_DELETE(g_pStringPool);
+    SAFE_DELETE(m_pStringPool);
     SAFE_DELETE(m_pActionFactoryManager);
     SAFE_DELETE(m_pConditionFactoryManager);
     SAFE_DELETE(m_pPublicScriptManager);
@@ -323,13 +324,13 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pPriceManager);
     SAFE_DELETE(m_pVampEXPInfoManager);
     SAFE_DELETE(m_pOustersEXPInfoManager);
-    SAFE_DELETE(g_pGuildManager);
+    SAFE_DELETE(m_pGuildManager);
     SAFE_DELETE(g_pResurrectLocationManager);
     SAFE_DELETE(m_pAlignmentManager);
     SAFE_DELETE(m_pWayPointManager);
     SAFE_DELETE(m_pGlobalPartyManager);
     SAFE_DELETE(g_pGameWorldInfoManager);
-    SAFE_DELETE(g_pVariableManager);
+    SAFE_DELETE(m_pVariableManager);
     SAFE_DELETE(m_pCombatInfoManager);
     SAFE_DELETE(m_pUniqueItemManager);
     SAFE_DELETE(m_pMasterLairInfoManager);
@@ -388,11 +389,11 @@ void ObjectManager::init()
     // this has to be called before the zones are loaded.
     //--------------------------------------------------------------------------------
     printf("ObjectManager::init() : StringPool Initialization Start....... \n");
-    g_pStringPool->load();
+    m_pStringPool->load();
     printf("ObjectManager::init() : StringPool Initialization Success....... \n");
 
     printf("ObjectManager::init() : VariableManager Initialization Start....... \n");
-    g_pVariableManager->init();
+    m_pVariableManager->init();
     printf("ObjectManager::init() : VariableManager Initialization Success....... \n");
 
     printf("ObjectManager::init() : ConditionFactoryManager Initialization Start\n");
@@ -548,8 +549,8 @@ void ObjectManager::load()
     //--------------------------------------------------------------------------------
 
     printf("ObjectManager::init() : GuildManager Initialization Start\n");
-    if (g_pGuildManager != NULL)
-        g_pGuildManager->init();
+    if (m_pGuildManager != NULL)
+        m_pGuildManager->init();
     printf("ObjectManager::init() : GuildManager Initialization Success\n");
 
     printf("ObjectManager::init() : GuildUnionManager Initialization Start\n");

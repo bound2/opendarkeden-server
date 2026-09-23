@@ -59,7 +59,7 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
     }
 
     // Is the requester the master of its own guild, and is the union's master guild my guild?
-    if (!g_pGuildManager->isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature) ||
+    if (!de::gameContext().guilds().isGuildMaster(pPlayerCreature->getGuildID(), pPlayerCreature) ||
         pUnion->getMasterGuildID() != pPlayerCreature->getGuildID()) {
         // Send GC_GUILD_RESPONSE.
         // Content: not the guild master.
@@ -77,7 +77,7 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
 
     ////////////////////
     if (result == GuildUnionOfferManager::OK) {
-        Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
+        Guild* pGuild = de::gameContext().guilds().getGuild(pPacket->getGuildID());
 
         if (pGuild == NULL) {
             return;
@@ -88,7 +88,7 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
         GuildRepository& guilds = defaultGuildRepository();
 
         defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, TargetGuildMaster,
-                                                     g_pStringPool->c_str(374));
+                                                     de::gameContext().strings().c_str(374));
 
         // What if I am the only one left after refusing?
         if (guilds.countUnionMembersSpelled(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {

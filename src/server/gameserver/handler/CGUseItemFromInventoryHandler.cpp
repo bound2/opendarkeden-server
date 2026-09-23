@@ -1041,7 +1041,7 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
     // A motorcycle cannot be called when the item is not a key item.
     // No motorcycle summon in a master lair or a portal-free area
     // Only a premium user can call one.
-    if (!g_pVariableManager->isSummonMotorcycle() || pSlayer->hasRideMotorcycle() ||
+    if (!de::gameContext().variables().isSummonMotorcycle() || pSlayer->hasRideMotorcycle() ||
         pItem->getItemClass() != Item::ITEM_CLASS_KEY || pSlayer->isFlag(Effect::EFFECT_CLASS_COMA) ||
         (pZone->getZoneLevel(pCreature->getX(), pCreature->getY()) & SAFE_ZONE) || pZone->isMasterLair() ||
         pZone->isNoPortalZone() || (!pGamePlayer->isPremiumPlay() && !pGamePlayer->isPayPlaying()) ||

@@ -2,6 +2,7 @@
 
 #include <cstdio>
 
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ModifyInfo.h"
 #include "PetAttrInfo.h"
@@ -92,7 +93,7 @@ PetExp_t computePetExp(Level_t myLevel, Level_t monsterLevel, PetInfo* pPetInfo,
     else if (x < -20)
         ret = max(1, (int)ret / 10);
 
-    ret = getPercentValue(ret, g_pVariableManager->getPetExpRatio());
+    ret = getPercentValue(ret, de::gameContext().variables().getPetExpRatio());
 
     return ret;
 }

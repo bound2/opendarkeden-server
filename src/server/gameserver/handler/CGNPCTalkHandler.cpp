@@ -11,6 +11,7 @@
 #include "GCNPCResponse.h"
 #include "GCNPCSayDynamic.h"
 #include "GQuestManager.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "NPC.h"
 #include "PlayerCreature.h"
@@ -36,9 +37,11 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
 
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX __BEGIN_DEBUG
+
+        StringPool& strings = de::gameContext().strings();
 #ifdef __GAME_SERVER__
 
-        try {
+    try {
         Assert(pPacket != NULL);
         Assert(pPlayer != NULL);
 
@@ -122,9 +125,9 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
                 saypkt.setObjectID(pNPC->getObjectID());
                 // An Event NPC says something different
                 if (pNPC->getNPCID() == 639) {
-                    saypkt.setMessage(g_pStringPool->c_str(STRID_EVENT_NPC_1));
+                    saypkt.setMessage(strings.c_str(STRID_EVENT_NPC_1));
                 } else {
-                    saypkt.setMessage(g_pStringPool->c_str(STRID_ALERT_VAMPIRE));
+                    saypkt.setMessage(strings.c_str(STRID_ALERT_VAMPIRE));
                 }
                 pPlayer->sendPacket(&saypkt);
                 return;
@@ -138,7 +141,7 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
                 // When a Vampire talks to a Slayer NPC...
                 GCNPCSayDynamic saypkt;
                 saypkt.setObjectID(pNPC->getObjectID());
-                saypkt.setMessage(g_pStringPool->c_str(STRID_ALERT_OUSTERS_2));
+                saypkt.setMessage(strings.c_str(STRID_ALERT_OUSTERS_2));
                 pPlayer->sendPacket(&saypkt);
                 return;
             }
@@ -153,13 +156,13 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
                 saypkt.setObjectID(pNPC->getObjectID());
                 // An Event NPC says something different
                 if (pNPC->getNPCID() == 638) {
-                    saypkt.setMessage(g_pStringPool->c_str(STRID_EVENT_NPC_2));
+                    saypkt.setMessage(strings.c_str(STRID_EVENT_NPC_2));
                 } else if (pNPC->getNPCID() == 636) {
-                    saypkt.setMessage(g_pStringPool->c_str(STRID_EVENT_NPC_3));
+                    saypkt.setMessage(strings.c_str(STRID_EVENT_NPC_3));
                 } else if (pNPC->getNPCID() == 635) {
-                    saypkt.setMessage(g_pStringPool->c_str(STRID_EVENT_NPC_4));
+                    saypkt.setMessage(strings.c_str(STRID_EVENT_NPC_4));
                 } else {
-                    saypkt.setMessage(g_pStringPool->c_str(STRID_ALERT_SLAYER));
+                    saypkt.setMessage(strings.c_str(STRID_ALERT_SLAYER));
                 }
                 pPlayer->sendPacket(&saypkt);
                 return;
@@ -172,7 +175,7 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
 
                 GCNPCSayDynamic saypkt;
                 saypkt.setObjectID(pNPC->getObjectID());
-                saypkt.setMessage(g_pStringPool->c_str(STRID_ALERT_OUSTERS));
+                saypkt.setMessage(strings.c_str(STRID_ALERT_OUSTERS));
                 pPlayer->sendPacket(&saypkt);
                 return;
             }
@@ -184,7 +187,7 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
 
                 GCNPCSayDynamic saypkt;
                 saypkt.setObjectID(pNPC->getObjectID());
-                saypkt.setMessage(g_pStringPool->c_str(STRID_ALERT_SLAYER_2));
+                saypkt.setMessage(strings.c_str(STRID_ALERT_SLAYER_2));
                 pPlayer->sendPacket(&saypkt);
                 return;
             }
@@ -196,7 +199,7 @@ void CGNPCTalkHandler::execute(CGNPCTalk* pPacket, Player* pPlayer)
 
                 GCNPCSayDynamic saypkt;
                 saypkt.setObjectID(pNPC->getObjectID());
-                saypkt.setMessage(g_pStringPool->c_str(STRID_ALERT_VAMPIRE_2));
+                saypkt.setMessage(strings.c_str(STRID_ALERT_VAMPIRE_2));
                 pPlayer->sendPacket(&saypkt);
                 return;
             }

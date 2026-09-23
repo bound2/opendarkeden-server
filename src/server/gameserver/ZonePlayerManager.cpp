@@ -259,7 +259,7 @@ void ZonePlayerManager::processInputs() {
                 Assert(pTempPlayer != NULL);
                 Assert(m_pPlayers[i] != NULL);
 
-                if (g_pVariableManager->getVariable(PCROOM_ITEM_RATIO_BONUS) == 100 &&
+                if (de::gameContext().variables().getVariable(PCROOM_ITEM_RATIO_BONUS) == 100 &&
                     !checkZonePlayerManager(pTempPlayer, this, "PI")) {
                     try {
                         CGLogoutHandler::execute(NULL, pTempPlayer);
@@ -369,7 +369,7 @@ void ZonePlayerManager::processCommands() {
                     pTempPlayer->processCommand();
                     endProfileEx("ZPM_PACKET");
 
-                    if (g_pVariableManager->getVariable(PCROOM_ITEM_RATIO_BONUS) == 100 &&
+                    if (de::gameContext().variables().getVariable(PCROOM_ITEM_RATIO_BONUS) == 100 &&
                         !checkZonePlayerManager(pTempPlayer, this, "PC")) {
                         try {
                             CGLogoutHandler::execute(NULL, pTempPlayer);

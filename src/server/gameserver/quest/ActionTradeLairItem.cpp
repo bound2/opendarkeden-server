@@ -70,6 +70,8 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 {
     __BEGIN_TRY
 
+    StringPool& strings = context().strings();
+
     Assert(pCreature1 != NULL);
     Assert(pCreature2 != NULL);
     Assert(pCreature1->isNPC());
@@ -262,7 +264,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
         // The NPC's trade property is wrong, so the player is told that the
         // operations team can sort it out right away.
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NPC_ERROR));
+        gcSystemMessage.setMessage(strings.getString(STRID_NPC_ERROR));
         pPlayer->sendPacket(&gcSystemMessage);
 
         GCNPCResponse response;
@@ -273,7 +275,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 
     if (pMasterItem == NULL) {
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_LAIR_ITEM));
+        gcSystemMessage.setMessage(strings.getString(STRID_NO_LAIR_ITEM));
         pPlayer->sendPacket(&gcSystemMessage);
 
         GCNPCResponse response;
@@ -339,7 +341,7 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
             filelog("tradeLairItemBUG.txt", "%s", msg.toString().c_str());
 
             GCSystemMessage gcSystemMessage;
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_ITEM_CREATE_ERROR));
+            gcSystemMessage.setMessage(strings.getString(STRID_ITEM_CREATE_ERROR));
             pPlayer->sendPacket(&gcSystemMessage);
 
             GCNPCResponse response;
@@ -386,11 +388,11 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 
         // Print a success message to the user.
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TRADE_SUCCESS));
+        gcSystemMessage.setMessage(strings.getString(STRID_TRADE_SUCCESS));
         pPlayer->sendPacket(&gcSystemMessage);
     } else {
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NOT_ENOUGH_INVENTORY_SPACE));
+        gcSystemMessage.setMessage(strings.getString(STRID_NOT_ENOUGH_INVENTORY_SPACE));
         pPlayer->sendPacket(&gcSystemMessage);
     }
 

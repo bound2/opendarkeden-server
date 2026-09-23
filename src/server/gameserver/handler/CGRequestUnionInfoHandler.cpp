@@ -11,6 +11,7 @@
 #include "GCGuildResponse.h"
 #include "GCShowUnionInfo.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -51,7 +52,7 @@ void CGRequestUnionInfoHandler::execute(CGRequestUnionInfo* pPacket, Player* pPl
     }
 
     // Get the Master guild's information.
-    Guild* pGuild = g_pGuildManager->getGuild(pGuildUnion->getMasterGuildID());
+    Guild* pGuild = de::gameContext().guilds().getGuild(pGuildUnion->getMasterGuildID());
 
     if (pGuild == NULL) {
         gcGuildResponse.setCode(GuildUnionOfferManager::NO_TARGET_UNION);
@@ -76,7 +77,7 @@ void CGRequestUnionInfoHandler::execute(CGRequestUnionInfo* pPacket, Player* pPl
     list<GuildID_t> gList = pGuildUnion->getGuildList();
     list<GuildID_t>::iterator itr = gList.begin();
     for (; itr != gList.end(); ++itr) {
-        Guild* pGuild2 = g_pGuildManager->getGuild(*itr);
+        Guild* pGuild2 = de::gameContext().guilds().getGuild(*itr);
         if (pGuild2 != NULL) {
             SingleGuildInfo* GuildInfo = new SingleGuildInfo;
 

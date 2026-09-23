@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "StringPool.h"
 
@@ -44,7 +45,7 @@ void EventKick::sendMessage()
     Turn_t RemainTime = max(0, (int)(m_Deadline.tv_sec - currentTime.tv_sec));
 
     char msg[50];
-    sprintf(msg, g_pStringPool->c_str(STRID_DISCONNECT_COUNT_DOWN), (int)RemainTime);
+    sprintf(msg, de::gameContext().strings().c_str(STRID_DISCONNECT_COUNT_DOWN), (int)RemainTime);
 
     string sMsg(msg);
 

@@ -10,6 +10,7 @@
 
 #include "AbilityBalance.h"
 
+#include "GameContext.h"
 #include "ItemUtil.h"
 #include "Monster.h"
 #include "Properties.h"
@@ -84,17 +85,18 @@ bool isHardcore() {
 // and Ousters::load() must change with it. by sigi.
 HP_t computeHP(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enhance) {
     Assert(pAttr != NULL);
+    VariableManager& variables = de::gameContext().variables();
 
     decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
-        return decore::slayerMaxHP(a, g_pVariableManager->getVariable(SLAYER_HP_RATIO), isHardcore());
+        return decore::slayerMaxHP(a, variables.getVariable(SLAYER_HP_RATIO), isHardcore());
     } else if (CClass == Creature::CREATURE_CLASS_VAMPIRE) {
-        return decore::vampireMaxHP(a, g_pVariableManager->getVariable(VAMPIRE_HP_RATIO), isHardcore());
+        return decore::vampireMaxHP(a, variables.getVariable(VAMPIRE_HP_RATIO), isHardcore());
     } else if (CClass == Creature::CREATURE_CLASS_OUSTERS) {
-        return decore::oustersMaxHP(a, g_pVariableManager->getVariable(OUSTERS_HP_RATIO), isHardcore());
+        return decore::oustersMaxHP(a, variables.getVariable(OUSTERS_HP_RATIO), isHardcore());
     } else if (CClass == Creature::CREATURE_CLASS_MONSTER) {
-        return decore::monsterMaxHP(a, enhance, g_pVariableManager->getVariable(MONSTER_HP_RATIO), isHardcore());
+        return decore::monsterMaxHP(a, enhance, variables.getVariable(MONSTER_HP_RATIO), isHardcore());
     }
 
     return 0;
@@ -170,17 +172,18 @@ Protection_t computeProtection(Creature::CreatureClass CClass, BASIC_ATTR* pAttr
 
 Damage_t computeMinDamage(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enhance) {
     Assert(pAttr != NULL);
+    VariableManager& variables = de::gameContext().variables();
 
     decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
-        return decore::slayerMinDamage(a, g_pVariableManager->getCombatSlayerDamageBonus());
+        return decore::slayerMinDamage(a, variables.getCombatSlayerDamageBonus());
     } else if (CClass == Creature::CREATURE_CLASS_VAMPIRE) {
-        return decore::vampireMinDamage(a, g_pVariableManager->getCombatVampireDamageBonus());
+        return decore::vampireMinDamage(a, variables.getCombatVampireDamageBonus());
     } else if (CClass == Creature::CREATURE_CLASS_OUSTERS) {
         return decore::oustersMinDamage(a);
     } else if (CClass == Creature::CREATURE_CLASS_MONSTER) {
-        return decore::monsterMinDamage(a, enhance, g_pVariableManager->getVariable(MONSTER_DAMAGE_RATIO));
+        return decore::monsterMinDamage(a, enhance, variables.getVariable(MONSTER_DAMAGE_RATIO));
     }
 
     return 0;
@@ -188,17 +191,18 @@ Damage_t computeMinDamage(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int
 
 Damage_t computeMaxDamage(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enhance) {
     Assert(pAttr != NULL);
+    VariableManager& variables = de::gameContext().variables();
 
     decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
-        return decore::slayerMaxDamage(a, g_pVariableManager->getCombatSlayerDamageBonus());
+        return decore::slayerMaxDamage(a, variables.getCombatSlayerDamageBonus());
     } else if (CClass == Creature::CREATURE_CLASS_VAMPIRE) {
-        return decore::vampireMaxDamage(a, g_pVariableManager->getCombatVampireDamageBonus());
+        return decore::vampireMaxDamage(a, variables.getCombatVampireDamageBonus());
     } else if (CClass == Creature::CREATURE_CLASS_OUSTERS) {
         return decore::oustersMaxDamage(a);
     } else if (CClass == Creature::CREATURE_CLASS_MONSTER) {
-        return decore::monsterMaxDamage(a, enhance, g_pVariableManager->getVariable(MONSTER_DAMAGE_RATIO));
+        return decore::monsterMaxDamage(a, enhance, variables.getVariable(MONSTER_DAMAGE_RATIO));
     }
 
     return 0;

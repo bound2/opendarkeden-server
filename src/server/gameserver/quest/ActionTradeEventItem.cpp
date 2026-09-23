@@ -53,6 +53,8 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
 {
     __BEGIN_TRY
 
+    StringPool& strings = context().strings();
+
     Assert(pCreature1 != NULL);
     Assert(pCreature2 != NULL);
     Assert(pCreature1->isNPC());
@@ -79,7 +81,7 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
 
     if (!pInventory->hasEnoughStar(star)) {
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_REQUIRE_MORE_SOCCER_BALL));
+        gcSystemMessage.setMessage(strings.getString(STRID_REQUIRE_MORE_SOCCER_BALL));
         pPlayer->sendPacket(&gcSystemMessage);
 
         GCNPCResponse response;
@@ -118,27 +120,27 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
             case 100:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 0, option4);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 0, option4);
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_1));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_1));
                 break;
             case 125:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 2, option5);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 2, option5);
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_2));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_2));
                 break;
             case 175:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 4, option1);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 4, option1);
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_3));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_3));
                 break;
             case 225:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 4, option2);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 4, option2);
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_4));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_4));
                 break;
             case 275:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 4, option3);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 4, option3);
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_5));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_5));
                 break;
             default:
                 return;
@@ -148,27 +150,27 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
             case 100:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 1, option4);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 1, option4);
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_6));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_6));
                 break;
             case 125:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 3, option5);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 3, option5);
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_7));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_7));
                 break;
             case 175:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 5, option1);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 5, option1);
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_8));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_8));
                 break;
             case 225:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 5, option2);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 5, option2);
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_9));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_9));
                 break;
             case 275:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_COAT, 5, option3);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_TROUSER, 5, option3);
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_10));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_10));
                 break;
             default:
                 return;
@@ -183,33 +185,33 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 1, option4);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 2, option4);
                 // message << "STR+4 bodysuit and STR+4 Cuspid necklace granted. Go Korea team!";
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_11));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_11));
                 break;
             case 125:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option4);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 3, option4);
                 // message << "STR+4 jumpsuit and STR+4 Jet necklace granted. Go Korea team!";
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_12));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_12));
                 break;
             case 175:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option5);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 4, option3);
                 // message << "STR+5 jumpsuit and STR+4 Idol pendant granted. Go Korea team!";
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_13));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_13));
                 break;
             case 225:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option5);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 5, option3);
                 // message << "STR+5 jumpsuit and STR+4 Anti-Cross pendant
                 // granted. Go Korea team!";
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_14));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_14));
                 break;
             case 275:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 3, option5);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 6, option3);
                 // message << "STR+5 jumpsuit and STR+4 Death-Star pendant granted.
                 // Go Korea team!";
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_15));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_15));
                 break;
             default:
                 return;
@@ -220,33 +222,33 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 0, option4);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 2, option4);
                 // message << "STR+4 swing coat and STR+4 Cuspid necklace granted. Go Korea team!";
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_16));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_16));
                 break;
             case 125:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option4);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 3, option4);
                 // message << "STR+4 frock coat and STR+4 Jet necklace granted. Go Korea team!";
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_17));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_17));
                 break;
             case 175:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option5);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 4, option3);
                 // message << "STR+5 frock coat and STR+4 Idol pendant granted. Go Korea team!";
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_18));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_18));
                 break;
             case 225:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option5);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 5, option3);
                 // message << "STR+5 frock coat and STR+4 Anti-Cross pendant
                 // granted. Go Korea team!";
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_19));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_19));
                 break;
             case 275:
                 pItem1 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_COAT, 2, option5);
                 pItem2 = itemFactories.createItem(Item::ITEM_CLASS_VAMPIRE_NECKLACE, 6, option3);
                 // message << "STR+5 frock coat and STR+4 Death-Star pendant granted.
                 // Go Korea team!";
-                sprintf(message, g_pStringPool->c_str(STRID_KOREA_FIGHTING_20));
+                sprintf(message, strings.c_str(STRID_KOREA_FIGHTING_20));
                 break;
             default:
                 return;
@@ -321,12 +323,12 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
 
 
             GCSystemMessage gcSystemMessage;
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NOT_ENOUGH_INVENTORY_SPACE));
+            gcSystemMessage.setMessage(strings.getString(STRID_NOT_ENOUGH_INVENTORY_SPACE));
             pPlayer->sendPacket(&gcSystemMessage);
         }
     } else {
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NOT_ENOUGH_INVENTORY_SPACE));
+        gcSystemMessage.setMessage(strings.getString(STRID_NOT_ENOUGH_INVENTORY_SPACE));
         pPlayer->sendPacket(&gcSystemMessage);
     }
 

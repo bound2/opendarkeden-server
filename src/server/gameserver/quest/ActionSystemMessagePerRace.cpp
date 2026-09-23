@@ -8,6 +8,7 @@
 
 #include "Creature.h"
 #include "GCSystemMessage.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "StringPool.h"
 
@@ -40,9 +41,9 @@ void ActionSystemMessagePerRace::execute(Creature* pCreature1, Creature* pCreatu
     GCSystemMessage gcSystemMessage;
 
     if (pCreature2->isSlayer())
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER_SUM_NEWBIE_ZONE));
+        gcSystemMessage.setMessage(context().strings().getString(STRID_CANNOT_ENTER_SUM_NEWBIE_ZONE));
     else
-        gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CANNOT_ENTER_LEVEL_NEWBIE_ZONE));
+        gcSystemMessage.setMessage(context().strings().getString(STRID_CANNOT_ENTER_LEVEL_NEWBIE_ZONE));
 
     pPlayer->sendPacket(&gcSystemMessage);
 
