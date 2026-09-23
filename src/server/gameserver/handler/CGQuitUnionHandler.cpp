@@ -95,17 +95,17 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             /* Apply the penalty that blocks joining another union for 10 days. TODO
              */
             MessageRepository& messages = defaultMessageRepository();
-            GuildRepository& guilds = defaultGuildRepository();
+            GuildRepository& guildRows = defaultGuildRepository();
 
             string escapeGuildName = de::gameContext().guilds().getGuildName(pPlayerCreature->getGuildID());
             string escapeGuildNotice = "[" + escapeGuildName + "] " + de::gameContext().strings().c_str(378);
 
             messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, escapeGuildNotice);
-            guilds.insertEscapeOffer(tempUnionID, pPacket->getGuildID());
+            guildRows.insertEscapeOffer(tempUnionID, pPacket->getGuildID());
 
             // See whether the union has members.. and if not?
-            if (guilds.countUnionMembersSpelled(UNION_SQL_PLAIN, tempUnionID) == 0) {
-                guilds.deleteUnionInfoOnly(UNION_SQL_PLAIN, tempUnionID);
+            if (guildRows.countUnionMembersSpelled(UNION_SQL_PLAIN, tempUnionID) == 0) {
+                guildRows.deleteUnionInfoOnly(UNION_SQL_PLAIN, tempUnionID);
                 messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster,
                                            de::gameContext().strings().c_str(379));
                 GuildUnionManager::Instance().reload();

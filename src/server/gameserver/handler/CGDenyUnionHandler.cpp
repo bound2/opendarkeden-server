@@ -85,14 +85,14 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
         string TargetGuildMaster = pGuild->getMaster();
 
 
-        GuildRepository& guilds = defaultGuildRepository();
+        GuildRepository& guildRows = defaultGuildRepository();
 
         defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, TargetGuildMaster,
                                                      de::gameContext().strings().c_str(374));
 
         // What if I am the only one left after refusing?
-        if (guilds.countUnionMembersSpelled(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
-            guilds.deleteUnionInfoOnly(UNION_SQL_QUOTED, pUnion->getUnionID());
+        if (guildRows.countUnionMembersSpelled(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
+            guildRows.deleteUnionInfoOnly(UNION_SQL_QUOTED, pUnion->getUnionID());
 
             GuildUnionManager::Instance().reload();
         }

@@ -49,7 +49,7 @@ void CGRegistGuildHandler::execute(CGRegistGuild* pPacket, Player* pPlayer)
     Creature* pCreature = pGamePlayer->getCreature();
     Assert(pCreature != NULL);
 
-    GuildRepository& guilds = defaultGuildRepository();
+    GuildRepository& guildRows = defaultGuildRepository();
 
     GuildRegistrationRequest request;
     request.name = pCreature->getName();
@@ -106,7 +106,7 @@ void CGRegistGuildHandler::execute(CGRegistGuild* pPacket, Player* pPlayer)
         requirements.gold = REQUIRE_OUSTERS_MASTER_GOLD;
     }
 
-    Outcome<GuildRegistrationClearance, GuildJoinRejection> eligibility = decideGuildRegistration(guilds, request);
+    Outcome<GuildRegistrationClearance, GuildJoinRejection> eligibility = decideGuildRegistration(guildRows, request);
 
     if (eligibility.isRejected()) {
         uint16_t code = 0;
@@ -124,7 +124,7 @@ void CGRegistGuildHandler::execute(CGRegistGuild* pPacket, Player* pPlayer)
     //
     // The unspaced spelling of the DELETE, which is this call site's.
     if (eligibility.events().clearStaleMemberRow)
-        guilds.deleteMemberSpelled(GUILD_MEMBER_DELETE_UNSPACED, pCreature->getName());
+        guildRows.deleteMemberSpelled(GUILD_MEMBER_DELETE_UNSPACED, pCreature->getName());
 
     // A founder who falls short is answered with silence: the NPC simply
     // does not create the guild.
