@@ -698,7 +698,7 @@ int MonsterAI::useSkill(Creature* pEnemy, SkillType_t SkillType, int ratio)
     }
     // A wolf should not be able to cast magic.
 
-    SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+    SkillHandler* pSkillHandler = de::gameContext().skillHandlers().getSkillHandler(SkillType);
     Assert(pSkillHandler != NULL);
 
     SkillInfo* pSkillInfo = NULL;
@@ -1191,7 +1191,7 @@ void MonsterAI::actDeadAction(Creature* pEnemy)
                 SkillType_t SkillType = pDirective->getParameter();
                 int ratio = pDirective->getRatio();
 
-                SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                SkillHandler* pSkillHandler = de::gameContext().skillHandlers().getSkillHandler(SkillType);
                 Assert(pSkillHandler != NULL);
 
                 if ((rand() % ratio) < 100) {

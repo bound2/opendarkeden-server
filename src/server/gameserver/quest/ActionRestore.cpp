@@ -8,6 +8,7 @@
 
 #include "Creature.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "NPC.h"
 #include "Restore.h"
 #include "SkillHandlerManager.h"
@@ -42,7 +43,7 @@ void ActionRestore::execute(Creature* pCreature1, Creature* pCreature2)
     NPC* pNPC = dynamic_cast<NPC*>(pCreature1);
 
     // Get the skill handler.
-    SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_RESTORE);
+    SkillHandler* pSkillHandler = context().skillHandlers().getSkillHandler(SKILL_RESTORE);
     Assert(pSkillHandler != NULL);
 
     // Cast it to the Restore handler.

@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[57];
+char g_managerStorage[58];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -241,14 +241,17 @@ TEST(GameContextTest, CombatStateManagersAreReadBack) {
     AlignmentManager* pAlignmentManager = standIn<AlignmentManager>(36);
     BloodBibleBonusManager* pBloodBibleBonusManager = standIn<BloodBibleBonusManager>(37);
     CombatInfoManager* pCombatInfoManager = standIn<CombatInfoManager>(38);
+    SkillHandlerManager* pSkillHandlerManager = standIn<SkillHandlerManager>(57);
 
     context.setAlignmentManager(pAlignmentManager);
     context.setBloodBibleBonusManager(pBloodBibleBonusManager);
     context.setCombatInfoManager(pCombatInfoManager);
+    context.setSkillHandlerManager(pSkillHandlerManager);
 
     EXPECT_EQ(&context.alignments(), pAlignmentManager);
     EXPECT_EQ(&context.bloodBibleBonuses(), pBloodBibleBonusManager);
     EXPECT_EQ(&context.combatInfo(), pCombatInfoManager);
+    EXPECT_EQ(&context.skillHandlers(), pSkillHandlerManager);
 }
 
 TEST(GameContextTest, WorldClockAndInstanceManagersAreReadBack) {
@@ -361,6 +364,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.rankBonuses(), AssertionError);
     EXPECT_THROW(context.shopTemplates(), AssertionError);
     EXPECT_THROW(context.skillDomains(), AssertionError);
+    EXPECT_THROW(context.skillHandlers(), AssertionError);
     EXPECT_THROW(context.skillInfos(), AssertionError);
     EXPECT_THROW(context.skillProps(), AssertionError);
     EXPECT_THROW(context.strings(), AssertionError);

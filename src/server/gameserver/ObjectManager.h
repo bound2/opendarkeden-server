@@ -54,6 +54,7 @@ class RankBonusInfoManager;
 class ScriptManager;
 class ShopTemplateManager;
 class SkillDomainInfoManager;
+class SkillHandlerManager;
 class SkillInfoManager;
 class SkillPropertyManager;
 class StringPool;
@@ -124,6 +125,7 @@ private:
     ScriptManager* m_pPublicScriptManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
     SkillDomainInfoManager* m_pSkillDomainInfoManager = nullptr;
+    SkillHandlerManager* m_pSkillHandlerManager = nullptr;
     SkillInfoManager* m_pSkillInfoManager = nullptr;
     SkillPropertyManager* m_pSkillPropertyManager = nullptr;
     StringPool* m_pStringPool = nullptr;

@@ -9,6 +9,7 @@
 #ifdef __GAME_SERVER__
 #include "Effect.h"
 #include "GCSkillFailed1.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "SkillHandlerManager.h"
 #include "ZoneUtil.h"
@@ -33,6 +34,8 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
+
+    SkillHandlerManager& skillHandlers = de::gameContext().skillHandlers();
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Assert(pGamePlayer != NULL);
@@ -114,7 +117,7 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
 
             // A relic table of one's own race does not accept the skill.
             if (bSuccess) {
-                SkillHandler* SkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                SkillHandler* SkillHandler = skillHandlers.getSkillHandler(SkillType);
                 Assert(SkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__
@@ -155,7 +158,7 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
 
 
             if (bSuccess) {
-                SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SkillType);
                 Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__
@@ -181,7 +184,7 @@ void CGSkillToObjectHandler::execute(CGSkillToObject* pPacket, Player* pPlayer)
                 bSuccess = false;
 
             if (bSuccess) {
-                SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SkillType);
                 Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__

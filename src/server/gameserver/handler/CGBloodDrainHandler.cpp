@@ -10,6 +10,7 @@
 #include "GCAttack.h"
 #include "GCGetDamage.h"
 #include "GCSkillFailed1.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Monster.h"
 #include "Skill.h"
@@ -71,7 +72,7 @@ void CGBloodDrainHandler::execute(CGBloodDrain* pPacket, Player* pPlayer)
                 addVisibleCreature(pZone, pVampire, true);
             }
 
-            SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_BLOOD_DRAIN);
+            SkillHandler* pSkillHandler = de::gameContext().skillHandlers().getSkillHandler(SKILL_BLOOD_DRAIN);
             Assert(pSkillHandler != NULL);
             pSkillHandler->execute(pVampire, pPacket->getObjectID());
         }

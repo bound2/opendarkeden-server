@@ -611,7 +611,7 @@ void Monster::act(const Timeval& currentTime)
             const MonsterInfo* pMonsterInfo = de::gameContext().monsterInfos().getMonsterInfo(m_MonsterType);
 
             if ((rand() & 0x0000007F) < pMonsterInfo->getUnburrowChance()) {
-                SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_UN_BURROW);
+                SkillHandler* pSkillHandler = de::gameContext().skillHandlers().getSkillHandler(SKILL_UN_BURROW);
                 Assert(pSkillHandler != NULL);
 
                 pSkillHandler->execute(this);
@@ -727,7 +727,7 @@ void Monster::actDeadAction(void)
                 }
             }
     } else if (getMonsterType() >= 726 && getMonsterType() <= 729) {
-        SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_SUMMON_MONSTERS);
+        SkillHandler* pSkillHandler = de::gameContext().skillHandlers().getSkillHandler(SKILL_SUMMON_MONSTERS);
         pSkillHandler->execute(this);
     }
 

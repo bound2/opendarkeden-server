@@ -233,6 +233,11 @@ SkillDomainInfoManager& GameContext::skillDomains() const {
     return *m_pSkillDomainInfoManager;
 }
 
+SkillHandlerManager& GameContext::skillHandlers() const {
+    Assert(m_pSkillHandlerManager != nullptr);
+    return *m_pSkillHandlerManager;
+}
+
 SkillInfoManager& GameContext::skillInfos() const {
     Assert(m_pSkillInfoManager != nullptr);
     return *m_pSkillInfoManager;

@@ -158,7 +158,7 @@ ObjectManager::ObjectManager()
     m_pVisionInfoManager = new VisionInfoManager();
     m_pWeatherInfoManager = new WeatherInfoManager();
     m_pMonsterInfoManager = new MonsterInfoManager();
-    g_pSkillHandlerManager = new SkillHandlerManager();
+    m_pSkillHandlerManager = new SkillHandlerManager();
     m_pSkillInfoManager = new SkillInfoManager();
     m_pSkillDomainInfoManager = new SkillDomainInfoManager();
     // g_pSkillParentInfoManager   = new SkillParentInfoManager ();
@@ -185,6 +185,7 @@ ObjectManager::ObjectManager()
     context.setDarkLightInfoManager(m_pDarkLightInfoManager);
     context.setWeatherInfoManager(m_pWeatherInfoManager);
     context.setMonsterInfoManager(m_pMonsterInfoManager);
+    context.setSkillHandlerManager(m_pSkillHandlerManager);
     context.setSkillInfoManager(m_pSkillInfoManager);
     context.setSkillDomainInfoManager(m_pSkillDomainInfoManager);
     context.setPCFinder(m_pPCFinder);
@@ -315,7 +316,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pZoneInfoManager);
     SAFE_DELETE(m_pZoneGroupManager);
     // SAFE_DELETE(g_pSkillParentInfoManager);
-    SAFE_DELETE(g_pSkillHandlerManager);
+    SAFE_DELETE(m_pSkillHandlerManager);
     SAFE_DELETE(m_pItemFactoryManager);
     SAFE_DELETE(m_pVolumeInfoManager);
     SAFE_DELETE(m_pItemLoaderManager);
@@ -558,7 +559,7 @@ void ObjectManager::load()
     printf("ObjectManager::init() : GuildUnionManager Initialization Success\n");
 
     printf("ObjectManager::init() : SkillHandlerManager Initialization Start\n");
-    g_pSkillHandlerManager->init();
+    m_pSkillHandlerManager->init();
     printf("ObjectManager::init() : SkillHandlerManager Initialization Success\n");
 
     printf("ObjectManager::init() : SkillInfoManager Initialization Start\n");

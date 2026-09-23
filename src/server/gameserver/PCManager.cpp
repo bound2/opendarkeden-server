@@ -484,7 +484,7 @@ void PCManager::processCreatures()
                             }
                         }
 
-                        SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_EXTREME);
+                        SkillHandler* pSkillHandler = de::gameContext().skillHandlers().getSkillHandler(SKILL_EXTREME);
                         Assert(pSkillHandler != NULL);
                         // Apply the Extreme effect.
                         pSkillHandler->execute(pVampire);
