@@ -69,6 +69,7 @@ class RankBonusInfoManager;
 class ScriptManager;
 class SharedServerManager;
 class ShopTemplateManager;
+class ShrineInfoManager;
 class SkillDomainInfoManager;
 class SkillHandlerManager;
 class SkillInfoManager;
@@ -235,6 +236,9 @@ public:
     void setShopTemplateManager(ShopTemplateManager* pShopTemplateManager) {
         m_pShopTemplateManager = pShopTemplateManager;
     }
+    void setShrineInfoManager(ShrineInfoManager* pShrineInfoManager) {
+        m_pShrineInfoManager = pShrineInfoManager;
+    }
     void setSkillDomainInfoManager(SkillDomainInfoManager* pSkillDomainInfoManager) {
         m_pSkillDomainInfoManager = pSkillDomainInfoManager;
     }
@@ -328,6 +332,7 @@ public:
     RankBonusInfoManager& rankBonuses() const;
     SharedServerManager& sharedServer() const;
     ShopTemplateManager& shopTemplates() const;
+    ShrineInfoManager& shrines() const;
     SkillDomainInfoManager& skillDomains() const;
     SkillHandlerManager& skillHandlers() const;
     SkillInfoManager& skillInfos() const;
@@ -392,6 +397,7 @@ private:
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
     SharedServerManager* m_pSharedServerManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
+    ShrineInfoManager* m_pShrineInfoManager = nullptr;
     SkillDomainInfoManager* m_pSkillDomainInfoManager = nullptr;
     SkillHandlerManager* m_pSkillHandlerManager = nullptr;
     SkillInfoManager* m_pSkillInfoManager = nullptr;

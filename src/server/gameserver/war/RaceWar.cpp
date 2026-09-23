@@ -68,7 +68,7 @@ void RaceWar::executeStart()
     de::gameContext().castleInfos().releaseAllSafeZone();
 
     // Every guardian shrine shield disappears.
-    g_pShrineInfoManager->removeAllShrineShield();
+    de::gameContext().shrines().removeAllShrineShield();
 
 
     // Fix the time across Adam's holy land.
@@ -148,6 +148,8 @@ void RaceWar::executeEnd()
 {
     __BEGIN_TRY
 
+    ShrineInfoManager& shrines = de::gameContext().shrines();
+
     //----------------------------------------------------------------------------
     // Report that the war has ended.
     //----------------------------------------------------------------------------
@@ -157,9 +159,9 @@ void RaceWar::executeEnd()
     //----------------------------------------------------------------------------
     // Give the blood bible fragments back.
     //----------------------------------------------------------------------------
-    g_pShrineInfoManager->returnAllBloodBible();
+    shrines.returnAllBloodBible();
 
-    g_pShrineInfoManager->addAllShrineShield();
+    shrines.addAllShrineShield();
 
     de::gameContext().castleInfos().resetAllSafeZone();
 
@@ -167,7 +169,7 @@ void RaceWar::executeEnd()
 
 
     // Broadcast the blood bible positions across Adam's holy land.
-    g_pShrineInfoManager->broadcastBloodBibleStatus();
+    shrines.broadcastBloodBibleStatus();
 
     // Let the time that was fixed across Adam's holy land run again.
     g_pHolyLandManager->resumeTimeband();

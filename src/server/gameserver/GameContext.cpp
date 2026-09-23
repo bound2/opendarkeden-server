@@ -248,6 +248,11 @@ ShopTemplateManager& GameContext::shopTemplates() const {
     return *m_pShopTemplateManager;
 }
 
+ShrineInfoManager& GameContext::shrines() const {
+    Assert(m_pShrineInfoManager != nullptr);
+    return *m_pShrineInfoManager;
+}
+
 SkillDomainInfoManager& GameContext::skillDomains() const {
     Assert(m_pSkillDomainInfoManager != nullptr);
     return *m_pSkillDomainInfoManager;

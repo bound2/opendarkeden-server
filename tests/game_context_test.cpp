@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[62];
+char g_managerStorage[63];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -138,6 +138,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     FlagManager* pFlagManager = standIn<FlagManager>(49);
     LevelWarZoneInfoManager* pLevelWarZoneInfoManager = standIn<LevelWarZoneInfoManager>(60);
     ParkingCenter* pParkingCenter = standIn<ParkingCenter>(59);
+    ShrineInfoManager* pShrineInfoManager = standIn<ShrineInfoManager>(62);
     WarSystem* pWarSystem = standIn<WarSystem>(52);
     WayPointManager* pWayPointManager = standIn<WayPointManager>(20);
 
@@ -148,6 +149,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     context.setFlagManager(pFlagManager);
     context.setLevelWarZoneInfoManager(pLevelWarZoneInfoManager);
     context.setParkingCenter(pParkingCenter);
+    context.setShrineInfoManager(pShrineInfoManager);
     context.setWarSystem(pWarSystem);
     context.setWayPointManager(pWayPointManager);
 
@@ -158,6 +160,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     EXPECT_EQ(&context.flags(), pFlagManager);
     EXPECT_EQ(&context.levelWarZones(), pLevelWarZoneInfoManager);
     EXPECT_EQ(&context.parking(), pParkingCenter);
+    EXPECT_EQ(&context.shrines(), pShrineInfoManager);
     EXPECT_EQ(&context.warSystem(), pWarSystem);
     EXPECT_EQ(&context.wayPoints(), pWayPointManager);
 }
@@ -386,6 +389,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.rankBonuses(), AssertionError);
     EXPECT_THROW(context.sharedServer(), AssertionError);
     EXPECT_THROW(context.shopTemplates(), AssertionError);
+    EXPECT_THROW(context.shrines(), AssertionError);
     EXPECT_THROW(context.skillDomains(), AssertionError);
     EXPECT_THROW(context.skillHandlers(), AssertionError);
     EXPECT_THROW(context.skillInfos(), AssertionError);

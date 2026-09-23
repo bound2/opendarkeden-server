@@ -474,7 +474,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         if (isHolyLand()) {
             if (warSystem.hasActiveRaceWar()) {
                 PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-                g_pShrineInfoManager->sendBloodBibleStatus(pPC);
+                de::gameContext().shrines().sendBloodBibleStatus(pPC);
 
                 pPC->getPlayer()->sendPacket(RegenZoneManager::getInstance()->getStatusPacket());
             } else {

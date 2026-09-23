@@ -488,7 +488,7 @@ void CGRelicToObjectHandler::executeBloodBible(CGRelicToObject* pPacket, Player*
         return;
     }
 
-    if (g_pShrineInfoManager->putBloodBible(pPlayerCreature, pItem, pCorpse)) {
+    if (de::gameContext().shrines().putBloodBible(pPlayerCreature, pItem, pCorpse)) {
         // Handled inside putBloodBible.
     }
 

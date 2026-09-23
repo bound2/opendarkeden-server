@@ -575,7 +575,7 @@ void opLevelWar(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& 
 // *command saveBloodBibleOwner
 void opSaveBloodBibleOwner(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcSystemMessage,
                            bool& bSendPacket) {
-    g_pShrineInfoManager->saveBloodBibleOwner();
+    de::gameContext().shrines().saveBloodBibleOwner();
 
     gcSystemMessage.setMessage(de::gameContext().strings().getString(STRID_SAVE_BLOOD_BIBLE_OWNER_INFO_IN_DB));
 

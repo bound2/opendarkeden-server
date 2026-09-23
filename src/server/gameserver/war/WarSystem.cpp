@@ -224,7 +224,7 @@ bool WarSystem::addWar(War* pWar)
         de::gameContext().clients().addEvent(pEvent);
 
         // Broadcast the blood bible positions across Adam's holy land.
-        g_pShrineInfoManager->broadcastBloodBibleStatus();
+        de::gameContext().shrines().broadcastBloodBibleStatus();
 
         // Send out everyone not taking part in the race war.
         g_pHolyLandManager->remainRaceWarPlayers();

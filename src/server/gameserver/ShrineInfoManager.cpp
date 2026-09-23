@@ -983,5 +983,3 @@ string ShrineInfoManager::toString() const
 
     __END_CATCH
 }
-
-ShrineInfoManager* g_pShrineInfoManager = NULL;

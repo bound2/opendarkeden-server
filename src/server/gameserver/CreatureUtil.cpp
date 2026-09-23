@@ -1102,7 +1102,7 @@ bool isAbleToPickupItem(Creature* pCreature, Item* pItem) {
             BloodBible* pBloodBible = dynamic_cast<BloodBible*>(pItem);
             Assert(pBloodBible != NULL);
 
-            if (!g_pShrineInfoManager->canPickupBloodBible(pCreature->getRace(), pBloodBible)) {
+            if (!de::gameContext().shrines().canPickupBloodBible(pCreature->getRace(), pBloodBible)) {
                 return false;
             }
 

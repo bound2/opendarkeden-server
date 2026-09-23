@@ -239,7 +239,8 @@ ObjectManager::ObjectManager()
     m_pWarSystem = new WarSystem();
     context.setWarSystem(m_pWarSystem);
 
-    g_pShrineInfoManager = new ShrineInfoManager();
+    m_pShrineInfoManager = new ShrineInfoManager();
+    context.setShrineInfoManager(m_pShrineInfoManager);
     m_pCastleShrineInfoManager = new CastleShrineInfoManager();
     context.setCastleShrineInfoManager(m_pCastleShrineInfoManager);
 
@@ -341,7 +342,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pRankBonusInfoManager);
     //	SAFE_DELETE(g_pHolyLandRaceBonus);
     SAFE_DELETE(m_pWarSystem);
-    SAFE_DELETE(g_pShrineInfoManager);
+    SAFE_DELETE(m_pShrineInfoManager);
     SAFE_DELETE(m_pCastleShrineInfoManager);
 
     SAFE_DELETE(g_pHolyLandManager);
@@ -501,7 +502,7 @@ void ObjectManager::init()
     // ShrineInfoManager must be called only after every Zone has been loaded.
     // It sets the BloodBible-owning race on BloodBibleBonusManager, so it must come after that manager loads.
     printf("ObjectManager::init() : ShrineInfoManager Initialization Start\n");
-    g_pShrineInfoManager->init();
+    m_pShrineInfoManager->init();
     printf("ObjectManager::init() : ShrineInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : CastleShrineInfoManager Initialization Start\n");

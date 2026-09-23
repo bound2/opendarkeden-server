@@ -80,7 +80,7 @@ void EffectRelicPosition::affect(Item* pItem)
 
         setNextTime(m_Tick);
     } else if (pItem->getItemClass() == Item::ITEM_CLASS_BLOOD_BIBLE) {
-        ShrineSet* pShrineSet = g_pShrineInfoManager->getShrineSet(m_Part);
+        ShrineSet* pShrineSet = de::gameContext().shrines().getShrineSet(m_Part);
         Assert(pShrineSet != NULL);
 
         GCBloodBibleStatus* pGCBBS = new GCBloodBibleStatus;
@@ -94,7 +94,7 @@ void EffectRelicPosition::affect(Item* pItem)
 
         //		g_pHolyLandManager->broadcast( pGCBBS );
         de::gameContext().zoneGroups().broadcast(pGCBBS);
-        g_pShrineInfoManager->registerBloodBibleStatus(m_Part, pGCBBS);
+        de::gameContext().shrines().registerBloodBibleStatus(m_Part, pGCBBS);
 
         setNextTime(999999);
     } else if (pItem->getItemClass() == Item::ITEM_CLASS_CASTLE_SYMBOL) {

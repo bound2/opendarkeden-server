@@ -144,7 +144,7 @@ void EventReloadInfo::activate()
     } break;
 
     case BLOOD_BIBLE_OWNER: {
-        g_pShrineInfoManager->reloadOwner();
+        de::gameContext().shrines().reloadOwner();
 
         if (m_pGamePlayer != NULL) {
             GCSystemMessage gcSystemMessage;
