@@ -18,7 +18,7 @@ that followed it.
   the result asserted,** and in `addWar` the assert sits after
   `addSchedule`, so a `GuildWar` is put on the recent schedules and the
   throw aborts the rest: it never reaches the active wars, never triggers
-  the holy-land refresh or the war-list broadcast, `hasCastleActiveWar`
+  the holy-land refresh, `hasCastleActiveWar`
   stays false for its castle, and at its end the heartbeat asserts twice
   more. The lookups no longer throw on it; the registration is the rest of
   the defect. `GuildWar` carries a castle zone id and its own owner-change
@@ -28,16 +28,18 @@ that followed it.
 
 ## Two servers link different classes under one name (2026-09-22)
 
-- **`GameServerInfoManager` and `GameServerGroupInfoManager` exist as
-  different classes of the same name in ServerCore and in the sharedserver
-  (and the loginserver for the second),** compiled into one binary through
-  the ServerCore archive. The sharedserver's `g_pGameServerInfoManager`
+- **`GameServerInfoManager` exists as two different classes of the same
+  name, one in ServerCore and one in the sharedserver, both reachable from
+  the sharedserver link.** The archive member is never pulled in, so the
+  program holds only the sharedserver's copy today; five member functions
+  (the constructor, the destructor, `init`, `load` and `toString`) share a
+  mangled name, so pulling it would be a duplicate-symbol link error rather
+  than a silent mis-bind. The sharedserver's `g_pGameServerInfoManager`
   definition duplicated ServerCore's until its retirement onto
-  `SharedServer`; the twin classes remain, an ODR hazard that holds only
-  while nothing pulls the archive's copy in. `GameServerManager.cpp` in the
-  sharedserver also initialises a local from itself
-  (`GameServerPlayer* pGameServerPlayer = pGameServerPlayer;`), and its
-  `heartbeat()` locks its mutex and does nothing, uncalled.
+  `SharedServer`; the twin classes remain. The three
+  `GameServerGroupInfoManager` classes live in three different executables
+  and are no hazard. The sharedserver's `GameServerManager::heartbeat()`
+  locks its mutex and does nothing, uncalled.
   > **Status:** recorded, not fixed (refactor/shared-context-1)
 
 ## A motorcycle that cannot be placed is paid for and never delivered (2026-09-22)

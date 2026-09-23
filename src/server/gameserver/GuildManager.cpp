@@ -21,12 +21,6 @@
 #include "ZoneUtil.h"
 #include "war/WarScheduler.h"
 #endif
-#ifdef __SHARED_SERVER__
-#include "GameServerManager.h"
-#include "SGExpelGuildMemberOK.h"
-#include "SGGuildInfo.h"
-#endif
-
 #include "GCActiveGuildList.h"
 #include "GCWaitGuildList.h"
 
@@ -314,27 +308,6 @@ void GuildManager::retireAll_NOBLOCKED() {
     m_Guilds.clear();
 }
 
-#ifdef __SHARED_SERVER__
-void GuildManager::makeSGGuildInfo(SGGuildInfo& sgGuildInfo)
-
-{
-    __BEGIN_TRY
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    HashMapGuildConstItor itr = m_Guilds.begin();
-    for (; itr != m_Guilds.end(); itr++) {
-        GuildInfo2* pGuildInfo = new GuildInfo2();
-        itr->second->makeInfo(pGuildInfo);
-        sgGuildInfo.addGuildInfo(pGuildInfo);
-    }
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    __END_CATCH
-}
-#endif
-
 void GuildManager::makeWaitGuildList(GCWaitGuildList& gcWaitGuildList, GuildRace_t race)
 
 {
@@ -383,50 +356,9 @@ void GuildManager::makeActiveGuildList(GCActiveGuildList& gcActiveGuildList, Gui
 
 void GuildManager::heartbeat()
 
-{
-    __BEGIN_TRY
+    {__BEGIN_TRY
 
-#ifdef __SHARED_SERVER__
-    Timeval currentTime;
-    getCurrentTime(currentTime);
-
-    ////////////////////////////////////////////////////////
-    // Remove members whose guild join request has waited past the time limit.
-    ////////////////////////////////////////////////////////
-    if (currentTime > m_WaitMemberClearTime) {
-        __ENTER_CRITICAL_SECTION(m_Mutex)
-
-        VSDateTime currentDateTime = VSDateTime::currentDateTime();
-
-        HashMapGuildConstItor itr = m_Guilds.begin();
-        for (; itr != m_Guilds.end(); itr++) {
-            Guild* pGuild = itr->second;
-
-            list<string> mList;
-
-            pGuild->expireTimeOutWaitMember(currentDateTime, mList);
-
-            list<string>::const_iterator itr2 = mList.begin();
-
-            for (; itr2 != mList.end(); itr2++) {
-                // Tell the game server that the join was cancelled.
-                SGExpelGuildMemberOK sgExpelGuildMemberOK;
-                sgExpelGuildMemberOK.setGuildID(pGuild->getID());
-                sgExpelGuildMemberOK.setName(*itr2);
-                sgExpelGuildMemberOK.setSender(pGuild->getMaster());
-
-                g_pGameServerManager->broadcast(&sgExpelGuildMemberOK);
-            }
-        }
-
-        m_WaitMemberClearTime.tv_sec = currentTime.tv_sec + 3600; // Once an hour
-
-        __LEAVE_CRITICAL_SECTION(m_Mutex)
-    }
-#endif
-
-    __END_CATCH
-}
+         __END_CATCH}
 
 string GuildManager::toString() const
 

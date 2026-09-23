@@ -29,10 +29,6 @@ typedef unordered_map<GuildID_t, Guild*> HashMapGuild;
 typedef unordered_map<GuildID_t, Guild*>::iterator HashMapGuildItor;
 typedef unordered_map<GuildID_t, Guild*>::const_iterator HashMapGuildConstItor;
 
-#ifdef __SHARED_SERVER__
-class SGGuildInfo;
-#endif
-
 class GCWaitGuildList;
 class GCActiveGuildList;
 class PlayerCreature;
@@ -72,11 +68,6 @@ public: // misc methods
     const HashMapGuild& getGuilds_const() const {
         return m_Guilds;
     }
-
-#ifdef __SHARED_SERVER__
-public:
-    void makeSGGuildInfo(SGGuildInfo& sgGuildInfo);
-#endif
 
     void makeWaitGuildList(GCWaitGuildList& gcWaitGuildList, GuildRace_t race);
     void makeActiveGuildList(GCActiveGuildList& gcWaitGuildList, GuildRace_t race);
