@@ -11,6 +11,21 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A retired guild member is read with its last rank (2026-09-23)
+
+- **A `GuildMember` a thread may still hold is retired, not freed:**
+  `Guild::deleteMember` and `retireAllMembers` move the object to
+  `m_RetiredMembers` and erase it from the map, and `getMember()` returns
+  a raw pointer after releasing the guild mutex, so a zone thread that
+  took one before the removal keeps reading it. The object stays valid --
+  that is what retirement buys -- but its rank, name and join date are
+  frozen at the moment it left the guild, and nothing marks it as gone.
+  A member kicked or a guild deleted while a zone thread is mid-tick can
+  therefore still pass a rank check on that tick. The same holds for a
+  retired `Guild` in `GuildManager::m_RetiredGuilds`. Giving the member a
+  retired flag the readers test, or handing out a copy instead of the
+  pointer, is the shape a fix would take.
+  > **Status:** recorded, not fixed (refactor/exps-record)
 ## A guard shrine's defender check asserts on every running siege (2026-09-23)
 
 - **`CastleShrineInfoManager::isDefender` asks `getActiveWar` for the

@@ -1025,45 +1025,26 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   debug-build `assertOwnedByZoneThread()` checks on Zone/Creature mutation
   entry points (sidecar analog: "never block the registry mailbox" — the
   invariant is written down *and* asserted).
-  > **Status:** contract documented in CLAUDE.md ("Thread ownership",
-  > 2026-08-31): ownership is mutex-guarded, not thread-affine — the
-  > `ZoneGroupThread` holds the group mutex for its whole tick and other
-  > threads must take it. Debug-only `ZoneGroup::assertOwned()` guards
-  > the eight `Zone` mutation gateways `addPC`×2/`replacePC`/
-  > `addCreature`/`deleteCreature`/`moveCreature`/`addCreatureToTile`/
-  > `deleteCreatureFromTile`. Hardened by the adversarial review:
-  > the machinery rides `DE_OWNERSHIP_CHECKS` (Debug-only compile flag —
-  > this repo never defines `NDEBUG`, so gating on it was a no-op and
-  > the bookkeeping was live in release), a violation now `abort()`s
-  > instead of throwing (an `AssertionError` is a `Throwable`, and the
-  > `catch (Throwable&)` on these very paths swallowed it — e.g.
-  > `GamePlayer::disconnect`'s empty catch would have skipped the
-  > character save), `pthread_equal` + a valid flag replace the raw
-  > compare/zero sentinel, and the review's main-thread hole is closed:
-  > packets pipelined behind `CGReady` no longer drain on the main
-  > thread after `GPS_NORMAL` opens the validator gate. No creature is
-  > written to a `Tile` outside `Zone.cpp` any more: the race-swap sites
-  > go through `replacePC`, the move-mode swaps, knockback/warp moves and
-  > corpse paths through the tile-only pair (CLAUDE.md has the list of
-  > what is still not gated). The three `GDRLair*::start` loops now take the
-  > group mutex like the file's other sites (2026-09-05). The
-  > cross-group `DynamicZone` `addZone()` race is fixed (2026-09-05):
-  > the group zone map and the `ZoneInfoManager` tables are
-  > `de::Snapshot`s (copy-on-write, `src/server/Snapshot.h`), a recycled
-  > instance's `init()` is posted to the owning group, and
-  > `DynamicZoneGroup` serialises selection under its own mutex. **2026-09-05: the SG/LG/GG one is
-  > fixed for creature state** — `GamePlayer` carries a mailbox
-  > (`src/server/Mailbox.h`) that the manager owning the player drains
-  > each tick (the zone manager under the group mutex; the main thread
-  > only for player-scoped commands), and
-  > `de::postToPlayer` routes the six guild handlers' and
-  > `LGKickCharacter`'s mutations through it; the
-  > "cross-group communication via queues only" rule above now has its
-  > queue. The handlers' `Guild`/`GuildMember` writes are covered too: the
-  > member maps and counters, the per-member flags, and the guild's own
-  > scalar fields — integral ones relaxed atomics, strings copied under the
-  > guild's leaf mutex.
-  - Owner: the debug asserts.
+  > **Status:** done (2026-09-23) — the contract is CLAUDE.md's "Thread
+  > ownership" section, which is where it is maintained: ownership is
+  > mutex-guarded rather than thread-affine (a `ZoneGroupThread` holds its
+  > group mutex for the whole tick; any other thread takes it explicitly),
+  > and the section lists the threads, the mailbox and snapshot seams that
+  > carry cross-thread work, and what the asserts do not cover.
+  > `ZoneGroup::assertOwned()` guards the eight `Zone` mutation gateways
+  > under `DE_OWNERSHIP_CHECKS` (Debug only — this repo never defines
+  > `NDEBUG`, so gating on that would have been a no-op) and `abort()`s
+  > rather than throwing, because an `AssertionError` is a `Throwable` and
+  > the `catch (Throwable&)` blocks on these very paths would swallow it.
+  > The queue the task asked for is `src/server/Mailbox.h`: a player's box,
+  > drained by whichever manager owns the player, plus `ZoneGroup::post()`
+  > for group-level work. Tables read by every thread and extended by one
+  > are `de::Snapshot`s.
+  > Residual, recorded in `docs/FIXES.md` rather than fixed: a `Guild` or
+  > `GuildMember` another thread may hold is retired, not freed, so a zone
+  > thread reading a retired member still sees its last rank.
+  - Owner: the debug asserts; `critical_section_audit`, which fails on a
+    hand-written `unlock()` inside a critical section.
 
 - [ ] **3.5 Globals → context (long tail).** No big-bang DI. Introduce a
   `GameContext` owning the managers; converted subsystems take it (or narrow
