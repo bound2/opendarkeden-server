@@ -138,8 +138,8 @@ void GuildUnionManager::sendModifyUnionInfo(uint gID) {
                         // Only for servers other than the current one (handled above).
                         if (pGameServerInfo->getGroupID() == myServerID) {
                         } else {
-                            g_pLoginServerManager->sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(),
-                                                              &ggCommand);
+                            de::gameContext().loginServer().sendPacket(pGameServerInfo->getIP(),
+                                                                       pGameServerInfo->getUDPPort(), &ggCommand);
                         }
                     }
                 }
@@ -177,8 +177,8 @@ void GuildUnionManager::sendRefreshCommand() {
                         // Only for servers other than the current one (handled above).
                         if (pGameServerInfo->getGroupID() == myServerID) {
                         } else {
-                            g_pLoginServerManager->sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(),
-                                                              &ggCommand);
+                            de::gameContext().loginServer().sendPacket(pGameServerInfo->getIP(),
+                                                                       pGameServerInfo->getUDPPort(), &ggCommand);
                         }
                     }
                 }

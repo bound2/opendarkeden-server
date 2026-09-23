@@ -6,6 +6,7 @@
 
 #include "BloodyWarp.h"
 
+#include "GameContext.h"
 #include "SkillHandlerManager.h"
 #include "Zone.h"
 
@@ -118,7 +119,7 @@ void BloodyWarp::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
     if (pMonster->getMonsterType() >= 717)
         SkillType = SKILL_BLOODY_SNAKE;
 
-    SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+    SkillHandler* pSkillHandler = de::gameContext().skillHandlers().getSkillHandler(SkillType);
     Assert(pSkillHandler != NULL);
 
     pSkillHandler->execute(pMonster, X, Y);
@@ -128,7 +129,7 @@ void BloodyWarp::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         // Use BLOODY_WAVE at the monster destination.
         SkillType = (pMonster->isMaster() ? SKILL_BLOODY_MASTER_WAVE : SKILL_BLOODY_WAVE);
 
-        pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+        pSkillHandler = de::gameContext().skillHandlers().getSkillHandler(SkillType);
         Assert(pSkillHandler != NULL);
 
         pSkillHandler->execute(pMonster, X, Y);

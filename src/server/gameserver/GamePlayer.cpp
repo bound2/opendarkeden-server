@@ -144,6 +144,7 @@ GamePlayer::~GamePlayer() noexcept {
     __BEGIN_TRY
 
     GuildManager& guilds = de::gameContext().guilds();
+    SharedServerManager& sharedServer = de::gameContext().sharedServer();
 
     //__ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -187,7 +188,7 @@ GamePlayer::~GamePlayer() noexcept {
                         gsGuildMemberLogOn.setName(pSlayer->getName());
                         gsGuildMemberLogOn.setLogOn(false);
 
-                        g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
+                        sharedServer.sendPacket(&gsGuildMemberLogOn);
 
                         // Update the database.
                         defaultSessionRepository().markGuildMemberLoggedOff(pSlayer->getName());
@@ -207,7 +208,7 @@ GamePlayer::~GamePlayer() noexcept {
                         gsGuildMemberLogOn.setName(pVampire->getName());
                         gsGuildMemberLogOn.setLogOn(false);
 
-                        g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
+                        sharedServer.sendPacket(&gsGuildMemberLogOn);
 
                         // Update the database.
                         defaultSessionRepository().markGuildMemberLoggedOff(pVampire->getName());
@@ -227,7 +228,7 @@ GamePlayer::~GamePlayer() noexcept {
                         gsGuildMemberLogOn.setName(pOusters->getName());
                         gsGuildMemberLogOn.setLogOn(false);
 
-                        g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
+                        sharedServer.sendPacket(&gsGuildMemberLogOn);
 
                         // Update the database.
                         defaultSessionRepository().markGuildMemberLoggedOff(pOusters->getName());

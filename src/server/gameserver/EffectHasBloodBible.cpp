@@ -56,7 +56,7 @@ void EffectHasBloodBible::affect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    ShrineSet* pShrineSet = g_pShrineInfoManager->getShrineSet(m_Part);
+    ShrineSet* pShrineSet = de::gameContext().shrines().getShrineSet(m_Part);
     Assert(pShrineSet != NULL);
     Race_t ShrineRace = pShrineSet->getOwnerRace();
 
@@ -72,7 +72,7 @@ void EffectHasBloodBible::affect(Creature* pCreature)
 
     //	g_pHolyLandManager->broadcast( pGCBBS );
     de::gameContext().zoneGroups().broadcast(pGCBBS);
-    g_pShrineInfoManager->registerBloodBibleStatus(m_Part, pGCBBS);
+    de::gameContext().shrines().registerBloodBibleStatus(m_Part, pGCBBS);
 
     setNextTime(m_Tick);
 
@@ -89,7 +89,7 @@ void EffectHasBloodBible::affect(Item* pItem)
     if (m_pZone == NULL)
         return;
 
-    ShrineSet* pShrineSet = g_pShrineInfoManager->getShrineSet(m_Part);
+    ShrineSet* pShrineSet = de::gameContext().shrines().getShrineSet(m_Part);
     Assert(pShrineSet != NULL);
 
     GCBloodBibleStatus* pGCBBS = new GCBloodBibleStatus;
@@ -104,10 +104,10 @@ void EffectHasBloodBible::affect(Item* pItem)
 
     // Send the message only while a race war is running.
     if (de::gameContext().warSystem().hasActiveRaceWar()) {
-        g_pHolyLandManager->broadcast(pGCBBS);
+        de::gameContext().holyLands().broadcast(pGCBBS);
     }
 
-    g_pShrineInfoManager->registerBloodBibleStatus(m_Part, pGCBBS);
+    de::gameContext().shrines().registerBloodBibleStatus(m_Part, pGCBBS);
 
     setNextTime(999999);
 

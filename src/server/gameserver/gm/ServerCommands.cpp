@@ -1262,14 +1262,14 @@ void opworld(GamePlayer* pGamePlayer, string msg, int i, bool bSameWorldOnly) {
                         // Only when it is not the current server.. (handled above)
                         if (pGameServerInfo->getGroupID() == myServerID) {
                         } else {
-                            g_pLoginServerManager->sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(),
-                                                              &ggCommand);
+                            de::gameContext().loginServer().sendPacket(pGameServerInfo->getIP(),
+                                                                       pGameServerInfo->getUDPPort(), &ggCommand);
                         }
                     }
                     // For another World. Unless it is broadcast to this world only..
                     else if (!bSameWorldOnly) {
-                        g_pLoginServerManager->sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(),
-                                                          &ggCommand);
+                        de::gameContext().loginServer().sendPacket(pGameServerInfo->getIP(),
+                                                                   pGameServerInfo->getUDPPort(), &ggCommand);
                     }
                 }
             }

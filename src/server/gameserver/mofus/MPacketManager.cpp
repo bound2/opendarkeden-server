@@ -205,6 +205,3 @@ void MPacketManager::IMPL::addHandler(MPacketHandler* pHandler) {
     // Add the handler.
     pHandlers[pHandler->getID()] = pHandler;
 }
-
-// global variable
-MPacketManager* g_pMPacketManager = NULL;

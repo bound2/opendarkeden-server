@@ -12,6 +12,7 @@
 #include "GCAttack.h"
 #include "GCGetDamage.h"
 #include "GCSkillFailed1.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "ItemUtil.h"
 #include "Monster.h"
@@ -40,6 +41,8 @@ void CGAttackHandler::execute(CGAttack* pPacket, Player* pPlayer)
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
+
+    SkillHandlerManager& skillHandlers = de::gameContext().skillHandlers();
 
     try {
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
@@ -94,7 +97,7 @@ void CGAttackHandler::execute(CGAttack* pPacket, Player* pPlayer)
             Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
             if (pItem != NULL) {
                 if (isArmsWeapon(pItem)) {
-                    SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_ATTACK_ARMS);
+                    SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SKILL_ATTACK_ARMS);
                     Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__
@@ -105,7 +108,7 @@ void CGAttackHandler::execute(CGAttack* pPacket, Player* pPlayer)
                     pSkillHandler->execute(pSlayer, pPacket->getObjectID());
 #endif
                 } else {
-                    SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_ATTACK_MELEE);
+                    SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SKILL_ATTACK_MELEE);
                     Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__
@@ -117,7 +120,7 @@ void CGAttackHandler::execute(CGAttack* pPacket, Player* pPlayer)
 #endif
                 }
             } else {
-                SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_ATTACK_MELEE);
+                SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SKILL_ATTACK_MELEE);
                 Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__
@@ -135,7 +138,7 @@ void CGAttackHandler::execute(CGAttack* pPacket, Player* pPlayer)
                 addVisibleCreature(pZone, pVampire, true);
             }
 
-            SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_ATTACK_MELEE);
+            SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SKILL_ATTACK_MELEE);
             Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__
@@ -148,7 +151,7 @@ void CGAttackHandler::execute(CGAttack* pPacket, Player* pPlayer)
         } else if (pCreature->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
 
-            SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_ATTACK_MELEE);
+            SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SKILL_ATTACK_MELEE);
             Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__

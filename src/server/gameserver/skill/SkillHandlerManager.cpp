@@ -369,9 +369,6 @@
 // end
 #include "MonsterRangeSkill.h"
 
-// global variable declaration
-SkillHandlerManager* g_pSkillHandlerManager = NULL;
-
 // Monster range skills
 MonsterRangeSkill g_TraslaAttack(SKILL_TRASLA_ATTACK, false), g_PuscaAttack(SKILL_PUSCA_ATTACK, false),
     g_NodCopilaAttack(SKILL_NOD_COPILA_ATTACK, false), g_NodCopilaAttack2(SKILL_NOD_COPILA_ATTACK_2, false);

@@ -62,14 +62,18 @@ GameServer::GameServer()
         m_pThreadManager = new ThreadManager();
 
         // create login server manager
-        g_pLoginServerManager = new LoginServerManager();
+        m_pLoginServerManager = new LoginServerManager();
+        de::gameContext().setLoginServerManager(m_pLoginServerManager);
 
         // create shared server manager
-        g_pSharedServerManager = new SharedServerManager();
+        m_pSharedServerManager = new SharedServerManager();
+        de::gameContext().setSharedServerManager(m_pSharedServerManager);
 
 #ifdef __MOFUS__
-        g_pMPlayerManager = new MPlayerManager();
-        g_pMPacketManager = new MPacketManager();
+        m_pMPlayerManager = new MPlayerManager();
+        de::gameContext().setMPlayerManager(m_pMPlayerManager);
+        m_pMPacketManager = new MPacketManager();
+        de::gameContext().setMPacketManager(m_pMPacketManager);
 #endif
 
         // create client manager
@@ -106,11 +110,11 @@ GameServer::~GameServer()
     SAFE_DELETE(m_pObjectManager);
     SAFE_DELETE(g_pPacketValidator);
     SAFE_DELETE(g_pPacketFactoryManager);
-    SAFE_DELETE(g_pLoginServerManager);
-    SAFE_DELETE(g_pSharedServerManager);
+    SAFE_DELETE(m_pLoginServerManager);
+    SAFE_DELETE(m_pSharedServerManager);
 #ifdef __MOFUS__
-    SAFE_DELETE(g_pMPlayerManager);
-    SAFE_DELETE(g_pMPacketManager);
+    SAFE_DELETE(m_pMPlayerManager);
+    SAFE_DELETE(m_pMPacketManager);
 #endif
     SAFE_DELETE(g_pGameServerInfoManager);
     SAFE_DELETE(g_pDatabaseManager);
@@ -155,18 +159,18 @@ void GameServer::init()
     cout << "GameServer::init() : PacketValidator Initialization Success..." << endl;
 
     // Now prepare the inter-server communication.
-    g_pLoginServerManager->init();
+    m_pLoginServerManager->init();
     cout << "GameServer::init() : LoginServerManager Initialization Success..." << endl;
 
     // Prepare the communication with the shared server.
-    g_pSharedServerManager->init();
+    m_pSharedServerManager->init();
     cout << "GameServer::init() : SharedServerManager Initialization Success..." << endl;
 
 #ifdef __MOFUS__
-    g_pMPacketManager->init();
+    m_pMPacketManager->init();
     cout << "GameServer::init() : MPacketManager Initialization Success..." << endl;
 
-    g_pMPlayerManager->init();
+    m_pMPlayerManager->init();
     cout << "GameServer::init() : MPlayerManager Initialization Success..." << endl;
 #endif
 
@@ -198,13 +202,13 @@ void GameServer::start()
     m_pThreadManager->start();
 
     cout << ">>> STARTING LOGIN SERVER MANAGER..." << endl;
-    g_pLoginServerManager->start();
+    m_pLoginServerManager->start();
 
     cout << ">>> STARTING SHARED SERVER MANAGER..." << endl;
-    g_pSharedServerManager->start();
+    m_pSharedServerManager->start();
 
 #ifdef __MOFUS__
-    g_pMPlayerManager->start();
+    m_pMPlayerManager->start();
     cout << ">>> STARTING MOFUS PLAYER MANAGER..." << endl;
 #endif
 
@@ -263,9 +267,9 @@ void GameServer::stop()
     m_pClientManager->stop();
     // Request every auxiliary stop before any join. All shared dependencies
     // remain alive until BOTH auxiliary and zone workers have finished.
-    std::vector<ManagedThread*> workers{g_pLoginServerManager, g_pSharedServerManager, &GDRLairManager::Instance()};
+    std::vector<ManagedThread*> workers{m_pLoginServerManager, m_pSharedServerManager, &GDRLairManager::Instance()};
 #ifdef __MOFUS__
-    workers.push_back(g_pMPlayerManager);
+    workers.push_back(m_pMPlayerManager);
 #endif
     for (auto* worker : workers)
         worker->stop();

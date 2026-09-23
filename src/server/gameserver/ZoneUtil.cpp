@@ -1807,6 +1807,8 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
 {
     __BEGIN_TRY
 
+    ResurrectLocationManager& resurrectLocations = de::gameContext().resurrectLocations();
+
     Assert(pCreature->isPC());
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pCreature->getPlayer());
@@ -1935,11 +1937,11 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
                 bool bFindPos = false;
 
                 if (pCreature->isSlayer())
-                    bFindPos = g_pResurrectLocationManager->getSlayerPosition(13, zoneCoord);
+                    bFindPos = resurrectLocations.getSlayerPosition(13, zoneCoord);
                 else if (pCreature->isVampire())
-                    bFindPos = g_pResurrectLocationManager->getVampirePosition(23, zoneCoord);
+                    bFindPos = resurrectLocations.getVampirePosition(23, zoneCoord);
                 else if (pCreature->isOusters())
-                    bFindPos = g_pResurrectLocationManager->getOustersPosition(1311, zoneCoord);
+                    bFindPos = resurrectLocations.getOustersPosition(1311, zoneCoord);
 
                 if (bFindPos) {
                     TargetZoneID = zoneCoord.id;
@@ -2019,8 +2021,8 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
             pCreature->setFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT);
         }
 
-        if (g_pLevelWarZoneInfoManager->isCreatureBonusZone(pCreature, pZone->getZoneID()) !=
-            g_pLevelWarZoneInfoManager->isCreatureBonusZone(pCreature, TargetZoneID)) {
+        if (de::gameContext().levelWarZones().isCreatureBonusZone(pCreature, pZone->getZoneID()) !=
+            de::gameContext().levelWarZones().isCreatureBonusZone(pCreature, TargetZoneID)) {
             pCreature->setFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT);
         }
 

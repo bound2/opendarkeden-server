@@ -214,6 +214,3 @@ void ParkingCenter::heartbeat()
 
     __END_CATCH
 }
-
-// global variable definition
-ParkingCenter* g_pParkingCenter = NULL;

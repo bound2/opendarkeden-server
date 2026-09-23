@@ -20,7 +20,8 @@
 //  - GameServerGroupInfo: the loginserver's GameServerGroupInfoManager.cpp
 //    and the gameserver's MySQLGameInfoRepository.cpp.
 //  - GameServerInfo: ServerCore's ServerInfoRepository, which reads the
-//    whole table for every binary; it is the only other statement on it.
+//    whole table for every binary with three statements; it is the only
+//    other seam on it.
 //  - ZoneInfo: the gameserver's MySQLZoneInfoRepository.cpp and the
 //    loginserver's ZoneInfoManager.cpp. The sharedserver reads only the
 //    Slayer and Vampire resurrection columns; the Ousters columns exist

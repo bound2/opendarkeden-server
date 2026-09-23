@@ -474,7 +474,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         if (isHolyLand()) {
             if (warSystem.hasActiveRaceWar()) {
                 PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-                g_pShrineInfoManager->sendBloodBibleStatus(pPC);
+                de::gameContext().shrines().sendBloodBibleStatus(pPC);
 
                 pPC->getPlayer()->sendPacket(RegenZoneManager::getInstance()->getStatusPacket());
             } else {
@@ -484,10 +484,10 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
             }
         }
 
-        if (g_pSweeperBonusManager->isAble(getZoneID()) &&
-            g_pLevelWarZoneInfoManager->isCreatureBonusZone(pCreature, getZoneID())) {
+        if (de::gameContext().sweeperBonuses().isAble(getZoneID()) &&
+            de::gameContext().levelWarZones().isCreatureBonusZone(pCreature, getZoneID())) {
             GCSweeperBonusInfo gcSweeperBonusInfo;
-            g_pSweeperBonusManager->makeSweeperBonusInfo(gcSweeperBonusInfo);
+            de::gameContext().sweeperBonuses().makeSweeperBonusInfo(gcSweeperBonusInfo);
             pCreature->getPlayer()->sendPacket(&gcSweeperBonusInfo);
         }
 
@@ -579,7 +579,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
             }
 
             if (variables.isActiveLevelWar()) {
-                ZoneID_t levelWarZoneId = g_pLevelWarZoneInfoManager->getCreatureZoneID(pCreature);
+                ZoneID_t levelWarZoneId = de::gameContext().levelWarZones().getCreatureZoneID(pCreature);
 
                 if (levelWarZoneId != 1) {
                     Zone* pLevelZone = getZoneByZoneID(levelWarZoneId);

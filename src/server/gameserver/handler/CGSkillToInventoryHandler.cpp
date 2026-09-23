@@ -8,6 +8,7 @@
 
 #ifdef __GAME_SERVER__
 #include "GCSkillFailed1.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "SkillHandlerManager.h"
 #include "ZoneUtil.h"
@@ -23,6 +24,8 @@ void CGSkillToInventoryHandler::execute(CGSkillToInventory* pPacket, Player* pPl
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
+
+    SkillHandlerManager& skillHandlers = de::gameContext().skillHandlers();
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Assert(pGamePlayer != NULL); // by sigi
@@ -69,7 +72,7 @@ void CGSkillToInventoryHandler::execute(CGSkillToInventory* pPacket, Player* pPl
             }
 
             if (bSuccess) {
-                SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SkillType);
                 Assert(pSkillHandler != NULL);
                 pSkillHandler->execute(pSlayer, pPacket->getObjectID(), X, Y, TX, TY, pSkillSlot);
             } else {
@@ -89,7 +92,7 @@ void CGSkillToInventoryHandler::execute(CGSkillToInventory* pPacket, Player* pPl
 
 
             if (bSuccess) {
-                SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SkillType);
                 Assert(pSkillHandler != NULL);
                 pSkillHandler->execute(pVampire, pPacket->getObjectID(), X, Y, TX, TY, pVampireSkillSlot);
             } else {
@@ -108,7 +111,7 @@ void CGSkillToInventoryHandler::execute(CGSkillToInventory* pPacket, Player* pPl
                 bSuccess = false;
 
             if (bSuccess) {
-                SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SkillType);
                 Assert(pSkillHandler != NULL);
                 pSkillHandler->execute(pOusters, pPacket->getObjectID(), X, Y, TX, TY, pOustersSkillSlot);
             } else {

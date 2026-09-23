@@ -186,7 +186,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                     // Race war handling
 
                     // In a castle the defending side cannot click.
-                    if (g_pShrineInfoManager->isDefenderOfGuardShrine(pPC, pMonsterCorpse))
+                    if (de::gameContext().shrines().isDefenderOfGuardShrine(pPC, pMonsterCorpse))
                         return;
 
                     hasWar = true;

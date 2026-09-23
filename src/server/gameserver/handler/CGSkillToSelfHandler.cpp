@@ -8,6 +8,7 @@
 
 #ifdef __GAME_SERVER__
 #include "GCSkillFailed1.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "RelicUtil.h"
 #include "SkillHandlerManager.h"
@@ -32,6 +33,8 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
+
+    SkillHandlerManager& skillHandlers = de::gameContext().skillHandlers();
 
     try {
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
@@ -92,7 +95,7 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
             // For UN_TRANSFORM, a handler of its own does the work
             if (SkillType == SKILL_UN_TRANSFORM) {
                 if (pSlayer->isFlag(Effect::EFFECT_CLASS_INSTALL_TURRET)) {
-                    SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_UN_TRANSFORM);
+                    SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SKILL_UN_TRANSFORM);
                     Assert(pSkillHandler != NULL);
                     pSkillHandler->execute(pSlayer, NULL, (CEffectID_t)0);
                     return;
@@ -100,7 +103,7 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
             }
 
             if (bSuccess) {
-                SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SkillType);
                 Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__
@@ -137,14 +140,14 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
                 if (pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF) ||
                     pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_BAT) ||
                     pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WERWOLF)) {
-                    SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_UN_TRANSFORM);
+                    SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SKILL_UN_TRANSFORM);
                     Assert(pSkillHandler != NULL);
                     pSkillHandler->execute(pVampire);
                     return;
                 }
             }
             if (SkillType == SKILL_OPEN_CASKET && pVampire->isFlag(Effect::EFFECT_CLASS_CASKET)) {
-                SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_OPEN_CASKET);
+                SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SKILL_OPEN_CASKET);
                 Assert(pSkillHandler != NULL);
                 pSkillHandler->execute(pVampire, pVampireSkillSlot, pPacket->getCEffectID());
                 return;
@@ -158,7 +161,7 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
 
 
             if (bSuccess) {
-                SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SkillType);
                 Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__
@@ -181,7 +184,7 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
             // For UN_TRANSFORM, a handler of its own does the work
             if (SkillType == SKILL_UN_TRANSFORM) {
                 if (pOusters->isFlag(Effect::EFFECT_CLASS_SUMMON_SYLPH)) {
-                    SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_UN_TRANSFORM);
+                    SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SKILL_UN_TRANSFORM);
                     Assert(pSkillHandler != NULL);
                     pSkillHandler->execute(pOusters);
                     return;
@@ -194,7 +197,7 @@ void CGSkillToSelfHandler::execute(CGSkillToSelf* pPacket, Player* pPlayer)
                 bSuccess = false;
 
             if (bSuccess) {
-                SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SkillType);
                 Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__

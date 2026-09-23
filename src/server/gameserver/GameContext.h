@@ -48,11 +48,16 @@ class GameServerGroupInfoManager;
 class GlobalPartyManager;
 class GoodsInfoManager;
 class GuildManager;
+class HolyLandManager;
 class IncomingPlayerManager;
 class ItemFactoryManager;
 class ItemInfoManager;
 class ItemLoaderManager;
 class ItemMineInfoManager;
+class LevelWarZoneInfoManager;
+class LoginServerManager;
+class MPacketManager;
+class MPlayerManager;
 class MasterLairInfoManager;
 class MonsterInfoManager;
 class MonsterNameManager;
@@ -60,15 +65,21 @@ class OptionInfoManager;
 class OustersEXPInfoManager;
 class PCFinder;
 class PKZoneInfoManager;
+class ParkingCenter;
 class PriceManager;
 class Properties;
 class RankBonusInfoManager;
 class ScriptManager;
+class ResurrectLocationManager;
+class SharedServerManager;
 class ShopTemplateManager;
+class ShrineInfoManager;
 class SkillDomainInfoManager;
+class SkillHandlerManager;
 class SkillInfoManager;
 class SkillPropertyManager;
 class StringPool;
+class SweeperBonusManager;
 class TimeChecker;
 class TimeManager;
 class VampEXPInfoManager;
@@ -170,6 +181,9 @@ public:
     void setGuildManager(GuildManager* pGuildManager) {
         m_pGuildManager = pGuildManager;
     }
+    void setHolyLandManager(HolyLandManager* pHolyLandManager) {
+        m_pHolyLandManager = pHolyLandManager;
+    }
     void setIncomingPlayerManager(IncomingPlayerManager* pIncomingPlayerManager) {
         m_pIncomingPlayerManager = pIncomingPlayerManager;
     }
@@ -184,6 +198,18 @@ public:
     }
     void setItemMineInfoManager(ItemMineInfoManager* pItemMineInfoManager) {
         m_pItemMineInfoManager = pItemMineInfoManager;
+    }
+    void setLevelWarZoneInfoManager(LevelWarZoneInfoManager* pLevelWarZoneInfoManager) {
+        m_pLevelWarZoneInfoManager = pLevelWarZoneInfoManager;
+    }
+    void setLoginServerManager(LoginServerManager* pLoginServerManager) {
+        m_pLoginServerManager = pLoginServerManager;
+    }
+    void setMPacketManager(MPacketManager* pMPacketManager) {
+        m_pMPacketManager = pMPacketManager;
+    }
+    void setMPlayerManager(MPlayerManager* pMPlayerManager) {
+        m_pMPlayerManager = pMPlayerManager;
     }
     void setMasterLairInfoManager(MasterLairInfoManager* pMasterLairInfoManager) {
         m_pMasterLairInfoManager = pMasterLairInfoManager;
@@ -206,6 +232,9 @@ public:
     void setPKZoneInfoManager(PKZoneInfoManager* pPKZoneInfoManager) {
         m_pPKZoneInfoManager = pPKZoneInfoManager;
     }
+    void setParkingCenter(ParkingCenter* pParkingCenter) {
+        m_pParkingCenter = pParkingCenter;
+    }
     void setPriceManager(PriceManager* pPriceManager) {
         m_pPriceManager = pPriceManager;
     }
@@ -215,11 +244,23 @@ public:
     void setRankBonusInfoManager(RankBonusInfoManager* pRankBonusInfoManager) {
         m_pRankBonusInfoManager = pRankBonusInfoManager;
     }
+    void setResurrectLocationManager(ResurrectLocationManager* pResurrectLocationManager) {
+        m_pResurrectLocationManager = pResurrectLocationManager;
+    }
+    void setSharedServerManager(SharedServerManager* pSharedServerManager) {
+        m_pSharedServerManager = pSharedServerManager;
+    }
     void setShopTemplateManager(ShopTemplateManager* pShopTemplateManager) {
         m_pShopTemplateManager = pShopTemplateManager;
     }
+    void setShrineInfoManager(ShrineInfoManager* pShrineInfoManager) {
+        m_pShrineInfoManager = pShrineInfoManager;
+    }
     void setSkillDomainInfoManager(SkillDomainInfoManager* pSkillDomainInfoManager) {
         m_pSkillDomainInfoManager = pSkillDomainInfoManager;
+    }
+    void setSkillHandlerManager(SkillHandlerManager* pSkillHandlerManager) {
+        m_pSkillHandlerManager = pSkillHandlerManager;
     }
     void setSkillInfoManager(SkillInfoManager* pSkillInfoManager) {
         m_pSkillInfoManager = pSkillInfoManager;
@@ -229,6 +270,9 @@ public:
     }
     void setStringPool(StringPool* pStringPool) {
         m_pStringPool = pStringPool;
+    }
+    void setSweeperBonusManager(SweeperBonusManager* pSweeperBonusManager) {
+        m_pSweeperBonusManager = pSweeperBonusManager;
     }
     void setTimeChecker(TimeChecker* pTimeChecker) {
         m_pTimeChecker = pTimeChecker;
@@ -288,11 +332,16 @@ public:
     GlobalPartyManager& parties() const;
     GoodsInfoManager& goodsInfos() const;
     GuildManager& guilds() const;
+    HolyLandManager& holyLands() const;
     IncomingPlayerManager& incomingPlayers() const;
     ItemFactoryManager& itemFactories() const;
     ItemInfoManager& itemInfos() const;
     ItemLoaderManager& itemLoaders() const;
     ItemMineInfoManager& itemMineInfos() const;
+    LevelWarZoneInfoManager& levelWarZones() const;
+    LoginServerManager& loginServer() const;
+    MPacketManager& mofusPackets() const;
+    MPlayerManager& mofusPlayers() const;
     MasterLairInfoManager& masterLairInfos() const;
     MonsterInfoManager& monsterInfos() const;
     MonsterNameManager& monsterNames() const;
@@ -300,14 +349,20 @@ public:
     OustersEXPInfoManager& oustersExp() const;
     PCFinder& playerCreatures() const;
     PKZoneInfoManager& pkZoneInfos() const;
+    ParkingCenter& parking() const;
     PriceManager& prices() const;
     ScriptManager& publicScripts() const;
     RankBonusInfoManager& rankBonuses() const;
+    ResurrectLocationManager& resurrectLocations() const;
+    SharedServerManager& sharedServer() const;
     ShopTemplateManager& shopTemplates() const;
+    ShrineInfoManager& shrines() const;
     SkillDomainInfoManager& skillDomains() const;
+    SkillHandlerManager& skillHandlers() const;
     SkillInfoManager& skillInfos() const;
     SkillPropertyManager& skillProps() const;
     StringPool& strings() const;
+    SweeperBonusManager& sweeperBonuses() const;
     TimeChecker& timeChecker() const;
     TimeManager& worldTime() const;
     VampEXPInfoManager& vampireExp() const;
@@ -347,11 +402,16 @@ private:
     GlobalPartyManager* m_pGlobalPartyManager = nullptr;
     GoodsInfoManager* m_pGoodsInfoManager = nullptr;
     GuildManager* m_pGuildManager = nullptr;
+    HolyLandManager* m_pHolyLandManager = nullptr;
     IncomingPlayerManager* m_pIncomingPlayerManager = nullptr;
     ItemFactoryManager* m_pItemFactoryManager = nullptr;
     ItemInfoManager* m_pItemInfoManager = nullptr;
     ItemLoaderManager* m_pItemLoaderManager = nullptr;
     ItemMineInfoManager* m_pItemMineInfoManager = nullptr;
+    LevelWarZoneInfoManager* m_pLevelWarZoneInfoManager = nullptr;
+    LoginServerManager* m_pLoginServerManager = nullptr;
+    MPacketManager* m_pMPacketManager = nullptr;
+    MPlayerManager* m_pMPlayerManager = nullptr;
     MasterLairInfoManager* m_pMasterLairInfoManager = nullptr;
     MonsterInfoManager* m_pMonsterInfoManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;
@@ -359,14 +419,20 @@ private:
     OustersEXPInfoManager* m_pOustersEXPInfoManager = nullptr;
     PCFinder* m_pPCFinder = nullptr;
     PKZoneInfoManager* m_pPKZoneInfoManager = nullptr;
+    ParkingCenter* m_pParkingCenter = nullptr;
     PriceManager* m_pPriceManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
+    ResurrectLocationManager* m_pResurrectLocationManager = nullptr;
+    SharedServerManager* m_pSharedServerManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
+    ShrineInfoManager* m_pShrineInfoManager = nullptr;
     SkillDomainInfoManager* m_pSkillDomainInfoManager = nullptr;
+    SkillHandlerManager* m_pSkillHandlerManager = nullptr;
     SkillInfoManager* m_pSkillInfoManager = nullptr;
     SkillPropertyManager* m_pSkillPropertyManager = nullptr;
     StringPool* m_pStringPool = nullptr;
+    SweeperBonusManager* m_pSweeperBonusManager = nullptr;
     TimeChecker* m_pTimeChecker = nullptr;
     TimeManager* m_pTimeManager = nullptr;
     VampEXPInfoManager* m_pVampEXPInfoManager = nullptr;

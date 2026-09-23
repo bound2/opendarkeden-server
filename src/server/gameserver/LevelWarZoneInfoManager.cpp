@@ -337,6 +337,3 @@ string LevelWarZoneInfoManager::toString() const
 
     __END_CATCH
 }
-
-// global variable definition
-LevelWarZoneInfoManager* g_pLevelWarZoneInfoManager = NULL;

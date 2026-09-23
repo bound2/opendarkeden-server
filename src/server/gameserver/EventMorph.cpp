@@ -161,7 +161,7 @@ void EventMorph::activate()
             gsGuildMemberLogOn.setName(pSlayer->getName());
             gsGuildMemberLogOn.setLogOn(false);
 
-            g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
+            de::gameContext().sharedServer().sendPacket(&gsGuildMemberLogOn);
 
             // Update the DB.
             defaultSessionRepository().markGuildMemberLoggedOff(pSlayer->getName());

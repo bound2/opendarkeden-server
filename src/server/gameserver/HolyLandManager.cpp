@@ -167,6 +167,3 @@ void HolyLandManager::refreshHolyLandPlayers()
 
     __END_CATCH
 }
-
-// global variable definition
-HolyLandManager* g_pHolyLandManager = NULL;

@@ -12,6 +12,7 @@
 #include "GCNPCResponse.h"
 #include "GCSearchMotorcycleFail.h"
 #include "GCSearchMotorcycleOK.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "NPC.h"
 #include "ParkingCenter.h"
@@ -132,8 +133,8 @@ bool ActionSearchMotorcycle::search(Item* pItem, uint& zoneid, uint& x, uint& y)
     DWORD targetID = dynamic_cast<Key*>(pItem)->getTarget();
 
     // Check whether the matching motorcycle exists.
-    if (g_pParkingCenter->hasMotorcycleBox(targetID)) {
-        MotorcycleBox* pBox = g_pParkingCenter->getMotorcycleBox(targetID);
+    if (context().parking().hasMotorcycleBox(targetID)) {
+        MotorcycleBox* pBox = context().parking().getMotorcycleBox(targetID);
         Assert(pBox != NULL);
 
         zoneid = pBox->getZone()->getZoneID();

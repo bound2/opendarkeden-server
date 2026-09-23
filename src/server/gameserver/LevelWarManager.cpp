@@ -91,8 +91,8 @@ void LevelWarManager::startWar() {
     de::gameContext().zoneGroups().broadcast(&gcNoticeEvent);
 
     GCSweeperBonusInfo gcSweeperBonusInfo;
-    g_pSweeperBonusManager->makeVoidSweeperBonusInfo(gcSweeperBonusInfo);
-    g_pLevelWarZoneInfoManager->broadcast(m_pZone->getZoneID(), &gcSweeperBonusInfo);
+    de::gameContext().sweeperBonuses().makeVoidSweeperBonusInfo(gcSweeperBonusInfo);
+    de::gameContext().levelWarZones().broadcast(m_pZone->getZoneID(), &gcSweeperBonusInfo);
 
     // Write the record.
     recordLevelWarStart();
@@ -140,8 +140,8 @@ void LevelWarManager::endWar() {
     resumeTimeband();
 
     GCSweeperBonusInfo gcSweeperBonusInfo;
-    g_pSweeperBonusManager->makeSweeperBonusInfo(gcSweeperBonusInfo);
-    g_pLevelWarZoneInfoManager->broadcast(m_pZone->getZoneID(), &gcSweeperBonusInfo);
+    de::gameContext().sweeperBonuses().makeSweeperBonusInfo(gcSweeperBonusInfo);
+    de::gameContext().levelWarZones().broadcast(m_pZone->getZoneID(), &gcSweeperBonusInfo);
 
     GCNoticeEvent gcNoticeEvent;
     gcNoticeEvent.setCode(NOTICE_EVENT_LEVEL_WAR_OVER);

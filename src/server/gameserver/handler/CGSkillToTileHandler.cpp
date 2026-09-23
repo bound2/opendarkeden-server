@@ -9,6 +9,7 @@
 #ifdef __GAME_SERVER__
 #include "Creature.h"
 #include "GCSkillFailed1.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "SkillHandlerManager.h"
 #include "ZoneUtil.h"
@@ -33,6 +34,8 @@ void CGSkillToTileHandler::execute(CGSkillToTile* pPacket, Player* pPlayer)
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
+
+    SkillHandlerManager& skillHandlers = de::gameContext().skillHandlers();
 
     try {
         // Code put in temporarily to test the special skills.
@@ -111,7 +114,7 @@ void CGSkillToTileHandler::execute(CGSkillToTile* pPacket, Player* pPlayer)
 
 
                 if (bSuccess) {
-                    SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                    SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SkillType);
                     Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__
@@ -134,7 +137,7 @@ void CGSkillToTileHandler::execute(CGSkillToTile* pPacket, Player* pPlayer)
                 bool bSuccess = true;
 
                 if (SkillType == SKILL_EAT_CORPSE && pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF)) {
-                    SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_EAT_CORPSE);
+                    SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SKILL_EAT_CORPSE);
                     Assert(pSkillHandler != NULL);
                     pSkillHandler->execute(pVampire, pPacket->getX(), pPacket->getY(), pVampireSkillSlot,
                                            pPacket->getCEffectID());
@@ -147,7 +150,7 @@ void CGSkillToTileHandler::execute(CGSkillToTile* pPacket, Player* pPlayer)
                     bSuccess = false;
 
                 if (bSuccess) {
-                    SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                    SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SkillType);
                     Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__
@@ -182,7 +185,7 @@ void CGSkillToTileHandler::execute(CGSkillToTile* pPacket, Player* pPlayer)
                 }
 
                 if (bSuccess) {
-                    SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SkillType);
+                    SkillHandler* pSkillHandler = skillHandlers.getSkillHandler(SkillType);
                     Assert(pSkillHandler != NULL);
 
 #ifdef __PROFILE_SKILLS__

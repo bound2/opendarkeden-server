@@ -11,6 +11,75 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A guild's deletion walks and rebuilds the war schedules from another thread (2026-09-23)
+
+- **`WarScheduler::hasSchedule` walks the recent schedules with no lock,
+  unlike every sibling, and `GuildManager::deleteGuild` calls it from the
+  shared-server link thread,** then on a hit calls `load()`, which clears
+  and rebuilds the schedules, deleting war objects the zone thread may be
+  about to execute under its own lock. Deleting a guild whose castle has a
+  pending war frees a war under the zone thread's scheduler heartbeat. The
+  fix is to post the cancel to the owning zone group rather than reach
+  across.
+  > **Status:** recorded, not fixed (fix/recorded-defects-5)
+
+## The sharedserver's player table is indexed by raw descriptor with no bound (2026-09-23)
+
+- **`GameServerManager::addGameServerPlayer` writes `m_pGameServerPlayers[fd]`
+  into a table of a hundred slots with no check against its size,** and the
+  input and output loops walk the table from the lowest to the highest
+  descriptor seen. A game-server link whose socket descriptor is a hundred
+  or more overruns the array.
+  > **Status:** recorded, not fixed (refactor/shared-twin-classes)
+
+## A duplicate game-server connection would be freed twice (2026-09-23)
+
+- **`GameServerManager::acceptNewConnection` frees the accepted socket and
+  then the player built on it when the add reports a duplicate,** but the
+  player's destructor closes and deletes that socket itself. Latent: the
+  add never reports a duplicate today, having no duplicate check. The
+  branch for a missing element also builds a message with the offending
+  host and port that nothing prints.
+  > **Status:** recorded, not fixed (refactor/shared-twin-classes)
+
+## Registering a siege beside a scheduled guild war schedules a second war (2026-09-23)
+
+- **`ActionRegisterSiege` looks up the castle's recent schedule, casts its
+  war to `SiegeWar` and, when the cast fails, creates a new siege schedule
+  instead of joining,** so a castle whose recent schedule holds a guild
+  war gets two wars scheduled. The two registration actions are
+  alternatives in quest data; it bites a server whose scripts use both.
+  > **Status:** recorded, not fixed (fix/recorded-defects-5)
+
+## A guild war reloads after a restart as a siege with no challengers (2026-09-23)
+
+- **`WarScheduler::load()` rebuilds every `WAR_GUILD` schedule row as a
+  `SiegeWar`,** and a guild war's row carries one attacker guild and no
+  challenger count, so it comes back as a siege nobody attacks. Telling the
+  two apart on reload needs a column `WarScheduleInfo` does not have.
+  > **Status:** recorded, not fixed (fix/recorded-defects-5)
+
+## A vampire's silver damage cleared by a GM is never saved (2026-09-23)
+
+- **The exps save skips the `SilverDamage` column for a vampire when the
+  value is zero, so it cannot reset the column,** and the one clear that
+  does not go through `saveSilverDamage`, whose `tinysave` writes the
+  column unconditionally, is the GM heal command's `setSilverDamage(0)`:
+  a vampire a GM healed keeps the stale value across logout and reloads
+  with it, while every in-game cure persists its result at once. The
+  ousters row writes the column unconditionally. The repository header
+  documents the skip and the integration tier pins it as it stands.
+  > **Status:** recorded, not fixed (refactor/exps-record)
+
+## A reinforcement condition null-checked the wrong pointer (2026-09-23)
+
+- **`ConditionExistReinforce` cast the castle's next scheduled war to
+  `SiegeWar`, tested the uncast work pointer for null, and dereferenced
+  the cast result,** so a next war that is not a siege, a guild war or a
+  race war, crashed the condition. The four sibling actions test the cast
+  result; the condition does now too.
+  > **Status:** fixed (refactor/game-context-14, stack top)
+
 ## A retired guild member is read with its last rank (2026-09-23)
 
 - **A `GuildMember` a thread may still hold is retired, not freed:**
@@ -26,17 +95,16 @@ that followed it.
   retired flag the readers test, or handing out a copy instead of the
   pointer, is the shape a fix would take.
   > **Status:** recorded, not fixed (refactor/exps-record)
-## A guard shrine's defender check asserts on every running siege (2026-09-23)
 
-- **`CastleShrineInfoManager::isDefender` asks `getActiveWar` for the
-  castle's war and then casts the result to `GuildWar` and asserts it,**
-  but `getActiveWar` only ever returns a war whose cast to `SiegeWar`
-  succeeded, and a siege is not a guild war, so the assert fails on every
-  non-null answer. While a siege runs, a player stepping onto the guard
-  shrine makes the check throw instead of answer, and the surrounding
-  catch swallows it as "not a defender". The defender side a siege knows
-  is on `SiegeWar`, and a guild war matched by its own castle zone id is
-  the other half of the guild-war registration entry above.
+## A castle shrine's defender check asserts on a siege (2026-09-23)
+
+- **`CastleShrineInfoManager::isDefenderOfGuardShrine` asks `getActiveWar`
+  for the castle's war and then casts the result to `GuildWar` and asserts
+  it,** and `getActiveWar` returns either castle war class, so the check is
+  right for a guild war and throws for a siege, the defender side a siege
+  knows being on `SiegeWar`. Latent: nothing calls the castle manager's
+  method; the dissection handler reaches `ShrineInfoManager`'s, which
+  consults no war.
   > **Status:** recorded, not fixed (refactor/game-context-13)
 
 ## The string pool is rewritten under readers on reload (2026-09-23)

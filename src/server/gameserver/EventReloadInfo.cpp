@@ -144,7 +144,7 @@ void EventReloadInfo::activate()
     } break;
 
     case BLOOD_BIBLE_OWNER: {
-        g_pShrineInfoManager->reloadOwner();
+        de::gameContext().shrines().reloadOwner();
 
         if (m_pGamePlayer != NULL) {
             GCSystemMessage gcSystemMessage;
@@ -162,7 +162,7 @@ void EventReloadInfo::activate()
         break;
 
     case SWEEPER_OWNER:
-        g_pSweeperBonusManager->reloadOwner(m_InfoValue);
+        de::gameContext().sweeperBonuses().reloadOwner(m_InfoValue);
         break;
 
     default:

@@ -68,7 +68,4 @@ private:
     SweeperBonusHashMap m_SweeperBonuses;
 };
 
-// Global Variable Definition
-extern SweeperBonusManager* g_pSweeperBonusManager;
-
 #endif // __SKILL_INFO_MANAGER_H__

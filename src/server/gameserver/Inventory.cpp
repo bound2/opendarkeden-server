@@ -12,6 +12,7 @@
 #include "Belt.h"
 #include "EffectSchedule.h"
 #include "EffectVampirePortal.h"
+#include "GameContext.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Key.h"
@@ -114,8 +115,8 @@ Inventory::~Inventory()
                             if (pItem->getItemClass() == Item::ITEM_CLASS_KEY) {
                                 Key* pKey = dynamic_cast<Key*>(pItem);
                                 // The call below also takes care of removing it from the zone.
-                                if (g_pParkingCenter->hasMotorcycleBox(pKey->getTarget())) {
-                                    g_pParkingCenter->deleteMotorcycleBox(pKey->getTarget());
+                                if (de::gameContext().parking().hasMotorcycleBox(pKey->getTarget())) {
+                                    de::gameContext().parking().deleteMotorcycleBox(pKey->getTarget());
                                 }
                             }
 

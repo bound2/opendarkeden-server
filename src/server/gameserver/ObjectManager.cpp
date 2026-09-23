@@ -158,7 +158,7 @@ ObjectManager::ObjectManager()
     m_pVisionInfoManager = new VisionInfoManager();
     m_pWeatherInfoManager = new WeatherInfoManager();
     m_pMonsterInfoManager = new MonsterInfoManager();
-    g_pSkillHandlerManager = new SkillHandlerManager();
+    m_pSkillHandlerManager = new SkillHandlerManager();
     m_pSkillInfoManager = new SkillInfoManager();
     m_pSkillDomainInfoManager = new SkillDomainInfoManager();
     // g_pSkillParentInfoManager   = new SkillParentInfoManager ();
@@ -185,11 +185,13 @@ ObjectManager::ObjectManager()
     context.setDarkLightInfoManager(m_pDarkLightInfoManager);
     context.setWeatherInfoManager(m_pWeatherInfoManager);
     context.setMonsterInfoManager(m_pMonsterInfoManager);
+    context.setSkillHandlerManager(m_pSkillHandlerManager);
     context.setSkillInfoManager(m_pSkillInfoManager);
     context.setSkillDomainInfoManager(m_pSkillDomainInfoManager);
     context.setPCFinder(m_pPCFinder);
 
-    g_pParkingCenter = new ParkingCenter();
+    m_pParkingCenter = new ParkingCenter();
+    context.setParkingCenter(m_pParkingCenter);
     m_pTelephoneCenter = new TelephoneCenter();
     m_pPublicScriptManager = new ScriptManager();
     context.setPublicScriptManager(m_pPublicScriptManager);
@@ -210,7 +212,8 @@ ObjectManager::ObjectManager()
     context.setGuildManager(m_pGuildManager);
     //	g_pGuildRegistrationManager = new GuildRegistrationManager();
     //	g_pGuildVoteManager         = new GuildVoteManager();
-    g_pResurrectLocationManager = new ResurrectLocationManager();
+    m_pResurrectLocationManager = new ResurrectLocationManager();
+    context.setResurrectLocationManager(m_pResurrectLocationManager);
     m_pAlignmentManager = new AlignmentManager();
     context.setAlignmentManager(m_pAlignmentManager);
     m_pWayPointManager = new WayPointManager();
@@ -237,11 +240,13 @@ ObjectManager::ObjectManager()
     m_pWarSystem = new WarSystem();
     context.setWarSystem(m_pWarSystem);
 
-    g_pShrineInfoManager = new ShrineInfoManager();
+    m_pShrineInfoManager = new ShrineInfoManager();
+    context.setShrineInfoManager(m_pShrineInfoManager);
     m_pCastleShrineInfoManager = new CastleShrineInfoManager();
     context.setCastleShrineInfoManager(m_pCastleShrineInfoManager);
 
-    g_pHolyLandManager = new HolyLandManager();
+    m_pHolyLandManager = new HolyLandManager();
+    context.setHolyLandManager(m_pHolyLandManager);
 
     m_pBloodBibleBonusManager = new BloodBibleBonusManager();
     context.setBloodBibleBonusManager(m_pBloodBibleBonusManager);
@@ -272,8 +277,10 @@ ObjectManager::ObjectManager()
     m_pDefaultOptionSetInfoManager = new DefaultOptionSetInfoManager();
     context.setDefaultOptionSetInfoManager(m_pDefaultOptionSetInfoManager);
 
-    g_pLevelWarZoneInfoManager = new LevelWarZoneInfoManager();
-    g_pSweeperBonusManager = new SweeperBonusManager();
+    m_pLevelWarZoneInfoManager = new LevelWarZoneInfoManager();
+    context.setLevelWarZoneInfoManager(m_pLevelWarZoneInfoManager);
+    m_pSweeperBonusManager = new SweeperBonusManager();
+    context.setSweeperBonusManager(m_pSweeperBonusManager);
     m_pDragonEyeManager = new DragonEyeManager();
     context.setDragonEyeManager(m_pDragonEyeManager);
     m_pTimeChecker = new TimeChecker();
@@ -298,7 +305,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pConditionFactoryManager);
     SAFE_DELETE(m_pPublicScriptManager);
     SAFE_DELETE(m_pPCFinder);
-    SAFE_DELETE(g_pParkingCenter);
+    SAFE_DELETE(m_pParkingCenter);
     SAFE_DELETE(m_pTelephoneCenter);
     SAFE_DELETE(m_pItemMineInfoManager);
     SAFE_DELETE(m_pOptionInfoManager);
@@ -315,7 +322,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pZoneInfoManager);
     SAFE_DELETE(m_pZoneGroupManager);
     // SAFE_DELETE(g_pSkillParentInfoManager);
-    SAFE_DELETE(g_pSkillHandlerManager);
+    SAFE_DELETE(m_pSkillHandlerManager);
     SAFE_DELETE(m_pItemFactoryManager);
     SAFE_DELETE(m_pVolumeInfoManager);
     SAFE_DELETE(m_pItemLoaderManager);
@@ -325,7 +332,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pVampEXPInfoManager);
     SAFE_DELETE(m_pOustersEXPInfoManager);
     SAFE_DELETE(m_pGuildManager);
-    SAFE_DELETE(g_pResurrectLocationManager);
+    SAFE_DELETE(m_pResurrectLocationManager);
     SAFE_DELETE(m_pAlignmentManager);
     SAFE_DELETE(m_pWayPointManager);
     SAFE_DELETE(m_pGlobalPartyManager);
@@ -338,10 +345,10 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pRankBonusInfoManager);
     //	SAFE_DELETE(g_pHolyLandRaceBonus);
     SAFE_DELETE(m_pWarSystem);
-    SAFE_DELETE(g_pShrineInfoManager);
+    SAFE_DELETE(m_pShrineInfoManager);
     SAFE_DELETE(m_pCastleShrineInfoManager);
 
-    SAFE_DELETE(g_pHolyLandManager);
+    SAFE_DELETE(m_pHolyLandManager);
 
     SAFE_DELETE(m_pBloodBibleBonusManager);
 
@@ -362,8 +369,8 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pFlagManager);
     SAFE_DELETE(m_pDefaultOptionSetInfoManager);
 
-    SAFE_DELETE(g_pLevelWarZoneInfoManager);
-    SAFE_DELETE(g_pSweeperBonusManager);
+    SAFE_DELETE(m_pLevelWarZoneInfoManager);
+    SAFE_DELETE(m_pSweeperBonusManager);
     SAFE_DELETE(m_pDragonEyeManager);
     SAFE_DELETE(m_pTimeChecker);
 
@@ -430,7 +437,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : OptionInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : SweeperBonusManager Initialization Start....... \n");
-    g_pSweeperBonusManager->init();
+    m_pSweeperBonusManager->init();
     printf("ObjectManager::init() : SweeperBonusManager Initialization Success....... \n");
 
     printf("ObjectManager::init() : ItemInfoManager Initialization Start\n");
@@ -498,7 +505,7 @@ void ObjectManager::init()
     // ShrineInfoManager must be called only after every Zone has been loaded.
     // It sets the BloodBible-owning race on BloodBibleBonusManager, so it must come after that manager loads.
     printf("ObjectManager::init() : ShrineInfoManager Initialization Start\n");
-    g_pShrineInfoManager->init();
+    m_pShrineInfoManager->init();
     printf("ObjectManager::init() : ShrineInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : CastleShrineInfoManager Initialization Start\n");
@@ -515,7 +522,7 @@ void ObjectManager::init()
     printf("ObjectManager::load() : WayPointManager Initialization Success\n");
 
     printf("ObjectManager::load() : LevelWarZoneInfoManager Initialization Start\n");
-    g_pLevelWarZoneInfoManager->init(); // may be loaded at any time
+    m_pLevelWarZoneInfoManager->init(); // may be loaded at any time
     printf("ObjectManager::load() : LevelWarZoneInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : LevelNickInfoManager Initialization Start\n");
@@ -558,7 +565,7 @@ void ObjectManager::load()
     printf("ObjectManager::init() : GuildUnionManager Initialization Success\n");
 
     printf("ObjectManager::init() : SkillHandlerManager Initialization Start\n");
-    g_pSkillHandlerManager->init();
+    m_pSkillHandlerManager->init();
     printf("ObjectManager::init() : SkillHandlerManager Initialization Success\n");
 
     printf("ObjectManager::init() : SkillInfoManager Initialization Start\n");
@@ -572,7 +579,7 @@ void ObjectManager::load()
 
 
     printf("ObjectManager::init() : ResurrectLocationManager Initialization Start\n");
-    g_pResurrectLocationManager->init();
+    m_pResurrectLocationManager->init();
     printf("ObjectManager::init() : ResurrectLocationManager Initialization Success\n");
 
     // balnce info manager init//abcd

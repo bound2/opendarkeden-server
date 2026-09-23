@@ -55,7 +55,7 @@ void CGExpelGuildMemberHandler::execute(CGExpelGuildMember* pPacket, Player* pPl
     gsExpelGuildMember.setName(pPlayerCreature->getName());
     gsExpelGuildMember.setSender(pPlayerCreature->getName());
 
-    g_pSharedServerManager->sendPacket(&gsExpelGuildMember);
+    de::gameContext().sharedServer().sendPacket(&gsExpelGuildMember);
 
 #endif // __GAME_SERVER__
 

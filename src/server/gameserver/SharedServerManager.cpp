@@ -197,7 +197,3 @@ void SharedServerManager::sendPacket(Packet* pPacket) {
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 }
-
-
-// global variable definition
-SharedServerManager* g_pSharedServerManager = NULL;

@@ -148,6 +148,11 @@ GuildManager& GameContext::guilds() const {
     return *m_pGuildManager;
 }
 
+HolyLandManager& GameContext::holyLands() const {
+    Assert(m_pHolyLandManager != nullptr);
+    return *m_pHolyLandManager;
+}
+
 IncomingPlayerManager& GameContext::incomingPlayers() const {
     Assert(m_pIncomingPlayerManager != nullptr);
     return *m_pIncomingPlayerManager;
@@ -171,6 +176,26 @@ ItemLoaderManager& GameContext::itemLoaders() const {
 ItemMineInfoManager& GameContext::itemMineInfos() const {
     Assert(m_pItemMineInfoManager != nullptr);
     return *m_pItemMineInfoManager;
+}
+
+LevelWarZoneInfoManager& GameContext::levelWarZones() const {
+    Assert(m_pLevelWarZoneInfoManager != nullptr);
+    return *m_pLevelWarZoneInfoManager;
+}
+
+LoginServerManager& GameContext::loginServer() const {
+    Assert(m_pLoginServerManager != nullptr);
+    return *m_pLoginServerManager;
+}
+
+MPacketManager& GameContext::mofusPackets() const {
+    Assert(m_pMPacketManager != nullptr);
+    return *m_pMPacketManager;
+}
+
+MPlayerManager& GameContext::mofusPlayers() const {
+    Assert(m_pMPlayerManager != nullptr);
+    return *m_pMPlayerManager;
 }
 
 MasterLairInfoManager& GameContext::masterLairInfos() const {
@@ -208,6 +233,11 @@ PKZoneInfoManager& GameContext::pkZoneInfos() const {
     return *m_pPKZoneInfoManager;
 }
 
+ParkingCenter& GameContext::parking() const {
+    Assert(m_pParkingCenter != nullptr);
+    return *m_pParkingCenter;
+}
+
 PriceManager& GameContext::prices() const {
     Assert(m_pPriceManager != nullptr);
     return *m_pPriceManager;
@@ -223,14 +253,34 @@ RankBonusInfoManager& GameContext::rankBonuses() const {
     return *m_pRankBonusInfoManager;
 }
 
+ResurrectLocationManager& GameContext::resurrectLocations() const {
+    Assert(m_pResurrectLocationManager != nullptr);
+    return *m_pResurrectLocationManager;
+}
+
+SharedServerManager& GameContext::sharedServer() const {
+    Assert(m_pSharedServerManager != nullptr);
+    return *m_pSharedServerManager;
+}
+
 ShopTemplateManager& GameContext::shopTemplates() const {
     Assert(m_pShopTemplateManager != nullptr);
     return *m_pShopTemplateManager;
 }
 
+ShrineInfoManager& GameContext::shrines() const {
+    Assert(m_pShrineInfoManager != nullptr);
+    return *m_pShrineInfoManager;
+}
+
 SkillDomainInfoManager& GameContext::skillDomains() const {
     Assert(m_pSkillDomainInfoManager != nullptr);
     return *m_pSkillDomainInfoManager;
+}
+
+SkillHandlerManager& GameContext::skillHandlers() const {
+    Assert(m_pSkillHandlerManager != nullptr);
+    return *m_pSkillHandlerManager;
 }
 
 SkillInfoManager& GameContext::skillInfos() const {
@@ -246,6 +296,11 @@ SkillPropertyManager& GameContext::skillProps() const {
 StringPool& GameContext::strings() const {
     Assert(m_pStringPool != nullptr);
     return *m_pStringPool;
+}
+
+SweeperBonusManager& GameContext::sweeperBonuses() const {
+    Assert(m_pSweeperBonusManager != nullptr);
+    return *m_pSweeperBonusManager;
 }
 
 TimeChecker& GameContext::timeChecker() const {

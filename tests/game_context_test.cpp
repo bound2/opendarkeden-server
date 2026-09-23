@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[57];
+char g_managerStorage[68];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -136,6 +136,11 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     DragonEyeManager* pDragonEyeManager = standIn<DragonEyeManager>(18);
     EventQuestLootingManager* pEventQuestLootingManager = standIn<EventQuestLootingManager>(19);
     FlagManager* pFlagManager = standIn<FlagManager>(49);
+    HolyLandManager* pHolyLandManager = standIn<HolyLandManager>(63);
+    LevelWarZoneInfoManager* pLevelWarZoneInfoManager = standIn<LevelWarZoneInfoManager>(60);
+    ParkingCenter* pParkingCenter = standIn<ParkingCenter>(59);
+    ResurrectLocationManager* pResurrectLocationManager = standIn<ResurrectLocationManager>(64);
+    ShrineInfoManager* pShrineInfoManager = standIn<ShrineInfoManager>(62);
     WarSystem* pWarSystem = standIn<WarSystem>(52);
     WayPointManager* pWayPointManager = standIn<WayPointManager>(20);
 
@@ -144,6 +149,11 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     context.setDragonEyeManager(pDragonEyeManager);
     context.setEventQuestLootingManager(pEventQuestLootingManager);
     context.setFlagManager(pFlagManager);
+    context.setHolyLandManager(pHolyLandManager);
+    context.setLevelWarZoneInfoManager(pLevelWarZoneInfoManager);
+    context.setParkingCenter(pParkingCenter);
+    context.setResurrectLocationManager(pResurrectLocationManager);
+    context.setShrineInfoManager(pShrineInfoManager);
     context.setWarSystem(pWarSystem);
     context.setWayPointManager(pWayPointManager);
 
@@ -152,6 +162,11 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     EXPECT_EQ(&context.dragonEyes(), pDragonEyeManager);
     EXPECT_EQ(&context.eventQuestLoot(), pEventQuestLootingManager);
     EXPECT_EQ(&context.flags(), pFlagManager);
+    EXPECT_EQ(&context.holyLands(), pHolyLandManager);
+    EXPECT_EQ(&context.levelWarZones(), pLevelWarZoneInfoManager);
+    EXPECT_EQ(&context.parking(), pParkingCenter);
+    EXPECT_EQ(&context.resurrectLocations(), pResurrectLocationManager);
+    EXPECT_EQ(&context.shrines(), pShrineInfoManager);
     EXPECT_EQ(&context.warSystem(), pWarSystem);
     EXPECT_EQ(&context.wayPoints(), pWayPointManager);
 }
@@ -184,6 +199,7 @@ TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
     SkillDomainInfoManager* pSkillDomainInfoManager = standIn<SkillDomainInfoManager>(27);
     SkillInfoManager* pSkillInfoManager = standIn<SkillInfoManager>(50);
     SkillPropertyManager* pSkillPropertyManager = standIn<SkillPropertyManager>(28);
+    SweeperBonusManager* pSweeperBonusManager = standIn<SweeperBonusManager>(65);
     VampEXPInfoManager* pVampEXPInfoManager = standIn<VampEXPInfoManager>(29);
 
     context.setGoodsInfoManager(pGoodsInfoManager);
@@ -192,6 +208,7 @@ TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
     context.setSkillDomainInfoManager(pSkillDomainInfoManager);
     context.setSkillInfoManager(pSkillInfoManager);
     context.setSkillPropertyManager(pSkillPropertyManager);
+    context.setSweeperBonusManager(pSweeperBonusManager);
     context.setVampEXPInfoManager(pVampEXPInfoManager);
 
     EXPECT_EQ(&context.goodsInfos(), pGoodsInfoManager);
@@ -200,6 +217,7 @@ TEST(GameContextTest, ProgressionTableManagersAreReadBack) {
     EXPECT_EQ(&context.skillDomains(), pSkillDomainInfoManager);
     EXPECT_EQ(&context.skillInfos(), pSkillInfoManager);
     EXPECT_EQ(&context.skillProps(), pSkillPropertyManager);
+    EXPECT_EQ(&context.sweeperBonuses(), pSweeperBonusManager);
     EXPECT_EQ(&context.vampireExp(), pVampEXPInfoManager);
 }
 
@@ -217,6 +235,32 @@ TEST(GameContextTest, ClientSessionManagersAreReadBack) {
     EXPECT_EQ(&context.clients(), pClientManager);
     EXPECT_EQ(&context.connectionInfos(), pConnectionInfoManager);
     EXPECT_EQ(&context.gameServerGroups(), pGameServerGroupInfoManager);
+}
+
+TEST(GameContextTest, InterServerLinkManagersAreReadBack) {
+    de::GameContext context;
+
+    LoginServerManager* pLoginServerManager = standIn<LoginServerManager>(61);
+    SharedServerManager* pSharedServerManager = standIn<SharedServerManager>(58);
+
+    context.setLoginServerManager(pLoginServerManager);
+    context.setSharedServerManager(pSharedServerManager);
+
+    EXPECT_EQ(&context.loginServer(), pLoginServerManager);
+    EXPECT_EQ(&context.sharedServer(), pSharedServerManager);
+}
+
+TEST(GameContextTest, MofusManagersAreReadBack) {
+    de::GameContext context;
+
+    MPacketManager* pMPacketManager = standIn<MPacketManager>(66);
+    MPlayerManager* pMPlayerManager = standIn<MPlayerManager>(67);
+
+    context.setMPacketManager(pMPacketManager);
+    context.setMPlayerManager(pMPlayerManager);
+
+    EXPECT_EQ(&context.mofusPackets(), pMPacketManager);
+    EXPECT_EQ(&context.mofusPlayers(), pMPlayerManager);
 }
 
 TEST(GameContextTest, CharacterLoadingManagersAreReadBack) {
@@ -241,14 +285,17 @@ TEST(GameContextTest, CombatStateManagersAreReadBack) {
     AlignmentManager* pAlignmentManager = standIn<AlignmentManager>(36);
     BloodBibleBonusManager* pBloodBibleBonusManager = standIn<BloodBibleBonusManager>(37);
     CombatInfoManager* pCombatInfoManager = standIn<CombatInfoManager>(38);
+    SkillHandlerManager* pSkillHandlerManager = standIn<SkillHandlerManager>(57);
 
     context.setAlignmentManager(pAlignmentManager);
     context.setBloodBibleBonusManager(pBloodBibleBonusManager);
     context.setCombatInfoManager(pCombatInfoManager);
+    context.setSkillHandlerManager(pSkillHandlerManager);
 
     EXPECT_EQ(&context.alignments(), pAlignmentManager);
     EXPECT_EQ(&context.bloodBibleBonuses(), pBloodBibleBonusManager);
     EXPECT_EQ(&context.combatInfo(), pCombatInfoManager);
+    EXPECT_EQ(&context.skillHandlers(), pSkillHandlerManager);
 }
 
 TEST(GameContextTest, WorldClockAndInstanceManagersAreReadBack) {
@@ -342,28 +389,39 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.gameServerGroups(), AssertionError);
     EXPECT_THROW(context.goodsInfos(), AssertionError);
     EXPECT_THROW(context.guilds(), AssertionError);
+    EXPECT_THROW(context.holyLands(), AssertionError);
     EXPECT_THROW(context.incomingPlayers(), AssertionError);
     EXPECT_THROW(context.itemFactories(), AssertionError);
     EXPECT_THROW(context.itemInfos(), AssertionError);
     EXPECT_THROW(context.itemLoaders(), AssertionError);
     EXPECT_THROW(context.itemMineInfos(), AssertionError);
+    EXPECT_THROW(context.levelWarZones(), AssertionError);
+    EXPECT_THROW(context.loginServer(), AssertionError);
     EXPECT_THROW(context.masterLairInfos(), AssertionError);
+    EXPECT_THROW(context.mofusPackets(), AssertionError);
+    EXPECT_THROW(context.mofusPlayers(), AssertionError);
     EXPECT_THROW(context.monsterInfos(), AssertionError);
     EXPECT_THROW(context.monsterNames(), AssertionError);
     EXPECT_THROW(context.optionInfos(), AssertionError);
     EXPECT_THROW(context.optionSets(), AssertionError);
     EXPECT_THROW(context.oustersExp(), AssertionError);
+    EXPECT_THROW(context.parking(), AssertionError);
     EXPECT_THROW(context.parties(), AssertionError);
     EXPECT_THROW(context.pkZoneInfos(), AssertionError);
     EXPECT_THROW(context.playerCreatures(), AssertionError);
     EXPECT_THROW(context.prices(), AssertionError);
     EXPECT_THROW(context.publicScripts(), AssertionError);
     EXPECT_THROW(context.rankBonuses(), AssertionError);
+    EXPECT_THROW(context.resurrectLocations(), AssertionError);
+    EXPECT_THROW(context.sharedServer(), AssertionError);
     EXPECT_THROW(context.shopTemplates(), AssertionError);
+    EXPECT_THROW(context.shrines(), AssertionError);
     EXPECT_THROW(context.skillDomains(), AssertionError);
+    EXPECT_THROW(context.skillHandlers(), AssertionError);
     EXPECT_THROW(context.skillInfos(), AssertionError);
     EXPECT_THROW(context.skillProps(), AssertionError);
     EXPECT_THROW(context.strings(), AssertionError);
+    EXPECT_THROW(context.sweeperBonuses(), AssertionError);
     EXPECT_THROW(context.timeChecker(), AssertionError);
     EXPECT_THROW(context.vampireExp(), AssertionError);
     EXPECT_THROW(context.variables(), AssertionError);

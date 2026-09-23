@@ -393,8 +393,8 @@ void CGShopRequestSellHandler::executeMotorcycle(CGShopRequestSell* pPacket, Pla
                             pPlayer->sendPacket(&okpkt);
 
                             // Delete the box from the parking center.
-                            if (g_pParkingCenter->hasMotorcycleBox(motorcycleID))
-                                g_pParkingCenter->deleteMotorcycleBox(motorcycleID);
+                            if (de::gameContext().parking().hasMotorcycleBox(motorcycleID))
+                                de::gameContext().parking().deleteMotorcycleBox(motorcycleID);
 
 
                             // The motorcycle was found, so the work is done.

@@ -143,7 +143,7 @@ void CGRegistGuildHandler::execute(CGRegistGuild* pPacket, Player* pPlayer)
     gsAddGuild.setGuildRace(guildRace);
     gsAddGuild.setServerGroupID(g_pConfig->getPropertyInt("ServerID"));
 
-    g_pSharedServerManager->sendPacket(&gsAddGuild);
+    de::gameContext().sharedServer().sendPacket(&gsAddGuild);
 
     GCNPCResponse response;
     response.setCode(NPC_RESPONSE_QUIT_DIALOGUE);

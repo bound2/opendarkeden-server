@@ -724,7 +724,7 @@ bool CastleInfoManager::hasOtherBloodBible(ZoneID_t zoneID, PlayerCreature* pPC)
         Assert(pEffect != NULL);
 
         int part = pEffect->getPart();
-        ShrineSet* pShrineSet = g_pShrineInfoManager->getShrineSet(part);
+        ShrineSet* pShrineSet = de::gameContext().shrines().getShrineSet(part);
         if (pShrineSet->getVampireGuardShrine().getZoneID() == zoneID ||
             pShrineSet->getSlayerGuardShrine().getZoneID() == zoneID ||
             pShrineSet->getOustersGuardShrine().getZoneID() == zoneID) {

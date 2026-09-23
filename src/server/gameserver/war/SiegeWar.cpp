@@ -156,8 +156,8 @@ void SiegeWar::executeEnd()
                         // Only when it is not the current server.. (handled above)
                         if (pGameServerInfo->getGroupID() == myServerID) {
                         } else if (pGameServerInfo->getCastleFollowingServerID() == myServerID) {
-                            g_pLoginServerManager->sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(),
-                                                              &ggCommand);
+                            de::gameContext().loginServer().sendPacket(pGameServerInfo->getIP(),
+                                                                       pGameServerInfo->getUDPPort(), &ggCommand);
                             cout << "send change castle packet to " << pGameServerInfo->getIP() << ", "
                                  << pGameServerInfo->getUDPPort() << endl;
                         }

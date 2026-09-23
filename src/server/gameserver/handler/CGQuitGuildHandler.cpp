@@ -51,7 +51,7 @@ void CGQuitGuildHandler::execute(CGQuitGuild* pPacket, Player* pPlayer)
     gsQuitGuild.setGuildID(pGuild->getID());
     gsQuitGuild.setName(pPlayerCreature->getName());
 
-    g_pSharedServerManager->sendPacket(&gsQuitGuild);
+    de::gameContext().sharedServer().sendPacket(&gsQuitGuild);
 
 #endif // __GAME_SERVER__
 

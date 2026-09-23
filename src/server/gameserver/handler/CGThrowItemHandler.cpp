@@ -12,6 +12,7 @@
 #include "GCThrowItemOK1.h"
 #include "GCThrowItemOK2.h"
 #include "GCThrowItemOK3.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "SkillHandlerManager.h"
 #include "Slayer.h"
@@ -63,7 +64,7 @@ void CGThrowItemHandler::execute(CGThrowItem* pPacket, Player* pPlayer)
             g_Sniping.checkRevealRatio(pCreature, 20, 10);
         }
 
-        SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_THROW_HOLY_WATER);
+        SkillHandler* pSkillHandler = de::gameContext().skillHandlers().getSkillHandler(SKILL_THROW_HOLY_WATER);
         Assert(pSkillHandler != NULL);
         pSkillHandler->execute(pSlayer, pPacket->getTargetObjectID(), pPacket->getObjectID(), pPacket->getX(),
                                pPacket->getY());

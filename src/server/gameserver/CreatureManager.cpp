@@ -10,6 +10,7 @@
 
 #include "Assert.h"
 #include "GCCreatureDied.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "LevelWarZoneInfoManager.h"
@@ -314,7 +315,7 @@ void CreatureManager::broadcastLevelWarBonusPacket(Packet* pPacket, Creature* pC
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);
 
-            if (g_pLevelWarZoneInfoManager->isCreatureBonusZone(pCreature, pCreature->getZoneID())) {
+            if (de::gameContext().levelWarZones().isCreatureBonusZone(pCreature, pCreature->getZoneID())) {
                 pPlayer->sendPacket(pPacket);
                 pCreature->setFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT);
             }

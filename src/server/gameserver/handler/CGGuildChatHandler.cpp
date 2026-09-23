@@ -8,6 +8,7 @@
 
 #ifdef __GAME_SERVER__
 #include "GGGuildChat.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
 #include "LoginServerManager.h"
@@ -65,8 +66,8 @@ void CGGuildChatHandler::execute(CGGuildChat* pPacket, Player* pPlayer)
             for (; itr != gameServerInfo.end(); itr++) {
                 GameServerInfo* pGameServerInfo = itr->second;
 
-                g_pLoginServerManager->sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(),
-                                                  &ggGuildChat);
+                de::gameContext().loginServer().sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(),
+                                                           &ggGuildChat);
             }
         }
     }

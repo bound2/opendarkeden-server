@@ -484,7 +484,7 @@ void PCManager::processCreatures()
                             }
                         }
 
-                        SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_EXTREME);
+                        SkillHandler* pSkillHandler = de::gameContext().skillHandlers().getSkillHandler(SKILL_EXTREME);
                         Assert(pSkillHandler != NULL);
                         // Apply the Extreme effect.
                         pSkillHandler->execute(pVampire);
@@ -906,7 +906,7 @@ void PCManager::processCreatures()
             // Broadcast the blood bible bonus information across Adam's holy land.
             GCHolyLandBonusInfo gcHolyLandBonusInfo;
             de::gameContext().bloodBibleBonuses().makeHolyLandBonusInfo(gcHolyLandBonusInfo);
-            g_pHolyLandManager->broadcast(&gcHolyLandBonusInfo);
+            de::gameContext().holyLands().broadcast(&gcHolyLandBonusInfo);
         }
 
 
@@ -1072,7 +1072,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
     // resurrection position.
     else if (pkZoneInfos.isPKZone(pPC->getZoneID())) {
         if (!pkZoneInfos.getResurrectPosition(pPC->getZoneID(), ResurrectCoord))
-            g_pResurrectLocationManager->getPosition(pPC, ResurrectCoord);
+            de::gameContext().resurrectLocations().getPosition(pPC, ResurrectCoord);
     }
     // Illusion Way 1.
     else if (pPC->getZoneID() == 1410) {
@@ -1093,7 +1093,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
             ResurrectCoord.y = 232;
         }
     } else {
-        g_pResurrectLocationManager->getPosition(pPC, ResurrectCoord);
+        de::gameContext().resurrectLocations().getPosition(pPC, ResurrectCoord);
     }
 
     ZoneID = ResurrectCoord.id;
@@ -1118,8 +1118,8 @@ void PCManager::killCreature(Creature* pDeadCreature)
         pDeadCreature->setFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT);
     }
 
-    if (g_pLevelWarZoneInfoManager->isCreatureBonusZone(pDeadCreature, pZone->getZoneID()) !=
-        g_pLevelWarZoneInfoManager->isCreatureBonusZone(pDeadCreature, pResurrectZone->getZoneID())) {
+    if (de::gameContext().levelWarZones().isCreatureBonusZone(pDeadCreature, pZone->getZoneID()) !=
+        de::gameContext().levelWarZones().isCreatureBonusZone(pDeadCreature, pResurrectZone->getZoneID())) {
         pDeadCreature->setFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT);
     }
 
@@ -1211,7 +1211,7 @@ void PCManager::transportAllCreatures(ZoneID_t ZoneID, ZoneCoord_t ZoneX, ZoneCo
                     ZONE_COORD ResurrectCoord;
                     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
                     Assert(pPC != NULL);
-                    g_pResurrectLocationManager->getPosition(pPC, ResurrectCoord);
+                    de::gameContext().resurrectLocations().getPosition(pPC, ResurrectCoord);
 
                     // 10 seconds
                     pEventTransport->setDeadline(100);

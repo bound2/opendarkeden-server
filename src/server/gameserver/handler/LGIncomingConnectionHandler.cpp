@@ -103,7 +103,7 @@ void LGIncomingConnectionHandler::execute(LGIncomingConnection* pPacket)
         glIncomingConnectionOK.setTCPPort(g_pConfig->getPropertyInt("TCPPort"));
         glIncomingConnectionOK.setKey(authKey);
 
-        g_pLoginServerManager->sendPacket(pPacket->getHost(), pPacket->getPort(), &glIncomingConnectionOK);
+        de::gameContext().loginServer().sendPacket(pPacket->getHost(), pPacket->getPort(), &glIncomingConnectionOK);
 
         cout << "LGIncomingConnectionHandler Send Packet to ServerIP : " << pPacket->getHost() << endl;
         cout << "LGIncomingConnectionHandler Send Packet to ServerPort : " << pPacket->getPort() << endl;

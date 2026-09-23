@@ -406,5 +406,5 @@ void RegenZoneManager::regeneratePC(PlayerCreature* pPC, uint ID) {
 }
 
 void RegenZoneManager::broadcastStatus() {
-    g_pHolyLandManager->broadcast(m_pStatusPacket);
+    de::gameContext().holyLands().broadcast(m_pStatusPacket);
 }

@@ -160,8 +160,8 @@ PlayerCreature::~PlayerCreature()
             if (pItem->getItemClass() == Item::ITEM_CLASS_KEY) {
                 Key* pKey = dynamic_cast<Key*>(pItem);
                 // Remove the motorcycle box directly from the zone here.
-                if (g_pParkingCenter->hasMotorcycleBox(pKey->getTarget())) {
-                    g_pParkingCenter->deleteMotorcycleBox(pKey->getTarget());
+                if (de::gameContext().parking().hasMotorcycleBox(pKey->getTarget())) {
+                    de::gameContext().parking().deleteMotorcycleBox(pKey->getTarget());
                 }
             }
 

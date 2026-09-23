@@ -37,6 +37,4 @@ private:
     ushort m_Size;                  // Size of the skill handler array
 };
 
-extern SkillHandlerManager* g_pSkillHandlerManager;
-
 #endif

@@ -105,7 +105,7 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
                 if (pCreature->isPC()) {
                     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
 
-                    g_pResurrectLocationManager->getPosition(pPC, ResurrectCoord);
+                    de::gameContext().resurrectLocations().getPosition(pPC, ResurrectCoord);
 
                     ZoneID = ResurrectCoord.id;
                     ZoneX = ResurrectCoord.x;
@@ -160,7 +160,7 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
     glIncomingConnection.setPlayerID(pGamePlayer->getID());
     glIncomingConnection.setClientIP(pGamePlayer->getSocket()->getHost());
 
-    g_pLoginServerManager->sendPacket(g_pConfig->getProperty("LoginServerIP"), 9999, &glIncomingConnection);
+    de::gameContext().loginServer().sendPacket(g_pConfig->getProperty("LoginServerIP"), 9999, &glIncomingConnection);
 
     pGamePlayer->setPlayerStatus(GPS_AFTER_SENDING_GL_INCOMING_CONNECTION);
 

@@ -89,6 +89,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     __BEGIN_TRY __BEGIN_DEBUG_EX __BEGIN_DEBUG
 
         GuildManager& guilds = de::gameContext().guilds();
+    SharedServerManager& sharedServer = de::gameContext().sharedServer();
 
 #ifdef __GAME_SERVER__
 
@@ -363,7 +364,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                         gsGuildMemberLogOn.setLogOn(true);
                         gsGuildMemberLogOn.setServerID(g_pConfig->getPropertyInt("ServerID"));
 
-                        g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
+                        sharedServer.sendPacket(&gsGuildMemberLogOn);
 
                         // DB update
                         { defaultSessionRepository().markGuildMemberLoggedOn(pSlayer->getName()); }
@@ -421,7 +422,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                         gsGuildMemberLogOn.setLogOn(true);
                         gsGuildMemberLogOn.setServerID(g_pConfig->getPropertyInt("ServerID"));
 
-                        g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
+                        sharedServer.sendPacket(&gsGuildMemberLogOn);
 
                         // DB update
                         { defaultSessionRepository().markGuildMemberLoggedOn(pVampire->getName()); }
@@ -482,7 +483,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                         gsGuildMemberLogOn.setLogOn(true);
                         gsGuildMemberLogOn.setServerID(g_pConfig->getPropertyInt("ServerID"));
 
-                        g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
+                        sharedServer.sendPacket(&gsGuildMemberLogOn);
 
                         // DB update
                         { defaultSessionRepository().markGuildMemberLoggedOn(pOusters->getName()); }
@@ -563,7 +564,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         Assert(pPC != NULL);
 
         if (isCastleZone || isMasterLair || isPKZone || isMaze || isEventZone || isBeginnerZone || isDynamicZone) {
-            if (g_pResurrectLocationManager->getPosition(pPC, zoneCoord)) {
+            if (de::gameContext().resurrectLocations().getPosition(pPC, zoneCoord)) {
                 pCreature->setZoneID(zoneCoord.id);
                 pCreature->setXY(zoneCoord.x, zoneCoord.y);
             }

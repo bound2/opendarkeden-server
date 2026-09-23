@@ -70,8 +70,8 @@ private:
     Gold_t m_RegistrationFee;      // the war application fee that was paid
 
     // war result
-    Race_t m_WinnerRace;
-    GuildID_t m_WinnerGuildID;
+    Race_t m_WinnerRace = 0;
+    GuildID_t m_WinnerGuildID = 0;
     bool m_bModifyCastleOwner;
 };
 

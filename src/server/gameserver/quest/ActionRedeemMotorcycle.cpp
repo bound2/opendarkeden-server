@@ -9,6 +9,7 @@
 #include "Belt.h"
 #include "Creature.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Item.h"
 #include "ItemFactoryManager.h"
@@ -148,7 +149,7 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
         }
 
         // Check that the object has not been created already before querying the database.
-        if (g_pParkingCenter->hasMotorcycleBox(targetID)) {
+        if (context().parking().hasMotorcycleBox(targetID)) {
             // A box for this motorcycle already exists, so it must not be
             // created a second time.
 
@@ -219,7 +220,7 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
             Assert(pBox != NULL);
 
             try {
-                g_pParkingCenter->addMotorcycleBox(pBox);
+                context().parking().addMotorcycleBox(pBox);
             } catch (DuplicatedException& de) { // by sigi. 2002.12.24
                 filelog("motorError.txt", "%s - itemID=%d, motorid=%d", de.toString().c_str(), itemID,
                         pMotorcycle->getObjectID());

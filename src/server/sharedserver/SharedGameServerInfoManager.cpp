@@ -40,7 +40,7 @@ SharedGameServerInfoManager::~SharedGameServerInfoManager() {
 void SharedGameServerInfoManager::init() {
     __BEGIN_TRY
 
-    // just load data from SharedGameServerInfo table
+    // just load data from GameServerInfo table
     load();
 
     // just print to cout

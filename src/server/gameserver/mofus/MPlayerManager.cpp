@@ -195,6 +195,3 @@ void MPlayerManager::processResult() {
 
     __LEAVE_CRITICAL_SECTION(pcFinder)
 }
-
-// global variable
-MPlayerManager* g_pMPlayerManager = NULL;

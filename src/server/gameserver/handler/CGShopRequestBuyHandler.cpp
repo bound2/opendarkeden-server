@@ -498,7 +498,7 @@ void CGShopRequestBuyHandler::executeMotorcycle(CGShopRequestBuy* pPacket, Playe
     // Register the motorcycle with the parking center.
     MotorcycleBox* pBox = new MotorcycleBox(dynamic_cast<Motorcycle*>(pItem), pZone, pt.x, pt.y);
     Assert(pBox != NULL);
-    g_pParkingCenter->addMotorcycleBox(pBox);
+    de::gameContext().parking().addMotorcycleBox(pBox);
 
     // Next create the key that matches the motorcycle just created.
     // Then write to the DB that the motorcycle key passed to the player.

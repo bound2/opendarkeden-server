@@ -233,6 +233,4 @@ private:
     HashMapShrineSet m_ShrineSets;
 };
 
-extern ShrineInfoManager* g_pShrineInfoManager;
-
 #endif // __SHRINE_INFO_MANAGER_H__

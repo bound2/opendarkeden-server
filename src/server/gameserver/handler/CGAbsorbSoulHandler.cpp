@@ -10,6 +10,7 @@
 #include "GCAttack.h"
 #include "GCGetDamage.h"
 #include "GCSkillFailed1.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "Ousters.h"
 #include "Skill.h"
@@ -53,7 +54,7 @@ void CGAbsorbSoulHandler::execute(CGAbsorbSoul* pPacket, Player* pPlayer)
                 return;
             }
 
-            SkillHandler* pSkillHandler = g_pSkillHandlerManager->getSkillHandler(SKILL_ABSORB_SOUL);
+            SkillHandler* pSkillHandler = de::gameContext().skillHandlers().getSkillHandler(SKILL_ABSORB_SOUL);
             Assert(pSkillHandler != NULL);
             pSkillHandler->execute(pOusters, pPacket->getObjectID(), pPacket->getTargetZoneX(),
                                    pPacket->getTargetZoneY(), pPacket->getInvenObjectID(), pPacket->getInvenX(),

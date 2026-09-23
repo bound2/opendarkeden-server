@@ -8,6 +8,7 @@
 
 #include "Creature.h"
 #include "GCNPCResponse.h"
+#include "GameContext.h"
 #include "GamePlayer.h"
 #include "NPC.h"
 #include "PlayerCreature.h"
@@ -48,7 +49,7 @@ void ActionWarpToResurrectPosition::execute(Creature* pCreature1, Creature* pCre
         return;
 
     ZONE_COORD zoneCoord;
-    g_pResurrectLocationManager->getPosition(pPC, zoneCoord);
+    context().resurrectLocations().getPosition(pPC, zoneCoord);
 
     transportCreature(pCreature2, zoneCoord.id, zoneCoord.x, zoneCoord.y);
 

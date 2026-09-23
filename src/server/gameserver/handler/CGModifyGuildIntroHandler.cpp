@@ -61,7 +61,7 @@ void CGModifyGuildIntroHandler::execute(CGModifyGuildIntro* pPacket, Player* pPl
     gsModifyGuildIntro.setGuildID(pGuild->getID());
     gsModifyGuildIntro.setGuildIntro(pPacket->getGuildIntro());
 
-    g_pSharedServerManager->sendPacket(&gsModifyGuildIntro);
+    de::gameContext().sharedServer().sendPacket(&gsModifyGuildIntro);
 
 #endif // __GAME_SERVER__
 

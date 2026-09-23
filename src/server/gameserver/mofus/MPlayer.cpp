@@ -7,6 +7,7 @@
 #include "MPlayer.h"
 
 #include "Assert.h"
+#include "GameContext.h"
 #include "MJob.h"
 #include "MPacket.h"
 #include "MPacketManager.h"
@@ -75,6 +76,8 @@ void MPlayer::processOutput() {
 void MPlayer::processCommand() {
     __BEGIN_TRY
 
+    MPacketManager& mofusPackets = de::gameContext().mofusPackets();
+
     try {
         // Continuously pull packets from the input stream and dispatch handlers.
         while (true) {
@@ -91,15 +94,15 @@ void MPlayer::processCommand() {
 
 
             // Verify we have a handler for this packet ID.
-            if (!g_pMPacketManager->hasHandler(packetID)) {
+            if (!mofusPackets.hasHandler(packetID)) {
                 filelog(MOFUS_ERROR_FILE, "Invalid PacketID : %d", packetID);
                 throw ProtocolException("Invalid PacketID");
             }
 
             // Validate packet size.
-            if (g_pMPacketManager->getPacketSize(packetID) != packetSize) {
+            if (mofusPackets.getPacketSize(packetID) != packetSize) {
                 filelog(MOFUS_ERROR_FILE, "Invalid PacketSize : %d, expected size : %d", packetSize,
-                        g_pMPacketManager->getPacketSize(packetID));
+                        mofusPackets.getPacketSize(packetID));
                 throw ProtocolException("Invalid PacketSize");
             }
 
@@ -108,13 +111,13 @@ void MPlayer::processCommand() {
                 return;
 
             // Create the packet object.
-            MPacket* pPacket = g_pMPacketManager->createPacket(packetID);
+            MPacket* pPacket = mofusPackets.createPacket(packetID);
 
             // Fill the packet from the stream.
             pPacket->read(*m_pInputStream);
 
             // Execute the packet handler.
-            g_pMPacketManager->execute(this, pPacket);
+            mofusPackets.execute(this, pPacket);
         }
     } catch (const InsufficientDataException&) {
         // Not enough data yet; wait for more.
