@@ -24,6 +24,7 @@
 #include "PlayerCreature.h"
 #include "Properties.h"
 #include "SXml.h"
+#include "ServerContext.h"
 #include "VariableManager.h"
 #include "Zone.h"
 #include "ZoneGroupManager.h"
@@ -77,7 +78,7 @@ void GDRLairManager::run() {
         port = g_pConfig->getPropertyInt("DB_PORT");
 
     Connection* pConnection = new Connection(host, db, user, password, port);
-    g_pDatabaseManager->addConnection((int)(long)Thread::self(), pConnection);
+    de::serverContext().database().addConnection((int)(long)Thread::self(), pConnection);
     cout << "******************************************************" << endl;
     cout << " GDR Lair THREAD CONNECT DB " << endl;
     cout << "******************************************************" << endl;
@@ -95,7 +96,7 @@ void GDRLairManager::run() {
         // dummy query
         ////////////////////////////////////////////////////////
         if (dummyQueryTime < currentTime) {
-            g_pDatabaseManager->executeDummyQuery(pConnection);
+            de::serverContext().database().executeDummyQuery(pConnection);
 
             dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
         }

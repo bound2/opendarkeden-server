@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/GameInfoRepository.h"
 
 namespace {
@@ -42,7 +43,7 @@ bool loadMax(const char* query, int& maxValue) {
     Statement* pStmt = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
         Result* pResult = pStmt->executeQuery(query);
         found = readMax(pResult, maxValue);
         SAFE_DELETE(pStmt);
@@ -63,7 +64,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT SkillType, Parent FROM SkillTreeInfo ");
 
             while (pResult->next()) {
@@ -90,7 +91,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT Type, Name, `Rank`, Point, Race FROM RankBonusInfo");
 
             while (pResult->next()) {
@@ -120,7 +121,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT PetType, OriginalMonsterType, CreatureType1, CreatureType2, "
                                                   "CreatureType3, CreatureType4, CreatureType5, FoodType "
                                                   "FROM PetTypeInfo");
@@ -154,7 +155,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT WorldID, GroupID, GroupName, Stat FROM GameServerGroupInfo");
 
             while (pResult->next()) {
@@ -182,7 +183,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT Type, Name, OptionList FROM BloodBibleBonusInfo");
 
             while (pResult->next()) {
@@ -214,7 +215,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT Month, Clear, Rainy, Snowy FROM WeatherInfo");
 
             while (pResult->next()) {
@@ -238,7 +239,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT ID, String FROM GSStringPool");
 
             while (pResult->next()) {
@@ -261,7 +262,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT ID, ShopType, ItemClass, MinItemType, MaxItemType, MinOptionLevel, "
                                     "MaxOptionLevel FROM ShopTemplate");
@@ -290,7 +291,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT NickIndex, Race, Level10 FROM NicknameIndex WHERE NickType='LEVEL'");
 
@@ -314,7 +315,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT ID, ItemClass, ItemType, ItemOption FROM ItemMineInfo");
 
             while (pResult->next()) {
@@ -339,7 +340,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT Grade, Ratio, GambleRatio, BeadRatio FROM ItemGradeRatioInfo");
 
@@ -364,7 +365,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT GoodsID, Name, ItemClass, ItemType, Grade, OptionType, Num, Limited+0, "
                                     "Hour FROM GoodsListInfo WHERE Kind<>'SET'");
@@ -396,7 +397,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT Type, OptionList FROM DefaultOptionSetInfo");
 
             while (pResult->next()) {
@@ -419,7 +420,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT Month , Hour , Minute , DarkLevel , LightLevel FROM DarkLightInfo");
 
@@ -446,7 +447,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("Select SkillType, ZoneID from CastleSkillInfo");
 
             while (pResult->next()) {
@@ -469,7 +470,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT ID, Name, ItemType, GuardZoneID, GuardX, GuardY, GuardMType, HolyZoneID, "
                                     "HolyX, HolyY, HolyMType FROM CastleShrineInfo");
@@ -503,7 +504,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT Name FROM LogUserInfo");
 
             while (pResult->next())
@@ -521,7 +522,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(MONSTER_NAME_QUERIES[list]);
 
             while (pResult->next())
@@ -539,7 +540,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT OptionType, Name, HName, Nickname, Class, PlusPoint, PriceMultiplier, ReqAbility, Color, "
                 "Ratio, "
@@ -583,7 +584,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT OptionClassType, Name, HName, Level, TotalGrade, OptionGroup FROM OptionClassInfo");
 
@@ -610,7 +611,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT Level, TotalGrade, Grade, RatioWhenFail, RatioWhenSuccess FROM RareEnchantInfo");
 
@@ -636,7 +637,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT OptionType, Ratio FROM PetEnchantOptionRatioInfo");
 
             while (pResult->next()) {
@@ -659,7 +660,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT ID from ShopTemplate where NPCID = %d", npcID);
 
             while (pResult->next()) {

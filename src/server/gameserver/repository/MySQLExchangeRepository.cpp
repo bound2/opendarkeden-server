@@ -8,6 +8,7 @@
 #include "DB.h"
 #include "DatabaseManager.h"
 #include "GCExchangeList.h" // For ExchangeListing definition
+#include "ServerContext.h"
 #include "StringStream.h"
 #include "repository/ExchangeRepository.h"
 
@@ -78,7 +79,7 @@ string escapeSQL(const string& input) {
     // Preferred path: let the client library escape against the live
     // connection. getConnection() is a cheap per-thread lookup with no side
     // effects, and it hands back the very connection these queries run on.
-    Connection* pConnection = (g_pDatabaseManager != NULL) ? g_pDatabaseManager->getConnection("DARKEDEN") : NULL;
+    Connection* pConnection = de::serverContext().database().getConnection("DARKEDEN");
     if (pConnection != NULL && pConnection->isConnected()) {
         // mysql_real_escape_string() needs room for 2*length + 1 bytes.
         vector<char> buffer(value.size() * 2 + 1);
@@ -157,7 +158,7 @@ int64_t MySQLExchangeRepository::createListing(const ExchangeListing& listing) {
     Result* pResult = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
         // Build INSERT query - using printf-style format
         pStmt->executeQuery("INSERT INTO ExchangeListing ("
@@ -205,7 +206,7 @@ bool MySQLExchangeRepository::cancelListing(int64_t listingID) {
     Statement* pStmt = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
         pStmt->executeQuery("UPDATE ExchangeListing SET "
                             "Status = 2, " // CANCELLED
@@ -232,7 +233,7 @@ bool MySQLExchangeRepository::expireListing(int64_t listingID) {
     Statement* pStmt = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
         pStmt->executeQuery("UPDATE ExchangeListing SET "
                             "Status = 3, " // EXPIRED
@@ -259,7 +260,7 @@ bool MySQLExchangeRepository::markListingSold(int64_t listingID, const string& b
     Statement* pStmt = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
         pStmt->executeQuery("UPDATE ExchangeListing SET "
                             "Status = 1, " // SOLD
@@ -292,7 +293,7 @@ vector<ExchangeListing> MySQLExchangeRepository::getListings(int16_t serverID, u
     Result* pResult = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
         int offset = (page - 1) * pageSize;
 
@@ -364,7 +365,7 @@ ExchangeListing* MySQLExchangeRepository::getListing(int64_t listingID) {
     Result* pResult = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
         pResult = pStmt->executeQuery("SELECT * FROM ExchangeListing "
                                       "WHERE ListingID = %lld",
@@ -434,7 +435,7 @@ vector<ExchangeListing> MySQLExchangeRepository::getSellerListings(const string&
     Result* pResult = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
         pResult = pStmt->executeQuery("SELECT * FROM ExchangeListing "
                                       "WHERE SellerAccount = '%s' "
@@ -505,7 +506,7 @@ vector<ExchangeListing> MySQLExchangeRepository::getExpiredListings() {
     Result* pResult = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
         // Query active listings that have expired
         // Use NOW() to compare with ExpireAt
@@ -581,7 +582,7 @@ int64_t MySQLExchangeRepository::createOrder(const ExchangeOrder& order) {
     Result* pResult = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
         pStmt->executeQuery("INSERT INTO ExchangeOrder ("
                             "ListingID, ServerID, BuyerAccount, BuyerPlayer, "
@@ -615,7 +616,7 @@ bool MySQLExchangeRepository::markOrderDelivered(int64_t orderID) {
     Statement* pStmt = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
         pStmt->executeQuery("UPDATE ExchangeOrder SET "
                             "Status = 1, " // DELIVERED
@@ -644,7 +645,7 @@ vector<ExchangeOrder> MySQLExchangeRepository::getBuyerOrders(const string& buye
     Result* pResult = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
         pResult = pStmt->executeQuery("SELECT * FROM ExchangeOrder "
                                       "WHERE BuyerPlayer = '%s' "
@@ -690,7 +691,7 @@ vector<ExchangeOrder> MySQLExchangeRepository::getSellerOrders(const string& sel
     Result* pResult = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
         pResult = pStmt->executeQuery("SELECT o.* FROM ExchangeOrder o "
                                       "INNER JOIN ExchangeListing l ON o.ListingID = l.ListingID "
@@ -740,7 +741,7 @@ bool MySQLExchangeRepository::adjustPoints(const string& account, int delta, int
     Result* pResult = NULL;
 
     BEGIN_DB {
-        Connection* pConn = g_pDatabaseManager->getConnection("USERINFO");
+        Connection* pConn = de::serverContext().database().getConnection("USERINFO");
 
         // Check idempotency if key provided
         if (!idempotencyKey.empty()) {
@@ -817,7 +818,7 @@ int MySQLExchangeRepository::getPointBalance(const string& account) {
     Result* pResult = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("USERINFO")->createStatement();
+        pStmt = de::serverContext().database().getConnection("USERINFO")->createStatement();
 
         pResult = pStmt->executeQuery("SELECT PointBalance FROM AccountPoint WHERE Account = '%s'",
                                       escapeSQL(account).c_str());
@@ -845,7 +846,7 @@ bool MySQLExchangeRepository::hasIdempotencyKey(const string& idempotencyKey) {
     Result* pResult = NULL;
 
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("USERINFO")->createStatement();
+        pStmt = de::serverContext().database().getConnection("USERINFO")->createStatement();
 
         pResult = pStmt->executeQuery("SELECT COUNT(*) FROM PointLedger WHERE IdempotencyKey = '%s'",
                                       escapeSQL(idempotencyKey).c_str());
@@ -877,12 +878,12 @@ bool MySQLExchangeRepository::beginTransaction() {
 
     BEGIN_DB {
         // Start transaction on DARKEDEN database
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
         pStmt->executeQuery("START TRANSACTION");
         SAFE_DELETE(pStmt);
 
         // Start transaction on USERINFO database
-        pStmt = g_pDatabaseManager->getConnection("USERINFO")->createStatement();
+        pStmt = de::serverContext().database().getConnection("USERINFO")->createStatement();
         pStmt->executeQuery("START TRANSACTION");
         SAFE_DELETE(pStmt);
 
@@ -903,12 +904,12 @@ bool MySQLExchangeRepository::commit() {
 
     BEGIN_DB {
         // Commit DARKEDEN database
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
         pStmt->executeQuery("COMMIT");
         SAFE_DELETE(pStmt);
 
         // Commit USERINFO database
-        pStmt = g_pDatabaseManager->getConnection("USERINFO")->createStatement();
+        pStmt = de::serverContext().database().getConnection("USERINFO")->createStatement();
         pStmt->executeQuery("COMMIT");
         SAFE_DELETE(pStmt);
 
@@ -929,12 +930,12 @@ bool MySQLExchangeRepository::rollback() {
 
     BEGIN_DB {
         // Rollback DARKEDEN database
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
         pStmt->executeQuery("ROLLBACK");
         SAFE_DELETE(pStmt);
 
         // Rollback USERINFO database
-        pStmt = g_pDatabaseManager->getConnection("USERINFO")->createStatement();
+        pStmt = de::serverContext().database().getConnection("USERINFO")->createStatement();
         pStmt->executeQuery("ROLLBACK");
         SAFE_DELETE(pStmt);
 

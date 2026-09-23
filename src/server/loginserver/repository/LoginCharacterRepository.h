@@ -13,7 +13,7 @@
 // VampEXPBalanceInfo, OustersEXPBalanceInfo, STR/DEX/INTBalanceInfo).
 //
 // Every method takes the WorldID and runs on
-// g_pDatabaseManager->getConnection(worldID): the loginserver's
+// de::serverContext().database().getConnection(worldID): the loginserver's
 // per-WorldDBInfo-row connection map (an unmapped id falls through to a
 // world-default connection the loginserver never sets; see
 // LoginCharacterPurgeRepository.h). The balance tables are read on that

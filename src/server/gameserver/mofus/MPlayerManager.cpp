@@ -18,6 +18,7 @@
 #include "PKTError.h"
 #include "PlayerCreature.h"
 #include "Properties.h"
+#include "ServerContext.h"
 
 // constructor
 MPlayerManager::MPlayerManager()
@@ -63,7 +64,7 @@ void MPlayerManager::run() {
         port = g_pConfig->getPropertyInt("DB_PORT");
 
     Connection* pConnection = new Connection(host, db, user, password, port);
-    g_pDatabaseManager->addConnection((int)(long)Thread::self(), pConnection);
+    de::serverContext().database().addConnection((int)(long)Thread::self(), pConnection);
     cout << "******************************************************" << endl;
     cout << " Mofus THREAD CONNECT DB " << endl;
     cout << "******************************************************" << endl;
@@ -99,7 +100,7 @@ void MPlayerManager::run() {
         getCurrentTime(currentTime);
 
         if (dummyQueryTime < currentTime) {
-            g_pDatabaseManager->executeDummyQuery(pConnection);
+            de::serverContext().database().executeDummyQuery(pConnection);
 
             dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
         }

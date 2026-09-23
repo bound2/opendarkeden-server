@@ -10,6 +10,7 @@
 #include "GMServerInfo.h"
 #include "Profile.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "Timeval.h"
 #include "VSDateTime.h"
 #include "ZonePlayerManager.h"
@@ -56,6 +57,8 @@ void ZoneGroupThread::run()
     // debug ownership check (see CLAUDE.md, "Thread ownership").
     m_pZoneGroup->armOwnershipAssert();
 
+    DatabaseManager& database = de::serverContext().database();
+
     string host = g_pConfig->getProperty("DB_HOST");
     string db = g_pConfig->getProperty("DB_DB");
     string user = g_pConfig->getProperty("DB_USER");
@@ -67,7 +70,7 @@ void ZoneGroupThread::run()
     if (stopRequested())
         return;
     Connection* pConnection = new Connection(host, db, user, password, port);
-    g_pDatabaseManager->addConnection((int)(long)Thread::self(), pConnection);
+    database.addConnection((int)(long)Thread::self(), pConnection);
     cout << "******************************************************" << endl;
     cout << " THREAD CONNECT DB " << endl;
     cout << "******************************************************" << endl;
@@ -83,7 +86,7 @@ void ZoneGroupThread::run()
     if (stopRequested())
         return;
     Connection* pDistConnection = new Connection(dist_host, dist_db, dist_user, dist_password, dist_port);
-    g_pDatabaseManager->addDistConnection(((int)(long)Thread::self()), pDistConnection);
+    database.addDistConnection(((int)(long)Thread::self()), pDistConnection);
     cout << "******************************************************" << endl;
     cout << " THREAD CONNECT UIIRIBUTION DB " << endl;
     cout << " TID Number = " << (int)(long)Thread::self() << endl;
@@ -137,8 +140,8 @@ void ZoneGroupThread::run()
             }
 
             if (dummyQueryTime < currentTime) {
-                g_pDatabaseManager->executeDummyQuery(pConnection);
-                g_pDatabaseManager->executeDummyQuery(pDistConnection);
+                database.executeDummyQuery(pConnection);
+                database.executeDummyQuery(pDistConnection);
 
                 // Schedule the dummy query between 1 hour and 1 hour 30 minutes out,
                 // so the connection does not time out.

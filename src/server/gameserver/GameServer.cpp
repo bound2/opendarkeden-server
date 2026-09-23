@@ -21,6 +21,7 @@
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "SharedServerManager.h"
 #include "SystemAPI.h"
 #include "ThreadManager.h"
@@ -49,8 +50,8 @@ GameServer::GameServer()
         de::gameContext().setConfig(g_pConfig);
 
         // create database manager
-        g_pDatabaseManager = new DatabaseManager();
-        de::gameContext().setDatabaseManager(g_pDatabaseManager);
+        m_pDatabaseManager = new DatabaseManager();
+        de::serverContext().setDatabaseManager(m_pDatabaseManager);
 
         // create object manager
         m_pObjectManager = new ObjectManager();
@@ -120,7 +121,7 @@ GameServer::~GameServer()
     SAFE_DELETE(m_pMPacketManager);
 #endif
     SAFE_DELETE(g_pGameServerInfoManager);
-    SAFE_DELETE(g_pDatabaseManager);
+    SAFE_DELETE(m_pDatabaseManager);
 
     __END_CATCH_NO_RETHROW
 }
@@ -141,7 +142,7 @@ void GameServer::init()
     setCurrentTime();
 
     // Initialize the database manager.
-    g_pDatabaseManager->init();
+    m_pDatabaseManager->init();
     cout << "GameServer::init() : DatabaseManager Initialization Success..." << endl;
 
     // Initialize the object manager through the database manager.

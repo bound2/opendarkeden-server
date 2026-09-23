@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/NicknameRepository.h"
 
 // Legacy ad-hoc SQL escaper (PetItem.cpp declares it extern). Client-
@@ -41,7 +42,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT nID, NickType, Nickname, NickIndex FROM NicknameBook WHERE OwnerID='%s'", ownerName.c_str());
 
@@ -65,7 +66,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "INSERT IGNORE INTO NicknameBook (nID, OwnerID, NickType, Nickname, NickIndex, Time) VALUES "
                 "(0, '%s', %u, ' ', 0, now())",
@@ -79,7 +80,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO NicknameBook (nID, OwnerID, NickType, Nickname, Time) "
                                 "VALUES (%u, '%s', %u, '%s', now())",
                                 id, ownerName.c_str(), type, getDBString(nickname).c_str());
@@ -92,7 +93,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("REPLACE INTO NicknameBook (nID, OwnerID, NickType, Nickname, NickIndex, Time) VALUES "
                                 "(100, '%s', %u, '%s', 0, now())",
                                 ownerName.c_str(), type, nickname.c_str());
@@ -105,7 +106,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM NicknameBook WHERE OwnerID='%s' AND nID=100", ownerName.c_str());
             SAFE_DELETE(pStmt);
         }
@@ -116,7 +117,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE NicknameBook SET Nickname='%s' WHERE OwnerID='%s' AND nID=%u",
                                 getDBString(nickname).c_str(), ownerName.c_str(), id);
             SAFE_DELETE(pStmt);

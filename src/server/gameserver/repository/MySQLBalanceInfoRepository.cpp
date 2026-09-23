@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/BalanceInfoRepository.h"
 
 namespace {
@@ -61,7 +62,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(LADDER_SPECS[table].max);
             found = readMax(pResult, maxLevel);
             SAFE_DELETE(pStmt);
@@ -76,7 +77,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(LADDER_SPECS[table].rows);
 
             while (pResult->next()) {
@@ -101,7 +102,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT MAX(Level) FROM RankEXPInfo WHERE RankType=%d", rankType);
             found = readMax(pResult, maxLevel);
             SAFE_DELETE(pStmt);
@@ -116,7 +117,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("Select Level, GoalExp, AccumExp from RankEXPInfo WHERE RankType=%d", rankType);
 
@@ -142,7 +143,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT MAX(Level) FROM SkillDomainInfo WHERE DomainType = %d", domainType);
             found = readMax(pResult, maxLevel);
@@ -158,7 +159,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "Select DomainType, Level, GoalExp, AccumExp, BestItemType from SkillDomainInfo WHERE DomainType = %d",
                 domainType);
@@ -186,7 +187,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT MAX(Level) FROM FameLimitInfo WHERE DomainType=%d", domainType);
             found = readMax(pResult, maxLevel);
@@ -202,7 +203,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT DomainType, Level, Fame FROM FameLimitInfo WHERE DomainType = %d", domainType);
 
@@ -227,7 +228,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT PetLevel, PetAccumExp FROM PetExpInfo");
 
             while (pResult->next()) {
@@ -249,7 +250,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT PetAttr, Level, AddAttr, AccumAttr FROM PetAttrBalanceInfo");
 
             while (pResult->next()) {
@@ -273,7 +274,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT PetAttr, EnchantRatio FROM PetAttrInfo");
 
             while (pResult->next()) {
@@ -296,7 +297,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT %s, %s, %s FROM %s %s", levelField.c_str(), goalField.c_str(),
                                                   accumField.c_str(), table.c_str(), condition.c_str());
 

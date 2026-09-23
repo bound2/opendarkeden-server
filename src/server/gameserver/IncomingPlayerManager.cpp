@@ -37,6 +37,7 @@
 #include "repository/SessionRepository.h"
 
 // #include "UserGateway.h"
+#include "ServerContext.h"
 #include "SystemAvailabilitiesManager.h"
 
 
@@ -135,7 +136,7 @@ void IncomingPlayerManager::init()
         dist_port = g_pConfig->getPropertyInt("UI_DB_PORT");
 
     Connection* pDistConnection = new Connection(dist_host, dist_db, dist_user, dist_password, dist_port);
-    g_pDatabaseManager->addDistConnection(((int)(long)Thread::self()), pDistConnection);
+    de::serverContext().database().addDistConnection(((int)(long)Thread::self()), pDistConnection);
     cout << "******************************************************" << endl;
     cout << " THREAD CONNECT UIIRIBUTION DB " << endl;
     cout << " TID Number = " << (int)(long)Thread::self() << endl;

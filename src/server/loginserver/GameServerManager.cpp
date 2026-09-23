@@ -18,6 +18,7 @@
 #include "LGKickCharacter.h"
 #include "PacketDispatcher.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "ServerShutdown.h"
 #include "SocketAPI.h"
 
@@ -94,7 +95,7 @@ void GameServerManager::run() {
             port = g_pConfig->getPropertyInt("DB_PORT");
 
         Connection* pConnection = new Connection(host, db, user, password, port);
-        g_pDatabaseManager->addConnection((int)(long)Thread::self(), pConnection);
+        de::serverContext().database().addConnection((int)(long)Thread::self(), pConnection);
 
         while (!stopRequested()) {
             Datagram* pDatagram = NULL;

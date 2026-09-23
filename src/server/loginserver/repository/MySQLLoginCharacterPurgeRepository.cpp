@@ -1,11 +1,12 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/LoginCharacterPurgeRepository.h"
 
 namespace {
 
 // MySQL implementation of LoginCharacterPurgeRepository.
 //  - loadActiveSlayerOwner, retireSlayer and purgeCharacterRows create
-//    their Statement on g_pDatabaseManager->getConnection(worldID), the
+//    their Statement on de::serverContext().database().getConnection(worldID), the
 //    int overload keyed by WorldID (see the header); recordDeletion and
 //    destroyItems on the thread's DARKEDEN connection.
 //  - purgeCharacterRows runs the Vampire and Ousters statements and then
@@ -181,7 +182,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT PlayerID FROM Slayer WHERE Name = '%s' AND Active='ACTIVE'", name.c_str());
 
@@ -202,7 +203,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             pStmt->executeQuery("UPDATE Slayer SET Active='INACTIVE' WHERE Name = '%s' AND Slot = '%s'", name.c_str(),
                                 Slot2String[slot].c_str());
 
@@ -219,7 +220,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO DeleteChar (PlayerID, WorldID, Name, delDate) VALUES ('%s',%u,'%s',now())",
                                 playerID.c_str(), worldID, name.c_str());
 
@@ -232,7 +233,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
 
             pStmt->executeQuery("UPDATE Vampire SET Active='INACTIVE' WHERE Name = '%s' AND Slot = '%s'", name.c_str(),
                                 Slot2String[slot].c_str());
@@ -253,7 +254,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
             for (size_t i = 0; i < sizeof(kItemStatements) / sizeof(kItemStatements[0]); i++) {
                 pStmt->executeQuery(kItemStatements[i], ownerID.c_str());

@@ -13,7 +13,7 @@
 // USERINFO.LoginPlayerData.
 //
 // Every method runs on the thread's DARKEDEN connection except
-// insertLoginRecord, which uses g_pDatabaseManager->getUserInfoConnection()
+// insertLoginRecord, which uses de::serverContext().database().getUserInfoConnection()
 // (the USERINFO database). In the loginserver the main thread runs every
 // handler, so the DARKEDEN name is the process default connection.
 //

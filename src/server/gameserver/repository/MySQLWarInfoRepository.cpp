@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/WarInfoRepository.h"
 
 namespace {
@@ -43,7 +44,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT ID, Name, ItemType, SlayerGuardZoneID, SlayerGuardX, SlayerGuardY, SlayerGuardMType, "
                 "VampireGuardZoneID, VampireGuardX, VampireGuardY, VampireGuardMType, OustersGuardZoneID, "
@@ -88,7 +89,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT ID, OwnerRace FROM ShrineInfo");
 
             while (pResult->next()) {
@@ -110,7 +111,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE ShrineInfo SET OwnerRace=%d WHERE ID=%d", ownerRace, shrineID);
             SAFE_DELETE(pStmt);
         }
@@ -122,7 +123,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT ZoneID, ShrineID, GuildID, Name, Race, ItemTaxRatio, EntranceFee, TaxBalance, "
                 "BonusOptionType, FirstResurrectZoneID, FirstResurrectX, FirstResurrectY, "
@@ -166,7 +167,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "UPDATE CastleInfo SET GuildID=%d, Name='%s', Race=%d, ItemTaxRatio=%d, EntranceFee=%d, "
                 "TaxBalance=%d WHERE ServerID=%d AND ZoneID=%d",
@@ -182,7 +183,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE CastleInfo SET %s WHERE ZoneID=%d AND ServerID=%d", fieldFragment.c_str(),
                                 zoneID, serverID);
 
@@ -201,7 +202,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT MAX(Type) FROM SweeperBonusInfo");
 
             if (pResult->next()) {
@@ -224,7 +225,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT Type, Name, OptionList, OwnerRace, Level FROM SweeperBonusInfo");
 
@@ -251,7 +252,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT Type, OwnerRace FROM SweeperBonusInfo WHERE Level = %d", level);
 
@@ -274,7 +275,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE SweeperBonusInfo SET OwnerRace = %d WHERE Type = %d", ownerRace, type);
             SAFE_DELETE(pStmt);
         }
@@ -286,7 +287,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT ItemType, "
                                                   "SlayerX, SlayerY, SlayerMType, "
                                                   "VampireX, VampireY, VampireMType, "
@@ -327,7 +328,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT SweeperType, OwnerRace, SweeperSafeType FROM SweeperOwnerInfo WHERE ZoneID = %d", zoneID);
 
@@ -351,7 +352,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT SweeperType, OwnerRace FROM SweeperOwnerInfo WHERE ZoneID = %d", zoneID);
 
@@ -373,7 +374,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "UPDATE SweeperOwnerInfo SET OwnerRace = %d, SweeperSafeType = %d WHERE SweeperType = %d", ownerRace,
                 safeType, itemType);
@@ -387,7 +388,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO LevelWarHistory (Level, LevelWarID, SlayerOldSweeper, VampireOldSweeper, "
                                 "OustersOldSweeper, DefaultOldSweeper) VALUES (%d, '%s', '%s', '%s', '%s', '%s')",
                                 level, levelWarID.c_str(), slayerOld.c_str(), vampireOld.c_str(), oustersOld.c_str(),
@@ -402,7 +403,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "UPDATE LevelWarHistory SET SlayerSweeper = '%s', VampireSweeper = '%s', OustersSweeper = "
                 "'%s', DefaultSweeper = '%s' WHERE Level = %d AND LevelWarID = '%s'",
@@ -418,7 +419,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT WarID, WarType, AttackerCount, AttackGuildID, AttackGuildID2, AttackGuildID3, AttackGuildID4, "
                 "AttackGuildID5, "
@@ -456,7 +457,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT ReinforceGuildID FROM ReinforceRegisterInfo WHERE WarID=%u AND Status='ACCEPT'", warID);
 
@@ -476,7 +477,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE WarScheduleInfo SET Status='CANCEL' WHERE ServerID = %d AND ZoneID = %d "
                                 "\t\t\t\tAND WarType='GUILD' AND (Status='WAIT' OR Status='START')",
                                 serverID, zoneID);
@@ -493,7 +494,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT ZoneID, MasterNotReadyMonsterType, MasterMonsterType, MasterRemainNotReady, MasterX, MasterY, "
                 "MasterDir, MaxPassPlayer, SummonX, SummonY, FirstRegenDelay, RegenDelay, StartDelay, EndDelay, "
@@ -544,7 +545,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT COUNT(*) from WarScheduleInfo");
             pResult->next();
             count = pResult->getDWORD(1);
@@ -560,7 +561,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT MAX(WarID) FROM WarScheduleInfo");
             pResult->next();
             maxWarID = pResult->getDWORD(1);
@@ -577,7 +578,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT IGNORE INTO WarScheduleInfo ( WarID, ServerID, ZoneID, WarType, "
                                 "AttackGuildID, WarFee, StartTime, Status ) "
                                 "\t\t\t\tVALUES ( %u, %u, %u, '%s', %u, %u, '%s', '%s' )",
@@ -600,7 +601,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("REPLACE INTO WarScheduleInfo ( WarID, ServerID, ZoneID, WarType, AttackerCount, "
                                 "AttackGuildID, AttackGuildID2, AttackGuildID3, AttackGuildID4, AttackGuildID5, "
                                 "WarFee, StartTime, Status ) "
@@ -622,7 +623,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE WarScheduleInfo SET %s WHERE WarID = %d AND ServerID = %d",
                                 fieldFragment.c_str(), warID, serverID);
         }
@@ -637,7 +638,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "INSERT IGNORE INTO GuildWarHistory (WarID, GuildWarID, ServerID, CastleName, DefenseGuildID, "
                 "DefenseGuildName, AttackGuildID, AttackGuildName) VALUES (%d, '%s', %d, '%s', %d, '%s', %d, '%s')",
@@ -652,7 +653,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "UPDATE GuildWarHistory SET WinnerGuildID = %d , WinnerGuildName = '%s' WHERE WarID = %d",
                 winnerGuildID, winnerGuildName.c_str(), warID);
@@ -666,7 +667,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT Race, SUM(CurrentNum) FROM RaceWarPCLimit GROUP BY Race");
 
             while (pResult->next()) {
@@ -688,7 +689,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "INSERT INTO RaceWarHistory (RaceWarID, SlayerNum, VampireNum, OustersNum, SlayerOldBloodBible, "
                 "VampireOldBloodBible, OustersOldBloodBible) VALUES ('%s', %d, %d, %d, '%s', '%s', '%s')",
@@ -704,7 +705,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE RaceWarHistory SET SlayerBloodBible = '%s', VampireBloodBible = '%s', "
                                 "OustersBloodBible = '%s' WHERE RaceWarID = '%s'",
                                 slayerNew.c_str(), vampireNew.c_str(), oustersNew.c_str(), raceWarID.c_str());
@@ -718,7 +719,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT ID, MinLevel, MaxLevel, LimitNum, CurrentNum FROM %s WHERE Race=%d", tableName.c_str(), race);
 
@@ -743,7 +744,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE %s SET CurrentNum=0", tableName.c_str());
 
             SAFE_DELETE(pStmt);
@@ -755,7 +756,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE %s SET CurrentNum=%d WHERE ID=%d", tableName.c_str(), currentNum, id);
 
             SAFE_DELETE(pStmt);
@@ -768,7 +769,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQueryString("SELECT Name, Race FROM RaceWarPCList");
 
             while (pResult->next()) {
@@ -790,7 +791,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQueryString("DELETE FROM RaceWarPCList");
 
             SAFE_DELETE(pStmt);
@@ -802,7 +803,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT IGNORE INTO RaceWarPCList (Name, Race) VALUES ('%s', %d)", name.c_str(), race);
 
             SAFE_DELETE(pStmt);
@@ -815,7 +816,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT count(*) FROM RaceWarPCList WHERE Name='%s'", name.c_str());
 
             if (pResult->next()) {
@@ -833,7 +834,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM RaceWarPCList WHERE Name='%s'", name.c_str());
 
             SAFE_DELETE(pStmt);
@@ -846,7 +847,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=%u AND ServerID=%u AND Status='WAIT'", warID,
                 serverID);
@@ -866,7 +867,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=%u AND ServerID=%u AND "
                                     "ReinforceGuildID=%u AND Status='DENY'",
@@ -887,7 +888,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT ReinforceGuildID FROM ReinforceRegisterInfo WHERE WarID=%u AND ServerID=%u AND Status='WAIT'",
                 warID, serverID);
@@ -908,7 +909,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO ReinforceRegisterInfo (WarID, ServerID, ReinforceGuildID, Status) VALUES "
                                 "(%u, %u, %u, 'WAIT')",
                                 warID, serverID, guildID);
@@ -923,7 +924,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE ReinforceRegisterInfo SET Status='ACCEPT' WHERE WarID=%u AND ServerID=%u AND "
                                 "ReinforceGuildID=%u",
                                 warID, serverID, guildID);
@@ -943,7 +944,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "UPDATE ReinforceRegisterInfo SET Status='DENY' WHERE WarID=%u AND ServerID=%u AND ReinforceGuildID=%u",
                 warID, serverID, guildID);
@@ -962,7 +963,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM ReinforceRegisterInfo WHERE WarID=%u AND ServerID=%u", warID, serverID);
 
             SAFE_DELETE(pStmt);

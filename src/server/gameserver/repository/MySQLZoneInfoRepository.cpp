@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/ZoneInfoRepository.h"
 
 namespace {
@@ -22,7 +23,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = orderedByID
                                   ? pStmt->executeQuery("SELECT ZoneGroupID FROM ZoneGroupInfo ORDER BY ZoneGroupID")
                                   : pStmt->executeQuery("SELECT ZoneGroupID FROM ZoneGroupInfo");
@@ -42,7 +43,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 orderedByID ? pStmt->executeQuery("SELECT ZoneID FROM ZoneInfo WHERE ZoneGroupID = %d ORDER BY ZoneID",
                                                   zoneGroupID)
@@ -63,7 +64,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT ZoneID, ZoneGroupID, Type, Level, AccessMode, OwnerID, "
                                     "PayPlayZone, PremiumZone, PKZone, NoPortalZone, HolyLand, Available, "
@@ -104,7 +105,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT ZoneID, SResurrectZoneID, SResurrectX, SResurrectY, VResurrectZoneID, "
                 "VResurrectX, VResurrectY, OResurrectZoneID, OResurrectX, OResurrectY FROM ZoneInfo");
@@ -136,7 +137,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT X1, Y1, X2, Y2 FROM ZoneTriggers WHERE ZoneID=%d", zoneID);
 
             while (pResult->next()) {
@@ -161,7 +162,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT TriggerID, TriggerType, Conditions, Actions, CounterActions FROM "
                                     "ZoneTriggers WHERE ZoneID=%d AND X1=%d AND Y1=%d AND X2=%d AND Y2=%d",
@@ -190,7 +191,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT LeftX, TopY, RightX, BottomY FROM EffectPKZoneRegen WHERE ZoneID=%u", zoneID);
 
@@ -216,7 +217,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT X, Y FROM WayPointInfo WHERE ZoneID = %u AND Race = %d", zoneID, race);
 
@@ -239,7 +240,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT LeftX, TopY, RightX, BottomY FROM ZoneEffectInfo WHERE ZoneID = %u AND EffectID = %d", zoneID,
                 effectID);
@@ -265,7 +266,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT LeftX, TopY, RightX, BottomY, Value1, Value2, Value3 FROM ZoneEffectInfo "
                                     "WHERE ZoneID = %d AND EffectID = %d",
@@ -296,7 +297,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT MonsterList, EventMonsterList from ZoneInfo WHERE ZoneID=%d", zoneID);
 
@@ -318,7 +319,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT ZoneID, Race, EnterX, EnterY, ResurrectX, ResurrectY, PCLimit FROM PKZoneInfo");
 
@@ -347,7 +348,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT EventID, ZoneID, EnterX, EnterY, ResurrectX, ResurrectY, PCLimit FROM EventZoneInfo");
 
@@ -375,7 +376,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT ID, ZoneID, SweeperTypeMin, SweeperTypeMax, SlayerMin, SlayerMax, VampireMin, "
                 "VampireMax, OustersMin, OustersMax, ZoneIDList FROM LevelWarZoneInfo");
@@ -409,7 +410,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT ZoneID, X, Y, Race FROM WayPointInfo");
 
             while (pResult->next()) {
@@ -433,7 +434,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT MAX(ZoneGroupID) FROM ZoneGroupInfo");
 
             if (pResult->next()) {

@@ -96,6 +96,4 @@ private:
     mutable Mutex m_Mutex;
 };
 
-extern DatabaseManager* g_pDatabaseManager;
-
 #endif

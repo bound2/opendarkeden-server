@@ -18,6 +18,7 @@
 #include "Exception.h"
 #include "Types.h"
 
+class DatabaseManager;
 class GameServerGroupInfoManager;
 class GameServerManager;
 class GameWorldInfoManager;
@@ -71,6 +72,7 @@ private:
     ResurrectLocationManager* m_pResurrectLocationManager = nullptr;
     StringPool* m_pStringPool = nullptr;
     GameWorldInfoManager* m_pGameWorldInfoManager = nullptr;
+    DatabaseManager* m_pDatabaseManager = nullptr;
     PacketFactoryManager* m_pPacketFactoryManager = nullptr;
     PacketValidator* m_pPacketValidator = nullptr;
 };

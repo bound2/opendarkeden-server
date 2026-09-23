@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/StashRepository.h"
 
 namespace {
@@ -24,7 +25,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE Slayer set StashNum = %d WHERE Name = '%s'", (int)num, ownerName.c_str());
             if (!isOusters)
                 pStmt->executeQuery("UPDATE Vampire set StashNum = %d WHERE Name = '%s'", (int)num, ownerName.c_str());
@@ -40,7 +41,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE Slayer set StashGold = %d WHERE Name = '%s'", (int)gold, ownerName.c_str());
             if (!isOusters)
                 pStmt->executeQuery("UPDATE Vampire set StashGold = %d WHERE Name = '%s'", (int)gold,
@@ -60,7 +61,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT StashGold FROM %s WHERE NAME='%s'", table, ownerName.c_str());
 
             if (pResult->next()) {

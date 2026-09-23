@@ -17,6 +17,7 @@
 #include "GuildManager.h"
 #include "Packet.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "ServerShutdown.h"
 #include "SharedContext.h"
 #include "Socket.h"
@@ -134,7 +135,8 @@ void GameServerManager::run() {
             getCurrentTime(currentTime);
 
             if (dummyQueryTime < currentTime) {
-                g_pDatabaseManager->executeDummyQuery(g_pDatabaseManager->getConnection("DARKEDEN"));
+                de::serverContext().database().executeDummyQuery(
+                    de::serverContext().database().getConnection("DARKEDEN"));
 
                 dummyQueryTime.tv_sec = (60 + rand() % 30) * 60;
             }

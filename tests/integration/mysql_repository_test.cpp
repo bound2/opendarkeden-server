@@ -26,6 +26,7 @@
 #include <gtest/gtest.h>
 
 #include "PlayerFixtures.h"
+#include "ServerContext.h"
 #include "Thread.h"
 #include "repository/BalanceInfoRepository.h"
 #include "repository/BloodBibleSignRepository.h"
@@ -7678,17 +7679,18 @@ int main(int argc, char** argv) {
     std::string password = env("IT_DB_PASSWORD", "elca110");
     uint port = (uint)atoi(env("IT_DB_PORT", "3306").c_str());
 
-    g_pDatabaseManager = new DatabaseManager();
-    g_pDatabaseManager->addConnection((int)(long)Thread::self(), new Connection(host, db, user, password, port));
-    g_pDatabaseManager->addDistConnection((int)(long)Thread::self(), new Connection(host, db, user, password, port));
+    DatabaseManager* pDatabaseManager = new DatabaseManager();
+    de::serverContext().setDatabaseManager(pDatabaseManager);
+    pDatabaseManager->addConnection((int)(long)Thread::self(), new Connection(host, db, user, password, port));
+    pDatabaseManager->addDistConnection((int)(long)Thread::self(), new Connection(host, db, user, password, port));
     // The USERINFO database SessionRepository writes UserStatus to; the
     // tier loads initdb/USERINFO.sql next to DARKEDEN.sql.
     std::string userInfoDb = env("IT_DB_USERINFO_DB", "USERINFO");
-    g_pDatabaseManager->setUserInfoConnection(new Connection(host, userInfoDb, user, password, port));
+    pDatabaseManager->setUserInfoConnection(new Connection(host, userInfoDb, user, password, port));
     // The WorldDBInfo row-0 connection SpecialEventRepository reaches through
     // getConnection(int) — same server and schema here, as in the shipped
     // seeds (initdb's WorldDBInfo row 0 names the DARKEDEN schema).
-    g_pDatabaseManager->setWorldDefaultConnection(new Connection(host, db, user, password, port));
+    pDatabaseManager->setWorldDefaultConnection(new Connection(host, db, user, password, port));
 
     return RUN_ALL_TESTS();
 }

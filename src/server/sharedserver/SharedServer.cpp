@@ -40,7 +40,8 @@ SharedServer::SharedServer() {
     __BEGIN_TRY
 
     // create database manager
-    g_pDatabaseManager = new DatabaseManager();
+    m_pDatabaseManager = new DatabaseManager();
+    de::serverContext().setDatabaseManager(m_pDatabaseManager);
 
     // create guild manager
     m_pGuildManager = new GuildManager();
@@ -95,7 +96,7 @@ SharedServer::~SharedServer() noexcept(false) {
     SAFE_DELETE(m_pGameServerInfoManager);
     SAFE_DELETE(m_pGameServerGroupInfoManager);
     SAFE_DELETE(m_pGuildManager);
-    SAFE_DELETE(g_pDatabaseManager);
+    SAFE_DELETE(m_pDatabaseManager);
     SAFE_DELETE(m_pGameWorldInfoManager);
     SAFE_DELETE(m_pResurrectLocationManager);
     SAFE_DELETE(m_pStringPool);
@@ -115,7 +116,7 @@ void SharedServer::init() {
     cout << "SharedServer::init() start" << endl;
 
     // Initialize the database manager.
-    g_pDatabaseManager->init();
+    m_pDatabaseManager->init();
 
     m_pStringPool->load();
 

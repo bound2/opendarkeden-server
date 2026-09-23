@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/SessionRepository.h"
 
 namespace {
@@ -25,7 +26,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE GuildMember SET LogOn = 0 WHERE Name = '%s'", name.c_str());
 
             SAFE_DELETE(pStmt);
@@ -37,7 +38,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE GuildMember SET LogOn = 1 WHERE Name = '%s'", name.c_str());
 
             SAFE_DELETE(pStmt);
@@ -50,7 +51,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
 
             Result* pResult = pStmt->executeQuery(
                 "SELECT PlayerID, CurrentServerGroupID, LogOn, SpecialEventCount, PayType, PayPlayDate, "
@@ -86,7 +87,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("UPDATE Player SET LogOn='GAME' WHERE PlayerID = '%s' AND LogOn='LOGOFF'",
                                 playerID.c_str());
 
@@ -106,7 +107,7 @@ public:
         BEGIN_DB {
             // "USERINFO", not "PLAYER_DB": the name is ignored, and this
             // is what the call site wrote.
-            pStmt = g_pDatabaseManager->getDistConnection("USERINFO")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("USERINFO")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT CurrentServerGroupID, LogOn FROM Player WHERE PlayerID='%s'",
                                                   playerID.c_str());
 
@@ -127,7 +128,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery(
                 "UPDATE Player SET LogOn='LOGOFF', LastLogoutDate=now() WHERE PlayerID = '%s' AND LogOn='GAME'",
                 playerID.c_str());
@@ -142,7 +143,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT PlayerID from Player WHERE LogOn='GAME' AND CurrentWorldID=%d AND CurrentServerGroupID=%d",
                 worldID, serverGroupID);
@@ -161,7 +162,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("UPDATE Player SET LogOn = 'LOGOFF' WHERE LogOn = 'GAME' AND CurrentWorldID=%d AND "
                                 "CurrentServerGroupID=%d",
                                 worldID, serverGroupID);
@@ -176,7 +177,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT SpecialEventCount FROM Player WHERE PlayerID='%s'", playerID.c_str());
 
@@ -196,7 +197,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("UPDATE Player SET SpecialEventCount=%d WHERE PlayerID='%s'", count, playerID.c_str());
 
             SAFE_DELETE(pStmt);
@@ -208,7 +209,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("DELETE FROM PCRoomUserInfo WHERE PlayerID='%s'", playerID.c_str());
 
             SAFE_DELETE(pStmt);
@@ -222,7 +223,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT Amount FROM PCRoomLottoObject WHERE PlayerID = '%s' AND Name "
                                                   "= '%s' AND DimensionID = %u AND WorldID = %u",
                                                   playerID.c_str(), name.c_str(), dimensionID, worldID);
@@ -244,7 +245,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("UPDATE PCRoomLottoObject SET Amount = %d WHERE PlayerID = '%s' AND Name = '%s' AND "
                                 "DimensionID = %u AND WorldID = %u",
                                 amount, playerID.c_str(), name.c_str(), dimensionID, worldID);
@@ -259,7 +260,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("INSERT INTO PCRoomLottoObject VALUES ( 0, %u, '%s', %u, %u, '%s', %u, 1 )", pcRoomID,
                                 playerID.c_str(), dimensionID, worldID, name.c_str(), race);
 
@@ -272,7 +273,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM UserIPInfo WHERE Name = '%s'", name.c_str());
 
             SAFE_DELETE(pStmt);
@@ -284,7 +285,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM UserIPInfo WHERE ServerID = %d", serverID);
 
             SAFE_DELETE(pStmt);
@@ -296,7 +297,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
             pStmt->executeQuery("INSERT IGNORE INTO UserIPInfo (Name, IP, Port, ServerID) VALUES ( '%s', %u, %u, %d )",
                                 name.c_str(), ip, port, serverID);
@@ -315,7 +316,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT IP, Port FROM UserIPInfo WHERE Name='%s'", name.c_str());
 
             if (pResult->next()) {
@@ -335,7 +336,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
 
             pStmt->executeQuery("UPDATE SpeedHackPlayer SET IP = '%s', NAME = '%s', WorldID = %d, ServerGroupID = %d, "
                                 "Date = now(), Count = Count + 1 WHERE PlayerID = '%s'",
@@ -357,7 +358,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO CrashReportLog (PlayerID, Name, ReportTime, ExecutableTime, Version, "
                                 "Address, Message, OS, CallStack) VALUES "
                                 "('%s', '%s', now(), '%s', %u, '%s', '%s', '%s', '%s')",
@@ -374,7 +375,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT ServerID FROM UserIPInfo where Name='%s'", name.c_str());
 
             if (pResult->next()) {
@@ -394,7 +395,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult =
                 pStmt->executeQueryString("SELECT Count(*) FROM Player where LogOn='GAME' OR LogOn='LOGON'");
 
@@ -413,7 +414,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE Player set Access='DENY' where PlayerID ='%s'", playerID.c_str());
             SAFE_DELETE(pStmt);
         }
@@ -424,7 +425,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO BugReportLog(PlayerID, Name, ReportTime, ReportLog) VALUES "
                                 "('%s', '%s', now(), '%s')",
                                 playerID.c_str(), name.c_str(), report.c_str());
@@ -438,7 +439,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO CrashLog (PlayerID, Name, ReportTime, ExecutableTime, Version, "
                                 "Address, Message) VALUES "
                                 "('%s', '%s', now(), '%s', '%s', '%s', '%s')",
@@ -454,7 +455,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
 
             Result* pResult =
                 pStmt->executeQuery("SELECT LastLogoutDate FROM Player WHERE PlayerID='%s'", playerID.c_str());
@@ -476,7 +477,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getUserInfoConnection()->createStatement();
+            pStmt = de::serverContext().database().getUserInfoConnection()->createStatement();
             pStmt->executeQuery("UPDATE UserStatus SET CurrentUser=%d WHERE WorldID=%d AND ServerID=%d", currentUser,
                                 worldID, serverID);
 
@@ -493,7 +494,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getUserInfoConnection()->createStatement();
+            pStmt = de::serverContext().database().getUserInfoConnection()->createStatement();
             pStmt->executeQuery("INSERT IGNORE INTO UserStatus (WorldID, ServerID, CurrentUser) Values (%d, %d, %d)",
                                 worldID, serverID, currentUser);
 

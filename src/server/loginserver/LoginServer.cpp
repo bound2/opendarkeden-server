@@ -40,7 +40,8 @@ LoginServer::LoginServer() {
     __BEGIN_TRY
 
     // create database manager
-    g_pDatabaseManager = new DatabaseManager();
+    m_pDatabaseManager = new DatabaseManager();
+    de::serverContext().setDatabaseManager(m_pDatabaseManager);
 
     // create some info managers
     g_pGameServerInfoManager = new GameServerInfoManager();
@@ -135,9 +136,9 @@ LoginServer::~LoginServer() noexcept(false) {
         delete m_pGameServerGroupInfoManager;
         m_pGameServerGroupInfoManager = NULL;
     }
-    if (g_pDatabaseManager != NULL) {
-        delete g_pDatabaseManager;
-        g_pDatabaseManager = NULL;
+    if (m_pDatabaseManager != NULL) {
+        delete m_pDatabaseManager;
+        m_pDatabaseManager = NULL;
     }
     if (m_pUserInfoManager != NULL) {
         delete m_pUserInfoManager;
@@ -161,7 +162,7 @@ void LoginServer::init() {
     __BEGIN_TRY
 
     // Initialize the database manager.
-    g_pDatabaseManager->init();
+    m_pDatabaseManager->init();
 
     // initialize some info managers
     g_pGameServerInfoManager->init();

@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/CharacterPurgeRepository.h"
 
 namespace {
@@ -125,7 +126,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
             for (size_t i = 0; i < sizeof(kPurgeStatements) / sizeof(kPurgeStatements[0]); i++) {
                 pStmt->executeQuery(kPurgeStatements[i], name.c_str());

@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/ContentInfoRepository.h"
 
 namespace {
@@ -27,7 +28,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT MType, SType, HName, EName, Level, STR, DEX, INTE, BSize, Exp, MColor, SColor, Align, AOrder, "
                 "Moral, Delay, ADelay, Sight, MeleeRange, MissileRange, RegenPortal, RegenInvisible, RegenBat, MMode, "
@@ -87,7 +88,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT MType, MonsterSummonInfo FROM MonsterInfo");
 
             while (pResult->next()) {
@@ -109,7 +110,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT MType, SType, HName, EName, Level, STR, DEX, INTE, BSize, Exp, MColor, SColor, Align, AOrder, "
                 "Moral, Delay, ADelay, Sight, MeleeRange, MissileRange, RegenPortal, RegenInvisible, RegenBat, MMode, "
@@ -130,7 +131,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT MType, SType, HName, EName, Level, STR, DEX, INTE, BSize, Exp, MColor, SColor, Align, AOrder, "
                 "Moral, Delay, ADelay, Sight, MeleeRange, MissileRange, RegenPortal, RegenInvisible, RegenBat, MMode, "
@@ -156,7 +157,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "Select Type, Name, Level, MinDam, MaxDam, MinDelay, MaxDelay, MinDur, MaxDur, Mana, MinRange, "
                 "MaxRange, Target, SubExp, Point, Domain, MagicDomain, Melee, Magic, Physic, SkillPoint, LevelUpPoint, "
@@ -206,7 +207,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT Name, NPCID, SpriteType, Race, MainColor, SubColor, ClanType, "
                                     "ShowInMinimap, TaxingCastleZoneID FROM NPC WHERE ZoneID = %d",
@@ -226,7 +227,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT Name, NPCID, SpriteType, Race, MainColor, SubColor, ClanType, "
                                     "ShowInMinimap, TaxingCastleZoneID FROM NPC WHERE ZoneID = %d AND Race = %d",
@@ -246,7 +247,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT ScriptID, OwnerID, Subject, Content FROM Script ORDER BY ScriptID");
 
@@ -275,7 +276,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT ID, Name, Content, DeadContent FROM DirectiveSet");
 
             while (pResult->next()) {
@@ -303,7 +304,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT attrID, attr1, attr2 FROM AttrInfo");
 
             while (pResult->next()) {
@@ -325,7 +326,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE AttrInfo SET attr1=%d WHERE attrID=%d", value, attrID);
 
             SAFE_DELETE(pStmt);
@@ -339,7 +340,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT TriggerID, TriggerType, Conditions, Actions FROM Triggers WHERE NPC = '%s'", npcName.c_str());
 
@@ -366,7 +367,7 @@ private:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(query);
 
             if (pResult->next()) {

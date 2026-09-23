@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "StringStream.h"
 #include "repository/PlayRecordRepository.h"
 
@@ -19,7 +20,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT QuestID, Status, unix_timestamp(now()) - "
                                                   "unix_timestamp(Time) FROM GQuestSave WHERE OwnerID='%s'",
                                                   owner.c_str());
@@ -43,7 +44,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("REPLACE INTO GQuestSave (QuestID, OwnerID, Time, Status) VALUES "
                                 "(%u, '%s', now(), %u)",
                                 questID, owner.c_str(), status);
@@ -57,7 +58,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM GQuestSave WHERE OwnerID='%s' AND QuestID='%u'", owner.c_str(), questID);
 
             SAFE_DELETE(pStmt);
@@ -69,7 +70,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "INSERT INTO HeadCount (Name, Time, FirstLevel, LastLevel, HeadCount) VALUES ('%s', now(), %u, %u, %u)",
                 name.c_str(), firstLevel, lastLevel, count);
@@ -84,7 +85,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT Name, Score FROM MiniGameScores WHERE Type=%u AND Level=%u LIMIT 1", gameType, level);
 
@@ -105,7 +106,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE MiniGameScores SET Name='%s', Score=%u, Time=now() WHERE Type=%u AND "
                                 "Level=%u AND Score>%u LIMIT 1",
                                 name.c_str(), score, gameType, level, score);
@@ -121,7 +122,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO TradeLog (Timeline, Name1, IP1, Name2, IP2, Content) VALUES ('%s', '%s', "
                                 "'%s', '%s', '%s', 'Store:[%s(%s)]\n%s\n----\nBuy:[%s(%s)]\nGOLD:%u\n')",
                                 timeline.c_str(), storeName.c_str(), storeHost.c_str(), buyerName.c_str(),
@@ -146,7 +147,7 @@ public:
                 << "'," << "'" << name1 << "'," << "'" << host1 << "'," << "'" << name2 << "'," << "'" << host2 << "',"
                 << "'" << content << "'" << ")";
 
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQueryString(SQL.toString());
 
             SAFE_DELETE(pStmt);
@@ -160,7 +161,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("USERINFO")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("USERINFO")->createStatement();
             pStmt->executeQuery("INSERT INTO GoldMedalCount (PlayerID, getTime) VALUES ('%s', now())",
                                 playerID.c_str());
 
@@ -174,7 +175,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("USERINFO")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("USERINFO")->createStatement();
             pStmt->executeQuery("UPDATE EventLotto SET count=count+%u WHERE PlayerID='%s' AND Type=%u", num,
                                 playerID.c_str(), type);
 

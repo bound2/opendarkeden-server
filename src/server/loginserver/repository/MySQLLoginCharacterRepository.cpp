@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/LoginCharacterRepository.h"
 
 namespace {
@@ -33,7 +34,7 @@ const char* const kFlagSetStatements[LOGIN_FLAGSET_MAX] = {
 };
 
 // MySQL implementation of LoginCharacterRepository. Every method creates
-// its Statement on g_pDatabaseManager->getConnection(worldID) (see the
+// its Statement on de::serverContext().database().getConnection(worldID) (see the
 // header) and frees it on every success path; a SQL failure is logged to
 // DBError.log under the method's name and thrown as END_DB's
 // DatabaseError. A table or preset outside its enum runs no statement.
@@ -44,7 +45,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT Name FROM Slayer WHERE Name = '%s'", name.c_str());
 
             found = pResult->getRowCount() != 0;
@@ -61,7 +62,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT Name FROM Slayer WHERE PlayerID ='%s' and Slot ='%s' AND Active='ACTIVE'",
                                     playerID.c_str(), slot.c_str());
@@ -80,7 +81,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT Name from Slayer where PlayerID='%s' AND Slot='SLOT%d'",
                                                   playerID.c_str(), slot);
 
@@ -101,7 +102,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT GoalExp FROM RankEXPInfo WHERE Level=1 AND RankType=%d", rankType);
 
@@ -122,7 +123,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT GoalExp FROM VampEXPBalanceInfo WHERE Level=1");
 
             if (pResult->next()) {
@@ -142,7 +143,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT GoalExp FROM OustersEXPBalanceInfo WHERE Level=1");
 
             if (pResult->next()) {
@@ -165,7 +166,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult = pStmt->executeQuery(kAttrGoalExpStatements[attr], level);
 
             if (pResult->next()) {
@@ -188,7 +189,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult = pStmt->executeQuery(kAttrAccumExpStatements[attr], level);
 
             if (pResult->next()) {
@@ -207,7 +208,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             pStmt->executeQuery(
                 "INSERT INTO Slayer (Race, Name, PlayerID, Slot, ServerGroupID, Active, Sex, HairStyle, HairColor, "
                 "SkinColor, Phone, STR, STRExp, STRGoalExp, DEX, DEXExp, DEXGoalExp, INTE, INTExp, INTGoalExp, `Rank`, "
@@ -231,7 +232,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             pStmt->executeQuery(
                 "INSERT INTO Vampire ( Name, PlayerID, Slot, ServerGroupID, Active, Sex, SkinColor, STR, DEX, INTE, "
                 "HP, CurrentHP, ZoneID, XCoord, YCoord, Sight, Alignment, Exp, GoalExp, `Rank`, RankExp, RankGoalExp, "
@@ -249,7 +250,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             pStmt->executeQuery("INSERT INTO Ousters ( Name, PlayerID, Slot, ServerGroupID, Active, Sex, STR, DEX, "
                                 "INTE, BONUS, HP, CurrentHP, MP, CurrentMP, ZoneID, XCoord, YCoord, Sight, Alignment, "
                                 "Exp, GoalExp, `Rank`, RankExp, RankGoalExp, CoatColor, HairColor, ArmColor, "
@@ -270,7 +271,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             pStmt->executeQuery(kFlagSetStatements[preset], name.c_str());
 
             SAFE_DELETE(pStmt);
@@ -287,7 +288,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult = pStmt->executeQuery(kSelectStatements[table], name.c_str(), playerID.c_str());
 
             if (pResult->getRowCount() == 1) {
@@ -310,7 +311,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             pStmt->executeQuery("UPDATE Slayer Set ServerGroupID = %d WHERE Name='%s'", serverGroupID, name.c_str());
             pStmt->executeQuery("UPDATE Vampire Set ServerGroupID = %d WHERE Name='%s'", serverGroupID, name.c_str());
             pStmt->executeQuery("UPDATE Ousters Set ServerGroupID = %d WHERE Name='%s'", serverGroupID, name.c_str());
@@ -325,7 +326,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT Race, Name, Slot, Sex, HairColor, SkinColor, AdvancementClass, STR, STRExp, DEX, DEXExp, INTE, "
                 "INTExp, HP, CurrentHP, MP, CurrentMP, Fame, BladeLevel, SwordLevel, GunLevel, HealLevel, "
@@ -382,7 +383,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT Name, Slot, Sex, BatColor, SkinColor, AdvancementClass, STR, DEX, INTE, HP, CurrentHP, "
                 "`Rank`, GoalExp, Level, Bonus, Fame, Alignment, Shape, CoatColor FROM Vampire WHERE PlayerID = "
@@ -425,7 +426,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
+            pStmt = de::serverContext().database().getConnection(worldID)->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT Name, Slot, Sex, AdvancementClass, STR, DEX, INTE, HP, CurrentHP, `Rank`, Exp, Level, "
                 "Bonus, SkillBonus, Fame, Alignment, CoatType, ArmType, CoatColor, HairColor, ArmColor, BootsColor "

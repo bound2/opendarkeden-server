@@ -18,6 +18,7 @@
 #include "GameContext.h"
 #include "PacketDispatcher.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "ThreadManager.h"
 #include "ThreadPool.h"
 #include "TimeChecker.h"
@@ -91,7 +92,7 @@ void LoginServerManager::run() {
             port = g_pConfig->getPropertyInt("DB_PORT");
 
         Connection* pConnection = new Connection(host, db, user, password, port);
-        g_pDatabaseManager->addConnection((int)(long)Thread::self(), pConnection);
+        de::serverContext().database().addConnection((int)(long)Thread::self(), pConnection);
         cout << "************************************************************************" << endl;
         cout << "************************************************************************" << endl;
         cout << "************************************************************************" << endl;
@@ -179,7 +180,7 @@ void LoginServerManager::run() {
             getCurrentTime(currentTime);
 
             if (dummyQueryTime < currentTime) {
-                g_pDatabaseManager->executeDummyQuery(pConnection);
+                de::serverContext().database().executeDummyQuery(pConnection);
 
                 // Set the dummy query time to between 1 hour and 1 hour 30 minutes,
                 // so that the connection does not time out.

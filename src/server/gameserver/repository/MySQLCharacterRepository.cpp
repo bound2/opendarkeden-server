@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/CharacterRepository.h"
 
 namespace {
@@ -43,7 +44,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT Name, AdvancementClass, AdvancementGoalExp, Competence, CompetenceShape, "
                 "Sex,MasterEffectColor, "
@@ -126,7 +127,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT PlayerID,Race FROM Slayer WHERE Name = '%s'", name.c_str());
 
             if (pResult->getRowCount() == 1) {
@@ -161,7 +162,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(kSpellings[spelling], name.c_str());
 
             if (pResult->next()) {
@@ -181,7 +182,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT RedistributeAttr FROM Vampire WHERE Name='%s'", name.c_str());
 
             if (pResult->next()) {
@@ -200,7 +201,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE Vampire SET RedistributeAttr = %d WHERE Name='%s'", redistributeAttr,
                                 name.c_str());
             SAFE_DELETE(pStmt);
@@ -213,7 +214,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT Fame, BladeLevel, SwordLevel, GunLevel, HealLevel, EnchantLevel "
                                     "FROM Slayer WHERE Name = '%s'",
@@ -250,7 +251,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT Race FROM Slayer where Name='%s'", name.c_str());
 
             if (pResult->next()) {
@@ -270,7 +271,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT GuildID FROM %s where Name='%s'", characterRaceTable(race), name.c_str());
 
@@ -290,7 +291,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
             pStmt->executeQuery("UPDATE Slayer SET SEX='%s' WHERE Name='%s'", sexText.c_str(), name.c_str());
             pStmt->executeQuery("UPDATE Vampire SET SEX='%s' WHERE Name='%s'", sexText.c_str(), name.c_str());
@@ -305,7 +306,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT Name, AdvancementClass, AdvancementGoalExp, Sex, MasterEffectColor, BatColor, SkinColor, STR, "
                 "DEX, INTE, HP, CurrentHP, Fame, GoalExp, Level, Bonus, Gold, GuildID, ZoneID, XCoord, YCoord, Sight, "
@@ -363,7 +364,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT Name, AdvancementClass, AdvancementGoalExp, Sex,MasterEffectColor, STR, DEX, INTE, HP, "
                 "CurrentHP, MP, CurrentMP, Fame, GoalExp, Level, Bonus, SkillBonus, Gold, GuildID, ZoneID, XCoord, "
@@ -422,7 +423,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE Slayer SET CurrentHP=%d, HP=%d, CurrentMP=%d, MP=%d, ZoneID=%d, XCoord=%d, "
                                 "YCoord=%d WHERE Name='%s'",
                                 record.currentHP, record.maxHP, record.currentMP, record.maxMP, record.zoneID, record.x,
@@ -436,7 +437,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE Vampire SET CurrentHP = %d, HP = %d, SilverDamage = %d, ZoneID = %d, "
                                 "XCoord = %d, YCoord = %d WHERE Name = '%s'",
                                 record.currentHP, record.maxHP, record.silverDamage, record.zoneID, record.x, record.y,
@@ -450,7 +451,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE Ousters SET CurrentHP = %d, HP = %d, CurrentMP = %d, MP = %d, ZoneID = %d, "
                                 "XCoord = %d, YCoord = %d WHERE Name = '%s'",
                                 record.currentHP, record.maxHP, record.currentMP, record.maxMP, record.zoneID, record.x,
@@ -464,7 +465,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "UPDATE Slayer SET STRGoalExp=%u, DEXGoalExp=%u, INTGoalExp=%u, BladeGoalExp=%u, SwordGoalExp=%u, "
                 "GunGoalExp=%u, EnchantGoalExp=%u, HealGoalExp=%u, ETCGoalExp=%u, Alignment=%d, Fame=%u, "
@@ -498,7 +499,7 @@ public:
             silverDam[0] = '\0';
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE %s SET Alignment=%d, Fame=%d, GoalExp=%u%s, `Rank`=%d, RankGoalExp=%u, "
                                 "AdvancementClass=%u, AdvancementGoalExp=%d WHERE Name='%s'",
                                 characterRaceTable(race), record.alignment, record.fame, record.goalExp, silverDam,
@@ -513,7 +514,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             if (race == CHARACTER_RACE_SLAYER)
                 pStmt->executeQuery("UPDATE Slayer SET %s WHERE NAME='%s'", fieldFragment.c_str(), ownerName.c_str());
             else if (race == CHARACTER_RACE_VAMPIRE)
@@ -533,7 +534,7 @@ private:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(format, name.c_str());
 
             if (pResult->next()) {

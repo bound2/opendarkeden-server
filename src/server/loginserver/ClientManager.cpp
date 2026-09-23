@@ -184,7 +184,7 @@ void ClientManager::run() {
         // Run a meaningless query now and then so the DB connection does not time out.
         // by bezz. 2003.04.21
         if (dummyQueryTime < currentTime) {
-            g_pDatabaseManager->executeDummyQuery(g_pDatabaseManager->getConnection("DARKEDEN"));
+            de::serverContext().database().executeDummyQuery(de::serverContext().database().getConnection("DARKEDEN"));
 
             dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
         }

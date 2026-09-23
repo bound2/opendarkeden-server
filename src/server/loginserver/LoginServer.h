@@ -19,6 +19,7 @@
 #include "Types.h"
 
 class ClientManager;
+class DatabaseManager;
 class GameServerGroupInfoManager;
 class GameServerManager;
 class GameWorldInfoManager;
@@ -71,6 +72,7 @@ private:
     ItemDestroyer* m_pItemDestroyer = nullptr;
     UserInfoManager* m_pUserInfoManager = nullptr;
     GameWorldInfoManager* m_pGameWorldInfoManager = nullptr;
+    DatabaseManager* m_pDatabaseManager = nullptr;
     PacketFactoryManager* m_pPacketFactoryManager = nullptr;
     PacketValidator* m_pPacketValidator = nullptr;
 };

@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/MessageRepository.h"
 
 namespace {
@@ -19,7 +20,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT Message FROM Messages WHERE Receiver = '%s'", receiver.c_str());
 
@@ -37,7 +38,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM Messages WHERE Receiver = '%s'", receiver.c_str());
             SAFE_DELETE(pStmt);
         }
@@ -56,7 +57,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(NOTICE_SQL[spelling], receiver.c_str(), message.c_str());
 
             SAFE_DELETE(pStmt);
@@ -68,7 +69,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO Messages ( Receiver, Message ) VALUES ( '%s', '%s')", receiver.c_str(),
                                 message.c_str());
             SAFE_DELETE(pStmt);

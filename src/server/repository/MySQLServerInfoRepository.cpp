@@ -1,3 +1,4 @@
+#include "ServerContext.h"
 #include "database/DB.h"
 #include "repository/ServerInfoRepository.h"
 
@@ -26,7 +27,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQueryString("SELECT MAX(GroupID) FROM GameServerInfo");
 
             found = readMax(pResult, maxGroupID);
@@ -43,7 +44,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQueryString("SELECT MAX(WorldID) FROM GameServerInfo");
 
             found = readMax(pResult, maxWorldID);
@@ -60,7 +61,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQueryString(
                 "SELECT ServerID, Nickname , IP , TCPPort , UDPPort, WorldID, GroupID, Stat FROM GameServerInfo");
 
@@ -89,7 +90,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQueryString("SELECT WorldID, ServerGroupID FROM NonPKServerList");
 
             while (pResult->next()) {
@@ -111,7 +112,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQueryString("SELECT WorldID, ServerGroupID, FollowServerID FROM CastleStatInfo");
 
@@ -135,7 +136,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQueryString("SELECT ID, Name, Stat FROM WorldInfo");
 
             while (pResult->next()) {

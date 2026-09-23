@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/SharedGuildRepository.h"
 
 namespace {
@@ -34,7 +35,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT GuildID FROM GuildMember WHERE Name = '%s'", name.c_str());
 
             exists = pResult->getRowCount() != 0;
@@ -50,7 +51,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO GuildMember( GuildID, Name, `Rank` ) VALUES ( %d, '%s', %d )", guildID,
                                 name.c_str(), rank);
 
@@ -64,7 +65,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "INSERT INTO GuildMember( GuildID, Name, `Rank`, RequestDateTime ) VALUES ( %d, '%s', %d, '%s' )",
                 guildID, name.c_str(), rank, requestDateTime.c_str());
@@ -78,7 +79,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE GuildMember SET GuildID = %d, `Rank` = %d, ExpireDate = '' WHERE Name = '%s'",
                                 guildID, rank, name.c_str());
 
@@ -92,7 +93,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE GuildMember SET GuildID = %d, `Rank` = %d, ExpireDate = '', "
                                 "RequestDateTime = '%s' WHERE Name = '%s'",
                                 guildID, rank, requestDateTime.c_str(), name.c_str());
@@ -107,7 +108,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT GuildID, Name, `Rank`, LogOn FROM GuildMember WHERE Name = '%s'", name.c_str());
 
@@ -132,7 +133,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE GuildMember SET GuildID = %d, `Rank` = %d WHERE Name = '%s'", guildID, rank,
                                 name.c_str());
 
@@ -145,7 +146,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM GuildMember WHERE Name = '%s'", name.c_str());
 
             SAFE_DELETE(pStmt);
@@ -157,7 +158,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE GuildMember SET `Rank` = %d, ExpireDate = '%s' WHERE Name = '%s'", rank,
                                 expireDate.c_str(), name.c_str());
 
@@ -170,7 +171,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE GuildMember SET Intro = '%s' WHERE Name = '%s'", intro.c_str(), name.c_str());
 
             SAFE_DELETE(pStmt);
@@ -183,7 +184,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT Intro FROM GuildMember WHERE Name = '%s'", name.c_str());
 
             if (pResult->next()) {
@@ -202,7 +203,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE GuildMember SET RequestDateTime=now() WHERE Name='%s'", name.c_str());
 
             SAFE_DELETE(pStmt);
@@ -215,7 +216,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT GuildID, Name, `Rank`, RequestDateTime, LogOn FROM GuildMember WHERE `Rank` IN ( 0, 1, 2, 3 )");
 
@@ -240,7 +241,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "INSERT INTO GuildInfo ( GuildID, GuildName, GuildType, GuildRace, GuildState, ServerGroupID, "
                 "GuildZoneID, "
@@ -258,7 +259,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT GuildName, GuildType, GuildRace, GuildState, ServerGroupID, GuildZoneID, "
                                     "Master, Date FROM GuildInfo WHERE GuildID = %d",
@@ -289,7 +290,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "UPDATE GuildInfo SET GuildName = '%s', GuildType = %d, GuildRace = %d, GuildState = %d, "
                 "ServerGroupID = %d, GuildZoneID = %d, Master = '%s', Date = '%s' WHERE GuildID = %d",
@@ -305,7 +306,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
             pStmt->executeQuery("DELETE FROM GuildInfo WHERE GuildID = %d", id);
             pStmt->executeQuery("DELETE FROM GuildUnionMember WHERE OwnerGuildID = %d", id);
@@ -319,7 +320,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE GuildInfo SET Intro = '%s' WHERE GuildID = %u", intro.c_str(), id);
 
             SAFE_DELETE(pStmt);
@@ -331,7 +332,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE GuildInfo SET %s WHERE GuildID = %u", assignments.c_str(), id);
 
             SAFE_DELETE(pStmt);
@@ -344,7 +345,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT GuildID, GuildName, GuildType, GuildRace, GuildState, ServerGroupID, "
                                     "GuildZoneID, Master, Date, Intro FROM GuildInfo WHERE GuildState IN ( %d, %d )",
@@ -376,7 +377,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
 
             pStmt->executeQuery("DELETE FROM GuildInfo WHERE GuildID=%d", id);
             pStmt->executeQuery("DELETE FROM GuildMember WHERE GuildID=%d", id);
@@ -393,7 +394,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildInfo");
 
             pResult->next();
@@ -411,7 +412,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT MAX(GuildID) FROM GuildInfo");
 
             pResult->next();
@@ -429,7 +430,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildInfo WHERE GuildRace = %d", race);
 
             pResult->next();
@@ -447,7 +448,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT MAX(GuildZoneID) FROM GuildInfo WHERE GuildRace = %d", race);
 
             pResult->next();
@@ -467,7 +468,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(kRaceTables[race].guildIDUpdate, guildID, name.c_str());
 
             SAFE_DELETE(pStmt);
@@ -482,7 +483,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE %s SET Gold = Gold + %d WHERE Name = '%s'", kRaceTables[race].table, gold,
                                 name.c_str());
 
@@ -498,7 +499,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(kMessageInsert[spelling], receiver.c_str(), message.c_str());
 
             SAFE_DELETE(pStmt);

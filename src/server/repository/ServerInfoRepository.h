@@ -11,7 +11,7 @@
 //
 // Connections: GameServerInfo and WorldInfo on the thread's DARKEDEN
 // connection; NonPKServerList and CastleStatInfo on
-// g_pDatabaseManager->getDistConnection("DARKEDEN"), the thread's dist
+// de::serverContext().database().getDistConnection("DARKEDEN"), the thread's dist
 // connection (the name is ignored).
 //
 // Fields are typed to the driver getter used: getInt to int, getString to

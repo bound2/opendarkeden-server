@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/BulletinBoardRepository.h"
 
 namespace {
@@ -21,7 +22,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO BulletinBoardObject VALUES (0, %u, %u, %u, %u, '%s', %u, '%s')", serverID,
                                 zoneID, x, y, message.c_str(), type, timeLimit.c_str());
 
@@ -40,7 +41,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT ID, X, Y, Message, Type, TimeLimit FROM BulletinBoardObject "
                                                   "WHERE ServerID = %u AND ZoneID = %u",
                                                   serverID, zoneID);
@@ -67,7 +68,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM BulletinBoardObject WHERE ID = %u", id);
             SAFE_DELETE(pStmt);
         }

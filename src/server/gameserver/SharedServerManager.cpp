@@ -15,6 +15,7 @@
 #include "DB.h"
 #include "GSRequestGuildInfo.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "SharedServerClient.h"
 #include "ThreadManager.h"
 #include "ThreadPool.h"
@@ -79,7 +80,7 @@ void SharedServerManager::run()
             port = g_pConfig->getPropertyInt("DB_PORT");
 
         Connection* pConnection = new Connection(host, db, user, password, port);
-        g_pDatabaseManager->addConnection((int)(long)Thread::self(), pConnection);
+        de::serverContext().database().addConnection((int)(long)Thread::self(), pConnection);
         cout << "************************************************************************" << endl;
         cout << "OPEN LOGIN DB" << endl;
         cout << "************************************************************************" << endl;
@@ -170,7 +171,7 @@ void SharedServerManager::run()
             getCurrentTime(currentTime);
 
             if (dummyQueryTime < currentTime) {
-                g_pDatabaseManager->executeDummyQuery(pConnection);
+                de::serverContext().database().executeDummyQuery(pConnection);
 
                 // Schedule the dummy query between 1 hour and 1 hour 30 minutes out,
                 // so the connection does not time out.

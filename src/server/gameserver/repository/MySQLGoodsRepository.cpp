@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/GoodsRepository.h"
 
 namespace {
@@ -34,7 +35,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
 
             Result* pResult =
                 pStmt->executeQuery("SELECT ID, GoodsID, Num FROM GoodsListObject WHERE World = %d AND PlayerID = '%s' "
@@ -61,7 +62,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("UPDATE GoodsListObject SET Num = Num - 1, Status = IF( NUM < 1, 'GET', 'NOT' ) "
                                 "WHERE ID=%s",
                                 id.c_str());

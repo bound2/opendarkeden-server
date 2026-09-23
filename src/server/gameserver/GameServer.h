@@ -16,6 +16,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 class ClientManager;
+class DatabaseManager;
 class LoginServerManager;
 class MPacketManager;
 class MPlayerManager;
@@ -44,12 +45,14 @@ private:
 
     // Managers this class creates and deletes. The client manager, the login
     // and shared server links and the mofus pair are registered on
-    // de::GameContext and the packet factory table and the validator on
-    // de::KernelContext, which every binary fills with a set of its own; the
-    // other two are reached only from here. The mofus pair is created only
+    // de::GameContext, the packet factory table and the validator on
+    // de::KernelContext and the database connection table on
+    // de::ServerContext, the two registries every binary fills with a set of
+    // its own; the other two are reached only from here. The mofus pair is created only
     // where the module is built, so its members stay null otherwise, as its
     // globals did.
     ClientManager* m_pClientManager = nullptr;
+    DatabaseManager* m_pDatabaseManager = nullptr;
     LoginServerManager* m_pLoginServerManager = nullptr;
     MPacketManager* m_pMPacketManager = nullptr;
     MPlayerManager* m_pMPlayerManager = nullptr;
