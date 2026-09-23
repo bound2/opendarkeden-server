@@ -68,9 +68,21 @@ that followed it.
   definition duplicated ServerCore's until its retirement onto
   `SharedServer`; the twin classes remain. The three
   `GameServerGroupInfoManager` classes live in three different executables
-  and are no hazard. The sharedserver's `GameServerManager::heartbeat()`
-  locks its mutex and does nothing, uncalled.
-  > **Status:** recorded, not fixed (refactor/shared-context-1)
+  and are no hazard.
+
+  > **Status:** fixed (refactor/shared-twin-classes) — the sharedserver's
+  > copies are renamed `SharedGameServerInfoManager` and
+  > `SharedGameServerInfo`, file names included: the element class was a
+  > twin too, ServerCore's `GameServerInfo` carrying two members and four
+  > accessors the sharedserver's does not, so two definitions of one class
+  > name no longer meet in that link. `GameServerGroupInfoManager` is not
+  > the same case: ServerCore has no copy of it, the gameserver, the
+  > loginserver and the sharedserver each compile their own into their own
+  > binary, and three classes that never share a link are not an ODR
+  > problem, so they stay as they are. No loginserver class shadows a
+  > ServerCore one. The sharedserver's uncalled
+  > `GameServerManager::heartbeat()`, which locked its mutex and did
+  > nothing, is deleted.
 
 ## A motorcycle that cannot be placed is paid for and never delivered (2026-09-22)
 

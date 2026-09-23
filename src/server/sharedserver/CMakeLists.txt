@@ -20,7 +20,7 @@ set(SHAREDSERVER_SOURCES
     ResurrectLocationManager.cpp
     GameServerPlayer.cpp
     HeartbeatManager.cpp
-    GameServerInfoManager.cpp
+    SharedGameServerInfoManager.cpp
     GameServerGroupInfoManager.cpp
     GameServerManager.cpp
     SharedServer.cpp

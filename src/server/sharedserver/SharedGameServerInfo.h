@@ -1,6 +1,6 @@
 //----------------------------------------------------------------------
 //
-// Filename    : GameServerInfo.h
+// Filename    : SharedGameServerInfo.h
 // Written By  : Reiot
 // Description : Information the login server holds about each game server
 //
@@ -17,14 +17,14 @@
 
 //----------------------------------------------------------------------
 //
-// class GameServerInfo;
+// class SharedGameServerInfo;
 //
-// Class holding each game server's information read from the GameServerInfo
+// Class holding each game server's information read from the SharedGameServerInfo
 // table of the GAME DB.
 //
 //----------------------------------------------------------------------
 
-class GameServerInfo {
+class SharedGameServerInfo {
 public:
     // get/set GameServerID
     ServerID_t getServerID() const {
