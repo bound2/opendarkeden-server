@@ -113,7 +113,7 @@ public:
     virtual void registerInitObject();
 
     virtual bool load();
-    void loadItem(bool checkTimeLimit = false);
+    void loadOwnedItems();
 
     virtual void save() const;
     void saveSkills(void) const;

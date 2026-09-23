@@ -91,6 +91,9 @@ protected:
     virtual void registerItem(Item* pItem, ObjectRegistry& OR);
 
 public:
+    // Assign object ids to everything a freshly loaded character owns.
+    virtual void registerInitObject() = 0;
+
     virtual void registerInventory(ObjectRegistry& OR);
     virtual void registerInitInventory(ObjectRegistry& OR);
     virtual void registerStash(void);
@@ -155,6 +158,22 @@ public:
 
     // 2003.04.04. by Sequoia
     virtual void loadItem();
+
+    // Rebuild the inventory and everything hanging off it for a character
+    // that has just connected, and recompute its stats from the gear. Two
+    // steps of it are the race's own: which overload of the item loader
+    // takes the character, and whether a first-time character is given a
+    // newbie set here.
+    void loadItem(bool checkTimeLimit);
+
+    // Hand this character to the item loader. The manager's overload set
+    // is keyed on the concrete race, so only the race can make the call.
+    virtual void loadOwnedItems() = 0;
+
+    // Give a first-time character its starting items. A vampire is made by
+    // transformation and gets none, and the two races that do give one read
+    // the same flag with opposite senses, so the whole step is the race's.
+    virtual void giveNewbieItems() {}
 
     virtual GoodsInventory* getGoodsInventory() const {
         return m_pGoodsInventory;

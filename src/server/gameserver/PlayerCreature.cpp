@@ -393,6 +393,36 @@ void PlayerCreature::loadItem()
     __END_CATCH
 }
 
+void PlayerCreature::loadItem(bool checkTimeLimit) {
+    __BEGIN_TRY
+
+    PlayerCreature::loadItem();
+
+    // Create the inventory. Delete the previous one before creating it.
+    SAFE_DELETE(m_pInventory);
+    m_pInventory = new Inventory(10, 6);
+    m_pInventory->setOwner(getName());
+
+    loadOwnedItems();
+
+    // Load the purchased items.
+    loadGoods();
+
+    // Register the loaded items.
+    registerInitObject();
+
+    giveNewbieItems();
+
+    if (checkTimeLimit) {
+        checkItemTimeLimit();
+    }
+
+    // Compute the attributes from the equipped gear.
+    initAllStat(-1);
+
+    __END_CATCH
+}
+
 bool PlayerCreature::wasteIfTimeLimitExpired(Item* pItem)
 
 {

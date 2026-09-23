@@ -418,25 +418,13 @@ void Ousters::updateEventItemTime(DWORD time) {
     __END_CATCH
 }
 
-///////////////////////////////////////////
-//
-void Ousters::loadItem(bool checkTimeLimit)
-
-{
-    __BEGIN_TRY
-
-    PlayerCreature::loadItem();
-
-    SAFE_DELETE(m_pInventory);
-    m_pInventory = new Inventory(10, 6);
-    m_pInventory->setOwner(getName());
-
+void Ousters::loadOwnedItems() {
     de::gameContext().itemLoaders().load(this);
+}
 
-    PlayerCreature::loadGoods();
-
-    registerInitObject();
-
+// An ousters reads the newbie flag the other way round from a slayer: it
+// is off until the starting set has been given, and turned on after.
+void Ousters::giveNewbieItems() {
     if (!m_pFlagSet->isOn(FLAGSET_RECEIVE_NEWBIE_ITEM_AUTO)) {
         addNewbieItemToInventory(this);
         addNewbieGoldToInventory(this);
@@ -444,14 +432,6 @@ void Ousters::loadItem(bool checkTimeLimit)
         m_pFlagSet->turnOn(FLAGSET_RECEIVE_NEWBIE_ITEM_AUTO);
         m_pFlagSet->save(getName());
     }
-
-    if (checkTimeLimit) {
-        checkItemTimeLimit();
-    }
-
-    initAllStat();
-
-    __END_CATCH
 }
 
 

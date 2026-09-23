@@ -448,38 +448,10 @@ void Vampire::updateEventItemTime(DWORD time) {
     __END_CATCH
 }
 
-///////////////////////////////////////////
-// For the transformation between Vampire and Slayer,
-// item loading is handled separately.
-//
-void Vampire::loadItem(bool checkTimeLimit)
-
-{
-    __BEGIN_TRY
-
-    PlayerCreature::loadItem();
-
-    // Create the inventory.
-    SAFE_DELETE(m_pInventory);
-    m_pInventory = new Inventory(10, 6);
-    m_pInventory->setOwner(getName());
-
+// A vampire is made by transforming a slayer, so it is never given a
+// newbie set; it inherits the empty hook.
+void Vampire::loadOwnedItems() {
     de::gameContext().itemLoaders().load(this);
-
-    // Load the purchased items.
-    PlayerCreature::loadGoods();
-
-    // Register the loaded items,
-    registerInitObject();
-
-    if (checkTimeLimit) {
-        checkItemTimeLimit();
-    }
-
-    // Compute the attributes from the clothing being worn.
-    initAllStat();
-
-    __END_CATCH
 }
 
 

@@ -514,45 +514,20 @@ void Slayer::updateEventItemTime(DWORD time) {
     __END_CATCH
 }
 
-void Slayer::loadItem(bool checkTimeLimit)
-
-{
-    __BEGIN_TRY
-
-    PlayerCreature::loadItem();
-
-    // Create the inventory.
-    // Delete the previous one before creating it.
-    SAFE_DELETE(m_pInventory);
-    m_pInventory = new Inventory(10, 6);
-    m_pInventory->setOwner(getName());
-
+void Slayer::loadOwnedItems() {
     de::gameContext().itemLoaders().load(this);
+}
 
-    // Load the purchased items.
-    PlayerCreature::loadGoods();
-
-    // Register the loaded items.
-    registerInitObject();
-
-    // Give a newbie item set to a first-time player.
+// A slayer carries the newbie flag turned on until its starting set has
+// been given.
+void Slayer::giveNewbieItems() {
     if (m_pFlagSet->isOn(FLAGSET_RECEIVE_NEWBIE_ITEM_AUTO)) {
         addNewbieItemToInventory(this);
         addNewbieGoldToInventory(this);
         addNewbieItemToGear(this);
-        // Turn off the flag once the set has been given.
         m_pFlagSet->turnOff(FLAGSET_RECEIVE_NEWBIE_ITEM_AUTO);
         m_pFlagSet->save(getName());
     }
-
-    if (checkTimeLimit) {
-        checkItemTimeLimit();
-    }
-
-    // Compute the attributes from the equipped gear.
-    initAllStat();
-
-    __END_CATCH
 }
 
 bool Slayer::load()

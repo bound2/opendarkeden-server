@@ -134,7 +134,8 @@ public:
     virtual void registerInitObject();
 
     virtual bool load();
-    void loadItem(bool checkTimeLimit = false);
+    void loadOwnedItems();
+    void giveNewbieItems();
 
     virtual void save() const;
     void saveSkills(void) const;
