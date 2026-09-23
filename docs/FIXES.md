@@ -11,6 +11,36 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A guard shrine's defender check asserts on every running siege (2026-09-23)
+
+- **`CastleShrineInfoManager::isDefender` asks `getActiveWar` for the
+  castle's war and then casts the result to `GuildWar` and asserts it,**
+  but `getActiveWar` only ever returns a war whose cast to `SiegeWar`
+  succeeded, and a siege is not a guild war, so the assert fails on every
+  non-null answer. While a siege runs, a player stepping onto the guard
+  shrine makes the check throw instead of answer, and the surrounding
+  catch swallows it as "not a defender". The defender side a siege knows
+  is on `SiegeWar`, and a guild war matched by its own castle zone id is
+  the other half of the guild-war registration entry above.
+  > **Status:** recorded, not fixed (refactor/game-context-13)
+
+## The string pool is rewritten under readers on reload (2026-09-23)
+
+- **`StringPool::load()` clears and refills its map, the class has no
+  mutex, and the GM reload event calls it on the main thread** while the
+  zone threads and the two manager threads read `getString` and `c_str`
+  from the same map. A `reloadinfo` of the string pool can race every
+  reader.
+  > **Status:** recorded, not fixed (refactor/game-context-13)
+
+## The variable manager is written by a GM command with no lock (2026-09-23)
+
+- **`VariableManager` has no mutex; the GM `opset` command sets a variable
+  on a zone thread** while the incoming-connection log macro reads it on
+  the main thread and the login-link handlers read it on their own
+  thread.
+  > **Status:** recorded, not fixed (refactor/game-context-13)
+
 ## A guild war is scheduled but never becomes active (2026-09-22)
 
 - **`WarSystem::addWar` and `WarSystem::heartbeat` make the same cast the
@@ -19,8 +49,8 @@ that followed it.
   `addSchedule`, so a `GuildWar` is put on the recent schedules and the
   throw aborts the rest: it never reaches the active wars, never triggers
   the holy-land refresh, `hasCastleActiveWar`
-  stays false for its castle, and at its end the heartbeat asserts twice
-  more. The lookups no longer throw on it; the registration is the rest of
+  stays false for its castle, and at its end the heartbeat asserts once
+  more on the same cast. The lookups no longer throw on it; the registration is the rest of
   the defect. `GuildWar` carries a castle zone id and its own owner-change
   and end-war overrides, so matching it by zone the way a siege is matched
   is the shape a fix would take.
