@@ -30,6 +30,12 @@ src/Core/FileAPI.h
 src/Core/FileAPI.cpp
 src/Core/Properties.h
 src/Core/Properties.cpp
+# The registry for the process-wide managers whose classes live in src/Core.
+# It forward-declares them and only binds references, so the two that are
+# compiled per server (the packet factory table and the validator) stay
+# outside the kernel while a kernel or Core file can still read them.
+src/Core/KernelContext.h
+src/Core/KernelContext.cpp
 src/Core/GameTime.h
 src/Core/GameTime.cpp
 src/Core/md5.h
