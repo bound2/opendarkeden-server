@@ -286,6 +286,17 @@ public:
     }
 
 
+    // Damage a silver weapon has dealt and not yet healed away, which caps
+    // the current HP. Only a vampire or an ousters row has the column; a
+    // slayer leaves the value at zero.
+    Silver_t getSilverDamage() const {
+        return m_SilverDamage;
+    }
+    void setSilverDamage(Silver_t damage) {
+        m_SilverDamage = damage;
+    }
+    void saveSilverDamage(Silver_t damage);
+
     virtual Sex getSex() const = 0;
 
     virtual ZoneID_t getResurrectZoneID(void) const = 0;
@@ -442,6 +453,8 @@ protected:
     Gold_t m_Gold = 0;   // money carried by the character
     Gold_t m_StashGold;  // Amount of money in the stash
     bool m_bStashStatus; // Whether the stash items' OIDs are registered
+
+    Silver_t m_SilverDamage = 0; // unhealed silver damage; zero for a slayer
 
     Garbage m_Garbage; // Garbage
 

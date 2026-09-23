@@ -106,7 +106,6 @@ Vampire::Vampire()
     for (int i = 0; i < VAMPIRE_WEAR_MAX; i++)
         m_pWearItem[i] = NULL;
 
-    m_SilverDamage = 0;
     m_ClanType = 0;
 
     // Initialize the HP regeneration time.
@@ -1677,21 +1676,6 @@ void Vampire::sendVampireSkillInfo()
 //
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-void Vampire::saveSilverDamage(Silver_t damage)
-
-{
-    __BEGIN_TRY
-
-    setSilverDamage(damage);
-
-    // by sigi. 2002.5.15
-    char pField[80];
-    sprintf(pField, "SilverDamage=%d", m_SilverDamage);
-    tinysave(pField);
-
-    __END_CATCH
-}
 
 //////////////////////////////////////////////////////////////////////////////
 // Heartbeat for the items the vampire owns

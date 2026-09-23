@@ -1570,21 +1570,6 @@ void Ousters::sendOustersSkillInfo()
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Ousters::saveSilverDamage(Silver_t damage)
-
-{
-    __BEGIN_TRY
-
-    setSilverDamage(damage);
-
-    // by sigi. 2002.5.15
-    char pField[80];
-    sprintf(pField, "SilverDamage=%d", m_SilverDamage);
-    tinysave(pField);
-
-    __END_CATCH
-}
-
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 void Ousters::heartbeat(const Timeval& currentTime)

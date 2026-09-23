@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5166 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5165 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -131,9 +131,9 @@ check_ratchet R6g "Zone.cpp lines" 1273 "$R6g"
 R6h=$(wc -l < src/server/gameserver/Slayer.cpp 2>/dev/null || echo missing)
 check_ratchet R6h "Slayer.cpp lines" 3068 "$R6h"
 R6i=$(wc -l < src/server/gameserver/Vampire.cpp 2>/dev/null || echo missing)
-check_ratchet R6i "Vampire.cpp lines" 2002 "$R6i"
+check_ratchet R6i "Vampire.cpp lines" 1986 "$R6i"
 R6j=$(wc -l < src/server/gameserver/Ousters.cpp 2>/dev/null || echo missing)
-check_ratchet R6j "Ousters.cpp lines" 1915 "$R6j"
+check_ratchet R6j "Ousters.cpp lines" 1900 "$R6j"
 
 # --- R7: pre-C++17 dynamic exception specifications ------------------------
 # The migration also normalized real `throw(expr)` expressions to `throw expr`

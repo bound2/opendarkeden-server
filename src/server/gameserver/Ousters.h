@@ -456,14 +456,6 @@ public:
         m_ResurrectZoneID = id;
     }
 
-    Silver_t getSilverDamage() const {
-        return m_SilverDamage;
-    }
-    void setSilverDamage(Silver_t damage) {
-        m_SilverDamage = damage;
-    }
-    void saveSilverDamage(Silver_t damage);
-
     virtual Steal_t getHPStealAmount(void) const {
         return m_HPStealAmount;
     }
@@ -679,9 +671,6 @@ private:
 
     // Resurrection zone
     ZoneID_t m_ResurrectZoneID;
-
-    // Silver plating damage
-    Silver_t m_SilverDamage;
 
     // HP steal
     Steal_t m_HPStealAmount;

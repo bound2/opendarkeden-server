@@ -1319,6 +1319,18 @@ void PlayerCreature::saveAlignment(Alignment_t alignment) {
     __END_CATCH
 }
 
+void PlayerCreature::saveSilverDamage(Silver_t damage) {
+    __BEGIN_TRY
+
+    setSilverDamage(damage);
+
+    char pField[80];
+    sprintf(pField, "SilverDamage=%d", m_SilverDamage);
+    tinysave(pField);
+
+    __END_CATCH
+}
+
 void PlayerCreature::saveInitialRank() {
     int curRank = max(1, (getLevel() + 3) / 4);
     m_pRank->SET_LEVEL(curRank);
