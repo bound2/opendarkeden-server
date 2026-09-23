@@ -142,7 +142,7 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
                     gsGuildMemberLogOn.setName(pVampire->getName());
                     gsGuildMemberLogOn.setLogOn(false);
 
-                    g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
+                    de::gameContext().sharedServer().sendPacket(&gsGuildMemberLogOn);
 
                     // Update the database.
                     defaultSessionRepository().markGuildMemberLoggedOff(pVampire->getName());

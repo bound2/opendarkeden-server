@@ -43,7 +43,4 @@ private:
     mutable Mutex m_Mutex;
 };
 
-// global variable declaration
-extern SharedServerManager* g_pSharedServerManager;
-
 #endif

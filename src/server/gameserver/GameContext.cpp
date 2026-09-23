@@ -223,6 +223,11 @@ RankBonusInfoManager& GameContext::rankBonuses() const {
     return *m_pRankBonusInfoManager;
 }
 
+SharedServerManager& GameContext::sharedServer() const {
+    Assert(m_pSharedServerManager != nullptr);
+    return *m_pSharedServerManager;
+}
+
 ShopTemplateManager& GameContext::shopTemplates() const {
     Assert(m_pShopTemplateManager != nullptr);
     return *m_pShopTemplateManager;

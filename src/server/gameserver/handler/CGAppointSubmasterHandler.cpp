@@ -57,7 +57,7 @@ void CGAppointSubmasterHandler::execute(CGAppointSubmaster* pPacket, Player* pPl
     gsMGM.setGuildMemberRank(GuildMember::GUILDMEMBER_RANK_SUBMASTER);
     gsMGM.setSender(pPlayerCreature->getName());
 
-    g_pSharedServerManager->sendPacket(&gsMGM);
+    de::gameContext().sharedServer().sendPacket(&gsMGM);
 
 #endif // __GAME_SERVER__
 

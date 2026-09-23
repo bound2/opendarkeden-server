@@ -309,7 +309,7 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
         gsQuitGuild.setGuildID(pGuild->getID());
         gsQuitGuild.setName(pCreature->getName());
 
-        g_pSharedServerManager->sendPacket(&gsQuitGuild);
+        context().sharedServer().sendPacket(&gsQuitGuild);
 
         GCNPCResponse response;
         response.setCode(NPC_RESPONSE_QUIT_DIALOGUE);

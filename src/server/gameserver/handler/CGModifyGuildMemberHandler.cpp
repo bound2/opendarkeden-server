@@ -83,7 +83,7 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
         gsExpelGuildMember.setName(pPacket->getName());
         gsExpelGuildMember.setSender(pPlayerCreature->getName());
 
-        g_pSharedServerManager->sendPacket(&gsExpelGuildMember);
+        de::gameContext().sharedServer().sendPacket(&gsExpelGuildMember);
     } else {
         if (pGuild->getActiveMemberCount() >= MAX_GUILDMEMBER_ACTIVE_COUNT) {
             GCSystemMessage msg;
@@ -115,7 +115,7 @@ void CGModifyGuildMemberHandler::execute(CGModifyGuildMember* pPacket, Player* p
         gsModifyGuildMember.setGuildMemberRank(pPacket->getGuildMemberRank());
         gsModifyGuildMember.setSender(pPlayerCreature->getName());
 
-        g_pSharedServerManager->sendPacket(&gsModifyGuildMember);
+        de::gameContext().sharedServer().sendPacket(&gsModifyGuildMember);
     }
 
 #endif // __GAME_SERVER__

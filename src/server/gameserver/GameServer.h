@@ -17,6 +17,7 @@
 
 class ClientManager;
 class ObjectManager;
+class SharedServerManager;
 class ThreadManager;
 
 class GameServer {
@@ -36,10 +37,12 @@ private:
     void sysinit();
     void goBackground();
 
-    // Managers this class creates and deletes. The client manager is
-    // registered on de::GameContext; the other two are reached only from here.
+    // Managers this class creates and deletes. The client manager and the
+    // shared server link are registered on de::GameContext; the other two
+    // are reached only from here.
     ClientManager* m_pClientManager = nullptr;
     ObjectManager* m_pObjectManager = nullptr;
+    SharedServerManager* m_pSharedServerManager = nullptr;
     ThreadManager* m_pThreadManager = nullptr;
 };
 

@@ -116,7 +116,7 @@ void CGJoinGuildHandler::execute(CGJoinGuild* pPacket, Player* pPlayer)
             gsAddGuildMember.setGuildMemberIntro(pPacket->getGuildMemberIntro());
             gsAddGuildMember.setServerGroupID(g_pConfig->getPropertyInt("ServerID"));
 
-            g_pSharedServerManager->sendPacket(&gsAddGuildMember);
+            de::gameContext().sharedServer().sendPacket(&gsAddGuildMember);
         }
     } else if (pPacket->getGuildMemberRank() == GuildMember::GUILDMEMBER_RANK_WAIT) {
         // An ordinary application, which waits for the guild to accept it.
@@ -128,7 +128,7 @@ void CGJoinGuildHandler::execute(CGJoinGuild* pPacket, Player* pPlayer)
         gsAddGuildMember.setGuildMemberIntro(pPacket->getGuildMemberIntro());
         gsAddGuildMember.setServerGroupID(g_pConfig->getPropertyInt("ServerID"));
 
-        g_pSharedServerManager->sendPacket(&gsAddGuildMember);
+        de::gameContext().sharedServer().sendPacket(&gsAddGuildMember);
     }
 
     GCNPCResponse response;

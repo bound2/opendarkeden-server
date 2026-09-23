@@ -64,6 +64,7 @@ class PriceManager;
 class Properties;
 class RankBonusInfoManager;
 class ScriptManager;
+class SharedServerManager;
 class ShopTemplateManager;
 class SkillDomainInfoManager;
 class SkillHandlerManager;
@@ -216,6 +217,9 @@ public:
     void setRankBonusInfoManager(RankBonusInfoManager* pRankBonusInfoManager) {
         m_pRankBonusInfoManager = pRankBonusInfoManager;
     }
+    void setSharedServerManager(SharedServerManager* pSharedServerManager) {
+        m_pSharedServerManager = pSharedServerManager;
+    }
     void setShopTemplateManager(ShopTemplateManager* pShopTemplateManager) {
         m_pShopTemplateManager = pShopTemplateManager;
     }
@@ -307,6 +311,7 @@ public:
     PriceManager& prices() const;
     ScriptManager& publicScripts() const;
     RankBonusInfoManager& rankBonuses() const;
+    SharedServerManager& sharedServer() const;
     ShopTemplateManager& shopTemplates() const;
     SkillDomainInfoManager& skillDomains() const;
     SkillHandlerManager& skillHandlers() const;
@@ -367,6 +372,7 @@ private:
     PriceManager* m_pPriceManager = nullptr;
     ScriptManager* m_pPublicScriptManager = nullptr;
     RankBonusInfoManager* m_pRankBonusInfoManager = nullptr;
+    SharedServerManager* m_pSharedServerManager = nullptr;
     ShopTemplateManager* m_pShopTemplateManager = nullptr;
     SkillDomainInfoManager* m_pSkillDomainInfoManager = nullptr;
     SkillHandlerManager* m_pSkillHandlerManager = nullptr;

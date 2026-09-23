@@ -172,7 +172,7 @@ void opguild(string msg, int i, Creature* pCreature) {
         gsPacket.setGuildMemberRank(GuildMember::GUILDMEMBER_RANK_MASTER);
         gsPacket.setSender(pCreature->getName());
 
-        g_pSharedServerManager->sendPacket(&gsPacket);
+        de::gameContext().sharedServer().sendPacket(&gsPacket);
     }
 
     __END_CATCH
