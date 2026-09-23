@@ -1,6 +1,7 @@
 #include "GQuestCheckPoint.h"
 
 #include "GameContext.h"
+#include "KernelContext.h"
 #include "MonsterCorpse.h"
 #include "Properties.h"
 #include "SXml.h"
@@ -13,7 +14,7 @@ void GQuestCheckPoint::load() {
     __BEGIN_TRY
 
     XMLTree* pTree = new XMLTree;
-    pTree->LoadFromFile((g_pConfig->getProperty("HomePath") + "/data/EventCheckPoint.xml").c_str());
+    pTree->LoadFromFile((de::kernelContext().config().getProperty("HomePath") + "/data/EventCheckPoint.xml").c_str());
 
     DWORD type, zoneid, x, y, id;
     for (size_t i = 0; i < pTree->GetChildCount(); ++i) {
@@ -44,7 +45,7 @@ void GQuestCheckPoint::load() {
     SAFE_DELETE(pTree);
 
     pTree = new XMLTree;
-    pTree->LoadFromFile((g_pConfig->getProperty("HomePath") + "/data/TravelWay.xml").c_str());
+    pTree->LoadFromFile((de::kernelContext().config().getProperty("HomePath") + "/data/TravelWay.xml").c_str());
     for (size_t i = 0; i < pTree->GetChildCount(); ++i) {
         XMLTree* pChild = pTree->GetChild(i);
         Assert(pChild->GetName() == "TravelWay");

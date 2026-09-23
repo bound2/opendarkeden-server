@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 
+#include "KernelContext.h"
 #include "Properties.h"
 #include "SystemAvailabilitiesManager.h"
 #include "ZoneInternal.h"
@@ -234,6 +235,8 @@ void VariableManager::init()
 {
     __BEGIN_TRY
 
+    Properties& config = de::kernelContext().config();
+
     m_VariableNames.clear();
 
     for (int i = 0; i < VARIABLE_MAX; i++) {
@@ -247,11 +250,11 @@ void VariableManager::init()
 
 
     // Cases where a different initial value is set.
-    setVariable(AUTO_START_RACE_WAR, g_pConfig->getPropertyInt("ActiveRaceWar"));
-    setVariable(GUILD_WAR_ACTIVE, g_pConfig->getPropertyInt("ActiveGuildWar"));
-    setVariable(ACTIVE_FLAG_WAR, g_pConfig->getPropertyInt("ActiveFlagWar"));
-    setVariable(ACTIVE_LEVEL_WAR, g_pConfig->getPropertyInt("ActiveLevelWar"));
-    setVariable(HEAD_COUNT, g_pConfig->getPropertyInt("HeadCount"));
+    setVariable(AUTO_START_RACE_WAR, config.getPropertyInt("ActiveRaceWar"));
+    setVariable(GUILD_WAR_ACTIVE, config.getPropertyInt("ActiveGuildWar"));
+    setVariable(ACTIVE_FLAG_WAR, config.getPropertyInt("ActiveFlagWar"));
+    setVariable(ACTIVE_LEVEL_WAR, config.getPropertyInt("ActiveLevelWar"));
+    setVariable(HEAD_COUNT, config.getPropertyInt("HeadCount"));
     setVariable(KILL_DAEMONCTL, 0);
 
     if (!SystemAvailabilitiesManager::getInstance()->isAvailable(SystemAvailabilitiesManager::SYSTEM_HOLY_LAND_WAR))

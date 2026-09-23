@@ -15,6 +15,7 @@
 
 #include "Assert.h"
 #include "DatabaseError.h"
+#include "KernelContext.h"
 #include "LoginContext.h"
 #include "LoginPlayer.h"
 #include "Properties.h"
@@ -83,7 +84,7 @@ void LoginPlayerManager::init() {
     while (1) {
         try {
             // Create the server socket.
-            m_pServerSocket = new ServerSocket(g_pConfig->getPropertyInt("LoginServerPort"));
+            m_pServerSocket = new ServerSocket(de::kernelContext().config().getPropertyInt("LoginServerPort"));
             // Leave once the bind succeeds.
             break;
         } catch (BindException& be) {
@@ -120,7 +121,7 @@ void LoginPlayerManager::init() {
     // PC-room record dropped.
     try {
         LoginAccountRepository& repo = defaultLoginAccountRepository();
-        int loginServerID = g_pConfig->getPropertyInt("LoginServerID");
+        int loginServerID = de::kernelContext().config().getPropertyInt("LoginServerID");
 
         vector<string> ids = repo.loadLoggedOnAccounts(loginServerID);
 

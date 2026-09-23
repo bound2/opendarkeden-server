@@ -8,6 +8,7 @@
 #include "GCWarScheduleList.h"
 #include "GuildManager.h"
 #include "GuildWar.h"
+#include "KernelContext.h"
 #include "Properties.h"
 #include "SiegeWar.h"
 #include "War.h"
@@ -103,10 +104,10 @@ void WarSchedule::create()
     // Both castle war classes report WAR_GUILD, so the row is built from the
     // war's own castle, attacker and fee rather than from a cast to one of
     // them.
-    if (!defaultWarInfoRepository().insertWarSchedule((int)pWar->getWarID(), g_pConfig->getPropertyInt("ServerID"),
-                                                      (int)pWar->getCastleZoneID(), pWar->getWarType2DBString(),
-                                                      (int)pWar->getAttackerGuildID(), (int)pWar->getRegistrationFee(),
-                                                      m_ScheduledTime.toDateTime(), pWar->getState2DBString())) {
+    if (!defaultWarInfoRepository().insertWarSchedule(
+            (int)pWar->getWarID(), de::kernelContext().config().getPropertyInt("ServerID"),
+            (int)pWar->getCastleZoneID(), pWar->getWarType2DBString(), (int)pWar->getAttackerGuildID(),
+            (int)pWar->getRegistrationFee(), m_ScheduledTime.toDateTime(), pWar->getState2DBString())) {
         filelog("WarError.log", "WarSchedule::create() : 이미 테이블에 War 정보가 있거나 테이블이 잘못되었습니다.");
         return;
     }
@@ -129,12 +130,12 @@ void WarSchedule::save()
     Assert(pSiegeWar != NULL);
 
     if (!defaultWarInfoRepository().replaceWarSchedule(
-            (int)pSiegeWar->getWarID(), g_pConfig->getPropertyInt("ServerID"), (int)pSiegeWar->getCastleZoneID(),
-            pSiegeWar->getWarType2DBString(), (int)pSiegeWar->getChallengerGuildCount(),
-            (int)pSiegeWar->getChallangerGuildID(0), (int)pSiegeWar->getChallangerGuildID(1),
-            (int)pSiegeWar->getChallangerGuildID(2), (int)pSiegeWar->getChallangerGuildID(3),
-            (int)pSiegeWar->getChallangerGuildID(4), (int)pSiegeWar->getRegistrationFee(), m_ScheduledTime.toDateTime(),
-            pSiegeWar->getState2DBString())) {
+            (int)pSiegeWar->getWarID(), de::kernelContext().config().getPropertyInt("ServerID"),
+            (int)pSiegeWar->getCastleZoneID(), pSiegeWar->getWarType2DBString(),
+            (int)pSiegeWar->getChallengerGuildCount(), (int)pSiegeWar->getChallangerGuildID(0),
+            (int)pSiegeWar->getChallangerGuildID(1), (int)pSiegeWar->getChallangerGuildID(2),
+            (int)pSiegeWar->getChallangerGuildID(3), (int)pSiegeWar->getChallangerGuildID(4),
+            (int)pSiegeWar->getRegistrationFee(), m_ScheduledTime.toDateTime(), pSiegeWar->getState2DBString())) {
         filelog("WarError.log", "WarSchedule::create() : 이미 테이블에 War 정보가 있거나 테이블이 잘못되었습니다.");
         return;
     }
@@ -150,7 +151,8 @@ void WarSchedule::tinysave(const string& query)
     War* pWar = dynamic_cast<War*>(m_pWork);
     Assert(pWar != NULL);
 
-    defaultWarInfoRepository().tinysaveWarSchedule(query, pWar->getWarID(), g_pConfig->getPropertyInt("ServerID"));
+    defaultWarInfoRepository().tinysaveWarSchedule(query, pWar->getWarID(),
+                                                   de::kernelContext().config().getPropertyInt("ServerID"));
 
 
     __END_CATCH

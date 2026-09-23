@@ -15,6 +15,7 @@
 #include "DB.h"
 #include "Guild.h"
 #include "GuildManager.h"
+#include "KernelContext.h"
 #include "Packet.h"
 #include "Properties.h"
 #include "ServerContext.h"
@@ -38,11 +39,12 @@ GameServerManager::GameServerManager() : m_pServerSocket(NULL), m_SocketID(INVAL
         // create  server socket
         while (!ServerShutdown::isRequested()) {
             try {
-                m_pServerSocket = new ServerSocket(g_pConfig->getPropertyInt("TCPPort"));
+                m_pServerSocket = new ServerSocket(de::kernelContext().config().getPropertyInt("TCPPort"));
                 break;
             } catch (BindException& b) {
                 SAFE_DELETE(m_pServerSocket);
-                cout << "GameServerManager(" << g_pConfig->getPropertyInt("TCPPort") << ") : " << b.toString() << endl;
+                cout << "GameServerManager(" << de::kernelContext().config().getPropertyInt("TCPPort")
+                     << ") : " << b.toString() << endl;
                 sleep(1);
             }
         }

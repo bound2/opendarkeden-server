@@ -15,6 +15,7 @@
 #include "GameServerInfo.h"
 #include "GameServerInfoManager.h"
 #include "GameServerManager.h"
+#include "KernelContext.h"
 #include "LCReconnect.h"
 #include "LCSelectPCError.h"
 #include "LGIncomingConnection.h"
@@ -59,9 +60,11 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
+        Properties& config = de::kernelContext().config();
+
 #ifdef __LOGIN_SERVER__
 
-        Assert(pPacket != NULL);
+    Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
@@ -149,21 +152,21 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
 
         GameServerManager& gameServers = de::loginContext().gameServers();
 
-        if (g_pConfig->getProperty("User") == "excel96")
+        if (config.getProperty("User") == "excel96")
             gameServers.sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(), &lgIncomingConnection);
-        else if (g_pConfig->getProperty("User") == "beowulf")
-            gameServers.sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
+        else if (config.getProperty("User") == "beowulf")
+            gameServers.sendPacket(pGameServerInfo->getIP(), config.getPropertyInt("GameServerUDPPort"),
                                    &lgIncomingConnection);
-        else if (g_pConfig->getProperty("User") == "crazydog")
-            gameServers.sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
+        else if (config.getProperty("User") == "crazydog")
+            gameServers.sendPacket(pGameServerInfo->getIP(), config.getPropertyInt("GameServerUDPPort"),
                                    &lgIncomingConnection);
-        else if (g_pConfig->getProperty("User") == "elcastle") {
+        else if (config.getProperty("User") == "elcastle") {
             cout << "gameserver ip: " << pGameServerInfo->getIP()
-                 << ", port: " << g_pConfig->getPropertyInt("GameServerUDPPort") << endl;
-            gameServers.sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
+                 << ", port: " << config.getPropertyInt("GameServerUDPPort") << endl;
+            gameServers.sendPacket(pGameServerInfo->getIP(), config.getPropertyInt("GameServerUDPPort"),
                                    &lgIncomingConnection);
-        } else if (g_pConfig->getProperty("User") == "elca")
-            gameServers.sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
+        } else if (config.getProperty("User") == "elca")
+            gameServers.sendPacket(pGameServerInfo->getIP(), config.getPropertyInt("GameServerUDPPort"),
                                    &lgIncomingConnection);
 
         // The slot the account played last, on the account row; the group

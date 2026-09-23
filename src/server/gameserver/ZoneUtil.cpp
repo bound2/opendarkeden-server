@@ -53,6 +53,7 @@
 #include "GameServerInfoManager.h"
 #include "IncomingPlayerManager.h"
 #include "Item.h"
+#include "KernelContext.h"
 #include "LevelWarZoneInfoManager.h"
 #include "MasterLairManager.h"
 #include "Monster.h"
@@ -1480,10 +1481,10 @@ bool checkMine(Zone* pZone, Creature* pCreature, ZoneCoord_t X, ZoneCoord_t Y)
 
     Assert(pCreature != NULL);
 
-    static bool bNonPK =
-        g_pGameServerInfoManager
-            ->getGameServerInfo(1, g_pConfig->getPropertyInt("ServerID"), g_pConfig->getPropertyInt("WorldID"))
-            ->isNonPKServer();
+    static bool bNonPK = g_pGameServerInfoManager
+                             ->getGameServerInfo(1, de::kernelContext().config().getPropertyInt("ServerID"),
+                                                 de::kernelContext().config().getPropertyInt("WorldID"))
+                             ->isNonPKServer();
     if (bNonPK && pCreature->isPC())
         return false;
 
@@ -2494,9 +2495,9 @@ bool createBulletinBoard(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y, MonsterType_
     }
 
     string dbmsg = correctString(msg);
-    uint affectedRows =
-        defaultBulletinBoardRepository().insert(g_pConfig->getPropertyInt("ServerID"), pZone->getZoneID(), pt.x, pt.y,
-                                                dbmsg, (uint)type, timeLimit.toDateTime());
+    uint affectedRows = defaultBulletinBoardRepository().insert(de::kernelContext().config().getPropertyInt("ServerID"),
+                                                                pZone->getZoneID(), pt.x, pt.y, dbmsg, (uint)type,
+                                                                timeLimit.toDateTime());
 
     if (affectedRows == 0) {
         filelog("BulletinBoard.log", "DB에 저장이 안되버렸습니다. : %u, %u, %u, [%u:%s]", pZone->getZoneID(), pt.x,
@@ -2513,8 +2514,8 @@ void loadBulletinBoard(Zone* pZone) {
 
     VSDateTime currentDateTime = VSDateTime::currentDateTime();
 
-    vector<BulletinBoardRow> rows =
-        defaultBulletinBoardRepository().loadForZone(g_pConfig->getPropertyInt("ServerID"), pZone->getZoneID());
+    vector<BulletinBoardRow> rows = defaultBulletinBoardRepository().loadForZone(
+        de::kernelContext().config().getPropertyInt("ServerID"), pZone->getZoneID());
 
     for (size_t r = 0; r < rows.size(); r++) {
         uint ID = rows[r].id;

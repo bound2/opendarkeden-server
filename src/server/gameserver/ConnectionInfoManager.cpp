@@ -11,6 +11,7 @@
 #include "Assert.h"
 #include "GMServerInfo.h"
 #include "GameContext.h"
+#include "KernelContext.h"
 #include "LogDef.h"
 #include "LoginServerManager.h"
 #include "Properties.h"
@@ -163,6 +164,8 @@ void ConnectionInfoManager::heartbeat()
 {
     __BEGIN_TRY
 
+    Properties& config = de::kernelContext().config();
+
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     Timeval currentTime;
@@ -217,8 +220,8 @@ void ConnectionInfoManager::heartbeat()
 
         GMServerInfo gmServerInfo;
 
-        static int worldID = g_pConfig->getPropertyInt("WorldID");
-        static int serverID = g_pConfig->getPropertyInt("ServerID");
+        static int worldID = config.getPropertyInt("WorldID");
+        static int serverID = config.getPropertyInt("ServerID");
 
         gmServerInfo.setWorldID(worldID);
         gmServerInfo.setServerID(serverID);
@@ -245,7 +248,7 @@ void ConnectionInfoManager::heartbeat()
             // Every 30 seconds
             m_UpdateUserStatusTime.tv_sec = currentTime.tv_sec + 30;
 
-            if (g_pConfig->getPropertyInt("IsNetMarble") == 1) {
+            if (config.getPropertyInt("IsNetMarble") == 1) {
                 if (!defaultSessionRepository().updateUserStatus(numPC, worldID, serverID)) {
                     // No row yet: add one.
                     defaultSessionRepository().insertUserStatus(worldID, serverID, numPC);
@@ -255,10 +258,10 @@ void ConnectionInfoManager::heartbeat()
 
         // MonitorClient no longer takes this value.
 
-        static int portNum = g_pConfig->getPropertyInt("LoginServerUDPPortNum");
-        static const string& loginServerIP = g_pConfig->getProperty("LoginServerIP");
-        static int loginServerUDPPort = g_pConfig->getPropertyInt("LoginServerUDPPort");
-        static int loginServerBaseUDPPort = g_pConfig->getPropertyInt("LoginServerBaseUDPPort");
+        static int portNum = config.getPropertyInt("LoginServerUDPPortNum");
+        static const string& loginServerIP = config.getProperty("LoginServerIP");
+        static int loginServerUDPPort = config.getPropertyInt("LoginServerUDPPort");
+        static int loginServerBaseUDPPort = config.getPropertyInt("LoginServerBaseUDPPort");
 
         // Default
         de::gameContext().loginServer().sendPacket(loginServerIP, loginServerUDPPort, &gmServerInfo);

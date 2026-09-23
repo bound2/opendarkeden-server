@@ -6,6 +6,7 @@
 
 #include "SharedGameServerInfoManager.h"
 
+#include "KernelContext.h"
 #include "Properties.h"
 #include "repository/SharedConfigRepository.h"
 
@@ -54,7 +55,7 @@ void SharedGameServerInfoManager::load() {
 
     SharedConfigRepository& repo = defaultSharedConfigRepository();
 
-    WorldID_t WorldID = g_pConfig->getPropertyInt("WorldID");
+    WorldID_t WorldID = de::kernelContext().config().getPropertyInt("WorldID");
 
     // The table is sized from this world's largest GroupID; a world with
     // no servers is a startup error.

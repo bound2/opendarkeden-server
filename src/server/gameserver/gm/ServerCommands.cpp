@@ -26,6 +26,7 @@
 #include "ItemFactoryManager.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
+#include "KernelContext.h"
 #include "LoginServerManager.h"
 #include "MasterLairManager.h"
 #include "Monster.h"
@@ -1242,8 +1243,8 @@ void opworld(GamePlayer* pGamePlayer, string msg, int i, bool bSameWorldOnly) {
     HashMapGameServerInfo** pGameServerInfos = g_pGameServerInfoManager->getGameServerInfos();
 
 
-    static int myWorldID = g_pConfig->getPropertyInt("WorldID");
-    static int myServerID = g_pConfig->getPropertyInt("ServerID");
+    static int myWorldID = de::kernelContext().config().getPropertyInt("WorldID");
+    static int myServerID = de::kernelContext().config().getPropertyInt("ServerID");
 
     int maxWorldID = g_pGameServerInfoManager->getMaxWorldID();
     int maxServerGroupID = g_pGameServerInfoManager->getMaxServerGroupID();

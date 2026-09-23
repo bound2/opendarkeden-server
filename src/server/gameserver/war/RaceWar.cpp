@@ -21,6 +21,7 @@
 #include "GCWarScheduleList.h"
 #include "GameContext.h"
 #include "HolyLandManager.h"
+#include "KernelContext.h"
 #include "PCManager.h"
 #include "RaceWarInfo.h"
 #include "RaceWarLimiter.h"
@@ -225,8 +226,8 @@ void RaceWar::recordRaceWarEnd()
     // running a script -- who would have thought the system function would be used
     char cmd[100];
     sprintf(cmd, "/home/darkeden/vs/bin/script/recordRaceWarHistory.py %s %d %d ",
-            getWarStartTime().toStringforWeb().c_str(), g_pConfig->getPropertyInt("Dimension"),
-            g_pConfig->getPropertyInt("WorldID"));
+            getWarStartTime().toStringforWeb().c_str(), de::kernelContext().config().getPropertyInt("Dimension"),
+            de::kernelContext().config().getPropertyInt("WorldID"));
 
     filelog("script.log", cmd);
     system(cmd);

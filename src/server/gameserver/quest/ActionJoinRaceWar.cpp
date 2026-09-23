@@ -11,6 +11,7 @@
 #include "GCSystemMessage.h"
 #include "GameContext.h"
 #include "GamePlayer.h"
+#include "KernelContext.h"
 #include "NPC.h"
 #include "PlayerCreature.h"
 #include "Properties.h"
@@ -55,7 +56,7 @@ void ActionJoinRaceWar::execute(Creature* pCreature1, Creature* pCreature2)
 
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature2);
 
-    static int isJoinRaceWar = g_pConfig->getPropertyInt("JoinRaceWar");
+    static int isJoinRaceWar = de::kernelContext().config().getPropertyInt("JoinRaceWar");
 
     // Race war applications are turned off on this server.
     if (!isJoinRaceWar) {

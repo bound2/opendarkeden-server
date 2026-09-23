@@ -18,6 +18,7 @@
 #include "GuildManager.h"
 #include "GuildWarInfo.h"
 #include "HolyLandRaceBonus.h"
+#include "KernelContext.h"
 #include "Mutex.h"
 #include "PCManager.h"
 #include "Properties.h"
@@ -108,7 +109,7 @@ void GuildWar::recordGuildWarStart()
         return;
 
     defaultWarInfoRepository().insertGuildWarHistory(
-        (int)getWarID(), getWarStartTime().toStringforWeb(), g_pConfig->getPropertyInt("ServerID"),
+        (int)getWarID(), getWarStartTime().toStringforWeb(), de::kernelContext().config().getPropertyInt("ServerID"),
         pCastleInfo->getName(), (int)pCastleInfo->getGuildID(),
         de::gameContext().guilds().getGuildName(pCastleInfo->getGuildID()), getChallangerGuildID(),
         de::gameContext().guilds().getGuildName(getChallangerGuildID()));
@@ -141,7 +142,7 @@ void GuildWar::executeEnd()
     if (m_bModifyCastleOwner) {
         castleInfos.modifyCastleOwner(m_CastleZoneID, m_WinnerRace, m_WinnerGuildID);
 
-        if (g_pConfig->getPropertyInt("IsNetMarble") == 1) {
+        if (de::kernelContext().config().getPropertyInt("IsNetMarble") == 1) {
             char sCommand[100];
             sprintf(sCommand, "*world *command setCastleOwnerGuild %u %u", m_CastleZoneID, m_WinnerGuildID);
             de::gm::opworld(NULL, sCommand, 0, true);
@@ -194,7 +195,8 @@ void GuildWar::recordGuildWarEnd()
     // running a script -- who would have thought the system function would be used
     char cmd[100];
     sprintf(cmd, "/home/darkeden/vs/bin/script/recordGuildWarHistory.py %d %d %d ", (int)getWarID(),
-            g_pConfig->getPropertyInt("Dimension"), g_pConfig->getPropertyInt("WorldID"));
+            de::kernelContext().config().getPropertyInt("Dimension"),
+            de::kernelContext().config().getPropertyInt("WorldID"));
 
     filelog("script.log", cmd);
     system(cmd);

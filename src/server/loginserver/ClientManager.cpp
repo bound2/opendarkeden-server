@@ -12,6 +12,7 @@
 #include "DatabaseManager.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameWorldInfoManager.h"
+#include "KernelContext.h"
 #include "LoginContext.h"
 #include "LoginPlayerManager.h"
 #include "PacketProfile.h"
@@ -118,7 +119,7 @@ void ClientManager::run() {
     // Time GameWorldInfo and GameServerInfo were last reloaded
     Timeval ReloadNextTime = NextTime;
     // Interval at which GameWorldInfo and GameServerInfo are reloaded, in minutes
-    int ReloadGap = g_pConfig->getPropertyInt("ServerInfoReloadTime") * 60;
+    int ReloadGap = de::kernelContext().config().getPropertyInt("ServerInfoReloadTime") * 60;
     ReloadNextTime.tv_sec += ReloadGap;
 
     NextTime.tv_sec += 10;

@@ -18,6 +18,7 @@
 #include "GCSkillToTileOK6.h"
 #include "GCStatusCurrentHP.h"
 #include "GameContext.h"
+#include "KernelContext.h"
 #include "Properties.h"
 #include "RankBonus.h"
 
@@ -48,8 +49,8 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
             // Reviving a hidden creature misbehaves, so it is blocked.
             // 2003. 1. 17. DEW
             || pTargetCreature->isFlag(Effect::EFFECT_CLASS_HIDE) ||
-            (g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0 &&
-             pTargetCreature->isDead())) {
+            (de::kernelContext().config().hasKey("Hardcore") &&
+             de::kernelContext().config().getPropertyInt("Hardcore") != 0 && pTargetCreature->isDead())) {
             executeSkillFailException(pVampire, getSkillType());
             return;
         }

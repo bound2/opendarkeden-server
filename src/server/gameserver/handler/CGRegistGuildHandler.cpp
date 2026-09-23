@@ -15,6 +15,7 @@
 #include "GameContext.h"
 #include "GamePlayer.h"
 #include "Guild.h"
+#include "KernelContext.h"
 #include "Ousters.h"
 #include "Properties.h"
 #include "SharedServerManager.h"
@@ -141,7 +142,7 @@ void CGRegistGuildHandler::execute(CGRegistGuild* pPacket, Player* pPlayer)
     gsAddGuild.setGuildIntro(pPacket->getGuildIntro());
     gsAddGuild.setGuildState(Guild::GUILD_STATE_WAIT);
     gsAddGuild.setGuildRace(guildRace);
-    gsAddGuild.setServerGroupID(g_pConfig->getPropertyInt("ServerID"));
+    gsAddGuild.setServerGroupID(de::kernelContext().config().getPropertyInt("ServerID"));
 
     de::gameContext().sharedServer().sendPacket(&gsAddGuild);
 

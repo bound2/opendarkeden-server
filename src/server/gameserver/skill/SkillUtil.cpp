@@ -73,6 +73,7 @@
 #include "HitRoll.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
+#include "KernelContext.h"
 #include "MasterLairInfoManager.h"
 #include "OustersEXPInfo.h"
 #include "PKZoneInfoManager.h"
@@ -623,10 +624,9 @@ bool canAttack(Creature* pAttacker, Creature* pDefender) {
         return true;
 
     // Is this game server configured as non-PK?
-    static bool bNonPK =
-        g_pGameServerInfoManager
-            ->getGameServerInfo(1, g_pConfig->getPropertyInt("ServerID"), g_pConfig->getPropertyInt("WorldID"))
-            ->isNonPKServer();
+    static const int serverID = de::kernelContext().config().getPropertyInt("ServerID");
+    static const int worldID = de::kernelContext().config().getPropertyInt("WorldID");
+    static bool bNonPK = g_pGameServerInfoManager->getGameServerInfo(1, serverID, worldID)->isNonPKServer();
 
     // non-PK check
     if (bNonPK && pAttacker->isPC() && pDefender->isPC())

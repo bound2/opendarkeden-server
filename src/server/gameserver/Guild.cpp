@@ -21,6 +21,7 @@
 #include "GCGuildMemberList.h"
 #include "GuildInfo.h"
 #include "GuildMemberInfo.h"
+#include "KernelContext.h"
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -76,7 +77,7 @@ bool GuildMember::load()
     m_Rank = row.rank;
     m_bLogOn = row.logOn;
 
-    m_ServerID = g_pConfig->getPropertyInt("ServerID");
+    m_ServerID = de::kernelContext().config().getPropertyInt("ServerID");
 
     return true;
 

@@ -14,6 +14,7 @@
 #include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
+#include "KernelContext.h"
 #include "LogNameManager.h"
 #include "LoginServerManager.h"
 #include "PCFinder.h"
@@ -133,7 +134,7 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
 
 
                         GameServerInfo* pGameServerInfo = g_pGameServerInfoManager->getGameServerInfo(
-                            1, CurrentServerGroupID, g_pConfig->getPropertyInt("WorldID"));
+                            1, CurrentServerGroupID, de::kernelContext().config().getPropertyInt("WorldID"));
                         if (pGameServerInfo != NULL) {
                             GGServerChat ggServerChat;
                             ggServerChat.setSender(pCreature->getName());

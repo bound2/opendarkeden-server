@@ -16,6 +16,7 @@
 #include "Datagram.h"
 #include "DatagramPacket.h"
 #include "GameContext.h"
+#include "KernelContext.h"
 #include "PacketDispatcher.h"
 #include "Properties.h"
 #include "ServerContext.h"
@@ -30,17 +31,19 @@
 LoginServerManager::LoginServerManager() : m_pDatagramSocket(NULL) {
     __BEGIN_TRY
 
+    Properties& config = de::kernelContext().config();
+
     m_Mutex.setName("LoginServerManager");
 
     // create datagram server socket
     while (!ServerShutdown::isRequested()) {
         try {
-            m_pDatagramSocket = new DatagramSocket(g_pConfig->getPropertyInt("GameServerUDPPort"));
+            m_pDatagramSocket = new DatagramSocket(config.getPropertyInt("GameServerUDPPort"));
             SocketAPI::setsocketnonblocking_ex(m_pDatagramSocket->getSOCKET(), true);
             break;
         } catch (BindException& be) {
             SAFE_DELETE(m_pDatagramSocket);
-            cout << "LoginServerManager(" << g_pConfig->getPropertyInt("GameServerUDPPort") << ") : " << be.toString()
+            cout << "LoginServerManager(" << config.getPropertyInt("GameServerUDPPort") << ") : " << be.toString()
                  << endl;
             sleep(1);
         }
@@ -49,7 +52,7 @@ LoginServerManager::LoginServerManager() : m_pDatagramSocket(NULL) {
     if (m_pDatagramSocket == NULL)
         throw Error("shutdown requested during UDP listener startup");
 
-    //	m_pDatagramSocket = new DatagramSocket(g_pConfig->getPropertyInt("GameServerUDPPort"));
+    //	m_pDatagramSocket = new DatagramSocket(config.getPropertyInt("GameServerUDPPort"));
 
     __END_CATCH
 }
@@ -82,14 +85,16 @@ void LoginServerManager::stop() {
 // main method
 //////////////////////////////////////////////////////////////////////
 void LoginServerManager::run() {
+    Properties& config = de::kernelContext().config();
+
     try {
-        string host = g_pConfig->getProperty("DB_HOST");
-        string db = g_pConfig->getProperty("DB_DB");
-        string user = g_pConfig->getProperty("DB_USER");
-        string password = g_pConfig->getProperty("DB_PASSWORD");
+        string host = config.getProperty("DB_HOST");
+        string db = config.getProperty("DB_DB");
+        string user = config.getProperty("DB_USER");
+        string password = config.getProperty("DB_PASSWORD");
         uint port = 0;
-        if (g_pConfig->hasKey("DB_PORT"))
-            port = g_pConfig->getPropertyInt("DB_PORT");
+        if (config.hasKey("DB_PORT"))
+            port = config.getPropertyInt("DB_PORT");
 
         Connection* pConnection = new Connection(host, db, user, password, port);
         de::serverContext().database().addConnection((int)(long)Thread::self(), pConnection);

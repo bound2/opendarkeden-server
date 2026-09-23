@@ -16,6 +16,7 @@
 #include <sys/resource.h>
 
 #include "Exception.h"
+#include "KernelContext.h"
 #include "Properties.h"
 #include "ServerShutdown.h"
 #include "SharedPacketDispatch.h"
@@ -73,10 +74,11 @@ int main(int argc, char* argv[]) {
         }
 
         // When the first parameter is -f, the second is the path of the configuration file.
-        g_pConfig = new Properties();
-        g_pConfig->load(Argv[2]);
+        Properties* pConfig = new Properties();
+        de::kernelContext().setConfig(pConfig);
+        pConfig->load(Argv[2]);
 
-        cout << g_pConfig->toString() << endl;
+        cout << pConfig->toString() << endl;
 
     } catch (Error& e) {
         cout << e.toString() << endl;

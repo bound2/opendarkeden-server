@@ -26,6 +26,7 @@
 #include "GCSystemMessage.h"
 #include "GameContext.h"
 #include "GamePlayer.h"
+#include "KernelContext.h"
 #include "NPC.h"
 #include "NPCManager.h"
 #include "PCManager.h"
@@ -238,7 +239,8 @@ void CastleInfoManager::load()
 
     clearCastleZoneIDs();
 
-    vector<CastleRow> rows = defaultWarInfoRepository().loadCastles(g_pConfig->getPropertyInt("ServerID"));
+    vector<CastleRow> rows =
+        defaultWarInfoRepository().loadCastles(de::kernelContext().config().getPropertyInt("ServerID"));
 
     ZoneCoord_t x, y;
     ZONE_COORD zoneCoord;
@@ -313,7 +315,8 @@ void CastleInfoManager::save(ZoneID_t zoneID)
     record.itemTaxRatio = pCastleInfo->getItemTaxRatio();
     record.entranceFee = (int)pCastleInfo->getEntranceFee();
     record.taxBalance = (int)pCastleInfo->getTaxBalance();
-    defaultWarInfoRepository().saveCastle((int)g_pConfig->getPropertyInt("ServerID"), (int)zoneID, record);
+    defaultWarInfoRepository().saveCastle((int)de::kernelContext().config().getPropertyInt("ServerID"), (int)zoneID,
+                                          record);
 
     __END_CATCH
 }
@@ -924,8 +927,8 @@ bool CastleInfoManager::tinysave(ZoneID_t zoneID, const string& query)
     if (pCastleInfo == NULL)
         return false;
 
-    bool isAffected = defaultWarInfoRepository().tinysaveCastle(query, pCastleInfo->getZoneID(),
-                                                                g_pConfig->getPropertyInt("ServerID"));
+    bool isAffected = defaultWarInfoRepository().tinysaveCastle(
+        query, pCastleInfo->getZoneID(), de::kernelContext().config().getPropertyInt("ServerID"));
 
     return isAffected;
 

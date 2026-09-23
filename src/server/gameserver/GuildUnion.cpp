@@ -9,6 +9,7 @@
 #include "GameServerInfoManager.h"
 #include "Guild.h"
 #include "GuildManager.h"
+#include "KernelContext.h"
 #include "LoginServerManager.h"
 #include "PCFinder.h"
 #include "PacketUtil.h"
@@ -118,8 +119,8 @@ void GuildUnionManager::sendModifyUnionInfo(uint gID) {
     HashMapGameServerInfo** pGameServerInfos = g_pGameServerInfoManager->getGameServerInfos();
 
 
-    static int myWorldID = g_pConfig->getPropertyInt("WorldID");
-    static int myServerID = g_pConfig->getPropertyInt("ServerID");
+    static int myWorldID = de::kernelContext().config().getPropertyInt("WorldID");
+    static int myServerID = de::kernelContext().config().getPropertyInt("ServerID");
 
     int maxWorldID = g_pGameServerInfoManager->getMaxWorldID();
     int maxServerGroupID = g_pGameServerInfoManager->getMaxServerGroupID();
@@ -157,8 +158,8 @@ void GuildUnionManager::sendRefreshCommand() {
     HashMapGameServerInfo** pGameServerInfos = g_pGameServerInfoManager->getGameServerInfos();
 
 
-    static int myWorldID = g_pConfig->getPropertyInt("WorldID");
-    static int myServerID = g_pConfig->getPropertyInt("ServerID");
+    static int myWorldID = de::kernelContext().config().getPropertyInt("WorldID");
+    static int myServerID = de::kernelContext().config().getPropertyInt("ServerID");
 
     int maxWorldID = g_pGameServerInfoManager->getMaxWorldID();
     int maxServerGroupID = g_pGameServerInfoManager->getMaxServerGroupID();

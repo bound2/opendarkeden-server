@@ -115,6 +115,7 @@
 #include "GoodsInfoManager.h"
 #include "GuildUnion.h"
 #include "ItemGradeManager.h"
+#include "KernelContext.h"
 #include "LevelNickInfoManager.h"
 #include "LevelWarZoneInfoManager.h"
 #include "PetAttrInfo.h"
@@ -451,7 +452,7 @@ void ObjectManager::init()
     printf("ObjectManager::init() : ItemMineInfoManager Initialization Success\n");
 
     printf("ObjectManager::init() : WarID Initialization Start\n");
-    m_pWarSystem->setWarIDSuccessor(g_pConfig->getPropertyInt("ServerCount"));
+    m_pWarSystem->setWarIDSuccessor(de::kernelContext().config().getPropertyInt("ServerCount"));
     War::initWarIDRegistry();
     printf("ObjectManager::init() : WarID Initialization Success\n");
 

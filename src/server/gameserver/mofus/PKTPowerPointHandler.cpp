@@ -7,6 +7,7 @@
 #include "PKTPowerPointHandler.h"
 
 #include "Assert.h"
+#include "KernelContext.h"
 #include "MJob.h"
 #include "MPlayer.h"
 #include "Mofus.h"
@@ -32,7 +33,7 @@ void PKTPowerPointHandler::execute(MPlayer* pPlayer, MPacket* pPacket) {
     //////////////////////////////////////////////////////////////////////
     // Check the packet that was received.
     //////////////////////////////////////////////////////////////////////
-    static int MofusServerCode = g_pConfig->getPropertyInt("MofusServerCode");
+    static int MofusServerCode = de::kernelContext().config().getPropertyInt("MofusServerCode");
     // Check the game code
     bool bCheckGameCode = (pPowerPoint->getGameCode() == 1);
     // Check the server code

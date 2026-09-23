@@ -105,6 +105,7 @@
 #include "Item.h"
 #include "ItemFactoryManager.h"
 #include "ItemInfo.h"
+#include "KernelContext.h"
 #include "LevelWarManager.h"
 #include "LevelWarZoneInfoManager.h"
 #include "LoginServerManager.h"
@@ -191,7 +192,7 @@ void Zone::init()
     __BEGIN_TRY
 
 #ifdef __USE_ENCRYPTER__
-    int serverID = g_pConfig->getPropertyInt("ServerID");
+    int serverID = de::kernelContext().config().getPropertyInt("ServerID");
 
     if (!isDynamicZone()) {
         m_EncryptCode = EncryptCode(m_ZoneID, serverID);
@@ -263,6 +264,9 @@ void Zone::load(bool bOutput)
 {
     __BEGIN_TRY
     __BEGIN_DEBUG
+
+    Properties& config = de::kernelContext().config();
+
     try {
         CastleInfoManager& castleInfos = de::gameContext().castleInfos();
 
@@ -303,7 +307,7 @@ void Zone::load(bool bOutput)
 
 
         // Open the SMP information file.
-        string SMPFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSMPFilename();
+        string SMPFilename = config.getProperty("HomePath") + "/data/" + pZoneInfo->getSMPFilename();
         ifstream SMP(SMPFilename.c_str(), ios::in | ios::binary);
         if (!SMP) {
             strcpy(lwrFilename, SMPFilename.c_str());
@@ -813,7 +817,7 @@ void Zone::load(bool bOutput)
                             pTrigger->setActions(str);
 
                             // by sigi. 2002.10.30
-                            if (g_pConfig->getPropertyInt("IsNetMarble") == 0) {
+                            if (config.getPropertyInt("IsNetMarble") == 0) {
                                 sprintf(str2, "ActionType : SystemMessage\n\t Content : %d",
                                         STRID_CANNOT_ENTER_PAY_ZONE);
 
@@ -887,7 +891,7 @@ void Zone::load(bool bOutput)
                 m_ppLevel[x][y] = m_ZoneLevel;
 
         // Open the SSI information file.
-        string SSIFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSSIFilename();
+        string SSIFilename = config.getProperty("HomePath") + "/data/" + pZoneInfo->getSSIFilename();
         ifstream SSI(SSIFilename.c_str(), ios::in | ios::binary);
         if (!SSI) {
             strcpy(lwrFilename, SSIFilename.c_str());
@@ -1011,7 +1015,8 @@ void Zone::reload(bool bOutput)
 
 
         // Open the SMP information file.
-        string SMPFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSMPFilename();
+        string SMPFilename =
+            de::kernelContext().config().getProperty("HomePath") + "/data/" + pZoneInfo->getSMPFilename();
         ifstream SMP(SMPFilename.c_str(), ios::in | ios::binary);
         if (!SMP) {
             strcpy(lwrFilename, SMPFilename.c_str());
@@ -1480,7 +1485,8 @@ void Zone::reload(bool bOutput)
                 m_ppLevel[x][y] = m_ZoneLevel;
 
         // Open the SSI information file.
-        string SSIFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSSIFilename();
+        string SSIFilename =
+            de::kernelContext().config().getProperty("HomePath") + "/data/" + pZoneInfo->getSSIFilename();
         ifstream SSI(SSIFilename.c_str(), ios::in | ios::binary);
         if (!SSI) {
             strcpy(lwrFilename, SSIFilename.c_str());

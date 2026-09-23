@@ -20,6 +20,7 @@
 #include "Item.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
+#include "KernelContext.h"
 #include "MonsterInfo.h"
 #include "NPC.h"
 #include "Ousters.h"
@@ -132,8 +133,10 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
 
             // Broadcast to all worlds via server command
             char sCommand[200];
-            string worldName =
-                de::serverContext().worldInfos().getGameWorldInfo(g_pConfig->getPropertyInt("WorldID"))->getName();
+            string worldName = de::serverContext()
+                                   .worldInfos()
+                                   .getGameWorldInfo(de::kernelContext().config().getPropertyInt("WorldID"))
+                                   ->getName();
             sprintf(sCommand, "*allworld *command NotifyWin %s(%s) %u", pCreature->getName().c_str(), worldName.c_str(),
                     pPC->getLottoRewardID());
             de::gm::opworld(NULL, sCommand, 0, false);

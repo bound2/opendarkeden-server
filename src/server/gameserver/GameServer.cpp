@@ -47,7 +47,7 @@ GameServer::GameServer()
     try {
         // The configuration is loaded before the server object exists, so it
         // is registered first; every manager below registers as it is created.
-        de::gameContext().setConfig(g_pConfig);
+        de::gameContext().setConfig(&de::kernelContext().config());
 
         // create database manager
         m_pDatabaseManager = new DatabaseManager();

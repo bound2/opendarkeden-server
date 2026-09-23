@@ -274,7 +274,7 @@ public:
 
     // --- siege-war reinforcement registry ----------------------------------
     // All scoped to (WarID, ServerID). serverID is
-    // g_pConfig->getPropertyInt("ServerID"), an int rendered through "%u".
+    // de::kernelContext().config().getPropertyInt("ServerID"), an int rendered through "%u".
     virtual int countWaitingReinforceRegistrations(WarID_t warID, int serverID) = 0;
     virtual int countDeniedReinforceRegistrations(WarID_t warID, int serverID, GuildID_t guildID) = 0;
     // The first WAIT registration's guild; false when there is none and the
@@ -309,7 +309,7 @@ public:
     virtual void tinysaveWarSchedule(const std::string& fieldFragment, WarID_t warID, int serverID) = 0;
 
     // The WAIT and START schedules of one zone, in StartTime order.
-    // serverID is g_pConfig->getPropertyInt("ServerID"); both ints render
+    // serverID is de::kernelContext().config().getPropertyInt("ServerID"); both ints render
     // through "%u".
     virtual std::vector<WarScheduleRow> loadWarSchedules(int serverID, int zoneID) = 0;
     // The first ACCEPT registration of a war id, with NO server id -- unlike

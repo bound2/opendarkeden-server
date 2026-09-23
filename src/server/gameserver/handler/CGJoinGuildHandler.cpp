@@ -16,6 +16,7 @@
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
+#include "KernelContext.h"
 #include "Ousters.h"
 #include "Properties.h"
 #include "SharedServerManager.h"
@@ -114,7 +115,7 @@ void CGJoinGuildHandler::execute(CGJoinGuild* pPacket, Player* pPlayer)
             gsAddGuildMember.setName(pCreature->getName());
             gsAddGuildMember.setGuildMemberRank(pPacket->getGuildMemberRank());
             gsAddGuildMember.setGuildMemberIntro(pPacket->getGuildMemberIntro());
-            gsAddGuildMember.setServerGroupID(g_pConfig->getPropertyInt("ServerID"));
+            gsAddGuildMember.setServerGroupID(de::kernelContext().config().getPropertyInt("ServerID"));
 
             de::gameContext().sharedServer().sendPacket(&gsAddGuildMember);
         }
@@ -126,7 +127,7 @@ void CGJoinGuildHandler::execute(CGJoinGuild* pPacket, Player* pPlayer)
         gsAddGuildMember.setName(pCreature->getName());
         gsAddGuildMember.setGuildMemberRank(pPacket->getGuildMemberRank());
         gsAddGuildMember.setGuildMemberIntro(pPacket->getGuildMemberIntro());
-        gsAddGuildMember.setServerGroupID(g_pConfig->getPropertyInt("ServerID"));
+        gsAddGuildMember.setServerGroupID(de::kernelContext().config().getPropertyInt("ServerID"));
 
         de::gameContext().sharedServer().sendPacket(&gsAddGuildMember);
     }

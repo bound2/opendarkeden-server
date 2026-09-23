@@ -13,6 +13,7 @@
 #include "GCSystemMessage.h"
 #include "GameContext.h"
 #include "HolyLandRaceBonus.h"
+#include "KernelContext.h"
 #include "Mutex.h"
 #include "PCManager.h"
 #include "Properties.h"
@@ -68,8 +69,8 @@ void War::initWarIDRegistry()
     if (repository.countWarSchedules() != 0)
         m_WarIDRegistry = repository.loadMaxWarID();
 
-    static WarID_t WarIDBase = g_pConfig->getPropertyInt("ServerID");
-    static WarID_t WarIDSuccessor = g_pConfig->getPropertyInt("ServerCount");
+    static WarID_t WarIDBase = de::kernelContext().config().getPropertyInt("ServerID");
+    static WarID_t WarIDSuccessor = de::kernelContext().config().getPropertyInt("ServerCount");
     m_WarIDRegistry += (WarIDSuccessor - (m_WarIDRegistry % WarIDSuccessor)) + WarIDBase;
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)

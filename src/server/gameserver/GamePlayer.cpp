@@ -1035,8 +1035,8 @@ void GamePlayer::giveLotto() {
     if (m_pCreature == NULL)
         return;
 
-    static uint DimensionID = g_pConfig->getPropertyInt("Dimension");
-    static uint WorldID = g_pConfig->getPropertyInt("WorldID");
+    static uint DimensionID = de::kernelContext().config().getPropertyInt("Dimension");
+    static uint WorldID = de::kernelContext().config().getPropertyInt("WorldID");
     string PlayerID = getID();
     string Name = m_pCreature->getName();
     Race_t Race = m_pCreature->getRace();
@@ -1084,18 +1084,20 @@ bool GamePlayer::startPacketLog(uint sec) {
 }
 
 void GamePlayer::logLoginoutDateTime() {
+    Properties& config = de::kernelContext().config();
+
     if (m_pCreature == NULL)
         return;
 
     // Work out the DimensionID
-    uint dimensionID = g_pConfig->getPropertyInt("Dimension");
-    if (g_pConfig->getPropertyInt("IsNetMarble") == 0) {
+    uint dimensionID = config.getPropertyInt("Dimension");
+    if (config.getPropertyInt("IsNetMarble") == 0) {
         // 2 for Netmarble
         dimensionID = 2;
     }
 
     // WorldID
-    uint worldID = g_pConfig->getPropertyInt("WorldID");
+    uint worldID = config.getPropertyInt("WorldID");
 
     // Race code
     uint racecode;

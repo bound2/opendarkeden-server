@@ -4,6 +4,7 @@
 #include "GQuestElement.h"
 #include "GQuestLevelElement.h"
 #include "GQuestStatus.h"
+#include "KernelContext.h"
 #include "Properties.h"
 
 GQuestInfo::GQuestInfo(XMLTree* pInfo) {
@@ -88,7 +89,7 @@ GQuestStatus* GQuestInfo::makeInitStatus(PlayerCreature* pOwner) {
 
 void GQuestInfoManager::load() {
     m_pXMLInfo = new XMLTree;
-    m_pXMLInfo->LoadFromFile((g_pConfig->getProperty("HomePath") + "/data/SimpleGQuest.xml").c_str());
+    m_pXMLInfo->LoadFromFile((de::kernelContext().config().getProperty("HomePath") + "/data/SimpleGQuest.xml").c_str());
 
     int num = m_pXMLInfo->GetChildCount();
 
@@ -104,7 +105,7 @@ void GQuestInfoManager::load() {
     SAFE_DELETE(m_pXMLInfo);
 
     m_pXMLInfo = new XMLTree;
-    m_pXMLInfo->LoadFromFile((g_pConfig->getProperty("HomePath") + "/data/EventGQuest.xml").c_str());
+    m_pXMLInfo->LoadFromFile((de::kernelContext().config().getProperty("HomePath") + "/data/EventGQuest.xml").c_str());
 
     num = m_pXMLInfo->GetChildCount();
 

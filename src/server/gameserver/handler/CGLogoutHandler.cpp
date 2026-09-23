@@ -16,6 +16,7 @@
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "Inventory.h"
+#include "KernelContext.h"
 #include "LoginServerManager.h"
 #include "Ousters.h"
 #include "PKZoneInfoManager.h"
@@ -71,7 +72,8 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
             de::gameContext().pkZoneInfos().leavePKZone(pCreature->getZoneID());
         }
 
-        if (g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0 && pPacket == NULL) {
+        if (de::kernelContext().config().hasKey("Hardcore") &&
+            de::kernelContext().config().getPropertyInt("Hardcore") != 0 && pPacket == NULL) {
         } else {
             // Save the creature's information.
             pCreature->save();
@@ -160,7 +162,8 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
     glIncomingConnection.setPlayerID(pGamePlayer->getID());
     glIncomingConnection.setClientIP(pGamePlayer->getSocket()->getHost());
 
-    de::gameContext().loginServer().sendPacket(g_pConfig->getProperty("LoginServerIP"), 9999, &glIncomingConnection);
+    de::gameContext().loginServer().sendPacket(de::kernelContext().config().getProperty("LoginServerIP"), 9999,
+                                               &glIncomingConnection);
 
     pGamePlayer->setPlayerStatus(GPS_AFTER_SENDING_GL_INCOMING_CONNECTION);
 

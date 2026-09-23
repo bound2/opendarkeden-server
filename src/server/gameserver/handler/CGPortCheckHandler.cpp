@@ -14,6 +14,7 @@
 #include "Properties.h"
 
 #ifdef __GAME_SERVER__
+#include "KernelContext.h"
 #include "repository/SessionRepository.h"
 
 #endif
@@ -40,7 +41,8 @@ void CGPortCheckHandler::execute(CGPortCheck* pPacket)
 
     try {
         // INSERT IGNORE and, when that changed no row, the UPDATE.
-        defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port, g_pConfig->getPropertyInt("ServerID"));
+        defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port,
+                                                de::kernelContext().config().getPropertyInt("ServerID"));
     } catch (const DatabaseError&) {
         // A SQL failure arrives as END_DB's DatabaseError, already logged
         // to DBError.log; swallowed.

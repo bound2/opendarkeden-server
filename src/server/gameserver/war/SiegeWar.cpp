@@ -20,6 +20,7 @@
 #include "GuildManager.h"
 #include "GuildWarInfo.h"
 #include "HolyLandRaceBonus.h"
+#include "KernelContext.h"
 #include "LoginServerManager.h"
 #include "Mutex.h"
 #include "PCManager.h"
@@ -138,8 +139,8 @@ void SiegeWar::executeEnd()
         GGCommand ggCommand;
         ggCommand.setCommand(sCommand);
 
-        static int myWorldID = g_pConfig->getPropertyInt("WorldID");
-        static int myServerID = g_pConfig->getPropertyInt("ServerID");
+        static int myWorldID = de::kernelContext().config().getPropertyInt("WorldID");
+        static int myServerID = de::kernelContext().config().getPropertyInt("ServerID");
 
         HashMapGameServerInfo* pInfos = g_pGameServerInfoManager->getGameServerInfos()[myWorldID];
         int maxServerGroupID = g_pGameServerInfoManager->getMaxServerGroupID();
@@ -391,7 +392,7 @@ BYTE SiegeWar::canReinforce(GuildID_t gID) {
         return NPC_RESPONSE_WAR_ALREADY_REGISTERED;
 
     WarInfoRepository& repository = defaultWarInfoRepository();
-    const int serverID = g_pConfig->getPropertyInt("ServerID");
+    const int serverID = de::kernelContext().config().getPropertyInt("ServerID");
 
     if (repository.countWaitingReinforceRegistrations(getWarID(), serverID) > 3)
         return NPC_RESPONSE_TOO_MANY_GUILD_REGISTERED;
@@ -405,7 +406,8 @@ BYTE SiegeWar::canReinforce(GuildID_t gID) {
 GuildID_t SiegeWar::recentReinforceGuild() {
     GuildID_t ret = 0;
 
-    defaultWarInfoRepository().loadWaitingReinforceGuild(getWarID(), g_pConfig->getPropertyInt("ServerID"), ret);
+    defaultWarInfoRepository().loadWaitingReinforceGuild(getWarID(),
+                                                         de::kernelContext().config().getPropertyInt("ServerID"), ret);
 
     m_RecentReinforceCandidate = ret;
 
@@ -417,14 +419,15 @@ BYTE SiegeWar::registerReinforce(GuildID_t gID) {
     if (ret != NPC_RESPONSE_WAR_REGISTRATION_OK)
         return ret;
 
-    defaultWarInfoRepository().insertReinforceRegistration(getWarID(), g_pConfig->getPropertyInt("ServerID"), gID);
+    defaultWarInfoRepository().insertReinforceRegistration(
+        getWarID(), de::kernelContext().config().getPropertyInt("ServerID"), gID);
 
     return ret;
 }
 
 bool SiegeWar::acceptReinforce() {
-    bool ret = defaultWarInfoRepository().acceptReinforceRegistration(getWarID(), g_pConfig->getPropertyInt("ServerID"),
-                                                                      m_RecentReinforceCandidate);
+    bool ret = defaultWarInfoRepository().acceptReinforceRegistration(
+        getWarID(), de::kernelContext().config().getPropertyInt("ServerID"), m_RecentReinforceCandidate);
 
     if (ret)
         m_ReinforceGuildID = m_RecentReinforceCandidate;
@@ -433,12 +436,13 @@ bool SiegeWar::acceptReinforce() {
 }
 
 bool SiegeWar::denyReinforce() {
-    bool ret = defaultWarInfoRepository().denyReinforceRegistration(getWarID(), g_pConfig->getPropertyInt("ServerID"),
-                                                                    m_RecentReinforceCandidate);
+    bool ret = defaultWarInfoRepository().denyReinforceRegistration(
+        getWarID(), de::kernelContext().config().getPropertyInt("ServerID"), m_RecentReinforceCandidate);
 
     return ret;
 }
 
 void SiegeWar::clearReinforceRegisters() {
-    defaultWarInfoRepository().deleteReinforceRegistrations(getWarID(), g_pConfig->getPropertyInt("ServerID"));
+    defaultWarInfoRepository().deleteReinforceRegistrations(getWarID(),
+                                                            de::kernelContext().config().getPropertyInt("ServerID"));
 }

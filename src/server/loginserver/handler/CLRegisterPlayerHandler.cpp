@@ -12,6 +12,7 @@
 #include "Assert1.h"
 #include "DatabaseError.h"
 #include "GameServerGroupInfoManager.h"
+#include "KernelContext.h"
 #include "LCRegisterPlayerError.h"
 #include "LCRegisterPlayerOK.h"
 #include "LoginContext.h"
@@ -137,8 +138,8 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
         repo.insertAccount(account);
 
         // The new account is logged on at once.
-        repo.markLoggedOnAfterRegister(pLoginPlayer->getSocket()->getHost(), g_pConfig->getPropertyInt("LoginServerID"),
-                                       request.playerID);
+        repo.markLoggedOnAfterRegister(pLoginPlayer->getSocket()->getHost(),
+                                       de::kernelContext().config().getPropertyInt("LoginServerID"), request.playerID);
 
         int currentWorldID = 0;
         int currentServerGroupID = 0;

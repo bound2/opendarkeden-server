@@ -8,6 +8,7 @@
 
 #include "DB.h"
 #include "GMServerInfo.h"
+#include "KernelContext.h"
 #include "Profile.h"
 #include "Properties.h"
 #include "ServerContext.h"
@@ -53,19 +54,21 @@ void ZoneGroupThread::run()
 {
     __BEGIN_DEBUG
 
+    Properties& config = de::kernelContext().config();
+
     // From here on, this thread owns the zone group's state: arm the
     // debug ownership check (see CLAUDE.md, "Thread ownership").
     m_pZoneGroup->armOwnershipAssert();
 
     DatabaseManager& database = de::serverContext().database();
 
-    string host = g_pConfig->getProperty("DB_HOST");
-    string db = g_pConfig->getProperty("DB_DB");
-    string user = g_pConfig->getProperty("DB_USER");
-    string password = g_pConfig->getProperty("DB_PASSWORD");
+    string host = config.getProperty("DB_HOST");
+    string db = config.getProperty("DB_DB");
+    string user = config.getProperty("DB_USER");
+    string password = config.getProperty("DB_PASSWORD");
     uint port = 0;
-    if (g_pConfig->hasKey("DB_PORT"))
-        port = g_pConfig->getPropertyInt("DB_PORT");
+    if (config.hasKey("DB_PORT"))
+        port = config.getPropertyInt("DB_PORT");
 
     if (stopRequested())
         return;
@@ -75,13 +78,13 @@ void ZoneGroupThread::run()
     cout << " THREAD CONNECT DB " << endl;
     cout << "******************************************************" << endl;
 
-    string dist_host = g_pConfig->getProperty("UI_DB_HOST");
+    string dist_host = config.getProperty("UI_DB_HOST");
     string dist_db = "DARKEDEN";
-    string dist_user = g_pConfig->getProperty("UI_DB_USER");
-    string dist_password = g_pConfig->getProperty("UI_DB_PASSWORD");
+    string dist_user = config.getProperty("UI_DB_USER");
+    string dist_password = config.getProperty("UI_DB_PASSWORD");
     uint dist_port = 0;
-    if (g_pConfig->hasKey("UI_DB_PORT"))
-        dist_port = g_pConfig->getPropertyInt("UI_DB_PORT");
+    if (config.hasKey("UI_DB_PORT"))
+        dist_port = config.getPropertyInt("UI_DB_PORT");
 
     if (stopRequested())
         return;

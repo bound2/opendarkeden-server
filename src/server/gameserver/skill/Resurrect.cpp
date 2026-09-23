@@ -16,6 +16,7 @@
 #include "GCSkillToObjectOK5.h"
 #include "GCStatusCurrentHP.h"
 #include "GameContext.h"
+#include "KernelContext.h"
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -41,7 +42,8 @@ void Resurrect::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
         // Only a Slayer can be resurrected.
         // A missing target fails the skill instead of throwing.
         if (pTargetCreature == NULL || !pTargetCreature->isSlayer() ||
-            (g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0)) {
+            (de::kernelContext().config().hasKey("Hardcore") &&
+             de::kernelContext().config().getPropertyInt("Hardcore") != 0)) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
         }

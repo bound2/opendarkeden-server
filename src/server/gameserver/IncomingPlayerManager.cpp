@@ -37,6 +37,7 @@
 #include "repository/SessionRepository.h"
 
 // #include "UserGateway.h"
+#include "KernelContext.h"
 #include "ServerContext.h"
 #include "SystemAvailabilitiesManager.h"
 
@@ -59,12 +60,12 @@ IncomingPlayerManager::IncomingPlayerManager()
         // create  server socket
         while (1) {
             try {
-                m_pServerSocket = new ServerSocket(g_pConfig->getPropertyInt("TCPPort"));
+                m_pServerSocket = new ServerSocket(de::kernelContext().config().getPropertyInt("TCPPort"));
                 break;
             } catch (BindException& b) {
                 SAFE_DELETE(m_pServerSocket);
-                cout << "IncomingPlayerManager(" << g_pConfig->getPropertyInt("TCPPort") << ") : " << b.toString()
-                     << endl;
+                cout << "IncomingPlayerManager(" << de::kernelContext().config().getPropertyInt("TCPPort")
+                     << ") : " << b.toString() << endl;
                 sleep(1);
             }
         }
@@ -109,6 +110,8 @@ void IncomingPlayerManager::init()
 {
     __BEGIN_TRY
 
+    Properties& config = de::kernelContext().config();
+
     // Clear the fd_sets to 0.
     FD_ZERO(&m_ReadFDs[0]);
     FD_ZERO(&m_WriteFDs[0]);
@@ -127,13 +130,13 @@ void IncomingPlayerManager::init()
     m_Timeout[0].tv_sec = 0;
     m_Timeout[0].tv_usec = 0;
 
-    string dist_host = g_pConfig->getProperty("UI_DB_HOST");
+    string dist_host = config.getProperty("UI_DB_HOST");
     string dist_db = "DARKEDEN";
-    string dist_user = g_pConfig->getProperty("UI_DB_USER");
-    string dist_password = g_pConfig->getProperty("UI_DB_PASSWORD");
+    string dist_user = config.getProperty("UI_DB_USER");
+    string dist_password = config.getProperty("UI_DB_PASSWORD");
     uint dist_port = 0;
-    if (g_pConfig->hasKey("UI_DB_PORT"))
-        dist_port = g_pConfig->getPropertyInt("UI_DB_PORT");
+    if (config.hasKey("UI_DB_PORT"))
+        dist_port = config.getPropertyInt("UI_DB_PORT");
 
     Connection* pDistConnection = new Connection(dist_host, dist_db, dist_user, dist_password, dist_port);
     de::serverContext().database().addDistConnection(((int)(long)Thread::self()), pDistConnection);
@@ -147,15 +150,15 @@ void IncomingPlayerManager::init()
     SessionRepository& repository = defaultSessionRepository();
 
     vector<string> inGame =
-        repository.loadPlayersInGame(g_pConfig->getPropertyInt("WorldID"), g_pConfig->getPropertyInt("ServerID"));
+        repository.loadPlayersInGame(config.getPropertyInt("WorldID"), config.getPropertyInt("ServerID"));
 
     for (size_t p = 0; p < inGame.size(); p++) {
         repository.deletePCRoomUser(inGame[p]);
     }
 
-    repository.logOffPlayersOfServer(g_pConfig->getPropertyInt("WorldID"), g_pConfig->getPropertyInt("ServerID"));
+    repository.logOffPlayersOfServer(config.getPropertyInt("WorldID"), config.getPropertyInt("ServerID"));
 
-    repository.deleteUserIPsOfServer(g_pConfig->getPropertyInt("ServerID"));
+    repository.deleteUserIPsOfServer(config.getPropertyInt("ServerID"));
 
     __END_CATCH
 }
@@ -1124,6 +1127,8 @@ void IncomingPlayerManager::heartbeat()
 {
     __BEGIN_TRY
 
+    Properties& config = de::kernelContext().config();
+
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     //--------------------------------------------------
@@ -1280,20 +1285,20 @@ void IncomingPlayerManager::heartbeat()
             glIncomingConnection.setPlayerID(pGamePlayer->getID());
             glIncomingConnection.setClientIP(pGamePlayer->getSocket()->getHost());
 
-            static int portNum = g_pConfig->getPropertyInt("LoginServerUDPPortNum");
+            static int portNum = config.getPropertyInt("LoginServerUDPPortNum");
 
             int port;
 
             if (portNum > 1) {
-                port = g_pConfig->getPropertyInt("LoginServerBaseUDPPort") + rand() % portNum;
+                port = config.getPropertyInt("LoginServerBaseUDPPort") + rand() % portNum;
             } else {
-                port = g_pConfig->getPropertyInt("LoginServerUDPPort");
+                port = config.getPropertyInt("LoginServerUDPPort");
             }
 
-            // cout << "ReconnectAddress = " << g_pConfig->getProperty("LoginServerIP").c_str() << ":" << port << endl;
+            // cout << "ReconnectAddress = " << config.getProperty("LoginServerIP").c_str() << ":" << port << endl;
 
             // Just send it.
-            de::gameContext().loginServer().sendPacket(g_pConfig->getProperty("LoginServerIP"), port,
+            de::gameContext().loginServer().sendPacket(config.getProperty("LoginServerIP"), port,
                                                        &glIncomingConnection);
         }
 

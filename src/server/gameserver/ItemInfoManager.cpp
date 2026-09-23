@@ -37,6 +37,7 @@
 #include "Helm.h"
 #include "HolyWater.h"
 #include "ItemUtil.h"
+#include "KernelContext.h"
 #include "Key.h"
 #include "Larva.h"
 #include "LearningItem.h"
@@ -139,8 +140,8 @@ void ItemInfoManager::init()
     __BEGIN_TRY
 
     // Set ItemIDSuccessor and Base.
-    m_ItemIDSuccessor = g_pConfig->getPropertyInt("ServerCount");
-    m_ItemIDBase = g_pConfig->getPropertyInt("ServerID");
+    m_ItemIDSuccessor = de::kernelContext().config().getPropertyInt("ServerCount");
+    m_ItemIDBase = de::kernelContext().config().getPropertyInt("ServerID");
 
     addInfoClassManager(Item::ITEM_CLASS_AR, new ARInfoManager());
     AR::initItemIDRegistry();
