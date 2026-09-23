@@ -61,8 +61,9 @@ src/Core/EncryptUtility.h
 src/Core/Encrypter.h
 src/Core/Encrypter.cpp
 #
-# Packet base (the concrete packet classes follow in 2.3/2.4, once
-# execute() is off them)
+# Packet base. The concrete packet classes are in the block below; none
+# carries an execute(), so a packet id reaches a handler only through the
+# dispatch table each server's composition root fills.
 src/Core/Packet.h
 src/Core/PacketFactory.h
 src/Core/PacketMeta.h

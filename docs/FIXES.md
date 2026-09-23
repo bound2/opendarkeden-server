@@ -6,10 +6,12 @@ convention: every entry has a `> **Status:**` line updated in the same
 commit as the fix.
 
 The Exchange-reconcile defect set (SQL injection, string size/body
-desync, `StringStream` stack overflows, unbounded listing counts, …) is
-recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
-Entries below are newest first; the oldest is the 1.4 max-size reconcile
-that followed it.
+desync, `StringStream` stack overflows, unbounded listing counts, …) was
+found before this file existed; task 1.4 in `docs/RESTRUCTURING.md` keeps
+the rules each one left behind and the items still open, and the fixes
+themselves are in the `restructuring/exchange-reconcile` branches of this
+repo and the client's. Entries below are newest first; the oldest is the
+1.4 max-size reconcile that followed it.
 
 ## An ousters saved an indeterminate silver damage on destruction (2026-09-23)
 
@@ -491,7 +493,7 @@ that followed it.
   `ITEM_CLASS_GQUEST_ITEM`, `ITEM_CLASS_BLOOD_BIBLE_SIGN`), so server data
   naming one of them takes the null-factory branch. On a client packet the
   exception ends in a clean disconnect; on the worker threads that catch
-  nothing per tick (`GDRLairManager::heartbeat`, the monster drop paths of
+  nothing per tick (`GDRLairManager::run`, the monster drop paths of
   `ZoneGroup::heartbeat`) it reaches `ManagedThread` and stops the server,
   where the old fall-through faulted on the same tick.
   > **Status:** fixed (fix/recorded-defects-1)
@@ -859,7 +861,8 @@ a fixture change, not a protocol change.
   is already refused there. The registration is not the defect and cannot
   be dropped: `PacketFactoryManager::init()` builds one factory table per
   server process, and the game server's UDP path resolves that same table
-  — `Datagram::read(DatagramPacket*&)` asks `g_pPacketFactoryManager` for
+  — `Datagram::read(DatagramPacket*&)` (in `src/Core/DatagramFactoryRead.cpp`
+  since the 2.4 kernel split) asks `g_pPacketFactoryManager` for
   the packet and `Datagram::isDatagram` names `PACKET_CG_PORT_CHECK` — so
   the entry is what lets the packet arrive at all.
   > **Status:** recorded, left as it is (wire/session-disagreements)
@@ -1035,8 +1038,9 @@ read-buffer budgets, not fields on the wire.
   and a receiver wrote a whole record through one. All four senders hand
   over a record they keep — the character's `NicknameBook`'s in
   `CGModifyNicknameHandler`, `CGSelectNicknameHandler` and
-  `PlayerCreature::levelUp`, a function-local `static` or a stack
-  `NicknameInfo` in `CGSayHandler`'s two admin commands — so the packet
+  `PlayerCreature::whenQuestLevelUpgrade`, a function-local `static` or a
+  stack `NicknameInfo` in the two admin commands, which live in
+  `gm/ConsoleCommands.cpp` since the 4.1 router — so the packet
   tracks which record is its own the way `GCGQuestStatusModify` does: the
   pointer starts empty, `getPacketSize()` and `write()` refuse on it,
   `read()` allocates and owns the record it fills and frees it before

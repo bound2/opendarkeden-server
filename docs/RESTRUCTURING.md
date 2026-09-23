@@ -34,7 +34,7 @@ conventions.
 
 **Goals**
 
-1. The client/server wire contract (433 packet types, shuffle-encryption
+1. The client/server wire contract (465 packet factories, shuffle-encryption
    included) pinned by tests so protocol drift is a reviewable diff.
 2. Three strictly layered CMake modules — `de-kernel` ← `de-core` ← per-server
    apps — with the layering enforced at build/test time.
@@ -53,7 +53,11 @@ conventions.
 
 ## Ratchets (shrink-only)
 
-Baselines measured 2026-08-29. Run commands from repo root (bash).
+Every baseline is what its Command prints; run the commands from the repo
+root (bash). R1–R8 were first measured 2026-08-29, R9–R18 as each rule was
+introduced, and each cell records what moved the number since.
+`tests/ratchet/ratchets.sh` is the enforcing copy of this table — a number
+that changes has to change in both places in the same commit.
 
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
@@ -104,9 +108,9 @@ measured count *exceeds* it, and lowering it is part of the shrinking commit
 
 ## Phase 1 — Pin the wire contract
 
-The 433 packet classes are duplicated by hand in the client repo
-(`client/Client/Packet/*`); the byte layout is the only contract, and today
-nothing checks it. This phase makes protocol drift visible and reviewable
+The packet classes are duplicated by hand in the client repo
+(`client/Client/Packet/*`); the byte layout is the only contract, and at the
+time this phase opened nothing checked it. This phase makes protocol drift visible and reviewable
 before anything else moves. Everything later shelters under this pin.
 
 - [x] **1.1 Test harness in CMake.** Add GoogleTest (FetchContent or vendored),
@@ -156,46 +160,24 @@ before anything else moves. Everything later shelters under this pin.
   > (`bash tools/devbuild.sh test --record`); a changed golden is a
   > protocol change the client repo must ship identically.
   >
-  > One file per family, each with its own header listing the packets,
-  > the exclusions and the findings: the encrypter shuffle paths at
-  > codes 0..5, all 19 users, which reach every `code % N` case of every
-  > `SHUFFLE_STATEMENT_N` (`tests/packet_encrypter_test.cpp`); the CL/LC
-  > login phase, 33 (`tests/packet_login_test.cpp`); the gameserver
-  > handshake, 12 (`tests/packet_gameserver_handshake_test.cpp`); the
-  > zone population scan, 18 (`tests/packet_zone_scan_test.cpp`); both
-  > inter-server links, 30, the datagram half through a real `Datagram`
+  > The pins are split one file per family (`tests/packet_*.cpp`), each
+  > with its own header listing the packets it covers, the exclusions and
+  > the findings — that header is where a new packet's family is decided.
+  > `tests/packet_encrypter_test.cpp` is the shuffle family: it drives
+  > every encrypter user at codes 0..5, which reaches every `code % N`
+  > case of every `SHUFFLE_STATEMENT_N`. The datagram half of the
+  > inter-server family rides a real `Datagram`
   > (`tests/packet_interserver_test.cpp`, with the socket hop in
-  > `tests/datagram_frame_test.cpp`); the party, guild and trade
-  > protocols, 47 (`tests/packet_party_test.cpp`,
-  > `tests/packet_guild_test.cpp`, `tests/packet_trade_test.cpp`);
-  > combat feedback, 38 (`tests/packet_combat_test.cpp`); movement,
-  > effect lifecycle and NPC dialogue, 26
-  > (`tests/packet_movement_test.cpp`); inventory and item handling, 37
-  > (`tests/packet_inventory_test.cpp`); store, shop and stash, 36
-  > (`tests/packet_store_test.cpp`); character progression, 29
-  > (`tests/packet_skill_test.cpp`); quest, war and zone selection, 27
-  > (`tests/packet_quest_war_test.cpp`); chat, notice, nickname, union
-  > and SMS, 31 (`tests/packet_chat_test.cpp`); creature state, 42
-  > (`tests/packet_creature_test.cpp`); the session and take-out set, 18
-  > (`tests/packet_session_test.cpp`). The four packets pinned first
-  > (`GCMoveOK`, `CGMove`, `CGSay`, `CGWhisper`), the framed-bytes
-  > golden and the header-width assertions stay in
+  > `tests/datagram_frame_test.cpp`). The four packets pinned first
+  > (`GCMoveOK`, `CGMove`, `CGSay`, `CGWhisper`), the framed-bytes golden
+  > and the header-width assertions stay in
   > `tests/packet_roundtrip_test.cpp`.
   >
-  > Every family turned up write/read disagreements. All are fixed and
-  > pinned as the behaviour the packets now produce; the one that cannot
-  > be fixed — `CGPortCheck`'s registration, which the game server's UDP
-  > path needs — is recorded in its file's header. The fixes moved
-  > `tests/wire-layout.txt` lines in most families, every one a
-  > server-side read-buffer budget rather than a field on the wire, and
-  > one golden pair (`GCMakeItemOK`, one byte shorter: a duplicated
-  > option count the client never read). `GCExecuteElement`'s golden was
-  > re-recorded for a fixture that carried an out-of-range condition
-  > byte.
-  >
-  > The four fixtures pinned first carry high-bit coordinates and
-  > colours with the direction an enumerator, and a test reads their
-  > recorded goldens back so they stay that way.
+  > Every family turned up write/read disagreements (all recorded in
+  > `docs/FIXES.md`). They are fixed and pinned as the behaviour the
+  > packets now produce; the one that cannot be fixed — `CGPortCheck`'s
+  > registration, which the game server's UDP path needs — is recorded in
+  > its file's header and in `docs/FIXES.md`.
   - Owner: the golden files — any layout change is a byte-diff in the commit.
   - Note: packets whose `read`/`write` depend on game-state globals need those
     globals stubbed; list any such packet here as found (they are also the
@@ -211,7 +193,7 @@ before anything else moves. Everything later shelters under this pin.
   becomes a reviewable diff in the same commit, not a client crash later.
   Field-order pinning is per-packet via the golden fixtures (1.2) — C++
   offers no reflection to enumerate fields generically.
-  > **Status:** done — 463 factories inventoried
+  > **Status:** done — 465 factories inventoried
   > (`tests/generated/AllPacketFactories.inc`, generated by
   > `tests/tools/gen_factory_list.sh`); the test also proves packet-ID
   > uniqueness and factory/packet ID agreement. Curious find: packet ID 0
@@ -224,220 +206,88 @@ before anything else moves. Everything later shelters under this pin.
   lines — while layouts are believed equal). First run produces the
   first-ever ground-truth diff of the two protocol copies; any layout
   mismatch found is a **bug to triage immediately**, recorded here.
-  > **Status:** done — `wire_inventory_diff.sh` exits 0 (2026-08-31).
-  > The Exchange reconcile (finding 1) merged in both repos
-  > (`restructuring/exchange-reconcile`); the remaining 17 max-size
-  > mismatches (findings 2–4 below) were fixed in
-  > `restructuring/wire-maxsize-reconcile` in both repos — each side's
-  > `getPacketMaxSize()` corrected to the true wire layout (details in
-  > `docs/FIXES.md`). Notable resolutions: CGBloodDrain was *not* a live
-  > layout mismatch — the client's X/Y/Dir were already commented out of
-  > read()/write(), only its factory max was stale; LCPCList's trailing
-  > `m_Agree` byte sat behind `__NETMARBLE_SERVER__`, which nothing
-  > defines; the byte and the macro are both gone now (R14); the
-  > client's GCUseOK cap is now `ModifyInfo::getPacketMaxSize()` (2042)
-  > instead of a hardcoded 255 that dropped large use results. The
-  > CGUseItemFromInventory / CGSkillToInventory phantom
-  > `m_InventoryItemObjectID` over-report from 1.2 is fixed with it
-  > (the two `..._WITH_SIZE_DRIFT` fact-tests flipped and were retired).
-  > History of the triage that got here:
-  > *(was)* in progress — inventories in both repos, cross-check
-  > script, first diff triaged (2026-08-30). Client side:
-  > `client/tests/unit/test_wire_layout.cpp` + `tests/wire-layout.txt`
-  > (436 factories), generated by `client/tests/tools/gen_wire_inventory.pl`
-  > — the client cannot link its packet `.cpp`s (handlers pull in the
-  > game), so the generator lifts each factory's `getPacketID()` /
-  > `getPacketMaxSize()` body into a plain function and the compiler
-  > evaluates it against the real headers; a `wire_inventory_fresh`
-  > ctest pins the generated file. Server side:
-  > `tests/tools/wire_inventory_diff.sh [client-dir]` diffs the two
-  > inventories (documented one-sided packets in
-  > `tests/wire-layout-exceptions.txt`). **It exits 1 until the findings
-  > below are fixed — that is the point.** Findings, by severity:
-  > 1. **Packet-ID shift from 485 up — the Exchange feature cannot work
-  >    on the wire.** The client's `Packet.h` has `PACKET_GC_USE_SKILLCARD_OK`
-  >    at 485 (class `GCUseSkillCardOK` in `Gpackets/GCUseOK.h`); the
-  >    server has no such enumerator, so every id after it differs by one:
-  >    client `CGExchangeList` = 486 = server `CG_EXCHANGE_CREATE_LISTING`,
-  >    and so on through `GCExchangeClaimList`. The `// 484` comments in
-  >    both files are stale and hid this. **Fixed on the server side
-  >    2026-08-30:** `PACKET_GC_USE_SKILLCARD_OK` restored to `Packet.h`
-  >    at 485 (the server had dropped the packet and its enumerator
-  >    together; the client kept both), the id comments corrected, the
-  >    inventory re-recorded (`CGExchangeList` 486, `CGExchangeBuy` 489 —
-  >    now equal to the client's). The client's `// 484` comments are
-  >    still stale; fix them there.
-  >    Doing this exposed more in the Exchange block:
-  >    - The server's `GCExchangeList` / `GCExchangeBuy` had **no factory
-  >      class** (the only GC packets without one), so they were invisible
-  >      to the inventory. Factories added; their max sizes now compare.
-  >    - `GCExchangeList`: client `getPacketMaxSize()` is a hardcoded
-  >      2048; the server's write() layout is 14 + 1,855 per listing
-  >      (strings at their 255 max) — 37,114 at the default page of 20.
-  >      Any real listing page over 2048 bytes is dropped by the client
-  >      (`Player.cpp:172`). Page size is also client-chosen and
-  >      unbounded on the server (`CGExchangeListHandler.cpp:34`).
-  >    - `GCExchangeBuy::write()` emits the message with **no length
-  >      prefix** (`write(string)` is raw), so no receiver can frame it —
-  >      and the client has no `GCExchangeBuy` class at all.
-  >    - **The request layouts differ too**, so the feature still cannot
-  >      work after the id fix: server `CGExchangeList::read()` consumes
-  >      page, pageSize, itemClass, itemType, minPrice, maxPrice **and a
-  >      BYTE-length string** (max 77); the client writes only the first
-  >      six (19 bytes). Server `CGExchangeBuy::read()` consumes a listing
-  >      id **and an idempotency key** (max 72); the client writes a
-  >      4-byte listing id only. The two repos' Exchange packets were
-  >      written against different specs — reconcile them as one change
-  >      in both repos, then the diff's Exchange lines go green.
-  >      **Reconciled 2026-08-30** (`restructuring/exchange-reconcile` in
-  >      both repos; canonical string encoding = BYTE length always
-  >      written + raw bytes, all four factory maxes equal across repos,
-  >      pinned by `tests/packet_exchange_test.cpp` round-trips/goldens/
-  >      size checks). Fixing the layouts uncovered and removed on the
-  >      way:
-  >      * server `CGExchangeBuy::read()`/`GCExchangeBuy::read()` called
-  >        `iStream.read(std::string&)`, which resolves to the generic
-  >        `template read(T&)`. That template's normal-order path is
-  >        `buf = *(T*)(m_Buffer + m_Head)` — `std::string::operator=`
-  >        against a **fabricated string object overlaid on the wire
-  >        buffer**, so the copy follows a pointer and length taken from
-  >        attacker-supplied bytes (arbitrary read, not merely a clobber),
-  >        on every received buy request. Both now use BYTE-length
-  >        encoding, and the call sites carry a warning comment;
-  >      * server `GCExchangeList::read()` read `listingID` twice (once
-  >        where write() emits `itemID`) and discarded most fields into
-  >        locals — rewritten as write()'s exact mirror;
-  >      * client `GCExchangeList` parsed only page/pageSize/total and
-  >        capped at 2048 bytes; now parses the full 31-field listing
-  >        layout with max 37114 = the server's;
-  >      * client had no `GCExchangeBuy` class, and `GCExchangeListFactory`
-  >        was **never registered** in its `PacketFactoryManager` — the
-  >        listing reply was unroutable; both fixed.
+  > **Status:** done — `tests/tools/wire_inventory_diff.sh [client-dir]`
+  > exits 0. Both repos carry a wire-layout inventory and a generator: the
+  > client's is `client/tests/tools/gen_wire_inventory.pl` plus
+  > `client/tests/unit/test_wire_layout.cpp`, pinned there by a
+  > `wire_inventory_fresh` ctest — it lifts each factory's `getPacketID()` /
+  > `getPacketMaxSize()` body into a plain function because the client cannot
+  > link its packet `.cpp`s. Packets deliberately present on one side only are
+  > named with their reason in `tests/wire-layout-exceptions.txt`; anything
+  > else one-sided is a finding to triage here, so never add a line to make
+  > the diff green.
   >
-  >      Adversarial review of the reconcile branches (2026-08-30, one
-  >      reviewer per repo) then found a further set, all fixed in the
-  >      same branches:
-  >      * **SQL injection.** `escapeSQL()`
-  >        (`gameserver/exchange/ExchangeDB.cpp`, 18 call sites) doubled
-  >        the single quote and nothing else, so a backslash before a
-  >        quote escaped the doubled quote and broke out of the literal.
-  >        Reachable by any logged-in player through
-  >        `CGExchangeBuy`'s idempotency key, which this very branch had
-  >        widened from 64 to 255 bytes;
-  >      * **size/body disagreement on long strings.** `write()` truncated
-  >        the length byte with `(uint8_t)s.length()` while
-  >        `getPacketSize()` counted the untruncated length — and
-  >        `SocketOutputStream::writePacket()` emits that size header
-  >        *before* calling `write()`, so the peer frames on a wrong
-  >        length and the stream desyncs permanently. (For the same
-  >        reason, throwing from `write()` the way `CGSay` does is not a
-  >        fix here — the header is already out.) Every string field in
-  >        both repos now clamps identically in `write()`,
-  >        `getPacketSize()` and `read()`, against a named per-field cap;
-  >      * the idempotency key's wire cap is 64, not 255, because
-  >        `PointLedger.IdempotencyKey` is `VARCHAR(64) UNIQUE`: under
-  >        this project's mandated non-strict `sql_mode` a longer key was
-  >        silently truncated on insert while the dedupe guard compared
-  >        the full key, so the guard passed and the INSERT then hit the
-  >        unique index and rolled the purchase back. `CGExchangeBuy`'s
-  >        max is therefore 73 in both repos;
-  >      * client `GCExchangeList::read()` trusted a server-supplied
-  >        `uint16` listing count with no bound — the first client packet
-  >        whose byte consumption was not bounded by the declared
-  >        `packetSize`, so a hostile count silently ate following
-  >        packets. Bounded by `kMaxListingsPerPage` (20), the same
-  >        constant the 37114 max is computed from, and the server
-  >        handler now clamps the client-chosen page size to it (it went
-  >        straight into a SQL `LIMIT` before);
-  >      * `CGExchangeBuyHandler` never called `setOrderID()`, so the
-  >        order id the client now parses would have been 0 forever;
-  >      * `read()` did not reset state (no `m_Listings.clear()`, no
-  >        clearing of a string whose length byte is 0), so the two
-  >        "mirrors" differed on a reused packet object;
-  >      * 64-bit ids were logged through `(int)` casts in `toString()`,
-  >        which runs on every packet. Fixing that surfaced a **stack
-  >        buffer overflow in `StringStream`** itself: its `long` and
-  >        `ulong` `operator<<` both `sprintf("%ld"/"%lu")` into a
-  >        `char buf[12]` copy-pasted from the 32-bit `int` overload,
-  >        while `long` is 64-bit on the LP64 build target and needs 21
-  >        bytes. Any `<<` of a value outside the 32-bit range smashed
-  >        the stack; buffers widened to 24 and switched to `snprintf`.
-  >        (The exchange packets format their ids independently, so they
-  >        never depended on that overload.)
-  >      A second adversarial review pass over the fixes returned SHIP with
-      no blockers, and found these, fixed in the same branch: the
-      `float`/`double` `StringStream` overloads had the *same* buffer
-      overflow as `long`/`ulong` (`"%f"` never uses exponent form, so a
-      float ≥ 10,000 already overruns `buf[12]`); the server's
-      `GCExchangeList::read()` lacked the listing-count bound its client
-      twin has; and three comments claimed more than the code delivered
-      (the `NO_BACKSLASH_ESCAPES` fallback is safe but *not* "exactly
-      right" — it can alter a backslash; the wire cap does not make the
-      stored key identical, because the ledger suffix trims it; and the
-      fallback key is not yet unique across game servers, since
-      `_getServerID()` is a hardcoded 1 and every containerised server is
-      pid 1).
-      Left as follow-ups, each recorded rather than fixed silently:
-      * `ExchangeService::buyListing` checks
-        `hasIdempotencyKey(rawKey)`, but only the suffixed `_buy`/`_sale`
-        keys are ever inserted, so that early-out is dead code —
-        duplicate protection currently rests on `adjustPoints`' own check
-        inside the transaction. Combined with the client never setting a
-        key, end-to-end dedupe is inert today;
-      * `Statement::executeQuery`'s `vsnprintf` guard tests `> 2048`, so
-        a query of exactly 2048 characters is silently truncated and
-        executed;
-      * `ExchangeService::buyListing` leaks the `ExchangeListing` from
-        `ExchangeDB::getListing` on every path, and `GamePlayer` leaks a
-        packet when `readPacket` throws;
-      * `GCExchangeList`'s 37114 max is 4.5× the client's default 8 KB
-        socket ring, which only grows opportunistically — worth either
-        pre-sizing that ring or lowering the page bound;
-      * on success `GCExchangeBuy`'s message field carries the bare
-        decimal order id, now redundant with `setOrderID()`;
-      * neither repo clamps the listing count in `write()`:
-        `(uint16_t)m_Listings.size()` narrows silently while the body
-        loop iterates the full vector, so at 65536+ listings the count
-        wraps to 0 with the body still emitted and counted — header and
-        bytes agree, but `read()` parses fewer listings and desyncs.
-        Unreachable only because the handler clamps the page to 20, i.e.
-        the invariant lives a layer above the packet. Identical in both
-        repos, so it is not a divergence.
-      Still open, deliberately out of scope for a layout change:
-  >      `CGExchangeListHandler` ignores the `sellerFilter` the packet now
-  >      carries (adding it means changing `ExchangeService::getListings`
-  >      and its SQL), and the client UI sends `CGExchangeBuy` with an
-  >      empty idempotency key (`VS_UI_PointExchange.cpp:436`), so the
-  >      server auto-generates one per request and the double-click
-  >      dedupe the field exists for is not yet achieved. Both UI send
-  >      paths do exist (`VS_UI_PointExchange.cpp:390` and `:436`).
-  > 2. **`CGBloodDrain` layout mismatch** — client writes
-  >    `ObjectID, X, Y, Dir` (7 bytes); server reads `ObjectID` only and
-  >    `getPacketMaxSize()` = 4, so `GamePlayer` would throw
-  >    `InvalidProtocolException` (disconnect) on receipt. Latent: the
-  >    client's only send site (`MPlayer.cpp:3457`) is commented out.
-  > 3. **`GCUseOK` receiver max too small** — client hardcodes 255, server
-  >    can write up to `ModifyInfo::getPacketMaxSize()` = 2042. A use
-  >    result with more than ~36 modify entries is rejected by the client
-  >    (`Player.cpp:172`, bug report + drop). `LCPCList` (client 249 vs
-  >    server 250), `GCMorph1` / `GCUpdateInfo` (client 4 smaller: the
-  >    client's `PCSlayerInfo2::getMaxSize()` has `; + szExp; + szBonus;`
-  >    dead statements after `return`) reject only a maximal packet.
-  > 4. **Estimate-only differences, layouts verified identical:**
-  >    `GCExecuteElement` (server max 3 for a 7-byte body — server-side
-  >    bug, harmless because the server only sends it), `GCNPCResponse`
-  >    (server counts `szBYTE` for a `WORD` code), `GCAddMonsterCorpse`
-  >    (server counts an extra `szbool`), `GCSubInventoryInfo` (client
-  >    `InventoryInfo::getMaxSize()` adds two phantom `szCoordInven`),
-  >    `CGSMSSend`, `CLLogin`, `GLIncomingConnectionError`, `LCServerList`,
-  >    `LCWorldList` (formula differences, receiver side is the larger
-  >    or the packet is not on the client wire). `CGUseItemFromInventory`
-  >    / `CGSkillToInventory`: the client already dropped the phantom
-  >    `m_InventoryItemObjectID` from its max (6 / 10 = the real body);
-  >    the server's still counts it — confirms the 1.2 finding.
-  > 5. Read/write field order is NOT compared by the inventory; the
-  >    per-packet goldens (1.2) are the only pin for that, and the client
-  >    has none yet.
+  > What the first-ever cross-check found, and the rules it left behind:
+  > - **Every id after a missing enumerator shifts.** The server had dropped
+  >   `PACKET_GC_USE_SKILLCARD_OK` (485) and its packet together while the
+  >   client kept both, so the whole Exchange block disagreed. The enumerator
+  >   is back in `src/Core/Packet.h` and the packet is not, which is why
+  >   `GCUseSkillCardOK` is in the exceptions file. Inserting an id is a
+  >   protocol change both repos must ship; appending is cheap.
+  > - **A packet with no factory is invisible to the inventory.**
+  >   `GCExchangeList` / `GCExchangeBuy` had none and so were never compared.
+  > - **`read()` must be `write()`'s exact mirror, and both must clamp the
+  >   same way.** `writePacket` emits the size header *before* calling
+  >   `write()`, so a `write()` that truncates a length byte while
+  >   `getPacketSize()` counts the untruncated one desynchronises the stream
+  >   permanently — and throwing from `write()` is no fix, the header is
+  >   already out. Every string field now clamps identically in `write()`,
+  >   `getPacketSize()` and `read()` against a named per-field cap, and
+  >   `read()` resets the state it fills.
+  > - **A string on the wire is a BYTE length then that many bytes.**
+  >   `iStream.read(std::string&)` used to resolve to the generic
+  >   `template read(T&)`, which assigns from a `std::string` fabricated over
+  >   the wire buffer — an arbitrary read driven by attacker bytes. That is
+  >   what `de::wire::readString`/`writeString` exist for (ratchet R9).
+  > - **A count the peer sends must be bounded before it is looped on**, and
+  >   a wire cap must match the column that stores the value: the
+  >   idempotency key's cap is 64 because `PointLedger.IdempotencyKey` is
+  >   `VARCHAR(64) UNIQUE` and this project's non-strict `sql_mode` truncates
+  >   silently on insert.
+  > - **Doubling a quote is not escaping.** The Exchange access class doubled
+  >   the single quote and nothing else, so a backslash before a quote broke
+  >   out of the literal — reachable by any logged-in player. Its
+  >   `escapeSQL()` lives in `repository/MySQLExchangeRepository.cpp` now and
+  >   goes through `mysql_real_escape_string`; new repository SQL uses the
+  >   parameterized `executeQuery` form instead (3.2).
+  > - **A `sprintf` buffer sized for one type is not sized for another.**
+  >   `StringStream`'s `long`/`ulong`/`float`/`double` `operator<<` each
+  >   formatted into a `char buf[12]` copy-pasted from the 32-bit `int`
+  >   overload, so any value outside the 32-bit range — or any float over
+  >   10,000, since `"%f"` never uses exponent form — smashed the stack on
+  >   the LP64 target. Widened, and `snprintf`.
+  >
+  > Still open, each deliberately out of scope for a layout change:
+  > - `CGExchangeListHandler` never passes the `sellerFilter` the packet
+  >   carries to `ExchangeService::getListings`, which has taken the
+  >   parameter and filtered on it since the seam extraction.
+  > - The client UI sends `CGExchangeBuy` with an empty idempotency key, so
+  >   the server generates one per request and the double-click dedupe the
+  >   field exists for is not achieved. `decideBuyListing`'s
+  >   `hasIdempotencyKey(rawKey)` early-out is dead for the same reason —
+  >   only the suffixed `_buy`/`_sale` keys are inserted — so duplicate
+  >   protection rests on `adjustPoints`' own check inside the transaction.
+  > - `Statement::executeQuery`'s `vsnprintf` guard tests `> 2048` into a
+  >   2048-byte buffer, so a query of exactly 2048 characters is silently
+  >   truncated and executed.
+  > - `ExchangeService::getClaims` leaks the `ExchangeListing` that
+  >   `getListing` returns on every order it walks, and `GamePlayer` leaks a
+  >   packet when `readPacket` throws.
+  > - `GCExchangeList`'s 37114 max is 4.5x the client's default 8 KB socket
+  >   ring, which only grows opportunistically — either pre-size that ring or
+  >   lower the page bound.
+  > - On success `GCExchangeBuy`'s message field carries the bare decimal
+  >   order id, redundant with `setOrderID()`.
+  > - Neither repo clamps the listing count in `write()`:
+  >   `(uint16_t)m_Listings.size()` narrows silently while the body loop
+  >   iterates the full vector, so at 65536+ listings the count wraps to 0
+  >   with the body still emitted and counted. Unreachable only because the
+  >   handler clamps the page to `kMaxListingsPerPage`, i.e. the invariant
+  >   lives a layer above the packet. Identical in both repos, so it is not
+  >   a divergence.
+  > - Read/write **field order** is not compared by the inventory. The
+  >   per-packet goldens (1.2) are the only pin for that, and the client has
+  >   none.
   - Owner: matching inventory files in both repos; a cross-check script that
     diffs them (runnable locally from the parent dir).
 
@@ -446,13 +296,23 @@ before anything else moves. Everything later shelters under this pin.
   > **Status:** done — `tests/ratchet/ratchets.sh`, run by ctest; fails on
   > increase AND on unrecorded decrease (tighten the baseline in the same
   > commit). Also pins `AllPacketFactories.inc` freshness and checks every
-  > `PacketFactoryManager` registration is inventoried (client-only CR/RC
-  > factories excepted in `tests/ratchet/factory_exceptions.txt`).
+  > `PacketFactoryManager` registration is inventoried
+  > (`tests/ratchet/factory_exceptions.txt` holds the deliberate omissions;
+  > it has no entries today — the CR/RC relics that were in it went with
+  > `src/Core/Rpackets`).
   - Owner: the ratchet tests.
 
 **Phase exit criteria:** `make test` green locally; golden fixtures for at
 least all GC/CG packets; inventory committed in both repos with zero
 unexplained layout diffs (or every diff triaged and logged here).
+**Met.** The suite is green; every one of the 449 factories a server actually
+registers has a golden, which `ratchets.sh` proves by subtraction, and the
+14 further factories the inventory carries are ones no
+`PacketFactoryManager` list names (the deleted phone exchange, the
+server-only guild pair, `GCModifyMoney`, `GCShowGuildRegist`,
+`GCShowUnionInfo`, `GCSubInventoryInfo`); `wire_inventory_diff.sh` exits 0
+with every remaining one-sided packet named in
+`tests/wire-layout-exceptions.txt`.
 
 ### Defects found by adversarial review of this phase (2026-08-29)
 
@@ -525,24 +385,15 @@ visibility can't express.
   > the layering". The file sort for legacy code continues under Phase 3
   > ratchets; layering is enforced by the 2.2 test + the kernel target's
   > pinned include path.
-  > History: `de-kernel` became a real CMake target
-  > (2026-08-31): a STATIC library whose membership is
-  > `tests/arch/kernel_files.txt` (grown from the 57-file seed past a
-  > thousand files with 2.4's packet directions and the non-packet
-  > utilities — the 2.4 status tracks the exact count; Datagram/
-  > SerialDatagram cpps were header-only members until the link flip
-  > split their factory-calling receive paths into Core's
-  > `DatagramFactoryRead.cpp`, letting the rest of the framing compile
-  > in the kernel) and whose only include dir is `src/Core` (pinned as the
-  > target's own INCLUDE_DIRECTORIES — the top-level directory include
-  > path would otherwise leak `src/server` and MySQL in) — a kernel
-  > source reaching for an app header fails to compile. Built in every
-  > configuration; at first nothing linked it (apps got the objects
-  > through `Core`, which kept its gameserver include leak until
-  > 2.3/2.4) — resolved by the 2.4 link flip.
-  > Getting the seed macro-free removed four dead `__GAME_CLIENT__`
-  > branches from `Types.h`/`CreatureTypes.h`/`Packet.h` (the macro is
-  > never defined in this repo; wire tests prove no layout change).
+  > `de-kernel` is a STATIC library whose membership is
+  > `tests/arch/kernel_files.txt` (grown from a 57-file seed past a
+  > thousand) and whose **only** include dir is `src/Core`, pinned as the
+  > target's own `INCLUDE_DIRECTORIES` because the top-level directory
+  > include path would otherwise leak `src/server` and MySQL in — that pin
+  > is what makes a kernel source reaching for an app header fail to
+  > compile, so do not relax it. `de-core` is pinned the same way — its own
+  > `INCLUDE_DIRECTORIES` is `src` alone — and links no other target at all
+  > (`src/domain/CMakeLists.txt`), which is what "freestanding" means here.
   - Owner: CMake `PRIVATE` include dirs on each target; membership file
     shared with the 2.2 test.
 
@@ -555,15 +406,21 @@ visibility can't express.
   means the class is in the wrong module).
   > **Status:** done — `tests/arch/check_includes.pl` (perl, not python:
   > the dev image has no python3 and the repo's generators are already
-  > perl), run by ctest as `arch_includes` (2026-08-31). Rules: K1 a
-  > kernel file quote-includes only kernel files (transitive by
-  > construction), K2 no server-type macros in kernel files, C1 the
-  > gameserver domain dirs (skill/item/quest/war/mission/couple/ctf/
-  > mofus/exchange) must not include MySQL, Lua, or
-  > socket-transport headers. K rules have no baseline (the list is
-  > defined as what complies); C1's remaining pre-existing violations are
-  > frozen shrink-only in `tests/arch/baseline.txt` (the two `mofus/`
-  > Socket.h users — Player-transport classes, 2.3's problem).
+  > perl), run by ctest as `arch_includes` (2026-08-31). Five rules, each
+  > stated in the script's own header: **K1** a kernel file quote-includes
+  > only kernel files (transitive by construction); **K2** no server-type
+  > macro and no `__COMBAT__` in a kernel file; **K3** the packet libraries
+  > in `src/Core/CMakeLists.txt` may define no macro outside the K2 banned
+  > set, so "one meaning" holds at the definition site rather than by
+  > coincidence of today's `-D` set; **C1** the gameserver domain dirs
+  > (skill/item/quest/war/mission/couple/ctf/mofus/exchange) must not
+  > include MySQL, Lua or socket-transport headers; **D1** a `src/domain/`
+  > file quote-includes only domain headers. K and D rules have no
+  > baseline (the lists are defined as what complies); C1's remaining
+  > pre-existing violations are frozen shrink-only in
+  > `tests/arch/baseline.txt` — two entries, both `mofus/` Socket.h users,
+  > which are Player-transport classes and stay until the mofus module is
+  > sorted.
   - Owner: the include-graph test.
 
 - [x] **2.3 Strip `execute()` off packets; dispatch table at the composition
@@ -576,206 +433,101 @@ visibility can't express.
   `de-kernel` actually framework-free. Migrate direction-by-direction under
   the Phase 1 pin (layout must not change — golden tests prove it).
   Track with ratchet R4 (packets still carrying `execute()`).
-  > **Status:** done (2026-08-31; see the closing paragraph below) —
-  > history of how it landed: infrastructure + the CG direction landed
-  > (2026-08-31). `PacketDispatcher` (kernel: id → `void(*)(Packet*,
-  > Player*)` table, written only at startup so zone threads read it
-  > lock-free) is consulted first in all five receive loops
-  > (GamePlayer, LoginPlayer, SharedServerClient, sharedserver's
-  > GameServerPlayer, Core `Player`), falling back to the legacy
-  > virtual for unmigrated packets. `Packet::execute` is no longer pure:
-  > the default throws `InvalidProtocolException`, so a migrated id
-  > received by a server that does not register it now disconnects the
-  > sender instead of running a no-op handler — the only intended
-  > behavior change, and only for protocol-violating peers.
-  > All 150 CG packets are migrated: `execute()` deleted from their
-  > headers/cpps (two intermediate bases, `DatagramPacket` and
-  > `SerialDatagramPacket`, dropped their pure redeclarations), and
-  > `src/server/gameserver/GamePacketDispatch.cpp` binds every CG id at
-  > the gameserver composition root (`registerGameServerPacketHandlers()`
-  > from `main()`; `CGPortCheck`'s player-less handler and `CGStashList`'s
-  > `__BEGIN_DEBUG` wrapper preserved as explicit thunks). R4 481→329.
-  > **GC migrated the same day**: all 255 GC handler bodies were
-  > preprocessor-classified under the server defines (regex was not
-  > enough — the guard vocabulary spans `__GAME_CLIENT__`,
-  > `#if __TEST_CLIENT__`, `#elif __WINDOWS__`); exactly one is live
-  > server-side, `GCFriendChatting` (the friend system rides this "GC"
-  > packet client→server), now registered for real. The live client's
-  > store UI also *sends* `GCAddStoreItem`/`GCRemoveStoreItem` (and
-  > legacy paths `GCCannotUse`) — registered as explicit ignore-thunks
-  > to preserve today's silent no-op, since the validator's `GPS_NORMAL`
-  > set is `PIST_ANY` and would otherwise let the new default disconnect
-  > a legitimate client; `GC_MY/OTHER_STORE_INFO` were already
-  > force-rejected pre-dispatch by `GamePlayer`. `execute()` deleted from
-  > all 258 GC packet cpps/headers. R4 329→74.
-  > **All remaining directions migrated the same day** (R4 74→1 — only
-  > `Packet.h`'s transitional default remains): every direction handler
-  > was preprocessor-classified under all three server defines, and each
-  > is live on exactly one server. Composition roots:
-  > `LoginPacketDispatch.cpp` (16 CL + 4 GL + `GMServerInfo`, all
-  > datagram GL riding `GameServerManager`'s socket),
-  > `SharedPacketDispatch.cpp` (8 GS), and `GamePacketDispatch.cpp`
-  > gains 10 SG + 4 LG + 3 GG (LG/GG arrive on `LoginServerManager`'s
-  > datagram socket — GG is game→game UDP, not relayed through shared).
-  > Both datagram receive loops are dispatch-first now too. All 17 LC
-  > handlers are no-ops on every server (pure delete); `CLAgreement` is
-  > netmarble-dead and in no validator whitelist, so it needs no
-  > registration; `RCSay`/Upackets/TOpackets are not compiled by any
-  > target (client-only or dead subsystems) and were stripped textually.
-  > Registration macros live in `PacketDispatcher.h`
-  > (`DE_REGISTER_PACKET_HANDLER[_NOPLAYER]`). Found + fixed on the way:
-  > `SGModifyGuildMemberOK`'s handler had never run — misspelled
-  > `#ifdef __GAME_SERER__` guard (`docs/FIXES.md`).
-  > **Closed 2026-08-31** after a live smoke test of all three servers
-  > against the real client (login, guild ops, friend chat): `Packet`
-  > carries no `execute()` at all, `PacketDispatcher::dispatch` throws
-  > `InvalidProtocolException` on an unregistered id, and the seven
-  > receive loops call it unconditionally. R4 = 0, held by the ratchet.
-  > Handler file moves out of `Core` are 2.4.
-  > The handler classes themselves are still defined in the packet headers:
-  > 196 `src/Core/*.h` carry a `class XHandler { ... };`, and for 193 of them
-  > that is the only definition anywhere — no `src/server/*/handler/`
-  > directory holds a header at all, so the 194 `handler/*.cpp` define their
-  > members against the Core declaration (`CGConnectSetKeyHandler` twice, in
-  > the gameserver and the loginserver). The other three, `CGDialUpHandler`,
-  > `CGPhoneDisconnectHandler` and `CGPhoneSayHandler`, have no
-  > implementation left. The client repo mirrors 167 of the 196 headers and
-  > 42 of its copies carry a handler class of their own, so moving the
-  > definitions out is a two-repo change.
+  > **Status:** done (2026-08-31) — `Packet` carries no `execute()` at all.
+  > `PacketDispatcher` (kernel: packet id → handler function, written only at
+  > startup so zone threads read it lock-free) is called unconditionally by
+  > every receive loop, and `PacketDispatcher::dispatch` throws
+  > `InvalidProtocolException` on an unregistered id — so a packet a server
+  > does not register disconnects the sender rather than running a no-op
+  > handler. That is the one intended behaviour change, and it is why an
+  > ignore-thunk, not a missing registration, is how a packet the live client
+  > sends but the server does not act on is spelled: the validator's
+  > `GPS_NORMAL` set is `PIST_ANY`, so a legitimate client would otherwise be
+  > disconnected. The gameserver has three such thunks
+  > (`GCAddStoreItem`, `GCRemoveStoreItem`, `GCCannotUse`), plus explicit
+  > ones for `CGPortCheck`'s player-less handler and `CGStashList`'s
+  > `__BEGIN_DEBUG` wrapper. Registration macros live in
+  > `PacketDispatcher.h`. Composition roots: `GamePacketDispatch.cpp`,
+  > `LoginPacketDispatch.cpp`, `SharedPacketDispatch.cpp`. R4 481 → 0, held
+  > by the ratchet. Closed after a live smoke test of all three servers
+  > against the real client (login, guild ops, friend chat).
+  >
+  > **Residual:** the handler *classes* are still declared in the packet
+  > headers. 196 `src/Core/*.h` carry a `class XHandler { ... };`; no
+  > `src/server/*/handler/` directory holds a header at all, so the 194
+  > `handler/*.cpp` define their members against the Core declaration
+  > (`CGConnectSetKeyHandler` twice, in the gameserver and the loginserver),
+  > and three — `CGDialUpHandler`, `CGPhoneDisconnectHandler`,
+  > `CGPhoneSayHandler` — have no implementation left. The client repo
+  > mirrors 167 of the 196 headers and 42 of its copies carry a handler class
+  > of their own, so moving the definitions out is a two-repo change.
   - Owner: R4 ratchet test + include-graph test (a kernel packet including a
     Zone header fails).
 
 - [x] **2.4 Move packet sources into the kernel target.** Once a direction's
   handlers are out (2.3), move those packet files under the `de-kernel`
   target. `Core`'s non-packet utilities get sorted kernel-vs-app as touched.
-  > **Status:** done (2026-09-01) — the link flip landed: every kernel
-  > .cpp is compiled exactly once, in `de-kernel`, and all three apps
-  > plus the tests link that archive. `Core` shrank to the three files
-  > the kernel cannot own (`SXml`, `TimeChecker`, and the new
-  > `DatagramFactoryRead.cpp` — the first real link of the kernel
-  > archive exposed that the GL/LG datagram packets call `Datagram`
-  > string read/write whose bodies sat app-side, so the two
-  > factory-calling receive paths were split out of `Datagram.cpp`/
-  > `SerialDatagram.cpp`, whose remaining pure framing joined the
-  > kernel; their already-mojibake `throw Error` strings were translated
-  > to English in the move)
-  > and links `de-kernel` PUBLIC, so consumers are unchanged; the
-  > per-server packet libraries shrank to the three per-server `#if`
-  > files (`PacketFactoryManager`/`PacketIDSet`/`PacketValidator`), and
-  > the ~520-line hand-kept per-direction source lists are deleted —
-  > membership lives in `tests/arch/kernel_files.txt` alone, which
-  > `gen_factory_list.sh` (and thus the ratchet freshness check) now
-  > reads instead of the CMake lists (regenerated `.inc` differs only in
-  > its header comment: same 465 factories, proving the repoint is
-  > faithful). The flip is behavior-preserving by construction: K1 means
-  > kernel compiles see the same headers the per-server compiles saw, and
-  > K2 — extended to ban `__COMBAT__` too, since a macro-conditional in a
-  > kernel file would now silently compile as "off" for everyone — means
-  > no kernel object ever depended on the per-server defines. Two
-  > adversarial reviewers (2026-09-01) verified this empirically:
-  > preprocessing all 545 kernel TUs under the old per-server flags and
-  > include paths vs de-kernel's produced zero differing TUs in every
-  > configuration. Their surviving findings, fixed: a `ratchets.sh`
-  > failure message still pointed at the deleted CMake lists; the
-  > `wire_tests` link comment described a Core↔TestPackets cycle the
-  > Datagram split had just removed; new checker rule **K3** (the packet
-  > libraries may define only K2-banned macros — "one meaning" enforced
-  > at the definition site, not held by coincidence of today's `-D` set)
-  > and a K1 ban on parent-relative includes (which resolve from the
-  > including file's directory and could bypass both the checker's
-  > basename match and the pinned include path). One tripwire was lost
-  > knowingly: the old thin per-server packet archives made a
-  > cross-server factory registration a link error; now every executable
-  > links all packet objects, so per-server over-registration in
-  > `PacketFactoryManager.cpp`'s `#if` blocks would link clean — the
-  > per-server validator whitelists remain the runtime gate.
-  > Steps that got here:
-  > 1. The 271 no-op GC/LC handler files are **deleted** (2.3's
-  >    classification proved the server never runs them; the client repo
-  >    keeps its own copies), their dangling declarations stripped from
-  >    the packet headers.
-  > 2. The 197 live handlers moved out of `Core` into per-app
-  >    `handler/` dirs (gameserver 168, loginserver 21, sharedserver 8) —
-  >    plain app sources bound by the composition roots; the packet
-  >    libraries carry only wire classes. Handler class *declarations*
-  >    stay in the packet headers for now (no includes behind them; two
-  >    lost their `#ifdef __GAME_SERVER__` around member decls, with
-  >    `class Item;` forward-declared). The dead `CGAddInjuriousCreature`
-  >    pair (no id enum, never in any build) is deleted.
-  > 3. **The whole CG direction is kernel**: all 149 CG packet pairs +
-  >    `Assert1.h` + `NicknameInfo` joined `tests/arch/kernel_files.txt`
-  >    (360 files) after removing a handful of vestigial includes
-  >    (`GamePlayer.h`, `ExchangeService.h`, `libcpsso.h` — leftovers of
-  >    the removed `execute()`); `de-kernel` compiles them under K1/K2
-  >    with zero new baseline entries.
-  > 4. **The info classes + most of GC are kernel too** (914 files):
-  >    membership computed by fixpoint against the include-graph
-  >    checker — every candidate that passes K1/K2 joins; 23 GC packets
-  >    stay out because they build wire fields from live game objects
-  >    (`Item`/`Skill`/`PetItem` includes — `GCStashList` is the
-  >    archetype), and `PetInfo` joins header-only for the same reason.
-  >    A second dead pair surfaced and was deleted:
-  >    `GCMonsterKillQuestStatus` (id enum never existed, commented out
-  >    of every build — same story as `CGAddInjuriousCreature`).
-  > 5. **CL/LC and every inter-server direction are kernel** (1,038
-  >    files total): the same fixpoint admitted all of CL/LC/GL/LG/GS/
-  >    SG/GG/`GMServerInfo` except `CLSelectPC` (includes `Player.h`,
-  >    the transport base). A third dead pair fell out: `CLAgreement`
-  >    (no id enum — which is why it was in no validator whitelist).
-  > 6. **The last held-back wire classes are kernel** (1,098 files): the
-  >    23 game-coupled GC packets, `CLSelectPC` and `PetInfo` joined
-  >    after their game-object member *definitions* moved to
-  >    `src/server/gameserver/packetfill/` (declarations stay in the
-  >    headers with the game types forward-declared); GCAttackArmsOK1–5
-  >    and GCSkillToTileOK2 instead needed the `SkillTypes` enum + name
-  >    table extracted from gameserver's `skill/Skill.h` into
-  >    `src/Core/types/SkillTypes.h` (wire vocabulary, not game logic).
-  >    `PetInfo::write()` resolves the pet-item ObjectID through a
-  >    type-erased thunk the app-side setter installs — still a LIVE
-  >    read at write time (an earlier cached-id version shipped stale
-  >    ids and asserted on unregistered items; caught in the 2.4
-  >    adversarial review), same bytes, no game include. Dead
-  >    `__GAME_CLIENT__` branches in five
-  >    GC files were removed (this repo never defines the macro; the
-  >    client keeps its own copies). R5 scope note: `packetfill/` is
-  >    excluded alongside `handler/` (one `__BEGIN_TRY` moved there).
-  > 7. **`Core`'s non-packet utilities are sorted** (1,121 files):
-  >    Geometry, Shape, HashMap, VSTemplateLib, ValueList, SlotInfo, the
-  >    WarInfo family, Assert1.h, Datagram/SerialDatagram,
-  >    `Player.{h,cpp}` and the Update/Resource
-  >    families all joined on the first fixpoint pass. Never-compiled
-  >    `SlotInfo.cpp` lost its stale `throw()` specs; dead-on-arrival
-  >    `AttributeListPacket` deleted. Held out by design:
-  >    `PlayerStatus.h`/`PacketIDSet`/`PacketValidator`/
-  >    `PacketFactoryManager.cpp` (per-server `#if` is their purpose),
-  >    `TimeChecker` (server Timeval), `SXml` (tinyxml2 binding),
-  >    `libcpsso.h` (billing SSO), `Rpackets`/`Upackets`/`TOpackets`
-  >    — all three relic packet dirs are now **deleted** (`Upackets`/
-  >    `TOpackets` with the dead `ClientManager.cpp` phone-home beacon;
-  >    `Rpackets` in the follow-up, closing `factory_exceptions.txt` to
-  >    zero entries). The two dead server trees that still referenced
-  >    the deleted headers, `theoneserver/` and `updateserver/`, were
-  >    deleted on 2026-09-05 (see "Legacy service cleanup").
-  > 8. **Core's gameserver include leak is gone**: with the splits above,
-  >    nothing Core compiles needs a gameserver header, so the PUBLIC
-  >    `src/server/gameserver[/item]` exports on `Core` and the private
-  >    gameserver dirs on all four packet libraries are removed.
-  > 9. **The dead phone exchange is deleted**: `CGDialUp`,
-  >    `CGPhoneDisconnect` and `CGPhoneSay` have no factory in any of
-  >    `PacketFactoryManager::init()`'s lists, so `createPacket` answers
-  >    their ids with an `InvalidProtocolException` and the dispatch
-  >    entries the gameserver registered for them could never run; their
-  >    three handler sources, the registrations and the CMake entries are
-  >    gone, and with them the only senders of `GCRing`,
-  >    `GCPhoneConnected`, `GCPhoneConnectionFailed`, `GCPhoneDisconnected`
-  >    and `GCPhoneSay`. The packet classes stay in `src/Core`, which the
-  >    client repo mirrors.
+  > **Status:** done (2026-09-01) — every kernel `.cpp` is compiled exactly
+  > once, in `de-kernel`, and all three apps plus the tests link that one
+  > archive. `Core` is down to the three files the kernel cannot own —
+  > `SXml` (tinyxml2 binding), `TimeChecker` (server `Timeval`) and
+  > `DatagramFactoryRead.cpp`, which holds the two factory-calling datagram
+  > receive paths split out of `Datagram.cpp`/`SerialDatagram.cpp` so the
+  > rest of the framing could be kernel — and links `de-kernel` PUBLIC, so
+  > consumers are unchanged. The per-server packet libraries are the three
+  > per-server `#if` files (`PacketFactoryManager`/`PacketIDSet`/
+  > `PacketValidator`); `PlayerStatus.h` stays app-side for the same reason
+  > (the billing SSO header held out with it is gone with the billing
+  > module). There are no hand-kept per-direction source lists any
+  > more: membership is `tests/arch/kernel_files.txt` alone, which
+  > `src/Core/CMakeLists.txt` and `gen_factory_list.sh` both read.
+  >
+  > The rules the flip left behind:
+  > - A file joins the kernel only if it passes K1/K2 — membership was
+  >   computed by fixpoint against the checker, not by hand. A packet that
+  >   needs a game object keeps its member *definitions* in
+  >   `src/server/gameserver/packetfill/` with the game types forward-declared
+  >   in the header, which is how the 23 game-coupled GC packets, `CLSelectPC`
+  >   and `PetInfo` got in. `PetInfo::write()` resolves the pet-item ObjectID
+  >   through a type-erased thunk the app-side setter installs, so it is still
+  >   a live read at write time — an earlier cached-id version shipped stale
+  >   ids.
+  > - K2 bans `__COMBAT__` as well as the server-type macros, because a
+  >   macro-conditional in a kernel file now silently compiles as "off" for
+  >   everyone.
+  > - K3 and the K1 ban on parent-relative includes came out of the review of
+  >   this flip: a `../` include resolves from the including file's directory
+  >   and would bypass both the checker's basename match and the pinned
+  >   include path.
+  > - **One tripwire was lost knowingly.** The old thin per-server packet
+  >   archives made a cross-server factory registration a link error; now
+  >   every executable links all packet objects, so over-registration in
+  >   `PacketFactoryManager.cpp`'s `#if` blocks links clean. The per-server
+  >   validator whitelists are the runtime gate, and
+  >   `tests/ratchet/factory_registrations.txt` is the membership pin.
+  > - Handler bodies live under each app's `handler/` (gameserver 164,
+  >   loginserver 22, sharedserver 8 today); the 271 GC/LC handler files that
+  >   2.3 proved the server never runs were deleted, the client repo keeping
+  >   its own copies.
+  > - Packets with no id enumerator are deleted rather than kept: that is how
+  >   `CGAddInjuriousCreature`, `GCMonsterKillQuestStatus` and `CLAgreement`
+  >   went. The `Rpackets`/`Upackets`/`TOpackets` relic directories are gone
+  >   with them, which is why `tests/ratchet/factory_exceptions.txt` is empty.
+  > - The dead phone exchange (`CGDialUp`, `CGPhoneDisconnect`, `CGPhoneSay`)
+  >   has no factory in any `PacketFactoryManager::init()` list, so its ids
+  >   answer with `InvalidProtocolException`; its handlers and registrations
+  >   are gone, and with them the only senders of `GCRing`,
+  >   `GCPhoneConnected`, `GCPhoneConnectionFailed`, `GCPhoneDisconnected`
+  >   and `GCPhoneSay`. The packet classes stay in `src/Core`, which the
+  >   client repo mirrors.
   - Owner: CMake target membership + include-graph test.
 
 **Phase exit criteria:** `de-kernel` builds standalone with no MySQL/Lua/Zone
 includes (include-graph test green); at least GC/CG fully migrated off
 `execute()`; all three servers boot and pass a manual smoke test against the
-live client.
+live client. **Met**, and exceeded: `arch_includes` is green with no K-rule
+baseline, R4 is 0 for every direction rather than GC/CG alone, and the smoke
+test against the real client closed 2.3.
 
 ---
 
@@ -882,7 +634,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > prefix (the integration binary links every impl, so names must not
   > collide with the gameserver's): `LoginCharacterPurge`
   > (CLDeletePCHandler's ownership check, Slayer retirement, DeleteChar
-  > record and 112-statement purge on the per-world connection, plus
+  > record and 110-statement purge on the per-world connection, plus
   > ItemDestroyer's uncalled 41-table sweep); `LoginAccount` (the Player
   > row through a session — the three login projections, the LogOn /
   > LoginIP / server-id writes that answer whether a row changed, the
@@ -949,8 +701,10 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   >   the real impls against MySQL 5.7 loaded with `initdb/` and the
   >   production sql_mode. A quirk is replayed there before it is
   >   written down — the first rounds' fakes documented three behaviours
-  >   the server refuted. Only the six pilot-era seams keep a fake
-  >   (`tests/support/`). A seam whose callers are compiled out still
+  >   the server refuted. Fakes are not the tier's substitute: of the
+  >   twelve in `tests/support/`, six back the pilot-era seams in
+  >   `repository_tests` and six stand in for the repositories the 3.1
+  >   decision tests drive. A seam whose callers are compiled out still
   >   gets a test: the compiler will never check them.
   > - R2/R3 are **textual** greps, so a commented-out `executeQuery`
   >   counts. A commented-out block that names code the conversion
@@ -1138,15 +892,15 @@ remaining trend lines.
 - [x] **4.2 Split `Zone.cpp`** (9,263 lines) by concern: movement, broadcast,
   spawn/despawn, scan/visibility, persistence (→ 3.2 repository). Mechanical,
   many small commits, each verified by build + smoke.
-  > **Status:** the zone is six translation units. `ZoneBroadcast.cpp` holds
+  > **Status:** done — the zone is seven translation units. `ZoneBroadcast.cpp` holds
   > the three `broadcastPacket` overloads, `broadcastDarkLightPacket`,
   > `broadcastSayPacket`, `broadcastLevelWarBonusPacket`,
   > `broadcastSkillPacket`, `movePCBroadcast` and `moveCreatureBroadcast`;
-  > `ZoneScan.cpp` holds `scan`, `scanPC`, `monsterScan`, `updateScan`, the
-  > four `update*Scan` refreshes and `getWatcherList`; `ZoneMove.cpp` holds
+  > `ZoneScan.cpp` holds `scan`, `scanPC`, `monsterScan`, the four
+  > `update*Scan` refreshes and `getWatcherList`; `ZoneMove.cpp` holds
   > `pushPC`, `movePC`, `moveCreature`, `moveFastPC` and `moveFastMonster`
   > with the `g_FastMoveSearch` step tables; `ZoneLoad.cpp` holds `init`,
-  > `load`, `reload`, `loadItem`, `loadTriggeredPortal`, `initSpriteCount`,
+  > `load`, `reload`, `loadTriggeredPortal`, `initSpriteCount`,
   > `loadNPCs` and `loadEffect`; `ZoneSpawn.cpp` holds the gated gateways
   > (`addPC` both overloads, `replacePC`, `addCreature`, `deleteCreature`,
   > `addCreatureToTile`, `deleteCreatureFromTile`) with `deletePC`,
@@ -1155,13 +909,13 @@ remaining trend lines.
   > `killAllPCs`; `ZoneItem.cpp` holds the ground-item tables — `addItem`,
   > `deleteItem`, `getItem`, `addToItemList`, `deleteFromItemList`, the
   > delayed and transport variants, `addRelicItem`, `deleteRelicItem`,
-  > `addVampirePortal`, `deleteMotorcycle` and the commented-out
-  > `decayMotorcycle` — with the master-lair decay constants, which nothing
+  > `addVampirePortal` and `deleteMotorcycle` — with the master-lair decay
+  > constants, which nothing
   > else uses. They are still `Zone::` members with unchanged bodies — only
   > the translation unit differs — and the file-scope helpers more than one
   > unit calls (`isPotentialEnemy`, `sendRelicEffect`, `strlwr`) are declared
   > in `ZoneInternal.h`.
-  > `Zone.cpp` 9,350 → 1,472, pinned by `ratchets.sh` R6g: the
+  > `Zone.cpp` 9,350 → 1,273, pinned by `ratchets.sh` R6g: the
   > constructors, the tile/sector/level accessors, the effect managers,
   > `getCreature`, the NPC info registry, `heartbeat`, `toString`, the
   > safe-zone and dark-light resets, the war and pay tails and the load
@@ -1256,7 +1010,14 @@ remaining trend lines.
     `tests/integration/mysql_repository_test.cpp`.
 
 **Phase exit criteria:** every GM command behind the router with declared
-gating; `Zone.cpp` under 2,000 lines.
+gating; `Zone.cpp` under 2,000 lines. **Both met.** `CGSayHandler::execute`
+holds no command body — it tests the leading `*` and hands the message to
+`de::gm::broadcastCommands()` then `de::gm::operatorCommands()`, and every
+row of those two tables, of `SubcommandTable` and of the relay table
+declares its `Permission` at the registration site, pinned by
+`gm_command_router_tests` and `gm_console_command_tests`. `Zone.cpp` is
+1,273 lines, held there by R6g. 4.3 continues past the exit criteria as
+shrink-only work.
 
 ---
 
@@ -1273,16 +1034,11 @@ gating; `Zone.cpp` under 2,000 lines.
   > discipline, this document's `> **Status:**` conventions and
   > `docs/FIXES.md`. The build, container, database and run-the-servers
   > manuals stay; task and phase numbers are out of that file, because it is
-  > read by sessions that never open this one. Same length as before (538
-  > lines). Every claim was re-checked against the tree: the corrections were
-  > the handler header that does not exist (`handler/` holds only
-  > `*Handler.cpp`; the class is declared in the packet's Core header), the
-  > four `FactoryList`s that are never four per server, the missing
-  > directories (`gm/`, `guild/`, `party/`, `trade/`, the three
-  > `repository/` trees outside the gameserver, `third_party/argon2`), the
-  > thread backends that are one (`ManagedThread`), and the clang-format file
-  > count nothing measures. Keep it that way: a sentence in CLAUDE.md that no
-  > file or command backs is the failure mode this task exists to fix.
+  > read by sessions that never open this one. The standing rule the task
+  > leaves behind: **a sentence in CLAUDE.md that no file or command backs is
+  > the failure mode this task exists to fix** — every claim there names a
+  > path, a target or a count something measures, and is re-checked against
+  > the tree when it is touched.
 
 - [x] **5.2 `.claude/skills/add-packet` skill.** Modeled on sidecar's
   `add-sidecar-domain`: the checklist for adding/changing a packet — layout
@@ -1310,10 +1066,12 @@ gating; `Zone.cpp` under 2,000 lines.
 - [x] **5.3 Fix log.** When restructuring uncovers real bugs (1.4 layout
   diffs, races, double-frees), record them in `docs/FIXES.md` with sidecar's
   `> **Status:**` convention rather than fixing silently.
-  > **Status:** done — `docs/FIXES.md` created with the 1.4 max-size
-  > reconcile entries (2026-08-31); the earlier Exchange defect set stays
-  > recorded inline in 1.4 where it was written. Ongoing discipline, not a
-  > one-shot: new finds keep landing there.
+  > **Status:** done — `docs/FIXES.md`, oldest entry the 1.4 max-size
+  > reconcile (2026-08-31). The Exchange defect set predates the file; the
+  > rules it left behind and the items still open are in 1.4's status.
+  > Ongoing discipline, not a one-shot: new finds keep landing in
+  > `docs/FIXES.md`, and an entry is flipped to `fixed` in the same commit
+  > as the fix, never later.
 
 - [x] **5.4 Language standard: C++11 → C++20 required.**
   Assessed 2026-08-30. No open task was *blocked* on the standard, but 3.1
@@ -1350,49 +1108,37 @@ gating; `Zone.cpp` under 2,000 lines.
   focused boundaries such as the packet stream and factory contracts described
   in `docs/TOOLCHAIN.md`.
   > **Status:** done (2026-09-04) — C++20 is the required project standard
-  > (`CMAKE_CXX_EXTENSIONS=OFF`). The initially verified C++17 transition lane
-  > was retired deliberately when `std::jthread`/`std::stop_token` entered the
-  > production `ZoneGroupThread` lifecycle; non-20 configurations now fail at
-  > CMake configuration instead of failing partway through compilation.
-  > Docker and development-volume builds pin
-  > Zig 0.16.0/Clang 21.1.0, isolate build trees, output roots and compiler
-  > caches by Zig version, target and build type. The migration was validated
-  > under both C++17 and C++20 before the rollback lane was retired; the
-  > production image now always builds C++20, and all three server binaries
-  > have complete runtime linkage. All dynamic
-  > exception specifications are gone; legacy destructors that were declared
-  > as potentially throwing retain that behavior with `noexcept(false)`.
-  > `Outcome` uses
-  > `std::variant`/`[[nodiscard]]`, and GoogleTest is updated to v1.18.0.
-  > The runtime remains Ubuntu 20.04; its distro GCC is no longer the compiler.
-  > Project-specific C++20 adoption priorities and guardrails are documented in
-  > `docs/TOOLCHAIN.md` under “Where C++20 pays off in DarkEden.”
-  > The first adoption slice also makes thread status atomic, adds reusable
-  > cooperative-worker lifecycle tests, and gives the zone thread pool a real
-  > stop-all-then-join-all shutdown path. `GameServer` destroys that pool before
-  > zone/database dependencies, preventing workers from observing freed state.
-  > Adversarial-review follow-up (2026-09-05): all gameserver auxiliary workers
-  > now use the managed backend too; startup rollback, concurrent lifecycle
-  > operations, and worker failure reporting have regression tests. SIGTERM
-  > drains the client loop and joins every worker, with a 30-second failed-exit
-  > deadline for blocked work. Main then lets the OS reclaim the legacy graph
-  > rather than invoking unaudited singleton destructors; no new world-save
-  > guarantee is implied. MySQL operations have finite timeout options.
-  > CMake probes the C++20 library and a pinned-Zig workflow tests/builds master.
-  > Extended to the other two processes (2026-09-05): the loginserver and
-  > sharedserver `GameServerManager` workers and `SMSServiceThread` moved off
-  > the legacy `Thread` too, and the never-compiled
-  > `NetmarbleGuildRegisterThread` (in no CMake target, its every call site
-  > commented out) was deleted rather than migrated, so `ManagedThread` is now
-  > its only subclass and the pthread-only `detach()` and unused static
-  > `join()` overloads are gone. R1: 333 -> 332. Both processes install the
-  > SIGTERM/SIGINT handler, end their main loop on the request, stop and join
-  > their worker while its dependencies are alive, and `_Exit` with the
-  > failure code under their own 30-second watchdog. The loginserver's UDP
-  > listener became nonblocking so an idle link cannot hold the worker inside
-  > `recvfrom`. `docker/start.sh` now bounds the login/shared drain at 8
-  > seconds after the gameserver's 35, staying inside Compose's 45-second
-  > grace period, and the shutdown watchdog now names the process it kills.
+  > (`CMAKE_CXX_EXTENSIONS=OFF`), and CMake probes `jthread`, `stop_token`
+  > and stop-aware condition-variable waits at configuration time, so an
+  > unsupported toolchain fails there instead of partway through
+  > compilation. The C++17 rollback lane was retired deliberately once
+  > `std::jthread`/`std::stop_token` entered the production
+  > `ZoneGroupThread` lifecycle. Both Dockerfiles pin Zig 0.16.0 /
+  > Clang 21.1.0 and isolate build trees, output roots and compiler caches by
+  > Zig version, target and build type; the runtime stays Ubuntu 20.04, whose
+  > distro GCC is no longer the compiler. All dynamic exception
+  > specifications are gone (R7); legacy destructors that were declared as
+  > potentially throwing keep that behaviour with `noexcept(false)`.
+  > `Outcome` uses `std::variant`/`[[nodiscard]]`, and GoogleTest is v1.18.0.
+  > The adoption priorities and guardrails live in `docs/TOOLCHAIN.md` §3,
+  > "Where C++20 pays off in DarkEden"; that is the file to extend, not this
+  > one.
+  >
+  > The shutdown contract the migration settled, because it is easy to break
+  > by accident: every worker in all three processes is a `ManagedThread`
+  > (the only remaining subclass of the legacy `Thread`). SIGTERM/SIGINT only
+  > store a lock-free atomic request; each main loop returns, every worker is
+  > asked to stop **before** any join, and the joins happen while the
+  > workers' dependencies are still alive — `GameServer` destroys the zone
+  > pool before the zone and database objects it uses. A derived destructor
+  > must stop and join before its own members disappear; a base destructor is
+  > too late. Main then `_Exit`s rather than running the legacy singleton
+  > graph's unaudited destructors, so **joining workers adds no world-save
+  > guarantee**. A 30-second watchdog per process forces a failed exit if I/O
+  > or a heartbeat stays blocked, naming the process it kills, and
+  > `docker/start.sh` bounds the gameserver drain at 35 seconds and the
+  > login/shared drain at 8 after it, inside Compose's 45-second
+  > `stop_grace_period`.
   - Owner: ratchet R7, held at 0.
 
 ---
@@ -1592,13 +1338,18 @@ minutes being available. The remaining broader CI rollout below is deferred:
   2026-09-05 (see "Legacy service cleanup").
 - 433 packet types in `src/Core/Packet.h`
   (`grep -cE 'PACKET_(GC|CG|CL|LC|GL|LG|GS|SG|GG)[A-Z_]* *[,=]' src/Core/Packet.h`).
+  The same command prints 434 at HEAD: 1.4 restored
+  `PACKET_GC_USE_SKILLCARD_OK`, whose absence had shifted every later id
+  away from the client's. An enumerator count is not a factory count — the
+  inventory pins 465 factories.
 - Wire encryption: per-session encrypt code reorders field read/write order
   via `SHUFFLE_STATEMENT_*` (`src/Core/EncryptUtility.h`) — part of the
   contract, must be covered by golden fixtures.
 - Client repo carries divergent hand-copies of all packet classes
-  (`client/Client/Packet/{Gpackets,Cpackets,Lpackets,Rpackets,Types,Upackets}`);
-  server `Core` handlers still contain `#ifdef __GAME_CLIENT__` vestiges of
-  the shared origin.
+  (`client/Client/Packet/{Gpackets,Cpackets,Lpackets,Rpackets,Types,Upackets}`).
+  The `#ifdef __GAME_CLIENT__` vestiges of the shared origin were in `Core`'s
+  handlers then; K2 bans the macro from kernel files now, and the seven
+  mentions left in `src` are the three per-server `#if` files.
 - At this inventory date, existing `test*` directories were ad-hoc standalone
   test servers and CI was clang-format only. The current `tests/` suite and
   C++20 workflow were added subsequently.
