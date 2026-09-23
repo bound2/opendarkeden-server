@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5166 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5163 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -122,18 +122,20 @@ R6g=$(wc -l < src/server/gameserver/Zone.cpp 2>/dev/null || echo missing)
 check_ratchet R6g "Zone.cpp lines" 1273 "$R6g"
 
 # R6h-j: the three race classes. Persistence, gold, item-shape, inventory,
-# free-play and skill-slot-table bodies now live once on PlayerCreature; what
-# is left in each file is its own wear, record and load code, plus the two
-# skill-slot bodies whose content really is per-race (addSkill). Those
-# remaining bodies are still identical in Vampire and Ousters, but only after
-# substituting a wear enum or a persistence record type that is per-race, so
-# they shrink again only when one of those types is reconciled.
+# free-play, skill-slot-table, exps, initial-rank, silver-damage and
+# connect-time item-loading bodies now live once on PlayerCreature; what is
+# left in each file is its own wear code, its load/save record code, and the
+# two skill-slot bodies whose content really is per-race (addSkill). The wear
+# bodies are still identical in Vampire and Ousters, but only after
+# substituting the class-scoped WearPart enum, whose values are the slot ids
+# the client sends, so reconciling them is a protocol change rather than a
+# refactor.
 R6h=$(wc -l < src/server/gameserver/Slayer.cpp 2>/dev/null || echo missing)
-check_ratchet R6h "Slayer.cpp lines" 3086 "$R6h"
+check_ratchet R6h "Slayer.cpp lines" 3043 "$R6h"
 R6i=$(wc -l < src/server/gameserver/Vampire.cpp 2>/dev/null || echo missing)
-check_ratchet R6i "Vampire.cpp lines" 2022 "$R6i"
+check_ratchet R6i "Vampire.cpp lines" 1958 "$R6i"
 R6j=$(wc -l < src/server/gameserver/Ousters.cpp 2>/dev/null || echo missing)
-check_ratchet R6j "Ousters.cpp lines" 1934 "$R6j"
+check_ratchet R6j "Ousters.cpp lines" 1880 "$R6j"
 
 # --- R7: pre-C++17 dynamic exception specifications ------------------------
 # The migration also normalized real `throw(expr)` expressions to `throw expr`

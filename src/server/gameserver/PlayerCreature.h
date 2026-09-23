@@ -91,6 +91,9 @@ protected:
     virtual void registerItem(Item* pItem, ObjectRegistry& OR);
 
 public:
+    // Assign object ids to everything a freshly loaded character owns.
+    virtual void registerInitObject() = 0;
+
     virtual void registerInventory(ObjectRegistry& OR);
     virtual void registerInitInventory(ObjectRegistry& OR);
     virtual void registerStash(void);
@@ -155,6 +158,22 @@ public:
 
     // 2003.04.04. by Sequoia
     virtual void loadItem();
+
+    // Rebuild the inventory and everything hanging off it for a character
+    // that has just connected, and recompute its stats from the gear. Two
+    // steps of it are the race's own: which overload of the item loader
+    // takes the character, and whether a first-time character is given a
+    // newbie set here.
+    void loadItem(bool checkTimeLimit);
+
+    // Hand this character to the item loader. The manager's overload set
+    // is keyed on the concrete race, so only the race can make the call.
+    virtual void loadOwnedItems() = 0;
+
+    // Give a first-time character its starting items. A vampire is made by
+    // transformation and gets none, and the two races that do give one read
+    // the same flag with opposite senses, so the whole step is the race's.
+    virtual void giveNewbieItems() {}
 
     virtual GoodsInventory* getGoodsInventory() const {
         return m_pGoodsInventory;
@@ -286,6 +305,17 @@ public:
     }
 
 
+    // Damage a silver weapon has dealt and not yet healed away, which caps
+    // the current HP. Only a vampire or an ousters row has the column; a
+    // slayer leaves the value at zero.
+    Silver_t getSilverDamage() const {
+        return m_SilverDamage;
+    }
+    void setSilverDamage(Silver_t damage) {
+        m_SilverDamage = damage;
+    }
+    void saveSilverDamage(Silver_t damage);
+
     virtual Sex getSex() const = 0;
 
     virtual ZoneID_t getResurrectZoneID(void) const = 0;
@@ -344,6 +374,12 @@ public:
     void setRankExpSaveCount(WORD count) {
         m_RankExpSaveCount = count;
     }
+
+    // Derive the rank from the character's level and write Rank, RankExp
+    // and RankGoalExp back to the database. getLevel() is the seam that
+    // carries the per-race difference: a slayer's level is its highest
+    // skill-domain level, the other two races' their stored level.
+    void saveInitialRank();
 
     virtual Alignment_t getAlignment() const = 0;
     virtual void setAlignment(Alignment_t Alignment) = 0;
@@ -436,6 +472,8 @@ protected:
     Gold_t m_Gold = 0;   // money carried by the character
     Gold_t m_StashGold;  // Amount of money in the stash
     bool m_bStashStatus; // Whether the stash items' OIDs are registered
+
+    Silver_t m_SilverDamage = 0; // unhealed silver damage; zero for a slayer
 
     Garbage m_Garbage; // Garbage
 

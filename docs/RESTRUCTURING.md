@@ -61,7 +61,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R2 | Files with inline SQL in gameserver root | 0 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29; 7→0 on 2026-09-10, the last two live sites into `PlayRecordRepository::logPlayerTrade` and the new `SMSMessageRepository`, `CreatureUtil.cpp`'s commented-out `addOlympicStat` body deleted, and four never-built stale copies deleted with it. The root is clean; new SQL there fails the ratchet.) |
 | R3 | Files with inline SQL outside `database/` and any `repository/` | 0 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (18→11 on 2026-09-10 with the seven gameserver-root files R2 counted; 11→0 the same day with the never-built `EventBall.cpp`, the `*notice` command that held the last live statement, and the nine files whose only `executeQuery` sat inside a comment block. `gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,166 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(gm\|handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; `gm/` joined them with task 4.1, holding the GM command bodies that moved out of `handler/CGSayHandler.cpp` — the 33 macro pairs in them are the same handler bodies at a new address, so the number did not move. Fold them in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted. 5,788→5,755 on 2026-09-08: the never-built `Vampire_backup.cpp`, a stale copy of `Vampire.cpp`, was deleted. 5,755→5,737 on 2026-09-10: the never-built `EventMonsterNameManager.cpp` (4), `GameServerInfoManager.cpp` (7) and `GameWorldInfoManager.cpp` (7) were deleted. 5,737→5,719 on 2026-09-10: the never-built `EventBall.cpp` (10) and `EventQuestRewardManager.cpp` (1) were deleted, and seven more sat in commented-out or empty bodies deleted from `mission/`, `skill/` and `war/`. 5,719→5,701 on 2026-09-13: the never-built `item/SubInventory.cpp` (10) and `war/SubInventoryItemPosition.cpp` (8) were deleted. 5,701→5,685 with the 4.3 hoist: 24 sites left `Slayer.cpp`/`Vampire.cpp`/`Ousters.cpp` with the bodies that moved to `PlayerCreature.cpp`, which carries 8 of them now that the three copies are one. 5,685→5,677 with the second 4.3 hoist: 12 sites left the three race files with `setGoldEx`, `getExtraInfo`, `getInventoryInfo`, `canPlayFree` and `isPayPlayAvaiable`, and `PlayerCreature.cpp` gained 4 of them — its own `isPayPlayAvaiable` already had one. 5,677→5,673 with the never-defined region macros: the two in EventShutdown.cpp's deleted branch. 5,673→5,483 on 2026-09-17: the thirty-nine sources no target compiled were deleted, and 190 of the sites sat in them. 5,482 → 5,474 with the never-defined feature macros: eight sat in the commented-out `NPC.cpp` SimpleQuest and `PlayerCreature.cpp` quest bodies that went with them. 5,473→5,437 with the dead billing module (32 sites) and the bodies that fed it: `GamePlayer::sendBillingLogin` (1), `PlayerCreature::isBillingPlayAvaiable` and `canPlayFree` (2), and `SkillUtil.cpp`'s empty `checkFreeLevelLimit` (1). 5,437→5,434 on 2026-09-17 with the deleted `LuckInfo.cpp`, whose three sites sat in its commented-out body, which this textual measure counts. 5,434→5,211 on 2026-09-17: 223 sites sat inside the commented-out bodies the R18 pass removed. 5,211→5,204 on 2026-09-18: seven more sat in the commented-out bodies deleted from `couple/`, `gm/`, `mission/` and `war/`. 5,204→5,201 on 2026-09-22: the vampire and ousters slot constructors, destructor and run-time bodies are three on their shared `skill/RaceSkillSlot.cpp` where they were six across the two race slot files. 5,201→5,193 on 2026-09-22 with the slot-table hoist: 12 sites left the three race files with the bodies that moved to `PlayerCreature.cpp`, which carries 4 of them now that the three copies are one; 5,193→5,170 on 2026-09-22: twenty-three more sat in the commented-out bodies deleted from the gameserver's top-level files; 5,170→5,169 on 2026-09-23 with the dead `__SHARED_SERVER__` blocks the gameserver's `GuildManager.cpp` carried, which no build of that file defines; 5,169→5,168 on 2026-09-23: the deleted WarSystem::isEndCondition, which had no caller; 5,168→5,167 on 2026-09-23 with the exps hoist, which leaves one body on `PlayerCreature.cpp` where the vampire and ousters files each had one; 5,167→5,166 on 2026-09-23: the deleted `CastleShrineInfoManager::isDefenderOfGuardShrine`, which had no caller) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,163 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(gm\|handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; `gm/` joined them with task 4.1, holding the GM command bodies that moved out of `handler/CGSayHandler.cpp` — the 33 macro pairs in them are the same handler bodies at a new address, so the number did not move. Fold them in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted. 5,788→5,755 on 2026-09-08: the never-built `Vampire_backup.cpp`, a stale copy of `Vampire.cpp`, was deleted. 5,755→5,737 on 2026-09-10: the never-built `EventMonsterNameManager.cpp` (4), `GameServerInfoManager.cpp` (7) and `GameWorldInfoManager.cpp` (7) were deleted. 5,737→5,719 on 2026-09-10: the never-built `EventBall.cpp` (10) and `EventQuestRewardManager.cpp` (1) were deleted, and seven more sat in commented-out or empty bodies deleted from `mission/`, `skill/` and `war/`. 5,719→5,701 on 2026-09-13: the never-built `item/SubInventory.cpp` (10) and `war/SubInventoryItemPosition.cpp` (8) were deleted. 5,701→5,685 with the 4.3 hoist: 24 sites left `Slayer.cpp`/`Vampire.cpp`/`Ousters.cpp` with the bodies that moved to `PlayerCreature.cpp`, which carries 8 of them now that the three copies are one. 5,685→5,677 with the second 4.3 hoist: 12 sites left the three race files with `setGoldEx`, `getExtraInfo`, `getInventoryInfo`, `canPlayFree` and `isPayPlayAvaiable`, and `PlayerCreature.cpp` gained 4 of them — its own `isPayPlayAvaiable` already had one. 5,677→5,673 with the never-defined region macros: the two in EventShutdown.cpp's deleted branch. 5,673→5,483 on 2026-09-17: the thirty-nine sources no target compiled were deleted, and 190 of the sites sat in them. 5,482 → 5,474 with the never-defined feature macros: eight sat in the commented-out `NPC.cpp` SimpleQuest and `PlayerCreature.cpp` quest bodies that went with them. 5,473→5,437 with the dead billing module (32 sites) and the bodies that fed it: `GamePlayer::sendBillingLogin` (1), `PlayerCreature::isBillingPlayAvaiable` and `canPlayFree` (2), and `SkillUtil.cpp`'s empty `checkFreeLevelLimit` (1). 5,437→5,434 on 2026-09-17 with the deleted `LuckInfo.cpp`, whose three sites sat in its commented-out body, which this textual measure counts. 5,434→5,211 on 2026-09-17: 223 sites sat inside the commented-out bodies the R18 pass removed. 5,211→5,204 on 2026-09-18: seven more sat in the commented-out bodies deleted from `couple/`, `gm/`, `mission/` and `war/`. 5,204→5,201 on 2026-09-22: the vampire and ousters slot constructors, destructor and run-time bodies are three on their shared `skill/RaceSkillSlot.cpp` where they were six across the two race slot files. 5,201→5,193 on 2026-09-22 with the slot-table hoist: 12 sites left the three race files with the bodies that moved to `PlayerCreature.cpp`, which carries 4 of them now that the three copies are one; 5,193→5,170 on 2026-09-22: twenty-three more sat in the commented-out bodies deleted from the gameserver's top-level files; 5,170→5,169 on 2026-09-23 with the dead `__SHARED_SERVER__` blocks the gameserver's `GuildManager.cpp` carried, which no build of that file defines; 5,169→5,168 on 2026-09-23: the deleted WarSystem::isEndCondition, which had no caller; 5,168→5,167 on 2026-09-23 with the exps hoist, which leaves one body on `PlayerCreature.cpp` where the vampire and ousters files each had one; 5,167→5,166 on 2026-09-23: the deleted `CastleShrineInfoManager::isDefenderOfGuardShrine`, which had no caller; 5,166→5,165 on 2026-09-23 with the silver-damage hoist, one body on `PlayerCreature.cpp` where the vampire and ousters files each had one; 5,165→5,163 on 2026-09-23 with the item-load hoist: the three `loadItem(bool)` bodies are one on `PlayerCreature.cpp`, and the per-race hooks it leaves behind carry no try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 | R8 | Non-comment lines using `__PRETTY_FUNCTION__` | 0 | `grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (call-site diagnostics take the enclosing function from a defaulted `std::source_location` — see docs/TOOLCHAIN.md, "Diagnostics without location macros". Line-based: a line whose first non-blank text is `//` is a comment, so the comments that explain the equivalence may still name the macro) |
@@ -89,9 +89,9 @@ are enforced so far.
 | `src/server/gameserver/InitAllStat.cpp` | 230 (was 4,787 before the split by race into `SlayerStat.cpp` / `VampireStat.cpp` / `OustersStat.cpp`, leaving `PlayerCreature::applyBloodBibleSign` and `Monster::initAllStat`; under the 2,000-line phase exit criterion, so R6b pins it rather than baselining a god file; enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 114 (was 4,720 before the 4.1 command extraction; enforced by `ratchets.sh` R6e) |
 | `src/server/gameserver/gm/ConsoleCommands.cpp` | 1,575 (the 61 `*command` sub-command bodies, one function per name; enforced by `ratchets.sh` R6f) |
-| `src/server/gameserver/Slayer.cpp` | 3,086 (was 4,046 before the 4.3 hoists, 3,516 before the commented-out code went; enforced by `ratchets.sh` R6h) |
-| `src/server/gameserver/Vampire.cpp` | 2,022 (2,047 before the exps hoist; was 2,783 before the 4.3 hoists, 2,235 before the commented-out code went; enforced by `ratchets.sh` R6i) |
-| `src/server/gameserver/Ousters.cpp` | 1,934 (1,954 before the exps hoist, 1,959 before an empty sight override left by the commented-out code went; was 2,548 before the 4.3 hoists, 2,117 before the commented-out code went; enforced by `ratchets.sh` R6j) |
+| `src/server/gameserver/Slayer.cpp` | 3,043 (3,068 before the item-load hoist, 3,086 before the initial-rank hoist; was 4,046 before the 4.3 hoists, 3,516 before the commented-out code went; enforced by `ratchets.sh` R6h) |
+| `src/server/gameserver/Vampire.cpp` | 1,958 (1,986 before the item-load hoist, 2,002 before the silver-damage hoist, 2,022 before the initial-rank hoist, 2,047 before the exps hoist; was 2,783 before the 4.3 hoists, 2,235 before the commented-out code went; enforced by `ratchets.sh` R6i) |
+| `src/server/gameserver/Ousters.cpp` | 1,880 (1,900 before the item-load hoist, 1,915 before the silver-damage hoist, 1,934 before the initial-rank hoist, 1,954 before the exps hoist, 1,959 before an empty sight override left by the commented-out code went; was 2,548 before the 4.3 hoists, 2,117 before the commented-out code went; enforced by `ratchets.sh` R6j) |
 | `src/server/gameserver/skill/SkillFormula.cpp` | 818 (was 3,081 before the 3.3 computeOutput extraction — now thin adapters + the 11 dice-roll formulas; enforced by `ratchets.sh` R6d) |
 | `src/server/gameserver/skill/HitRoll.cpp` | 642 (not a god file — an extraction-target pin, locked in with its 3.3 extraction; enforced by `ratchets.sh` R6c) |
 
@@ -1169,64 +1169,91 @@ remaining trend lines.
   > `Zone.cpp` half of it holds.
   - Owner: R6 ratchet per extracted file.
 
-- [ ] **4.3 Race-class cleanup.** `Slayer.cpp`/`Vampire.cpp`/`Ousters.cpp`
+- [x] **4.3 Race-class cleanup.** `Slayer.cpp`/`Vampire.cpp`/`Ousters.cpp`
   share large duplicated blocks; factor shared behavior toward
   `PlayerCreature` or free functions as formulas from 3.3 make the
   differences explicit.
-  > **Status:** in progress — fourteen members are defined once on
-  > `PlayerCreature`: `tinysave`, `setGold`, `setGoldEx`, `increaseGoldEx`,
-  > `decreaseGoldEx`, `checkGoldIntegrity`, `checkStashGoldIntegrity`,
-  > `setResurrectZoneIDEx`, `saveAlignment`, `getIP`, `getItemShapeColor`,
-  > `getExtraInfo`, `getInventoryInfo` and `isPayPlayAvaiable`, with
-  > `m_Gold`/`getGold()` beside `m_StashGold`. One seam carries what those
-  > bodies differed by: `characterRaceOf(getRace())` (`PlayerRace.h`, pinned
-  > by `player_race_tests`) names the race table a persistence body writes
-  > to; the free-play measure the races once carried lives in the
-  > loginserver's `CharacterSelection`. `Slayer::setGoldEx` stays as an override
-  > because it writes `Gold = %u` where the shared body writes `Gold=%u`.
-  > The skill-slot type is the first of the per-race types to be reconciled:
-  > `VampireSkillSlot` and `OustersSkillSlot` now derive from
-  > `skill/RaceSkillSlot.h`, which holds what they spelled identically — the
+  > **Status:** done (2026-09-23) — every body the three races spelled
+  > identically, or identically under a substitution a seam can carry, is
+  > defined once on `PlayerCreature`. Fourteen members hold the
+  > persistence, gold and inventory work: `tinysave`, `setGold`,
+  > `setGoldEx`, `increaseGoldEx`, `decreaseGoldEx`, `checkGoldIntegrity`,
+  > `checkStashGoldIntegrity`, `setResurrectZoneIDEx`, `saveAlignment`,
+  > `getIP`, `getItemShapeColor`, `getExtraInfo`, `getInventoryInfo` and
+  > `isPayPlayAvaiable`, with `m_Gold`/`getGold()` beside `m_StashGold`.
+  > Four member templates over the race's slot map hold the skill-slot
+  > table: `findSkillSlot`, `removeCastleSkillSlot`,
+  > `removeAllCastleSkillSlots` and `saveSkillSlots`, which all three
+  > races delegate to in one line. `saveExps` writes the experience tail,
+  > `saveInitialRank` the rank, `saveSilverDamage` the silver damage
+  > (whose `m_SilverDamage` and accessors moved up with it), and
+  > `loadItem(bool)` runs the connect-time item load.
+  >
+  > Four seams carry what those bodies differed by.
+  > `characterRaceOf(getRace())` (`PlayerRace.h`) names the race table a
+  > persistence body writes to. `skill/RaceSkillSlot.h` holds what
+  > `VampireSkillSlot` and `OustersSkillSlot` spelled identically — the
   > name, skill type, interval, casting time and run time with their
-  > accessors, `getRemainTurn` and both `setRunTime` overloads. Each race
-  > class keeps only what its own table needs: the `create`/`save` pair, plus
-  > `destroy` and the `ExpLevel` for Ousters. On the back of that, four
-  > slot-table bodies are defined once on `PlayerCreature` as member
-  > templates over the race's map — `findSkillSlot`,
-  > `removeCastleSkillSlot`, `removeAllCastleSkillSlots` and
-  > `saveSkillSlots` — and all three races, Slayer included, delegate to
-  > them in one line. Slayer's `SkillSlot` is deliberately not under
-  > `RaceSkillSlot`: it carries exp, exp level and an enable flag, its
-  > `getSkillType()` is const and its `setRunTime(Turn_t, bool)` takes a
-  > second argument, so deriving would hide three base members across the
-  > ~500 handlers that take a `SkillSlot*`.
-  > The exps record is the second of the per-race types to be reconciled:
-  > the vampire and ousters rows carry the same eight columns, so there is
-  > one `CharacterExpsRecord` and one `saveExps(ownerName, race, record)`
-  > that picks the table through `characterRaceTable()`. The two race
-  > statements were not byte-identical — an ousters row always takes
-  > `SilverDamage`, a vampire's only when the value is non-zero, and the
-  > vampire fragment carries no space after its comma — so the repository
-  > body composes that one clause per race and sends the same bytes as
-  > before; the integration tier pins both spellings and the new dispatch.
-  > With the record shared, both `saveExps()` bodies are one on
-  > `PlayerCreature`, taking the goal experience and the silver damage as
-  > arguments because a slayer keeps a goal per skill domain and has no
-  > silver damage at all. Slayer's tail stays its own `SlayerExpsRecord`:
-  > nine domain goals, the three advanced attributes and the bonus, none
-  > of which the other two rows have.
-  > What is still written three times is each race's wear and load code,
-  > plus the two `addSkill` overloads, whose bodies differ for real:
+  > accessors, `getRemainTurn` and both `setRunTime` overloads — leaving
+  > each race the `create`/`save` pair its own table needs, plus
+  > `destroy` and the `ExpLevel` for Ousters. `CharacterExpsRecord` holds
+  > the eight columns the vampire and ousters exps rows share, and one
+  > repository `saveExps` picks the table through `characterRaceTable()`,
+  > composing per race the one clause whose bytes differed (an ousters row
+  > always takes `SilverDamage`, a vampire's only when it is non-zero, and
+  > the vampire fragment carries no space after its comma). `getLevel()`
+  > is the seam under `saveInitialRank`: a slayer's is its highest
+  > skill-domain level, the other two races' their stored level.
+  > `loadItem(bool)` leaves two hooks: `loadOwnedItems()`, because
+  > `ItemLoaderManager::load` overloads on the concrete race, and
+  > `giveNewbieItems()`, empty on the base.
+  >
+  > What stays per race, and why. `Slayer::setGoldEx` is an override
+  > because it writes `Gold = %u` where the shared body writes `Gold=%u`.
+  > Slayer's `SkillSlot` stays outside `RaceSkillSlot`: it carries exp,
+  > exp level and an enable flag, its `getSkillType()` is const and its
+  > `setRunTime(Turn_t, bool)` takes a second argument, so deriving would
+  > hide three base members across the ~500 handlers that take a
+  > `SkillSlot*`. Its exps tail keeps its own `SlayerExpsRecord` — nine
+  > domain goals, the three advanced attributes and the bonus, none of
+  > which the other two rows have — and it has no silver damage, so
+  > `saveExps` takes the goal experience and the silver damage as
+  > arguments. `giveNewbieItems` is a slayer's and an ousters' only: a
+  > vampire is made by transforming a slayer and is given no starting set,
+  > a slayer reads `FLAGSET_RECEIVE_NEWBIE_ITEM_AUTO` as "still owed" and
+  > turns it off, an ousters reads the same bit as "already given" and
+  > turns it on. `load()`, `save()` and the `send*SkillInfo` builders
+  > differ in the columns and the packet element types each race carries.
+  > The free-play measure the races once held lives in the loginserver's
+  > `CharacterSelection`.
+  >
+  > Two residuals are design facts rather than backlog. **The wear code is
+  > per race because `WearPart` is wire-visible.** Each race scopes its
+  > own `WearPart` enum, whose members differ in name and value, and those
+  > values are the slot ids the client sends; the enum also sizes and
+  > indexes `m_pWearItem`, so the ten members that walk that array stay
+  > three copies. Nine of them — `checkItemTimeLimit`,
+  > `updateEventItemTime`, `destroyGears`, `saveGears`, `getGearInfo`,
+  > `isRealWearing(WearPart)`, `isRealWearingEx`, `sendRealWearingInfo`
+  > and, but for the race's own `PCInfo` member, `registerObject` and
+  > `registerInitObject` — are character-for-character identical in
+  > Vampire and Ousters once the wear constants are substituted, and
+  > `isRealWearingEx` and `sendRealWearingInfo` are identical in all
+  > three. `isRealWearing(Item*)` is the one that differs for real: each
+  > race checks its own item classes and requirement attributes.
+  > Reconciling the enums is a protocol change the client repo must ship
+  > identically, not a refactor.
+  > **The two `addSkill` overloads differ in behaviour.**
   > Vampire alone does not assert on `SKILL_HOWL`, Ousters seeds
-  > `ExpLevel` 1 and Slayer `Exp` 1 with `ExpLevel` 0, each logs its own
-  > error file, and Slayer refuses to delete a duplicate that is already the
-  > mapped slot. The wear code is character-for-character identical in
-  > Vampire and Ousters only after substituting the class-scoped `WearPart`
-  > enum, whose members differ in name and value — and those values are the
-  > slot ids the client sends, so reconciling them is a protocol change the
-  > client repo must ship identically, not a refactor. Line counts pinned
-  > by `ratchets.sh` R6h/R6i/R6j, `__BEGIN_TRY` sites by R5.
-  - Owner: R6h/R6i/R6j ratchets; `player_race_tests`; `race_skill_slot_tests`.
+  > `ExpLevel` 1 and Slayer `Exp` 1 with `ExpLevel` 0, each logs to its own
+  > error file, and Slayer refuses to delete a duplicate that is already
+  > the mapped slot.
+  >
+  > Line counts are pinned by `ratchets.sh` R6h/R6i/R6j, `__BEGIN_TRY`
+  > sites by R5; a body that comes back to a race file raises one of them.
+  - Owner: R6h/R6i/R6j ratchets; `player_race_tests`;
+    `race_skill_slot_tests`; the `saveExps` cases in
+    `tests/integration/mysql_repository_test.cpp`.
 
 **Phase exit criteria:** every GM command behind the router with declared
 gating; `Zone.cpp` under 2,000 lines.

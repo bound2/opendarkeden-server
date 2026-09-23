@@ -106,7 +106,6 @@ Vampire::Vampire()
     for (int i = 0; i < VAMPIRE_WEAR_MAX; i++)
         m_pWearItem[i] = NULL;
 
-    m_SilverDamage = 0;
     m_ClanType = 0;
 
     // Initialize the HP regeneration time.
@@ -449,38 +448,10 @@ void Vampire::updateEventItemTime(DWORD time) {
     __END_CATCH
 }
 
-///////////////////////////////////////////
-// For the transformation between Vampire and Slayer,
-// item loading is handled separately.
-//
-void Vampire::loadItem(bool checkTimeLimit)
-
-{
-    __BEGIN_TRY
-
-    PlayerCreature::loadItem();
-
-    // Create the inventory.
-    SAFE_DELETE(m_pInventory);
-    m_pInventory = new Inventory(10, 6);
-    m_pInventory->setOwner(getName());
-
+// A vampire is made by transforming a slayer, so it is never given a
+// newbie set; it inherits the empty hook.
+void Vampire::loadOwnedItems() {
     de::gameContext().itemLoaders().load(this);
-
-    // Load the purchased items.
-    PlayerCreature::loadGoods();
-
-    // Register the loaded items,
-    registerInitObject();
-
-    if (checkTimeLimit) {
-        checkItemTimeLimit();
-    }
-
-    // Compute the attributes from the clothing being worn.
-    initAllStat();
-
-    __END_CATCH
 }
 
 
@@ -1678,21 +1649,6 @@ void Vampire::sendVampireSkillInfo()
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-void Vampire::saveSilverDamage(Silver_t damage)
-
-{
-    __BEGIN_TRY
-
-    setSilverDamage(damage);
-
-    // by sigi. 2002.5.15
-    char pField[80];
-    sprintf(pField, "SilverDamage=%d", m_SilverDamage);
-    tinysave(pField);
-
-    __END_CATCH
-}
-
 //////////////////////////////////////////////////////////////////////////////
 // Heartbeat for the items the vampire owns
 //////////////////////////////////////////////////////////////////////////////
@@ -1924,26 +1880,6 @@ void Vampire::getShapeInfo(DWORD& flag, Color_t colors[PCVampireInfo::VAMPIRE_CO
     __END_DEBUG
 }
 
-
-//----------------------------------------------------------------------
-// save InitialRank
-//----------------------------------------------------------------------
-// Save the initial values of Rank, RankExp and RankGoalExp.
-//----------------------------------------------------------------------
-void Vampire::saveInitialRank(void)
-
-{
-    VAMPIRE_RECORD prev;
-    getVampireRecord(prev);
-
-    int curRank = max(1, (m_Level + 3) / 4);
-    m_pRank->SET_LEVEL(curRank);
-
-    char pField[80];
-    sprintf(pField, "`Rank`=%d, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
-    tinysave(pField);
-    setRankExpSaveCount(0);
-}
 
 bool Vampire::addShape(Item::ItemClass IClass, ItemType_t IType, Color_t color) {
     bool bisChange = false;

@@ -11,6 +11,17 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## An ousters saved an indeterminate silver damage on destruction (2026-09-23)
+
+- **`Ousters::Ousters()` never initialized `m_SilverDamage`, and
+  `~Ousters()` passes it to `saveExps`,** which writes it to the
+  character's `SilverDamage` column. Only `load()` ever set the field, so
+  a character constructed and destroyed without a successful load wrote
+  whatever the allocation happened to hold. `Vampire::Vampire()` zeroed
+  its own copy. The field now lives once on `PlayerCreature` with a zero
+  initializer, which closes it for all three races.
+  > **Status:** fixed (refactor/race-load)
+
 ## A guild's deletion walks and rebuilds the war schedules from another thread (2026-09-23)
 
 - **`WarScheduler::hasSchedule` walks the recent schedules with no lock,
