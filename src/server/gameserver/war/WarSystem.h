@@ -9,8 +9,6 @@
 
 class War;
 class WarSchedule;
-class Item;
-class MonsterCorpse;
 class Player;
 class GamePlayer;
 class PlayerCreature;
@@ -42,7 +40,6 @@ public:
     void load();
 
     bool addWarDelayed(War* pWar);
-    bool isEndCondition(Item* pItem, MonsterCorpse* pMonsterCorpse);
     bool endWar(PlayerCreature* pPC, ZoneID_t castleZoneID);
     bool removeWar(ZoneID_t castleZoneID);
     bool removeRaceWar();

@@ -54,7 +54,22 @@ that followed it.
   the defect. `GuildWar` carries a castle zone id and its own owner-change
   and end-war overrides, so matching it by zone the way a siege is matched
   is the shape a fix would take.
-  > **Status:** recorded, not fixed (fix/recorded-defects-4)
+  > **Status:** fixed (fix/recorded-defects-5) — `War` now answers for its
+  > own castle, attacking guild, registration fee and participants
+  > (`getCastleZoneID`, `getAttackerGuildID`, `getRegistrationFee`,
+  > `isWarParticipant`; zero and no-one for a war fought over no castle), and
+  > every `WAR_GUILD` site that cast to `SiegeWar` to read them asks the war
+  > itself instead: `WarSystem::addWar`, `WarSystem::heartbeat`, the two
+  > active-war lookups, `WarScheduler::hasSchedule` and
+  > `WarSchedule::create`. A siege reads the same values through the virtuals
+  > that it read through the cast, so the siege path is unchanged. A guild
+  > war now writes its schedule row, reaches the active wars with its castle
+  > and attacker, fires the holy-land refresh and the `GCWarList` broadcast,
+  > answers `hasCastleActiveWar` and `getActiveWar` for its castle — so
+  > `isModifyCastleOwner` and `endWar` dispatch to `GuildWar`'s own
+  > overrides — and is erased from the active wars when its hour runs out.
+  > `WarSchedule::save()` stays siege-only: its one caller,
+  > `ActionRegisterSiege`, holds a `SiegeWar` already.
 
 ## Two servers link different classes under one name (2026-09-22)
 
@@ -117,8 +132,8 @@ that followed it.
   > whose cast to `SiegeWar` fails instead of asserting it, so a scheduled
   > guild war is passed over and the lookups keep answering for every
   > other zone. Every caller already handles the `NULL` a zone with no
-  > siege returns. Whether a `GuildWar` should be matched by its own
-  > `getCastleZoneID` the way a siege is remains open.
+  > siege returns. A `GuildWar` is matched by its own `getCastleZoneID`
+  > since fix/recorded-defects-5, so both loops answer for it too.
 
 ## A shrine set with no owner names its race from an uninitialised pointer (2026-09-22)
 
@@ -146,7 +161,11 @@ that followed it.
   corpse's is a comment above the return. Nothing calls it today, so the
   function is a stub a future caller would trust; the comparison it meant
   names an accessor that does not exist in that spelling.
-  > **Status:** recorded, not fixed (fix/recorded-defects-3)
+  > **Status:** fixed (fix/recorded-defects-5) — deleted, uncalled. The
+  > function had no caller in any of the three servers and none in the
+  > history: it arrives with the original import and is untouched since, so
+  > nothing loses a check. A caller that needs the comparison writes it
+  > against the blood bible and the corpse it holds.
 
 ## The event monster name overload returns before its retry loop can retry (2026-09-22)
 

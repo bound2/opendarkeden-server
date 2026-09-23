@@ -56,6 +56,26 @@ public:
         m_StartTime = dt;
     }
 
+    // A war fought over a castle names the castle's zone, the guild attacking
+    // it and the fee paid to register it; a war fought over nothing answers
+    // zero for all three. Both castle wars report WAR_GUILD, so the war system
+    // and the war schedule match one by zone through these rather than by
+    // casting to a particular castle war class.
+    virtual ZoneID_t getCastleZoneID() const {
+        return 0;
+    }
+    virtual GuildID_t getAttackerGuildID() const {
+        return 0;
+    }
+    virtual Gold_t getRegistrationFee() const {
+        return 0;
+    }
+    // A castle war with a single attacker has that one guild in it; a siege
+    // counts its five challengers and the reinforcing guild as well.
+    virtual bool isWarParticipant(GuildID_t gID) {
+        return gID == getAttackerGuildID();
+    }
+
 public:
     virtual bool isModifyCastleOwner(PlayerCreature* pPC) {
         return false;

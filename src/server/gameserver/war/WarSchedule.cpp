@@ -100,13 +100,13 @@ void WarSchedule::create()
     if (pWar->getWarType() != WAR_GUILD)
         return;
 
-    SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-    Assert(pSiegeWar != NULL);
-
-    if (!defaultWarInfoRepository().insertWarSchedule(
-            (int)pSiegeWar->getWarID(), g_pConfig->getPropertyInt("ServerID"), (int)pSiegeWar->getCastleZoneID(),
-            pSiegeWar->getWarType2DBString(), (int)pSiegeWar->getChallangerGuildID(),
-            (int)pSiegeWar->getRegistrationFee(), m_ScheduledTime.toDateTime(), pSiegeWar->getState2DBString())) {
+    // Both castle war classes report WAR_GUILD, so the row is built from the
+    // war's own castle, attacker and fee rather than from a cast to one of
+    // them.
+    if (!defaultWarInfoRepository().insertWarSchedule((int)pWar->getWarID(), g_pConfig->getPropertyInt("ServerID"),
+                                                      (int)pWar->getCastleZoneID(), pWar->getWarType2DBString(),
+                                                      (int)pWar->getAttackerGuildID(), (int)pWar->getRegistrationFee(),
+                                                      m_ScheduledTime.toDateTime(), pWar->getState2DBString())) {
         filelog("WarError.log", "WarSchedule::create() : 이미 테이블에 War 정보가 있거나 테이블이 잘못되었습니다.");
         return;
     }

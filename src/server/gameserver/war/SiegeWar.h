@@ -15,7 +15,7 @@ public:
     SiegeWar(ZoneID_t castleZoneID, WarState warState, WarID_t warID = 0);
     virtual ~SiegeWar();
 
-    ZoneID_t getCastleZoneID() const {
+    ZoneID_t getCastleZoneID() const override {
         return m_CastleZoneID;
     }
     void setCastleZoneID(ZoneID_t zoneID) {
@@ -32,7 +32,7 @@ public:
 
     int getGuildSide(GuildID_t guildID) const;
 
-    Gold_t getRegistrationFee() const {
+    Gold_t getRegistrationFee() const override {
         return m_RegistrationFee;
     }
     void setRegistrationFee(Gold_t fee) {
@@ -50,7 +50,10 @@ public:
     GuildID_t getChallangerGuildID(uint index = 0) const {
         return m_ChallangerGuildID[index];
     }
-    bool isWarParticipant(GuildID_t gID) {
+    GuildID_t getAttackerGuildID() const override {
+        return m_ChallangerGuildID[0];
+    }
+    bool isWarParticipant(GuildID_t gID) override {
         return gID == m_ChallangerGuildID[0] || gID == m_ChallangerGuildID[1] || gID == m_ChallangerGuildID[2] ||
                gID == m_ChallangerGuildID[3] || gID == m_ChallangerGuildID[4] || gID == m_ReinforceGuildID;
     }
