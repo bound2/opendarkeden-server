@@ -533,10 +533,15 @@ void GameServerManager::acceptNewConnection() {
         msg2 << "ILLEGAL ACCESS FROM " << client->getHost() << ":" << client->getPort();
         filelog("SSGSManager.txt", "%s", msg2.toString().c_str());
 
-        // The connection is not authenticated, so cut it.
-        client->send("Error : Unauthorized access", 27);
-        client->close();
-        SAFE_DELETE(client);
+        // The connection is not authenticated, so cut it. Once a player
+        // owns the socket, deleting the player closes it.
+        if (pGameServerPlayer != NULL) {
+            SAFE_DELETE(pGameServerPlayer);
+        } else if (client != NULL) {
+            client->send("Error : Unauthorized access", 27);
+            client->close();
+            SAFE_DELETE(client);
+        }
     } catch (Throwable& t) {
         try {
             if (pGameServerPlayer != NULL) {

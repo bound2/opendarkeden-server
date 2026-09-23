@@ -43,14 +43,16 @@ number and the reason it exists, is in `docs/RESTRUCTURING.md`;
   running its command, never from an estimate.
 - **Task status lines.** `docs/RESTRUCTURING.md` is the living restructuring
   plan. Each task has a checkbox and a `> **Status:**` line — `not started` |
-  `in progress (<what remains>)` | `done (<commit>)` | `dropped (<why>)` —
+  `in progress (<what remains>)` | `done (<commit>)` | `dropped (<why>)` |
+  `blocked (<on what>)` —
   updated in the same commit as the work it describes. It records the current
   state and what the next reader needs to act (conventions, open bugs, what
   remains); the narrative of a change belongs in its PR description and
   commit message. A task is `done` only once its **Owner** exists — the test
   or mechanism that keeps the rule true from then on.
 - **Bugs found while restructuring** are recorded in `docs/FIXES.md` with the
-  same status convention rather than fixed silently.
+  status convention `fixed (<branch>)` | `recorded, not fixed (<branch>)` |
+  `open` | `not a defect` rather than fixed silently.
 - **A failing golden or inventory diff is a protocol change**, not a test to
   silence. The client repo keeps hand-maintained copies of every packet
   class; ship the identical change there and link the two commits. Re-record
@@ -183,6 +185,7 @@ src/
 ├── server/
 │   ├── Thread.h, ManagedThread.h  # the worker-thread base (CooperativeThread.h is reached only through ManagedThread)
 │   ├── Mailbox.h, Snapshot.h  # cross-thread command queue, copy-on-write tables
+│   ├── ServerContext.h        # registry for the managers ServerCore defines (database, server and world tables)
 │   ├── database/              # Database abstraction layer and connection management
 │   ├── repository/            # ServerCore persistence seams, linked into all three binaries
 │   ├── gameserver/            # Main game server executable
@@ -241,6 +244,10 @@ table (`de::packet::FactoryList`) that rejects duplicate or out-of-range ids
 while compiling. `PacketFactoryManager::init()` selects per server from four
 such lists — edit the lists, not an `addFactory` sequence: the gameserver
 `Concat`s three, the loginserver two, the sharedserver uses one as it is.
+Each server creates its own factory table and validator and registers them
+on `de::kernelContext()` (`src/Core/KernelContext.h`, a kernel file so the
+kernel's own reader can use it); readers call
+`de::kernelContext().packetFactories()` and `.packetValidator()`.
 `tests/packet_meta_test.cpp` compiles the whole kernel into one list. A new
 packet needs the three constants in its factory or it will not satisfy the
 concept. See `docs/TOOLCHAIN.md` §3 and `.claude/skills/add-packet`.
@@ -264,7 +271,10 @@ the count of the ones that were removed at zero; do not reintroduce one.
 The settings that matter most: `HomePath` (the repository directory, which
 must be set correctly), `DB_HOST` (database address) and `LoginServerIP`.
 The `WorldDBInfo` and `GameServerInfo` database tables must agree with these
-files.
+files. Code reads the loaded configuration through
+`de::kernelContext().config()`, which each `main()` registers right after
+loading it and which asserts on a configuration nobody registered: a read
+before that point is a startup-order bug, not a condition to branch on.
 
 ## Database Setup
 
@@ -290,6 +300,12 @@ was decided.
 All SQL lives behind repository seams: an interface `*Repository.h` with a
 `MySQL*Repository.cpp` implementation under a `repository/` directory,
 reached through a `default*Repository()` accessor, never a `g_p*` extern.
+The same rule covers every process-wide manager: ratchet R1 holds the
+`g_p*` extern count at zero, and a manager is taken from the context of its
+layer — `de::kernelContext()` (`src/Core`), `de::serverContext()`
+(ServerCore: the database manager, the server and world tables),
+`de::gameContext()`, `de::loginContext()` or `de::sharedContext()` — whose
+accessor asserts it was registered by its creator.
 There are 44 — 36 under `src/server/gameserver/repository/`, two in
 ServerCore (`src/server/repository/`, compiled into all three binaries),
 four in the loginserver and two in the sharedserver, the last two sets
@@ -372,7 +388,7 @@ The gameserver's threading contract, as the code actually implements it.
   and `ZoneGroup::heartbeat()` (NPC/monster AI, effects, zone systems) →
   unlock. So all CG handler code runs on the zone thread **with the group
   mutex held**. Each zone thread registers its own DB `Connection` keyed
-  by thread id (`DatabaseManager::addConnection(Thread::self(), …)`) — DB
+  by thread id (`de::serverContext().database().addConnection(Thread::self(), …)`) — DB
   connections are thread-local by convention, never shared.
 - **`LoginServerManager` thread** — UDP datagram link to the loginserver;
   dispatches **LG** and **GG** packets on its own thread under its own
@@ -383,8 +399,11 @@ The gameserver's threading contract, as the code actually implements it.
   their own loops, stopped and joined with the managers above.
   `MPlayerManager` is a `GameServer` member; `GDRLairManager` is still a
   singleton (`GDRLairManager::Instance()`). The mofus pair sits behind
-  `#ifdef __MOFUS__`, which `mofus/Mofus.h` defines unconditionally, so it
-  is always built — the guard reads like a switch and is not one.
+  `#ifdef __MOFUS__`, which `mofus/Mofus.h` defines when `__METRO_SERVER__`
+  is, and `src/Core/types/ServerType.h` defines that unconditionally for
+  everything that includes `Types.h`, so the module is always built and
+  neither guard is the switch it looks like; `__METRO_SERVER__` also gates
+  `Encrypter.h`, so it is not a knob to turn.
   (`SMSServiceThread` is a `ManagedThread` too, but
   `GameServer::start()` never starts it; its queue is only filled by
   `CGSMSSendHandler`. Neither billing integration is in the tree: the

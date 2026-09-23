@@ -13,6 +13,45 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A deleted guild's pending war comes straight back (2026-09-23)
+
+- **`GuildManager::deleteGuild` reloads the castle zone's war scheduler
+  when the guild has a war scheduled, but reloads it from the same table
+  rows, where the war still waits,** so the same war returns. Only
+  `cancelGuildWarSchedules` cancels rows, and this path never reaches it.
+  The reload now runs on the owning zone thread; it is still a no-op for
+  its purpose.
+  > **Status:** recorded, not fixed (fix/recorded-defects-6)
+
+## The sharedserver's descriptor walk starts from an unchecked listener (2026-09-23)
+
+- **`GameServerManager` seeds its descriptor range from the listening
+  socket's descriptor with no bound,** so a listener at or above the
+  hundred-slot table makes every input and output walk read past it. The
+  bound added for accepted connections covers player adds only.
+  > **Status:** recorded, not fixed (fix/recorded-defects-6)
+
+## The account database connection takes the game database's port (2026-09-23)
+
+- **`DatabaseManager::init` builds the USERINFO connection from the
+  `UI_DB_*` host, database, user and password keys but reads its port from
+  `DB_PORT`,** the game database's key, where the two other places that
+  open a connection to that server read `UI_DB_PORT`. An account database
+  on a port of its own is reached on the wrong one.
+  > **Status:** recorded, not fixed (refactor/server-context)
+
+## The Netmarble flag is read with opposite senses (2026-09-23)
+
+- **`GamePlayer::logLoginoutDateTime` selects the Netmarble dimension when
+  `IsNetMarble` is zero, against its own comment, and `ZoneLoad.cpp` gates
+  its pay-zone message on zero too, while the other five readers of the
+  flag treat nonzero as Netmarble.** Every shipped configuration sets the
+  flag to zero, so every login and logout row is written with the Netmarble
+  dimension in place of the configured one. The two sites want the
+  majority sense; flipping them is checked against the client's dimension
+  table first.
+  > **Status:** recorded, not fixed (refactor/server-context)
+
 ## An ousters saved an indeterminate silver damage on destruction (2026-09-23)
 
 - **`Ousters::Ousters()` never initialized `m_SilverDamage`, and

@@ -1353,6 +1353,10 @@ void PlayerCreature::saveAlignment(Alignment_t alignment) {
 void PlayerCreature::saveSilverDamage(Silver_t damage) {
     __BEGIN_TRY
 
+    // A slayer row has no SilverDamage column; the value stays at zero.
+    if (getRace() == RACE_SLAYER)
+        return;
+
     setSilverDamage(damage);
 
     char pField[80];

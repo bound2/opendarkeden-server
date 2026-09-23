@@ -205,22 +205,21 @@ void GuildManager::deleteGuild(GuildID_t id) {
         for (; itr != endItr; ++itr) {
             Zone* pZone = getZoneByZoneID(itr->first);
             if (pZone != NULL) {
-                WarScheduler* pWarScheduler = pZone->getWarScheduler();
-                if (pWarScheduler != NULL && pWarScheduler->hasSchedule(id)) {
-                    // A scheduler belongs to its zone's group, whose thread runs
-                    // its heartbeat and executes the wars it hands out. Reloading
-                    // it here, on the shared-server link thread, would delete war
-                    // objects that thread is holding, so the reload is posted to
-                    // the owner and runs under the group mutex. The scheduler is
-                    // looked up again there because a zone reload replaces it.
-                    ZoneGroup* pZoneGroup = pZone->getZoneGroup();
-                    if (pZoneGroup != NULL)
-                        pZoneGroup->post([pZone] {
-                            WarScheduler* pScheduler = pZone->getWarScheduler();
-                            if (pScheduler != NULL)
-                                pScheduler->load();
-                        });
-                }
+                // A scheduler belongs to its zone's group, whose thread runs
+                // its heartbeat and executes the wars it hands out. Asking it
+                // anything here, on the shared-server link thread with the guild
+                // mutex held, would take its mutex in the order the zone thread
+                // reverses when a war schedule names a guild, so both the test
+                // and the reload are posted to the owner and run under the group
+                // mutex. The scheduler is looked up there because a zone reload
+                // replaces it.
+                ZoneGroup* pZoneGroup = pZone->getZoneGroup();
+                if (pZoneGroup != NULL)
+                    pZoneGroup->post([pZone, id] {
+                        WarScheduler* pScheduler = pZone->getWarScheduler();
+                        if (pScheduler != NULL && pScheduler->hasSchedule(id))
+                            pScheduler->load();
+                    });
             }
         }
     }
