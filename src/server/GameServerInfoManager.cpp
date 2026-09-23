@@ -252,6 +252,3 @@ string GameServerInfoManager::toString() const {
 
     __END_CATCH
 }
-
-// global variable definition
-GameServerInfoManager* g_pGameServerInfoManager = NULL;

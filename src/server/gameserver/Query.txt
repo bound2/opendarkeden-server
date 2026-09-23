@@ -43,8 +43,8 @@ GuildVoteManager.cpp:		pStmt->executeQuery("DELETE FROM GuildVoteDataInfo WHERE 
 GuildVoteManager.cpp:		pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildVoteInfo");
 GuildVoteManager.cpp:			pResult = pStmt->executeQuery("SELECT MAX(VoteID) FROM GuildVoteInfo");
 GuildVoteManager.cpp:		pResult = pStmt->executeQuery("SELECT VoteID, GuildID, VoteType, Deadline FROM GuildVoteInfo");
-IncomingPlayerManager.cpp:		pStmt->executeQuery("UPDATE Player SET LogOn = 'LOGOFF' WHERE LogOn = 'GAME' AND CurrentServerGroupID = %d", g_pConfig->getPropertyInt("ServerID") );
-IncomingPlayerManager.cpp:		pStmt->executeQuery("DELETE FROM UserIPInfo WHERE ServerID = %d", g_pConfig->getPropertyInt("ServerID") );
+IncomingPlayerManager.cpp:		pStmt->executeQuery("UPDATE Player SET LogOn = 'LOGOFF' WHERE LogOn = 'GAME' AND CurrentServerGroupID = %d", de::kernelContext().config().getPropertyInt("ServerID") );
+IncomingPlayerManager.cpp:		pStmt->executeQuery("DELETE FROM UserIPInfo WHERE ServerID = %d", de::kernelContext().config().getPropertyInt("ServerID") );
 Item.cpp:		pStmt->executeQuery("DELETE FROM %s WHERE ItemID = %ld", getObjectTableName().c_str(), m_ItemID);
 MonsterInfo.cpp:		pResult = pStmt->executeQuery("SELECT MAX(MType) FROM MonsterInfo");
 MonsterInfo.cpp:		//pResult = pStmt->executeQuery(sql.toString());

@@ -9,6 +9,7 @@
 #include "GameServerPlayer.h"
 
 #include "Assert.h"
+#include "KernelContext.h"
 #include "Packet.h"
 #include "PacketDispatcher.h"
 #include "PacketFactoryManager.h"
@@ -125,7 +126,7 @@ void GameServerPlayer::processCommand() noexcept(false) {
                 throw InvalidProtocolException("invalid packet id");
 
             // A packet size that is too large counts as a protocol error.
-            if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID))
+            if (packetSize > de::kernelContext().packetFactories().getPacketMaxSize(packetID))
                 throw InvalidProtocolException("too large packet size");
 
             // Check that the input buffer holds as many bytes as the packet size.
@@ -136,7 +137,7 @@ void GameServerPlayer::processCommand() noexcept(false) {
             // Getting here means the input buffer holds at least one complete packet.
             // The packet structure can be created from the packet factory manager with the packet id.
             // A wrong packet id is handled by the packet factory manager.
-            pPacket = g_pPacketFactoryManager->createPacket(packetID);
+            pPacket = de::kernelContext().packetFactories().createPacket(packetID);
 
             // Now initialize this packet structure.
             // The read() defined in the packet subclass is called through the virtual mechanism,

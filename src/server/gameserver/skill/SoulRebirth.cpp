@@ -16,6 +16,7 @@
 #include "GCSkillToObjectOK5.h"
 #include "GCStatusCurrentHP.h"
 #include "GameContext.h"
+#include "KernelContext.h"
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -41,7 +42,8 @@ void SoulRebirth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
 
         // Only Ousters can be resurrected.
         if (pTargetCreature == NULL || !pTargetCreature->isOusters() ||
-            (g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0)) {
+            (de::kernelContext().config().hasKey("Hardcore") &&
+             de::kernelContext().config().getPropertyInt("Hardcore") != 0)) {
             executeSkillFailException(pOusters, getSkillType());
             return;
         }

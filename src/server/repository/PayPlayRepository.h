@@ -13,7 +13,7 @@
 // through PCRoomIPInfo), the room's occupants (PCRoomUserInfo) and its
 // monthly minutes (PCRoomPayList).
 //
-// Every method runs on g_pDatabaseManager->getDistConnection("PLAYER_DB"):
+// Every method runs on de::serverContext().database().getDistConnection("PLAYER_DB"):
 // the thread's dist connection when one is registered, otherwise the
 // process default connection in the loginserver and the world-default
 // connection in the other two binaries (the name is ignored).

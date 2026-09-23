@@ -53,9 +53,4 @@ private:
     vector<PacketIDSet*> m_PacketIDSets;
 };
 
-//----------------------------------------------------------------------
-// global variable declaration
-//----------------------------------------------------------------------
-extern PacketValidator* g_pPacketValidator;
-
 #endif

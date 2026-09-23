@@ -24,6 +24,7 @@
 
 #include "GDRLairManager.h"
 #include "ParkingCenter.h"
+#include "ServerContext.h"
 #include "WarSystem.h"
 #include "ctf/FlagManager.h"
 
@@ -174,7 +175,8 @@ void ClientManager::run()
         getCurrentTime(currentTime);
 
         if (dummyQueryTime < currentTime) {
-            g_pDatabaseManager->executeDummyQuery(g_pDatabaseManager->getDistConnection("PLAYERDB"));
+            de::serverContext().database().executeDummyQuery(
+                de::serverContext().database().getDistConnection("PLAYERDB"));
 
             // Set a dummy query time between 1h and 1h30 to avoid timeouts.
             dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;

@@ -19,6 +19,7 @@
 #include "GameServerGroupInfoManager.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
+#include "KernelContext.h"
 #include "Mine.h"
 #include "NPC.h"
 #include "OptionInfo.h"
@@ -350,7 +351,7 @@ void opfind(GamePlayer* pGamePlayer, string msg, int i) {
         return;
     }
 
-    static WorldID_t WorldID = g_pConfig->getPropertyInt("WorldID");
+    static WorldID_t WorldID = de::kernelContext().config().getPropertyInt("WorldID");
 
     if (found) {
         ServerID_t ServerID = serverID;

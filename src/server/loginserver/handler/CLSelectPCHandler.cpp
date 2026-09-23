@@ -15,12 +15,14 @@
 #include "GameServerInfo.h"
 #include "GameServerInfoManager.h"
 #include "GameServerManager.h"
+#include "KernelContext.h"
 #include "LCReconnect.h"
 #include "LCSelectPCError.h"
 #include "LGIncomingConnection.h"
 #include "LoginContext.h"
 #include "LoginPlayer.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "ZoneGroupInfoManager.h"
 #include "ZoneInfoManager.h"
 #include "repository/LoginAccountRepository.h"
@@ -33,7 +35,7 @@ namespace {
 class GlobalSelectPCTopology : public SelectPCTopology {
 public:
     bool isNonPKServer(WorldID_t worldID, ServerGroupID_t serverGroupID) override {
-        return g_pGameServerInfoManager->getGameServerInfo(1, serverGroupID, worldID)->isNonPKServer();
+        return de::serverContext().serverInfos().getGameServerInfo(1, serverGroupID, worldID)->isNonPKServer();
     }
 
     ServerID_t zoneServerID(ZoneID_t zoneID) override {
@@ -63,6 +65,8 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
+
+    Properties& config = de::kernelContext().config();
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
@@ -118,8 +122,8 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
 
         const SelectedCharacter selected = std::move(outcome).events();
 
-        GameServerInfo* pGameServerInfo =
-            g_pGameServerInfoManager->getGameServerInfo(selected.serverID, pLoginPlayer->getServerGroupID(), WorldID);
+        GameServerInfo* pGameServerInfo = de::serverContext().serverInfos().getGameServerInfo(
+            selected.serverID, pLoginPlayer->getServerGroupID(), WorldID);
 
         //----------------------------------------------------------------------
         // Tell the game server to expect this incoming connection.
@@ -149,21 +153,21 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
 
         GameServerManager& gameServers = de::loginContext().gameServers();
 
-        if (g_pConfig->getProperty("User") == "excel96")
+        if (config.getProperty("User") == "excel96")
             gameServers.sendPacket(pGameServerInfo->getIP(), pGameServerInfo->getUDPPort(), &lgIncomingConnection);
-        else if (g_pConfig->getProperty("User") == "beowulf")
-            gameServers.sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
+        else if (config.getProperty("User") == "beowulf")
+            gameServers.sendPacket(pGameServerInfo->getIP(), config.getPropertyInt("GameServerUDPPort"),
                                    &lgIncomingConnection);
-        else if (g_pConfig->getProperty("User") == "crazydog")
-            gameServers.sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
+        else if (config.getProperty("User") == "crazydog")
+            gameServers.sendPacket(pGameServerInfo->getIP(), config.getPropertyInt("GameServerUDPPort"),
                                    &lgIncomingConnection);
-        else if (g_pConfig->getProperty("User") == "elcastle") {
+        else if (config.getProperty("User") == "elcastle") {
             cout << "gameserver ip: " << pGameServerInfo->getIP()
-                 << ", port: " << g_pConfig->getPropertyInt("GameServerUDPPort") << endl;
-            gameServers.sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
+                 << ", port: " << config.getPropertyInt("GameServerUDPPort") << endl;
+            gameServers.sendPacket(pGameServerInfo->getIP(), config.getPropertyInt("GameServerUDPPort"),
                                    &lgIncomingConnection);
-        } else if (g_pConfig->getProperty("User") == "elca")
-            gameServers.sendPacket(pGameServerInfo->getIP(), g_pConfig->getPropertyInt("GameServerUDPPort"),
+        } else if (config.getProperty("User") == "elca")
+            gameServers.sendPacket(pGameServerInfo->getIP(), config.getPropertyInt("GameServerUDPPort"),
                                    &lgIncomingConnection);
 
         // The slot the account played last, on the account row; the group

@@ -13,6 +13,7 @@
 #include "DatabaseError.h"
 #include "GCDisconnect.h"
 #include "GameServerInfoManager.h"
+#include "KernelContext.h"
 #include "LCPCList.h"
 #include "LoginContext.h"
 #include "LoginPlayer.h"
@@ -152,7 +153,7 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
         ReconnectRequest request;
         request.playerID = PlayerID;
         request.connectIP = pLoginPlayer->getSocket()->getHost();
-        request.loginServerID = g_pConfig->getPropertyInt("LoginServerID");
+        request.loginServerID = de::kernelContext().config().getPropertyInt("LoginServerID");
 
         ReconnectPlayerSession session(pLoginPlayer);
 

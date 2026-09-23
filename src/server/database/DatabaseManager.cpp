@@ -10,6 +10,7 @@
 
 #include "Assert.h"
 #include "DB.h"
+#include "KernelContext.h"
 #include "Properties.h"
 #include "Result.h"
 #include "Statement.h"
@@ -56,29 +57,31 @@ void DatabaseManager::setWorldDefaultConnection(Connection* pConnection) {
 void DatabaseManager::init() {
     __BEGIN_TRY
 
+    Properties& config = de::kernelContext().config();
+
     try {
         cout << "--------------------------------------------------" << endl;
         cout << "            Init DatabaseManager " << endl;
         cout << "--------------------------------------------------" << endl;
 
-        string host = g_pConfig->getProperty("DB_HOST");
-        string db = g_pConfig->getProperty("DB_DB");
-        string user = g_pConfig->getProperty("DB_USER");
-        string password = g_pConfig->getProperty("DB_PASSWORD");
+        string host = config.getProperty("DB_HOST");
+        string db = config.getProperty("DB_DB");
+        string user = config.getProperty("DB_USER");
+        string password = config.getProperty("DB_PASSWORD");
         uint port = 0;
-        if (g_pConfig->hasKey("DB_PORT"))
-            port = g_pConfig->getPropertyInt("DB_PORT");
+        if (config.hasKey("DB_PORT"))
+            port = config.getPropertyInt("DB_PORT");
 
         m_pDefaultConnection = new Connection(host, db, user, password, port);
         Assert(m_pDefaultConnection != NULL);
 
-        string uihost = g_pConfig->getProperty("UI_DB_HOST");
-        string uidb = g_pConfig->getProperty("UI_DB_DB");
-        string uiuser = g_pConfig->getProperty("UI_DB_USER");
-        string uipassword = g_pConfig->getProperty("UI_DB_PASSWORD");
+        string uihost = config.getProperty("UI_DB_HOST");
+        string uidb = config.getProperty("UI_DB_DB");
+        string uiuser = config.getProperty("UI_DB_USER");
+        string uipassword = config.getProperty("UI_DB_PASSWORD");
         uint uiport = 0;
-        if (g_pConfig->hasKey("DB_PORT"))
-            uiport = g_pConfig->getPropertyInt("DB_PORT");
+        if (config.hasKey("DB_PORT"))
+            uiport = config.getPropertyInt("DB_PORT");
 
         m_pUserInfoConnection = new Connection(uihost, uidb, uiuser, uipassword, uiport);
         Assert(m_pUserInfoConnection != NULL);
@@ -303,4 +306,3 @@ void DatabaseManager::executeDummyQuery(Connection* pConnection)
 //////////////////////////////////////////////////////////////////////////////
 // global variable definition
 //////////////////////////////////////////////////////////////////////////////
-DatabaseManager* g_pDatabaseManager = NULL;

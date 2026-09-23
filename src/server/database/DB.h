@@ -14,6 +14,7 @@
 #include "DatabaseError.h"
 #include "DatabaseManager.h"
 #include "Result.h"
+#include "ServerContext.h"
 #include "Statement.h"
 
 #define BEGIN_DB try
@@ -63,6 +64,6 @@
         throw;                                                          \
     }
 
-#define NEW_STMT g_pDatabaseManager->getConnection("DARKEDEN")->createStatement()
+#define NEW_STMT de::serverContext().database().getConnection("DARKEDEN")->createStatement()
 
 #endif

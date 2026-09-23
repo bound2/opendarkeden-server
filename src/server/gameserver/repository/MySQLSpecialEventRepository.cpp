@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "Thread.h"
 #include "repository/SpecialEventRepository.h"
 
@@ -16,7 +17,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection((int)(long)Thread::self())->createStatement();
+            pStmt = de::serverContext().database().getConnection((int)(long)Thread::self())->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT Count FROM SpecialEvent WHERE Name='%s'", accountID.c_str());
 
             if (pResult->next()) {
@@ -35,7 +36,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection((int)(long)Thread::self())->createStatement();
+            pStmt = de::serverContext().database().getConnection((int)(long)Thread::self())->createStatement();
             pStmt->executeQuery("UPDATE SpecialEvent SET Count = 0 WHERE Name='%s'", accountID.c_str());
             SAFE_DELETE(pStmt);
         }

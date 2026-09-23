@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/SMSAddressRepository.h"
 
 namespace {
@@ -20,7 +21,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT eID, CharacterName, CustomName, Number FROM SMSAddressBook WHERE OwnerID='%s'",
                 ownerName.c_str());
@@ -46,7 +47,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO SMSAddressBook (eID, OwnerID, CharacterName, CustomName, Number) VALUES "
                                 "(%u, '%s', '%s', '%s', '%s')",
                                 eID, ownerName.c_str(), characterName.c_str(), customName.c_str(), number.c_str());
@@ -59,7 +60,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM SMSAddressBook WHERE eID = %u AND OwnerID = '%s'", eID, ownerName.c_str());
             SAFE_DELETE(pStmt);
         }

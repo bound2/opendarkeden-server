@@ -12,12 +12,14 @@
 #include "DatabaseManager.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameWorldInfoManager.h"
+#include "KernelContext.h"
 #include "LoginContext.h"
 #include "LoginPlayerManager.h"
 #include "PacketProfile.h"
 #include "Profile.h"
 #include "Properties.h"
 #include "ReconnectLoginInfoManager.h"
+#include "ServerContext.h"
 #include "ServerShutdown.h"
 #include "Timeval.h"
 
@@ -117,7 +119,7 @@ void ClientManager::run() {
     // Time GameWorldInfo and GameServerInfo were last reloaded
     Timeval ReloadNextTime = NextTime;
     // Interval at which GameWorldInfo and GameServerInfo are reloaded, in minutes
-    int ReloadGap = g_pConfig->getPropertyInt("ServerInfoReloadTime") * 60;
+    int ReloadGap = de::kernelContext().config().getPropertyInt("ServerInfoReloadTime") * 60;
     ReloadNextTime.tv_sec += ReloadGap;
 
     NextTime.tv_sec += 10;
@@ -173,9 +175,7 @@ void ClientManager::run() {
         }
 
         if (ReloadNextTime < currentTime) {
-            if (g_pGameWorldInfoManager != NULL) {
-                g_pGameWorldInfoManager->load();
-            }
+            de::serverContext().worldInfos().load();
 
             de::loginContext().gameServerGroups().load();
 
@@ -185,7 +185,7 @@ void ClientManager::run() {
         // Run a meaningless query now and then so the DB connection does not time out.
         // by bezz. 2003.04.21
         if (dummyQueryTime < currentTime) {
-            g_pDatabaseManager->executeDummyQuery(g_pDatabaseManager->getConnection("DARKEDEN"));
+            de::serverContext().database().executeDummyQuery(de::serverContext().database().getConnection("DARKEDEN"));
 
             dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
         }

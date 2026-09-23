@@ -17,7 +17,7 @@
 //
 // Two connections. recordDeletion and destroyItems use the thread's
 // DARKEDEN connection. The other three ask
-// g_pDatabaseManager->getConnection(worldID), the int overload keyed by
+// de::serverContext().database().getConnection(worldID), the int overload keyed by
 // WorldID: the loginserver's DatabaseManager::init() opens one connection
 // per WorldDBInfo row into that map, so the statements reach the world
 // the character lives in. A WorldID with no row falls through to the

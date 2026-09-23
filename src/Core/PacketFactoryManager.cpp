@@ -1177,9 +1177,3 @@ string PacketFactoryManager::toString() const {
     __END_CATCH
 }
 #endif
-
-//////////////////////////////////////////////////
-// global variable declaration
-//////////////////////////////////////////////////
-
-PacketFactoryManager* g_pPacketFactoryManager = NULL;

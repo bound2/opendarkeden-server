@@ -68,8 +68,4 @@ private:
     HashMapGameWorldInfo m_GameWorldInfos;
 };
 
-
-// global variable declaration
-extern GameWorldInfoManager* g_pGameWorldInfoManager;
-
 #endif

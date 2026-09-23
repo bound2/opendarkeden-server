@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/FlagSetRepository.h"
 
 namespace {
@@ -17,7 +18,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO FlagSet (OwnerID, FlagData) VALUES ('%s', '%s'  )", ownerName.c_str(),
                                 flagData.c_str());
             SAFE_DELETE(pStmt);
@@ -29,7 +30,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT IGNORE INTO FlagSet (OwnerID, FlagData) VALUES ('%s','')", ownerName.c_str());
             SAFE_DELETE(pStmt);
         }
@@ -41,7 +42,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT FlagData FROM FlagSet WHERE OwnerID = '%s'", ownerName.c_str());
 
@@ -61,7 +62,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE FlagSet SET FlagData='%s' WHERE OwnerID='%s'", flagData.c_str(),
                                 ownerName.c_str());
             SAFE_DELETE(pStmt);
@@ -73,7 +74,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM FlagSet WHERE OwnerID = '%s'", ownerName.c_str());
             SAFE_DELETE(pStmt);
         }

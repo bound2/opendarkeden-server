@@ -19,6 +19,7 @@
 
 #include "GCActiveGuildList.h"
 #include "GCWaitGuildList.h"
+#include "KernelContext.h"
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -62,8 +63,8 @@ void GuildManager::init() noexcept(false) {
     // the manager reads that maximum once at startup. An empty table starts
     // the numbering from the configured dimension and world.
     if (repo.countGuilds() == 0) {
-        Guild::setMaxGuildID(g_pConfig->getPropertyInt("Dimension") * 10000 +
-                             g_pConfig->getPropertyInt("WorldID") * 3000 + 100);
+        Guild::setMaxGuildID(de::kernelContext().config().getPropertyInt("Dimension") * 10000 +
+                             de::kernelContext().config().getPropertyInt("WorldID") * 3000 + 100);
     } else {
         Guild::setMaxGuildID(repo.loadMaxGuildID());
     }

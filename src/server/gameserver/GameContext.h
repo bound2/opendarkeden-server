@@ -34,7 +34,6 @@ class ConditionFactoryManager;
 class ConnectionInfoManager;
 class CoupleManager;
 class DarkLightInfoManager;
-class DatabaseManager;
 class DefaultOptionSetInfoManager;
 class DirectiveSetManager;
 class DragonEyeManager;
@@ -138,9 +137,6 @@ public:
     }
     void setDarkLightInfoManager(DarkLightInfoManager* pDarkLightInfoManager) {
         m_pDarkLightInfoManager = pDarkLightInfoManager;
-    }
-    void setDatabaseManager(DatabaseManager* pDatabaseManager) {
-        m_pDatabaseManager = pDatabaseManager;
     }
     void setDefaultOptionSetInfoManager(DefaultOptionSetInfoManager* pDefaultOptionSetInfoManager) {
         m_pDefaultOptionSetInfoManager = pDefaultOptionSetInfoManager;
@@ -318,7 +314,6 @@ public:
     ConnectionInfoManager& connectionInfos() const;
     CoupleManager& couples() const;
     DarkLightInfoManager& darkLights() const;
-    DatabaseManager& databases() const;
     DefaultOptionSetInfoManager& optionSets() const;
     DirectiveSetManager& directiveSets() const;
     DragonEyeManager& dragonEyes() const;
@@ -388,7 +383,6 @@ private:
     ConnectionInfoManager* m_pConnectionInfoManager = nullptr;
     CoupleManager* m_pCoupleManager = nullptr;
     DarkLightInfoManager* m_pDarkLightInfoManager = nullptr;
-    DatabaseManager* m_pDatabaseManager = nullptr;
     DefaultOptionSetInfoManager* m_pDefaultOptionSetInfoManager = nullptr;
     DirectiveSetManager* m_pDirectiveSetManager = nullptr;
     DragonEyeManager* m_pDragonEyeManager = nullptr;

@@ -13,6 +13,7 @@
 #include "Guild.h"
 #include "GuildManager.h"
 #include "IncomingPlayerManager.h"
+#include "KernelContext.h"
 #include "PCSlayerInfo2.h"
 #include "PCVampireInfo2.h"
 #include "PacketUtil.h"
@@ -259,7 +260,7 @@ bool GuildPortal::activate(Creature* pCreature)
         return false;
 
     // Ignore if the guild's hideout is not on this server.
-    if (pGuild->getServerGroupID() != g_pConfig->getPropertyInt("ServerID"))
+    if (pGuild->getServerGroupID() != de::kernelContext().config().getPropertyInt("ServerID"))
         return false;
 
     // Ignore if the guild is not in the active state.

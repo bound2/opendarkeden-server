@@ -1,5 +1,6 @@
 #include "Assert.h"
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/SMSMessageRepository.h"
 
 // END_DB, except that the SQLQueryException is rethrown as itself instead
@@ -113,7 +114,7 @@ public:
     }
 
     void keepAlive() {
-        g_pDatabaseManager->executeDummyQuery(m_pConnection);
+        de::serverContext().database().executeDummyQuery(m_pConnection);
     }
 
 private:

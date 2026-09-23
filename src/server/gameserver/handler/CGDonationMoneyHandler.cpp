@@ -15,6 +15,7 @@
 #include "GamePlayer.h"
 #include "Guild.h"
 #include "GuildManager.h"
+#include "KernelContext.h"
 #include "NicknameBook.h"
 #include "PlayerCreature.h"
 #include "Properties.h"
@@ -45,9 +46,9 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
     GCNPCResponse gcNPCResponse;
 
     // Dimension ID
-    static int dimensionID = g_pConfig->getPropertyInt("Dimension");
+    static int dimensionID = de::kernelContext().config().getPropertyInt("Dimension");
     // World ID
-    static int worldID = g_pConfig->getPropertyInt("WorldID");
+    static int worldID = de::kernelContext().config().getPropertyInt("WorldID");
 
     // affectWorldID
     static int affectWorldID = dimensionID * 3 + worldID;

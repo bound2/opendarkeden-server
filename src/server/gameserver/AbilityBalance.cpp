@@ -12,6 +12,7 @@
 
 #include "GameContext.h"
 #include "ItemUtil.h"
+#include "KernelContext.h"
 #include "Monster.h"
 #include "Properties.h"
 #include "Slayer.h"
@@ -76,7 +77,8 @@ decore::StatAttr toStatAttr(BASIC_ATTR* pAttr, bool withWeapon) {
 }
 
 bool isHardcore() {
-    return g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0;
+    return de::kernelContext().config().hasKey("Hardcore") &&
+           de::kernelContext().config().getPropertyInt("Hardcore") != 0;
 }
 
 } // namespace

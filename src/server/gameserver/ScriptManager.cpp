@@ -104,7 +104,7 @@ void ScriptManager::load(const string& ownerID)
         //			pTree->AddChild(pChild);
     }
 
-    //		pTree->SaveToFile( (g_pConfig->getProperty("HomePath") + "/data/Script.xml").c_str() );
+    //		pTree->SaveToFile( (de::kernelContext().config().getProperty("HomePath") + "/data/Script.xml").c_str() );
     //		SAFE_DELETE( pTree );
 
     __END_CATCH

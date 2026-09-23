@@ -58,10 +58,12 @@
 #include "CreatureUtil.h"
 #include "DefaultOptionSetInfo.h"
 #include "GQuestManager.h"
+#include "KernelContext.h"
 #include "NicknameBook.h"
 #include "Pet.h"
 #include "PlayerRace.h"
 #include "SMSAddressBook.h"
+#include "ServerContext.h"
 #include "Socket.h"
 #include "Store.h"
 #include "VariableManager.h"
@@ -491,10 +493,9 @@ void PlayerCreature::sendCurrentQuestInfo() const {
 }
 
 void PlayerCreature::whenQuestLevelUpgrade() {
-    static bool bNonPK =
-        g_pGameServerInfoManager
-            ->getGameServerInfo(1, g_pConfig->getPropertyInt("ServerID"), g_pConfig->getPropertyInt("WorldID"))
-            ->isNonPKServer();
+    static const int serverID = de::kernelContext().config().getPropertyInt("ServerID");
+    static const int worldID = de::kernelContext().config().getPropertyInt("WorldID");
+    static bool bNonPK = de::serverContext().serverInfos().getGameServerInfo(1, serverID, worldID)->isNonPKServer();
 
     if (bNonPK && getLevel() > 80) {
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayer);
@@ -1003,8 +1004,8 @@ void PlayerCreature::loadGoods()
         m_pGoodsInventory->clear();
     }
 
-    vector<GoodsRecord> records =
-        defaultGoodsRepository().loadPending(g_pConfig->getPropertyInt("WorldID"), getPlayer()->getID(), getName());
+    vector<GoodsRecord> records = defaultGoodsRepository().loadPending(
+        de::kernelContext().config().getPropertyInt("WorldID"), getPlayer()->getID(), getName());
 
     for (size_t r = 0; r < records.size(); ++r) {
         const GoodsRecord& record = records[r];
@@ -1351,6 +1352,10 @@ void PlayerCreature::saveAlignment(Alignment_t alignment) {
 
 void PlayerCreature::saveSilverDamage(Silver_t damage) {
     __BEGIN_TRY
+
+    // A slayer row has no SilverDamage column; the value stays at zero.
+    if (getRace() == RACE_SLAYER)
+        return;
 
     setSilverDamage(damage);
 

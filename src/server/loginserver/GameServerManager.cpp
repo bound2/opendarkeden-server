@@ -15,9 +15,11 @@
 #include "DB.h"
 #include "Datagram.h"
 #include "DatagramPacket.h"
+#include "KernelContext.h"
 #include "LGKickCharacter.h"
 #include "PacketDispatcher.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "ServerShutdown.h"
 #include "SocketAPI.h"
 
@@ -30,7 +32,7 @@ GameServerManager::GameServerManager() : m_pDatagramSocket(NULL) {
     // create datagram server socket
     while (!ServerShutdown::isRequested()) {
         try {
-            m_pDatagramSocket = new DatagramSocket(g_pConfig->getPropertyInt("LoginServerUDPPort"));
+            m_pDatagramSocket = new DatagramSocket(de::kernelContext().config().getPropertyInt("LoginServerUDPPort"));
             // A blocking recvfrom() would hold the worker inside the kernel
             // for as long as the game servers stay quiet, so a shutdown
             // request could not be observed. recvfrom_ex() maps EWOULDBLOCK
@@ -84,17 +86,19 @@ void GameServerManager::stop() {
 // main method
 //////////////////////////////////////////////////////////////////////
 void GameServerManager::run() {
+    Properties& config = de::kernelContext().config();
+
     try {
-        string host = g_pConfig->getProperty("DB_HOST");
-        string db = g_pConfig->getProperty("DB_DB");
-        string user = g_pConfig->getProperty("DB_USER");
-        string password = g_pConfig->getProperty("DB_PASSWORD");
+        string host = config.getProperty("DB_HOST");
+        string db = config.getProperty("DB_DB");
+        string user = config.getProperty("DB_USER");
+        string password = config.getProperty("DB_PASSWORD");
         uint port = 0;
-        if (g_pConfig->hasKey("DB_PORT"))
-            port = g_pConfig->getPropertyInt("DB_PORT");
+        if (config.hasKey("DB_PORT"))
+            port = config.getPropertyInt("DB_PORT");
 
         Connection* pConnection = new Connection(host, db, user, password, port);
-        g_pDatabaseManager->addConnection((int)(long)Thread::self(), pConnection);
+        de::serverContext().database().addConnection((int)(long)Thread::self(), pConnection);
 
         while (!stopRequested()) {
             Datagram* pDatagram = NULL;

@@ -7,6 +7,7 @@
 
 #include <time.h>
 
+#include "KernelContext.h"
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -19,8 +20,8 @@ void TimeManager::init()
 
     try {
         // Read the base game time and the base real time from the config file.
-        string strBaseGameTime = g_pConfig->getProperty("BaseGameTime");
-        string strBaseRealTime = g_pConfig->getProperty("BaseRealTime");
+        string strBaseGameTime = de::kernelContext().config().getProperty("BaseGameTime");
+        string strBaseRealTime = de::kernelContext().config().getProperty("BaseRealTime");
 
         size_t yearEnd = strBaseGameTime.find('-', 0);
         size_t monEnd = strBaseGameTime.find('-', yearEnd + 1);

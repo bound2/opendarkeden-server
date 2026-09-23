@@ -17,6 +17,7 @@
 #include "GLIncomingConnectionError.h"
 #include "GLIncomingConnectionOK.h"
 #include "GameContext.h"
+#include "KernelContext.h"
 #include "LogDef.h"
 #include "LoginServerManager.h"
 
@@ -100,7 +101,7 @@ void LGIncomingConnectionHandler::execute(LGIncomingConnection* pPacket)
         // Report back to the login server.
         GLIncomingConnectionOK glIncomingConnectionOK;
         glIncomingConnectionOK.setPlayerID(pPacket->getPlayerID());
-        glIncomingConnectionOK.setTCPPort(g_pConfig->getPropertyInt("TCPPort"));
+        glIncomingConnectionOK.setTCPPort(de::kernelContext().config().getPropertyInt("TCPPort"));
         glIncomingConnectionOK.setKey(authKey);
 
         de::gameContext().loginServer().sendPacket(pPacket->getHost(), pPacket->getPort(), &glIncomingConnectionOK);

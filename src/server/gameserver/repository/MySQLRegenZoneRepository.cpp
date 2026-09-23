@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/RegenZoneRepository.h"
 
 namespace {
@@ -16,7 +17,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT ID, ZoneID, ZoneX, ZoneY, Owner FROM RegenZonePosition");
 
             while (pResult->next()) {

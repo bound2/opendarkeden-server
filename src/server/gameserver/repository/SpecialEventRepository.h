@@ -11,7 +11,7 @@
 // different table.)
 //
 // These two statements do not run on the thread's DARKEDEN connection.
-// They ask for g_pDatabaseManager->getConnection((int)(long)Thread::self())
+// They ask for de::serverContext().database().getConnection((int)(long)Thread::self())
 // -- the int overload, which keys on WorldID, not thread id (the note in
 // DatabaseManager.h, translated from Korean: "the main DB server's world
 // id is agreed to be 0, and queries to it pass 0"). The gameserver never

@@ -1,3 +1,4 @@
+#include "ServerContext.h"
 #include "database/DB.h"
 #include "repository/PayPlayRepository.h"
 
@@ -14,7 +15,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT r.ID, r.PayType, r.PayStartDate, r.PayPlayDate, r.PayPlayHours, r.PayPlayFlag, r.UserLimit, "
                 "r.UserMax FROM PCRoomInfo r, PCRoomIPInfo p WHERE p.IP='%s' AND p.ID=r.ID",
@@ -45,7 +46,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT r.ID, r.PayType, r.PayStartDate, r.PayPlayDate, r.PayPlayHours FROM "
                                     "PCRoomInfo r, PCRoomIPInfo p WHERE p.IP='%s' AND p.ID=r.ID",
@@ -73,7 +74,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("UPDATE PCRoomInfo SET PayPlayHours=PayPlayHours-%d WHERE ID=%d", hours, roomID);
 
             Result* pResult = pStmt->executeQuery("SELECT PayPlayHours FROM PCRoomInfo WHERE ID=%d", roomID);
@@ -95,7 +96,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT count(*) from PCRoomUserInfo WHERE ID=%d", roomID);
 
             if (pResult->next()) {
@@ -113,7 +114,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("INSERT IGNORE INTO PCRoomUserInfo(ID, PlayerID) VALUES(%d, '%s')", roomID,
                                 playerID.c_str());
 
@@ -126,7 +127,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("DELETE FROM PCRoomUserInfo WHERE PlayerID='%s'", playerID.c_str());
 
             SAFE_DELETE(pStmt);
@@ -139,7 +140,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT PayPlayMinute FROM PCRoomPayList WHERE PCRoomID=%d AND Year=%d AND Month=%d", roomID, year,
                 month);
@@ -157,7 +158,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery(
                 "UPDATE PCRoomPayList SET PayPlayMinute=PayPlayMinute+%d WHERE PCRoomID=%d AND Year=%d AND Month=%d",
                 minutes, roomID, year, month);
@@ -171,7 +172,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery(
                 "INSERT INTO PCRoomPayList (PCRoomID, Year, Month, PayPlayMinute) VALUES (%d, %d, %d, %d)", roomID,
                 year, month, minutes);
@@ -186,7 +187,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT PayType, PayPlayDate, PayPlayHours, PayPlayFlag, "
                                                   "FamilyPayPlayDate FROM Player WHERE PlayerID='%s'",
                                                   playerID.c_str());
@@ -211,7 +212,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery(
                 "UPDATE Player SET PayPlayHours=0, PayPlayDate='2002-11-18 00:00:00' WHERE PlayerID='%s'",
                 playerID.c_str());
@@ -225,7 +226,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("UPDATE Player SET PayPlayHours=PayPlayHours-%d WHERE PlayerID='%s'", hours,
                                 playerID.c_str());
 
@@ -239,7 +240,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT PayType=0 or PayPlayDate > now() FROM Player WHERE PlayerID='%s'", playerID.c_str());
 

@@ -18,9 +18,11 @@
 #include "GameServerManager.h"
 #include "GameWorldInfoManager.h"
 #include "ItemDestroyer.h"
+#include "KernelContext.h"
 #include "LoginContext.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
+#include "ServerContext.h"
 #include "ServerShutdown.h"
 #include "UserInfoManager.h"
 #include "ZoneGroupInfoManager.h"
@@ -38,10 +40,12 @@ LoginServer::LoginServer() {
     __BEGIN_TRY
 
     // create database manager
-    g_pDatabaseManager = new DatabaseManager();
+    m_pDatabaseManager = new DatabaseManager();
+    de::serverContext().setDatabaseManager(m_pDatabaseManager);
 
     // create some info managers
-    g_pGameServerInfoManager = new GameServerInfoManager();
+    m_pGameServerInfoManager = new GameServerInfoManager();
+    de::serverContext().setGameServerInfoManager(m_pGameServerInfoManager);
     m_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
     de::loginContext().setGameServerGroupInfoManager(m_pGameServerGroupInfoManager);
 
@@ -52,8 +56,10 @@ LoginServer::LoginServer() {
 
     // create packet factory manager, packet validator
     // (They must be created and initialized before the client manager and the server-to-server manager.)
-    g_pPacketFactoryManager = new PacketFactoryManager();
-    g_pPacketValidator = new PacketValidator();
+    m_pPacketFactoryManager = new PacketFactoryManager();
+    de::kernelContext().setPacketFactoryManager(m_pPacketFactoryManager);
+    m_pPacketValidator = new PacketValidator();
+    de::kernelContext().setPacketValidator(m_pPacketValidator);
 
     // create inter-server communication manager
     m_pGameServerManager = new GameServerManager();
@@ -70,7 +76,8 @@ LoginServer::LoginServer() {
     de::loginContext().setUserInfoManager(m_pUserInfoManager);
 
     // create GameWorldInfoManager
-    g_pGameWorldInfoManager = new GameWorldInfoManager();
+    m_pGameWorldInfoManager = new GameWorldInfoManager();
+    de::serverContext().setGameWorldInfoManager(m_pGameWorldInfoManager);
 
     __END_CATCH
 }
@@ -101,14 +108,14 @@ LoginServer::~LoginServer() noexcept(false) {
         m_pGameServerManager = NULL;
     }
 
-    if (g_pPacketValidator != NULL) {
-        delete g_pPacketValidator;
-        g_pPacketValidator = NULL;
+    if (m_pPacketValidator != NULL) {
+        delete m_pPacketValidator;
+        m_pPacketValidator = NULL;
     }
 
-    if (g_pPacketFactoryManager != NULL) {
-        delete g_pPacketFactoryManager;
-        g_pPacketFactoryManager = NULL;
+    if (m_pPacketFactoryManager != NULL) {
+        delete m_pPacketFactoryManager;
+        m_pPacketFactoryManager = NULL;
     }
 
     if (m_pZoneGroupInfoManager != NULL) {
@@ -121,26 +128,26 @@ LoginServer::~LoginServer() noexcept(false) {
         m_pZoneInfoManager = NULL;
     }
 
-    if (g_pGameServerInfoManager != NULL) {
-        delete g_pGameServerInfoManager;
-        g_pGameServerInfoManager = NULL;
+    if (m_pGameServerInfoManager != NULL) {
+        delete m_pGameServerInfoManager;
+        m_pGameServerInfoManager = NULL;
     }
 
     if (m_pGameServerGroupInfoManager != NULL) {
         delete m_pGameServerGroupInfoManager;
         m_pGameServerGroupInfoManager = NULL;
     }
-    if (g_pDatabaseManager != NULL) {
-        delete g_pDatabaseManager;
-        g_pDatabaseManager = NULL;
+    if (m_pDatabaseManager != NULL) {
+        delete m_pDatabaseManager;
+        m_pDatabaseManager = NULL;
     }
     if (m_pUserInfoManager != NULL) {
         delete m_pUserInfoManager;
         m_pUserInfoManager = NULL;
     }
-    if (g_pGameWorldInfoManager != NULL) {
-        delete g_pGameWorldInfoManager;
-        g_pGameWorldInfoManager = NULL;
+    if (m_pGameWorldInfoManager != NULL) {
+        delete m_pGameWorldInfoManager;
+        m_pGameWorldInfoManager = NULL;
     }
 
     __END_CATCH
@@ -156,19 +163,19 @@ void LoginServer::init() {
     __BEGIN_TRY
 
     // Initialize the database manager.
-    g_pDatabaseManager->init();
+    m_pDatabaseManager->init();
 
     // initialize some info managers
-    g_pGameServerInfoManager->init();
+    m_pGameServerInfoManager->init();
     m_pGameServerGroupInfoManager->init();
     m_pZoneInfoManager->init();
     m_pZoneGroupInfoManager->init();
 
-    g_pGameWorldInfoManager->init();
+    m_pGameWorldInfoManager->init();
 
     // Initialize the packet factory manager / packet validator before the client manager.
-    g_pPacketFactoryManager->init();
-    g_pPacketValidator->init();
+    m_pPacketFactoryManager->init();
+    m_pPacketValidator->init();
 
     m_pUserInfoManager->init();
 

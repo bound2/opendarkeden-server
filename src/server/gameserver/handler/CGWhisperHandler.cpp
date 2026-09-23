@@ -14,10 +14,12 @@
 #include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
+#include "KernelContext.h"
 #include "LogNameManager.h"
 #include "LoginServerManager.h"
 #include "PCFinder.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "repository/CharacterRepository.h"
 #include "repository/SessionRepository.h"
 
@@ -132,8 +134,8 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
                          * */
 
 
-                        GameServerInfo* pGameServerInfo = g_pGameServerInfoManager->getGameServerInfo(
-                            1, CurrentServerGroupID, g_pConfig->getPropertyInt("WorldID"));
+                        GameServerInfo* pGameServerInfo = de::serverContext().serverInfos().getGameServerInfo(
+                            1, CurrentServerGroupID, de::kernelContext().config().getPropertyInt("WorldID"));
                         if (pGameServerInfo != NULL) {
                             GGServerChat ggServerChat;
                             ggServerChat.setSender(pCreature->getName());

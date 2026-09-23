@@ -44,7 +44,6 @@ TEST(GameContextTest, AccessorReturnsTheRegisteredManager) {
     de::GameContext context;
 
     Properties* pConfig = standIn<Properties>(0);
-    DatabaseManager* pDatabaseManager = standIn<DatabaseManager>(1);
     ItemFactoryManager* pItemFactoryManager = standIn<ItemFactoryManager>(2);
     PCFinder* pPCFinder = standIn<PCFinder>(3);
     StringPool* pStringPool = standIn<StringPool>(4);
@@ -53,7 +52,6 @@ TEST(GameContextTest, AccessorReturnsTheRegisteredManager) {
     ZoneInfoManager* pZoneInfoManager = standIn<ZoneInfoManager>(7);
 
     context.setConfig(pConfig);
-    context.setDatabaseManager(pDatabaseManager);
     context.setItemFactoryManager(pItemFactoryManager);
     context.setPCFinder(pPCFinder);
     context.setStringPool(pStringPool);
@@ -62,7 +60,6 @@ TEST(GameContextTest, AccessorReturnsTheRegisteredManager) {
     context.setZoneInfoManager(pZoneInfoManager);
 
     EXPECT_EQ(&context.config(), pConfig);
-    EXPECT_EQ(&context.databases(), pDatabaseManager);
     EXPECT_EQ(&context.itemFactories(), pItemFactoryManager);
     EXPECT_EQ(&context.playerCreatures(), pPCFinder);
     EXPECT_EQ(&context.strings(), pStringPool);
@@ -377,7 +374,6 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.connectionInfos(), AssertionError);
     EXPECT_THROW(context.couples(), AssertionError);
     EXPECT_THROW(context.darkLights(), AssertionError);
-    EXPECT_THROW(context.databases(), AssertionError);
     EXPECT_THROW(context.directiveSets(), AssertionError);
     EXPECT_THROW(context.dragonEyes(), AssertionError);
     EXPECT_THROW(context.dynamicZoneFactories(), AssertionError);

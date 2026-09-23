@@ -7,6 +7,7 @@
 #include "GCWarScheduleList.h"
 #include "GameContext.h"
 #include "GuildWar.h"
+#include "KernelContext.h"
 #include "Properties.h"
 #include "SiegeWar.h"
 #include "VariableManager.h"
@@ -120,7 +121,7 @@ void WarScheduler::load()
     WarInfoRepository& repository = defaultWarInfoRepository();
 
     vector<WarScheduleRow> schedules =
-        repository.loadWarSchedules(g_pConfig->getPropertyInt("ServerID"), (int)m_pZone->getZoneID());
+        repository.loadWarSchedules(de::kernelContext().config().getPropertyInt("ServerID"), (int)m_pZone->getZoneID());
 
     if (!schedules.empty()) {
         WarID_t warID;
@@ -356,7 +357,8 @@ void WarScheduler::cancelGuildSchedules()
 {
     __BEGIN_TRY
 
-    defaultWarInfoRepository().cancelGuildWarSchedules(g_pConfig->getPropertyInt("ServerID"), m_pZone->getZoneID());
+    defaultWarInfoRepository().cancelGuildWarSchedules(de::kernelContext().config().getPropertyInt("ServerID"),
+                                                       m_pZone->getZoneID());
 
     // Load it again.
     load();

@@ -11,6 +11,7 @@
 #include "GameWorldInfoManager.h"
 #include "LCQueryResultCharacterName.h"
 #include "LoginPlayer.h"
+#include "ServerContext.h"
 #include "repository/LoginCharacterRepository.h"
 #endif
 
@@ -31,7 +32,7 @@ void CLQueryCharacterNameHandler::execute(CLQueryCharacterName* pPacket, Player*
 
     WorldID_t WorldID = pLoginPlayer->getWorldID();
 
-    Assert(WorldID <= g_pGameWorldInfoManager->getSize());
+    Assert(WorldID <= de::serverContext().worldInfos().getSize());
 
     // A SQL failure leaves as END_DB's DatabaseError, the way the
     // SQLQueryException did.

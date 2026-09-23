@@ -31,6 +31,7 @@
 #include "ItemGradeManager.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
+#include "KernelContext.h"
 #include "MasterLairInfoManager.h"
 #include "Monster.h"
 #include "MonsterCorpse.h"
@@ -1337,7 +1338,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
             Zone* pZone = pDeadMonster->getZone();
 
             // Zone the jackpot event applies to.
-            static bool isNetMarble = g_pConfig->getPropertyInt("IsNetMarble") != 0;
+            static bool isNetMarble = de::kernelContext().config().getPropertyInt("IsNetMarble") != 0;
             bool isLottoZone = pZone->isPayPlay() || isNetMarble;
 
             if (pZone->isPayPlay() || pZone->isPremiumZone()) {

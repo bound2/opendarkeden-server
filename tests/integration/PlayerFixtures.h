@@ -4,6 +4,7 @@
 #include <string>
 
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/CharacterRace.h"
 
 // SQL helpers for the MySQL integration tier: direct statements on the
@@ -12,7 +13,7 @@
 inline void execSQL(const std::string& sql) {
     Statement* pStmt = NULL;
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
         pStmt->executeQueryString(sql);
         SAFE_DELETE(pStmt);
     }
@@ -34,7 +35,7 @@ inline std::string queryScalar(const std::string& sql) {
     std::string value;
     Statement* pStmt = NULL;
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
         Result* pResult = pStmt->executeQueryString(sql);
         if (pResult->next())
             value = pResult->getString(1);

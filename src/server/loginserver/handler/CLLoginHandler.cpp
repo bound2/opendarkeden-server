@@ -29,6 +29,7 @@
 #include "DatabaseError.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameServerInfoManager.h"
+#include "KernelContext.h"
 #include "LCLoginError.h"
 #include "LCLoginOK.h"
 #include "LoginDecision.h"
@@ -246,8 +247,8 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
         request.webLogin = bWebLogin;
         request.freePass = bFreePass;
         request.failureCount = pLoginPlayer->getFailureCount();
-        request.loginServerID = g_pConfig->getPropertyInt("LoginServerID");
-        request.useNetMarbleAdultFlag = (g_pConfig->getPropertyInt("IsNetMarble") == 1);
+        request.loginServerID = de::kernelContext().config().getPropertyInt("LoginServerID");
+        request.useNetMarbleAdultFlag = (de::kernelContext().config().getPropertyInt("IsNetMarble") == 1);
         if (request.useNetMarbleAdultFlag)
             request.netMarbleAdultFlag = pPacket->isAdult();
 

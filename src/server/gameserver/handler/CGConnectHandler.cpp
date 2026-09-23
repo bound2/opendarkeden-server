@@ -61,6 +61,7 @@
 // #include "GCLoadInventory.h"
 #include "DynamicZoneManager.h"
 #include "GDRLairManager.h"
+#include "KernelContext.h"
 #include "SystemAvailabilitiesManager.h"
 #include "types/ServerType.h"
 
@@ -90,6 +91,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
         GuildManager& guilds = de::gameContext().guilds();
     SharedServerManager& sharedServer = de::gameContext().sharedServer();
+    Properties& config = de::kernelContext().config();
 
 #ifdef __GAME_SERVER__
 
@@ -362,7 +364,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                         gsGuildMemberLogOn.setGuildID(pGuild->getID());
                         gsGuildMemberLogOn.setName(pSlayer->getName());
                         gsGuildMemberLogOn.setLogOn(true);
-                        gsGuildMemberLogOn.setServerID(g_pConfig->getPropertyInt("ServerID"));
+                        gsGuildMemberLogOn.setServerID(config.getPropertyInt("ServerID"));
 
                         sharedServer.sendPacket(&gsGuildMemberLogOn);
 
@@ -420,7 +422,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                         gsGuildMemberLogOn.setGuildID(pGuild->getID());
                         gsGuildMemberLogOn.setName(pVampire->getName());
                         gsGuildMemberLogOn.setLogOn(true);
-                        gsGuildMemberLogOn.setServerID(g_pConfig->getPropertyInt("ServerID"));
+                        gsGuildMemberLogOn.setServerID(config.getPropertyInt("ServerID"));
 
                         sharedServer.sendPacket(&gsGuildMemberLogOn);
 
@@ -481,7 +483,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                         gsGuildMemberLogOn.setGuildID(pGuild->getID());
                         gsGuildMemberLogOn.setName(pOusters->getName());
                         gsGuildMemberLogOn.setLogOn(true);
-                        gsGuildMemberLogOn.setServerID(g_pConfig->getPropertyInt("ServerID"));
+                        gsGuildMemberLogOn.setServerID(config.getPropertyInt("ServerID"));
 
                         sharedServer.sendPacket(&gsGuildMemberLogOn);
 

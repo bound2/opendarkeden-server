@@ -15,11 +15,13 @@
 #include "DatabaseManager.h"
 #include "GameContext.h"
 #include "GameServerInfoManager.h"
+#include "KernelContext.h"
 #include "LoginServerManager.h"
 #include "ObjectManager.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "SharedServerManager.h"
 #include "SystemAPI.h"
 #include "ThreadManager.h"
@@ -45,18 +47,20 @@ GameServer::GameServer()
     try {
         // The configuration is loaded before the server object exists, so it
         // is registered first; every manager below registers as it is created.
-        de::gameContext().setConfig(g_pConfig);
+        de::gameContext().setConfig(&de::kernelContext().config());
 
         // create database manager
-        g_pDatabaseManager = new DatabaseManager();
-        de::gameContext().setDatabaseManager(g_pDatabaseManager);
+        m_pDatabaseManager = new DatabaseManager();
+        de::serverContext().setDatabaseManager(m_pDatabaseManager);
 
         // create object manager
         m_pObjectManager = new ObjectManager();
 
         // create packet factory manager , packet validator
-        g_pPacketFactoryManager = new PacketFactoryManager();
-        g_pPacketValidator = new PacketValidator();
+        m_pPacketFactoryManager = new PacketFactoryManager();
+        de::kernelContext().setPacketFactoryManager(m_pPacketFactoryManager);
+        m_pPacketValidator = new PacketValidator();
+        de::kernelContext().setPacketValidator(m_pPacketValidator);
 
         // create thread manager
         m_pThreadManager = new ThreadManager();
@@ -80,8 +84,9 @@ GameServer::GameServer()
         m_pClientManager = new ClientManager();
         de::gameContext().setClientManager(m_pClientManager);
 
-        // create login server manager
-        g_pGameServerInfoManager = new GameServerInfoManager();
+        // create the game-server table
+        m_pGameServerInfoManager = new GameServerInfoManager();
+        de::serverContext().setGameServerInfoManager(m_pGameServerInfoManager);
 
     } catch (Throwable& t) {
         // cout << t.toString() << endl;
@@ -108,16 +113,16 @@ GameServer::~GameServer()
     SAFE_DELETE(m_pThreadManager);
     SAFE_DELETE(m_pClientManager);
     SAFE_DELETE(m_pObjectManager);
-    SAFE_DELETE(g_pPacketValidator);
-    SAFE_DELETE(g_pPacketFactoryManager);
+    SAFE_DELETE(m_pPacketValidator);
+    SAFE_DELETE(m_pPacketFactoryManager);
     SAFE_DELETE(m_pLoginServerManager);
     SAFE_DELETE(m_pSharedServerManager);
 #ifdef __MOFUS__
     SAFE_DELETE(m_pMPlayerManager);
     SAFE_DELETE(m_pMPacketManager);
 #endif
-    SAFE_DELETE(g_pGameServerInfoManager);
-    SAFE_DELETE(g_pDatabaseManager);
+    SAFE_DELETE(m_pGameServerInfoManager);
+    SAFE_DELETE(m_pDatabaseManager);
 
     __END_CATCH_NO_RETHROW
 }
@@ -138,7 +143,7 @@ void GameServer::init()
     setCurrentTime();
 
     // Initialize the database manager.
-    g_pDatabaseManager->init();
+    m_pDatabaseManager->init();
     cout << "GameServer::init() : DatabaseManager Initialization Success..." << endl;
 
     // Initialize the object manager through the database manager.
@@ -152,10 +157,10 @@ void GameServer::init()
     cout << "GameServer::init() : ThreadManager Initialization Success..." << endl;
 
     // Initialize the packet factory manager and packet validator before the client manager.
-    g_pPacketFactoryManager->init();
+    m_pPacketFactoryManager->init();
     cout << "GameServer::init() : PacketFactoryManager Initialization Success..." << endl;
 
-    g_pPacketValidator->init();
+    m_pPacketValidator->init();
     cout << "GameServer::init() : PacketValidator Initialization Success..." << endl;
 
     // Now prepare the inter-server communication.
@@ -174,7 +179,7 @@ void GameServer::init()
     cout << "GameServer::init() : MPlayerManager Initialization Success..." << endl;
 #endif
 
-    g_pGameServerInfoManager->init();
+    m_pGameServerInfoManager->init();
     cout << "GameServer::init() : GameServerInfoManager Initialization Success..." << endl;
 
     // Once everything else is ready, initialize the client manager to

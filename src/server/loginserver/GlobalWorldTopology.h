@@ -10,6 +10,7 @@
 #include "GameServerGroupInfoManager.h"
 #include "GameWorldInfoManager.h"
 #include "LoginContext.h"
+#include "ServerContext.h"
 #include "UserInfoManager.h"
 #include "WorldSelection.h"
 
@@ -18,11 +19,11 @@
 class GlobalWorldTopology : public WorldSelectionTopology {
 public:
     int worldCount() override {
-        return g_pGameWorldInfoManager->getSize();
+        return de::serverContext().worldInfos().getSize();
     }
 
     WorldStatus worldStatus(WorldID_t worldID) override {
-        return g_pGameWorldInfoManager->getGameWorldInfo(worldID)->getStatus();
+        return de::serverContext().worldInfos().getGameWorldInfo(worldID)->getStatus();
     }
 
     int serverGroupCount(WorldID_t worldID) override {

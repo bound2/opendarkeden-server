@@ -372,8 +372,3 @@ string PacketValidator::toString() const {
 
     return msg.toString();
 }
-
-//----------------------------------------------------------------------
-// global variable definition
-//----------------------------------------------------------------------
-PacketValidator* g_pPacketValidator = NULL;

@@ -14,7 +14,7 @@
 //
 // Connections. The listing and order statements run on the thread's
 // DARKEDEN connection. The point statements ask
-// g_pDatabaseManager->getConnection("USERINFO") -- but the string overload
+// de::serverContext().database().getConnection("USERINFO") -- but the string overload
 // ignores its argument and returns that same DARKEDEN connection (the
 // USERINFO socket is getUserInfoConnection(), which nothing here calls).
 // initdb/DARKEDEN.sql does not create AccountPoint or PointLedger -- both

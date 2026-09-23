@@ -21,6 +21,7 @@
 #include "GCSystemMessage.h"
 #include "Guild.h"
 #include "GuildManager.h"
+#include "KernelContext.h"
 #include "PCFinder.h"
 #include "Player.h"
 #include "PlayerCreature.h"
@@ -78,7 +79,7 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
         Fee = 0;
 
     // Not connected: for a master or a submaster, take the money from the DB.
-    const bool addedHere = pPacket->getServerGroupID() == g_pConfig->getPropertyInt("ServerID");
+    const bool addedHere = pPacket->getServerGroupID() == de::kernelContext().config().getPropertyInt("ServerID");
     de::GoneCommand chargeInDatabase = [=] {
         if ((rank == GuildMember::GUILDMEMBER_RANK_MASTER ||
              rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) // when it is the guild master or a submaster

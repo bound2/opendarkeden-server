@@ -16,6 +16,7 @@
 #include "GCSkillToTileOK6.h"
 #include "GCStatusCurrentHP.h"
 #include "GameContext.h"
+#include "KernelContext.h"
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -70,7 +71,8 @@ void Whitsuntide::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        if (g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0) {
+        if (de::kernelContext().config().hasKey("Hardcore") &&
+            de::kernelContext().config().getPropertyInt("Hardcore") != 0) {
             executeSkillFailException(pSlayer, getSkillType());
             return;
         }

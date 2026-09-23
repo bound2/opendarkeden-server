@@ -78,11 +78,6 @@ DarkLightInfoManager& GameContext::darkLights() const {
     return *m_pDarkLightInfoManager;
 }
 
-DatabaseManager& GameContext::databases() const {
-    Assert(m_pDatabaseManager != nullptr);
-    return *m_pDatabaseManager;
-}
-
 DefaultOptionSetInfoManager& GameContext::optionSets() const {
     Assert(m_pDefaultOptionSetInfoManager != nullptr);
     return *m_pDefaultOptionSetInfoManager;

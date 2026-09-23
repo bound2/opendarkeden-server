@@ -18,6 +18,7 @@ set(SERVER_CORE_SOURCES
     Profile.cpp
     PacketProfile.cpp
     GameServerInfoManager.cpp
+    ServerContext.cpp
     PaySystem.cpp
     repository/MySQLPayPlayRepository.cpp
     repository/MySQLServerInfoRepository.cpp

@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/SkillSaveRepository.h"
 
 namespace {
@@ -29,7 +30,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT SkillType, SkillLevel, SkillExp, Delay, CastingTime, NextTime FROM SkillSave WHERE OwnerID = "
                 "'%s'",
@@ -59,7 +60,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT SkillType, Delay, CastingTime, NextTime FROM VampireSkillSave WHERE OwnerID = '%s'",
                 ownerName.c_str());
@@ -86,7 +87,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT SkillType, SkillLevel, Delay, CastingTime, NextTime FROM OustersSkillSave WHERE OwnerID = '%s'",
                 ownerName.c_str());
@@ -113,7 +114,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO SkillSave (OwnerID , SkillType , SkillLevel , SkillExp , Delay , "
                                 "CastingTime , NextTime) VALUES ( '%s', %d, %d, %d, %d, %d, %ld )",
                                 ownerName.c_str(), record.skillType, record.skillLevel, record.skillExp, record.delay,
@@ -127,7 +128,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO VampireSkillSave (OwnerID, SkillType, Delay, CastingTime, NextTime) "
                                 "VALUES ( '%s', %d, %d, %d, %ld )",
                                 ownerName.c_str(), record.skillType, record.delay, record.castingTime, record.nextTime);
@@ -140,7 +141,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             // SkillLevel comes LAST in this table's insert -- the column
             // list and the value list agree, so it lands correctly.
             pStmt->executeQuery("INSERT INTO OustersSkillSave (OwnerID, SkillType, Delay, CastingTime, NextTime, "
@@ -157,7 +158,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "UPDATE SkillSave SET SkillLevel=%d, SkillExp=%d, Delay=%d WHERE OwnerID='%s' AND SkillType=%d",
                 skillLevel, skillExp, delay, ownerName.c_str(), skillType);
@@ -170,7 +171,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE VampireSkillSave SET Delay=%d WHERE OwnerID='%s' AND SkillType=%d", delay,
                                 ownerName.c_str(), skillType);
             SAFE_DELETE(pStmt);
@@ -182,7 +183,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "UPDATE OustersSkillSave SET SkillLevel=%d, Delay=%d WHERE OwnerID='%s' AND SkillType=%d", skillLevel,
                 delay, ownerName.c_str(), skillType);
@@ -195,7 +196,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM OustersSkillSave WHERE OwnerID='%s' AND SkillType=%u", ownerName.c_str(),
                                 skillType);
             SAFE_DELETE(pStmt);

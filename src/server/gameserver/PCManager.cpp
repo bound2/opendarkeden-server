@@ -64,6 +64,7 @@
 #include "GCRemoveFromGear.h"
 #include "GCSystemMessage.h"
 #include "GQuestManager.h"
+#include "KernelContext.h"
 #include "LevelWarZoneInfoManager.h"
 #include "Properties.h"
 #include "SiegeManager.h"
@@ -847,7 +848,8 @@ void PCManager::processCreatures()
                     gcAddEffect.setDuration(300);
                     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcAddEffect);
 
-                    if (g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0) {
+                    if (de::kernelContext().config().hasKey("Hardcore") &&
+                        de::kernelContext().config().getPropertyInt("Hardcore") != 0) {
                         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
                         Assert(pPC != NULL);
 

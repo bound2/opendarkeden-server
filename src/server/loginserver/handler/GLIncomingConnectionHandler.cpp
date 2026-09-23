@@ -13,6 +13,7 @@
 #ifdef __LOGIN_SERVER__
 
 #include "GameServerManager.h"
+#include "KernelContext.h"
 #include "LGIncomingConnectionError.h"
 #include "LGIncomingConnectionOK.h"
 #include "LoginContext.h"
@@ -92,7 +93,7 @@ void GLIncomingConnectionHandler::execute(GLIncomingConnection* pPacket)
         // Tell the login server about it again.
         LGIncomingConnectionOK lgIncomingConnectionOK;
         lgIncomingConnectionOK.setPlayerID(pPacket->getPlayerID());
-        lgIncomingConnectionOK.setTCPPort(g_pConfig->getPropertyInt("LoginServerPort"));
+        lgIncomingConnectionOK.setTCPPort(de::kernelContext().config().getPropertyInt("LoginServerPort"));
         lgIncomingConnectionOK.setKey(authKey);
 
         de::loginContext().gameServers().sendPacket(pPacket->getHost(), pPacket->getPort(), &lgIncomingConnectionOK);

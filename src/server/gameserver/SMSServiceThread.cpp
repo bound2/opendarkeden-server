@@ -5,6 +5,7 @@
 #include <chrono>
 
 #include "Assert.h"
+#include "KernelContext.h"
 #include "Properties.h"
 #include "StringStream.h"
 #include "Timeval.h"
@@ -41,7 +42,9 @@ void operator++(string& id) {
 void SMSServiceThread::run() {
     __BEGIN_TRY
 
-    if (g_pConfig->getPropertyInt("IsNetMarble") != 0) {
+    Properties& config = de::kernelContext().config();
+
+    if (config.getPropertyInt("IsNetMarble") != 0) {
         // Nothing to relay on a NetMarble deployment. Idle until shutdown
         // rather than returning: a managed worker that returns while no stop
         // has been requested is reported as a worker failure.
@@ -50,19 +53,19 @@ void SMSServiceThread::run() {
         return;
     }
 
-    string host = g_pConfig->getProperty("SMS_DB_HOST");
-    string db = g_pConfig->getProperty("SMS_DB_DB");
-    string user = g_pConfig->getProperty("SMS_DB_USER");
-    string password = g_pConfig->getProperty("SMS_DB_PASSWORD");
+    string host = config.getProperty("SMS_DB_HOST");
+    string db = config.getProperty("SMS_DB_DB");
+    string user = config.getProperty("SMS_DB_USER");
+    string password = config.getProperty("SMS_DB_PASSWORD");
     uint port = 0;
-    if (g_pConfig->hasKey("SMS_DB_PORT"))
-        port = g_pConfig->getPropertyInt("SMS_DB_PORT");
+    if (config.hasKey("SMS_DB_PORT"))
+        port = config.getPropertyInt("SMS_DB_PORT");
 
     defaultSMSMessageRepository().open(host, db, user, password, port);
 
-    uint Dimension = g_pConfig->getPropertyInt("Dimension");
-    uint WorldID = g_pConfig->getPropertyInt("WorldID");
-    uint ServerID = g_pConfig->getPropertyInt("ServerID");
+    uint Dimension = config.getPropertyInt("Dimension");
+    uint WorldID = config.getPropertyInt("WorldID");
+    uint ServerID = config.getPropertyInt("ServerID");
 
     Assert(Dimension < 10);
     Assert(WorldID < 10);

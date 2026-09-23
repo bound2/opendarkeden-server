@@ -19,6 +19,7 @@
 #include <sys/time.h>
 
 #include "Exception.h"
+#include "KernelContext.h"
 #include "LoginPacketDispatch.h"
 #include "LoginServer.h"
 #include "Properties.h"
@@ -70,16 +71,21 @@ int main(int argc, char* argv[]) {
     // The executable must live in $VSHOME/bin and the configuration file in $VSHOME/conf.
     // Allow the configuration file to be given on the command line.
 
+    // The configuration outlives every manager that reads it, so main holds
+    // it and registers it on the kernel context for them.
+    Properties* pConfig = NULL;
+
     try {
         if (Argv[1] != "-f") {
             throw Error("Usage : loginserver -f config-file [-p port]");
         }
 
         // When the first parameter is -f, the second is the path of the configuration file.
-        g_pConfig = new Properties();
-        g_pConfig->load(Argv[2]);
+        pConfig = new Properties();
+        de::kernelContext().setConfig(pConfig);
+        pConfig->load(Argv[2]);
 
-        cout << g_pConfig->toString() << endl;
+        cout << pConfig->toString() << endl;
 
     } catch (Error& e) {
         cout << e.toString() << endl;
@@ -92,13 +98,13 @@ int main(int argc, char* argv[]) {
 
             // Force the port.
             char sLoginServerPort[5], sLoginServerUDPPort[5], sLoginServerID[5];
-            sprintf(sLoginServerPort, "%d", g_pConfig->getPropertyInt("LoginServerBasePort") + atoi(argv[4]));
-            sprintf(sLoginServerUDPPort, "%d", g_pConfig->getPropertyInt("LoginServerBaseUDPPort") + atoi(argv[4]));
-            sprintf(sLoginServerID, "%d", g_pConfig->getPropertyInt("LoginServerBaseID") + atoi(argv[4]));
+            sprintf(sLoginServerPort, "%d", pConfig->getPropertyInt("LoginServerBasePort") + atoi(argv[4]));
+            sprintf(sLoginServerUDPPort, "%d", pConfig->getPropertyInt("LoginServerBaseUDPPort") + atoi(argv[4]));
+            sprintf(sLoginServerID, "%d", pConfig->getPropertyInt("LoginServerBaseID") + atoi(argv[4]));
 
-            g_pConfig->setProperty("LoginServerPort", sLoginServerPort);
-            g_pConfig->setProperty("LoginServerUDPPort", sLoginServerUDPPort);
-            g_pConfig->setProperty("LoginServerID", sLoginServerID);
+            pConfig->setProperty("LoginServerPort", sLoginServerPort);
+            pConfig->setProperty("LoginServerUDPPort", sLoginServerUDPPort);
+            pConfig->setProperty("LoginServerID", sLoginServerID);
 
             cout << "LoginServerPort : " << sLoginServerPort << endl;
             cout << "LoginServerUDPPort : " << sLoginServerUDPPort << endl;

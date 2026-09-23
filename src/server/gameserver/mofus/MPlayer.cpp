@@ -20,6 +20,7 @@
 // include packet header
 #include <unistd.h>
 
+#include "KernelContext.h"
 #include "PKTConnectAsk.h"
 #include "PKTLogout.h"
 #include "PKTReceiveOK.h"
@@ -137,8 +138,8 @@ void MPlayer::connect() {
     Assert(m_pSocket == NULL);
 
     // Load Mofus host/port from configuration.
-    const string MofusIP = g_pConfig->getProperty("MofusIP");
-    uint MofusPort = g_pConfig->getPropertyInt("MofusPort");
+    const string MofusIP = de::kernelContext().config().getProperty("MofusIP");
+    uint MofusPort = de::kernelContext().config().getPropertyInt("MofusPort");
 
     try {
         // create socket

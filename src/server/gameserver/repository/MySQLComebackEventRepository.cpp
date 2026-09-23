@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/ComebackEventRepository.h"
 
 namespace {
@@ -21,7 +22,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT RecvItemDate FROM Event200501Main WHERE PlayerID = '%s'", playerID.c_str());
 
@@ -42,7 +43,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT PayPremiumDate, RecvPremiumItemDate FROM Event200501Main WHERE PlayerID = '%s'",
                 playerID.c_str());
@@ -65,7 +66,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT UniqueID, RecvItemDate FROM Event200501Recommend WHERE PlayerID = '%s'", playerID.c_str());
 
@@ -86,7 +87,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("UPDATE Event200501Main SET RecvItemDate = now() WHERE PlayerID = '%s'",
                                 playerID.c_str());
             SAFE_DELETE(pStmt);
@@ -98,7 +99,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("UPDATE Event200501Main SET RecvPremiumItemDate = now() WHERE PlayerID = '%s'",
                                 playerID.c_str());
             SAFE_DELETE(pStmt);
@@ -110,7 +111,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("UPDATE Event200501Recommend SET RecvItemDate = now() WHERE UniqueID = '%d'", uniqueID);
             SAFE_DELETE(pStmt);
         }
@@ -125,7 +126,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT COUNT(*) FROM DonationPersonal200501 WHERE Name = '%s' AND WorldID = %d",
                                     name.c_str(), worldID);
@@ -146,7 +147,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT COUNT(*) FROM DonationGuild200501 WHERE Name = '%s' AND WorldID = %d", name.c_str(), worldID);
 
@@ -165,7 +166,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("INSERT INTO DonationPersonal200501 VALUES ( '%s', '%s', %d, %u, now() )",
                                 playerID.c_str(), name.c_str(), worldID, gold);
             SAFE_DELETE(pStmt);
@@ -178,7 +179,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             pStmt->executeQuery("INSERT INTO DonationGuild200501 VALUES ( %u, '%s', '%s', '%s', %d, %u, now() )",
                                 guildID, guildName.c_str(), playerID.c_str(), name.c_str(), worldID, gold);
             SAFE_DELETE(pStmt);
@@ -211,7 +212,7 @@ private:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt = de::serverContext().database().getDistConnection("PLAYER_DB")->createStatement();
             Result* pResult = pStmt->executeQuery(format, playerID.c_str());
             found = pResult->next();
             SAFE_DELETE(pStmt);

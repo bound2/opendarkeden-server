@@ -9,6 +9,7 @@
 #ifdef __GAME_SERVER__
 #include "Assert.h"
 #include "GamePlayer.h"
+#include "KernelContext.h"
 #include "Ousters.h"
 #include "Properties.h"
 #include "Slayer.h"
@@ -72,8 +73,8 @@ void CGVerifyTimeHandler::saveSpeedHackPlayer(Player* pPlayer) {
     // Put the related information into the DB.
     /////////////////////////////////////////////////////////
     try {
-        static WorldID_t WorldID = g_pConfig->getPropertyInt("WorldID");
-        static ServerGroupID_t ServerGroupID = g_pConfig->getPropertyInt("ServerID");
+        static WorldID_t WorldID = de::kernelContext().config().getPropertyInt("WorldID");
+        static ServerGroupID_t ServerGroupID = de::kernelContext().config().getPropertyInt("ServerID");
 
         // The UPDATE and, when it changed no row, the INSERT IGNORE. A SQL
         // failure is END_DB's DatabaseError, which the catch below does not

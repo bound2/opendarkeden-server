@@ -6,11 +6,6 @@
 
 #include "SkillUtil.h"
 
-#include "Monster.h"
-#include "Player.h"
-#include "SkillInfo.h"
-#include "domain/Formulas.h"
-// #include "AttrBalanceInfo.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -73,14 +68,19 @@
 #include "HitRoll.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
+#include "KernelContext.h"
 #include "MasterLairInfoManager.h"
+#include "Monster.h"
 #include "OustersEXPInfo.h"
 #include "PKZoneInfoManager.h"
 #include "PacketUtil.h"
 #include "Party.h"
+#include "Player.h"
 #include "PrecedenceTable.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "SkillDomainInfoManager.h"
+#include "SkillInfo.h"
 #include "SkillPropertyManager.h"
 #include "SkillUtilInternal.h"
 #include "SummonGroundElemental.h"
@@ -89,6 +89,7 @@
 #include "VariableManager.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
+#include "domain/Formulas.h"
 #include "mission/EventQuestLootingManager.h"
 #include "mission/MonsterKillQuestStatus.h"
 #include "mission/QuestManager.h"
@@ -623,10 +624,9 @@ bool canAttack(Creature* pAttacker, Creature* pDefender) {
         return true;
 
     // Is this game server configured as non-PK?
-    static bool bNonPK =
-        g_pGameServerInfoManager
-            ->getGameServerInfo(1, g_pConfig->getPropertyInt("ServerID"), g_pConfig->getPropertyInt("WorldID"))
-            ->isNonPKServer();
+    static const int serverID = de::kernelContext().config().getPropertyInt("ServerID");
+    static const int worldID = de::kernelContext().config().getPropertyInt("WorldID");
+    static bool bNonPK = de::serverContext().serverInfos().getGameServerInfo(1, serverID, worldID)->isNonPKServer();
 
     // non-PK check
     if (bNonPK && pAttacker->isPC() && pDefender->isPC())

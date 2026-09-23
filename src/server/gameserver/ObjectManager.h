@@ -35,6 +35,7 @@ class EffectLoaderManager;
 class EventQuestLootingManager;
 class FlagManager;
 class GameServerGroupInfoManager;
+class GameWorldInfoManager;
 class GlobalPartyManager;
 class GoodsInfoManager;
 class GuildManager;
@@ -112,6 +113,7 @@ private:
     EventQuestLootingManager* m_pEventQuestLootingManager = nullptr;
     FlagManager* m_pFlagManager = nullptr;
     GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
+    GameWorldInfoManager* m_pGameWorldInfoManager = nullptr;
     GlobalPartyManager* m_pGlobalPartyManager = nullptr;
     GoodsInfoManager* m_pGoodsInfoManager = nullptr;
     GuildManager* m_pGuildManager = nullptr;

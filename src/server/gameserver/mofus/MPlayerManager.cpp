@@ -12,12 +12,14 @@
 #include "DB.h"
 #include "GCRequestPowerPointResult.h"
 #include "GameContext.h"
+#include "KernelContext.h"
 #include "MPlayer.h"
 #include "Mofus.h"
 #include "PCFinder.h"
 #include "PKTError.h"
 #include "PlayerCreature.h"
 #include "Properties.h"
+#include "ServerContext.h"
 
 // constructor
 MPlayerManager::MPlayerManager()
@@ -54,16 +56,18 @@ void MPlayerManager::stop()
 void MPlayerManager::run() {
     __BEGIN_TRY
 
-    string host = g_pConfig->getProperty("DB_HOST");
-    string db = g_pConfig->getProperty("DB_DB");
-    string user = g_pConfig->getProperty("DB_USER");
-    string password = g_pConfig->getProperty("DB_PASSWORD");
+    Properties& config = de::kernelContext().config();
+
+    string host = config.getProperty("DB_HOST");
+    string db = config.getProperty("DB_DB");
+    string user = config.getProperty("DB_USER");
+    string password = config.getProperty("DB_PASSWORD");
     uint port = 0;
-    if (g_pConfig->hasKey("DB_PORT"))
-        port = g_pConfig->getPropertyInt("DB_PORT");
+    if (config.hasKey("DB_PORT"))
+        port = config.getPropertyInt("DB_PORT");
 
     Connection* pConnection = new Connection(host, db, user, password, port);
-    g_pDatabaseManager->addConnection((int)(long)Thread::self(), pConnection);
+    de::serverContext().database().addConnection((int)(long)Thread::self(), pConnection);
     cout << "******************************************************" << endl;
     cout << " Mofus THREAD CONNECT DB " << endl;
     cout << "******************************************************" << endl;
@@ -99,7 +103,7 @@ void MPlayerManager::run() {
         getCurrentTime(currentTime);
 
         if (dummyQueryTime < currentTime) {
-            g_pDatabaseManager->executeDummyQuery(pConnection);
+            de::serverContext().database().executeDummyQuery(pConnection);
 
             dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
         }

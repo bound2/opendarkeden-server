@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/LoginCharacterPurgeRepository.h"
 
 namespace {
@@ -24,7 +25,7 @@ namespace {
 void execSQL(const std::string& sql) {
     Statement* pStmt = NULL;
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
         pStmt->executeQueryString(sql);
         SAFE_DELETE(pStmt);
     }
@@ -35,7 +36,7 @@ std::string queryScalar(const std::string& sql) {
     std::string value;
     Statement* pStmt = NULL;
     BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
         Result* pResult = pStmt->executeQueryString(sql);
         if (pResult->next())
             value = pResult->getString(1);

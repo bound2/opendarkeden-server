@@ -31,6 +31,7 @@
 #include "Exception.h"
 #include "GLIncomingConnectionError.h"
 #include "GMServerInfo.h"
+#include "KernelContext.h"
 #include "LGIncomingConnectionError.h"
 #include "Packet.h"
 #include "PacketFactoryManager.h"
@@ -84,12 +85,14 @@ unsigned int sizeField(Datagram& datagram) {
     return size;
 }
 
-// The receive path builds packets through the global factory manager,
-// which no other test in this binary installs.
+// The receive path builds packets through the factory table registered
+// on the kernel context, which no other test in this binary installs.
 void installPortCheckFactory() {
-    if (g_pPacketFactoryManager == NULL) {
-        g_pPacketFactoryManager = new PacketFactoryManager();
-        g_pPacketFactoryManager->addFactory(new CGPortCheckFactory());
+    static PacketFactoryManager* pPacketFactoryManager = NULL;
+    if (pPacketFactoryManager == NULL) {
+        pPacketFactoryManager = new PacketFactoryManager();
+        pPacketFactoryManager->addFactory(new CGPortCheckFactory());
+        de::kernelContext().setPacketFactoryManager(pPacketFactoryManager);
     }
 }
 

@@ -23,7 +23,7 @@ enum FlagSetType {
     FLAGSET_TRADE_GIFT_BOX_2002_12, // 4 - traded the red gift box of the Christmas event
     FLAGSET_RECEIVE_GREEN_GIFT_BOX, // 5 - received a green gift box from someone else
 
-    FLAGSET_RECEIVE_NEWBIE_ITEM_AUTO, // 6 - should receive the newbie item automatically
+    FLAGSET_RECEIVE_NEWBIE_ITEM_AUTO, // 6 - newbie-kit bookkeeping, read per race: a slayer's bit means still owed, an ousters' already given (the login presets seed each accordingly)
 
     FLAGSET_RECEIVE_PREMIUM_EVENT_ITEM_2003_3, // 7 - gift given to premium users
 

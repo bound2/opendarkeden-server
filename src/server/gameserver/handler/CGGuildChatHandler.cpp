@@ -11,9 +11,11 @@
 #include "GameContext.h"
 #include "GamePlayer.h"
 #include "GameServerInfoManager.h"
+#include "KernelContext.h"
 #include "LoginServerManager.h"
 #include "PlayerCreature.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "SystemAvailabilitiesManager.h"
 #endif
 
@@ -51,12 +53,12 @@ void CGGuildChatHandler::execute(CGGuildChat* pPacket, Player* pPlayer)
     ggGuildChat.setMessage(pPacket->getMessage());
 
     // Send it to each server.
-    HashMapGameServerInfo** pGameServerInfos = g_pGameServerInfoManager->getGameServerInfos();
+    HashMapGameServerInfo** pGameServerInfos = de::serverContext().serverInfos().getGameServerInfos();
 
-    static int myWorldID = g_pConfig->getPropertyInt("WorldID");
-    static int myServerID = g_pConfig->getPropertyInt("ServerID");
+    static int myWorldID = de::kernelContext().config().getPropertyInt("WorldID");
+    static int myServerID = de::kernelContext().config().getPropertyInt("ServerID");
 
-    int maxServerGroupID = g_pGameServerInfoManager->getMaxServerGroupID();
+    int maxServerGroupID = de::serverContext().serverInfos().getMaxServerGroupID();
 
     for (int groupID = 0; groupID < maxServerGroupID; groupID++) {
         HashMapGameServerInfo& gameServerInfo = pGameServerInfos[myWorldID][groupID];

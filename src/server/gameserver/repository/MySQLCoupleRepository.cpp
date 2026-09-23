@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/CoupleRepository.h"
 
 namespace {
@@ -51,7 +52,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT count(*) FROM CoupleInfo where %s='%s'", fieldName(sex), name.c_str());
 
@@ -70,7 +71,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT %s FROM CoupleInfo where %s='%s'", counterFieldName(sex),
                                                   fieldName(sex), name.c_str());
 
@@ -90,7 +91,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO CoupleInfo (%s, %s, Race, CoupleDate ) VALUES ('%s','%s',%u, now())",
                                 fieldName(sex1), fieldName(sex2), name1.c_str(), name2.c_str(), race);
 
@@ -103,7 +104,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM CoupleInfo WHERE %s='%s' AND %s='%s' AND Race=%u", fieldName(sex1),
                                 name1.c_str(), fieldName(sex2), name2.c_str(), race);
 
@@ -116,7 +117,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             // Lower-case "where"; deletePairing's is upper-case.
             pStmt->executeQuery("DELETE FROM CoupleInfo where %s='%s' AND %s='%s' AND Race=%u", fieldName(sex),
                                 name.c_str(), counterFieldName(sex), partnerName.c_str(), race);
@@ -129,7 +130,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM CoupleInfo where %s='%s' AND Race=%u", fieldName(sex), name.c_str(), race);
             SAFE_DELETE(pStmt);
         }
@@ -147,7 +148,7 @@ private:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT count(*) FROM CoupleInfo where %s='%s' and %s='%s'",
                                                   ownColumn, ownName.c_str(), partnerColumn, partnerName.c_str());
 

@@ -19,9 +19,14 @@
 #include "Types.h"
 
 class ClientManager;
+class DatabaseManager;
 class GameServerGroupInfoManager;
+class GameServerInfoManager;
 class GameServerManager;
+class GameWorldInfoManager;
 class ItemDestroyer;
+class PacketFactoryManager;
+class PacketValidator;
 class UserInfoManager;
 class ZoneGroupInfoManager;
 class ZoneInfoManager;
@@ -57,7 +62,9 @@ private:
 
     // The managers the login server owns. Each is registered on
     // de::loginContext() as it is created, except the two nothing outside
-    // this class reads.
+    // this class reads and the packet factory table and the validator, which
+    // go on de::KernelContext because every binary fills it with a set of
+    // its own.
     GameServerGroupInfoManager* m_pGameServerGroupInfoManager = nullptr;
     ZoneInfoManager* m_pZoneInfoManager = nullptr;
     ZoneGroupInfoManager* m_pZoneGroupInfoManager = nullptr;
@@ -65,6 +72,11 @@ private:
     ClientManager* m_pClientManager = nullptr;
     ItemDestroyer* m_pItemDestroyer = nullptr;
     UserInfoManager* m_pUserInfoManager = nullptr;
+    GameWorldInfoManager* m_pGameWorldInfoManager = nullptr;
+    DatabaseManager* m_pDatabaseManager = nullptr;
+    GameServerInfoManager* m_pGameServerInfoManager = nullptr;
+    PacketFactoryManager* m_pPacketFactoryManager = nullptr;
+    PacketValidator* m_pPacketValidator = nullptr;
 };
 
 #endif

@@ -26,6 +26,7 @@
 #include "ItemFactoryManager.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
+#include "KernelContext.h"
 #include "LoginServerManager.h"
 #include "MasterLairManager.h"
 #include "Monster.h"
@@ -36,6 +37,7 @@
 #include "Properties.h"
 #include "Relic.h"
 #include "RelicUtil.h"
+#include "ServerContext.h"
 #include "Slayer.h"
 #include "StringPool.h"
 #include "VSDateTime.h"
@@ -1239,14 +1241,15 @@ void opworld(GamePlayer* pGamePlayer, string msg, int i, bool bSameWorldOnly) {
 
 
     // Send it to each server.
-    HashMapGameServerInfo** pGameServerInfos = g_pGameServerInfoManager->getGameServerInfos();
+    GameServerInfoManager& serverInfos = de::serverContext().serverInfos();
+    HashMapGameServerInfo** pGameServerInfos = serverInfos.getGameServerInfos();
 
 
-    static int myWorldID = g_pConfig->getPropertyInt("WorldID");
-    static int myServerID = g_pConfig->getPropertyInt("ServerID");
+    static int myWorldID = de::kernelContext().config().getPropertyInt("WorldID");
+    static int myServerID = de::kernelContext().config().getPropertyInt("ServerID");
 
-    int maxWorldID = g_pGameServerInfoManager->getMaxWorldID();
-    int maxServerGroupID = g_pGameServerInfoManager->getMaxServerGroupID();
+    int maxWorldID = serverInfos.getMaxWorldID();
+    int maxServerGroupID = serverInfos.getMaxServerGroupID();
 
 
     for (int worldID = 1; worldID < maxWorldID; worldID++) {

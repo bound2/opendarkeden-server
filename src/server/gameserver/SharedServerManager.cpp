@@ -14,7 +14,9 @@
 #include "Assert.h"
 #include "DB.h"
 #include "GSRequestGuildInfo.h"
+#include "KernelContext.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "SharedServerClient.h"
 #include "ThreadManager.h"
 #include "ThreadPool.h"
@@ -69,17 +71,19 @@ void SharedServerManager::stop()
 void SharedServerManager::run()
 
 {
+    Properties& config = de::kernelContext().config();
+
     try {
-        string host = g_pConfig->getProperty("DB_HOST");
-        string db = g_pConfig->getProperty("DB_DB");
-        string user = g_pConfig->getProperty("DB_USER");
-        string password = g_pConfig->getProperty("DB_PASSWORD");
+        string host = config.getProperty("DB_HOST");
+        string db = config.getProperty("DB_DB");
+        string user = config.getProperty("DB_USER");
+        string password = config.getProperty("DB_PASSWORD");
         uint port = 0;
-        if (g_pConfig->hasKey("DB_PORT"))
-            port = g_pConfig->getPropertyInt("DB_PORT");
+        if (config.hasKey("DB_PORT"))
+            port = config.getPropertyInt("DB_PORT");
 
         Connection* pConnection = new Connection(host, db, user, password, port);
-        g_pDatabaseManager->addConnection((int)(long)Thread::self(), pConnection);
+        de::serverContext().database().addConnection((int)(long)Thread::self(), pConnection);
         cout << "************************************************************************" << endl;
         cout << "OPEN LOGIN DB" << endl;
         cout << "************************************************************************" << endl;
@@ -95,8 +99,8 @@ void SharedServerManager::run()
                 Socket* pSocket = NULL;
 
                 try {
-                    string SharedServerIP = g_pConfig->getProperty("SharedServerIP");
-                    uint SharedServerPort = g_pConfig->getPropertyInt("SharedServerPort");
+                    string SharedServerIP = config.getProperty("SharedServerIP");
+                    uint SharedServerPort = config.getPropertyInt("SharedServerPort");
 
                     // create socket
                     pSocket = new Socket(SharedServerIP, SharedServerPort);
@@ -170,7 +174,7 @@ void SharedServerManager::run()
             getCurrentTime(currentTime);
 
             if (dummyQueryTime < currentTime) {
-                g_pDatabaseManager->executeDummyQuery(pConnection);
+                de::serverContext().database().executeDummyQuery(pConnection);
 
                 // Schedule the dummy query between 1 hour and 1 hour 30 minutes out,
                 // so the connection does not time out.

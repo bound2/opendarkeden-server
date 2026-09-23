@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/GoldRepository.h"
 
 namespace {
@@ -27,7 +28,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE %s SET Gold=Gold+%u WHERE NAME='%s'", characterRaceTable(race), delta,
                                 ownerName.c_str());
             SAFE_DELETE(pStmt);
@@ -39,7 +40,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE %s SET Gold=Gold-%u WHERE NAME='%s'", characterRaceTable(race), delta,
                                 ownerName.c_str());
             SAFE_DELETE(pStmt);
@@ -51,7 +52,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE %s SET Gold = IF (%u > Gold , 0, Gold - %u ) WHERE Name = '%s'",
                                 characterRaceTable(race), fee, fee, ownerName.c_str());
             SAFE_DELETE(pStmt);
@@ -64,7 +65,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT Gold FROM %s WHERE NAME='%s'", characterRaceTable(race), ownerName.c_str());
 

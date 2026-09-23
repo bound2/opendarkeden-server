@@ -63,7 +63,4 @@ private:
     int m_MaxWorldID;
 };
 
-// global variable declaration
-extern GameServerInfoManager* g_pGameServerInfoManager;
-
 #endif

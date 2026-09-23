@@ -85,7 +85,9 @@
 #include "DynamicZone.h"
 #include "GuildManager.h"
 #include "GuildUnion.h"
+#include "KernelContext.h"
 #include "PCFinder.h"
+#include "ServerContext.h"
 #include "Store.h"
 #include "repository/PlayRecordRepository.h"
 
@@ -494,7 +496,7 @@ void makeGCUpdateInfo(GCUpdateInfo* pUpdateInfo, Creature* pCreature)
 
     int UserModify = 0;
 
-    // ServerGroupID_t CurrentServerGroupID = g_pConfig->getPropertyInt( "ServerID" );
+    // ServerGroupID_t CurrentServerGroupID = de::kernelContext().config().getPropertyInt( "ServerID" );
 
     UserModify = 1000;
 
@@ -522,10 +524,9 @@ void makeGCUpdateInfo(GCUpdateInfo* pUpdateInfo, Creature* pCreature)
     if (pGamePlayer->isPremiumPlay())
         pUpdateInfo->setPremiumPlay();
 
-    static bool bNonPK =
-        g_pGameServerInfoManager
-            ->getGameServerInfo(1, g_pConfig->getPropertyInt("ServerID"), g_pConfig->getPropertyInt("WorldID"))
-            ->isNonPKServer();
+    static const int serverID = de::kernelContext().config().getPropertyInt("ServerID");
+    static const int worldID = de::kernelContext().config().getPropertyInt("WorldID");
+    static bool bNonPK = de::serverContext().serverInfos().getGameServerInfo(1, serverID, worldID)->isNonPKServer();
 
     if (bNonPK) {
         pUpdateInfo->setNonPK(1);

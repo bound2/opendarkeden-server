@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "ServerContext.h"
 #include "repository/QuestInfoRepository.h"
 
 namespace {
@@ -18,7 +19,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT QuestID, Race, MaxGrade, MinGrade, TimeLimitSec, RewardClass, "
                                     "TargetSType, IsChief, Goal FROM MonsterKillQuestInfo WHERE NPC = '%s'",
@@ -58,7 +59,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT QuestID, Race, MaxGrade, MinGrade, TimeLimitSec, RewardClass, TargetSType, "
                                     "IsChief, Goal, EventQuest, QuestLevel FROM MonsterKillQuestInfo WHERE NPC='%s'",
@@ -88,7 +89,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(
                 "SELECT QuestID, Race, MaxGrade, MinGrade, TimeLimitSec, RewardClass, TargetIClass, "
                 "TargetIType, Goal, EventQuest, QuestLevel FROM GatherItemQuestInfo WHERE NPC='%s'",
@@ -118,7 +119,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT QuestID, Race, MaxGrade, MinGrade, TimeLimitSec, RewardClass, TargetNPCID, "
                                     "SecondNPCID, EventQuest, QuestLevel FROM MeetNPCQuestInfo WHERE NPC='%s'",
@@ -147,7 +148,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult =
                 pStmt->executeQuery("SELECT QuestID, Race, MaxGrade, MinGrade, TimeLimitSec, RewardClass, "
                                     "GameType, EventQuest, QuestLevel FROM MiniGameQuestInfo WHERE NPC='%s'",
@@ -175,7 +176,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE EventQuestAdvance SET Status=%u WHERE OwnerID='%s' AND QuestLevel=%u", status,
                                 ownerName.c_str(), questLevel);
             updated = pStmt->getAffectedRowCount() != 0;
@@ -190,7 +191,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
                 "INSERT IGNORE INTO EventQuestAdvance (QuestLevel, OwnerID, Status) VALUES (%u, '%s', %u)", questLevel,
                 ownerName.c_str(), status);
@@ -204,7 +205,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery("SELECT QuestLevel, Status FROM EventQuestAdvance WHERE OwnerID='%s'",
                                                   ownerName.c_str());
 
@@ -227,7 +228,7 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQueryString(
                 "SELECT QuestLevel, LootingType-1, LootingZone, LootingMType, LootingIClass, LootingITypeMin, "
                 "LootingITypeMax, Race, MinGrade, MaxGrade FROM EventQuestLootingInfo");
@@ -273,7 +274,7 @@ private:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             Result* pResult = pStmt->executeQuery(statement, npcName.c_str());
 
             while (pResult->next()) {

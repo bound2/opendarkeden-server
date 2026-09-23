@@ -14,6 +14,7 @@
 
 #include "EffectDetectInvisibility.h"
 #include "EffectObservingEye.h"
+#include "KernelContext.h"
 #include "MonsterInfoTypes.h"
 #include "MonsterSummonInfo.h"
 #include "Properties.h"
@@ -497,6 +498,8 @@ void MonsterInfoManager::load()
 
 {
     __BEGIN_TRY
+    Properties& config = de::kernelContext().config();
+
     __BEGIN_DEBUG
 
     ContentInfoRepository& repository = defaultContentInfoRepository();
@@ -593,17 +596,15 @@ void MonsterInfoManager::load()
                 string ousters_filename;
 
                 if (pInfo->getMonsterClass() == 0) {
-                    slayer_filename = g_pConfig->getProperty("HomePath") + "/data/" + pInfo->getEName() + ".slayer.bin";
-                    vampire_filename =
-                        g_pConfig->getProperty("HomePath") + "/data/" + pInfo->getEName() + ".vampire.bin";
-                    ousters_filename =
-                        g_pConfig->getProperty("HomePath") + "/data/" + pInfo->getEName() + ".ousters.bin";
+                    slayer_filename = config.getProperty("HomePath") + "/data/" + pInfo->getEName() + ".slayer.bin";
+                    vampire_filename = config.getProperty("HomePath") + "/data/" + pInfo->getEName() + ".vampire.bin";
+                    ousters_filename = config.getProperty("HomePath") + "/data/" + pInfo->getEName() + ".ousters.bin";
                 } else {
                     char buffer[10];
                     sprintf(buffer, "Class%d", pInfo->getMonsterClass());
-                    slayer_filename = g_pConfig->getProperty("HomePath") + "/data/" + buffer + ".slayer.bin";
-                    vampire_filename = g_pConfig->getProperty("HomePath") + "/data/" + buffer + ".vampire.bin";
-                    ousters_filename = g_pConfig->getProperty("HomePath") + "/data/" + buffer + ".ousters.bin";
+                    slayer_filename = config.getProperty("HomePath") + "/data/" + buffer + ".slayer.bin";
+                    vampire_filename = config.getProperty("HomePath") + "/data/" + buffer + ".vampire.bin";
+                    ousters_filename = config.getProperty("HomePath") + "/data/" + buffer + ".ousters.bin";
                 }
 
                 TreasureList* pSlayerTreasureList = m_SlayerTreasureLists.getTreasure(slayer_filename);

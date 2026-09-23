@@ -644,7 +644,7 @@ any of the three processes waits on a sleep for a worker (the pool, the
 managers and the three `main`s were checked), so there is no seam for a
 `std::latch` to replace.
 
-The 459 critical sections in `src/` are now RAII. `__ENTER_CRITICAL_SECTION(x)`
+The 460 critical sections in `src/` are now RAII (the count moves with the code; the audit script, not this number, is what holds). `__ENTER_CRITICAL_SECTION(x)`
 declares a scoped `CriticalSection` guard (`src/Core/Exception.h`) over any
 BasicLockable — `Mutex`, `Zone`, `ZoneGroup`, `PCFinder`, `ObjectRegistry` — and
 `__LEAVE_CRITICAL_SECTION` closes that block; the guard calls exactly `lock()`
