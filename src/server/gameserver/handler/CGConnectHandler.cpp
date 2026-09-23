@@ -89,10 +89,9 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX __BEGIN_DEBUG
 
-        Properties& config = de::kernelContext().config();
-
-    GuildManager& guilds = de::gameContext().guilds();
+        GuildManager& guilds = de::gameContext().guilds();
     SharedServerManager& sharedServer = de::gameContext().sharedServer();
+    Properties& config = de::kernelContext().config();
 
 #ifdef __GAME_SERVER__
 

@@ -84,8 +84,9 @@ GameServer::GameServer()
         m_pClientManager = new ClientManager();
         de::gameContext().setClientManager(m_pClientManager);
 
-        // create login server manager
-        g_pGameServerInfoManager = new GameServerInfoManager();
+        // create the game-server table
+        m_pGameServerInfoManager = new GameServerInfoManager();
+        de::serverContext().setGameServerInfoManager(m_pGameServerInfoManager);
 
     } catch (Throwable& t) {
         // cout << t.toString() << endl;
@@ -120,7 +121,7 @@ GameServer::~GameServer()
     SAFE_DELETE(m_pMPlayerManager);
     SAFE_DELETE(m_pMPacketManager);
 #endif
-    SAFE_DELETE(g_pGameServerInfoManager);
+    SAFE_DELETE(m_pGameServerInfoManager);
     SAFE_DELETE(m_pDatabaseManager);
 
     __END_CATCH_NO_RETHROW
@@ -178,7 +179,7 @@ void GameServer::init()
     cout << "GameServer::init() : MPlayerManager Initialization Success..." << endl;
 #endif
 
-    g_pGameServerInfoManager->init();
+    m_pGameServerInfoManager->init();
     cout << "GameServer::init() : GameServerInfoManager Initialization Success..." << endl;
 
     // Once everything else is ready, initialize the client manager to

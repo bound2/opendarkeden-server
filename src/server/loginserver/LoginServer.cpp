@@ -44,7 +44,8 @@ LoginServer::LoginServer() {
     de::serverContext().setDatabaseManager(m_pDatabaseManager);
 
     // create some info managers
-    g_pGameServerInfoManager = new GameServerInfoManager();
+    m_pGameServerInfoManager = new GameServerInfoManager();
+    de::serverContext().setGameServerInfoManager(m_pGameServerInfoManager);
     m_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
     de::loginContext().setGameServerGroupInfoManager(m_pGameServerGroupInfoManager);
 
@@ -127,9 +128,9 @@ LoginServer::~LoginServer() noexcept(false) {
         m_pZoneInfoManager = NULL;
     }
 
-    if (g_pGameServerInfoManager != NULL) {
-        delete g_pGameServerInfoManager;
-        g_pGameServerInfoManager = NULL;
+    if (m_pGameServerInfoManager != NULL) {
+        delete m_pGameServerInfoManager;
+        m_pGameServerInfoManager = NULL;
     }
 
     if (m_pGameServerGroupInfoManager != NULL) {
@@ -165,7 +166,7 @@ void LoginServer::init() {
     m_pDatabaseManager->init();
 
     // initialize some info managers
-    g_pGameServerInfoManager->init();
+    m_pGameServerInfoManager->init();
     m_pGameServerGroupInfoManager->init();
     m_pZoneInfoManager->init();
     m_pZoneGroupInfoManager->init();

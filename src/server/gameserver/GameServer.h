@@ -17,6 +17,7 @@
 
 class ClientManager;
 class DatabaseManager;
+class GameServerInfoManager;
 class LoginServerManager;
 class MPacketManager;
 class MPlayerManager;
@@ -53,6 +54,7 @@ private:
     // globals did.
     ClientManager* m_pClientManager = nullptr;
     DatabaseManager* m_pDatabaseManager = nullptr;
+    GameServerInfoManager* m_pGameServerInfoManager = nullptr;
     LoginServerManager* m_pLoginServerManager = nullptr;
     MPacketManager* m_pMPacketManager = nullptr;
     MPlayerManager* m_pMPlayerManager = nullptr;

@@ -24,6 +24,7 @@
 #include "PacketProfile.h"
 #include "PacketValidator.h"
 #include "Profile.h"
+#include "ServerContext.h"
 #include "repository/LoginAccountRepository.h"
 #include "repository/LoginCharacterRepository.h"
 
@@ -508,14 +509,14 @@ void LoginPlayer::sendLGKickCharacter() {
     //
     // Send it to every Server in that World
     //----------------------------------------------------------------------
-    for (int i = 0; i < g_pGameServerInfoManager->getMaxServerGroupID(); i++) {
+    for (int i = 0; i < de::serverContext().serverInfos().getMaxServerGroupID(); i++) {
         serverGroupID = i;
 
         try {
             cout << "World=" << worldID << ", " << "Group=" << serverGroupID << ", " << "Server=" << serverID << endl;
 
             GameServerInfo* pGameServerInfo =
-                g_pGameServerInfoManager->getGameServerInfo(serverID, serverGroupID, worldID);
+                de::serverContext().serverInfos().getGameServerInfo(serverID, serverGroupID, worldID);
 
             if (pGameServerInfo != NULL) {
                 gameServerIP = pGameServerInfo->getIP();

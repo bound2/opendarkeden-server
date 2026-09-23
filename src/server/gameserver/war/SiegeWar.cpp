@@ -25,6 +25,7 @@
 #include "Mutex.h"
 #include "PCManager.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "SiegeManager.h"
 #include "StringStream.h"
 #include "WarSystem.h"
@@ -142,8 +143,8 @@ void SiegeWar::executeEnd()
         static int myWorldID = de::kernelContext().config().getPropertyInt("WorldID");
         static int myServerID = de::kernelContext().config().getPropertyInt("ServerID");
 
-        HashMapGameServerInfo* pInfos = g_pGameServerInfoManager->getGameServerInfos()[myWorldID];
-        int maxServerGroupID = g_pGameServerInfoManager->getMaxServerGroupID();
+        HashMapGameServerInfo* pInfos = de::serverContext().serverInfos().getGameServerInfos()[myWorldID];
+        int maxServerGroupID = de::serverContext().serverInfos().getMaxServerGroupID();
 
         for (int groupID = 0; groupID < maxServerGroupID; ++groupID) {
             HashMapGameServerInfo& gameServerInfo = pInfos[groupID];

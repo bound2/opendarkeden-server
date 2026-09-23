@@ -66,6 +66,7 @@
 #include "Relic.h"
 #include "RelicUtil.h"
 #include "ResurrectLocationManager.h"
+#include "ServerContext.h"
 #include "SkillHandler.h"
 #include "SkillUtil.h"
 #include "Slayer.h"
@@ -1481,10 +1482,9 @@ bool checkMine(Zone* pZone, Creature* pCreature, ZoneCoord_t X, ZoneCoord_t Y)
 
     Assert(pCreature != NULL);
 
-    static bool bNonPK = g_pGameServerInfoManager
-                             ->getGameServerInfo(1, de::kernelContext().config().getPropertyInt("ServerID"),
-                                                 de::kernelContext().config().getPropertyInt("WorldID"))
-                             ->isNonPKServer();
+    static const int serverID = de::kernelContext().config().getPropertyInt("ServerID");
+    static const int worldID = de::kernelContext().config().getPropertyInt("WorldID");
+    static bool bNonPK = de::serverContext().serverInfos().getGameServerInfo(1, serverID, worldID)->isNonPKServer();
     if (bNonPK && pCreature->isPC())
         return false;
 

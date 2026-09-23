@@ -63,6 +63,7 @@
 #include "Pet.h"
 #include "PlayerRace.h"
 #include "SMSAddressBook.h"
+#include "ServerContext.h"
 #include "Socket.h"
 #include "Store.h"
 #include "VariableManager.h"
@@ -492,10 +493,9 @@ void PlayerCreature::sendCurrentQuestInfo() const {
 }
 
 void PlayerCreature::whenQuestLevelUpgrade() {
-    static bool bNonPK = g_pGameServerInfoManager
-                             ->getGameServerInfo(1, de::kernelContext().config().getPropertyInt("ServerID"),
-                                                 de::kernelContext().config().getPropertyInt("WorldID"))
-                             ->isNonPKServer();
+    static const int serverID = de::kernelContext().config().getPropertyInt("ServerID");
+    static const int worldID = de::kernelContext().config().getPropertyInt("WorldID");
+    static bool bNonPK = de::serverContext().serverInfos().getGameServerInfo(1, serverID, worldID)->isNonPKServer();
 
     if (bNonPK && getLevel() > 80) {
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayer);

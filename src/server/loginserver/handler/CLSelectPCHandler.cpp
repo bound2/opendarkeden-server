@@ -22,6 +22,7 @@
 #include "LoginContext.h"
 #include "LoginPlayer.h"
 #include "Properties.h"
+#include "ServerContext.h"
 #include "ZoneGroupInfoManager.h"
 #include "ZoneInfoManager.h"
 #include "repository/LoginAccountRepository.h"
@@ -34,7 +35,7 @@ namespace {
 class GlobalSelectPCTopology : public SelectPCTopology {
 public:
     bool isNonPKServer(WorldID_t worldID, ServerGroupID_t serverGroupID) override {
-        return g_pGameServerInfoManager->getGameServerInfo(1, serverGroupID, worldID)->isNonPKServer();
+        return de::serverContext().serverInfos().getGameServerInfo(1, serverGroupID, worldID)->isNonPKServer();
     }
 
     ServerID_t zoneServerID(ZoneID_t zoneID) override {
@@ -60,12 +61,12 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
-        Properties& config = de::kernelContext().config();
-
 #ifdef __LOGIN_SERVER__
 
-    Assert(pPacket != NULL);
+        Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
+
+    Properties& config = de::kernelContext().config();
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
@@ -121,8 +122,8 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
 
         const SelectedCharacter selected = std::move(outcome).events();
 
-        GameServerInfo* pGameServerInfo =
-            g_pGameServerInfoManager->getGameServerInfo(selected.serverID, pLoginPlayer->getServerGroupID(), WorldID);
+        GameServerInfo* pGameServerInfo = de::serverContext().serverInfos().getGameServerInfo(
+            selected.serverID, pLoginPlayer->getServerGroupID(), WorldID);
 
         //----------------------------------------------------------------------
         // Tell the game server to expect this incoming connection.
