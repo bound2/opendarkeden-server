@@ -29,8 +29,13 @@ that followed it.
   into a table of a hundred slots with no check against its size,** and the
   input and output loops walk the table from the lowest to the highest
   descriptor seen. A game-server link whose socket descriptor is a hundred
-  or more overruns the array.
-  > **Status:** recorded, not fixed (refactor/shared-twin-classes)
+  or more overruns the array. The add bound-checks the descriptor now, the
+  way the gameserver's `PlayerManager` does, and the accept path logs the
+  refused host and deletes the player, which closes the socket. The
+  loginserver's `GameServerManager` owns a datagram socket and no table,
+  and both `ClientManager`s reach their players through `PlayerManager`,
+  whose add, delete and get all bound-check.
+  > **Status:** fixed (fix/recorded-defects-6)
 
 ## A duplicate game-server connection would be freed twice (2026-09-23)
 

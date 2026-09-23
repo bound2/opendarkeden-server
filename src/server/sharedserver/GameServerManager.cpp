@@ -516,6 +516,13 @@ void GameServerManager::acceptNewConnection() {
         } catch (DuplicatedException&) {
             SAFE_DELETE(pGameServerPlayer);
             return;
+        } catch (OutOfBoundException&) {
+            filelog("SSGSManager.txt", "REFUSED %s:%u : socket descriptor %d does not fit the game server table",
+                    client->getHost().c_str(), client->getPort(), (int)client->getSOCKET());
+
+            // Deleting the player closes the socket.
+            SAFE_DELETE(pGameServerPlayer);
+            return;
         }
     } catch (NoSuchElementException&) {
         StringStream msg2;
@@ -554,6 +561,11 @@ void GameServerManager::addGameServerPlayer(GameServerPlayer* pGameServerPlayer)
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     SOCKET fd = pGameServerPlayer->getSocket()->getSOCKET();
+
+    // The table is indexed by the descriptor, so one it cannot hold is refused
+    // rather than stored past its end.
+    if (fd < 0 || fd >= (SOCKET)nMaxGameServers)
+        throw OutOfBoundException();
 
     // Readjust m_MinFD and m_MaxFD.
     m_MinFD = min(fd, m_MinFD);
