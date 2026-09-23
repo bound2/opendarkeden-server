@@ -989,108 +989,33 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).
 
-- [ ] **3.3 Pure formula functions with unit tests.** Extract
+- [x] **3.3 Pure formula functions with unit tests.** Extract
   `SkillFormula`/`SkillUtil` math and stat calculations (`InitAllStat.cpp`)
   into pure functions in `de-core`. These are the highest-value tests in the
   game — they encode balance — and the cheapest to write.
-  > **Status:** in progress (no named extraction targets remain — new
-  > formulas join as code is touched; updated 2026-09-01 after the
-  > InitAllStat review round) — the `de-core` STATIC target
-  > exists (`src/domain/`, freestanding by construction) with its first
-  > content: all of `AbilityBalance.cpp` (HP/MP/to-hit/defense/protection/
-  > damage/attack-speed/critical/steal per race) plus `computeFinalDamage`,
-  > `getDistance`, `computeRankExp` and `decreaseConsumeMP` from
-  > `SkillUtil.cpp`, transplanted verbatim into `src/domain/Formulas.cpp`
-  > (narrow-integer wrap-around preserved) behind thin adapters at the old
-  > entry points. `formula_tests` (ctest, links ONLY de-core + gtest) pins
-  > the math including the wrap cases; R6 is now enforced by `ratchets.sh`
-  > for `SkillUtil.cpp`/`InitAllStat.cpp`. **`HitRoll.cpp`'s success-ratio
-  > formulas are extracted too** (melee/blood-drain/magic-per-race/curse/
-  > dispel/flare/rebuke/self-buff/hallucination/backstab — the dice rolls
-  > and live-state gates stay in the adapters; the China-build
-  > variants went with their never-defined macro; `isCriticalHit`'s additive
-  > ratio and the blood-drain defense gathering remain inline), pinned by
-  > 19 more tests (62 assertions) including the floorless negative
-  > `flareRatio` and the toward-zero negative-bonus truncation;
-  > `HitRoll.cpp` joins R6 as R6c.
-  > **`SkillFormula.cpp` is extracted (2026-09-01)**: 293 of the 304
-  > per-skill `computeOutput` formula bodies moved verbatim to
-  > `src/domain/SkillOutputFormulas.cpp` (decore::skillformula — mirror
-  > SkillInput/SkillOutput structs with identical field names/enum values
-  > so the diff is a pure move; the legacy comments — double-encoded
-  > EUC-KR/GBK mojibake — were then machine-recovered and translated to
-  > English in a follow-up commit, code untouched by comment-stripped
-  > diff); the member functions are now one-line delegation macros
-  > (SkillFormula.cpp 3,081→820, joins R6 as R6d). The 11 formulas that
-  > roll dice inline (`Random()`/`rand()` — CriticalGround, MeteorStrike,
-  > DuplicateSelf, the four axe-throw skills, Cannonade, SelfDestruction,
-  > BloodCurse, VoodooRing) keep their original bodies in the adapter
-  > file: the roll stays out of de-core, the HitRoll rule. Three
-  > impurities were externalized, each preserving observable behavior: the
-  > `g_pSkillInfoManager->getGradeByDomainLevel` call becomes a
-  > `DomainGrade` input fetched only by the three grade-using adapters
-  > (ContinualLight/Purify/DetectInvisibility — same call, same possible
-  > throw, on the same invocations); the `Item::ItemClass` comparisons
-  > become a `GunClass` enum the adapter maps (four gun classes + Other);
-  > `HeadShot`'s `Assert(false)` on a non-gun class fires in the adapter
-  > before delegation (equivalent: all 393 compiled call sites pass a
-  > freshly zeroed SkillOutput, and no formula body reads an output field
-  > before writing it, so the copy-back of all six fields is identical to
-  > the original partial assignments; the one output-reusing caller was
-  > in the never-built legacy `gameserver/test/` dir, deleted 2026-09-05).
-  > `formula_tests` pins every gun-class branch (MultiShot, HeadShot,
-  > MoleShot), every grade switch including the unset-grade default, and
-  > the no-break HeadShot fallthrough where every in-range Range cascades
-  > to the case-1 damage, plus a representative spread (party boosts,
-  > Revealer's Delay-before-boost ordering quirk, clamps, negative
-  > outputs, Delay=Duration couplings, empty formulas). The adapter's
-  > field mapping itself is the one surface no suite can see (the tests
-  > deliberately link only de-core) — hand-verified in the adversarial
-  > review, flagged as such in the code. Both reviewers (2x xhigh,
-  > 2026-09-01) returned SHIP; their byte-level audit found 286 of the
-  > 293 moved bodies byte-identical and the other 7 differing only by
-  > the documented substitutions.
-  > **The `InitAllStat.cpp` bonus formulas are extracted (2026-09-01)**:
-  > 19 pure functions joined `Formulas.{h,cpp}` — Concealment's
-  > divide-then-float-scale bonuses, Will of Iron's truncated 15%, both
-  > Liveness grade tables (normal keeps its level>=125 hpPercent
-  > override; the China table is selected by no build now that
-  > its macro is gone), Sniping's divide-first percents, the four slayer
-  > weapon-domain passives (sword mastery / concentration / evasion /
-  > shield mastery, including evasion's negative-term truncation below
-  > level 20), the vampire wolf/werwolf damage bonuses and Extreme's
-  > capped bonuses, Intimate Grail's shared penalty ratio, Summon
-  > Sylph's floored bonuses, and Hide Sight's two level bands with the
-  > 10% truncated bump at exactly exp level 30. The adapters keep every
-  > live-state gate (canUse, effect flags, item class, isRealWearing)
-  > and every member write incl. the per-race caps — same split as the
-  > HitRoll extraction.
-  > **The adversarial review round (2x xhigh, 2026-09-01) proved the 19
-  > transplants exact** — one reviewer ran a differential harness
-  > compiling master's removed expressions verbatim (at master's declared
-  > widths) against libde-core: 59.7M input combinations at -O0 and -O2,
-  > zero mismatches — **but falsified the first draft's "no formula
-  > content left" claim and caught a divergence the extraction itself
-  > created** (the slayer's third Intimate Grail block kept `10+level/10`
-  > inline while the vampire/ousters copies got the pinned function). The
-  > fix round extracted everything the reviewers named: the slayer grail
-  > ratios (`intimateGrailRatio`, sign of application stays at the call
-  > sites, + the 6.6-divisor `intimateGrailHPRatio`), the gun-domain /10
-  > damage term, Vampire Nail Mastery and the DEX→HPRegen ladder, the six
-  > Ousters soul-stone passive points, and the three per-race
-  > BloodBibleSign fame ladders (whose thresholds had already drifted
-  > between races — now pinned per race). de-core now owns 33 InitAllStat
-  > formulas. Deliberately NOT extracted, with reasons: percentValue
-  > applications of effect-carried parameters and rank bonuses applied as
-  > stored points (parameter application, no formula), Mephisto's capped
-  > percent application (same category), Monster::initAllStat's
-  > hardcoded event `HP*10` for four monster ids (no stat/level
-  > composition), and the flat arms-mastery constants (`ToHitBonus += 5`
-  > etc. — no computation). The China liveness adapter went with
-  > its never-defined macro; it was hand-compiled clean in the
-  > review, and `livenessBonusChina` is now compiled and unit-tested for
-  > the first time. InitAllStat.cpp 4,949→4,803 across both commits (R6b
-  > tightened).
+  > **Status:** done (2026-09-23) — `de-core` (`src/domain/`, a
+  > freestanding STATIC target) owns the game's balance math: all of
+  > `AbilityBalance.cpp` (HP/MP/to-hit/defense/protection/damage/
+  > attack-speed/critical/steal per race), `SkillUtil.cpp`'s
+  > `computeFinalDamage`, `getDistance`, `computeRankExp` and
+  > `decreaseConsumeMP`, `HitRoll.cpp`'s per-race success ratios, 293 of
+  > the 304 per-skill `computeOutput` bodies (`SkillOutputFormulas.cpp`,
+  > whose mirror SkillInput/SkillOutput structs keep the field names so the
+  > move stays a diffable one), and 33 `InitAllStat.cpp` bonus formulas.
+  > Every body was transplanted verbatim, narrow-integer wrap-around
+  > included, behind a thin adapter at its old entry point. No named
+  > extraction target remains; new formulas join `src/domain/` as the code
+  > around them is touched.
+  > What stays out is a rule, not a backlog. A formula that rolls dice
+  > keeps its body in the adapter so the roll stays out of de-core (the 11
+  > `computeOutput` bodies calling `Random()`/`rand()`, and `HitRoll`'s
+  > rolls); so does anything that merely applies a stored parameter
+  > (percentValue applications of effect-carried values, rank bonuses
+  > applied as points, flat constants such as `ToHitBonus += 5`), and so do
+  > the live-state gates and member writes the adapters wrap the call in.
+  > The adapter's field mapping is the one surface no suite can see, since
+  > `formula_tests` links de-core and gtest alone; it is verified by
+  > reading, and the adapters say so where it matters.
   - Owner: the formula test suite; R6 line ratchets on `SkillUtil.cpp` /
     `InitAllStat.cpp` / `HitRoll.cpp` / `SkillFormula.cpp`.
 
