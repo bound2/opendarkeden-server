@@ -80,9 +80,9 @@ that followed it.
   > loginserver and the sharedserver each compile their own into their own
   > binary, and three classes that never share a link are not an ODR
   > problem, so they stay as they are. No loginserver class shadows a
-  > ServerCore one. The sharedserver's uncalled
-  > `GameServerManager::heartbeat()`, which locked its mutex and did
-  > nothing, is deleted.
+  > ServerCore one. The sharedserver's `GameServerManager::heartbeat()` is
+  > gone as well: it locked the manager's mutex, did nothing and had no
+  > caller, the worker loop calling the guild manager's heartbeat instead.
 
 ## A motorcycle that cannot be placed is paid for and never delivered (2026-09-22)
 
@@ -2534,7 +2534,13 @@ shadowing the live outer pointer with one initialised from itself, and then
 file never initialises `m_pGameServerPlayers[nMaxGameServers]`, so its
 unwritten slots are indeterminate rather than NULL — the `m_MinFD`/`m_MaxFD`
 window is what keeps the loops off them today.
-> **Status:** open
+> **Status:** fixed (refactor/shared-twin-classes) — the shadowing
+> declaration is gone, so the branch deletes the player the outer pointer
+> names, the shape the ConnectException branch below it already had, and
+> `m_pGameServerPlayers` is default-initialised, so a slot no connection
+> filled reads as NULL instead of as an indeterminate pointer. The table
+> is still indexed by raw descriptor and sized 100, and a descriptor above
+> that overruns it, which this entry does not close.
 
 ## Cooperative lifecycle and process shutdown gaps (2026-09-05)
 
