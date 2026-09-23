@@ -61,7 +61,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R2 | Files with inline SQL in gameserver root | 0 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29; 7→0 on 2026-09-10, the last two live sites into `PlayRecordRepository::logPlayerTrade` and the new `SMSMessageRepository`, `CreatureUtil.cpp`'s commented-out `addOlympicStat` body deleted, and four never-built stale copies deleted with it. The root is clean; new SQL there fails the ratchet.) |
 | R3 | Files with inline SQL outside `database/` and any `repository/` | 0 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (18→11 on 2026-09-10 with the seven gameserver-root files R2 counted; 11→0 the same day with the never-built `EventBall.cpp`, the `*notice` command that held the last live statement, and the nine files whose only `executeQuery` sat inside a comment block. `gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,168 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(gm\|handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; `gm/` joined them with task 4.1, holding the GM command bodies that moved out of `handler/CGSayHandler.cpp` — the 33 macro pairs in them are the same handler bodies at a new address, so the number did not move. Fold them in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted. 5,788→5,755 on 2026-09-08: the never-built `Vampire_backup.cpp`, a stale copy of `Vampire.cpp`, was deleted. 5,755→5,737 on 2026-09-10: the never-built `EventMonsterNameManager.cpp` (4), `GameServerInfoManager.cpp` (7) and `GameWorldInfoManager.cpp` (7) were deleted. 5,737→5,719 on 2026-09-10: the never-built `EventBall.cpp` (10) and `EventQuestRewardManager.cpp` (1) were deleted, and seven more sat in commented-out or empty bodies deleted from `mission/`, `skill/` and `war/`. 5,719→5,701 on 2026-09-13: the never-built `item/SubInventory.cpp` (10) and `war/SubInventoryItemPosition.cpp` (8) were deleted. 5,701→5,685 with the 4.3 hoist: 24 sites left `Slayer.cpp`/`Vampire.cpp`/`Ousters.cpp` with the bodies that moved to `PlayerCreature.cpp`, which carries 8 of them now that the three copies are one. 5,685→5,677 with the second 4.3 hoist: 12 sites left the three race files with `setGoldEx`, `getExtraInfo`, `getInventoryInfo`, `canPlayFree` and `isPayPlayAvaiable`, and `PlayerCreature.cpp` gained 4 of them — its own `isPayPlayAvaiable` already had one. 5,677→5,673 with the never-defined region macros: the two in EventShutdown.cpp's deleted branch. 5,673→5,483 on 2026-09-17: the thirty-nine sources no target compiled were deleted, and 190 of the sites sat in them. 5,482 → 5,474 with the never-defined feature macros: eight sat in the commented-out `NPC.cpp` SimpleQuest and `PlayerCreature.cpp` quest bodies that went with them. 5,473→5,437 with the dead billing module (32 sites) and the bodies that fed it: `GamePlayer::sendBillingLogin` (1), `PlayerCreature::isBillingPlayAvaiable` and `canPlayFree` (2), and `SkillUtil.cpp`'s empty `checkFreeLevelLimit` (1). 5,437→5,434 on 2026-09-17 with the deleted `LuckInfo.cpp`, whose three sites sat in its commented-out body, which this textual measure counts. 5,434→5,211 on 2026-09-17: 223 sites sat inside the commented-out bodies the R18 pass removed. 5,211→5,204 on 2026-09-18: seven more sat in the commented-out bodies deleted from `couple/`, `gm/`, `mission/` and `war/`. 5,204→5,201 on 2026-09-22: the vampire and ousters slot constructors, destructor and run-time bodies are three on their shared `skill/RaceSkillSlot.cpp` where they were six across the two race slot files. 5,201→5,193 on 2026-09-22 with the slot-table hoist: 12 sites left the three race files with the bodies that moved to `PlayerCreature.cpp`, which carries 4 of them now that the three copies are one; 5,193→5,170 on 2026-09-22: twenty-three more sat in the commented-out bodies deleted from the gameserver's top-level files; 5,170→5,169 on 2026-09-23 with the dead `__SHARED_SERVER__` blocks the gameserver's `GuildManager.cpp` carried, which no build of that file defines); 5,169→5,168 on 2026-09-23: the deleted WarSystem::isEndCondition, which had no caller)  |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,167 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(gm\|handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; `gm/` joined them with task 4.1, holding the GM command bodies that moved out of `handler/CGSayHandler.cpp` — the 33 macro pairs in them are the same handler bodies at a new address, so the number did not move. Fold them in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted. 5,788→5,755 on 2026-09-08: the never-built `Vampire_backup.cpp`, a stale copy of `Vampire.cpp`, was deleted. 5,755→5,737 on 2026-09-10: the never-built `EventMonsterNameManager.cpp` (4), `GameServerInfoManager.cpp` (7) and `GameWorldInfoManager.cpp` (7) were deleted. 5,737→5,719 on 2026-09-10: the never-built `EventBall.cpp` (10) and `EventQuestRewardManager.cpp` (1) were deleted, and seven more sat in commented-out or empty bodies deleted from `mission/`, `skill/` and `war/`. 5,719→5,701 on 2026-09-13: the never-built `item/SubInventory.cpp` (10) and `war/SubInventoryItemPosition.cpp` (8) were deleted. 5,701→5,685 with the 4.3 hoist: 24 sites left `Slayer.cpp`/`Vampire.cpp`/`Ousters.cpp` with the bodies that moved to `PlayerCreature.cpp`, which carries 8 of them now that the three copies are one. 5,685→5,677 with the second 4.3 hoist: 12 sites left the three race files with `setGoldEx`, `getExtraInfo`, `getInventoryInfo`, `canPlayFree` and `isPayPlayAvaiable`, and `PlayerCreature.cpp` gained 4 of them — its own `isPayPlayAvaiable` already had one. 5,677→5,673 with the never-defined region macros: the two in EventShutdown.cpp's deleted branch. 5,673→5,483 on 2026-09-17: the thirty-nine sources no target compiled were deleted, and 190 of the sites sat in them. 5,482 → 5,474 with the never-defined feature macros: eight sat in the commented-out `NPC.cpp` SimpleQuest and `PlayerCreature.cpp` quest bodies that went with them. 5,473→5,437 with the dead billing module (32 sites) and the bodies that fed it: `GamePlayer::sendBillingLogin` (1), `PlayerCreature::isBillingPlayAvaiable` and `canPlayFree` (2), and `SkillUtil.cpp`'s empty `checkFreeLevelLimit` (1). 5,437→5,434 on 2026-09-17 with the deleted `LuckInfo.cpp`, whose three sites sat in its commented-out body, which this textual measure counts. 5,434→5,211 on 2026-09-17: 223 sites sat inside the commented-out bodies the R18 pass removed. 5,211→5,204 on 2026-09-18: seven more sat in the commented-out bodies deleted from `couple/`, `gm/`, `mission/` and `war/`. 5,204→5,201 on 2026-09-22: the vampire and ousters slot constructors, destructor and run-time bodies are three on their shared `skill/RaceSkillSlot.cpp` where they were six across the two race slot files. 5,201→5,193 on 2026-09-22 with the slot-table hoist: 12 sites left the three race files with the bodies that moved to `PlayerCreature.cpp`, which carries 4 of them now that the three copies are one; 5,193→5,170 on 2026-09-22: twenty-three more sat in the commented-out bodies deleted from the gameserver's top-level files; 5,170→5,169 on 2026-09-23 with the dead `__SHARED_SERVER__` blocks the gameserver's `GuildManager.cpp` carried, which no build of that file defines; 5,169→5,168 on 2026-09-23: the deleted WarSystem::isEndCondition, which had no caller; 5,168→5,167 on 2026-09-23 with the exps hoist, which leaves one body on `PlayerCreature.cpp` where the vampire and ousters files each had one) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 | R8 | Non-comment lines using `__PRETTY_FUNCTION__` | 0 | `grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (call-site diagnostics take the enclosing function from a defaulted `std::source_location` — see docs/TOOLCHAIN.md, "Diagnostics without location macros". Line-based: a line whose first non-blank text is `//` is a comment, so the comments that explain the equivalence may still name the macro) |
@@ -90,8 +90,8 @@ are enforced so far.
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 114 (was 4,720 before the 4.1 command extraction; enforced by `ratchets.sh` R6e) |
 | `src/server/gameserver/gm/ConsoleCommands.cpp` | 1,575 (the 61 `*command` sub-command bodies, one function per name; enforced by `ratchets.sh` R6f) |
 | `src/server/gameserver/Slayer.cpp` | 3,086 (was 4,046 before the 4.3 hoists, 3,516 before the commented-out code went; enforced by `ratchets.sh` R6h) |
-| `src/server/gameserver/Vampire.cpp` | 2,047 (was 2,783 before the 4.3 hoists, 2,235 before the commented-out code went; enforced by `ratchets.sh` R6i) |
-| `src/server/gameserver/Ousters.cpp` | 1,954 (1,959 before an empty sight override left by the commented-out code went; was 2,548 before the 4.3 hoists, 2,117 before the commented-out code went; enforced by `ratchets.sh` R6j) |
+| `src/server/gameserver/Vampire.cpp` | 2,022 (2,047 before the exps hoist; was 2,783 before the 4.3 hoists, 2,235 before the commented-out code went; enforced by `ratchets.sh` R6i) |
+| `src/server/gameserver/Ousters.cpp` | 1,934 (1,954 before the exps hoist, 1,959 before an empty sight override left by the commented-out code went; was 2,548 before the 4.3 hoists, 2,117 before the commented-out code went; enforced by `ratchets.sh` R6j) |
 | `src/server/gameserver/skill/SkillFormula.cpp` | 818 (was 3,081 before the 3.3 computeOutput extraction — now thin adapters + the 11 dice-roll formulas; enforced by `ratchets.sh` R6d) |
 | `src/server/gameserver/skill/HitRoll.cpp` | 642 (not a god file — an extraction-target pin, locked in with its 3.3 extraction; enforced by `ratchets.sh` R6c) |
 
@@ -989,108 +989,33 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).
 
-- [ ] **3.3 Pure formula functions with unit tests.** Extract
+- [x] **3.3 Pure formula functions with unit tests.** Extract
   `SkillFormula`/`SkillUtil` math and stat calculations (`InitAllStat.cpp`)
   into pure functions in `de-core`. These are the highest-value tests in the
   game — they encode balance — and the cheapest to write.
-  > **Status:** in progress (no named extraction targets remain — new
-  > formulas join as code is touched; updated 2026-09-01 after the
-  > InitAllStat review round) — the `de-core` STATIC target
-  > exists (`src/domain/`, freestanding by construction) with its first
-  > content: all of `AbilityBalance.cpp` (HP/MP/to-hit/defense/protection/
-  > damage/attack-speed/critical/steal per race) plus `computeFinalDamage`,
-  > `getDistance`, `computeRankExp` and `decreaseConsumeMP` from
-  > `SkillUtil.cpp`, transplanted verbatim into `src/domain/Formulas.cpp`
-  > (narrow-integer wrap-around preserved) behind thin adapters at the old
-  > entry points. `formula_tests` (ctest, links ONLY de-core + gtest) pins
-  > the math including the wrap cases; R6 is now enforced by `ratchets.sh`
-  > for `SkillUtil.cpp`/`InitAllStat.cpp`. **`HitRoll.cpp`'s success-ratio
-  > formulas are extracted too** (melee/blood-drain/magic-per-race/curse/
-  > dispel/flare/rebuke/self-buff/hallucination/backstab — the dice rolls
-  > and live-state gates stay in the adapters; the China-build
-  > variants went with their never-defined macro; `isCriticalHit`'s additive
-  > ratio and the blood-drain defense gathering remain inline), pinned by
-  > 19 more tests (62 assertions) including the floorless negative
-  > `flareRatio` and the toward-zero negative-bonus truncation;
-  > `HitRoll.cpp` joins R6 as R6c.
-  > **`SkillFormula.cpp` is extracted (2026-09-01)**: 293 of the 304
-  > per-skill `computeOutput` formula bodies moved verbatim to
-  > `src/domain/SkillOutputFormulas.cpp` (decore::skillformula — mirror
-  > SkillInput/SkillOutput structs with identical field names/enum values
-  > so the diff is a pure move; the legacy comments — double-encoded
-  > EUC-KR/GBK mojibake — were then machine-recovered and translated to
-  > English in a follow-up commit, code untouched by comment-stripped
-  > diff); the member functions are now one-line delegation macros
-  > (SkillFormula.cpp 3,081→820, joins R6 as R6d). The 11 formulas that
-  > roll dice inline (`Random()`/`rand()` — CriticalGround, MeteorStrike,
-  > DuplicateSelf, the four axe-throw skills, Cannonade, SelfDestruction,
-  > BloodCurse, VoodooRing) keep their original bodies in the adapter
-  > file: the roll stays out of de-core, the HitRoll rule. Three
-  > impurities were externalized, each preserving observable behavior: the
-  > `g_pSkillInfoManager->getGradeByDomainLevel` call becomes a
-  > `DomainGrade` input fetched only by the three grade-using adapters
-  > (ContinualLight/Purify/DetectInvisibility — same call, same possible
-  > throw, on the same invocations); the `Item::ItemClass` comparisons
-  > become a `GunClass` enum the adapter maps (four gun classes + Other);
-  > `HeadShot`'s `Assert(false)` on a non-gun class fires in the adapter
-  > before delegation (equivalent: all 393 compiled call sites pass a
-  > freshly zeroed SkillOutput, and no formula body reads an output field
-  > before writing it, so the copy-back of all six fields is identical to
-  > the original partial assignments; the one output-reusing caller was
-  > in the never-built legacy `gameserver/test/` dir, deleted 2026-09-05).
-  > `formula_tests` pins every gun-class branch (MultiShot, HeadShot,
-  > MoleShot), every grade switch including the unset-grade default, and
-  > the no-break HeadShot fallthrough where every in-range Range cascades
-  > to the case-1 damage, plus a representative spread (party boosts,
-  > Revealer's Delay-before-boost ordering quirk, clamps, negative
-  > outputs, Delay=Duration couplings, empty formulas). The adapter's
-  > field mapping itself is the one surface no suite can see (the tests
-  > deliberately link only de-core) — hand-verified in the adversarial
-  > review, flagged as such in the code. Both reviewers (2x xhigh,
-  > 2026-09-01) returned SHIP; their byte-level audit found 286 of the
-  > 293 moved bodies byte-identical and the other 7 differing only by
-  > the documented substitutions.
-  > **The `InitAllStat.cpp` bonus formulas are extracted (2026-09-01)**:
-  > 19 pure functions joined `Formulas.{h,cpp}` — Concealment's
-  > divide-then-float-scale bonuses, Will of Iron's truncated 15%, both
-  > Liveness grade tables (normal keeps its level>=125 hpPercent
-  > override; the China table is selected by no build now that
-  > its macro is gone), Sniping's divide-first percents, the four slayer
-  > weapon-domain passives (sword mastery / concentration / evasion /
-  > shield mastery, including evasion's negative-term truncation below
-  > level 20), the vampire wolf/werwolf damage bonuses and Extreme's
-  > capped bonuses, Intimate Grail's shared penalty ratio, Summon
-  > Sylph's floored bonuses, and Hide Sight's two level bands with the
-  > 10% truncated bump at exactly exp level 30. The adapters keep every
-  > live-state gate (canUse, effect flags, item class, isRealWearing)
-  > and every member write incl. the per-race caps — same split as the
-  > HitRoll extraction.
-  > **The adversarial review round (2x xhigh, 2026-09-01) proved the 19
-  > transplants exact** — one reviewer ran a differential harness
-  > compiling master's removed expressions verbatim (at master's declared
-  > widths) against libde-core: 59.7M input combinations at -O0 and -O2,
-  > zero mismatches — **but falsified the first draft's "no formula
-  > content left" claim and caught a divergence the extraction itself
-  > created** (the slayer's third Intimate Grail block kept `10+level/10`
-  > inline while the vampire/ousters copies got the pinned function). The
-  > fix round extracted everything the reviewers named: the slayer grail
-  > ratios (`intimateGrailRatio`, sign of application stays at the call
-  > sites, + the 6.6-divisor `intimateGrailHPRatio`), the gun-domain /10
-  > damage term, Vampire Nail Mastery and the DEX→HPRegen ladder, the six
-  > Ousters soul-stone passive points, and the three per-race
-  > BloodBibleSign fame ladders (whose thresholds had already drifted
-  > between races — now pinned per race). de-core now owns 33 InitAllStat
-  > formulas. Deliberately NOT extracted, with reasons: percentValue
-  > applications of effect-carried parameters and rank bonuses applied as
-  > stored points (parameter application, no formula), Mephisto's capped
-  > percent application (same category), Monster::initAllStat's
-  > hardcoded event `HP*10` for four monster ids (no stat/level
-  > composition), and the flat arms-mastery constants (`ToHitBonus += 5`
-  > etc. — no computation). The China liveness adapter went with
-  > its never-defined macro; it was hand-compiled clean in the
-  > review, and `livenessBonusChina` is now compiled and unit-tested for
-  > the first time. InitAllStat.cpp 4,949→4,803 across both commits (R6b
-  > tightened).
+  > **Status:** done (2026-09-23) — `de-core` (`src/domain/`, a
+  > freestanding STATIC target) owns the game's balance math: all of
+  > `AbilityBalance.cpp` (HP/MP/to-hit/defense/protection/damage/
+  > attack-speed/critical/steal per race), `SkillUtil.cpp`'s
+  > `computeFinalDamage`, `getDistance`, `computeRankExp` and
+  > `decreaseConsumeMP`, `HitRoll.cpp`'s per-race success ratios, 293 of
+  > the 304 per-skill `computeOutput` bodies (`SkillOutputFormulas.cpp`,
+  > whose mirror SkillInput/SkillOutput structs keep the field names so the
+  > move stays a diffable one), and 33 `InitAllStat.cpp` bonus formulas.
+  > Every body was transplanted verbatim, narrow-integer wrap-around
+  > included, behind a thin adapter at its old entry point. No named
+  > extraction target remains; new formulas join `src/domain/` as the code
+  > around them is touched.
+  > What stays out is a rule, not a backlog. A formula that rolls dice
+  > keeps its body in the adapter so the roll stays out of de-core (the 11
+  > `computeOutput` bodies calling `Random()`/`rand()`, and `HitRoll`'s
+  > rolls); so does anything that merely applies a stored parameter
+  > (percentValue applications of effect-carried values, rank bonuses
+  > applied as points, flat constants such as `ToHitBonus += 5`), and so do
+  > the live-state gates and member writes the adapters wrap the call in.
+  > The adapter's field mapping is the one surface no suite can see, since
+  > `formula_tests` links de-core and gtest alone; it is verified by
+  > reading, and the adapters say so where it matters.
   - Owner: the formula test suite; R6 line ratchets on `SkillUtil.cpp` /
     `InitAllStat.cpp` / `HitRoll.cpp` / `SkillFormula.cpp`.
 
@@ -1100,45 +1025,26 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   debug-build `assertOwnedByZoneThread()` checks on Zone/Creature mutation
   entry points (sidecar analog: "never block the registry mailbox" — the
   invariant is written down *and* asserted).
-  > **Status:** contract documented in CLAUDE.md ("Thread ownership",
-  > 2026-08-31): ownership is mutex-guarded, not thread-affine — the
-  > `ZoneGroupThread` holds the group mutex for its whole tick and other
-  > threads must take it. Debug-only `ZoneGroup::assertOwned()` guards
-  > the eight `Zone` mutation gateways `addPC`×2/`replacePC`/
-  > `addCreature`/`deleteCreature`/`moveCreature`/`addCreatureToTile`/
-  > `deleteCreatureFromTile`. Hardened by the adversarial review:
-  > the machinery rides `DE_OWNERSHIP_CHECKS` (Debug-only compile flag —
-  > this repo never defines `NDEBUG`, so gating on it was a no-op and
-  > the bookkeeping was live in release), a violation now `abort()`s
-  > instead of throwing (an `AssertionError` is a `Throwable`, and the
-  > `catch (Throwable&)` on these very paths swallowed it — e.g.
-  > `GamePlayer::disconnect`'s empty catch would have skipped the
-  > character save), `pthread_equal` + a valid flag replace the raw
-  > compare/zero sentinel, and the review's main-thread hole is closed:
-  > packets pipelined behind `CGReady` no longer drain on the main
-  > thread after `GPS_NORMAL` opens the validator gate. No creature is
-  > written to a `Tile` outside `Zone.cpp` any more: the race-swap sites
-  > go through `replacePC`, the move-mode swaps, knockback/warp moves and
-  > corpse paths through the tile-only pair (CLAUDE.md has the list of
-  > what is still not gated). The three `GDRLair*::start` loops now take the
-  > group mutex like the file's other sites (2026-09-05). The
-  > cross-group `DynamicZone` `addZone()` race is fixed (2026-09-05):
-  > the group zone map and the `ZoneInfoManager` tables are
-  > `de::Snapshot`s (copy-on-write, `src/server/Snapshot.h`), a recycled
-  > instance's `init()` is posted to the owning group, and
-  > `DynamicZoneGroup` serialises selection under its own mutex. **2026-09-05: the SG/LG/GG one is
-  > fixed for creature state** — `GamePlayer` carries a mailbox
-  > (`src/server/Mailbox.h`) that the manager owning the player drains
-  > each tick (the zone manager under the group mutex; the main thread
-  > only for player-scoped commands), and
-  > `de::postToPlayer` routes the six guild handlers' and
-  > `LGKickCharacter`'s mutations through it; the
-  > "cross-group communication via queues only" rule above now has its
-  > queue. The handlers' `Guild`/`GuildMember` writes are covered too: the
-  > member maps and counters, the per-member flags, and the guild's own
-  > scalar fields — integral ones relaxed atomics, strings copied under the
-  > guild's leaf mutex.
-  - Owner: the debug asserts.
+  > **Status:** done (2026-09-23) — the contract is CLAUDE.md's "Thread
+  > ownership" section, which is where it is maintained: ownership is
+  > mutex-guarded rather than thread-affine (a `ZoneGroupThread` holds its
+  > group mutex for the whole tick; any other thread takes it explicitly),
+  > and the section lists the threads, the mailbox and snapshot seams that
+  > carry cross-thread work, and what the asserts do not cover.
+  > `ZoneGroup::assertOwned()` guards the eight `Zone` mutation gateways
+  > under `DE_OWNERSHIP_CHECKS` (Debug only — this repo never defines
+  > `NDEBUG`, so gating on that would have been a no-op) and `abort()`s
+  > rather than throwing, because an `AssertionError` is a `Throwable` and
+  > the `catch (Throwable&)` blocks on these very paths would swallow it.
+  > The queue the task asked for is `src/server/Mailbox.h`: a player's box,
+  > drained by whichever manager owns the player, plus `ZoneGroup::post()`
+  > for group-level work. Tables read by every thread and extended by one
+  > are `de::Snapshot`s.
+  > Residual, recorded in `docs/FIXES.md` rather than fixed: a `Guild` or
+  > `GuildMember` another thread may hold is retired, not freed, so a zone
+  > thread reading a retired member still sees its last rank.
+  - Owner: the debug asserts; `critical_section_audit`, which fails on a
+    hand-written `unlock()` inside a critical section.
 
 - [ ] **3.5 Globals → context (long tail).** No big-bang DI. Introduce a
   `GameContext` owning the managers; converted subsystems take it (or narrow
@@ -1302,18 +1208,32 @@ remaining trend lines.
   > `getSkillType()` is const and its `setRunTime(Turn_t, bool)` takes a
   > second argument, so deriving would hide three base members across the
   > ~500 handlers that take a `SkillSlot*`.
-  > What is still written three times is each race's wear, persistence-record
-  > and load code, plus the two `addSkill` overloads, whose bodies differ for
-  > real: Vampire alone does not assert on `SKILL_HOWL`, Ousters seeds
+  > The exps record is the second of the per-race types to be reconciled:
+  > the vampire and ousters rows carry the same eight columns, so there is
+  > one `CharacterExpsRecord` and one `saveExps(ownerName, race, record)`
+  > that picks the table through `characterRaceTable()`. The two race
+  > statements were not byte-identical — an ousters row always takes
+  > `SilverDamage`, a vampire's only when the value is non-zero, and the
+  > vampire fragment carries no space after its comma — so the repository
+  > body composes that one clause per race and sends the same bytes as
+  > before; the integration tier pins both spellings and the new dispatch.
+  > With the record shared, both `saveExps()` bodies are one on
+  > `PlayerCreature`, taking the goal experience and the silver damage as
+  > arguments because a slayer keeps a goal per skill domain and has no
+  > silver damage at all. Slayer's tail stays its own `SlayerExpsRecord`:
+  > nine domain goals, the three advanced attributes and the bonus, none
+  > of which the other two rows have.
+  > What is still written three times is each race's wear and load code,
+  > plus the two `addSkill` overloads, whose bodies differ for real:
+  > Vampire alone does not assert on `SKILL_HOWL`, Ousters seeds
   > `ExpLevel` 1 and Slayer `Exp` 1 with `ExpLevel` 0, each logs its own
   > error file, and Slayer refuses to delete a duplicate that is already the
-  > mapped slot. The rest are character-for-character identical in Vampire
-  > and Ousters, but only after substituting a type the two do not share — a
-  > class-scoped `WearPart` enum whose members differ in name and value, or a
-  > `VampireExpsRecord`/`OustersExpsRecord` with its own repository method —
-  > so the next shrink is a reconciliation of one of those two types, not
-  > another hoist. Line counts pinned by `ratchets.sh` R6h/R6i/R6j,
-  > `__BEGIN_TRY` sites by R5.
+  > mapped slot. The wear code is character-for-character identical in
+  > Vampire and Ousters only after substituting the class-scoped `WearPart`
+  > enum, whose members differ in name and value — and those values are the
+  > slot ids the client sends, so reconciling them is a protocol change the
+  > client repo must ship identically, not a refactor. Line counts pinned
+  > by `ratchets.sh` R6h/R6i/R6j, `__BEGIN_TRY` sites by R5.
   - Owner: R6h/R6i/R6j ratchets; `player_race_tests`; `race_skill_slot_tests`.
 
 **Phase exit criteria:** every GM command behind the router with declared

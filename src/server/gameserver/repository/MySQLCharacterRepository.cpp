@@ -481,36 +481,28 @@ public:
         END_DB(pStmt)
     }
 
-    void saveVampireExps(const string& ownerName, const VampireExpsRecord& record) {
+    void saveExps(const string& ownerName, CharacterRace race, const CharacterExpsRecord& record) {
         Statement* pStmt = NULL;
 
+        // The SilverDamage clause is the only text the two rows do not
+        // share, and each race's spelling of it is preserved: an ousters'
+        // row always takes the column, a vampire's only when the value is
+        // non-zero, and the vampire fragment carries no space after its
+        // comma.
         char silverDam[40];
-        if (record.silverDamage != 0) {
+        if (race == CHARACTER_RACE_OUSTERS)
+            sprintf(silverDam, ", SilverDamage = %d", record.silverDamage);
+        else if (record.silverDamage != 0)
             sprintf(silverDam, ",SilverDamage = %d", record.silverDamage);
-        } else
+        else
             silverDam[0] = '\0';
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("UPDATE Vampire SET Alignment=%d, Fame=%d, GoalExp=%u%s, `Rank`=%d, RankGoalExp=%u, "
+            pStmt->executeQuery("UPDATE %s SET Alignment=%d, Fame=%d, GoalExp=%u%s, `Rank`=%d, RankGoalExp=%u, "
                                 "AdvancementClass=%u, AdvancementGoalExp=%d WHERE Name='%s'",
-                                record.alignment, record.fame, record.goalExp, silverDam, record.rank,
-                                record.rankGoalExp, record.advancementClass, record.advancementGoalExp,
-                                ownerName.c_str());
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
-    }
-
-    void saveOustersExps(const string& ownerName, const OustersExpsRecord& record) {
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("UPDATE Ousters SET Alignment=%d, Fame=%d, GoalExp=%u, SilverDamage = %d, `Rank`=%d, "
-                                "RankGoalExp=%u, AdvancementClass=%u, AdvancementGoalExp=%d WHERE Name='%s'",
-                                record.alignment, record.fame, record.goalExp, record.silverDamage, record.rank,
-                                record.rankGoalExp, record.advancementClass, record.advancementGoalExp,
+                                characterRaceTable(race), record.alignment, record.fame, record.goalExp, silverDam,
+                                record.rank, record.rankGoalExp, record.advancementClass, record.advancementGoalExp,
                                 ownerName.c_str());
             SAFE_DELETE(pStmt);
         }

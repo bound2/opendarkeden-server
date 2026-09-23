@@ -979,7 +979,7 @@ TEST_F(CharacterMySQL, VampireExpsSkipSilverDamageWhenZero) {
     vampire.persist();
     execSQL("UPDATE Vampire SET SilverDamage = 7 WHERE Name='" + vampire.name + "'");
 
-    VampireExpsRecord record;
+    CharacterExpsRecord record;
     record.alignment = 10;
     record.fame = 55;
     record.goalExp = 900;
@@ -988,7 +988,7 @@ TEST_F(CharacterMySQL, VampireExpsSkipSilverDamageWhenZero) {
     record.rankGoalExp = 800;
     record.advancementClass = 1;
     record.advancementGoalExp = 700;
-    defaultCharacterRepository().saveVampireExps(vampire.name, record);
+    defaultCharacterRepository().saveExps(vampire.name, CHARACTER_RACE_VAMPIRE, record);
     EXPECT_EQ("7", queryScalar("SELECT SilverDamage FROM Vampire WHERE Name='" + vampire.name + "'"));
     // the other seven written columns, distinct sentinels
     EXPECT_EQ("10", queryScalar("SELECT Alignment FROM Vampire WHERE Name='" + vampire.name + "'"));
@@ -1000,8 +1000,54 @@ TEST_F(CharacterMySQL, VampireExpsSkipSilverDamageWhenZero) {
     EXPECT_EQ("700", queryScalar("SELECT AdvancementGoalExp FROM Vampire WHERE Name='" + vampire.name + "'"));
 
     record.silverDamage = 5;
-    defaultCharacterRepository().saveVampireExps(vampire.name, record);
+    defaultCharacterRepository().saveExps(vampire.name, CHARACTER_RACE_VAMPIRE, record);
     EXPECT_EQ("5", queryScalar("SELECT SilverDamage FROM Vampire WHERE Name='" + vampire.name + "'"));
+}
+
+TEST_F(CharacterMySQL, ExpsVampireBranchHitsOnlyTheVampireTable) {
+    // saveExps dispatches on the race the caller passes, so each branch
+    // asserts the target row changed AND the twin Slayer row did not.
+    PlayerFixture vampire = PlayerFixtures::lowLevelVampire();
+    vampire.persist(); // Slayer + Vampire rows
+    // Sentinels of their own, so the twin row's columns do not have to be
+    // read as whatever the schema defaults them to.
+    execSQL("UPDATE Slayer SET Alignment=-99, Fame=98 WHERE Name='" + vampire.name + "'");
+
+    CharacterExpsRecord record;
+    record.alignment = 10;
+    record.fame = 55;
+    record.goalExp = 900;
+    record.silverDamage = 4;
+    record.rank = 3;
+    record.rankGoalExp = 800;
+    record.advancementClass = 1;
+    record.advancementGoalExp = 700;
+    defaultCharacterRepository().saveExps(vampire.name, CHARACTER_RACE_VAMPIRE, record);
+
+    EXPECT_EQ("10", queryScalar("SELECT Alignment FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("-99", queryScalar("SELECT Alignment FROM Slayer WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("98", queryScalar("SELECT Fame FROM Slayer WHERE Name='" + vampire.name + "'"));
+}
+
+TEST_F(CharacterMySQL, ExpsOustersBranchHitsOnlyTheOustersTable) {
+    PlayerFixture ousters = PlayerFixtures::lowLevelOusters();
+    ousters.persist(); // Slayer + Ousters rows
+    execSQL("UPDATE Slayer SET Alignment=-99, Fame=98 WHERE Name='" + ousters.name + "'");
+
+    CharacterExpsRecord record;
+    record.alignment = 10;
+    record.fame = 55;
+    record.goalExp = 900;
+    record.silverDamage = 4;
+    record.rank = 3;
+    record.rankGoalExp = 800;
+    record.advancementClass = 1;
+    record.advancementGoalExp = 700;
+    defaultCharacterRepository().saveExps(ousters.name, CHARACTER_RACE_OUSTERS, record);
+
+    EXPECT_EQ("10", queryScalar("SELECT Alignment FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("-99", queryScalar("SELECT Alignment FROM Slayer WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("98", queryScalar("SELECT Fame FROM Slayer WHERE Name='" + ousters.name + "'"));
 }
 
 TEST_F(CharacterMySQL, OustersExpsAlwaysWriteSilverDamage) {
@@ -1011,7 +1057,7 @@ TEST_F(CharacterMySQL, OustersExpsAlwaysWriteSilverDamage) {
     ousters.persist();
     execSQL("UPDATE Ousters SET SilverDamage = 7 WHERE Name='" + ousters.name + "'");
 
-    OustersExpsRecord record;
+    CharacterExpsRecord record;
     record.alignment = 10;
     record.fame = 55;
     record.goalExp = 900;
@@ -1020,7 +1066,7 @@ TEST_F(CharacterMySQL, OustersExpsAlwaysWriteSilverDamage) {
     record.rankGoalExp = 800;
     record.advancementClass = 1;
     record.advancementGoalExp = 700;
-    defaultCharacterRepository().saveOustersExps(ousters.name, record);
+    defaultCharacterRepository().saveExps(ousters.name, CHARACTER_RACE_OUSTERS, record);
 
     EXPECT_EQ("0", queryScalar("SELECT SilverDamage FROM Ousters WHERE Name='" + ousters.name + "'"));
     // the other seven written columns, distinct sentinels

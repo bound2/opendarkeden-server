@@ -142,7 +142,7 @@ Vampire::~Vampire()
 
         // Save the items' remaining durability, the experience and the alignment.
         saveGears();
-        saveExps();
+        saveExps(m_GoalExp, m_SilverDamage);
         saveSkills();
 
         // Delete the items being worn from memory.
@@ -1864,31 +1864,6 @@ void Vampire::saveGears(void) const
             }
         }
     }
-
-    __END_CATCH
-}
-
-
-void Vampire::saveExps(void) const
-
-{
-    __BEGIN_TRY
-
-    // Divide by 10 to reduce the number of queries in the skill handler,
-    // If the server is not down and you log out normally
-    // If you don't explicitly save, the part that goes up below 10 will be blown away.
-    // So save here.
-
-    VampireExpsRecord record;
-    record.alignment = m_Alignment;
-    record.fame = m_Fame;
-    record.goalExp = m_GoalExp;
-    record.silverDamage = m_SilverDamage;
-    record.rank = getRank();
-    record.rankGoalExp = getRankGoalExp();
-    record.advancementClass = getAdvancementClassLevel();
-    record.advancementGoalExp = getAdvancementClassGoalExp();
-    defaultCharacterRepository().saveVampireExps(m_Name, record);
 
     __END_CATCH
 }

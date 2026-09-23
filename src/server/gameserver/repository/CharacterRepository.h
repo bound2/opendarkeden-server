@@ -214,20 +214,11 @@ struct SlayerExpsRecord {
     Attr_t advancedAttrBonus;
 };
 
-// Vampire saveExps(): SilverDamage is written ONLY when non-zero.
-struct VampireExpsRecord {
-    Alignment_t alignment;
-    Fame_t fame;
-    Exp_t goalExp;
-    Silver_t silverDamage;
-    Rank_t rank;
-    RankExp_t rankGoalExp;
-    Level_t advancementClass;
-    Exp_t advancementGoalExp;
-};
-
-// Ousters saveExps(): SilverDamage is written unconditionally.
-struct OustersExpsRecord {
+// The vampire and ousters saveExps() tail: the same eight columns on both
+// rows. SilverDamage is the one the two statements treat differently -- a
+// vampire's row takes it only when it is non-zero, an ousters' always --
+// and that difference lives in the statement, not here.
+struct CharacterExpsRecord {
     Alignment_t alignment;
     Fame_t fame;
     Exp_t goalExp;
@@ -314,9 +305,11 @@ public:
     // The saveExps() tail -- flushed on logout so the sub-threshold exp
     // the handlers batch up (they persist only every 10th tick) is not
     // lost.
+    // The slayer's tail is its own column set; the vampire and ousters
+    // rows share one, and the race selects the table and how SilverDamage
+    // is written.
     virtual void saveSlayerExps(const std::string& ownerName, const SlayerExpsRecord& record) = 0;
-    virtual void saveVampireExps(const std::string& ownerName, const VampireExpsRecord& record) = 0;
-    virtual void saveOustersExps(const std::string& ownerName, const OustersExpsRecord& record) = 0;
+    virtual void saveExps(const std::string& ownerName, CharacterRace race, const CharacterExpsRecord& record) = 0;
 
     // tinysave: applies a caller-composed "Column=value, ..." SET fragment
     // to the character's own race table. The fragment is raw SQL text
