@@ -2019,8 +2019,8 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
             pCreature->setFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT);
         }
 
-        if (g_pLevelWarZoneInfoManager->isCreatureBonusZone(pCreature, pZone->getZoneID()) !=
-            g_pLevelWarZoneInfoManager->isCreatureBonusZone(pCreature, TargetZoneID)) {
+        if (de::gameContext().levelWarZones().isCreatureBonusZone(pCreature, pZone->getZoneID()) !=
+            de::gameContext().levelWarZones().isCreatureBonusZone(pCreature, TargetZoneID)) {
             pCreature->setFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT);
         }
 

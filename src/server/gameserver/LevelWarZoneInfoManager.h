@@ -159,6 +159,4 @@ private:
     mutable Mutex m_Mutex;
 };
 
-extern LevelWarZoneInfoManager* g_pLevelWarZoneInfoManager;
-
 #endif // __LEVEL_WAR_ZONE_INFO_MANAGER_H__

@@ -53,14 +53,14 @@ void ActionWarpLevelWarZone::execute(Creature* pCreature1, Creature* pCreature2)
 
 
     // A character whose level is too high cannot enter.
-    if (g_pLevelWarZoneInfoManager->getCreatureLevelGrade(pCreature2) == -1) {
+    if (context().levelWarZones().getCreatureLevelGrade(pCreature2) == -1) {
         gcSystemMessage.setMessage(context().strings().getString(STRID_TO_HIGH_LEVEL_FOR_LEVEL_WAR));
         pGamePlayer->sendPacket(&gcSystemMessage);
         return;
     }
 
     // Pick the destination from the creature's information.
-    ZONE_COORD pos(g_pLevelWarZoneInfoManager->getCreatureZoneID(pCreature2));
+    ZONE_COORD pos(context().levelWarZones().getCreatureZoneID(pCreature2));
 
     if (pCreature2->isSlayer()) {
         pos.x = 12;

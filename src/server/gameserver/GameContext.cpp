@@ -173,6 +173,11 @@ ItemMineInfoManager& GameContext::itemMineInfos() const {
     return *m_pItemMineInfoManager;
 }
 
+LevelWarZoneInfoManager& GameContext::levelWarZones() const {
+    Assert(m_pLevelWarZoneInfoManager != nullptr);
+    return *m_pLevelWarZoneInfoManager;
+}
+
 MasterLairInfoManager& GameContext::masterLairInfos() const {
     Assert(m_pMasterLairInfoManager != nullptr);
     return *m_pMasterLairInfoManager;

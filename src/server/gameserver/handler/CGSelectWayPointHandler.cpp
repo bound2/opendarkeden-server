@@ -114,9 +114,9 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
             }
 
             // Look at the creature information and bounce it accordingly
-            ZONE_COORD pos(g_pLevelWarZoneInfoManager->getCreatureZoneID(pCreature));
+            ZONE_COORD pos(de::gameContext().levelWarZones().getCreatureZoneID(pCreature));
 
-            if (g_pSweeperBonusManager->isAble(g_pLevelWarZoneInfoManager->getCreatureZoneID(pCreature))) {
+            if (g_pSweeperBonusManager->isAble(de::gameContext().levelWarZones().getCreatureZoneID(pCreature))) {
                 GCSystemMessage gcSystemMessage;
                 gcSystemMessage.setMessage(strings.getString(STRID_NO_WAR_IN_ACTIVE));
                 pGamePlayer->sendPacket(&gcSystemMessage);

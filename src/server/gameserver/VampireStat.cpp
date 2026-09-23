@@ -234,7 +234,7 @@ void Vampire::initAllStat(int numPartyMember)
     //////////////////////////////////////////////////////////////////////////////
 
     if (g_pSweeperBonusManager->isAble(getZoneID()) &&
-        g_pLevelWarZoneInfoManager->isCreatureBonusZone(this, getZoneID())) {
+        de::gameContext().levelWarZones().isCreatureBonusZone(this, getZoneID())) {
         const SweeperBonusHashMap& sweeperBonuses = g_pSweeperBonusManager->getSweeperBonuses();
 
         SweeperBonusHashMapConstItor itr = sweeperBonuses.begin();
@@ -242,7 +242,7 @@ void Vampire::initAllStat(int numPartyMember)
 
         for (; itr != endItr; itr++) {
             if (itr->second->getRace() == RACE_VAMPIRE &&
-                itr->second->getLevel() == g_pLevelWarZoneInfoManager->getCreatureLevelGrade(this)) {
+                itr->second->getLevel() == de::gameContext().levelWarZones().getCreatureLevelGrade(this)) {
                 OptionTypeList optionTypes = itr->second->getOptionTypeList();
                 OptionTypeListConstItor optionItr;
 

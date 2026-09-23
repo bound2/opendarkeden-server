@@ -7,6 +7,7 @@
 #include "SweeperBonusManager.h"
 
 #include "GCSweeperBonusInfo.h"
+#include "GameContext.h"
 #include "LevelWarManager.h"
 #include "LevelWarZoneInfoManager.h"
 #include "SweeperBonus.h"
@@ -177,7 +178,7 @@ bool SweeperBonusManager::isAble(ZoneID_t zoneID) const {
     __BEGIN_TRY
 
     ZoneID_t levelWarZoneID;
-    if (g_pLevelWarZoneInfoManager->getLevelWarZoneID(zoneID, levelWarZoneID)) {
+    if (de::gameContext().levelWarZones().getLevelWarZoneID(zoneID, levelWarZoneID)) {
         Zone* pZone = getZoneByZoneID(levelWarZoneID);
         if (pZone == NULL)
             return false;

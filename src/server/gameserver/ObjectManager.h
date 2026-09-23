@@ -42,6 +42,7 @@ class ItemFactoryManager;
 class ItemInfoManager;
 class ItemLoaderManager;
 class ItemMineInfoManager;
+class LevelWarZoneInfoManager;
 class MasterLairInfoManager;
 class MonsterInfoManager;
 class MonsterNameManager;
@@ -114,6 +115,7 @@ private:
     ItemInfoManager* m_pItemInfoManager = nullptr;
     ItemLoaderManager* m_pItemLoaderManager = nullptr;
     ItemMineInfoManager* m_pItemMineInfoManager = nullptr;
+    LevelWarZoneInfoManager* m_pLevelWarZoneInfoManager = nullptr;
     MasterLairInfoManager* m_pMasterLairInfoManager = nullptr;
     MonsterInfoManager* m_pMonsterInfoManager = nullptr;
     MonsterNameManager* m_pMonsterNameManager = nullptr;

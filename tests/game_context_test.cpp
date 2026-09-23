@@ -32,7 +32,7 @@ namespace {
 
 // Distinct addresses standing in for the managers. Nothing dereferences
 // them: the context stores a pointer and hands back a reference to it.
-char g_managerStorage[60];
+char g_managerStorage[61];
 
 template <class T> T* standIn(int slot) {
     return reinterpret_cast<T*>(&g_managerStorage[slot]);
@@ -136,6 +136,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     DragonEyeManager* pDragonEyeManager = standIn<DragonEyeManager>(18);
     EventQuestLootingManager* pEventQuestLootingManager = standIn<EventQuestLootingManager>(19);
     FlagManager* pFlagManager = standIn<FlagManager>(49);
+    LevelWarZoneInfoManager* pLevelWarZoneInfoManager = standIn<LevelWarZoneInfoManager>(60);
     ParkingCenter* pParkingCenter = standIn<ParkingCenter>(59);
     WarSystem* pWarSystem = standIn<WarSystem>(52);
     WayPointManager* pWayPointManager = standIn<WayPointManager>(20);
@@ -145,6 +146,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     context.setDragonEyeManager(pDragonEyeManager);
     context.setEventQuestLootingManager(pEventQuestLootingManager);
     context.setFlagManager(pFlagManager);
+    context.setLevelWarZoneInfoManager(pLevelWarZoneInfoManager);
     context.setParkingCenter(pParkingCenter);
     context.setWarSystem(pWarSystem);
     context.setWayPointManager(pWayPointManager);
@@ -154,6 +156,7 @@ TEST(GameContextTest, WarAndTravelManagersAreReadBack) {
     EXPECT_EQ(&context.dragonEyes(), pDragonEyeManager);
     EXPECT_EQ(&context.eventQuestLoot(), pEventQuestLootingManager);
     EXPECT_EQ(&context.flags(), pFlagManager);
+    EXPECT_EQ(&context.levelWarZones(), pLevelWarZoneInfoManager);
     EXPECT_EQ(&context.parking(), pParkingCenter);
     EXPECT_EQ(&context.warSystem(), pWarSystem);
     EXPECT_EQ(&context.wayPoints(), pWayPointManager);
@@ -363,6 +366,7 @@ TEST(GameContextTest, UnregisteredManagerAsserts) {
     EXPECT_THROW(context.itemInfos(), AssertionError);
     EXPECT_THROW(context.itemLoaders(), AssertionError);
     EXPECT_THROW(context.itemMineInfos(), AssertionError);
+    EXPECT_THROW(context.levelWarZones(), AssertionError);
     EXPECT_THROW(context.masterLairInfos(), AssertionError);
     EXPECT_THROW(context.monsterInfos(), AssertionError);
     EXPECT_THROW(context.monsterNames(), AssertionError);

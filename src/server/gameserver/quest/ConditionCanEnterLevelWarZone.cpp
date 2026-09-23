@@ -7,6 +7,7 @@
 #include "ConditionCanEnterLevelWarZone.h"
 
 #include "CreatureUtil.h"
+#include "GameContext.h"
 #include "LevelWarZoneInfoManager.h"
 #include "VariableManager.h"
 
@@ -20,7 +21,7 @@ bool ConditionCanEnterLevelWarZone::isSatisfied(Creature* pCreature1, Creature* 
     Assert(pCreature2->isPC());
 
 
-    if (g_pLevelWarZoneInfoManager->getCreatureLevelGrade(pCreature2) != -1)
+    if (de::gameContext().levelWarZones().getCreatureLevelGrade(pCreature2) != -1)
         return true;
 
     return false;

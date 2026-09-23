@@ -274,7 +274,8 @@ ObjectManager::ObjectManager()
     m_pDefaultOptionSetInfoManager = new DefaultOptionSetInfoManager();
     context.setDefaultOptionSetInfoManager(m_pDefaultOptionSetInfoManager);
 
-    g_pLevelWarZoneInfoManager = new LevelWarZoneInfoManager();
+    m_pLevelWarZoneInfoManager = new LevelWarZoneInfoManager();
+    context.setLevelWarZoneInfoManager(m_pLevelWarZoneInfoManager);
     g_pSweeperBonusManager = new SweeperBonusManager();
     m_pDragonEyeManager = new DragonEyeManager();
     context.setDragonEyeManager(m_pDragonEyeManager);
@@ -364,7 +365,7 @@ ObjectManager::~ObjectManager()
     SAFE_DELETE(m_pFlagManager);
     SAFE_DELETE(m_pDefaultOptionSetInfoManager);
 
-    SAFE_DELETE(g_pLevelWarZoneInfoManager);
+    SAFE_DELETE(m_pLevelWarZoneInfoManager);
     SAFE_DELETE(g_pSweeperBonusManager);
     SAFE_DELETE(m_pDragonEyeManager);
     SAFE_DELETE(m_pTimeChecker);
@@ -517,7 +518,7 @@ void ObjectManager::init()
     printf("ObjectManager::load() : WayPointManager Initialization Success\n");
 
     printf("ObjectManager::load() : LevelWarZoneInfoManager Initialization Start\n");
-    g_pLevelWarZoneInfoManager->init(); // may be loaded at any time
+    m_pLevelWarZoneInfoManager->init(); // may be loaded at any time
     printf("ObjectManager::load() : LevelWarZoneInfoManager Initialization Success\n");
 
     printf("ObjectManager::load() : LevelNickInfoManager Initialization Start\n");

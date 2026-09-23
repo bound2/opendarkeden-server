@@ -1118,8 +1118,8 @@ void PCManager::killCreature(Creature* pDeadCreature)
         pDeadCreature->setFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT);
     }
 
-    if (g_pLevelWarZoneInfoManager->isCreatureBonusZone(pDeadCreature, pZone->getZoneID()) !=
-        g_pLevelWarZoneInfoManager->isCreatureBonusZone(pDeadCreature, pResurrectZone->getZoneID())) {
+    if (de::gameContext().levelWarZones().isCreatureBonusZone(pDeadCreature, pZone->getZoneID()) !=
+        de::gameContext().levelWarZones().isCreatureBonusZone(pDeadCreature, pResurrectZone->getZoneID())) {
         pDeadCreature->setFlag(Effect::EFFECT_CLASS_INIT_ALL_STAT);
     }
 
