@@ -118,7 +118,6 @@ public:
     virtual void save() const;
     void saveSkills(void) const;
     void saveGears(void) const;
-    void saveExps(void) const;
 
     virtual void act(const Timeval& currentTime) {}
 

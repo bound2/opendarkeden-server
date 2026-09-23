@@ -152,7 +152,7 @@ Ousters::~Ousters()
 
     // Persist equipment/exp/skills before destruction.
     saveGears();
-    saveExps();
+    saveExps(m_GoalExp, m_SilverDamage);
     saveSkills();
 
     // Destroy equipped items (ownership transfers to garbage collector).
@@ -1725,26 +1725,6 @@ void Ousters::saveGears(void) const
             }
         }
     }
-
-    __END_CATCH
-}
-
-
-void Ousters::saveExps(void) const
-
-{
-    __BEGIN_TRY
-
-    OustersExpsRecord record;
-    record.alignment = m_Alignment;
-    record.fame = m_Fame;
-    record.goalExp = m_GoalExp;
-    record.silverDamage = m_SilverDamage;
-    record.rank = getRank();
-    record.rankGoalExp = getRankGoalExp();
-    record.advancementClass = getAdvancementClassLevel();
-    record.advancementGoalExp = getAdvancementClassGoalExp();
-    defaultCharacterRepository().saveOustersExps(m_Name, record);
 
     __END_CATCH
 }

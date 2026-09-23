@@ -1198,6 +1198,26 @@ void PlayerCreature::tinysave(const string& field) const {
     __END_CATCH
 }
 
+void PlayerCreature::saveExps(Exp_t goalExp, Silver_t silverDamage) const {
+    __BEGIN_TRY
+
+    // The skill handlers persist experience only every tenth tick, so the
+    // gain below that threshold lives in memory alone. A character that
+    // logs out normally flushes it here.
+    CharacterExpsRecord record;
+    record.alignment = getAlignment();
+    record.fame = getFame();
+    record.goalExp = goalExp;
+    record.silverDamage = silverDamage;
+    record.rank = getRank();
+    record.rankGoalExp = getRankGoalExp();
+    record.advancementClass = getAdvancementClassLevel();
+    record.advancementGoalExp = getAdvancementClassGoalExp();
+    defaultCharacterRepository().saveExps(m_Name, characterRace(), record);
+
+    __END_CATCH
+}
+
 void PlayerCreature::setGold(Gold_t gold) {
     __BEGIN_TRY
 

@@ -83,6 +83,11 @@ protected:
     // Which race table this character's rows live in.
     CharacterRace characterRace() const;
 
+    // The experience tail the vampire and ousters rows share. Both values
+    // are passed in: the goal experience because a slayer keeps one per
+    // skill domain, the silver damage because a slayer has none.
+    void saveExps(Exp_t goalExp, Silver_t silverDamage) const;
+
     virtual void registerItem(Item* pItem, ObjectRegistry& OR);
 
 public:
