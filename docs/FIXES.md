@@ -39,8 +39,11 @@ that followed it.
   player's destructor closes and deletes that socket itself. Latent: the
   add never reports a duplicate today, having no duplicate check. The
   branch for a missing element also builds a message with the offending
-  host and port that nothing prints.
-  > **Status:** recorded, not fixed (refactor/shared-twin-classes)
+  host and port that nothing prints. The socket now has one owner: the
+  duplicate branch deletes only the player, the outer handler deletes
+  whichever of the two exists, and the missing-element message goes to the
+  log the file already writes.
+  > **Status:** fixed (fix/recorded-defects-6)
 
 ## Registering a siege beside a scheduled guild war schedules a second war (2026-09-23)
 
