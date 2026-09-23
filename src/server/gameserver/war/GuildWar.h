@@ -15,7 +15,7 @@ public:
     GuildWar(ZoneID_t castleZoneID, GuildID_t challenger, WarState warState, WarID_t warID = 0);
     virtual ~GuildWar();
 
-    ZoneID_t getCastleZoneID() const {
+    ZoneID_t getCastleZoneID() const override {
         return m_CastleZoneID;
     }
     void setCastleZoneID(ZoneID_t zoneID) {
@@ -33,8 +33,11 @@ public:
     GuildID_t getChallangerGuildID() const {
         return m_ChallangerGuildID;
     }
+    GuildID_t getAttackerGuildID() const override {
+        return m_ChallangerGuildID;
+    }
 
-    Gold_t getRegistrationFee() const {
+    Gold_t getRegistrationFee() const override {
         return m_RegistrationFee;
     }
     void setRegistrationFee(Gold_t fee) {

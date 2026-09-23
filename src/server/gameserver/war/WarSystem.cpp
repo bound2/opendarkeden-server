@@ -14,14 +14,12 @@
 #include "GCWarScheduleList.h"
 #include "GameContext.h"
 #include "GamePlayer.h"
-#include "GuildWar.h"
 #include "GuildWarInfo.h"
 #include "HolyLandManager.h"
 #include "Player.h"
 #include "RaceWar.h"
 #include "RaceWarInfo.h"
 #include "ShrineInfoManager.h"
-#include "SiegeWar.h"
 #include "StringPool.h"
 #include "StringStream.h"
 #include "VariableManager.h"
@@ -207,9 +205,6 @@ bool WarSystem::addWar(War* pWar)
     // Add it to the list of wars in progress.
     // heartbeat() removes it.
     if (pWar->getWarType() == WAR_GUILD) {
-        SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-        Assert(pSiegeWar != NULL);
-
         // Refresh the state of the users in the holy land.
         EventRefreshHolyLandPlayer* pEvent = new EventRefreshHolyLandPlayer(NULL);
         pEvent->setDeadline(0);
@@ -217,7 +212,7 @@ bool WarSystem::addWar(War* pWar)
 
         __ENTER_CRITICAL_SECTION(m_MutexActiveWars)
 
-        m_ActiveWars.push_back(ActiveWarInfo(pSiegeWar->getCastleZoneID(), pSiegeWar->getChallangerGuildID()));
+        m_ActiveWars.push_back(ActiveWarInfo(pWar->getCastleZoneID(), pWar->getAttackerGuildID()));
 
         __LEAVE_CRITICAL_SECTION(m_MutexActiveWars)
     } else if (pWar->getWarType() == WAR_RACE) {
@@ -391,14 +386,11 @@ Work* WarSystem::heartbeat()
 
         // Mostly done in War::executeEnd().
         if (pWar->getWarType() == WAR_GUILD) {
-            SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-            Assert(pSiegeWar != NULL);
-
             // Remove it from the list of wars in progress.
             __ENTER_CRITICAL_SECTION(m_MutexActiveWars)
 
             list<ActiveWarInfo>::iterator itr =
-                find(m_ActiveWars.begin(), m_ActiveWars.end(), ActiveWarInfo(pSiegeWar->getCastleZoneID()));
+                find(m_ActiveWars.begin(), m_ActiveWars.end(), ActiveWarInfo(pWar->getCastleZoneID()));
             Assert(itr != m_ActiveWars.end());
 
             m_ActiveWars.erase(itr);
@@ -550,17 +542,10 @@ WarSchedule* WarSystem::getActiveWarSchedule_LOCKED(ZoneID_t zoneID)
             continue;
         }
 
-        if (pWar->getWarType() == WAR_GUILD) {
-            // GuildWar reports WAR_GUILD as well and is a sibling of SiegeWar,
-            // not one of it. Only a siege is matched by castle zone here, so a
-            // war that is not one is skipped.
-            SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-            if (pSiegeWar == NULL)
-                continue;
-
-            if (pSiegeWar->getCastleZoneID() == zoneID) {
-                return pWarSchedule;
-            }
+        // Both castle war classes report WAR_GUILD, so the castle is asked of
+        // the war itself; a war fought over no castle answers zero.
+        if (pWar->getWarType() == WAR_GUILD && pWar->getCastleZoneID() == zoneID) {
+            return pWarSchedule;
         }
     }
 
@@ -584,17 +569,10 @@ War* WarSystem::getActiveWar(ZoneID_t zoneID) const
         if (pWar == NULL)
             continue;
 
-        if (pWar->getWarType() == WAR_GUILD) {
-            // GuildWar reports WAR_GUILD as well and is a sibling of SiegeWar,
-            // not one of it. Only a siege is matched by castle zone here, so a
-            // war that is not one is skipped.
-            SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-            if (pSiegeWar == NULL)
-                continue;
-
-            if (pSiegeWar->getCastleZoneID() == zoneID) {
-                return pWar;
-            }
+        // Both castle war classes report WAR_GUILD, so the castle is asked of
+        // the war itself; a war fought over no castle answers zero.
+        if (pWar->getWarType() == WAR_GUILD && pWar->getCastleZoneID() == zoneID) {
+            return pWar;
         }
     }
 

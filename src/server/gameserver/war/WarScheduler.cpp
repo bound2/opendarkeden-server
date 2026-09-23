@@ -375,12 +375,12 @@ bool WarScheduler::hasSchedule(GuildID_t gID) {
         if (pSchedule == NULL)
             continue;
 
+        // Both castle war classes report WAR_GUILD and answer for their own
+        // participants, so no cast to one of them is made here.
         War* pWar = dynamic_cast<War*>(pSchedule->getWork());
-        if (pWar != NULL && pWar->getWarType() == WAR_GUILD) {
-            SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-            if (pSiegeWar != NULL && pSiegeWar->isWarParticipant(gID) && pSiegeWar->getState() == War::WAR_STATE_WAIT) {
-                return true;
-            }
+        if (pWar != NULL && pWar->getWarType() == WAR_GUILD && pWar->isWarParticipant(gID) &&
+            pWar->getState() == War::WAR_STATE_WAIT) {
+            return true;
         }
     }
 
