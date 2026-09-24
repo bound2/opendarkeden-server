@@ -27,6 +27,20 @@ repo and the client's. Entries below are newest first; the oldest is the
   it; it belongs with the war-end moves in the same file.
   > **Status:** recorded, not fixed (fix/castle-balance-schedule)
 
+## Two wars registered at once could take the same war id (2026-09-24)
+
+- **`War::War` advanced the static war-id registry with no lock,** while
+  castle wars are registered from the castle NPCs' zone threads
+  (`ActionWarRegistration`, `ActionRegisterSiege`) and the race war is made
+  on the main thread, so two registrations at once could read the same
+  registry value and hand out one id twice. `WarScheduleInfo` is keyed on
+  the id and the insert is an `INSERT IGNORE`, so the second war was dropped
+  from the table -- scheduled in memory only, lost on a restart, its status
+  saves landing on the other war's row. The id is now taken under
+  `War::m_Mutex`, the registry's own mutex, a leaf that only the startup
+  load took before.
+  > **Status:** fixed (fix/castle-balance-schedule)
+
 ## A forced union quit fails on the guild's own offer row (2026-09-24)
 
 - **`CGQuitUnionHandler`'s forced quit writes the ESCAPE penalty with a
