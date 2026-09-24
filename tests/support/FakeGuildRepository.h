@@ -210,16 +210,25 @@ public:
     int countUnionMembers(uint) override {
         unexpected();
     }
-    int countUnionMembersSpelled(UnionStatementSpelling, uint) override {
-        unexpected();
-    }
-    void deleteUnionInfoOnly(UnionStatementSpelling, uint) override {
-        unexpected();
-    }
     int countRecentEscapes(GuildID_t) override {
         unexpected();
     }
     void deleteStaleOffers(GuildID_t) override {
+        unexpected();
+    }
+    std::vector<UnionOfferStateRow> loadOfferStates() override {
+        unexpected();
+    }
+    int countPendingJoinOffers(uint) override {
+        unexpected();
+    }
+    void deleteOffersToUnion(uint) override {
+        unexpected();
+    }
+    void deleteOfferToUnion(GuildID_t, uint) override {
+        unexpected();
+    }
+    void deleteQuitOffer(GuildID_t) override {
         unexpected();
     }
     void insertJoinOffer(uint, GuildID_t) override {

@@ -28,6 +28,7 @@
 #include "PlayerFixtures.h"
 #include "ServerContext.h"
 #include "Thread.h"
+#include "guild/GuildUnionJoinOffer.h"
 #include "repository/BalanceInfoRepository.h"
 #include "repository/BloodBibleSignRepository.h"
 #include "repository/BulletinBoardRepository.h"
@@ -7591,38 +7592,78 @@ TEST_F(GuildMySQL, CastleAndWarReadsAreScopedToTheGuild) {
 }
 
 
-TEST_F(GuildMySQL, UnionMemberCountsAgreeAcrossSpellingsAndTheInfoDeleteSparesTheMembers) {
+TEST_F(GuildMySQL, TheOfferPurgeReadsEveryRowWithItsAgeAndDeletesByUnionAndType) {
     GuildRepository& repository = defaultGuildRepository();
 
-    const uint unionID = repository.insertUnion(31001);
-    repository.insertUnionMember(unionID, 31001);
-    repository.insertUnionMember(unionID, 31002);
+    // A fresh JOIN and QUIT to one union, an expired JOIN to it, and a fresh
+    // ESCAPE naming it: the purge's view of the table.
+    execSQL("INSERT INTO GuildUnionOffer (UnionID, OfferType, OwnerGuildID, OfferTime) "
+            "VALUES (31000, 'JOIN', 31000, now())");
+    execSQL("INSERT INTO GuildUnionOffer (UnionID, OfferType, OwnerGuildID, OfferTime) "
+            "VALUES (31000, 'QUIT', 31001, now())");
+    execSQL("INSERT INTO GuildUnionOffer (UnionID, OfferType, OwnerGuildID, OfferTime) "
+            "VALUES (31000, 'JOIN', 31002, now() - interval 11 day)");
+    execSQL("INSERT INTO GuildUnionOffer (UnionID, OfferType, OwnerGuildID, OfferTime) "
+            "VALUES (31000, 'ESCAPE', 31003, now())");
 
-    // Three spellings of one count: COUNT(*) (the repository's own), and the
-    // handlers' lowercase count(*) plain and backticked.
-    EXPECT_EQ(2, repository.countUnionMembers(unionID));
-    EXPECT_EQ(2, repository.countUnionMembersSpelled(UNION_SQL_PLAIN, unionID));
-    EXPECT_EQ(2, repository.countUnionMembersSpelled(UNION_SQL_QUOTED, unionID));
+    const std::vector<UnionOfferStateRow> states = repository.loadOfferStates();
+    int seen = 0;
+    for (size_t r = 0; r < states.size(); r++) {
+        const UnionOfferStateRow& row = states[r];
+        if (row.ownerGuildID < 31000)
+            continue; // the seed's own rows
+        seen++;
+        EXPECT_EQ(31000, row.unionID);
+        if (row.ownerGuildID == 31000) {
+            EXPECT_EQ(UNION_OFFER_JOIN, row.offerType);
+            EXPECT_FALSE(row.expired);
+        } else if (row.ownerGuildID == 31001) {
+            EXPECT_EQ(UNION_OFFER_QUIT, row.offerType);
+            EXPECT_FALSE(row.expired);
+        } else if (row.ownerGuildID == 31002) {
+            EXPECT_EQ(UNION_OFFER_JOIN, row.offerType);
+            EXPECT_TRUE(row.expired) << "eleven days is past the ten-day lifetime";
+        } else {
+            EXPECT_EQ(UNION_OFFER_ESCAPE, row.offerType);
+            EXPECT_FALSE(row.expired);
+        }
+    }
+    EXPECT_EQ(4, seen);
 
-    // deleteUnionInfoOnly drops the GuildUnionInfo row and NOTHING else.
-    // This is the whole reason it is not deleteUnion(), which also clears
-    // the union's GuildUnionMember rows.
-    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM GuildUnionInfo WHERE UnionID=" + std::to_string(unionID)));
-    repository.deleteUnionInfoOnly(UNION_SQL_PLAIN, unionID);
-    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM GuildUnionInfo WHERE UnionID=" + std::to_string(unionID)));
-    EXPECT_EQ(2, repository.countUnionMembers(unionID));
+    // Only the fresh JOIN keeps the union: the expired one does not count.
+    EXPECT_EQ(1, repository.countPendingJoinOffers(31000));
 
-    // The backticked spelling does the same to a second union.
-    const uint second = repository.insertUnion(31003);
-    repository.insertUnionMember(second, 31003);
-    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM GuildUnionInfo WHERE UnionID=" + std::to_string(second)));
-    repository.deleteUnionInfoOnly(UNION_SQL_QUOTED, second);
-    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM GuildUnionInfo WHERE UnionID=" + std::to_string(second)));
-    EXPECT_EQ(1, repository.countUnionMembers(second));
+    // An offer to a union that has gone is deleted by guild, union and type:
+    // another union's id, or an ESCAPE row, is left alone.
+    repository.deleteOfferToUnion(31000, 31999);
+    EXPECT_EQ(1, repository.countOffers(31000));
+    repository.deleteOfferToUnion(31003, 31000);
+    EXPECT_EQ(1, repository.countOffers(31003)) << "an ESCAPE row is the guild's penalty";
+    repository.deleteOfferToUnion(31000, 31000);
+    EXPECT_EQ(0, repository.countOffers(31000));
+    EXPECT_EQ(0, repository.countPendingJoinOffers(31000));
 
-    // For contrast: deleteUnion takes the member rows too.
-    repository.deleteUnion(second);
-    EXPECT_EQ(0, repository.countUnionMembers(second));
+    // A guild leaving its union takes its QUIT row, and only that.
+    repository.deleteQuitOffer(31003);
+    EXPECT_EQ(1, repository.countOffers(31003));
+    repository.deleteQuitOffer(31001);
+    EXPECT_EQ(0, repository.countOffers(31001));
+}
+
+TEST_F(GuildMySQL, ADissolvedUnionTakesTheJoinAndQuitOffersNamingIt) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    repository.insertJoinOffer(31000, 31000);
+    repository.insertQuitOffer(31000, 31001);
+    repository.insertEscapeOffer(31000, 31002);
+    repository.insertJoinOffer(31500, 31003);
+
+    repository.deleteOffersToUnion(31000);
+
+    EXPECT_EQ(0, repository.countOffers(31000));
+    EXPECT_EQ(0, repository.countOffers(31001));
+    EXPECT_EQ(1, repository.countRecentEscapes(31002)) << "the penalty outlives the union";
+    EXPECT_EQ(1, repository.countOffers(31003)) << "another union's offer";
 }
 
 TEST_F(GuildMySQL, TheEscapeOfferIsAPositionalRowThatTheTenDayCountFinds) {

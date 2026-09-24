@@ -69,7 +69,7 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
         return;
     }
 
-    uint result = GuildUnionOfferManager::Instance().denyJoin(pPacket->getGuildID());
+    uint result = GuildUnionOfferManager::Instance().denyJoin(pPacket->getGuildID(), pUnion->getUnionID());
 
     gcGuildResponse.setCode(result);
     pPlayer->sendPacket(&gcGuildResponse);

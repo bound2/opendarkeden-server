@@ -24,7 +24,6 @@
 #include "PlayerCreature.h"
 #include "StringPool.h"
 #include "SystemAvailabilitiesManager.h"
-#include "repository/GuildRepository.h"
 #include "repository/MessageRepository.h"
 
 #endif // __GAME_SERVER__
@@ -75,7 +74,7 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
     // is read first and pUnion is not used past this call.
     const auto unionID = pUnion->getUnionID();
 
-    uint result = GuildUnionOfferManager::Instance().acceptQuit(pPacket->getGuildID());
+    uint result = GuildUnionOfferManager::Instance().acceptQuit(pPacket->getGuildID(), unionID);
 
     gcGuildResponse.setCode(result);
     pPlayer->sendPacket(&gcGuildResponse);
@@ -89,17 +88,11 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
         }
         string TargetGuildMaster = pGuild->getMaster();
 
-
-        GuildRepository& guildRows = defaultGuildRepository();
-
         defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster,
                                                      de::gameContext().strings().c_str(375));
 
-        // What if I am the only one left after accepting the withdrawal?
-        if (guildRows.countUnionMembersSpelled(UNION_SQL_PLAIN, unionID) == 0) {
-            guildRows.deleteUnionInfoOnly(UNION_SQL_PLAIN, unionID);
-            GuildUnionManager::Instance().reload();
-        }
+        // A union the withdrawal left with no member and no pending join
+        // offer was dissolved by acceptQuit, on every game server.
 
         // A union withdrawal can change the union information. Send the refreshed information again.
         Creature* pCreature = NULL;
