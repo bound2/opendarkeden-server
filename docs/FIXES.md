@@ -13,6 +13,23 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## Worker threads register their database connections under no reader's lock (2026-09-24)
+
+- **`DatabaseManager::addConnection` and `addDistConnection` insert into
+  `m_Connections` / `m_DistConnections` under `m_Mutex`, but
+  `getConnection(const string&)` and `getDistConnection` look the calling
+  thread up with a bare `find` on the same `unordered_map`,** so a worker
+  that registers its connection when it starts (each `ZoneGroupThread`,
+  the login- and shared-server links, `MPlayerManager`, `GDRLairManager`)
+  can rehash the map while an already-running zone thread is inside a
+  lookup: a data race on the container, undefined behaviour rather than a
+  stale answer. The window is startup, while the workers come up one by one
+  and the first zone threads already tick. Closing it means taking the
+  mutex in the lookups (every statement pays for it), or registering every
+  worker's connection before any worker starts, or a lookup structure a
+  reader can traverse during an insert.
+  > **Status:** recorded, not fixed (fix/exchange-account-db)
+
 ## A union dissolves under the join offers still pending to it (2026-09-24)
 
 - **`GuildUnion::removeGuild`, the expel and quit handlers' count-then-delete
