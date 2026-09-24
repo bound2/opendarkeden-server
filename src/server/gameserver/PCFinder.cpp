@@ -269,6 +269,18 @@ list<Creature*> PCFinder::getGuildCreatures(GuildID_t gID, uint Num) {
     return ret;
 }
 
+list<string> PCFinder::getGuildPlayerNames_LOCKED(GuildID_t gID) const {
+    list<string> names;
+
+    for (unordered_map<string, Creature*>::const_iterator itr = m_PCs.begin(); itr != m_PCs.end(); ++itr) {
+        PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(itr->second);
+        if (pPC != NULL && pPC->getGuildID() == gID)
+            names.push_back(itr->first);
+    }
+
+    return names;
+}
+
 void PCFinder::addNPC(NPC* pNPC) {
     __BEGIN_TRY
 

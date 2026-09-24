@@ -98,7 +98,7 @@ bool GuildUnion::removeGuild(GuildID_t gID) {
     m_Guilds.erase(itr);
 
     if (!defaultGuildRepository().deleteUnionMember(m_UnionID, gID)) {
-        filelog("GuildUnion.log", "[%u:%u] 탈퇴하려는데 해당 레코드가 없습니다.", m_UnionID, gID);
+        filelog("GuildUnion.log", "[%u:%u] no member row to remove.", m_UnionID, gID);
     }
 
     return true;
@@ -315,15 +315,14 @@ bool GuildUnionManager::removeGuildFromUnion(GuildID_t gID) {
     for (size_t m = 0; m < teardown.membersToRemove.size(); m++) {
         const GuildID_t memberID = teardown.membersToRemove[m];
 
-        if (pUnion != NULL) {
-            // Takes the member row with it. The guild stops finding this
-            // union whether or not the union itself survives.
-            if (pUnion->removeGuild(memberID))
-                m_GuildUnionMap.erase(memberID);
-        } else {
-            // No union object on this server: the row is all there is.
+        // Takes the member row with it. The guild stops finding this union
+        // whether or not the union itself survives. A guild the union object
+        // does not list, or no union object at all, leaves the row to go on
+        // its own.
+        if (pUnion != NULL && pUnion->removeGuild(memberID))
+            m_GuildUnionMap.erase(memberID);
+        else
             guildRows.deleteUnionMember(unionID, memberID);
-        }
     }
 
     if (teardown.action == UnionTeardown::DISSOLVE)

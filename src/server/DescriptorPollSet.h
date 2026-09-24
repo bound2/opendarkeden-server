@@ -11,6 +11,7 @@
 
 #include <poll.h>
 
+#include <cstddef>
 #include <vector>
 
 namespace de {

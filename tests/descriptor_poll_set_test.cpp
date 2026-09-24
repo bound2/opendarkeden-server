@@ -2,7 +2,7 @@
 // descriptor-indexed player tables with (src/server/DescriptorPollSet.h). The
 // managers watch one descriptor per table slot and ask, once a tick, which of
 // them are ready, so the set has to answer for every descriptor the table can
-// hold -- including the ones an fd_set could never address.
+// hold -- including descriptor numbers at or above 1024.
 
 #include <poll.h>
 #include <unistd.h>
@@ -67,9 +67,9 @@ public:
         }
     }
 
-    // Moves one end to the given descriptor, so a test can watch a descriptor
-    // number an fd_set has no bit for. Returns false when the process is not
-    // allowed that many open files.
+    // Moves one end to the given descriptor, so a test can watch a high
+    // descriptor number. Returns false when the process is not allowed that
+    // many open files.
     bool moveTo(int end, int fd) {
         rlimit limit;
         if (getrlimit(RLIMIT_NOFILE, &limit) == 0 && limit.rlim_cur <= static_cast<rlim_t>(fd)) {
@@ -229,9 +229,8 @@ TEST(DescriptorPollSet, AnAnswerAboutARemovedConnectionIsDiscarded) {
     EXPECT_FALSE(set.isReadable(9));
 }
 
-// The bound that made this set necessary: the player table holds 2000
-// descriptors and an fd_set holds FD_SETSIZE, so the descriptors in between
-// had no bit to set. The set has a slot for each of them.
+// The player table holds 2000 descriptors, more than FD_SETSIZE, and the set
+// has a slot for each of them.
 TEST(DescriptorPollSet, ADescriptorPastAnFdSetIsWatchedLikeAnyOther) {
     de::DescriptorPollSet set(2000);
 
@@ -308,8 +307,8 @@ TEST(DescriptorPollSet, ARealRoundReportsWhatTheSocketsAreDoing) {
     EXPECT_TRUE(set.isReadable(remaining));
 }
 
-// The same round on a descriptor an fd_set has no bit for. Skipped where the
-// process may not open that many files.
+// The same round on a descriptor above FD_SETSIZE. Skipped where the process
+// may not open that many files.
 TEST(DescriptorPollSet, ARealRoundWorksOnADescriptorPastAnFdSet) {
     SocketPair sockets;
     ASSERT_TRUE(sockets.valid());
