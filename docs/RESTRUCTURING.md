@@ -798,9 +798,9 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > drained by whichever manager owns the player, plus `ZoneGroup::post()`
   > for group-level work. Tables read by every thread and extended by one
   > are `de::Snapshot`s.
-  > Residual, recorded in `docs/FIXES.md` rather than fixed: a `Guild` or
-  > `GuildMember` another thread may hold is retired, not freed, so a zone
-  > thread reading a retired member still sees its last rank.
+  > A `Guild` or `GuildMember` another thread may hold is retired, not
+  > freed, and answers as gone once retired: `GuildMember::getRank()` reads
+  > `GUILDMEMBER_RANK_LEAVE` and `Guild::getState()` `GUILD_STATE_BROKEN`.
   - Owner: the debug asserts; `critical_section_audit`, which fails on a
     hand-written `unlock()` inside a critical section.
 

@@ -570,6 +570,41 @@ else
     echo "[OK]   every dump table is InnoDB + utf8mb4_unicode_ci"
 fi
 
+# --- No seed guild belongs to two guild unions ------------------------------
+# A guild is in at most one union, as its master or as a member: the join
+# offer and its acceptance refuse a guild already in one, and the union
+# manager maps each guild to a single union. GuildUnionMember's key is
+# (OwnerGuildID, UnionID), so the table itself would take a second row, and
+# a guild with two gets a different answer from the union manager's map
+# than from its member row. The scan fails, rather than passes, when it
+# finds no union rows to check.
+union_dupes=$(perl -ne '
+    if (/^INSERT INTO `GuildUnionInfo` VALUES (.*);/) {
+        my $v = $1;
+        while ($v =~ /\((\d+),(\d+)\)/g) { $unions++; $in{$2}{$1} = 1; }
+    }
+    if (/^INSERT INTO `GuildUnionMember` VALUES (.*);/) {
+        my $v = $1;
+        while ($v =~ /\((\d+),(\d+)\)/g) { $in{$2}{$1} = 1; }
+    }
+    END {
+        unless ($unions) { print "NO_UNIONS\n"; exit; }
+        for my $g (sort { $a <=> $b } keys %in) {
+            my @u = sort { $a <=> $b } keys %{ $in{$g} };
+            print "guild $g is in unions @u\n" if @u > 1;
+        }
+    }' initdb/DARKEDEN.sql)
+if [ "$union_dupes" = "NO_UNIONS" ]; then
+    echo "[FAIL] no GuildUnionInfo rows found in initdb/DARKEDEN.sql (dump layout changed?)"
+    fail=1
+elif [ -n "$union_dupes" ]; then
+    echo "$union_dupes"
+    echo "[FAIL] a seed guild belongs to more than one guild union (see above)"
+    fail=1
+else
+    echo "[OK]   no seed guild belongs to two guild unions"
+fi
+
 # --- Generated factory list is fresh ---------------------------------------
 # The generator only writes to $OUT, so point it at a scratch copy of the
 # tree's file rather than overwriting the tracked one: an interrupt (Ctrl-C,

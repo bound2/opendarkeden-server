@@ -13,6 +13,44 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## Two seed guilds each led two guild unions (2026-09-24)
+
+- **`initdb/DARKEDEN.sql` gave guild 9648 two unions, 119 and 166, each
+  with guild 11294 as its one member, and guild 13981 two empty ones, 141
+  and 181.** Nothing in the code makes that state: `offerJoin` and
+  `acceptJoin` answer `ALREADY_IN_UNION` for a guild already in a union,
+  `offerJoin` reuses the union the master guild already leads rather than
+  making another, and `GuildUnion::addGuild` refuses a guild the union
+  holds. It only reads inconsistently: `GuildUnionManager::load` walks
+  `GuildUnionInfo` in the order InnoDB returns it, key order, and each
+  union overwrites the guild map,
+  so the running server put 9648 and 11294 in 166 while `loadUnionOfGuild`
+  answers 11294's first member row, 119, and union 119 stayed loaded with
+  no guild mapped to it. The later rows are gone -- `(166,9648)` and
+  `(181,13981)` from `GuildUnionInfo`, `(166,11294)` from
+  `GuildUnionMember`; no offer row names either union -- so the older
+  union of each pair is the one left. `tests/ratchet/ratchets.sh` fails on
+  a seed guild that belongs to more than one union as master or member.
+  > **Status:** fixed (fix/manager-residue)
+
+## A union join offer creates the union on one game server only (2026-09-24)
+
+- **`GuildUnionOfferManager::offerJoin` creates a union for a master guild
+  that leads none -- `new GuildUnion`, `create()`, `addGuildUnion` -- and
+  tells no other game server,** where `addGuild` and both removal paths
+  end in `sendRefreshCommand()`. Each game server keeps its own copy of the
+  union tables, so until something else refreshes them, a second offer to
+  the same master guild made on another server of the world finds no union
+  there and creates another. That is the likeliest source of the duplicate
+  seed unions above, whose masters appear twice in `GuildUnionInfo`. The
+  union is also created before the checks that can still refuse the offer
+  (a pending offer, the escape penalty, a full union), so a refused first
+  offer leaves an empty union behind; most of the seed's 116 unions have no
+  member rows. The fix is in `GuildUnion.cpp`: refresh the other servers
+  after the create (or create the union when the first join is accepted),
+  and decide whether a refused offer should leave the union it made.
+  > **Status:** recorded, not fixed (fix/manager-residue)
+
 ## The login link's LG handlers keep an incoming player past its lock (2026-09-24)
 
 - **`LGIncomingConnectionOKHandler` and `LGIncomingConnectionErrorHandler`
@@ -55,6 +93,19 @@ repo and the client's. Entries below are newest first; the oldest is the
   order; the commented-out sections are gone.
   > **Status:** not a defect (the polls take the ZonePlayerManager shape in
   > fix/manager-residue)
+
+## The `DIST_DB_*` configuration block is read by nothing (2026-09-24)
+
+- **The login and shared server configurations, in `conf/` and
+  `docker/conf/`, carried a `DIST_DB_HOST`/`PORT`/`DB`/`USER`/`PASSWORD`
+  block that no code reads.** The only connections the servers open are
+  `DB_*` and `UI_DB_*` (`de::connectionSettings` in `DatabaseManager::init`);
+  the gameserver's "dist" connection is built from `UI_DB_*`, and its own
+  configurations never had the block. Nothing under `src/`, `tests/`,
+  `docker/`, `tools/` or `initdb/` names the keys, and `docker/start.sh`
+  reads `DB_HOST`/`DB_PORT` with an anchored match. The four blocks are
+  gone; a deployment's own copy of them is ignored as before.
+  > **Status:** fixed (fix/manager-residue)
 
 ## The union broadcasts took zone-group mutexes on the thread that called them (2026-09-24)
 
