@@ -17,6 +17,7 @@
 #include "ZoneGroupManager.h"
 #include "ZoneInfoManager.h"
 // #include "HolyLandRaceBonus.h"
+#include "CastleOwnerDecision.h"
 #include "CastleSkillInfo.h"
 #include "ClientManager.h"
 #include "EffectHasBloodBible.h"
@@ -37,6 +38,7 @@
 #include "WarScheduler.h"
 #include "WarSystem.h"
 #include "Zone.h"
+#include "ZoneGroup.h"
 #include "ZoneUtil.h"
 #include "repository/WarInfoRepository.h"
 
@@ -51,23 +53,30 @@ CastleInfo::CastleInfo() : m_Name(""), m_BonusOptionList(), m_CastleZoneIDList()
 
 CastleInfo::~CastleInfo() {}
 
+// Both moves retry until no other thread changed the balance in between, so
+// each returns the balance its own change produced.
 Gold_t CastleInfo::increaseTaxBalance(Gold_t tax) {
-    if (tax > GUILD_TAX_BALANCE_MAX - m_TaxBalance) // Clamp when the total would overflow
-    {
-        tax = GUILD_TAX_BALANCE_MAX - m_TaxBalance;
-    }
+    Gold_t balance = m_TaxBalance.load();
+    Gold_t next;
+    do {
+        Gold_t credit = tax;
+        if (credit > GUILD_TAX_BALANCE_MAX - balance) // Clamp when the total would overflow
+            credit = GUILD_TAX_BALANCE_MAX - balance;
+        next = min(GUILD_TAX_BALANCE_MAX, balance + credit);
+    } while (!m_TaxBalance.compare_exchange_weak(balance, next));
 
-    m_TaxBalance = min(GUILD_TAX_BALANCE_MAX, m_TaxBalance + tax);
-
-    return m_TaxBalance;
+    return next;
 }
 
 Gold_t CastleInfo::decreaseTaxBalance(Gold_t tax) {
-    if (tax > m_TaxBalance)
-        tax = m_TaxBalance;
+    Gold_t balance = m_TaxBalance.load();
+    Gold_t next;
+    do {
+        Gold_t debit = min(tax, balance);
+        next = balance - debit;
+    } while (!m_TaxBalance.compare_exchange_weak(balance, next));
 
-    m_TaxBalance = max(0, (int)m_TaxBalance - (int)tax);
-    return m_TaxBalance;
+    return next;
 }
 
 Gold_t CastleInfo::increaseTaxBalanceEx(Gold_t tax)
@@ -75,16 +84,15 @@ Gold_t CastleInfo::increaseTaxBalanceEx(Gold_t tax)
 {
     __BEGIN_TRY
 
-    static char query[100];
-
-    increaseTaxBalance(tax);
+    Gold_t balance = increaseTaxBalance(tax);
 
     if (!isCommon()) {
-        sprintf(query, "TaxBalance=%d", (int)getTaxBalance());
+        char query[100];
+        sprintf(query, "TaxBalance=%d", (int)balance);
         de::gameContext().castleInfos().tinysave(getZoneID(), query);
     }
 
-    return getTaxBalance();
+    return balance;
 
     __END_CATCH
 }
@@ -94,16 +102,15 @@ Gold_t CastleInfo::decreaseTaxBalanceEx(Gold_t tax)
 {
     __BEGIN_TRY
 
-    static char query[100];
-
-    decreaseTaxBalance(tax);
+    Gold_t balance = decreaseTaxBalance(tax);
 
     if (!isCommon()) {
-        sprintf(query, "TaxBalance=%d", (int)getTaxBalance());
+        char query[100];
+        sprintf(query, "TaxBalance=%d", (int)balance);
         de::gameContext().castleInfos().tinysave(getZoneID(), query);
     }
 
-    return getTaxBalance();
+    return balance;
 
     __END_CATCH
 }
@@ -180,8 +187,8 @@ string CastleInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CastleInfo(" << "ZoneID:" << m_ZoneID << ",Item Tax Ratie:" << m_ItemTaxRatio
-        << ",Entrance Fee:" << m_EntranceFee << ",Tax Balance:" << m_TaxBalance << ")";
+    msg << "CastleInfo(" << "ZoneID:" << m_ZoneID << ",Item Tax Ratie:" << m_ItemTaxRatio.load()
+        << ",Entrance Fee:" << m_EntranceFee.load() << ",Tax Balance:" << m_TaxBalance.load() << ")";
     return msg.toString();
 
     __END_CATCH
@@ -456,13 +463,16 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
     if (pCastleInfo == NULL)
         return false;
 
+    Zone* pZone = getZoneByZoneID(zoneID);
+
+    // The castle's own group owns its owner change (see the header).
+    pZone->getZoneGroup()->assertOwned();
+
     Race_t oldRace = pCastleInfo->getRace();
 
     pCastleInfo->setGuildID(guildID);
     pCastleInfo->setRace(race);
     pCastleInfo->setTaxBalance(0);
-
-    Zone* pZone = getZoneByZoneID(zoneID);
 
     if (pCastleInfo->isCommon()) {
         pCastleInfo->setEntranceFee(variables.getVariable(COMMON_CASTLE_ENTRANCE_FEE));
@@ -541,6 +551,38 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
     return true;
 
     __END_CATCH
+}
+
+void CastleInfoManager::postCastleWarEnd(ZoneID_t castleZoneID, bool bChangeOwner, Race_t winnerRace,
+                                         GuildID_t winnerGuildID, Gold_t registrationFee) {
+    Zone* pZone = getZoneByZoneID(castleZoneID);
+    Assert(pZone != NULL);
+
+    pZone->getZoneGroup()->post([castleZoneID, bChangeOwner, winnerRace, winnerGuildID, registrationFee] {
+        CastleInfoManager& castles = de::gameContext().castleInfos();
+
+        if (bChangeOwner) {
+            bool bWinnerExists =
+                isCommonGuildID(winnerGuildID) || de::gameContext().guilds().getGuild(winnerGuildID) != NULL;
+            CastleOwner owner = castleWarWinnerOwner(winnerRace, winnerGuildID, bWinnerExists);
+            castles.modifyCastleOwner(castleZoneID, owner.race, owner.guildID);
+        }
+
+        // The fee goes to whoever holds the castle now; the owner change
+        // above resets the balance, so the fee is credited after it.
+        castles.increaseTaxBalance(castleZoneID, registrationFee);
+    });
+}
+
+void CastleInfoManager::settleGuildDeletion(ZoneID_t castleZoneID, GuildID_t deletedGuildID) {
+    const CastleInfo* pCastleInfo = getCastleInfo(castleZoneID);
+    if (pCastleInfo == NULL)
+        return;
+
+    std::optional<CastleOwner> owner =
+        castleOwnerAfterGuildDeleted(pCastleInfo->getRace(), pCastleInfo->getGuildID(), deletedGuildID);
+    if (owner)
+        modifyCastleOwner(castleZoneID, owner->race, owner->guildID);
 }
 
 bool CastleInfoManager::increaseTaxBalance(ZoneID_t zoneID, Gold_t tax)
@@ -794,11 +836,7 @@ bool CastleInfoManager::canPortalActivate(ZoneID_t zoneID, PlayerCreature* pPC) 
     }
 
     if (warSystem.hasCastleActiveWar(zoneID)) {
-        War* pWar = warSystem.getActiveWar(zoneID);
-
-        if (pWar != NULL) {
-            return pPC->getRace() == pCastleInfo->getRace();
-        }
+        return pPC->getRace() == pCastleInfo->getRace();
     }
 
     return false;

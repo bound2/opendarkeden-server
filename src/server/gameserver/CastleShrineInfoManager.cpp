@@ -330,32 +330,25 @@ bool CastleShrineInfoManager::canPickupCastleSymbol(Race_t race, CastleSymbol* p
     bool isCastle = de::gameContext().castleInfos().getCastleZoneID(guardZoneID, castleZoneID);
     Assert(isCastle == true);
 
-    War* pWar = de::gameContext().warSystem().getActiveWar(castleZoneID);
-
-    if (pWar == NULL) {
+    // A war running over a castle is a castle war, so whether one runs is the
+    // whole question asked of the war system.
+    if (!de::gameContext().warSystem().hasCastleActiveWar(castleZoneID)) {
         // Unexpected state.
-        filelog("WarError.log", "전쟁도 안하는데 성의 상징조각을 주울려고 한다. ItemType: %u",
+        filelog("WarError.log", "No war is running, yet a castle symbol is being picked up. ItemType: %u",
                 (int)pCastleSymbol->getItemType());
         return false;
     }
 
-    if (pWar->getWarType() == WAR_GUILD) {
-        CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(castleZoneID);
+    CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(castleZoneID);
 
-        if (pCastleInfo == NULL) {
-            // Unexpected state.
-            filelog("WarError.log", "성이 아니다. ItemType: %u, ZoneID : %u", (int)pCastleSymbol->getItemType(),
-                    (int)castleZoneID);
-            return false;
-        }
-
-        return (race == pCastleInfo->getRace());
+    if (pCastleInfo == NULL) {
+        // Unexpected state.
+        filelog("WarError.log", "Not a castle. ItemType: %u, ZoneID : %u", (int)pCastleSymbol->getItemType(),
+                (int)castleZoneID);
+        return false;
     }
 
-    // Unexpected state.
-    filelog("WarError.log", "이상한 전쟁이다. WarType : %u", (int)pWar->getWarType());
-
-    return false;
+    return (race == pCastleInfo->getRace());
     __END_CATCH
 }
 

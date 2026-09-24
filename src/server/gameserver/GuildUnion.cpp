@@ -97,16 +97,29 @@ UnionJoinOfferVerdict GuildUnionManager::recordJoinOffer(GuildID_t applicantGID,
 
     verdict = decideUnionJoinOffer(facts);
 
-    if (verdict == UnionJoinOfferVerdict::OPEN_UNION_AND_RECORD) {
-        const uint unionID = repository.insertUnion(masterGID);
-        pUnion = m_Unions.publish(std::make_unique<GuildUnion>(unionID, masterGID));
-        opened = true;
-    }
+    uint targetUnionID = pUnion != NULL ? pUnion->getUnionID() : 0;
+
+    if (verdict == UnionJoinOfferVerdict::OPEN_UNION_AND_RECORD)
+        targetUnionID = repository.insertUnion(masterGID);
 
     if (verdict == UnionJoinOfferVerdict::OPEN_UNION_AND_RECORD || verdict == UnionJoinOfferVerdict::RECORD_OFFER) {
-        // Drop offers older than ten days.
-        repository.deleteStaleOffers(applicantGID);
-        repository.insertJoinOffer(pUnion->getUnionID(), applicantGID);
+        try {
+            // Drop offers older than ten days.
+            repository.deleteStaleOffers(applicantGID);
+            repository.insertJoinOffer(targetUnionID, applicantGID);
+        } catch (...) {
+            // A union row with no offer behind it would keep its master in a
+            // union nobody can reach, so the row goes with the failed offer.
+            if (verdict == UnionJoinOfferVerdict::OPEN_UNION_AND_RECORD)
+                repository.deleteUnion(targetUnionID);
+            throw;
+        }
+
+        // Published only once the offer that justifies it is on record.
+        if (verdict == UnionJoinOfferVerdict::OPEN_UNION_AND_RECORD) {
+            pUnion = m_Unions.publish(std::make_unique<GuildUnion>(targetUnionID, masterGID));
+            opened = true;
+        }
     }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)

@@ -13,6 +13,100 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A union dissolves under the join offers still pending to it (2026-09-24)
+
+- **`GuildUnion::removeGuild`, the expel and quit handlers' count-then-delete
+  and `removeGuildFromUnion`'s dissolve all dissolve a memberless union
+  even while JOIN offers to it are pending,** against the rule that an
+  offer keeps a union alive. The offers then name a union that no longer
+  exists; offers never expire, and the deny handler answers `NOT_IN_UNION`
+  to a master who leads no union, so the applicant is refused with
+  `ALREADY_OFFER_SOMETHING` for good. The seed holds one such offer
+  already, guild 4950's JOIN to a union 28 that is absent. The fix routes
+  every removal through the abandoned-union rule (`dissolveIfAbandoned`)
+  and clears or expires offers to a union that is gone; the seed check
+  should then also fail on a JOIN offer naming no union.
+  > **Status:** recorded, not fixed (fix/union-refresh)
+
+## Accepting or denying a union offer does not check which union it targets (2026-09-24)
+
+- **`CGAcceptUnionHandler` and `CGDenyUnionHandler` test only that the
+  caller masters some union, then accept or deny the offer of the guild the
+  packet names,** so any union master can accept or clear another union's
+  offer, and a deny that clears that union's last offer dissolves it. The
+  handlers must match the offer's union to the caller's.
+  > **Status:** recorded, not fixed (fix/union-refresh)
+
+## Showing a castle's war schedule from another thread closes a lock cycle (2026-09-24)
+
+- **`Zone::heartbeat` takes a castle scheduler's mutex under the zone's
+  own, and `WarScheduler::makeGCWarScheduleList` takes the war system's
+  mutex under the scheduler's (it adds the race war's line), while the war
+  heartbeat locks castle and holy-land zones under the war system's
+  mutex,** so a schedule shown from any thread but the castle's own group
+  thread can close the cycle zone → scheduler → war system → zone. Every
+  seed `ShowWarSchedule` NPC stands inside its own castle zone, so the
+  action runs on that thread today; the order in `WarSystem.h` says so.
+  Closing it means answering the race war's line without the war system's
+  mutex, or listing the schedule without the scheduler's.
+  > **Status:** recorded, not fixed (fix/war-threads)
+
+## A castle war's end handles the castle's zones from the main thread (2026-09-24)
+
+- **Besides the owner change, `GuildWar::executeEnd` returns the castle's
+  symbols (`returnAllCastleSymbol`) and restores the guard shrine's shield
+  (`addShrineShield`), and `SiegeWar::executeEnd` resets the siege zone
+  (`SiegeManager::reset`: every monster killed, every player transported
+  out), all on the main thread,** while those zones' threads run them. The
+  shrine and symbol paths take the zone's own mutex, which excludes the
+  zone's heartbeat but not its group's CG handlers; the siege reset takes no
+  lock at all. The race war's start and end do the same across the holy
+  land. Posting them to the owning groups is not one command per war: a
+  castle symbol may lie in any zone or sit in a player's inventory in any
+  group, so each return has to reach the group that holds it, which the
+  item position loaders do not say today.
+  > **Status:** recorded, not fixed (fix/war-threads)
+
+## A castle's balance row can be saved out of order (2026-09-24)
+
+- **Each change to a castle's tax balance saves the balance it produced
+  (`TaxBalance=%d`),** and two changes on two zone threads -- a shop's tax
+  and a resurrection fee, say -- may save theirs in the opposite order to
+  the one they were made in, leaving the row one change behind the balance
+  in memory until the next change saves again; a restart in between loses
+  the difference. Serializing each change with its save per castle means a
+  database write under a mutex on the zone threads, or moving every balance
+  change to the castle's own thread, which is a decision about the shops.
+  > **Status:** recorded, not fixed (fix/war-threads)
+
+## A castle's tax balance was read and rewritten by every thread that moved it (2026-09-24)
+
+- **`CastleInfo::increaseTaxBalance` and `decreaseTaxBalance` read the
+  balance, computed the new one and stored it back with no lock, while a
+  castle-taxed shop (`CGShopRequestBuyHandler`), a resurrection fee charged
+  in the resurrecting player's group, a guild master's withdrawal and a
+  war's registration fee each move it from their own zone thread,** so two
+  changes at once could lose one; the `Ex` forms also formatted the row's
+  update into a static buffer every thread shared. The balance is an atomic
+  changed by compare-and-swap, each change returning the balance it
+  produced, and the buffers are local. Found with the castle-state entries
+  below.
+  > **Status:** fixed (fix/war-threads)
+
+## Adding a queued war locked zones under the war queue's mutex (2026-09-24)
+
+- **`WarSystem::addQueuedWar` held `m_MutexWarQueue` while it added each
+  queued war, and adding the race war keeps only its participants in the
+  holy land (`remainRaceWarPlayers`, under each holy land zone's own mutex),
+  while a castle zone -- every castle is holy land -- hands its starting war
+  over through `addWarDelayed`, which takes the queue's mutex, from inside
+  its heartbeat, which holds that zone's mutex:** a deadlock when a castle
+  war starts as the race war is added with the participant limiter on. The
+  queue is swapped out under its mutex and the wars are added after it is
+  released, so the queue's mutex is a leaf, as the lock order in
+  `WarSystem.h` records.
+  > **Status:** fixed (fix/war-threads)
+
 ## A union offer never expires (2026-09-24)
 
 - **`GuildUnionOffer` holds one row per guild (its key is `OwnerGuildID`),
@@ -60,7 +154,10 @@ repo and the client's. Entries below are newest first; the oldest is the
   process and shared by every thread without a lock, so running the ledger
   on it from the zone threads would interleave their transactions on one
   session. It needs either an account connection per thread, registered by
-  every thread that buys, or the point tables moved beside the listings.
+  every thread that buys, the point tables moved beside the listings, or,
+  where both schemas sit on one server, the statements naming the tables
+  by schema (`USERINFO.PointLedger`) on the game connection, which also
+  keeps a purchase in one transaction.
   The purchase is ready for the first: its transaction pair issues each
   statement once per distinct connection, and the order of its steps and
   commits is written for two (`ExchangeRepository.h`).
@@ -145,21 +242,52 @@ repo and the client's. Entries below are newest first; the oldest is the
   `CastleInfoManager::modifyCastleOwner`, which, when the winner's race
   differs from the owner's, reaches `cancelGuildSchedules()` and so
   `WarScheduler::load()`,** the reload that frees the wars the castle
-  zone's thread executes. The GM command that took the same path now posts
-  the owner change to the castle's group; the war's end still does not,
-  because it also records the war's history and broadcasts the result, and
-  whether the owner change may run a tick later than those is a decision
-  about the war's end, not a mechanical move. The `Race_t` the NetMarble
-  build relays through `*world` reaches the same call.
-  > **Status:** recorded, not fixed (fix/war-residue)
+  zone's thread executes. It could deadlock as well: the reload takes the
+  castle scheduler's mutex under `WarSystem::m_Mutex`, and a zone thread
+  building a castle's war schedule list
+  (`WarScheduler::makeGCWarScheduleList`) holds that scheduler's mutex
+  while it asks the war system for the race war's line. Both `executeEnd`s
+  still decide the winner on the main thread, and post the rest to the
+  castle's group through `CastleInfoManager::postCastleWarEnd`, capturing
+  values only: the owner change, then the registration fee credited to the
+  balance the change has just reset -- the order the two always had, which
+  the fee depends on; a war that changed no owner credits the fee alone.
+  The end message, the symbol return and shrine shield, the siege zone's
+  reset and the history row stay on the main thread and come first; the
+  change lands at the top of the castle group's next tick, and until then
+  the castle keeps its old owner with the war already over. Nothing on the
+  main thread reads the owner after `executeEnd`: the heartbeat drops the
+  war from its lists and frees it, and the war list it rebuilds no longer
+  holds it. The history row records the winner decided on the main thread,
+  not the castle's state; the external `recordGuildWarHistory.py` it runs
+  afterwards is not in the tree, so whether it reads the castle row, which
+  now lags by a tick, is not known. A winning guild deleted between the
+  war's end and the command hands the castle to the winner race's common
+  guild (`castleWarWinnerOwner`), the owner the deletion's own change makes
+  of it, so either order of the two ends the same;
+  `tests/scheduler_test.cpp` pins both. The relays still go out from the
+  main thread: the NetMarble `*world` relay and the siege's `GGCommand` to
+  the castle-following servers both arrive as the GM `setCastleOwnerGuild`
+  command, which posts the change to the receiving server's castle group;
+  that relayed command applies no `castleWarWinnerOwner`, so a winner
+  deleted around the relay's flight leaves the remote castle with its old
+  owner, or hands it to a guild that is gone, a window only the NetMarble
+  relay and the castle-following servers have. Until the posted command
+  runs, at the top of the castle group's next tick, the castle keeps its
+  old owner, and a withdrawal or a fee credited in that tick is reset by
+  the change. With every caller on the castle's thread, `modifyCastleOwner`
+  asserts the castle group's ownership (`ZoneGroup::assertOwned`, Debug
+  builds).
+  > **Status:** fixed (fix/war-threads)
 
 ## Retired unions accumulate on every reload (2026-09-24)
 
 - **`GuildUnionRegistry::replaceAll` retires every live union on every
   `load()`, and a reload follows every union change on any game server of
-  the world** (`sendRefreshCommand()` makes the others reload, and four CG
+  the world** (`sendRefreshCommand()` makes the others reload, and three CG
   handlers reload themselves), so each reload keeps one more copy of every
-  union -- with the seed's 116 unions, about 20 KB per reload per server --
+  union -- with the 116 unions the seed held then, about 20 KB per reload
+  per server --
   until the process exits. `replaceAll` now keeps every live union whose
   id and master the tables still hold -- the same object, so a pointer a
   reader took stays live -- and gives it the fresh member list in one step
@@ -211,8 +339,8 @@ repo and the client's. Entries below are newest first; the oldest is the
   castle's group now too. A war's end takes the same path from the main
   thread (`WarSystem::heartbeat` runs `executeEnd`, whose owner change
   reloads when the winner's race differs from the owner's); that one is
-  recorded below rather than moved, since a war's end also records history
-  and the order of those two writes is a decision. The rest of a
+  posted to the castle's group as well now, see "A war's end reloads the
+  castle's schedule on the main thread". The rest of a
   castle scheduler's readers are on its group's thread or take the
   scheduler's mutex (`makeGCWarScheduleList`, `hasSchedule`), and a war the
   scheduler hands to `WarSystem` has been popped from it first, so a reload
@@ -267,12 +395,32 @@ repo and the client's. Entries below are newest first; the oldest is the
   type when a castle symbol is picked up, and `ActionEnterSiege` asks the
   siege for the player's side. The main thread's heartbeat frees a castle
   war under `m_Mutex` when its hour runs out, so a use that straddles the
-  end reads a freed war. The race war's one such reader now asks under the
-  lock; these were left, because `GuildWar` and `SiegeWar` answer through
-  the castle manager, and `hasCastleActiveWar` records that
-  taking `m_Mutex` from inside a zone effect already deadlocked once, so
-  holding it across those answers needs its lock order worked out first.
-  > **Status:** recorded, not fixed (fix/war-residue)
+  end reads a freed war. `getActiveWar` is gone, and with it
+  `getActiveWarSchedule`, which handed out the schedule the same way and
+  had no caller: a running war is found only under `m_Mutex`
+  (`getActiveWar_LOCKED`, protected) and asked there. `isModifyCastleOwner`
+  looks the war up and asks it under the lock, answering no when no war
+  runs rather than asserting; `getSiegeGuildSide` answers
+  `ActionEnterSiege`'s side question the same way; and the castle gate
+  (`canPortalActivate`) and the symbol pick-up (`canPickupCastleSymbol`,
+  which has no caller today) only ever asked whether a war ran, which
+  `hasCastleActiveWar` answers from its own list. The lock order is
+  written in `WarSystem.h`. The heartbeat holds `m_Mutex` while it locks
+  zones (`Zone::lock`) to return castle symbols and blood bibles and to
+  restore shrine shields, so a thread holding a zone's own mutex -- which
+  `Zone::heartbeat` holds over NPC, monster and effect processing -- must
+  not take `m_Mutex`: that is the deadlock the old comment meant, reached
+  from `EffectHasBloodBible::affect` in the original, and the reason
+  `hasCastleActiveWar` reads a list under a leaf mutex. The heartbeat
+  takes no zone group's mutex and, with the owner change posted, no castle
+  scheduler's, so taking `m_Mutex` under a group's mutex is safe, and every
+  caller of the two questions is a CG handler or a quest action answering a
+  player (`CGRelicToObjectHandler` through `SiegeManager::putItem`, and
+  `CGNPCAskAnswerHandler` for `EnterSiege`), which holds its group's mutex
+  and no zone's. The relic handler's `endWar`, right after the same
+  question, has taken `m_Mutex` from there all along. The answers read the
+  castle table and the player, and take no lock of their own.
+  > **Status:** fixed (fix/war-threads)
 
 ## A deleted guild's reinforcement registrations outlived it (2026-09-24)
 
@@ -301,13 +449,25 @@ repo and the client's. Entries below are newest first; the oldest is the
   `CastleInfo` and broadcasts the tax change into the castle's zone
   (`setItemTaxRatio`, `Zone::broadcastPacket`) while the castle's zone
   thread runs it. The race does not change on this path, so it never
-  reaches the war scheduler reload the GM command could. Posting the call
-  to the castle's group, as the GM command now does, would move this
-  writer, but `CastleInfo` is read without a lock by every zone thread
-  (entrance fees, tax ratios, the owning race at a castle's gate), so
-  which thread writes it does not settle it: that wants a decision about
-  who owns castle state.
-  > **Status:** recorded, not fixed (fix/war-residue)
+  reaches the war scheduler reload the GM command could. The change now
+  rides the command the deletion already posts to every castle's group for
+  the scheduler cancel, ahead of the cancel, and is decided there
+  (`CastleInfoManager::settleGuildDeletion` over
+  `castleOwnerAfterGuildDeleted`): the castle turns its race's common
+  castle only if the deleted guild still holds it when the command runs,
+  so a war the guild won a moment earlier, whose change reached the
+  mailbox first, is turned common too, and a change that handed the castle
+  on is left alone. The command captures ids only; a change to a common
+  guild looks no guild up, and posting takes no group mutex, so nothing
+  new is taken under the guild manager's mutex. Who owns the castle's
+  state is settled with it: every owner change -- the war's end, this
+  deletion, the GM commands -- runs on the castle's own thread, and the
+  item tax ratio is set from the castle's own zone, so the owner, race,
+  entrance fee and ratio have one writer, and they are atomics every other
+  zone thread reads without a lock, getting a value some writer stored, two
+  reads possibly straddling a change, as with the race war flags. The tax
+  balance has many writers and is changed by compare-and-swap (above).
+  > **Status:** fixed (fix/war-threads)
 
 ## Every variable without a stored row read zero instead of its default (2026-09-24)
 
@@ -381,11 +541,15 @@ repo and the client's. Entries below are newest first; the oldest is the
   filters always have: a filtered page is the matching part of that page.
   > **Status:** fixed (fix/exchange-residue)
 
-- **The client cannot send a seller filter**: its `ExchangeFilter`
-  (`client/VS_UI/src/header/UiRuntime.h`) has no seller field and
-  `RequestExchangeList` (`client/VS_UI/src/UiRuntime.cpp`) never calls
-  `setSellerFilter`.
-  > **Status:** recorded, not fixed (fix/exchange-residue)
+- **The client could not send a seller filter**: its `ExchangeFilter`
+  (`client/VS_UI/src/header/UiRuntime.h`) had no seller field and
+  `RequestExchangeList` (`client/VS_UI/src/UiRuntime.cpp`) never called
+  `setSellerFilter`. Both carry it now (client branch
+  `fix/server-round-48-reads`), empty meaning no filter, which is what the
+  Exchange window sends: it has no filter controls at all, and in the live
+  client it is not reachable (`RunPointExchange()` has no caller and the
+  list packet's handler is a no-op), so the control is the remaining piece.
+  > **Status:** fixed (client fix/server-round-48-reads)
 
 ## GCExchangeBuy's success message was the order id again (2026-09-24)
 
@@ -400,10 +564,12 @@ repo and the client's. Entries below are newest first; the oldest is the
   from the handler, so none changes.
   > **Status:** fixed (fix/exchange-residue)
 
-- **The client acts on no `GCExchangeBuy`**: its handler
-  (`client/Client/PacketHandler/GCExchangeBuyHandler.cpp`) is an empty
-  stub, so neither the result nor the message reaches the player.
-  > **Status:** recorded, not fixed (fix/exchange-residue)
+- **The client acted on no `GCExchangeBuy`**: its handler
+  (`client/Client/PacketHandler/GCExchangeBuyHandler.cpp`) was an empty
+  stub, so neither the result nor the message reached the player. It shows
+  the message in the free message dialog and refreshes the Exchange
+  window's listing on success (client branch `fix/server-round-48-reads`).
+  > **Status:** fixed (client fix/server-round-48-reads)
 
 ## A statement of exactly 2048 characters was truncated and executed (2026-09-24)
 
@@ -475,8 +641,8 @@ repo and the client's. Entries below are newest first; the oldest is the
 ## A union join offer creates the union on one game server only (2026-09-24)
 
 - **`GuildUnionOfferManager::offerJoin` creates a union for a master guild
-  that leads none (`GuildUnionManager::openUnion` now, which checks and
-  opens under the manager mutex, so two offers on one server open one
+  that leads none (`GuildUnionManager::recordJoinOffer` now, which checks
+  and opens under the manager mutex, so two offers on one server open one
   union) and tells no other game server,** where `addGuild` and both removal paths
   end in `sendRefreshCommand()`. Each game server keeps its own copy of the
   union tables, so until something else refreshes them, a second offer to
@@ -493,7 +659,11 @@ repo and the client's. Entries below are newest first; the oldest is the
   by `tests/guild_union_join_offer_test.cpp`: every refusal, in the order
   the client was always answered in, comes before a union is opened) and
   writes the union and the offer, all under the manager mutex, then
-  refreshes the other game servers when it opened a union. The last offer
+  refreshes the other game servers when it opened a union. Two windows
+  stay: two offers to one master made on two servers within the refresh's
+  flight still open two unions, and a union row is published only once
+  its offer is on record, a failed offer insert deleting the row it
+  opened. The last offer
   going takes an empty union with it: `denyJoin`, and `acceptJoin` when the
   join is refused after the offer is cleared, call `dissolveIfAbandoned`,
   which under the manager mutex dissolves a union with no member row and no
@@ -501,8 +671,10 @@ repo and the client's. Entries below are newest first; the oldest is the
   That replaces the deny handler's own count-then-delete of the
   `GuildUnionInfo` row, which dissolved a memberless union even with other
   offers pending and reloaded only its own server. The removal paths
-  already dissolve a union whose last member leaves. Offers do not time
-  out (see "A union offer never expires"), so that case does not arise.
+  dissolve a union whose last member leaves even while JOIN offers to it
+  are pending, which strands those applicants; that gap is older than this
+  rule and has its own entry. Offers do not time out (see "A union offer
+  never expires"), so that case does not arise.
   Of the seed's 116 unions, 73 had neither a member row nor a JOIN offer:
   their `GuildUnionInfo` rows are gone, leaving 43, of which the 19 without
   members each have a pending JOIN offer, and `tests/ratchet/ratchets.sh`
@@ -2510,8 +2682,9 @@ packet no server reads, not a field on the wire.
 - **`GCUsePowerPointResult::read` and `GCRequestPowerPointResult::read`
   took their code bytes without comparing them against the last
   enumerator of the `RESULT_CODE` and `ITEM_CODE` lists their own headers
-  declare**, so a peer could announce a result no branch of the client
-  handles. Both reads now refuse a code past the last enumerator
+  declare**, so a peer could announce a result the client's handlers only
+  met in their `default:` branch, a generic error popup. Both reads now
+  refuse a code past the last enumerator
   (`kLastResultCode`, `kLastItemCode`) with `InvalidProtocolException`,
   pinned by refusal tests in `tests/packet_skill_test.cpp`. The fixtures
   behind the two goldens carried out-of-range codes -- `0x9D` / `0x9E` and
@@ -2521,9 +2694,10 @@ packet no server reads, not a field on the wire.
   `GCRequestPowerPointResult.code0.hex` change in their code bytes only.
   That is fixture content, not layout: no size or inventory line moves,
   every sender already emits enumerators, and the client repo holds no
-  copy of these goldens. The client is the receiver of both packets and
-  its own copies of the two reads (`Client/Packet/Gpackets/`) carry no
-  range check; the identical check is owed there.
+  copy of these goldens. The client is the receiver of both packets, and
+  its own copies of the two reads (`Client/Packet/Gpackets/`) carry the
+  identical check now (client branch `fix/server-round-48-reads`), where
+  such a frame is a read failure and a disconnect rather than the popup.
   > **Status:** fixed (fix/exchange-residue)
 
 ## Hard-coded BBS credentials in the `*notice` operator command (2026-09-10)

@@ -33,6 +33,44 @@ public:
     GuildID_t AttackGuildID;
 };
 
+// The wars running on this server. A castle zone's scheduler hands each
+// castle war over when it starts (addWarDelayed); the race war is scheduled
+// here. The main thread's heartbeat ends a war when its time runs out, or
+// once endWar has moved its end to now, and frees it.
+//
+// Locks, and the order they are taken in:
+//
+// - m_Mutex guards the schedules -- the running wars -- and the race war's
+//   schedule. The heartbeat holds it while it starts and ends wars, and
+//   under it takes: zones' own mutexes (Zone::lock, returning castle symbols
+//   and blood bibles, restoring shrine shields, keeping the holy land's
+//   players), the holy land and shrine managers' mutexes, the player finder's
+//   lock, every group's ZonePlayerManager mutex (broadcasts), the client
+//   manager's event mutex, the guild manager's mutex (guild names), and the
+//   three mutexes below. It takes no zone group's mutex and no castle
+//   scheduler's: a castle's owner change, which reloads the scheduler, is
+//   posted to the castle's group (CastleInfoManager::postCastleWarEnd).
+// - So a thread may take m_Mutex holding its zone group's mutex -- a CG
+//   handler or a quest action answering a player: endWar, isModifyCastleOwner,
+//   getSiegeGuildSide, mayModifyShrineOwner -- or, on the castle's own
+//   thread only, holding a castle scheduler's mutex (makeGCWarScheduleList
+//   adds the race war's line): Zone::heartbeat takes the scheduler's mutex
+//   under the zone's own, so from any other thread that would close the
+//   cycle below.
+// - Nothing may take m_Mutex holding a zone's own mutex, which Zone::heartbeat
+//   holds over NPC, monster and effect processing: the heartbeat, holding
+//   m_Mutex, waits for that zone's mutex, and the zone thread waits for
+//   m_Mutex. That deadlock is why hasCastleActiveWar answers from its own
+//   list. Code there asks the lock-free race war hints or the running-war
+//   list below.
+// - m_MutexActiveWars (the running castle wars' zones and attackers) and
+//   m_MutexWarQueue (wars handed over, not yet added) are leaves: nothing is
+//   taken under them, so they may be taken anywhere, a zone's heartbeat
+//   included. m_MutexWarList guards the cached war list, and a player's send
+//   and the guild manager's mutex are taken under it.
+//
+// No war is handed out past m_Mutex: every question about a running war is
+// answered inside the lock, because the heartbeat frees the war under it.
 class WarSystem : public Scheduler {
 public:
     WarSystem();
@@ -72,13 +110,27 @@ protected:
     War* getActiveRaceWarAtSameThread() const;
     bool checkStartRaceWar();
 
+    // The running castle war over zoneID, or its schedule. m_Mutex must be
+    // held, and the pointer does not outlive it: the heartbeat frees the war
+    // under the lock when it ends.
+    War* getActiveWar_LOCKED(ZoneID_t zoneID) const;
+    WarSchedule* getActiveWarSchedule_LOCKED(ZoneID_t zoneID);
+
 public:
+    // Whether a castle war runs over zoneID, and the guild attacking it. These
+    // read the running-war list under its own leaf mutex, so they may be asked
+    // from anywhere, a zone's heartbeat included.
     bool hasCastleActiveWar(ZoneID_t zoneID) const;
     bool getAttackGuildID(ZoneID_t zoneID, GuildID_t& guildID) const;
-    War* getActiveWar(ZoneID_t zoneID) const;
-    WarSchedule* getActiveWarSchedule_LOCKED(ZoneID_t zoneID);
-    WarSchedule* getActiveWarSchedule(ZoneID_t zoneID);
+
+    // Questions about the running castle war itself, answered under m_Mutex.
+    // Whether pPC takes the castle by ending the war now; no, when no war runs
+    // over the castle.
     bool isModifyCastleOwner(ZoneID_t castleZoneID, PlayerCreature* pPC);
+    // The side guildID fights on in the siege running over castleZoneID (see
+    // SiegeWar::getGuildSide); false, with side untouched, when no siege runs
+    // there.
+    bool getSiegeGuildSide(ZoneID_t castleZoneID, GuildID_t guildID, int& side) const;
 
     // Whether the war fought over the shrines of Adam's holy land -- the race
     // war -- lets pPC take a shrine set for its race. With no race war running

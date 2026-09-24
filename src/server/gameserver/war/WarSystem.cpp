@@ -20,6 +20,7 @@
 #include "RaceWar.h"
 #include "RaceWarInfo.h"
 #include "ShrineInfoManager.h"
+#include "SiegeWar.h"
 #include "StringPool.h"
 #include "StringStream.h"
 #include "VariableManager.h"
@@ -150,18 +151,37 @@ bool WarSystem::addQueuedWar()
 {
     __BEGIN_TRY
 
+    // The queue is taken out under its mutex and the wars are added after it
+    // is released: adding a war locks zones, and a castle zone's thread hands
+    // its starting war to addWarDelayed while its heartbeat holds that zone's
+    // mutex. A war that fails to be added is dropped; the ones behind it go
+    // back to the front of the queue for the next heartbeat.
+    list<War*> queuedWars;
+
     __ENTER_CRITICAL_SECTION(m_MutexWarQueue);
 
-    while (!m_WarQueue.empty()) {
-        War* pWar = m_WarQueue.front();
-        Assert(pWar != NULL);
-
-        m_WarQueue.pop_front();
-
-        addWar(pWar);
-    }
+    queuedWars.swap(m_WarQueue);
 
     __LEAVE_CRITICAL_SECTION(m_MutexWarQueue);
+
+    while (!queuedWars.empty()) {
+        War* pWar = queuedWars.front();
+        queuedWars.pop_front();
+
+        try {
+            Assert(pWar != NULL);
+
+            addWar(pWar);
+        } catch (...) {
+            __ENTER_CRITICAL_SECTION(m_MutexWarQueue);
+
+            m_WarQueue.splice(m_WarQueue.begin(), queuedWars);
+
+            __LEAVE_CRITICAL_SECTION(m_MutexWarQueue);
+
+            throw;
+        }
+    }
 
     return true;
 
@@ -505,25 +525,6 @@ bool WarSystem::hasCastleActiveWar(ZoneID_t zoneID) const
     __END_CATCH
 }
 
-WarSchedule* WarSystem::getActiveWarSchedule(ZoneID_t zoneID)
-
-{
-    __BEGIN_TRY
-
-    WarSchedule* pWarSchedule = NULL;
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    pWarSchedule = getActiveWarSchedule_LOCKED(zoneID);
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    return pWarSchedule;
-
-    __END_CATCH
-}
-
-
 WarSchedule* WarSystem::getActiveWarSchedule_LOCKED(ZoneID_t zoneID)
 
 {
@@ -554,13 +555,7 @@ WarSchedule* WarSystem::getActiveWarSchedule_LOCKED(ZoneID_t zoneID)
     __END_CATCH
 }
 
-War* WarSystem::getActiveWar(ZoneID_t zoneID) const
-
-{
-    __BEGIN_TRY
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
+War* WarSystem::getActiveWar_LOCKED(ZoneID_t zoneID) const {
     const RecentSchedules::container_type& schedules = m_RecentSchedules.getSchedules();
     RecentSchedules::const_iterator itr = schedules.begin();
 
@@ -576,24 +571,43 @@ War* WarSystem::getActiveWar(ZoneID_t zoneID) const
         }
     }
 
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
     return NULL;
-
-    __END_CATCH
 }
 
-bool WarSystem::isModifyCastleOwner(ZoneID_t castleZoneID, PlayerCreature* pPC)
+// The war is looked up and asked under m_Mutex, which the heartbeat holds
+// when it ends the war and frees it. A castle with no war running has no
+// owner to take, which is the answer when the war ended while the player was
+// on the way.
+bool WarSystem::isModifyCastleOwner(ZoneID_t castleZoneID, PlayerCreature* pPC) {
+    Assert(pPC != NULL);
 
-{
-    __BEGIN_TRY
+    bool bModify = false;
 
-    War* pWar = getActiveWar(castleZoneID);
-    Assert(pWar != NULL);
+    __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    return pWar->isModifyCastleOwner(pPC);
+    War* pWar = getActiveWar_LOCKED(castleZoneID);
+    if (pWar != NULL)
+        bModify = pWar->isModifyCastleOwner(pPC);
 
-    __END_CATCH
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return bModify;
+}
+
+bool WarSystem::getSiegeGuildSide(ZoneID_t castleZoneID, GuildID_t guildID, int& side) const {
+    bool bSiege = false;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    const SiegeWar* pSiegeWar = dynamic_cast<const SiegeWar*>(getActiveWar_LOCKED(castleZoneID));
+    if (pSiegeWar != NULL) {
+        side = pSiegeWar->getGuildSide(guildID);
+        bSiege = true;
+    }
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return bSiege;
 }
 
 // The flag is read first so that the schedule list, and the lock over it, are

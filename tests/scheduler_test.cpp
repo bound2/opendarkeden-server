@@ -9,12 +9,14 @@
 // relative to "now" instead of stepping a fake clock.
 //
 // Links only de-kernel plus the two war/ sources under test. The siege
-// registration decision at the bottom is a header of plain values, so it
-// joins them without pulling the scheduler or the zone in.
+// registration decision and the castle owner decisions at the bottom are
+// headers of plain values, so they join them without pulling the scheduler,
+// the zone or the guild table in.
 
 #include <gtest/gtest.h>
 
 #include "VSDateTime.h"
+#include "war/CastleOwnerDecision.h"
 #include "war/Schedule.h"
 #include "war/Scheduler.h"
 #include "war/SiegeRegistrationDecision.h"
@@ -196,6 +198,97 @@ TEST(SiegeRegistration, RefusesASiegeWhoseSlotsAreTaken) {
 // siege beside it would put two wars on one castle.
 TEST(SiegeRegistration, RefusesWhenAGuildWarAlreadyWaitsOnTheCastle) {
     EXPECT_EQ(SIEGE_REGISTRATION_FULL, decideSiegeRegistration(guildWarScheduled()));
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Castle owner changes (war/CastleOwnerDecision.h). A won castle war and a
+// guild deletion each post their change to the castle zone's group, and the
+// two may reach its mailbox in either order; each change is decided against
+// the castle and the guild table as they stand when it runs there.
+//////////////////////////////////////////////////////////////////////////
+
+const GuildID_t Winner = 1001;
+const GuildID_t Holder = 1002;
+
+// The castle zone's thread running a posted war end: the winning guild is
+// looked up in the guild table when the command runs.
+void runWarEnd(CastleOwner& castle, Race_t winnerRace, GuildID_t winnerGuildID, bool winnerStillExists) {
+    castle = castleWarWinnerOwner(winnerRace, winnerGuildID, winnerStillExists);
+}
+
+// The castle zone's thread running a posted guild deletion.
+void runGuildDeletion(CastleOwner& castle, GuildID_t deletedGuildID) {
+    std::optional<CastleOwner> owner = castleOwnerAfterGuildDeleted(castle.race, castle.guildID, deletedGuildID);
+    if (owner)
+        castle = *owner;
+}
+
+TEST(CastleOwner, EachRaceHasItsCommonGuild) {
+    EXPECT_EQ(SlayerCommon, commonGuildIDOf(RACE_SLAYER));
+    EXPECT_EQ(VampireCommon, commonGuildIDOf(RACE_VAMPIRE));
+    EXPECT_EQ(OustersCommon, commonGuildIDOf(RACE_OUSTERS));
+    EXPECT_TRUE(isCommonGuildID(SlayerCommon));
+    EXPECT_TRUE(isCommonGuildID(VampireCommon));
+    EXPECT_TRUE(isCommonGuildID(OustersCommon));
+    EXPECT_FALSE(isCommonGuildID(Winner));
+}
+
+TEST(CastleOwner, AWonWarHandsTheCastleToTheWinningGuild) {
+    EXPECT_EQ((CastleOwner{RACE_VAMPIRE, Winner}), castleWarWinnerOwner(RACE_VAMPIRE, Winner, true));
+}
+
+// A common guild is never deleted, so a war won by its race's players hands
+// over the common castle whatever the guild table says.
+TEST(CastleOwner, AWarWonForTheCommonGuildHandsOverTheCommonCastle) {
+    EXPECT_EQ((CastleOwner{RACE_SLAYER, SlayerCommon}), castleWarWinnerOwner(RACE_SLAYER, SlayerCommon, false));
+}
+
+TEST(CastleOwner, AWarWonByAGuildDeletedSinceHandsOverTheWinnerRacesCommonCastle) {
+    EXPECT_EQ((CastleOwner{RACE_OUSTERS, OustersCommon}), castleWarWinnerOwner(RACE_OUSTERS, Winner, false));
+    EXPECT_EQ((CastleOwner{RACE_VAMPIRE, VampireCommon}), castleWarWinnerOwner(RACE_VAMPIRE, Winner, false));
+}
+
+TEST(CastleOwner, ADeletedGuildsCastleTurnsCommonForTheCastlesRace) {
+    EXPECT_EQ((CastleOwner{RACE_SLAYER, SlayerCommon}), castleOwnerAfterGuildDeleted(RACE_SLAYER, Holder, Holder));
+    EXPECT_EQ((CastleOwner{RACE_VAMPIRE, VampireCommon}), castleOwnerAfterGuildDeleted(RACE_VAMPIRE, Holder, Holder));
+    EXPECT_EQ((CastleOwner{RACE_OUSTERS, OustersCommon}), castleOwnerAfterGuildDeleted(RACE_OUSTERS, Holder, Holder));
+}
+
+TEST(CastleOwner, ADeletionLeavesACastleAnotherGuildHolds) {
+    EXPECT_FALSE(castleOwnerAfterGuildDeleted(RACE_SLAYER, Winner, Holder).has_value());
+    EXPECT_FALSE(castleOwnerAfterGuildDeleted(RACE_SLAYER, SlayerCommon, SlayerCommon).has_value());
+}
+
+// The winning guild is deleted around the war's end. The war end reaches the
+// castle first while the guild still exists, then the deletion turns the
+// castle it just took common; or the deletion runs first, finds the castle
+// still held by its old owner, and the war end, finding the winner gone,
+// hands over the common castle itself. Either way the castle ends common.
+TEST(CastleOwner, AWinnerDeletedAroundTheWarsEndLeavesTheCastleCommonInEitherOrder) {
+    CastleOwner castle{RACE_SLAYER, Holder};
+    runWarEnd(castle, RACE_VAMPIRE, Winner, true);
+    runGuildDeletion(castle, Winner);
+    EXPECT_EQ((CastleOwner{RACE_VAMPIRE, VampireCommon}), castle);
+
+    castle = CastleOwner{RACE_SLAYER, Holder};
+    runGuildDeletion(castle, Winner);
+    runWarEnd(castle, RACE_VAMPIRE, Winner, false);
+    EXPECT_EQ((CastleOwner{RACE_VAMPIRE, VampireCommon}), castle);
+}
+
+// The losing holder is deleted around the war's end: whichever change runs
+// first, the winner holds the castle afterwards.
+TEST(CastleOwner, AHolderDeletedAroundTheWarsEndLeavesTheCastleToTheWinnerInEitherOrder) {
+    CastleOwner castle{RACE_SLAYER, Holder};
+    runWarEnd(castle, RACE_VAMPIRE, Winner, true);
+    runGuildDeletion(castle, Holder);
+    EXPECT_EQ((CastleOwner{RACE_VAMPIRE, Winner}), castle);
+
+    castle = CastleOwner{RACE_SLAYER, Holder};
+    runGuildDeletion(castle, Holder);
+    EXPECT_EQ((CastleOwner{RACE_SLAYER, SlayerCommon}), castle);
+    runWarEnd(castle, RACE_VAMPIRE, Winner, true);
+    EXPECT_EQ((CastleOwner{RACE_VAMPIRE, Winner}), castle);
 }
 
 } // namespace

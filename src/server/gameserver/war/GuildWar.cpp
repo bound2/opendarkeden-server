@@ -140,9 +140,13 @@ void GuildWar::executeEnd()
     //----------------------------------------------------------------------------
     // Change the castle owner
     //----------------------------------------------------------------------------
+    // This runs on the main thread, and the owner change belongs to the castle
+    // zone's thread (a change of the owning race reloads the castle's war
+    // scheduler), so the change, and the registration fee credited after it,
+    // are posted there and run at the top of its next tick. Until then the
+    // castle keeps its old owner with the war already over. The history below
+    // records the winner decided here and does not wait for the change.
     if (m_bModifyCastleOwner) {
-        castleInfos.modifyCastleOwner(m_CastleZoneID, m_WinnerRace, m_WinnerGuildID);
-
         if (de::isNetMarbleDeployment()) {
             char sCommand[100];
             sprintf(sCommand, "*world *command setCastleOwnerGuild %u %u", m_CastleZoneID, m_WinnerGuildID);
@@ -153,6 +157,10 @@ void GuildWar::executeEnd()
         CastleInfo* pCastleInfo = castleInfos.getCastleInfo(m_CastleZoneID);
         m_WinnerGuildID = pCastleInfo->getGuildID();
     }
+
+    castleInfos.postCastleWarEnd(m_CastleZoneID, m_bModifyCastleOwner, m_WinnerRace, m_WinnerGuildID,
+                                 m_RegistrationFee);
+    m_RegistrationFee = 0;
 
     //----------------------------------------------------------------------------
     // Give the castle symbol back.
@@ -170,14 +178,6 @@ void GuildWar::executeEnd()
 
 
     de::gameContext().castleShrines().addShrineShield(pZone);
-
-    //----------------------------------------------------------------------------
-    // The war application fee is piled onto the castle.
-    // (it is assumed the castle owner changed with the war result.)
-    //----------------------------------------------------------------------------
-    castleInfos.increaseTaxBalance(m_CastleZoneID, m_RegistrationFee);
-    m_RegistrationFee = 0;
-    // tinysave("war application fee=0") <-- is that needed?
 
     // Record in the GuildWarHistory Table
     recordGuildWarEnd();

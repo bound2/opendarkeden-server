@@ -42,8 +42,7 @@ void LGIncomingConnectionOKHandler::execute(LGIncomingConnectionOK* pPacket) {
     // deletes its reconnect packet when it disconnects it, so the answer is
     // applied on that thread (PlayerMailbox.h, Scope::Player) rather than on
     // this one. The login server names the account, not the character. A
-    // player no longer found has nobody to send the address to; it was
-    // dropped here before too.
+    // player no longer found has nobody to send the address to.
     de::postToAccount(
         pPacket->getPlayerID(),
         [=](PlayerCreature&, Player& player) {

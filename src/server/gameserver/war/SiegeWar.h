@@ -118,8 +118,8 @@ private:
     GuildID_t m_RecentReinforceCandidate;
 
     // war result
-    Race_t m_WinnerRace;
-    GuildID_t m_WinnerGuildID;
+    Race_t m_WinnerRace = 0;
+    GuildID_t m_WinnerGuildID = 0;
     bool m_bModifyCastleOwner;
 };
 

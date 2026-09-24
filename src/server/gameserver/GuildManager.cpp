@@ -180,21 +180,6 @@ void GuildManager::deleteGuild(GuildID_t id) {
 #ifdef __GAME_SERVER__
     CastleInfoManager& castles = de::gameContext().castleInfos();
 
-    list<CastleInfo*> pGuildCastleInfoList = castles.getGuildCastleInfos(id);
-
-    if (!pGuildCastleInfoList.empty()) {
-        // The guild owns a castle, so it has to be turned into a public castle.
-        list<CastleInfo*>::iterator itr = pGuildCastleInfoList.begin();
-        for (; itr != pGuildCastleInfoList.end(); itr++) {
-            if ((*itr)->getRace() == RACE_SLAYER)
-                castles.modifyCastleOwner((*itr)->getZoneID(), RACE_SLAYER, 99);
-            else if ((*itr)->getRace() == RACE_VAMPIRE)
-                castles.modifyCastleOwner((*itr)->getZoneID(), RACE_VAMPIRE, 0);
-            else
-                castles.modifyCastleOwner((*itr)->getZoneID(), RACE_OUSTERS, 66);
-        }
-    }
-
     {
         const unordered_map<ZoneID_t, CastleInfo*>& castleInfos = castles.getCastleInfos();
 
@@ -221,9 +206,19 @@ void GuildManager::deleteGuild(GuildID_t id) {
                 // later challenger; it also deletes the guild's reinforcement
                 // registrations, before or after this runs, and either order
                 // leaves the reloaded siege without the reinforcement.
+                //
+                // A castle the guild holds turns common first, in the same
+                // command: the change writes the castle's row and broadcasts
+                // into its zone, which is the castle thread's work, and it is
+                // decided there, against the owner the castle has when the
+                // command runs, so an owner change posted before this one (a
+                // war the guild just won) is turned common too, and one that
+                // handed the castle on is left alone.
                 ZoneGroup* pZoneGroup = pZone->getZoneGroup();
                 if (pZoneGroup != NULL)
                     pZoneGroup->post([pZone, id] {
+                        de::gameContext().castleInfos().settleGuildDeletion(pZone->getZoneID(), id);
+
                         WarScheduler* pScheduler = pZone->getWarScheduler();
                         if (pScheduler != NULL && pScheduler->hasSchedule(id))
                             pScheduler->cancelGuildSchedulesOf(id);
