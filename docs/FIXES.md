@@ -13,6 +13,28 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A union offer never expires (2026-09-24)
+
+- **`GuildUnionOffer` holds one row per guild (its key is `OwnerGuildID`),
+  and the only statement that ages rows out, `deleteStaleOffers`, runs
+  after the pending-offer check has already found the guild has none,** so
+  it never deletes anything. A JOIN offer the union master never answers
+  keeps the applicant at `ALREADY_OFFER_SOMETHING` for good, and keeps the
+  union it targets alive (a pending JOIN offer is what a memberless union
+  exists for). An ESCAPE row, the ten-day penalty a guild that left a
+  union by force gets, is an offer row too, so the same check answers
+  first: the guild hears `ALREADY_OFFER_SOMETHING` rather than
+  `YOU_HAVE_PENALTY`, and after the ten days as well, since nothing
+  deletes an ESCAPE row -- `clearOffer` runs only on a guild with a JOIN or
+  QUIT row, which the key rules out. Seventeen seed guilds carry one
+  from 2006-2007. Making offers expire means purging a guild's stale rows before
+  the checks (in `GuildUnionManager::recordJoinOffer`, under the manager
+  mutex), dissolving the union a purged JOIN offer leaves abandoned, and
+  deciding whether the penalty should be answered before the pending-offer
+  check; that is a decision about the offer's lifetime, not a mechanical
+  move.
+  > **Status:** recorded, not fixed (fix/union-refresh)
+
 ## The Exchange point statements never reach the account database (2026-09-24)
 
 - **The ledger statements ask `getConnection("USERINFO")`, whose string
@@ -452,11 +474,29 @@ repo and the client's. Entries below are newest first; the oldest is the
   seed unions above, whose masters appear twice in `GuildUnionInfo`. The
   union is also created before the checks that can still refuse the offer
   (a pending offer, the escape penalty, a full union), so a refused first
-  offer leaves an empty union behind; most of the seed's 116 unions have no
-  member rows. The fix is in `GuildUnion.cpp`: refresh the other servers
-  after the create (or create the union when the first join is accepted),
-  and decide whether a refused offer should leave the union it made.
-  > **Status:** recorded, not fixed (fix/manager-residue)
+  offer leaves an empty union behind, and an empty union keeps its master
+  guild "in a union", so that guild can join no other. The rule is now a
+  union exists for its member guilds and for the guilds asking to join
+  it. `GuildUnionManager::recordJoinOffer` reads the facts, applies
+  `decideUnionJoinOffer` (`gameserver/guild/GuildUnionJoinOffer.h`, pinned
+  by `tests/guild_union_join_offer_test.cpp`: every refusal, in the order
+  the client was always answered in, comes before a union is opened) and
+  writes the union and the offer, all under the manager mutex, then
+  refreshes the other game servers when it opened a union. The last offer
+  going takes an empty union with it: `denyJoin`, and `acceptJoin` when the
+  join is refused after the offer is cleared, call `dissolveIfAbandoned`,
+  which under the manager mutex dissolves a union with no member row and no
+  pending JOIN offer (`unionIsAbandoned`) and refreshes the other servers.
+  That replaces the deny handler's own count-then-delete of the
+  `GuildUnionInfo` row, which dissolved a memberless union even with other
+  offers pending and reloaded only its own server. The removal paths
+  already dissolve a union whose last member leaves. Offers do not time
+  out (see "A union offer never expires"), so that case does not arise.
+  Of the seed's 116 unions, 73 had neither a member row nor a JOIN offer:
+  their `GuildUnionInfo` rows are gone, leaving 43, of which the 19 without
+  members each have a pending JOIN offer, and `tests/ratchet/ratchets.sh`
+  fails on a seed union with neither.
+  > **Status:** fixed (fix/union-refresh)
 
 ## The login link's LG handlers keep an incoming player past its lock (2026-09-24)
 

@@ -7,6 +7,7 @@
 #include "GCUnionOfferList.h"
 #include "Mutex.h"
 #include "Types.h"
+#include "guild/GuildUnionJoinOffer.h"
 #include "guild/GuildUnionRegistry.h"
 
 // The guild unions of this game server, loaded from GuildUnionInfo and
@@ -20,9 +21,9 @@
 //   1. GuildUnionManager::m_Mutex serialises the changes. Each change -- a
 //      union opened, a guild added or removed, a union dissolved, the whole
 //      set reloaded -- holds it across its table reads, its row writes and
-//      its registry writes, so no two changes interleave. (The CG union
-//      handlers' count-then-delete of an emptied union's row runs outside
-//      it, before their reload.)
+//      its registry writes, so no two changes interleave. (The quit and
+//      expel handlers' count-then-delete of an emptied union's row runs
+//      outside it, before their reload.)
 //   2. GuildUnionRegistry's mutex guards the lookup tables. Readers take it
 //      for the lookup alone, so a reader never waits on the database.
 //   3. GuildUnion's mutex guards one union's member list.
@@ -61,10 +62,22 @@ public:
         return m_Unions.unionByID(uID);
     }
 
-    // The union the guild resolves to; a union of its own, row and all, when
-    // it resolves to none. The union answered may have the guild as a member
-    // rather than as its master.
-    GuildUnion* openUnion(GuildID_t masterGID);
+    // Records `applicantGID`'s offer to join the union `masterGID` leads, or
+    // refuses it; decideUnionJoinOffer (guild/GuildUnionJoinOffer.h) is the
+    // rule. When the target leads no union and the offer is not refused, a
+    // union is opened for it first, and the other game servers are told to
+    // reload. The facts are read, the rule applied and the rows written
+    // under m_Mutex, so the offer cannot interleave with another offer to
+    // the same guild or with dissolveIfAbandoned() on the union it targets.
+    // `tooManyMembers` comes from the guild manager, whose locks are taken
+    // before m_Mutex, never under it.
+    UnionJoinOfferVerdict recordJoinOffer(GuildID_t applicantGID, GuildID_t masterGID, bool tooManyMembers);
+
+    // Dissolves the union if nobody is left for it -- no member row and no
+    // pending join offer (unionIsAbandoned) -- and tells the other game
+    // servers. For the paths that take away a union's last offer. True when
+    // the union went.
+    bool dissolveIfAbandoned(uint uID);
 
     bool addGuild(uint uID, GuildID_t gID);
 
@@ -92,6 +105,8 @@ private:
     // Dissolve a union: its own row and its member rows go, and no guild
     // resolves to it any more. The caller holds m_Mutex.
     void destroyUnion_LOCKED(uint uID);
+    // dissolveIfAbandoned's check and dissolve. The caller holds m_Mutex.
+    bool dissolveIfAbandoned_LOCKED(uint uID);
 
     GuildUnionRegistry m_Unions;
 
