@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGQuitGuild.h"
+#include "GamePlayer.h"
 
 #ifdef __GAME_SERVER__
 #include "GSQuitGuild.h"
@@ -31,7 +32,9 @@ void CGQuitGuildHandler::execute(CGQuitGuild* pPacket, Player* pPlayer)
 
     SYSTEM_ASSERT(SYSTEM_GUILD);
 
-    PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pPlayer);
+    GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
+    Assert(pGamePlayer != NULL);
+    PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pGamePlayer->getCreature());
     Assert(pPlayerCreature != NULL);
 
     // Get the guild the player belongs to.

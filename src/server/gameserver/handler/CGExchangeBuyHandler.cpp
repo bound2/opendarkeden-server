@@ -24,7 +24,8 @@ void CGExchangeBuyHandler::execute(CGExchangeBuy* pPacket, Player* pPlayer) {
     if (pPlayer == NULL)
         return;
 
-    PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pPlayer);
+    GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
+    PlayerCreature* pPC = pGamePlayer == NULL ? NULL : dynamic_cast<PlayerCreature*>(pGamePlayer->getCreature());
     if (pPC == NULL)
         return;
 

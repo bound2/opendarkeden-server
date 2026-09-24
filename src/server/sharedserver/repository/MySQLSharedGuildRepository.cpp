@@ -383,7 +383,7 @@ public:
             pStmt->executeQuery("DELETE FROM GuildMember WHERE GuildID=%d", id);
             pStmt->executeQuery("DELETE FROM GuildUnionMember WHERE OwnerGuildID=%d", id);
             pStmt->executeQuery("UPDATE WarScheduleInfo SET Status='CANCEL' WHERE AttackGuildID=%d", id);
-            pStmt->executeQuery("DELETE FROM ReinforceRegisterInfo WHERE ReinforceGuildID=%d", id);
+            pStmt->executeQuery("DELETE FROM ReinforceRegisterInfo WHERE ReinforceGuildID=%u", id);
 
             SAFE_DELETE(pStmt);
         }

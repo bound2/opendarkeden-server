@@ -25,6 +25,7 @@ number and the reason it exists, is in `docs/RESTRUCTURING.md`;
 | Zone-group state is touched only under that group's mutex | `ZoneGroup::assertOwned()` under `DE_OWNERSHIP_CHECKS` (Debug builds only) | `abort()` at the gateway |
 | Every seed `Player` row ships a current argon2id hash | `tests/password_hash_test.cpp`, which reads `initdb/DARKEDEN.sql` | the seed account missing from the test's password map |
 | Every `initdb/` table is InnoDB in `utf8mb4` / `utf8mb4_unicode_ci` | `ratchets.sh` | the table, named |
+| No seed guild leads or joins two guild unions | `ratchets.sh` | the guild and its unions, named |
 | Every `src/**/*.cpp` is compiled by some target, every header is included | ratchets R15/R16 | the dead file, listed |
 | Repository SQL behaves against a real MySQL | `make integration-test` (`tests/integration/`, needs docker) | the failing statement |
 
@@ -271,7 +272,9 @@ the count of the ones that were removed at zero; do not reintroduce one.
 The settings that matter most: `HomePath` (the repository directory, which
 must be set correctly), `DB_HOST` (database address) and `LoginServerIP`.
 The `WorldDBInfo` and `GameServerInfo` database tables must agree with these
-files. Code reads the loaded configuration through
+files. Each connection is one block of keys (`DB_*` for the game database,
+`UI_DB_*` for the account database, which the gameserver's second connection
+reads too); there is no `DIST_DB_*` block. Code reads the loaded configuration through
 `de::kernelContext().config()`, which each `main()` registers right after
 loading it and which asserts on a configuration nobody registered: a read
 before that point is a startup-order bug, not a condition to branch on.

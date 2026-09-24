@@ -13,6 +13,69 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## Four CG handlers cast the player to a creature class it never is (2026-09-24)
+
+- **`CGExchangeBuyHandler`, `CGExchangeListHandler`, `CGQuitGuildHandler`
+  and `CGExpelGuildMemberHandler` did `dynamic_cast<PlayerCreature*>` on
+  the `Player*` they are dispatched, a `GamePlayer`, which no class shares
+  with `PlayerCreature`,** so the cast answered NULL on every packet: the
+  two Exchange handlers returned before reaching the service, and the two
+  guild handlers asserted, so quitting a guild and expelling a member never
+  ran. All four reach the creature through the game player
+  (`dynamic_cast<PlayerCreature*>(pGamePlayer->getCreature())`), as the
+  other CG handlers do.
+  > **Status:** fixed (fix/exchange-residue)
+
+## The guild resync handler kept every popped record (2026-09-24)
+
+- **`SGGuildInfoHandler` pops every `GuildInfo2` and `GuildMemberInfo2`
+  out of the packet, copies it into a `Guild` or `GuildMember`, and never
+  deletes it,** so the whole guild table leaked on each resync from the
+  sharedserver. Each record is deleted once copied.
+  > **Status:** fixed (fix/exchange-residue)
+
+## A database error inside an Exchange purchase leaves its transactions open (2026-09-24)
+
+- **`ExchangeService::buyListing` runs its steps inside transactions on
+  the thread's two connections with no handler around them, and `END_DB`
+  rethrows a `DatabaseError`,** so a duplicate ledger key from
+  `adjustPoints` or the `ExchangeOrder.ListingID` unique violation from
+  `createOrder` leaves both transactions open; the thread's next
+  `START TRANSACTION` commits them implicitly, which can commit a point
+  adjustment with no order behind it. Two buyers of one listing on one
+  server reach the ledger collision; two servers of one world reach the
+  order collision. The fix is a rollback on every exit of the purchase,
+  which needs the connection pair's transaction shape decided first.
+  > **Status:** recorded, not fixed (fix/exchange-residue)
+
+## A war's end reloads the castle's schedule on the main thread (2026-09-24)
+
+- **`GuildWar::executeEnd` and `SiegeWar::executeEnd` run on the main
+  thread under `WarSystem::m_Mutex` (from `WarSystem::heartbeat`) and call
+  `CastleInfoManager::modifyCastleOwner`, which, when the winner's race
+  differs from the owner's, reaches `cancelGuildSchedules()` and so
+  `WarScheduler::load()`,** the reload that frees the wars the castle
+  zone's thread executes. The GM command that took the same path now posts
+  the owner change to the castle's group; the war's end still does not,
+  because it also records the war's history and broadcasts the result, and
+  whether the owner change may run a tick later than those is a decision
+  about the war's end, not a mechanical move. The `Race_t` the NetMarble
+  build relays through `*world` reaches the same call.
+  > **Status:** recorded, not fixed (fix/war-residue)
+
+## Retired unions accumulate on every reload (2026-09-24)
+
+- **`GuildUnionRegistry::replaceAll` retires every live union on every
+  `load()`, and a reload follows every union change on any game server of
+  the world** (`sendRefreshCommand()` makes the others reload, and four CG
+  handlers reload themselves), so each reload keeps one more copy of every
+  union -- with the seed's 116 unions, about 20 KB per reload per server --
+  until the process exits. The guild manager's pattern this copies retires
+  its whole table only on a sharedserver resync. The fix is to keep a union
+  whose id and master are unchanged and replace its member list under the
+  union's own mutex, retiring only the unions that vanished.
+  > **Status:** recorded, not fixed (fix/union-lifetime)
+
 ## A player's guild id was read from other threads while its owner wrote it (2026-09-24)
 
 - **`PlayerCreature::m_GuildID` was a plain `WORD` that the thread owning
@@ -46,7 +109,11 @@ repo and the client's. Entries below are newest first; the oldest is the
   castle by id and ran `CastleInfoManager::modifyCastleOwner` on the GM's
   own zone thread, and a change of the owning race reaches
   `cancelGuildSchedules()` and so `load()`. That change is posted to the
-  castle's group now too, where a war's end already runs it. The rest of a
+  castle's group now too. A war's end takes the same path from the main
+  thread (`WarSystem::heartbeat` runs `executeEnd`, whose owner change
+  reloads when the winner's race differs from the owner's); that one is
+  recorded below rather than moved, since a war's end also records history
+  and the order of those two writes is a decision. The rest of a
   castle scheduler's readers are on its group's thread or take the
   scheduler's mutex (`makeGCWarScheduleList`, `hasSchedule`), and a war the
   scheduler hands to `WarSystem` has been popped from it first, so a reload
@@ -181,8 +248,14 @@ repo and the client's. Entries below are newest first; the oldest is the
   `UNQ_Ledger_IdempotencyKey` plus `adjustPoints`' own check refuse the
   second click with no schema change. The replay check looks up the buyer's
   row under the key `buyListing` writes (`exchangeLedgerKey(key, "_buy")`),
-  and a client key that starts with `EX_` is replaced by the server's key
-  so that no purchase can plant the key another listing's buy derives. The
+  and a client key is recorded under a `C_` prefix of its own, so that no
+  purchase can plant the key another listing's keyless buy derives in any
+  letter case, the ledger's collation folding case (the column holds 64
+  characters, so a client key past 57 overflows it with its suffix, as a
+  key past 59 did before; the client sends none). A second buyer of a
+  listing already sold is refused as a replay rather than as unavailable,
+  since the key names the listing, not the buyer; the client shows neither
+  message today. The
   key never travels: `GCExchangeBuy` carries no key and no golden holds
   one. `_getServerID()` is `_marketServerID()` now, still 1 by design --
   it scopes listings, orders and the browse, which every game server shares
@@ -287,7 +360,7 @@ repo and the client's. Entries below are newest first; the oldest is the
   and 181.** Nothing in the code makes that state: `offerJoin` and
   `acceptJoin` answer `ALREADY_IN_UNION` for a guild already in a union,
   `offerJoin` reuses the union the master guild already leads rather than
-  making another, and `GuildUnion::addGuild` refuses a guild the union
+  making another, and `GuildUnionRegistry::addMember` refuses a guild the union
   holds. It only reads inconsistently: `GuildUnionManager::load` walks
   `GuildUnionInfo` in the order InnoDB returns it, key order, and each
   union overwrites the guild map,
@@ -303,8 +376,9 @@ repo and the client's. Entries below are newest first; the oldest is the
 ## A union join offer creates the union on one game server only (2026-09-24)
 
 - **`GuildUnionOfferManager::offerJoin` creates a union for a master guild
-  that leads none -- `new GuildUnion`, `create()`, `addGuildUnion` -- and
-  tells no other game server,** where `addGuild` and both removal paths
+  that leads none (`GuildUnionManager::openUnion` now, which checks and
+  opens under the manager mutex, so two offers on one server open one
+  union) and tells no other game server,** where `addGuild` and both removal paths
   end in `sendRefreshCommand()`. Each game server keeps its own copy of the
   union tables, so until something else refreshes them, a second offer to
   the same master guild made on another server of the world finds no union
@@ -410,8 +484,9 @@ repo and the client's. Entries below are newest first; the oldest is the
   command names the guild's players under the finder's lock
   (`PCFinder::getGuildPlayerNames_LOCKED`) and posts each recall, effects
   and transport, to the thread that owns that player (`de::postToPlayer`),
-  recalling at most the requested number of members (one when the count is
-  below one) rather than examining that many players. The other caller,
+  considering every online member rather than the first 200 players the
+  walk used to examine, and stopping after the requested number of posts
+  (one when the count is below one). The other caller,
   `SiegeManager::recallGuild`, had no caller of its own and was deleted.
   The walk reads each player's guild id from other threads; that race is
   "A player's guild id was read from other threads", above.
@@ -537,10 +612,13 @@ repo and the client's. Entries below are newest first; the oldest is the
   the two readers that act on the member list alone, union chat and the
   union info window, treat a retired union as none. A `GuildUnion` is an
   in-memory object only -- id and master fixed at construction, member
-  list under its own leaf mutex -- and the manager writes the rows.
-  `GuildUnionManager::m_Mutex` now serialises the changes, each holding it
-  across its table reads, row writes and registry writes, so changes no
-  longer interleave: `offerJoin` could open two unions for one master
+  list under its own leaf mutex -- and the manager writes the rows, except
+  the count-then-delete of an emptied union's `GuildUnionInfo` row that
+  four CG union handlers (deny, expel, quit, quit-accept) still run before
+  their reload, outside the mutex. `GuildUnionManager::m_Mutex` now
+  serialises the manager's changes, each holding it across its table
+  reads, row writes and registry writes, so those no longer interleave:
+  `offerJoin` could open two unions for one master
   (`openUnion` checks and opens under the mutex), and `acceptJoin` and
   `acceptQuit` answered OK for a join or quit a concurrent change had
   already made impossible, which they now report. The lock order --
@@ -2318,7 +2396,9 @@ packet no server reads, not a field on the wire.
   `GCRequestPowerPointResult.code0.hex` change in their code bytes only.
   That is fixture content, not layout: no size or inventory line moves,
   every sender already emits enumerators, and the client repo holds no
-  copy of these goldens.
+  copy of these goldens. The client is the receiver of both packets and
+  its own copies of the two reads (`Client/Packet/Gpackets/`) carry no
+  range check; the identical check is owed there.
   > **Status:** fixed (fix/exchange-residue)
 
 ## Hard-coded BBS credentials in the `*notice` operator command (2026-09-10)
@@ -3443,11 +3523,11 @@ connection keep-alive reschedules with `dummyQueryTime.tv_sec = (60 + rand()
 hour after the epoch, is always in the past, and `executeDummyQuery()` fires
 on every pass of a loop that now turns roughly every millisecond. Left alone
 here deliberately: the lifecycle migration changed no thread's actual work.
-The deadline now advances from itself there as it does at the other nine
+The deadline now advances from itself there as it does at the other eight
 keep-alive sites -- the gameserver's `ClientManager`, `GDRLairManager`,
 `LoginServerManager`, `MPlayerManager`, `SharedServerManager`,
 `SMSServiceThread` and `ZoneGroupThread`, and the loginserver's
-`ClientManager` -- and all ten compute it through one function,
+`ClientManager` -- and all nine compute it through one function,
 `de::nextKeepAliveDeadline` (`src/server/KeepAlive.h`), an hour plus up to
 29 minutes past the previous deadline. `tests/keep_alive_test.cpp` pins the
 bounds and that the deadline moves from itself, not from the epoch.

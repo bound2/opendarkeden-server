@@ -20,7 +20,9 @@
 //   1. GuildUnionManager::m_Mutex serialises the changes. Each change -- a
 //      union opened, a guild added or removed, a union dissolved, the whole
 //      set reloaded -- holds it across its table reads, its row writes and
-//      its registry writes, so no two changes interleave.
+//      its registry writes, so no two changes interleave. (The CG union
+//      handlers' count-then-delete of an emptied union's row runs outside
+//      it, before their reload.)
 //   2. GuildUnionRegistry's mutex guards the lookup tables. Readers take it
 //      for the lookup alone, so a reader never waits on the database.
 //   3. GuildUnion's mutex guards one union's member list.

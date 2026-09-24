@@ -360,8 +360,8 @@ TEST(ExchangeIdempotencyKey, TheServerKeyNamesTheWorldTheServerAndTheListing) {
     EXPECT_NE(exchangeServerIdempotencyKey(1, 0, 10), exchangeServerIdempotencyKey(1, 0, 11));
 }
 
-TEST(ExchangeIdempotencyKey, AClientKeyIsUsedAsSent) {
-    EXPECT_EQ("client-key", resolveExchangeIdempotencyKey("client-key", 1, 0, 10));
+TEST(ExchangeIdempotencyKey, AClientKeyIsRecordedUnderItsOwnPrefix) {
+    EXPECT_EQ("C_client-key", resolveExchangeIdempotencyKey("client-key", 1, 0, 10));
 }
 
 TEST(ExchangeIdempotencyKey, NoClientKeyMeansTheServerKey) {
@@ -369,14 +369,15 @@ TEST(ExchangeIdempotencyKey, NoClientKeyMeansTheServerKey) {
 }
 
 // Otherwise a buyer could spend a purchase of one listing on planting the key
-// another listing's keyless buy derives, and that buy would be refused.
-TEST(ExchangeIdempotencyKey, AClientKeyInTheServersNamespaceIsReplaced) {
+// another listing's keyless buy derives, and that buy would be refused. The
+// ledger compares keys without regard to case, so the client's keys are kept
+// apart by a namespace, not by refusing one spelling of the server's prefix.
+TEST(ExchangeIdempotencyKey, AClientKeyCannotReachTheServersNamespace) {
     const std::string planted = exchangeServerIdempotencyKey(1, 0, 11);
-    EXPECT_EQ(exchangeServerIdempotencyKey(1, 0, 10), resolveExchangeIdempotencyKey(planted, 1, 0, 10));
-    EXPECT_EQ(exchangeServerIdempotencyKey(1, 0, 10), resolveExchangeIdempotencyKey("EX_", 1, 0, 10));
-    // Only the exact prefix is reserved.
-    EXPECT_EQ("ex_lower", resolveExchangeIdempotencyKey("ex_lower", 1, 0, 10));
-    EXPECT_EQ("EX", resolveExchangeIdempotencyKey("EX", 1, 0, 10));
+    EXPECT_EQ("C_" + planted, resolveExchangeIdempotencyKey(planted, 1, 0, 10));
+    EXPECT_EQ("C_EX_", resolveExchangeIdempotencyKey("EX_", 1, 0, 10));
+    EXPECT_EQ("C_ex_lower", resolveExchangeIdempotencyKey("ex_lower", 1, 0, 10));
+    EXPECT_EQ("C_EX", resolveExchangeIdempotencyKey("EX", 1, 0, 10));
 }
 
 //////////////////////////////////////////////////////////////////////////////

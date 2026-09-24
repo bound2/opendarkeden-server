@@ -468,7 +468,7 @@ void opSetCastleOwnerGuild(GamePlayer* pGamePlayer, const string& value1, GCSyst
 
     // The guild's race, or the race whose common guild the id names. The castle may be another zone group's, and
     // a change of its owning race reloads its war scheduler, freeing wars that group's thread executes, so the
-    // change is posted to the castle's group and runs there under its mutex, as it does when a war ends.
+    // change is posted to the castle's group and runs there under its mutex.
     Race_t race = (pGuild != NULL)  ? (Race_t)pGuild->getRace()
                   : (guildID == 99) ? RACE_SLAYER
                   : (guildID == 0)  ? RACE_VAMPIRE

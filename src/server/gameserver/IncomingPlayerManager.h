@@ -50,8 +50,10 @@
 // non-recursive m_Mutex themselves. And they disconnect and destroy
 // players, which saves to the database and takes the player finder, guild
 // and SharedServerManager locks: a zone thread's pushPlayer(), made under
-// its group mutex, would wait behind that database work, and m_Mutex would
-// become an outer lock of all of those.
+// its group mutex, would wait behind that work on every tick, where today
+// it waits only behind the kicked players heartbeat() removes under
+// m_Mutex. clearPlayers() writes without m_Mutex: it runs at shutdown,
+// with every group mutex held.
 //////////////////////////////////////////////////////////////////////////////
 
 class IncomingPlayerManager : public PlayerManager {
