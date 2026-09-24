@@ -397,6 +397,34 @@ add_test(NAME server_context_tests COMMAND server_context_tests
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(server_context_tests PROPERTIES TIMEOUT 30)
 
+# The configuration block one database connection is built from. The reader
+# touches Properties and nothing else, so this links its translation unit and
+# de-kernel -- no MySQL, no DatabaseManager and no live server.
+add_executable(connection_settings_tests EXCLUDE_FROM_ALL
+    connection_settings_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/database/ConnectionSettings.cpp
+)
+target_include_directories(connection_settings_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/database
+)
+target_link_libraries(connection_settings_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests connection_settings_tests)
+add_test(NAME connection_settings_tests COMMAND connection_settings_tests)
+set_tests_properties(connection_settings_tests PROPERTIES TIMEOUT 30)
+
+# The bound the connection managers walk their descriptor-indexed player
+# tables with. DescriptorTable.h is header-only and mentions no socket, no
+# player and no server, so this links nothing but gtest.
+add_executable(descriptor_table_tests EXCLUDE_FROM_ALL descriptor_table_test.cpp)
+target_include_directories(descriptor_table_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/server
+)
+target_link_libraries(descriptor_table_tests PRIVATE gtest_main Threads::Threads)
+add_dependencies(wire_tests descriptor_table_tests)
+add_test(NAME descriptor_table_tests COMMAND descriptor_table_tests)
+set_tests_properties(descriptor_table_tests PROPERTIES TIMEOUT 30)
+
 add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)
 target_include_directories(shutdown_probe PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
 target_link_libraries(shutdown_probe PRIVATE Threads::Threads)

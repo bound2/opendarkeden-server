@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "Assert.h"
+#include "Deployment.h"
 #include "GMServerInfo.h"
 #include "GameContext.h"
 #include "KernelContext.h"
@@ -248,7 +249,7 @@ void ConnectionInfoManager::heartbeat()
             // Every 30 seconds
             m_UpdateUserStatusTime.tv_sec = currentTime.tv_sec + 30;
 
-            if (config.getPropertyInt("IsNetMarble") == 1) {
+            if (de::isNetMarbleDeployment()) {
                 if (!defaultSessionRepository().updateUserStatus(numPC, worldID, serverID)) {
                     // No row yet: add one.
                     defaultSessionRepository().insertUserStatus(worldID, serverID, numPC);

@@ -5,6 +5,7 @@
 #include <chrono>
 
 #include "Assert.h"
+#include "Deployment.h"
 #include "KernelContext.h"
 #include "Properties.h"
 #include "StringStream.h"
@@ -44,7 +45,7 @@ void SMSServiceThread::run() {
 
     Properties& config = de::kernelContext().config();
 
-    if (config.getPropertyInt("IsNetMarble") != 0) {
+    if (de::isNetMarbleDeployment()) {
         // Nothing to relay on a NetMarble deployment. Idle until shutdown
         // rather than returning: a managed worker that returns while no stop
         // has been requested is reported as a worker failure.

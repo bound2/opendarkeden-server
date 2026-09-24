@@ -13,6 +13,24 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## The player tables hold four times the descriptors an fd_set does (2026-09-24)
+
+- **`PlayerManager`'s table has 2000 slots and the managers admit every
+  descriptor below that into their `fd_set` members,** but `fd_set` is the
+  platform's own and holds `FD_SETSIZE` descriptors, 1024 on glibc, which
+  no build raises. A gameserver or loginserver that reaches a descriptor of
+  1024 has `FD_SET` write past `m_ReadFDs`, `m_WriteFDs` and `m_ExceptFDs`
+  into whatever follows them in the manager, and calls `select` with an
+  `nfds` the interface does not define. The accepted-descriptor bound at
+  `IncomingPlayerManager::acceptNewConnection` and the one in
+  `PlayerManager::addPlayer` both say 2000, so nothing refuses the
+  descriptors in between. The sharedserver is not affected: its table is
+  100 slots and it refuses anything above them. Closing it means either
+  capping the tables at `FD_SETSIZE` -- which caps the concurrent player
+  count with them -- or leaving `select` for an interface with no such
+  limit, so it is a decision rather than an edit.
+  > **Status:** recorded, not fixed (fix/config-and-listener)
+
 ## The client heartbeat is verified twice for every heartbeat packet (2026-09-24)
 
 - **`GamePlayer::processCommand` ran `verifySpeed(pPacket)` and threw the
@@ -45,8 +63,21 @@ repo and the client's. Entries below are newest first; the oldest is the
 - **`GameServerManager` seeds its descriptor range from the listening
   socket's descriptor with no bound,** so a listener at or above the
   hundred-slot table makes every input and output walk read past it. The
-  bound added for accepted connections covers player adds only.
-  > **Status:** recorded, not fixed (fix/recorded-defects-6)
+  bound added for accepted connections covers player adds only. The
+  gameserver's `IncomingPlayerManager` and the loginserver's
+  `LoginPlayerManager` seed the same way over their 2000-slot player
+  tables. All three now refuse at startup a listening socket their table
+  cannot hold: clamping the walks alone would hide the listener from every
+  one of them, and a manager that never sees its own listening socket
+  accepts nothing. Beyond that seed, each sweep and each min/max rescan
+  runs the range through `de::descriptorRange`
+  (`src/server/DescriptorTable.h`), which clamps it to the table it
+  indexes, so no walk can index past the table however the range was
+  reached; `GameServerManager::deleteGameServerPlayer` refuses a
+  descriptor outside the table the way its add already did.
+  `tests/descriptor_table_test.cpp` pins the clamp, the listener case
+  included.
+  > **Status:** fixed (fix/config-and-listener)
 
 ## The account database connection takes the game database's port (2026-09-23)
 
@@ -54,20 +85,43 @@ repo and the client's. Entries below are newest first; the oldest is the
   `UI_DB_*` host, database, user and password keys but reads its port from
   `DB_PORT`,** the game database's key, where the two other places that
   open a connection to that server read `UI_DB_PORT`. An account database
-  on a port of its own is reached on the wrong one.
-  > **Status:** recorded, not fixed (refactor/server-context)
+  on a port of its own is reached on the wrong one. Both connections are
+  read as whole blocks now, by `de::connectionSettings`
+  (`src/server/database/ConnectionSettings.h`), which takes the prefix and
+  the five keys behind it, so one block's address cannot be built from
+  another's; a block that names no port still means the driver's default,
+  which is what the other two readers already did. The login and shared
+  server configurations repeated `DB_PORT` inside their `UI_DB` and
+  `DIST_DB` blocks, which is where the confusion came from; each port key
+  is named after the block it sits in now, at the same value, so those
+  deployments reach the same ports as before.
+  `tests/connection_settings_test.cpp` covers the block reader; the rest of
+  `DatabaseManager::init` opens sockets to MySQL and runs its first query,
+  so it has no seam a unit test can hold.
+  > **Status:** fixed (fix/config-and-listener)
 
 ## The Netmarble flag is read with opposite senses (2026-09-23)
 
 - **`GamePlayer::logLoginoutDateTime` selects the Netmarble dimension when
-  `IsNetMarble` is zero, against its own comment, and `ZoneLoad.cpp` gates
-  its pay-zone message on zero too, while the other five readers of the
-  flag treat nonzero as Netmarble.** Every shipped configuration sets the
-  flag to zero, so every login and logout row is written with the Netmarble
-  dimension in place of the configured one. The two sites want the
-  majority sense; flipping them is checked against the client's dimension
-  table first.
-  > **Status:** recorded, not fixed (refactor/server-context)
+  `IsNetMarble` is zero, against its own comment,** while the other six
+  readers of the flag treat nonzero as Netmarble. Every shipped
+  configuration sets the flag to zero, so every login and logout row in the
+  web log was written under dimension 2 in place of the configured one. The
+  site takes the majority sense now, and all seven readers ask
+  `de::isNetMarbleDeployment()` (`src/server/Deployment.h`), so the sense
+  has one place to be wrong in. Nothing on the wire depends on it: the
+  client decides its own Netmarble build from `Netmarble != 0` in its
+  Netmarble.inf, the same sense, and a Netmarble client never parses a
+  dimension out of its command line at all -- `g_Dimension` keeps the zero
+  it was initialised with, and it only selects which login-server address
+  list the client reads. The dimension the server writes is its own
+  `Dimension` key, which every other reader of that key passes straight
+  through.
+  `ZoneLoad.cpp`'s pay-zone message was recorded here as a second reversed
+  site and is not one: its zero branch sends STRID_CANNOT_ENTER_PAY_ZONE,
+  which is what the file's other pay-zone portal sends unconditionally, so
+  zero already meant "not Netmarble" there. Its comment says so now.
+  > **Status:** fixed (fix/config-and-listener)
 
 ## An ousters saved an indeterminate silver damage on destruction (2026-09-23)
 

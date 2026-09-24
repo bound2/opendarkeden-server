@@ -12,6 +12,7 @@
 
 #include "Assert.h"
 #include "CGLogout.h"
+#include "DescriptorTable.h"
 #include "GameContext.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
@@ -251,7 +252,8 @@ void ZonePlayerManager::processInputs() {
     }
 
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         // The ZPM holds only players, so there is nothing further to compare.
         if (FD_ISSET(i, &m_ReadFDs[1])) {
             if (m_pPlayers[i] != NULL && m_pPlayers[i] == m_pPlayers[i]) {
@@ -337,7 +339,8 @@ void ZonePlayerManager::processCommands() {
     Timeval currentTime;
     getCurrentTime(currentTime);
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (m_pPlayers[i] != NULL) {
             GamePlayer* pTempPlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
             Assert(pTempPlayer);
@@ -476,7 +479,8 @@ void ZonePlayerManager::processOutputs() {
     }
 
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (FD_ISSET(i, &m_WriteFDs[1])) {
             if (m_pPlayers[i] != NULL) {
                 GamePlayer* pTempPlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
@@ -550,7 +554,8 @@ void ZonePlayerManager::processExceptions() {
         return;
     }
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (FD_ISSET(i, &m_ExceptFDs[1])) {
             if (m_pPlayers[i] != NULL && m_pPlayers[i] == m_pPlayers[i]) {
                 GamePlayer* pTempPlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
@@ -654,8 +659,9 @@ void ZonePlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
     if (fd == m_MinFD) {
         // Search forward for the smallest fd.
         // Note that the m_MinFD slot is now NULL.
-        int i = m_MinFD;
-        for (i = m_MinFD; i <= m_MaxFD; i++) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+        int i = walk.first;
+        for (i = walk.first; i <= walk.last; i++) {
             if (m_pPlayers[i] != NULL) {
                 m_MinFD = i;
                 break;
@@ -665,13 +671,14 @@ void ZonePlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
         // When no suitable m_MinFD was found,
         // this is the m_MinFD == m_MaxFD case.
         // Set both to -1.
-        if (i > m_MaxFD)
+        if (i > walk.last)
             m_MinFD = m_MaxFD = -1;
 
     } else if (fd == m_MaxFD) {
         // Search backward for the largest fd.
-        int i = m_MaxFD;
-        for (i = m_MaxFD; i >= m_MinFD; i--) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+        int i = walk.last;
+        for (i = walk.last; i >= walk.first; i--) {
             if (m_pPlayers[i] != NULL) {
                 m_MaxFD = i;
                 break;
@@ -679,7 +686,7 @@ void ZonePlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
         }
 
         // When no suitable m_MaxFD was found,
-        if (i < m_MinFD) {
+        if (i < walk.first) {
             filelog("ZonePlayerManagerBug.txt", "%s : %s", "ZonePlayerManager::deletePlayer_NOBLOCKED()",
                     "MinMaxFD problem");
             throw UnknownError("m_MinFD & m_MaxFD problem.");
@@ -733,8 +740,9 @@ void ZonePlayerManager::deletePlayer(SOCKET fd) {
     if (fd == m_MinFD) {
         // Search forward for the smallest fd.
         // Note that the m_MinFD slot is now NULL.
-        int i = m_MinFD;
-        for (i = m_MinFD; i <= m_MaxFD; i++) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+        int i = walk.first;
+        for (i = walk.first; i <= walk.last; i++) {
             if (m_pPlayers[i] != NULL) {
                 m_MinFD = i;
                 break;
@@ -744,13 +752,14 @@ void ZonePlayerManager::deletePlayer(SOCKET fd) {
         // When no suitable m_MinFD was found,
         // this is the m_MinFD == m_MaxFD case.
         // Set both to -1.
-        if (i > m_MaxFD)
+        if (i > walk.last)
             m_MinFD = m_MaxFD = -1;
 
     } else if (fd == m_MaxFD) {
         // Search backward for the largest fd.
-        int i = m_MaxFD;
-        for (i = m_MaxFD; i >= m_MinFD; i--) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+        int i = walk.last;
+        for (i = walk.last; i >= walk.first; i--) {
             if (m_pPlayers[i] != NULL) {
                 m_MaxFD = i;
                 break;
@@ -758,7 +767,7 @@ void ZonePlayerManager::deletePlayer(SOCKET fd) {
         }
 
         // When no suitable m_MaxFD was found,
-        if (i < m_MinFD) {
+        if (i < walk.first) {
             filelog("ZonePlayerManagerBug.txt", "%s : %s", "ZonePlayerManager::deletePlayer()", "MinMaxFD problem");
             throw UnknownError("m_MinFD & m_MaxFD problem.");
         }
@@ -1017,7 +1026,8 @@ void ZonePlayerManager::clearPlayers()
         return;
 
     // Clean up the players.
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (m_pPlayers[i] != NULL) {
             GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
 

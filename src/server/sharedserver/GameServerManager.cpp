@@ -13,6 +13,7 @@
 
 #include "Assert.h"
 #include "DB.h"
+#include "DescriptorTable.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "KernelContext.h"
@@ -84,6 +85,13 @@ GameServerManager::~GameServerManager() noexcept {
 
 void GameServerManager::init() {
     __BEGIN_TRY
+
+    // The game server table is indexed by descriptor and every walk over it
+    // is clamped to it, so a listener the table cannot hold would be skipped
+    // by all of them and no connection could ever be accepted. There is
+    // nothing to serve from in that state.
+    if (!de::fitsDescriptorTable((int)m_SocketID, (int)nMaxGameServers))
+        throw Error("listening socket descriptor does not fit the game server table");
 
     // Zero the fd_sets.
     FD_ZERO(&m_ReadFDs[0]);
@@ -161,7 +169,8 @@ void GameServerManager::broadcast(Packet* pPacket) {
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     try {
-        for (int i = m_MinFD; i <= m_MaxFD; i++) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxGameServers);
+        for (int i = walk.first; i <= walk.last; i++) {
             if (i != m_SocketID && m_pGameServerPlayers[i] != NULL)
                 m_pGameServerPlayers[i]->sendPacket(pPacket);
         }
@@ -182,7 +191,8 @@ void GameServerManager::broadcast(Packet* pPacket, Player* pPlayer) {
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxGameServers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (i != m_SocketID && m_pGameServerPlayers[i] != NULL && m_pGameServerPlayers[i] != pPlayer)
             m_pGameServerPlayers[i]->sendPacket(pPacket);
     }
@@ -237,7 +247,8 @@ void GameServerManager::processInputs() {
         return;
     }
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxGameServers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (FD_ISSET(i, &m_ReadFDs[1])) {
             if (i == m_SocketID) {
                 //  The server socket means a new connection arrived.
@@ -303,7 +314,8 @@ void GameServerManager::processCommands() {
     }
 
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxGameServers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (i != m_SocketID && m_pGameServerPlayers[i] != NULL) {
             GameServerPlayer* pGameServerPlayer = m_pGameServerPlayers[i];
             Assert(pGameServerPlayer != NULL);
@@ -359,7 +371,8 @@ void GameServerManager::processOutputs() {
     }
 
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxGameServers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (FD_ISSET(i, &m_WriteFDs[1])) {
             if (i == m_SocketID)
                 throw IOException("server socket's write bit is selected.");
@@ -440,7 +453,8 @@ void GameServerManager::processExceptions() {
     }
 
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxGameServers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (FD_ISSET(i, &m_ExceptFDs[1])) {
             if (i != m_SocketID) {
                 if (m_pGameServerPlayers[i] != NULL) {
@@ -573,7 +587,7 @@ void GameServerManager::addGameServerPlayer(GameServerPlayer* pGameServerPlayer)
 
     // The table is indexed by the descriptor, so one it cannot hold is refused
     // rather than stored past its end.
-    if (fd < 0 || fd >= (SOCKET)nMaxGameServers)
+    if (!de::fitsDescriptorTable((int)fd, (int)nMaxGameServers))
         throw OutOfBoundException();
 
     // Readjust m_MinFD and m_MaxFD.
@@ -603,6 +617,11 @@ void GameServerManager::deleteGameServerPlayer(SOCKET fd) {
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
+    // The table is indexed by the descriptor, so one it cannot hold is
+    // refused rather than cleared past its end.
+    if (!de::fitsDescriptorTable((int)fd, (int)nMaxGameServers))
+        throw OutOfBoundException();
+
     m_pGameServerPlayers[fd] = NULL;
 
     // Readjust m_MinFD and m_MaxFD.
@@ -610,8 +629,9 @@ void GameServerManager::deleteGameServerPlayer(SOCKET fd) {
     if (fd == m_MinFD) {
         // Find the smallest fd from the front.
         // Note that the m_MinFD slot is NULL at this point.
-        int i = m_MinFD;
-        for (i = m_MinFD; i <= m_MaxFD; i++) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxGameServers);
+        int i = walk.first;
+        for (i = walk.first; i <= walk.last; i++) {
             if (m_pGameServerPlayers[i] != NULL || i == m_SocketID) {
                 m_MinFD = i;
                 break;
@@ -621,13 +641,14 @@ void GameServerManager::deleteGameServerPlayer(SOCKET fd) {
         // When no suitable m_MinFD was found,
         // this is the m_MinFD == m_MaxFD case.
         // Set both to -1 then.
-        if (i > m_MaxFD)
+        if (i > walk.last)
             m_MinFD = m_MaxFD = -1;
     } else if (fd == m_MaxFD) {
         // Find the largest fd from the back.
         // Watch out for SocketID! (for SocketID the Player pointer is NULL.)
-        int i = m_MaxFD;
-        for (i = m_MaxFD; i >= m_MinFD; i--) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxGameServers);
+        int i = walk.last;
+        for (i = walk.last; i >= walk.first; i--) {
             if (m_pGameServerPlayers[i] != NULL || i == m_SocketID) {
                 m_MaxFD = i;
                 break;
@@ -635,7 +656,7 @@ void GameServerManager::deleteGameServerPlayer(SOCKET fd) {
         }
 
         // When no suitable m_MinFD was found,
-        if (i < m_MinFD) {
+        if (i < walk.first) {
             throw UnknownError("m_MinFD & m_MaxFD problem.");
         }
     }
