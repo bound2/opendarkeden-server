@@ -65,10 +65,14 @@ void CGQuitUnionDenyHandler::execute(CGQuitUnionDeny* pPacket, Player* pPlayer)
         return;
     }
 
-    uint result = GuildUnionOfferManager::Instance().denyQuit(pPacket->getGuildID());
+    uint result = GuildUnionOfferManager::Instance().denyQuit(pPacket->getGuildID(), pUnion->getUnionID());
 
     gcGuildResponse.setCode(result);
     pPlayer->sendPacket(&gcGuildResponse);
+
+    // Only a denied offer is news to the guild that made it.
+    if (result != GuildUnionOfferManager::OK)
+        return;
 
     ////////////////////
 

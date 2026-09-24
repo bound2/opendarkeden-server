@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include <algorithm>
+
 #include "GCModifyInformation.h"
 #include "GGCommand.h"
 #include "GameContext.h"
@@ -60,6 +62,21 @@ void notifyUnionChange(GuildID_t gID) {
     sendGCOtherModifyInfoGuildUnionByGuildID(gID);
 }
 
+// The answer a master gets for an offer that is not one to act on; OK for
+// one that is.
+uint refusalOf(UnionOfferAnswerVerdict verdict) {
+    switch (verdict) {
+    case UnionOfferAnswerVerdict::ANSWER:
+        return GuildUnionOfferManager::OK;
+    case UnionOfferAnswerVerdict::NO_OFFER:
+        return GuildUnionOfferManager::NO_TARGET_UNION;
+    case UnionOfferAnswerVerdict::NOT_YOUR_UNION:
+        return GuildUnionOfferManager::NOT_YOUR_UNION;
+    }
+
+    throw Error("unknown union offer answer verdict");
+}
+
 } // namespace
 
 GuildUnionManager::GuildUnionManager() {
@@ -72,9 +89,14 @@ GuildUnionManager::~GuildUnionManager() = default;
 UnionJoinOfferVerdict GuildUnionManager::recordJoinOffer(GuildID_t applicantGID, GuildID_t masterGID,
                                                          bool tooManyMembers) {
     UnionJoinOfferVerdict verdict = UnionJoinOfferVerdict::ALREADY_IN_UNION;
-    bool opened = false;
+    UnionChanges changes;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    // Nothing below may read an expired row: the applicant's lapsed offer or
+    // ended penalty goes first, and a union only an expired offer held goes
+    // with it.
+    purgeOffers_LOCKED(changes);
 
     GuildRepository& repository = defaultGuildRepository();
 
@@ -90,7 +112,6 @@ UnionJoinOfferVerdict GuildUnionManager::recordJoinOffer(GuildID_t applicantGID,
     else
         facts.targetStanding = UnionJoinOfferFacts::TARGET_IS_MEMBER;
     facts.applicantHasOffer = repository.countOffers(applicantGID) > 0;
-    // Forced out of a union in the last ten days: penalised.
     facts.applicantHasPenalty = repository.countRecentEscapes(applicantGID) > 0;
     facts.unionMemberCount = pUnion != NULL ? repository.countUnionMembers(pUnion->getUnionID()) : 0;
     facts.unionMemberLimit = de::gameContext().variables().getVariable(GUILD_UNION_MAX);
@@ -104,8 +125,6 @@ UnionJoinOfferVerdict GuildUnionManager::recordJoinOffer(GuildID_t applicantGID,
 
     if (verdict == UnionJoinOfferVerdict::OPEN_UNION_AND_RECORD || verdict == UnionJoinOfferVerdict::RECORD_OFFER) {
         try {
-            // Drop offers older than ten days.
-            repository.deleteStaleOffers(applicantGID);
             repository.insertJoinOffer(targetUnionID, applicantGID);
         } catch (...) {
             // A union row with no offer behind it would keep its master in a
@@ -115,73 +134,139 @@ UnionJoinOfferVerdict GuildUnionManager::recordJoinOffer(GuildID_t applicantGID,
             throw;
         }
 
-        // Published only once the offer that justifies it is on record.
+        // Published only once the offer that justifies it is on record. The
+        // other game servers keep their own copy of the union tables; without
+        // the refresh, an offer to the same guild made on one of them would
+        // open a second union there.
         if (verdict == UnionJoinOfferVerdict::OPEN_UNION_AND_RECORD) {
-            pUnion = m_Unions.publish(std::make_unique<GuildUnion>(targetUnionID, masterGID));
-            opened = true;
+            m_Unions.publish(std::make_unique<GuildUnion>(targetUnionID, masterGID));
+            changes.refresh = true;
         }
     }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    // The other game servers keep their own copy of the union tables; without
-    // this, an offer to the same guild made on one of them would open a
-    // second union there.
-    if (opened)
-        sendRefreshCommand();
+    publish(changes);
 
     return verdict;
 }
 
-bool GuildUnionManager::dissolveIfAbandoned(uint uID) {
-    bool dissolved = false;
-    GuildID_t masterGuildID = 0;
+void GuildUnionManager::purgeOffers() {
+    UnionChanges changes;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    GuildUnion* pUnion = m_Unions.unionByID(uID);
-    if (pUnion != NULL)
-        masterGuildID = pUnion->getMasterGuildID();
-
-    dissolved = dissolveIfAbandoned_LOCKED(uID);
+    purgeOffers_LOCKED(changes);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    if (dissolved) {
-        // The master guild was the only guild in the union.
-        if (masterGuildID != 0)
-            notifyUnionChange(masterGuildID);
+    publish(changes);
+}
 
-        sendRefreshCommand();
+void GuildUnionManager::purgeOffers_LOCKED(UnionChanges& changes) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    // The offers are read before the unions (see decideUnionOfferPurge).
+    const vector<UnionOfferStateRow> rows = repository.loadOfferStates();
+    if (rows.empty())
+        return;
+
+    const vector<UnionRow> unionRows = repository.loadUnions();
+
+    vector<UnionOfferState> offers;
+    offers.reserve(rows.size());
+    for (size_t r = 0; r < rows.size(); r++) {
+        UnionOfferState offer;
+        offer.unionID = static_cast<unsigned>(rows[r].unionID);
+        offer.offerType = rows[r].offerType;
+        offer.ownerGuildID = static_cast<unsigned>(rows[r].ownerGuildID);
+        offer.expired = rows[r].expired;
+        offers.push_back(offer);
     }
+
+    vector<unsigned> unionIDs;
+    unionIDs.reserve(unionRows.size());
+    for (size_t u = 0; u < unionRows.size(); u++)
+        unionIDs.push_back(static_cast<unsigned>(unionRows[u].unionID));
+
+    const UnionOfferPurge purge = decideUnionOfferPurge(offers, unionIDs);
+
+    // The delete takes the guild's row only while it is still expired, so an
+    // offer made since the read survives it.
+    for (size_t e = 0; e < purge.expired.size(); e++)
+        repository.deleteStaleOffers(static_cast<GuildID_t>(offers[purge.expired[e]].ownerGuildID));
+
+    for (size_t o = 0; o < purge.orphaned.size(); o++) {
+        const UnionOfferState& offer = offers[purge.orphaned[o]];
+
+        repository.deleteOfferToUnion(static_cast<GuildID_t>(offer.ownerGuildID), offer.unionID);
+        filelog("GuildUnion.log", "[%u:%u] offer names a union that has gone; dropped.", offer.unionID,
+                offer.ownerGuildID);
+    }
+
+    for (size_t u = 0; u < purge.unionsToCheck.size(); u++) {
+        if (dissolveIfAbandoned_LOCKED(purge.unionsToCheck[u], changes))
+            filelog("GuildUnion.log", "[%u] dissolved: the join offers that kept it expired.", purge.unionsToCheck[u]);
+    }
+}
+
+bool GuildUnionManager::dissolveIfAbandoned(uint uID) {
+    bool dissolved = false;
+    UnionChanges changes;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    dissolved = dissolveIfAbandoned_LOCKED(uID, changes);
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    publish(changes);
 
     return dissolved;
 }
 
-bool GuildUnionManager::dissolveIfAbandoned_LOCKED(uint uID) {
+bool GuildUnionManager::dissolveIfAbandoned_LOCKED(uint uID, UnionChanges& changes) {
     GuildRepository& repository = defaultGuildRepository();
 
-    const int memberRows = repository.countUnionMembers(uID);
-    if (memberRows > 0)
+    if (!unionIsAbandoned(repository.countUnionMembers(uID), repository.countPendingJoinOffers(uID)))
         return false;
 
-    // GuildUnionOffer.OfferType read as a number: JOIN is the enum's first
-    // value. A QUIT row belongs to a member and an ESCAPE row is a former
-    // member's penalty; neither keeps a union.
-    const int kJoinOfferType = 1;
-
-    const vector<UnionOfferRow> offers = repository.loadOffers(uID);
-    int pendingJoinOffers = 0;
-    for (size_t o = 0; o < offers.size(); o++) {
-        if (offers[o].offerType == kJoinOfferType)
-            pendingJoinOffers++;
+    // The master guild, from the union object or, on a server that does not
+    // carry it, from the union's row. A union with neither has gone already.
+    GuildID_t masterGuildID = 0;
+    GuildUnion* pUnion = m_Unions.unionByID(uID);
+    if (pUnion != NULL) {
+        masterGuildID = pUnion->getMasterGuildID();
+    } else {
+        int rowMasterGuildID = 0;
+        if (!repository.loadUnionMaster(static_cast<int>(uID), rowMasterGuildID))
+            return false;
+        masterGuildID = static_cast<GuildID_t>(rowMasterGuildID);
     }
 
-    if (!unionIsAbandoned(memberRows, pendingJoinOffers))
-        return false;
-
     destroyUnion_LOCKED(uID);
+
+    // The master guild was the only guild in the union.
+    changes.guildsToNotify.push_back(masterGuildID);
+    changes.refresh = true;
+
     return true;
+}
+
+void GuildUnionManager::publish(const UnionChanges& changes) {
+    vector<GuildID_t> told;
+
+    for (size_t g = 0; g < changes.guildsToNotify.size(); g++) {
+        const GuildID_t gID = changes.guildsToNotify[g];
+        if (std::find(told.begin(), told.end(), gID) != told.end())
+            continue;
+
+        told.push_back(gID);
+        notifyUnionChange(gID);
+    }
+
+    if (changes.refresh)
+        sendRefreshCommand();
 }
 
 void GuildUnionManager::sendModifyUnionInfo(uint gID) {
@@ -267,6 +352,7 @@ void GuildUnionManager::sendRefreshCommand() {
     }
 }
 
+
 bool GuildUnionManager::addGuild(uint uID, GuildID_t gID) {
     __BEGIN_TRY
 
@@ -290,10 +376,19 @@ bool GuildUnionManager::removeGuildFromUnion(GuildID_t gID) {
     __BEGIN_TRY
 
     UnionTeardown teardown;
+    UnionChanges changes;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     GuildRepository& guildRows = defaultGuildRepository();
+
+    // A guild going away takes its own offer rows with it, and a union its
+    // join offer alone kept goes too.
+    int offeredUnionID = 0;
+    const bool hadJoinOffer = guildRows.loadJoinOfferUnion(gID, offeredUnionID);
+    guildRows.deleteOffers(gID);
+    if (hadJoinOffer)
+        dissolveIfAbandoned_LOCKED(static_cast<uint>(offeredUnionID), changes);
 
     // The union holding the guild. The lookup maps answer first; a guild they
     // have forgotten may still have a member row naming it, so the tables are
@@ -323,28 +418,26 @@ bool GuildUnionManager::removeGuildFromUnion(GuildID_t gID) {
         }
     }
 
-    if (!unionKnown)
-        return false;
+    if (unionKnown) {
+        // The union's member guilds, from its rows and from the union object
+        // both: a guild one of them has lost is still a guild to let out.
+        // decideUnionTeardown names each of them once however often it is
+        // listed.
+        const vector<int> memberRows = guildRows.loadUnionMemberGuilds(unionID);
 
-    // The union's member guilds, from its rows and from the union object
-    // both: a guild one of them has lost is still a guild to let out.
-    // decideUnionTeardown names each of them once however often it is listed.
-    const vector<int> memberRows = guildRows.loadUnionMemberGuilds(unionID);
+        vector<GuildID_t> memberGuilds;
+        memberGuilds.reserve(memberRows.size());
+        for (size_t m = 0; m < memberRows.size(); m++)
+            memberGuilds.push_back(static_cast<GuildID_t>(memberRows[m]));
 
-    vector<GuildID_t> memberGuilds;
-    memberGuilds.reserve(memberRows.size());
-    for (size_t m = 0; m < memberRows.size(); m++)
-        memberGuilds.push_back(static_cast<GuildID_t>(memberRows[m]));
+        if (pUnion != NULL) {
+            const list<GuildID_t> knownGuilds = pUnion->getGuildList();
+            for (list<GuildID_t>::const_iterator itr = knownGuilds.begin(); itr != knownGuilds.end(); ++itr)
+                memberGuilds.push_back(*itr);
+        }
 
-    if (pUnion != NULL) {
-        const list<GuildID_t> knownGuilds = pUnion->getGuildList();
-        for (list<GuildID_t>::const_iterator itr = knownGuilds.begin(); itr != knownGuilds.end(); ++itr)
-            memberGuilds.push_back(*itr);
+        teardown = decideUnionTeardown(unionKnown, unionMasterGuildID, memberGuilds, gID);
     }
-
-    teardown = decideUnionTeardown(unionKnown, unionMasterGuildID, memberGuilds, gID);
-    if (teardown.action == UnionTeardown::NOTHING)
-        return false;
 
     for (size_t m = 0; m < teardown.membersToRemove.size(); m++) {
         const GuildID_t memberID = teardown.membersToRemove[m];
@@ -358,50 +451,71 @@ bool GuildUnionManager::removeGuildFromUnion(GuildID_t gID) {
             filelog("GuildUnion.log", "[%u:%u] no member row to remove.", unionID, memberID);
     }
 
-    if (teardown.action == UnionTeardown::DISSOLVE)
+    if (teardown.action == UnionTeardown::DISSOLVE) {
         destroyUnion_LOCKED(unionID);
+    } else if (teardown.action == UnionTeardown::REMOVE_MEMBER) {
+        // The last member out leaves the union to its pending join offers.
+        dissolveIfAbandoned_LOCKED(unionID, changes);
+    }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    for (size_t n = 0; n < teardown.guildsToNotify.size(); n++)
-        notifyUnionChange(teardown.guildsToNotify[n]);
+    if (teardown.action != UnionTeardown::NOTHING) {
+        changes.guildsToNotify.insert(changes.guildsToNotify.end(), teardown.guildsToNotify.begin(),
+                                      teardown.guildsToNotify.end());
+        changes.refresh = true;
+    }
 
-    // The other game servers keep their own copy of the union tables.
-    sendRefreshCommand();
+    publish(changes);
 
-    return true;
+    return teardown.action != UnionTeardown::NOTHING;
 
     __END_CATCH
 }
 
 void GuildUnionManager::destroyUnion_LOCKED(uint uID) {
-    // The rows go whether or not this server carries the union in memory.
-    defaultGuildRepository().deleteUnion(uID);
+    // The rows go whether or not this server carries the union in memory. An
+    // offer to join the union, or to leave it, has nothing left to answer
+    // it; an ESCAPE row naming it is the former member's penalty and stays.
+    GuildRepository& repository = defaultGuildRepository();
+    repository.deleteUnion(uID);
+    repository.deleteOffersToUnion(uID);
 
     // Every guild that resolved to the union stops resolving to it. A thread
     // still holding the pointer finds it retired rather than freed.
     m_Unions.retire(uID);
 }
 
-bool GuildUnionManager::removeGuild(uint uID, GuildID_t gID) {
+bool GuildUnionManager::removeGuild(uint uID, GuildID_t gID, bool* pDissolved) {
     __BEGIN_TRY
+
+    bool dissolved = false;
+    UnionChanges changes;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     if (!m_Unions.removeMember(uID, gID))
         return false;
 
-    if (!defaultGuildRepository().deleteUnionMember(uID, gID))
+    GuildRepository& repository = defaultGuildRepository();
+
+    if (!repository.deleteUnionMember(uID, gID))
         filelog("GuildUnion.log", "[%u:%u] no member row to remove.", uID, gID);
 
-    // The master guild alone is not a union.
-    GuildUnion* pUnion = m_Unions.unionByID(uID);
-    if (pUnion != NULL && pUnion->getGuildList().empty())
-        destroyUnion_LOCKED(uID);
+    // A guild out of the union has no union left to ask to let it go.
+    repository.deleteQuitOffer(gID);
+
+    // Whether the union outlives its member is the abandoned-union rule's to
+    // say: a pending join offer keeps it.
+    dissolved = dissolveIfAbandoned_LOCKED(uID, changes);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    sendRefreshCommand();
+    changes.refresh = true;
+    publish(changes);
+
+    if (pDissolved != NULL)
+        *pDissolved = dissolved;
 
     return true;
 
@@ -409,13 +523,52 @@ bool GuildUnionManager::removeGuild(uint uID, GuildID_t gID) {
 }
 
 void GuildUnionManager::reload() {
-    load();
+    UnionChanges changes;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    load_LOCKED(changes);
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    publish(changes);
 }
 
 void GuildUnionManager::load() {
     __BEGIN_TRY
 
+    UnionChanges changes;
+
     __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    load_LOCKED(changes);
+
+    if (changes.refresh)
+        m_RefreshOwed = true;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    __END_CATCH
+}
+
+void GuildUnionManager::sendOwedRefresh() {
+    bool owed = false;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    owed = m_RefreshOwed;
+    m_RefreshOwed = false;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    if (owed)
+        sendRefreshCommand();
+}
+
+void GuildUnionManager::load_LOCKED(UnionChanges& changes) {
+    // A restart carries no expired offer, nor a union only an expired offer
+    // kept, nor an offer to a union that has gone.
+    purgeOffers_LOCKED(changes);
 
     GuildRepository& repository = defaultGuildRepository();
 
@@ -437,10 +590,6 @@ void GuildUnionManager::load() {
     }
 
     m_Unions.replaceAll(std::move(fresh));
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    __END_CATCH
 }
 
 uint GuildUnionOfferManager::offerJoin(GuildID_t gID, GuildID_t masterGID) {
@@ -465,10 +614,10 @@ uint GuildUnionOfferManager::offerJoin(GuildID_t gID, GuildID_t masterGID) {
         return TOO_MANY_MEMBER;
     case UnionJoinOfferVerdict::TARGET_IS_NOT_MASTER:
         return TARGET_IS_NOT_MASTER;
-    case UnionJoinOfferVerdict::ALREADY_OFFER_SOMETHING:
-        return ALREADY_OFFER_SOMETHING;
     case UnionJoinOfferVerdict::YOU_HAVE_PENALTY:
         return YOU_HAVE_PENALTY;
+    case UnionJoinOfferVerdict::ALREADY_OFFER_SOMETHING:
+        return ALREADY_OFFER_SOMETHING;
     case UnionJoinOfferVerdict::NOT_ENOUGH_SLOT:
         return NOT_ENOUGH_SLOT;
     }
@@ -481,7 +630,12 @@ uint GuildUnionOfferManager::offerJoin(GuildID_t gID, GuildID_t masterGID) {
 uint GuildUnionOfferManager::offerQuit(GuildID_t gID) {
     __BEGIN_TRY
 
-    GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
+    GuildUnionManager& unions = GuildUnionManager::Instance();
+
+    // A lapsed offer of the guild's does not stand in the way of this one.
+    unions.purgeOffers();
+
+    GuildUnion* pUnion = unions.getGuildUnion(gID);
 
     if (pUnion == NULL) {
         return NOT_IN_UNION;
@@ -501,6 +655,13 @@ uint GuildUnionOfferManager::offerQuit(GuildID_t gID) {
 }
 
 bool GuildUnionOfferManager::makeOfferList(uint uID, GCUnionOfferList& offerList) {
+    GuildUnionManager& unions = GuildUnionManager::Instance();
+
+    // The master is shown only offers that can still be answered.
+    unions.purgeOffers();
+    if (unions.getGuildUnionByUnionID(uID) == NULL)
+        return false;
+
     GuildRepository& repository = defaultGuildRepository();
 
     vector<UnionOfferRow> offers = repository.loadOffers(uID);
@@ -531,22 +692,26 @@ bool GuildUnionOfferManager::makeOfferList(uint uID, GCUnionOfferList& offerList
         offerList.addUnionOfferList(offer);
     }
 
-    // cout << "make offerlist success!" << endl;
     return true;
 }
 
-uint GuildUnionOfferManager::acceptJoin(GuildID_t gID) {
+uint GuildUnionOfferManager::acceptJoin(GuildID_t gID, uint answeringUnionID) {
     __BEGIN_TRY
 
     GuildRepository& repository = defaultGuildRepository();
+    GuildUnionManager& unions = GuildUnionManager::Instance();
+
+    unions.purgeOffers();
 
     int unionID = 0;
-    if (!repository.loadJoinOfferUnion(gID, unionID))
-        return NO_TARGET_UNION;
+    const bool offerFound = repository.loadJoinOfferUnion(gID, unionID);
+    const uint refusal =
+        refusalOf(decideUnionOfferAnswer(offerFound, static_cast<unsigned>(unionID), answeringUnionID));
+    if (refusal != OK)
+        return refusal;
 
     clearOffer(gID);
 
-    GuildUnionManager& unions = GuildUnionManager::Instance();
     const uint uID = unionID;
     uint result = OK;
 
@@ -572,87 +737,99 @@ uint GuildUnionOfferManager::acceptJoin(GuildID_t gID) {
     __END_CATCH
 }
 
-uint GuildUnionOfferManager::acceptQuit(GuildID_t gID) {
+uint GuildUnionOfferManager::acceptQuit(GuildID_t gID, uint answeringUnionID) {
     __BEGIN_TRY
 
+    GuildUnionManager& unions = GuildUnionManager::Instance();
+
+    unions.purgeOffers();
+
     int unionID = 0;
-    if (defaultGuildRepository().loadQuitOfferUnion(gID, unionID)) {
-        clearOffer(gID);
+    const bool offerFound = defaultGuildRepository().loadQuitOfferUnion(gID, unionID);
+    const uint refusal =
+        refusalOf(decideUnionOfferAnswer(offerFound, static_cast<unsigned>(unionID), answeringUnionID));
+    if (refusal != OK)
+        return refusal;
 
-        GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
-        if (pUnion == NULL) {
-            return NOT_IN_UNION;
-        }
+    clearOffer(gID);
 
-        uint uID = unionID;
-        if (uID != pUnion->getUnionID()) {
-            return NOT_YOUR_UNION;
-        }
-
-        pUnion = GuildUnionManager::Instance().getGuildUnionByUnionID(uID);
-        if (pUnion == NULL) {
-            return NO_TARGET_UNION;
-        }
-
-        // The guild may have left, or the union been dissolved, since the
-        // checks above.
-        if (!GuildUnionManager::Instance().removeGuild(uID, gID))
-            return NOT_IN_UNION;
+    GuildUnion* pUnion = unions.getGuildUnion(gID);
+    if (pUnion == NULL) {
+        return NOT_IN_UNION;
     }
+
+    const uint uID = unionID;
+    if (uID != pUnion->getUnionID()) {
+        return NOT_YOUR_UNION;
+    }
+
+    // The guild may have left, or the union been dissolved, since the checks
+    // above. The union goes with the guild when nothing else holds it.
+    if (!unions.removeGuild(uID, gID))
+        return NOT_IN_UNION;
 
     return OK;
 
     __END_CATCH
 }
 
-uint GuildUnionOfferManager::denyJoin(GuildID_t gID) {
+uint GuildUnionOfferManager::denyJoin(GuildID_t gID, uint answeringUnionID) {
     __BEGIN_TRY
 
-    uint result = OK;
+    GuildUnionManager& unions = GuildUnionManager::Instance();
+
+    unions.purgeOffers();
 
     int unionID = 0;
-    if (defaultGuildRepository().loadJoinOfferUnion(gID, unionID)) {
-        clearOffer(gID);
+    const bool offerFound = defaultGuildRepository().loadJoinOfferUnion(gID, unionID);
+    const uint refusal =
+        refusalOf(decideUnionOfferAnswer(offerFound, static_cast<unsigned>(unionID), answeringUnionID));
+    if (refusal != OK)
+        return refusal;
 
-        GuildUnionManager& unions = GuildUnionManager::Instance();
-        const uint uID = unionID;
+    clearOffer(gID);
 
-        if (unions.getGuildUnion(gID) != NULL)
-            result = ALREADY_IN_UNION;
-        else if (unions.getGuildUnionByUnionID(uID) == NULL)
-            result = NO_TARGET_UNION;
+    const uint uID = unionID;
+    uint result = OK;
 
-        // A union opened for this offer that has no member and no other
-        // offer pending goes with the offer, on every game server.
-        unions.dissolveIfAbandoned(uID);
-    }
+    if (unions.getGuildUnion(gID) != NULL)
+        result = ALREADY_IN_UNION;
+    else if (unions.getGuildUnionByUnionID(uID) == NULL)
+        result = NO_TARGET_UNION;
+
+    // A union opened for this offer that has no member and no other pending
+    // offer goes with the offer, on every game server.
+    unions.dissolveIfAbandoned(uID);
 
     return result;
 
     __END_CATCH
 }
 
-uint GuildUnionOfferManager::denyQuit(GuildID_t gID) {
+uint GuildUnionOfferManager::denyQuit(GuildID_t gID, uint answeringUnionID) {
     __BEGIN_TRY
 
+    GuildUnionManager& unions = GuildUnionManager::Instance();
+
+    unions.purgeOffers();
+
     int unionID = 0;
-    if (defaultGuildRepository().loadQuitOfferUnion(gID, unionID)) {
-        clearOffer(gID);
+    const bool offerFound = defaultGuildRepository().loadQuitOfferUnion(gID, unionID);
+    const uint refusal =
+        refusalOf(decideUnionOfferAnswer(offerFound, static_cast<unsigned>(unionID), answeringUnionID));
+    if (refusal != OK)
+        return refusal;
 
-        GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
-        if (pUnion == NULL) {
-            return NOT_IN_UNION;
-        }
+    clearOffer(gID);
 
-        uint uID = unionID;
-        if (uID != pUnion->getUnionID()) {
-            return NOT_YOUR_UNION;
-        }
+    GuildUnion* pUnion = unions.getGuildUnion(gID);
+    if (pUnion == NULL) {
+        return NOT_IN_UNION;
+    }
 
-        pUnion = GuildUnionManager::Instance().getGuildUnionByUnionID(uID);
-        if (pUnion == NULL) {
-            return NO_TARGET_UNION;
-        }
+    const uint uID = unionID;
+    if (uID != pUnion->getUnionID()) {
+        return NOT_YOUR_UNION;
     }
 
     return OK;

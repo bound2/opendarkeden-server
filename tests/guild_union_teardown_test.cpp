@@ -1,8 +1,9 @@
 // What becomes of a guild union when one of its guilds goes away
 // (src/server/gameserver/guild/GuildUnionTeardown.cpp): which member rows
-// the teardown removes, whether the union survives it, and which guilds are
-// told. The union manager itself is not linked - it needs the guild tables,
-// the PC finder and a socket, which is why the decision was split out of it.
+// the teardown removes, whether the union survives its master, and which
+// guilds are told. The union manager itself is not linked - it needs the
+// guild tables, the PC finder and a socket, which is why the decision was
+// split out of it.
 
 #include <vector>
 
@@ -57,14 +58,15 @@ TEST(GuildUnionTeardownTest, MemberLeavesAndTheUnionStays) {
     EXPECT_EQ((Guilds{kMemberA, kMasterGuild}), teardown.guildsToNotify);
 }
 
-// The master guild alone is not a union, so the last member out takes the
-// union with him - and both are still told.
-TEST(GuildUnionTeardownTest, LastMemberLeavingDissolvesTheUnion) {
+// The last member out only loses its row here: whether the union goes with
+// it is the abandoned-union rule's to say, since a pending join offer keeps
+// it (unionIsAbandoned, applied by the union manager). Both are still told.
+TEST(GuildUnionTeardownTest, LastMemberLeavingLeavesTheUnionToTheAbandonedRule) {
     const Guilds members{kMemberA};
 
     const UnionTeardown teardown = decideUnionTeardown(true, kMasterGuild, members, kMemberA);
 
-    EXPECT_EQ(UnionTeardown::DISSOLVE, teardown.action);
+    EXPECT_EQ(UnionTeardown::REMOVE_MEMBER, teardown.action);
     EXPECT_EQ(Guilds{kMemberA}, teardown.membersToRemove);
     EXPECT_EQ((Guilds{kMemberA, kMasterGuild}), teardown.guildsToNotify);
 }
@@ -75,7 +77,7 @@ TEST(GuildUnionTeardownTest, DuplicateMemberRowsCollapse) {
 
     const UnionTeardown teardown = decideUnionTeardown(true, kMasterGuild, members, kMemberA);
 
-    EXPECT_EQ(UnionTeardown::DISSOLVE, teardown.action);
+    EXPECT_EQ(UnionTeardown::REMOVE_MEMBER, teardown.action);
     EXPECT_EQ(Guilds{kMemberA}, teardown.membersToRemove);
     EXPECT_EQ((Guilds{kMemberA, kMasterGuild}), teardown.guildsToNotify);
 }

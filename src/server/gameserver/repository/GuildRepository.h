@@ -14,19 +14,10 @@
 // guild may register a war or be dissolved. All on the DARKEDEN
 // connection. Reads are typed to the driver getter used (getInt -> int,
 // getString -> std::string).
-
-// Which spelling of the union handlers' two shared statements to send.
-// The expel handler backticks every identifier where the two quit
-// handlers do not; both parse to the same statement (none of the
-// identifiers is reserved, and the case of count() is not significant),
-// the caller says which text goes out.
-enum UnionStatementSpelling {
-    // CGQuitUnionHandler, CGQuitUnionAcceptHandler.
-    UNION_SQL_PLAIN,
-    // CGExpelGuildHandler.
-    UNION_SQL_QUOTED,
-    UNION_SQL_SPELLING_MAX
-};
+//
+// A GuildUnionOffer row lives ten days (the rule is stated in
+// GuildUnion.h); the statements that age rows spell the lifetime as
+// kUnionOfferLifetimeDays (guild/GuildUnionJoinOffer.h).
 
 // The two spellings of the member DELETE: Guild::destroy's is spaced
 // ("Name = '%s'"), CGRegistGuildHandler's is not ("Name='%s'"). MySQL
@@ -109,6 +100,16 @@ struct UnionOfferRow {
     int offerType;
     int ownerGuildID;
     int date;
+};
+
+// GuildUnionManager's offer purge -- every GuildUnionOffer row: its union,
+// OfferType+0, the offering guild, and whether it is older than the offer
+// lifetime (read as MySQL's 0/1).
+struct UnionOfferStateRow {
+    int unionID;
+    int offerType;
+    int ownerGuildID;
+    bool expired;
 };
 
 class GuildRepository {
@@ -197,22 +198,27 @@ public:
     virtual bool loadUnionMaster(int unionID, int& masterGuildID) = 0;
     // "WHERE UnionID='%u'" -- the quoted numeric key.
     virtual int countUnionMembers(uint unionID) = 0;
-    // The union handlers' own copy of that count, spelled with a
-    // lowercase count() rather than COUNT(). Deliberately NOT an overload
-    // of countUnionMembers: an unscoped enumerator converts to uint, so
-    // a one-argument call with a spelling would compile and silently
-    // count union 0. Returns 0 when the result has no row, which the
-    // caller reads as "empty" and follows with deleteUnionInfoOnly.
-    virtual int countUnionMembersSpelled(UnionStatementSpelling spelling, uint unionID) = 0;
-    // DELETE FROM GuildUnionInfo alone. NOT deleteUnion(), which also
-    // clears the union's GuildUnionMember rows: these callers drop the
-    // info row only, having just found the member table empty.
-    virtual void deleteUnionInfoOnly(UnionStatementSpelling spelling, uint unionID) = 0;
 
     // --- union offers (GuildUnionOffer) ---------------------------------------------
-    // ESCAPE offers of the last ten days (the join penalty).
+    // ESCAPE offers within the offer lifetime (the join penalty).
     virtual int countRecentEscapes(GuildID_t guildID) = 0;
+    // The guild's rows older than the offer lifetime.
     virtual void deleteStaleOffers(GuildID_t guildID) = 0;
+    // Every row, oldest first, with whether it has outlived the offer
+    // lifetime. A table read in one statement, so the purge reads it before
+    // it reads GuildUnionInfo.
+    virtual std::vector<UnionOfferStateRow> loadOfferStates() = 0;
+    // JOIN rows naming the union within the offer lifetime: the offers that
+    // keep a memberless union alive.
+    virtual int countPendingJoinOffers(uint unionID) = 0;
+    // The JOIN and QUIT rows naming the union, whatever their age; an
+    // ESCAPE row naming it is the guild's penalty and stays.
+    virtual void deleteOffersToUnion(uint unionID) = 0;
+    // The guild's JOIN or QUIT row, when it names this union. The purge's
+    // delete of an offer to a union that has gone.
+    virtual void deleteOfferToUnion(GuildID_t guildID, uint unionID) = 0;
+    // The guild's QUIT row, whichever union it names.
+    virtual void deleteQuitOffer(GuildID_t guildID) = 0;
     virtual void insertJoinOffer(uint unionID, GuildID_t guildID) = 0;
     virtual void insertQuitOffer(uint unionID, GuildID_t guildID) = 0;
     // The ESCAPE offer countRecentEscapes later counts. Written

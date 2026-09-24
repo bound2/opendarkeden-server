@@ -24,7 +24,6 @@
 #include "PlayerCreature.h"
 #include "StringPool.h"
 #include "SystemAvailabilitiesManager.h"
-#include "repository/GuildRepository.h"
 #include "repository/MessageRepository.h"
 #endif // __GAME_SERVER__
 
@@ -90,16 +89,11 @@ void CGExpelGuildHandler::execute(CGExpelGuild* pPacket, Player* pPlayer)
         }
         string TargetGuildMaster = pGuild->getMaster();
 
-
-        GuildRepository& guildRows = defaultGuildRepository();
-
         defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, TargetGuildMaster,
                                                      de::gameContext().strings().c_str(377));
 
-        if (guildRows.countUnionMembersSpelled(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
-            guildRows.deleteUnionInfoOnly(UNION_SQL_QUOTED, pUnion->getUnionID());
-            GuildUnionManager::Instance().reload();
-        }
+        // A union the expulsion left with no member and no pending join offer
+        // was dissolved by removeGuild, on every game server.
 
         Creature* pCreature = NULL;
         pCreature = pGamePlayer->getCreature();

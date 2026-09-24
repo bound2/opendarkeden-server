@@ -15,6 +15,7 @@
 #include "DatabaseManager.h"
 #include "GameContext.h"
 #include "GameServerInfoManager.h"
+#include "GuildUnion.h"
 #include "KernelContext.h"
 #include "LoginServerManager.h"
 #include "ObjectManager.h"
@@ -187,6 +188,10 @@ void GameServer::init()
 
     m_pGameServerInfoManager->init();
     cout << "GameServer::init() : GameServerInfoManager Initialization Success..." << endl;
+
+    // A union the startup load dissolved is still held by the other game
+    // servers of the world; they can be told now that the link is up.
+    GuildUnionManager::Instance().sendOwedRefresh();
 
     // Once everything else is ready, initialize the client manager to
     // prepare for networking.

@@ -86,8 +86,8 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
     }
     // Withdraw by force
     else if (pPacket->getQuitMethod() == CGQuitUnion::QUIT_QUICK) {
-        // Both ids are read before the quit, because removing the last member
-        // dissolves the union and retires pUnion with it.
+        // Both ids are read before the quit, because the quit may dissolve
+        // the union and retire pUnion with it.
         const GuildID_t unionMasterGuildID = pUnion->getMasterGuildID();
         const GuildID_t quittingGuildID = pPlayerCreature->getGuildID();
 
@@ -102,12 +102,11 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             filelog("GuildUnion.log", "[%u:%u] union master guild is gone.", tempUnionID, unionMasterGuildID);
         }
 
-        if (GuildUnionManager::Instance().removeGuild(tempUnionID, quittingGuildID)) {
+        bool dissolved = false;
+        if (GuildUnionManager::Instance().removeGuild(tempUnionID, quittingGuildID, &dissolved)) {
             gcGuildResponse.setCode(GuildUnionOfferManager::OK);
             pPlayer->sendPacket(&gcGuildResponse);
 
-            /* Apply the penalty that blocks joining another union for 10 days. TODO
-             */
             MessageRepository& messages = defaultMessageRepository();
             GuildRepository& guildRows = defaultGuildRepository();
 
@@ -117,19 +116,19 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             if (!TargetGuildMaster.empty())
                 messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, escapeGuildNotice);
 
-            // The penalty is the quitting guild's, so it is written for the
-            // guild the server took out of the union, not for the id the
-            // packet carries.
+            // The penalty that keeps the guild out of every union for the offer
+            // lifetime (GuildUnion.h). It is the quitting guild's, so it is
+            // written for the guild the server took out of the union, not for
+            // the id the packet carries, and it replaces whatever offer row the
+            // guild had: the table keeps one row per guild.
+            guildRows.deleteOffers(quittingGuildID);
             guildRows.insertEscapeOffer(tempUnionID, quittingGuildID);
 
-            // See whether the union has members.. and if not?
-            if (guildRows.countUnionMembersSpelled(UNION_SQL_PLAIN, tempUnionID) == 0) {
-                guildRows.deleteUnionInfoOnly(UNION_SQL_PLAIN, tempUnionID);
-                if (!TargetGuildMaster.empty())
-                    messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster,
-                                               de::gameContext().strings().c_str(379));
-                GuildUnionManager::Instance().reload();
-            }
+            // The union went with its last member when no join offer was
+            // pending to it (removeGuild), on every game server.
+            if (dissolved && !TargetGuildMaster.empty())
+                messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster,
+                                           de::gameContext().strings().c_str(379));
 
             Creature* pCreature = NULL;
             pCreature = pGamePlayer->getCreature();

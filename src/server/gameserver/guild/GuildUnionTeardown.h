@@ -19,10 +19,12 @@ struct UnionTeardown {
     enum Action {
         // No union holds this guild: nothing to remove.
         NOTHING,
-        // Drop this guild's member row. The union carries on.
+        // Drop this guild's member row. The union carries on while a member
+        // or a pending join offer is left (unionIsAbandoned, which the union
+        // manager applies after the row goes).
         REMOVE_MEMBER,
-        // The union goes: the member rows named below are removed and the
-        // union's own row with them.
+        // The master guild goes, and the union with it: the member rows named
+        // below are removed and the union's own row with them.
         DISSOLVE
     };
 

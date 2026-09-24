@@ -1,5 +1,6 @@
 #include "DB.h"
 #include "ServerContext.h"
+#include "guild/GuildUnionJoinOffer.h"
 #include "repository/GuildRepository.h"
 
 namespace {
@@ -701,47 +702,59 @@ public:
 
     int countRecentEscapes(GuildID_t guildID) {
         return countOf("SELECT COUNT(*) FROM GuildUnionOffer WHERE OfferType='ESCAPE' and "
-                       "OwnerGuildID='%u' and OfferTime >= now() - interval 10 day",
-                       guildID);
+                       "OwnerGuildID='%u' and OfferTime >= now() - interval %d day",
+                       guildID, kUnionOfferLifetimeDays);
     }
 
     void deleteStaleOffers(GuildID_t guildID) {
+        run("DELETE FROM GuildUnionOffer WHERE OwnerGuildID='%u' and OfferTime < now() - interval %d day", guildID,
+            kUnionOfferLifetimeDays);
+    }
+
+    vector<UnionOfferStateRow> loadOfferStates() {
+        vector<UnionOfferStateRow> rows;
         Statement* pStmt = NULL;
 
         BEGIN_DB {
             pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery(
-                "DELETE FROM GuildUnionOffer WHERE OwnerGuildID='%u' and OfferTime < now() - interval 10 day", guildID);
+            Result* pResult =
+                pStmt->executeQuery("SELECT UnionID, OfferType+0, OwnerGuildID, OfferTime < now() - interval %d day "
+                                    "FROM GuildUnionOffer ORDER BY OfferTime",
+                                    kUnionOfferLifetimeDays);
+
+            while (pResult->next()) {
+                UnionOfferStateRow row;
+                row.unionID = pResult->getInt(1);
+                row.offerType = pResult->getInt(2);
+                row.ownerGuildID = pResult->getInt(3);
+                row.expired = pResult->getInt(4) != 0;
+                rows.push_back(row);
+            }
 
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)
+
+        return rows;
     }
 
-    int countUnionMembersSpelled(UnionStatementSpelling spelling, uint unionID) {
-        static const char* const COUNT_SQL[UNION_SQL_SPELLING_MAX] = {
-            "SELECT count(*) FROM GuildUnionMember WHERE UnionID='%u'",
-            "SELECT count(*) FROM `GuildUnionMember` WHERE `UnionID`='%u'",
-        };
-
-        return countOf(COUNT_SQL[spelling], unionID);
+    int countPendingJoinOffers(uint unionID) {
+        return countOf("SELECT COUNT(*) FROM GuildUnionOffer WHERE UnionID=%u AND OfferType='JOIN' AND "
+                       "OfferTime >= now() - interval %d day",
+                       unionID, kUnionOfferLifetimeDays);
     }
 
-    void deleteUnionInfoOnly(UnionStatementSpelling spelling, uint unionID) {
-        static const char* const DELETE_SQL[UNION_SQL_SPELLING_MAX] = {
-            "DELETE FROM GuildUnionInfo WHERE UnionID='%u'",
-            "DELETE FROM `GuildUnionInfo` WHERE `UnionID`='%u'",
-        };
+    void deleteOffersToUnion(uint unionID) {
+        run("DELETE FROM GuildUnionOffer WHERE UnionID=%u AND OfferType IN ('JOIN','QUIT')", unionID);
+    }
 
-        Statement* pStmt = NULL;
+    void deleteOfferToUnion(GuildID_t guildID, uint unionID) {
+        run("DELETE FROM GuildUnionOffer WHERE OwnerGuildID=%u AND UnionID=%u AND OfferType IN ('JOIN','QUIT')",
+            guildID, unionID);
+    }
 
-        BEGIN_DB {
-            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery(DELETE_SQL[spelling], unionID);
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+    void deleteQuitOffer(GuildID_t guildID) {
+        run("DELETE FROM GuildUnionOffer WHERE OwnerGuildID=%u AND OfferType='QUIT'", guildID);
     }
 
     // --- union offers ---------------------------------------------------------------
@@ -838,14 +851,14 @@ public:
     }
 
 private:
-    // One COUNT(*) with one integer parameter; 0 when the row is missing.
-    template <typename T> static int countOf(const char* query, T argument) {
+    // One COUNT(*) over integer parameters; 0 when the row is missing.
+    template <typename... T> static int countOf(const char* query, T... arguments) {
         int count = 0;
         Statement* pStmt = NULL;
 
         BEGIN_DB {
             pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery(query, argument);
+            Result* pResult = pStmt->executeQuery(query, arguments...);
 
             if (pResult->next())
                 count = pResult->getInt(1);
@@ -855,6 +868,19 @@ private:
         END_DB(pStmt)
 
         return count;
+    }
+
+    // One statement that returns no rows, over integer parameters.
+    template <typename... T> static void run(const char* query, T... arguments) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(query, arguments...);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
     }
 
     static bool loadOfferUnion(const char* query, GuildID_t guildID, int& unionID) {

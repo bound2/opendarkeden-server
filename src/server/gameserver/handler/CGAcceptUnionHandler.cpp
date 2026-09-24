@@ -73,7 +73,7 @@ void CGAcceptUnionHandler::execute(CGAcceptUnion* pPacket, Player* pPlayer)
         return;
     }
 
-    uint result = GuildUnionOfferManager::Instance().acceptJoin(pPacket->getGuildID());
+    uint result = GuildUnionOfferManager::Instance().acceptJoin(pPacket->getGuildID(), pUnion->getUnionID());
 
     gcGuildResponse.setCode(result);
     pPlayer->sendPacket(&gcGuildResponse);
