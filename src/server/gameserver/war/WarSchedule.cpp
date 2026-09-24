@@ -103,11 +103,12 @@ void WarSchedule::create()
 
     // Both castle war classes report WAR_GUILD, so the row is built from the
     // war's own castle, attacker and fee rather than from a cast to one of
-    // them.
+    // them, and carries the kind that tells the two apart on a reload.
     if (!defaultWarInfoRepository().insertWarSchedule(
             (int)pWar->getWarID(), de::kernelContext().config().getPropertyInt("ServerID"),
             (int)pWar->getCastleZoneID(), pWar->getWarType2DBString(), (int)pWar->getAttackerGuildID(),
-            (int)pWar->getRegistrationFee(), m_ScheduledTime.toDateTime(), pWar->getState2DBString())) {
+            (int)pWar->getRegistrationFee(), m_ScheduledTime.toDateTime(), pWar->getState2DBString(),
+            pWar->getCastleWarKind2DBString())) {
         filelog("WarError.log", "WarSchedule::create() : 이미 테이블에 War 정보가 있거나 테이블이 잘못되었습니다.");
         return;
     }
@@ -135,7 +136,8 @@ void WarSchedule::save()
             (int)pSiegeWar->getChallengerGuildCount(), (int)pSiegeWar->getChallangerGuildID(0),
             (int)pSiegeWar->getChallangerGuildID(1), (int)pSiegeWar->getChallangerGuildID(2),
             (int)pSiegeWar->getChallangerGuildID(3), (int)pSiegeWar->getChallangerGuildID(4),
-            (int)pSiegeWar->getRegistrationFee(), m_ScheduledTime.toDateTime(), pSiegeWar->getState2DBString())) {
+            (int)pSiegeWar->getRegistrationFee(), m_ScheduledTime.toDateTime(), pSiegeWar->getState2DBString(),
+            pSiegeWar->getCastleWarKind2DBString())) {
         filelog("WarError.log", "WarSchedule::create() : 이미 테이블에 War 정보가 있거나 테이블이 잘못되었습니다.");
         return;
     }

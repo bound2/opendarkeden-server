@@ -8,13 +8,16 @@
 // directly, so these use scheduled times safely in the past or future
 // relative to "now" instead of stepping a fake clock.
 //
-// Links only de-kernel plus the two war/ sources under test.
+// Links only de-kernel plus the two war/ sources under test. The siege
+// registration decision at the bottom is a header of plain values, so it
+// joins them without pulling the scheduler or the zone in.
 
 #include <gtest/gtest.h>
 
 #include "VSDateTime.h"
 #include "war/Schedule.h"
 #include "war/Scheduler.h"
+#include "war/SiegeRegistrationDecision.h"
 #include "war/Work.h"
 
 namespace {
@@ -149,6 +152,50 @@ TEST(Scheduler, ClearDeletesPendingSchedules) {
     scheduler.addSchedule(new Schedule(new FlagWork(), secondsFromNow(120)));
     scheduler.clear();
     EXPECT_TRUE(scheduler.isEmpty());
+}
+
+//////////////////////////////////////////////////////////////////////////
+// The siege registration decision
+//////////////////////////////////////////////////////////////////////////
+
+SiegeRegistrationState nothingScheduled() {
+    return SiegeRegistrationState();
+}
+
+SiegeRegistrationState siegeWith(unsigned int challengers) {
+    SiegeRegistrationState state;
+    state.hasScheduledWar = true;
+    state.isSiege = true;
+    state.challengerCount = challengers;
+    return state;
+}
+
+SiegeRegistrationState guildWarScheduled() {
+    SiegeRegistrationState state;
+    state.hasScheduledWar = true;
+    state.isSiege = false;
+    return state;
+}
+
+TEST(SiegeRegistration, OpensASiegeWhenTheCastleHasNoWarWaiting) {
+    EXPECT_EQ(SIEGE_REGISTRATION_CREATE, decideSiegeRegistration(nothingScheduled()));
+}
+
+TEST(SiegeRegistration, JoinsASiegeWithARemainingSlot) {
+    EXPECT_EQ(SIEGE_REGISTRATION_JOIN, decideSiegeRegistration(siegeWith(1)));
+    EXPECT_EQ(SIEGE_REGISTRATION_JOIN, decideSiegeRegistration(siegeWith(MaxSiegeChallengerGuilds - 1)));
+}
+
+TEST(SiegeRegistration, RefusesASiegeWhoseSlotsAreTaken) {
+    EXPECT_EQ(SIEGE_REGISTRATION_FULL, decideSiegeRegistration(siegeWith(MaxSiegeChallengerGuilds)));
+    EXPECT_EQ(SIEGE_REGISTRATION_FULL, decideSiegeRegistration(siegeWith(MaxSiegeChallengerGuilds + 1)));
+}
+
+// A guild war is applied for by one guild and has no slot for another, so a
+// castle it waits on takes no siege registration until it is over. Opening a
+// siege beside it would put two wars on one castle.
+TEST(SiegeRegistration, RefusesWhenAGuildWarAlreadyWaitsOnTheCastle) {
+    EXPECT_EQ(SIEGE_REGISTRATION_FULL, decideSiegeRegistration(guildWarScheduled()));
 }
 
 } // namespace

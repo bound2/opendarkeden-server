@@ -1,0 +1,14 @@
+-- Add WarScheduleInfo.CastleWarKind, which records whether a castle war was
+-- registered as a single-challenger guild war or as a siege several guilds
+-- join. The two share WarType='GUILD' and an otherwise identical row, so
+-- without this column the gameserver rebuilt every waiting row as a siege on
+-- startup and a guild war came back with no challengers. A fresh install gets
+-- the column from initdb/DARKEDEN.sql; run this once against an existing
+-- DARKEDEN database:
+--
+--   mysql -h 127.0.0.1 -u elcastle -D DARKEDEN -p < initdb/migrations/002-war-schedule-castle-war-kind.sql
+--
+-- Existing rows take the default, 'SIEGE', which is the class the loader
+-- built for every row before the column existed, so nothing waiting in a
+-- table written by an older server changes kind under it.
+ALTER TABLE `WarScheduleInfo` ADD COLUMN `CastleWarKind` enum('GUILD','SIEGE') NOT NULL DEFAULT 'SIEGE';

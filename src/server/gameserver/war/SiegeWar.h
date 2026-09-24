@@ -28,6 +28,9 @@ public:
     string getWarType2DBString() const {
         return "GUILD";
     }
+    string getCastleWarKind2DBString() const override {
+        return "SIEGE";
+    }
     string getWarName() const;
 
     int getGuildSide(GuildID_t guildID) const;

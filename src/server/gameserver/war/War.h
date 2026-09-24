@@ -75,6 +75,15 @@ public:
     virtual bool isWarParticipant(GuildID_t gID) {
         return gID == getAttackerGuildID();
     }
+    // Which castle war class a schedule row belongs to. Both castle wars
+    // report WAR_GUILD, and a siege with a single challenger writes exactly
+    // the columns a guild war does, so the row carries the kind of its own
+    // and a reload rebuilds the class the war was registered as. Only castle
+    // wars are written to the schedule table; the answer here is the one a
+    // row that names no kind is read as.
+    virtual string getCastleWarKind2DBString() const {
+        return "SIEGE";
+    }
 
 public:
     virtual bool isModifyCastleOwner(PlayerCreature* pPC) {
