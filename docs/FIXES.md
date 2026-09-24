@@ -151,10 +151,26 @@ repo and the client's. Entries below are newest first; the oldest is the
   and a resurrection fee, say -- may save theirs in the opposite order to
   the one they were made in, leaving the row one change behind the balance
   in memory until the next change saves again; a restart in between loses
-  the difference. Serializing each change with its save per castle means a
-  database write under a mutex on the zone threads, or moving every balance
-  change to the castle's own thread, which is a decision about the shops.
-  > **Status:** recorded, not fixed (fix/war-threads)
+  the difference. Every change now saves the amount it actually applied,
+  relatively (`TaxBalance = TaxBalance + delta`, `addCastleTaxBalance` in
+  the castle seam): the compare-and-swap reports what it moved after its
+  clamps at zero and at the maximum, the four save paths are one
+  (`CastleInfoManager::increaseTaxBalance`/`decreaseTaxBalance`, which the
+  withdrawal now goes through too), and the owner change's reset saves the
+  debit of what it took (`takeTaxBalance`, an exchange) in the same
+  statement as the new owner. Row and memory are then the load's value plus
+  the same changes, so the order the saves land in no longer matters, the
+  reset included: a credit made just before it is taken with it and one made
+  just after stays, whichever save lands first. Between saves the row can
+  stand below zero (a withdrawal saved ahead of the credit it drew on), which
+  the old `int unsigned` column refused as out of range, so `TaxBalance` is a
+  signed `BIGINT` (`initdb/migrations/003-castle-tax-balance-signed.sql`) and
+  the load clamps it into range. What remains is a save that never lands --
+  a database error, or a crash between a change and its save -- which leaves
+  the row off by that change until someone corrects it, where the absolute
+  save used to be overwritten by the next change. The unused whole-row
+  `CastleInfoManager::save`, which wrote the balance absolutely, is gone.
+  > **Status:** fixed (fix/castle-balance-schedule)
 
 ## A castle's tax balance was read and rewritten by every thread that moved it (2026-09-24)
 

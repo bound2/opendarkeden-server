@@ -1,6 +1,7 @@
 #ifndef __WAR_INFO_REPOSITORY_H__
 #define __WAR_INFO_REPOSITORY_H__
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -61,7 +62,10 @@ struct ShrineOwnerRow {
     int ownerRace;
 };
 
-// CastleInfo's row for one server, 19 columns in SELECT order.
+// CastleInfo's row for one server, 19 columns in SELECT order. TaxBalance is
+// a signed BIGINT read through getString and strtoll: the row is the sum of
+// relative saves (see addCastleTaxBalance), which may land out of order, so
+// between two of them it can stand below zero or above the balance's maximum.
 struct CastleRow {
     int zoneID;
     int shrineID;
@@ -70,7 +74,7 @@ struct CastleRow {
     int race;
     int itemTaxRatio;
     int entranceFee;
-    int taxBalance;
+    int64_t taxBalance;
     std::string bonusOptionType;
     int firstResurrectZoneID;
     int firstResurrectX;
@@ -84,14 +88,15 @@ struct CastleRow {
     std::string zoneIDList;
 };
 
-// CastleInfoManager::save -- the mutable castle state.
-struct CastleStateRecord {
+// CastleInfoManager::modifyCastleOwner's write: the new owner, the fee and
+// ratio that follow from it, and the tax balance moved by the (negative)
+// amount the owner change took out of it.
+struct CastleOwnerRecord {
     int guildID;
-    std::string name;
     int race;
     int itemTaxRatio;
     int entranceFee;
-    int taxBalance;
+    int64_t taxBalanceDelta;
 };
 
 // WarScheduler::load's row, in SELECT order. war/WarScheduler.cpp's loop
@@ -210,9 +215,15 @@ public:
 
     // --- castles ----------------------------------------------------------
     virtual std::vector<CastleRow> loadCastles(int serverID) = 0;
-    virtual void saveCastle(int serverID, int zoneID, const CastleStateRecord& record) = 0;
+    // Every write of TaxBalance after the load is relative -- TaxBalance plus
+    // a signed delta, never an absolute value -- so the saves of changes made
+    // on different threads commute and the row ends at the balance in memory
+    // whatever order they land in. Both return whether a row changed.
+    virtual bool addCastleTaxBalance(int serverID, int zoneID, int64_t delta) = 0;
+    virtual bool saveCastleOwner(int serverID, int zoneID, const CastleOwnerRecord& record) = 0;
     // A caller-composed "Column=value" SET fragment, spliced in as raw SQL
-    // text. Returns whether a row changed.
+    // text. Returns whether a row changed. Never used for TaxBalance, which
+    // only the two above write.
     virtual bool tinysaveCastle(const std::string& fieldFragment, ZoneID_t zoneID, int serverID) = 0;
 
     // --- sweeper bonuses ----------------------------------------------------

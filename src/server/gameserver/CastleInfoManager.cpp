@@ -8,6 +8,8 @@
 
 #include <stdio.h>
 
+#include <algorithm>
+
 #include "Guild.h"
 #include "GuildManager.h"
 #include "ItemUtil.h"
@@ -52,68 +54,6 @@ CastleInfo::CastleInfo() : m_Name(""), m_BonusOptionList(), m_CastleZoneIDList()
 }
 
 CastleInfo::~CastleInfo() {}
-
-// Both moves retry until no other thread changed the balance in between, so
-// each returns the balance its own change produced.
-Gold_t CastleInfo::increaseTaxBalance(Gold_t tax) {
-    Gold_t balance = m_TaxBalance.load();
-    Gold_t next;
-    do {
-        Gold_t credit = tax;
-        if (credit > GUILD_TAX_BALANCE_MAX - balance) // Clamp when the total would overflow
-            credit = GUILD_TAX_BALANCE_MAX - balance;
-        next = min(GUILD_TAX_BALANCE_MAX, balance + credit);
-    } while (!m_TaxBalance.compare_exchange_weak(balance, next));
-
-    return next;
-}
-
-Gold_t CastleInfo::decreaseTaxBalance(Gold_t tax) {
-    Gold_t balance = m_TaxBalance.load();
-    Gold_t next;
-    do {
-        Gold_t debit = min(tax, balance);
-        next = balance - debit;
-    } while (!m_TaxBalance.compare_exchange_weak(balance, next));
-
-    return next;
-}
-
-Gold_t CastleInfo::increaseTaxBalanceEx(Gold_t tax)
-
-{
-    __BEGIN_TRY
-
-    Gold_t balance = increaseTaxBalance(tax);
-
-    if (!isCommon()) {
-        char query[100];
-        sprintf(query, "TaxBalance=%d", (int)balance);
-        de::gameContext().castleInfos().tinysave(getZoneID(), query);
-    }
-
-    return balance;
-
-    __END_CATCH
-}
-
-Gold_t CastleInfo::decreaseTaxBalanceEx(Gold_t tax)
-
-{
-    __BEGIN_TRY
-
-    Gold_t balance = decreaseTaxBalance(tax);
-
-    if (!isCommon()) {
-        char query[100];
-        sprintf(query, "TaxBalance=%d", (int)balance);
-        de::gameContext().castleInfos().tinysave(getZoneID(), query);
-    }
-
-    return balance;
-
-    __END_CATCH
-}
 
 void CastleInfo::setOptionTypeList(const string& options)
 
@@ -272,7 +212,9 @@ void CastleInfoManager::load()
         pCastleInfo->setRace(row.race);
         pCastleInfo->setItemTaxRatio(row.itemTaxRatio);
         pCastleInfo->setEntranceFee(row.entranceFee);
-        pCastleInfo->setTaxBalance(row.taxBalance);
+        // Relative saves that never landed (see increaseTaxBalance) can leave
+        // the row outside the balance's range; the balance starts inside it.
+        pCastleInfo->setTaxBalance((Gold_t)std::clamp<int64_t>(row.taxBalance, 0, GUILD_TAX_BALANCE_MAX));
         pCastleInfo->setOptionTypeList(row.bonusOptionType);
 
         zoneID = row.firstResurrectZoneID;
@@ -302,28 +244,6 @@ void CastleInfoManager::load()
 
         cout << pCastleInfo->toString().c_str() << endl;
     }
-
-    __END_CATCH
-}
-
-void CastleInfoManager::save(ZoneID_t zoneID)
-
-{
-    __BEGIN_TRY
-
-    CastleInfo* pCastleInfo = getCastleInfo(zoneID);
-    if (pCastleInfo == NULL)
-        return;
-
-    CastleStateRecord record;
-    record.guildID = (int)pCastleInfo->getGuildID();
-    record.name = pCastleInfo->getName();
-    record.race = (int)pCastleInfo->getRace();
-    record.itemTaxRatio = pCastleInfo->getItemTaxRatio();
-    record.entranceFee = (int)pCastleInfo->getEntranceFee();
-    record.taxBalance = (int)pCastleInfo->getTaxBalance();
-    defaultWarInfoRepository().saveCastle((int)de::kernelContext().config().getPropertyInt("ServerID"), (int)zoneID,
-                                          record);
 
     __END_CATCH
 }
@@ -472,7 +392,11 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
 
     pCastleInfo->setGuildID(guildID);
     pCastleInfo->setRace(race);
-    pCastleInfo->setTaxBalance(0);
+    // The reset is saved as the debit of what it took, like any other change
+    // (see increaseTaxBalance in the header): a credit another thread made
+    // just before it is taken with it, one made just after stays, and the
+    // row agrees whichever save lands first.
+    TaxBalanceChange reset = pCastleInfo->takeTaxBalance();
 
     if (pCastleInfo->isCommon()) {
         pCastleInfo->setEntranceFee(variables.getVariable(COMMON_CASTLE_ENTRANCE_FEE));
@@ -482,14 +406,15 @@ bool CastleInfoManager::modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_
         setItemTaxRatio(pZone, variables.getVariable(GUILD_CASTLE_ITEM_TAX_RATIO));
     }
 
-    StringStream msg;
+    CastleOwnerRecord record;
+    record.guildID = (int)pCastleInfo->getGuildID();
+    record.race = (int)pCastleInfo->getRace();
+    record.itemTaxRatio = (int)pCastleInfo->getItemTaxRatio();
+    record.entranceFee = (int)pCastleInfo->getEntranceFee();
+    record.taxBalanceDelta = -(int64_t)reset.applied;
 
-    msg << "GuildID = " << (int)pCastleInfo->getGuildID() << ",Race = " << (int)pCastleInfo->getRace()
-        << ",TaxBalance = " << (int)pCastleInfo->getTaxBalance()
-        << ",ItemTaxRatio = " << (int)pCastleInfo->getItemTaxRatio()
-        << ",EntranceFee = " << (int)pCastleInfo->getEntranceFee();
-
-    if (tinysave(zoneID, msg.toString())) {
+    if (defaultWarInfoRepository().saveCastleOwner(de::kernelContext().config().getPropertyInt("ServerID"), (int)zoneID,
+                                                   record)) {
         //		StringStream msg;
         char msg[100];
         if (guildID == SlayerCommon) {
@@ -585,41 +510,34 @@ void CastleInfoManager::settleGuildDeletion(ZoneID_t castleZoneID, GuildID_t del
         modifyCastleOwner(castleZoneID, owner->race, owner->guildID);
 }
 
-bool CastleInfoManager::increaseTaxBalance(ZoneID_t zoneID, Gold_t tax)
-
-{
-    __BEGIN_TRY
-
+TaxBalanceChange CastleInfoManager::increaseTaxBalance(ZoneID_t zoneID, Gold_t tax) {
     CastleInfo* pCastleInfo = getCastleInfo(zoneID);
     if (pCastleInfo == NULL)
-        return false;
+        return TaxBalanceChange{0, 0};
 
-    Gold_t TaxBalance = pCastleInfo->increaseTaxBalance(tax);
+    TaxBalanceChange change = pCastleInfo->increaseTaxBalance(tax);
+    saveTaxBalanceChange(zoneID, (int64_t)change.applied);
 
-    char str[40];
-    sprintf(str, "TaxBalance=%d", (int)TaxBalance);
-
-    return tinysave(zoneID, str);
-
-    __END_CATCH
+    return change;
 }
-bool CastleInfoManager::decreaseTaxBalance(ZoneID_t zoneID, Gold_t tax)
 
-{
-    __BEGIN_TRY
-
+TaxBalanceChange CastleInfoManager::decreaseTaxBalance(ZoneID_t zoneID, Gold_t tax) {
     CastleInfo* pCastleInfo = getCastleInfo(zoneID);
     if (pCastleInfo == NULL)
-        return false;
+        return TaxBalanceChange{0, 0};
 
-    Gold_t TaxBalance = pCastleInfo->decreaseTaxBalance(tax);
+    TaxBalanceChange change = pCastleInfo->decreaseTaxBalance(tax);
+    saveTaxBalanceChange(zoneID, -(int64_t)change.applied);
 
-    char str[40];
-    sprintf(str, "TaxBalance=%d", (int)TaxBalance);
+    return change;
+}
 
-    return tinysave(zoneID, str);
+void CastleInfoManager::saveTaxBalanceChange(ZoneID_t zoneID, int64_t delta) {
+    if (delta == 0)
+        return;
 
-    __END_CATCH
+    defaultWarInfoRepository().addCastleTaxBalance(de::kernelContext().config().getPropertyInt("ServerID"), (int)zoneID,
+                                                   delta);
 }
 
 bool CastleInfoManager::setItemTaxRatio(Zone* pZone, int itemTaxRatio)

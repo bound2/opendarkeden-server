@@ -906,7 +906,7 @@ CREATE TABLE `CastleInfo` (
   `Race` smallint(5) unsigned NOT NULL DEFAULT '0',
   `ItemTaxRatio` int(10) unsigned NOT NULL DEFAULT '0',
   `EntranceFee` int(10) unsigned NOT NULL DEFAULT '0',
-  `TaxBalance` int(10) unsigned NOT NULL DEFAULT '0',
+  `TaxBalance` bigint(20) NOT NULL DEFAULT '0',
   `BonusOptionType` text NOT NULL,
   `FirstResurrectZoneID` smallint(5) unsigned NOT NULL DEFAULT '0',
   `FirstResurrectX` int(10) unsigned NOT NULL DEFAULT '0',

@@ -1,0 +1,14 @@
+-- Make CastleInfo.TaxBalance a signed BIGINT. The gameserver saves every
+-- change to a castle's tax balance relatively (TaxBalance = TaxBalance + a
+-- signed amount), so that changes made on different zone threads leave the
+-- row equal to the balance whatever order their saves land in. Between two
+-- such saves the row can stand below zero -- a withdrawal saved ahead of the
+-- credit it drew on -- which an unsigned column refuses: MySQL rejects the
+-- UPDATE as out of range and the withdrawal never reaches the row. A fresh
+-- install gets the column from initdb/DARKEDEN.sql; run this once against an
+-- existing DARKEDEN database:
+--
+--   mysql -h 127.0.0.1 -u elcastle -D DARKEDEN -p < initdb/migrations/003-castle-tax-balance-signed.sql
+--
+-- Existing balances keep their values.
+ALTER TABLE `CastleInfo` MODIFY `TaxBalance` bigint(20) NOT NULL DEFAULT '0';
