@@ -3,6 +3,7 @@
 #include "CorpseItemPosition.h"
 #include "InventoryItemPosition.h"
 #include "MouseItemPosition.h"
+#include "WarZoneRouting.h"
 #include "ZoneItemPosition.h"
 #include "repository/ItemRepository.h"
 
@@ -11,58 +12,46 @@ GlobalItemPosition* GlobalItemPositionLoader::load(Item::ItemClass itemClass, It
 {
     __BEGIN_TRY
 
-    GlobalItemPosition* pRet = NULL;
-
     ItemPositionRow row;
-    if (defaultItemRepository().loadItemPosition(ItemObjectTableName[(int)itemClass], itemID, row)) {
-        GlobalDBItemPosition gip;
-        gip.OwnerID = row.ownerID;
-        gip.ItemStorage = (Storage)row.storage;
-        gip.StorageID = (StorageID_t)row.storageID;
-        gip.X = row.x;
-        gip.Y = row.y;
-        gip.ObjectID = row.objectID;
+    if (!defaultItemRepository().loadItemPosition(ItemObjectTableName[(int)itemClass], itemID, row))
+        return NULL;
 
-        pRet = makeGlobalItemPosition(gip);
-    } else {
-        pRet = NULL;
-    }
-
-    return pRet;
+    return makeGlobalItemPosition(row);
 
     __END_CATCH
 }
 
-GlobalItemPosition* GlobalItemPositionLoader::makeGlobalItemPosition(GlobalDBItemPosition& gip)
+GlobalItemPosition* GlobalItemPositionLoader::makeGlobalItemPosition(const ItemPositionRow& row)
 
 {
     __BEGIN_TRY
 
-    switch (gip.ItemStorage) {
+    switch ((Storage)row.storage) {
     case STORAGE_INVENTORY: {
         InventoryItemPosition* pIIP = new InventoryItemPosition();
-        pIIP->setOwnerName(gip.OwnerID);
-        pIIP->setInventoryX(gip.X);
-        pIIP->setInventoryY(gip.Y);
+        pIIP->setOwnerName(row.ownerID);
+        pIIP->setInventoryX(row.x);
+        pIIP->setInventoryY(row.y);
         return (GlobalItemPosition*)pIIP;
     } break;
     case STORAGE_EXTRASLOT: {
         MouseItemPosition* pMIP = new MouseItemPosition();
-        pMIP->setOwnerName(gip.OwnerID);
+        pMIP->setOwnerName(row.ownerID);
         return (GlobalItemPosition*)pMIP;
     } break;
     case STORAGE_ZONE: {
         ZoneItemPosition* pZIP = new ZoneItemPosition();
-        pZIP->setZoneID(gip.StorageID);
-        pZIP->setZoneX(gip.X);
-        pZIP->setZoneY(gip.Y);
+        pZIP->setZoneID((StorageID_t)row.storageID);
+        pZIP->setZoneX(row.x);
+        pZIP->setZoneY(row.y);
         return (GlobalItemPosition*)pZIP;
     } break;
     case STORAGE_CORPSE: {
+        // A corpse's zone is the row's OwnerID, as text.
         CorpseItemPosition* pCIP = new CorpseItemPosition();
-        pCIP->setZoneID(atoi(gip.OwnerID.c_str()));
-        pCIP->setCorpseObjectID(gip.StorageID);
-        pCIP->setObjectID(gip.ObjectID);
+        pCIP->setZoneID(de::war::corpseZoneIDOf(row.ownerID));
+        pCIP->setCorpseObjectID((StorageID_t)row.storageID);
+        pCIP->setObjectID(row.objectID);
 
         return (GlobalItemPosition*)pCIP;
     } break;

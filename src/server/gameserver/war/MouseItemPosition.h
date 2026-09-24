@@ -17,6 +17,7 @@ public:
 
 public:
     virtual Item* popItem(bool bLock = true);
+    Item* popItemFrom(PlayerCreature& pc) override;
     virtual Zone* getZone();
 
     string getOwnerName() const {

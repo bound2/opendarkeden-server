@@ -81,6 +81,13 @@ Item* InventoryItemPosition::popItem_UNLOCKED()
     __END_CATCH
 }
 
+Item* InventoryItemPosition::popItemFrom(PlayerCreature& pc) {
+    m_pZone = pc.getZone();
+    m_bSetZone = true;
+
+    return popItem_CORE(&pc);
+}
+
 Zone* InventoryItemPosition::getZone()
 
 {
@@ -158,6 +165,12 @@ Item* InventoryItemPosition::popItem_CORE(PlayerCreature* pPC)
 
     Item* pItem = pInventory->getItem(m_InvenX, m_InvenY);
     Assert(pItem != NULL);
+
+    if (!isExpectedItem(pItem->getItemClass(), pItem->getItemID())) {
+        filelog("ItemError.log", "InventoryItemPosition:getItem() : another item is in that inventory slot");
+
+        return NULL;
+    }
 
     pInventory->deleteItem(pItem->getObjectID());
 

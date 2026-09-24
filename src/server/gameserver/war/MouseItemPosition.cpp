@@ -77,6 +77,13 @@ Item* MouseItemPosition::popItem_LOCKED()
     __END_CATCH
 }
 
+Item* MouseItemPosition::popItemFrom(PlayerCreature& pc) {
+    m_pZone = pc.getZone();
+    m_bSetZone = true;
+
+    return popItem_CORE(&pc);
+}
+
 Zone* MouseItemPosition::getZone()
 
 {
@@ -108,6 +115,13 @@ Item* MouseItemPosition::popItem_CORE(PlayerCreature* pPC)
     }
 
     pItem = pPC->getExtraInventorySlotItem();
+
+    if (!isExpectedItem(pItem->getItemClass(), pItem->getItemID())) {
+        filelog("ItemError.log", "MouseItemPosition:getItem() : the player holds another item on the mouse");
+
+        return NULL;
+    }
+
     pPC->deleteItemFromExtraInventorySlot();
 
     GCDeleteInventoryItem gcDeleteInventoryItem;

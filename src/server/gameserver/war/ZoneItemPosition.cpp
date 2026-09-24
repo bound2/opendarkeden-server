@@ -122,7 +122,15 @@ Item* ZoneItemPosition::getItemFromZone(Zone* pZone)
         return NULL;
     }
 
-    return tile.getItem();
+    Item* pItem = tile.getItem();
+    if (!isExpectedItem(pItem->getItemClass(), pItem->getItemID())) {
+        filelog("ItemError.log", "ZoneItemPosition:getItem() : another item lies where the row says (%s)",
+                toString().c_str());
+
+        return NULL;
+    }
+
+    return pItem;
 
     __END_CATCH
 }

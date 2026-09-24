@@ -9,9 +9,12 @@
 // relative to "now" instead of stepping a fake clock.
 //
 // Links only de-kernel plus the two war/ sources under test. The siege
-// registration decision and the castle owner decisions at the bottom are
-// headers of plain values, so they join them without pulling the scheduler,
-// the zone or the guild table in.
+// registration decision, the castle owner decisions and the routing of a
+// war's zone work at the bottom are headers of plain values, so they join
+// them without pulling the scheduler, the zone or the guild table in.
+
+#include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -20,6 +23,7 @@
 #include "war/Schedule.h"
 #include "war/Scheduler.h"
 #include "war/SiegeRegistrationDecision.h"
+#include "war/WarZoneRouting.h"
 #include "war/Work.h"
 
 namespace {
@@ -289,6 +293,128 @@ TEST(CastleOwner, AHolderDeletedAroundTheWarsEndLeavesTheCastleToTheWinnerInEith
     EXPECT_EQ((CastleOwner{RACE_SLAYER, SlayerCommon}), castle);
     runWarEnd(castle, RACE_VAMPIRE, Winner, true);
     EXPECT_EQ((CastleOwner{RACE_VAMPIRE, Winner}), castle);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Routing a war's zone work (war/WarZoneRouting.h). A relic's return is
+// posted first to whoever holds it, as its item-object row names the holder;
+// the per-zone work of a war goes to the zones' groups, one command a group.
+//////////////////////////////////////////////////////////////////////////
+
+using de::war::corpseZoneIDOf;
+using de::war::ItemHolder;
+using de::war::itemHolderOf;
+using de::war::kItemReturnAttempts;
+using de::war::retryItemReturn;
+using de::war::zonesByOwner;
+
+ItemHolder zoneHolder(ZoneID_t zoneID) {
+    ItemHolder holder;
+    holder.kind = ItemHolder::Kind::Zone;
+    holder.zoneID = zoneID;
+    return holder;
+}
+
+ItemHolder playerHolder(const std::string& name) {
+    ItemHolder holder;
+    holder.kind = ItemHolder::Kind::Player;
+    holder.playerName = name;
+    return holder;
+}
+
+const ItemHolder Nowhere;
+
+TEST(ItemHolder, AnItemOnTheGroundIsHeldByItsZone) {
+    EXPECT_EQ(zoneHolder(1201), itemHolderOf(STORAGE_ZONE, 1201, ""));
+}
+
+// An item inside a corpse keeps the corpse's object id in StorageID and the
+// corpse's zone, as text, in OwnerID: a castle symbol resting in its guard
+// shrine is held by the shrine's zone.
+TEST(ItemHolder, AnItemInACorpseIsHeldByTheCorpsesZone) {
+    EXPECT_EQ(zoneHolder(1202), itemHolderOf(STORAGE_CORPSE, 7340, "1202"));
+}
+
+TEST(ItemHolder, AnItemCarriedInTheInventoryOrOnTheMouseIsHeldByThePlayer) {
+    EXPECT_EQ(playerHolder("Bearer"), itemHolderOf(STORAGE_INVENTORY, 0, "Bearer"));
+    EXPECT_EQ(playerHolder("Bearer"), itemHolderOf(STORAGE_EXTRASLOT, 0, "Bearer"));
+}
+
+// No position loader reaches these, so the war has nowhere to post the return.
+TEST(ItemHolder, AnItemAnywhereElseIsHeldNowhereAReturnCanReach) {
+    EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_GEAR, 0, "Bearer"));
+    EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_STASH, 0, "Bearer"));
+    EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_MOTORCYCLE, 0, "Bearer"));
+    EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_GARBAGE, 0, "Bearer"));
+}
+
+TEST(ItemHolder, ARowNamingNoZoneOrNoPlayerIsHeldNowhere) {
+    EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_ZONE, 0, ""));
+    EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_ZONE, 70000, ""));
+    EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_CORPSE, 7340, ""));
+    EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_CORPSE, 7340, "12O2"));
+    EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_INVENTORY, 0, ""));
+}
+
+TEST(ItemHolder, ACorpsesZoneIsItsOwnerIdReadAsADecimalZoneId) {
+    EXPECT_EQ(1201, corpseZoneIDOf("1201"));
+    EXPECT_EQ(65535, corpseZoneIDOf("65535"));
+    EXPECT_EQ(0, corpseZoneIDOf(""));
+    EXPECT_EQ(0, corpseZoneIDOf("65536"));
+    EXPECT_EQ(0, corpseZoneIDOf("1201 "));
+    EXPECT_EQ(0, corpseZoneIDOf("-1"));
+}
+
+// A return's attempts, as postItemReturn makes them: each reads the row and
+// posts a step to the holder it names, and a step that misses the item -- it
+// moved after the row was read -- makes the next attempt. foundAt[i] says
+// whether attempt i + 1 finds the item; the result is the attempt that took
+// it, or 0 when the return gave up.
+int runItemReturn(const std::vector<bool>& foundAt) {
+    int attemptsMade = 0;
+    do {
+        ++attemptsMade;
+        if (attemptsMade <= (int)foundAt.size() && foundAt[attemptsMade - 1])
+            return attemptsMade;
+    } while (retryItemReturn(attemptsMade));
+    return 0;
+}
+
+TEST(ItemReturn, TakesTheItemWhereTheRowSaysItLies) {
+    EXPECT_EQ(1, runItemReturn({true}));
+}
+
+// The player carrying a symbol is transported, or logs out, before the step
+// posted to him runs: he drops it and saves where it fell, and the next read
+// of the row sends the return to that zone.
+TEST(ItemReturn, FollowsAnItemThatMovedBeforeItsHoldersStepRan) {
+    EXPECT_EQ(2, runItemReturn({false, true}));
+    EXPECT_EQ(kItemReturnAttempts, runItemReturn({false, false, true}));
+}
+
+TEST(ItemReturn, GivesUpOnARowThatNeverCatchesUp) {
+    EXPECT_EQ(0, runItemReturn({false, false, false, true}));
+    EXPECT_EQ(0, runItemReturn({}));
+}
+
+// The castles and holy lands of a war spread over several groups; each group
+// gets one command holding its zones, in the order the war listed them.
+TEST(ZonesByOwner, GroupsZonesByTheirOwnerInTheOrderFirstSeen) {
+    auto groupOf = [](ZoneID_t zoneID) -> int { return zoneID / 100; };
+
+    auto batches = zonesByOwner<int>({1201, 71, 1202, 72, 1301}, groupOf);
+
+    ASSERT_EQ(3u, batches.size());
+    EXPECT_EQ(12, batches[0].first);
+    EXPECT_EQ((std::vector<ZoneID_t>{1201, 1202}), batches[0].second);
+    EXPECT_EQ(0, batches[1].first);
+    EXPECT_EQ((std::vector<ZoneID_t>{71, 72}), batches[1].second);
+    EXPECT_EQ(13, batches[2].first);
+    EXPECT_EQ((std::vector<ZoneID_t>{1301}), batches[2].second);
+}
+
+TEST(ZonesByOwner, NoZonesMakeNoCommands) {
+    EXPECT_TRUE(zonesByOwner<int>({}, [](ZoneID_t) { return 0; }).empty());
 }
 
 } // namespace
