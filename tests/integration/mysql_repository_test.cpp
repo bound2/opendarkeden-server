@@ -3186,28 +3186,87 @@ TEST_F(WarInfoMySQL, CastlesAreScopedToTheServerAndTheSavesKeyOnServerAndZone) {
     EXPECT_EQ(8, rows[0].thirdResurrectY);
     EXPECT_EQ("31000,31001", rows[0].zoneIDList);
 
-    CastleStateRecord record;
+    // The owner change writes the owner, fee and ratio and moves the balance
+    // by its delta rather than overwriting it.
+    CastleOwnerRecord record;
     record.guildID = 8;
-    record.name = "renamed";
     record.race = 2;
     record.itemTaxRatio = 20;
     record.entranceFee = 200;
-    record.taxBalance = 2000;
-    defaultWarInfoRepository().saveCastle(31000, 31000, record);
+    record.taxBalanceDelta = -1000;
+    EXPECT_TRUE(defaultWarInfoRepository().saveCastleOwner(31000, 31000, record));
 
     EXPECT_EQ("8", queryScalar("SELECT GuildID FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
-    EXPECT_EQ("renamed", queryScalar("SELECT Name FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
+    EXPECT_EQ("it-castle", queryScalar("SELECT Name FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
     EXPECT_EQ("2", queryScalar("SELECT Race FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
     EXPECT_EQ("20", queryScalar("SELECT ItemTaxRatio FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
     EXPECT_EQ("200", queryScalar("SELECT EntranceFee FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
-    EXPECT_EQ("2000", queryScalar("SELECT TaxBalance FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
+    EXPECT_EQ("0", queryScalar("SELECT TaxBalance FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
     EXPECT_EQ("other-server", queryScalar("SELECT Name FROM CastleInfo WHERE ServerID=31001 AND ZoneID=31000"));
+    // Writing the same owner again with nothing taken changes no row, which
+    // is what keeps modifyCastleOwner from announcing it.
+    record.taxBalanceDelta = 0;
+    EXPECT_FALSE(defaultWarInfoRepository().saveCastleOwner(31000, 31000, record));
 
     // tinysave applies the caller's SET fragment verbatim and reports
     // whether a row changed.
-    EXPECT_TRUE(defaultWarInfoRepository().tinysaveCastle("TaxBalance=1", 31000, 31000));
-    EXPECT_EQ("1", queryScalar("SELECT TaxBalance FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
-    EXPECT_FALSE(defaultWarInfoRepository().tinysaveCastle("TaxBalance=1", 31002, 31000)); // no such zone
+    EXPECT_TRUE(defaultWarInfoRepository().tinysaveCastle("ItemTaxRatio=1", 31000, 31000));
+    EXPECT_EQ("1", queryScalar("SELECT ItemTaxRatio FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
+    EXPECT_FALSE(defaultWarInfoRepository().tinysaveCastle("ItemTaxRatio=1", 31002, 31000)); // no such zone
+}
+
+// Two threads' changes to one balance may save in either order. The saves
+// are relative, so both orders leave the same row -- the one the balance in
+// memory holds -- even when the first to land takes the row below zero.
+TEST_F(WarInfoMySQL, TaxBalanceDeltasCommuteAndMayPassThroughANegativeRow) {
+    execSQL("INSERT INTO CastleInfo (ServerID, ZoneID, Name, TaxBalance, BonusOptionType, ZoneIDList) "
+            "VALUES (31000, 31000, 'it-a', 0, '', ''), (31000, 31001, 'it-b', 0, '', ''), "
+            "(31001, 31000, 'other-server', 7, '', '')");
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    // In memory: a credit of 500, then a withdrawal of 300 drawn on it.
+    // Castle A's saves land in that order, castle B's the other way round.
+    EXPECT_TRUE(repository.addCastleTaxBalance(31000, 31000, 500));
+    EXPECT_TRUE(repository.addCastleTaxBalance(31000, 31000, -300));
+
+    EXPECT_TRUE(repository.addCastleTaxBalance(31000, 31001, -300));
+    EXPECT_EQ("-300", queryScalar("SELECT TaxBalance FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31001"));
+    EXPECT_TRUE(repository.addCastleTaxBalance(31000, 31001, 500));
+
+    EXPECT_EQ("200", queryScalar("SELECT TaxBalance FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
+    EXPECT_EQ("200", queryScalar("SELECT TaxBalance FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31001"));
+
+    // An owner change that took the 200 and a credit of 50 made just after
+    // it, landing in either order, leave the credit.
+    CastleOwnerRecord record;
+    record.guildID = 9;
+    record.race = 1;
+    record.itemTaxRatio = 10;
+    record.entranceFee = 100;
+    record.taxBalanceDelta = -200;
+
+    EXPECT_TRUE(repository.saveCastleOwner(31000, 31000, record));
+    EXPECT_TRUE(repository.addCastleTaxBalance(31000, 31000, 50));
+
+    EXPECT_TRUE(repository.addCastleTaxBalance(31000, 31001, 50));
+    EXPECT_TRUE(repository.saveCastleOwner(31000, 31001, record));
+
+    EXPECT_EQ("50", queryScalar("SELECT TaxBalance FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
+    EXPECT_EQ("50", queryScalar("SELECT TaxBalance FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31001"));
+
+    // Keyed on server and zone; the load reads the signed value back.
+    EXPECT_FALSE(repository.addCastleTaxBalance(31000, 31002, 50)); // no such zone
+    EXPECT_EQ("7", queryScalar("SELECT TaxBalance FROM CastleInfo WHERE ServerID=31001 AND ZoneID=31000"));
+
+    EXPECT_TRUE(repository.addCastleTaxBalance(31000, 31000, -80));
+    std::vector<CastleRow> rows = repository.loadCastles(31000);
+    ASSERT_EQ(2u, rows.size());
+    for (size_t r = 0; r < rows.size(); ++r) {
+        if (rows[r].zoneID == 31000)
+            EXPECT_EQ(-30, rows[r].taxBalance);
+        else
+            EXPECT_EQ(50, rows[r].taxBalance);
+    }
 }
 
 TEST_F(WarInfoMySQL, SweeperBonusOwnersAreFilteredByLevelAndSavedByType) {

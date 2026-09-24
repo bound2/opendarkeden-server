@@ -70,8 +70,10 @@ void CGWithdrawTaxHandler::execute(CGWithdrawTax* pPacket, Player* pPlayer)
     }
 
     // Every condition is met. Now withdraw the money and give it to the player.
-    Gold_t remainBalance = pCastleInfo->decreaseTaxBalanceEx(gold);
-    pPC->increaseGoldEx(gold);
+    // The player gets what the balance actually gave up; withdrawals run only
+    // on the castle's own thread, so after the check above that is all of it.
+    TaxBalanceChange withdrawal = de::gameContext().castleInfos().decreaseTaxBalance(pCastleInfo->getZoneID(), gold);
+    pPC->increaseGoldEx(withdrawal.applied);
 
     // Send the information that the user's money grew.
     GCModifyInformation gcMI;
@@ -82,7 +84,7 @@ void CGWithdrawTaxHandler::execute(CGWithdrawTax* pPacket, Player* pPlayer)
     // Report that the withdrawal succeeded.
     GCNPCResponse success;
     success.setCode(NPC_RESPONSE_WITHDRAW_TAX_OK);
-    success.setParameter(remainBalance);
+    success.setParameter(withdrawal.balance);
 
     pGamePlayer->sendPacket(&success);
 

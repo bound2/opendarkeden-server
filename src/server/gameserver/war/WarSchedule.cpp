@@ -157,26 +157,21 @@ void WarSchedule::tinysave(const string& query)
     __END_CATCH
 }
 
-bool WarSchedule::heartbeat()
+void WarSchedule::run()
 
 {
     __BEGIN_TRY
 
-    if (Schedule::heartbeat()) {
-        // pSchedule ran.
-        if (m_pWork != NULL) {
-            War* pWar = dynamic_cast<War*>(m_pWork);
-            Assert(pWar != NULL);
+    Schedule::run();
 
-            char pState[20];
-            sprintf(pState, "Status='%s'", pWar->getState2DBString().c_str());
-            tinysave(string(pState));
-        }
+    if (m_pWork != NULL) {
+        War* pWar = dynamic_cast<War*>(m_pWork);
+        Assert(pWar != NULL);
 
-        return true;
+        char pState[20];
+        sprintf(pState, "Status='%s'", pWar->getState2DBString().c_str());
+        tinysave(string(pState));
     }
-
-    return false;
 
     __END_CATCH
 }

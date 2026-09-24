@@ -5,6 +5,7 @@
 
 #include <unordered_map>
 
+#include "CastleTaxBalance.h"
 #include "CommonGuild.h"
 #include "Exception.h"
 #include "PlayerCreature.h"
@@ -70,18 +71,11 @@ public:
         m_EntranceFee = entranceFee;
     }
 
+    // The balance is changed only through CastleInfoManager, which saves
+    // every change it makes (see increaseTaxBalance there).
     Gold_t getTaxBalance() const {
         return m_TaxBalance;
     }
-    void setTaxBalance(const Gold_t balance) {
-        m_TaxBalance = balance;
-    }
-
-    Gold_t increaseTaxBalance(Gold_t tax);
-    Gold_t decreaseTaxBalance(Gold_t tax);
-
-    Gold_t increaseTaxBalanceEx(Gold_t tax);
-    Gold_t decreaseTaxBalanceEx(Gold_t tax);
 
     const list<OptionType_t>& getOptionTypeList() const {
         return m_BonusOptionList;
@@ -113,6 +107,22 @@ public:
     string toString() const;
 
 private:
+    friend class CastleInfoManager;
+
+    // The load's value, before any thread runs.
+    void setTaxBalance(const Gold_t balance) {
+        m_TaxBalance = balance;
+    }
+    TaxBalanceChange increaseTaxBalance(Gold_t tax) {
+        return creditTaxBalance(m_TaxBalance, tax);
+    }
+    TaxBalanceChange decreaseTaxBalance(Gold_t tax) {
+        return debitTaxBalance(m_TaxBalance, tax);
+    }
+    TaxBalanceChange takeTaxBalance() {
+        return ::takeTaxBalance(m_TaxBalance);
+    }
+
     // The zone, shrine, name, bonus options, zone list and resurrection
     // positions are loaded once and never written again. The owner and what
     // follows from it -- guild, race, entrance fee, item tax ratio -- change
@@ -122,7 +132,8 @@ private:
     // a reader gets a value a writer stored, and two of them read one after
     // the other may straddle an owner change. The tax balance is a counter
     // that shops, resurrection fees and withdrawals move from any zone thread,
-    // so it is changed by compare-and-swap rather than read and rewritten.
+    // so it is changed by compare-and-swap rather than read and rewritten
+    // (CastleTaxBalance.h).
     ZoneID_t m_ZoneID;                 // Zone ID
     ShrineID_t m_ShrineID;             // ShrineID of the castle symbol
     std::atomic<GuildID_t> m_GuildID;  // ID of the owning guild
@@ -146,7 +157,6 @@ public:
 public:
     void init();
     void load();
-    void save(ZoneID_t zoneID);
 
     void addCastleInfo(CastleInfo* pCastleInfo);
     void deleteCastleInfo(ZoneID_t zoneID);
@@ -156,7 +166,8 @@ public:
     }
 
     // Hands the castle to a new owner: writes its row, resets the tax
-    // balance, entrance fee and item tax ratio, and, when the owning race
+    // balance (saved as the debit of what it held, see increaseTaxBalance),
+    // entrance fee and item tax ratio, and, when the owning race
     // changes, cancels the castle's war schedules and reloads its scheduler,
     // which frees the wars the castle zone's thread executes. So it runs only
     // on that thread, under the group mutex: callers on other threads post it
@@ -179,8 +190,25 @@ public:
     void settleGuildDeletion(ZoneID_t castleZoneID, GuildID_t deletedGuildID);
 
     bool tinysave(ZoneID_t zoneID, const string& query);
-    bool increaseTaxBalance(ZoneID_t zoneID, Gold_t tax);
-    bool decreaseTaxBalance(ZoneID_t zoneID, Gold_t tax);
+
+    // Move a castle's tax balance by up to `tax`, clamped to the balance's
+    // range, and save the amount actually moved as a relative change of the
+    // row (TaxBalance plus or minus it). Credits come from any zone thread
+    // (shop taxes, entrance and resurrection fees, war registration fees);
+    // debits only from the castle's own (a withdrawal). A zero change saves
+    // nothing; an unknown castle changes nothing.
+    //
+    // The row and the memory are the load's value plus every applied change,
+    // the owner change's reset included, so the order two threads' saves
+    // land in does not matter: once each has landed the row is the balance.
+    // In between, the row may briefly stand below zero or above the maximum
+    // (a withdrawal saved ahead of the credit it drew on), which the signed
+    // column holds and the load clamps. What remains is a save that never
+    // lands -- a database error, or a crash between a change and its save --
+    // which leaves the row off by that one change for good, where an
+    // absolute save would have been corrected by the next change.
+    TaxBalanceChange increaseTaxBalance(ZoneID_t zoneID, Gold_t tax);
+    TaxBalanceChange decreaseTaxBalance(ZoneID_t zoneID, Gold_t tax);
 
     bool setItemTaxRatio(Zone* pZone, int itemTaxRatio);
     const unordered_map<ZoneID_t, CastleInfo*>& getCastleInfos() const {
@@ -230,6 +258,8 @@ public:
     string toString() const;
 
 private:
+    void saveTaxBalanceChange(ZoneID_t zoneID, int64_t delta);
+
     unordered_map<ZoneID_t, CastleInfo*> m_CastleInfos;
     unordered_map<ZoneID_t, ZoneID_t> m_CastleZoneIDs;
 };

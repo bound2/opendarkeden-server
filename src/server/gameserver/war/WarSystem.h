@@ -52,11 +52,16 @@ public:
 //   posted to the castle's group (CastleInfoManager::postCastleWarEnd).
 // - So a thread may take m_Mutex holding its zone group's mutex -- a CG
 //   handler or a quest action answering a player: endWar, isModifyCastleOwner,
-//   getSiegeGuildSide, mayModifyShrineOwner -- or, on the castle's own
-//   thread only, holding a castle scheduler's mutex (makeGCWarScheduleList
-//   adds the race war's line): Zone::heartbeat takes the scheduler's mutex
-//   under the zone's own, so from any other thread that would close the
-//   cycle below.
+//   getSiegeGuildSide, mayModifyShrineOwner, addRaceWarScheduleInfo.
+// - Never holding a castle scheduler's mutex (WarScheduler::m_Mutex), which
+//   Zone::heartbeat takes under the zone's own: that would close the cycle
+//   below. A scheduler takes nothing of the war system's or of any zone under
+//   its mutex -- makeGCWarScheduleList asks for the race war's line after
+//   releasing it, and a castle war whose time has come is taken out of the
+//   queue under it and started after -- only the database and the guild
+//   manager's and a guild's mutexes (guild names), and neither of those is
+//   held while a scheduler's mutex is taken: a guild's deletion posts its
+//   schedule cancel to the castle's group.
 // - Nothing may take m_Mutex holding a zone's own mutex, which Zone::heartbeat
 //   holds over NPC, monster and effect processing: the heartbeat, holding
 //   m_Mutex, waits for that zone's mutex, and the zone thread waits for

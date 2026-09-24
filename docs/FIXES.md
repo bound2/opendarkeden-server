@@ -13,6 +13,34 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A castle war's start kills the monsters of dungeons in another group (2026-09-24)
+
+- **`GuildWar::executeStart` runs on the castle zone's thread and clears the
+  castle's dungeons (`killAllMonsters`, every monster's HP set to 0) under
+  each dungeon zone's own mutex alone,** and in the seed three castles'
+  dungeons belong to the other zone group: 1211/1212 and 1231/1232 are in
+  group 2 while castles 1201 and 1203 are in group 1, and 1261/1262 are in
+  group 1 while castle 1206 is in group 2. The zone's own mutex excludes that
+  dungeon's heartbeat but not its group's CG handlers, which damage the same
+  monsters. The siege zones the siege start fills sit in their castle's group.
+  Posting each dungeon's clear to its own group (`ZoneGroup::post`) closes
+  it; it belongs with the war-end moves in the same file.
+  > **Status:** recorded, not fixed (fix/castle-balance-schedule)
+
+## Two wars registered at once could take the same war id (2026-09-24)
+
+- **`War::War` advanced the static war-id registry with no lock,** while
+  castle wars are registered from the castle NPCs' zone threads
+  (`ActionWarRegistration`, `ActionRegisterSiege`) and the race war is made
+  on the main thread, so two registrations at once could read the same
+  registry value and hand out one id twice. `WarScheduleInfo` is keyed on
+  the id and the insert is an `INSERT IGNORE`, so the second war was dropped
+  from the table -- scheduled in memory only, lost on a restart, its status
+  saves landing on the other war's row. The id is now taken under
+  `War::m_Mutex`, the registry's own mutex, a leaf that only the startup
+  load took before.
+  > **Status:** fixed (fix/castle-balance-schedule)
+
 ## A forced union quit fails on the guild's own offer row (2026-09-24)
 
 - **`CGQuitUnionHandler`'s forced quit writes the ESCAPE penalty with a
@@ -123,10 +151,18 @@ repo and the client's. Entries below are newest first; the oldest is the
   mutex,** so a schedule shown from any thread but the castle's own group
   thread can close the cycle zone → scheduler → war system → zone. Every
   seed `ShowWarSchedule` NPC stands inside its own castle zone, so the
-  action runs on that thread today; the order in `WarSystem.h` says so.
-  Closing it means answering the race war's line without the war system's
-  mutex, or listing the schedule without the scheduler's.
-  > **Status:** recorded, not fixed (fix/war-threads)
+  action runs on that thread today and the cycle was latent. The race war's
+  line needs nothing from the scheduler and is now asked for after its
+  mutex is released, so the scheduler → war system edge is gone. The castle
+  war start ran under the same mutex too (`Scheduler::heartbeat` executes
+  the due work inside it), broadcasting to every group and working on the
+  castle's dungeons and siege zone; a due war is now taken out of the queue
+  under the mutex and started after it (`Scheduler::popDueSchedule`,
+  `Schedule::run`), and put back if the start throws. Under a scheduler's
+  mutex only the database and the guild manager's and a guild's mutexes are
+  taken now, and `WarSystem.h` records the order without the castle-thread
+  restriction.
+  > **Status:** fixed (fix/castle-balance-schedule)
 
 ## A castle war's end handles the castle's zones from the main thread (2026-09-24)
 
@@ -151,10 +187,26 @@ repo and the client's. Entries below are newest first; the oldest is the
   and a resurrection fee, say -- may save theirs in the opposite order to
   the one they were made in, leaving the row one change behind the balance
   in memory until the next change saves again; a restart in between loses
-  the difference. Serializing each change with its save per castle means a
-  database write under a mutex on the zone threads, or moving every balance
-  change to the castle's own thread, which is a decision about the shops.
-  > **Status:** recorded, not fixed (fix/war-threads)
+  the difference. Every change now saves the amount it actually applied,
+  relatively (`TaxBalance = TaxBalance + delta`, `addCastleTaxBalance` in
+  the castle seam): the compare-and-swap reports what it moved after its
+  clamps at zero and at the maximum, the four save paths are one
+  (`CastleInfoManager::increaseTaxBalance`/`decreaseTaxBalance`, which the
+  withdrawal now goes through too), and the owner change's reset saves the
+  debit of what it took (`takeTaxBalance`, an exchange) in the same
+  statement as the new owner. Row and memory are then the load's value plus
+  the same changes, so the order the saves land in no longer matters, the
+  reset included: a credit made just before it is taken with it and one made
+  just after stays, whichever save lands first. Between saves the row can
+  stand below zero (a withdrawal saved ahead of the credit it drew on), which
+  the old `int unsigned` column refused as out of range, so `TaxBalance` is a
+  signed `BIGINT` (`initdb/migrations/003-castle-tax-balance-signed.sql`) and
+  the load clamps it into range. What remains is a save that never lands --
+  a database error, or a crash between a change and its save -- which leaves
+  the row off by that change until someone corrects it, where the absolute
+  save used to be overwritten by the next change. The unused whole-row
+  `CastleInfoManager::save`, which wrote the balance absolutely, is gone.
+  > **Status:** fixed (fix/castle-balance-schedule)
 
 ## A castle's tax balance was read and rewritten by every thread that moved it (2026-09-24)
 

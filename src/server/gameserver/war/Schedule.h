@@ -23,7 +23,14 @@ public:
     virtual ~Schedule() noexcept;
 
 public:
-    virtual bool heartbeat();
+    // Runs the work once its time has come; true when it ran.
+    bool heartbeat();
+
+    // Whether the scheduled time has come, by the wall clock.
+    bool isDue() const;
+    // Executes the work, whatever the time. A subclass adds what running
+    // means for it (a war schedule records the war's new state).
+    virtual void run();
 
     const VSDateTime& getScheduledTime() const {
         return m_ScheduledTime;

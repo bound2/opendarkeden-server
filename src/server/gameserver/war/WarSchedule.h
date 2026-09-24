@@ -33,7 +33,8 @@ public:
         return getWar()->getWarID();
     }
 
-    virtual bool heartbeat();
+    // Executes the war and records its new state in the war's row.
+    void run() override;
 
 public:
     void makeWarScheduleInfo(WarScheduleInfo* pWSI) const;

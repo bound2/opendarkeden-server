@@ -1,3 +1,5 @@
+#include <cstdlib>
+
 #include "DB.h"
 #include "ServerContext.h"
 #include "repository/WarInfoRepository.h"
@@ -148,7 +150,7 @@ public:
                 row.race = pResult->getInt(++i);
                 row.itemTaxRatio = pResult->getInt(++i);
                 row.entranceFee = pResult->getInt(++i);
-                row.taxBalance = pResult->getInt(++i);
+                row.taxBalance = strtoll(pResult->getString(++i), NULL, 10);
                 row.bonusOptionType = pResult->getString(++i);
                 row.firstResurrectZoneID = pResult->getInt(++i);
                 row.firstResurrectX = pResult->getInt(++i);
@@ -170,19 +172,44 @@ public:
         return rows;
     }
 
-    void saveCastle(int serverID, int zoneID, const CastleStateRecord& record) {
+    bool addCastleTaxBalance(int serverID, int zoneID, int64_t delta) {
+        bool isAffected = false;
         Statement* pStmt = NULL;
 
         BEGIN_DB {
             pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery(
-                "UPDATE CastleInfo SET GuildID=%d, Name='%s', Race=%d, ItemTaxRatio=%d, EntranceFee=%d, "
-                "TaxBalance=%d WHERE ServerID=%d AND ZoneID=%d",
-                record.guildID, record.name.c_str(), record.race, record.itemTaxRatio, record.entranceFee,
-                record.taxBalance, serverID, zoneID);
+            pStmt->executeQuery("UPDATE CastleInfo SET TaxBalance=TaxBalance+(%lld) WHERE ServerID=%d AND ZoneID=%d",
+                                (long long)delta, serverID, zoneID);
+
+            if (pStmt->getAffectedRowCount() > 0)
+                isAffected = true;
+
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)
+
+        return isAffected;
+    }
+
+    bool saveCastleOwner(int serverID, int zoneID, const CastleOwnerRecord& record) {
+        bool isAffected = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE CastleInfo SET GuildID=%d, Race=%d, TaxBalance=TaxBalance+(%lld), "
+                                "ItemTaxRatio=%d, EntranceFee=%d WHERE ServerID=%d AND ZoneID=%d",
+                                record.guildID, record.race, (long long)record.taxBalanceDelta, record.itemTaxRatio,
+                                record.entranceFee, serverID, zoneID);
+
+            if (pStmt->getAffectedRowCount() > 0)
+                isAffected = true;
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return isAffected;
     }
 
     bool tinysaveCastle(const string& fieldFragment, ZoneID_t zoneID, int serverID) {

@@ -39,10 +39,17 @@ WarID_t War::m_WarIDRegistry = 0;
 // constructor / destructor
 //
 //--------------------------------------------------------------------------------
+// A new war takes the next id under the registry's mutex: castle wars are
+// registered from the castle NPCs' zone threads and the race war from the
+// main thread, so two could otherwise read the same id. The mutex is a leaf.
 War::War(WarState warState, WarID_t warID) : m_State(warState) {
     if (warID == 0) {
+        __ENTER_CRITICAL_SECTION(m_Mutex)
+
         m_WarIDRegistry += de::gameContext().warSystem().getWarIDSuccessor();
         m_WarID = m_WarIDRegistry;
+
+        __LEAVE_CRITICAL_SECTION(m_Mutex)
     } else {
         m_WarID = warID;
     }
