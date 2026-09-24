@@ -118,6 +118,8 @@ public:
 
     int getPlayerNum() const;
 
+    // Takes the flag EC off every player in every group, each group on its
+    // own thread (de::war::postToEveryZoneGroup), so any thread may ask.
     void removeFlag(Effect::EffectClass EC);
 
 private:

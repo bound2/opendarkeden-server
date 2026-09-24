@@ -242,6 +242,9 @@ public:
     //----------------------------------------------------------------------
     // Things that apply to every castle
     //----------------------------------------------------------------------
+    // Lift and restore the castles' safe zones, and send the race war's
+    // losers out of every castle zone. Callable from any thread: each posts
+    // the change to the groups owning the zones (de::war::postToZones).
     void releaseAllSafeZone();
     void resetAllSafeZone();
 

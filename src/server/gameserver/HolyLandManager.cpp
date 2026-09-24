@@ -3,6 +3,7 @@
 #include "PCManager.h"
 #include "PlayerCreature.h"
 #include "ShrineInfoManager.h"
+#include "WarZoneWork.h"
 #include "Zone.h"
 
 HolyLandManager::HolyLandManager()
@@ -58,93 +59,40 @@ void HolyLandManager::broadcast(Packet* pPacket) const
     __END_CATCH
 }
 
-void HolyLandManager::fixTimeband(uint timeband)
-
-{
-    __BEGIN_TRY
+vector<ZoneID_t> HolyLandManager::getHolyLandZoneIDs() const {
+    vector<ZoneID_t> zoneIDs;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    HashMapZoneConstItor itr = m_HolyLands.begin();
-
-    for (; itr != m_HolyLands.end(); itr++) {
-        Zone* pZone = itr->second;
-        Assert(pZone != NULL);
-
-        pZone->stopTime();
-        pZone->setTimeband(timeband);
-        pZone->resetDarkLightInfo();
-    }
+    for (const auto& holyLand : m_HolyLands)
+        zoneIDs.push_back(holyLand.first);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    __END_CATCH
+    return zoneIDs;
 }
 
-void HolyLandManager::resumeTimeband()
-
-{
-    __BEGIN_TRY
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    HashMapZoneConstItor itr = m_HolyLands.begin();
-
-    for (; itr != m_HolyLands.end(); itr++) {
-        Zone* pZone = itr->second;
-        Assert(pZone != NULL);
-
-        pZone->resumeTime();
-        pZone->resetDarkLightInfo();
-    }
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    __END_CATCH
+void HolyLandManager::fixTimeband(uint timeband) {
+    de::war::postToZones(getHolyLandZoneIDs(), [timeband](Zone& zone) {
+        zone.stopTime();
+        zone.setTimeband(timeband);
+        zone.resetDarkLightInfo();
+    });
 }
 
-
-void HolyLandManager::killAllMonsters()
-
-{
-    __BEGIN_TRY
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    HashMapZoneConstItor itr = m_HolyLands.begin();
-
-    for (; itr != m_HolyLands.end(); itr++) {
-        Zone* pZone = itr->second;
-        Assert(pZone != NULL);
-
-        pZone->killAllMonsters();
-    }
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-
-    __END_CATCH
+void HolyLandManager::resumeTimeband() {
+    de::war::postToZones(getHolyLandZoneIDs(), [](Zone& zone) {
+        zone.resumeTime();
+        zone.resetDarkLightInfo();
+    });
 }
 
-void HolyLandManager::remainRaceWarPlayers()
+void HolyLandManager::killAllMonsters() {
+    de::war::postToZones(getHolyLandZoneIDs(), [](Zone& zone) { zone.killAllMonsters(); });
+}
 
-{
-    __BEGIN_TRY
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    HashMapZoneConstItor itr = m_HolyLands.begin();
-
-    for (; itr != m_HolyLands.end(); itr++) {
-        Zone* pZone = itr->second;
-        Assert(pZone != NULL);
-
-        pZone->remainRaceWarPlayers();
-    }
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    __END_CATCH
+void HolyLandManager::remainRaceWarPlayers() {
+    de::war::postToZones(getHolyLandZoneIDs(), [](Zone& zone) { zone.remainRaceWarPlayers(); });
 }
 
 void HolyLandManager::refreshHolyLandPlayers()

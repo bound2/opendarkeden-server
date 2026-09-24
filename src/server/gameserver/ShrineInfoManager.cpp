@@ -2,6 +2,10 @@
 
 #include <stdio.h>
 
+#include <algorithm>
+#include <memory>
+#include <vector>
+
 #include "BloodBible.h"
 #include "BloodBibleBonusManager.h"
 #include "CastleInfoManager.h"
@@ -32,7 +36,9 @@
 #include "StringStream.h"
 #include "War.h"
 #include "WarSystem.h"
+#include "WarZoneWork.h"
 #include "Zone.h"
+#include "ZoneGroup.h"
 #include "ZoneGroupManager.h"
 #include "ZoneItemPosition.h"
 #include "ZoneUtil.h"
@@ -301,7 +307,7 @@ void ShrineInfoManager::reloadOwner()
 
         if (pShrineSet->getOwnerRace() != OwnerRace) {
             pShrineSet->setOwnerRace(OwnerRace);
-            returnBloodBible(shrineID);
+            postBloodBibleReturn(shrineID);
 
             bOwnerChanged = true;
         }
@@ -583,12 +589,9 @@ bool ShrineInfoManager::getMatchGuardShrinePosition(Item* pItem, ZoneItemPositio
     __END_CATCH
 }
 
-// Called from putBloodBible (someone placed the bible on the holy shrine) with bLock = false,
-// and from returnAllBloodBible (the time ran out) with bLock = true.
-// When true it is called from another thread (the one the WarSystem runs on), so it must lock internally;
-// when false it runs on the zone group thread of the zone holding the shrine, so it must not lock.
-// 2003. 2. 5. by Sequoia
-bool ShrineInfoManager::returnBloodBible(ShrineID_t shrineID, bool bLock) const
+// Called from putBloodBible, on the zone thread of the zone holding the shrine
+// the bible was just laid on, so the bible is taken without the zone's mutex.
+bool ShrineInfoManager::returnBloodBible(ShrineID_t shrineID) const
 
 {
     __BEGIN_TRY
@@ -605,12 +608,13 @@ bool ShrineInfoManager::returnBloodBible(ShrineID_t shrineID, bool bLock) const
     if (ItemID == 0)
         return false;
 
-    GlobalItemPosition* pItemPosition = GlobalItemPositionLoader::getInstance()->load(ItemClass, ItemID);
+    std::unique_ptr<GlobalItemPosition> pItemPosition(GlobalItemPositionLoader::getInstance()->load(ItemClass, ItemID));
 
-    if (pItemPosition == NULL)
+    if (pItemPosition == nullptr)
         return false;
 
-    Item* pItem = pItemPosition->popItem(bLock);
+    pItemPosition->expectItem(ItemClass, ItemID);
+    Item* pItem = pItemPosition->popItem(false);
 
     if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_BLOOD_BIBLE) {
         Zone* pZone = pItemPosition->getZone();
@@ -627,8 +631,24 @@ bool ShrineInfoManager::returnBloodBible(ShrineID_t shrineID, bool bLock) const
     __END_CATCH
 }
 
-// Called only from the WarSystem.
-// Called only from the WarSystem.
+bool ShrineInfoManager::postBloodBibleReturn(ShrineID_t shrineID) const {
+    ShrineSet* pShrineSet = getShrineSet(shrineID);
+    if (pShrineSet == NULL)
+        return false;
+
+    ItemID_t itemID = pShrineSet->getBloodBibleItemID();
+    if (itemID == 0)
+        return false;
+
+    return de::war::postItemReturn(Item::ITEM_CLASS_BLOOD_BIBLE, itemID, [](Zone& from, Item* pItem) {
+        BloodBible* pBloodBible = dynamic_cast<BloodBible*>(pItem);
+        Assert(pBloodBible != NULL);
+
+        de::gameContext().shrines().returnBloodBible(&from, pBloodBible);
+    });
+}
+
+// Called when the race war ends.
 bool ShrineInfoManager::returnAllBloodBible() const
 
 {
@@ -642,7 +662,7 @@ bool ShrineInfoManager::returnAllBloodBible() const
     for (; itr != m_ShrineSets.end(); itr++) {
         ShrineSet* pShrineSet = itr->second;
 
-        bReturned = returnBloodBible(pShrineSet->getShrineID()) || bReturned;
+        bReturned = postBloodBibleReturn(pShrineSet->getShrineID()) || bReturned;
     }
 
     return bReturned;
@@ -749,32 +769,54 @@ bool ShrineInfoManager::putBloodBible(PlayerCreature* pPC, Item* pItem, MonsterC
     // The bible goes back to its guard shrine either way, so it can be carried
     // and contested again while the war lasts; the owner races the shrine sets
     // ended up with are tallied when the war ends.
-    returnBloodBible(shrineID, false);
+    returnBloodBible(shrineID);
 
     return false;
 
     __END_CATCH
 }
 
-bool ShrineInfoManager::removeAllShrineShield()
+// The guard shrines of a shrine set, one per race.
+static std::vector<ShrineInfo*> guardShrinesOf(ShrineSet* pShrineSet) {
+    return {&pShrineSet->getSlayerGuardShrine(), &pShrineSet->getVampireGuardShrine(),
+            &pShrineSet->getOustersGuardShrine()};
+}
 
-{
-    __BEGIN_TRY
+std::vector<ZoneID_t> ShrineInfoManager::getGuardShrineZoneIDs() const {
+    std::vector<ZoneID_t> zoneIDs;
 
-    HashMapShrineSetConstItor itr = m_ShrineSets.begin();
-
-    // The shrineID for castleZoneID cannot be looked up, so compare them one by one.
-    for (; itr != m_ShrineSets.end(); itr++) {
-        ShrineSet* pShrineSet = itr->second;
-
-        removeShrineShield(&(pShrineSet->getSlayerGuardShrine()));
-        removeShrineShield(&(pShrineSet->getVampireGuardShrine()));
-        removeShrineShield(&(pShrineSet->getOustersGuardShrine()));
+    for (const auto& entry : m_ShrineSets) {
+        for (ShrineInfo* pGuard : guardShrinesOf(entry.second)) {
+            ZoneID_t zoneID = pGuard->getZoneID();
+            if (std::find(zoneIDs.begin(), zoneIDs.end(), zoneID) == zoneIDs.end())
+                zoneIDs.push_back(zoneID);
+        }
     }
 
-    return true;
+    return zoneIDs;
+}
 
-    __END_CATCH
+std::vector<ShrineInfo*> ShrineInfoManager::getGuardShrinesIn(ZoneID_t zoneID) const {
+    std::vector<ShrineInfo*> guards;
+
+    for (const auto& entry : m_ShrineSets) {
+        for (ShrineInfo* pGuard : guardShrinesOf(entry.second)) {
+            if (pGuard->getZoneID() == zoneID)
+                guards.push_back(pGuard);
+        }
+    }
+
+    return guards;
+}
+
+bool ShrineInfoManager::removeAllShrineShield() {
+    de::war::postToZones(getGuardShrineZoneIDs(), [](Zone& zone) {
+        ShrineInfoManager& shrines = de::gameContext().shrines();
+        for (ShrineInfo* pGuard : shrines.getGuardShrinesIn(zone.getZoneID()))
+            shrines.removeShrineShield(pGuard);
+    });
+
+    return true;
 }
 
 bool ShrineInfoManager::removeShrineShield(ShrineInfo* pShrineInfo)
@@ -786,6 +828,7 @@ bool ShrineInfoManager::removeShrineShield(ShrineInfo* pShrineInfo)
 
     Zone* pZone = getZoneByZoneID(guardZoneID);
     Assert(pZone != NULL);
+    pZone->getZoneGroup()->assertOwned();
 
     Item* pItem = pZone->getItem(pShrineInfo->getObjectID());
 
@@ -824,22 +867,12 @@ bool ShrineInfoManager::removeShrineShield(ShrineInfo* pShrineInfo)
     __END_CATCH
 }
 
-void ShrineInfoManager::addAllShrineShield()
-
-{
-    __BEGIN_TRY
-
-    HashMapShrineSetConstItor itr = m_ShrineSets.begin();
-
-    for (; itr != m_ShrineSets.end(); itr++) {
-        ShrineSet* pShrineSet = itr->second;
-
-        addShrineShield(pShrineSet->getSlayerGuardShrine());
-        addShrineShield(pShrineSet->getVampireGuardShrine());
-        addShrineShield(pShrineSet->getOustersGuardShrine());
-    }
-
-    __END_CATCH
+void ShrineInfoManager::addAllShrineShield() {
+    de::war::postToZones(getGuardShrineZoneIDs(), [](Zone& zone) {
+        ShrineInfoManager& shrines = de::gameContext().shrines();
+        for (ShrineInfo* pGuard : shrines.getGuardShrinesIn(zone.getZoneID()))
+            shrines.addShrineShield(*pGuard);
+    });
 }
 
 bool ShrineInfoManager::addShrineShield(ShrineInfo& shrineInfo)
@@ -849,6 +882,7 @@ bool ShrineInfoManager::addShrineShield(ShrineInfo& shrineInfo)
 
     Zone* pZone = getZoneByZoneID(shrineInfo.getZoneID());
     Assert(pZone != NULL);
+    pZone->getZoneGroup()->assertOwned();
 
     Item* pItem = pZone->getItem(shrineInfo.getObjectID());
 

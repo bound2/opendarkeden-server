@@ -42,14 +42,19 @@ public:
 //
 // - m_Mutex guards the schedules -- the running wars -- and the race war's
 //   schedule. The heartbeat holds it while it starts and ends wars, and
-//   under it takes: zones' own mutexes (Zone::lock, returning castle symbols
-//   and blood bibles, restoring shrine shields, keeping the holy land's
-//   players), the holy land and shrine managers' mutexes, the player finder's
-//   lock, every group's ZonePlayerManager mutex (broadcasts), the client
-//   manager's event mutex, the guild manager's mutex (guild names), and the
-//   three mutexes below. It takes no zone group's mutex and no castle
-//   scheduler's: a castle's owner change, which reloads the scheduler, is
-//   posted to the castle's group (CastleInfoManager::postCastleWarEnd).
+//   under it takes: the holy land and shrine managers' mutexes, the player
+//   finder's lock, every group's ZonePlayerManager mutex and zones' PC lists
+//   (broadcasts), zones' object registries and cross-thread effect queues
+//   (the dragon eyes laid out at the race war's start), the client manager's
+//   event mutex, the guild manager's mutex (guild names), the mailboxes'
+//   own mutexes, and the three mutexes below. It takes no zone group's mutex,
+//   no zone's own mutex and no castle scheduler's: every change a war's start
+//   or end makes to a zone is posted to the zone's group (war/WarZoneWork.h)
+//   -- a castle's owner change and fee (CastleInfoManager::postCastleWarEnd),
+//   the castle symbols' and blood bibles' returns, which go first to
+//   whichever group or player holds each one, the shrine shields, the siege
+//   zone's reset, the castles' safe zones and transports, and the holy
+//   land's time, monsters, players, regen zone towers and join flags.
 // - So a thread may take m_Mutex holding its zone group's mutex -- a CG
 //   handler or a quest action answering a player: endWar, isModifyCastleOwner,
 //   getSiegeGuildSide, mayModifyShrineOwner, addRaceWarScheduleInfo.

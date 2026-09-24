@@ -39,6 +39,7 @@
 #include "War.h"
 #include "WarScheduler.h"
 #include "WarSystem.h"
+#include "WarZoneWork.h"
 #include "Zone.h"
 #include "ZoneGroup.h"
 #include "ZoneUtil.h"
@@ -916,73 +917,48 @@ void CastleInfoManager::deleteAllNPCs()
     __END_CATCH
 }
 
-void CastleInfoManager::releaseAllSafeZone()
-
-{
-    __BEGIN_TRY
-
-    unordered_map<ZoneID_t, CastleInfo*>::const_iterator itr = m_CastleInfos.begin();
-
-    for (; itr != m_CastleInfos.end(); itr++) {
-        CastleInfo* pCastleInfo = itr->second;
-
-        Zone* pZone = getZoneByZoneID(pCastleInfo->getZoneID());
-        Assert(pZone != NULL);
-
-        __ENTER_CRITICAL_SECTION((*pZone))
-
-        pZone->releaseSafeZone();
-
-        __LEAVE_CRITICAL_SECTION((*pZone))
-    }
-
-    __END_CATCH
+// The castles' own zones, whose safe zones the race war lifts while it runs.
+static vector<ZoneID_t> castleZoneIDsOf(const unordered_map<ZoneID_t, CastleInfo*>& castleInfos) {
+    vector<ZoneID_t> zoneIDs;
+    for (const auto& castle : castleInfos)
+        zoneIDs.push_back(castle.second->getZoneID());
+    return zoneIDs;
 }
 
-void CastleInfoManager::resetAllSafeZone()
+void CastleInfoManager::releaseAllSafeZone() {
+    de::war::postToZones(castleZoneIDsOf(m_CastleInfos), [](Zone& zone) {
+        __ENTER_CRITICAL_SECTION(zone)
 
-{
-    __BEGIN_TRY
+        zone.releaseSafeZone();
 
-    unordered_map<ZoneID_t, CastleInfo*>::const_iterator itr = m_CastleInfos.begin();
-
-    for (; itr != m_CastleInfos.end(); itr++) {
-        CastleInfo* pCastleInfo = itr->second;
-
-        Zone* pZone = getZoneByZoneID(pCastleInfo->getZoneID());
-        Assert(pZone != NULL);
-
-        __ENTER_CRITICAL_SECTION((*pZone))
-
-        pZone->resetSafeZone();
-
-        __LEAVE_CRITICAL_SECTION((*pZone))
-    }
-
-    __END_CATCH
+        __LEAVE_CRITICAL_SECTION(zone)
+    });
 }
 
-void CastleInfoManager::transportAllOtherRace()
+void CastleInfoManager::resetAllSafeZone() {
+    de::war::postToZones(castleZoneIDsOf(m_CastleInfos), [](Zone& zone) {
+        __ENTER_CRITICAL_SECTION(zone)
 
-{
-    __BEGIN_TRY
+        zone.resetSafeZone();
 
-    unordered_map<ZoneID_t, CastleInfo*>::const_iterator itr = m_CastleInfos.begin();
+        __LEAVE_CRITICAL_SECTION(zone)
+    });
+}
 
-    for (; itr != m_CastleInfos.end(); itr++) {
-        CastleInfo* pCastleInfo = itr->second;
+void CastleInfoManager::transportAllOtherRace() {
+    for (const auto& castle : m_CastleInfos) {
+        ZoneID_t castleZoneID = castle.first;
 
-        // Register every zone ID that belongs to this castle.
-        const list<ZoneID_t>& zoneIDs = pCastleInfo->getZoneIDList();
-        list<ZoneID_t>::const_iterator iZoneID = zoneIDs.begin();
+        // Every zone of the castle, each on its own group's thread; the castle's
+        // race and resurrect point are read there, when the transport is made.
+        const list<ZoneID_t>& zoneIDList = castle.second->getZoneIDList();
+        vector<ZoneID_t> zoneIDs(zoneIDList.begin(), zoneIDList.end());
 
-        for (; iZoneID != zoneIDs.end(); iZoneID++) {
-            ZoneID_t zoneID = *iZoneID;
+        de::war::postToZones(zoneIDs, [castleZoneID](Zone& zone) {
+            CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(castleZoneID);
+            Assert(pCastleInfo != NULL);
 
-            Zone* pZone = getZoneByZoneID(zoneID);
-            Assert(pZone != NULL);
-
-            __ENTER_CRITICAL_SECTION((*pZone))
+            __ENTER_CRITICAL_SECTION(zone)
 
             // Send the losing race of the race war to the resurrect point.
             Race_t otherRace = (pCastleInfo->getRace() == RACE_SLAYER ? RACE_VAMPIRE : RACE_SLAYER);
@@ -990,14 +966,12 @@ void CastleInfoManager::transportAllOtherRace()
             ZONE_COORD zoneCoord;
             pCastleInfo->getResurrectPosition(CastleInfo::CASTLE_RESURRECT_PRIORITY_SECOND, zoneCoord);
 
-            PCManager* pPCManager = (PCManager*)(pZone->getPCManager());
+            PCManager* pPCManager = (PCManager*)(zone.getPCManager());
             pPCManager->transportAllCreatures(zoneCoord.id, zoneCoord.x, zoneCoord.y, otherRace);
 
-            __LEAVE_CRITICAL_SECTION((*pZone))
-        }
+            __LEAVE_CRITICAL_SECTION(zone)
+        });
     }
-
-    __END_CATCH
 }
 
 void CastleInfoManager::loadAllNPCs()
