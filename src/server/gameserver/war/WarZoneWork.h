@@ -60,7 +60,9 @@ using ItemTaken = std::function<void(Zone& from, Item* pItem)>;
 // out under the holder's lock only if it is still that item, and hands it to
 // taken. A step that finds the item gone reads the row again and follows it
 // (WarZoneRouting.h, kItemReturnAttempts); a player who logs out first drops
-// what he carried and the return follows the row from there. False when the
+// what he carried (a dragon eye goes back to its default tile instead), and
+// the zone's add saves the row as it does for any relic, so the return
+// follows it from there. False when the
 // first step could not be posted: no row, or a holder no position loader
 // reaches, or a player who is not logged in (each logged to WarError.log).
 bool postItemReturn(Item::ItemClass itemClass, ItemID_t itemID, ItemTaken taken, int attemptsMade = 0);

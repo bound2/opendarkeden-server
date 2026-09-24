@@ -167,7 +167,8 @@ void RaceWar::executeEnd()
     // As at the start, the zone work below is posted to the groups that own
     // the zones: a bible's return to whoever holds it, the shields, safe zones,
     // transports, time, towers and flags to each zone's or player's group.
-    // The broadcasts and the war participant list are this thread's own.
+    // The war participant list is this thread's own; the broadcasts walk the
+    // zones' PC lists under no lock, a race of their own.
     shrines.returnAllBloodBible();
 
     shrines.addAllShrineShield();

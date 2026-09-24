@@ -13,6 +13,24 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A war's whole-zone broadcasts walk the zones' player lists with no lock (2026-09-25)
+
+- **`HolyLandManager::broadcast` and `CastleInfo::broadcast` send a packet
+  to every player of every holy-land or castle zone through
+  `Zone::broadcastPacket`, which walks the zone's `CreatureManager` map with
+  no lock,** and they run on threads that do not own those zones: the main
+  thread's war heartbeat (the race war's start and end, the war end messages,
+  `RegenZoneManager::broadcastStatus`) and, now that a relic's return runs
+  on its holder's thread, a zone thread announcing a symbol's or a bible's
+  return in another group's zones. A zone thread adding or removing a player
+  while another thread walks the map is undefined behaviour, not a stale
+  message. This is older than the posted zone work, which moved the writes;
+  a broadcast only reads. Closing it means posting each broadcast to the
+  zone's group too (`de::war::postToZones` with the packet's bytes), which
+  the routing already supports, or a published copy of the player list a
+  reader may walk.
+  > **Status:** recorded, not fixed (fix/war-end-zones)
+
 ## A relic held where no item position reaches stays put when its war ends (2026-09-24)
 
 - **A war's end returns each castle symbol and blood bible, and takes each
@@ -66,9 +84,10 @@ repo and the client's. Entries below are newest first; the oldest is the
   group 1 while castle 1206 is in group 2. The zone's own mutex excludes that
   dungeon's heartbeat but not its group's CG handlers, which damage the same
   monsters. The siege zones the siege start fills sit in their castle's group.
-  Posting each dungeon's clear to its own group (`ZoneGroup::post`) closes
-  it; it belongs with the war-end moves in the same file.
-  > **Status:** recorded, not fixed (fix/castle-balance-schedule)
+  The start posts each dungeon's clear to the group that owns the dungeon
+  (`de::war::postToZones`, one command per group, the zone looked up by id
+  when it runs), and `Zone::killAllMonsters` asserts that group.
+  > **Status:** fixed (fix/war-end-zones)
 
 ## Two wars registered at once could take the same war id (2026-09-24)
 
@@ -127,7 +146,9 @@ repo and the client's. Entries below are newest first; the oldest is the
   can rehash the map while an already-running zone thread is inside a
   lookup: a data race on the container, undefined behaviour rather than a
   stale answer. The window is startup, while the workers come up one by one
-  and the first zone threads already tick. Closing it means taking the
+  and the first zone threads already tick; the loginserver has the same
+  shape, its `GameServerManager` worker registering while `ClientManager`
+  looks up. Closing it means taking the
   mutex in the lookups (every statement pays for it), or registering every
   worker's connection before any worker starts, or a lookup structure a
   reader can traverse during an insert.
@@ -161,6 +182,11 @@ repo and the client's. Entries below are newest first; the oldest is the
   offer purge every load and every offer action runs (`decideUnionOfferPurge`),
   and `tests/ratchet/ratchets.sh` fails on a seed JOIN offer naming no
   union; guild 4950's row went with the seed's other expired offers.
+  What a purge or a removal dissolves is published -- the master told, the
+  other servers refreshed -- after the mutex is released, on the normal path
+  only: a statement that throws after the dissolve (an offer insert refused
+  on the guild's key, say) leaves the dissolve on record and the other
+  servers' copies stale until the next refresh.
   > **Status:** fixed (fix/union-offers)
 
 ## Accepting or denying a union offer does not check which union it targets (2026-09-24)
@@ -429,9 +455,9 @@ repo and the client's. Entries below are newest first; the oldest is the
   market first — the claim (`markListingSold`, which now answers whether it
   matched an ACTIVE row, and holds that row's lock), then the order — and
   ledger second, the buyer's debit then the seller's credit; the commits
-  run market first too. `ExchangeRepository.h` gives the order argument and
-  what a failure between two commits would leave once the ledger has a
-  connection of its own. The collisions are refusals: two buyers of one
+  run market first too. (The ledger has since been reached on the same
+  connection, so a purchase is one transaction and the two-commit argument
+  is gone from `ExchangeRepository.h`.) The collisions are refusals: two buyers of one
   listing, on one server or two of a world, meet at the claim, where the
   second waits for the row lock and is refused as no longer available
   before either reaches the order's or the ledger's unique key; a ledger

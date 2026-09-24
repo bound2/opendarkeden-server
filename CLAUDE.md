@@ -342,6 +342,11 @@ Account passwords live in `Player.Password` as argon2id hashes. A database
 created before that change needs `initdb/migrations/001-argon2-password-column.sql`
 run once; its plaintext rows are rehashed by the loginserver on each
 account's next login. `bin/hashpw` hashes a password for a manual `UPDATE`.
+The later migrations are one-time too: `002-war-schedule-castle-war-kind.sql`
+(the `CastleWarKind` column) and `003-castle-tax-balance-signed.sql` (the
+castle tax balance saved as a signed relative change; on the old unsigned
+column an owner change can fail whole). Nothing checks them at startup; run
+each once on a database created before it.
 
 Load schema with (`initdb/a-setup.sql` creates both databases and the
 `elcastle` user; the docker compose setup applies all three automatically):

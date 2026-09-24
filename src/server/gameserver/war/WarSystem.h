@@ -43,8 +43,8 @@ public:
 // - m_Mutex guards the schedules -- the running wars -- and the race war's
 //   schedule. The heartbeat holds it while it starts and ends wars, and
 //   under it takes: the holy land and shrine managers' mutexes, the player
-//   finder's lock, every group's ZonePlayerManager mutex and zones' PC lists
-//   (broadcasts), zones' object registries and cross-thread effect queues
+//   finder's lock, every group's ZonePlayerManager mutex, zones' object
+//   registries and cross-thread effect queues
 //   (the dragon eyes laid out at the race war's start), the client manager's
 //   event mutex, the guild manager's mutex (guild names), the mailboxes'
 //   own mutexes, and the three mutexes below. It takes no zone group's mutex,
@@ -54,7 +54,9 @@ public:
 //   the castle symbols' and blood bibles' returns, which go first to
 //   whichever group or player holds each one, the shrine shields, the siege
 //   zone's reset, the castles' safe zones and transports, and the holy
-//   land's time, monsters, players, regen zone towers and join flags.
+//   land's time, monsters, players, regen zone towers and join flags. The
+//   whole-zone broadcasts it still sends walk each zone's PC list under no
+//   lock at all: a race of their own, not a lock order.
 // - So a thread may take m_Mutex holding its zone group's mutex -- a CG
 //   handler or a quest action answering a player: endWar, isModifyCastleOwner,
 //   getSiegeGuildSide, mayModifyShrineOwner, addRaceWarScheduleInfo.

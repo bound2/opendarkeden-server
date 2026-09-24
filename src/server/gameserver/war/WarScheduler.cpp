@@ -93,9 +93,11 @@ bool WarScheduler::makeGCWarScheduleList(GCWarScheduleList* pGCWarScheduleList) 
 // group and works on the castle's dungeons, guard shrine and siege zone,
 // none of which belongs under this mutex (see the lock order in
 // WarSystem.h). Once taken out, no other thread can reach the war through
-// this scheduler, so none sees it half started. A start that throws puts
-// the schedule back, to be tried again on the next heartbeat, as it was
-// when the start ran inside the queue.
+// this scheduler, so none sees it half started. A run that throws puts
+// the schedule back for the next heartbeat, as it was when the run
+// happened inside the queue: a start that failed is tried again, while a
+// status save that failed after the start went through runs the war's
+// next step, its end, one heartbeat later.
 Work* WarScheduler::heartbeat()
 
 {

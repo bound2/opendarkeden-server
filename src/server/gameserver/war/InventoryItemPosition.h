@@ -17,9 +17,9 @@ public:
     ~InventoryItemPosition() {}
 
 public:
-    virtual Item* popItem(bool bLock = true);
+    Item* popItem(bool bLock = true) override;
     Item* popItemFrom(PlayerCreature& pc) override;
-    virtual Zone* getZone();
+    Zone* getZone() override;
 
 public:
     string getOwnerName() const {
@@ -46,7 +46,7 @@ public:
         m_InvenY = invenY;
     }
 
-    string toString() const;
+    string toString() const override;
 
 protected:
     Creature* findCreature();

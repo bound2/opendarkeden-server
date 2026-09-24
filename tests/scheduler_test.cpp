@@ -160,6 +160,70 @@ TEST(Scheduler, ClearDeletesPendingSchedules) {
     EXPECT_TRUE(scheduler.isEmpty());
 }
 
+namespace {
+
+// A scheduler that lets the test take a due schedule out the way
+// WarScheduler::heartbeat does, without running it.
+class PoppingScheduler : public Scheduler {
+public:
+    using Scheduler::popDueSchedule;
+};
+
+// A schedule whose run is its own: what a war schedule adds to the work.
+class CountingSchedule : public Schedule {
+public:
+    CountingSchedule(Work* pWork, const VSDateTime& time, int& runs) : Schedule(pWork, time), m_Runs(runs) {}
+    void run() override {
+        m_Runs++;
+        Schedule::run();
+    }
+
+private:
+    int& m_Runs;
+};
+
+} // namespace
+
+TEST(Scheduler, PopsADueScheduleWithoutRunningItAndLeavesOneNotDue) {
+    PoppingScheduler scheduler;
+    FlagWork* due = new FlagWork();
+    scheduler.addSchedule(new Schedule(new FlagWork(), secondsFromNow(60 * 60)));
+    scheduler.addSchedule(new Schedule(due, secondsFromNow(-60)));
+
+    Schedule* popped = scheduler.popDueSchedule();
+    ASSERT_NE(nullptr, popped);
+    EXPECT_EQ(due, popped->getWork());
+    EXPECT_FALSE(due->executed);
+    EXPECT_EQ(1, scheduler.getSize());
+
+    // The one left is not due, so nothing more comes out; the popped one
+    // can go back and come out again.
+    EXPECT_EQ(nullptr, scheduler.popDueSchedule());
+    scheduler.addSchedule(popped);
+    EXPECT_EQ(popped, scheduler.popDueSchedule());
+    delete popped;
+}
+
+TEST(Scheduler, HeartbeatRunsTheSchedulesOwnRunOnceItIsDue) {
+    Scheduler scheduler;
+    int runs = 0;
+    FlagWork* work = new FlagWork();
+    Schedule* schedule = new CountingSchedule(work, secondsFromNow(60 * 60), runs);
+    scheduler.addSchedule(schedule);
+
+    EXPECT_FALSE(schedule->isDue());
+    EXPECT_EQ(nullptr, scheduler.heartbeat());
+    EXPECT_EQ(0, runs);
+
+    schedule->setScheduledTime(secondsFromNow(-1));
+    EXPECT_TRUE(schedule->isDue());
+    Work* popped = scheduler.heartbeat();
+    EXPECT_EQ(work, popped);
+    EXPECT_EQ(1, runs);
+    EXPECT_TRUE(work->executed);
+    delete popped;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // The siege registration decision
 //////////////////////////////////////////////////////////////////////////

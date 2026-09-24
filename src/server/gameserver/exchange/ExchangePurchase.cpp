@@ -140,7 +140,7 @@ Outcome<ExchangePurchase, ExchangeRejection> completeExchangePurchase(ExchangeRe
             return false;
 
         // The claim comes first. Its UPDATE matches only an ACTIVE row and
-        // holds that row's lock until the pair ends, so a second buyer of
+        // holds that row's lock until the transaction ends, so a second buyer of
         // the listing - on this server or another of the world - waits for
         // this purchase and then matches nothing.
         step = ExchangePurchaseStep::Claim;

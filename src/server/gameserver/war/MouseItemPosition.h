@@ -16,9 +16,9 @@ public:
     ~MouseItemPosition() {}
 
 public:
-    virtual Item* popItem(bool bLock = true);
+    Item* popItem(bool bLock = true) override;
     Item* popItemFrom(PlayerCreature& pc) override;
-    virtual Zone* getZone();
+    Zone* getZone() override;
 
     string getOwnerName() const {
         return m_OwnerName;
@@ -29,7 +29,7 @@ public:
     }
 
 public:
-    virtual string toString() const;
+    string toString() const override;
 
 protected:
     Item* popItem_LOCKED();

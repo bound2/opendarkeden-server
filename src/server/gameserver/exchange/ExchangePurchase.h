@@ -34,7 +34,7 @@ struct ExchangePurchase {
 //////////////////////////////////////////////////////////////////////////////
 // The transaction guard
 //
-// Owns the repository's transaction pair for one scope. begin() opens it;
+// Owns the repository's transaction for one scope. begin() opens it;
 // commit() ends it by committing; every other way out of the scope - a
 // return, a thrown DatabaseError or any other exception - ends it by
 // rolling back. rollback() does that early, for a caller that must read
@@ -42,8 +42,9 @@ struct ExchangePurchase {
 //
 // The guard counts itself open from the moment begin() is called, not from
 // the moment it returns, so a begin that throws is still rolled back,
-// whatever part of it ran. A ROLLBACK with nothing begun is a no-op, and so is one after a COMMIT that went through, which is what makes
-// the rollback safe after a commit that failed.
+// whatever part of it ran. A ROLLBACK with nothing begun is a no-op, and so
+// is one after a COMMIT that went through, which is what makes the rollback
+// safe after a commit that failed.
 //
 // The destructor swallows whatever its rollback throws: it may be running
 // because of an exception already, and a rollback that fails on a lost
@@ -59,16 +60,16 @@ public:
     ExchangeTransaction(const ExchangeTransaction&) = delete;
     ExchangeTransaction& operator=(const ExchangeTransaction&) = delete;
 
-    // Open the pair. False, or a thrown DatabaseError, when it could not be
-    // opened; the guard still rolls back whatever part of it began.
+    // Open the transaction. False, or a thrown DatabaseError, when it could
+    // not be opened; the guard still rolls back whatever began.
     bool begin();
 
-    // Commit the pair. False, or a thrown DatabaseError, when the commit did
-    // not go through; the guard then still rolls back whatever is left open.
+    // Commit. False, or a thrown DatabaseError, when the commit did not go
+    // through; the guard then still rolls the transaction back.
     bool commit();
 
-    // Roll the pair back now. Throws what the repository's rollback throws;
-    // either way the guard counts the pair closed and will not roll it back
+    // Roll back now. Throws what the repository's rollback throws; either
+    // way the guard counts the transaction closed and will not roll it back
     // again.
     void rollback();
 
@@ -87,7 +88,7 @@ private:
 
 // The steps of a purchase, in the order they run.
 enum class ExchangePurchaseStep {
-    // The transaction pair's begin.
+    // The transaction's begin.
     Begin,
     // markListingSold: takes the listing out of ACTIVE.
     Claim,
@@ -97,7 +98,7 @@ enum class ExchangePurchaseStep {
     BuyerDebit,
     // adjustPoints on the seller, the "_sale" ledger row.
     SellerCredit,
-    // The transaction pair's commit.
+    // The transaction's commit.
     Commit
 };
 
@@ -134,7 +135,7 @@ ExchangeRejection exchangePurchaseFailure(ExchangePurchaseStep step, ExchangeSte
 // back as the rejection exchangePurchaseFailure names for it: a DatabaseError
 // from any step, the begin and the commit included, is caught for that and
 // does not escape. Any other exception is not the database's answer and
-// propagates, after the guard has rolled the pair back.
+// propagates, after the guard has rolled the transaction back.
 //
 // The ledger-key probe that tells a collision from other failures reads the
 // ledger after the rollback, so it sees only committed rows; a key is never
