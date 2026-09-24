@@ -13,6 +13,7 @@
 #include "Assert.h"
 #include "CreatureUtil.h"
 #include "DB.h"
+#include "DescriptorTable.h"
 #include "Encrypter.h"
 #include "GCUpdateInfo.h"
 #include "GLIncomingConnection.h"
@@ -112,6 +113,13 @@ void IncomingPlayerManager::init()
 
     Properties& config = de::kernelContext().config();
 
+    // The player table is indexed by descriptor and every walk over it is
+    // clamped to it, so a listener the table cannot hold would be skipped by
+    // all of them and no connection could ever be accepted. There is nothing
+    // to serve from in that state.
+    if (!de::fitsDescriptorTable((int)m_SocketID, (int)nMaxPlayers))
+        throw Error("listening socket descriptor does not fit the player table");
+
     // Clear the fd_sets to 0.
     FD_ZERO(&m_ReadFDs[0]);
     FD_ZERO(&m_WriteFDs[0]);
@@ -190,7 +198,8 @@ void IncomingPlayerManager::broadcast(Packet* pPacket)
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (i != m_SocketID && m_pPlayers[i] != NULL)
             m_pPlayers[i]->sendPacket(pPacket);
     }
@@ -251,7 +260,8 @@ void IncomingPlayerManager::processInputs() {
 
     // copyPlayers();
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (FD_ISSET(i, &m_ReadFDs[1])) {
             if (i == m_SocketID) {
                 //  The server socket means a new connection has arrived.
@@ -367,7 +377,8 @@ void IncomingPlayerManager::processCommands() {
 
     // copyPlayers();
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (i != m_SocketID && m_pPlayers[i] != NULL) {
             GamePlayer* pTempPlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
             Assert(pTempPlayer != NULL);
@@ -480,7 +491,8 @@ void IncomingPlayerManager::processOutputs() {
 
     // copyPlayers();
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (FD_ISSET(i, &m_WriteFDs[1])) {
             if (i == m_SocketID) {
                 FILELOG_INCOMING_CONNECTION(
@@ -627,7 +639,8 @@ void IncomingPlayerManager::processExceptions() {
 
     // copyPlayers();
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (FD_ISSET(i, &m_ExceptFDs[1])) {
             if (i != m_SocketID) {
                 if (m_pPlayers[i] != NULL) {
@@ -910,8 +923,9 @@ void IncomingPlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
     if (fd == m_MinFD) {
         // Find the smallest fd from the front.
         // Note that the m_MinFD slot is currently NULL.
-        int i = m_MinFD;
-        for (i = m_MinFD; i <= m_MaxFD; i++) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+        int i = walk.first;
+        for (i = walk.first; i <= walk.last; i++) {
             if (m_pPlayers[i] != NULL || i == m_SocketID) {
                 m_MinFD = i;
                 break;
@@ -921,13 +935,14 @@ void IncomingPlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
         // When no suitable m_MinFD was found,
         // this is the case m_MinFD == m_MaxFD.
         // In that case set both to -1.
-        if (i > m_MaxFD)
+        if (i > walk.last)
             m_MinFD = m_MaxFD = -1;
     } else if (fd == m_MaxFD) {
         // Find the largest fd from the back.
         // Mind the SocketID! (For the SocketID the Player pointer is NULL.)
-        int i = m_MaxFD;
-        for (i = m_MaxFD; i >= m_MinFD; i--) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+        int i = walk.last;
+        for (i = walk.last; i >= walk.first; i--) {
             if (m_pPlayers[i] != NULL || i == m_SocketID) {
                 m_MaxFD = i;
                 break;
@@ -935,7 +950,7 @@ void IncomingPlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
         }
 
         // When no suitable m_MinFD was found,
-        if (i < m_MinFD) {
+        if (i < walk.first) {
             FILELOG_INCOMING_CONNECTION("ICMFD.txt",
                                         "[ i < m_MinFD nbl] nPlayers : %d, MinFD : %d, MaxFD : %d, ServerSocket : %d",
                                         m_nPlayers, (int)m_MinFD, (int)m_MaxFD, (int)m_SocketID);
@@ -985,8 +1000,9 @@ void IncomingPlayerManager::deletePlayer(SOCKET fd) {
     if (fd == m_MinFD) {
         // Find the smallest fd from the front.
         // Note that the m_MinFD slot is currently NULL.
-        int i = m_MinFD;
-        for (i = m_MinFD; i <= m_MaxFD; i++) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+        int i = walk.first;
+        for (i = walk.first; i <= walk.last; i++) {
             if (m_pPlayers[i] != NULL || i == m_SocketID) {
                 m_MinFD = i;
                 break;
@@ -996,13 +1012,14 @@ void IncomingPlayerManager::deletePlayer(SOCKET fd) {
         // When no suitable m_MinFD was found,
         // this is the case m_MinFD == m_MaxFD.
         // In that case set both to -1.
-        if (i > m_MaxFD)
+        if (i > walk.last)
             m_MinFD = m_MaxFD = -1;
     } else if (fd == m_MaxFD) {
         // Find the largest fd from the back.
         // Mind the SocketID! (For the SocketID the Player pointer is NULL.)
-        int i = m_MaxFD;
-        for (i = m_MaxFD; i >= m_MinFD; i--) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+        int i = walk.last;
+        for (i = walk.last; i >= walk.first; i--) {
             if (m_pPlayers[i] != NULL || i == m_SocketID) {
                 m_MaxFD = i;
                 break;
@@ -1010,7 +1027,7 @@ void IncomingPlayerManager::deletePlayer(SOCKET fd) {
         }
 
         // When no suitable m_MinFD was found,
-        if (i < m_MinFD) {
+        if (i < walk.first) {
             FILELOG_INCOMING_CONNECTION("ICMFD.txt",
                                         "[ i < m_MinFD ] nPlayers : %d, MinFD : %d, MaxFD : %d, ServerSocket : %d",
                                         m_nPlayers, (int)m_MinFD, (int)m_MaxFD, (int)m_SocketID);
@@ -1038,7 +1055,8 @@ GamePlayer* IncomingPlayerManager::getPlayer_NOBLOCKED(const string& id) {
 
     GamePlayer* pGamePlayer = NULL;
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (m_pPlayers[i] != NULL) {
             if (m_pPlayers[i]->getID() == id) {
                 pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
@@ -1423,7 +1441,8 @@ void IncomingPlayerManager::clearPlayers()
         return;
 
     // Clean up the players.
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (i != m_SocketID && m_pPlayers[i] != NULL) {
             GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
 

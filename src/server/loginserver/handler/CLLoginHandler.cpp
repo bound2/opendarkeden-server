@@ -27,6 +27,7 @@
 
 #include "Assert1.h"
 #include "DatabaseError.h"
+#include "Deployment.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameServerInfoManager.h"
 #include "KernelContext.h"
@@ -248,7 +249,7 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
         request.freePass = bFreePass;
         request.failureCount = pLoginPlayer->getFailureCount();
         request.loginServerID = de::kernelContext().config().getPropertyInt("LoginServerID");
-        request.useNetMarbleAdultFlag = (de::kernelContext().config().getPropertyInt("IsNetMarble") == 1);
+        request.useNetMarbleAdultFlag = de::isNetMarbleDeployment();
         if (request.useNetMarbleAdultFlag)
             request.netMarbleAdultFlag = pPacket->isAdult();
 

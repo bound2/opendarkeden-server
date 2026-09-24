@@ -15,6 +15,7 @@
 
 #include "Assert.h"
 #include "DatabaseError.h"
+#include "DescriptorTable.h"
 #include "KernelContext.h"
 #include "LoginContext.h"
 #include "LoginPlayer.h"
@@ -96,6 +97,13 @@ void LoginPlayerManager::init() {
 
     // Set the server socket descriptor.
     m_ServerFD = m_pServerSocket->getSOCKET();
+
+    // The player table is indexed by descriptor and every walk over it is
+    // clamped to it, so a listener the table cannot hold would be skipped by
+    // all of them and no connection could ever be accepted. There is nothing
+    // to serve from in that state.
+    if (!de::fitsDescriptorTable((int)m_ServerFD, (int)nMaxPlayers))
+        throw Error("listening socket descriptor does not fit the player table");
 
     // Zero the fd_sets.
     FD_ZERO(&m_ReadFDs[0]);
@@ -179,7 +187,8 @@ void LoginPlayerManager::processExceptions() {
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (FD_ISSET(i, &m_ExceptFDs[1]) && i != m_ServerFD) {
             Assert(m_pPlayers[i] != NULL);
 
@@ -211,7 +220,8 @@ void LoginPlayerManager::processInputs() {
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (FD_ISSET(i, &m_ReadFDs[1])) {
             if (i == m_ServerFD) {
                 // The server socket means a new connection came in.
@@ -266,7 +276,8 @@ void LoginPlayerManager::processCommands() {
     // m_pPlayers[i] != NULL is more likely than i != m_ServerFD,
     // so that condition goes first.
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (m_pPlayers[i] != NULL && i != m_ServerFD) {
             try {
                 m_pPlayers[i]->processCommand();
@@ -320,7 +331,8 @@ void LoginPlayerManager::processOutputs() {
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (FD_ISSET(i, &m_WriteFDs[1]) && i != m_ServerFD) {
             Assert(m_pPlayers[i] != NULL);
 
@@ -483,8 +495,9 @@ void LoginPlayerManager::deletePlayer_NOLOCKED(SOCKET fd) {
     if (fd == m_MinFD) {
         // Find the smallest fd from the front.
         // Note that the m_MinFD slot is NULL at this point.
-        int i = m_MinFD;
-        for (; i <= m_MaxFD; i++) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+        int i = walk.first;
+        for (; i <= walk.last; i++) {
             if (m_pPlayers[i] != NULL || i == m_ServerFD) {
                 m_MinFD = i;
                 break;
@@ -494,13 +507,14 @@ void LoginPlayerManager::deletePlayer_NOLOCKED(SOCKET fd) {
         // When no suitable m_MinFD was found,
         // this is the m_MinFD == m_MaxFD case.
         // Set both to -1 then.
-        if (i > m_MaxFD)
+        if (i > walk.last)
             m_MinFD = m_MaxFD = -1;
     } else if (fd == m_MaxFD) {
         // Find the largest fd from the back.
         // Watch out for ServerFD! ( for ServerFD the Player pointer is NULL. )
-        int i = m_MaxFD;
-        for (; i >= m_MinFD; i--) {
+        const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+        int i = walk.last;
+        for (; i >= walk.first; i--) {
             if (m_pPlayers[i] != NULL || i == m_ServerFD) {
                 m_MaxFD = i;
                 break;
@@ -508,7 +522,7 @@ void LoginPlayerManager::deletePlayer_NOLOCKED(SOCKET fd) {
         }
 
         // When no suitable m_MinFD was found,
-        if (i < m_MinFD) {
+        if (i < walk.first) {
             throw UnknownError("m_MinFD & m_MaxFD problem.");
         }
     }
@@ -546,7 +560,8 @@ LoginPlayer* LoginPlayerManager::getPlayer_NOLOCKED(const string& id) const {
     LoginPlayer* pLoginPlayer = NULL;
 
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (m_pPlayers[i] != NULL) {
             if (m_pPlayers[i]->getID() == id) {
                 pLoginPlayer = dynamic_cast<LoginPlayer*>(m_pPlayers[i]);
@@ -585,7 +600,8 @@ LoginPlayer* LoginPlayerManager::getPlayer(const string& id) const {
 void LoginPlayerManager::broadcastPacket(Packet* pPacket) {
     __BEGIN_TRY
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (m_pPlayers[i] != NULL) {
             m_pPlayers[i]->sendPacket(pPacket);
         }
@@ -601,7 +617,8 @@ void LoginPlayerManager::broadcastPacket(Packet* pPacket) {
 void LoginPlayerManager::sendPacket(const string& id, Packet* pPacket) {
     __BEGIN_TRY
 
-    for (int i = m_MinFD; i <= m_MaxFD; i++) {
+    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
+    for (int i = walk.first; i <= walk.last; i++) {
         if (m_pPlayers[i] != NULL) {
             if (m_pPlayers[i]->getID() == id) {
                 m_pPlayers[i]->sendPacket(pPacket);

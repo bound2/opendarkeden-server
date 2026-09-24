@@ -16,6 +16,7 @@
 #include "Creature.h"
 #include "DarkLightInfo.h"
 #include "DefaultOptionSetInfo.h"
+#include "Deployment.h"
 #include "DynamicZone.h"
 #include "EffectAddItem.h"
 #include "EffectAddItemToCorpse.h"
@@ -816,15 +817,19 @@ void Zone::load(bool bOutput)
                                     targetZoneID, targetX, targetY);
                             pTrigger->setActions(str);
 
-                            // by sigi. 2002.10.30
-                            if (config.getPropertyInt("IsNetMarble") == 0) {
+                            // A player the pay-zone condition turns away is
+                            // told which kind of zone refused them, the way
+                            // the other pay-zone portal does. A NetMarble
+                            // deployment bills through the portal and has no
+                            // pay zone to name, so it refuses in general
+                            // terms.
+                            if (!de::isNetMarbleDeployment()) {
                                 sprintf(str2, "ActionType : SystemMessage\n\t Content : %d",
                                         STRID_CANNOT_ENTER_PAY_ZONE);
 
                                 pTrigger->setCounterActions(str2);
 
                             } else {
-                                //                                           g_pStringPool->c_str( STRID_CANNOT_ENTER )
                                 sprintf(str2, "ActionType : SystemMessage\n\t Content : %d", STRID_CANNOT_ENTER);
 
                                 pTrigger->setCounterActions(str2);

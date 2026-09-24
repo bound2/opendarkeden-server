@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "Assert.h"
+#include "ConnectionSettings.h"
 #include "DB.h"
 #include "KernelContext.h"
 #include "Properties.h"
@@ -64,26 +65,15 @@ void DatabaseManager::init() {
         cout << "            Init DatabaseManager " << endl;
         cout << "--------------------------------------------------" << endl;
 
-        string host = config.getProperty("DB_HOST");
-        string db = config.getProperty("DB_DB");
-        string user = config.getProperty("DB_USER");
-        string password = config.getProperty("DB_PASSWORD");
-        uint port = 0;
-        if (config.hasKey("DB_PORT"))
-            port = config.getPropertyInt("DB_PORT");
-
-        m_pDefaultConnection = new Connection(host, db, user, password, port);
+        // Each database is configured under a prefix of its own, so the game
+        // database's address can never be mixed with the account database's.
+        const de::ConnectionSettings game = de::connectionSettings(config, "DB");
+        m_pDefaultConnection = new Connection(game.host, game.db, game.user, game.password, game.port);
         Assert(m_pDefaultConnection != NULL);
 
-        string uihost = config.getProperty("UI_DB_HOST");
-        string uidb = config.getProperty("UI_DB_DB");
-        string uiuser = config.getProperty("UI_DB_USER");
-        string uipassword = config.getProperty("UI_DB_PASSWORD");
-        uint uiport = 0;
-        if (config.hasKey("DB_PORT"))
-            uiport = config.getPropertyInt("DB_PORT");
-
-        m_pUserInfoConnection = new Connection(uihost, uidb, uiuser, uipassword, uiport);
+        const de::ConnectionSettings userInfo = de::connectionSettings(config, "UI_DB");
+        m_pUserInfoConnection =
+            new Connection(userInfo.host, userInfo.db, userInfo.user, userInfo.password, userInfo.port);
         Assert(m_pUserInfoConnection != NULL);
 
 

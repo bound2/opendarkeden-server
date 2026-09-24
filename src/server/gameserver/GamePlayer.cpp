@@ -13,6 +13,7 @@
 #include "Assert.h"
 #include "CGConnect.h"
 #include "Creature.h"
+#include "Deployment.h"
 #include "EventKick.h"
 #include "GCKickMessage.h"
 #include "GCSystemMessage.h"
@@ -1007,12 +1008,11 @@ void GamePlayer::logLoginoutDateTime() {
     if (m_pCreature == NULL)
         return;
 
-    // Work out the DimensionID
+    // The dimension the row belongs to: the configured one, except on a
+    // NetMarble deployment, whose rows all go to dimension 2.
     uint dimensionID = config.getPropertyInt("Dimension");
-    if (config.getPropertyInt("IsNetMarble") == 0) {
-        // 2 for Netmarble
+    if (de::isNetMarbleDeployment())
         dimensionID = 2;
-    }
 
     // WorldID
     uint worldID = config.getPropertyInt("WorldID");

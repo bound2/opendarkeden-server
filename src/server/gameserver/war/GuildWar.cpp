@@ -10,6 +10,7 @@
 #include "CastleInfoManager.h"
 #include "CastleShrineInfoManager.h"
 #include "DB.h"
+#include "Deployment.h"
 #include "GCNoticeEvent.h"
 #include "GCSystemMessage.h"
 #include "GCWarScheduleList.h"
@@ -142,7 +143,7 @@ void GuildWar::executeEnd()
     if (m_bModifyCastleOwner) {
         castleInfos.modifyCastleOwner(m_CastleZoneID, m_WinnerRace, m_WinnerGuildID);
 
-        if (de::kernelContext().config().getPropertyInt("IsNetMarble") == 1) {
+        if (de::isNetMarbleDeployment()) {
             char sCommand[100];
             sprintf(sCommand, "*world *command setCastleOwnerGuild %u %u", m_CastleZoneID, m_WinnerGuildID);
             de::gm::opworld(NULL, sCommand, 0, true);

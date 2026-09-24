@@ -15,6 +15,7 @@
 #include "CastleInfoManager.h"
 #include "Creature.h"
 #include "CreatureUtil.h"
+#include "Deployment.h"
 #include "DynamicZone.h"
 #include "DynamicZoneGateOfAlter.h"
 #include "EffectPacketSend.h"
@@ -1338,7 +1339,7 @@ void MonsterManager::addItem(Monster* pDeadMonster, MonsterCorpse* pMonsterCorps
             Zone* pZone = pDeadMonster->getZone();
 
             // Zone the jackpot event applies to.
-            static bool isNetMarble = de::kernelContext().config().getPropertyInt("IsNetMarble") != 0;
+            static bool isNetMarble = de::isNetMarbleDeployment();
             bool isLottoZone = pZone->isPayPlay() || isNetMarble;
 
             if (pZone->isPayPlay() || pZone->isPremiumZone()) {
