@@ -11,7 +11,7 @@ void EffectGDRLairClose::affect() {
     setNextTime(600);
 
     char msg[200];
-    sprintf(msg, "%d롸빈,쉥밑균훑댐흩契묵흙왯.", m_MinutesCount);
+    sprintf(msg, "The Gilles de Rais Lair entrance closes in %d minutes.", m_MinutesCount);
     GCSystemMessage gcSM;
     gcSM.setMessage(msg);
     de::gameContext().zoneGroups().broadcast(&gcSM);
@@ -21,11 +21,11 @@ void EffectGDRLairClose::affect() {
 void EffectGDRLairClose::unaffect() {
     __BEGIN_TRY
 
-    cout << "질드레 레어 닫습니다." << endl;
+    cout << "Closing the GDR lair." << endl;
     GDRLairManager::Instance().close();
 
     GCSystemMessage gcSM;
-    gcSM.setMessage("훑댐흩契묵綠밑균.");
+    gcSM.setMessage("The Gilles de Rais Lair is closed.");
     de::gameContext().zoneGroups().broadcast(&gcSM);
 
     __END_CATCH
