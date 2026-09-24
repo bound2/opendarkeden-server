@@ -12,51 +12,48 @@
 // (AccountPoint, PointLedger), plus the transaction pair the buy path
 // wraps around a purchase.
 //
-// Connections. The listing and order statements run on the thread's
-// DARKEDEN connection. The point statements ask
-// de::serverContext().database().getConnection("USERINFO") -- but the string overload
-// ignores its argument and returns that same DARKEDEN connection (the
-// USERINFO socket is getUserInfoConnection(), which nothing here calls).
-// initdb/DARKEDEN.sql does not create AccountPoint or PointLedger -- both
-// are in initdb/USERINFO.sql -- so against the shipped schema every point
-// statement fails with ER_NO_SUCH_TABLE, is logged to DBError.log and
-// thrown as END_DB's DatabaseError. ExchangeService::buyListing reads the
-// ledger (the replay check, then the buyer's balance) before the
-// transaction pair opens, so a buy always throws out of
-// CGExchangeBuyHandler, where GamePlayer::processCommand's catch (...)
-// disconnects the buyer.
+// One connection. Every statement runs on the thread's game connection
+// (DatabaseManager::getConnection, the DB_* block). The listings and orders
+// live in that connection's own schema; AccountPoint and PointLedger live
+// in the account database (initdb/USERINFO.sql), and the point statements
+// name them by that schema -- `<schema>`.AccountPoint -- instead of asking
+// for a connection of their own. The account connection
+// (getUserInfoConnection()) is one per process, shared by every thread
+// without a lock, so a zone thread's purchase cannot run on it; by schema
+// name the ledger runs on the thread's own connection, and a purchase is
+// one transaction on one connection whose commit is atomic.
+//
+// The point ledger opens at startup. openExchangePointLedger (below) names
+// the account schema -- the gameserver passes the configuration's UI_DB_DB --
+// and checks, on the calling thread's game connection, that the game and
+// account connections reach one MySQL server (their @@server_uuid) and that
+// every statement shape the ledger issues runs there against no row: the
+// tables, their columns and DB_USER's privileges on them. Until a check
+// passes the ledger is closed: pointLedgerOpen() answers false,
+// decideBuyListing refuses every buy as a database error before any point
+// statement, and a point statement called anyway throws a DatabaseError.
+// The rest of the Exchange (listing, browsing, claims) does not need the
+// ledger and keeps working. So a deployment whose UI_DB_* block names
+// another server, a schema DB_USER may not write, or no schema at all runs
+// without Exchange purchases, and the gameserver says so at startup
+// (ExchangeService::openPointLedger) rather than at the first buy.
 //
 // The transaction pair. A purchase (completeExchangePurchase in
 // exchange/ExchangePurchase.h) runs its writes between beginTransaction and
 // commit under an ExchangeTransaction guard, which calls rollback on every
-// other way out, a thrown DatabaseError included. Each of the three issues
-// its statement on the market connection (the DARKEDEN name) and then on
-// the ledger connection (the USERINFO name) when that is a different
-// connection. Today it is the same one, so a purchase is one transaction
-// on one connection and its commit is atomic.
-//
-// The two-connection shape, which the pair keeps ready for a ledger on a
-// connection of its own: two databases cannot share a transaction, so the
-// order of the steps carries the argument.
-//  - The writes run market first and ledger second: the claim
-//    (markListingSold, whose UPDATE takes the listing's row lock and
-//    matches only an ACTIVE row), the order, then the buyer's debit and the
-//    seller's credit. A failure at any of them, refused or thrown, rolls
-//    both back, so no write survives a failed purchase.
-//  - The commits run market first too. A failure between the two leaves the
-//    listing SOLD with a PAID order and no ledger rows behind it: one order
-//    whose payment is missing, found by its ListingID having no PointLedger
-//    row with that RefListingID, and closed to every other buyer; the buyer
-//    is told a transaction error while holding that PAID order. The other
-//    order would leave the points moved and the listing ACTIVE, open to a
-//    second buyer who pays the seller again.
-//  - Every purchase takes its market locks before its ledger locks, so no
-//    lock wait cycles through both connections; a cycle within one of them
-//    is InnoDB's to detect, and its deadlock error is a thrown failure like
+// other way out, a thrown DatabaseError included. The three are START
+// TRANSACTION, COMMIT and ROLLBACK on the game connection, so the claim,
+// the order and both ledger rows commit together or not at all.
+//  - The writes run in one order: the claim (markListingSold, whose UPDATE
+//    takes the listing's row lock and matches only an ACTIVE row), the
+//    order, then the buyer's debit and the seller's credit. A failure at
+//    any of them, refused or thrown, rolls all of them back.
+//  - Every purchase takes its listing lock before its ledger locks, so two
+//    purchases wait on each other in one order; a cycle they still form is
+//    InnoDB's to detect, and its deadlock error is a thrown failure like
 //    any other.
-//  - rollback tries every connection and rethrows the first failure once
-//    both were tried. A ROLLBACK with nothing begun, or after its COMMIT
-//    went through, is a no-op.
+//  - A ROLLBACK with nothing begun, or after its COMMIT went through, is a
+//    no-op.
 //
 // Collisions. Two buyers of one listing -- two zone threads of one server,
 // or two servers of one world -- meet at the claim: the second UPDATE waits
@@ -70,7 +67,7 @@
 // refuses as a replay.
 //
 // Text arguments (accounts, players, item names, idempotency keys) are
-// escaped with mysql_real_escape_string on the DARKEDEN connection, or by
+// escaped with mysql_real_escape_string on the game connection, or by
 // a manual quote/backslash pass when no connection is up; the datetime
 // text expireAt is interpolated raw. CreatedAt, UpdatedAt, SoldAt,
 // CancelledAt and DeliveredAt are the server process's local time,
@@ -138,7 +135,7 @@ class ExchangeRepository {
 public:
     virtual ~ExchangeRepository() {}
 
-    // --- listings (DARKEDEN) ------------------------------------------------
+    // --- listings (the game schema) ----------------------------------------
     // INSERT of every column but ListingID, then SELECT LAST_INSERT_ID() on
     // the same Statement; the new id, or 0 when the id read answers no row
     // (it always answers one).
@@ -168,7 +165,7 @@ public:
     // NOW(), oldest ExpireAt first.
     virtual std::vector<ExchangeListing> getExpiredListings() = 0;
 
-    // --- orders (DARKEDEN) --------------------------------------------------
+    // --- orders (the game schema) ------------------------------------------
     // INSERT of the eight non-id columns (CreatedAt = now), then SELECT
     // LAST_INSERT_ID() on the same Statement; the new id, or 0.
     virtual int64_t createOrder(const ExchangeOrder& order) = 0;
@@ -180,8 +177,12 @@ public:
     // (INNER JOIN on ListingID), newest first.
     virtual std::vector<ExchangeOrder> getSellerOrders(const std::string& sellerPlayer, uint8_t status) = 0;
 
-    // --- the point ledger (asks for USERINFO, reaches DARKEDEN) -----------
-    // Up to four statements on one connection, each on its own Statement:
+    // --- the point ledger (the account schema, by name) --------------------
+    // Each throws a DatabaseError while the ledger is closed (see the note
+    // above).
+    //
+    // Up to four statements on the game connection, each on its own
+    // Statement:
     // when a key is given, a count of the PointLedger rows carrying it
     // (false, nothing written, when one exists); the account's
     // AccountPoint.PointBalance, read FOR UPDATE so a concurrent adjustment
@@ -199,21 +200,31 @@ public:
     virtual int getPointBalance(const std::string& account) = 0;
     // Whether any PointLedger row carries this IdempotencyKey.
     virtual bool hasIdempotencyKey(const std::string& idempotencyKey) = 0;
+    // Whether the point statements can run: false until a check of the
+    // account schema passed (openExchangePointLedger), and after one that
+    // failed.
+    virtual bool pointLedgerOpen() = 0;
 
     // --- the transaction pair (see the note above) ------------------------
-    // START TRANSACTION on the market connection, then on the ledger
-    // connection when it is another one. True, or a thrown DatabaseError;
-    // a failure on the second leaves the first open for rollback().
+    // START TRANSACTION on the game connection. True, or a thrown
+    // DatabaseError.
     virtual bool beginTransaction() = 0;
-    // COMMIT the same way, market first. True, or a thrown DatabaseError.
+    // COMMIT on it. True, or a thrown DatabaseError.
     virtual bool commit() = 0;
-    // ROLLBACK on each distinct connection, every one attempted; the first
-    // failure is rethrown after the last. True otherwise.
+    // ROLLBACK on it. True, or a thrown DatabaseError.
     virtual bool rollback() = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in
 // MySQLExchangeRepository.cpp.
 ExchangeRepository& defaultExchangeRepository();
+
+// Name the schema the point tables live in and check it from the calling
+// thread's game connection (the checks are in the note above). True opens
+// the default repository's point ledger; false closes it and says in
+// failure which check failed and what MySQL answered. It writes state every
+// thread reads, so it runs during single-threaded startup, before any
+// thread can buy; the gameserver's call is ExchangeService::openPointLedger.
+bool openExchangePointLedger(const std::string& accountSchema, std::string& failure);
 
 #endif // __EXCHANGE_REPOSITORY_H__

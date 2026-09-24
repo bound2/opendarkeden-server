@@ -183,7 +183,9 @@ struct ExchangePurchaseTerms {
 
 // May this buyer take this listing, and on what terms?
 //
-// Refused, in this order, when the ledger already holds the buyer's row of
+// Refused, in this order, when the point ledger is closed (a database error
+// naming it: the account schema failed its startup check, see
+// ExchangeRepository.h), when the ledger already holds the buyer's row of
 // this key (exchangeLedgerKey with kExchangeBuyLedgerSuffix), when the id
 // names no listing, when the listing is not active, when it belongs to
 // another server, when the buyer is its seller, and when the buyer cannot

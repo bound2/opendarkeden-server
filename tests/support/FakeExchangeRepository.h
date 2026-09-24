@@ -28,6 +28,10 @@
 //  - The transaction trio is counted and honoured as one transaction:
 //    beginTransaction takes a copy of every table, rollback puts the copy
 //    back and commit drops it. Nested transactions are not modeled.
+//  - The point ledger is open unless closePointLedger() closed it, as a
+//    failed startup check of the account schema leaves the MySQL one; the
+//    point methods still answer while it is closed, since only the
+//    decision's refusal ahead of them is under test.
 //  - A statement fails on request: failOn() makes the nth call of
 //    markListingSold, createOrder, adjustPoints, hasIdempotencyKey or one of
 //    the transaction trio throw a DatabaseError, as END_DB does, before it
@@ -72,6 +76,10 @@ public:
         added.account = account;
         added.balance = balance;
         m_Points.push_back(added);
+    }
+
+    void closePointLedger() {
+        m_PointLedgerOpen = false;
     }
 
     // --- test inspection ----------------------------------------------------
@@ -266,6 +274,10 @@ public:
         return holdsKey(idempotencyKey);
     }
 
+    bool pointLedgerOpen() {
+        return m_PointLedgerOpen;
+    }
+
     bool beginTransaction() {
         call("beginTransaction");
         ++m_Begun;
@@ -354,6 +366,7 @@ private:
     int m_Commits = 0;
     int m_Rollbacks = 0;
     bool m_InTransaction = false;
+    bool m_PointLedgerOpen = true;
     Tables m_Saved;
     std::vector<LedgerRow> m_CommittedElsewhere;
     std::map<std::string, int> m_Calls;

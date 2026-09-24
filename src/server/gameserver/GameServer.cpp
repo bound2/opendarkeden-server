@@ -25,6 +25,7 @@
 #include "SharedServerManager.h"
 #include "SystemAPI.h"
 #include "ThreadManager.h"
+#include "exchange/ExchangeService.h"
 #include "mofus/Mofus.h"
 #ifdef __MOFUS__
 #include "mofus/MPacketManager.h"
@@ -145,6 +146,11 @@ void GameServer::init()
     // Initialize the database manager.
     m_pDatabaseManager->init();
     cout << "GameServer::init() : DatabaseManager Initialization Success..." << endl;
+
+    // The Exchange's point ledger is reached from the game connection by the
+    // account schema's name; a deployment where that fails runs without
+    // Exchange purchases, and this is where it is told so.
+    ExchangeService::openPointLedger();
 
     // Initialize the object manager through the database manager.
     m_pObjectManager->init();

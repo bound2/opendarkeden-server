@@ -274,7 +274,14 @@ must be set correctly), `DB_HOST` (database address) and `LoginServerIP`.
 The `WorldDBInfo` and `GameServerInfo` database tables must agree with these
 files. Each connection is one block of keys (`DB_*` for the game database,
 `UI_DB_*` for the account database, which the gameserver's second connection
-reads too); there is no `DIST_DB_*` block. Code reads the loaded configuration through
+reads too); there is no `DIST_DB_*` block. The Exchange's point tables
+(`AccountPoint`, `PointLedger`) are reached from the game connection by the
+account schema's name (`UI_DB_DB`), so a purchase is one transaction on one
+connection: for the Exchange both blocks must name one MySQL server, and
+`DB_USER` must be able to read and write those two tables. The gameserver
+checks that at startup (`ExchangeService::openPointLedger`); when it fails
+it starts anyway with Exchange purchases refused, and says why on stderr and
+in `DBError.log`. Code reads the loaded configuration through
 `de::kernelContext().config()`, which each `main()` registers right after
 loading it and which asserts on a configuration nobody registered: a read
 before that point is a startup-order bug, not a condition to branch on.

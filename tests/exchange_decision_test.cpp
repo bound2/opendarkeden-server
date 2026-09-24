@@ -327,6 +327,25 @@ TEST(ExchangeBuyDecision, ListingStateOutranksThePurse) {
     EXPECT_EQ(EXCHANGE_FAIL_LISTING_NOT_AVAILABLE, decideBuyListing(repository, buyRequest()).rejection().code);
 }
 
+TEST(ExchangeBuyDecision, AClosedLedgerRefusesEveryBuyBeforeAnyRead) {
+    FakeExchangeRepository repository;
+    repository.addListing(activeListing());
+    repository.setPointBalance("Buyer", 500);
+    repository.closePointLedger();
+    // A read that reached the ledger would throw.
+    repository.failOn("hasIdempotencyKey");
+
+    ExchangeBuyRequest request = buyRequest();
+    request.idempotencyKey = "key";
+    auto result = decideBuyListing(repository, request);
+
+    ASSERT_TRUE(result.isRejected());
+    EXPECT_EQ(EXCHANGE_FAIL_DATABASE_ERROR, result.rejection().code);
+    EXPECT_EQ("Database error: point ledger unavailable", result.rejection().message());
+    EXPECT_EQ(0, repository.listingLoads());
+    EXPECT_EQ(0, repository.transactionsBegun());
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // Idempotency keys
 //////////////////////////////////////////////////////////////////////////////
@@ -731,7 +750,7 @@ TEST(ExchangePurchaseWrites, AnAcceptedPurchaseClaimsOrdersPaysAndCommits) {
 }
 
 // The fix's core: a DatabaseError from any write, or from the commit, is
-// caught, both transactions are rolled back, and the buyer is refused with
+// caught, the transaction is rolled back, and the buyer is refused with
 // the step named. Nothing the earlier steps wrote survives.
 TEST(ExchangePurchaseWrites, AThrownFailureAtAnyStepRollsEverythingBack) {
     struct Case {
