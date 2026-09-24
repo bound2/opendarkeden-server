@@ -547,7 +547,10 @@ is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` are
   `Guild::getState()` reads `GUILD_STATE_BROKEN` and `Guild::getMember()`
   answers NULL for every name, while the guild's own counters, teardown list
   and database rows take `getStoredRank()` / `m_State` and still carry what
-  the member and the guild had.
+  the member and the guild had. `GuildUnionManager` has the same shape: its
+  tables are a `GuildUnionRegistry` locked on both sides, a union it takes
+  away is retired and names no member guild, and the lock order is in
+  `GuildUnion.h`.
 - **No creature is written to a `Tile` outside `ZoneSpawn.cpp` and
   `ZoneMove.cpp`.** PC swaps go through `Zone::replacePC`; the move-mode
   swaps, the knockback and NPC-warp moves, and the corpse paths that take a

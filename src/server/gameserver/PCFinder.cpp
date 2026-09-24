@@ -256,19 +256,6 @@ IP_t PCFinder::getIP(const string& name) const {
     __END_CATCH
 }
 
-list<Creature*> PCFinder::getGuildCreatures(GuildID_t gID, uint Num) {
-    unordered_map<string, Creature*>::iterator itr = m_PCs.begin();
-    list<Creature*> ret;
-
-    for (uint i = 0; itr != m_PCs.end() && i < Num; ++itr, ++i) {
-        PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(itr->second);
-        if (pPC != NULL && pPC->getGuildID() == gID)
-            ret.push_back(pPC);
-    }
-
-    return ret;
-}
-
 list<string> PCFinder::getGuildPlayerNames_LOCKED(GuildID_t gID) const {
     list<string> names;
 

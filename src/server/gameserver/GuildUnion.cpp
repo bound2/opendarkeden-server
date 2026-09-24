@@ -62,95 +62,28 @@ void notifyUnionChange(GuildID_t gID) {
 
 } // namespace
 
-GuildUnion::~GuildUnion() {
-    // cout << "GuildUnion : DELETE!!!" << endl;
-}
-
-bool GuildUnion::hasGuild(GuildID_t gID) const {
-    if (gID == m_MasterGuildID)
-        return true;
-
-    if (findGuildItr(gID) != m_Guilds.end())
-        return true;
-
-    return false;
-}
-
-bool GuildUnion::addGuild(GuildID_t gID) {
-    if (hasGuild(gID))
-        return false;
-
-    m_Guilds.push_back(gID);
-
-    defaultGuildRepository().insertUnionMember(m_UnionID, gID);
-
-    return true;
-}
-
-bool GuildUnion::removeGuild(GuildID_t gID) {
-    if (m_MasterGuildID == gID)
-        return false;
-
-    list<GuildID_t>::iterator itr = findGuildItr(gID);
-    if (itr == m_Guilds.end())
-        return false;
-
-    m_Guilds.erase(itr);
-
-    if (!defaultGuildRepository().deleteUnionMember(m_UnionID, gID)) {
-        filelog("GuildUnion.log", "[%u:%u] no member row to remove.", m_UnionID, gID);
-    }
-
-    return true;
-}
-
-void GuildUnion::create() {
-    __BEGIN_TRY
-
-    GuildRepository& repository = defaultGuildRepository();
-
-    m_UnionID = repository.insertUnion(m_MasterGuildID);
-
-    list<GuildID_t>::iterator itr = m_Guilds.begin();
-
-    for (; itr != m_Guilds.end(); ++itr) {
-        repository.insertUnionMember(m_UnionID, (*itr));
-    }
-
-    __END_CATCH
-}
-
-void GuildUnion::destroy() {
-    __BEGIN_TRY
-
-    defaultGuildRepository().deleteUnion(m_UnionID);
-
-    __END_CATCH
-}
-
 GuildUnionManager::GuildUnionManager() {
     m_Mutex.setName("GuildUnionManager");
 }
 
-GuildUnionManager::~GuildUnionManager() {
-    list<GuildUnion*>::iterator itr = m_GuildUnionList.begin();
+// The registry frees the unions, live and retired.
+GuildUnionManager::~GuildUnionManager() = default;
 
-    for (; itr != m_GuildUnionList.end(); ++itr) {
-        SAFE_DELETE((*itr));
+GuildUnion* GuildUnionManager::openUnion(GuildID_t masterGID) {
+    GuildUnion* pUnion = NULL;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    pUnion = m_Unions.unionOfGuild(masterGID);
+
+    if (pUnion == NULL) {
+        const uint unionID = defaultGuildRepository().insertUnion(masterGID);
+        pUnion = m_Unions.publish(std::make_unique<GuildUnion>(unionID, masterGID));
     }
-}
 
-void GuildUnionManager::addGuildUnion(GuildUnion* pUnion) {
-    m_GuildUnionList.push_back(pUnion);
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    m_UnionIDMap[pUnion->getUnionID()] = pUnion;
-    m_GuildUnionMap[pUnion->getMasterGuildID()] = pUnion;
-
-    list<GuildID_t>::iterator itr = pUnion->m_Guilds.begin();
-
-    for (; itr != pUnion->m_Guilds.end(); ++itr) {
-        m_GuildUnionMap[*itr] = pUnion;
-    }
+    return pUnion;
 }
 
 void GuildUnionManager::sendModifyUnionInfo(uint gID) {
@@ -239,19 +172,18 @@ void GuildUnionManager::sendRefreshCommand() {
 bool GuildUnionManager::addGuild(uint uID, GuildID_t gID) {
     __BEGIN_TRY
 
-    GuildUnion* pUnion = getGuildUnionByUnionID(uID);
-    if (pUnion == NULL)
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    if (!m_Unions.addMember(uID, gID))
         return false;
 
-    if (pUnion->addGuild(gID)) {
-        m_GuildUnionMap[gID] = pUnion;
+    defaultGuildRepository().insertUnionMember(uID, gID);
 
-        sendRefreshCommand();
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-        return true;
-    } else {
-        return false;
-    }
+    sendRefreshCommand();
+
+    return true;
 
     __END_CATCH
 }
@@ -259,12 +191,16 @@ bool GuildUnionManager::addGuild(uint uID, GuildID_t gID) {
 bool GuildUnionManager::removeGuildFromUnion(GuildID_t gID) {
     __BEGIN_TRY
 
+    UnionTeardown teardown;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
     GuildRepository& guildRows = defaultGuildRepository();
 
     // The union holding the guild. The lookup maps answer first; a guild they
     // have forgotten may still have a member row naming it, so the tables are
     // asked before the answer is "no union".
-    GuildUnion* pUnion = getGuildUnion(gID);
+    GuildUnion* pUnion = m_Unions.unionOfGuild(gID);
     uint unionID = 0;
     GuildID_t unionMasterGuildID = 0;
     bool unionKnown = false;
@@ -285,7 +221,7 @@ bool GuildUnionManager::removeGuildFromUnion(GuildID_t gID) {
             unionMasterGuildID = rowMasterGuildID;
 
             // The union object, if this server carries one for that id.
-            pUnion = getGuildUnionByUnionID(unionID);
+            pUnion = m_Unions.unionByID(unionID);
         }
     }
 
@@ -308,25 +244,26 @@ bool GuildUnionManager::removeGuildFromUnion(GuildID_t gID) {
             memberGuilds.push_back(*itr);
     }
 
-    const UnionTeardown teardown = decideUnionTeardown(unionKnown, unionMasterGuildID, memberGuilds, gID);
+    teardown = decideUnionTeardown(unionKnown, unionMasterGuildID, memberGuilds, gID);
     if (teardown.action == UnionTeardown::NOTHING)
         return false;
 
     for (size_t m = 0; m < teardown.membersToRemove.size(); m++) {
         const GuildID_t memberID = teardown.membersToRemove[m];
 
-        // Takes the member row with it. The guild stops finding this union
-        // whether or not the union itself survives. A guild the union object
-        // does not list, or no union object at all, leaves the row to go on
-        // its own.
-        if (pUnion != NULL && pUnion->removeGuild(memberID))
-            m_GuildUnionMap.erase(memberID);
-        else
-            guildRows.deleteUnionMember(unionID, memberID);
+        // The guild stops resolving to this union whether or not the union
+        // itself survives, and its member row goes. A guild the union object
+        // did not list only has the row to lose.
+        const bool listed = m_Unions.removeMember(unionID, memberID);
+
+        if (!guildRows.deleteUnionMember(unionID, memberID) && listed)
+            filelog("GuildUnion.log", "[%u:%u] no member row to remove.", unionID, memberID);
     }
 
     if (teardown.action == UnionTeardown::DISSOLVE)
-        destroyUnion(unionID);
+        destroyUnion_LOCKED(unionID);
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     for (size_t n = 0; n < teardown.guildsToNotify.size(); n++)
         notifyUnionChange(teardown.guildsToNotify[n]);
@@ -339,49 +276,32 @@ bool GuildUnionManager::removeGuildFromUnion(GuildID_t gID) {
     __END_CATCH
 }
 
-void GuildUnionManager::destroyUnion(uint uID) {
-    GuildUnion* pUnion = getGuildUnionByUnionID(uID);
+void GuildUnionManager::destroyUnion_LOCKED(uint uID) {
+    // The rows go whether or not this server carries the union in memory.
+    defaultGuildRepository().deleteUnion(uID);
 
-    if (pUnion == NULL) {
-        // Nothing in memory holds the union: its rows are all there is.
-        defaultGuildRepository().deleteUnion(uID);
-        return;
-    }
-
-    pUnion->destroy();
-
-    // Every guild that reaches this union by id has to stop reaching it
-    // before the object goes; a guild left pointing at freed memory would
-    // answer a union lookup with it.
-    const list<GuildID_t> guilds = pUnion->getGuildList();
-    for (list<GuildID_t>::const_iterator itr = guilds.begin(); itr != guilds.end(); ++itr)
-        m_GuildUnionMap.erase(*itr);
-
-    m_GuildUnionMap.erase(pUnion->getMasterGuildID());
-    m_UnionIDMap.erase(uID);
-
-    list<GuildUnion*>::iterator itr = find(m_GuildUnionList.begin(), m_GuildUnionList.end(), pUnion);
-    if (itr != m_GuildUnionList.end())
-        m_GuildUnionList.erase(itr);
-
-    SAFE_DELETE(pUnion);
+    // Every guild that resolved to the union stops resolving to it. A thread
+    // still holding the pointer finds it retired rather than freed.
+    m_Unions.retire(uID);
 }
 
 bool GuildUnionManager::removeGuild(uint uID, GuildID_t gID) {
     __BEGIN_TRY
 
-    GuildUnion* pUnion = getGuildUnionByUnionID(uID);
-    if (pUnion == NULL)
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    if (!m_Unions.removeMember(uID, gID))
         return false;
 
-    if (!pUnion->removeGuild(gID))
-        return false;
-
-    m_GuildUnionMap.erase(gID);
+    if (!defaultGuildRepository().deleteUnionMember(uID, gID))
+        filelog("GuildUnion.log", "[%u:%u] no member row to remove.", uID, gID);
 
     // The master guild alone is not a union.
-    if (pUnion->m_Guilds.empty())
-        destroyUnion(uID);
+    GuildUnion* pUnion = m_Unions.unionByID(uID);
+    if (pUnion != NULL && pUnion->getGuildList().empty())
+        destroyUnion_LOCKED(uID);
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     sendRefreshCommand();
 
@@ -391,49 +311,36 @@ bool GuildUnionManager::removeGuild(uint uID, GuildID_t gID) {
 }
 
 void GuildUnionManager::reload() {
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    list<GuildUnion*>::iterator itr = m_GuildUnionList.begin();
-    list<GuildUnion*>::iterator endItr = m_GuildUnionList.end();
-
-    for (; itr != endItr; ++itr) {
-        GuildUnion* pUnion = *itr;
-        SAFE_DELETE(pUnion);
-    }
-    m_GuildUnionList.clear();
-
-    m_GuildUnionMap.clear();
-    m_UnionIDMap.clear();
-
     load();
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
 }
 
 void GuildUnionManager::load() {
     __BEGIN_TRY
 
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
     GuildRepository& repository = defaultGuildRepository();
 
-    vector<UnionRow> unions = repository.loadUnions();
+    const vector<UnionRow> unions = repository.loadUnions();
+
+    vector<std::unique_ptr<GuildUnion>> fresh;
+    fresh.reserve(unions.size());
 
     for (size_t u = 0; u < unions.size(); u++) {
-        uint uID = unions[u].unionID;
-        GuildID_t gID = unions[u].masterGuildID;
+        const uint uID = unions[u].unionID;
 
-        GuildUnion* pUnion = new GuildUnion(gID);
-        pUnion->setUnionID(uID);
+        list<GuildID_t> memberGuilds;
+        const vector<int> memberRows = repository.loadUnionMemberGuilds(uID);
+        for (size_t m = 0; m < memberRows.size(); m++)
+            memberGuilds.push_back(static_cast<GuildID_t>(memberRows[m]));
 
-        vector<int> memberGuilds = repository.loadUnionMemberGuilds(uID);
-
-        for (size_t m = 0; m < memberGuilds.size(); m++) {
-            GuildID_t gID2 = memberGuilds[m];
-            pUnion->m_Guilds.push_back(gID2);
-            //					pUnion->addGuild( gID2 );
-        }
-
-        addGuildUnion(pUnion);
+        const GuildID_t masterGuildID = static_cast<GuildID_t>(unions[u].masterGuildID);
+        fresh.push_back(std::make_unique<GuildUnion>(uID, masterGuildID, memberGuilds));
     }
+
+    m_Unions.replaceAll(std::move(fresh));
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }
@@ -455,12 +362,13 @@ uint GuildUnionOfferManager::offerJoin(GuildID_t gID, GuildID_t masterGID) {
         }
     }
 
-    //
-    if (pUnion == NULL) {
-        pUnion = new GuildUnion(masterGID);
-        pUnion->create();
-        GuildUnionManager::Instance().addGuildUnion(pUnion);
-    } else if (pUnion->getMasterGuildID() != masterGID) {
+    // The master guild's union, opened now if it has none. Another thread may
+    // have put the guild into a union since the lookup above; openUnion
+    // answers that union, which the guild then may not master.
+    if (pUnion == NULL)
+        pUnion = GuildUnionManager::Instance().openUnion(masterGID);
+
+    if (pUnion->getMasterGuildID() != masterGID) {
         return TARGET_IS_NOT_MASTER;
     }
 
@@ -572,7 +480,10 @@ uint GuildUnionOfferManager::acceptJoin(GuildID_t gID) {
         return NOT_ENOUGH_SLOT;
     }
 
-    GuildUnionManager::Instance().addGuild(uID, gID);
+    // Another change may have come between the checks above and this one:
+    // the guild joined some union, or this union was dissolved.
+    if (!GuildUnionManager::Instance().addGuild(uID, gID))
+        return GuildUnionManager::Instance().getGuildUnion(gID) != NULL ? ALREADY_IN_UNION : NO_TARGET_UNION;
 
     return OK;
 
@@ -601,7 +512,10 @@ uint GuildUnionOfferManager::acceptQuit(GuildID_t gID) {
             return NO_TARGET_UNION;
         }
 
-        GuildUnionManager::Instance().removeGuild(uID, gID);
+        // The guild may have left, or the union been dissolved, since the
+        // checks above.
+        if (!GuildUnionManager::Instance().removeGuild(uID, gID))
+            return NOT_IN_UNION;
     }
 
     return OK;

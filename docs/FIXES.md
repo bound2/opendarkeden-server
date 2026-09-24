@@ -13,6 +13,19 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A player's guild id was read from other threads while its owner wrote it (2026-09-24)
+
+- **`PlayerCreature::m_GuildID` was a plain `WORD` that the thread owning
+  the player writes -- a guild joined or left, or deleted by the
+  sharedserver (`SGDeleteGuildOKHandler`'s posted commands) -- while
+  `PCFinder::getGuildPlayerNames_LOCKED` reads it for every logged-in
+  player on whatever thread walks a guild,** holding the finder's lock,
+  which the owner does not take to write it: a data race on every union
+  broadcast and every guild recall. The finder's lock keeps the creature
+  alive, not its fields. The member is a `std::atomic<GuildID_t>` now, its
+  accessors unchanged. Found while converting the guild walk's callers.
+  > **Status:** fixed (fix/union-lifetime)
+
 ## A GM reload of a castle's war schedule freed wars under the castle's thread (2026-09-24)
 
 - **The GM `reloadinfo war_schedule_info` event ran `WarScheduler::load()`
@@ -387,11 +400,22 @@ repo and the client's. Entries below are newest first; the oldest is the
   critical section, stops after examining its first `Num` players rather
   than after `Num` matches, and returns `Creature*`s the caller uses after
   the walk,** so a login or logout on another thread can invalidate the
-  iteration or a pointer. Its two remaining callers are the GM guild
-  console command and `SiegeManager`. The union broadcasts no longer use
-  it; the shape for the rest is the locked name walk they use now, posting
-  to each name.
-  > **Status:** recorded, not fixed (fix/union-teardown)
+  iteration or a pointer. Its two callers did take the finder's critical
+  section around the walk and used the pointers inside it; what they did
+  with them was the rest of the defect. The GM `*command GuildRecall`, on
+  the GM's zone thread, deleted and added each member's siege effects under
+  `Zone::lock()` -- the narrower zone mutex, which does not exclude the
+  member's own zone-group tick -- and transported members out of zones
+  ticking on other threads. `getGuildCreatures` is gone. The console
+  command names the guild's players under the finder's lock
+  (`PCFinder::getGuildPlayerNames_LOCKED`) and posts each recall, effects
+  and transport, to the thread that owns that player (`de::postToPlayer`),
+  recalling at most the requested number of members (one when the count is
+  below one) rather than examining that many players. The other caller,
+  `SiegeManager::recallGuild`, had no caller of its own and was deleted.
+  The walk reads each player's guild id from other threads; that race is
+  "A player's guild id was read from other threads", above.
+  > **Status:** fixed (fix/union-lifetime)
 
 ## Accepting the last member's quit used the union after it was freed (2026-09-24)
 
@@ -501,14 +525,32 @@ repo and the client's. Entries below are newest first; the oldest is the
   `addGuild`/`removeGuild` and `reload()` on a zone thread, and read by
   every zone thread that builds a character's union standing --
   concurrently, with no lock between them, and with `SAFE_DELETE` of a
-  `GuildUnion` among the writes. Erasing a guild's entries before the
-  object goes (above) closes the window a reader had after a dissolve, but
-  not the race itself: a reader that already holds the pointer, or that is
-  walking a bucket chain a writer rehashes, is still unsynchronised. The
-  fix is the one the guild managers took -- lock both sides and retire
-  rather than free -- and it needs a decision about union lifetime this
-  branch did not take.
-  > **Status:** recorded, not fixed (fix/union-teardown)
+  `GuildUnion` among the writes. The tables are a `GuildUnionRegistry`
+  now (`gameserver/guild/GuildUnionRegistry.{h,cpp}`, covered by
+  `tests/guild_union_registry_test.cpp`), which takes its own mutex for
+  every lookup and every change, and a union it lets go of -- dissolved,
+  or replaced by a reload -- is retired rather than freed, as the guild
+  managers do. A retired union keeps its id and its master: that is what
+  a reader read a moment earlier, and all it hands back to the manager,
+  which resolves the id again under the lock and finds nothing. It names
+  no guild as a member (`hasGuild()` false, `getGuildList()` empty), and
+  the two readers that act on the member list alone, union chat and the
+  union info window, treat a retired union as none. A `GuildUnion` is an
+  in-memory object only -- id and master fixed at construction, member
+  list under its own leaf mutex -- and the manager writes the rows.
+  `GuildUnionManager::m_Mutex` now serialises the changes, each holding it
+  across its table reads, row writes and registry writes, so changes no
+  longer interleave: `offerJoin` could open two unions for one master
+  (`openUnion` checks and opens under the mutex), and `acceptJoin` and
+  `acceptQuit` answered OK for a join or quit a concurrent change had
+  already made impossible, which they now report. The lock order --
+  manager, registry, union, all taken after anything a caller holds, with
+  nothing else taken under them -- is written in `GuildUnion.h`; the
+  guild-master lookups, the notifications and the refresh to the other
+  game servers run after the manager mutex is released. A reload reads the
+  tables before it swaps anything, so a failed read leaves the old set in
+  place rather than an empty one.
+  > **Status:** fixed (fix/union-lifetime)
 
 ## A siege's challenger array is written one past its end (2026-09-24)
 

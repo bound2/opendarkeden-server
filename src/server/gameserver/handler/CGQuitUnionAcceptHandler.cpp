@@ -71,8 +71,8 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
         return;
     }
 
-    // The quit may dissolve the union and free it, so its id is read first
-    // and pUnion is not used past this call.
+    // The quit may dissolve the union, which retires it (GuildUnion.h); the id
+    // is read first and pUnion is not used past this call.
     const auto unionID = pUnion->getUnionID();
 
     uint result = GuildUnionOfferManager::Instance().acceptQuit(pPacket->getGuildID());

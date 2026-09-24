@@ -54,6 +54,8 @@
 #include "PCManager.h"
 #include "PKZoneInfoManager.h"
 #include "PacketUtil.h"
+#include "PlayerCreature.h"
+#include "PlayerMailbox.h"
 #include "Properties.h"
 #include "Relic.h"
 #include "RelicUtil.h"
@@ -1400,46 +1402,44 @@ void opGuildRecall(GamePlayer* pGamePlayer, const string& value1, GCSystemMessag
         }
     }
 
-    __ENTER_CRITICAL_SECTION(de::gameContext().playerCreatures())
+    // The coordinates to summon to: the GM's own, read on the GM's zone thread.
+    const ZoneID_t zoneID = pCreature->getZoneID();
+    const Coord_t zoneX = pCreature->getX();
+    const Coord_t zoneY = pCreature->getY();
 
-    list<Creature*> clist = de::gameContext().playerCreatures().getGuildCreatures(gid, 200);
+    // The guild's players are named under the finder's lock and each recall
+    // is posted to the thread that owns that player (PlayerMailbox.h): the
+    // effects and the transport change the player's zone, which may be
+    // ticking on another thread. At most `num` players are recalled, and a
+    // count below one still recalls one.
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
+    list<string> names;
 
-    for (list<Creature*>::const_iterator itr = clist.begin(); itr != clist.end(); ++itr) {
-        Creature* pTargetCreature = *itr;
-        if (pTargetCreature == NULL)
-            continue;
+    __ENTER_CRITICAL_SECTION(pcFinder)
 
-        // The coordinates to summon to.
-        ZoneID_t ZoneNum = pCreature->getZoneID();
-        Coord_t ZoneX = pCreature->getX();
-        Coord_t ZoneY = pCreature->getY();
+    names = pcFinder.getGuildPlayerNames_LOCKED(gid);
 
-        if (pCreature->getZoneID() != pTargetCreature->getZoneID()) {
-            pTargetCreature->getZone()->lock();
-        }
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
-        for (int i = 0; i < 7; ++i) {
-            deleteCreatureEffect(pTargetCreature, (Effect::EffectClass)(Effect::EFFECT_CLASS_SIEGE_DEFENDER + i));
-        }
+    const size_t maxRecalled = num > 0 ? (size_t)num : 1;
+    size_t recalled = 0;
 
-        if (side < 8 && side > 0) {
-            cout << "side : " << side << endl;
-            addSimpleCreatureEffect(pTargetCreature,
-                                    (Effect::EffectClass)(Effect::EFFECT_CLASS_SIEGE_DEFENDER + side - 1));
-        }
+    for (list<string>::const_iterator itr = names.begin(); itr != names.end() && recalled < maxRecalled; ++itr) {
+        const bool posted = de::postToPlayer(*itr, [zoneID, zoneX, zoneY, side](PlayerCreature& pc, Player&) {
+            for (int i = 0; i < 7; ++i) {
+                deleteCreatureEffect(&pc, (Effect::EffectClass)(Effect::EFFECT_CLASS_SIEGE_DEFENDER + i));
+            }
 
-        if (pCreature->getZoneID() != pTargetCreature->getZoneID()) {
-            pTargetCreature->getZone()->unlock();
-        }
+            if (side < 8 && side > 0) {
+                addSimpleCreatureEffect(&pc, (Effect::EffectClass)(Effect::EFFECT_CLASS_SIEGE_DEFENDER + side - 1));
+            }
 
+            transportCreature(&pc, zoneID, zoneX, zoneY, false);
+        });
 
-        transportCreature(pTargetCreature, ZoneNum, ZoneX, ZoneY, false);
-        num--;
-        if (num <= 0)
-            break;
+        if (posted)
+            recalled++;
     }
-
-    __LEAVE_CRITICAL_SECTION(de::gameContext().playerCreatures())
 }
 
 // *command ResetSiege
