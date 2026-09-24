@@ -3,6 +3,8 @@ name: C++20 build and tests
 on:
   push:
     branches: [master]
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -19,3 +21,16 @@ jobs:
         run: bash tools/devbuild.sh test
       - name: Compile every production target
         run: bash tools/devbuild.sh build
+
+  websocket-gateway:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tools/websocket/package-lock.json
+      - run: npm ci --ignore-scripts && npm test
+        working-directory: tools/websocket

@@ -83,6 +83,14 @@ LoginPlayerManager::~LoginPlayerManager() noexcept {
 void LoginPlayerManager::init() {
     __BEGIN_TRY
 
+    const auto& config = de::kernelContext().config();
+    if (config.hasKey("GatewayProxyPort")) {
+        const int port = config.getPropertyInt("GatewayProxyPort");
+        if (port < 1 || port > 65535)
+            throw Error("GatewayProxyPort must be between 1 and 65535");
+        m_ProxyAcceptor = std::make_unique<de::ProxyAcceptor>(static_cast<unsigned short>(port));
+    }
+
     // Retry until the bind succeeds
     while (1) {
         try {
@@ -202,6 +210,11 @@ void LoginPlayerManager::processInputs() {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    if (m_ProxyAcceptor) {
+        for (auto& client : m_ProxyAcceptor->poll())
+            acceptNewConnection(client.release());
+    }
 
     const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
     for (int i = walk.first; i <= walk.last; i++) {
@@ -363,16 +376,17 @@ void LoginPlayerManager::processOutputs() {
 // Only connections from an IP registered in the BAN DB are refused.
 //
 //////////////////////////////////////////////////////////////////////
-void LoginPlayerManager::acceptNewConnection() {
+void LoginPlayerManager::acceptNewConnection(Socket* forwarded) {
     __BEGIN_TRY
 
     // When waiting for a connection in blocking mode
     // the returned value can never be NULL.
     // NonBlockingIOException cannot be thrown either.
-    Socket* client = NULL;
+    Socket* client = forwarded;
 
     try {
-        client = m_pServerSocket->accept();
+        if (!client)
+            client = m_pServerSocket->accept();
     } catch (Throwable& t) {
     }
 

@@ -1,5 +1,9 @@
 # opendarkeden-server
 
+Browser and native WebSocket clients can use the optional
+[WebSocket gateway](docs/websocket.md), which preserves player IPs across
+login and game handoffs while retaining the existing TCP listeners.
+
 ## Install using Docker
 
 Everything below builds the server **from the sources in this repository** - no

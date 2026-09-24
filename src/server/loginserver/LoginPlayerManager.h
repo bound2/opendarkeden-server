@@ -13,6 +13,7 @@
 #include "DescriptorPollSet.h"
 #include "Exception.h"
 #include "PlayerManager.h"
+#include "ProxyAcceptor.h"
 #include "ServerSocket.h"
 #include "Types.h"
 
@@ -40,7 +41,7 @@ public:
     void init();
 
     // accept new connection
-    void acceptNewConnection();
+    void acceptNewConnection(Socket* forwarded = nullptr);
 
     // Ask the kernel which of this manager's descriptors are ready.
     void pollSockets();
@@ -90,6 +91,7 @@ public:
 private:
     // Server socket
     ServerSocket* m_pServerSocket;
+    std::unique_ptr<de::ProxyAcceptor> m_ProxyAcceptor;
 
     // Server socket descriptor ( for fast reference )
     SOCKET m_ServerFD;
