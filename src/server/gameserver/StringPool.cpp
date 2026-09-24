@@ -42,13 +42,14 @@ void StringPool::load()
         next[strID] = rows[r].text;
     }
 
+    // Keep the map being replaced: a reader may hold a const char* into one
+    // of its strings. The mutex spans the swap, so two reloads cannot both
+    // retain the same old map and let the one between them go.
+    std::lock_guard<std::mutex> lock(m_RetainedMutex);
     std::shared_ptr<const StringHashMap> replaced = m_Strings.load();
 
     m_Strings.update([&next](StringHashMap& table) { table = std::move(next); });
 
-    // Keep the map just replaced: a reader may hold a const char* into one
-    // of its strings.
-    std::lock_guard<std::mutex> lock(m_RetainedMutex);
     m_RetainedStrings.push_back(std::move(replaced));
 
     __END_CATCH

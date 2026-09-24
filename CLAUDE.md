@@ -540,7 +540,9 @@ is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` are
   triggers retires too, never frees) and stays readable, stale, until the managers
   are destroyed. A retired object says so: an atomic flag set where the
   retirement happens, under the lock that already covers it, and the answers
-  a stale pointer gives enforce it, so no reader has to remember a check.
+  a stale pointer gives enforce it, so a reader that decides on a rank or a
+  state needs no check of its own; the readers that decide membership alone
+  test `isRetired()`.
   `GuildMember::getRank()` reads `GUILDMEMBER_RANK_LEAVE` once retired,
   `Guild::getState()` reads `GUILD_STATE_BROKEN` and `Guild::getMember()`
   answers NULL for every name, while the guild's own counters, teardown list

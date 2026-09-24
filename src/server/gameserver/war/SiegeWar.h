@@ -5,6 +5,7 @@
 #ifndef __SIEGE_WAR_H__
 #define __SIEGE_WAR_H__
 
+#include "SiegeRegistrationDecision.h"
 #include "War.h"
 
 class Mutex;
@@ -56,9 +57,14 @@ public:
     GuildID_t getAttackerGuildID() const override {
         return m_ChallangerGuildID[0];
     }
+    bool isAttackerGuild(GuildID_t gID) const override {
+        for (unsigned int i = 0; i < MaxSiegeChallengerGuilds; ++i)
+            if (gID == m_ChallangerGuildID[i])
+                return true;
+        return false;
+    }
     bool isWarParticipant(GuildID_t gID) override {
-        return gID == m_ChallangerGuildID[0] || gID == m_ChallangerGuildID[1] || gID == m_ChallangerGuildID[2] ||
-               gID == m_ChallangerGuildID[3] || gID == m_ChallangerGuildID[4] || gID == m_ReinforceGuildID;
+        return isAttackerGuild(gID) || gID == m_ReinforceGuildID;
     }
 
     GuildID_t getReinforceGuildID() const {
@@ -97,11 +103,11 @@ public:
     }
 
 private:
-    ZoneID_t m_CastleZoneID;          // the ZoneID of the castle the war concerns
-    uint m_ChallangerGuildCount;      // the number of guilds that applied for the war
-    GuildID_t m_ChallangerGuildID[5]; // the IDs of the guilds that applied for the war
-    GuildID_t m_ReinforceGuildID;     // the ID of the defending side's reinforcing guild
-    Gold_t m_RegistrationFee;         // the war application fee that was paid
+    ZoneID_t m_CastleZoneID;                                 // the ZoneID of the castle the war concerns
+    uint m_ChallangerGuildCount;                             // the number of guilds that applied for the war
+    GuildID_t m_ChallangerGuildID[MaxSiegeChallengerGuilds]; // the IDs of the guilds that applied for the war
+    GuildID_t m_ReinforceGuildID;                            // the ID of the defending side's reinforcing guild
+    Gold_t m_RegistrationFee;                                // the war application fee that was paid
 
     GuildID_t m_RecentReinforceCandidate;
 

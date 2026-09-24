@@ -26,7 +26,7 @@ public:
 public:
     // The race war is the war the shrines of Adam's holy land are fought over,
     // so it is the one war that lets a player take a shrine set for its race.
-    bool mayModifyShrineOwner(PlayerCreature* pPC);
+    bool mayModifyShrineOwner(PlayerCreature* pPC) override;
 
     void sendWarEndMessage() const;
 

@@ -75,6 +75,12 @@ public:
     virtual bool isWarParticipant(GuildID_t gID) {
         return gID == getAttackerGuildID();
     }
+    // Whether gID fights this war as an attacker: the guild war's one
+    // challenger, or any of a siege's five. A guild that only reinforces a
+    // siege takes part in it without owning it.
+    virtual bool isAttackerGuild(GuildID_t gID) const {
+        return gID == getAttackerGuildID();
+    }
     // Which castle war class a schedule row belongs to. Both castle wars
     // report WAR_GUILD, and a siege with a single challenger writes exactly
     // the columns a guild war does, so the row carries the kind of its own

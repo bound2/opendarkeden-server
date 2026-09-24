@@ -15,17 +15,21 @@ repo and the client's. Entries below are newest first; the oldest is the
 
 ## A union's guild lookup is dereferenced unchecked (2026-09-24)
 
-- **Three union paths call `GuildManager::getGuild(id)->getMaster()` on an
-  id read from the union tables without testing the result** --
-  `GuildUnionManager::removeGuild` twice (`src/server/gameserver/GuildUnion.cpp`,
-  the union master and the leaving guild) and `CGQuitUnionHandler`'s
+- **Four sites call `GuildManager::getGuild(id)->getMaster()` on an id
+  read from the union tables without testing the result** --
+  `GuildUnionManager::removeMasterGuild` three times
+  (`src/server/gameserver/GuildUnion.cpp`) and `CGQuitUnionHandler`'s
   QUIT_QUICK branch on `pUnion->getMasterGuildID()`. `getGuild()` answers
   NULL for an id the table does not hold, and nothing keeps the union rows
   in step with the guilds: `GuildManager::deleteGuild` carries the comment
   `// Clear the GuildUnion information` over no code at all, so a guild
   disbanded while it is in a union leaves `GuildUnionInfo` /
   `GuildUnionMember` rows naming it. Quitting that union then dereferences
-  NULL on the zone thread.
+  NULL on the zone thread. The shorter path needs no stale row:
+  `SGDeleteGuildOKHandler` calls `deleteGuild` and then `removeMasterGuild`
+  for the same id, so a guild that masters a union with members
+  dereferences NULL on the sharedserver-link thread the moment it is
+  deleted.
   > **Status:** recorded, not fixed (fix/manager-concurrency)
 
 ## A siege's challenger array is written one past its end (2026-09-24)
@@ -84,13 +88,17 @@ repo and the client's. Entries below are newest first; the oldest is the
   rows, where the war still waits,** so the same war returns. Only
   `cancelGuildWarSchedules` cancels rows, and this path never reaches it.
   The posted command now cancels before it reloads: a new
-  `WarScheduler::cancelGuildSchedulesOf(guildID)` collects the waiting
-  castle wars the guild takes part in under the scheduler's own mutex,
-  writes each of them to 'CANCEL' through the repository's new
-  `cancelWarSchedule(warID, serverID)`, and only then reloads, so the war
-  cannot come back. A siege several guilds joined is cancelled whole,
-  because a scheduled siege has no way to drop one challenger; a war
-  already under way is left alone, since the zone thread is running it.
+  `WarScheduler::cancelGuildSchedulesOf(guildID)` walks the waiting castle
+  wars under the scheduler's own mutex, writes each one the guild attacks
+  to 'CANCEL' through the repository's new
+  `cancelWarSchedule(warID, serverID)`, denies the guild's reinforcement
+  registration on every other one (`denyReinforceRegistration`, which also
+  reaches a registration the defenders had not answered yet), and only
+  then reloads, so the war cannot come back and a siege the guild merely
+  reinforced keeps its challengers. A siege several guilds joined is
+  cancelled whole, because a scheduled siege has no way to drop one
+  challenger; a war already under way is left alone, since the zone thread
+  is running it, and the log names only the rows that changed.
   The per-war cancel is used rather than `cancelGuildWarSchedules`, which
   would take every guild war of the castle. The sharedserver needs no
   telling: it is the side that deletes the guild in the first place, and
@@ -131,7 +139,9 @@ repo and the client's. Entries below are newest first; the oldest is the
   (`src/server/database/ConnectionSettings.h`), which takes the prefix and
   the five keys behind it, so one block's address cannot be built from
   another's; a block that names no port still means the driver's default,
-  which is what the other two readers already did. The login and shared
+  which is what the other two readers already did, so a site configuration
+  that named only `DB_PORT` must name `UI_DB_PORT` for the account block
+  now, as the shipped ones do. The login and shared
   server configurations repeated `DB_PORT` inside their `UI_DB` and
   `DIST_DB` blocks, which is where the confusion came from; each port key
   is named after the block it sits in now, at the same value, so those
@@ -150,7 +160,9 @@ repo and the client's. Entries below are newest first; the oldest is the
   web log was written under dimension 2 in place of the configured one. The
   site takes the majority sense now, and all seven readers ask
   `de::isNetMarbleDeployment()` (`src/server/Deployment.h`), so the sense
-  has one place to be wrong in. Nothing on the wire depends on it: the
+  has one place to be wrong in; the three readers that tested `== 1` test
+  nonzero with the rest now, the value being a single bit in every
+  configuration. Nothing on the wire depends on it: the
   client decides its own Netmarble build from `Netmarble != 0` in its
   Netmarble.inf, the same sense, and a Netmarble client never parses a
   dimension out of its command line at all -- `g_Dimension` keeps the zero
@@ -512,7 +524,8 @@ repo and the client's. Entries below are newest first; the oldest is the
   are commented out as well. The castle counterpart in
   `CastleShrineInfoManager` still applies the check.
   The war the holy shrines are fought over is the race war, not a castle
-  war: `canPickupBloodBible` says the bible is used only in race wars,
+  war: the comment on `canPickupBloodBible` (a stub that answers true) says
+  the bible is used only in race wars,
   `RaceWar::executeStart` drops every guard-shrine shield and broadcasts the
   bible positions, and `RaceWar::executeEnd` returns them all and tallies the
   shrine owners into `RaceWarHistory`. So the test restored is the race
@@ -526,7 +539,10 @@ repo and the client's. Entries below are newest first; the oldest is the
   rather than asserting. The castle's other two statements are deliberately
   not restored: a race war does not end when one shrine changes hands, and
   the bible travels back to its guard shrine either way, which is what the
-  unconditional `returnBloodBible` below the branch already did.
+  unconditional `returnBloodBible` below the branch already did. The
+  guard-shrine arm of the same condition, a defender of the castle's race
+  returning the bible to its own shrine, keeps the rule it always had and
+  asks no war.
   > **Status:** fixed (fix/shrine-and-speed)
 
 ## A random mine item is read off a row that may not exist (2026-09-22)
@@ -610,7 +626,8 @@ repo and the client's. Entries below are newest first; the oldest is the
 ## The movement and attack speed-hack check is gone (2026-09-22)
 
 - **`GamePlayer::verifySpeed` keeps only the `CG_VERIFY_TIME` heartbeat
-  check, and its one caller discards the result.** Its per-race move and
+  check; of its two callers, `processCommand` discarded the result and the
+  heartbeat handler acted on it.** Its per-race move and
   attack timing check, 298 lines, sat inside a comment block since before the tree was imported and went with
   the commented-out code; what remains for `CG_MOVE` is an empty `if` on
   `m_MoveSpeedVerify` and a round-trip time computed into a local nothing
@@ -619,11 +636,13 @@ repo and the client's. Entries below are newest first; the oldest is the
   The block was abandoned before the tree was imported, not paused: at the
   import commit `verifySpeed` was reached from one place, the `CGVerifyTime`
   handler, so its `CG_MOVE` and `CG_ATTACK` branches could not run whatever
-  the comment markers said; it opens by redeclaring the `SpeedCheck` the live
+  the comment markers said (the `processCommand` call that fed it every
+  packet came later, with the recovered sources, and went with the heartbeat
+  entry of 2026-09-24); it opens by redeclaring the `SpeedCheck` the live
   body above it already declares, so it does not compile where it sits; its
   race chain ends in an empty `else`, leaving Ousters unchecked; and its
-  vampire arm assigns the same constant in all three speed tiers its own
-  comments give different numbers for. Reinstating it would mean inventing
+  vampire arm assigns the same constant in all three speed tiers although
+  its comments give the fast tier a different number. Reinstating it would mean inventing
   per-race timings and an enforcement action the original never had, so the
   residue was removed instead: the empty `if`, the unread round-trip local,
   `m_MoveSpeedVerify`, `m_AttackSpeedVerify`, the untouched
