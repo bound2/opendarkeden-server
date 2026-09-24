@@ -29,6 +29,7 @@
 #include "SiegeManager.h"
 #include "StringStream.h"
 #include "WarSystem.h"
+#include "WarZoneWork.h"
 #include "Zone.h"
 #include "ZoneGroup.h"
 #include "ZoneGroupManager.h"
@@ -92,8 +93,9 @@ bool SiegeWar::addChallengerGuild(GuildID_t gID) {
 //--------------------------------------------------------------------------------
 // What has to be handled when a war starts
 //
-// (!) This runs in the WarScheduler attached to the Zone, so
-//     handling its own Zone (the castle) needs no lock.
+// (!) This runs in the WarScheduler attached to the castle zone, inside that
+//     zone's heartbeat. The siege is fought in a zone of its own, which may
+//     belong to another group, so setting it up is posted to its owner.
 //--------------------------------------------------------------------------------
 void SiegeWar::executeStart()
 
@@ -110,7 +112,7 @@ void SiegeWar::executeStart()
     ZoneID_t siegeZoneID = SiegeManager::Instance().getSiegeZoneID(m_CastleZoneID);
     Assert(siegeZoneID != 0);
 
-    SiegeManager::Instance().start(siegeZoneID);
+    de::war::postToZone(siegeZoneID, [](Zone& zone) { SiegeManager::Instance().start(zone.getZoneID()); });
 
     __END_CATCH
 }
@@ -182,8 +184,11 @@ void SiegeWar::executeEnd()
     ZoneID_t siegeZoneID = SiegeManager::Instance().getSiegeZoneID(m_CastleZoneID);
     Assert(siegeZoneID != 0);
 
+    // Emptying the siege zone kills its monsters and hands every player in it
+    // a transport, both on the siege zone's own thread; the transports then
+    // leave through the ordinary zone transfer.
     filelog("SiegeWar.log", "[%u] executeEnd : reset zone %u", getWarID(), siegeZoneID);
-    SiegeManager::Instance().reset(siegeZoneID);
+    de::war::postToZone(siegeZoneID, [](Zone& zone) { SiegeManager::Instance().reset(zone.getZoneID()); });
 
     __END_CATCH
 }

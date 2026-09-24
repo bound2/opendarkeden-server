@@ -1181,10 +1181,15 @@ void Zone::deleteNPCs(Race_t race)
     __END_CATCH
 }
 
+// Sets every monster's HP to 0 for its own AI to finish off. The war work
+// that calls it runs on the zone's group thread (de::war::postToZones).
 void Zone::killAllMonsters()
 
 {
     __BEGIN_TRY
+
+    if (m_pZoneGroup != NULL)
+        m_pZoneGroup->assertOwned();
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 

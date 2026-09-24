@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include <memory>
+
 #include "CastleInfoManager.h"
 #include "CastleSymbol.h"
 #include "CreatureUtil.h"
@@ -26,7 +28,9 @@
 #include "StringStream.h"
 #include "War.h"
 #include "WarSystem.h"
+#include "WarZoneWork.h"
 #include "Zone.h"
+#include "ZoneGroup.h"
 #include "ZoneGroupManager.h"
 #include "ZoneItemPosition.h"
 #include "ZoneUtil.h"
@@ -379,12 +383,10 @@ bool CastleShrineInfoManager::getMatchGuardShrinePosition(Item* pItem, ZoneItemP
     __END_CATCH
 }
 
-// Called from putCastleSymbol (someone placed the symbol on the holy shrine) with bLock = false,
-// and from returnAllCastleSymbol (the time ran out) with bLock = true.
-// When true it is called from another thread (the one the WarSystem runs on), so it must lock internally;
-// when false it runs on the zone group thread of the zone holding the shrine, so it must not lock.
-// 2003. 2. 5. by Sequoia
-bool CastleShrineInfoManager::returnCastleSymbol(ShrineID_t shrineID, bool bLock) const
+// Called from putCastleSymbol, on the zone thread of the zone holding the
+// shrine the symbol was just laid on, so the symbol is taken without the
+// zone's mutex.
+bool CastleShrineInfoManager::returnCastleSymbol(ShrineID_t shrineID) const
 
 {
     __BEGIN_TRY
@@ -401,12 +403,13 @@ bool CastleShrineInfoManager::returnCastleSymbol(ShrineID_t shrineID, bool bLock
     if (ItemID == 0)
         return false;
 
-    GlobalItemPosition* pItemPosition = GlobalItemPositionLoader::getInstance()->load(ItemClass, ItemID);
+    std::unique_ptr<GlobalItemPosition> pItemPosition(GlobalItemPositionLoader::getInstance()->load(ItemClass, ItemID));
 
-    if (pItemPosition == NULL)
+    if (pItemPosition == nullptr)
         return false;
 
-    Item* pItem = pItemPosition->popItem(bLock);
+    pItemPosition->expectItem(ItemClass, ItemID);
+    Item* pItem = pItemPosition->popItem(false);
 
     if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_CASTLE_SYMBOL) {
         Zone* pZone = pItemPosition->getZone();
@@ -423,7 +426,24 @@ bool CastleShrineInfoManager::returnCastleSymbol(ShrineID_t shrineID, bool bLock
     __END_CATCH
 }
 
-// Called only from the WarSystem.
+bool CastleShrineInfoManager::postCastleSymbolReturn(ShrineID_t shrineID) const {
+    CastleShrineSet* pShrineSet = getShrineSet(shrineID);
+    if (pShrineSet == NULL)
+        return false;
+
+    ItemID_t itemID = pShrineSet->getCastleSymbolItemID();
+    if (itemID == 0)
+        return false;
+
+    return de::war::postItemReturn(Item::ITEM_CLASS_CASTLE_SYMBOL, itemID, [](Zone& from, Item* pItem) {
+        CastleSymbol* pCastleSymbol = dynamic_cast<CastleSymbol*>(pItem);
+        Assert(pCastleSymbol != NULL);
+
+        de::gameContext().castleShrines().returnCastleSymbol(&from, pCastleSymbol);
+    });
+}
+
+// Called when a castle war ends.
 bool CastleShrineInfoManager::returnAllCastleSymbol(ZoneID_t castleZoneID) const
 
 {
@@ -442,7 +462,7 @@ bool CastleShrineInfoManager::returnAllCastleSymbol(ZoneID_t castleZoneID) const
 
         if (de::gameContext().castleInfos().getCastleZoneID(guardZoneID, guardCastleZoneID)) {
             if (castleZoneID == guardCastleZoneID) {
-                bReturned = returnCastleSymbol(pShrineSet->m_ShrineID) || bReturned;
+                bReturned = postCastleSymbolReturn(pShrineSet->m_ShrineID) || bReturned;
             }
         }
     }
@@ -546,7 +566,7 @@ bool CastleShrineInfoManager::putCastleSymbol(PlayerCreature* pPC, Item* pItem, 
     }
 
     // Placed in another shrine, or with no war about to end, it simply returns to the guard shrine.
-    returnCastleSymbol(shrineID, false);
+    returnCastleSymbol(shrineID);
 
     return false;
 
@@ -560,6 +580,8 @@ bool CastleShrineInfoManager::removeShrineShield(Zone* pZone)
     __BEGIN_TRY
 
     Assert(pZone != NULL);
+    pZone->getZoneGroup()->assertOwned();
+
     HashMapShrineSetConstItor itr = m_ShrineSets.begin();
 
     ZoneID_t guardZoneID = pZone->getZoneID();
@@ -603,27 +625,8 @@ bool CastleShrineInfoManager::addShrineShield(Zone* pZone)
     __BEGIN_TRY
 
     Assert(pZone != NULL);
+    pZone->getZoneGroup()->assertOwned();
 
-    bool bAdded = false;
-
-    __ENTER_CRITICAL_SECTION((*pZone))
-
-    bAdded = addShrineShield_LOCKED(pZone);
-
-    __LEAVE_CRITICAL_SECTION((*pZone))
-
-    return bAdded;
-
-    __END_CATCH
-}
-
-// pZone is the guardZone.
-bool CastleShrineInfoManager::addShrineShield_LOCKED(Zone* pZone)
-
-{
-    __BEGIN_TRY
-
-    Assert(pZone != NULL);
     HashMapShrineSetConstItor itr = m_ShrineSets.begin();
 
     ZoneID_t guardZoneID = pZone->getZoneID();
