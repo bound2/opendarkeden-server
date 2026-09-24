@@ -565,7 +565,7 @@ void ZoneGroupManager::balanceZoneGroup(bool bForce, bool bDefault)
 {
     __BEGIN_TRY
 
-    filelog("balanceZoneGroup.txt", "존그룹 밸런싱 안할래요.");
+    filelog("balanceZoneGroup.txt", "Zone group balancing is disabled.");
     return;
 
     __END_CATCH

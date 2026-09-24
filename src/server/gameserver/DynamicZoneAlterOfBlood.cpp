@@ -38,9 +38,9 @@ struct OFFERING_TEMPLATE {
     string Name[5];
 };
 
-const OFFERING_TEMPLATE OfferingTemplate[3] = {{793, {"Ô¼º²Ñ·", "±ÈÁ¦", "Àí²éµÂ", "°£Ë¹¿¨Ì¹", "Â·Ò×Ë¹"}},
-                                               {794, {"Õ²Ä·Ë¹", "¿­Éª", "ÅÂÒ×", "ÄáÄÇÂ¬Ë¹", "Â¬"}},
-                                               {795, {"ÅåË¹ÌØ", "Ð¤", "°¢Â¬Ë¹", "Õ²ç÷", "¸ñÅ¬"}}};
+const OFFERING_TEMPLATE OfferingTemplate[3] = {{793, {"Johnson", "Billy", "Lee", "Ezkatan", "Lewis"}},
+                                               {794, {"Genji", "Kesui", "Pai", "Ninairu", "Ryo"}},
+                                               {795, {"Fate", "Sol", "Irui", "Jyonki", "Gnu"}}};
 
 struct OFFERING_COORDINATE {
     ZoneCoord_t X;

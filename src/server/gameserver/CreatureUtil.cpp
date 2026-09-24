@@ -1893,7 +1893,7 @@ void giveGoldMedal(PlayerCreature* pPC) {
         addSimpleCreatureEffect(pPC, Effect::EFFECT_CLASS_GOLD_MEDAL, 10, true);
 
         GCSystemMessage gcSM;
-        gcSM.setMessage("삿돤錤듕쏜탬寧철.");
+        gcSM.setMessage("You received an Athens gold medal.");
         pGamePlayer->sendPacket(&gcSM);
         // An older, disabled flow kept a per-account GoldMedalCount and
         // sent it back as GCNoticeEvent NOTICE_EVENT_GOLD_MEDALS; the
@@ -1914,7 +1914,7 @@ void giveLotto(PlayerCreature* pPC, BYTE type, uint num) {
 
         if (defaultPlayRecordRepository().addLotto(pGamePlayer->getID(), type, num, count)) {
             char buffer[256];
-            sprintf(buffer, "삶땡꽈튿鑒綠댐돕%d몸.圈玖코휭헝꽝옘바렘寮女.", count);
+            sprintf(buffer, "You now hold %d event lottery tickets. See the official homepage for details.", count);
             GCSystemMessage gcSM;
             gcSM.setMessage(buffer);
             pGamePlayer->sendPacket(&gcSM);

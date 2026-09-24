@@ -72,8 +72,8 @@ void EventMorph::activate()
         // Resurrect from working. Checking inside GamePlayer is awkward, so
         // the check is done here instead.
         StringStream msg;
-        msg << "EventMorph::activate() : GamePlayer의 상태가 GPS_NORMAL이 아닙니다." << "PlayerID["
-            << m_pGamePlayer->getID() << "]" << "CreatureName[" << pFromCreature->getName() << "]";
+        msg << "EventMorph::activate() : GamePlayer status is not GPS_NORMAL." << "PlayerID[" << m_pGamePlayer->getID()
+            << "]" << "CreatureName[" << pFromCreature->getName() << "]";
 
         filelog("EventMorphError.log", "%s", msg.toString().c_str());
         return;
@@ -351,8 +351,7 @@ void EventMorph::activate()
     try {
         pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(ZoneNum);
     } catch (NoSuchElementException&) {
-        cerr << "Critical Error : 포탈에 지정된 존 아이디가 틀리거나, ZoneInfoManager에 해당 존이 존재하지 않습니다."
-             << endl;
+        cerr << "Critical Error : the zone id set on the portal is wrong, or ZoneInfoManager has no such zone." << endl;
         throw Error("Critical Error : the zone id set on the portal is wrong, or ZoneInfoManager has no such zone.");
     }
 
@@ -360,7 +359,7 @@ void EventMorph::activate()
     try {
         pZoneGroup = de::gameContext().zoneGroups().getZoneGroup(pZoneInfo->getZoneGroupID());
     } catch (NoSuchElementException&) {
-        cerr << "Critical Error : 현재로는 게임 서버는 1대뿐이당.." << endl;
+        cerr << "Critical Error : only one game server is supported.." << endl;
 
         // Only one server is supported for now, so bail out.
         throw Error("Critical Error : only one game server is supported");

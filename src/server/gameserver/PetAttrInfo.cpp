@@ -54,7 +54,7 @@ bool PetAttrInfoManager::enchantRandomAttr(PetInfo* pPetInfo, int ratio) {
 
     value = rand() % 100;
 
-    cout << "옵션선택 : " << value << endl;
+    cout << "Option roll : " << value << endl;
 
     for (; itr != endItr; ++itr) {
         PetAttrInfo* pPetAttrInfo = itr->second;
@@ -85,7 +85,7 @@ bool PetAttrInfoManager::enchantSpecAttr(PetInfo* pPetInfo, PetAttr_t PetAttr) {
 
     PetAttrInfo* pPetAttrInfo = m_PetAttrInfoMap[PetAttr];
     if (pPetAttrInfo == NULL) {
-        filelog("PetBug.log", "속성 지정 펫 인챈트에서 이상한 값이 들어있다. : %u", PetAttr);
+        filelog("PetBug.log", "Unexpected value in an attribute pet enchant. : %u", PetAttr);
         return false;
     }
 

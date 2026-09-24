@@ -76,7 +76,7 @@ void SummonMigaAttack::execute(Monster* pMonster)
                 pEffect->setDeadline(8);
                 pMonster->addEffect(pEffect);
             } else
-                cout << "미가 자폭 실패" << endl;
+                cout << "Miga self-destruct failed" << endl;
         } else {
             executeSkillFailNormal(pMonster, getSkillType(), NULL);
         }

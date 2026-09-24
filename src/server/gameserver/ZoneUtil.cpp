@@ -1862,7 +1862,7 @@ void transportCreature(Creature* pCreature, ZoneID_t TargetZoneID, ZoneCoord_t T
             Item* pItem = pPC->getInventory()->findItem(Item::ITEM_CLASS_MOON_CARD, fitItem, InvenX, InvenY);
             GCSystemMessage gcSystemMessage1;
             if (pItem == NULL) {
-                gcSystemMessage1.setMessage("쏵흙맡뒈인극矜撻唐陵귑!");
+                gcSystemMessage1.setMessage("You need a silver coin to enter this dungeon!");
                 pGamePlayer->sendPacket(&gcSystemMessage1);
                 return;
             }
@@ -2500,8 +2500,8 @@ bool createBulletinBoard(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y, MonsterType_
                                                                 timeLimit.toDateTime());
 
     if (affectedRows == 0) {
-        filelog("BulletinBoard.log", "DB에 저장이 안되버렸습니다. : %u, %u, %u, [%u:%s]", pZone->getZoneID(), pt.x,
-                pt.y, type, msg.c_str());
+        filelog("BulletinBoard.log", "Failed to save to the DB. : %u, %u, %u, [%u:%s]", pZone->getZoneID(), pt.x, pt.y,
+                type, msg.c_str());
     }
 
     return true;
@@ -2526,8 +2526,8 @@ void loadBulletinBoard(Zone* pZone) {
         VSDateTime timeLimit(rows[r].timeLimit);
 
         if (timeLimit < currentDateTime) {
-            cout << "게시판 시간 다되서 지워버립니다." << ID << " : [" << X << "," << Y << "] " << msg << " [" << type
-                 << "] " << endl;
+            cout << "Bulletin board post expired, deleting it: " << ID << " : [" << X << "," << Y << "] " << msg << " ["
+                 << type << "] " << endl;
             defaultBulletinBoardRepository().remove(ID);
             continue;
         }
@@ -2542,7 +2542,7 @@ void loadBulletinBoard(Zone* pZone) {
         TPOINT pt = pZone->addItem(pCorpse, X, Y, true, delayTime * 10);
 
         if (pt.x == -1) {
-            filelog("BulletinBoard.log", "DB에서 읽었는데 존에 안들어가버렸습니다. : %u, %u, %u, [%u:%s]",
+            filelog("BulletinBoard.log", "Read from the DB but could not be added to the zone. : %u, %u, %u, [%u:%s]",
                     pZone->getZoneID(), X, Y, type, msg.c_str());
         }
     }

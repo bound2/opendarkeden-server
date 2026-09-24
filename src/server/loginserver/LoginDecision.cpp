@@ -285,11 +285,11 @@ Outcome<LoginAccepted, LoginRejection> decideLogin(const LoginRequest& request, 
             accepted.family = true;
             accepted.lastDays = familyLastDays;
 
-            std::cout << "Family 요금제" << std::endl;
+            std::cout << "Family billing plan" << std::endl;
         } else {
             accepted.family = false;
             accepted.lastDays = lastDays;
-            std::cout << "Premium 요금제" << std::endl;
+            std::cout << "Premium billing plan" << std::endl;
         }
     }
 

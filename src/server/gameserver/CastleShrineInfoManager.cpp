@@ -103,7 +103,7 @@ void CastleShrineInfoManager::load()
 
         // ItemType and the shrine ID must match; a mismatch is a DB configuration error and stops the load.
         if (pShrineSet->m_ItemType != pShrineSet->m_ShrineID) {
-            cout << "ShrineID 와 ItemType이 맞지 않습니다. DB설정을 점검하세요." << endl;
+            cout << "ShrineID and ItemType do not match. Check the DB settings." << endl;
             Assert(false);
         }
 
@@ -135,7 +135,7 @@ ZoneID_t CastleShrineInfoManager::getGuardShrineZoneID(ZoneID_t castleZoneID) co
     }
 
     StringStream msg;
-    msg << "CastleZoneID와 관련된 GuardZoneID가 없다[" << (int)castleZoneID << "]";
+    msg << "No GuardZoneID belongs to CastleZoneID[" << (int)castleZoneID << "]";
     throw Error(msg.toString());
 
     __END_CATCH
@@ -526,8 +526,8 @@ bool CastleShrineInfoManager::putCastleSymbol(PlayerCreature* pPC, Item* pItem, 
 
     ShrineID_t shrineID = pItem->getItemType();
 
-    filelog("WarLog.txt", "%s가 성의 상징[%u]을 성지 성단[%s]에 넣었습니다.", pPC->getName().c_str(), (uint)shrineID,
-            pCorpse->getName().c_str());
+    filelog("WarLog.txt", "%s put the castle symbol[%u] on the holy shrine[%s].", pPC->getName().c_str(),
+            (uint)shrineID, pCorpse->getName().c_str());
 
     // Attach the effect showing the castle symbol flying back from the shrine it was put into.
     //	sendCastleSymbolEffect( pCorpse, Effect::EFFECT_CLASS_SHRINE_HOLY_WARP );

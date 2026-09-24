@@ -393,9 +393,9 @@ void MonsterManager::addCreature(Creature* pCreature)
 
     if (itr == m_Monsters.end()) {
         StringStream msg;
-        msg << "ÇöÀç Á¸¿¡ Á¸ÀçÇÒ ¼ö ¾ø´Â Å¸ÀÔÀÇ ¸ó½ºÅÍ°¡ Ãß°¡µÇ¾ú½À´Ï´Ù.\n"
-            << "ÇöÀç Á¸Àº [" << m_pZone->getZoneID() << "]ÀÔ´Ï´Ù.\n"
-            << "Ãß°¡ÇÏ·Á°í ÇÑ ¸ó½ºÅÍÀÇ Å¸ÀÔÀº [" << pMonster->getMonsterType() << "]ÀÔ´Ï´Ù.\n";
+        msg << "A monster of a type that cannot exist in this zone was added.\n"
+            << "The current zone is [" << m_pZone->getZoneID() << "].\n"
+            << "The type of the monster being added is [" << pMonster->getMonsterType() << "].\n";
     } else {
         // Increment the monster counter.
         itr->second->addMonster();

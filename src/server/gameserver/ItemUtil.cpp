@@ -2337,7 +2337,7 @@ void remainMoneyTraceLog(const string& preOwner, const string& owner, ItemTraceL
 Item* createItemByGoodsID(DWORD goodsID) {
     GoodsInfo* pGoodsInfo = de::gameContext().goodsInfos().getGoodsInfo(goodsID);
     if (pGoodsInfo == NULL) {
-        filelog("buyItemBug.txt", "buyID(%d) ¿¡ ÇØ´çÇÏ´Â »óÇ°ÀÌ ¾ø½À´Ï´Ù.", (int)goodsID);
+        filelog("buyItemBug.txt", "buyID(%d) : no goods match it.", (int)goodsID);
         return NULL;
     }
 
@@ -2350,13 +2350,13 @@ Item* createItemByGoodsID(DWORD goodsID) {
     int Hour = pGoodsInfo->getHour();
 
     if (!de::gameContext().itemInfos().isPossibleItem(ItemClass, ItemType, optionTypeList)) {
-        filelog("buyItemBug.txt", "buyID(%d) ¿¡ ÇØ´çÇÏ´Â ¾ÆÀÌÅÛÀº ¸¸µé ¼ö ¾ø½À´Ï´Ù.", (int)goodsID);
+        filelog("buyItemBug.txt", "buyID(%d) : its item cannot be created.", (int)goodsID);
         return NULL;
     }
 
     Item* pItem = de::gameContext().itemFactories().createItem(ItemClass, ItemType, optionTypeList);
     if (pItem == NULL) {
-        filelog("buyItemBug.txt", "buyID(%d) ¿¡ ÇØ´çÇÏ´Â ¾ÆÀÌÅÛ ¸¸µé±â¿¡ ½ÇÆÐÇß½À´Ï´Ù.", (int)goodsID);
+        filelog("buyItemBug.txt", "buyID(%d) : failed to create its item.", (int)goodsID);
         return NULL;
     }
 
@@ -2374,7 +2374,7 @@ Item* createItemByGoodsID(DWORD goodsID) {
         PetTypeInfo* pPetTypeInfo = PetTypeInfoManager::getInstance()->getPetTypeInfo(petType);
         PetExpInfo* pPetExpInfo = PetExpInfoManager::Instance().getPetExpInfo(48); // modify by viva for PetInfo
         if (pPetTypeInfo == NULL || pPetExpInfo == NULL) {
-            filelog("buyItemBug.txt", "buyID(%d) ¿¡ ÇØ´çÇÏ´Â Æê ¾ÆÀÌÅÛ Á¤º¸°¡ ÀÌ»óÇÕ´Ï´Ù.", (int)goodsID);
+            filelog("buyItemBug.txt", "buyID(%d) : its pet item info is invalid.", (int)goodsID);
             SAFE_DELETE(pItem);
             return NULL;
         }

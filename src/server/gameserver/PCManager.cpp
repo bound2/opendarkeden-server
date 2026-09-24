@@ -857,7 +857,7 @@ void PCManager::processCreatures()
                         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPC->getPlayer());
                         Assert(pGamePlayer != NULL);
 
-                        filelog("DeletePC.log", "죽어서 지워집니다 : %s", pPC->getName().c_str());
+                        filelog("DeletePC.log", "Deleted after death : %s", pPC->getName().c_str());
 
                         pGamePlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
                         pGamePlayer->setItemRatioBonusPoint(1);

@@ -1052,7 +1052,7 @@ void IncomingPlayerManager::heartbeat()
         GamePlayer* pGamePlayer = m_PlayerListQueue.front();
 
         if (pGamePlayer == NULL) {
-            filelog("ZoneBug.txt", "%s : %s", "Zone::heartbeat(1)", "pGamePlayer가 NULL입니다.");
+            filelog("ZoneBug.txt", "%s : %s", "Zone::heartbeat(1)", "pGamePlayer is NULL.");
             continue;
         }
 

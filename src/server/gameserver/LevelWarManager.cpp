@@ -36,7 +36,7 @@ void LevelWarManager::init() {
     VSDateTime warStartTime = getNextLevelWarTime();
     m_pLevelWarSchedule = new Schedule(new LevelWar(this), warStartTime);
 
-    filelog("WarLog.txt", "[Level=%d, Time=%s] 레벨별 전쟁을 추가합니다.", m_Level, warStartTime.toString().c_str());
+    filelog("WarLog.txt", "[Level=%d, Time=%s] Adding a level war.", m_Level, warStartTime.toString().c_str());
 
     addSchedule(m_pLevelWarSchedule);
 }
@@ -151,7 +151,7 @@ void LevelWarManager::endWar() {
     VSDateTime warStartTime = getNextLevelWarTime();
     m_pLevelWarSchedule = new Schedule(new LevelWar(this), warStartTime);
 
-    filelog("WarLog.txt", "[Level=%d, Time=%s] 레벨별 전쟁을 추가합니다.", m_Level, warStartTime.toString().c_str());
+    filelog("WarLog.txt", "[Level=%d, Time=%s] Adding a level war.", m_Level, warStartTime.toString().c_str());
     addSchedule(m_pLevelWarSchedule);
 
     char sLoad[100];

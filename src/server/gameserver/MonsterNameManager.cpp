@@ -142,7 +142,7 @@ string MonsterNameManager::getRandomName(Monster* pMonster, bool event)
     // If trial goes over 300 no proper name was found,
     // so give it an arbitrary name.
     if (Name == "")
-        Name = "무명씨";
+        Name = "Nameless";
 
     return Name;
 
@@ -174,7 +174,7 @@ string MonsterNameManager::getRandomName(Monster* pMonster)
     // If trial goes over 300 no proper name was found,
     // so give it an arbitrary name.
     if (Name == "")
-        Name = "무명씨";
+        Name = "Nameless";
 
     return Name;
 

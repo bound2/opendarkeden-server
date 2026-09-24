@@ -1070,7 +1070,7 @@ void Slayer::wearItem(WearPart Part, Item* pItem)
                 // weapon incoming, the sword can go on the mouse cursor but
                 // there is nowhere to put the shield. It would have to go
                 // into the inventory; for now just refuse to equip it.
-                cerr << "양손에 칼과 방패를 들고 있어서, 양손 무기를 장착할 수 없습니다." << endl;
+                cerr << "Holding a sword and a shield, so a two-handed weapon cannot be equipped." << endl;
                 return;
             }
         }

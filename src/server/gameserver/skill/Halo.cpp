@@ -118,7 +118,7 @@ void Halo::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkillSlo
     g_SimpleMissileSkill.execute(pOusters, TargetObjectID, pOustersSkillSlot, param, result, CEffectID);
 
     if (result.bSuccess) {
-        cout << "Halo 성공" << endl;
+        cout << "Halo succeeded" << endl;
         Dir_t dir = getDirection_Halo(pOusters->getX(), pOusters->getY(), result.pTargetCreature->getX(),
                                       result.pTargetCreature->getY());
 

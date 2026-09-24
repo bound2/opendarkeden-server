@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     registerSharedServerPacketHandlers();
 
     if (argc < 3) {
-        cout << "Usage : sharedserver -f È¯°æÆÄÀÏ" << endl;
+        cout << "Usage : sharedserver -f <config file>" << endl;
         exit(1);
     }
 

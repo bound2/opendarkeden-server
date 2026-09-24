@@ -38,7 +38,7 @@ void SiegeManager::init(ZoneID_t zoneID) {
     if (pSiegeZone == NULL)
         return;
 
-    MonsterCorpse* pShrine = new MonsterCorpse(560, "加膠괏밗憩", 2);
+    MonsterCorpse* pShrine = new MonsterCorpse(560, "Relic Storage Altar", 2);
     Assert(pShrine != NULL);
 
     pShrine->setShrine(true);
@@ -130,7 +130,7 @@ void SiegeManager::start(ZoneID_t zoneID) {
         Monster* pMonster = new Monster(mType);
         pMonster->setTreasure(false);
         pMonster->setScanEnemy(true);
-        pMonster->setName("括깡");
+        pMonster->setName("Guard");
 
         try {
             pSiegeZone->addCreature(pMonster, guardPosition[i].x, guardPosition[i].y, 0);
@@ -217,7 +217,7 @@ void SiegeManager::putItem(PlayerCreature* pPC, MonsterCorpse* pCorpse, Item* pI
 
     GCSystemMessage gcSM;
     char buffer[256];
-    sprintf(buffer, "%d뵀묑샌렘삿돤價적.10취빈盧땡돕릿삶뒈듐.", side);
+    sprintf(buffer, "Attacking side %d has won. Moving to the resurrection point in 10 seconds.", side);
     gcSM.setMessage(buffer);
     pPC->getZone()->broadcastPacket(&gcSM);
 

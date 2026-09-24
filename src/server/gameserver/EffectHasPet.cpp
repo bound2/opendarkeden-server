@@ -84,7 +84,7 @@ void EffectHasPet::affect(Creature* pCreature)
         // pPetInfo->getPetHP() << endl;
 
         if (pPetInfo == NULL) {
-            filelog("PetBug.log", "EffectHasPet 돌아가는데 펫이 없다 : %s", pPC->getName().c_str());
+            filelog("PetBug.log", "EffectHasPet is running but there is no pet : %s", pPC->getName().c_str());
             continue;
         }
 
@@ -114,7 +114,7 @@ void EffectHasPet::affect(Creature* pCreature)
             pPetInfo->setFeedTime(currentTime);
 
             if (pPetInfo->getPetHP() == 0) {
-                filelog("Pet.log", "%s의 펫이 죽었다.", pPC->getName().c_str());
+                filelog("Pet.log", "%s's pet died.", pPC->getName().c_str());
                 // cout << pPC->getName() << "'s pet died" << endl;
                 if (pPC->getPetInfo() == pPetInfo) {
                     pPC->setPetInfo(NULL);

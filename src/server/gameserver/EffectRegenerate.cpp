@@ -53,7 +53,7 @@ void EffectRegenerate::affect() {
         gcHP.setCurrentHP(pMonster->getHP());
         pMonster->getZone()->broadcastPacket(pMonster->getX(), pMonster->getY(), &gcHP);
 
-        cout << pMonster->getName() << "의 HP가 " << pMonster->getHP() << "가 되었습니다." << endl;
+        cout << pMonster->getName() << "'s HP became " << pMonster->getHP() << "." << endl;
     }
 
     __END_CATCH

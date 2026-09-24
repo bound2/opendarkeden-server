@@ -657,7 +657,7 @@ bool useSkillCrad(Creature* pCreature) {
         Item* pItem = pPC->getInventory()->findItem(Item::ITEM_CLASS_MOON_CARD, fitItem, InvenX, InvenY);
         if (pItem == NULL) {
             GCSystemMessage gcSystemMessage1;
-            gcSystemMessage1.setMessage("Ê¹ÓÃ¸Ã¼¼ÄÜÐèÒª¼¼ÄÜ¿¨!");
+            gcSystemMessage1.setMessage("You need a skill card to use this skill!");
             gcSystemMessage1.setType(SYSTEM_MESSAGE_OPERATOR);
             pGamePlayer->sendPacket(&gcSystemMessage1);
             return false;
@@ -675,7 +675,7 @@ bool useSkillCrad(Creature* pCreature) {
 
     } else {
         GCSystemMessage gcSystemMessage1;
-        gcSystemMessage1.setMessage("Ê¹ÓÃ¸Ã¼¼ÄÜÐèÒª¼¼ÄÜ¿¨!");
+        gcSystemMessage1.setMessage("You need a skill card to use this skill!");
         gcSystemMessage1.setType(SYSTEM_MESSAGE_OPERATOR);
         pGamePlayer->sendPacket(&gcSystemMessage1);
         return false;

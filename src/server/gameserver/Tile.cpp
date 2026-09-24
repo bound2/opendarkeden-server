@@ -736,8 +736,8 @@ void Tile::addObject(Object* pObject) {
                 return;
             } else {
                 cerr << toString() << endl;
-                cerr << "겹쳐진 tile priority 값은 = " << (int)pObject->getObjectPriority() << endl;
-                cerr << "플래그 값은 = " << m_wFlags << endl;
+                cerr << "Overlapping tile priority value = " << (int)pObject->getObjectPriority() << endl;
+                cerr << "Flag value = " << m_wFlags << endl;
                 filelog("TILEBUG.log", "%s", toString().c_str());
                 throw DuplicatedException("tile priority duplicated");
             }

@@ -77,7 +77,7 @@ string WeatherInfoManager::toString() const
     msg << "WeatherInfoManager(";
 
     for (int i = 0; i < 12; i++) {
-        msg << (int)(i + 1) << " 월 : " << m_WeatherInfos[i].toString();
+        msg << (int)(i + 1) << " month : " << m_WeatherInfos[i].toString();
     }
 
     msg << ")";
