@@ -28,12 +28,11 @@ namespace {
 // the box itself is unbounded.
 constexpr std::size_t kDepthWarning = 100;
 
-// Caller holds the PCFinder lock. Null when there is no logged-in PC of
-// that name, or when its Player is not attached yet -- Creature::getPlayer()
+// Caller holds the PCFinder lock. Null when the lookup found no logged-in
+// PC, or when its Player is not attached yet -- Creature::getPlayer()
 // asserts (throws) on a null player, and LGKickCharacter's author noted
 // that case does occur, so it is treated as "not here".
-GamePlayer* findLoggedInPlayer(const std::string& name) {
-    Creature* pCreature = de::gameContext().playerCreatures().getCreature_LOCKED(name);
+GamePlayer* playerOf(Creature* pCreature) {
     if (pCreature == nullptr || !pCreature->isPC())
         return nullptr;
     try {
@@ -41,6 +40,32 @@ GamePlayer* findLoggedInPlayer(const std::string& name) {
     } catch (Throwable&) {
         return nullptr;
     }
+}
+
+GamePlayer* findLoggedInPlayer(const std::string& name) {
+    return playerOf(de::gameContext().playerCreatures().getCreature_LOCKED(name));
+}
+
+// The same, by account id. The PCFinder keys its account table by the
+// player's id when the PC is added, so the player found is checked to
+// still carry that id.
+GamePlayer* findLoggedInAccount(const std::string& playerID) {
+    GamePlayer* pGamePlayer = playerOf(de::gameContext().playerCreatures().getCreatureByID_LOCKED(playerID));
+    if (pGamePlayer == nullptr || pGamePlayer->getID() != playerID)
+        return nullptr;
+    return pGamePlayer;
+}
+
+bool postTo(GamePlayer* pGamePlayer, PlayerCommand& command, GoneCommand& ifGone, Scope scope) {
+    if (pGamePlayer == nullptr)
+        return false;
+    // The GamePlayer outlives the caller's PCFinder section: its destructor
+    // removes the creature from the PCFinder -- under that same lock --
+    // before anything else is torn down, so a player found there is not
+    // being destroyed until the lock is released, and its abandon runs
+    // after this post.
+    pGamePlayer->mailbox().post(PostedPlayerCommand{std::move(command), std::move(ifGone), scope});
+    return true;
 }
 
 void logFailure(GamePlayer& player, const char* what) {
@@ -94,15 +119,17 @@ bool postToPlayer(const std::string& name, PlayerCommand command, GoneCommand if
 
     __ENTER_CRITICAL_SECTION(pcFinder)
 
-    GamePlayer* pGamePlayer = findLoggedInPlayer(name);
-    if (pGamePlayer == nullptr)
-        return false;
-    // The GamePlayer outlives this section: its destructor removes the
-    // creature from the PCFinder -- under this same lock -- before anything
-    // else is torn down, so a player found here is not being destroyed
-    // until we release the lock, and its abandon runs after our post.
-    pGamePlayer->mailbox().post(PostedPlayerCommand{std::move(command), std::move(ifGone), scope});
-    return true;
+    return postTo(findLoggedInPlayer(name), command, ifGone, scope);
+
+    __LEAVE_CRITICAL_SECTION(pcFinder)
+}
+
+bool postToAccount(const std::string& playerID, PlayerCommand command, GoneCommand ifGone, Scope scope) {
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
+
+    __ENTER_CRITICAL_SECTION(pcFinder)
+
+    return postTo(findLoggedInAccount(playerID), command, ifGone, scope);
 
     __LEAVE_CRITICAL_SECTION(pcFinder)
 }

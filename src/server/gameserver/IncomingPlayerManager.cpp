@@ -1003,68 +1003,6 @@ void IncomingPlayerManager::deletePlayer(SOCKET fd) {
     __END_CATCH
 }
 
-GamePlayer* IncomingPlayerManager::getPlayer_NOBLOCKED(const string& id) {
-    __BEGIN_TRY
-
-    GamePlayer* pGamePlayer = NULL;
-
-    const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
-    for (int i = walk.first; i <= walk.last; i++) {
-        if (m_pPlayers[i] != NULL) {
-            if (m_pPlayers[i]->getID() == id) {
-                pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
-                break;
-            }
-        }
-    }
-
-    if (pGamePlayer == NULL)
-        throw NoSuchElementException("No player with that ID exists.");
-
-    return pGamePlayer;
-
-    __END_CATCH
-}
-
-GamePlayer* IncomingPlayerManager::getPlayer(const string& id) {
-    __BEGIN_TRY
-
-    GamePlayer* pGamePlayer = NULL;
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    pGamePlayer = getPlayer_NOBLOCKED(id);
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    return pGamePlayer;
-
-    __END_CATCH
-}
-
-GamePlayer* IncomingPlayerManager::getReadyPlayer(const string& id) {
-    __BEGIN_TRY
-
-    GamePlayer* pGamePlayer = NULL;
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    list<GamePlayer*>::iterator itr = find_if(m_PlayerListQueue.begin(), m_PlayerListQueue.end(), isSamePlayerbyID(id));
-
-    if (itr == m_PlayerListQueue.end()) {
-        throw NoSuchElementException();
-    } else {
-        pGamePlayer = (*itr);
-        Assert(pGamePlayer != NULL);
-    }
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    return pGamePlayer;
-
-    __END_CATCH
-}
-
 void IncomingPlayerManager::pushPlayer(GamePlayer* pGamePlayer)
 
 {

@@ -33,12 +33,13 @@
 // set: it accepts connections, merges the players the zone threads queue
 // with pushPlayer() in heartbeat(), and removes players from its own walks
 // and from CGReady's handler, which it dispatches. Every one of those writes
-// takes m_Mutex. The other threads only read the table, under m_Mutex:
-// LoginServerManager's LG handlers look players up with getPlayer() and
-// getReadyPlayer() while holding LoginServerManager's own mutex (so the
-// order is LoginServerManager::m_Mutex -> m_Mutex), and a zone thread takes
-// m_Mutex only to queue a player with pushPlayer() while it holds its
-// group's mutex (group mutex -> m_Mutex).
+// takes m_Mutex. No other thread looks a player up here: a pointer handed
+// out under m_Mutex would outlive it while this thread disconnects and
+// deletes the player, so the login link's replies for a player logging out
+// reach it through its mailbox (PlayerMailbox.h, de::postToAccount), which
+// processCommands() drains. A zone thread takes m_Mutex only to queue a
+// player with pushPlayer() while it holds its group's mutex (group mutex ->
+// m_Mutex).
 //
 // pollSockets() therefore follows ZonePlayerManager: fill() and collect()
 // under m_Mutex, the wait between them without it. The input, output,
@@ -95,11 +96,6 @@ public:
     void addPlayer_NOBLOCKED(Player* pGamePlayer);
     void deletePlayer(SOCKET fd);
     void deletePlayer_NOBLOCKED(SOCKET fd);
-
-    // get Player by string
-    GamePlayer* getPlayer_NOBLOCKED(const string& id);
-    GamePlayer* getPlayer(const string& id);
-    GamePlayer* getReadyPlayer(const string& id);
 
     // lock/unlock
     void lock() {

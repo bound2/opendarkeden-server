@@ -13,8 +13,8 @@
 #include "Assert.h"
 #include "GameContext.h"
 #include "GamePlayer.h"
-#include "IncomingPlayerManager.h"
 #include "LogDef.h"
+#include "PlayerMailbox.h"
 #endif
 
 //--------------------------------------------------------------------------------
@@ -26,39 +26,41 @@ void LGIncomingConnectionErrorHandler::execute(LGIncomingConnectionError* pPacke
     __BEGIN_TRY __BEGIN_DEBUG_EX
 #ifdef __GAME_SERVER__
 
-        // Reach the login player.
-        //
-        // *CAUTION*
-        //
-        // This way of reaching it has a problem. When the login player manager is handling this
-        // player and the connection is closed as below.. setPlayerStatus() would then
-        // have to become a locking version too.. For now it is left like this. (there will
-        // roughly be no input, so it does not get handled..)
-        //
-        // Note that redirecting to input is impossible, because at the moment of the
-        // redirection there is no way to know that a packet arrived cut off in the input buffer.
-        try {
-        GamePlayer* pGamePlayer = de::gameContext().incomingPlayers().getPlayer(pPacket->getPlayerID());
+        const string playerID = pPacket->getPlayerID();
 
-        Assert(pGamePlayer->getPlayerStatus() == GPS_AFTER_SENDING_GL_INCOMING_CONNECTION);
+    // The login server refused the player's return to it, so the player is
+    // cut off. It is logging out through the main thread's
+    // IncomingPlayerManager, which owns its status, socket and flags, so the
+    // kick is applied on that thread (PlayerMailbox.h, Scope::Player); the
+    // disconnect follows in the same pass. The login server names the
+    // account, not the character.
+    const bool found = de::postToAccount(
+        playerID,
+        [=](PlayerCreature&, Player& player) {
+            GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(&player);
 
-        // This player's login failed, so the connection is closed.
-        cout << "Fail to join game server...(" << pPacket->getPlayerID() << ")" << endl;
+            if (pGamePlayer == NULL)
+                return;
 
-        int fd = -1;
-        Socket* pSocket = pGamePlayer->getSocket();
-        if (pSocket != NULL)
-            fd = (int)pSocket->getSOCKET();
+            Assert(pGamePlayer->getPlayerStatus() == GPS_AFTER_SENDING_GL_INCOMING_CONNECTION);
 
-        FILELOG_INCOMING_CONNECTION("incomingPenalty.log", "Error FD : %d, %s", fd,
-                                    (pSocket == NULL ? "NULL" : pSocket->getHost().c_str()));
+            cout << "Fail to join game server...(" << playerID << ")" << endl;
 
+            int fd = -1;
+            Socket* pSocket = pGamePlayer->getSocket();
+            if (pSocket != NULL)
+                fd = (int)pSocket->getSOCKET();
 
-        pGamePlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
-        pGamePlayer->setItemRatioBonusPoint(2);
-    } catch (NoSuchElementException& nsee) {
+            FILELOG_INCOMING_CONNECTION("incomingPenalty.log", "Error FD : %d, %s", fd,
+                                        (pSocket == NULL ? "NULL" : pSocket->getHost().c_str()));
+
+            pGamePlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
+            pGamePlayer->setItemRatioBonusPoint(2);
+        },
+        nullptr, de::Scope::Player);
+
+    if (!found)
         cout << "Player not exist or already disconnected." << endl;
-    }
 
 #endif
 

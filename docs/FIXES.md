@@ -35,6 +35,17 @@ repo and the client's. Entries below are newest first; the oldest is the
   move.
   > **Status:** recorded, not fixed (fix/union-refresh)
 
+## The PC finder's removal tested the wrong iterator (2026-09-24)
+
+- **`PCFinder::deleteCreature` found the account entry with `m_IDs.find`
+  and then compared the name table's iterator against `m_IDs.end()`
+  before erasing,** a comparison between two containers' iterators, which
+  is undefined, and an erase of `end()` had the account entry been
+  missing. It tests the account iterator now, and erases the entry only
+  while it still names the creature being removed. The account table is
+  what `de::postToAccount` looks players up in.
+  > **Status:** fixed (fix/union-refresh)
+
 ## The Exchange point statements never reach the account database (2026-09-24)
 
 - **The ledger statements ask `getConnection("USERINFO")`, whose string
@@ -507,14 +518,22 @@ repo and the client's. Entries below are newest first; the oldest is the
   flag on the `LoginServerManager` thread,** while the main thread may be
   disconnecting and deleting that player in its walks or in `heartbeat()`,
   where `disconnect()` also reads and deletes the reconnect packet. The
-  lookup is locked; what follows it is not. The shape that fits is the one
-  the other LG handlers took: post the flag and the packet to the player
-  through its mailbox (`de::postToPlayer`), which the incoming manager's
-  command walk drains for `Scope::Player` commands. `de::postToPlayer`
-  finds its player by character name and these handlers know only the
-  account id, so the post needs a by-account form
-  (`PCFinder::getCreatureByID` is the lookup it would use).
-  > **Status:** recorded, not fixed (fix/manager-residue)
+  lookup is locked; what follows it is not, and doing the work under
+  `m_Mutex` would not close it either, since the walks disconnect a player
+  before they take `m_Mutex` to remove it. Both handlers now post their
+  work to the player's mailbox as a `Scope::Player` command through
+  `de::postToAccount`, the by-account form of `de::postToPlayer`
+  (`PCFinder::getCreatureByID_LOCKED` under the PCFinder lock; a logging-out
+  player keeps its PCFinder entry until it is destroyed). The incoming
+  manager's command walk runs it on the main thread right before
+  `processCommand`, which sees the kick flag and disconnects the player in
+  the same pass, sending the stored reconnect packet: the OK path's
+  status check, reconnect packet, kick flag and bonus point and the error
+  path's status assertion and kick are what they were. A reply that arrives
+  while the player is still queued between managers waits in the box
+  rather than being dropped. `getPlayer`, `getPlayer_NOBLOCKED` and
+  `getReadyPlayer`, which nothing else called, are gone.
+  > **Status:** fixed (fix/union-refresh)
 
 ## The incoming and sharedserver managers polled outside their mutex (2026-09-24)
 

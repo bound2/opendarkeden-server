@@ -89,7 +89,7 @@ void PCFinder::deleteCreature(const string& name)
     }
 
 
-    // for BillingServer. by sigi. 2002.11.18
+    // The account entry goes with the name, if it still names this creature.
     Creature* pCreature = itr->second;
     Player* pPlayer = pCreature->getPlayer();
     Assert(pPlayer != NULL);
@@ -98,7 +98,7 @@ void PCFinder::deleteCreature(const string& name)
 
     unordered_map<string, Creature*>::iterator itr2 = m_IDs.find(ID);
 
-    if (itr != m_IDs.end()) {
+    if (itr2 != m_IDs.end() && itr2->second == pCreature) {
         m_IDs.erase(itr2);
     }
 
