@@ -17,7 +17,7 @@ VariableManager::VariableManager()
 {
     __BEGIN_TRY
 
-    m_Variables.resize(VARIABLE_MAX);
+    m_Variables = VARIABLE(VARIABLE_MAX);
 
     m_Variables[STAR_RATIO] = 1000;
     m_Variables[EVENT_ACTIVE] = 1;
@@ -288,8 +288,9 @@ void VariableManager::load()
         throw Error("VariableManager::load(): cannot obtain the maximum attrID.");
     }
 
-    m_Variables.clear();
-    m_Variables.resize(max((maxAttr + 1), (int)VARIABLE_MAX));
+    // A fresh table rather than a resize of the one in place: the slots are
+    // atomics, which a vector cannot move, and this runs once at startup.
+    m_Variables = VARIABLE(max((maxAttr + 1), (int)VARIABLE_MAX));
 
     vector<VariableRow> rows = repository.loadVariables();
 

@@ -306,16 +306,33 @@ repo and the client's. Entries below are newest first; the oldest is the
   mutex, and the GM reload event calls it on the main thread** while the
   zone threads and the two manager threads read `getString` and `c_str`
   from the same map. A `reloadinfo` of the string pool can race every
-  reader.
-  > **Status:** recorded, not fixed (refactor/game-context-13)
+  reader. The gameserver's pool now publishes its map copy-on-write
+  through `de::Snapshot`: `load()` builds a whole new map and swaps it in,
+  and a reader loads an immutable one it may hold for as long as it likes.
+  Because `c_str()` hands out a pointer into the map the call read, every
+  map the pool has published is kept until the pool is destroyed rather
+  than freed, the way a retired guild is -- a reload is a human-paced
+  event and a pool is a few hundred kilobytes. `clear()` and `addString()`
+  are gone with the piecewise filling they were for; the duplicate-row
+  check moved into `load()`. The sharedserver has its own `StringPool`
+  with the same shape, but its `load()` is called once, from
+  `SharedServer::init()`, before a thread exists, so nothing there races.
+  > **Status:** fixed (fix/manager-concurrency)
 
 ## The variable manager is written by a GM command with no lock (2026-09-23)
 
 - **`VariableManager` has no mutex; the GM `opset` command sets a variable
   on a zone thread** while the incoming-connection log macro reads it on
   the main thread and the login-link handlers read it on their own
-  thread.
-  > **Status:** recorded, not fixed (refactor/game-context-13)
+  thread. Every variable is an independent `int`, read and written one at
+  a time, so the table is now a `vector<std::atomic<int>>` and every
+  getter and `setVariable()` is an atomic load or store -- no lock on a
+  path taken thousands of times a second. The table's own size is the one
+  thing a writer cannot change under a reader, so `load()`, which
+  replaces it, is private and reached only through `init()`, which the
+  object manager calls during single-threaded startup; the name-to-type
+  map it also fills is read-only from then on.
+  > **Status:** fixed (fix/manager-concurrency)
 
 ## A guild war is scheduled but never becomes active (2026-09-22)
 

@@ -1,6 +1,7 @@
 #ifndef __VARIABLE_MANAGER_H__
 #define __VARIABLE_MANAGER_H__
 
+#include <atomic>
 #include <vector>
 
 #include <unordered_map>
@@ -399,9 +400,17 @@ const string VariableType2String[VARIABLE_MAX] = {
 };
 
 
+// The server-wide switches and ratios. A GM command writes one of them from
+// the zone thread it runs on while the incoming-connection log reads on the
+// main thread and the login-link handlers read on theirs, so every slot is
+// its own atomic: each variable is an independent value, and a reader gets
+// one the writer stored rather than a torn one. The table itself is sized
+// once, during single-threaded startup -- load() is private and its only
+// caller, init(), runs before any thread exists -- so no reader is ever
+// indexing a table that is being replaced.
 class VariableManager {
 public:
-    typedef vector<int> VARIABLE;
+    typedef vector<std::atomic<int>> VARIABLE;
     typedef unordered_map<string, VariableType> VARIABLE_NAME;
 
 public:
@@ -410,7 +419,6 @@ public:
 
 public:
     void init();
-    void load();
 
     // generic value. by sigi. 2002.11.19
     VariableType getVariableType(const string& variableName) const;
@@ -752,8 +760,15 @@ public:
 
     // data members
 private:
+    // Fills the table from the database. Called only by init(), during
+    // single-threaded startup: it replaces the whole table, which no reader
+    // may have in its hands.
+    void load();
+
     VARIABLE m_Variables;
 
+    // Name to VariableType, built by init() at startup and read-only from
+    // then on -- the GM command that looks a name up never writes it.
     VARIABLE_NAME m_VariableNames;
 };
 
