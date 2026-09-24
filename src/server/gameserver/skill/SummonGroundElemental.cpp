@@ -219,7 +219,7 @@ void SummonGroundElemental::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_
             Regen = 1 HP per 1 sec
             */
             Monster* pGroundElemental = new Monster(GROUND_ELEMENTAL_TYPE);
-            pGroundElemental->setName("대지 정령");
+            pGroundElemental->setName("Ground Elemental");
             pGroundElemental->setHP(1000 + input.SkillLevel * 100);
             pGroundElemental->setHP(1000 + input.SkillLevel * 100, ATTR_MAX);
             pGroundElemental->setDefense(0);
@@ -239,7 +239,7 @@ void SummonGroundElemental::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_
             X = pGroundElemental->getX();
             Y = pGroundElemental->getY();
 
-            cout << pGroundElemental->toString() << " 을 " << X << ", " << Y << " 에 불러냈습니다." << endl;
+            cout << pGroundElemental->toString() << " summoned at " << X << ", " << Y << "." << endl;
 
             EffectGroundElemental* pCreatureEffect = new EffectGroundElemental(pGroundElemental);
             pCreatureEffect->setDeadline(output.Duration);

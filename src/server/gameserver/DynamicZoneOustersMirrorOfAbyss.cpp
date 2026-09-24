@@ -124,7 +124,7 @@ bool DynamicZoneOustersMirrorOfAbyss::addMono() {
     Monster* pMonster = new Monster(792);
     Assert(pMonster != NULL);
 
-    pMonster->setName("잿昑裂룐丹");
+    pMonster->setName("Seal of Reason");
     pMonster->setClanType(33);
 
     try {

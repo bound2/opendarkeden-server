@@ -135,7 +135,7 @@ void SummonMiga::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
             decreaseMana(pOusters, RequiredMP, _GCSkillToTileOK1);
 
             Monster* pMiga = new Monster(MIGA_TYPE);
-            pMiga->setName("미가");
+            pMiga->setName("Miga");
             pMiga->setClanType(33);
             pMiga->setTreasure(false);
             pMiga->setScanEnemy(true);
@@ -150,7 +150,7 @@ void SummonMiga::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
             X = pMiga->getX();
             Y = pMiga->getY();
 
-            cout << pMiga->toString() << " 을 " << X << ", " << Y << " 에 불러냈습니다." << endl;
+            cout << pMiga->toString() << " summoned at " << X << ", " << Y << "." << endl;
 
             EffectKillTimer* pCreatureEffect = new EffectKillTimer(pMiga);
             pCreatureEffect->setDeadline(output.Duration);
