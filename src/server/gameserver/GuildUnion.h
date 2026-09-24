@@ -44,8 +44,11 @@ public:
     GuildUnionManager();
     ~GuildUnionManager();
 
-    // Replaces the unions in memory with the ones in the tables; the unions
-    // replaced are retired. A table read that fails leaves the old set.
+    // Brings the unions in memory in line with the tables: a union whose id
+    // and master are unchanged keeps its object and takes the member list
+    // the tables hold; a union that vanished or changed master is retired
+    // (GuildUnionRegistry::replaceAll). A table read that fails leaves the
+    // old set.
     void load();
     void reload();
 

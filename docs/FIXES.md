@@ -127,11 +127,20 @@ repo and the client's. Entries below are newest first; the oldest is the
   the world** (`sendRefreshCommand()` makes the others reload, and four CG
   handlers reload themselves), so each reload keeps one more copy of every
   union -- with the seed's 116 unions, about 20 KB per reload per server --
-  until the process exits. The guild manager's pattern this copies retires
-  its whole table only on a sharedserver resync. The fix is to keep a union
-  whose id and master are unchanged and replace its member list under the
-  union's own mutex, retiring only the unions that vanished.
-  > **Status:** recorded, not fixed (fix/union-lifetime)
+  until the process exits. `replaceAll` now keeps every live union whose
+  id and master the tables still hold -- the same object, so a pointer a
+  reader took stays live -- and gives it the fresh member list in one step
+  under the union's own mutex (`GuildUnion::replaceMembers`), so a reader
+  copies either the old list or the new one. Only a union that vanished
+  from the tables, or whose id now names another master, is retired, and a
+  new one is published; the id and guild maps are rebuilt from the result
+  in load order under the registry mutex, so the lock order (manager,
+  registry, union) and a retired union's answers are unchanged.
+  `tests/guild_union_registry_test.cpp` covers a kept union (same pointer,
+  new members), a vanished one, a changed master, a new one, a hundred
+  reloads that retire nothing, and readers holding a kept union across two
+  thousand reloads; `retiredCount()` is what they measure.
+  > **Status:** fixed (fix/union-refresh)
 
 ## A player's guild id was read from other threads while its owner wrote it (2026-09-24)
 
