@@ -227,7 +227,7 @@ void FirePiercing::execute(Ousters* pOusters, ZoneCoord_t tX, ZoneCoord_t tY, Ou
                 }
 
             if (bCritical) {
-                cout << "크리티컬 발동" << endl;
+                cout << "Critical hit" << endl;
 
                 list<Creature*>::iterator itr = cList.begin();
                 list<Creature*>::iterator endItr = cList.end();
@@ -235,7 +235,7 @@ void FirePiercing::execute(Ousters* pOusters, ZoneCoord_t tX, ZoneCoord_t tY, Ou
                 for (; itr != endItr; ++itr) {
                     Creature* pTargetCreature = *itr;
                     if (pTargetCreature != NULL) {
-                        cout << pTargetCreature->getName() << " 낙백~" << endl;
+                        cout << pTargetCreature->getName() << " knocked back" << endl;
                         knockbackCreature(pZone, pTargetCreature, pOusters->getX(), pOusters->getY());
                     }
                 }

@@ -600,12 +600,12 @@ void Zone::transportItemToCorpse(Item* pItem, Zone* pTargetZone, ObjectID_t corp
 
         if (pCorpseItem == NULL) {
             StringStream msg;
-            msg << "[" << (int)m_ZoneID << "] 시체가 없네: corpseObjectID=" << (int)corpseObjectID;
+            msg << "[" << (int)m_ZoneID << "] no corpse: corpseObjectID=" << (int)corpseObjectID;
 
             throw Error(msg.toString());
         } else if (pCorpseItem->getItemClass() != Item::ITEM_CLASS_CORPSE) {
             StringStream msg;
-            msg << "[" << (int)m_ZoneID << "] 시체가 아니네: corpseObjectID=" << (int)corpseObjectID
+            msg << "[" << (int)m_ZoneID << "] not a corpse: corpseObjectID=" << (int)corpseObjectID
                 << ", itemClass=" << (int)pCorpseItem->getItemClass()
                 << ", itemType=" << (int)pCorpseItem->getItemType();
 

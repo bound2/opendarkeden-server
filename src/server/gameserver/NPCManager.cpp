@@ -66,7 +66,8 @@ void NPCManager::load(ZoneID_t zoneID, int race)
 
             pNPC->setTaxingCastleZoneID(row.taxingCastleZoneID);
 
-            filelog("NPC.log", "%s는 %u존에서 세금 매깁니다.", pNPC->getName().c_str(), pNPC->getTaxingCastleZoneID());
+            filelog("NPC.log", "%s collects taxes for zone %u.", pNPC->getName().c_str(),
+                    pNPC->getTaxingCastleZoneID());
 
             printf("NPC[%s] loading begin >> ", pNPC->getName().c_str());
             pNPC->init();

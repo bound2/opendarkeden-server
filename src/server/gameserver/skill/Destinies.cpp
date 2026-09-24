@@ -43,7 +43,7 @@ void Destinies::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSki
     g_SimpleMissileSkill.execute(pOusters, TargetObjectID, pOustersSkillSlot, param, result, CEffectID);
 
     if (result.bSuccess) {
-        cout << "Destinies 성공" << endl;
+        cout << "Destinies succeeded" << endl;
         if (result.pTargetCreature->isOusters())
             return;
 

@@ -67,7 +67,7 @@ void EffectMPRecovery::affect(Creature* pCreature)
     __BEGIN_TRY
 
     if (pCreature->isFlag(Effect::EFFECT_CLASS_PLEASURE_EXPLOSION)) {
-        cout << "Pleasure Explosion 땜에 안 찬다." << endl;
+        cout << "No MP recovery under Pleasure Explosion." << endl;
         return;
     }
 

@@ -194,7 +194,7 @@ void SkillInfoManager::init() {
                 SkillInfo* pRequireSkillInfo = m_SkillInfoList[(*itr)];
 
                 if (pRequireSkillInfo == NULL) {
-                    cout << "스킬 로드 순서가 틀려먹었습니다. : " << (int)m_SkillInfoList[i]->getType() << " / "
+                    cout << "Skills were loaded out of order. : " << (int)m_SkillInfoList[i]->getType() << " / "
                          << (int)(*itr) << endl;
                     Assert(false);
                 }

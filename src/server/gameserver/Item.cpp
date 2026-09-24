@@ -76,7 +76,7 @@ const list<OptionType_t>& Item::getDefaultOptions(void) const
 
     } catch (NoSuchElementException&) {
         StringStream msg;
-        msg << "그런 아이템 정보가 없습니다.(" << (int)getItemClass() << ", " << (int)getItemType() << ")";
+        msg << "No such item info.(" << (int)getItemClass() << ", " << (int)getItemType() << ")";
 
         filelog("itemError.txt", "%s", msg.toString().c_str());
         // throw Error(msg.toString());
@@ -97,7 +97,7 @@ bool Item::isQuestItem() const {
 
 void Item::makePCItemInfo(PCItemInfo& result) const {
     if (m_ObjectID == 0) {
-        filelog("ItemError.log", "아이템 oid가 0입니다. : %s", toString().c_str());
+        filelog("ItemError.log", "Item oid is 0. : %s", toString().c_str());
         result.setObjectID(0);
     } else {
         result.setObjectID(getObjectID());

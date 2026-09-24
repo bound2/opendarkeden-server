@@ -155,7 +155,7 @@ void ZonePlayerManager::flushBroadcastPacket()
         SocketOutputStream* pStream = itr->second;
 
         if (pStream == NULL) {
-            filelog("ZoneBug.txt", "%s : %s", "Zone::flushBroadcastPacket", "pStream이 NULL입니다.");
+            filelog("ZoneBug.txt", "%s : %s", "Zone::flushBroadcastPacket", "pStream is NULL.");
             continue;
         }
 
@@ -713,7 +713,7 @@ void ZonePlayerManager::deletePlayer(SOCKET fd) {
         filelog("ZPMError.txt", "Error: %s, Socket: %d", e.toString().c_str(), fd);
         throw;
     } catch (...) {
-        filelog("ZPMError.txt", "난 몰라. Socket: %d", fd);
+        filelog("ZPMError.txt", "Unknown exception. Socket: %d", fd);
         throw;
     }
 
@@ -862,7 +862,7 @@ void ZonePlayerManager::processPlayerListQueue()
         GamePlayer* pGamePlayer = m_PlayerListQueue.front();
 
         if (pGamePlayer == NULL) {
-            filelog("ZoneBug.txt", "%s : %s", "Zone::heartbeat(1)", "pGamePlayer가 NULL입니다.");
+            filelog("ZoneBug.txt", "%s : %s", "Zone::heartbeat(1)", "pGamePlayer is NULL.");
             continue;
         }
 

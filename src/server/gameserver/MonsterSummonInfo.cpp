@@ -76,7 +76,7 @@ void MonsterCollectionInfo::parseString(const string& text) {
         }
 
         if (SpriteType == 0 && MonsterType == 0) {
-            cout << "[Error] MonsterSummonInfo에 알 수 없는 몬스터 : " << name.c_str() << endl;
+            cout << "[Error] Unknown monster in MonsterSummonInfo : " << name.c_str() << endl;
             Assert(false);
         }
     }

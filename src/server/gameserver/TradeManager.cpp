@@ -428,12 +428,12 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
     bool check2 = pPlayerCreature2->checkDBGold(pPlayerCreature2->getGold() + tradeGold2);
 
     if (!check1) {
-        filelog("GoldBug.log", "TradeManager::processTrade : 돈이 안 맞습니다. [%s:%s]",
+        filelog("GoldBug.log", "TradeManager::processTrade : gold does not match. [%s:%s]",
                 pPlayerCreature1->getName().c_str(), pPlayerCreature1->getPlayer()->getID().c_str());
     }
 
     if (!check2) {
-        filelog("GoldBug.log", "TradeManager::processTrade : 돈이 안 맞습니다. [%s:%s]",
+        filelog("GoldBug.log", "TradeManager::processTrade : gold does not match. [%s:%s]",
                 pPlayerCreature2->getName().c_str(), pPlayerCreature2->getPlayer()->getID().c_str());
     }
 
@@ -689,7 +689,7 @@ void TradeManager::cancelTrade(Creature* pCreature1, Creature* pCreature2)
 
         if (nCondition != 0) {
             StringStream msg;
-            msg << "TradeManager::cancelTrade() 오류 발생... CODE(" << nCondition << ")";
+            msg << "TradeManager::cancelTrade() error... CODE(" << nCondition << ")";
             filelog("tradeError.txt", "[1] %s", msg.toString().c_str());
             // throw "TradeManager::cancelTrade() : what is this now?";
 

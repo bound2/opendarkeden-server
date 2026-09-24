@@ -159,10 +159,10 @@ void ShiftBreak::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
         }
 
 
-        cout << "다크니스 있음. 확률 " << Ratio << endl;
+        cout << "Darkness present. Chance " << Ratio << endl;
 
         if (rand() % 100 < Ratio) {
-            cout << "성공 " << endl;
+            cout << "Succeeded " << endl;
             pZone->deleteEffect(pEffect->getObjectID());
 
             GCDeleteEffectFromTile gcDeleteEffectFromTile;

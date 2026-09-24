@@ -251,17 +251,17 @@ string WeatherManager::toString() const
     StringStream msg;
 
     msg << "WeatherManager(";
-    msg << "    오늘의 날씨 : " << Weather2String[m_TodayWeather];
-    msg << "      현재 날씨 : " << Weather2String[m_CurrentWeather];
-    msg << "비/눈이 올 확률 : " << (int)m_Probability << "%";
-    msg << "      날씨 레벨 : " << (int)m_WeatherLevel;
+    msg << "     Today's weather: " << Weather2String[m_TodayWeather];
+    msg << "     Current weather: " << Weather2String[m_CurrentWeather];
+    msg << "    Rain/snow chance: " << (int)m_Probability << "%";
+    msg << "       Weather level: " << (int)m_WeatherLevel;
 
     time_t currentTime = time(0);
 
-    msg << "       현재시간 : " << ctime(&currentTime);
-    msg << "  게임상의 내일 : " << ctime(&m_Tomorrow);
-    msg << "다음날씨변경시간: " << ctime(&m_NextWeatherChangingTime);
-    msg << "다음번개체크시간: " << ctime(&m_NextLightning);
+    msg << "        Current time: " << ctime(&currentTime);
+    msg << "       Game tomorrow: " << ctime(&m_Tomorrow);
+    msg << " Next weather change: " << ctime(&m_NextWeatherChangingTime);
+    msg << "Next lightning check: " << ctime(&m_NextLightning);
 
     return msg.toString();
 }

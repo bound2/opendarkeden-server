@@ -375,7 +375,7 @@ void DirectiveSetManager::createDirectiveSet(uint index, const string& name, con
             } else if (identifier == "ACTION") {
                 parseDirectiveParameter(pDirective, parameter, MODE_ACTION);
             } else {
-                cerr << "DirectiveSetManager::createDirectiveSet() : 알 수 없는 IDENTIFIER" << endl;
+                cerr << "DirectiveSetManager::createDirectiveSet() : unknown IDENTIFIER" << endl;
                 throw Error("DirectiveSetManager::createDirectiveSet() : unknown IDENTIFIER");
             }
         }
@@ -441,7 +441,7 @@ void DirectiveSetManager::createDirectiveSet(uint index, const string& name, con
                 } else if (identifier == "ACTION") {
                     parseDirectiveParameter(pDirective, parameter, MODE_ACTION);
                 } else {
-                    cerr << "DirectiveSetManager::createDirectiveSet() : 알 수 없는 IDENTIFIER" << endl;
+                    cerr << "DirectiveSetManager::createDirectiveSet() : unknown IDENTIFIER" << endl;
                     throw Error("DirectiveSetManager::createDirectiveSet() : unknown IDENTIFIER");
                 }
             }

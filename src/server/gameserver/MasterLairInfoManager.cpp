@@ -275,7 +275,7 @@ void MasterLairInfoManager::load()
 
             if (!pMonsterInfo->isMaster()) {
                 StringStream msg;
-                msg << "몬스터 타잎[" << (int)pMasterLairInfo->getMasterMonsterType() << "]은 마스터가 아니다.";
+                msg << "Monster type[" << (int)pMasterLairInfo->getMasterMonsterType() << "] is not a master.";
 
                 throw Error(msg.toString());
             }
@@ -350,7 +350,7 @@ void MasterLairInfoManager::reload()
 
                 if (!pMonsterInfo->isMaster()) {
                     StringStream msg;
-                    msg << "몬스터 타잎[" << (int)pMasterLairInfo->getMasterMonsterType() << "]은 마스터가 아니다.";
+                    msg << "Monster type[" << (int)pMasterLairInfo->getMasterMonsterType() << "] is not a master.";
 
                     throw Error(msg.toString());
                 }

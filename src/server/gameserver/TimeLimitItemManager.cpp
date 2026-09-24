@@ -93,7 +93,7 @@ bool TimeLimitItemManager::checkTimeLimit(Item* pItem)
 
     VSDateTime currentTime = VSDateTime::currentDateTime();
     if (currentTime > m_ItemTimeLimits[objectID]) {
-        cout << pItem->toString() << " 시간제한 초과 : " << currentTime.toString() << " > "
+        cout << pItem->toString() << " time limit exceeded : " << currentTime.toString() << " > "
              << m_ItemTimeLimits[objectID].toString() << endl;
         // The time limit has passed.
         return false;
@@ -217,7 +217,7 @@ bool TimeLimitItemManager::changeStatus(Item* pItem, TimeLimitStatus status) {
     }
 
     if (!erased)
-        filelog("QuestItem.log", "[%u,%u] : 시간제한 아이템을 테이블에서 지웠는데 메모리에 없습니다.",
+        filelog("QuestItem.log", "[%u,%u] : Deleted a time-limited item from the table, but it is not in memory.",
                 (uint)pItem->getItemClass(), (uint)pItem->getItemID());
 
     // An ObjectID of 0 breaks this. Selling an item only happens inside a zone, so it cannot be 0 here.
@@ -226,7 +226,7 @@ bool TimeLimitItemManager::changeStatus(Item* pItem, TimeLimitStatus status) {
     if (itr2 != m_ItemTimeLimits.end()) {
         m_ItemTimeLimits.erase(itr2);
     } else {
-        filelog("QuestItem.log", "[%u,%u] : Item Time Limit Map 에도 없습니다.", (uint)pItem->getItemClass(),
+        filelog("QuestItem.log", "[%u,%u] : Not in the Item Time Limit Map either.", (uint)pItem->getItemClass(),
                 (uint)pItem->getItemID());
     }
 

@@ -422,7 +422,7 @@ void MasterLairManager::processEventMasterCombat()
     if (pMaster == NULL) {
         // The master is missing.
         StringStream msg;
-        msg << "마스터가 없어졌다. zoneID = " << (int)m_pZone->getZoneID();
+        msg << "The master is gone. zoneID = " << (int)m_pZone->getZoneID();
 
         filelog("masterLairBug.txt", "%s", msg.toString().c_str());
 
@@ -978,7 +978,7 @@ void MasterLairManager::giveKillingReward()
                 break;
 
             default:
-                filelog("MasterLairBUG.txt", "ZoneID가 잘못되었습니다");
+                filelog("MasterLairBUG.txt", "Invalid ZoneID");
                 return;
             }
 

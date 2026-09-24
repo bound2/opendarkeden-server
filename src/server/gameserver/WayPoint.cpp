@@ -127,7 +127,7 @@ void WayPointManager::addWayPoint(WayPoint* pWayPoint)
 
     if (itr != end()) {
         cerr << "WayPointManager::addWayPoint() : Duplicated WayPoint" << endl;
-        cerr << "아마 헬기랑 대지정령뿔이랑 좌표가 겹쳤을지도...ㅋㅋㅋ.즐~" << endl;
+        cerr << "A helicopter and a ground elemental horn probably share coordinates." << endl;
         throw Error("WayPointManager::addWayPoint() : Duplicated WayPoint");
     }
 

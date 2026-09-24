@@ -83,7 +83,7 @@ Item* getCardItem(MoonCard card) {
     }
 
     if (putInDB) {
-        filelog("MoonCard.log", "아이템이 나왔습니다. : %d", (int)card);
+        filelog("MoonCard.log", "Item drawn. : %d", (int)card);
         defaultItemRepository().incrementCardCount((int)card - 1);
     }
 
@@ -161,7 +161,7 @@ Item* getLuckyBagItem(LuckyBag luckybag) {
     }
 
     if (putInDB) {
-        filelog("LuckyBag.log", "아이템이 나왔습니다. : %d", (int)luckybag);
+        filelog("LuckyBag.log", "Item drawn. : %d", (int)luckybag);
         defaultItemRepository().incrementLuckyBagCount((int)luckybag - 1);
     }
 
@@ -240,7 +240,7 @@ Item* getGiftBoxItem(GiftBox giftbox) {
     }
 
     if (putInDB) {
-        filelog("GiftBox.log", "아이템이 나왔습니다. : %d", (int)giftbox + 1);
+        filelog("GiftBox.log", "Item drawn. : %d", (int)giftbox + 1);
         defaultItemRepository().incrementGiftBoxCount((int)giftbox + 1);
     }
 

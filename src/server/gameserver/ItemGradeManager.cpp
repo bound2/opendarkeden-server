@@ -22,7 +22,7 @@ void ItemGradeManager::load() {
         m_GradeRatios[Grade - 1] = Ratio;
         m_GradeGambleRatios[Grade - 1] = GambleRatio;
         m_GradeBeadRatios[Grade - 1] = BeadRatio;
-        cout << Grade << "급 : " << Ratio << ", " << GambleRatio << ", " << BeadRatio << endl;
+        cout << Grade << " grade : " << Ratio << ", " << GambleRatio << ", " << BeadRatio << endl;
     }
 
     __END_CATCH

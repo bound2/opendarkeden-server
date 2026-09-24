@@ -201,9 +201,9 @@ void EffectPKZoneRegen::unaffect()
     StringStream msg;
 
     msg << "EffectPKZoneRegen[" << m_pZone->getZoneID() << "|(" << m_Rect.left << "," << m_Rect.top << ","
-        << m_Rect.right << "," << m_Rect.bottom << ")]" << " 이펙트가 사라졌다..";
+        << m_Rect.right << "," << m_Rect.bottom << ")]" << " effect is gone..";
 
-    filelog("PKZone.txt", "EffectPKZoneRegen[%d|(%d,%d,%d,%d)] 이펙트가 사라졌다.", m_pZone->getZoneID(), m_Rect.left,
+    filelog("PKZone.txt", "EffectPKZoneRegen[%d|(%d,%d,%d,%d)] effect is gone.", m_pZone->getZoneID(), m_Rect.left,
             m_Rect.top, m_Rect.right, m_Rect.bottom);
 
     __END_CATCH

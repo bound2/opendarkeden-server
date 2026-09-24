@@ -83,7 +83,7 @@ void ZoneGroup::assertOwned() const {
     TID holder = m_LockHolder;
     if (!m_LockHolderValid || !pthread_equal(holder, Thread::self())) {
         filelog("threadOwnership.log",
-                "ZoneGroup %d state touched without holding the group mutex (tid=%lu, holder=%lu, holderValid=%d) — "
+                "ZoneGroup %d state touched without holding the group mutex (tid=%lu, holder=%lu, holderValid=%d) - "
                 "aborting",
                 (int)m_ZoneGroupID, (unsigned long)Thread::self(), (unsigned long)holder, (int)m_LockHolderValid);
         abort();

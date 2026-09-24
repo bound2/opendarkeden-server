@@ -279,7 +279,7 @@ void ShrineInfoManager::load()
 
         // ItemType and the shrine ID must match; a mismatch is a DB configuration error and stops the load.
         if (pShrineSet->getBloodBibleItemType() != pShrineSet->getShrineID()) {
-            cout << "ShrineID 와 ItemType이 맞지 않습니다. DB설정을 점검하세요." << endl;
+            cout << "ShrineID and ItemType do not match. Check the DB settings." << endl;
             Assert(false);
         }
 
@@ -733,7 +733,7 @@ bool ShrineInfoManager::putBloodBible(PlayerCreature* pPC, Item* pItem, MonsterC
 
     ShrineID_t shrineID = pItem->getItemType();
 
-    filelog("WarLog.txt", "%s 님이 피의 성서[%u]를 성지 성단[%s]에 넣었습니다.", pPC->getName().c_str(), (uint)shrineID,
+    filelog("WarLog.txt", "%s put the Blood Bible[%u] on the holy shrine[%s].", pPC->getName().c_str(), (uint)shrineID,
             pCorpse->getName().c_str());
 
     // Attach the effect showing the blood bible flying back from the shrine it was put into.
