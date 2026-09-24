@@ -43,9 +43,11 @@ void CGModifyGuildMemberIntroHandler::execute(CGModifyGuildMemberIntro* pPacket,
     if (pGuild == NULL)
         return;
 
-    // Get the guild member information.
+    // Get the guild member information. A member the guild let go is retired
+    // rather than freed, so the pointer stays readable and says so; there is
+    // no introduction to write for someone who is no longer a member.
     GuildMember* pGuildMember = pGuild->getMember(pPlayerCreature->getName());
-    if (pGuildMember == NULL)
+    if (pGuildMember == NULL || pGuildMember->isRetired())
         return;
 
     pGuildMember->saveIntro(pPacket->getGuildMemberIntro());

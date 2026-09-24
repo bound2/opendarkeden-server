@@ -521,7 +521,7 @@ is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` are
 - Players enter a zone group through the `ZonePlayerManager` under its
   lock; the zone thread integrates them on its next tick.
 
-### Known violations (each closed; the rules they left behind, and one residual)
+### Known violations (each closed, and the rules they left behind)
 
 - **SG/LG/GG handlers must not mutate creature state under the `PCFinder`
   lock alone.** The six guild handlers and `LGKickCharacter` post their
@@ -538,8 +538,14 @@ is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` are
   deleted guild or member is *retired* (`GuildManager::m_RetiredGuilds`,
   `Guild::m_RetiredMembers`; the whole-table `clear()` a sharedserver resync
   triggers retires too, never frees) and stays readable, stale, until the managers
-  are destroyed. **Still open:** a zone thread reading a retired member sees
-  its last rank.
+  are destroyed. A retired object says so: an atomic flag set where the
+  retirement happens, under the lock that already covers it, and the answers
+  a stale pointer gives enforce it, so no reader has to remember a check.
+  `GuildMember::getRank()` reads `GUILDMEMBER_RANK_LEAVE` once retired,
+  `Guild::getState()` reads `GUILD_STATE_BROKEN` and `Guild::getMember()`
+  answers NULL for every name, while the guild's own counters, teardown list
+  and database rows take `getStoredRank()` / `m_State` and still carry what
+  the member and the guild had.
 - **No creature is written to a `Tile` outside `ZoneSpawn.cpp` and
   `ZoneMove.cpp`.** PC swaps go through `Zone::replacePC`; the move-mode
   swaps, the knockback and NPC-warp moves, and the corpse paths that take a

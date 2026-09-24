@@ -235,7 +235,10 @@ void GuildManager::deleteGuild(GuildID_t id) {
 #endif
 
     // Retire, don't free (see m_RetiredGuilds): other threads may still
-    // hold the pointer.
+    // hold the pointer. retire() marks the guild and its members gone, so a
+    // holder's next membership or rank check answers for a guild that is no
+    // longer there.
+    itr->second->retire();
     m_RetiredGuilds.push_back(itr->second);
     m_Guilds.erase(itr);
 
@@ -322,8 +325,10 @@ void GuildManager::clear_NOBLOCKED() {
 // freed; only the destructor frees the retired list.
 void GuildManager::retireAll_NOBLOCKED() {
     m_RetiredGuilds.reserve(m_RetiredGuilds.size() + m_Guilds.size());
-    for (HashMapGuildItor itr = m_Guilds.begin(); itr != m_Guilds.end(); itr++)
+    for (HashMapGuildItor itr = m_Guilds.begin(); itr != m_Guilds.end(); itr++) {
+        itr->second->retire();
         m_RetiredGuilds.push_back(itr->second);
+    }
     m_Guilds.clear();
 }
 

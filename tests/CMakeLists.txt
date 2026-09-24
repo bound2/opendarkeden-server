@@ -709,6 +709,31 @@ add_dependencies(wire_tests guild_join_decision_tests)
 add_test(NAME guild_join_decision_tests COMMAND guild_join_decision_tests)
 set_tests_properties(guild_join_decision_tests PROPERTIES TIMEOUT 60)
 
+# What a retired guild and a retired guild member answer (docs/FIXES.md):
+# both are taken out of their map and parked rather than freed, because a
+# zone thread may already hold the pointer, so the object stays readable and
+# must say it has gone. Guild.cpp is the only source linked - the retirement
+# paths reach no table, so the test defines the repository accessor over the
+# fake, which refuses every call; ServerCore carries Mutex and de-kernel the
+# member/guild wire structs. A failing Assert appends to
+# assertion_failed.log in the working directory, hence the build-tree
+# WORKING_DIRECTORY (same reason as scheduler_tests).
+add_executable(guild_retirement_tests EXCLUDE_FROM_ALL
+    guild_retirement_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/Guild.cpp
+)
+target_include_directories(guild_retirement_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+)
+target_link_libraries(guild_retirement_tests PRIVATE ServerCore de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests guild_retirement_tests)
+add_test(NAME guild_retirement_tests COMMAND guild_retirement_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(guild_retirement_tests PROPERTIES TIMEOUT 60)
+
 # The gameserver's party invite protocol (docs/RESTRUCTURING.md 3.1):
 # decidePartyInvite returns Outcome<PartyInviteEvents, PartyInviteRejection>
 # over a recording fake topology, so every branch of every CGPartyInvite code,

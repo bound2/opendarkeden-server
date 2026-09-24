@@ -13,6 +13,21 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A union's guild lookup is dereferenced unchecked (2026-09-24)
+
+- **Three union paths call `GuildManager::getGuild(id)->getMaster()` on an
+  id read from the union tables without testing the result** --
+  `GuildUnionManager::removeGuild` twice (`src/server/gameserver/GuildUnion.cpp`,
+  the union master and the leaving guild) and `CGQuitUnionHandler`'s
+  QUIT_QUICK branch on `pUnion->getMasterGuildID()`. `getGuild()` answers
+  NULL for an id the table does not hold, and nothing keeps the union rows
+  in step with the guilds: `GuildManager::deleteGuild` carries the comment
+  `// Clear the GuildUnion information` over no code at all, so a guild
+  disbanded while it is in a union leaves `GuildUnionInfo` /
+  `GuildUnionMember` rows naming it. Quitting that union then dereferences
+  NULL on the zone thread.
+  > **Status:** recorded, not fixed (fix/manager-concurrency)
+
 ## A siege's challenger array is written one past its end (2026-09-24)
 
 - **`SiegeWar::addChallengerGuild` refuses a challenger only once the
@@ -283,10 +298,20 @@ repo and the client's. Entries below are newest first; the oldest is the
   frozen at the moment it left the guild, and nothing marks it as gone.
   A member kicked or a guild deleted while a zone thread is mid-tick can
   therefore still pass a rank check on that tick. The same holds for a
-  retired `Guild` in `GuildManager::m_RetiredGuilds`. Giving the member a
-  retired flag the readers test, or handing out a copy instead of the
-  pointer, is the shape a fix would take.
-  > **Status:** recorded, not fixed (refactor/exps-record)
+  retired `Guild` in `GuildManager::m_RetiredGuilds`.
+  Both now carry an atomic retired flag, set where the retirement happens
+  and under the lock that already covers it -- `Guild::deleteMember`,
+  `Guild::retireAllMembers`, and `Guild::retire()` from
+  `GuildManager::deleteGuild` and `retireAll_NOBLOCKED`, which marks the
+  guild and every member still in its map. The answers a reader gets are
+  what enforce it rather than a check each reader must remember:
+  `GuildMember::getRank()` reads `GUILDMEMBER_RANK_LEAVE` once retired,
+  `Guild::getState()` reads `GUILD_STATE_BROKEN`, and `Guild::getMember()`
+  answers NULL for every name. The guild's own bookkeeping and its
+  database rows take `getStoredRank()` / `m_State`, so the counters, the
+  teardown list and the rows still carry what the member and guild had.
+  `tests/guild_retirement_test.cpp` pins the answers.
+  > **Status:** fixed (fix/manager-concurrency)
 
 ## A castle shrine's defender check asserts on a siege (2026-09-23)
 

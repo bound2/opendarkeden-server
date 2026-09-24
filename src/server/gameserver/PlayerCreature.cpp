@@ -724,8 +724,11 @@ GuildMemberRank_t PlayerCreature::getGuildMemberRank() const
     Guild* pGuild = de::gameContext().guilds().getGuild(m_GuildID);
 
     if (pGuild != NULL) {
+        // A member the guild let go is retired rather than freed, so the
+        // pointer stays readable and says so; it gets the same answer as a
+        // player the guild never had.
         GuildMember* pGuildMember = pGuild->getMember(getName());
-        if (pGuildMember != NULL) {
+        if (pGuildMember != NULL && !pGuildMember->isRetired()) {
             return pGuildMember->getRank();
         }
     }

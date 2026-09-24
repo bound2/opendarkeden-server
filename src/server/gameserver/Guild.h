@@ -120,10 +120,34 @@ public: // identity methods
         m_Name = name;
     }
 
+    // A member the guild has let go is retired, not freed, so a thread that
+    // took the pointer before the removal keeps reading it -- see
+    // Guild::m_RetiredMembers. From the moment of retirement the rank is
+    // GUILDMEMBER_RANK_LEAVE: a rank check on a pointer that has gone stale
+    // mid-tick then fails the way it does for someone who is not in the
+    // guild, instead of passing on the rank the member left with.
     GuildMemberRank_t getRank() const {
+        if (isRetired())
+            return GUILDMEMBER_RANK_LEAVE;
+        return m_Rank.load(std::memory_order_relaxed);
+    }
+    // The rank the member carries whether or not it has been retired: the
+    // guild's own bookkeeping (the active/waiting counters, the teardown
+    // list) and the database row are about the member that was there, not
+    // about what a later reader is allowed to conclude.
+    GuildMemberRank_t getStoredRank() const {
         return m_Rank.load(std::memory_order_relaxed);
     }
     void setRank(GuildMemberRank_t rank); // Handled in the Guild class.
+
+    bool isRetired() const {
+        return m_bRetired.load(std::memory_order_relaxed);
+    }
+    // Called by the Guild as the member leaves its map, under the guild
+    // mutex. One way only: a retired member is never put back.
+    void retire() {
+        m_bRetired.store(true, std::memory_order_relaxed);
+    }
 
     bool getLogOn() const {
         return m_bLogOn.load(std::memory_order_relaxed);
@@ -169,6 +193,9 @@ protected:
     VSDateTime m_RequestDateTime;          // Time the join request was made
     std::atomic<bool> m_bLogOn;            // Whether the member is logged on
     std::atomic<ServerID_t> m_ServerID;    // Which server the member is on
+    // Set when the member leaves the guild's map; read by every thread that
+    // still holds the pointer.
+    std::atomic<bool> m_bRetired;
 };
 
 
@@ -235,6 +262,18 @@ public: // DB methods
 
 
 public: // identity methods
+    // A guild taken out of GuildManager's table -- deleted, or dropped by the
+    // whole-table clear of a sharedserver resync -- is retired, not freed, so
+    // a thread that took the pointer before the removal keeps reading it (see
+    // GuildManager::m_RetiredGuilds). retire() marks it and retires every
+    // member still in its map, so getMember() answers NULL and a rank taken
+    // from a member fetched earlier reads GUILDMEMBER_RANK_LEAVE: a reader
+    // that decides on membership decides against a guild that is gone.
+    bool isRetired() const {
+        return m_bRetired.load(std::memory_order_relaxed);
+    }
+    void retire();
+
     // The integral fields are independent values, so each is its own atomic
     // and is read and written relaxed: a reader gets some value the writer
     // stored, never a torn one, and no field orders another.
@@ -266,7 +305,14 @@ public: // identity methods
         m_Race.store(race, std::memory_order_relaxed);
     }
 
+    // A retired guild reads as disbanded, so the gates that ask whether a
+    // guild is active or waiting -- entering its zone, joining it, showing
+    // it -- close on a pointer that went stale mid-tick. The guild's own
+    // database rows and the wire structs it fills take m_State directly and
+    // so still carry the state it had.
     GuildState_t getState() const {
+        if (isRetired())
+            return GUILD_STATE_BROKEN;
         return m_State.load(std::memory_order_relaxed);
     }
     void setState(GuildState_t state) {
@@ -304,6 +350,8 @@ public: // identity methods
 
 
     ///// GuildMember get/add/delete/modify /////
+    // NULL for a name the guild does not hold, and for every name once the
+    // guild itself is retired.
     GuildMember* getMember(const string& name) const;
     GuildMember* getMember_NOLOCKED(const string& name) const;
     void addMember(GuildMember* pMember);
@@ -402,9 +450,12 @@ protected:
     std::atomic<GuildState_t> m_State;            // guild state
     std::atomic<ServerGroupID_t> m_ServerGroupID; // ID of the server group hosting the guild zone
     std::atomic<ZoneID_t> m_ZoneID;               // guild zone ID
-    string m_Master;                              // guild master, guarded by m_Mutex
-    string m_Date;                                // guild expire / registration date, guarded by m_Mutex
-    string m_Intro;                               // guild introduction, guarded by m_Mutex
+    // Set when the guild leaves GuildManager's table; read by every thread
+    // that still holds the pointer.
+    std::atomic<bool> m_bRetired;
+    string m_Master; // guild master, guarded by m_Mutex
+    string m_Date;   // guild expire / registration date, guarded by m_Mutex
+    string m_Intro;  // guild introduction, guarded by m_Mutex
 
     HashMapGuildMember m_Members; // Map of guild member pointers
     // Members removed from the map are parked here until the guild is
