@@ -28,6 +28,12 @@ public:
     void addConnection(int TID, Connection* pConnection);
     void addDistConnection(int TID, Connection* pConnection);
 
+    // The calling thread's game-database connection (the one it registered
+    // with addConnection), or the default connection built from the DB_*
+    // block for a thread that registered none. The argument is ignored:
+    // every name reaches that same connection, so a table of another
+    // schema is reached by naming its schema in the statement, never by
+    // naming a connection here.
     Connection* getConnection(const string& ip);
     Connection* getDistConnection(const string& ip);
     //	Connection* getPCRoomConnection(const string& ip) ;
