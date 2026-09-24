@@ -50,33 +50,6 @@
 #define __END_PROFILE_MONSTER(name) ((void)0);
 #endif
 
-// #ifdef __XMAS_EVENT_CODE__
-
-const string SantaSpeech[] = {"So you lot know a thing or two!!!",
-                              "Run for it!!!",
-                              "I will be the last master of the Blood Bible!!!",
-                              "Blink blink~ O.o o.O",
-                              "Merry Christmas!!",
-                              "Why aren't you in church on Christmas!!!",
-                              "You think I'll die that easily!!!",
-                              "How did a plan this perfect get found out???",
-                              "Rudolf!!! Pull out your antlers and charge!!!",
-                              "So you lot can really fight!!!",
-                              "Ugh~~~ I will have my revenge!!!",
-                              "Ouch~ That hurts. Stop hitting me.",
-                              "Hey, where are you going..."};
-
-const string RudolfSpeech[] = {
-    "Whoa~ whoa~", "Yahoo~", "Kweh~",       "Grrr~",     "Jingle bells~",
-    "Woof woof",   "Kaoo~",  "Yelp~ yelp~", "Hop~ hop~", "Blink~ blink~ O.O",
-};
-
-const int SantaSpeechMax = 13;
-const int RudolfSpeechMax = 10;
-
-// #endif
-
-
 //////////////////////////////////////////////////////////////////////////////
 // Monster enemy recognition functions
 //////////////////////////////////////////////////////////////////////////////

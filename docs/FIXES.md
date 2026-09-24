@@ -78,8 +78,10 @@ repo and the client's. Entries below are newest first; the oldest is the
   captives in the same order: the handler's fifteen keys, top to bottom, are
   the template's three rows of five. Closing it means keying the handler's
   table by the names `OfferingTemplate` gives, or by the offering's slot
-  instead of its name.
-  > **Status:** recorded, not fixed (r17/handlers-war-misc)
+  instead of its name. The template names the captives in English now and
+  the handler's keys are those same fifteen names, so an offering answers
+  its relic again.
+  > **Status:** fixed (r17/handlers-war-misc)
 
 ## The donation nicknames did not fit the nickname field (2026-09-25)
 
