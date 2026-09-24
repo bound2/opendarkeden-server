@@ -62,13 +62,10 @@ UnionTeardown decideUnionTeardown(bool unionKnown, GuildID_t unionMasterGuildID,
     addOnce(teardown.guildsToNotify, removedGuildID);
     addOnce(teardown.guildsToNotify, unionMasterGuildID);
 
-    // The master guild on its own is not a union, so the last member leaving
-    // takes the union with it.
-    bool othersRemain = false;
-    for (size_t m = 0; m < memberGuilds.size() && !othersRemain; m++)
-        othersRemain = memberGuilds[m] != removedGuildID;
-
-    teardown.action = othersRemain ? UnionTeardown::REMOVE_MEMBER : UnionTeardown::DISSOLVE;
+    // Whether the union outlives its last member is not decided here: a
+    // pending join offer keeps it, which the union manager checks once the
+    // member row is gone (unionIsAbandoned, GuildUnionJoinOffer.h).
+    teardown.action = UnionTeardown::REMOVE_MEMBER;
 
     return teardown;
 }
