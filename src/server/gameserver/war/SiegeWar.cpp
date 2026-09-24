@@ -198,7 +198,7 @@ string SiegeWar::getWarName() const
 {
     __BEGIN_TRY
 
-    return "공성전";
+    return "Siege War";
 
     __END_CATCH
 }
@@ -335,7 +335,7 @@ void SiegeWar::makeWarInfo(WarInfo* pWarInfo) const
     //---------------------------------------------------
     CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(getCastleZoneID());
     if (pCastleInfo == NULL) {
-        filelog("WarError.log", "CastleInfo가 없다(%d)", getCastleZoneID());
+        filelog("WarError.log", "No CastleInfo(%d)", getCastleZoneID());
         return;
     }
 
@@ -349,7 +349,7 @@ void SiegeWar::makeWarInfo(WarInfo* pWarInfo) const
     pGuildWarInfo->setCastleID(getCastleZoneID());
 
     // The attacking guild's name
-    static const string commonGuild("없음");
+    static const string commonGuild("None");
 
     string attackGuildName;
     string defenseGuildName;
@@ -357,7 +357,7 @@ void SiegeWar::makeWarInfo(WarInfo* pWarInfo) const
     attackGuildName = de::gameContext().guilds().getGuildName(m_ChallangerGuildID[0]);
     if (m_ChallangerGuildCount > 1) {
         char buffer[40];
-        snprintf(buffer, 40, "%s외 %u개", attackGuildName.c_str(), m_ChallangerGuildCount - 1);
+        snprintf(buffer, 40, "%s and %u more", attackGuildName.c_str(), m_ChallangerGuildCount - 1);
         attackGuildName = buffer;
     }
 

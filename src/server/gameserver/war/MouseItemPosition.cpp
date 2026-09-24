@@ -109,7 +109,7 @@ Item* MouseItemPosition::popItem_CORE(PlayerCreature* pPC)
     Item* pItem;
 
     if (pPC->getExtraInventorySlotItem() == NULL) {
-        filelog("ItemError.log", "InventoryItemPosition:getItem() : 해당하는 위치에 아이템이 없습니다.");
+        filelog("ItemError.log", "InventoryItemPosition:getItem() : No item at that position.");
 
         return NULL;
     }
@@ -169,7 +169,7 @@ Creature* MouseItemPosition::findCreature()
 
     pTargetCreature = pcFinder.getCreature_LOCKED(m_OwnerName);
     if (pTargetCreature == NULL) {
-        filelog("ItemError.log", "InventoryItemPosition:getItem() : 해당하는 Creature가 없습니다.");
+        filelog("ItemError.log", "InventoryItemPosition:getItem() : No matching Creature.");
 
         return NULL;
     }

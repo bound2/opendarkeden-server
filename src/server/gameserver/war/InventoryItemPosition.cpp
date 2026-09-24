@@ -118,7 +118,7 @@ Creature* InventoryItemPosition::findCreature()
 
     pTargetCreature = pcFinder.getCreature_LOCKED(m_OwnerName);
     if (pTargetCreature == NULL) {
-        filelog("ItemError.log", "InventoryItemPosition:getItem() : 해당하는 Creature가 없습니다.");
+        filelog("ItemError.log", "InventoryItemPosition:getItem() : No matching Creature.");
 
         return NULL;
     }
@@ -158,7 +158,7 @@ Item* InventoryItemPosition::popItem_CORE(PlayerCreature* pPC)
     Assert(pInventory != NULL);
 
     if (!pInventory->hasItem(m_InvenX, m_InvenY)) {
-        filelog("ItemError.log", "InventoryItemPosition:getItem() : 해당하는 위치에 아이템이 없습니다.");
+        filelog("ItemError.log", "InventoryItemPosition:getItem() : No item at that position.");
 
         return NULL;
     }

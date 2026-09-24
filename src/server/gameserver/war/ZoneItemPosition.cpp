@@ -24,7 +24,7 @@ Item* ZoneItemPosition::getItem_LOCKED(bool isDel)
 
     Zone* pZone = getZone();
     if (pZone == NULL) {
-        filelog("ItemError.log", "ZoneItemPosition:getItem() : ZoneID가 잘못되었습니다.");
+        filelog("ItemError.log", "ZoneItemPosition:getItem() : Invalid ZoneID.");
         return NULL;
     }
 
@@ -55,7 +55,7 @@ Item* ZoneItemPosition::getItem(bool isDel)
 
     Zone* pZone = getZone();
     if (pZone == NULL) {
-        filelog("ItemError.log", "ZoneItemPosition:getItem() : ZoneID가 잘못되었습니다.");
+        filelog("ItemError.log", "ZoneItemPosition:getItem() : Invalid ZoneID.");
         return NULL;
     }
 
@@ -109,7 +109,7 @@ Item* ZoneItemPosition::getItemFromZone(Zone* pZone)
     VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);
 
     if (!rect.ptInRect(m_ZoneX, m_ZoneY)) {
-        filelog("ItemError.log", "ZoneItemPosition:getItem() : 아이템 좌표가 잘못되었습니다.");
+        filelog("ItemError.log", "ZoneItemPosition:getItem() : Invalid item coordinates.");
 
         return NULL;
     }
@@ -117,7 +117,7 @@ Item* ZoneItemPosition::getItemFromZone(Zone* pZone)
     Tile& tile = pZone->getTile(m_ZoneX, m_ZoneY);
 
     if (!tile.hasItem()) {
-        filelog("ItemError.log", "ZoneItemPosition:getItem() : 아이템이 없습니다.");
+        filelog("ItemError.log", "ZoneItemPosition:getItem() : No item.");
 
         return NULL;
     }

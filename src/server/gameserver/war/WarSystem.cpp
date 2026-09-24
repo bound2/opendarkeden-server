@@ -78,7 +78,7 @@ void WarSystem::prepareRaceWar() {
     pRaceWar->setWarStartTime(warStartTime);
     m_pRaceWarSchedule = new Schedule(pRaceWar, warStartTime);
 
-    filelog("WarLog.txt", "[WarID=%d,Time=%s] 종족 전쟁을 추가합니다.", (int)pRaceWar->getWarID(),
+    filelog("WarLog.txt", "[WarID=%d,Time=%s] Adding a race war.", (int)pRaceWar->getWarID(),
             warStartTime.toString().c_str());
 
     //	m_RaceWarTimeParam = ((DWORD)((DWORD)warStartTime.date().month() << 24)) |
@@ -89,7 +89,7 @@ void WarSystem::prepareRaceWar() {
         ((DWORD)((DWORD)sendStartTime.date().month()) * 10000) +
         ((DWORD)((DWORD)sendStartTime.date().day()) * 100); //	   + ((DWORD)((DWORD)sendStartTime.time().hour()));
 
-    cout << "종족전쟁 패킷 보내는 날짜 : " << m_RaceWarTimeParam.load() << endl;
+    cout << "Race war packet send date : " << m_RaceWarTimeParam.load() << endl;
 
     __END_CATCH
 }
@@ -539,7 +539,7 @@ WarSchedule* WarSystem::getActiveWarSchedule_LOCKED(ZoneID_t zoneID)
 
         War* pWar = dynamic_cast<War*>(pWarSchedule->getWork());
         if (pWar == NULL) {
-            cout << "WarSystem에 들어있는 Schedule의 Work객체가 War가 아니거나 NULL입니다. 삽질삽질~~~~" << endl;
+            cout << "A Schedule in WarSystem holds a Work that is not a War, or is NULL." << endl;
             continue;
         }
 
