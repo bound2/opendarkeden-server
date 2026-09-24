@@ -401,7 +401,7 @@ string VariableManager::toString(VariableType vt) const {
         break;
 
     case ZONE_GROUP_BALANCING_MINUTE:
-        msg << "ZoneGroupBalancing minute: " << attr1 << "분";
+        msg << "ZoneGroupBalancing minute: " << attr1 << " minutes";
         break;
 
     case GAMBLE_ITEM_TYPE_RATIO:
@@ -417,7 +417,7 @@ string VariableManager::toString(VariableType vt) const {
         break;
 
     case ENEMY_LIMIT_TIME:
-        msg << "ENEMY_LIMIT_TIME: " << attr1 << "초";
+        msg << "ENEMY_LIMIT_TIME: " << attr1 << " seconds";
         break;
 
     case COMBAT_SLAYER_DAMAGE_BONUS:
@@ -502,11 +502,11 @@ string VariableManager::toString(VariableType vt) const {
         break;
 
     case CHRISTMAS_TREE_DECAY_TIME:
-        msg << "CHRISTMAS_TREE_DECAY_TIME: " << attr1 / 600 << "분";
+        msg << "CHRISTMAS_TREE_DECAY_TIME: " << attr1 / 600 << " minutes";
         break;
 
     case MASTER_LAIR_PLAYER_NUM:
-        msg << "MASTER_LAIR_PLAYER_NUM: " << attr1 << "명";
+        msg << "MASTER_LAIR_PLAYER_NUM: " << attr1 << " players";
         break;
 
     case RANK_EXP_GAIN_PERCENT:
@@ -554,15 +554,15 @@ string VariableManager::toString(VariableType vt) const {
         break;
 
     case GUILD_WAR_TIME:
-        msg << "GUILD_WAR_TIME : " << attr1 << " 초 == " << attr1 / 60 << "분";
+        msg << "GUILD_WAR_TIME : " << attr1 << " seconds == " << attr1 / 60 << " minutes";
         break;
 
     case RACE_WAR_TIME:
-        msg << "RACE_WAR_TIME :" << attr1 << " 초 == " << attr1 / 60 << "분";
+        msg << "RACE_WAR_TIME :" << attr1 << " seconds == " << attr1 / 60 << " minutes";
         break;
 
     case WAR_PERIOD_WEEK:
-        msg << "WAR_PERIOD_WEEK :" << (attr1 ? "주 단위" : "일 단위");
+        msg << "WAR_PERIOD_WEEK :" << (attr1 ? "weekly" : "daily");
         break;
 
     case WAR_ACTIVE:
@@ -572,15 +572,15 @@ string VariableManager::toString(VariableType vt) const {
     case RACE_WAR_TIMEBAND:
         msg << "RACE_WAR_TIMEBAND:";
         if (attr1 == 0)
-            msg << "새벽";
+            msg << "dawn";
         else if (attr1 == 1)
-            msg << "낮";
+            msg << "day";
         else if (attr1 == 2)
-            msg << "저녁";
+            msg << "evening";
         else if (attr1 == 3)
-            msg << "밤";
+            msg << "night";
         else
-            msg << "알 수 없음";
+            msg << "unknown";
         break;
 
     case AUTO_START_RACE_WAR:
@@ -592,7 +592,7 @@ string VariableManager::toString(VariableType vt) const {
         break;
 
     case CHIEF_ITEM_BONUS_NUM:
-        msg << "CHIEF_ITEM_BONUS_NUM:" << attr1 << " 개";
+        msg << "CHIEF_ITEM_BONUS_NUM:" << attr1 << " items";
         break;
 
     case ACTIVE_EVENT_GIVE_ITEM:
@@ -640,28 +640,28 @@ string VariableManager::toString(VariableType vt) const {
         msg << "MONEY_TRACE_LOG_LIMIT:" << attr1;
         break;
     case PC_ROOM_LOTTO_EVENT:
-        msg << "피씨방 복권 이벤트: " << attr1;
+        msg << "PC room lottery event: " << attr1;
         break;
     case ACTIVE_FLAG_WAR:
-        msg << "깃발뺏기 게임 실행: " << (attr1 ? "yes" : "no");
+        msg << "Capture-the-flag game running: " << (attr1 ? "yes" : "no");
         break;
     case KILL_DAEMONCTL:
-        msg << "DAEMONCTL 죽이는 여부: " << (attr1 ? "yes" : "no");
+        msg << "DAEMONCTL kill: " << (attr1 ? "yes" : "no");
         break;
 
     case EVENT_MOON_CARD:
         if (attr1)
-            msg << "달카드 이벤트가 진행중입니다.";
+            msg << "The moon card event is running.";
         else
-            msg << "달카드 이벤트를 중단했습니다.";
+            msg << "The moon card event has been stopped.";
         break;
 
     case FULL_MOON_CARD_RATIO:
-        msg << "보름달 카드 나올 확률: 1 / " << attr1;
+        msg << "Full moon card chance: 1 / " << attr1;
         break;
 
     case HALF_MOON_CARD_RATIO:
-        msg << "반달 카드 나올 확률: 1 / " << attr1;
+        msg << "Half moon card chance: 1 / " << attr1;
         break;
 
     case NEW_MOON_CARD_RATIO:
@@ -669,19 +669,19 @@ string VariableManager::toString(VariableType vt) const {
         break;
 
     case OLD_MOON_CARD_RATIO:
-        msg << "그믐달(없는) 카드 나올 확률: 1 / " << attr1;
+        msg << "Old moon (blank) card chance: 1 / " << attr1;
         break;
 
     case ACTIVE_LEVEL_WAR:
-        msg << "레벨별 전쟁 진행 여부: " << (attr1 ? "yes" : "no");
+        msg << "Per-level war running: " << (attr1 ? "yes" : "no");
         break;
 
     case RACE_WAR_HP_BONUS:
-        msg << "종족전시 HP 보너스: " << attr1;
+        msg << "Race war HP bonus: " << attr1;
         break;
 
     case HEAD_COUNT:
-        msg << "머리 갯수 카운트하기: " << (attr1 ? "yes" : "no");
+        msg << "Head count: " << (attr1 ? "yes" : "no");
         break;
 
     case HEAD_PRICE_BONUS:
@@ -693,49 +693,49 @@ string VariableManager::toString(VariableType vt) const {
         break;
 
     case PET_EXP_RATIO:
-        msg << "펫 경험치 비율 : " << attr1;
+        msg << "Pet exp ratio : " << attr1;
         break;
 
     case EVENT_LUCKY_BAG:
         if (attr1)
-            msg << "복주머니 이벤트가 진행중입니다.";
+            msg << "The lucky bag event is running.";
         else
-            msg << "복주머니 이벤트가 진행중이지 않습니다.";
+            msg << "The lucky bag event is not running.";
         break;
 
     case GREEN_LUCKY_BAG_RATIO:
-        msg << "초록색 복주머니 나올 확률 : 1 / " << attr1;
+        msg << "Green lucky bag chance : 1 / " << attr1;
         break;
 
     case BLUE_LUCKY_BAG_RATIO:
-        msg << "파란색 복주머니 나올 확률 : 1 / " << attr1;
+        msg << "Blue lucky bag chance : 1 / " << attr1;
         break;
 
     case GOLD_LUCKY_BAG_RATIO:
-        msg << "황금색 복주머니 나올 확률 : 1 / " << attr1;
+        msg << "Gold lucky bag chance : 1 / " << attr1;
         break;
 
     case RED_LUCKY_BAG_RATIO:
-        msg << "빨간색 복주머니 나올 확률 : 1 / " << attr1;
+        msg << "Red lucky bag chance : 1 / " << attr1;
         break;
 
     case EVENT_GIFT_BOX:
         if (attr1)
-            msg << "선물상자 교환 이벤트가 진행중입니다.";
+            msg << "The gift box exchange event is running.";
         else
-            msg << "선물상자 교환 이벤트가 진행중이지 않습니다.";
+            msg << "The gift box exchange event is not running.";
         break;
 
     case RED_GIFT_BOX_RATIO:
-        msg << "빨간색 선물상자 나올 확률 : 1 / " << attr1;
+        msg << "Red gift box chance : 1 / " << attr1;
         break;
 
     case BLUE_GIFT_BOX_RATIO:
-        msg << "파란색 선물상자 나올 확률 : 1 / " << attr1;
+        msg << "Blue gift box chance : 1 / " << attr1;
         break;
 
     case GREEN_GIFT_BOX_RATIO:
-        msg << "초록색 선물상자 나올 확률 : 1 / " << attr1;
+        msg << "Green gift box chance : 1 / " << attr1;
         break;
 
     case YELLOW_GIFT_BOX_RATIO:
@@ -743,23 +743,23 @@ string VariableManager::toString(VariableType vt) const {
         break;
 
     case NETMARBLE_CARD_RATIO:
-        msg << "넷마블 카드 나올 확률 : " << attr1 << " / 100000";
+        msg << "Netmarble card chance : " << attr1 << " / 100000";
         break;
 
     case NETMARBLE_CARD_EVENT:
-        msg << "넷마블 카드 이벤트 : " << ((attr1) ? "Yes" : "No");
+        msg << "Netmarble card event : " << ((attr1) ? "Yes" : "No");
         break;
 
     case PREMIUM_TRIAL_EVENT:
-        msg << "프리미엄 체험 이벤트 : " << ((attr1) ? "Yes" : "No");
+        msg << "Premium trial event : " << ((attr1) ? "Yes" : "No");
         break;
 
     case PET_FOOD_EVENT:
-        msg << "펫 먹이 이벤트 : " << ((attr1) ? "Yes" : "No");
+        msg << "Pet food event : " << ((attr1) ? "Yes" : "No");
         break;
 
     case HIGHER_PET_FOOD_RATIO:
-        msg << "고단계 펫 먹이 확률 : " << attr1 << "%";
+        msg << "High-grade pet food chance : " << attr1 << "%";
         break;
 
     case RACE_PET_FOOD_RATIO:
@@ -771,83 +771,83 @@ string VariableManager::toString(VariableType vt) const {
         break;
 
     case REVIVAL_SET_RATIO:
-        msg << "리바이벌 셋 확률 : " << attr1 << "%";
+        msg << "Revival set chance : " << attr1 << "%";
         break;
 
     case TODAY_IS_HOLYDAY:
         if (attr1)
-            msg << "오늘은 국경일 입니다.";
+            msg << "Today is a national holiday.";
         else
-            msg << "오늘은 국경일이 아닙니다.";
+            msg << "Today is not a national holiday.";
         break;
 
     case SLAYER_HP_RATIO:
-        msg << "슬레이어 HP비율 : " << attr1 << "%";
+        msg << "Slayer HP ratio : " << attr1 << "%";
         break;
     case VAMPIRE_HP_RATIO:
-        msg << "뱀파이어 HP비율 : " << attr1 << "%";
+        msg << "Vampire HP ratio : " << attr1 << "%";
         break;
     case OUSTERS_HP_RATIO:
-        msg << "아우스터즈 HP비율 : " << attr1 << "%";
+        msg << "Ousters HP ratio : " << attr1 << "%";
         break;
     case MONSTER_HP_RATIO:
-        msg << "몬스터 HP비율 : " << attr1 << "%";
+        msg << "Monster HP ratio : " << attr1 << "%";
         break;
 
     case MONSTER_EXP_RATIO:
-        msg << "몬스터 EXP비율 : " << attr1 << "%";
+        msg << "Monster EXP ratio : " << attr1 << "%";
         break;
 
     case CLOVER_EVENT:
-        msg << "네잎클로버 이벤트 : " << ((attr1) ? "on" : "off");
+        msg << "Four-leaf clover event : " << ((attr1) ? "on" : "off");
         break;
 
     case CLOVER_RATIO:
-        msg << "네잎클로버 확률 : " << attr1 << "/100000";
+        msg << "Four-leaf clover chance : " << attr1 << "/100000";
         break;
 
     case MONSTER_DAMAGE_RATIO:
-        msg << "몬스터 Damage 비율 : " << attr1 << "%";
+        msg << "Monster damage ratio : " << attr1 << "%";
         break;
 
     case RACE_PET_QUEST:
-        msg << "2차 펫 퀘스트 : " << ((attr1) ? "on" : "off");
+        msg << "Second pet quest : " << ((attr1) ? "on" : "off");
         break;
 
     case NICKNAME_PEN_EVENT:
-        msg << "네이밍펜 이벤트 : " << ((attr1) ? "on" : "off");
+        msg << "Naming pen event : " << ((attr1) ? "on" : "off");
         break;
 
     case NICKNAME_PEN_RATIO:
-        msg << "네이밍펜 확률 : " << attr1 << "/100000";
+        msg << "Naming pen chance : " << attr1 << "/100000";
         break;
 
     case GOLD_MEDAL_RATIO:
-        msg << "금메달 확률 : " << attr1 << "/100000";
+        msg << "Gold medal chance : " << attr1 << "/100000";
         break;
 
     case PET_DAY_EVENT:
-        msg << "복날 이벤트 : " << ((attr1) ? "on" : "off");
+        msg << "Dog days event : " << ((attr1) ? "on" : "off");
         break;
 
     case OLYMPIC_ITEM_RATIO:
-        msg << "올림픽 이벤트 아이템 루팅 확률 : " << attr1 << "/100000";
+        msg << "Olympic event item loot chance : " << attr1 << "/100000";
         break;
 
     case OLYMPIC_EVENT:
-        msg << "다덴 올림픽 이벤트 : " << ((attr1) ? "on" : "off");
+        msg << "DarkEden Olympic event : " << ((attr1) ? "on" : "off");
         break;
 
     case CROWN_PRICE:
-        msg << "월계관 가격 : " << attr1;
+        msg << "Laurel crown price : " << attr1;
         break;
 
     case CHOBO_EVENT:
-        msg << "초보자 이벤트 : " << ((attr1) ? "on" : "off");
+        msg << "Beginner event : " << ((attr1) ? "on" : "off");
         break;
 
     case QUIT_GUILD_PENALTY_TERM:
-        msg << "길드 탈퇴시 재가입 불가 기간 : " << attr1;
+        msg << "Guild rejoin ban after leaving : " << attr1;
         break;
 
     case GUILD_UNION_MAX:

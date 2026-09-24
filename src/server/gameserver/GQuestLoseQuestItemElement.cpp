@@ -16,7 +16,7 @@ GQuestElement::ResultType GQuestLoseQuestItemElement::checkCondition(PlayerCreat
     pPC->getPlayer()->sendPacket(inventory.getInventoryPacket());
 
     GCSystemMessage gcSM;
-    gcSM.setMessage("삿돤훨蛟돛야.");
+    gcSM.setMessage("Lost a quest item.");
     pPC->getPlayer()->sendPacket(&gcSM);
 
     return OK;

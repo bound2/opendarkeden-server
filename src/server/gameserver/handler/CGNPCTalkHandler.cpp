@@ -22,11 +22,6 @@
 #include "quest/TriggerManager.h"
 #endif
 
-const string DiffClanSpeech[] = {
-    "Guards! Guards! Bathory's servants have broken in here.",
-    "Hmm? This is.. the blood scent of Bathory's kin! So you have come to defile even Lord Vlad's resting place!!",
-    "Who are you? How dare you come here.. Abscede Hinc!!"};
-
 //////////////////////////////////////////////////////////////////////////////
 // When a player clicks an NPC the client sends the CGNPCTalk packet to the
 // server. When the server handles this packet, and the NPC has the

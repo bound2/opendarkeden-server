@@ -19,7 +19,7 @@ GQuestNOTElement* GQuestNOTElement::makeElement(XMLTree* pTree) {
         if (pElement != NULL) {
             pRet->m_Elements.push_back(pElement);
         } else {
-            cout << "엘리먼트를 못 만들겠음 : " << pChild->GetName() << endl;
+            cout << "Cannot make element : " << pChild->GetName() << endl;
             Assert(false);
         }
     }

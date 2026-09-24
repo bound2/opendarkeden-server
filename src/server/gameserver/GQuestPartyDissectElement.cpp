@@ -26,7 +26,7 @@ GQuestMission* GQuestPartyDissectElement::makeInitMission(PlayerCreature* pPC) c
     int TotalNum = pTargetList->size();
     int TargetNum = min((int)m_TargetNum, TotalNum);
     int selected = 0;
-    cout << TotalNum << "중에 " << TargetNum << "개가 선택되어야 합니다." << endl;
+    cout << TotalNum << " candidates, " << TargetNum << " to select." << endl;
 
     for (int i = 0; i < TotalNum; ++i) {
         int toSelect = TargetNum - selected;
@@ -40,13 +40,13 @@ GQuestMission* GQuestPartyDissectElement::makeInitMission(PlayerCreature* pPC) c
                 pMission->m_StrArg += ", ";
             pMission->getTargetList().push_back((*pTargetList)[i]);
             ++selected;
-            cout << (int)(*pTargetList)[i] << "가 선택되었습니다." << endl;
+            cout << (int)(*pTargetList)[i] << " selected." << endl;
 
             pMission->m_StrArg += de::gameContext().monsterInfos().getNameBySpriteType((*pTargetList)[i]);
         }
     }
 
-    cout << "선택끝~" << endl;
+    cout << "Selection done" << endl;
 
     return pMission;
 }

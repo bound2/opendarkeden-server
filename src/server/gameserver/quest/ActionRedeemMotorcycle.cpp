@@ -205,7 +205,7 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
                 filelog(
                     "motorError.txt",
                     "ActionRedeemMotorcycle::load() : cannot add the motorcycle to the zone. zoneID=%d, xy=(%d, %d)",
-                    (int)pZone->getZoneID(), (int)x, (int)y); // by sigi. 2002.12.24
+                    (int)pZone->getZoneID(), (int)x, (int)y);
                 throw Error("ActionRedeemMotorcycle::load() : cannot add the motorcycle to the zone");
             }
 

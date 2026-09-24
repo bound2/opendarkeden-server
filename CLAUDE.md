@@ -618,8 +618,10 @@ rather than `conf/`).
 ## Development Notes
 
 - Source file encoding is **UTF-8** (the project was migrated from legacy
-  encodings). R17 counts the source lines that still carry a non-ASCII byte;
-  all of them are string literals now, and it only goes down.
+  encodings). R17 holds the source lines that carry a non-ASCII byte at
+  zero: the legacy comments and string literals are all English now, and a
+  literal that must keep foreign bytes because data is matched against it
+  is written as escaped UTF-8 with an English comment beside it.
 - Write comments in **English**, and describe behaviour: no task numbers,
   dates, review history or migration narrative in `src/` or `tests/`.
   Translate the legacy Korean or mojibake comments you come across.

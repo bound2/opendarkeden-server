@@ -390,7 +390,7 @@ void opcredit(GamePlayer* pGamePlayer, string msg, int i) {
 
     // Kept hard-coded for now...
     if (Credits.empty()) {
-        // The contributor's name did not survive the legacy encoding.
+        // No name is known for this entry.
         Credits["unnamed"] = "client, server (2005~)";
     }
 
@@ -520,7 +520,7 @@ void oppay(GamePlayer* pGamePlayer, string msg, int i) {
         } else if (pGamePlayer->getPayType() == PAY_TYPE_PERIOD) {
             sprintf(str, "%sAvailable until %s.", str, pGamePlayer->getPayPlayAvailableDateTime().toString().c_str());
         } else {
-            sprintf(str, "%sPlay time : %d min / %d h", str, (int)(payTime.tv_sec / 60),
+            sprintf(str, "%sRemaining time : %d / %d min", str, (int)(payTime.tv_sec / 60),
                     (int)pGamePlayer->getPayPlayAvailableHours());
         }
     } else {

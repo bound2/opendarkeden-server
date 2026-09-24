@@ -17,7 +17,7 @@ GQuestElement::ResultType GQuestGiveVampireExpElement::checkCondition(PlayerCrea
     pVampire->getPlayer()->sendPacket(&gcMI);
 
     GCSystemMessage gcSM;
-    gcSM.setMessage("삿돤쒔駱令.");
+    gcSM.setMessage("Received experience.");
     pPC->getPlayer()->sendPacket(&gcSM);
 
     return OK;

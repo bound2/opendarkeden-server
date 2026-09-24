@@ -28,7 +28,7 @@ void GQuestInfo::makeVector(XMLTree* pTree, ElementType type) {
     Assert(pTree != NULL);
     string checkType;
     if (pTree->GetAttribute("type", checkType)) {
-        cout << "체크 타입 들어있음!" << checkType << endl;
+        cout << "Check type set: " << checkType << endl;
 
         if (checkType == "sequence")
             m_CheckTypes[type] = SEQUENCE;
@@ -51,7 +51,7 @@ void GQuestInfo::makeVector(XMLTree* pTree, ElementType type) {
             pElement->setCondition(type);
             m_Elements[type].push_back(pElement);
         } else {
-            cout << "엘리먼트를 못 만들겠음 : " << pChild->GetName() << endl;
+            cout << "Cannot make element : " << pChild->GetName() << endl;
             Assert(false);
         }
     }

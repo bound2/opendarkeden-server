@@ -13,6 +13,36 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A packet whose write() throws leaves its first bytes in the player's stream (2026-09-25)
+
+- **`SocketOutputStream::writePacket` puts the packet id, a zero size
+  placeholder and the sequence byte into the stream before `write()`
+  runs, and nothing takes them back when `write()` throws.** A
+  `de::wire::writeString` bound refusal is an `InvalidProtocolException`,
+  and `GamePlayer::sendPacket` catches and drops exactly that type, so the
+  send looks like a skipped packet while the id, the placeholder, the
+  sequence and whatever fields preceded the refused one stay in the
+  output buffer, framed by a size of 0 that `patchField` never
+  overwrote. The client reads the next packet from the middle of that
+  debris. Every server-side write that can refuse a field is exposed; the
+  one found is the Gilles de Rais echo below. Closing it means
+  `writePacket` rolling the stream back to where the packet began when
+  the body throws (the tail is in hand before the id is written), or
+  writing the body to a scratch stream first.
+  > **Status:** recorded, not fixed (r17/gameserver-core)
+
+## The Gilles de Rais lair's global-chat echo overflows its 128-byte message (2026-09-25)
+
+- **`GDRScene::ActionSay` echoes each line Gilles de Rais says as a
+  `GCGlobalChat` of the name, a space and the line, and the Korean name
+  made the longest seed line too long for the packet.** `GCGlobalChat`
+  refuses a message past 128 bytes; the prefix was 10 bytes of UTF-8, and
+  `GSStringPool` 348, which scene 5 says, is 120 bytes, so its echo
+  was 130 and was refused for every player in the lair (with the stream
+  damage above). The prefix is `Gilles ` now, 7 bytes, and the longest
+  line any scene says fits at 127.
+  > **Status:** fixed (r17/gameserver-core)
+
 ## The GM summon command never recognised a chief monster's name (2026-09-25)
 
 - **`opsummon` (`gm/ZoneCommands.cpp`) decides a typed name is a chief
@@ -38,29 +68,28 @@ repo and the client's. Entries below are newest first; the oldest is the
 
 ## An Altar of Blood offering never answers a relic (2026-09-25)
 
-- **`CGRelicToObjectHandler` accepts a relic brought to an offering
-  (monster types 793..795) only when the offering's name is a key of its
-  line table, and the keys are the offerings' Korean names while
-  `DynamicZoneAlterOfBlood::addOffering` names them from
-  `OfferingTemplate`, which holds the names the Chinese build gave the same
-  fifteen captives (GBK bytes decoded as Latin-1),** so no name ever matches and
-  every relic is refused with `GCCannotAdd`. The two tables list the
-  captives in the same order: the handler's fifteen keys, top to bottom, are
-  the template's three rows of five. Closing it means keying the handler's
-  table by the names `OfferingTemplate` gives, or by the offering's slot
-  instead of its name.
-  > **Status:** recorded, not fixed (r17/handlers-war-misc)
+- **`CGRelicToObjectHandler` accepted a relic brought to an offering
+  (monster types 793..795) only when the offering's name was a key of its
+  line table, and the keys were the offerings' Korean names while
+  `DynamicZoneAlterOfBlood::addOffering` named them from
+  `OfferingTemplate`, which held the names the Chinese build gave the same
+  fifteen captives (GBK bytes decoded as Latin-1),** so no name ever matched
+  and every relic was refused with `GCCannotAdd`. The two tables list the
+  captives in the same order, the handler's fifteen keys, top to bottom,
+  being the template's three rows of five. The template names the captives
+  in English and the handler's keys are those same fifteen names, so an
+  offering answers its relic again.
+  > **Status:** fixed (r17/gameserver-core)
 
 ## The donation nicknames did not fit the nickname field (2026-09-25)
 
 - **`CGDonationMoneyHandler` grants six custom nicknames, and in UTF-8 each
   of the Korean ones was 26 to 32 bytes, past the 22 `MAX_NICKNAME_SIZE`
-  allows on the wire** (they fitted in CP949). `NicknameInfo::write` throws
-  `InvalidProtocolException` on such a name after the list's earlier fields
-  are already in the output stream, and `GamePlayer::sendPacket` swallows
-  it, so every `GCNicknameList` sent to a player holding one left a
-  half-written packet in that player's stream. The English nicknames are 15
-  to 21 bytes. A book that already stores one of the Korean names keeps it.
+  allows on the wire** (they fitted in CP949). `NicknameInfo::setNickname`
+  cuts a name to 22 bytes, so the book stored and sent each of them cut in
+  the middle of a Hangul syllable, a name ending in invalid UTF-8. The
+  English nicknames are 15 to 21 bytes. A book that already stores one of
+  the Korean names keeps its cut 22-byte form.
   > **Status:** fixed (r17/handlers-war-misc)
 
 ## A war's whole-zone broadcasts walk the zones' player lists with no lock (2026-09-25)

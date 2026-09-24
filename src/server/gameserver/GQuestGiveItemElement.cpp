@@ -47,7 +47,7 @@ GQuestElement::ResultType GQuestGiveItemElement::checkCondition(PlayerCreature* 
     }
 
     GCSystemMessage gcSM;
-    gcSM.setMessage("삿돤膠틔.");
+    gcSM.setMessage("Received an item.");
     pPC->getPlayer()->sendPacket(&gcSM);
 
     return OK;
