@@ -21,6 +21,7 @@
 #include "PlayerStatus.h"
 #include "SocketEncryptInputStream.h"
 #include "SocketEncryptOutputStream.h"
+#include "SpeedHackDecision.h"
 #include "Timeval.h"
 #include "Types.h"
 #include "skill/Skill.h"
@@ -73,8 +74,8 @@ public:
     // get debug string
     virtual string toString() const;
 
-    // Speed check.
-    virtual bool verifySpeed(Packet* pPacket);
+    // Speed check: is the client heartbeat that just arrived plausible?
+    bool verifySpeed();
 
     // get creature pointer
     Creature* getCreature() {
@@ -233,8 +234,6 @@ private:
     void checkPCRoomLotto(const Timeval& currentTime);
     void savePCRoomLottoTime();
     void giveLotto();
-    // add by Coffee 2007-6-25
-    void tv_sub(struct timeval* out, struct timeval* in);
 
 private:
     // creature
@@ -254,13 +253,8 @@ private:
     // expire time
     Timeval m_ExpireTime;
 
-    BYTE m_VerifyCount;
-
-    // Timestamps used to verify speed.
-    Timeval m_SpeedVerify;
-    Timeval m_MoveSpeedVerify;
-    Timeval m_AttackSpeedVerify;
-    Timeval m_SkillSpeedVerify[SKILL_MAX];
+    // How the client heartbeat check stands for this session.
+    de::HeartbeatVerifyState m_SpeedVerify;
 
     // mutex
     mutable Mutex m_Mutex;

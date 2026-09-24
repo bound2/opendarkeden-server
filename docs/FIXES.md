@@ -13,6 +13,23 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## The client heartbeat is verified twice for every heartbeat packet (2026-09-24)
+
+- **`GamePlayer::processCommand` ran `verifySpeed(pPacket)` and threw the
+  answer away, and `CGVerifyTimeHandler` then ran it again on the same
+  packet,** so the heartbeat state machine advanced twice per `CGVerifyTime`.
+  The first run set the next expected time to *this* arrival plus the
+  60-second interval, which makes the second run's test (`now > next - 5`)
+  false for every heartbeat, so the run that actually decides always took the
+  early branch: an on-time heartbeat decremented and incremented the error
+  count in the same breath, and an early one counted twice. The run of early
+  heartbeats needed to disconnect a player was two rather than the five the
+  rule is written for. The discarded call arrived with the recovered sources
+  (`3fccc6c6`) as part of the abandoned move/attack check below and is gone;
+  the handler is the only caller again, as it was at import, and
+  `tests/speed_hack_decision_test.cpp` pins the counting.
+  > **Status:** fixed (fix/shrine-and-speed)
+
 ## A deleted guild's pending war comes straight back (2026-09-23)
 
 - **`GuildManager::deleteGuild` reloads the castle zone's war scheduler
@@ -343,24 +360,24 @@ repo and the client's. Entries below are newest first; the oldest is the
   player who places a matching blood bible there changes the owner with no
   war-eligibility test; the `endWar` and `returnBloodBible` that followed
   are commented out as well. The castle counterpart in
-  `CastleShrineInfoManager` still applies the check. Restoring it needs the
-  castle zone id the same block no longer computes and a decision on the
-  three statements that went with it.
-  The zone id is there to be had -- a shrine set's guard shrines sit in the
-  castle zones, so the commented `getReturnGuardShrine().getZoneID()` is a
-  castle zone id and needs none of the guard-to-castle mapping the castle
-  counterpart does. What is missing is a war to ask. `WarSystem::
-  isModifyCastleOwner` answers out of `getActiveWar`, which only ever
-  returns a siege war whose castle zone matches, and asserts on a null one;
-  `Assert` throws in every build. The holy land's war is the race war, which
-  `getActiveWar` never returns and which overrides neither
-  `isModifyCastleOwner` nor `endWar`, both `false` on the `War` base. So the
-  castle's shape restored here throws on every matching blood bible placed
-  outside a siege on the owner's castle, and inside one asks a predicate --
-  the siege attacker flags -- that has nothing to say about a race. Which
-  war may flip a holy shrine's owner, and on what test, is a design
-  decision the commented code does not answer, so it stays recorded.
-  > **Status:** recorded, not fixed (refactor/game-context-11)
+  `CastleShrineInfoManager` still applies the check.
+  The war the holy shrines are fought over is the race war, not a castle
+  war: `canPickupBloodBible` says the bible is used only in race wars,
+  `RaceWar::executeStart` drops every guard-shrine shield and broadcasts the
+  bible positions, and `RaceWar::executeEnd` returns them all and tallies the
+  shrine owners into `RaceWarHistory`. So the test restored is the race
+  war's own -- whoever the holy land is open to while it runs, which is
+  everyone when the participant limiter is off and otherwise the players
+  carrying the join ticket, the same pair `ConditionEnterHolyLand` and the
+  waypoint handler ask -- and it is asked through
+  `War::mayModifyShrineOwner`, which `RaceWar` answers and every other war
+  refuses, over a `WarSystem::mayModifyShrineOwner` that reads
+  `hasActiveRaceWar()` first and answers no when no race war is running
+  rather than asserting. The castle's other two statements are deliberately
+  not restored: a race war does not end when one shrine changes hands, and
+  the bible travels back to its guard shrine either way, which is what the
+  unconditional `returnBloodBible` below the branch already did.
+  > **Status:** fixed (fix/shrine-and-speed)
 
 ## A random mine item is read off a row that may not exist (2026-09-22)
 
@@ -448,8 +465,26 @@ repo and the client's. Entries below are newest first; the oldest is the
   the commented-out code; what remains for `CG_MOVE` is an empty `if` on
   `m_MoveSpeedVerify` and a round-trip time computed into a local nothing
   reads, and `m_AttackSpeedVerify` is written by nothing that decides on
-  it. Restoring the check is a design decision, not a fix.
-  > **Status:** recorded, not fixed (refactor/commented-code-3)
+  it.
+  The block was abandoned before the tree was imported, not paused: at the
+  import commit `verifySpeed` was reached from one place, the `CGVerifyTime`
+  handler, so its `CG_MOVE` and `CG_ATTACK` branches could not run whatever
+  the comment markers said; it opens by redeclaring the `SpeedCheck` the live
+  body above it already declares, so it does not compile where it sits; its
+  race chain ends in an empty `else`, leaving Ousters unchecked; and its
+  vampire arm assigns the same constant in all three speed tiers its own
+  comments give different numbers for. Reinstating it would mean inventing
+  per-race timings and an enforcement action the original never had, so the
+  residue was removed instead: the empty `if`, the unread round-trip local,
+  `m_MoveSpeedVerify`, `m_AttackSpeedVerify`, the untouched
+  `m_SkillSpeedVerify[SKILL_MAX]` array and the `tv_sub` helper that only the
+  unread local used. What survives is the heartbeat rule, now a pure
+  `de::verifyHeartbeat` (`src/server/gameserver/SpeedHackDecision.cpp`) with
+  the session's state beside it and `tests/speed_hack_decision_test.cpp`
+  holding its arithmetic; the duplicate call the same residue left behind is
+  the 2026-09-24 entry at the top of this file.
+  > **Status:** not a defect (the check never ran and could not compile; its
+  > residue was removed in fix/shrine-and-speed)
 
 ## The log client never opens its socket (2026-09-22)
 

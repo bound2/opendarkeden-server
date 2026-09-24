@@ -23,6 +23,7 @@
 #include "HolyLandManager.h"
 #include "KernelContext.h"
 #include "PCManager.h"
+#include "PlayerCreature.h"
 #include "RaceWarInfo.h"
 #include "RaceWarLimiter.h"
 #include "RegenZoneManager.h"
@@ -233,6 +234,21 @@ void RaceWar::recordRaceWarEnd()
     system(cmd);
 
     __END_CATCH
+}
+
+// A shrine set changes owner for the race of the player who places the matching
+// blood bible on its holy shrine, and the race war is open to whoever the holy
+// land itself is open to while it runs: everyone when the participant limiter
+// is off, and otherwise only the players who signed up and carry the join
+// ticket. The same pair of tests decides who may enter a holy land at all.
+bool RaceWar::mayModifyShrineOwner(PlayerCreature* pPC) {
+    if (pPC == NULL)
+        return false;
+
+    if (!de::gameContext().variables().isActiveRaceWarLimiter())
+        return true;
+
+    return pPC->isFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET);
 }
 
 string RaceWar::getWarName() const

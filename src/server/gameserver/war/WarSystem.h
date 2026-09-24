@@ -78,6 +78,14 @@ public:
     WarSchedule* getActiveWarSchedule(ZoneID_t zoneID);
     bool isModifyCastleOwner(ZoneID_t castleZoneID, PlayerCreature* pPC);
 
+    // Whether the war fought over the shrines of Adam's holy land -- the race
+    // war -- lets pPC take a shrine set for its race. With no race war running
+    // there is no war to take a shrine in, so the answer is no: unlike
+    // isModifyCastleOwner, which a siege reaches only while that siege runs,
+    // this is asked every time a blood bible is placed, so a missing war is an
+    // answer rather than an error.
+    bool mayModifyShrineOwner(PlayerCreature* pPC) const;
+
     bool hasActiveRaceWar() const {
         return m_bHasRaceWar;
     }

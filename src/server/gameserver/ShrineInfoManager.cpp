@@ -736,21 +736,19 @@ bool ShrineInfoManager::putBloodBible(PlayerCreature* pPC, Item* pItem, MonsterC
     if (pShrineSet == NULL)
         return false;
 
-    // ZoneID_t castleZoneID = pShrineSet->getReturnGuardShrine().getZoneID();
-
-    // Placing it in the matching shrine changes the owner and returns it to the guard shrine,
-    if (isMatchHolyShrine(pItem, pCorpse)
+    // Placing it in the matching holy shrine changes the owner race, but only
+    // for a player the running war lets take a shrine: the shrines of Adam's
+    // holy land are fought over in the race war, so outside one, and for anyone
+    // the war is not open to, the bible only travels back.
+    if ((isMatchHolyShrine(pItem, pCorpse) && de::gameContext().warSystem().mayModifyShrineOwner(pPC))
         // Placing it in the GuardShrine is allowed when the castle's race and the player's race match.
-        || isDefenderOfGuardShrine(pPC, pCorpse) && isMatchGuardShrine(pItem, pCorpse, pPC)) {
+        || (isDefenderOfGuardShrine(pPC, pCorpse) && isMatchGuardShrine(pItem, pCorpse, pPC))) {
         pShrineSet->setOwnerRace(pPC->getRace());
-
-        // War::executeEnd returns it when the war ends.
-        //        returnBloodBible( shrineID, false );
-
-        // return true;
     }
 
-    // Placed in another shrine, or with no war about to end, it simply returns to the guard shrine.
+    // The bible goes back to its guard shrine either way, so it can be carried
+    // and contested again while the war lasts; the owner races the shrine sets
+    // ended up with are tallied when the war ends.
     returnBloodBible(shrineID, false);
 
     return false;

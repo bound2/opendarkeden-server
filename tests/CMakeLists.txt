@@ -616,6 +616,24 @@ add_dependencies(wire_tests reconnect_decision_tests)
 add_test(NAME reconnect_decision_tests COMMAND reconnect_decision_tests)
 set_tests_properties(reconnect_decision_tests PROPERTIES TIMEOUT 60)
 
+# The gameserver's client-heartbeat plausibility rule: verifyHeartbeat() takes
+# the arrival time as a number and the session's state as a struct, so the
+# whole rule -- the gap, the count of early heartbeats a session may carry and
+# what an on-time one pays back -- is testable without a player or a clock.
+# Nothing is linked but gtest: the decision includes no game header, and
+# pulling one in would break this link.
+add_executable(speed_hack_decision_tests EXCLUDE_FROM_ALL
+    speed_hack_decision_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/SpeedHackDecision.cpp
+)
+target_include_directories(speed_hack_decision_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+)
+target_link_libraries(speed_hack_decision_tests PRIVATE gtest_main Threads::Threads)
+add_dependencies(wire_tests speed_hack_decision_tests)
+add_test(NAME speed_hack_decision_tests COMMAND speed_hack_decision_tests)
+set_tests_properties(speed_hack_decision_tests PROPERTIES TIMEOUT 60)
+
 # The loginserver's account-registration decision (docs/RESTRUCTURING.md
 # 3.1): decideRegisterPlayer() returns Outcome<LoginNewAccount,
 # RegisterPlayerRefusal> over a fake LoginAccountRepository, so every
