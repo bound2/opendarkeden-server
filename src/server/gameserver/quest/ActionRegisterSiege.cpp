@@ -18,6 +18,7 @@
 #include "NPC.h"
 #include "PlayerCreature.h"
 #include "Properties.h"
+#include "SiegeRegistrationDecision.h"
 #include "SiegeWar.h"
 #include "SystemAvailabilitiesManager.h"
 #include "VariableManager.h"
@@ -110,15 +111,23 @@ void ActionRegisterSiege::execute(Creature* pCreature1, Creature* pCreature2)
 
     // Is the war schedule full?
 
-    Schedule* pNextSchedule = pWarScheduler->getRecentSchedule();
+    // The castle's next war. A scheduler holds only its own castle's wars,
+    // so this is the war the registration either joins or is turned away by.
+    // Both castle war classes report WAR_GUILD, so the war is read through
+    // the schedule and only the join itself needs the siege's challenger
+    // list: a guild war waiting here is applied for by one guild alone and
+    // has no slot to join.
+    WarSchedule* pNextWarSchedule = dynamic_cast<WarSchedule*>(pWarScheduler->getRecentSchedule());
+    War* pNextCastleWar = (pNextWarSchedule != NULL) ? pNextWarSchedule->getWar() : NULL;
+    SiegeWar* pNextWar = dynamic_cast<SiegeWar*>(pNextCastleWar);
 
-    Work* pNextWork = NULL;
-    if (pNextSchedule != NULL)
-        pNextWork = pNextSchedule->getWork();
+    SiegeRegistrationState state;
+    state.hasScheduledWar = (pNextCastleWar != NULL);
+    state.isSiege = (pNextWar != NULL);
+    state.challengerCount = (pNextWar != NULL) ? pNextWar->getChallengerGuildCount() : 0;
 
-    SiegeWar* pNextWar = dynamic_cast<SiegeWar*>(pNextWork);
-
-    if (pNextWar == NULL) {
+    switch (decideSiegeRegistration(state)) {
+    case SIEGE_REGISTRATION_CREATE: {
         pNextWar = new SiegeWar(m_ZoneID, War::WAR_STATE_WAIT);
         pNextWar->addRegistrationFee(warRegistrationFee);
         pNextWar->addChallengerGuild(guildID);
@@ -130,14 +139,16 @@ void ActionRegisterSiege::execute(Creature* pCreature1, Creature* pCreature2)
             SAFE_DELETE(pNextWar);
             return;
         }
-    } else if (pNextWar->getChallengerGuildCount() < 5) {
-        WarSchedule* pNextWarSchedule = dynamic_cast<WarSchedule*>(pNextSchedule);
-        Assert(pNextWarSchedule != NULL);
+        break;
+    }
 
+    case SIEGE_REGISTRATION_JOIN:
         pNextWar->addRegistrationFee(warRegistrationFee);
         pNextWar->addChallengerGuild(guildID);
         pNextWarSchedule->save();
-    } else {
+        break;
+
+    case SIEGE_REGISTRATION_FULL:
         gcNPCResponse.setCode(NPC_RESPONSE_WAR_SCHEDULE_FULL);
         pPC->getPlayer()->sendPacket(&gcNPCResponse);
 

@@ -74,7 +74,9 @@ int SiegeWar::getGuildSide(GuildID_t guildID) const {
 }
 
 bool SiegeWar::addChallengerGuild(GuildID_t gID) {
-    if (m_ChallangerGuildCount > 5)
+    // Five slots, so the fifth challenger fills the last one and a sixth is
+    // refused rather than written past the end.
+    if (m_ChallangerGuildCount >= 5)
         return false;
     if (gID == 0 || gID == 66 || gID == 99)
         return false;

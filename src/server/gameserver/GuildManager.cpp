@@ -210,15 +210,22 @@ void GuildManager::deleteGuild(GuildID_t id) {
                 // anything here, on the shared-server link thread with the guild
                 // mutex held, would take its mutex in the order the zone thread
                 // reverses when a war schedule names a guild, so both the test
-                // and the reload are posted to the owner and run under the group
+                // and the cancel are posted to the owner and run under the group
                 // mutex. The scheduler is looked up there because a zone reload
                 // replaces it.
+                //
+                // The cancel writes the guild's waiting wars out of the table
+                // before reloading from it; a plain reload reads the war back
+                // in, because the row is still waiting. The sharedserver
+                // cancels the rows the guild holds the first attacker slot of
+                // when it purges the guild, but not the ones it joined as a
+                // later challenger or as the defenders' reinforcement.
                 ZoneGroup* pZoneGroup = pZone->getZoneGroup();
                 if (pZoneGroup != NULL)
                     pZoneGroup->post([pZone, id] {
                         WarScheduler* pScheduler = pZone->getWarScheduler();
                         if (pScheduler != NULL && pScheduler->hasSchedule(id))
-                            pScheduler->load();
+                            pScheduler->cancelGuildSchedulesOf(id);
                     });
             }
         }

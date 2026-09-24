@@ -32,6 +32,13 @@ namespace {
 //  - WarSchedule's INSERT IGNORE and REPLACE carry four TABS in the
 //    literal right before "VALUES", written as an explicit "\t\t\t\t" so
 //    clang-format cannot reflow them away.
+//  - The two castle war classes share WarType 'GUILD'; CastleWarKind is
+//    what tells them apart, written by both schedule writers and read back
+//    by loadWarSchedules. A row from a database that predates the column
+//    takes its default, 'SIEGE'.
+//  - cancelGuildWarSchedules takes a whole castle's waiting and started
+//    guild wars; cancelWarSchedule takes one waiting war by id and leaves
+//    a started one alone.
 //  - countWarSchedules and loadMaxWarID read column 1 through getDWORD
 //    without checking next(): a COUNT(*) always answers with one row,
 //    and the MAX probe runs only after the count came back non-zero, so
@@ -423,7 +430,7 @@ public:
             Result* pResult = pStmt->executeQuery(
                 "SELECT WarID, WarType, AttackerCount, AttackGuildID, AttackGuildID2, AttackGuildID3, AttackGuildID4, "
                 "AttackGuildID5, "
-                "WarFee, StartTime FROM WarScheduleInfo "
+                "WarFee, StartTime, CastleWarKind FROM WarScheduleInfo "
                 "WHERE ServerID = %u AND ZoneID = %u AND ( Status = 'WAIT' OR Status = 'START' ) "
                 "ORDER BY StartTime",
                 serverID, zoneID);
@@ -441,6 +448,7 @@ public:
                 }
                 row.warFee = pResult->getInt(++i);
                 row.startTime = pResult->getString(++i);
+                row.castleWarKind = pResult->getString(++i);
 
                 rows.push_back(row);
             }
@@ -487,6 +495,25 @@ public:
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)
+    }
+
+    bool cancelWarSchedule(WarID_t warID, int serverID) {
+        bool changed = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(
+                "UPDATE WarScheduleInfo SET Status='CANCEL' WHERE WarID = %u AND ServerID = %u AND Status='WAIT'",
+                warID, serverID);
+
+            changed = pStmt->getAffectedRowCount() > 0;
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return changed;
     }
 
     vector<MasterLairRow> loadMasterLairs() {
@@ -573,17 +600,17 @@ public:
     }
 
     bool insertWarSchedule(int warID, int serverID, int zoneID, const string& warType, int attackGuildID, int warFee,
-                           const string& startTime, const string& status) {
+                           const string& startTime, const string& status, const string& castleWarKind) {
         bool changed = false;
         Statement* pStmt = NULL;
 
         BEGIN_DB {
             pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT IGNORE INTO WarScheduleInfo ( WarID, ServerID, ZoneID, WarType, "
-                                "AttackGuildID, WarFee, StartTime, Status ) "
-                                "\t\t\t\tVALUES ( %u, %u, %u, '%s', %u, %u, '%s', '%s' )",
+                                "AttackGuildID, WarFee, StartTime, Status, CastleWarKind ) "
+                                "\t\t\t\tVALUES ( %u, %u, %u, '%s', %u, %u, '%s', '%s', '%s' )",
                                 warID, serverID, zoneID, warType.c_str(), attackGuildID, warFee, startTime.c_str(),
-                                status.c_str());
+                                status.c_str(), castleWarKind.c_str());
 
             changed = pStmt->getAffectedRowCount() > 0;
 
@@ -596,7 +623,8 @@ public:
 
     bool replaceWarSchedule(int warID, int serverID, int zoneID, const string& warType, int attackerCount,
                             int attackGuildID, int attackGuildID2, int attackGuildID3, int attackGuildID4,
-                            int attackGuildID5, int warFee, const string& startTime, const string& status) {
+                            int attackGuildID5, int warFee, const string& startTime, const string& status,
+                            const string& castleWarKind) {
         bool changed = false;
         Statement* pStmt = NULL;
 
@@ -604,11 +632,11 @@ public:
             pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("REPLACE INTO WarScheduleInfo ( WarID, ServerID, ZoneID, WarType, AttackerCount, "
                                 "AttackGuildID, AttackGuildID2, AttackGuildID3, AttackGuildID4, AttackGuildID5, "
-                                "WarFee, StartTime, Status ) "
-                                "\t\t\t\tVALUES ( %u, %u, %u, '%s', %u, %u, %u, %u, %u, %u, %u, '%s', '%s' )",
+                                "WarFee, StartTime, Status, CastleWarKind ) "
+                                "\t\t\t\tVALUES ( %u, %u, %u, '%s', %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s' )",
                                 warID, serverID, zoneID, warType.c_str(), attackerCount, attackGuildID, attackGuildID2,
                                 attackGuildID3, attackGuildID4, attackGuildID5, warFee, startTime.c_str(),
-                                status.c_str());
+                                status.c_str(), castleWarKind.c_str());
 
             changed = pStmt->getAffectedRowCount() > 0;
 

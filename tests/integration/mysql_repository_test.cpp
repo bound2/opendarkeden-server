@@ -3441,13 +3441,18 @@ TEST_F(WarInfoMySQL, EveryWaitingAndStartedGuildScheduleOfTheZoneComesBackInStar
     // Three wars in the zone we ask about, deliberately inserted out of
     // StartTime order, plus three the query must not see: another zone,
     // another server, and one already ENDed.
-    repository.replaceWarSchedule(31002, 7, 21, "GUILD", 2, 201, 202, 0, 0, 0, 500, "2026-09-03 12:00:00", "WAIT");
+    repository.replaceWarSchedule(31002, 7, 21, "GUILD", 2, 201, 202, 0, 0, 0, 500, "2026-09-03 12:00:00", "WAIT",
+                                  "SIEGE");
     repository.replaceWarSchedule(31000, 7, 21, "GUILD", 5, 101, 102, 103, 104, 105, 400, "2026-09-03 10:00:00",
-                                  "START");
-    repository.replaceWarSchedule(31001, 7, 21, "GUILD", 1, 301, 0, 0, 0, 0, 600, "2026-09-03 11:00:00", "WAIT");
-    repository.replaceWarSchedule(31003, 7, 22, "GUILD", 1, 401, 0, 0, 0, 0, 700, "2026-09-03 09:00:00", "WAIT");
-    repository.replaceWarSchedule(31004, 8, 21, "GUILD", 1, 501, 0, 0, 0, 0, 800, "2026-09-03 09:00:00", "WAIT");
-    repository.replaceWarSchedule(31005, 7, 21, "GUILD", 1, 601, 0, 0, 0, 0, 900, "2026-09-03 09:00:00", "END");
+                                  "START", "SIEGE");
+    repository.replaceWarSchedule(31001, 7, 21, "GUILD", 1, 301, 0, 0, 0, 0, 600, "2026-09-03 11:00:00", "WAIT",
+                                  "GUILD");
+    repository.replaceWarSchedule(31003, 7, 22, "GUILD", 1, 401, 0, 0, 0, 0, 700, "2026-09-03 09:00:00", "WAIT",
+                                  "SIEGE");
+    repository.replaceWarSchedule(31004, 8, 21, "GUILD", 1, 501, 0, 0, 0, 0, 800, "2026-09-03 09:00:00", "WAIT",
+                                  "SIEGE");
+    repository.replaceWarSchedule(31005, 7, 21, "GUILD", 1, 601, 0, 0, 0, 0, 900, "2026-09-03 09:00:00", "END",
+                                  "SIEGE");
 
     std::vector<WarScheduleRow> rows = repository.loadWarSchedules(7, 21);
     ASSERT_EQ(3u, rows.size());
@@ -3458,7 +3463,7 @@ TEST_F(WarInfoMySQL, EveryWaitingAndStartedGuildScheduleOfTheZoneComesBackInStar
     EXPECT_EQ(31001, rows[1].warID);
     EXPECT_EQ(31002, rows[2].warID);
 
-    // Ten columns, read positionally in SELECT order.
+    // Eleven columns, read positionally in SELECT order.
     EXPECT_EQ("GUILD", rows[0].warType);
     EXPECT_EQ(5, rows[0].attackerCount);
     EXPECT_EQ(101, rows[0].attackGuildID[0]);
@@ -3469,6 +3474,16 @@ TEST_F(WarInfoMySQL, EveryWaitingAndStartedGuildScheduleOfTheZoneComesBackInStar
     EXPECT_EQ(2, rows[2].attackerCount);
     EXPECT_EQ(202, rows[2].attackGuildID[1]);
     EXPECT_EQ(0, rows[2].attackGuildID[4]);
+
+    // Both castle war classes carry WarType 'GUILD'; the kind is what tells
+    // the loader which one to rebuild, and it survives the round trip
+    // independently of the attacker count -- 31001 is a guild war with the
+    // same single attacker a one-guild siege would have.
+    EXPECT_EQ("SIEGE", rows[0].castleWarKind);
+    EXPECT_EQ("GUILD", rows[1].castleWarKind);
+    EXPECT_EQ(1, rows[1].attackerCount);
+    EXPECT_EQ(301, rows[1].attackGuildID[0]);
+    EXPECT_EQ("SIEGE", rows[2].castleWarKind);
 
     // The three excluded rows really are in the table.
     EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM WarScheduleInfo WHERE WarID=31003"));
@@ -3506,11 +3521,16 @@ TEST_F(WarInfoMySQL, TheAcceptedReinforceReadIsScopedToTheWarIdAlone) {
 TEST_F(WarInfoMySQL, CancellingGuildSchedulesSpansTheTabsAndSparesEveryOtherRow) {
     WarInfoRepository& repository = defaultWarInfoRepository();
 
-    repository.replaceWarSchedule(31000, 7, 21, "GUILD", 1, 101, 0, 0, 0, 0, 400, "2026-09-03 10:00:00", "WAIT");
-    repository.replaceWarSchedule(31001, 7, 21, "GUILD", 1, 102, 0, 0, 0, 0, 400, "2026-09-03 11:00:00", "START");
-    repository.replaceWarSchedule(31002, 7, 21, "GUILD", 1, 103, 0, 0, 0, 0, 400, "2026-09-03 12:00:00", "END");
-    repository.replaceWarSchedule(31003, 7, 21, "RACE", 1, 104, 0, 0, 0, 0, 400, "2026-09-03 13:00:00", "WAIT");
-    repository.replaceWarSchedule(31004, 7, 22, "GUILD", 1, 105, 0, 0, 0, 0, 400, "2026-09-03 14:00:00", "WAIT");
+    repository.replaceWarSchedule(31000, 7, 21, "GUILD", 1, 101, 0, 0, 0, 0, 400, "2026-09-03 10:00:00", "WAIT",
+                                  "SIEGE");
+    repository.replaceWarSchedule(31001, 7, 21, "GUILD", 1, 102, 0, 0, 0, 0, 400, "2026-09-03 11:00:00", "START",
+                                  "SIEGE");
+    repository.replaceWarSchedule(31002, 7, 21, "GUILD", 1, 103, 0, 0, 0, 0, 400, "2026-09-03 12:00:00", "END",
+                                  "SIEGE");
+    repository.replaceWarSchedule(31003, 7, 21, "RACE", 1, 104, 0, 0, 0, 0, 400, "2026-09-03 13:00:00", "WAIT",
+                                  "SIEGE");
+    repository.replaceWarSchedule(31004, 7, 22, "GUILD", 1, 105, 0, 0, 0, 0, 400, "2026-09-03 14:00:00", "WAIT",
+                                  "SIEGE");
 
     // The literal carries four tabs spliced in by a backslash-continued
     // source line; MySQL treats them as whitespace, so the statement runs
@@ -3530,6 +3550,45 @@ TEST_F(WarInfoMySQL, CancellingGuildSchedulesSpansTheTabsAndSparesEveryOtherRow)
     ASSERT_EQ(1u, rows.size());
     EXPECT_EQ(31003, rows[0].warID);
     EXPECT_EQ("RACE", rows[0].warType);
+}
+
+TEST_F(WarInfoMySQL, CancellingOneWaitingWarLeavesEveryOtherRowAndEveryStartedWarAlone) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    repository.replaceWarSchedule(31000, 7, 21, "GUILD", 1, 101, 0, 0, 0, 0, 400, "2026-09-03 10:00:00", "WAIT",
+                                  "SIEGE");
+    repository.replaceWarSchedule(31001, 7, 21, "GUILD", 1, 102, 0, 0, 0, 0, 400, "2026-09-03 11:00:00", "WAIT",
+                                  "GUILD");
+    repository.replaceWarSchedule(31002, 7, 21, "GUILD", 1, 103, 0, 0, 0, 0, 400, "2026-09-03 12:00:00", "START",
+                                  "SIEGE");
+    repository.replaceWarSchedule(31003, 8, 21, "GUILD", 1, 104, 0, 0, 0, 0, 400, "2026-09-03 13:00:00", "WAIT",
+                                  "SIEGE");
+
+    // One war by id, and the neighbours of that castle are untouched -- what
+    // separates this from cancelGuildWarSchedules, which takes them all.
+    EXPECT_TRUE(repository.cancelWarSchedule(31000, 7));
+    EXPECT_EQ("CANCEL", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("WAIT", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31001"));
+
+    // Already cancelled, so nothing changes and the caller is told so.
+    EXPECT_FALSE(repository.cancelWarSchedule(31000, 7));
+
+    // A war under way belongs to the zone thread running it.
+    EXPECT_FALSE(repository.cancelWarSchedule(31002, 7));
+    EXPECT_EQ("START", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31002"));
+
+    // The server id is part of the key: the same war id under another server
+    // is a different row.
+    EXPECT_FALSE(repository.cancelWarSchedule(31003, 7));
+    EXPECT_EQ("WAIT", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31003"));
+    EXPECT_TRUE(repository.cancelWarSchedule(31003, 8));
+    EXPECT_EQ("CANCEL", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31003"));
+
+    // The cancelled war drops out of the load; the started one does not.
+    std::vector<WarScheduleRow> rows = repository.loadWarSchedules(7, 21);
+    ASSERT_EQ(2u, rows.size());
+    EXPECT_EQ(31001, rows[0].warID);
+    EXPECT_EQ(31002, rows[1].warID);
 }
 
 TEST_F(WarInfoMySQL, RaceWarLimitStatementsRunAgainstTheTableNameTheCallerHandsIn) {
@@ -3648,8 +3707,9 @@ TEST_F(WarInfoMySQL, WarScheduleWritesReportWhetherARowChangedAndTheProbesSeeThe
     // The create path is an INSERT IGNORE against a table whose PRIMARY KEY is
     // WarID, so the first write lands and the second is dropped — and the
     // caller learns which from the affected-row count.
-    EXPECT_TRUE(repository.insertWarSchedule(31000, 7, 21, "GUILD", 101, 500, "2026-09-03 10:00:00", "WAIT"));
-    EXPECT_FALSE(repository.insertWarSchedule(31000, 8, 22, "GUILD", 102, 600, "2026-09-03 11:00:00", "START"));
+    EXPECT_TRUE(repository.insertWarSchedule(31000, 7, 21, "GUILD", 101, 500, "2026-09-03 10:00:00", "WAIT", "GUILD"));
+    EXPECT_FALSE(
+        repository.insertWarSchedule(31000, 8, 22, "GUILD", 102, 600, "2026-09-03 11:00:00", "START", "SIEGE"));
 
     EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM WarScheduleInfo WHERE WarID=31000"));
     EXPECT_EQ("7", queryScalar("SELECT ServerID FROM WarScheduleInfo WHERE WarID=31000"));
@@ -3661,22 +3721,27 @@ TEST_F(WarInfoMySQL, WarScheduleWritesReportWhetherARowChangedAndTheProbesSeeThe
     EXPECT_EQ("WAIT", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31000"));
     // The INSERT names no AttackerCount, so the column keeps its default of 1.
     EXPECT_EQ("1", queryScalar("SELECT AttackerCount FROM WarScheduleInfo WHERE WarID=31000"));
+    // The kind the war was registered as, which is all that tells a
+    // single-challenger siege from a guild war on a reload.
+    EXPECT_EQ("GUILD", queryScalar("SELECT CastleWarKind FROM WarScheduleInfo WHERE WarID=31000"));
 
     // The save path is a REPLACE, so it overwrites the same key and fills the
     // five challenger columns.
     EXPECT_TRUE(repository.replaceWarSchedule(31000, 9, 23, "GUILD", 3, 201, 202, 203, 0, 0, 700, "2026-09-03 12:00:00",
-                                              "START"));
+                                              "START", "SIEGE"));
     EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM WarScheduleInfo WHERE WarID=31000"));
     EXPECT_EQ("9", queryScalar("SELECT ServerID FROM WarScheduleInfo WHERE WarID=31000"));
     EXPECT_EQ("3", queryScalar("SELECT AttackerCount FROM WarScheduleInfo WHERE WarID=31000"));
     EXPECT_EQ("203", queryScalar("SELECT AttackGuildID3 FROM WarScheduleInfo WHERE WarID=31000"));
     EXPECT_EQ("START", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31000"));
+    // The REPLACE rewrites the kind too, so a war cannot keep a stale one.
+    EXPECT_EQ("SIEGE", queryScalar("SELECT CastleWarKind FROM WarScheduleInfo WHERE WarID=31000"));
 
     // The probes count and maximise over the whole table.
     EXPECT_EQ(before + 1, repository.countWarSchedules());
     EXPECT_GE(repository.loadMaxWarID(), 31000u);
 
-    repository.insertWarSchedule(31001, 9, 23, "GUILD", 301, 800, "2026-09-03 13:00:00", "WAIT");
+    repository.insertWarSchedule(31001, 9, 23, "GUILD", 301, 800, "2026-09-03 13:00:00", "WAIT", "SIEGE");
     EXPECT_EQ(before + 2, repository.countWarSchedules());
     EXPECT_GE(repository.loadMaxWarID(), 31001u);
 }
@@ -3684,8 +3749,8 @@ TEST_F(WarInfoMySQL, WarScheduleWritesReportWhetherARowChangedAndTheProbesSeeThe
 TEST_F(WarInfoMySQL, WarScheduleTinysaveAppliesTheFragmentToOneWarAndServer) {
     WarInfoRepository& repository = defaultWarInfoRepository();
 
-    repository.insertWarSchedule(31000, 7, 21, "GUILD", 101, 500, "2026-09-03 10:00:00", "WAIT");
-    repository.insertWarSchedule(31001, 8, 21, "GUILD", 102, 500, "2026-09-03 10:00:00", "WAIT");
+    repository.insertWarSchedule(31000, 7, 21, "GUILD", 101, 500, "2026-09-03 10:00:00", "WAIT", "SIEGE");
+    repository.insertWarSchedule(31001, 8, 21, "GUILD", 102, 500, "2026-09-03 10:00:00", "WAIT", "SIEGE");
 
     repository.tinysaveWarSchedule("Status='END'", 31000, 7);
 

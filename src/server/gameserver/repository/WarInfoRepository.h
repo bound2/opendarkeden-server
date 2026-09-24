@@ -18,6 +18,17 @@
 // master lairs (MasterLairInfo). All on the DARKEDEN connection. Reads
 // are typed to the driver getter used (getInt -> int, getString ->
 // std::string).
+//
+// Not enclosed (SQL on the same tables elsewhere in the tree):
+//  - WarScheduleInfo and ReinforceRegisterInfo: this binary's
+//    MySQLGuildRepository.cpp, whose four count probes answer whether a
+//    guild has a war scheduled, is in one under way, or is reinforcing
+//    one; and the sharedserver's MySQLSharedGuildRepository.cpp, whose
+//    purgeGuild cancels every row a deleted guild holds the FIRST
+//    attacker slot of -- not the ones it joined as a later challenger,
+//    which WarScheduler::cancelGuildSchedulesOf cancels from here.
+//  - CastleInfo: the same MySQLGuildRepository.cpp, whose two reads answer
+//    whether a guild holds a castle and which one.
 
 // ShrineInfo's row, 20 columns in SELECT order.
 struct ShrineRow {
@@ -82,7 +93,10 @@ struct CastleStateRecord {
 };
 
 // WarScheduler::load's row, in SELECT order. war/WarScheduler.cpp's loop
-// reads these ten columns positionally.
+// reads these eleven columns positionally. `castleWarKind` tells the two
+// castle war classes apart: both report WarType 'GUILD', and a siege with a
+// single challenger carries exactly the columns a guild war does, so the
+// loader has nothing else to build the right class from.
 struct WarScheduleRow {
     int warID;
     std::string warType;
@@ -90,6 +104,7 @@ struct WarScheduleRow {
     int attackGuildID[5];
     int warFee;
     std::string startTime;
+    std::string castleWarKind;
 };
 
 // RaceWar::recordRaceWarStart's per-race totals: SUM(CurrentNum) over
@@ -298,12 +313,16 @@ public:
     // actually changed (getAffectedRowCount() > 0); the callers log to
     // WarError.log and give up when nothing did. Every numeric renders
     // through "%u"; the two literals carry a tab run before VALUES.
+    // `castleWarKind` is the war's own getCastleWarKind2DBString(), 'GUILD'
+    // or 'SIEGE', which is what loadWarSchedules reads back to rebuild the
+    // class the war was registered as.
     virtual bool insertWarSchedule(int warID, int serverID, int zoneID, const std::string& warType, int attackGuildID,
-                                   int warFee, const std::string& startTime, const std::string& status) = 0;
+                                   int warFee, const std::string& startTime, const std::string& status,
+                                   const std::string& castleWarKind) = 0;
     virtual bool replaceWarSchedule(int warID, int serverID, int zoneID, const std::string& warType, int attackerCount,
                                     int attackGuildID, int attackGuildID2, int attackGuildID3, int attackGuildID4,
                                     int attackGuildID5, int warFee, const std::string& startTime,
-                                    const std::string& status) = 0;
+                                    const std::string& status, const std::string& castleWarKind) = 0;
     // A caller-composed "Column=value" SET fragment, spliced in as raw SQL
     // text. The DWORD war id goes through "%d".
     virtual void tinysaveWarSchedule(const std::string& fieldFragment, WarID_t warID, int serverID) = 0;
@@ -320,6 +339,11 @@ public:
     // The literal carries four tabs after the zone id, and the zone id goes
     // through "%d" here where the load uses "%u".
     virtual void cancelGuildWarSchedules(int serverID, int zoneID) = 0;
+    // One waiting war, cancelled by id -- the narrow counterpart of
+    // cancelGuildWarSchedules, which takes a whole castle's guild wars. A
+    // war already under way (Status 'START') is left alone, because the
+    // zone thread is running it. Returns whether a row changed.
+    virtual bool cancelWarSchedule(WarID_t warID, int serverID) = 0;
 
     // --- master lairs -----------------------------------------------------------
     virtual std::vector<MasterLairRow> loadMasterLairs() = 0;

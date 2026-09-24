@@ -125,7 +125,6 @@ void WarScheduler::load()
 
     if (!schedules.empty()) {
         WarID_t warID;
-        WarType_t warType;
         uint challengerNum;
         GuildID_t challengerGuildID[5];
         Gold_t warRegistrationFee;
@@ -136,13 +135,16 @@ void WarScheduler::load()
             warID = (WarID_t)schedules[r].warID;
             string warTypeStr = schedules[r].warType;
 
-            if (warTypeStr == "GUILD")
-                warType = WAR_GUILD;
-            else if (warTypeStr == "RACE")
-                continue; // warType = WAR_RACE;
-            else
-                Assert(false);
-            challengerNum = schedules[r].attackerCount;
+            if (warTypeStr == "RACE")
+                continue;
+
+            Assert(warTypeStr == "GUILD");
+
+            // The row has five attacker slots, so a count past them would
+            // walk off both this array and the siege's own.
+            challengerNum = (uint)schedules[r].attackerCount;
+            if (challengerNum > 5)
+                challengerNum = 5;
 
             for (int j = 0; j < 5; ++j) {
                 challengerGuildID[j] = (GuildID_t)schedules[r].attackGuildID[j];
@@ -157,19 +159,36 @@ void WarScheduler::load()
                 warStartTime = currentDateTime;
             }
 
-            SiegeWar* pWar = new SiegeWar(m_pZone->getZoneID(), War::WAR_STATE_WAIT, warID);
+            // The row names the castle war class it was registered as. A
+            // guild war comes back with the single guild that applied for
+            // it; a siege with every challenger that joined and whatever
+            // reinforcement was accepted.
+            War* pWar = NULL;
+
+            if (schedules[r].castleWarKind == "GUILD") {
+                GuildWar* pGuildWar =
+                    new GuildWar(m_pZone->getZoneID(), challengerGuildID[0], War::WAR_STATE_WAIT, warID);
+                pGuildWar->setRegistrationFee(warRegistrationFee);
+
+                pWar = pGuildWar;
+            } else {
+                SiegeWar* pSiegeWar = new SiegeWar(m_pZone->getZoneID(), War::WAR_STATE_WAIT, warID);
+                pSiegeWar->setRegistrationFee(warRegistrationFee);
+
+                int reinforceGuildID = 0;
+
+                if (repository.loadAcceptedReinforceGuild(warID, reinforceGuildID)) {
+                    pSiegeWar->setReinforceGuildID(reinforceGuildID);
+                }
+
+                for (uint j = 0; j < challengerNum; ++j) {
+                    pSiegeWar->addChallengerGuild(challengerGuildID[j]);
+                }
+
+                pWar = pSiegeWar;
+            }
+
             pWar->setWarStartTime(warStartTime);
-            pWar->setRegistrationFee(warRegistrationFee);
-
-            int reinforceGuildID = 0;
-
-            if (repository.loadAcceptedReinforceGuild(warID, reinforceGuildID)) {
-                pWar->setReinforceGuildID(reinforceGuildID);
-            }
-
-            for (int j = 0; j < challengerNum; ++j) {
-                pWar->addChallengerGuild(challengerGuildID[j]);
-            }
 
             WarSchedule* pWarSchedule = new WarSchedule(pWar, warStartTime, Schedule::SCHEDULE_TYPE_ONCE);
             addSchedule(pWarSchedule);
@@ -364,6 +383,49 @@ void WarScheduler::cancelGuildSchedules()
     load();
 
     __END_CATCH
+}
+
+void WarScheduler::cancelGuildSchedulesOf(GuildID_t gID) {
+    vector<WarID_t> warIDs;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    const RecentSchedules::container_type& schedules = m_RecentSchedules.getSchedules();
+    RecentSchedules::const_iterator itr = schedules.begin();
+
+    for (; itr != schedules.end(); itr++) {
+        WarSchedule* pSchedule = dynamic_cast<WarSchedule*>(*itr);
+        if (pSchedule == NULL)
+            continue;
+
+        // Both castle war classes report WAR_GUILD and answer for their own
+        // participants, so the guild is matched through the war itself.
+        War* pWar = pSchedule->getWar();
+        if (pWar != NULL && pWar->getWarType() == WAR_GUILD && pWar->isWarParticipant(gID) &&
+            pWar->getState() == War::WAR_STATE_WAIT) {
+            warIDs.push_back(pWar->getWarID());
+        }
+    }
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    if (warIDs.empty())
+        return;
+
+    // The rows are cancelled before the reload, because the reload builds
+    // the schedules back out of them: cancelling afterwards would leave the
+    // war standing until something reloaded again.
+    WarInfoRepository& repository = defaultWarInfoRepository();
+    const int serverID = de::kernelContext().config().getPropertyInt("ServerID");
+
+    for (size_t i = 0; i < warIDs.size(); ++i) {
+        repository.cancelWarSchedule(warIDs[i], serverID);
+
+        filelog("WarLog.txt", "[CANCEL][WarID=%d] guild %d took part in it and no longer exists", (int)warIDs[i],
+                (int)gID);
+    }
+
+    load();
 }
 
 bool WarScheduler::hasSchedule(GuildID_t gID) {

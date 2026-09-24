@@ -13,6 +13,20 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A siege's challenger array is written one past its end (2026-09-24)
+
+- **`SiegeWar::addChallengerGuild` refuses a challenger only once the
+  count is already past five, so the sixth is written to
+  `m_ChallangerGuildID[5]` of a five-element array,** and
+  `WarScheduler::load` feeds it `AttackerCount` straight from the schedule
+  row, reading the row's own five-slot array the same number of times. The
+  registration paths happen to check the count themselves, so the overrun
+  needs a row whose `AttackerCount` exceeds its filled slots — which the
+  table's `int(10) unsigned` column allows and nothing validates. Found
+  while giving the schedule row a kind. The bound is `>= 5` now and the
+  loader clamps the count to the five slots the row has.
+  > **Status:** fixed (fix/war-schedule-lifecycle)
+
 ## The player tables hold four times the descriptors an fd_set does (2026-09-24)
 
 - **`PlayerManager`'s table has 2000 slots and the managers admit every
@@ -54,9 +68,21 @@ repo and the client's. Entries below are newest first; the oldest is the
   when the guild has a war scheduled, but reloads it from the same table
   rows, where the war still waits,** so the same war returns. Only
   `cancelGuildWarSchedules` cancels rows, and this path never reaches it.
-  The reload now runs on the owning zone thread; it is still a no-op for
-  its purpose.
-  > **Status:** recorded, not fixed (fix/recorded-defects-6)
+  The posted command now cancels before it reloads: a new
+  `WarScheduler::cancelGuildSchedulesOf(guildID)` collects the waiting
+  castle wars the guild takes part in under the scheduler's own mutex,
+  writes each of them to 'CANCEL' through the repository's new
+  `cancelWarSchedule(warID, serverID)`, and only then reloads, so the war
+  cannot come back. A siege several guilds joined is cancelled whole,
+  because a scheduled siege has no way to drop one challenger; a war
+  already under way is left alone, since the zone thread is running it.
+  The per-war cancel is used rather than `cancelGuildWarSchedules`, which
+  would take every guild war of the castle. The sharedserver needs no
+  telling: it is the side that deletes the guild in the first place, and
+  its `purgeGuild` already cancels the rows the guild holds the first
+  attacker slot of — the ones it joined as a later challenger or as the
+  defenders' reinforcement are what this path now catches.
+  > **Status:** fixed (fix/war-schedule-lifecycle)
 
 ## The sharedserver's descriptor walk starts from an unchecked listener (2026-09-23)
 
@@ -185,15 +211,43 @@ repo and the client's. Entries below are newest first; the oldest is the
   instead of joining,** so a castle whose recent schedule holds a guild
   war gets two wars scheduled. The two registration actions are
   alternatives in quest data; it bites a server whose scripts use both.
-  > **Status:** recorded, not fixed (fix/recorded-defects-5)
+  The registration now asks a decision function what the castle's next war
+  means for it (`war/SiegeRegistrationDecision.h`, covered by
+  `tests/scheduler_test.cpp`): nothing scheduled opens a siege, a siege
+  with a free slot is joined, and anything else is refused. A guild war
+  waiting on the castle is refused, because it is applied for by one guild
+  and has no slot another can join, and merging one into a siege would
+  have to rewrite its row under a new class; the refusal is the existing
+  `NPC_RESPONSE_WAR_SCHEDULE_FULL`, which this action already sends when a
+  siege has no slot left and which `ActionRegisterReinforce` sends when the
+  castle's next war is not a siege at all, so the client needs no change.
+  The shipped `Triggers` data registers
+  `RegisterSiege` at all six castles and `WarRegistration` at none, so a
+  stock server meets this only through a guild war left by a server whose
+  scripts do use the other action.
+  > **Status:** fixed (fix/war-schedule-lifecycle)
 
 ## A guild war reloads after a restart as a siege with no challengers (2026-09-23)
 
 - **`WarScheduler::load()` rebuilds every `WAR_GUILD` schedule row as a
   `SiegeWar`,** and a guild war's row carries one attacker guild and no
-  challenger count, so it comes back as a siege nobody attacks. Telling the
-  two apart on reload needs a column `WarScheduleInfo` does not have.
-  > **Status:** recorded, not fixed (fix/recorded-defects-5)
+  challenger count, so it comes back as a siege nobody attacks. No existing
+  column tells the two apart: both write `WarType='GUILD'`, and a siege
+  with a single challenger has the same `AttackerCount` of 1 and the same
+  one filled attacker slot a guild war does, because `WarSchedule::create`
+  never writes `AttackerCount` at all and the column defaults to 1. So
+  `WarScheduleInfo` gained `CastleWarKind enum('GUILD','SIEGE')`
+  (`initdb/DARKEDEN.sql`, migration
+  `initdb/migrations/002-war-schedule-castle-war-kind.sql`), written by
+  both schedule writers from the war's own
+  `War::getCastleWarKind2DBString()` and read back by `loadWarSchedules`.
+  `load()` builds a `GuildWar` with the row's single attacker guild and its
+  fee for a 'GUILD' row and a `SiegeWar` with its challengers and accepted
+  reinforcement for a 'SIEGE' one. The column defaults to 'SIEGE', which is
+  the class every row was rebuilt as before it existed, so a database
+  written by an older server keeps the behaviour it had. The repository
+  round trip is pinned in `tests/integration/mysql_repository_test.cpp`.
+  > **Status:** fixed (fix/war-schedule-lifecycle)
 
 ## A vampire's silver damage cleared by a GM is never saved (2026-09-23)
 

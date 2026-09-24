@@ -34,7 +34,14 @@ public:
         return m_pZone;
     }
 
+    // Every waiting and running guild war of this castle, cancelled in the
+    // table and reloaded: what a change of the castle's owning race does.
     void cancelGuildSchedules();
+    // The waiting guild wars of this castle that one guild takes part in,
+    // cancelled in the table and reloaded, so a reload cannot bring back a
+    // war a deleted guild is in. Runs on the owning zone group's thread and
+    // takes this scheduler's mutex and no other.
+    void cancelGuildSchedulesOf(GuildID_t gID);
     bool hasSchedule(GuildID_t gID);
 
     int getWarTypeCount(WarType_t warType);
