@@ -68,7 +68,12 @@ bool WarScheduler::makeGCWarScheduleList(GCWarScheduleList* pGCWarScheduleList) 
         pGCWarScheduleList->addWarScheduleInfo(pWSI);
     }
 
-    // When the automatic start is configured, the race war information always goes in.
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    // When the automatic start is configured, the race war information always
+    // goes in. It is the war system's, answered under its own mutex, and needs
+    // nothing from this scheduler, so it is asked after this mutex is released
+    // (see the lock order in WarSystem.h).
     if (de::gameContext().variables().isAutoStartRaceWar()) {
         WarScheduleInfo* pWSI = new WarScheduleInfo;
         if (de::gameContext().warSystem().addRaceWarScheduleInfo(pWSI)) {
@@ -78,28 +83,49 @@ bool WarScheduler::makeGCWarScheduleList(GCWarScheduleList* pGCWarScheduleList) 
         }
     }
 
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
     __END_CATCH
 
     return true;
 }
 
+// A war whose time has come is taken out of the queue under the mutex and
+// started after it is released: starting a castle war broadcasts to every
+// group and works on the castle's dungeons, guard shrine and siege zone,
+// none of which belongs under this mutex (see the lock order in
+// WarSystem.h). Once taken out, no other thread can reach the war through
+// this scheduler, so none sees it half started. A start that throws puts
+// the schedule back, to be tried again on the next heartbeat, as it was
+// when the start ran inside the queue.
 Work* WarScheduler::heartbeat()
 
 {
     __BEGIN_TRY
 
-    Work* pWork = NULL;
+    Schedule* pDue = NULL;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    pWork = Scheduler::heartbeat();
+    pDue = popDueSchedule();
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
+    if (pDue == NULL)
+        return NULL;
 
-    // For a race war the schedule for a week later goes back in.
+    try {
+        pDue->run();
+    } catch (...) {
+        __ENTER_CRITICAL_SECTION(m_Mutex)
+
+        addSchedule(pDue);
+
+        __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+        throw;
+    }
+
+    Work* pWork = pDue->popWork();
+    SAFE_DELETE(pDue);
 
     return pWork;
 

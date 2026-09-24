@@ -58,6 +58,9 @@ public:
 
 protected:
     Work* popRecentWork();
+    // Takes the earliest schedule out of the queue when its time has come,
+    // without running it; the caller owns it then. NULL when none is due.
+    Schedule* popDueSchedule();
 
 protected:
     RecentSchedules m_RecentSchedules;

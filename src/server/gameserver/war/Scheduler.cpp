@@ -73,6 +73,16 @@ Work* Scheduler::popRecentWork()
     __END_CATCH
 }
 
+Schedule* Scheduler::popDueSchedule() {
+    if (m_RecentSchedules.empty() || !m_RecentSchedules.top()->isDue())
+        return NULL;
+
+    Schedule* pSchedule = m_RecentSchedules.top();
+    m_RecentSchedules.pop();
+
+    return pSchedule;
+}
+
 //--------------------------------------------------------------------------------
 //
 // Work* heartbeat()

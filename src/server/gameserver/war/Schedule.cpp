@@ -36,23 +36,27 @@ bool Schedule::heartbeat()
 {
     __BEGIN_TRY
 
-    // VSDateTime current( VSDateTime::currentDateTime() );
-    VSDate cd = VSDate::currentDate();
-    VSTime ct = VSTime::currentTime();
-
-    VSDateTime current = VSDateTime(cd, ct);
-
-    if (current >= m_ScheduledTime) {
-        filelog("Schedule.txt", "Execute(%s >= %s) : %s", current.toString().c_str(),
-                m_ScheduledTime.toString().c_str(), m_pWork->toString().c_str());
-
-        m_pWork->execute();
+    if (isDue()) {
+        run();
         return true;
     }
 
     return false;
 
     __END_CATCH
+}
+
+bool Schedule::isDue() const {
+    VSDateTime current = VSDateTime(VSDate::currentDate(), VSTime::currentTime());
+
+    return current >= m_ScheduledTime;
+}
+
+void Schedule::run() {
+    filelog("Schedule.txt", "Execute(%s >= %s) : %s", VSDateTime::currentDateTime().toString().c_str(),
+            m_ScheduledTime.toString().c_str(), m_pWork->toString().c_str());
+
+    m_pWork->execute();
 }
 
 string Schedule::toString() const

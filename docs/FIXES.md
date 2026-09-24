@@ -13,6 +13,20 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A castle war's start kills the monsters of dungeons in another group (2026-09-24)
+
+- **`GuildWar::executeStart` runs on the castle zone's thread and clears the
+  castle's dungeons (`killAllMonsters`, every monster's HP set to 0) under
+  each dungeon zone's own mutex alone,** and in the seed three castles'
+  dungeons belong to the other zone group: 1211/1212 and 1231/1232 are in
+  group 2 while castles 1201 and 1203 are in group 1, and 1261/1262 are in
+  group 1 while castle 1206 is in group 2. The zone's own mutex excludes that
+  dungeon's heartbeat but not its group's CG handlers, which damage the same
+  monsters. The siege zones the siege start fills sit in their castle's group.
+  Posting each dungeon's clear to its own group (`ZoneGroup::post`) closes
+  it; it belongs with the war-end moves in the same file.
+  > **Status:** recorded, not fixed (fix/castle-balance-schedule)
+
 ## A forced union quit fails on the guild's own offer row (2026-09-24)
 
 - **`CGQuitUnionHandler`'s forced quit writes the ESCAPE penalty with a
@@ -123,10 +137,18 @@ repo and the client's. Entries below are newest first; the oldest is the
   mutex,** so a schedule shown from any thread but the castle's own group
   thread can close the cycle zone → scheduler → war system → zone. Every
   seed `ShowWarSchedule` NPC stands inside its own castle zone, so the
-  action runs on that thread today; the order in `WarSystem.h` says so.
-  Closing it means answering the race war's line without the war system's
-  mutex, or listing the schedule without the scheduler's.
-  > **Status:** recorded, not fixed (fix/war-threads)
+  action runs on that thread today and the cycle was latent. The race war's
+  line needs nothing from the scheduler and is now asked for after its
+  mutex is released, so the scheduler → war system edge is gone. The castle
+  war start ran under the same mutex too (`Scheduler::heartbeat` executes
+  the due work inside it), broadcasting to every group and working on the
+  castle's dungeons and siege zone; a due war is now taken out of the queue
+  under the mutex and started after it (`Scheduler::popDueSchedule`,
+  `Schedule::run`), and put back if the start throws. Under a scheduler's
+  mutex only the database and the guild manager's and a guild's mutexes are
+  taken now, and `WarSystem.h` records the order without the castle-thread
+  restriction.
+  > **Status:** fixed (fix/castle-balance-schedule)
 
 ## A castle war's end handles the castle's zones from the main thread (2026-09-24)
 
