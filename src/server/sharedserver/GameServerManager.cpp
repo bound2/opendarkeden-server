@@ -16,6 +16,7 @@
 #include "DescriptorTable.h"
 #include "Guild.h"
 #include "GuildManager.h"
+#include "KeepAlive.h"
 #include "KernelContext.h"
 #include "Packet.h"
 #include "Properties.h"
@@ -144,7 +145,7 @@ void GameServerManager::run() {
                 de::serverContext().database().executeDummyQuery(
                     de::serverContext().database().getConnection("DARKEDEN"));
 
-                dummyQueryTime.tv_sec = (60 + rand() % 30) * 60;
+                dummyQueryTime = de::nextKeepAliveDeadline(dummyQueryTime, rand());
             }
         }
     } catch (Throwable& t) {
@@ -206,10 +207,26 @@ void GameServerManager::broadcast(Packet* pPacket, Player* pPlayer) {
 void GameServerManager::pollSockets() {
     __BEGIN_TRY
 
+    // The membership is read and the answers are stored under the mutex that
+    // guards the table, while the wait itself runs without it.
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    m_PollSet.fill();
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
     // A failed wait, which is what an arriving signal makes of it, leaves
     // every descriptor unready, so this tick processes nothing and the next
     // one asks again.
-    m_PollSet.pollOnce(m_TimeoutMilliseconds);
+    m_PollSet.wait(m_TimeoutMilliseconds);
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    // A game server added or removed while the wait ran keeps no answer from
+    // it.
+    m_PollSet.collect();
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }

@@ -12,6 +12,7 @@
 #include "DatabaseManager.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameWorldInfoManager.h"
+#include "KeepAlive.h"
 #include "KernelContext.h"
 #include "LoginContext.h"
 #include "LoginPlayerManager.h"
@@ -187,7 +188,7 @@ void ClientManager::run() {
         if (dummyQueryTime < currentTime) {
             de::serverContext().database().executeDummyQuery(de::serverContext().database().getConnection("DARKEDEN"));
 
-            dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
+            dummyQueryTime = de::nextKeepAliveDeadline(dummyQueryTime, rand());
         }
     }
 
