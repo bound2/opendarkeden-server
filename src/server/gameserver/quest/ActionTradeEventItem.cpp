@@ -305,7 +305,7 @@ void ActionTradeEventItem::execute(Creature* pCreature1, Creature* pCreature2)
 
             // Reduce the soccer balls.
             pInventory->decreaseStar(star);
-            cout << "플레이어의 축구공을 " << star.amount << " 개 줄였습니다." << endl;
+            cout << "Reduced the player's soccer balls by " << star.amount << "." << endl;
 
             GCNPCResponse gcNPCResponse;
             gcNPCResponse.setCode(NPC_RESPONSE_DECREASE_BALL);

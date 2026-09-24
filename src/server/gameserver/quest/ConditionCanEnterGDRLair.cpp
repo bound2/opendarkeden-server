@@ -23,14 +23,14 @@ bool ConditionCanEnterGDRLair::isSatisfied(Creature* pCreature1, Creature* pCrea
 
     if (!GDRLairManager::Instance().canEnter()) {
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage("훑댐흩契묵뻘청역폘.");
+        gcSystemMessage.setMessage("The Gilles de Rais lair is not open yet.");
         pCreature2->getPlayer()->sendPacket(&gcSystemMessage);
         return false;
     }
 
     if (!pCreature2->isFlag(Effect::EFFECT_CLASS_CAN_ENTER_GDR_LAIR)) {
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage("극伎돕呵쭝裂檢2꿔팎뻐謳찝薑채훙柯獗.");
+        gcSystemMessage.setMessage("You must destroy the Hymez Frozen Statue on floor 2 of the Lust Tower.");
         pCreature2->getPlayer()->sendPacket(&gcSystemMessage);
         return false;
     }

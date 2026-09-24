@@ -61,7 +61,7 @@ void ActionEnterSiege::execute(Creature* pNPC, Creature* pCreature)
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pCreature->getPlayer());
     if (!context().warSystem().hasCastleActiveWar(m_ZoneID)) {
         GCSystemMessage gcSM;
-        gcSM.setMessage("Ö»ÄÜÔÚ½øÐÐ¹¥³ÇÕ½ÖÐ½øÈë.");
+        gcSM.setMessage("You can enter only while a siege is under way.");
         pGamePlayer->sendPacket(&gcSM);
         return;
     }
@@ -85,21 +85,21 @@ void ActionEnterSiege::execute(Creature* pNPC, Creature* pCreature)
     int side = 0;
     if (!context().warSystem().getSiegeGuildSide(m_ZoneID, pPC->getGuildID(), side)) {
         GCSystemMessage gcSM;
-        gcSM.setMessage("µÚ1¸ö·þÎñÆ÷·¢Éú¹ÊÕÏ£¬ÇëÓëÔËÓªÉÌÁªÏµ.");
+        gcSM.setMessage("An error occurred on server 1; please contact the operator.");
         pGamePlayer->sendPacket(&gcSM);
         return;
     }
 
     if (side == 0) {
         GCSystemMessage gcSM;
-        gcSM.setMessage("²»ÊÇÉêÇëÕ½¶·µÄÐÐ»á.");
+        gcSM.setMessage("Your guild has not applied for this war.");
         pGamePlayer->sendPacket(&gcSM);
         return;
     }
 
     if (!context().guilds().isGuildMaster(pPC->getGuildID(), pPC)) {
         GCSystemMessage gcSM;
-        gcSM.setMessage("Ö»ÓÐÐÐ»á»á³¤,²Å¿ÉÒÔ½øÐÐÉêÇë.");
+        gcSM.setMessage("Only the guild master can apply.");
         pGamePlayer->sendPacket(&gcSM);
         return;
     }

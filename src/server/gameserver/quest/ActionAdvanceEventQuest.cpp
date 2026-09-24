@@ -74,8 +74,7 @@ void ActionAdvanceEventQuest::execute(Creature* pCreature1, Creature* pCreature2
                 if (pPC->getQuestManager()->getEventQuestAdvanceManager()->advanced(m_QuestLevel))
                     pPC->getQuestManager()->getEventQuestAdvanceManager()->save(m_QuestLevel);
                 else
-                    filelog("EventBug.txt",
-                            "ActionAdvanceEventQuest : 어드밴스 해줬는데 왜 안되는거야아아아아아... %s:%d",
+                    filelog("EventBug.txt", "ActionAdvanceEventQuest : advanced it, so why does it not take... %s:%d",
                             pPC->getName().c_str(), qID);
 
                 pPC->getQuestManager()->questRewarded(qID);

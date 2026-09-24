@@ -13,6 +13,29 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## The GM summon command never recognised a chief monster's name (2026-09-25)
+
+- **`opsummon` (`gm/ZoneCommands.cpp`) decides a typed name is a chief
+  monster's by finding the Korean word for "chief" in it, and only then looks
+  the name up in the chief table, keyed by `MonsterInfo.HName`.** The
+  literal came through the encoding migration with its first syllable's two
+  CP949 bytes intact, because they happen to be valid UTF-8, and its second
+  syllable replaced by U+FFFD, so no name ever contained it: a chief's name
+  fell through to the sprite lookup, which summons a random regular monster
+  of the chief's sprite instead of the chief. The literal is now the word's
+  UTF-8 bytes, the encoding the `initdb/` names are in.
+  > **Status:** fixed (r17/quest-gm)
+
+## `*pay` formats its message into the buffer it reads the prefix from (2026-09-25)
+
+- **`oppay` (`gm/PlayerCommands.cpp`) writes a `[Metrotech][...]` prefix into
+  `str`, then for a period or time account calls `sprintf(str, "%s...", str,
+  ...)`,** passing the destination as a source. Overlapping `sprintf`
+  arguments are undefined behaviour; it works only as long as the C library
+  copies the leading `%s` onto itself. Closing it means formatting into a
+  second buffer, or appending at `str + strlen(str)`.
+  > **Status:** recorded, not fixed (r17/quest-gm)
+
 ## An Altar of Blood offering never answers a relic (2026-09-25)
 
 - **`CGRelicToObjectHandler` accepts a relic brought to an offering

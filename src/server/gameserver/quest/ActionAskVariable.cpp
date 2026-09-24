@@ -199,16 +199,16 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
             SiegeWar* pNextWar = dynamic_cast<SiegeWar*>(pNextWork);
 
             if (pNextWar == NULL) {
-                pParam->setValue("없는");
+                pParam->setValue("None");
             } else {
                 GuildID_t gID = pNextWar->recentReinforceGuild();
                 Guild* pGuild = context().guilds().getGuild(gID);
                 if (pGuild == NULL)
-                    pParam->setValue("없는");
+                    pParam->setValue("None");
                 else
                     pParam->setValue(pGuild->getName());
 
-                cout << pParam->getValue() << " 원군" << endl;
+                cout << pParam->getValue() << " reinforcement" << endl;
                 ;
             }
         } else if (keyword == "RedistGold") {
@@ -263,31 +263,31 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     if (grade < 61) {
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_1));
                     } else if (grade < 96) {
-                        pParam->setValue("에슬라니아 북서");
+                        pParam->setValue("Eslania north-west");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_2));
                     } else if (grade < 131) {
-                        pParam->setValue("에슬라니아 북동");
+                        pParam->setValue("Eslania north-east");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_3));
                     } else if (grade < 171) {
-                        pParam->setValue("에슬라니아 남서");
+                        pParam->setValue("Eslania south-west");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_4));
                     } else if (grade < 211) {
-                        pParam->setValue("에슬라니아 던전");
+                        pParam->setValue("Eslania dungeon");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_5));
                     } else if (grade < 241) {
-                        pParam->setValue("드로베타 남서");
+                        pParam->setValue("Drobeta south-west");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_6));
                     } else if (grade < 271) {
-                        pParam->setValue("드로베타 남동");
+                        pParam->setValue("Drobeta south-east");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_7));
                     } else if (grade < 291) {
-                        pParam->setValue("티모르호수 남서");
+                        pParam->setValue("Lake Timore south-west");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_8));
                     } else if (grade < 301) {
-                        pParam->setValue("티모르호수 남동");
+                        pParam->setValue("Lake Timore south-east");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_9));
                     } else {
-                        pParam->setValue("라옴던전 2층");
+                        pParam->setValue("Laom dungeon floor 2");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_2_10));
                     }
                 } else if (pCreature2->isVampire()) {
@@ -295,34 +295,34 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     Level_t level = pVampire->getLevel();
 
                     if (level < 11) {
-                        pParam->setValue("바토리 던전 2층");
+                        pParam->setValue("Bathory dungeon floor 2");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_1));
                     } else if (level < 21) {
-                        pParam->setValue("림보 남동");
+                        pParam->setValue("Limbo south-east");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_2));
                     } else if (level < 31) {
-                        pParam->setValue("림보 북동");
+                        pParam->setValue("Limbo north-east");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_3));
                     } else if (level < 41) {
-                        pParam->setValue("림보 북서");
+                        pParam->setValue("Limbo north-west");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_4));
                     } else if (level < 51) {
-                        pParam->setValue("티모르 호수 북동");
+                        pParam->setValue("Lake Timore north-east");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_5));
                     } else if (level < 61) {
-                        pParam->setValue("로딘산 남서");
+                        pParam->setValue("Mount Rodin south-west");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_6));
                     } else if (level < 71) {
-                        pParam->setValue("로딘산 남동");
+                        pParam->setValue("Mount Rodin south-east");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_7));
                     } else if (level < 81) {
-                        pParam->setValue("아이센 던전 1층");
+                        pParam->setValue("Icen dungeon floor 1");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_8));
                     } else if (level < 91) {
-                        pParam->setValue("아이센 던전 2층");
+                        pParam->setValue("Icen dungeon floor 2");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_9));
                     } else {
-                        pParam->setValue("아담의 성지 동쪽");
+                        pParam->setValue("Adam's holy land east");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_2_10));
                     }
                 } else if (pCreature2->isOusters()) {
@@ -330,49 +330,50 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     Level_t level = pOusters->getLevel();
 
                     if (level < 11) {
-                        pParam->setValue("하니알 던전 1층");
+                        pParam->setValue("Hanial dungeon floor 1");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_1));
                     } else if (level < 21) {
-                        pParam->setValue("하니알 던전 2층");
+                        pParam->setValue("Hanial dungeon floor 2");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_2));
                     } else if (level < 31) {
-                        pParam->setValue("카스탈로 북동");
+                        pParam->setValue("Castalo north-east");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_3));
                     } else if (level < 41) {
-                        pParam->setValue("고르고바 터널");
+                        pParam->setValue("Ghorgova tunnel");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_4));
                     } else if (level < 51) {
-                        pParam->setValue("드로베타 북동");
+                        pParam->setValue("Drobeta north-east");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_5));
                     } else if (level < 61) {
-                        pParam->setValue("드로베타 북서");
+                        pParam->setValue("Drobeta north-west");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_6));
                     } else if (level < 71) {
-                        pParam->setValue("로딘산 북동");
+                        pParam->setValue("Mount Rodin north-east");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_7));
                     } else if (level < 81) {
-                        pParam->setValue("로딘산 북서");
+                        pParam->setValue("Mount Rodin north-west");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_8));
                     } else if (level < 91) {
-                        pParam->setValue("라센 내성 2층");
+                        pParam->setValue("Rasen inner castle floor 2");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_9));
                     } else {
-                        pParam->setValue("라옴 던전 2층");
+                        pParam->setValue("Laom dungeon floor 2");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_2_10));
                     }
                 }
             } else if (questLevel == 3) {
                 if (pCreature2->isSlayer()) {
-                    pParam->setValue("에슬라니아 남서");
+                    pParam->setValue("Eslania south-west");
                     pParam->setValue(strings.getString(STRID_SLAYER_MINE_ENTER));
                 } else if (pCreature2->isVampire()) {
-                    pParam->setValue("림보 북동");
+                    pParam->setValue("Limbo north-east");
                     pParam->setValue(strings.getString(STRID_VAMPIRE_MINE_ENTER));
                 } else if (pCreature2->isOusters()) {
-                    pParam->setValue("카스탈로 북동");
+                    pParam->setValue("Castalo north-east");
                     pParam->setValue(strings.getString(STRID_OUSTERS_MINE_ENTER));
                 } else {
-                    filelog("EventBug.txt", "ActionAskVariable : 3단계 퀘스트 존 찾는데 플레이어가 이상하다.");
+                    filelog("EventBug.txt",
+                            "ActionAskVariable : stage 3 quest zone lookup got a player of no known race.");
                 }
             } else if (questLevel == 4) {
                 if (pCreature2->isSlayer()) {
@@ -380,19 +381,19 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     Attr_t grade = pSlayer->getQuestGrade();
 
                     if (grade < 131) {
-                        pParam->setValue("에슬라니아 북서");
+                        pParam->setValue("Eslania north-west");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_4_1));
                     } else if (grade < 211) {
-                        pParam->setValue("에슬라니아 던전");
+                        pParam->setValue("Eslania dungeon");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_4_2));
                     } else if (grade < 271) {
-                        pParam->setValue("드로베타 남동");
+                        pParam->setValue("Drobeta south-east");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_4_3));
                     } else if (grade < 300) {
-                        pParam->setValue("티모르 남동");
+                        pParam->setValue("Timore south-east");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_4_4));
                     } else {
-                        pParam->setValue("라옴 던전 2층");
+                        pParam->setValue("Laom dungeon floor 2");
                         pParam->setValue(strings.getString(STRID_SLAYER_QUESTZONE_4_5));
                     }
                 } else if (pCreature2->isVampire()) {
@@ -400,19 +401,19 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     Level_t level = pVampire->getLevel();
 
                     if (level < 31) {
-                        pParam->setValue("림보 남동");
+                        pParam->setValue("Limbo south-east");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_4_1));
                     } else if (level < 51) {
-                        pParam->setValue("림보 북서");
+                        pParam->setValue("Limbo north-west");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_4_2));
                     } else if (level < 71) {
-                        pParam->setValue("드로베타 남서");
+                        pParam->setValue("Drobeta south-west");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_4_3));
                     } else if (level < 91) {
-                        pParam->setValue("아이센 던전 1층");
+                        pParam->setValue("Icen dungeon floor 1");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_4_4));
                     } else {
-                        pParam->setValue("아이센 던전 2층");
+                        pParam->setValue("Icen dungeon floor 2");
                         pParam->setValue(strings.getString(STRID_VAMPIRE_QUESTZONE_4_5));
                     }
                 } else if (pCreature2->isOusters()) {
@@ -420,26 +421,28 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     Level_t level = pOusters->getLevel();
 
                     if (level < 31) {
-                        pParam->setValue("카스탈로 북동");
+                        pParam->setValue("Castalo north-east");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_4_1));
                     } else if (level < 51) {
-                        pParam->setValue("드로베타 북서");
+                        pParam->setValue("Drobeta north-west");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_4_2));
                     } else if (level < 71) {
-                        pParam->setValue("로딘산 남서");
+                        pParam->setValue("Mount Rodin south-west");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_4_3));
                     } else if (level < 91) {
-                        pParam->setValue("티모르 남동");
+                        pParam->setValue("Timore south-east");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_4_4));
                     } else {
-                        pParam->setValue("라옴 던전 1층");
+                        pParam->setValue("Laom dungeon floor 1");
                         pParam->setValue(strings.getString(STRID_OUSTERS_QUESTZONE_4_5));
                     }
                 } else {
-                    filelog("EventBug.txt", "ActionAskVariable : 4단계 퀘스트 존 찾는데 플레이어가 이상하다.");
+                    filelog("EventBug.txt",
+                            "ActionAskVariable : stage 4 quest zone lookup got a player of no known race.");
                 }
             } else {
-                filelog("EventBug.txt", "ActionAskVariable : 퀘스트 존 찾는데 퀘스트 레벨이 이상하다. %d", questLevel);
+                filelog("EventBug.txt", "ActionAskVariable : quest zone lookup got an unknown quest level. %d",
+                        questLevel);
                 Assert(false);
             }
         } else if (keyword == "EventQuestMonster") {
@@ -569,10 +572,11 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                         pParam->setValue(strings.getString(STRID_QUEST_MONSTER_5));
                     }
                 } else {
-                    filelog("EventBug.txt", "ActionAskVariable : 4단계 퀘스트 몬스터 찾는데 플레이어가 이상하다.");
+                    filelog("EventBug.txt",
+                            "ActionAskVariable : stage 4 quest monster lookup got a player of no known race.");
                 }
             } else {
-                filelog("EventBug.txt", "ActionAskVariable : 퀘스트 몬스터 찾는데 퀘스트 레벨이 이상하다. %d",
+                filelog("EventBug.txt", "ActionAskVariable : quest monster lookup got an unknown quest level. %d",
                         questLevel);
                 Assert(false);
             }
@@ -596,7 +600,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
 
             if (level < 40) {
                 GCSystemMessage gcSM;
-                gcSM.setMessage("뎠품된섬轟랬쏵契녘膠훨蛟.");
+                gcSM.setMessage("You cannot take the pet quest at your current level.");
                 pCreature2->getPlayer()->sendPacket(&gcSM);
                 GCNPCResponse gcNPCR;
                 gcNPCR.setCode(NPC_RESPONSE_QUIT_DIALOGUE);

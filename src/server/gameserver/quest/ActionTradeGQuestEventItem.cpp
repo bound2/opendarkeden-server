@@ -85,7 +85,7 @@ void ActionTradeGQuestEventItem::execute(Creature* pCreature1, Creature* pCreatu
 
     if (count[0] < 5 || count[1] < 5 || count[2] < 5) {
         GCSystemMessage gcSM;
-        gcSM.setMessage("矜狼15몸훨蛟돛야.");
+        gcSM.setMessage("You need 15 quest items.");
         pPC->getPlayer()->sendPacket(&gcSM);
         return;
     }
@@ -93,7 +93,7 @@ void ActionTradeGQuestEventItem::execute(Creature* pCreature1, Creature* pCreatu
     _TPOINT tp;
     if (!pPC->getInventory()->getEmptySlot(1, 1, tp)) {
         GCSystemMessage gcSM;
-        gcSM.setMessage("돛야으왕쇌꼇璃.");
+        gcSM.setMessage("Not enough inventory space.");
         pPC->getPlayer()->sendPacket(&gcSM);
         return;
     }
@@ -153,7 +153,7 @@ void ActionTradeGQuestEventItem::execute(Creature* pCreature1, Creature* pCreatu
 
     makeOptionList(option, optionList);
     if (optionList.size() != 2) {
-        filelog("GQuestEventBug.log", "옵션이 틀렸습니다. : %d/%s", value, option.c_str());
+        filelog("GQuestEventBug.log", "Wrong option. : %d/%s", value, option.c_str());
     }
 
     Item* pItem = context().itemFactories().createItem(iClass, iType, optionList);
@@ -169,7 +169,7 @@ void ActionTradeGQuestEventItem::execute(Creature* pCreature1, Creature* pCreatu
     makeGCCreateItem(&gcCI, pItem, tp.x, tp.y);
     pPC->getPlayer()->sendPacket(&gcCI);
 
-    filelog("GQuestEvent.log", "이벤트 퀘스트 아이템을 줬습니다. : [%s]%u/%s/%u", pPC->getName().c_str(), iType,
+    filelog("GQuestEvent.log", "Gave the event quest item. : [%s]%u/%s/%u", pPC->getName().c_str(), iType,
             option.c_str(), pItem->getItemID());
 
     GCNPCResponse response;
@@ -177,7 +177,7 @@ void ActionTradeGQuestEventItem::execute(Creature* pCreature1, Creature* pCreatu
     pPlayer->sendPacket(&response);
 
     GCSystemMessage gcSM;
-    gcSM.setMessage("쉽틔綠랙렴.");
+    gcSM.setMessage("The prize has been handed out.");
     pPC->getPlayer()->sendPacket(&gcSM);
 
     __END_CATCH
