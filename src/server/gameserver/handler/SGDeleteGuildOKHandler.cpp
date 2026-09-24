@@ -129,6 +129,12 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
             });
         }
 
+        // Settle the guild's union standing first: nothing but this call
+        // keeps the union tables in step with the guilds, and it reads the
+        // guild masters it notifies out of the GuildManager, so it has to run
+        // while the guild is still in there.
+        GuildUnionManager::Instance().removeGuildFromUnion(pGuild->getID());
+
         // Delete the guild from the guild manager (retired, not freed).
         guilds.deleteGuild(pGuild->getID());
     } else if (pGuild->getState() == Guild::GUILD_STATE_WAIT) {
@@ -175,9 +181,12 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
             });
         }
 
+        // Settle the guild's union standing while the guild is still in the
+        // GuildManager, as above.
+        GuildUnionManager::Instance().removeGuildFromUnion(pGuild->getID());
+
         // Delete the guild from the guild manager (retired, not freed).
         guilds.deleteGuild(pGuild->getID());
-        GuildUnionManager::Instance().removeMasterGuild(pGuild->getID());
     }
 
 #endif

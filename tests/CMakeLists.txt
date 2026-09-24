@@ -709,6 +709,25 @@ add_dependencies(wire_tests guild_join_decision_tests)
 add_test(NAME guild_join_decision_tests COMMAND guild_join_decision_tests)
 set_tests_properties(guild_join_decision_tests PROPERTIES TIMEOUT 60)
 
+# What becomes of a guild union when one of its guilds is disbanded or thrown
+# out: whether the union survives, which GuildUnionMember rows go and which
+# guilds are told. decideUnionTeardown answers from plain values - the union
+# manager that performs the answer needs the guild tables, the PC finder and a
+# socket, which is why the decision was split out of it. de-kernel carries the
+# type tables.
+add_executable(guild_union_teardown_tests EXCLUDE_FROM_ALL
+    guild_union_teardown_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/guild/GuildUnionTeardown.cpp
+)
+target_include_directories(guild_union_teardown_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/guild
+)
+target_link_libraries(guild_union_teardown_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests guild_union_teardown_tests)
+add_test(NAME guild_union_teardown_tests COMMAND guild_union_teardown_tests)
+set_tests_properties(guild_union_teardown_tests PROPERTIES TIMEOUT 60)
+
 # What a retired guild and a retired guild member answer (docs/FIXES.md):
 # both are taken out of their map and parked rather than freed, because a
 # zone thread may already hold the pointer, so the object stays readable and

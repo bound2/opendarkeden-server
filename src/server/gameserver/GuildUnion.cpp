@@ -16,7 +16,52 @@
 #include "Player.h"
 #include "ServerContext.h"
 #include "VariableManager.h"
+#include "guild/GuildUnionTeardown.h"
 #include "repository/GuildRepository.h"
+
+namespace {
+
+// The master character of a guild, or "" when the guild has gone. The union
+// tables name guilds by id and a row can outlive the guild it names, so a
+// union row pointing at a guild the GuildManager no longer holds is a stale
+// row: it is logged and skipped, never dereferenced.
+string guildMasterOf(GuildID_t gID) {
+    Guild* pGuild = de::gameContext().guilds().getGuild(gID);
+
+    if (pGuild == NULL) {
+        filelog("GuildUnion.log", "[%u] union row names a guild that is gone.", gID);
+        return "";
+    }
+
+    return pGuild->getMaster();
+}
+
+// Tell a guild its union standing changed: its master, if online, gets its
+// own union info, and everyone the guild has online has the new standing
+// broadcast around them. A guild that has gone has nobody to tell.
+void notifyUnionChange(GuildID_t gID) {
+    const string masterName = guildMasterOf(gID);
+
+    if (!masterName.empty()) {
+        PCFinder& pcFinder = de::gameContext().playerCreatures();
+
+        __ENTER_CRITICAL_SECTION(pcFinder)
+
+        Creature* pTargetCreature = pcFinder.getCreature_LOCKED(masterName);
+        if (pTargetCreature != NULL) {
+            GCModifyInformation gcModifyInformation;
+            makeGCModifyInfoGuildUnion(&gcModifyInformation, pTargetCreature);
+            pTargetCreature->getPlayer()->sendPacket(&gcModifyInformation);
+        }
+
+        __LEAVE_CRITICAL_SECTION(pcFinder)
+    }
+
+    sendGCOtherModifyInfoGuildUnionByGuildID(gID);
+}
+
+} // namespace
+
 GuildUnion::~GuildUnion() {
     // cout << "GuildUnion : DELETE!!!" << endl;
 }
@@ -194,7 +239,7 @@ void GuildUnionManager::sendRefreshCommand() {
 bool GuildUnionManager::addGuild(uint uID, GuildID_t gID) {
     __BEGIN_TRY
 
-    GuildUnion* pUnion = m_UnionIDMap[uID];
+    GuildUnion* pUnion = getGuildUnionByUnionID(uID);
     if (pUnion == NULL)
         return false;
 
@@ -211,162 +256,137 @@ bool GuildUnionManager::addGuild(uint uID, GuildID_t gID) {
     __END_CATCH
 }
 
-bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
+bool GuildUnionManager::removeGuildFromUnion(GuildID_t gID) {
     __BEGIN_TRY
 
-    GuildManager& guilds = de::gameContext().guilds();
+    GuildRepository& guildRows = defaultGuildRepository();
 
-    // If this guild is the union master and is leaving,
-    // break up the union it belongs to.
+    // The union holding the guild. The lookup maps answer first; a guild they
+    // have forgotten may still have a member row naming it, so the tables are
+    // asked before the answer is "no union".
+    GuildUnion* pUnion = getGuildUnion(gID);
+    uint unionID = 0;
+    GuildID_t unionMasterGuildID = 0;
+    bool unionKnown = false;
 
-    GuildUnion* pUnion = m_GuildUnionMap[gID];
-    // A union this guild masters: throw every member guild out and destroy it.
     if (pUnion != NULL) {
-        uint uID = pUnion->getUnionID(); // the union id
+        unionKnown = true;
+        unionID = pUnion->getUnionID();
+        unionMasterGuildID = pUnion->getMasterGuildID();
+    } else {
+        int rowUnionID = 0;
+        int rowOwnerGuildID = 0;
+        int rowMasterGuildID = 0;
 
-        vector<int> memberGuilds = defaultGuildRepository().loadUnionMemberGuilds(uID);
+        if (guildRows.loadUnionOfGuild(gID, rowUnionID, rowOwnerGuildID) &&
+            guildRows.loadUnionMaster(rowUnionID, rowMasterGuildID)) {
+            unionKnown = true;
+            unionID = rowUnionID;
+            unionMasterGuildID = rowMasterGuildID;
 
-        // No members at all would be strange.
-        if (memberGuilds.empty()) {
-            return false;
-        }
-
-        {
-            string unionMasterID = guilds.getGuild(gID)->getMaster();
-            // Remove every guild from the union; once they are all gone the
-            // union dissolves itself.
-            for (size_t m = 0; m < memberGuilds.size(); m++) {
-                if (pUnion->removeGuild(memberGuilds[m])) {
-                    m_GuildUnionMap[gID] = NULL;
-                    if (pUnion->m_Guilds.empty()) {
-                        list<GuildUnion*>::iterator itr =
-                            find(m_GuildUnionList.begin(), m_GuildUnionList.end(), pUnion);
-                        if (itr != m_GuildUnionList.end()) {
-                            pUnion->destroy();
-                            m_GuildUnionList.erase(itr);
-                            m_GuildUnionMap.erase(pUnion->getMasterGuildID());
-                            m_UnionIDMap.erase(pUnion->getUnionID());
-
-                            SAFE_DELETE(pUnion);
-                        } //
-                    } // isEmpty
-                    sendGCOtherModifyInfoGuildUnionByGuildID(memberGuilds[m]);
-                } // if
-            } // for
-            // Every guild is removed; the last one cleaned up as well.
-
-            Creature* pTargetCreature = NULL;
-            PCFinder& pcFinder = de::gameContext().playerCreatures();
-
-            __ENTER_CRITICAL_SECTION(pcFinder)
-
-            pTargetCreature = pcFinder.getCreature_LOCKED(unionMasterID);
-            if (pTargetCreature != NULL) {
-                GCModifyInformation gcModifyInformation2;
-                makeGCModifyInfoGuildUnion(&gcModifyInformation2, pTargetCreature);
-                pTargetCreature->getPlayer()->sendPacket(&gcModifyInformation2);
-            }
-            __LEAVE_CRITICAL_SECTION(pcFinder)
-
-            // Tell everyone the union master changed.
-            sendGCOtherModifyInfoGuildUnionByGuildID(gID);
-
-            sendRefreshCommand();
-        }
-    } else // Not a union master: find which union the guild belongs to and take it out.
-    {
-        string unionMasterID = "";
-        string guildMasterID = "";
-        GuildID_t unionMasterGuildID = 0;
-
-        int unionID = 0;
-        int ownerGuildID = 0;
-
-        // Not in any union: just leave.
-        if (!defaultGuildRepository().loadUnionOfGuild(gID, unionID, ownerGuildID)) {
-            return false;
-        }
-
-        {
-            // In a union: find its master guild.
-            int masterGuildID = 0;
-            if (defaultGuildRepository().loadUnionMaster(unionID, masterGuildID)) {
-                unionMasterGuildID = masterGuildID;
-                unionMasterID = guilds.getGuild(unionMasterGuildID)->getMaster();
-            }
-
-            guildMasterID = guilds.getGuild(gID)->getMaster();
-
-            if (removeGuild(unionID, ownerGuildID)) {
-                Creature* pTargetCreature = NULL;  // the guild's master
-                Creature* pTargetCreature2 = NULL; // the union guild's master
-
-                PCFinder& pcFinder = de::gameContext().playerCreatures();
-
-                __ENTER_CRITICAL_SECTION(pcFinder)
-
-                pTargetCreature = pcFinder.getCreature_LOCKED(guildMasterID);
-                if (pTargetCreature != NULL) {
-                    GCModifyInformation gcModifyInformation2;
-                    makeGCModifyInfoGuildUnion(&gcModifyInformation2, pTargetCreature);
-                    pTargetCreature->getPlayer()->sendPacket(&gcModifyInformation2);
-                }
-
-                pTargetCreature2 = pcFinder.getCreature_LOCKED(unionMasterID);
-                if (pTargetCreature != NULL) {
-                    GCModifyInformation gcModifyInformation2;
-                    makeGCModifyInfoGuildUnion(&gcModifyInformation2, pTargetCreature2);
-                    pTargetCreature2->getPlayer()->sendPacket(&gcModifyInformation2);
-                }
-                __LEAVE_CRITICAL_SECTION(pcFinder)
-
-
-                // Send the changed guild-master information.
-                sendGCOtherModifyInfoGuildUnionByGuildID(gID);
-                // A guild removed from the union because it broke up: the union master must hear of it too.
-                sendGCOtherModifyInfoGuildUnionByGuildID(unionMasterGuildID);
-
-                // The guild is removed: tell the other servers too.
-                sendRefreshCommand();
-            }
+            // The union object, if this server carries one for that id.
+            pUnion = getGuildUnionByUnionID(unionID);
         }
     }
 
-    __END_CATCH
+    if (!unionKnown)
+        return false;
+
+    // The union's member guilds, from its rows and from the union object
+    // both: a guild one of them has lost is still a guild to let out.
+    // decideUnionTeardown names each of them once however often it is listed.
+    const vector<int> memberRows = guildRows.loadUnionMemberGuilds(unionID);
+
+    vector<GuildID_t> memberGuilds;
+    memberGuilds.reserve(memberRows.size());
+    for (size_t m = 0; m < memberRows.size(); m++)
+        memberGuilds.push_back(static_cast<GuildID_t>(memberRows[m]));
+
+    if (pUnion != NULL) {
+        const list<GuildID_t> knownGuilds = pUnion->getGuildList();
+        for (list<GuildID_t>::const_iterator itr = knownGuilds.begin(); itr != knownGuilds.end(); ++itr)
+            memberGuilds.push_back(*itr);
+    }
+
+    const UnionTeardown teardown = decideUnionTeardown(unionKnown, unionMasterGuildID, memberGuilds, gID);
+    if (teardown.action == UnionTeardown::NOTHING)
+        return false;
+
+    for (size_t m = 0; m < teardown.membersToRemove.size(); m++) {
+        const GuildID_t memberID = teardown.membersToRemove[m];
+
+        if (pUnion != NULL) {
+            // Takes the member row with it. The guild stops finding this
+            // union whether or not the union itself survives.
+            if (pUnion->removeGuild(memberID))
+                m_GuildUnionMap.erase(memberID);
+        } else {
+            // No union object on this server: the row is all there is.
+            guildRows.deleteUnionMember(unionID, memberID);
+        }
+    }
+
+    if (teardown.action == UnionTeardown::DISSOLVE)
+        destroyUnion(unionID);
+
+    for (size_t n = 0; n < teardown.guildsToNotify.size(); n++)
+        notifyUnionChange(teardown.guildsToNotify[n]);
+
+    // The other game servers keep their own copy of the union tables.
+    sendRefreshCommand();
 
     return true;
+
+    __END_CATCH
+}
+
+void GuildUnionManager::destroyUnion(uint uID) {
+    GuildUnion* pUnion = getGuildUnionByUnionID(uID);
+
+    if (pUnion == NULL) {
+        // Nothing in memory holds the union: its rows are all there is.
+        defaultGuildRepository().deleteUnion(uID);
+        return;
+    }
+
+    pUnion->destroy();
+
+    // Every guild that reaches this union by id has to stop reaching it
+    // before the object goes; a guild left pointing at freed memory would
+    // answer a union lookup with it.
+    const list<GuildID_t> guilds = pUnion->getGuildList();
+    for (list<GuildID_t>::const_iterator itr = guilds.begin(); itr != guilds.end(); ++itr)
+        m_GuildUnionMap.erase(*itr);
+
+    m_GuildUnionMap.erase(pUnion->getMasterGuildID());
+    m_UnionIDMap.erase(uID);
+
+    list<GuildUnion*>::iterator itr = find(m_GuildUnionList.begin(), m_GuildUnionList.end(), pUnion);
+    if (itr != m_GuildUnionList.end())
+        m_GuildUnionList.erase(itr);
+
+    SAFE_DELETE(pUnion);
 }
 
 bool GuildUnionManager::removeGuild(uint uID, GuildID_t gID) {
     __BEGIN_TRY
 
-    GuildUnion* pUnion = m_UnionIDMap[uID];
+    GuildUnion* pUnion = getGuildUnionByUnionID(uID);
     if (pUnion == NULL)
         return false;
 
-    if (pUnion->removeGuild(gID)) {
-        m_GuildUnionMap[gID] = NULL;
-        if (pUnion->m_Guilds.empty()) {
-            list<GuildUnion*>::iterator itr = find(m_GuildUnionList.begin(), m_GuildUnionList.end(), pUnion);
-            if (itr != m_GuildUnionList.end()) {
-                pUnion->destroy();
-
-                // m_GuildUnionMap[pUnion->getMasterGuildID()] = NULL;
-                // m_UnionIDMap[pUnion->getUnionID()] = NULL;
-
-                m_GuildUnionList.erase(itr);
-                m_GuildUnionMap.erase(pUnion->getMasterGuildID());
-                m_UnionIDMap.erase(pUnion->getUnionID());
-
-                SAFE_DELETE(pUnion);
-            }
-        }
-
-        sendRefreshCommand();
-        return true;
-    } else {
+    if (!pUnion->removeGuild(gID))
         return false;
-    }
+
+    m_GuildUnionMap.erase(gID);
+
+    // The master guild alone is not a union.
+    if (pUnion->m_Guilds.empty())
+        destroyUnion(uID);
+
+    sendRefreshCommand();
+
+    return true;
 
     __END_CATCH
 }

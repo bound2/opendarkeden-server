@@ -15,22 +15,91 @@ repo and the client's. Entries below are newest first; the oldest is the
 
 ## A union's guild lookup is dereferenced unchecked (2026-09-24)
 
-- **Four sites call `GuildManager::getGuild(id)->getMaster()` on an id
+- **Four sites called `GuildManager::getGuild(id)->getMaster()` on an id
   read from the union tables without testing the result** --
   `GuildUnionManager::removeMasterGuild` three times
   (`src/server/gameserver/GuildUnion.cpp`) and `CGQuitUnionHandler`'s
   QUIT_QUICK branch on `pUnion->getMasterGuildID()`. `getGuild()` answers
-  NULL for an id the table does not hold, and nothing keeps the union rows
-  in step with the guilds: `GuildManager::deleteGuild` carries the comment
+  NULL for an id the table does not hold, and nothing kept the union rows
+  in step with the guilds: `GuildManager::deleteGuild` carried the comment
   `// Clear the GuildUnion information` over no code at all, so a guild
-  disbanded while it is in a union leaves `GuildUnionInfo` /
-  `GuildUnionMember` rows naming it. Quitting that union then dereferences
-  NULL on the zone thread. The shorter path needs no stale row:
-  `SGDeleteGuildOKHandler` calls `deleteGuild` and then `removeMasterGuild`
-  for the same id, so a guild that masters a union with members
-  dereferences NULL on the sharedserver-link thread the moment it is
+  disbanded while it was in a union left `GuildUnionInfo` /
+  `GuildUnionMember` rows naming it, and quitting that union dereferenced
+  NULL on the zone thread. The shorter path needed no stale row:
+  `SGDeleteGuildOKHandler` called `deleteGuild` and then `removeMasterGuild`
+  for the same id, so a guild that mastered a union with members
+  dereferenced NULL on the sharedserver-link thread the moment it was
   deleted.
-  > **Status:** recorded, not fixed (fix/manager-concurrency)
+
+  The teardown rule is now stated once, as a pure function
+  (`decideUnionTeardown`, `gameserver/guild/GuildUnionTeardown.{h,cpp}`,
+  covered by `tests/guild_union_teardown_test.cpp`): a member guild leaving
+  gives up its own `GuildUnionMember` row and the union carries on, unless
+  it was the last member, because the master guild alone is not a union; a
+  master guild takes the union with it, since the tables name one master
+  and nothing says which member would inherit it. `removeMasterGuild` is
+  `removeGuildFromUnion`, which reads the union's id, its master's id and
+  its member rows first, asks `decideUnionTeardown` what to do and then
+  performs it -- so it needs no live `Guild*` for the guild going away.
+  `SGDeleteGuildOKHandler` calls it before `deleteGuild`, for an active
+  guild as well as a waiting one, so the guild masters it notifies are
+  still in the `GuildManager`; `GuildManager::deleteGuild` does not do the
+  teardown itself because it holds the guild mutex the notification reads
+  under, and its comment now says so. A guild that is gone anyway is
+  logged to `GuildUnion.log` and not notified, in
+  `removeGuildFromUnion` and in `CGQuitUnionHandler`, which also stops
+  writing the escape penalty for the guild id the packet carries rather
+  than the one it took out of the union, and no longer abandons the quit
+  half-done when the union master is offline.
+  > **Status:** fixed (fix/union-teardown)
+
+## A dissolved union leaves its member guilds pointing at the freed object (2026-09-24)
+
+- **`GuildUnionManager` freed a union while its member guilds still
+  reached it**: `removeGuild` and the old `removeMasterGuild` set
+  `m_GuildUnionMap[gID] = NULL` for the guild that left -- and the master
+  path set it for the guild it was called with, not for the member it had
+  just removed -- then, once the union emptied, deleted the `GuildUnion`
+  while every other member's entry still held the pointer. The next
+  `getGuildUnion()` for one of those guilds answered with freed memory, on
+  a zone thread, for every packet that reports a character's union
+  standing. The lookups made it worse by reading the map with
+  `operator[]`, which inserts: a lookup for a guild in no union left a NULL
+  entry behind and could rehash the map under another thread's read.
+  `destroyUnion()` now takes every guild of the union out of both maps and
+  out of the list before the object goes, `removeGuild` erases the leaver's
+  entry, and both lookups are `find()` on a const method.
+  > **Status:** fixed (fix/union-teardown)
+
+## A member guild's disbandment dissolved its whole union (2026-09-24)
+
+- **`GuildUnionManager::removeMasterGuild` took the master branch for any
+  guild the lookup map held,** and the map holds the union's member guilds
+  as well as its master, so a member guild being disbanded emptied the
+  union of every other guild and destroyed it. Only the else branch --
+  reached solely by a guild the maps had already forgotten -- removed a
+  single member. Found while giving the four unchecked `getGuild()` calls
+  a rule to follow. The branch is `decideUnionTeardown`'s now, taken on
+  `removedGuildID == unionMasterGuildID` rather than on the map holding an
+  entry.
+  > **Status:** fixed (fix/union-teardown)
+
+## The guild union manager mutates its tables from any thread without a lock (2026-09-24)
+
+- **`GuildUnionManager::m_Mutex` is taken by `reload()` and by nothing
+  else,** so the union list and the two lookup maps are written by
+  `removeGuildFromUnion` on the sharedserver-link thread, by
+  `addGuild`/`removeGuild` and `reload()` on a zone thread, and read by
+  every zone thread that builds a character's union standing --
+  concurrently, with no lock between them, and with `SAFE_DELETE` of a
+  `GuildUnion` among the writes. Erasing a guild's entries before the
+  object goes (above) closes the window a reader had after a dissolve, but
+  not the race itself: a reader that already holds the pointer, or that is
+  walking a bucket chain a writer rehashes, is still unsynchronised. The
+  fix is the one the guild managers took -- lock both sides and retire
+  rather than free -- and it needs a decision about union lifetime this
+  branch did not take.
+  > **Status:** recorded, not fixed (fix/union-teardown)
 
 ## A siege's challenger array is written one past its end (2026-09-24)
 
