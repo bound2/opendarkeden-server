@@ -88,7 +88,7 @@ void WarSystem::prepareRaceWar() {
         ((DWORD)((DWORD)sendStartTime.date().month()) * 10000) +
         ((DWORD)((DWORD)sendStartTime.date().day()) * 100); //	   + ((DWORD)((DWORD)sendStartTime.time().hour()));
 
-    cout << "종족전쟁 패킷 보내는 날짜 : " << m_RaceWarTimeParam << endl;
+    cout << "종족전쟁 패킷 보내는 날짜 : " << m_RaceWarTimeParam.load() << endl;
 
     __END_CATCH
 }
@@ -597,16 +597,25 @@ bool WarSystem::isModifyCastleOwner(ZoneID_t castleZoneID, PlayerCreature* pPC)
 }
 
 // The flag is read first so that the schedule list, and the lock over it, are
-// only touched while a race war is actually running.
+// only touched while a race war is actually running. The flag is only a hint:
+// the war is looked up and asked under m_Mutex, because the heartbeat frees it
+// under that lock when it ends, so a pointer carried past the lock could name
+// a war that is gone.
 bool WarSystem::mayModifyShrineOwner(PlayerCreature* pPC) const {
     if (!hasActiveRaceWar())
         return false;
 
-    War* pWar = getActiveRaceWar();
-    if (pWar == NULL)
-        return false;
+    bool bMay = false;
 
-    return pWar->mayModifyShrineOwner(pPC);
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    War* pWar = getActiveRaceWarAtSameThread();
+    if (pWar != NULL)
+        bMay = pWar->mayModifyShrineOwner(pPC);
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return bMay;
 }
 
 // pPC won the war concerning castleZoneID.
@@ -762,24 +771,6 @@ void WarSystem::broadcastWarList(GamePlayer* pGamePlayer) const
     }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    __END_CATCH
-}
-
-War* WarSystem::getActiveRaceWar() const
-
-{
-    __BEGIN_TRY
-
-    War* pWar = NULL;
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    pWar = getActiveRaceWarAtSameThread();
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    return pWar;
 
     __END_CATCH
 }

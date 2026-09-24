@@ -57,6 +57,12 @@ public:
     GuildID_t getAttackerGuildID() const override {
         return m_ChallangerGuildID[0];
     }
+    uint getAttackerCount() const override {
+        return m_ChallangerGuildCount;
+    }
+    GuildID_t getAttackerGuildIDAt(uint slot) const override {
+        return slot < MaxSiegeChallengerGuilds ? m_ChallangerGuildID[slot] : 0;
+    }
     bool isAttackerGuild(GuildID_t gID) const override {
         for (unsigned int i = 0; i < MaxSiegeChallengerGuilds; ++i)
             if (gID == m_ChallangerGuildID[i])

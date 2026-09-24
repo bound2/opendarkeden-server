@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5161 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5160 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -111,7 +111,7 @@ check_ratchet R6e "CGSayHandler.cpp lines" 114 "$R6e"
 # R6f: the *command console, whose sub-command bodies are one function per
 # name in ConsoleCommands.cpp beside the console that dispatches them.
 R6f=$(wc -l < src/server/gameserver/gm/ConsoleCommands.cpp 2>/dev/null || echo missing)
-check_ratchet R6f "ConsoleCommands.cpp lines" 1575 "$R6f"
+check_ratchet R6f "ConsoleCommands.cpp lines" 1574 "$R6f"
 
 # R6g: Zone.cpp with broadcast, scan/visibility, movement, the loaders,
 # spawn/despawn and the item tables split out to ZoneBroadcast.cpp /
@@ -450,7 +450,7 @@ rm -f "$r16_inc" "$r16_dead"
 # working tree out of the count, which [^[:print:]] would not, and LC_ALL=C
 # keeps the range byte-wise where a locale would read it as characters.
 R17=$(LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R17 "source lines carrying non-ASCII bytes" 576 "$R17"
+check_ratchet R17 "source lines carrying non-ASCII bytes" 575 "$R17"
 
 # --- R18: commented-out code inside /* */ blocks ---------------------------
 # Code that was switched off years ago says nothing true about the running

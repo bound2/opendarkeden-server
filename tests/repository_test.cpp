@@ -17,6 +17,7 @@
 #include "FakeNicknameRepository.h"
 #include "FakeRankBonusRepository.h"
 #include "FakeStashRepository.h"
+#include "VariableManager.h"
 #include "repository/NicknameRecord.h"
 
 namespace {
@@ -465,6 +466,67 @@ TEST(GoldRepositoryContract, DecreaseBelowTheRowBalanceThrowsAndLeavesTheRowUnto
     int gold = -1;
     ASSERT_TRUE(repository.loadGold("Hyanggi", CHARACTER_RACE_VAMPIRE, gold));
     EXPECT_EQ(10, gold);
+}
+
+// --- stored variables over the coded defaults ------------------------------
+
+VariableRow variableRow(int attrID, int attr1) {
+    VariableRow row;
+    row.attrID = attrID;
+    row.attr1 = attr1;
+    row.attr2 = 0;
+    return row;
+}
+
+TEST(StoredVariables, ARowOverridesItsDefaultAndAMissingRowKeepsIt) {
+    std::vector<int> defaults(VARIABLE_MAX, 0);
+    defaults[STAR_RATIO] = 1000;
+    defaults[EVENT_RATIO] = 1000;
+    defaults[ENEMY_LIMIT_TIME] = 300;
+
+    // No row for STAR_RATIO, as in the stock seed; EVENT_RATIO's row sets it
+    // to a value of its own and ENEMY_LIMIT_TIME's to zero.
+    std::vector<VariableRow> rows = {variableRow(EVENT_RATIO, 100), variableRow(ENEMY_LIMIT_TIME, 0)};
+
+    std::vector<int> table = overlayStoredVariables(defaults, VARIABLE_MAX - 1, rows);
+
+    ASSERT_EQ((size_t)VARIABLE_MAX, table.size());
+    EXPECT_EQ(1000, table[STAR_RATIO]);
+    EXPECT_EQ(100, table[EVENT_RATIO]);
+    EXPECT_EQ(0, table[ENEMY_LIMIT_TIME]);
+}
+
+TEST(StoredVariables, TheTableReachesTheHighestStoredIdAndSkipsRowsOutsideIt) {
+    std::vector<int> defaults(VARIABLE_MAX, 7);
+
+    // The stock seed stores ids past the last named variable; they stay
+    // readable by number, and the slots between hold zero until a row fills
+    // them. A negative id and one past the stored maximum name no slot.
+    std::vector<VariableRow> rows = {variableRow(VARIABLE_MAX + 2, 80), variableRow(-1, 5),
+                                     variableRow(VARIABLE_MAX + 9, 9)};
+
+    std::vector<int> table = overlayStoredVariables(defaults, VARIABLE_MAX + 2, rows);
+
+    ASSERT_EQ((size_t)VARIABLE_MAX + 3, table.size());
+    EXPECT_EQ(7, table[VARIABLE_MAX - 1]);
+    EXPECT_EQ(0, table[VARIABLE_MAX]);
+    EXPECT_EQ(0, table[VARIABLE_MAX + 1]);
+    EXPECT_EQ(80, table[VARIABLE_MAX + 2]);
+}
+
+TEST(StoredVariables, ARefusedValueLeavesTheDefaultStanding) {
+    std::vector<int> defaults(VARIABLE_MAX, 0);
+    defaults[RACE_WAR_TIMEBAND] = 2;
+
+    std::vector<int> table = overlayStoredVariables(defaults, VARIABLE_MAX - 1, {variableRow(RACE_WAR_TIMEBAND, 4)});
+    EXPECT_EQ(2, table[RACE_WAR_TIMEBAND]);
+
+    table = overlayStoredVariables(defaults, VARIABLE_MAX - 1, {variableRow(RACE_WAR_TIMEBAND, 3)});
+    EXPECT_EQ(3, table[RACE_WAR_TIMEBAND]);
+
+    EXPECT_FALSE(isAcceptedVariableValue(RACE_WAR_TIMEBAND, -1));
+    EXPECT_TRUE(isAcceptedVariableValue(RACE_WAR_TIMEBAND, 0));
+    EXPECT_TRUE(isAcceptedVariableValue(EVENT_RATIO, -1));
 }
 
 } // namespace

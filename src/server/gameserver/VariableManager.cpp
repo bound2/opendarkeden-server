@@ -288,24 +288,31 @@ void VariableManager::load()
         throw Error("VariableManager::load(): cannot obtain the maximum attrID.");
     }
 
-    // A fresh table rather than a resize of the one in place: the slots are
-    // atomics, which a vector cannot move, and this runs once at startup.
-    m_Variables = VARIABLE(max((maxAttr + 1), (int)VARIABLE_MAX));
-
     vector<VariableRow> rows = repository.loadVariables();
 
     if (rows.empty()) {
         throw Error("VariableManager::load(): no values exist");
     }
 
+    // The constructor's defaults with the stored rows over them; a variable
+    // the table has no row for keeps its default. The rows are not written
+    // back: each value came from its own row.
+    vector<int> defaults(m_Variables.size());
+    for (size_t i = 0; i < defaults.size(); i++)
+        defaults[i] = m_Variables[i];
+
+    vector<int> values = overlayStoredVariables(defaults, maxAttr, rows);
+
+    // A fresh table rather than a resize of the one in place: the slots are
+    // atomics, which a vector cannot move, and this runs once at startup.
+    VARIABLE loaded(values.size());
+    for (size_t i = 0; i < values.size(); i++)
+        loaded[i] = values[i];
+    m_Variables.swap(loaded);
+
     for (size_t r = 0; r < rows.size(); r++) {
-        VariableType attrID = (VariableType)rows[r].attrID;
-        int attr1 = rows[r].attr1;
-        // int    			attr2  = rows[r].attr2;
-
-
-        setVariable(attrID, attr1);
-        cout << toString(attrID).c_str() << endl;
+        if (rows[r].attrID >= 0 && rows[r].attrID < (int)m_Variables.size())
+            cout << toString((VariableType)rows[r].attrID).c_str() << endl;
     }
 
     __END_CATCH
@@ -343,11 +350,8 @@ void VariableManager::setVariable(VariableType vt, const string& strVariable) {
 
 void VariableManager::setVariable(VariableType vt, int value) {
     try {
-        // Range check for RACE_WAR_TIMEBAND
-        if (vt == RACE_WAR_TIMEBAND) {
-            if (value < 0 || value > 3)
-                return;
-        }
+        if (!isAcceptedVariableValue(vt, value))
+            return;
 
         m_Variables[vt] = value;
 

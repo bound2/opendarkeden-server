@@ -19,6 +19,7 @@
 #include "MasterLairInfoManager.h"
 #include "MonsterInfo.h"
 #include "OptionInfo.h"
+#include "PlayerMailbox.h"
 #include "RaceWarLimiter.h"
 #include "RankBonusInfo.h"
 #include "ShrineInfoManager.h"
@@ -114,33 +115,65 @@ void EventReloadInfo::activate()
     case WAR_SCHEDULE_INFO: {
         ZoneID_t zoneID = (ZoneID_t)m_InfoValue;
 
-        Zone* pZone = getZoneByZoneID(zoneID);
+        // The GM who asked is answered by name: the answer is sent from the
+        // castle's thread after the reload, and by then a name is all that
+        // still means something if the GM has logged out.
+        string requester;
+        if (m_pGamePlayer != NULL && m_pGamePlayer->getCreature() != NULL)
+            requester = m_pGamePlayer->getCreature()->getName();
 
-        if (m_pGamePlayer != NULL) {
-            GCSystemMessage gcSystemMessage;
+        // An unknown zone id is thrown as an Error by the lookup.
+        Zone* pZone = NULL;
+        try {
+            pZone = getZoneByZoneID(zoneID);
+        } catch (Error&) {
+            pZone = NULL;
+        }
 
-            if (pZone != NULL) {
-                WarScheduler* pWarScheduler = pZone->getWarScheduler();
+        ZoneGroup* pZoneGroup = (pZone != NULL) ? pZone->getZoneGroup() : NULL;
 
-                if (pWarScheduler != NULL) {
-                    pWarScheduler->load();
-
-                    //						StringStream msg;
-                    //						msg << "[" << (int)zoneID << "] castle has " << pWarScheduler->getSize() << "
-                    // wars scheduled.";
-
-                    char msg[100];
-                    sprintf(msg, strings.c_str(STRID_WAR_SCHEDULE_INFO), (int)zoneID, pWarScheduler->getSize());
-                    gcSystemMessage.setMessage(msg);
-                } else {
-                    gcSystemMessage.setMessage(strings.getString(STRID_THIS_ZONE_IS_NOT_CASTLE));
-                }
-            } else {
+        if (pZoneGroup == NULL) {
+            if (m_pGamePlayer != NULL) {
+                GCSystemMessage gcSystemMessage;
                 gcSystemMessage.setMessage(strings.getString(STRID_NO_SUCH_ZONE));
+                m_pGamePlayer->sendPacket(&gcSystemMessage);
+            }
+            break;
+        }
+
+        // A castle's scheduler belongs to its zone's group, whose thread runs
+        // its heartbeat and executes the wars it hands out, and the reload
+        // frees every war the scheduler holds. So the reload is posted to that
+        // group and runs under the group mutex, never here on the main thread.
+        // The scheduler is looked up there, because a zone reload replaces it;
+        // the zone itself is never freed.
+        pZoneGroup->post([pZone, zoneID, requester] {
+            StringPool& strings = de::gameContext().strings();
+            string message;
+
+            WarScheduler* pWarScheduler = pZone->getWarScheduler();
+            if (pWarScheduler != NULL) {
+                pWarScheduler->load();
+
+                char msg[100];
+                snprintf(msg, sizeof(msg), strings.c_str(STRID_WAR_SCHEDULE_INFO), (int)zoneID,
+                         pWarScheduler->getSize());
+                message = msg;
+            } else {
+                message = strings.getString(STRID_THIS_ZONE_IS_NOT_CASTLE);
             }
 
-            m_pGamePlayer->sendPacket(&gcSystemMessage);
-        }
+            if (!requester.empty()) {
+                de::postToPlayer(
+                    requester,
+                    [message](PlayerCreature&, Player& player) {
+                        GCSystemMessage gcSystemMessage;
+                        gcSystemMessage.setMessage(message);
+                        player.sendPacket(&gcSystemMessage);
+                    },
+                    nullptr, de::Scope::Player);
+            }
+        });
     } break;
 
     case BLOOD_BIBLE_OWNER: {

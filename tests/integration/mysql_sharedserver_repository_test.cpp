@@ -65,6 +65,7 @@ protected:
         execSQL("DELETE FROM GuildMember WHERE Name LIKE 'it-sg%'");
         execSQL("DELETE FROM GuildUnionMember WHERE OwnerGuildID BETWEEN 61700 AND 61799");
         execSQL("DELETE FROM WarScheduleInfo WHERE WarID BETWEEN 61700 AND 61799");
+        execSQL("DELETE FROM ReinforceRegisterInfo WHERE WarID BETWEEN 61700 AND 61799");
         execSQL("DELETE FROM Messages WHERE Receiver LIKE 'it-sg%'");
         execSQL("DELETE FROM Slayer WHERE Name LIKE 'it-sg%'");
         execSQL("DELETE FROM Vampire WHERE Name LIKE 'it-sg%'");
@@ -360,6 +361,33 @@ TEST_F(SharedGuildMySQL, PurgeGuildRemovesItsRowsAndCancelsOnlyTheWarsItLeads) {
     EXPECT_EQ("1", count("GuildInfo WHERE GuildID = 61702"));
     EXPECT_EQ("1", count("GuildMember WHERE GuildID = 61702"));
     EXPECT_EQ("1", count("GuildUnionMember WHERE OwnerGuildID = 61702"));
+}
+
+TEST_F(SharedGuildMySQL, PurgeGuildDeletesEveryReinforcementItRegisteredAndNoOtherGuilds) {
+    SharedGuildRepository& repo = defaultSharedGuildRepository();
+
+    seedGuild(61701, "it-sg a", 0, 0, 10001, "it-sga");
+    seedGuild(61702, "it-sg b", 0, 0, 10002, "it-sgb");
+
+    // The deleted guild's registrations in all three states, on two servers:
+    // a waiting one would still be offered to the castle owner, an accepted
+    // one would come back as the siege's reinforcement on a reload, and a
+    // denied one would turn away a later guild given the same id.
+    execSQL("INSERT INTO ReinforceRegisterInfo (WarID, ServerID, ReinforceGuildID, Status) VALUES "
+            "(61701, 1, 61701, 'WAIT'), (61702, 1, 61701, 'ACCEPT'), (61703, 2, 61701, 'DENY')");
+    // Another guild's registrations, one of them on a war the deleted guild
+    // also registered for.
+    execSQL("INSERT INTO ReinforceRegisterInfo (WarID, ServerID, ReinforceGuildID, Status) VALUES "
+            "(61701, 1, 61702, 'WAIT'), (61703, 2, 61702, 'ACCEPT')");
+
+    repo.purgeGuild(61701);
+
+    EXPECT_EQ("0", count("ReinforceRegisterInfo WHERE ReinforceGuildID = 61701"));
+    EXPECT_EQ("2", count("ReinforceRegisterInfo WHERE ReinforceGuildID = 61702"));
+    EXPECT_EQ("WAIT", queryScalar("SELECT Status FROM ReinforceRegisterInfo WHERE WarID = 61701 AND "
+                                  "ReinforceGuildID = 61702"));
+    EXPECT_EQ("ACCEPT", queryScalar("SELECT Status FROM ReinforceRegisterInfo WHERE WarID = 61703 AND "
+                                    "ReinforceGuildID = 61702"));
 }
 
 TEST_F(SharedGuildMySQL, CountAndMaxProbes) {

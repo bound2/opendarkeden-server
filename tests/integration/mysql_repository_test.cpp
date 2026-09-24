@@ -3492,6 +3492,39 @@ TEST_F(WarInfoMySQL, EveryWaitingAndStartedGuildScheduleOfTheZoneComesBackInStar
     EXPECT_TRUE(repository.loadWarSchedules(7, 99).empty());
 }
 
+TEST_F(WarInfoMySQL, AGuildWarSavedOverItsRowRewritesWhatItsCreateWroteAndReloadsAsAGuildWar) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    const std::string row = "SELECT CONCAT_WS('|', WarID, ServerID, ZoneID, WarType, AttackerCount, AttackGuildID, "
+                            "AttackGuildID2, AttackGuildID3, AttackGuildID4, AttackGuildID5, WarFee, StartTime, "
+                            "Status, CastleWarKind) FROM WarScheduleInfo WHERE WarID=31010";
+
+    // WarSchedule::create for a guild war: the one attacker, its fee and the
+    // kind, with AttackerCount and the other four slots left to their
+    // defaults.
+    ASSERT_TRUE(repository.insertWarSchedule(31010, 7, 21, "GUILD", 301, 600, "2026-09-03 11:00:00", "WAIT", "GUILD"));
+    const std::string created = queryScalar(row);
+    EXPECT_EQ("31010|7|21|GUILD|1|301|0|0|0|0|600|2026-09-03 11:00:00|WAIT|GUILD", created);
+
+    // WarSchedule::save for the same war, through War's attacker virtuals: a
+    // war with a single attacker counts one and fills the first slot. The
+    // REPLACE writes back exactly the row the INSERT wrote.
+    EXPECT_TRUE(repository.replaceWarSchedule(31010, 7, 21, "GUILD", 1, 301, 0, 0, 0, 0, 600, "2026-09-03 11:00:00",
+                                              "WAIT", "GUILD"));
+    EXPECT_EQ(created, queryScalar(row));
+
+    // What WarScheduler::load reads back: the 'GUILD' kind, which it rebuilds
+    // as a GuildWar, with the first slot's guild as its challenger.
+    std::vector<WarScheduleRow> rows = repository.loadWarSchedules(7, 21);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(31010, rows[0].warID);
+    EXPECT_EQ("GUILD", rows[0].castleWarKind);
+    EXPECT_EQ(1, rows[0].attackerCount);
+    EXPECT_EQ(301, rows[0].attackGuildID[0]);
+    EXPECT_EQ(0, rows[0].attackGuildID[1]);
+    EXPECT_EQ(600, rows[0].warFee);
+}
+
 TEST_F(WarInfoMySQL, TheAcceptedReinforceReadIsScopedToTheWarIdAlone) {
     WarInfoRepository& repository = defaultWarInfoRepository();
 

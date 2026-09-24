@@ -457,23 +457,22 @@ void opSetCastleOwnerGuild(GamePlayer* pGamePlayer, const string& value1, GCSyst
     ZoneID_t zoneID = (ZoneID_t)atoi(trim(value1.substr(0, j)).c_str());
     GuildID_t guildID = (GuildID_t)atoi(trim(value1.substr(j + 1, value1.size() - j - 1)).c_str());
 
-
     bSendPacket = false;
 
     Zone* pZone = getZoneByZoneID(zoneID);
     Guild* pGuild = de::gameContext().guilds().getGuild(guildID);
+    if (pZone == NULL || !pZone->isCastle() || (pGuild == NULL && guildID != 99 && guildID != 0 && guildID != 66))
+        return;
 
-    if (pZone != NULL && pZone->isCastle() && pGuild != NULL) {
-        de::gameContext().castleInfos().modifyCastleOwner(zoneID, pGuild->getRace(), guildID);
-    } else if (pZone != NULL && pZone->isCastle() && guildID == 99) {
-        de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_SLAYER, 99);
-    }
-    // *command setCastleOwner VampireCommon makes it a Vampire common castle
-    else if (pZone != NULL && pZone->isCastle() && guildID == 0) {
-        de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_VAMPIRE, 0);
-    } else if (pZone != NULL && pZone->isCastle() && guildID == 66) {
-        de::gameContext().castleInfos().modifyCastleOwner(pZone->getZoneID(), RACE_OUSTERS, 66);
-    }
+    // The guild's race, or the race whose common guild the id names. The castle may be another zone group's, and
+    // a change of its owning race reloads its war scheduler, freeing wars that group's thread executes, so the
+    // change is posted to the castle's group and runs there under its mutex, as it does when a war ends.
+    Race_t race = (pGuild != NULL)  ? (Race_t)pGuild->getRace()
+                  : (guildID == 99) ? RACE_SLAYER
+                  : (guildID == 0)  ? RACE_VAMPIRE
+                                    : RACE_OUSTERS;
+    pZone->getZoneGroup()->post(
+        [zoneID, race, guildID] { de::gameContext().castleInfos().modifyCastleOwner(zoneID, race, guildID); });
 }
 
 // *command showWarList

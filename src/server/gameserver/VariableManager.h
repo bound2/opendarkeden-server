@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include "Exception.h"
+#include "repository/ContentInfoRepository.h"
 
 enum VariableType {
     STAR_RATIO,                    // 0
@@ -398,6 +399,36 @@ const string VariableType2String[VARIABLE_MAX] = {
     "EVENT_MUGWORT_RICE_CAKE_SOUP_RATIO", // 134
     "TIME_PERIOD_EXP_2X",                 // 135
 };
+
+// Whether vt may take value: the race war's timeband is one of four, and every
+// other variable takes any value.
+inline bool isAcceptedVariableValue(VariableType vt, int value) {
+    return vt != RACE_WAR_TIMEBAND || (value >= 0 && value <= 3);
+}
+
+// The table VariableManager::load() installs: the coded defaults with the
+// stored rows over them. A row overrides its variable's default, and a
+// variable with no row keeps the default rather than reading zero -- the stock
+// seed has no row for STAR_RATIO, and a database that predates a variable has
+// none for it either. The table reaches maxAttrID, the highest id stored, so a
+// row past the last named variable stays readable by number. A row outside
+// that range names no slot and is skipped, and a value isAcceptedVariableValue
+// refuses leaves the default standing, as setVariable() would.
+inline vector<int> overlayStoredVariables(const vector<int>& defaults, int maxAttrID, const vector<VariableRow>& rows) {
+    vector<int> table(defaults);
+    if (maxAttrID >= (int)table.size())
+        table.resize(maxAttrID + 1, 0);
+
+    for (const VariableRow& row : rows) {
+        if (row.attrID < 0 || row.attrID >= (int)table.size())
+            continue;
+        if (!isAcceptedVariableValue((VariableType)row.attrID, row.attr1))
+            continue;
+        table[row.attrID] = row.attr1;
+    }
+
+    return table;
+}
 
 
 // The server-wide switches and ratios. A GM command writes one of them from

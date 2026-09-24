@@ -7,10 +7,8 @@
 #include "GCWarList.h"
 #include "GCWarScheduleList.h"
 #include "GuildManager.h"
-#include "GuildWar.h"
 #include "KernelContext.h"
 #include "Properties.h"
-#include "SiegeWar.h"
 #include "War.h"
 #include "Zone.h"
 #include "repository/WarInfoRepository.h"
@@ -127,18 +125,17 @@ void WarSchedule::save()
     if (pWar->getWarType() != WAR_GUILD)
         return;
 
-    SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(pWar);
-    Assert(pSiegeWar != NULL);
-
+    // Either castle war class: the row is built from the war's own castle,
+    // attackers, fee and kind, so a guild war rewrites exactly the row
+    // create() wrote for it -- one attacker in the first slot -- and a siege
+    // writes every challenger that has joined it.
     if (!defaultWarInfoRepository().replaceWarSchedule(
-            (int)pSiegeWar->getWarID(), de::kernelContext().config().getPropertyInt("ServerID"),
-            (int)pSiegeWar->getCastleZoneID(), pSiegeWar->getWarType2DBString(),
-            (int)pSiegeWar->getChallengerGuildCount(), (int)pSiegeWar->getChallangerGuildID(0),
-            (int)pSiegeWar->getChallangerGuildID(1), (int)pSiegeWar->getChallangerGuildID(2),
-            (int)pSiegeWar->getChallangerGuildID(3), (int)pSiegeWar->getChallangerGuildID(4),
-            (int)pSiegeWar->getRegistrationFee(), m_ScheduledTime.toDateTime(), pSiegeWar->getState2DBString(),
-            pSiegeWar->getCastleWarKind2DBString())) {
-        filelog("WarError.log", "WarSchedule::create() : 이미 테이블에 War 정보가 있거나 테이블이 잘못되었습니다.");
+            (int)pWar->getWarID(), de::kernelContext().config().getPropertyInt("ServerID"),
+            (int)pWar->getCastleZoneID(), pWar->getWarType2DBString(), (int)pWar->getAttackerCount(),
+            (int)pWar->getAttackerGuildIDAt(0), (int)pWar->getAttackerGuildIDAt(1), (int)pWar->getAttackerGuildIDAt(2),
+            (int)pWar->getAttackerGuildIDAt(3), (int)pWar->getAttackerGuildIDAt(4), (int)pWar->getRegistrationFee(),
+            m_ScheduledTime.toDateTime(), pWar->getState2DBString(), pWar->getCastleWarKind2DBString())) {
+        filelog("WarError.log", "WarSchedule::save() : the war's row could not be written.");
         return;
     }
 
