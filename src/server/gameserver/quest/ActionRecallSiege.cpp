@@ -78,7 +78,7 @@ void ActionRecallSiege::execute(Creature* pNPC, Creature* pCreature)
 
     if (!context().guilds().isGuildMaster(pPC->getGuildID(), pPC)) {
         GCSystemMessage gcSM;
-        gcSM.setMessage("Ö»ÓÐÐÐ»á»á³¤,²Å¿ÉÒÔ½øÐÐÉêÇë.");
+        gcSM.setMessage("Only the guild master can apply.");
         pGamePlayer->sendPacket(&gcSM);
         return;
     }

@@ -72,7 +72,7 @@ void ActionActivateMazeExit::execute(Creature* pNPC, Creature* pCreature)
     bool isCorrect = false;
 
     if (!pPC->isFlag(Effect::EFFECT_CLASS_REFINIUM_TICKET)) {
-        filelog("EventBug.log", "미로 안에 있는데 리피늄 티켓이 없어. 로그아웃하는수밖에.. : %s",
+        filelog("EventBug.log", "In the maze without a Refinium ticket; logging out is the only way out.. : %s",
                 pPC->getName().c_str());
     } else {
         EffectRefiniumTicket* pEffect =
