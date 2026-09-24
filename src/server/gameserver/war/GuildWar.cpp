@@ -25,6 +25,7 @@
 #include "Properties.h"
 #include "StringStream.h"
 #include "WarSystem.h"
+#include "WarZoneWork.h"
 #include "Zone.h"
 #include "ZoneGroup.h"
 #include "ZoneGroupManager.h"
@@ -52,8 +53,10 @@ GuildWar::~GuildWar() {}
 //--------------------------------------------------------------------------------
 // What has to be handled when a war starts
 //
-// (!) This runs in the WarScheduler attached to the Zone, so
-//     handling its own Zone (the castle) needs no lock.
+// (!) This runs in the WarScheduler attached to the castle zone, inside that
+//     zone's heartbeat. The castle's dungeon zones and its guard shrine's zone
+//     may belong to other groups, so the work on them is posted to their
+//     owners and runs at the top of each owner's next tick.
 //--------------------------------------------------------------------------------
 void GuildWar::executeStart()
 
@@ -62,35 +65,30 @@ void GuildWar::executeStart()
 
     sendWarStartMessage();
 
-    // Turn off the safe zone inside the castle.
-    ZoneID_t guardShrineZoneID = de::gameContext().castleShrines().getGuardShrineZoneID(m_CastleZoneID);
-    Zone* pZone = getZoneByZoneID(guardShrineZoneID);
-    Assert(pZone != NULL);
-
-
     // This part would be better moved into CastleInfo later.
     CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(m_CastleZoneID);
     Assert(pCastleInfo != NULL);
 
     GuildID_t OwnerGuildID = pCastleInfo->getGuildID();
 
-    // Monsters are removed only when the castle is not a common one.
+    // Monsters are removed only when the castle is not a common one, and only
+    // from the castle's dungeon maps, not from the castle itself.
     if (OwnerGuildID != SlayerCommon && OwnerGuildID != VampireCommon) {
         const list<ZoneID_t>& zoneIDs = pCastleInfo->getZoneIDList();
 
-        list<ZoneID_t>::const_iterator itr = zoneIDs.begin();
-        for (; itr != zoneIDs.end(); itr++) {
-            ZoneID_t targetZoneID = *itr;
-            Zone* pTargetZone = getZoneByZoneID(targetZoneID);
-
-            // Not the castle but a dungeon map..
-            if (targetZoneID != m_CastleZoneID) {
-                pTargetZone->killAllMonsters();
-            }
+        vector<ZoneID_t> dungeonZoneIDs;
+        for (ZoneID_t zoneID : zoneIDs) {
+            if (zoneID != m_CastleZoneID)
+                dungeonZoneIDs.push_back(zoneID);
         }
+
+        de::war::postToZones(dungeonZoneIDs, [](Zone& zone) { zone.killAllMonsters(); });
     }
 
-    de::gameContext().castleShrines().removeShrineShield(pZone);
+    // Lift the guard shrine's shield.
+    ZoneID_t guardShrineZoneID = de::gameContext().castleShrines().getGuardShrineZoneID(m_CastleZoneID);
+    de::war::postToZone(guardShrineZoneID,
+                        [](Zone& zone) { de::gameContext().castleShrines().removeShrineShield(&zone); });
 
     // Record in the GuildWarHistory Table
     recordGuildWarStart();
@@ -165,19 +163,17 @@ void GuildWar::executeEnd()
     //----------------------------------------------------------------------------
     // Give the castle symbol back.
     //----------------------------------------------------------------------------
+    // A symbol lies on the ground or in a corpse in some zone, or is carried by
+    // a player, on any group's thread: each return is posted to whoever holds
+    // the symbol, which hands it on to the guard shrine's zone.
     de::gameContext().castleShrines().returnAllCastleSymbol(m_CastleZoneID);
 
     //----------------------------------------------------------------------------
-    // Restore the safe zone inside the castle
+    // Restore the guard shrine's shield, on the guard zone's own thread.
     //----------------------------------------------------------------------------
-    // Called by the WarSystem on the ClientManager thread; the castle's zone is
-    // not locked here, so this runs against the zone thread's tick.
     ZoneID_t guardShrineZoneID = de::gameContext().castleShrines().getGuardShrineZoneID(m_CastleZoneID);
-    Zone* pZone = getZoneByZoneID(guardShrineZoneID);
-    Assert(pZone != NULL);
-
-
-    de::gameContext().castleShrines().addShrineShield(pZone);
+    de::war::postToZone(guardShrineZoneID,
+                        [](Zone& zone) { de::gameContext().castleShrines().addShrineShield(&zone); });
 
     // Record in the GuildWarHistory Table
     recordGuildWarEnd();

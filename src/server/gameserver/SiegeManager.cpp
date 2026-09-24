@@ -20,6 +20,7 @@
 #include "RelicUtil.h"
 #include "WarSystem.h"
 #include "Zone.h"
+#include "ZoneGroup.h"
 #include "ZoneUtil.h"
 
 void SiegeManager::init() {
@@ -53,6 +54,7 @@ void SiegeManager::start(ZoneID_t zoneID) {
     Zone* pSiegeZone = getZoneByZoneID(zoneID);
     if (pSiegeZone == NULL)
         return;
+    pSiegeZone->getZoneGroup()->assertOwned();
 
     Monster* pGate[4];
 
@@ -143,6 +145,7 @@ void SiegeManager::reset(ZoneID_t zoneID) {
     Zone* pSiegeZone = getZoneByZoneID(zoneID);
     if (pSiegeZone == NULL)
         return;
+    pSiegeZone->getZoneGroup()->assertOwned();
 
     pSiegeZone->killAllMonsters_UNLOCK();
     pSiegeZone->getPCManager()->transportAllCreatures(0xffff);

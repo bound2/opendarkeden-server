@@ -69,15 +69,27 @@ public:
     bool canPickupCastleSymbol(Race_t race, CastleSymbol* pCastleSymbol) const;
     bool getMatchGuardShrinePosition(Item* pItem, ZoneItemPosition& zip) const;
 
+    // Sends the castle symbols of castleZoneID's shrine sets back to their
+    // guard shrines, from any thread: each return is posted to whoever holds
+    // the symbol (de::war::postItemReturn), which takes it out under its own
+    // lock and hands it to returnCastleSymbol(Zone*, CastleSymbol*). True when
+    // a return was posted for some symbol.
     bool returnAllCastleSymbol(ZoneID_t castleZoneID) const;
-    bool returnCastleSymbol(ShrineID_t shrineID, bool bLock = true) const;
+    bool postCastleSymbolReturn(ShrineID_t shrineID) const;
+    // Sends shrineID's symbol back from the calling zone thread, which holds
+    // it: a symbol just laid on a shrine in this thread's zone.
+    bool returnCastleSymbol(ShrineID_t shrineID) const;
+    // Moves a symbol taken out of pZone, which the calling thread owns, into
+    // its guard shrine (Zone::transportItemToCorpse).
     bool returnCastleSymbol(Zone* pZone, CastleSymbol* pCastleSymbol) const;
 
     ZoneID_t getGuardShrineZoneID(ZoneID_t castleZoneID) const;
 
+    // Lift or restore the shield of the guard shrines in pZone, the guard
+    // zone. The calling thread must own pZone's group: a war posts these to
+    // it (de::war::postToZone).
     bool removeShrineShield(Zone* pZone);
     bool addShrineShield(Zone* pZone);
-    bool addShrineShield_LOCKED(Zone* pZone);
 
     bool putCastleSymbol(PlayerCreature* pPC, Item* pItem, MonsterCorpse* pCorpse) const;
 

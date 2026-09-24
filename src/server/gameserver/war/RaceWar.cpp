@@ -52,8 +52,11 @@ RaceWar::~RaceWar() {}
 //--------------------------------------------------------------------------------
 // What has to be handled when a war starts
 //
-// (!) This runs in the WarScheduler attached to the Zone, so
-//     handling its own Zone (the castle) needs no lock.
+// (!) This runs under the war system's mutex, on the main thread's war
+//     heartbeat or on the thread of a GM starting the race war early. The
+//     castles, the guard shrines, the holy land and the regen zone towers all
+//     belong to zone groups' threads, so each change to them is posted to its
+//     owner and runs at the top of that group's next tick.
 //--------------------------------------------------------------------------------
 void RaceWar::executeStart()
 
@@ -161,6 +164,11 @@ void RaceWar::executeEnd()
     //----------------------------------------------------------------------------
     // Give the blood bible fragments back.
     //----------------------------------------------------------------------------
+    // As at the start, the zone work below is posted to the groups that own
+    // the zones: a bible's return to whoever holds it, the shields, safe zones,
+    // transports, time, towers and flags to each zone's or player's group.
+    // The war participant list is this thread's own; the broadcasts walk the
+    // zones' PC lists under no lock, a race of their own.
     shrines.returnAllBloodBible();
 
     shrines.addAllShrineShield();

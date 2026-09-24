@@ -64,11 +64,13 @@ public:
     // Cross-thread mailbox (CLAUDE.md, "Thread ownership"). Work that must
     // touch this group's state but originates on another thread is posted
     // here and run by this group's ZoneGroupThread at the top of its next
-    // tick, under the group mutex. The producer today is dynamic-zone
-    // recycling: the requesting player's zone thread hands an instance's
-    // init() to the group that owns the instance, then transports the
-    // player, whose arrival (ZonePlayerManager's queue) that same tick sees
-    // after the drain. post() never takes the group mutex, so a caller
+    // tick, under the group mutex. One producer is dynamic-zone recycling:
+    // the requesting player's zone thread hands an instance's init() to the
+    // group that owns the instance, then transports the player, whose
+    // arrival (ZonePlayerManager's queue) that same tick sees after the
+    // drain. The others are the wars, whose every change to a zone is posted
+    // to the zone's group (war/WarZoneWork.h, and the castle owner change in
+    // CastleInfoManager). post() never takes the group mutex, so a caller
     // holding its own group's mutex or the PCFinder lock cannot deadlock
     // on it. Work aimed at one player goes through the player's own box
     // instead (PlayerMailbox.h), which follows the player between owners.

@@ -94,6 +94,13 @@ Item* CorpseItemPosition::getItem_CORE(Zone* pZone, bool isDel)
         return NULL;
     }
 
+    Item* pFound = pCorpse->getTreasure(m_ObjectID);
+    if (pFound != NULL && !isExpectedItem(pFound->getItemClass(), pFound->getItemID())) {
+        filelog("ItemError.log", "CorpseItemPosition::getItem() : another item is in the corpse under that object id");
+
+        return NULL;
+    }
+
     if (isDel) {
         pRet = pCorpse->popTreasure(m_ObjectID);
 

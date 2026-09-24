@@ -22,6 +22,7 @@
 #include "PCManager.h"
 #include "Portal.h"
 #include "Tile.h"
+#include "WarZoneWork.h"
 #include "ZoneGroup.h"
 #include "ZoneInfoManager.h"
 #include "ZonePlayerManager.h"
@@ -651,22 +652,8 @@ int ZoneGroupManager::getPlayerNum() const
     __END_CATCH
 }
 
-void ZoneGroupManager::removeFlag(Effect::EffectClass EC)
-
-{
-    __BEGIN_TRY
-
-    ZoneGroup* pZoneGroup = NULL;
-
-    unordered_map<ZoneGroupID_t, ZoneGroup*>::const_iterator itr = m_ZoneGroups.begin();
-
-    for (; itr != m_ZoneGroups.end(); itr++) {
-        pZoneGroup = itr->second;
-
-        pZoneGroup->getZonePlayerManager()->removeFlag(EC);
-    }
-
-    __END_CATCH
+void ZoneGroupManager::removeFlag(Effect::EffectClass EC) {
+    de::war::postToEveryZoneGroup([EC](ZoneGroup& zoneGroup) { zoneGroup.getZonePlayerManager()->removeFlag(EC); });
 }
 
 //--------------------------------------------------------------------------------

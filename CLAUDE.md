@@ -342,6 +342,11 @@ Account passwords live in `Player.Password` as argon2id hashes. A database
 created before that change needs `initdb/migrations/001-argon2-password-column.sql`
 run once; its plaintext rows are rehashed by the loginserver on each
 account's next login. `bin/hashpw` hashes a password for a manual `UPDATE`.
+The later migrations are one-time too: `002-war-schedule-castle-war-kind.sql`
+(the `CastleWarKind` column) and `003-castle-tax-balance-signed.sql` (the
+castle tax balance saved as a signed relative change; on the old unsigned
+column an owner change can fail whole). Nothing checks them at startup; run
+each once on a database created before it.
 
 Load schema with (`initdb/a-setup.sql` creates both databases and the
 `elcastle` user; the docker compose setup applies all three automatically):
@@ -581,6 +586,18 @@ is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` are
 - **`GDRLairManager` takes the owning group's mutex at every site** that
   walks its PCManager, sweeps effects or writes inventory and registries.
   None of those sites hits a gated gateway.
+- **A war changes no zone from the thread that starts or ends it.** The war
+  heartbeat (main thread), a castle's scheduler (the castle zone's thread)
+  and a GM starting the race war post every zone change to the owning group
+  through `war/WarZoneWork.h`: `postToZone`/`postToZones` (one command per
+  group, the zone looked up by id when it runs), `postToEveryZoneGroup`, and
+  `postItemReturn` for a castle symbol, blood bible or dragon eye, which
+  reads the item's row and posts the step that takes it out to the zone or
+  player (`de::postToPlayer`) holding it; that step hands the item on
+  through `Zone::transportItemToCorpse`. The castle owner change goes
+  through `CastleInfoManager::postCastleWarEnd`. A posted war command asserts
+  its group, and `Zone::killAllMonsters`, the shrine shields and the siege
+  set-up and reset assert it too.
 - **Packets pipelined behind `CGReady` are drained by the zone thread.**
   `GamePlayer::processCommand` stops the main-thread
   (`IncomingPlayerManager`) drain once the status flips to `GPS_NORMAL`, so

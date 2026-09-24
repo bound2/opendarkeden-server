@@ -9,6 +9,7 @@
 #include "Types.h"
 
 class PlayerCreature;
+class Zone;
 class GCRegenZoneStatus;
 
 class RegenZoneInfo {
@@ -60,7 +61,14 @@ public:
     ~RegenZoneManager();
 
     void load();
+    // Called when the race war ends, from any thread: each tower's owner is
+    // set on its zone's thread (reloadOwner), posted there.
     void reload();
+    void reloadOwner(Zone& zone, uint ID, ZoneCoord_t ZoneX, ZoneCoord_t ZoneY, uint Owner);
+
+    // The regen zone ID, or NULL. The table is filled by load() and never
+    // changes afterwards.
+    RegenZoneInfo* getRegenZoneInfo(uint ID) const;
 
     void lock() {
         m_Mutex.lock();
@@ -69,6 +77,8 @@ public:
         m_Mutex.unlock();
     }
 
+    // Put up and take down the marks the race war shows beside each tower,
+    // from any thread: each is posted to the tower's zone thread.
     void putTryingPosition();
     void deleteTryingPosition();
 

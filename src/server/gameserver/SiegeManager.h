@@ -12,6 +12,9 @@ class SiegeManager {
 public:
     void init();
     void init(ZoneID_t zoneID);
+    // Set up and empty the siege zone zoneID. Both change the zone's
+    // creatures, so they run on its group's thread: a siege war posts them
+    // there (de::war::postToZone), and a GM's command runs in the zone itself.
     void start(ZoneID_t zoneID);
     void reset(ZoneID_t zoneID);
 

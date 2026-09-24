@@ -128,10 +128,10 @@ private:
     // follows from it -- guild, race, entrance fee, item tax ratio -- change
     // only through CastleInfoManager::modifyCastleOwner and setItemTaxRatio
     // on the castle zone's own thread, while every zone thread reads them
-    // without a lock (castle gates, shops, resurrection), so they are atomics:
+    // without a lock (castle gates, shops, the fee display), so they are atomics:
     // a reader gets a value a writer stored, and two of them read one after
     // the other may straddle an owner change. The tax balance is a counter
-    // that shops, resurrection fees and withdrawals move from any zone thread,
+    // that shops, entrance fees and withdrawals move from any zone thread,
     // so it is changed by compare-and-swap rather than read and rewritten
     // (CastleTaxBalance.h).
     ZoneID_t m_ZoneID;                 // Zone ID
@@ -194,7 +194,7 @@ public:
     // Move a castle's tax balance by up to `tax`, clamped to the balance's
     // range, and save the amount actually moved as a relative change of the
     // row (TaxBalance plus or minus it). Credits come from any zone thread
-    // (shop taxes, entrance and resurrection fees, war registration fees);
+    // (shop taxes, entrance fees, war registration fees);
     // debits only from the castle's own (a withdrawal). A zero change saves
     // nothing; an unknown castle changes nothing.
     //
@@ -204,9 +204,12 @@ public:
     // In between, the row may briefly stand below zero or above the maximum
     // (a withdrawal saved ahead of the credit it drew on), which the signed
     // column holds and the load clamps. What remains is a save that never
-    // lands -- a database error, or a crash between a change and its save --
-    // which leaves the row off by that one change for good, where an
-    // absolute save would have been corrected by the next change.
+    // lands: on a database error the change stays in memory and the
+    // exception leaves before anything is paid out (a withdrawal then pays
+    // nobody, and the balance is short by it until a restart reloads the
+    // row), and on a crash between a change and its save the row is off by
+    // that one change for good, where an absolute save would have been
+    // corrected by the next change.
     TaxBalanceChange increaseTaxBalance(ZoneID_t zoneID, Gold_t tax);
     TaxBalanceChange decreaseTaxBalance(ZoneID_t zoneID, Gold_t tax);
 
@@ -242,6 +245,9 @@ public:
     //----------------------------------------------------------------------
     // Things that apply to every castle
     //----------------------------------------------------------------------
+    // Lift and restore the castles' safe zones, and send the race war's
+    // losers out of every castle zone. Callable from any thread: each posts
+    // the change to the groups owning the zones (de::war::postToZones).
     void releaseAllSafeZone();
     void resetAllSafeZone();
 

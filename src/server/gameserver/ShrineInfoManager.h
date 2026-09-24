@@ -1,6 +1,8 @@
 #ifndef __SHRINE_INFO_MANAGER_H__
 #define __SHRINE_INFO_MANAGER_H__
 
+#include <vector>
+
 #include <unordered_map>
 
 #include "Exception.h"
@@ -204,21 +206,37 @@ public:
     bool getMatchGuardShrinePosition(Item* pItem, ZoneItemPosition& zip) const;
 
     //	bool returnCastleBloodBible( ZoneID_t castleZoneID ) const ;
+    // Send every blood bible, or shrineID's, back to its guard shrine from
+    // any thread: each return is posted to whoever holds the bible
+    // (de::war::postItemReturn), which takes it out under its own lock and
+    // hands it to returnBloodBible(Zone*, BloodBible*).
     bool returnAllBloodBible() const;
-    bool returnBloodBible(ShrineID_t shrineID, bool bLock = true) const;
+    bool postBloodBibleReturn(ShrineID_t shrineID) const;
+    // Sends shrineID's bible back from the calling zone thread, which holds
+    // it: a bible just laid on a shrine in this thread's zone.
+    bool returnBloodBible(ShrineID_t shrineID) const;
+    // Moves a bible taken out of pZone, which the calling thread owns, into
+    // its guard shrine (Zone::transportItemToCorpse).
     bool returnBloodBible(Zone* pZone, BloodBible* pBloodBible) const;
 
-    //	bool removeShrineShield( Zone* pZone ) ;
+    // Lift or restore one guard shrine's shield. The calling thread must own
+    // the group of the shrine's zone.
     bool removeShrineShield(ShrineInfo* pShrineInfo);
-    // bool addShrineShield( Zone* pZone ) ;
-    // bool addShrineShield_LOCKED( Zone* pZone ) ;
     bool addShrineShield(ShrineInfo& shrineInfo);
 
     bool putBloodBible(PlayerCreature* pPC, Item* pItem, MonsterCorpse* pCorpse) const;
 
 public:
+    // Restore or lift the shields of every guard shrine, from any thread:
+    // each guard zone's group does its own shrines (de::war::postToZones).
     void addAllShrineShield();
     bool removeAllShrineShield();
+
+    // The zones the guard shrines stand in, each once, and the guard shrines
+    // standing in zoneID. The shrine sets are loaded once and never change,
+    // so these may be asked from any thread.
+    std::vector<ZoneID_t> getGuardShrineZoneIDs() const;
+    std::vector<ShrineInfo*> getGuardShrinesIn(ZoneID_t zoneID) const;
 
     // Save the current owner information to the DB.
     bool saveBloodBibleOwner();

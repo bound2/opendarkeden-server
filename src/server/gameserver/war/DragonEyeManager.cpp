@@ -11,6 +11,7 @@
 #include "GameContext.h"
 #include "GlobalItemPositionLoader.h"
 #include "ItemFactoryManager.h"
+#include "WarZoneWork.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
 
@@ -117,18 +118,11 @@ void DragonEyeManager::removeAllDragonEyes()
 {
     __BEGIN_TRY
 
-    // Remove every existing dragon eye so that it cannot be seen.
+    // Take every dragon eye out of the world so that it cannot be seen. Each
+    // is taken by whoever holds it, on that holder's thread; the item itself
+    // stays here, in m_DragonEyes, for the next race war to put back.
     for (int i = 0; i < nDragonEyes; ++i) {
-        Item::ItemClass ItemClass = Item::ITEM_CLASS_WAR_ITEM;
-        ItemID_t ItemID = m_DragonEyes[i]->getItemID();
-
-        GlobalItemPosition* pItemPosition = GlobalItemPositionLoader::getInstance()->load(ItemClass, ItemID);
-
-        if (pItemPosition == NULL)
-            return;
-
-        // Called from the War thread, so the lock has to be taken.
-        pItemPosition->popItem(true);
+        de::war::postItemReturn(Item::ITEM_CLASS_WAR_ITEM, m_DragonEyes[i]->getItemID(), [](Zone&, Item*) {});
     }
 
     __END_CATCH

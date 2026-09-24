@@ -19,6 +19,7 @@
 #include "StringPool.h"
 #include "Tile.h"
 #include "Vampire.h"
+#include "WarZoneWork.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
 #include "repository/RegenZoneRepository.h"
@@ -80,62 +81,70 @@ RegenZoneManager::~RegenZoneManager() {
     }
 }
 
+// Reads the regen zones' owners back from the database, as the race war left
+// them, and hands each tower's owner to the tower's zone thread, which sets it
+// and tells the holy land. The table of regen zones itself is loaded once and
+// never changes, so the zone threads may look a regen zone up in it.
 void RegenZoneManager::reload() {
     __BEGIN_TRY
 
     vector<RegenZoneRow> rows = defaultRegenZoneRepository().loadPositions();
 
-    m_pStatusPacket = new GCRegenZoneStatus();
-
     for (size_t r = 0; r < rows.size(); r++) {
         uint ID = rows[r].id;
-        ZoneID_t ZoneID = rows[r].zoneID;
         ZoneCoord_t ZoneX = rows[r].zoneX;
         ZoneCoord_t ZoneY = rows[r].zoneY;
         uint Owner = rows[r].owner;
 
         Assert(Owner < 4);
 
-        Zone* pZone = getZoneByZoneID(ZoneID);
-        Assert(pZone != NULL);
-
-        __ENTER_CRITICAL_SECTION((*pZone))
-
-        Item* pTowerItem = pZone->getTile(ZoneX, ZoneY).getItem();
-        if (pTowerItem == NULL || pTowerItem->getItemClass() != Item::ITEM_CLASS_CORPSE ||
-            pTowerItem->getItemType() != MONSTER_CORPSE) {
-            filelog("RaceWar.log", "리젠존 타워를 못 찾았습니다. [%d:(%d,%d)]", ZoneID, ZoneX, ZoneY);
-            continue;
-        }
-
-        MonsterCorpse* pTower = dynamic_cast<MonsterCorpse*>(pTowerItem);
-        Assert(pTower != NULL);
-
-        RegenZoneInfo* pInfo = m_RegenZoneInfos[ID];
-        if (pInfo == NULL) {
-            filelog("RaceWar.log", "Reload : 해당되는 리젠존이 없습니다. [%d]", ID);
-            m_RegenZoneInfos.erase(ID);
-            continue;
-        }
-
-        pInfo->setOwner((RegenZoneInfo::RegenZoneIndex)Owner);
-
-        EffectRegenZone* pEffect = dynamic_cast<EffectRegenZone*>(
-            pTower->getEffectManager().findEffect(Effect::EFFECT_CLASS_SLAYER_REGEN_ZONE));
-        if (pEffect == NULL) {
-            filelog("RaceWar.log", "Reload : 리젠존 이펙트가 날라갔습니다. [%d]", ID);
-            continue;
-        }
-
-        pEffect->setOwner(m_RegenZoneInfos[ID]->getOwner());
-        m_pStatusPacket->setStatus(ID, Owner);
-
-        __LEAVE_CRITICAL_SECTION((*pZone))
+        de::war::postToZone(rows[r].zoneID, [ID, ZoneX, ZoneY, Owner](Zone& zone) {
+            RegenZoneManager::getInstance()->reloadOwner(zone, ID, ZoneX, ZoneY, Owner);
+        });
     }
 
-    broadcastStatus();
-
     __END_CATCH
+}
+
+void RegenZoneManager::reloadOwner(Zone& zone, uint ID, ZoneCoord_t ZoneX, ZoneCoord_t ZoneY, uint Owner) {
+    __ENTER_CRITICAL_SECTION(zone)
+
+    Item* pTowerItem = zone.getTile(ZoneX, ZoneY).getItem();
+    if (pTowerItem == NULL || pTowerItem->getItemClass() != Item::ITEM_CLASS_CORPSE ||
+        pTowerItem->getItemType() != MONSTER_CORPSE) {
+        filelog("RaceWar.log", "Reload : no regen zone tower at [%d:(%d,%d)]", zone.getZoneID(), ZoneX, ZoneY);
+        return;
+    }
+
+    MonsterCorpse* pTower = dynamic_cast<MonsterCorpse*>(pTowerItem);
+    Assert(pTower != NULL);
+
+    RegenZoneInfo* pInfo = getRegenZoneInfo(ID);
+    if (pInfo == NULL) {
+        filelog("RaceWar.log", "Reload : no regen zone %d", ID);
+        return;
+    }
+
+    pInfo->setOwner((RegenZoneInfo::RegenZoneIndex)Owner);
+
+    EffectRegenZone* pEffect =
+        dynamic_cast<EffectRegenZone*>(pTower->getEffectManager().findEffect(Effect::EFFECT_CLASS_SLAYER_REGEN_ZONE));
+    if (pEffect == NULL) {
+        filelog("RaceWar.log", "Reload : regen zone %d lost its effect", ID);
+        return;
+    }
+
+    pEffect->setOwner(pInfo->getOwner());
+    m_pStatusPacket->setStatus(ID, Owner);
+
+    __LEAVE_CRITICAL_SECTION(zone)
+
+    broadcastStatus();
+}
+
+RegenZoneInfo* RegenZoneManager::getRegenZoneInfo(uint ID) const {
+    map<uint, RegenZoneInfo*>::const_iterator itr = m_RegenZoneInfos.find(ID);
+    return (itr == m_RegenZoneInfos.end()) ? NULL : itr->second;
 }
 
 void RegenZoneManager::load() {
@@ -181,29 +190,27 @@ void RegenZoneManager::load() {
 }
 
 void RegenZoneManager::putTryingPosition() {
-    __BEGIN_TRY
+    for (const auto& entry : m_RegenZoneInfos) {
+        uint ID = entry.first;
 
-    map<uint, RegenZoneInfo*>::iterator itr = m_RegenZoneInfos.begin();
-    map<uint, RegenZoneInfo*>::iterator endItr = m_RegenZoneInfos.end();
-
-    for (; itr != endItr; ++itr) {
-        itr->second->putTryingPosition();
+        de::war::postToZone(entry.second->getTower()->getZone()->getZoneID(), [ID](Zone&) {
+            RegenZoneInfo* pInfo = RegenZoneManager::getInstance()->getRegenZoneInfo(ID);
+            if (pInfo != NULL)
+                pInfo->putTryingPosition();
+        });
     }
-
-    __END_CATCH
 }
 
 void RegenZoneManager::deleteTryingPosition() {
-    __BEGIN_TRY
+    for (const auto& entry : m_RegenZoneInfos) {
+        uint ID = entry.first;
 
-    map<uint, RegenZoneInfo*>::iterator itr = m_RegenZoneInfos.begin();
-    map<uint, RegenZoneInfo*>::iterator endItr = m_RegenZoneInfos.end();
-
-    for (; itr != endItr; ++itr) {
-        itr->second->deleteTryingPosition();
+        de::war::postToZone(entry.second->getTower()->getZone()->getZoneID(), [ID](Zone&) {
+            RegenZoneInfo* pInfo = RegenZoneManager::getInstance()->getRegenZoneInfo(ID);
+            if (pInfo != NULL)
+                pInfo->deleteTryingPosition();
+        });
     }
-
-    __END_CATCH
 }
 
 void RegenZoneManager::changeRegenZoneOwner(MonsterCorpse* pTower, Race_t race) {

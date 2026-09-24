@@ -7,6 +7,8 @@
 #ifndef __HOLY_LAND_MANAGER_H__
 #define __HOLY_LAND_MANAGER_H__
 
+#include <vector>
+
 #include <unordered_map>
 
 #include "Exception.h"
@@ -53,6 +55,14 @@ public:
 
     //	void sendBloodBibleStatus() const ;
 
+    // The ids of the holy land's zones, as they stand when asked.
+    vector<ZoneID_t> getHolyLandZoneIDs() const;
+
+    // What the race war does across the holy land when it starts and ends:
+    // stop or let run its time, kill its monsters, send away the players the
+    // race war is not open to. Callable from any thread; each posts one
+    // command to every zone group holding a holy-land zone, which does the
+    // work on its own zones at the top of its next tick.
     void fixTimeband(uint timeband);
     void resumeTimeband();
 
