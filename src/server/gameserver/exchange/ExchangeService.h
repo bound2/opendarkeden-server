@@ -110,10 +110,12 @@ public:
     ////////////////////////////////////////////////////////////////////
 
     // Buy a listing: the listing is marked sold, the order is written and
-    // points move both ways, all inside one transaction pair
-    // (completeExchangePurchase). A refusal or a failed write comes back as
-    // a rejection with the pair rolled back; the decision's reads, which run
-    // before the pair opens, still throw their DatabaseError.
+    // points move both ways, all inside one transaction on the game
+    // connection (completeExchangePurchase). A refusal or a failed write
+    // comes back as a rejection with the transaction rolled back; the
+    // decision's reads, which run before it opens, still throw their
+    // DatabaseError. While the point ledger is closed every buy is refused
+    // before any of them (see openPointLedger).
     [[nodiscard]] static Outcome<ExchangePurchase, ExchangeRejection>
     buyListing(PlayerCreature* pBuyer, int64_t listingID, const string& idempotencyKey);
 
@@ -149,6 +151,20 @@ public:
     [[nodiscard]] static Outcome<ExchangePointsAdjusted, ExchangeRejection>
     adjustPoints(const string& account, int delta, uint8_t reason, int64_t refListingID = 0, int64_t refOrderID = 0,
                  const string& idempotencyKey = "");
+
+    ////////////////////////////////////////////////////////////////////
+    // Startup
+    ////////////////////////////////////////////////////////////////////
+
+    // Open the point ledger on the account schema the configuration names
+    // (UI_DB_DB), from the calling thread's game connection: see
+    // openExchangePointLedger in ExchangeRepository.h for the checks. The
+    // gameserver calls it once from GameServer::init, after the database
+    // manager connected and before any thread can buy. When a check fails
+    // the gameserver still starts, without Exchange purchases: this prints
+    // and logs (DBError.log) which check failed against which two
+    // configuration blocks, and answers false.
+    static bool openPointLedger();
 
     ////////////////////////////////////////////////////////////////////
     // Maintenance operations

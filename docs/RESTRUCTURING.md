@@ -610,9 +610,10 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > another seam's, and those headers say so); `Exchange` (the Exchange
   > feature's own access class relocated under the convention:
   > ExchangeListing, ExchangeOrder, the AccountPoint / PointLedger
-  > statements that ask for a USERINFO connection and reach DARKEDEN, and
-  > the transaction pair — the header says what each does against the
-  > shipped schema). In ServerCore, under `src/server/repository/`:
+  > statements, which name the account schema on the game connection and
+  > open at startup behind a reachability check, and the transaction
+  > pair — the header says what each does against the shipped schema).
+  > In ServerCore, under `src/server/repository/`:
   > `PayPlay` (PaySystem's Player pay-play columns and the PC-room tables,
   > on the dist connection) and `ServerInfo` (GameServerInfo with its
   > NonPKServerList and CastleStatInfo flags, and WorldInfo). In the

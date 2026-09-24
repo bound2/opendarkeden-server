@@ -2,9 +2,11 @@
 // and ServerCore's PayPlay and ServerInfo repositories: the real MySQL
 // impls against the throwaway MySQL 5.7 loaded with initdb/, on the
 // connections mysql_repository_test.cpp's main() wires for this binary.
-// The dist connection PayPlay and two ServerInfo reads ask for, and the
-// "USERINFO" name the Exchange point statements ask for, both resolve to
+// The dist connection PayPlay and two ServerInfo reads ask for resolves to
 // the same server and DARKEDEN schema as the seeding below. The Exchange
+// point statements run on that same connection and name the account schema
+// the tier loads from initdb/USERINFO.sql (the account connection's
+// database), which ExchangePurchaseMySQL opens the ledger on. The Exchange
 // purchase's write path (completeExchangePurchase) runs here too, through
 // real transactions.
 //
@@ -308,15 +310,91 @@ TEST_F(ExchangeMySQL, TextIsEscapedAndARelistedObjectIsRefused) {
     EXPECT_ANY_THROW(repo.createListing(make(31)));
 }
 
-TEST_F(ExchangeMySQL, PointTablesAreNotReachableOnTheConnectionTheyAskFor) {
-    // AccountPoint and PointLedger live in USERINFO, but the "USERINFO"
-    // name resolves to the DARKEDEN connection, so every point statement
-    // is a SQL error. This pins that each throws, not the message.
+// The schema the tier loaded initdb/USERINFO.sql into: the account
+// connection's database.
+std::string accountSchema() {
+    return de::serverContext().database().getUserInfoConnection()->getDatabase();
+}
+
+// One of the account schema's tables, named the way the ledger names it.
+std::string accountTable(const std::string& table) {
+    return "`" + accountSchema() + "`." + table;
+}
+
+// Whether the ledger's opening checks pass on this schema name; the failure
+// text lands in failure.
+bool openLedger(const std::string& schema, std::string& failure) {
+    failure.clear();
+    return openExchangePointLedger(schema, failure);
+}
+
+// A schema that is there but holds no point tables -- the game schema --
+// fails the first check, and the ledger stays closed: every point statement throws without reaching MySQL,
+// and a buy is refused as a database error before it reads anything.
+TEST_F(ExchangeMySQL, ALedgerOnASchemaWithoutThePointTablesStaysClosed) {
     ExchangeRepository& repo = defaultExchangeRepository();
+    const std::string gameSchema = de::serverContext().database().getConnection("DARKEDEN")->getDatabase();
+
+    std::string failure;
+    EXPECT_FALSE(openLedger(gameSchema, failure));
+    EXPECT_NE(std::string::npos, failure.find("the balance read and its row lock")) << failure;
+    EXPECT_NE(std::string::npos, failure.find("AccountPoint")) << failure;
+    EXPECT_FALSE(repo.pointLedgerOpen());
+
     int balanceAfter = 0;
     EXPECT_ANY_THROW(repo.getPointBalance("it-sc-buyer"));
     EXPECT_ANY_THROW(repo.hasIdempotencyKey("it-sc-key"));
     EXPECT_ANY_THROW(repo.adjustPoints("it-sc-buyer", 10, balanceAfter, POINT_REASON_ADJUST, 0, 0, ""));
+
+    int64_t id = repo.createListing(make(51));
+    ASSERT_GT(id, 0);
+    ExchangeBuyRequest request;
+    request.listingID = id;
+    request.buyerAccount = "it-sc-buyer";
+    request.buyerPlayer = "it-sc-bp";
+    request.idempotencyKey = "it-sc-key-51";
+    request.serverID = 9170;
+    request.taxRate = 8;
+    auto decision = decideBuyListing(repo, request);
+    ASSERT_TRUE(decision.isRejected());
+    EXPECT_EQ("Database error: point ledger unavailable", decision.rejection().message());
+
+    // A schema that does not exist fails the same check, and a name the
+    // statements cannot quote fails before any statement.
+    EXPECT_FALSE(openLedger("it_sc_no_such_schema", failure));
+    EXPECT_NE(std::string::npos, failure.find("the balance read and its row lock")) << failure;
+    EXPECT_FALSE(openLedger("it`sc", failure));
+    EXPECT_NE(std::string::npos, failure.find("not a schema name")) << failure;
+    EXPECT_FALSE(openLedger("", failure));
+    EXPECT_FALSE(repo.pointLedgerOpen());
+}
+
+// The account schema passes every check, and the point statements then read
+// and write its tables from the game connection.
+TEST_F(ExchangeMySQL, TheLedgerOpensOnTheAccountSchemaByName) {
+    ExchangeRepository& repo = defaultExchangeRepository();
+
+    std::string failure;
+    ASSERT_TRUE(openLedger(accountSchema(), failure)) << failure;
+    EXPECT_TRUE(repo.pointLedgerOpen());
+
+    execSQL("DELETE FROM " + accountTable("PointLedger") + " WHERE Account LIKE 'it-sc%'");
+    execSQL("DELETE FROM " + accountTable("AccountPoint") + " WHERE Account LIKE 'it-sc%'");
+    execSQL("INSERT INTO " + accountTable("AccountPoint") +
+            " (Account, PointBalance, UpdatedAt) VALUES ('it-sc-open', 30, NOW())");
+
+    EXPECT_EQ(30, repo.getPointBalance("it-sc-open"));
+    int balanceAfter = 0;
+    EXPECT_TRUE(repo.adjustPoints("it-sc-open", 12, balanceAfter, POINT_REASON_ADJUST, 0, 0, "it-sc-key-open"));
+    EXPECT_EQ(42, balanceAfter);
+    EXPECT_TRUE(repo.hasIdempotencyKey("it-sc-key-open"));
+    EXPECT_EQ("42", queryScalar("SELECT PointBalance FROM " + accountTable("AccountPoint") +
+                                " WHERE Account = 'it-sc-open'"));
+    EXPECT_EQ("12", queryScalar("SELECT Delta FROM " + accountTable("PointLedger") +
+                                " WHERE IdempotencyKey = 'it-sc-key-open'"));
+
+    execSQL("DELETE FROM " + accountTable("PointLedger") + " WHERE Account LIKE 'it-sc%'");
+    execSQL("DELETE FROM " + accountTable("AccountPoint") + " WHERE Account LIKE 'it-sc%'");
 }
 
 TEST_F(ExchangeMySQL, TheTransactionPairHoldsOnTheOneConnection) {
@@ -372,33 +450,73 @@ std::string rowsLeftAfterTheNextTransaction(int64_t listingID) {
     return queryScalar("SELECT COUNT(*) FROM ExchangeOrder WHERE ListingID = " + i64(listingID));
 }
 
-// A purchase whose ledger step fails on the shipped schema: the point tables
-// are not where the ledger's name reaches, so the buyer's debit throws after
-// the claim and the order went through. Both are rolled back, and the
-// connection holds nothing a later transaction could commit.
-TEST_F(ExchangeMySQL, APurchaseWhoseLedgerIsUnreachableLeavesNoOrderAndNoClaim) {
+// The point ledger opened on the account schema the tier loaded, as the
+// gameserver opens it at startup, with this tier's rows cleared from its
+// tables before and after each test.
+class ExchangePurchaseMySQL : public ExchangeMySQL {
+protected:
+    virtual void SetUp() {
+        ExchangeMySQL::SetUp();
+        restoreLedgerTable();
+        clearPoints();
+        std::string failure;
+        ASSERT_TRUE(openLedger(accountSchema(), failure)) << failure;
+    }
+    virtual void TearDown() {
+        restoreLedgerTable();
+        clearPoints();
+        ExchangeMySQL::TearDown();
+    }
+    static void clearPoints() {
+        execSQL("DELETE FROM " + accountTable("PointLedger") + " WHERE Account LIKE 'it-sc%'");
+        execSQL("DELETE FROM " + accountTable("AccountPoint") + " WHERE Account LIKE 'it-sc%'");
+    }
+
+    // Take the ledger table out of the ledger's reach, so its next statement
+    // fails; restoreLedgerTable puts it back.
+    static void hideLedgerTable() {
+        execSQL("RENAME TABLE " + accountTable("PointLedger") + " TO " + accountTable("PointLedgerHidden"));
+    }
+    static void restoreLedgerTable() {
+        const std::string hidden =
+            queryScalar("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = " + q(accountSchema()) +
+                        " AND TABLE_NAME = 'PointLedgerHidden'");
+        if (hidden == "1")
+            execSQL("RENAME TABLE " + accountTable("PointLedgerHidden") + " TO " + accountTable("PointLedger"));
+    }
+
+    static void seedPoints(const std::string& account, int balance) {
+        execSQL("INSERT INTO " + accountTable("AccountPoint") + " (Account, PointBalance, UpdatedAt) VALUES (" +
+                q(account) + ", " + std::to_string(balance) + ", NOW())");
+    }
+    static std::string balance(const std::string& account) {
+        return queryScalar("SELECT PointBalance FROM " + accountTable("AccountPoint") +
+                           " WHERE Account = " + q(account));
+    }
+    static std::string ledgerRows() {
+        return queryScalar("SELECT COUNT(*) FROM " + accountTable("PointLedger") + " WHERE Account LIKE 'it-sc%'");
+    }
+    static std::string ledgerDelta(const std::string& key) {
+        return queryScalar("SELECT Delta FROM " + accountTable("PointLedger") + " WHERE IdempotencyKey = " + q(key));
+    }
+};
+
+// A purchase whose ledger step throws: with the ledger table out of reach the
+// buyer's debit fails with ER_NO_SUCH_TABLE after the claim and the order
+// went through. Both are rolled back, and the connection holds nothing a
+// later transaction could commit.
+TEST_F(ExchangePurchaseMySQL, APurchaseWhoseLedgerThrowsLeavesNoOrderAndNoClaim) {
     ExchangeRepository& repo = defaultExchangeRepository();
     int64_t id = repo.createListing(make(61));
     ASSERT_GT(id, 0);
+    seedPoints("it-sc-buyer", 1000);
 
-    // The decision cannot run here (its reads hit the same missing tables),
-    // so the terms are the ones it would price.
-    ExchangeBuyRequest request;
-    request.listingID = id;
-    request.buyerAccount = "it-sc-buyer";
-    request.buyerPlayer = "it-sc-bp";
-    request.idempotencyKey = "it-sc-key-61";
-    request.serverID = 9170;
-    request.taxRate = 8;
-    ExchangePurchaseTerms terms;
-    terms.listingID = id;
-    terms.sellerAccount = "it-sc-seller";
-    terms.pricePoint = 500;
-    terms.taxAmount = 40;
-    terms.totalCost = 540;
-    terms.sellerIncome = 460;
+    // The decision runs before the table is hidden: its replay check reads
+    // it.
+    ExchangeBuy buy = decideBuy(id, "it-sc-buyer", "it-sc-key-61");
+    hideLedgerTable();
 
-    auto result = completeExchangePurchase(repo, request, terms, 9170);
+    auto result = completeExchangePurchase(repo, buy.request, buy.terms, 9170);
 
     ASSERT_TRUE(result.isRejected());
     EXPECT_EQ("Transaction error: Failed to deduct buyer points", result.rejection().message());
@@ -406,46 +524,12 @@ TEST_F(ExchangeMySQL, APurchaseWhoseLedgerIsUnreachableLeavesNoOrderAndNoClaim) 
     EXPECT_EQ("", field("BuyerAccount", id));
     EXPECT_EQ("0", rowsLeftAfterTheNextTransaction(id));
     EXPECT_EQ("0", field("Status", id));
+    EXPECT_EQ("1000", balance("it-sc-buyer"));
 
     // The connection takes the next write and keeps it.
     EXPECT_TRUE(repo.markListingSold(id, "it-sc-buyer", "it-sc-bp"));
     EXPECT_EQ("1", field("Status", id));
 }
-
-// The point tables, copied from USERINFO into the DARKEDEN schema for the
-// length of each test: the ledger's name reaches the DARKEDEN connection
-// (PointTablesAreNotReachableOnTheConnectionTheyAskFor), so this is where
-// its statements look. Dropped again afterwards, so that test still sees
-// them missing.
-class ExchangePurchaseMySQL : public ExchangeMySQL {
-protected:
-    virtual void SetUp() {
-        ExchangeMySQL::SetUp();
-        const std::string userInfo = de::serverContext().database().getUserInfoConnection()->getDatabase();
-        dropPointTables();
-        execSQL("CREATE TABLE AccountPoint LIKE `" + userInfo + "`.AccountPoint");
-        execSQL("CREATE TABLE PointLedger LIKE `" + userInfo + "`.PointLedger");
-    }
-    virtual void TearDown() {
-        dropPointTables();
-        ExchangeMySQL::TearDown();
-    }
-    static void dropPointTables() {
-        execSQL("DROP TABLE IF EXISTS AccountPoint");
-        execSQL("DROP TABLE IF EXISTS PointLedger");
-    }
-
-    static void seedPoints(const std::string& account, int balance) {
-        execSQL("INSERT INTO AccountPoint (Account, PointBalance, UpdatedAt) VALUES (" + q(account) + ", " +
-                std::to_string(balance) + ", NOW())");
-    }
-    static std::string balance(const std::string& account) {
-        return queryScalar("SELECT PointBalance FROM AccountPoint WHERE Account = " + q(account));
-    }
-    static std::string ledgerRows() {
-        return queryScalar("SELECT COUNT(*) FROM PointLedger");
-    }
-};
 
 TEST_F(ExchangePurchaseMySQL, APurchaseCommitsTheClaimTheOrderAndBothLedgerRowsTogether) {
     ExchangeRepository& repo = defaultExchangeRepository();
@@ -467,8 +551,8 @@ TEST_F(ExchangePurchaseMySQL, APurchaseCommitsTheClaimTheOrderAndBothLedgerRowsT
     EXPECT_EQ(i64(purchase.orderID), queryScalar("SELECT OrderID FROM ExchangeOrder WHERE ListingID = " + i64(id)));
     EXPECT_EQ("460", balance("it-sc-buyer"));
     EXPECT_EQ("460", balance("it-sc-seller"));
-    EXPECT_EQ("-540", queryScalar("SELECT Delta FROM PointLedger WHERE IdempotencyKey = 'it-sc-key-71_buy'"));
-    EXPECT_EQ("460", queryScalar("SELECT Delta FROM PointLedger WHERE IdempotencyKey = 'it-sc-key-71_sale'"));
+    EXPECT_EQ("-540", ledgerDelta("it-sc-key-71_buy"));
+    EXPECT_EQ("460", ledgerDelta("it-sc-key-71_sale"));
 
     // A second buyer finds the listing sold at the claim and moves nothing.
     seedPoints("it-sc-other", 1000);
@@ -527,8 +611,9 @@ TEST_F(ExchangePurchaseMySQL, ALedgerLegThatFailsTakesTheOtherLegTheOrderAndTheC
     int64_t id = repo.createListing(make(73));
     ASSERT_GT(id, 0);
     seedPoints("it-sc-buyer", 1000);
-    execSQL("INSERT INTO PointLedger (Account, Delta, BalanceAfter, Reason, RefListingID, RefOrderID, "
-            "IdempotencyKey, CreatedAt) VALUES ('it-sc-else', 1, 1, 4, 0, 0, 'it-sc-key-73_sale', NOW())");
+    execSQL("INSERT INTO " + accountTable("PointLedger") +
+            " (Account, Delta, BalanceAfter, Reason, RefListingID, RefOrderID, IdempotencyKey, CreatedAt) "
+            "VALUES ('it-sc-else', 1, 1, 4, 0, 0, 'it-sc-key-73_sale', NOW())");
 
     ExchangeBuy buy = decideBuy(id, "it-sc-buyer", "it-sc-key-73");
     auto result = completeExchangePurchase(repo, buy.request, buy.terms, 9170);
@@ -537,7 +622,7 @@ TEST_F(ExchangePurchaseMySQL, ALedgerLegThatFailsTakesTheOtherLegTheOrderAndTheC
     EXPECT_EQ(EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT, result.rejection().code);
     EXPECT_EQ("0", field("Status", id));
     EXPECT_EQ("1", ledgerRows());
-    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM PointLedger WHERE IdempotencyKey = 'it-sc-key-73_buy'"));
+    EXPECT_EQ("", ledgerDelta("it-sc-key-73_buy"));
     EXPECT_EQ("1000", balance("it-sc-buyer"));
     EXPECT_EQ("", balance("it-sc-seller"));
     EXPECT_EQ("0", rowsLeftAfterTheNextTransaction(id));

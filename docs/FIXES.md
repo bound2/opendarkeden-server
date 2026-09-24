@@ -158,10 +158,19 @@ repo and the client's. Entries below are newest first; the oldest is the
   where both schemas sit on one server, the statements naming the tables
   by schema (`USERINFO.PointLedger`) on the game connection, which also
   keeps a purchase in one transaction.
-  The purchase is ready for the first: its transaction pair issues each
-  statement once per distinct connection, and the order of its steps and
-  commits is written for two (`ExchangeRepository.h`).
-  > **Status:** recorded, not fixed (fix/exchange-rollback)
+  The third was chosen: the point statements name `AccountPoint` and
+  `PointLedger` by the account schema (`UI_DB_DB`) on the thread's game
+  connection, so a purchase is one transaction on one connection and the
+  transaction pair is one `START TRANSACTION`/`COMMIT`/`ROLLBACK`. The
+  gameserver opens the ledger at startup (`ExchangeService::openPointLedger`),
+  checking that both connections reach one server (`@@server_uuid`) and that
+  every ledger statement shape runs there against no row; a failed check
+  leaves the ledger closed, logs which check failed against which two
+  configuration blocks, and `decideBuyListing` then refuses every buy as a
+  database error instead of disconnecting the buyer. The MySQL tier runs
+  every purchase case on the tables `initdb/USERINFO.sql` creates, and
+  `ALedgerOnASchemaWithoutThePointTablesStaysClosed` pins the old shape.
+  > **Status:** fixed (fix/exchange-account-db)
 
 ## Two point adjustments of one account could lose one (2026-09-24)
 

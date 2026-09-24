@@ -10,6 +10,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <iostream>
+
+#include "ConnectionSettings.h"
 #include "GCExchangeList.h" // For ExchangeListing definition
 #include "Inventory.h"
 #include "Item.h"
@@ -17,6 +20,7 @@
 #include "KernelContext.h"
 #include "PlayerCreature.h"
 #include "Properties.h"
+#include "Utility.h"
 
 using namespace std;
 
@@ -384,6 +388,37 @@ Outcome<ExchangePointsAdjusted, ExchangeRejection> ExchangeService::adjustPoints
     }
 
     return Result::Ok(adjusted);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Startup
+//////////////////////////////////////////////////////////////////////////////
+
+bool ExchangeService::openPointLedger() {
+    const Properties& config = de::kernelContext().config();
+    const de::ConnectionSettings game = de::connectionSettings(config, "DB");
+    const de::ConnectionSettings account = de::connectionSettings(config, "UI_DB");
+
+    string failure;
+    if (openExchangePointLedger(account.db, failure)) {
+        cout << "Exchange point ledger: `" << account.db << "`.AccountPoint and PointLedger on the game connection"
+             << endl;
+        return true;
+    }
+
+    // A port of 0 is the driver's default.
+    auto port = [](uint value) { return value == 0 ? string("default port") : "port " + std::to_string(value); };
+    const string message =
+        "Exchange purchases are disabled. The point tables are read from the game connection (DB_* block: " +
+        game.user + "@" + game.host + ", " + port(game.port) + ", schema " + game.db +
+        ") by the account schema's name (UI_DB_* block: UI_DB_DB = " + account.db + " on " + account.host + ", " +
+        port(account.port) +
+        "), so both blocks must name one MySQL server and DB_USER must be able to "
+        "read and write the account schema's AccountPoint and PointLedger. The check failed: " +
+        failure;
+    cerr << message << endl;
+    filelog("DBError.log", "%s", message.c_str());
+    return false;
 }
 
 //////////////////////////////////////////////////////////////////////////////

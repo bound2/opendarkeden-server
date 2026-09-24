@@ -24,8 +24,8 @@ ExchangeTransaction::~ExchangeTransaction() {
 }
 
 bool ExchangeTransaction::begin() {
-    // Open before the call: a begin that throws after starting one of the
-    // two connections still leaves that one to be rolled back.
+    // Open before the call: a begin that throws after starting anything
+    // still leaves that to be rolled back.
     m_Open = true;
     return m_Repository.beginTransaction();
 }

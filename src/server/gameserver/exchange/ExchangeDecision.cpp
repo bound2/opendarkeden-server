@@ -147,6 +147,11 @@ Outcome<ExchangePurchaseTerms, ExchangeRejection> decideBuyListing(ExchangeRepos
                                                                    const ExchangeBuyRequest& request) {
     typedef Outcome<ExchangePurchaseTerms, ExchangeRejection> Result;
 
+    // Without the ledger no buy can be priced or paid; refuse it before a
+    // point statement is tried.
+    if (!repository.pointLedgerOpen())
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_DATABASE_ERROR, "point ledger unavailable"));
+
     // A key whose buyer row the ledger already holds is a replay of a
     // purchase that went through; refuse it before reading anything else.
     // The buyer row is looked up under the key buyListing writes it with.

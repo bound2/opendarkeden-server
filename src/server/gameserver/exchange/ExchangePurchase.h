@@ -41,11 +41,9 @@ struct ExchangePurchase {
 // the database again before it leaves the scope.
 //
 // The guard counts itself open from the moment begin() is called, not from
-// the moment it returns, so a begin that fails part way (one connection
-// started, the other refused) is still rolled back. A ROLLBACK on a
-// connection with nothing begun is a no-op, and so is one on a connection
-// whose COMMIT already went through, which is what makes the rollback safe
-// after a commit that failed part way.
+// the moment it returns, so a begin that throws is still rolled back,
+// whatever part of it ran. A ROLLBACK with nothing begun is a no-op, and so is one after a COMMIT that went through, which is what makes
+// the rollback safe after a commit that failed.
 //
 // The destructor swallows whatever its rollback throws: it may be running
 // because of an exception already, and a rollback that fails on a lost
@@ -107,8 +105,8 @@ enum class ExchangePurchaseStep {
 // 0), or it threw a DatabaseError.
 enum class ExchangeStepFailure { Refused, Error };
 
-// What a purchase that failed at this step tells the buyer, once both
-// transactions are rolled back. legKeyRecorded says whether the ledger holds
+// What a purchase that failed at this step tells the buyer, once its
+// transaction is rolled back. legKeyRecorded says whether the ledger holds
 // the failed leg's key after the rollback; it only matters for the two
 // ledger steps.
 //
@@ -132,7 +130,7 @@ ExchangeRejection exchangePurchaseFailure(ExchangePurchaseStep step, ExchangeSte
 // buyer and credit the seller, all inside one ExchangeTransaction, then
 // commit. The order row carries orderServerID.
 //
-// Every failure rolls both transactions back before this returns, and comes
+// Every failure rolls the transaction back before this returns, and comes
 // back as the rejection exchangePurchaseFailure names for it: a DatabaseError
 // from any step, the begin and the commit included, is caught for that and
 // does not escape. Any other exception is not the database's answer and
