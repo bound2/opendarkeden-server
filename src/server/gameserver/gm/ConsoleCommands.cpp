@@ -1026,7 +1026,7 @@ void opResetAttr(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
 
     if (pCreature != NULL) {
         if (pCreature->isSlayer()) {
-            gcSystemMessage.setMessage("���಻�ܳ�ʼ������.");
+            gcSystemMessage.setMessage("Slayer attributes cannot be reset.");
         } else if (pCreature->isVampire()) {
             Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
             if (pVampire != NULL)
@@ -1132,25 +1132,25 @@ void opZoneEvent(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
     EventZoneInfo* pEventZoneInfo =
         EventZoneInfoManager::Instance().getEventZoneInfo(pCreature->getZone()->getZoneID());
     if (pEventZoneInfo == NULL) {
-        gcSystemMessage.setMessage("���ǻ��ͼ.");
+        gcSystemMessage.setMessage("Not an event zone.");
     } else if (value1 == "on") {
         WORD EventID = pEventZoneInfo->getEventID();
         ZoneEventInfo* pZoneEventInfo = EventZoneInfoManager::Instance().getZoneEventInfo(EventID);
         EventZoneInfo* pCurrentEventZoneInfo = pZoneEventInfo->getCurrentEventZoneInfo();
 
         if (pCurrentEventZoneInfo != NULL && pCurrentEventZoneInfo != pEventZoneInfo) {
-            gcSystemMessage.setMessage("�Ѽ��������.");
+            gcSystemMessage.setMessage("An event is already running.");
         } else if (pCurrentEventZoneInfo == NULL) {
             pEventZoneInfo->turnOn();
-            gcSystemMessage.setMessage("��ʼ�.");
+            gcSystemMessage.setMessage("Event started.");
         } else
-            gcSystemMessage.setMessage("�Ѽ��������.");
+            gcSystemMessage.setMessage("An event is already running.");
     } else if (value1 == "off") {
         if (pEventZoneInfo->isEventOn()) {
             pEventZoneInfo->turnOff();
-            gcSystemMessage.setMessage("�رջ.");
+            gcSystemMessage.setMessage("Event stopped.");
         } else
-            gcSystemMessage.setMessage("���û������.");
+            gcSystemMessage.setMessage("No event is running.");
     }
 }
 
@@ -1161,12 +1161,12 @@ void opEventZonePCLimit(GamePlayer* pGamePlayer, const string& value1, GCSystemM
     EventZoneInfo* pEventZoneInfo =
         EventZoneInfoManager::Instance().getEventZoneInfo(pCreature->getZone()->getZoneID());
     if (pEventZoneInfo == NULL) {
-        gcSystemMessage.setMessage("���ǻ��ͼ.");
+        gcSystemMessage.setMessage("Not an event zone.");
     } else {
         WORD lim = (WORD)atoi(value1.c_str());
         pEventZoneInfo->setPCLimit(lim);
         char buffer[100];
-        sprintf(buffer, "�������� : %u", lim);
+        sprintf(buffer, "PC limit : %u", lim);
         gcSystemMessage.setMessage(buffer);
     }
 }
@@ -1176,7 +1176,7 @@ void opKickOutAll(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage
     Creature* pCreature = pGamePlayer->getCreature();
     PCManager* pPCManager = (PCManager*)pCreature->getZone()->getPCManager();
     pPCManager->transportAllCreatures(1303, 46, 49);
-    gcSystemMessage.setMessage("����������ƶ���������.");
+    gcSystemMessage.setMessage("Moved every player in this zone to zone 1303.");
 }
 
 // *command StartTrap
@@ -1235,9 +1235,9 @@ void opStartTrap(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
             pZone->addEffect(pEffect);
         }
 
-        gcSystemMessage.setMessage("��������.");
+        gcSystemMessage.setMessage("Traps started.");
     } else {
-        gcSystemMessage.setMessage("�˵�ͼ�޷���������.");
+        gcSystemMessage.setMessage("Traps cannot be started in this zone.");
     }
 }
 
@@ -1267,7 +1267,7 @@ void opForceNick(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage&
     __LEAVE_CRITICAL_SECTION(de::gameContext().playerCreatures())
 
     if (pTargetCreature == NULL || pTargetCreature->getZone() != pCreature->getZone() || !pTargetCreature->isPC()) {
-        gcSystemMessage.setMessage("��ͼ�ϣ��޷��ҵ��ý�ɫ.");
+        gcSystemMessage.setMessage("No such character in this zone.");
     } else {
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pTargetCreature);
         defaultNicknameRepository().replaceForcedNickname(pPC->getName(), NicknameInfo::NICK_CUSTOM_FORCED, nick);
@@ -1306,7 +1306,7 @@ void opRemoveNick(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage
     __LEAVE_CRITICAL_SECTION(de::gameContext().playerCreatures())
 
     if (pTargetCreature == NULL || pTargetCreature->getZone() != pCreature->getZone() || !pTargetCreature->isPC()) {
-        gcSystemMessage.setMessage("��ͼ�ϣ��޷��ҵ��ý�ɫ.");
+        gcSystemMessage.setMessage("No such character in this zone.");
     } else {
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pTargetCreature);
 
@@ -1314,7 +1314,7 @@ void opRemoveNick(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage
         NicknameInfo* pNick = pNickbook->getNicknameInfo(100);
 
         if (pNick == NULL) {
-            gcSystemMessage.setMessage("û�н���ɾ����ǿ��ģʽ.");
+            gcSystemMessage.setMessage("No forced nickname to remove.");
         } else {
             defaultNicknameRepository().deleteForcedNickname(pPC->getName());
             if (pPC->getNickname() == pNick) {
@@ -1343,13 +1343,13 @@ void opStartGDRLair(GamePlayer* pGamePlayer, const string& value1, GCSystemMessa
         GDRLairIdle* pState = dynamic_cast<GDRLairIdle*>(GDRLairManager::Instance().getCurrentState_Object());
         if (pState != NULL) {
             pState->expire();
-            gcSystemMessage.setMessage("��ʼ����lair.");
+            gcSystemMessage.setMessage("Lair entrance opened.");
         }
     } else if (GDRLairManager::Instance().getCurrentState() == GDR_LAIR_ENTRANCE) {
         GDRLairEntrance* pState = dynamic_cast<GDRLairEntrance*>(GDRLairManager::Instance().getCurrentState_Object());
         if (pState != NULL) {
             pState->expire();
-            gcSystemMessage.setMessage("��������lair.");
+            gcSystemMessage.setMessage("Lair entrance closed.");
         }
     }
 }
@@ -1359,7 +1359,7 @@ void opResetGDRLair(GamePlayer* pGamePlayer, const string& value1, GCSystemMessa
                     bool& bSendPacket) {
     if (GDRLairManager::Instance().getCurrentState() != GDR_LAIR_IDLE) {
         GDRLairManager::Instance().reset();
-        gcSystemMessage.setMessage("��ʼ������lair.");
+        gcSystemMessage.setMessage("Lair reset.");
     }
 }
 
@@ -1458,7 +1458,7 @@ void opIAmAttacker(GamePlayer* pGamePlayer, const string& value1, GCSystemMessag
     Assert(pCreature != NULL);
 
     addSimpleCreatureEffect(pCreature, Effect::EFFECT_CLASS_SIEGE_ATTACKER_1, 600);
-    gcSystemMessage.setMessage("����ս 1�Ź���������һ����.");
+    gcSystemMessage.setMessage("Siege: attacker 1 for one minute.");
 }
 
 // *command IAmDefender
@@ -1467,7 +1467,7 @@ void opIAmDefender(GamePlayer* pGamePlayer, const string& value1, GCSystemMessag
     Assert(pCreature != NULL);
 
     addSimpleCreatureEffect(pCreature, Effect::EFFECT_CLASS_SIEGE_DEFENDER, 600);
-    gcSystemMessage.setMessage("����ս ���ط�����һ����.");
+    gcSystemMessage.setMessage("Siege: defender for one minute.");
 }
 
 // *command IAmReinforce
@@ -1477,7 +1477,7 @@ void opIAmReinforce(GamePlayer* pGamePlayer, const string& value1, GCSystemMessa
     Assert(pCreature != NULL);
 
     addSimpleCreatureEffect(pCreature, Effect::EFFECT_CLASS_SIEGE_REINFORCE, 600);
-    gcSystemMessage.setMessage("����ս ���ط�Ԯ������һ����.");
+    gcSystemMessage.setMessage("Siege: defender reinforcement for one minute.");
 }
 
 // *command showpcstat
@@ -1486,7 +1486,7 @@ void opShowpcstat(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage
     Assert(pCreature != NULL);
     vector<uint> num = pCreature->getZone()->getPCManager()->getPCNumByRace();
     char buffer[200];
-    sprintf(buffer, "���� %u��, ��Ѫ�� %u��, ħ�� %u��", num[RACE_SLAYER], num[RACE_VAMPIRE], num[RACE_OUSTERS]);
+    sprintf(buffer, "Slayers %u, Vampires %u, Ousters %u", num[RACE_SLAYER], num[RACE_VAMPIRE], num[RACE_OUSTERS]);
     gcSystemMessage.setMessage(buffer);
 }
 
@@ -1553,7 +1553,7 @@ void opSetTimeOutAllZoneEffect(GamePlayer* pGamePlayer, const string& value1, GC
     Creature* pCreature = pGamePlayer->getCreature();
     Assert(pCreature != NULL);
     pCreature->getZone()->getEffectManager()->setTimeOutAllEffect();
-    gcSystemMessage.setMessage("�رյ�ͼ��������");
+    gcSystemMessage.setMessage("Timed out every effect in the zone");
 }
 
 // *command printTile

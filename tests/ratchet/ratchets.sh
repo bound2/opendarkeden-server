@@ -450,7 +450,7 @@ rm -f "$r16_inc" "$r16_dead"
 # working tree out of the count, which [^[:print:]] would not, and LC_ALL=C
 # keeps the range byte-wise where a locale would read it as characters.
 R17=$(LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R17 "source lines carrying non-ASCII bytes" 313 "$R17"
+check_ratchet R17 "source lines carrying non-ASCII bytes" 245 "$R17"
 
 # --- R18: commented-out code inside /* */ blocks ---------------------------
 # Code that was switched off years ago says nothing true about the running

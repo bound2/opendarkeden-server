@@ -88,13 +88,13 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
 
     if (set_type == "start") {
         if (combatInfo.isCombat() || combatInfo.isSlayerBonus() || combatInfo.isVampireBonus()) {
-            cout << "�̹� �������Դϴ�" << endl;
+            cout << "The combat has already started" << endl;
             //			message << "it has already started";
             gcSystemMessage.setMessage(strings.getString(STRID_COMBAT_ALEADY_START));
 
             pGamePlayer->sendPacket(&gcSystemMessage);
         } else {
-            cout << "������ ���۵Ǿ����ϴ�" << endl;
+            cout << "The combat has started" << endl;
             //			message << "the combat has started";
             gcSystemMessage.setMessage(strings.getString(STRID_COMBAT_START));
 
@@ -134,7 +134,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
         if (!combatInfo.isCombat() && (combatInfo.isSlayerBonus() || combatInfo.isVampireBonus()))
 
         {
-            cout << "������ �����մϴ�." << endl;
+            cout << "Ending the combat." << endl;
             gcSystemMessage.setMessage(strings.getString(STRID_COMBAT_END));
             zoneGroups.broadcast(&gcSystemMessage);
 
@@ -170,7 +170,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
             combatInfo.computeModify();
             combatInfo.setCombat(false);
         } else {
-            cout << "�������� �ƴϰų� ������ �� �����ϴ�." << endl;
+            cout << "No combat is running, or it cannot be ended." << endl;
             gcSystemMessage.setMessage(strings.getString(STRID_CANNOT_END_COMBAT));
 
             pGamePlayer->sendPacket(&gcSystemMessage);
@@ -769,91 +769,92 @@ void opview(GamePlayer* pGamePlayer, string msg, int i) {
         }
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "event_ratio") {
-        message << "ʱ����ﱬ�� 1/" << variables.getEventRatio();
+        message << "Event item drop rate 1/" << variables.getEventRatio();
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "exp_ratio") {
-        message << "����ֵ: " << variables.getExpRatio();
+        message << "Exp ratio: " << variables.getExpRatio();
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "item_prob_ratio") {
-        message << "��Ʒ����: " << variables.getItemProbRatio();
+        message << "Item drop ratio: " << variables.getItemProbRatio();
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "combat_bonus_time") {
-        message << "ս��ʤ��ά��ʱ��: " << variables.getCombatBonusTime() << "��";
+        message << "Combat victory bonus time: " << variables.getCombatBonusTime() << " min";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "combat_bonus_slayer_hp_ratio") {
-        message << "����ս�� HP��������ֵ: +" << variables.getCombatSlayerHPBonusRatio() << "%";
+        message << "Slayer combat HP bonus ratio: +" << variables.getCombatSlayerHPBonusRatio() << "%";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "combat_bonus_vampire_hp_ratio") {
-        message << "��Ѫ��ս�� HP��������ֵ: +" << variables.getCombatVampireHPBonusRatio() << "%";
+        message << "Vampire combat HP bonus ratio: +" << variables.getCombatVampireHPBonusRatio() << "%";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "combat_bonus_slayer_damage") {
-        message << "����ս�� Damage��������ֵ: +" << variables.getCombatSlayerDamageBonus();
+        message << "Slayer combat damage bonus: +" << variables.getCombatSlayerDamageBonus();
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "combat_bonus_vampire_damage") {
-        message << "��Ѫ��ս�� Damage��������ֵ: +" << variables.getCombatVampireDamageBonus();
+        message << "Vampire combat damage bonus: +" << variables.getCombatVampireDamageBonus();
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "premium_exp_bonus_percent") {
-        message << "�����û�����ֵ����: " << variables.getPremiumExpBonusPercent() << "%";
+        message << "Premium user exp bonus: " << variables.getPremiumExpBonusPercent() << "%";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "premium_item_probe_percent") {
-        message << "���ѵ�ͼ��Ʒ����: " << variables.getPremiumItemProbePercent() << "%";
+        message << "Premium zone item drop bonus: " << variables.getPremiumItemProbePercent() << "%";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "zone_group_balancing_minute") {
-        message << "ZoneGroupBalancingʱ��: " << variables.getZoneGroupBalancingMinute() << "��";
+        message << "ZoneGroupBalancing interval: " << variables.getZoneGroupBalancingMinute() << " min";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "zone_group_next_balancing_time") {
         const Timeval& tv = de::gameContext().clients().getBalanceZoneGroupTime();
         Timeval currentTime;
         getCurrentTime(currentTime);
-        message << "�´�ZoneGroupBalancingʱ��: " << (tv.tv_sec - currentTime.tv_sec) / 60 << "�ֺ�";
+        message << "Next ZoneGroupBalancing: in " << (tv.tv_sec - currentTime.tv_sec) / 60 << " min";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "gamble_item_type_ratio") {
-        message << "�Ĳ�ItemType����: " << variables.getGambleItemTypeRatio() << "%";
+        message << "Gamble ItemType ratio: " << variables.getGambleItemTypeRatio() << "%";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "gamble_item_option_ratio") {
-        message << "�Ĳ�ItemOption����: " << variables.getGambleItemOptionRatio() << "%";
+        message << "Gamble ItemOption ratio: " << variables.getGambleItemOptionRatio() << "%";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "summon_motorcycle") {
-        message << "Ħ�г��ٻ����� : " << (variables.isSummonMotorcycle() ? "ON" : "OFF");
+        message << "Motorcycle summoning : " << (variables.isSummonMotorcycle() ? "ON" : "OFF");
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "enemy_limit_time") {
-        message << "������Чʱ��: " << variables.getEnemyLimitTime() << "��";
+        message << "Enemy limit time: " << variables.getEnemyLimitTime() << " s";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "rare_item_ratio") {
-        message << "�߼���Ʒ����: " << variables.getRareItemRatio() << "%";
+        message << "Rare item ratio: " << variables.getRareItemRatio() << "%";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "unique_item_ratio") {
-        message << "ϡ����Ʒ����: " << variables.getUniqueItemRatio() << "/10000";
+        message << "Unique item ratio: " << variables.getUniqueItemRatio() << "/10000";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "active_master_lair") {
-        message << "�Ϲֻ : " << (variables.isActiveMasterLair() ? "ON" : "OFF");
+        message << "Master lair : " << (variables.isActiveMasterLair() ? "ON" : "OFF");
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "retry_master_lair") {
-        message << "���Ϲ�ɱ����,������ս : " << (variables.isRetryMasterLair() ? "ON" : "OFF");
+        message << "Master lair re-entry after death : " << (variables.isRetryMasterLair() ? "ON" : "OFF");
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "harvest_festival_item_ratio") {
-        message << "�����ף������: 1/" << variables.getHarvestFestivalItemRatio();
+        message << "Harvest festival item drop rate: 1/" << variables.getHarvestFestivalItemRatio();
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "master_blood_drain_start_hp") {
-        message << "��ʼ��Ѫʱ��HP: " << variables.getMasterBloodDrainStartHP() << "%";
+        message << "Master blood drain start HP: " << variables.getMasterBloodDrainStartHP() << "%";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "master_blood_drain_start_bd") {
-        message << "��ʼ��Ѫʱ����Ѫ��: " << variables.getMasterBloodDrainStartBD() << "%";
+        message << "Master blood drain chance at start: " << variables.getMasterBloodDrainStartBD() << "%";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "master_blood_drain_end_hp") {
-        message << "������Ѫʱ(?)��HP: " << variables.getMasterBloodDrainEndHP() << "%";
+        message << "Master blood drain end(?) HP: " << variables.getMasterBloodDrainEndHP() << "%";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "master_blood_drain_end_bd") {
-        message << "������Ѫʱ(?)��Ѫ��: " << variables.getMasterBloodDrainEndBD() << "%";
+        message << "Master blood drain chance at end(?): " << variables.getMasterBloodDrainEndBD() << "%";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "chief_monster") {
-        message << "ˢ��BOSS���� : " << (variables.isActiveChiefMonster() ? "ON" : "OFF");
+        message << "Chief monster spawning : " << (variables.isActiveChiefMonster() ? "ON" : "OFF");
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "chief_monster_rare_item_percent") {
-        message << "BOSS����߼���Ʒ����: " << variables.getChiefMonsterRareItemPercent() << "%";
+        message << "Chief monster rare item ratio: " << variables.getChiefMonsterRareItemPercent() << "%";
         gcSystemMessage.setMessage(message.toString());
     } else if (set_type == "newbie_transport_to_guild") {
-        message << "�ƶ�������ֵΪ40���л�:" << (variables.isNewbieTransportToGuild() ? "ON" : "OFF");
+        message << "Transport newbies to the guild at attribute sum 40:"
+                << (variables.isNewbieTransportToGuild() ? "ON" : "OFF");
         gcSystemMessage.setMessage(message.toString());
     } else {
         // by sigi. 2002.11.19
@@ -1215,7 +1216,7 @@ void oplog(GamePlayer* pPlayer, string msg, int i) {
 
     if (pTargetGamePlayer->startPacketLog(sec)) {
         char msg[100];
-        sprintf(msg, "%s�ڼ�¼PacketLog(%u��)", name.c_str(), sec);
+        sprintf(msg, "%s: recording PacketLog (%u s)", name.c_str(), sec);
 
         GCSystemMessage gcMsg;
         gcMsg.setMessage(msg);

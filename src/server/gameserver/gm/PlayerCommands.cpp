@@ -390,7 +390,8 @@ void opcredit(GamePlayer* pGamePlayer, string msg, int i) {
 
     // Kept hard-coded for now...
     if (Credits.empty()) {
-        Credits["��С��"] = "�ͻ���,������(2005~)";
+        // The contributor's name did not survive the legacy encoding.
+        Credits["unnamed"] = "client, server (2005~)";
     }
 
     size_t j = msg.find_first_of(' ', i + 1);
@@ -509,21 +510,21 @@ void oppay(GamePlayer* pGamePlayer, string msg, int i) {
         Timeval payTime = pGamePlayer->getPayPlayTime(currentTime);
 
         if (pGamePlayer->getPayPlayType() == PAY_PLAY_TYPE_PERSON) {
-            strcpy(str, "[Metrotech][����] ");
+            strcpy(str, "[Metrotech][Personal] ");
         } else {
-            strcpy(str, "[Metrotech][����] ");
+            strcpy(str, "[Metrotech][PC room] ");
         }
 
         if (pGamePlayer->getPayType() == PAY_TYPE_FREE) {
-            strcat(str, "����˺�.");
+            strcat(str, "Free account.");
         } else if (pGamePlayer->getPayType() == PAY_TYPE_PERIOD) {
-            sprintf(str, "����ʹ�õ�%s%sΪֹ.", str, pGamePlayer->getPayPlayAvailableDateTime().toString().c_str());
+            sprintf(str, "%sAvailable until %s.", str, pGamePlayer->getPayPlayAvailableDateTime().toString().c_str());
         } else {
-            sprintf(str, "%sʣ��ʱ�� : %d / %d ��", str, (int)(payTime.tv_sec / 60),
+            sprintf(str, "%sPlay time : %d min / %d h", str, (int)(payTime.tv_sec / 60),
                     (int)pGamePlayer->getPayPlayAvailableHours());
         }
     } else {
-        strcpy(str, "[Metrotech] ��ѽ�����Ϸ.");
+        strcpy(str, "[Metrotech] Free play.");
     }
 
     GCSystemMessage gcSystemMessage;
@@ -596,11 +597,11 @@ void opfun(GamePlayer* pGamePlayer, string msg, int i) {
         }
 
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage("���õ���.");
+        gcSystemMessage.setMessage("Mines placed.");
         pGamePlayer->sendPacket(&gcSystemMessage);
     } else {
         GCSystemMessage gcSystemMessage;
-        gcSystemMessage.setMessage("��������ʲô~!?���ܺú�����!");
+        gcSystemMessage.setMessage("Unknown fun type; only mine is supported.");
         pGamePlayer->sendPacket(&gcSystemMessage);
     }
 
