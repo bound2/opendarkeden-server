@@ -596,6 +596,19 @@ bool WarSystem::isModifyCastleOwner(ZoneID_t castleZoneID, PlayerCreature* pPC)
     __END_CATCH
 }
 
+// The flag is read first so that the schedule list, and the lock over it, are
+// only touched while a race war is actually running.
+bool WarSystem::mayModifyShrineOwner(PlayerCreature* pPC) const {
+    if (!hasActiveRaceWar())
+        return false;
+
+    War* pWar = getActiveRaceWar();
+    if (pWar == NULL)
+        return false;
+
+    return pWar->mayModifyShrineOwner(pPC);
+}
+
 // pPC won the war concerning castleZoneID.
 bool WarSystem::endWar(PlayerCreature* pPC, ZoneID_t castleZoneID)
 

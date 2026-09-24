@@ -81,6 +81,14 @@ public:
         return false;
     }
 
+    // Whether this war lets pPC take a shrine of Adam's holy land for its race
+    // by placing a blood bible on the matching holy shrine. Only the race war
+    // is fought over those shrines; a war fought over a castle has nothing to
+    // say about a race, and answers no.
+    virtual bool mayModifyShrineOwner(PlayerCreature* pPC) {
+        return false;
+    }
+
     virtual void sendWarStartMessage() const;
     virtual void sendWarEndMessage() const;
 

@@ -58,11 +58,10 @@
 const int defaultGamePlayerInputStreamSize = 1024;
 const int defaultGamePlayerOutputStreamSize = 20480;
 
-static int maxIdleSec = 60 * 5; // Idle connections are kept this long: 60 * 5 = 300 seconds (5 minutes)
-// static int maxSpeedVerifyTime = 2;  		// 0.3 seconds
-static int maxVerifyCount = 3;   // Maximum verification failures: 3
-static int maxTimeGap = 5;       // Allowed deviation of the time check, in seconds
-static int SpeedCheckDelay = 60; // One time check every 60 seconds
+static int maxIdleSec = 60 * 5;  // Idle connections are kept this long: 60 * 5 = 300 seconds (5 minutes)
+static int maxVerifyCount = 3;   // Early heartbeats carried before the next one is refused: 3
+static int maxTimeGap = 5;       // How far ahead of the interval a heartbeat may arrive, in seconds
+static int SpeedCheckDelay = 60; // The interval the client sends its heartbeat on, in seconds
 
 const int PCRoomLottoSec = 3600;    // 3600 seconds. 1 hour
 const int PCRoomLottoMaxAmount = 3; // Maximum number of lottery tickets that can accumulate at once
@@ -102,17 +101,6 @@ GamePlayer::GamePlayer(Socket* pSocket)
 
     getCurrentTime(m_ExpireTime);
     m_ExpireTime.tv_sec += maxIdleSec;
-
-    // Read the current time
-    // getCurrentTime(m_SpeedVerify);
-    m_SpeedVerify.tv_sec = 0;
-    ;
-    m_SpeedVerify.tv_usec = 0;
-    ;
-    getCurrentTime(m_MoveSpeedVerify);
-    getCurrentTime(m_AttackSpeedVerify);
-
-    m_VerifyCount = 0;
 
     m_SpecialEventCount = 0;
 
@@ -273,19 +261,6 @@ GamePlayer::~GamePlayer() noexcept {
 
     __END_CATCH_NO_RETHROW
 }
-//////////////////////////////////////////////////////////////////////////
-//
-// Subtract two timeval structures
-//
-//////////////////////////////////////////////////////////////////////////
-void GamePlayer::tv_sub(struct timeval* out, struct timeval* in) {
-    if ((out->tv_usec -= in->tv_usec) < 0) {
-        --out->tv_sec;
-        out->tv_usec += 1000000;
-    }
-    out->tv_sec -= in->tv_sec;
-}
-/*------------- The End -----------*/
 //////////////////////////////////////////////////////////////////////
 //
 // parse packet and execute handler for the packet
@@ -440,7 +415,6 @@ void GamePlayer::processCommand(bool Option) {
                     endProfileEx(pPacket->getPacketName().c_str());
 
 #else
-                    verifySpeed(pPacket);
                     PacketDispatcher::dispatch(pPacket, this);
 #endif
                 } catch (...) {
@@ -803,78 +777,22 @@ string GamePlayer::toString() const {
 // verifySpeed
 //
 //////////////////////////////////////////////////////////////////////
-bool GamePlayer::verifySpeed(Packet* pPacket) {
+// Answers the client heartbeat this player just sent: the clock the packet
+// arrived on is the whole input, so the rule itself is decided by
+// verifyHeartbeat and only the session's state lives here. The one caller is
+// the CGVerifyTime handler, which disconnects the player on a false.
+bool GamePlayer::verifySpeed() {
     __BEGIN_TRY
-    PacketID_t PacketID = pPacket->getPacketID();
-
-    bool SpeedCheck = false;
 
     Timeval CurrentTime;
     getCurrentTime(CurrentTime);
 
-    //////////////////////////////////////////////////////////////////////////
-    // Packet heartbeat check
-    // Coffee 2007-6-25  kf_168@hotmail.com
-    //
+    de::HeartbeatVerifyParams params;
+    params.checkDelaySec = SpeedCheckDelay;
+    params.maxTimeGapSec = maxTimeGap;
+    params.maxEarlyCount = maxVerifyCount;
 
-    if (PacketID == Packet::PACKET_CG_VERIFY_TIME) {
-        if (m_SpeedVerify.tv_sec == 0) {
-            // No initial heartbeat value yet: take the current time + SpeedCheckDelay
-            // as the initial value and let the check pass (SpeedCheck = true).
-            m_SpeedVerify.tv_sec = CurrentTime.tv_sec + SpeedCheckDelay;
-
-            SpeedCheck = true;
-        } else {
-            // The check starts here
-            // It passes when the current time is past the last check time less the gap
-            if (CurrentTime.tv_sec > m_SpeedVerify.tv_sec - maxTimeGap) {
-                m_SpeedVerify.tv_sec = CurrentTime.tv_sec + SpeedCheckDelay;
-
-                SpeedCheck = true;
-                // Error count -1; a count over the preset maximum fails the check
-                m_VerifyCount = max(0, m_VerifyCount - 1);
-            } else {
-                // Update the next check time: the current time plus the check interval.
-                m_SpeedVerify.tv_sec = CurrentTime.tv_sec + SpeedCheckDelay;
-
-                if (m_VerifyCount > maxVerifyCount) {
-                    SpeedCheck = false;
-                } else {
-                    SpeedCheck = true;
-                }
-                m_VerifyCount++;
-            }
-        }
-    }
-    //
-    // End of the packet-send plausibility check
-    // Add by Coffee 2007-6-25 kf_168@hotmail.com
-    //////////////////////////////////////////////////////////////////////////
-
-
-    //////////////////////////////////////////////////////////////////////////
-    // Movement check on the packet
-    // Add by Coffee 2007-6-25 E-mail: kf_168@hotmail.com
-    if (PacketID == Packet::PACKET_CG_MOVE) {
-        if (CurrentTime <= m_MoveSpeedVerify) {
-            // Acceleration in use
-        }
-        // Timeval UseTimer=CurrentTime-m_MoveSpeedVerify;
-        tv_sub(&CurrentTime, &m_MoveSpeedVerify);
-        double rtt;
-        // Compute rtt in milliseconds
-        rtt = CurrentTime.tv_sec * 1000 + CurrentTime.tv_usec / 1000;
-
-        getCurrentTime(m_MoveSpeedVerify);
-        // add by viva for notice
-        // filelog("MoveLog.txt", "MoveTime:=%.3f ms\n",rtt);
-        // end
-    }
-
-    // End by Coffee
-    //////////////////////////////////////////////////////////////////////////
-
-    return SpeedCheck;
+    return de::verifyHeartbeat(params, CurrentTime.tv_sec, m_SpeedVerify);
 
     __END_CATCH
 }

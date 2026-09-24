@@ -434,6 +434,7 @@ set(GAMESERVER_MAIN_SOURCES
     Corpse.cpp
     GameContext.cpp
     GamePlayer.cpp
+    SpeedHackDecision.cpp
     GameServer.cpp
     IncomingPlayerManager.cpp
     SharedServerClient.cpp

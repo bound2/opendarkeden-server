@@ -31,7 +31,7 @@ void CGVerifyTimeHandler::execute(CGVerifyTime* pPacket, Player* pPlayer)
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
 
-    if (!(pGamePlayer->verifySpeed(pPacket))) {
+    if (!pGamePlayer->verifySpeed()) {
         saveSpeedHackPlayer(pPlayer);
         throw DisconnectException("Speed hack detected");
     }
