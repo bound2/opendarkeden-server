@@ -13,6 +13,141 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A GM reload of a castle's war schedule freed wars under the castle's thread (2026-09-24)
+
+- **The GM `reloadinfo war_schedule_info` event ran `WarScheduler::load()`
+  on the main thread,** and the reload clears the scheduler, deleting every
+  war it holds, while the castle zone's thread runs that scheduler's
+  heartbeat and the castle NPCs' quest actions (`ActionRegisterSiege`, the
+  reinforcement actions, `ActionAskVariable`) use its next war without the
+  scheduler's mutex. The event now posts the reload to the castle zone's
+  group with `ZoneGroup::post()`, capturing the zone and looking the
+  scheduler up inside, as the guild deletion's cancel does, and the GM's
+  answer with the reloaded count goes to the GM by name through
+  `de::postToPlayer` (`Scope::Player`) once the reload has run. Two
+  behaviours change with it: an unknown zone id, which the lookup throws as
+  an `Error`, is answered with the "no such zone" message the event always
+  meant to send instead of escaping the event, and a reload raised with no
+  GM player now reloads where it used to do nothing. `load()` had one more
+  caller on a foreign thread: the GM `setCastleOwnerGuild` command names any
+  castle by id and ran `CastleInfoManager::modifyCastleOwner` on the GM's
+  own zone thread, and a change of the owning race reaches
+  `cancelGuildSchedules()` and so `load()`. That change is posted to the
+  castle's group now too, where a war's end already runs it. The rest of a
+  castle scheduler's readers are on its group's thread or take the
+  scheduler's mutex (`makeGCWarScheduleList`, `hasSchedule`), and a war the
+  scheduler hands to `WarSystem` has been popped from it first, so a reload
+  cannot free it.
+  > **Status:** fixed (fix/war-residue)
+
+## A castle war's schedule row could be saved only for a siege (2026-09-24)
+
+- **`WarSchedule::save()` cast its war to `SiegeWar` and asserted the
+  cast,** while a `GuildWar` has lived in a `WarSchedule` since a 'GUILD'
+  row reloads as one. Its one caller, the join branch of
+  `ActionRegisterSiege`, reaches it only with a siege, so the assert never
+  fired; the first caller to save a guild war's schedule would have thrown.
+  `War` now names a schedule row's attackers itself --
+  `getAttackerCount()` and `getAttackerGuildIDAt(slot)`: one guild in the
+  first slot for a war with a single attacker, the challengers in joining
+  order for a siege -- and `save()` builds the row from the war's virtuals
+  with no cast, so a guild war rewrites exactly the row `create()` wrote
+  for it: `AttackerCount` 1 (the column default `create()` leaves it at),
+  its one guild, zero in the other four slots, its fee and the kind
+  'GUILD'. A siege writes what it wrote before.
+  `tests/integration/mysql_repository_test.cpp` pins that those values
+  write back the row the insert wrote, column for column, and reload with
+  the kind a `GuildWar` is rebuilt from. The failure log `save()` wrote in
+  Korean under `create()`'s name now names `save()`.
+  > **Status:** fixed (fix/war-residue)
+
+## The race war flag was a plain bool every zone thread read (2026-09-24)
+
+- **`WarSystem::m_bHasRaceWar` was a plain `bool` that the main thread's
+  heartbeat writes as a race war starts and ends, and some twenty call
+  sites on the zone threads read through `hasActiveRaceWar()` with no
+  lock,** a data race; `m_bRaceWarToday`, the twenty- and five-minute
+  warnings behind `canApplyBloodBibleSign()` and `isSkyBlack()`, and the
+  race war's time parameter were read the same way. All five are atomics
+  now; their writes already ran under `m_Mutex`. The flag is a hint, and
+  the header says so. Of its readers only `mayModifyShrineOwner` goes on
+  to use the war, and it took the pointer from `getActiveRaceWar()`, which
+  released `m_Mutex` before returning, and asked the war afterwards, while
+  the heartbeat frees the race war under `m_Mutex` when it ends. It now
+  looks the war up and asks it under the lock -- `RaceWar`'s answer reads
+  only the variables table and the player's flag, so no lock order
+  changes -- and `getActiveRaceWar()`, left without a caller, is gone.
+  > **Status:** fixed (fix/war-residue)
+
+## A running castle war is handed out past the lock that frees it (2026-09-24)
+
+- **`WarSystem::getActiveWar(zoneID)` finds a castle's running war under
+  `m_Mutex` and returns the pointer after releasing it,** and its callers
+  on the zone threads use it afterwards: `isModifyCastleOwner` asks the war
+  whether a player takes the castle, `CastleShrineInfoManager` reads its
+  type when a castle symbol is picked up, and `ActionEnterSiege` asks the
+  siege for the player's side. The main thread's heartbeat frees a castle
+  war under `m_Mutex` when its hour runs out, so a use that straddles the
+  end reads a freed war. The race war's one such reader now asks under the
+  lock; these were left, because `GuildWar` and `SiegeWar` answer through
+  the castle manager, and `hasCastleActiveWar` records that
+  taking `m_Mutex` from inside a zone effect already deadlocked once, so
+  holding it across those answers needs its lock order worked out first.
+  > **Status:** recorded, not fixed (fix/war-residue)
+
+## A deleted guild's reinforcement registrations outlived it (2026-09-24)
+
+- **`purgeGuild`, the sharedserver's deletion of a guild everywhere, left
+  the guild's `ReinforceRegisterInfo` rows,** and the gameserver's
+  `cancelGuildSchedulesOf` denies them only on the waiting wars of its own
+  castles. A waiting registration is still offered to the castle owner
+  (`loadWaitingReinforceGuild`), an accepted one is read back as a siege's
+  reinforcement on any later reload (`loadAcceptedReinforceGuild`, which
+  is not even scoped to a server), and a denied one keeps refusing a guild
+  of the same id, which a restart can hand out again because a new guild
+  takes the highest stored id plus one. `purgeGuild` now deletes every row
+  that names the guild as the reinforcing guild, in every status and on
+  every server, as a fifth statement after the schedule cancel. The
+  gameserver's deny stays: whichever of the two runs first, the reloaded
+  siege comes back without the reinforcement. A siege already under way
+  keeps it in memory until it ends, as it keeps a deleted challenger.
+  Pinned by `tests/integration/mysql_sharedserver_repository_test.cpp`.
+  > **Status:** fixed (fix/war-residue)
+
+## A deleted guild's castle changes hands on the shared-server link thread (2026-09-24)
+
+- **`GuildManager::deleteGuild` turns a castle the deleted guild held into
+  its race's common castle by calling `CastleInfoManager::modifyCastleOwner`
+  on the shared-server link thread,** which writes the castle's
+  `CastleInfo` and broadcasts the tax change into the castle's zone
+  (`setItemTaxRatio`, `Zone::broadcastPacket`) while the castle's zone
+  thread runs it. The race does not change on this path, so it never
+  reaches the war scheduler reload the GM command could. Posting the call
+  to the castle's group, as the GM command now does, would move this
+  writer, but `CastleInfo` is read without a lock by every zone thread
+  (entrance fees, tax ratios, the owning race at a castle's gate), so
+  which thread writes it does not settle it: that wants a decision about
+  who owns castle state.
+  > **Status:** recorded, not fixed (fix/war-residue)
+
+## Every variable without a stored row read zero instead of its default (2026-09-24)
+
+- **`VariableManager::load()` replaced the table the constructor had
+  filled with the coded defaults by a zeroed one before applying the
+  `AttrInfo` rows,** so a variable with no row read 0. The stock seed
+  stores ids 1 to 142 and has no row for id 0, `STAR_RATIO`, whose default
+  is 1000 and which read 0; a GM command only displays it. The rule is
+  explicit now: a row overrides the default and a missing row keeps it,
+  and the table still reaches the highest stored id, so the seed's rows
+  past the last named variable (136 to 142) stay readable by number. The
+  overlay is a pure function beside the manager, `overlayStoredVariables`,
+  pinned by `tests/repository_test.cpp`, and it shares its one refusal, a
+  `RACE_WAR_TIMEBAND` outside 0 to 3, with `setVariable()` through
+  `isAcceptedVariableValue`, so a refused stored timeband keeps the
+  default 2 where it used to leave 0. The load no longer writes each row
+  back to itself through `setVariable()`.
+  > **Status:** fixed (fix/war-residue)
+
 ## A keyless Exchange buy was not replay-proof (2026-09-24)
 
 - **The key a buy is recorded under did not make a repeated buy a
@@ -556,8 +691,9 @@ repo and the client's. Entries below are newest first; the oldest is the
   the zone's group with `ZoneGroup::post()`, so it runs on the thread that
   executes those wars, under the group mutex; the command captures the
   zone and looks the scheduler up again, because a zone reload replaces
-  it. Still open: the GM `reloadinfo` of a war schedule
-  (`EventReloadInfo`) calls `load()` from the main thread the same way.
+  it. The GM `reloadinfo` of a war schedule (`EventReloadInfo`), which
+  called `load()` from the main thread the same way, is posted to the
+  castle's group too (fix/war-residue).
   > **Status:** fixed (fix/recorded-defects-6)
 
 ## The sharedserver's player table is indexed by raw descriptor with no bound (2026-09-23)
@@ -754,8 +890,8 @@ repo and the client's. Entries below are newest first; the oldest is the
   > answers `hasCastleActiveWar` and `getActiveWar` for its castle — so
   > `isModifyCastleOwner` and `endWar` dispatch to `GuildWar`'s own
   > overrides — and is erased from the active wars when its hour runs out.
-  > `WarSchedule::save()` stays siege-only: its one caller,
-  > `ActionRegisterSiege`, holds a `SiegeWar` already.
+  > `WarSchedule::save()` stayed siege-only here; it builds its row from the
+  > war's own virtuals now (fix/war-residue).
 
 ## Two servers link different classes under one name (2026-09-22)
 

@@ -12,7 +12,8 @@
 // (Triggers; the sister table ZoneTriggers is ZoneInfoRepository's), the
 // monster-AI directive sets (DirectiveSet) and the tunable variables
 // (AttrInfo -- also written back by VariableManager::setVariable on every
-// call: the GM `opset` path and the defaults set at init()/load()). Rows
+// call: the GM `opset` path and the configured values init() sets; load()
+// reads the rows and writes none back). Rows
 // are typed to the driver getter used for each column (getInt -> int,
 // getBYTE -> BYTE, getString -> std::string).
 //

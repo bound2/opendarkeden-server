@@ -8,7 +8,8 @@
 
 // The sharedserver's guild persistence: the guild rows (GuildInfo), the
 // roster (GuildMember), the guild's union membership (GuildUnionMember)
-// and its pending war schedules (WarScheduleInfo) that GuildManager,
+// and its pending war schedules and siege reinforcement registrations
+// (WarScheduleInfo, ReinforceRegisterInfo) that GuildManager,
 // Guild and GuildMember keep, plus the character side of a membership
 // change the GS handlers write -- the GuildID column of the race tables
 // (Slayer, Vampire, Ousters), the Gold refund when a guild registration
@@ -47,9 +48,10 @@
 //    MySQLGuildRepository.cpp (the other binary's own guild persistence)
 //    and its MySQLSessionRepository.cpp (GuildMember.LogOn on connect and
 //    disconnect).
-//  - WarScheduleInfo: the gameserver's MySQLWarInfoRepository.cpp and
-//    MySQLGuildRepository.cpp. The sharedserver only cancels a deleted
-//    guild's schedules (purgeGuild).
+//  - WarScheduleInfo, ReinforceRegisterInfo: the gameserver's
+//    MySQLWarInfoRepository.cpp and MySQLGuildRepository.cpp. The
+//    sharedserver only cancels a deleted guild's schedules and deletes its
+//    reinforcement registrations (purgeGuild).
 //  - Messages: the gameserver's MySQLMessageRepository.cpp (the reads and
 //    deletes; the gameserver inserts none).
 //  - Slayer, Vampire, Ousters: every other statement on the race tables
@@ -186,12 +188,17 @@ public:
     virtual void updateGuildFields(const std::string& assignments, GuildID_t id) = 0;
     // GuildState IN (%d, %d).
     virtual std::vector<SharedGuildListRow> loadGuildsInStates(int stateA, int stateB) = 0;
-    // GuildManager::deleteGuild's four statements on one Statement, in
+    // GuildManager::deleteGuild's five statements on one Statement, in
     // this order: DELETE the GuildInfo row, DELETE the guild's GuildMember
-    // rows, DELETE its GuildUnionMember rows, and UPDATE every
+    // rows, DELETE its GuildUnionMember rows, UPDATE every
     // WarScheduleInfo row it attacks in (AttackGuildID only, not the
-    // AttackGuildID2..5 slots) to Status 'CANCEL'. No transaction: a
-    // failure part-way leaves the earlier deletes done.
+    // AttackGuildID2..5 slots) to Status 'CANCEL', and DELETE every
+    // ReinforceRegisterInfo row that names it as the reinforcing guild, on
+    // every server and in every status. A waiting or accepted registration
+    // would otherwise offer, or bring back on a reload, a reinforcement
+    // that no longer exists, and a denied one would turn away a later
+    // guild that is given the same id. No transaction: a failure part-way
+    // leaves the earlier statements done.
     virtual void purgeGuild(GuildID_t id) = 0;
 
     // --- GuildManager::init's id probes -----------------------------------------

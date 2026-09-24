@@ -24,9 +24,11 @@
 //    MySQLGuildRepository.cpp, whose four count probes answer whether a
 //    guild has a war scheduled, is in one under way, or is reinforcing
 //    one; and the sharedserver's MySQLSharedGuildRepository.cpp, whose
-//    purgeGuild cancels every row a deleted guild holds the FIRST
-//    attacker slot of -- not the ones it joined as a later challenger,
-//    which WarScheduler::cancelGuildSchedulesOf cancels from here.
+//    purgeGuild cancels every WarScheduleInfo row a deleted guild holds
+//    the FIRST attacker slot of -- not the ones it joined as a later
+//    challenger, which WarScheduler::cancelGuildSchedulesOf cancels from
+//    here -- and deletes every ReinforceRegisterInfo row that names it as
+//    the reinforcing guild, whatever the war's state or server.
 //  - CastleInfo: the same MySQLGuildRepository.cpp, whose two reads answer
 //    whether a guild holds a castle and which one.
 

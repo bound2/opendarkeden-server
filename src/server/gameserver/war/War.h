@@ -70,6 +70,17 @@ public:
     virtual Gold_t getRegistrationFee() const {
         return 0;
     }
+    // The attackers a schedule row lists: how many there are, and the guild in
+    // each of the row's five slots, zero past the last. A war with a single
+    // attacker counts one and fills the first slot, which is the row
+    // WarSchedule::create writes for it, AttackerCount taking its default of
+    // one; a siege lists its challengers in the order they joined.
+    virtual uint getAttackerCount() const {
+        return 1;
+    }
+    virtual GuildID_t getAttackerGuildIDAt(uint slot) const {
+        return slot == 0 ? getAttackerGuildID() : 0;
+    }
     // A castle war with a single attacker has that one guild in it; a siege
     // counts its five challengers and the reinforcing guild as well.
     virtual bool isWarParticipant(GuildID_t gID) {

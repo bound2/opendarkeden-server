@@ -218,7 +218,9 @@ void GuildManager::deleteGuild(GuildID_t id) {
                 // in, because the row is still waiting. The sharedserver
                 // cancels the rows the guild holds the first attacker slot of
                 // when it purges the guild, but not the ones it joined as a
-                // later challenger or as the defenders' reinforcement.
+                // later challenger; it also deletes the guild's reinforcement
+                // registrations, before or after this runs, and either order
+                // leaves the reloaded siege without the reinforcement.
                 ZoneGroup* pZoneGroup = pZone->getZoneGroup();
                 if (pZoneGroup != NULL)
                     pZoneGroup->post([pZone, id] {

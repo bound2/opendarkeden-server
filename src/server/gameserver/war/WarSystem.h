@@ -1,6 +1,8 @@
 #ifndef __WAR_SYSTEM_H__
 #define __WAR_SYSTEM_H__
 
+#include <atomic>
+
 #include "Exception.h"
 #include "GCWarList.h"
 #include "Mutex.h"
@@ -86,10 +88,14 @@ public:
     // answer rather than an error.
     bool mayModifyShrineOwner(PlayerCreature* pPC) const;
 
+    // Whether a race war is running. The zone threads ask this on every path
+    // the holy land touches, without a lock, so it is a hint published by the
+    // main thread's heartbeat: the race war object itself lives in the
+    // schedules and is read only under m_Mutex, which the heartbeat holds
+    // when it ends the war and frees it.
     bool hasActiveRaceWar() const {
         return m_bHasRaceWar;
     }
-    War* getActiveRaceWar() const;
 
     bool isWarActive() const {
         return !isEmpty();
@@ -124,16 +130,21 @@ private:
     GCWarList m_GCWarList;
     list<War*> m_WarQueue;
 
-    bool m_bHasRaceWar;
-    bool m_bRaceWarToday;
-    DWORD m_RaceWarTimeParam;
+    // The race war's state as the zone threads see it. These are written under
+    // m_Mutex, by the main thread's heartbeat and by a GM starting the race
+    // war early, and read through the lock-free getters above, so each is an
+    // atomic: a reader gets a value a writer stored, and nothing more -- two
+    // of them read one after the other may straddle a heartbeat.
+    std::atomic<bool> m_bHasRaceWar;
+    std::atomic<bool> m_bRaceWarToday;
+    std::atomic<DWORD> m_RaceWarTimeParam;
 
     list<ActiveWarInfo> m_ActiveWars;
 
     Schedule* m_pRaceWarSchedule;
 
-    bool m_b20Minutes;
-    bool m_b5Minutes;
+    std::atomic<bool> m_b20Minutes;
+    std::atomic<bool> m_b5Minutes;
 };
 
 #endif
