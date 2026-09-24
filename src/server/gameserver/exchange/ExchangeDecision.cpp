@@ -132,10 +132,15 @@ std::string exchangeServerIdempotencyKey(int worldID, int serverID, int64_t list
     return std::string(buf);
 }
 
+// The ledger's collation folds case, so a prefix test could not keep a
+// client's key out of the server's namespace; the client's keys get one of
+// their own instead.
+const char* const kExchangeClientKeyPrefix = "C_";
+
 std::string resolveExchangeIdempotencyKey(const std::string& clientKey, int worldID, int serverID, int64_t listingID) {
-    if (clientKey.empty() || clientKey.compare(0, strlen(kExchangeServerKeyPrefix), kExchangeServerKeyPrefix) == 0)
+    if (clientKey.empty())
         return exchangeServerIdempotencyKey(worldID, serverID, listingID);
-    return clientKey;
+    return std::string(kExchangeClientKeyPrefix) + clientKey;
 }
 
 Outcome<ExchangePurchaseTerms, ExchangeRejection> decideBuyListing(ExchangeRepository& repository,

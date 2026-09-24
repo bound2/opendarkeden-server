@@ -113,8 +113,8 @@ bool matchesExchangeListingFilter(const ExchangeListing& listing, const Exchange
 extern const char* const kExchangeBuyLedgerSuffix;  // "_buy"
 extern const char* const kExchangeSaleLedgerSuffix; // "_sale"
 
-// The prefix of every key the server derives itself. A client-supplied key
-// that starts with it is not used (see resolveExchangeIdempotencyKey).
+// The prefix of every key the server derives itself; a client-supplied key
+// is recorded under a prefix of its own (see resolveExchangeIdempotencyKey).
 extern const char* const kExchangeServerKeyPrefix; // "EX_"
 
 // The longest key PointLedger.IdempotencyKey can hold: it is VARCHAR(64)
@@ -140,11 +140,11 @@ std::string exchangeLedgerKey(const std::string& base, const std::string& suffix
 // ids come from each world's own ExchangeListing table.
 std::string exchangeServerIdempotencyKey(int worldID, int serverID, int64_t listingID);
 
-// The key a buy is recorded under: the client's key when it sent one, and the
-// server-derived key when it sent none. A client key that starts with
-// kExchangeServerKeyPrefix is replaced by the server-derived key too, so that
-// no purchase can plant the key another listing's buy will derive and turn
-// that buy into a refused replay.
+// The key a buy is recorded under: the server-derived key when the client
+// sent none, and the client's key under a "C_" prefix of its own when it sent
+// one, so that no purchase can plant the key another listing's keyless buy
+// will derive -- in any letter case, since the ledger's collation folds it --
+// and turn that buy into a refused replay.
 std::string resolveExchangeIdempotencyKey(const std::string& clientKey, int worldID, int serverID, int64_t listingID);
 
 //////////////////////////////////////////////////////////////////////////////

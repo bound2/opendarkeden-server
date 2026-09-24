@@ -3,89 +3,65 @@
 
 #include <list>
 
-#include <unordered_map>
-
 #include "Exception.h"
 #include "GCUnionOfferList.h"
 #include "Mutex.h"
 #include "Types.h"
+#include "guild/GuildUnionRegistry.h"
 
-class GuildUnionManager;
-class GuildUnion {
-public:
-    GuildUnion(GuildID_t master) : m_MasterGuildID(master) {}
-    ~GuildUnion();
-
-    GuildID_t getMasterGuildID() const {
-        return m_MasterGuildID;
-    }
-
-    uint getUnionID() const {
-        return m_UnionID;
-    }
-    void setUnionID(uint ID) {
-        m_UnionID = ID;
-    }
-
-    bool hasGuild(GuildID_t gID) const;
-    bool addGuild(GuildID_t gID);
-    bool removeGuild(GuildID_t gId);
-
-    void create();
-    void destroy();
-
-    list<GuildID_t> getGuildList() const {
-        return m_Guilds;
-    }
-
-protected:
-    list<GuildID_t>::const_iterator findGuildItr(GuildID_t gID) const {
-        list<GuildID_t>::const_iterator itr = m_Guilds.begin();
-        for (; itr != m_Guilds.end(); itr++) {
-            if (*itr == gID) {
-                break;
-            }
-        }
-        return itr;
-    }
-    list<GuildID_t>::iterator findGuildItr(GuildID_t gID) {
-        // return find( m_Guilds.begin(), m_Guilds.end(), gID );
-        list<GuildID_t>::iterator itr = m_Guilds.begin();
-        for (; itr != m_Guilds.end(); itr++) {
-            if (*itr == gID) {
-                break;
-            }
-        }
-        return itr;
-    }
-
-private:
-    uint m_UnionID;
-    GuildID_t m_MasterGuildID;
-    list<GuildID_t> m_Guilds;
-
-    friend class GuildUnionManager;
-};
-
+// The guild unions of this game server, loaded from GuildUnionInfo and
+// GuildUnionMember and kept in step with them. Unions are changed from the
+// zone threads (the union packets), the SharedServerManager thread (a guild
+// deleted) and the LoginServerManager thread (a reload another game server
+// asked for), and read from all of them.
+//
+// Locking. Three mutexes, taken in this order and never the other way:
+//
+//   1. GuildUnionManager::m_Mutex serialises the changes. Each change -- a
+//      union opened, a guild added or removed, a union dissolved, the whole
+//      set reloaded -- holds it across its table reads, its row writes and
+//      its registry writes, so no two changes interleave. (The CG union
+//      handlers' count-then-delete of an emptied union's row runs outside
+//      it, before their reload.)
+//   2. GuildUnionRegistry's mutex guards the lookup tables. Readers take it
+//      for the lookup alone, so a reader never waits on the database.
+//   3. GuildUnion's mutex guards one union's member list.
+//
+// All three are taken after anything else the caller holds -- the zone-group
+// mutex, the PC finder's critical section, the GuildManager and Guild
+// mutexes, the LoginServerManager and SharedServerManager mutexes, which the
+// callers hold in every combination -- and none of those is ever taken while
+// one of these is held: under them the union code uses only the next mutex
+// down and the thread's database connection. The guild master lookups, the
+// notifications and the refresh sent to the other game servers run after
+// m_Mutex is released.
+//
+// A union a change takes away is retired, not freed (GuildUnion), so the
+// pointers getGuildUnion() and getGuildUnionByUnionID() hand out stay
+// readable; a retired union resolves from neither.
 class GuildUnionManager {
 public:
     GuildUnionManager();
     ~GuildUnionManager();
 
-    void reload();
+    // Replaces the unions in memory with the ones in the tables; the unions
+    // replaced are retired. A table read that fails leaves the old set.
     void load();
-    void addGuildUnion(GuildUnion* pUnion);
+    void reload();
+
     // The union holding this guild, master or member, or NULL for a guild in
-    // none. A lookup only reads: an id the map does not hold leaves no entry
-    // behind.
+    // none.
     GuildUnion* getGuildUnion(GuildID_t gID) const {
-        unordered_map<GuildID_t, GuildUnion*>::const_iterator itr = m_GuildUnionMap.find(gID);
-        return itr == m_GuildUnionMap.end() ? NULL : itr->second;
+        return m_Unions.unionOfGuild(gID);
     }
     GuildUnion* getGuildUnionByUnionID(uint uID) const {
-        unordered_map<uint, GuildUnion*>::const_iterator itr = m_UnionIDMap.find(uID);
-        return itr == m_UnionIDMap.end() ? NULL : itr->second;
+        return m_Unions.unionByID(uID);
     }
+
+    // The union the guild resolves to; a union of its own, row and all, when
+    // it resolves to none. The union answered may have the guild as a member
+    // rather than as its master.
+    GuildUnion* openUnion(GuildID_t masterGID);
 
     bool addGuild(uint uID, GuildID_t gID);
 
@@ -110,16 +86,13 @@ public:
     }
 
 private:
-    // Destroy a union: its own row and its member rows go, every guild that
-    // looked it up stops finding it, and the object is freed.
-    void destroyUnion(uint uID);
+    // Dissolve a union: its own row and its member rows go, and no guild
+    // resolves to it any more. The caller holds m_Mutex.
+    void destroyUnion_LOCKED(uint uID);
 
-    list<GuildUnion*> m_GuildUnionList;
-    unordered_map<GuildID_t, GuildUnion*> m_GuildUnionMap;
-    unordered_map<uint, GuildUnion*> m_UnionIDMap;
+    GuildUnionRegistry m_Unions;
 
-
-    // Mutex
+    // Serialises the changes; see the class comment.
     mutable Mutex m_Mutex;
 };
 

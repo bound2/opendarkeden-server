@@ -79,9 +79,10 @@ void GGGuildChatHandler::execute(GGGuildChat* pPacket)
     if (pPacket->getType() == 0) {
         broadcastGuild(pGuild, &gcGuildChat);
     } else {
-        // Union chat
+        // Union chat. A union dissolved since the lookup lists no members, so
+        // it counts as no union and the chat stays in the guild.
         GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(pGuild->getID());
-        if (pUnion == NULL) {
+        if (pUnion == NULL || pUnion->isRetired()) {
             broadcastGuild(pGuild, &gcGuildChat);
         } else {
             list<GuildID_t> gList = pUnion->getGuildList();

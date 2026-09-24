@@ -18,6 +18,7 @@
 // #include "RankExpTable.h"
 // #include "ItemNameInfo.h"
 // #include "quest/Squest/QuestManager.h"
+#include <atomic>
 #include <bitset>
 #include <vector>
 
@@ -486,8 +487,10 @@ protected:
     // Records whether the character was PKed or not.
     bool m_isPK;
 
-    // GuildID
-    GuildID_t m_GuildID;
+    // GuildID. Written on the thread that owns the player; read by the PC
+    // finder's guild walk (PCFinder::getGuildPlayerNames_LOCKED) from any
+    // thread, under the finder's lock only, hence atomic.
+    std::atomic<GuildID_t> m_GuildID;
 
     // Rank Bonus map
     HashMapRankBonus m_RankBonuses;

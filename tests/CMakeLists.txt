@@ -751,6 +751,28 @@ add_dependencies(wire_tests guild_union_teardown_tests)
 add_test(NAME guild_union_teardown_tests COMMAND guild_union_teardown_tests)
 set_tests_properties(guild_union_teardown_tests PROPERTIES TIMEOUT 60)
 
+# Which union a guild resolves to and what a retired union answers
+# (docs/FIXES.md): the union manager is changed and read from several
+# threads, so the unions it takes away are retired rather than freed and the
+# lookup tables are read and written under one mutex. GuildUnionRegistry.cpp
+# is the only source linked; ServerCore carries Mutex. A failing Assert
+# appends to assertion_failed.log in the working directory, hence the
+# build-tree WORKING_DIRECTORY.
+add_executable(guild_union_registry_tests EXCLUDE_FROM_ALL
+    guild_union_registry_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/guild/GuildUnionRegistry.cpp
+)
+target_include_directories(guild_union_registry_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/guild
+)
+target_link_libraries(guild_union_registry_tests PRIVATE ServerCore de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests guild_union_registry_tests)
+add_test(NAME guild_union_registry_tests COMMAND guild_union_registry_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(guild_union_registry_tests PROPERTIES TIMEOUT 60)
+
 # What a retired guild and a retired guild member answer (docs/FIXES.md):
 # both are taken out of their map and parked rather than freed, because a
 # zone thread may already hold the pointer, so the object stays readable and

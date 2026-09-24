@@ -72,9 +72,11 @@ void SGGuildInfoHandler::execute(SGGuildInfo* pPacket)
             }
 
             pGuild->addMember(pGuildMember);
+            delete pGuildMemberInfo;
         }
 
         guilds.addGuild_NOBLOCKED(pGuild);
+        delete pGuildInfo;
     }
 
     guilds.unlock();

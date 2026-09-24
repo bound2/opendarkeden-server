@@ -87,7 +87,7 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
     // Withdraw by force
     else if (pPacket->getQuitMethod() == CGQuitUnion::QUIT_QUICK) {
         // Both ids are read before the quit, because removing the last member
-        // destroys the union and frees pUnion with it.
+        // dissolves the union and retires pUnion with it.
         const GuildID_t unionMasterGuildID = pUnion->getMasterGuildID();
         const GuildID_t quittingGuildID = pPlayerCreature->getGuildID();
 

@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGExpelGuildMember.h"
+#include "GamePlayer.h"
 
 #ifdef __GAME_SERVER__
 #include "GSExpelGuildMember.h"
@@ -31,7 +32,9 @@ void CGExpelGuildMemberHandler::execute(CGExpelGuildMember* pPacket, Player* pPl
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
-    PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pPlayer);
+    GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
+    Assert(pGamePlayer != NULL);
+    PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pGamePlayer->getCreature());
     Assert(pPlayerCreature != NULL);
 
     SYSTEM_ASSERT(SYSTEM_GUILD);

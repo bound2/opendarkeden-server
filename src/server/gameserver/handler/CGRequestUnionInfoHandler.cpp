@@ -43,8 +43,9 @@ void CGRequestUnionInfoHandler::execute(CGRequestUnionInfo* pPacket, Player* pPl
     GCGuildResponse gcGuildResponse;
 
     GuildUnion* pGuildUnion = GuildUnionManager::Instance().getGuildUnion(pPlayerCreature->getGuildID());
-    // Find out whether one's own guild belongs to a union
-    if (pGuildUnion == NULL) {
+    // Find out whether one's own guild belongs to a union. One dissolved since
+    // the lookup lists no members and is no union to show.
+    if (pGuildUnion == NULL || pGuildUnion->isRetired()) {
         gcGuildResponse.setCode(GuildUnionOfferManager::NOT_IN_UNION);
         pPlayer->sendPacket(&gcGuildResponse);
 
