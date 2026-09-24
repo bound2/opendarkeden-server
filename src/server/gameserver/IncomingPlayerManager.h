@@ -14,6 +14,7 @@
 #include "GamePlayer.h"
 #include "Mutex.h"
 #include "PlayerManager.h"
+#include "ProxyAcceptor.h"
 #include "ServerSocket.h"
 #include "Types.h"
 
@@ -87,7 +88,7 @@ public:
     void processCommands();
 
     // accept new connection
-    bool acceptNewConnection();
+    bool acceptNewConnection(Socket* forwarded = nullptr);
 
     void copyPlayers();
 
@@ -121,6 +122,7 @@ public:
 private:
     // TCP server socket and socket descriptor
     ServerSocket* m_pServerSocket;
+    std::unique_ptr<de::ProxyAcceptor> m_ProxyAcceptor;
     SOCKET m_SocketID;
 
     // The socket descriptors of the players this manager owns, with what each

@@ -1,0 +1,12 @@
+{
+  "bind": "127.0.0.1",
+  "port": 8080,
+  "origins": ["http://127.0.0.1:18739"],
+  "allowNative": true,
+  "trustedProxies": [],
+  "maxConnections": 2000,
+  "routes": {
+    "127.0.0.1:9999": 19099,
+    "127.0.0.1:9998": 19098
+  }
+}

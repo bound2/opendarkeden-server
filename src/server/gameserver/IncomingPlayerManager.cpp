@@ -114,6 +114,13 @@ void IncomingPlayerManager::init()
 
     Properties& config = de::kernelContext().config();
 
+    if (config.hasKey("GatewayProxyPort")) {
+        const int port = config.getPropertyInt("GatewayProxyPort");
+        if (port < 1 || port > 65535)
+            throw Error("GatewayProxyPort must be between 1 and 65535");
+        m_ProxyAcceptor = std::make_unique<de::ProxyAcceptor>(static_cast<unsigned short>(port));
+    }
+
     // The player table is indexed by descriptor and every walk over it is
     // clamped to it, so a listener the table cannot hold would be skipped by
     // all of them and no connection could ever be accepted. There is nothing
@@ -244,6 +251,11 @@ void IncomingPlayerManager::pollSockets() {
 //////////////////////////////////////////////////////////////////////////////
 void IncomingPlayerManager::processInputs() {
     __BEGIN_TRY
+
+    if (m_ProxyAcceptor) {
+        for (auto& client : m_ProxyAcceptor->poll())
+            acceptNewConnection(client.release());
+    }
 
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
@@ -662,7 +674,7 @@ void IncomingPlayerManager::processExceptions() {
 //////////////////////////////////////////////////////////////////////////////
 // The socket the poll reported ready is accepted here.
 //////////////////////////////////////////////////////////////////////////////
-bool IncomingPlayerManager::acceptNewConnection()
+bool IncomingPlayerManager::acceptNewConnection(Socket* forwarded)
 
 {
     __BEGIN_TRY
@@ -676,11 +688,12 @@ bool IncomingPlayerManager::acceptNewConnection()
     // When a connection is awaited in blocking mode,
     // the returned value can never be NULL.
     // A NonBlockingIOException cannot occur either.
-    Socket* client = NULL;
+    Socket* client = forwarded;
 
     try {
         m_CheckValue = 1;
-        client = m_pServerSocket->accept();
+        if (!client)
+            client = m_pServerSocket->accept();
         m_CheckValue = 2;
     } catch (Throwable& t) {
         m_CheckValue += 10000;

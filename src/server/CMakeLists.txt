@@ -16,6 +16,7 @@ set(SERVER_CORE_SOURCES
     Timeval.cpp
     pthreadAPI.cpp
     Profile.cpp
+    ProxyAcceptor.cpp
     PacketProfile.cpp
     GameServerInfoManager.cpp
     ServerContext.cpp
