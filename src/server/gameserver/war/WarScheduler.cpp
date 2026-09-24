@@ -143,8 +143,8 @@ void WarScheduler::load()
             // The row has five attacker slots, so a count past them would
             // walk off both this array and the siege's own.
             challengerNum = (uint)schedules[r].attackerCount;
-            if (challengerNum > 5)
-                challengerNum = 5;
+            if (challengerNum > MaxSiegeChallengerGuilds)
+                challengerNum = MaxSiegeChallengerGuilds;
 
             for (int j = 0; j < 5; ++j) {
                 challengerGuildID[j] = (GuildID_t)schedules[r].attackGuildID[j];
@@ -386,7 +386,8 @@ void WarScheduler::cancelGuildSchedules()
 }
 
 void WarScheduler::cancelGuildSchedulesOf(GuildID_t gID) {
-    vector<WarID_t> warIDs;
+    vector<WarID_t> attackedWarIDs;
+    vector<WarID_t> otherWarIDs;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -399,30 +400,43 @@ void WarScheduler::cancelGuildSchedulesOf(GuildID_t gID) {
             continue;
 
         // Both castle war classes report WAR_GUILD and answer for their own
-        // participants, so the guild is matched through the war itself.
+        // attackers, so the guild is matched through the war itself. A war the
+        // guild attacks goes with the guild; a siege it only reinforces belongs
+        // to its challengers and loses the reinforcement alone.
         War* pWar = pSchedule->getWar();
-        if (pWar != NULL && pWar->getWarType() == WAR_GUILD && pWar->isWarParticipant(gID) &&
-            pWar->getState() == War::WAR_STATE_WAIT) {
-            warIDs.push_back(pWar->getWarID());
-        }
+        if (pWar == NULL || pWar->getWarType() != WAR_GUILD || pWar->getState() != War::WAR_STATE_WAIT)
+            continue;
+
+        if (pWar->isAttackerGuild(gID))
+            attackedWarIDs.push_back(pWar->getWarID());
+        else
+            otherWarIDs.push_back(pWar->getWarID());
     }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    if (warIDs.empty())
+    if (attackedWarIDs.empty() && otherWarIDs.empty())
         return;
 
-    // The rows are cancelled before the reload, because the reload builds
-    // the schedules back out of them: cancelling afterwards would leave the
+    // The rows are changed before the reload, because the reload builds the
+    // schedules back out of them: changing them afterwards would leave the
     // war standing until something reloaded again.
     WarInfoRepository& repository = defaultWarInfoRepository();
     const int serverID = de::kernelContext().config().getPropertyInt("ServerID");
 
-    for (size_t i = 0; i < warIDs.size(); ++i) {
-        repository.cancelWarSchedule(warIDs[i], serverID);
+    for (size_t i = 0; i < attackedWarIDs.size(); ++i) {
+        if (repository.cancelWarSchedule(attackedWarIDs[i], serverID))
+            filelog("WarLog.txt", "[CANCEL][WarID=%d] guild %d attacked in it and no longer exists",
+                    (int)attackedWarIDs[i], (int)gID);
+    }
 
-        filelog("WarLog.txt", "[CANCEL][WarID=%d] guild %d took part in it and no longer exists", (int)warIDs[i],
-                (int)gID);
+    // A reinforcement registration, accepted or still waiting, is denied
+    // rather than the siege cancelled; the reload then rebuilds the siege
+    // without it. A war the guild had nothing to do with changes no row.
+    for (size_t i = 0; i < otherWarIDs.size(); ++i) {
+        if (repository.denyReinforceRegistration(otherWarIDs[i], serverID, gID))
+            filelog("WarLog.txt", "[CANCEL][WarID=%d] guild %d reinforced it and no longer exists", (int)otherWarIDs[i],
+                    (int)gID);
     }
 
     load();

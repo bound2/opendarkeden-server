@@ -14,9 +14,11 @@
 #include <latch>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -110,6 +112,81 @@ TEST(Snapshot, ReadersSeeConsistentTablesWhileAWriterInserts) {
     EXPECT_EQ(inconsistent.load(), 0);
     EXPECT_GT(tablesRead.load(), 0);
     EXPECT_EQ(table.load()->size(), static_cast<std::size_t>(kInserts));
+}
+
+// The string pool's shape (src/server/gameserver/StringPool.h): the whole
+// table is replaced on a reload, and a reader is handed a const char* into
+// the strings of the table it read. That pointer must survive the reload, so
+// every table the pool has published is kept for the life of the pool. This
+// pins that it is the retained table, not the snapshot slot, that keeps it
+// valid: a pointer taken before the swap still reads the old text afterwards,
+// while the pool itself reads the new one.
+TEST(Snapshot, ARetainedTableKeepsAPointerIntoItValidAcrossAReplacement) {
+    using Pool = std::map<int, std::string>;
+    de::Snapshot<Pool> pool(Pool{{1, "the old text"}});
+    std::vector<std::shared_ptr<const Pool>> retained;
+
+    const char* before = pool.load()->at(1).c_str();
+    ASSERT_STREQ(before, "the old text");
+
+    // Replace the whole table, keeping the one it replaced.
+    retained.push_back(pool.load());
+    pool.update([](Pool& next) { next = Pool{{1, "the new text"}}; });
+
+    EXPECT_STREQ(before, "the old text") << "the pointer a reader still holds reads what it always read";
+    EXPECT_STREQ(pool.load()->at(1).c_str(), "the new text");
+    EXPECT_NE(before, pool.load()->at(1).c_str()) << "the reload really did replace the string";
+}
+
+// Readers keep taking pointers into the pool and reading through them while
+// it is replaced under them; with every replaced table retained, none of them
+// reads freed memory or half a string.
+TEST(Snapshot, ReadersDereferencePointersWhileTheTableIsReplaced) {
+    using Pool = std::map<int, std::string>;
+    de::Snapshot<Pool> pool(Pool{{1, "generation 0"}});
+    std::mutex retainedMutex;
+    std::vector<std::shared_ptr<const Pool>> retained;
+
+    constexpr int kReloads = 200;
+    constexpr int kReaders = 4;
+    std::atomic<bool> done{false};
+    std::atomic<int> wrong{0};
+    std::atomic<long> readsDone{0};
+    std::latch start(kReaders + 1);
+
+    std::vector<std::thread> readers;
+    for (int r = 0; r < kReaders; ++r) {
+        readers.emplace_back([&] {
+            start.arrive_and_wait();
+            while (!done.load(std::memory_order_relaxed)) {
+                // Take the pointer the way a c_str() caller does -- letting
+                // the snapshot it came from go -- then read through it.
+                const char* text = pool.load()->at(1).c_str();
+                if (std::string(text).rfind("generation ", 0) != 0)
+                    wrong.fetch_add(1);
+                readsDone.fetch_add(1);
+            }
+        });
+    }
+
+    std::thread writer([&] {
+        start.arrive_and_wait();
+        for (int i = 1; i <= kReloads; ++i) {
+            std::shared_ptr<const Pool> replaced = pool.load();
+            pool.update([i](Pool& next) { next = Pool{{1, "generation " + std::to_string(i)}}; });
+            std::lock_guard<std::mutex> lock(retainedMutex);
+            retained.push_back(std::move(replaced));
+        }
+        done.store(true);
+    });
+
+    writer.join();
+    for (std::thread& t : readers)
+        t.join();
+
+    EXPECT_EQ(wrong.load(), 0);
+    EXPECT_GT(readsDone.load(), 0);
+    EXPECT_EQ(retained.size(), static_cast<std::size_t>(kReloads));
 }
 
 } // namespace

@@ -34,6 +34,7 @@ GuildMember::GuildMember()
     m_Rank = GUILDMEMBER_RANK_NORMAL; // was left indeterminate
     m_bLogOn = false;
     m_ServerID = 255;
+    m_bRetired = false;
 }
 
 void GuildMember::create()
@@ -293,6 +294,7 @@ Guild::Guild()
     m_State = 0;
     m_ServerGroupID = 0;
     m_ZoneID = 0;
+    m_bRetired = false;
     m_Master = "";
     m_Date = "";
     m_Intro = "";
@@ -535,6 +537,11 @@ GuildMember* Guild::getMember(const string& name) const
     HashMapGuildMemberConstItor itr;
     GuildMember* pGuildMember = NULL;
 
+    // A retired guild has no members: it is out of GuildManager's table and
+    // only still readable because a thread may hold the pointer.
+    if (isRetired())
+        return NULL;
+
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     itr = m_Members.find(name);
@@ -593,9 +600,11 @@ std::vector<std::pair<std::string, GuildMemberRank_t>> Guild::retireAllMembers()
     members.reserve(m_Members.size());
     m_RetiredMembers.reserve(m_RetiredMembers.size() + m_Members.size());
     for (HashMapGuildMemberItor itr = m_Members.begin(); itr != m_Members.end(); ++itr)
-        members.push_back(std::make_pair(itr->first, itr->second->getRank()));
-    for (HashMapGuildMemberItor itr = m_Members.begin(); itr != m_Members.end(); ++itr)
+        members.push_back(std::make_pair(itr->first, itr->second->getStoredRank()));
+    for (HashMapGuildMemberItor itr = m_Members.begin(); itr != m_Members.end(); ++itr) {
+        itr->second->retire();
         m_RetiredMembers.push_back(itr->second);
+    }
     m_Members.clear();
     m_ActiveMemberCount = 0;
     m_WaitMemberCount = 0;
@@ -603,6 +612,21 @@ std::vector<std::pair<std::string, GuildMemberRank_t>> Guild::retireAllMembers()
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     return members;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// the guild has left GuildManager's table and is kept only so the threads
+// holding it do not read freed memory; mark it, and its members with it
+//////////////////////////////////////////////////////////////////////////////
+void Guild::retire() {
+    m_bRetired.store(true, std::memory_order_relaxed);
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    for (HashMapGuildMemberItor itr = m_Members.begin(); itr != m_Members.end(); ++itr)
+        itr->second->retire();
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -638,7 +662,7 @@ void Guild::addMember(GuildMember* pMember)
 
     m_Members[pMember->getName()] = pMember;
 
-    GuildMemberRank_t rank = pMember->getRank();
+    GuildMemberRank_t rank = pMember->getStoredRank();
 
     if (rank == GuildMember::GUILDMEMBER_RANK_NORMAL || rank == GuildMember::GUILDMEMBER_RANK_MASTER ||
         rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
@@ -676,7 +700,7 @@ void Guild::deleteMember(const string& name)
         return;
     }
 
-    GuildMemberRank_t rank = itr->second->getRank();
+    GuildMemberRank_t rank = itr->second->getStoredRank();
 
     if (rank == GuildMember::GUILDMEMBER_RANK_NORMAL || rank == GuildMember::GUILDMEMBER_RANK_MASTER ||
         rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
@@ -687,7 +711,9 @@ void Guild::deleteMember(const string& name)
     }
 
     // Retire, don't free: a zone thread may hold this pointer (see
-    // m_RetiredMembers).
+    // m_RetiredMembers). The flag goes up here, under the mutex the removal
+    // runs under, so a holder that looks again sees the member has gone.
+    itr->second->retire();
     m_RetiredMembers.push_back(itr->second);
 
     m_Members.erase(itr);
@@ -741,7 +767,7 @@ void Guild::modifyMemberRank(const string& name, GuildMemberRank_t rank)
     if (pMember == NULL)
         return;
 
-    GuildMemberRank_t oldRank = pMember->getRank();
+    GuildMemberRank_t oldRank = pMember->getStoredRank();
 
     if (oldRank == rank)
         return;

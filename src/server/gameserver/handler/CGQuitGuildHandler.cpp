@@ -42,9 +42,11 @@ void CGQuitGuildHandler::execute(CGQuitGuild* pPacket, Player* pPlayer)
         return;
     }
 
-    // Check that the player is a member of the guild.
+    // Check that the player is a member of the guild. A member the guild let
+    // go is retired rather than freed, so the pointer stays readable and says
+    // so; quitting a guild one has already left is nothing to forward.
     GuildMember* pGuildMember = pGuild->getMember(pPlayerCreature->getName());
-    if (pGuildMember == NULL)
+    if (pGuildMember == NULL || pGuildMember->isRetired())
         return;
 
     GSQuitGuild gsQuitGuild;

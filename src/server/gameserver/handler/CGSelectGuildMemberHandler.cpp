@@ -42,10 +42,12 @@ void CGSelectGuildMemberHandler::execute(CGSelectGuildMember* pPacket, Player* p
     if (pGuild == NULL)
         return;
 
-    // Get the selected guild member.
+    // Get the selected guild member. A member the guild let go is retired
+    // rather than freed, so the pointer stays readable and says so; its rank
+    // and introduction are the ones it left with, not a member's to show.
     GuildMember* pGuildMember = pGuild->getMember(pPacket->getName());
     // try { Assert( pGuildMember != NULL ); } catch ( Throwable& ) { return; }
-    if (pGuildMember == NULL)
+    if (pGuildMember == NULL || pGuildMember->isRetired())
         return;
 
     GCShowGuildMemberInfo gcShowGuildMemberInfo;

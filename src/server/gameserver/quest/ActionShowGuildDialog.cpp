@@ -285,9 +285,11 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
             return;
         }
 
-        // Check that the player is a member of the guild.
+        // Check that the player is a member of the guild. A member the guild
+        // let go is retired rather than freed, so the pointer stays readable
+        // and says so.
         GuildMember* pGuildMember = pGuild->getMember(pCreature->getName());
-        if (pGuildMember == NULL) {
+        if (pGuildMember == NULL || pGuildMember->isRetired()) {
             GCNPCResponse response;
             response.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
             pPlayer->sendPacket(&response);

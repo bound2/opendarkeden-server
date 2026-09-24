@@ -4,6 +4,8 @@
 
 #include "StringPool.h"
 
+#include <utility>
+
 #include "repository/GameInfoRepository.h"
 
 StringPool::StringPool()
@@ -16,20 +18,7 @@ StringPool::~StringPool()
 
 {
     __BEGIN_TRY
-
-    clear();
-
     __END_CATCH_NO_RETHROW
-}
-
-void StringPool::clear()
-
-{
-    __BEGIN_TRY
-
-    m_Strings.clear();
-
-    __END_CATCH
 }
 
 void StringPool::load()
@@ -37,41 +26,43 @@ void StringPool::load()
 {
     __BEGIN_TRY
 
-    clear();
-
     vector<StringPoolRow> rows = defaultGameInfoRepository().loadStrings();
+
+    // Build the whole table before publishing it: a reader must never see a
+    // half-filled pool, and a duplicate row leaves the pool it already has.
+    StringHashMap next;
 
     for (size_t r = 0; r < rows.size(); r++) {
         uint strID = rows[r].id;
-        string str = rows[r].text;
 
-        addString(strID, str);
+        if (next.contains(strID)) {
+            throw DuplicatedException("StringPool::load()");
+        }
+
+        next[strID] = rows[r].text;
     }
+
+    // Keep the map being replaced: a reader may hold a const char* into one
+    // of its strings. The mutex spans the swap, so two reloads cannot both
+    // retain the same old map and let the one between them go.
+    std::lock_guard<std::mutex> lock(m_RetainedMutex);
+    std::shared_ptr<const StringHashMap> replaced = m_Strings.load();
+
+    m_Strings.update([&next](StringHashMap& table) { table = std::move(next); });
+
+    m_RetainedStrings.push_back(std::move(replaced));
 
     __END_CATCH
 }
 
-void StringPool::addString(uint strID, string sString) {
+string StringPool::getString(uint strID) const {
     __BEGIN_TRY
 
-    StringHashMapItor itr = m_Strings.find(strID);
+    std::shared_ptr<const StringHashMap> strings = m_Strings.load();
 
-    if (itr != m_Strings.end()) {
-        throw DuplicatedException("StringPool::addString()");
-    }
+    StringHashMapConstItor itr = strings->find(strID);
 
-    m_Strings[strID] = sString;
-
-
-    __END_CATCH
-}
-
-string StringPool::getString(uint strID) {
-    __BEGIN_TRY
-
-    StringHashMapItor itr = m_Strings.find(strID);
-
-    if (itr == m_Strings.end()) {
+    if (itr == strings->end()) {
         throw NoSuchElementException("StringPool::getString()");
     }
 
@@ -80,12 +71,14 @@ string StringPool::getString(uint strID) {
     __END_CATCH
 }
 
-const char* StringPool::c_str(uint strID) {
+const char* StringPool::c_str(uint strID) const {
     __BEGIN_TRY
 
-    StringHashMapItor itr = m_Strings.find(strID);
+    std::shared_ptr<const StringHashMap> strings = m_Strings.load();
 
-    if (itr == m_Strings.end()) {
+    StringHashMapConstItor itr = strings->find(strID);
+
+    if (itr == strings->end()) {
         throw NoSuchElementException("StringPool::getString()");
     }
 

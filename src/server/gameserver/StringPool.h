@@ -6,11 +6,15 @@
 #ifndef __STRING_POOL_H__
 #define __STRING_POOL_H__
 
+#include <memory>
+#include <mutex>
 #include <string>
+#include <vector>
 
 #include <unordered_map>
 
 #include "Exception.h"
+#include "Snapshot.h"
 
 enum StringID {
     STRID_SLAYER,                            // 0
@@ -389,6 +393,18 @@ enum StringID {
     STRID_MAX
 };
 
+// The strings every thread reads and one thread occasionally replaces: the
+// zone threads and the two manager threads call getString()/c_str() while a
+// GM reload event, on the main thread, refills the pool from the database.
+// The table is therefore published copy-on-write (de::Snapshot): load()
+// builds a whole new map and swaps it in, and a reader sees either the map
+// it had or the new one, never a map mid-rehash.
+//
+// c_str() hands out a pointer into the map the call read, so a replaced map
+// must outlive the readers still holding pointers into it. Every map the
+// pool has published is kept until the pool is destroyed rather than freed.
+// A reload is a human-paced event and a pool is a few hundred kilobytes, so
+// the retained maps cost nothing that matters.
 class StringPool {
 public:
     typedef unordered_map<uint, string> StringHashMap;
@@ -400,17 +416,19 @@ public:
     ~StringPool();
 
 public:
-    void clear();
     void load();
 
-    void addString(uint strID, string sString);
+    string getString(uint strID) const;
 
-    string getString(uint strID);
-
-    const char* c_str(uint strID);
+    // Valid for the life of the pool, whatever a later reload publishes.
+    const char* c_str(uint strID) const;
 
 private:
-    StringHashMap m_Strings;
+    de::Snapshot<StringHashMap> m_Strings;
+
+    // Leaf mutex, held only to append to the list below.
+    mutable std::mutex m_RetainedMutex;
+    std::vector<std::shared_ptr<const StringHashMap>> m_RetainedStrings;
 };
 
 #endif // __STRING_POOL_H__
