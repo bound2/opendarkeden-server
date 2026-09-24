@@ -16,6 +16,7 @@
 #include "Datagram.h"
 #include "DatagramPacket.h"
 #include "GameContext.h"
+#include "KeepAlive.h"
 #include "KernelContext.h"
 #include "PacketDispatcher.h"
 #include "Properties.h"
@@ -187,9 +188,7 @@ void LoginServerManager::run() {
             if (dummyQueryTime < currentTime) {
                 de::serverContext().database().executeDummyQuery(pConnection);
 
-                // Set the dummy query time to between 1 hour and 1 hour 30 minutes,
-                // so that the connection does not time out.
-                dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
+                dummyQueryTime = de::nextKeepAliveDeadline(dummyQueryTime, rand());
             }
 
             // Update the time checker.

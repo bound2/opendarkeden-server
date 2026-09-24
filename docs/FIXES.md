@@ -13,6 +13,49 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## The login link's LG handlers keep an incoming player past its lock (2026-09-24)
+
+- **`LGIncomingConnectionOKHandler` and `LGIncomingConnectionErrorHandler`
+  take a `GamePlayer*` from `IncomingPlayerManager::getPlayer` or
+  `getReadyPlayer`, which release `m_Mutex` before they return, and then
+  read its socket and status and write its reconnect packet and penalty
+  flag on the `LoginServerManager` thread,** while the main thread may be
+  disconnecting and deleting that player in its walks or in `heartbeat()`,
+  where `disconnect()` also reads and deletes the reconnect packet. The
+  lookup is locked; what follows it is not. The shape that fits is the one
+  the other LG handlers took: post the flag and the packet to the player
+  through its mailbox (`de::postToPlayer`), which the incoming manager's
+  command walk drains for `Scope::Player` commands. `de::postToPlayer`
+  finds its player by character name and these handlers know only the
+  account id, so the post needs a by-account form
+  (`PCFinder::getCreatureByID` is the lookup it would use).
+  > **Status:** recorded, not fixed (fix/manager-residue)
+
+## The incoming and sharedserver managers polled outside their mutex (2026-09-24)
+
+- **`IncomingPlayerManager::pollSockets` and the sharedserver
+  `GameServerManager::pollSockets` ran the whole poll with no lock, and the
+  incoming manager's walks carried commented-out `m_Mutex` sections,**
+  where `ZonePlayerManager` fills and collects under its mutex. Not a race
+  in either: the thread that polls and walks is the only thread that
+  changes the table, the descriptor range and the poll set -- the main
+  thread for the incoming manager (accepts, the `heartbeat()` merge of the
+  players zone threads queue, the removals in its walks and in `CGReady`'s
+  handler, which it dispatches), the worker for the sharedserver -- and
+  every one of those writes takes `m_Mutex`, which the login link's lookups
+  take to read. Both polls now take the ZonePlayerManager shape anyway,
+  `fill()` and `collect()` under `m_Mutex` and the wait without it, so a
+  writer on another thread would be safe there. The walks stay unlocked, as
+  ZonePlayerManager's do: they call `deletePlayer`/`addPlayer` (and the
+  sharedserver's handlers `broadcast`), which take the non-recursive mutex
+  themselves, and the incoming walks destroy players, which saves to the
+  database under the player finder, guild and SharedServerManager locks --
+  a zone thread queuing a player with `pushPlayer()` under its group mutex
+  would wait on that. Each manager's header states the rule and the lock
+  order; the commented-out sections are gone.
+  > **Status:** not a defect (the polls take the ZonePlayerManager shape in
+  > fix/manager-residue)
+
 ## The union broadcasts took zone-group mutexes on the thread that called them (2026-09-24)
 
 - **`sendGCOtherModifyInfoGuildUnionByGuildID` and its single-creature
@@ -3042,7 +3085,15 @@ connection keep-alive reschedules with `dummyQueryTime.tv_sec = (60 + rand()
 hour after the epoch, is always in the past, and `executeDummyQuery()` fires
 on every pass of a loop that now turns roughly every millisecond. Left alone
 here deliberately: the lifecycle migration changed no thread's actual work.
-> **Status:** open
+The deadline now advances from itself there as it does at the other nine
+keep-alive sites -- the gameserver's `ClientManager`, `GDRLairManager`,
+`LoginServerManager`, `MPlayerManager`, `SharedServerManager`,
+`SMSServiceThread` and `ZoneGroupThread`, and the loginserver's
+`ClientManager` -- and all ten compute it through one function,
+`de::nextKeepAliveDeadline` (`src/server/KeepAlive.h`), an hour plus up to
+29 minutes past the previous deadline. `tests/keep_alive_test.cpp` pins the
+bounds and that the deadline moves from itself, not from the epoch.
+> **Status:** fixed (fix/manager-residue)
 
 ## Self-initialised pointer in sharedserver processOutputs() (2026-09-05)
 

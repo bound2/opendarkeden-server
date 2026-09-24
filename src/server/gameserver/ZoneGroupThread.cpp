@@ -8,6 +8,7 @@
 
 #include "DB.h"
 #include "GMServerInfo.h"
+#include "KeepAlive.h"
 #include "KernelContext.h"
 #include "Profile.h"
 #include "Properties.h"
@@ -146,9 +147,7 @@ void ZoneGroupThread::run()
                 database.executeDummyQuery(pConnection);
                 database.executeDummyQuery(pDistConnection);
 
-                // Schedule the dummy query between 1 hour and 1 hour 30 minutes out,
-                // so the connection does not time out.
-                dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
+                dummyQueryTime = de::nextKeepAliveDeadline(dummyQueryTime, rand());
             }
 
 

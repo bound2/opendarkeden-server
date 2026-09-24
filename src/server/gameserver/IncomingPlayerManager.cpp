@@ -211,14 +211,26 @@ void IncomingPlayerManager::broadcast(Packet* pPacket)
 void IncomingPlayerManager::pollSockets() {
     __BEGIN_TRY
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
+    // The membership is read and the answers are stored under the mutex that
+    // guards the table, while the wait itself runs without it, so a thread
+    // looking a player up is never held for the length of a poll.
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    m_PollSet.fill();
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     // A failed wait, which is what an arriving signal makes of it, leaves
     // every descriptor unready, so this tick processes nothing and the next
     // one asks again.
-    m_PollSet.pollOnce(m_TimeoutMilliseconds);
+    m_PollSet.wait(m_TimeoutMilliseconds);
 
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    // A player added or removed while the wait ran keeps no answer from it.
+    m_PollSet.collect();
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }
@@ -233,15 +245,10 @@ void IncomingPlayerManager::pollSockets() {
 void IncomingPlayerManager::processInputs() {
     __BEGIN_TRY
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
-
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
-        // m_Mutex.unlock();
         return;
     }
-
-    // copyPlayers();
 
     const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
     for (int i = walk.first; i <= walk.last; i++) {
@@ -336,8 +343,6 @@ void IncomingPlayerManager::processInputs() {
         }
     }
 
-    //	__LEAVE_CRITICAL_SECTION(m_Mutex)
-
     __END_CATCH
 }
 
@@ -350,15 +355,10 @@ void IncomingPlayerManager::processCommands() {
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
-
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
-        // m_Mutex.unlock();
         return;
     }
-
-    // copyPlayers();
 
     const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
     for (int i = walk.first; i <= walk.last; i++) {
@@ -450,8 +450,6 @@ void IncomingPlayerManager::processCommands() {
         }
     }
 
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
-
     __END_DEBUG
     __END_CATCH
 }
@@ -464,15 +462,10 @@ void IncomingPlayerManager::processCommands() {
 void IncomingPlayerManager::processOutputs() {
     __BEGIN_TRY
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
-
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
-        // m_Mutex.unlock();
         return;
     }
-
-    // copyPlayers();
 
     const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
     for (int i = walk.first; i <= walk.last; i++) {
@@ -597,8 +590,6 @@ void IncomingPlayerManager::processOutputs() {
         }
     }
 
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
-
     __END_CATCH
 }
 
@@ -612,15 +603,10 @@ void IncomingPlayerManager::processOutputs() {
 void IncomingPlayerManager::processExceptions() {
     __BEGIN_TRY
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
-
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
-        // m_Mutex.unlock();
         return;
     }
-
-    // copyPlayers();
 
     const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
     for (int i = walk.first; i <= walk.last; i++) {
@@ -668,8 +654,6 @@ void IncomingPlayerManager::processExceptions() {
             }
         }
     }
-
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }

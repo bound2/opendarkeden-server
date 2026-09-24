@@ -12,6 +12,7 @@
 #include "DB.h"
 #include "GCRequestPowerPointResult.h"
 #include "GameContext.h"
+#include "KeepAlive.h"
 #include "KernelContext.h"
 #include "MPlayer.h"
 #include "Mofus.h"
@@ -105,7 +106,7 @@ void MPlayerManager::run() {
         if (dummyQueryTime < currentTime) {
             de::serverContext().database().executeDummyQuery(pConnection);
 
-            dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
+            dummyQueryTime = de::nextKeepAliveDeadline(dummyQueryTime, rand());
         }
     }
 

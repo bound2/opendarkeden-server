@@ -437,6 +437,17 @@ add_dependencies(wire_tests descriptor_poll_set_tests)
 add_test(NAME descriptor_poll_set_tests COMMAND descriptor_poll_set_tests)
 set_tests_properties(descriptor_poll_set_tests PROPERTIES TIMEOUT 30)
 
+# When a worker next runs its database keep-alive query. KeepAlive.h is
+# header-only arithmetic on a timeval, so this links nothing but gtest.
+add_executable(keep_alive_tests EXCLUDE_FROM_ALL keep_alive_test.cpp)
+target_include_directories(keep_alive_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/server
+)
+target_link_libraries(keep_alive_tests PRIVATE gtest_main Threads::Threads)
+add_dependencies(wire_tests keep_alive_tests)
+add_test(NAME keep_alive_tests COMMAND keep_alive_tests)
+set_tests_properties(keep_alive_tests PROPERTIES TIMEOUT 30)
+
 add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)
 target_include_directories(shutdown_probe PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
 target_link_libraries(shutdown_probe PRIVATE Threads::Threads)

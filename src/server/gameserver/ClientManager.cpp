@@ -10,6 +10,7 @@
 #include "DB.h"
 #include "GameContext.h"
 #include "IncomingPlayerManager.h"
+#include "KeepAlive.h"
 #include "Properties.h"
 #include "ServerShutdown.h"
 #include "ServerSocket.h"
@@ -178,8 +179,7 @@ void ClientManager::run()
             de::serverContext().database().executeDummyQuery(
                 de::serverContext().database().getDistConnection("PLAYERDB"));
 
-            // Set a dummy query time between 1h and 1h30 to avoid timeouts.
-            dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
+            dummyQueryTime = de::nextKeepAliveDeadline(dummyQueryTime, rand());
         }
 
         if (m_BalanceZoneGroupTime < currentTime) {

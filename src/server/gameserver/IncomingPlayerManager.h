@@ -27,6 +27,31 @@
 //
 // After a new connection is authenticated, the creature is loaded and tied to the player.
 // Once the creature is loaded, the player and the creature are handed to another zone group.
+//
+// Threads and m_Mutex. The main thread (ClientManager::run) is the only
+// thread that changes the player table, the descriptor range and the poll
+// set: it accepts connections, merges the players the zone threads queue
+// with pushPlayer() in heartbeat(), and removes players from its own walks
+// and from CGReady's handler, which it dispatches. Every one of those writes
+// takes m_Mutex. The other threads only read the table, under m_Mutex:
+// LoginServerManager's LG handlers look players up with getPlayer() and
+// getReadyPlayer() while holding LoginServerManager's own mutex (so the
+// order is LoginServerManager::m_Mutex -> m_Mutex), and a zone thread takes
+// m_Mutex only to queue a player with pushPlayer() while it holds its
+// group's mutex (group mutex -> m_Mutex).
+//
+// pollSockets() therefore follows ZonePlayerManager: fill() and collect()
+// under m_Mutex, the wait between them without it. The input, output,
+// exception and command walks run without m_Mutex, like
+// ZonePlayerManager's: the thread walking is the only thread that writes
+// what they read, so they cannot see a half-made change. Holding the mutex
+// across them would also be wrong in two ways. Their removals call
+// deletePlayer() and the accept path calls addPlayer(), which take the
+// non-recursive m_Mutex themselves. And they disconnect and destroy
+// players, which saves to the database and takes the player finder, guild
+// and SharedServerManager locks: a zone thread's pushPlayer(), made under
+// its group mutex, would wait behind that database work, and m_Mutex would
+// become an outer lock of all of those.
 //////////////////////////////////////////////////////////////////////////////
 
 class IncomingPlayerManager : public PlayerManager {
@@ -41,7 +66,7 @@ public:
     // broadcast packet to all players
     void broadcast(Packet* pPacket);
 
-    // The following methods are called by the ZoneThread.
+    // The following methods are called by the main thread, once a tick.
 
     // Ask the kernel which of this manager's descriptors are ready.
     void pollSockets();

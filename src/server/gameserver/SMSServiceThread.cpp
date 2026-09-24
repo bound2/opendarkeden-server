@@ -6,6 +6,7 @@
 
 #include "Assert.h"
 #include "Deployment.h"
+#include "KeepAlive.h"
 #include "KernelContext.h"
 #include "Properties.h"
 #include "StringStream.h"
@@ -145,9 +146,7 @@ void SMSServiceThread::run() {
         if (dummyQueryTime < currentTime) {
             defaultSMSMessageRepository().keepAlive();
 
-            // Set the dummy query time between 1 hour and 1 hour 30 minutes.
-            // This is to keep the connection from timing out.
-            dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
+            dummyQueryTime = de::nextKeepAliveDeadline(dummyQueryTime, rand());
         }
 
         // Check the queue once per second. Stop-aware, so a shutdown request

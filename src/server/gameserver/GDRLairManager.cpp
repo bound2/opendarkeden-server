@@ -15,6 +15,7 @@
 #include "Inventory.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
+#include "KeepAlive.h"
 #include "KernelContext.h"
 #include "Monster.h"
 #include "MonsterAI.h"
@@ -101,7 +102,7 @@ void GDRLairManager::run() {
         if (dummyQueryTime < currentTime) {
             de::serverContext().database().executeDummyQuery(pConnection);
 
-            dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
+            dummyQueryTime = de::nextKeepAliveDeadline(dummyQueryTime, rand());
         }
 
         usleep(100);

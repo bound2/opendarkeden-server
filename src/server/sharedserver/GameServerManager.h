@@ -21,6 +21,24 @@
 //
 // class GameServerManager;
 //
+// The sharedserver's one worker: it owns the listening socket and the game
+// server connections, dispatches their GS packets and runs the guild
+// heartbeat, all from run().
+//
+// Threads and m_Mutex. This thread is the only one that touches the game
+// server table, the descriptor range and the poll set. It accepts and drops
+// connections (addGameServerPlayer / deleteGameServerPlayer) and broadcasts
+// (from the GS handlers and the guild heartbeat it runs), each of which
+// takes m_Mutex; the sharedserver's main thread only waits for shutdown.
+//
+// pollSockets() follows ZonePlayerManager: fill() and collect() under
+// m_Mutex, the wait between them without it. The input, output, exception
+// and command walks run without m_Mutex, as ZonePlayerManager's do: the
+// thread walking is the only writer of what they read, and the mutex is
+// non-recursive while the calls inside the walks take it themselves -- the
+// add and delete above, and broadcast() from the handlers processCommands()
+// dispatches.
+//
 //////////////////////////////////////////////////////////////////////////////
 
 class GameServerManager : public ManagedThread {
