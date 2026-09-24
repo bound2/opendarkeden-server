@@ -99,6 +99,16 @@ using PlayerCommandMailbox = Mailbox<PostedPlayerCommand>;
 bool postToPlayer(const std::string& name, PlayerCommand command, GoneCommand ifGone = nullptr,
                   Scope scope = Scope::Zone);
 
+// postToPlayer for a player known by its account id (Player::getID())
+// rather than its character's name, as the login link's replies know it.
+// The same rules: the account's logged-in PC is looked up under the
+// PCFinder lock, and false means none was found and nothing was posted.
+// A player keeps its PCFinder entry from character load until it is
+// destroyed, so this also reaches a player that is logging out through the
+// main thread's IncomingPlayerManager.
+bool postToAccount(const std::string& playerID, PlayerCommand command, GoneCommand ifGone = nullptr,
+                   Scope scope = Scope::Zone);
+
 // Owner side; see the file comment for which owner runs what. Both return
 // the number of commands run. When the creature's zone group is not
 // `owner`'s -- a listing mismatch the manager itself logs as ZPMCheck -- the

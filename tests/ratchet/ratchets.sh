@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5158 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5155 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -603,6 +603,46 @@ elif [ -n "$union_dupes" ]; then
     fail=1
 else
     echo "[OK]   no seed guild belongs to two guild unions"
+fi
+
+# --- Every seed union has a member or a pending join offer ------------------
+# The union manager opens a union only for a join offer it records, and
+# dissolves one when its last member leaves or when its last pending join
+# offer is denied or fails to become a member (unionIsAbandoned in
+# src/server/gameserver/guild/GuildUnionJoinOffer.h). A union with neither
+# a GuildUnionMember row nor a JOIN row in GuildUnionOffer is left over from
+# code that opened unions for offers it then refused; it keeps its master
+# guild "in a union", so that guild can join no other. A QUIT or ESCAPE
+# row does not count: the first is a member's, the second a former member's
+# penalty.
+union_abandoned=$(perl -ne '
+    if (/^INSERT INTO `GuildUnionInfo` VALUES (.*);/) {
+        my $v = $1;
+        while ($v =~ /\((\d+),(\d+)\)/g) { $unions++; $master{$1} = $2; }
+    }
+    if (/^INSERT INTO `GuildUnionMember` VALUES (.*);/) {
+        my $v = $1;
+        while ($v =~ /\((\d+),(\d+)\)/g) { $held{$1} = 1; }
+    }
+    if (/^INSERT INTO `GuildUnionOffer` VALUES (.*);/) {
+        my $v = $1;
+        while ($v =~ /\((\d+),\x27JOIN\x27,(\d+),/g) { $held{$1} = 1; }
+    }
+    END {
+        unless ($unions) { print "NO_UNIONS\n"; exit; }
+        for my $u (sort { $a <=> $b } keys %master) {
+            print "union $u (master guild $master{$u}) has no member and no join offer\n" unless $held{$u};
+        }
+    }' initdb/DARKEDEN.sql)
+if [ "$union_abandoned" = "NO_UNIONS" ]; then
+    echo "[FAIL] no GuildUnionInfo rows found in initdb/DARKEDEN.sql (dump layout changed?)"
+    fail=1
+elif [ -n "$union_abandoned" ]; then
+    echo "$union_abandoned"
+    echo "[FAIL] a seed guild union has no member and no pending join offer (see above)"
+    fail=1
+else
+    echo "[OK]   every seed guild union has a member or a pending join offer"
 fi
 
 # --- Generated factory list is fresh ---------------------------------------

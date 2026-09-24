@@ -69,21 +69,106 @@ GuildUnionManager::GuildUnionManager() {
 // The registry frees the unions, live and retired.
 GuildUnionManager::~GuildUnionManager() = default;
 
-GuildUnion* GuildUnionManager::openUnion(GuildID_t masterGID) {
-    GuildUnion* pUnion = NULL;
+UnionJoinOfferVerdict GuildUnionManager::recordJoinOffer(GuildID_t applicantGID, GuildID_t masterGID,
+                                                         bool tooManyMembers) {
+    UnionJoinOfferVerdict verdict = UnionJoinOfferVerdict::ALREADY_IN_UNION;
+    bool opened = false;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    pUnion = m_Unions.unionOfGuild(masterGID);
+    GuildRepository& repository = defaultGuildRepository();
 
-    if (pUnion == NULL) {
-        const uint unionID = defaultGuildRepository().insertUnion(masterGID);
+    GuildUnion* pUnion = m_Unions.unionOfGuild(masterGID);
+
+    UnionJoinOfferFacts facts;
+    facts.applicantInUnion = m_Unions.unionOfGuild(applicantGID) != NULL;
+    facts.tooManyMembers = tooManyMembers;
+    if (pUnion == NULL)
+        facts.targetStanding = UnionJoinOfferFacts::TARGET_IN_NO_UNION;
+    else if (pUnion->getMasterGuildID() == masterGID)
+        facts.targetStanding = UnionJoinOfferFacts::TARGET_LEADS_UNION;
+    else
+        facts.targetStanding = UnionJoinOfferFacts::TARGET_IS_MEMBER;
+    facts.applicantHasOffer = repository.countOffers(applicantGID) > 0;
+    // Forced out of a union in the last ten days: penalised.
+    facts.applicantHasPenalty = repository.countRecentEscapes(applicantGID) > 0;
+    facts.unionMemberCount = pUnion != NULL ? repository.countUnionMembers(pUnion->getUnionID()) : 0;
+    facts.unionMemberLimit = de::gameContext().variables().getVariable(GUILD_UNION_MAX);
+
+    verdict = decideUnionJoinOffer(facts);
+
+    if (verdict == UnionJoinOfferVerdict::OPEN_UNION_AND_RECORD) {
+        const uint unionID = repository.insertUnion(masterGID);
         pUnion = m_Unions.publish(std::make_unique<GuildUnion>(unionID, masterGID));
+        opened = true;
+    }
+
+    if (verdict == UnionJoinOfferVerdict::OPEN_UNION_AND_RECORD || verdict == UnionJoinOfferVerdict::RECORD_OFFER) {
+        // Drop offers older than ten days.
+        repository.deleteStaleOffers(applicantGID);
+        repository.insertJoinOffer(pUnion->getUnionID(), applicantGID);
     }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    return pUnion;
+    // The other game servers keep their own copy of the union tables; without
+    // this, an offer to the same guild made on one of them would open a
+    // second union there.
+    if (opened)
+        sendRefreshCommand();
+
+    return verdict;
+}
+
+bool GuildUnionManager::dissolveIfAbandoned(uint uID) {
+    bool dissolved = false;
+    GuildID_t masterGuildID = 0;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    GuildUnion* pUnion = m_Unions.unionByID(uID);
+    if (pUnion != NULL)
+        masterGuildID = pUnion->getMasterGuildID();
+
+    dissolved = dissolveIfAbandoned_LOCKED(uID);
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    if (dissolved) {
+        // The master guild was the only guild in the union.
+        if (masterGuildID != 0)
+            notifyUnionChange(masterGuildID);
+
+        sendRefreshCommand();
+    }
+
+    return dissolved;
+}
+
+bool GuildUnionManager::dissolveIfAbandoned_LOCKED(uint uID) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    const int memberRows = repository.countUnionMembers(uID);
+    if (memberRows > 0)
+        return false;
+
+    // GuildUnionOffer.OfferType read as a number: JOIN is the enum's first
+    // value. A QUIT row belongs to a member and an ESCAPE row is a former
+    // member's penalty; neither keeps a union.
+    const int kJoinOfferType = 1;
+
+    const vector<UnionOfferRow> offers = repository.loadOffers(uID);
+    int pendingJoinOffers = 0;
+    for (size_t o = 0; o < offers.size(); o++) {
+        if (offers[o].offerType == kJoinOfferType)
+            pendingJoinOffers++;
+    }
+
+    if (!unionIsAbandoned(memberRows, pendingJoinOffers))
+        return false;
+
+    destroyUnion_LOCKED(uID);
+    return true;
 }
 
 void GuildUnionManager::sendModifyUnionInfo(uint gID) {
@@ -348,51 +433,34 @@ void GuildUnionManager::load() {
 uint GuildUnionOfferManager::offerJoin(GuildID_t gID, GuildID_t masterGID) {
     __BEGIN_TRY
 
-    if (GuildUnionManager::Instance().getGuildUnion(gID) != NULL)
-        return ALREADY_IN_UNION;
-    GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(masterGID);
-
+    // The guild sizes are read here, outside the union manager's lock, which
+    // the guild manager's locks may not be taken under.
     Guild* pReqGuild = de::gameContext().guilds().getGuild(gID);
     Guild* pMasterGuild = de::gameContext().guilds().getGuild(masterGID);
 
-    if (pReqGuild != NULL && pMasterGuild != NULL) {
-        if (pReqGuild->getActiveMemberCount() > MAX_GUILDMEMBER_ACTIVE_COUNT ||
-            pMasterGuild->getActiveMemberCount() > MAX_GUILDMEMBER_ACTIVE_COUNT) {
-            return TOO_MANY_MEMBER;
-        }
-    }
+    const bool tooManyMembers = pReqGuild != NULL && pMasterGuild != NULL &&
+                                (pReqGuild->getActiveMemberCount() > MAX_GUILDMEMBER_ACTIVE_COUNT ||
+                                 pMasterGuild->getActiveMemberCount() > MAX_GUILDMEMBER_ACTIVE_COUNT);
 
-    // The master guild's union, opened now if it has none. Another thread may
-    // have put the guild into a union since the lookup above; openUnion
-    // answers that union, which the guild then may not master.
-    if (pUnion == NULL)
-        pUnion = GuildUnionManager::Instance().openUnion(masterGID);
-
-    if (pUnion->getMasterGuildID() != masterGID) {
+    switch (GuildUnionManager::Instance().recordJoinOffer(gID, masterGID, tooManyMembers)) {
+    case UnionJoinOfferVerdict::RECORD_OFFER:
+    case UnionJoinOfferVerdict::OPEN_UNION_AND_RECORD:
+        return OK;
+    case UnionJoinOfferVerdict::ALREADY_IN_UNION:
+        return ALREADY_IN_UNION;
+    case UnionJoinOfferVerdict::TOO_MANY_MEMBER:
+        return TOO_MANY_MEMBER;
+    case UnionJoinOfferVerdict::TARGET_IS_NOT_MASTER:
         return TARGET_IS_NOT_MASTER;
-    }
-
-    if (hasOffer(gID)) {
+    case UnionJoinOfferVerdict::ALREADY_OFFER_SOMETHING:
         return ALREADY_OFFER_SOMETHING;
-    }
-
-    GuildRepository& repository = defaultGuildRepository();
-
-    // Was the guild forced out of a union in the last ten days? Then it is penalised.
-    if (repository.countRecentEscapes(gID) > 0) {
+    case UnionJoinOfferVerdict::YOU_HAVE_PENALTY:
         return YOU_HAVE_PENALTY;
-    }
-
-    if (repository.countUnionMembers(pUnion->getUnionID()) >=
-        de::gameContext().variables().getVariable(GUILD_UNION_MAX)) {
+    case UnionJoinOfferVerdict::NOT_ENOUGH_SLOT:
         return NOT_ENOUGH_SLOT;
     }
 
-    // Drop offers older than ten days.
-    repository.deleteStaleOffers(gID);
-    repository.insertJoinOffer(pUnion->getUnionID(), gID);
-
-    return OK;
+    throw Error("unknown union join offer verdict");
 
     __END_CATCH
 }
@@ -465,27 +533,28 @@ uint GuildUnionOfferManager::acceptJoin(GuildID_t gID) {
 
     clearOffer(gID);
 
-    GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
-    if (pUnion != NULL) {
-        return ALREADY_IN_UNION;
+    GuildUnionManager& unions = GuildUnionManager::Instance();
+    const uint uID = unionID;
+    uint result = OK;
+
+    if (unions.getGuildUnion(gID) != NULL) {
+        result = ALREADY_IN_UNION;
+    } else if (unions.getGuildUnionByUnionID(uID) == NULL) {
+        result = NO_TARGET_UNION;
+    } else if (repository.countUnionMembers(uID) >= de::gameContext().variables().getVariable(GUILD_UNION_MAX)) {
+        result = NOT_ENOUGH_SLOT;
+    } else if (!unions.addGuild(uID, gID)) {
+        // Another change came between the checks above and this one: the
+        // guild joined some union, or this union was dissolved.
+        result = unions.getGuildUnion(gID) != NULL ? ALREADY_IN_UNION : NO_TARGET_UNION;
     }
 
-    uint uID = unionID;
-    pUnion = GuildUnionManager::Instance().getGuildUnionByUnionID(uID);
-    if (pUnion == NULL) {
-        return NO_TARGET_UNION;
-    }
+    // The offer is gone whether or not the join went through, so a union
+    // opened for it that got no member goes too.
+    if (result != OK)
+        unions.dissolveIfAbandoned(uID);
 
-    if (repository.countUnionMembers(uID) >= de::gameContext().variables().getVariable(GUILD_UNION_MAX)) {
-        return NOT_ENOUGH_SLOT;
-    }
-
-    // Another change may have come between the checks above and this one:
-    // the guild joined some union, or this union was dissolved.
-    if (!GuildUnionManager::Instance().addGuild(uID, gID))
-        return GuildUnionManager::Instance().getGuildUnion(gID) != NULL ? ALREADY_IN_UNION : NO_TARGET_UNION;
-
-    return OK;
+    return result;
 
     __END_CATCH
 }
@@ -526,23 +595,26 @@ uint GuildUnionOfferManager::acceptQuit(GuildID_t gID) {
 uint GuildUnionOfferManager::denyJoin(GuildID_t gID) {
     __BEGIN_TRY
 
+    uint result = OK;
+
     int unionID = 0;
     if (defaultGuildRepository().loadJoinOfferUnion(gID, unionID)) {
         clearOffer(gID);
 
-        GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
-        if (pUnion != NULL) {
-            return ALREADY_IN_UNION;
-        }
+        GuildUnionManager& unions = GuildUnionManager::Instance();
+        const uint uID = unionID;
 
-        uint uID = unionID;
-        pUnion = GuildUnionManager::Instance().getGuildUnionByUnionID(uID);
-        if (pUnion == NULL) {
-            return NO_TARGET_UNION;
-        }
+        if (unions.getGuildUnion(gID) != NULL)
+            result = ALREADY_IN_UNION;
+        else if (unions.getGuildUnionByUnionID(uID) == NULL)
+            result = NO_TARGET_UNION;
+
+        // A union opened for this offer that has no member and no other
+        // offer pending goes with the offer, on every game server.
+        unions.dissolveIfAbandoned(uID);
     }
 
-    return OK;
+    return result;
 
     __END_CATCH
 }

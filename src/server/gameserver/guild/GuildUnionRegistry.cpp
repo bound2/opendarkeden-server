@@ -69,6 +69,14 @@ bool GuildUnion::removeMember(GuildID_t gID) {
     return removed;
 }
 
+void GuildUnion::replaceMembers(const std::list<GuildID_t>& memberGuilds) {
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    m_Guilds = memberGuilds;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+}
+
 void GuildUnion::retire() {
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -179,21 +187,58 @@ bool GuildUnionRegistry::retire(uint uID) {
 void GuildUnionRegistry::replaceAll(std::vector<std::unique_ptr<GuildUnion>> fresh) {
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    for (size_t u = 0; u < m_Live.size(); u++) {
-        m_Live[u]->retire();
-        m_Retired.push_back(std::move(m_Live[u]));
+    // The live unions by id. Only the first of two live unions with one id
+    // can be kept; the other is retired below with the rest left over.
+    std::unordered_map<uint, size_t> previous;
+    for (size_t u = 0; u < m_Live.size(); u++)
+        previous.emplace(m_Live[u]->getUnionID(), u);
+
+    std::vector<std::unique_ptr<GuildUnion>> live;
+    live.reserve(fresh.size());
+
+    for (size_t u = 0; u < fresh.size(); u++) {
+        std::unordered_map<uint, size_t>::iterator itr = previous.find(fresh[u]->getUnionID());
+
+        if (itr != previous.end() && m_Live[itr->second]->getMasterGuildID() == fresh[u]->getMasterGuildID()) {
+            // Kept: the fresh copy lends its member list and is dropped
+            // with `fresh`, never having been handed out.
+            m_Live[itr->second]->replaceMembers(fresh[u]->getGuildList());
+            live.push_back(std::move(m_Live[itr->second]));
+            previous.erase(itr);
+        } else {
+            live.push_back(std::move(fresh[u]));
+        }
     }
-    m_Live.clear();
+
+    // What is left of the old set has vanished from the tables or changed
+    // master.
+    for (size_t u = 0; u < m_Live.size(); u++) {
+        if (m_Live[u] != nullptr) {
+            m_Live[u]->retire();
+            m_Retired.push_back(std::move(m_Live[u]));
+        }
+    }
+
+    m_Live = std::move(live);
     m_ByGuild.clear();
     m_ByID.clear();
 
-    for (size_t u = 0; u < fresh.size(); u++) {
-        GuildUnion* pUnion = fresh[u].get();
-        m_Live.push_back(std::move(fresh[u]));
-        publish_LOCKED(pUnion);
-    }
+    for (size_t u = 0; u < m_Live.size(); u++)
+        publish_LOCKED(m_Live[u].get());
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
+}
+
+size_t GuildUnionRegistry::retiredCount() const {
+    size_t count = 0;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    count = m_Retired.size();
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return count;
 }
 
 void GuildUnionRegistry::publish_LOCKED(GuildUnion* pUnion) {

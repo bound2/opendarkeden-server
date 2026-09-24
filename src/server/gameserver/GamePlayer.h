@@ -309,18 +309,4 @@ private:
     GamePlayer* m_pGamePlayer;
 };
 
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-class isSamePlayerbyID {
-public:
-    isSamePlayerbyID(const string& ID) : m_ID(ID) {}
-    bool operator()(GamePlayer* pGamePlayer) {
-        return pGamePlayer->getID() == m_ID;
-    }
-
-private:
-    // Creature ID
-    string m_ID;
-};
-
 #endif

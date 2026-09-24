@@ -64,6 +64,9 @@ private:
     // Registry side, under the registry's mutex.
     bool addMember(GuildID_t gID);
     bool removeMember(GuildID_t gID);
+    // The member list becomes `memberGuilds`, in one step under the union's
+    // mutex: a reader copies either the old list or the new one.
+    void replaceMembers(const std::list<GuildID_t>& memberGuilds);
     void retire();
 
     const uint m_UnionID;
@@ -75,6 +78,8 @@ private:
 };
 
 // The live unions, by id and by the guilds they hold, and the retired ones.
+// A union is retired when it is dissolved or when a reload no longer finds
+// it with the same master; a reload keeps every other union's object.
 // Every lookup and every change takes the registry's mutex; under it only a
 // union's own mutex is taken. The pointers the lookups hand out stay valid
 // until the registry is destroyed: a union taken out of the tables is
@@ -110,9 +115,21 @@ public:
     // guilds resolves to it any more. False when there is no such union.
     bool retire(uint uID);
 
-    // Retires every live union and makes `fresh` live in their place, in one
-    // step, so a reader finds either the old set or the new one.
+    // Makes the live set the one `fresh` describes, in one step, so a lookup
+    // finds either the old set or the new one. A live union whose id and
+    // master `fresh` still names is kept -- the same object, a reader's
+    // pointer to it stays live -- with its member list replaced by the fresh
+    // one; the fresh copy is dropped unpublished. A live union `fresh` no
+    // longer names, or names with another master, is retired, and a fresh
+    // union no live one matches is published. The guild and id entries are
+    // rebuilt from the result in `fresh`'s order, so a guild two unions list
+    // resolves to the later one, as publish() would have it.
     void replaceAll(std::vector<std::unique_ptr<GuildUnion>> fresh);
+
+    // How many unions have been retired over the registry's life. Each one
+    // stays allocated until the registry goes, so this is what a reload that
+    // changes nothing must leave unchanged.
+    size_t retiredCount() const;
 
 private:
     void publish_LOCKED(GuildUnion* pUnion);

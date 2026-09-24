@@ -12,7 +12,10 @@
 //               cases pin that a retired union resolves from nothing, keeps
 //               its id and master, and names no guild as a member; that a
 //               guild resolves to one union at a time; and that a reload
-//               retires the whole previous set in one step.
+//               swaps the set in one step, keeping the object of every
+//               union whose id and master are unchanged and retiring only
+//               the ones that vanished or changed master, so reloads do not
+//               pile up retired copies.
 //
 //               Only GuildUnionRegistry.cpp is linked; ServerCore carries
 //               Mutex.
@@ -158,27 +161,145 @@ TEST(GuildUnionRegistry, OnlyAListedMemberIsRemoved) {
     EXPECT_FALSE(registry.removeMember(7, 200)) << "a retired union's id";
 }
 
-// A reload swaps the whole set: every union read before it is retired, and
-// the same ids and guilds resolve to the objects loaded now.
-TEST(GuildUnionRegistry, AReloadRetiresEveryPreviousUnion) {
+// A reload that finds a union with the same id and master keeps the object
+// and gives it the member list the tables hold now.
+TEST(GuildUnionRegistry, AReloadKeepsAnUnchangedUnionWithItsNewMembers) {
     GuildUnionRegistry registry;
-    GuildUnion* pOld = registry.publish(makeUnion(7, 100, {200}));
+    GuildUnion* pKept = registry.publish(makeUnion(7, 100, {200, 300}));
+
+    std::vector<std::unique_ptr<GuildUnion>> fresh;
+    fresh.push_back(makeUnion(7, 100, {300, 500}));
+    registry.replaceAll(std::move(fresh));
+
+    EXPECT_FALSE(pKept->isRetired());
+    EXPECT_EQ(registry.unionByID(7), pKept) << "the same object, not the fresh copy";
+    EXPECT_EQ(registry.unionOfGuild(100), pKept);
+    EXPECT_EQ(registry.unionOfGuild(300), pKept);
+    EXPECT_EQ(registry.unionOfGuild(500), pKept) << "a member the reload found";
+    EXPECT_EQ(registry.unionOfGuild(200), nullptr) << "a member the reload no longer found";
+    EXPECT_EQ(pKept->getGuildList(), (std::list<GuildID_t>{300, 500}));
+    EXPECT_EQ(registry.retiredCount(), 0u);
+}
+
+// A union the tables no longer hold is retired; the others are kept.
+TEST(GuildUnionRegistry, AReloadRetiresAVanishedUnion) {
+    GuildUnionRegistry registry;
+    GuildUnion* pKept = registry.publish(makeUnion(7, 100, {200}));
     GuildUnion* pGone = registry.publish(makeUnion(8, 300, {400}));
 
     std::vector<std::unique_ptr<GuildUnion>> fresh;
-    fresh.push_back(makeUnion(7, 100, {200, 500}));
+    fresh.push_back(makeUnion(7, 100, {200}));
+    registry.replaceAll(std::move(fresh));
+
+    EXPECT_FALSE(pKept->isRetired());
+    EXPECT_TRUE(pGone->isRetired());
+    EXPECT_EQ(pGone->getUnionID(), 8u);
+    EXPECT_FALSE(pGone->hasGuild(400));
+
+    EXPECT_EQ(registry.unionByID(7), pKept);
+    EXPECT_EQ(registry.unionByID(8), nullptr) << "a union the tables no longer hold";
+    EXPECT_EQ(registry.unionOfGuild(300), nullptr);
+    EXPECT_EQ(registry.unionOfGuild(400), nullptr);
+    EXPECT_EQ(registry.retiredCount(), 1u);
+}
+
+// An id the tables now give another master is another union: the old
+// object is retired and the fresh one published.
+TEST(GuildUnionRegistry, AReloadReplacesAUnionWhoseMasterChanged) {
+    GuildUnionRegistry registry;
+    GuildUnion* pOld = registry.publish(makeUnion(7, 100, {200}));
+
+    std::vector<std::unique_ptr<GuildUnion>> fresh;
+    fresh.push_back(makeUnion(7, 300, {200}));
     GuildUnion* pNew = fresh.back().get();
     registry.replaceAll(std::move(fresh));
 
     EXPECT_TRUE(pOld->isRetired());
-    EXPECT_TRUE(pGone->isRetired());
+    EXPECT_EQ(pOld->getMasterGuildID(), 100) << "a retired union keeps the master it had";
     EXPECT_FALSE(pNew->isRetired());
-
     EXPECT_EQ(registry.unionByID(7), pNew);
+    EXPECT_EQ(registry.unionOfGuild(300), pNew);
     EXPECT_EQ(registry.unionOfGuild(200), pNew);
-    EXPECT_EQ(registry.unionOfGuild(500), pNew);
-    EXPECT_EQ(registry.unionByID(8), nullptr) << "a union the tables no longer hold";
-    EXPECT_EQ(registry.unionOfGuild(400), nullptr);
+    EXPECT_EQ(registry.unionOfGuild(100), nullptr);
+}
+
+// A union new to the tables is published by the reload that finds it.
+TEST(GuildUnionRegistry, AReloadPublishesANewUnion) {
+    GuildUnionRegistry registry;
+    GuildUnion* pKept = registry.publish(makeUnion(7, 100, {200}));
+
+    std::vector<std::unique_ptr<GuildUnion>> fresh;
+    fresh.push_back(makeUnion(7, 100, {200}));
+    fresh.push_back(makeUnion(9, 600, {700}));
+    GuildUnion* pNew = fresh.back().get();
+    registry.replaceAll(std::move(fresh));
+
+    EXPECT_EQ(registry.unionByID(7), pKept);
+    EXPECT_EQ(registry.unionByID(9), pNew);
+    EXPECT_EQ(registry.unionOfGuild(700), pNew);
+    EXPECT_EQ(registry.retiredCount(), 0u);
+}
+
+// Every change on any game server of the world is followed by a reload on
+// all of them, so reloads that change nothing must not pile up retired
+// copies of the unions.
+TEST(GuildUnionRegistry, RepeatedReloadsRetireNothingThatStayed) {
+    GuildUnionRegistry registry;
+
+    for (int round = 0; round < 100; round++) {
+        std::vector<std::unique_ptr<GuildUnion>> fresh;
+        fresh.push_back(makeUnion(7, 100, {200}));
+        fresh.push_back(makeUnion(8, 300, {static_cast<GuildID_t>(400 + round)}));
+        registry.replaceAll(std::move(fresh));
+    }
+
+    EXPECT_EQ(registry.retiredCount(), 0u);
+    ASSERT_NE(registry.unionByID(8), nullptr);
+    EXPECT_EQ(registry.unionByID(8)->getGuildList(), (std::list<GuildID_t>{499}));
+}
+
+// A reader that took a union before a reload reads it through the reload:
+// a kept union is never retired under it, and each copy of the member list
+// it takes is one the tables held, never a mix.
+TEST(GuildUnionRegistry, AReaderHoldingAKeptUnionReadsThroughReloads) {
+    GuildUnionRegistry registry;
+    GuildUnion* pHeld = registry.publish(makeUnion(7, 100, {200, 300}));
+
+    const std::list<GuildID_t> before{200, 300};
+    const std::list<GuildID_t> after{400, 500, 600};
+
+    std::atomic<bool> stop{false};
+    std::atomic<long> reads{0};
+
+    auto reader = [&] {
+        while (!stop.load()) {
+            EXPECT_FALSE(pHeld->isRetired());
+            EXPECT_TRUE(pHeld->hasGuild(100)) << "the master is in a live union";
+
+            const std::list<GuildID_t> guilds = pHeld->getGuildList();
+            EXPECT_TRUE(guilds == before || guilds == after);
+            reads.fetch_add(1);
+        }
+    };
+
+    std::thread first(reader);
+    std::thread second(reader);
+
+    while (reads.load() == 0)
+        std::this_thread::yield();
+
+    for (int round = 0; round < 2000; round++) {
+        std::vector<std::unique_ptr<GuildUnion>> fresh;
+        fresh.push_back(makeUnion(7, 100, round % 2 == 0 ? after : before));
+        registry.replaceAll(std::move(fresh));
+        EXPECT_EQ(registry.unionByID(7), pHeld);
+    }
+
+    stop.store(true);
+    first.join();
+    second.join();
+
+    EXPECT_EQ(registry.retiredCount(), 0u);
 }
 
 // Two unions listing one guild -- the tables do not forbid it -- leave it

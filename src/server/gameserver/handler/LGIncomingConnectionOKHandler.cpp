@@ -12,13 +12,11 @@
 #ifdef __GAME_SERVER__
 
 #include "Assert1.h"
-#include "DatabaseManager.h"
 #include "GCReconnectLogin.h"
 #include "GameContext.h"
 #include "GamePlayer.h"
-#include "IncomingPlayerManager.h"
 #include "LogDef.h"
-#include "Statement.h"
+#include "PlayerMailbox.h"
 
 #endif
 
@@ -35,54 +33,56 @@ void LGIncomingConnectionOKHandler::execute(LGIncomingConnectionOK* pPacket) {
     __BEGIN_TRY __BEGIN_DEBUG_EX
 #ifdef __GAME_SERVER__
 
-        try {
-        // Reach the player object by player id.
-        GamePlayer* pGamePlayer = NULL;
+        const string loginServerHost = pPacket->getHost();
+    const uint loginServerPort = pPacket->getTCPPort();
+    const DWORD key = pPacket->getKey();
 
-        try {
-            pGamePlayer = de::gameContext().incomingPlayers().getPlayer(pPacket->getPlayerID());
-        } catch (NoSuchElementException) {
-            pGamePlayer = de::gameContext().incomingPlayers().getReadyPlayer(pPacket->getPlayerID());
-        }
+    // The player is logging out through the main thread's
+    // IncomingPlayerManager, which reads its status and socket, and sends and
+    // deletes its reconnect packet when it disconnects it, so the answer is
+    // applied on that thread (PlayerMailbox.h, Scope::Player) rather than on
+    // this one. The login server names the account, not the character. A
+    // player no longer found has nobody to send the address to; it was
+    // dropped here before too.
+    de::postToAccount(
+        pPacket->getPlayerID(),
+        [=](PlayerCreature&, Player& player) {
+            GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(&player);
 
-        int fd = -1;
-        Socket* pSocket = pGamePlayer->getSocket();
-        if (pSocket != NULL)
-            fd = (int)pSocket->getSOCKET();
+            if (pGamePlayer == NULL)
+                return;
 
+            int fd = -1;
+            Socket* pSocket = pGamePlayer->getSocket();
+            if (pSocket != NULL)
+                fd = (int)pSocket->getSOCKET();
 
-        if (pGamePlayer->getPlayerStatus() == GPS_AFTER_SENDING_GL_INCOMING_CONNECTION) {
-            FILELOG_INCOMING_CONNECTION("incomingDisconnect.log", "OK FD : %d, %s", fd,
-                                        (pSocket == NULL ? "NULL" : pSocket->getHost().c_str()));
+            if (pGamePlayer->getPlayerStatus() == GPS_AFTER_SENDING_GL_INCOMING_CONNECTION) {
+                FILELOG_INCOMING_CONNECTION("incomingDisconnect.log", "OK FD : %d, %s", fd,
+                                            (pSocket == NULL ? "NULL" : pSocket->getHost().c_str()));
 
+                // Sending the packet here, right away, raced the client's own
+                // disconnect. It is stored on the GamePlayer instead, and the
+                // IncomingPlayerManager sends it when it disconnects the player.
+                GCReconnectLogin* gcReconnectLogin = new GCReconnectLogin;
+                gcReconnectLogin->setLoginServerIP(loginServerHost);
+                gcReconnectLogin->setLoginServerPort(loginServerPort);
+                gcReconnectLogin->setKey(key);
 
-            // Originally the packet was simply sent at this moment..
-            // but the disconnect did not go through properly because of timing while the client was
-            // already asking to connect, so it was cut off..
-            // It is stored on the GamePlayer and, when the IncomingPlayerManager disconnects,
-            // the stored packet is sent to the client.
-            GCReconnectLogin* gcReconnectLogin = new GCReconnectLogin;
-            gcReconnectLogin->setLoginServerIP(pPacket->getHost());
-            gcReconnectLogin->setLoginServerPort(pPacket->getTCPPort());
-            gcReconnectLogin->setKey(pPacket->getKey());
-
-            if (pGamePlayer != NULL) {
                 pGamePlayer->setReconnectPacket(gcReconnectLogin);
+            } else {
+                FILELOG_INCOMING_CONNECTION("incomingDisconnect.log", "Invalid FD : %d, %s, ps=%d", fd,
+                                            (pSocket == NULL ? "NULL" : pSocket->getHost().c_str()),
+                                            (int)pGamePlayer->getPlayerStatus());
             }
-        } else {
-            FILELOG_INCOMING_CONNECTION("incomingDisconnect.log", "Invalid FD : %d, %s, ps=%d", fd,
-                                        (pSocket == NULL ? "NULL" : pSocket->getHost().c_str()),
-                                        (int)pGamePlayer->getPlayerStatus());
-        }
 
-
-        // Done this way,
-        // the isPenaltyFlag() check in GamePlayer->processCommand() catches it and
-        // the next turn's IncomingPlayer->processCommands() cuts it off.
-        pGamePlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
-        pGamePlayer->setItemRatioBonusPoint(3);
-    } catch (NoSuchElementException& nsee) {
-    }
+            // The isPenaltyFlag() check in GamePlayer::processCommand(), which
+            // the IncomingPlayerManager runs right after this command, cuts
+            // the player off, and the disconnect sends the stored packet.
+            pGamePlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
+            pGamePlayer->setItemRatioBonusPoint(3);
+        },
+        nullptr, de::Scope::Player);
 
 #endif
 

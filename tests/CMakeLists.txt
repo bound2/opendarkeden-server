@@ -762,6 +762,22 @@ add_dependencies(wire_tests guild_union_teardown_tests)
 add_test(NAME guild_union_teardown_tests COMMAND guild_union_teardown_tests)
 set_tests_properties(guild_union_teardown_tests PROPERTIES TIMEOUT 60)
 
+# Whether a guild may offer to join a union, and when a union with nobody
+# left goes: every refusal is decided before a union is opened for the
+# offer, so a refused offer leaves no union behind. The rules answer from
+# plain values; the union manager that applies them needs the union tables.
+add_executable(guild_union_join_offer_tests EXCLUDE_FROM_ALL
+    guild_union_join_offer_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/guild/GuildUnionJoinOffer.cpp
+)
+target_include_directories(guild_union_join_offer_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/guild
+)
+target_link_libraries(guild_union_join_offer_tests PRIVATE gtest_main Threads::Threads)
+add_dependencies(wire_tests guild_union_join_offer_tests)
+add_test(NAME guild_union_join_offer_tests COMMAND guild_union_join_offer_tests)
+set_tests_properties(guild_union_join_offer_tests PROPERTIES TIMEOUT 60)
+
 # Which union a guild resolves to and what a retired union answers
 # (docs/FIXES.md): the union manager is changed and read from several
 # threads, so the unions it takes away are retired rather than freed and the

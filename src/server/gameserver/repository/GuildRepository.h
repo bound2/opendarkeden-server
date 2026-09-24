@@ -16,14 +16,14 @@
 // getString -> std::string).
 
 // Which spelling of the union handlers' two shared statements to send.
-// The deny handler backticks every identifier where the two quit
+// The expel handler backticks every identifier where the two quit
 // handlers do not; both parse to the same statement (none of the
 // identifiers is reserved, and the case of count() is not significant),
 // the caller says which text goes out.
 enum UnionStatementSpelling {
     // CGQuitUnionHandler, CGQuitUnionAcceptHandler.
     UNION_SQL_PLAIN,
-    // CGDenyUnionHandler.
+    // CGExpelGuildHandler.
     UNION_SQL_QUOTED,
     UNION_SQL_SPELLING_MAX
 };

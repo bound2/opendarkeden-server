@@ -13,6 +13,39 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A union offer never expires (2026-09-24)
+
+- **`GuildUnionOffer` holds one row per guild (its key is `OwnerGuildID`),
+  and the only statement that ages rows out, `deleteStaleOffers`, runs
+  after the pending-offer check has already found the guild has none,** so
+  it never deletes anything. A JOIN offer the union master never answers
+  keeps the applicant at `ALREADY_OFFER_SOMETHING` for good, and keeps the
+  union it targets alive (a pending JOIN offer is what a memberless union
+  exists for). An ESCAPE row, the ten-day penalty a guild that left a
+  union by force gets, is an offer row too, so the same check answers
+  first: the guild hears `ALREADY_OFFER_SOMETHING` rather than
+  `YOU_HAVE_PENALTY`, and after the ten days as well, since nothing
+  deletes an ESCAPE row -- `clearOffer` runs only on a guild with a JOIN or
+  QUIT row, which the key rules out. Seventeen seed guilds carry one
+  from 2006-2007. Making offers expire means purging a guild's stale rows before
+  the checks (in `GuildUnionManager::recordJoinOffer`, under the manager
+  mutex), dissolving the union a purged JOIN offer leaves abandoned, and
+  deciding whether the penalty should be answered before the pending-offer
+  check; that is a decision about the offer's lifetime, not a mechanical
+  move.
+  > **Status:** recorded, not fixed (fix/union-refresh)
+
+## The PC finder's removal tested the wrong iterator (2026-09-24)
+
+- **`PCFinder::deleteCreature` found the account entry with `m_IDs.find`
+  and then compared the name table's iterator against `m_IDs.end()`
+  before erasing,** a comparison between two containers' iterators, which
+  is undefined, and an erase of `end()` had the account entry been
+  missing. It tests the account iterator now, and erases the entry only
+  while it still names the creature being removed. The account table is
+  what `de::postToAccount` looks players up in.
+  > **Status:** fixed (fix/union-refresh)
+
 ## The Exchange point statements never reach the account database (2026-09-24)
 
 - **The ledger statements ask `getConnection("USERINFO")`, whose string
@@ -127,11 +160,20 @@ repo and the client's. Entries below are newest first; the oldest is the
   the world** (`sendRefreshCommand()` makes the others reload, and four CG
   handlers reload themselves), so each reload keeps one more copy of every
   union -- with the seed's 116 unions, about 20 KB per reload per server --
-  until the process exits. The guild manager's pattern this copies retires
-  its whole table only on a sharedserver resync. The fix is to keep a union
-  whose id and master are unchanged and replace its member list under the
-  union's own mutex, retiring only the unions that vanished.
-  > **Status:** recorded, not fixed (fix/union-lifetime)
+  until the process exits. `replaceAll` now keeps every live union whose
+  id and master the tables still hold -- the same object, so a pointer a
+  reader took stays live -- and gives it the fresh member list in one step
+  under the union's own mutex (`GuildUnion::replaceMembers`), so a reader
+  copies either the old list or the new one. Only a union that vanished
+  from the tables, or whose id now names another master, is retired, and a
+  new one is published; the id and guild maps are rebuilt from the result
+  in load order under the registry mutex, so the lock order (manager,
+  registry, union) and a retired union's answers are unchanged.
+  `tests/guild_union_registry_test.cpp` covers a kept union (same pointer,
+  new members), a vanished one, a changed master, a new one, a hundred
+  reloads that retire nothing, and readers holding a kept union across two
+  thousand reloads; `retiredCount()` is what they measure.
+  > **Status:** fixed (fix/union-refresh)
 
 ## A player's guild id was read from other threads while its owner wrote it (2026-09-24)
 
@@ -443,11 +485,29 @@ repo and the client's. Entries below are newest first; the oldest is the
   seed unions above, whose masters appear twice in `GuildUnionInfo`. The
   union is also created before the checks that can still refuse the offer
   (a pending offer, the escape penalty, a full union), so a refused first
-  offer leaves an empty union behind; most of the seed's 116 unions have no
-  member rows. The fix is in `GuildUnion.cpp`: refresh the other servers
-  after the create (or create the union when the first join is accepted),
-  and decide whether a refused offer should leave the union it made.
-  > **Status:** recorded, not fixed (fix/manager-residue)
+  offer leaves an empty union behind, and an empty union keeps its master
+  guild "in a union", so that guild can join no other. The rule is now a
+  union exists for its member guilds and for the guilds asking to join
+  it. `GuildUnionManager::recordJoinOffer` reads the facts, applies
+  `decideUnionJoinOffer` (`gameserver/guild/GuildUnionJoinOffer.h`, pinned
+  by `tests/guild_union_join_offer_test.cpp`: every refusal, in the order
+  the client was always answered in, comes before a union is opened) and
+  writes the union and the offer, all under the manager mutex, then
+  refreshes the other game servers when it opened a union. The last offer
+  going takes an empty union with it: `denyJoin`, and `acceptJoin` when the
+  join is refused after the offer is cleared, call `dissolveIfAbandoned`,
+  which under the manager mutex dissolves a union with no member row and no
+  pending JOIN offer (`unionIsAbandoned`) and refreshes the other servers.
+  That replaces the deny handler's own count-then-delete of the
+  `GuildUnionInfo` row, which dissolved a memberless union even with other
+  offers pending and reloaded only its own server. The removal paths
+  already dissolve a union whose last member leaves. Offers do not time
+  out (see "A union offer never expires"), so that case does not arise.
+  Of the seed's 116 unions, 73 had neither a member row nor a JOIN offer:
+  their `GuildUnionInfo` rows are gone, leaving 43, of which the 19 without
+  members each have a pending JOIN offer, and `tests/ratchet/ratchets.sh`
+  fails on a seed union with neither.
+  > **Status:** fixed (fix/union-refresh)
 
 ## The login link's LG handlers keep an incoming player past its lock (2026-09-24)
 
@@ -458,14 +518,22 @@ repo and the client's. Entries below are newest first; the oldest is the
   flag on the `LoginServerManager` thread,** while the main thread may be
   disconnecting and deleting that player in its walks or in `heartbeat()`,
   where `disconnect()` also reads and deletes the reconnect packet. The
-  lookup is locked; what follows it is not. The shape that fits is the one
-  the other LG handlers took: post the flag and the packet to the player
-  through its mailbox (`de::postToPlayer`), which the incoming manager's
-  command walk drains for `Scope::Player` commands. `de::postToPlayer`
-  finds its player by character name and these handlers know only the
-  account id, so the post needs a by-account form
-  (`PCFinder::getCreatureByID` is the lookup it would use).
-  > **Status:** recorded, not fixed (fix/manager-residue)
+  lookup is locked; what follows it is not, and doing the work under
+  `m_Mutex` would not close it either, since the walks disconnect a player
+  before they take `m_Mutex` to remove it. Both handlers now post their
+  work to the player's mailbox as a `Scope::Player` command through
+  `de::postToAccount`, the by-account form of `de::postToPlayer`
+  (`PCFinder::getCreatureByID_LOCKED` under the PCFinder lock; a logging-out
+  player keeps its PCFinder entry until it is destroyed). The incoming
+  manager's command walk runs it on the main thread right before
+  `processCommand`, which sees the kick flag and disconnects the player in
+  the same pass, sending the stored reconnect packet: the OK path's
+  status check, reconnect packet, kick flag and bonus point and the error
+  path's status assertion and kick are what they were. A reply that arrives
+  while the player is still queued between managers waits in the box
+  rather than being dropped. `getPlayer`, `getPlayer_NOBLOCKED` and
+  `getReadyPlayer`, which nothing else called, are gone.
+  > **Status:** fixed (fix/union-refresh)
 
 ## The incoming and sharedserver managers polled outside their mutex (2026-09-24)
 
