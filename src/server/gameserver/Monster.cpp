@@ -52,23 +52,23 @@
 
 // #ifdef __XMAS_EVENT_CODE__
 
-const string SantaSpeech[] = {"이 녀석들, 상당한 지식을 가진 놈들이었군!!!",
-                              "도망가자!!!",
-                              "피의 성서의 최후의 주인은 나다!!!",
-                              "멀뚱멀뚱~ O.o o.O",
-                              "메리 크리스마스!!",
-                              "크리스마스에 교회는 안 가고 뭐하는 거야!!!",
-                              "내가 죽을 것 같으냐!!!",
-                              "이런 완벽한 작전이 어떻게 들킨 거지???",
-                              "루돌프!!! 뿔을 뽑아서 공격해랏!!!",
-                              "이 녀석들 상당한 실력을 가진 놈들이었군!!!",
-                              "으~~~ 반드시 복수하겠다!!!",
-                              "아야~ 아파. 그만 때려.",
-                              "야 어디가..."};
+const string SantaSpeech[] = {"So you lot know a thing or two!!!",
+                              "Run for it!!!",
+                              "I will be the last master of the Blood Bible!!!",
+                              "Blink blink~ O.o o.O",
+                              "Merry Christmas!!",
+                              "Why aren't you in church on Christmas!!!",
+                              "You think I'll die that easily!!!",
+                              "How did a plan this perfect get found out???",
+                              "Rudolf!!! Pull out your antlers and charge!!!",
+                              "So you lot can really fight!!!",
+                              "Ugh~~~ I will have my revenge!!!",
+                              "Ouch~ That hurts. Stop hitting me.",
+                              "Hey, where are you going..."};
 
 const string RudolfSpeech[] = {
-    "워우~ 워우~", "꺄훌~", "끄에~",       "크르르~",     "징글벨~",
-    "멍멍",        "카오~", "깨갱~ 깨갱~", "깡총~ 깡총~", "멀뚱~ 멀뚱~ O.O",
+    "Whoa~ whoa~", "Yahoo~", "Kweh~",       "Grrr~",     "Jingle bells~",
+    "Woof woof",   "Kaoo~",  "Yelp~ yelp~", "Hop~ hop~", "Blink~ blink~ O.O",
 };
 
 const int SantaSpeechMax = 13;
@@ -195,7 +195,7 @@ Monster::Monster(MonsterType_t monsterType) : m_MonsterType(monsterType) {
 
         if (m_HP[ATTR_MAX] > 20000) {
             if (monsterType >= 717)
-                cout << pMonsterInfo->getEName() << "의 HP : " << m_HP[ATTR_MAX] << endl;
+                cout << pMonsterInfo->getEName() << "'s HP : " << m_HP[ATTR_MAX] << endl;
             else
                 m_HP[ATTR_MAX] = 20000;
         }
@@ -228,7 +228,7 @@ Monster::Monster(MonsterType_t monsterType) : m_MonsterType(monsterType) {
             if (aitype != 65535)
                 m_pBrain = new MonsterAI(this, aitype);
             else {
-                cout << pMonsterInfo->getEName() << "은 뇌가 없다." << endl;
+                cout << pMonsterInfo->getEName() << " has no AI." << endl;
                 m_pBrain = NULL;
             }
         } else {
