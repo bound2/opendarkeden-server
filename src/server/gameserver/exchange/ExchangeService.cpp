@@ -262,70 +262,7 @@ Outcome<ExchangePurchase, ExchangeRejection> ExchangeService::buyListing(PlayerC
     }
     const ExchangePurchaseTerms terms = std::move(decision).events();
 
-    // Begin transaction
-    if (!defaultExchangeRepository().beginTransaction()) {
-        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_TRANSACTION_ERROR));
-    }
-
-    // Every step below is part of the one purchase: the first that fails
-    // takes back the ones before it and names itself in the rejection.
-    auto unwind = [](const char* detail) {
-        defaultExchangeRepository().rollback();
-        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_TRANSACTION_ERROR, detail));
-    };
-
-    ExchangePurchase purchase;
-    purchase.listingID = listingID;
-    purchase.pricePoint = terms.pricePoint;
-    purchase.taxAmount = terms.taxAmount;
-    purchase.totalCost = terms.totalCost;
-    purchase.sellerIncome = terms.sellerIncome;
-
-    // Deduct points from buyer
-    if (!defaultExchangeRepository().adjustPoints(
-            request.buyerAccount, -terms.totalCost, purchase.buyerBalanceAfter, POINT_REASON_BUY, listingID, 0,
-            exchangeLedgerKey(request.idempotencyKey, kExchangeBuyLedgerSuffix))) {
-        return unwind("Failed to deduct buyer points");
-    }
-
-    // Add points to seller (after tax)
-    if (!defaultExchangeRepository().adjustPoints(
-            terms.sellerAccount, terms.sellerIncome, purchase.sellerBalanceAfter, POINT_REASON_SALE, listingID, 0,
-            exchangeLedgerKey(request.idempotencyKey, kExchangeSaleLedgerSuffix))) {
-        return unwind("Failed to add seller points");
-    }
-
-    // Create order
-    ExchangeOrder order;
-    order.orderID = 0;
-    order.listingID = listingID;
-    order.serverID = _marketServerID();
-    order.buyerAccount = request.buyerAccount;
-    order.buyerPlayer = request.buyerPlayer;
-    order.pricePoint = terms.pricePoint;
-    order.taxAmount = terms.taxAmount;
-    order.status = ORDER_STATUS_PAID;
-    order.createdAt = _getCurrentTime();
-    order.deliveredAt = "";
-    order.cancelledAt = "";
-
-    int64_t orderID = defaultExchangeRepository().createOrder(order);
-    if (orderID <= 0) {
-        return unwind("Failed to create order");
-    }
-
-    // Mark listing as sold
-    if (!defaultExchangeRepository().markListingSold(listingID, request.buyerAccount, request.buyerPlayer)) {
-        return unwind("Failed to mark listing sold");
-    }
-
-    // Commit transaction
-    if (!defaultExchangeRepository().commit()) {
-        return unwind("Failed to commit transaction");
-    }
-
-    purchase.orderID = orderID;
-    return Result::Ok(purchase);
+    return completeExchangePurchase(defaultExchangeRepository(), request, terms, _marketServerID());
 }
 
 vector<ExchangeOrder> ExchangeService::getBuyerOrders(const string& buyerPlayer, uint8_t status) {

@@ -4,18 +4,27 @@
 // connections mysql_repository_test.cpp's main() wires for this binary.
 // The dist connection PayPlay and two ServerInfo reads ask for, and the
 // "USERINFO" name the Exchange point statements ask for, both resolve to
-// the same server and DARKEDEN schema as the seeding below.
+// the same server and DARKEDEN schema as the seeding below. The Exchange
+// purchase's write path (completeExchangePurchase) runs here too, through
+// real transactions.
 //
 // Seeded names carry the "it-sc" prefix; numeric keys use 9170 and up.
 
+#include <atomic>
+#include <chrono>
+#include <future>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <gtest/gtest.h>
 
 #include "DB.h"
+#include "ExchangeDecision.h"
+#include "ExchangePurchase.h"
 #include "GCExchangeList.h"
 #include "ServerContext.h"
+#include "Thread.h"
 #include "repository/ExchangeRepository.h"
 #include "repository/PayPlayRepository.h"
 #include "repository/ServerInfoRepository.h"
@@ -326,6 +335,256 @@ TEST_F(ExchangeMySQL, TheTransactionPairHoldsOnTheOneConnection) {
     ExchangeListing* p = repo.getListing(kept);
     EXPECT_TRUE(p != NULL);
     delete p;
+}
+
+// --- the purchase's write path against real transactions ------------------
+
+// The listing and the request of one purchase of it by it-sc-bp, priced by
+// the real decision.
+struct ExchangeBuy {
+    ExchangeBuyRequest request;
+    ExchangePurchaseTerms terms;
+};
+
+ExchangeBuy decideBuy(int64_t listingID, const std::string& buyer, const std::string& key) {
+    ExchangeBuy buy;
+    buy.request.listingID = listingID;
+    buy.request.buyerAccount = buyer;
+    buy.request.buyerPlayer = buyer;
+    buy.request.idempotencyKey = key;
+    buy.request.serverID = 9170;
+    buy.request.taxRate = 8;
+    Outcome<ExchangePurchaseTerms, ExchangeRejection> decision =
+        decideBuyListing(defaultExchangeRepository(), buy.request);
+    EXPECT_TRUE(decision.isOk());
+    if (decision.isOk())
+        buy.terms = std::move(decision).events();
+    return buy;
+}
+
+// Whether the thread's connection holds anything a later START TRANSACTION
+// would commit: open and commit an empty pair, then count what the failed
+// purchase would have left.
+std::string rowsLeftAfterTheNextTransaction(int64_t listingID) {
+    ExchangeRepository& repo = defaultExchangeRepository();
+    EXPECT_TRUE(repo.beginTransaction());
+    EXPECT_TRUE(repo.commit());
+    return queryScalar("SELECT COUNT(*) FROM ExchangeOrder WHERE ListingID = " + i64(listingID));
+}
+
+// A purchase whose ledger step fails on the shipped schema: the point tables
+// are not where the ledger's name reaches, so the buyer's debit throws after
+// the claim and the order went through. Both are rolled back, and the
+// connection holds nothing a later transaction could commit.
+TEST_F(ExchangeMySQL, APurchaseWhoseLedgerIsUnreachableLeavesNoOrderAndNoClaim) {
+    ExchangeRepository& repo = defaultExchangeRepository();
+    int64_t id = repo.createListing(make(61));
+    ASSERT_GT(id, 0);
+
+    // The decision cannot run here (its reads hit the same missing tables),
+    // so the terms are the ones it would price.
+    ExchangeBuyRequest request;
+    request.listingID = id;
+    request.buyerAccount = "it-sc-buyer";
+    request.buyerPlayer = "it-sc-bp";
+    request.idempotencyKey = "it-sc-key-61";
+    request.serverID = 9170;
+    request.taxRate = 8;
+    ExchangePurchaseTerms terms;
+    terms.listingID = id;
+    terms.sellerAccount = "it-sc-seller";
+    terms.pricePoint = 500;
+    terms.taxAmount = 40;
+    terms.totalCost = 540;
+    terms.sellerIncome = 460;
+
+    auto result = completeExchangePurchase(repo, request, terms, 9170);
+
+    ASSERT_TRUE(result.isRejected());
+    EXPECT_EQ("Transaction error: Failed to deduct buyer points", result.rejection().message());
+    EXPECT_EQ("0", field("Status", id));
+    EXPECT_EQ("", field("BuyerAccount", id));
+    EXPECT_EQ("0", rowsLeftAfterTheNextTransaction(id));
+    EXPECT_EQ("0", field("Status", id));
+
+    // The connection takes the next write and keeps it.
+    EXPECT_TRUE(repo.markListingSold(id, "it-sc-buyer", "it-sc-bp"));
+    EXPECT_EQ("1", field("Status", id));
+}
+
+// The point tables, copied from USERINFO into the DARKEDEN schema for the
+// length of each test: the ledger's name reaches the DARKEDEN connection
+// (PointTablesAreNotReachableOnTheConnectionTheyAskFor), so this is where
+// its statements look. Dropped again afterwards, so that test still sees
+// them missing.
+class ExchangePurchaseMySQL : public ExchangeMySQL {
+protected:
+    virtual void SetUp() {
+        ExchangeMySQL::SetUp();
+        const std::string userInfo = de::serverContext().database().getUserInfoConnection()->getDatabase();
+        dropPointTables();
+        execSQL("CREATE TABLE AccountPoint LIKE `" + userInfo + "`.AccountPoint");
+        execSQL("CREATE TABLE PointLedger LIKE `" + userInfo + "`.PointLedger");
+    }
+    virtual void TearDown() {
+        dropPointTables();
+        ExchangeMySQL::TearDown();
+    }
+    static void dropPointTables() {
+        execSQL("DROP TABLE IF EXISTS AccountPoint");
+        execSQL("DROP TABLE IF EXISTS PointLedger");
+    }
+
+    static void seedPoints(const std::string& account, int balance) {
+        execSQL("INSERT INTO AccountPoint (Account, PointBalance, UpdatedAt) VALUES (" + q(account) + ", " +
+                std::to_string(balance) + ", NOW())");
+    }
+    static std::string balance(const std::string& account) {
+        return queryScalar("SELECT PointBalance FROM AccountPoint WHERE Account = " + q(account));
+    }
+    static std::string ledgerRows() {
+        return queryScalar("SELECT COUNT(*) FROM PointLedger");
+    }
+};
+
+TEST_F(ExchangePurchaseMySQL, APurchaseCommitsTheClaimTheOrderAndBothLedgerRowsTogether) {
+    ExchangeRepository& repo = defaultExchangeRepository();
+    int64_t id = repo.createListing(make(71));
+    ASSERT_GT(id, 0);
+    seedPoints("it-sc-buyer", 1000);
+
+    ExchangeBuy buy = decideBuy(id, "it-sc-buyer", "it-sc-key-71");
+    auto result = completeExchangePurchase(repo, buy.request, buy.terms, 9170);
+
+    ASSERT_TRUE(result.isOk());
+    const ExchangePurchase& purchase = result.events();
+    EXPECT_EQ(540, purchase.totalCost);
+    EXPECT_EQ(460, purchase.buyerBalanceAfter);
+    EXPECT_EQ(460, purchase.sellerBalanceAfter);
+
+    EXPECT_EQ("1", field("Status", id));
+    EXPECT_EQ("it-sc-buyer", field("BuyerAccount", id));
+    EXPECT_EQ(i64(purchase.orderID), queryScalar("SELECT OrderID FROM ExchangeOrder WHERE ListingID = " + i64(id)));
+    EXPECT_EQ("460", balance("it-sc-buyer"));
+    EXPECT_EQ("460", balance("it-sc-seller"));
+    EXPECT_EQ("-540", queryScalar("SELECT Delta FROM PointLedger WHERE IdempotencyKey = 'it-sc-key-71_buy'"));
+    EXPECT_EQ("460", queryScalar("SELECT Delta FROM PointLedger WHERE IdempotencyKey = 'it-sc-key-71_sale'"));
+
+    // A second buyer finds the listing sold at the claim and moves nothing.
+    seedPoints("it-sc-other", 1000);
+    ExchangeBuy late = buy;
+    late.request.buyerAccount = "it-sc-other";
+    late.request.buyerPlayer = "it-sc-op";
+    late.request.idempotencyKey = "it-sc-key-71b";
+    auto refused = completeExchangePurchase(repo, late.request, late.terms, 9170);
+    ASSERT_TRUE(refused.isRejected());
+    EXPECT_EQ(EXCHANGE_FAIL_LISTING_NOT_AVAILABLE, refused.rejection().code);
+    EXPECT_EQ("2", ledgerRows());
+    EXPECT_EQ("1000", balance("it-sc-other"));
+    EXPECT_EQ("it-sc-buyer", field("BuyerAccount", id));
+}
+
+// The order write fails with ER_DUP_ENTRY on ExchangeOrder's UNIQUE ListingID
+// (a stray order on an active listing) after the claim went through: the
+// claim is undone, no ledger row is written, and nothing is left for the
+// next transaction to commit.
+TEST_F(ExchangePurchaseMySQL, AFailedOrderWriteRollsBackTheClaimAndWritesNoLedgerRow) {
+    ExchangeRepository& repo = defaultExchangeRepository();
+    int64_t id = repo.createListing(make(72));
+    ASSERT_GT(id, 0);
+    seedPoints("it-sc-buyer", 1000);
+    execSQL("INSERT INTO ExchangeOrder (ListingID, ServerID, BuyerAccount, BuyerPlayer, PricePoint, TaxAmount, "
+            "Status, CreatedAt) VALUES (" +
+            i64(id) + ", 9170, 'it-sc-stray', 'it-sc-stray', 1, 0, 0, NOW())");
+
+    ExchangeBuy buy = decideBuy(id, "it-sc-buyer", "it-sc-key-72");
+    auto result = completeExchangePurchase(repo, buy.request, buy.terms, 9170);
+
+    ASSERT_TRUE(result.isRejected());
+    EXPECT_EQ("Transaction error: Failed to create order", result.rejection().message());
+    EXPECT_EQ("0", field("Status", id));
+    EXPECT_EQ("0", ledgerRows());
+    EXPECT_EQ("1000", balance("it-sc-buyer"));
+    EXPECT_EQ("1", rowsLeftAfterTheNextTransaction(id)); // the stray one alone
+    EXPECT_EQ("0", field("Status", id));
+    EXPECT_EQ("0", ledgerRows());
+
+    // With the stray order gone the same purchase goes through on the same
+    // connection.
+    execSQL("DELETE FROM ExchangeOrder WHERE BuyerAccount = 'it-sc-stray'");
+    auto retried = completeExchangePurchase(repo, buy.request, buy.terms, 9170);
+    ASSERT_TRUE(retried.isOk());
+    EXPECT_EQ("1", field("Status", id));
+    EXPECT_EQ("2", ledgerRows());
+    EXPECT_EQ("460", balance("it-sc-buyer"));
+}
+
+// The seller's leg is refused (its key is already in the ledger) after the
+// buyer's leg, the order and the claim were written: all three are rolled
+// back, and the purchase is refused as the replay the key says it is.
+TEST_F(ExchangePurchaseMySQL, ALedgerLegThatFailsTakesTheOtherLegTheOrderAndTheClaimWithIt) {
+    ExchangeRepository& repo = defaultExchangeRepository();
+    int64_t id = repo.createListing(make(73));
+    ASSERT_GT(id, 0);
+    seedPoints("it-sc-buyer", 1000);
+    execSQL("INSERT INTO PointLedger (Account, Delta, BalanceAfter, Reason, RefListingID, RefOrderID, "
+            "IdempotencyKey, CreatedAt) VALUES ('it-sc-else', 1, 1, 4, 0, 0, 'it-sc-key-73_sale', NOW())");
+
+    ExchangeBuy buy = decideBuy(id, "it-sc-buyer", "it-sc-key-73");
+    auto result = completeExchangePurchase(repo, buy.request, buy.terms, 9170);
+
+    ASSERT_TRUE(result.isRejected());
+    EXPECT_EQ(EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT, result.rejection().code);
+    EXPECT_EQ("0", field("Status", id));
+    EXPECT_EQ("1", ledgerRows());
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM PointLedger WHERE IdempotencyKey = 'it-sc-key-73_buy'"));
+    EXPECT_EQ("1000", balance("it-sc-buyer"));
+    EXPECT_EQ("", balance("it-sc-seller"));
+    EXPECT_EQ("0", rowsLeftAfterTheNextTransaction(id));
+    EXPECT_EQ("1", ledgerRows());
+    EXPECT_EQ("1000", balance("it-sc-buyer"));
+}
+
+// Two adjustments of one account from two threads, the first inside a
+// transaction: the second waits for the first's row lock and adds to its
+// balance instead of writing over it.
+TEST_F(ExchangePurchaseMySQL, ConcurrentAdjustmentsOfOneAccountBothCount) {
+    ExchangeRepository& repo = defaultExchangeRepository();
+    seedPoints("it-sc-seller", 100);
+
+    ASSERT_TRUE(repo.beginTransaction());
+    int firstAfter = 0;
+    ASSERT_TRUE(repo.adjustPoints("it-sc-seller", 50, firstAfter, POINT_REASON_SALE, 0, 0, "it-sc-key-81"));
+    EXPECT_EQ(150, firstAfter);
+
+    Connection* pMine = de::serverContext().database().getConnection("DARKEDEN");
+    std::promise<void> registered;
+    std::atomic<bool> finished(false);
+    bool secondAdjusted = false;
+    int secondAfter = 0;
+    std::thread other([&] {
+        de::serverContext().database().addConnection(
+            (int)(long)Thread::self(), new Connection(pMine->getHost(), pMine->getDatabase(), pMine->getUser(),
+                                                      pMine->getPassword(), pMine->getPort()));
+        registered.set_value();
+        secondAdjusted = defaultExchangeRepository().adjustPoints("it-sc-seller", 70, secondAfter, POINT_REASON_SALE, 0,
+                                                                  0, "it-sc-key-82");
+        finished = true;
+        mysql_thread_end();
+    });
+    registered.get_future().wait();
+
+    // Time for the other thread to reach the row; it cannot get past it
+    // until this transaction ends.
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    EXPECT_FALSE(finished);
+    EXPECT_TRUE(repo.commit());
+    other.join();
+
+    EXPECT_TRUE(secondAdjusted);
+    EXPECT_EQ(220, secondAfter);
+    EXPECT_EQ("220", balance("it-sc-seller"));
+    EXPECT_EQ("2", ledgerRows());
 }
 
 class PayPlayMySQL : public ::testing::Test {

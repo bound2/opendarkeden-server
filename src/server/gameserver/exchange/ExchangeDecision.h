@@ -192,9 +192,10 @@ struct ExchangePurchaseTerms {
 // The repository is passed in because every one of those but the last is a
 // database read; the writes stay with the caller, so this is a pure decision
 // over whatever the repository answers and needs no database in a test. A
-// repository that fails its query throws (the DB layer's own const char*);
-// that is a server fault, not a player-facing rejection, and is left to the
-// caller.
+// repository that fails its query throws (END_DB's DatabaseError); that is
+// a server fault, not a player-facing rejection, and is left to the caller.
+// The writes that follow an accepted decision are completeExchangePurchase's
+// (ExchangePurchase.h).
 [[nodiscard]] Outcome<ExchangePurchaseTerms, ExchangeRejection> decideBuyListing(ExchangeRepository& repository,
                                                                                  const ExchangeBuyRequest& request);
 

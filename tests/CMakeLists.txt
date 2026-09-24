@@ -126,7 +126,9 @@ set_tests_properties(repository_tests PROPERTIES TIMEOUT 60)
 # fixture); run `make integration-test` from the host. Compiles the MySQL
 # impl sources directly and links the macro-free Database library — the
 # repositories carry no server-type macros, so the objects match what the
-# gameserver builds.
+# gameserver builds. The Exchange purchase's write path (ExchangeDecision
+# and ExchangePurchase) is compiled in too, to run it against real
+# transactions.
 add_executable(mysql_repository_tests EXCLUDE_FROM_ALL
     integration/mysql_repository_test.cpp
     integration/mysql_login_purge_repository_test.cpp
@@ -138,6 +140,8 @@ add_executable(mysql_repository_tests EXCLUDE_FROM_ALL
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLBulletinBoardRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLComebackEventRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLContentInfoRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/exchange/ExchangeDecision.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/exchange/ExchangePurchase.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLExchangeRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLMessageRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLRegenZoneRepository.cpp
@@ -180,6 +184,7 @@ target_include_directories(mysql_repository_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src/Core
     ${CMAKE_SOURCE_DIR}/src/server
     ${CMAKE_SOURCE_DIR}/src/server/gameserver
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/exchange
     ${CMAKE_SOURCE_DIR}/src/server/loginserver
     ${CMAKE_SOURCE_DIR}/src/server/sharedserver
 )
@@ -606,16 +611,22 @@ set_tests_properties(login_decision_tests PROPERTIES TIMEOUT 180)
 # refusal, the precedence between them and the terms an accepted buy is
 # priced on are testable against a fake ExchangeRepository with no
 # database. formatExchangeError() is here too: its strings are what
-# GCExchangeBuy puts on the wire. ExchangeService itself is not linked -
-# it needs a PlayerCreature and an Item, which is why the decisions were
-# split out of it. de-kernel carries the ExchangeListing wire struct.
+# GCExchangeBuy puts on the wire. completeExchangePurchase(), the
+# purchase's writes under its transaction guard, runs against the same fake,
+# which honours the transaction and throws DatabaseError on request (hence
+# the database include directory, for that header alone). ExchangeService
+# itself is not linked - it needs a PlayerCreature and an Item, which is why
+# the decisions were split out of it. de-kernel carries the ExchangeListing
+# wire struct.
 add_executable(exchange_decision_tests EXCLUDE_FROM_ALL
     exchange_decision_test.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/exchange/ExchangeDecision.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/exchange/ExchangePurchase.cpp
 )
 target_include_directories(exchange_decision_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/support
     ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/database
     ${CMAKE_SOURCE_DIR}/src/server/gameserver
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/exchange
 )

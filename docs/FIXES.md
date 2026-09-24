@@ -13,6 +13,40 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## The Exchange point statements never reach the account database (2026-09-24)
+
+- **The ledger statements ask `getConnection("USERINFO")`, whose string
+  overload ignores its argument and answers the thread's DARKEDEN
+  connection, where `initdb/` creates neither `AccountPoint` nor
+  `PointLedger`,** so every ledger read throws and no buy gets past its
+  decision: the `DatabaseError` leaves `CGExchangeBuyHandler` and the
+  buyer is disconnected. `ExchangeRepository.h` and
+  `PointTablesAreNotReachableOnTheConnectionTheyAskFor` have said so since
+  the seam was cut; this entry records what the fix has to decide. The
+  only account-database connection is `getUserInfoConnection()`, one per
+  process and shared by every thread without a lock, so running the ledger
+  on it from the zone threads would interleave their transactions on one
+  session. It needs either an account connection per thread, registered by
+  every thread that buys, or the point tables moved beside the listings.
+  The purchase is ready for the first: its transaction pair issues each
+  statement once per distinct connection, and the order of its steps and
+  commits is written for two (`ExchangeRepository.h`).
+  > **Status:** recorded, not fixed (fix/exchange-rollback)
+
+## Two point adjustments of one account could lose one (2026-09-24)
+
+- **`adjustPoints` read the balance with a plain `SELECT` and wrote the
+  new one back whole with `REPLACE`,** so two adjustments of one account in
+  flight together — two purchases paying one seller from two zone threads —
+  each wrote their own sum, and the first was lost while its ledger row
+  still recorded it. The read is `SELECT ... FOR UPDATE` now: inside a
+  transaction the second adjustment waits for the first to end and adds to
+  its result. In autocommit mode the lock ends with the read; the service's
+  own `ExchangeService::adjustPoints` runs that way and has no caller.
+  `ConcurrentAdjustmentsOfOneAccountBothCount` in the MySQL tier runs the
+  two from two threads.
+  > **Status:** fixed (fix/exchange-rollback)
+
 ## Four CG handlers cast the player to a creature class it never is (2026-09-24)
 
 - **`CGExchangeBuyHandler`, `CGExchangeListHandler`, `CGQuitGuildHandler`
@@ -42,11 +76,34 @@ repo and the client's. Entries below are newest first; the oldest is the
   `adjustPoints` or the `ExchangeOrder.ListingID` unique violation from
   `createOrder` leaves both transactions open; the thread's next
   `START TRANSACTION` commits them implicitly, which can commit a point
-  adjustment with no order behind it. Two buyers of one listing on one
-  server reach the ledger collision; two servers of one world reach the
-  order collision. The fix is a rollback on every exit of the purchase,
-  which needs the connection pair's transaction shape decided first.
-  > **Status:** recorded, not fixed (fix/exchange-residue)
+  adjustment with no order behind it. The purchase's writes are
+  `completeExchangePurchase` (`exchange/ExchangePurchase.h`) now, under an
+  `ExchangeTransaction` guard that rolls the pair back on every way out
+  but its commit: a refusal, a thrown `DatabaseError`, any other
+  exception. A `DatabaseError` from any step, the begin and the commit
+  included, comes back as the purchase's refusal rather than disconnecting
+  the buyer. The pair issues each statement once per distinct connection,
+  and today both names reach the thread's DARKEDEN connection, so a
+  purchase is one transaction and its commit is atomic. The steps run
+  market first — the claim (`markListingSold`, which now answers whether it
+  matched an ACTIVE row, and holds that row's lock), then the order — and
+  ledger second, the buyer's debit then the seller's credit; the commits
+  run market first too. `ExchangeRepository.h` gives the order argument and
+  what a failure between two commits would leave once the ledger has a
+  connection of its own. The collisions are refusals: two buyers of one
+  listing, on one server or two of a world, meet at the claim, where the
+  second waits for the row lock and is refused as no longer available
+  before either reaches the order's or the ledger's unique key; a ledger
+  key another purchase holds (a client key reused across listings) fails
+  its leg, and a probe of the ledger after the rollback refuses it as a
+  replay; a debit the balance no longer covers is refused as such.
+  `tests/exchange_decision_test.cpp` pins the failure-to-refusal map, the
+  guard and a failure at every step against the fake, which now honours
+  the transaction; the MySQL tier runs a failing order write, a refused
+  ledger leg and an unreachable ledger through real transactions and
+  checks that the next transaction on the connection commits nothing of
+  them.
+  > **Status:** fixed (fix/exchange-rollback)
 
 ## A war's end reloads the castle's schedule on the main thread (2026-09-24)
 

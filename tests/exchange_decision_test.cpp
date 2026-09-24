@@ -3,17 +3,21 @@
 // the input that triggers it, the precedence between them, the terms an
 // accepted buy computes, and the English text each result code puts on the
 // wire in GCExchangeBuy; the ledger keys a buy is recorded under, and the
-// browse filter a CGExchangeList asks for. The repository is a fake, so no
-// database is involved; ExchangeService itself is not exercised here because
-// it needs a PlayerCreature and an Item.
+// browse filter a CGExchangeList asks for; and the purchase's writes
+// (ExchangePurchase.cpp): the transaction guard, and which failure maps to
+// which refusal. The repository is a fake, so no database is involved;
+// ExchangeService itself is not exercised here because it needs a
+// PlayerCreature and an Item.
 
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 
 #include <gtest/gtest.h>
 
 #include "CGExchangeList.h"
 #include "ExchangeDecision.h"
+#include "ExchangePurchase.h"
 #include "FakeExchangeRepository.h"
 
 namespace {
@@ -593,6 +597,364 @@ TEST(ExchangeSellerClaimDecision, OnlyTheSeller) {
     repository.addListing(listing);
 
     EXPECT_EQ(EXCHANGE_FAIL_NOT_SELLER, decideSellerClaim(repository, "Somebody", 10).rejection().code);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// The purchase's writes (ExchangePurchase.cpp): which failure maps to which
+// refusal, the transaction guard, and what a failed purchase leaves behind.
+//////////////////////////////////////////////////////////////////////////////
+
+TEST(ExchangePurchaseFailure, AClaimThatMatchesNothingIsASoldListing) {
+    EXPECT_EQ(EXCHANGE_FAIL_LISTING_NOT_AVAILABLE,
+              exchangePurchaseFailure(ExchangePurchaseStep::Claim, ExchangeStepFailure::Refused, false).code);
+    // The key probe is not the claim's business.
+    EXPECT_EQ(EXCHANGE_FAIL_LISTING_NOT_AVAILABLE,
+              exchangePurchaseFailure(ExchangePurchaseStep::Claim, ExchangeStepFailure::Refused, true).code);
+    EXPECT_EQ("Transaction error: Failed to mark listing sold",
+              exchangePurchaseFailure(ExchangePurchaseStep::Claim, ExchangeStepFailure::Error, false).message());
+}
+
+TEST(ExchangePurchaseFailure, ALedgerKeyAlreadyRecordedIsAReplayHoweverTheLegFailed) {
+    const ExchangePurchaseStep legs[] = {ExchangePurchaseStep::BuyerDebit, ExchangePurchaseStep::SellerCredit};
+    const ExchangeStepFailure failures[] = {ExchangeStepFailure::Refused, ExchangeStepFailure::Error};
+    for (ExchangePurchaseStep leg : legs) {
+        for (ExchangeStepFailure failure : failures) {
+            ExchangeRejection rejection = exchangePurchaseFailure(leg, failure, true);
+            EXPECT_EQ(EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT, rejection.code);
+            EXPECT_EQ("Duplicate transaction", rejection.message());
+        }
+    }
+}
+
+TEST(ExchangePurchaseFailure, ARefusedDebitWithoutTheKeyIsAnEmptyPurse) {
+    EXPECT_EQ(EXCHANGE_FAIL_INSUFFICIENT_POINTS,
+              exchangePurchaseFailure(ExchangePurchaseStep::BuyerDebit, ExchangeStepFailure::Refused, false).code);
+    // Thrown, it is the database's failure, not the buyer's balance.
+    EXPECT_EQ("Transaction error: Failed to deduct buyer points",
+              exchangePurchaseFailure(ExchangePurchaseStep::BuyerDebit, ExchangeStepFailure::Error, false).message());
+    // The seller's credit cannot run out of points; refused without its key
+    // it is a transaction error too.
+    EXPECT_EQ(
+        "Transaction error: Failed to add seller points",
+        exchangePurchaseFailure(ExchangePurchaseStep::SellerCredit, ExchangeStepFailure::Refused, false).message());
+    EXPECT_EQ("Transaction error: Failed to add seller points",
+              exchangePurchaseFailure(ExchangePurchaseStep::SellerCredit, ExchangeStepFailure::Error, false).message());
+}
+
+TEST(ExchangePurchaseFailure, EveryOtherStepIsATransactionErrorNamingIt) {
+    const ExchangeStepFailure failures[] = {ExchangeStepFailure::Refused, ExchangeStepFailure::Error};
+    for (ExchangeStepFailure failure : failures) {
+        for (bool recorded : {false, true}) {
+            EXPECT_EQ("Transaction error",
+                      exchangePurchaseFailure(ExchangePurchaseStep::Begin, failure, recorded).message());
+            EXPECT_EQ("Transaction error: Failed to create order",
+                      exchangePurchaseFailure(ExchangePurchaseStep::Order, failure, recorded).message());
+            EXPECT_EQ("Transaction error: Failed to commit transaction",
+                      exchangePurchaseFailure(ExchangePurchaseStep::Commit, failure, recorded).message());
+        }
+    }
+}
+
+// A repository primed for one accepted purchase of listing 10: the buyer can
+// afford it, the seller has a ledger row, and the terms come from the
+// decision itself.
+struct PurchaseFixture {
+    PurchaseFixture() {
+        repository.addListing(activeListing());
+        repository.setPointBalance("Buyer", 500);
+        repository.setPointBalance("seller-account", 40);
+        request = buyRequest();
+        request.idempotencyKey = resolveExchangeIdempotencyKey("", 1, 2, request.listingID);
+        terms = decideBuyListing(repository, request).events();
+    }
+
+    Outcome<ExchangePurchase, ExchangeRejection> purchase() {
+        return completeExchangePurchase(repository, request, terms, kServerID);
+    }
+
+    // Nothing of the purchase is left: the listing is ACTIVE, there is no
+    // order and no ledger row, both balances are as seeded, and no
+    // transaction is open.
+    void expectUntouched() {
+        ASSERT_EQ(1u, repository.listings().size());
+        EXPECT_EQ(LISTING_STATUS_ACTIVE, repository.listings()[0].status);
+        EXPECT_EQ("", repository.listings()[0].buyerPlayer);
+        EXPECT_TRUE(repository.orders().empty());
+        EXPECT_TRUE(repository.ledger().empty());
+        EXPECT_EQ(500, repository.getPointBalance("Buyer"));
+        EXPECT_EQ(40, repository.getPointBalance("seller-account"));
+        EXPECT_FALSE(repository.inTransaction());
+    }
+
+    FakeExchangeRepository repository;
+    ExchangeBuyRequest request;
+    ExchangePurchaseTerms terms;
+};
+
+TEST(ExchangePurchaseWrites, AnAcceptedPurchaseClaimsOrdersPaysAndCommits) {
+    PurchaseFixture f;
+
+    auto result = f.purchase();
+
+    ASSERT_TRUE(result.isOk());
+    const ExchangePurchase& purchase = result.events();
+    EXPECT_EQ(10, purchase.listingID);
+    EXPECT_EQ(100, purchase.pricePoint);
+    EXPECT_EQ(8, purchase.taxAmount);
+    EXPECT_EQ(108, purchase.totalCost);
+    EXPECT_EQ(92, purchase.sellerIncome);
+    EXPECT_EQ(392, purchase.buyerBalanceAfter);
+    EXPECT_EQ(132, purchase.sellerBalanceAfter);
+
+    EXPECT_EQ(LISTING_STATUS_SOLD, f.repository.listings()[0].status);
+    EXPECT_EQ("Buyer", f.repository.listings()[0].buyerPlayer);
+    ASSERT_EQ(1u, f.repository.orders().size());
+    EXPECT_EQ(purchase.orderID, f.repository.orders()[0].orderID);
+    EXPECT_EQ(10, f.repository.orders()[0].listingID);
+    EXPECT_EQ(kServerID, f.repository.orders()[0].serverID);
+    EXPECT_EQ(ORDER_STATUS_PAID, f.repository.orders()[0].status);
+
+    ASSERT_EQ(2u, f.repository.ledger().size());
+    EXPECT_EQ(-108, f.repository.ledger()[0].delta);
+    EXPECT_EQ(POINT_REASON_BUY, f.repository.ledger()[0].reason);
+    EXPECT_EQ(exchangeLedgerKey(f.request.idempotencyKey, kExchangeBuyLedgerSuffix),
+              f.repository.ledger()[0].idempotencyKey);
+    EXPECT_EQ(92, f.repository.ledger()[1].delta);
+    EXPECT_EQ(POINT_REASON_SALE, f.repository.ledger()[1].reason);
+    EXPECT_EQ(exchangeLedgerKey(f.request.idempotencyKey, kExchangeSaleLedgerSuffix),
+              f.repository.ledger()[1].idempotencyKey);
+
+    EXPECT_EQ(1, f.repository.transactionsBegun());
+    EXPECT_EQ(1, f.repository.commits());
+    EXPECT_EQ(0, f.repository.rollbacks());
+    EXPECT_FALSE(f.repository.inTransaction());
+}
+
+// The fix's core: a DatabaseError from any write, or from the commit, is
+// caught, both transactions are rolled back, and the buyer is refused with
+// the step named. Nothing the earlier steps wrote survives.
+TEST(ExchangePurchaseWrites, AThrownFailureAtAnyStepRollsEverythingBack) {
+    struct Case {
+        const char* method;
+        int nth;
+        const char* message;
+    };
+    const Case cases[] = {
+        {"markListingSold", 1, "Transaction error: Failed to mark listing sold"},
+        {"createOrder", 1, "Transaction error: Failed to create order"},
+        {"adjustPoints", 1, "Transaction error: Failed to deduct buyer points"},
+        {"adjustPoints", 2, "Transaction error: Failed to add seller points"},
+        {"commit", 1, "Transaction error: Failed to commit transaction"},
+        {"beginTransaction", 1, "Transaction error"},
+    };
+    for (const Case& c : cases) {
+        PurchaseFixture f;
+        f.repository.failOn(c.method, c.nth);
+
+        auto result = f.purchase();
+
+        ASSERT_TRUE(result.isRejected()) << c.method << " #" << c.nth;
+        EXPECT_EQ(c.message, result.rejection().message()) << c.method << " #" << c.nth;
+        EXPECT_EQ(1, f.repository.rollbacks()) << c.method << " #" << c.nth;
+        EXPECT_EQ(0, f.repository.commits()) << c.method << " #" << c.nth;
+        f.expectUntouched();
+    }
+}
+
+TEST(ExchangePurchaseWrites, AListingSoldSinceTheDecisionIsRefusedAsSold) {
+    PurchaseFixture f;
+    // Another buyer's purchase committed between the decision and the claim.
+    ASSERT_TRUE(f.repository.markListingSold(10, "Other", "Other"));
+
+    auto result = f.purchase();
+
+    ASSERT_TRUE(result.isRejected());
+    EXPECT_EQ(EXCHANGE_FAIL_LISTING_NOT_AVAILABLE, result.rejection().code);
+    EXPECT_EQ("Other", f.repository.listings()[0].buyerPlayer);
+    EXPECT_TRUE(f.repository.orders().empty());
+    EXPECT_TRUE(f.repository.ledger().empty());
+    EXPECT_EQ(1, f.repository.rollbacks());
+    EXPECT_FALSE(f.repository.inTransaction());
+}
+
+// Two purchases carrying one key: the other one's INSERT commits while this
+// one waits on the key's index entry, and this one's then fails. The probe
+// after the rollback finds the key, so the buyer is told it is a replay.
+TEST(ExchangePurchaseWrites, AKeyAnotherPurchaseCommittedMeanwhileIsAReplay) {
+    PurchaseFixture f;
+    FakeExchangeRepository::LedgerRow other;
+    other.account = "Other";
+    other.delta = -50;
+    other.reason = POINT_REASON_BUY;
+    other.refListingID = 77;
+    other.refOrderID = 0;
+    other.idempotencyKey = exchangeLedgerKey(f.request.idempotencyKey, kExchangeBuyLedgerSuffix);
+    f.repository.commitElsewhereOnRollback(other);
+    f.repository.failOn("adjustPoints");
+
+    auto result = f.purchase();
+
+    ASSERT_TRUE(result.isRejected());
+    EXPECT_EQ(EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT, result.rejection().code);
+    // The only ledger row is the other purchase's; this one left nothing.
+    ASSERT_EQ(1u, f.repository.ledger().size());
+    EXPECT_EQ("Other", f.repository.ledger()[0].account);
+    EXPECT_EQ(LISTING_STATUS_ACTIVE, f.repository.listings()[0].status);
+    EXPECT_TRUE(f.repository.orders().empty());
+    EXPECT_EQ(500, f.repository.getPointBalance("Buyer"));
+}
+
+// The seller's leg is probed under its own key.
+TEST(ExchangePurchaseWrites, ASaleKeyAlreadyRecordedIsAReplay) {
+    PurchaseFixture f;
+    int balanceAfter = 0;
+    ASSERT_TRUE(f.repository.adjustPoints("Other", 5, balanceAfter, POINT_REASON_ADJUST, 0, 0,
+                                          exchangeLedgerKey(f.request.idempotencyKey, kExchangeSaleLedgerSuffix)));
+
+    auto result = f.purchase();
+
+    ASSERT_TRUE(result.isRejected());
+    EXPECT_EQ(EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT, result.rejection().code);
+    ASSERT_EQ(1u, f.repository.ledger().size());
+    EXPECT_EQ("Other", f.repository.ledger()[0].account);
+    EXPECT_EQ(LISTING_STATUS_ACTIVE, f.repository.listings()[0].status);
+    EXPECT_TRUE(f.repository.orders().empty());
+    EXPECT_EQ(500, f.repository.getPointBalance("Buyer"));
+    EXPECT_EQ(1, f.repository.rollbacks());
+}
+
+TEST(ExchangePurchaseWrites, APurseEmptiedSinceTheDecisionIsRefusedAsSuch) {
+    PurchaseFixture f;
+    f.repository.setPointBalance("Buyer", 100);
+
+    auto result = f.purchase();
+
+    ASSERT_TRUE(result.isRejected());
+    EXPECT_EQ(EXCHANGE_FAIL_INSUFFICIENT_POINTS, result.rejection().code);
+    EXPECT_EQ(LISTING_STATUS_ACTIVE, f.repository.listings()[0].status);
+    EXPECT_TRUE(f.repository.orders().empty());
+    EXPECT_TRUE(f.repository.ledger().empty());
+    EXPECT_EQ(100, f.repository.getPointBalance("Buyer"));
+}
+
+TEST(ExchangePurchaseWrites, AProbeThatFailsCountsAsNoKey) {
+    PurchaseFixture f;
+    f.repository.failOn("adjustPoints");
+    f.repository.failOn("hasIdempotencyKey");
+
+    auto result = f.purchase();
+
+    ASSERT_TRUE(result.isRejected());
+    EXPECT_EQ("Transaction error: Failed to deduct buyer points", result.rejection().message());
+    f.expectUntouched();
+}
+
+TEST(ExchangePurchaseWrites, AFailedRollbackStillRefusesThePurchase) {
+    PurchaseFixture f;
+    f.repository.failOn("createOrder");
+    f.repository.failOn("rollback");
+
+    auto result = f.purchase();
+
+    ASSERT_TRUE(result.isRejected());
+    EXPECT_EQ("Transaction error: Failed to create order", result.rejection().message());
+    // The one rollback threw before the fake counted it, and the guard,
+    // counting the pair closed, made no second call.
+    EXPECT_EQ(0, f.repository.rollbacks());
+}
+
+TEST(ExchangeTransactionGuard, LeavingTheScopeUncommittedRollsBack) {
+    FakeExchangeRepository repository;
+    repository.addListing(activeListing());
+    {
+        ExchangeTransaction transaction(repository);
+        ASSERT_TRUE(transaction.begin());
+        ASSERT_TRUE(repository.markListingSold(10, "Buyer", "Buyer"));
+    }
+    EXPECT_EQ(1, repository.rollbacks());
+    EXPECT_EQ(LISTING_STATUS_ACTIVE, repository.listings()[0].status);
+    EXPECT_FALSE(repository.inTransaction());
+}
+
+TEST(ExchangeTransactionGuard, AnExceptionOutOfTheScopeRollsBack) {
+    FakeExchangeRepository repository;
+    repository.addListing(activeListing());
+    try {
+        ExchangeTransaction transaction(repository);
+        ASSERT_TRUE(transaction.begin());
+        ASSERT_TRUE(repository.markListingSold(10, "Buyer", "Buyer"));
+        throw std::runtime_error("not the database's");
+    } catch (const std::runtime_error&) {
+    }
+    EXPECT_EQ(1, repository.rollbacks());
+    EXPECT_EQ(LISTING_STATUS_ACTIVE, repository.listings()[0].status);
+}
+
+TEST(ExchangeTransactionGuard, ACommittedScopeIsNotRolledBack) {
+    FakeExchangeRepository repository;
+    repository.addListing(activeListing());
+    {
+        ExchangeTransaction transaction(repository);
+        ASSERT_TRUE(transaction.begin());
+        ASSERT_TRUE(repository.markListingSold(10, "Buyer", "Buyer"));
+        ASSERT_TRUE(transaction.commit());
+        EXPECT_FALSE(transaction.isOpen());
+    }
+    EXPECT_EQ(1, repository.commits());
+    EXPECT_EQ(0, repository.rollbacks());
+    EXPECT_EQ(LISTING_STATUS_SOLD, repository.listings()[0].status);
+}
+
+TEST(ExchangeTransactionGuard, ACommitThatThrowsIsRolledBackOnTheWayOut) {
+    FakeExchangeRepository repository;
+    repository.addListing(activeListing());
+    repository.failOn("commit");
+    try {
+        ExchangeTransaction transaction(repository);
+        ASSERT_TRUE(transaction.begin());
+        ASSERT_TRUE(repository.markListingSold(10, "Buyer", "Buyer"));
+        transaction.commit();
+        FAIL() << "the commit should have thrown";
+    } catch (const DatabaseError&) {
+    }
+    EXPECT_EQ(1, repository.rollbacks());
+    EXPECT_EQ(LISTING_STATUS_ACTIVE, repository.listings()[0].status);
+}
+
+// A begin that fails after starting one connection still leaves that one to
+// the guard.
+TEST(ExchangeTransactionGuard, ABeginThatThrowsIsStillRolledBack) {
+    FakeExchangeRepository repository;
+    repository.failOn("beginTransaction");
+    try {
+        ExchangeTransaction transaction(repository);
+        transaction.begin();
+        FAIL() << "the begin should have thrown";
+    } catch (const DatabaseError&) {
+    }
+    EXPECT_EQ(1, repository.rollbacks());
+}
+
+TEST(ExchangeTransactionGuard, TheDestructorSwallowsAFailedRollback) {
+    FakeExchangeRepository repository;
+    repository.failOn("rollback");
+    EXPECT_NO_THROW({
+        ExchangeTransaction transaction(repository);
+        transaction.begin();
+    });
+    EXPECT_EQ(0, repository.rollbacks());
+}
+
+TEST(ExchangeTransactionGuard, AnEarlyRollbackIsTheOnlyOne) {
+    FakeExchangeRepository repository;
+    {
+        ExchangeTransaction transaction(repository);
+        ASSERT_TRUE(transaction.begin());
+        transaction.rollback();
+        EXPECT_FALSE(transaction.isOpen());
+        transaction.rollback();
+    }
+    EXPECT_EQ(1, repository.rollbacks());
 }
 
 } // namespace

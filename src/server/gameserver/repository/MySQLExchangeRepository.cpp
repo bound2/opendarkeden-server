@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <exception>
 #include <iomanip>
 #include <sstream>
 #include <vector>
@@ -273,8 +274,11 @@ bool MySQLExchangeRepository::markListingSold(int64_t listingID, const string& b
                             escapeSQL(buyerAccount).c_str(), escapeSQL(buyerPlayer).c_str(), getCurrentTime().c_str(),
                             getCurrentTime().c_str(), (long long)listingID);
 
+        // The statement sets Status from 0 to 1, so a matched row is always
+        // a changed one and the affected count is the match.
+        const bool marked = pStmt->getAffectedRowCount() != 0;
         SAFE_DELETE(pStmt);
-        return true;
+        return marked;
     }
     END_DB(pStmt)
 
@@ -757,9 +761,14 @@ bool MySQLExchangeRepository::adjustPoints(const string& account, int delta, int
             SAFE_DELETE(pStmt);
         }
 
-        // Get current balance
+        // The current balance, read under the row's lock: the new balance is
+        // written back as an absolute value, so a plain read would let two
+        // concurrent adjustments of one account each write their own sum
+        // and lose the other's. The lock holds until the transaction ends,
+        // so the read and the write are one step only inside a transaction;
+        // in autocommit mode it is released with this statement.
         pStmt = pConn->createStatement();
-        pResult = pStmt->executeQuery("SELECT PointBalance FROM AccountPoint WHERE Account = '%s'",
+        pResult = pStmt->executeQuery("SELECT PointBalance FROM AccountPoint WHERE Account = '%s' FOR UPDATE",
                                       escapeSQL(account).c_str());
 
         int currentBalance = 0;
@@ -867,85 +876,96 @@ bool MySQLExchangeRepository::hasIdempotencyKey(const string& idempotencyKey) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Transaction helpers (cross-database)
+// The transaction pair
 //////////////////////////////////////////////////////////////////////////////
 
-// Begin cross-database transaction
+// The connection the listing and order statements run on.
+Connection* marketConnection() {
+    return de::serverContext().database().getConnection("DARKEDEN");
+}
+
+// The connection the point statements run on. Today the name resolves to the
+// same connection as marketConnection(); the pair compares the two so it
+// issues each statement once per distinct connection either way.
+Connection* ledgerConnection() {
+    return de::serverContext().database().getConnection("USERINFO");
+}
+
+// One transaction-control statement on one connection.
+void runTransactionStatement(Connection* pConnection, const char* sql) {
+    Statement* pStmt = NULL;
+
+    BEGIN_DB {
+        pStmt = pConnection->createStatement();
+        pStmt->executeQueryString(sql);
+        SAFE_DELETE(pStmt);
+    }
+    END_DB(pStmt)
+}
+
+// START TRANSACTION on the market connection, then on the ledger connection
+// when it is another one. A failure on the second leaves the first open for
+// the caller's rollback().
 bool MySQLExchangeRepository::beginTransaction() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    Connection* pMarket = marketConnection();
+    Connection* pLedger = ledgerConnection();
 
-    BEGIN_DB {
-        // Start transaction on DARKEDEN database
-        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("START TRANSACTION");
-        SAFE_DELETE(pStmt);
+    runTransactionStatement(pMarket, "START TRANSACTION");
+    if (pLedger != pMarket)
+        runTransactionStatement(pLedger, "START TRANSACTION");
 
-        // Start transaction on USERINFO database
-        pStmt = de::serverContext().database().getConnection("USERINFO")->createStatement();
-        pStmt->executeQuery("START TRANSACTION");
-        SAFE_DELETE(pStmt);
-
-        return true;
-    }
-    END_DB(pStmt)
+    return true;
 
     __END_CATCH
-
-    return false;
 }
 
-// Commit transaction
+// COMMIT on the market connection first, then on the ledger connection when
+// it is another one (the header says why that order).
 bool MySQLExchangeRepository::commit() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    Connection* pMarket = marketConnection();
+    Connection* pLedger = ledgerConnection();
 
-    BEGIN_DB {
-        // Commit DARKEDEN database
-        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("COMMIT");
-        SAFE_DELETE(pStmt);
+    runTransactionStatement(pMarket, "COMMIT");
+    if (pLedger != pMarket)
+        runTransactionStatement(pLedger, "COMMIT");
 
-        // Commit USERINFO database
-        pStmt = de::serverContext().database().getConnection("USERINFO")->createStatement();
-        pStmt->executeQuery("COMMIT");
-        SAFE_DELETE(pStmt);
-
-        return true;
-    }
-    END_DB(pStmt)
+    return true;
 
     __END_CATCH
-
-    return false;
 }
 
-// Rollback transaction
+// ROLLBACK on every distinct connection, each attempted whatever the other
+// one did; the first failure is rethrown once both were tried.
 bool MySQLExchangeRepository::rollback() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    Connection* pMarket = marketConnection();
+    Connection* pLedger = ledgerConnection();
 
-    BEGIN_DB {
-        // Rollback DARKEDEN database
-        pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("ROLLBACK");
-        SAFE_DELETE(pStmt);
-
-        // Rollback USERINFO database
-        pStmt = de::serverContext().database().getConnection("USERINFO")->createStatement();
-        pStmt->executeQuery("ROLLBACK");
-        SAFE_DELETE(pStmt);
-
-        return true;
+    std::exception_ptr firstFailure;
+    try {
+        runTransactionStatement(pMarket, "ROLLBACK");
+    } catch (...) {
+        firstFailure = std::current_exception();
     }
-    END_DB(pStmt)
+    if (pLedger != pMarket) {
+        try {
+            runTransactionStatement(pLedger, "ROLLBACK");
+        } catch (...) {
+            if (!firstFailure)
+                firstFailure = std::current_exception();
+        }
+    }
+    if (firstFailure)
+        std::rethrow_exception(firstFailure);
+
+    return true;
 
     __END_CATCH
-
-    return false;
 }
 
 } // namespace
