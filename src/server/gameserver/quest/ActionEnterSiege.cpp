@@ -80,15 +80,16 @@ void ActionEnterSiege::execute(Creature* pNPC, Creature* pCreature)
     Assert(siegeZoneID != 0);
 
 
-    SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(context().warSystem().getActiveWar(m_ZoneID));
-    if (pSiegeWar == NULL) {
+    // The siege is asked under the war system's lock: the main thread frees
+    // it there when it ends, which may have happened since the test above.
+    int side = 0;
+    if (!context().warSystem().getSiegeGuildSide(m_ZoneID, pPC->getGuildID(), side)) {
         GCSystemMessage gcSM;
         gcSM.setMessage("µÚ1¸ö·þÎñÆ÷·¢Éú¹ÊÕÏ£¬ÇëÓëÔËÓªÉÌÁªÏµ.");
         pGamePlayer->sendPacket(&gcSM);
         return;
     }
 
-    int side = pSiegeWar->getGuildSide(pPC->getGuildID());
     if (side == 0) {
         GCSystemMessage gcSM;
         gcSM.setMessage("²»ÊÇÉêÇëÕ½¶·µÄÐÐ»á.");

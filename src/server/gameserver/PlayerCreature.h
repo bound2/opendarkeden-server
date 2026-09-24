@@ -25,13 +25,10 @@
 #include <forward_list>
 #include <unordered_map>
 
+#include "CommonGuild.h"
 #include "GCMonsterKillQuestInfo.h"
 #include "OptionInfo.h"
 #include "repository/CharacterRace.h"
-
-static const GuildID_t SlayerCommon = 99;
-static const GuildID_t VampireCommon = 0;
-static const GuildID_t OustersCommon = 66;
 
 
 //////////////////////////////////////////////////////////////////////////////

@@ -133,10 +133,10 @@ void SiegeWar::executeEnd()
     //----------------------------------------------------------------------------
     sendWarEndMessage();
 
+    // The owner change and the fee credited after it run on the castle zone's
+    // thread, as GuildWar::executeEnd explains; the castle-following servers
+    // are told here, and post the change to their own castle group.
     if (m_bModifyCastleOwner) {
-        castleInfos.modifyCastleOwner(m_CastleZoneID, m_WinnerRace, m_WinnerGuildID);
-
-
         char sCommand[100];
         sprintf(sCommand, "*command setCastleOwnerGuild %u %u", m_CastleZoneID, m_WinnerGuildID);
         GGCommand ggCommand;
@@ -175,13 +175,9 @@ void SiegeWar::executeEnd()
         m_WinnerGuildID = pCastleInfo->getGuildID();
     }
 
-    //----------------------------------------------------------------------------
-    // The war application fee is piled onto the castle.
-    // (it is assumed the castle owner changed with the war result.)
-    //----------------------------------------------------------------------------
-    castleInfos.increaseTaxBalance(m_CastleZoneID, m_RegistrationFee);
+    castleInfos.postCastleWarEnd(m_CastleZoneID, m_bModifyCastleOwner, m_WinnerRace, m_WinnerGuildID,
+                                 m_RegistrationFee);
     m_RegistrationFee = 0;
-    // tinysave("war application fee=0") <-- is that needed?
 
     ZoneID_t siegeZoneID = SiegeManager::Instance().getSiegeZoneID(m_CastleZoneID);
     Assert(siegeZoneID != 0);

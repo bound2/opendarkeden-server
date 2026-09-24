@@ -1,8 +1,11 @@
 #ifndef __CASTLE_INFO_MANAGER_H__
 #define __CASTLE_INFO_MANAGER_H__
 
+#include <atomic>
+
 #include <unordered_map>
 
+#include "CommonGuild.h"
 #include "Exception.h"
 #include "PlayerCreature.h"
 #include "Types.h"
@@ -102,7 +105,7 @@ public:
     void getResurrectPosition(ResurrectPriority resurrectPriority, ZONE_COORD& zoneCoord);
 
     bool isCommon() const {
-        return (m_GuildID == SlayerCommon || m_GuildID == VampireCommon || m_GuildID == OustersCommon);
+        return isCommonGuildID(m_GuildID);
     }
 
     void broadcast(Packet* pPacket) const;
@@ -110,14 +113,24 @@ public:
     string toString() const;
 
 private:
-    ZoneID_t m_ZoneID;     // Zone ID
-    ShrineID_t m_ShrineID; // ShrineID of the castle symbol
-    GuildID_t m_GuildID;   // ID of the owning guild
-    string m_Name;         // Castle name
-    int m_ItemTaxRatio;    // Tax rate when buying items (%)
-    Gold_t m_EntranceFee;  // Entrance fee
-    Gold_t m_TaxBalance;   // Tax accumulated so far
-    Race_t m_Race;         // Which race the castle belongs to
+    // The zone, shrine, name, bonus options, zone list and resurrection
+    // positions are loaded once and never written again. The owner and what
+    // follows from it -- guild, race, entrance fee, item tax ratio -- change
+    // only through CastleInfoManager::modifyCastleOwner and setItemTaxRatio
+    // on the castle zone's own thread, while every zone thread reads them
+    // without a lock (castle gates, shops, resurrection), so they are atomics:
+    // a reader gets a value a writer stored, and two of them read one after
+    // the other may straddle an owner change. The tax balance is a counter
+    // that shops, resurrection fees and withdrawals move from any zone thread,
+    // so it is changed by compare-and-swap rather than read and rewritten.
+    ZoneID_t m_ZoneID;                 // Zone ID
+    ShrineID_t m_ShrineID;             // ShrineID of the castle symbol
+    std::atomic<GuildID_t> m_GuildID;  // ID of the owning guild
+    string m_Name;                     // Castle name
+    std::atomic<int> m_ItemTaxRatio;   // Tax rate when buying items (%)
+    std::atomic<Gold_t> m_EntranceFee; // Entrance fee
+    std::atomic<Gold_t> m_TaxBalance;  // Tax accumulated so far
+    std::atomic<Race_t> m_Race;        // Which race the castle belongs to
 
     list<OptionType_t> m_BonusOptionList; // Race bonus
     list<ZoneID_t> m_CastleZoneIDList;
@@ -142,8 +155,29 @@ public:
         return m_CastleInfos.size();
     }
 
+    // Hands the castle to a new owner: writes its row, resets the tax
+    // balance, entrance fee and item tax ratio, and, when the owning race
+    // changes, cancels the castle's war schedules and reloads its scheduler,
+    // which frees the wars the castle zone's thread executes. So it runs only
+    // on that thread, under the group mutex: callers on other threads post it
+    // there (ZoneGroup::post), as the two settlements below do.
     bool modifyCastleOwner(ZoneID_t zoneID, PlayerCreature* pPC);
     bool modifyCastleOwner(ZoneID_t zoneID, Race_t race, GuildID_t guildID);
+
+    // Settles a castle war's end on the castle zone's group, from whichever
+    // thread ended it: hands the castle to the winner when the war changed
+    // its owner (to the winner race's common guild if the winning guild has
+    // been deleted by then, see castleWarWinnerOwner), then credits the war's
+    // registration fee to the castle's balance, after the change has reset
+    // it. Captures values only; the war may be freed before the command runs.
+    void postCastleWarEnd(ZoneID_t castleZoneID, bool bChangeOwner, Race_t winnerRace, GuildID_t winnerGuildID,
+                          Gold_t registrationFee);
+
+    // Turns the castle common if the deleted guild still holds it when this
+    // runs (castleOwnerAfterGuildDeleted). Runs on the castle zone's thread,
+    // posted there by the guild deletion.
+    void settleGuildDeletion(ZoneID_t castleZoneID, GuildID_t deletedGuildID);
+
     bool tinysave(ZoneID_t zoneID, const string& query);
     bool increaseTaxBalance(ZoneID_t zoneID, Gold_t tax);
     bool decreaseTaxBalance(ZoneID_t zoneID, Gold_t tax);
