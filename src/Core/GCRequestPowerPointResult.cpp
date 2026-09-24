@@ -33,6 +33,8 @@ void GCRequestPowerPointResult::read(SocketInputStream& iStream)
 
     // Error code
     iStream.read(m_ErrorCode);
+    if (m_ErrorCode > kLastResultCode)
+        throw InvalidProtocolException("power point result code out of range");
 
     // PowerZzang points accumulated so far
     iStream.read(m_SumPowerPoint);

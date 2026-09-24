@@ -2126,17 +2126,22 @@ packet no server reads, not a field on the wire.
   in the packet layer and are left alone.
   > **Status:** fixed (wire/skill-disagreements)
 
-- `GCUsePowerPointResult::read` and `GCRequestPowerPointResult::read`
-  take their code bytes without comparing them against the last
+- **`GCUsePowerPointResult::read` and `GCRequestPowerPointResult::read`
+  took their code bytes without comparing them against the last
   enumerator of the `RESULT_CODE` and `ITEM_CODE` lists their own headers
-  declare, so a peer can announce a result no branch of the client
-  handles. Refusing them in `read()` needs both goldens re-recorded
-  first: `GCUsePowerPointResult.code0.hex` carries the codes `0x9D` /
-  `0x9E` and `GCRequestPowerPointResult.code0.hex` `0xA1`, out-of-range
-  values the fixture chose to follow the file's `>= 128` byte rule, so the
-  golden round trip would be refused. That is a fixture change, not a
-  layout one, and it waits on a decision to re-record.
-  > **Status:** open — recorded in `tests/packet_skill_test.cpp`
+  declare**, so a peer could announce a result no branch of the client
+  handles. Both reads now refuse a code past the last enumerator
+  (`kLastResultCode`, `kLastItemCode`) with `InvalidProtocolException`,
+  pinned by refusal tests in `tests/packet_skill_test.cpp`. The fixtures
+  behind the two goldens carried out-of-range codes -- `0x9D` / `0x9E` and
+  `0xA1`, chosen to follow the file's `>= 128` byte rule -- and were
+  re-recorded with each list's last enumerator, which pins the boundary:
+  `GCUsePowerPointResult.code0.hex` and
+  `GCRequestPowerPointResult.code0.hex` change in their code bytes only.
+  That is fixture content, not layout: no size or inventory line moves,
+  every sender already emits enumerators, and the client repo holds no
+  copy of these goldens.
+  > **Status:** fixed (fix/exchange-residue)
 
 ## Hard-coded BBS credentials in the `*notice` operator command (2026-09-10)
 

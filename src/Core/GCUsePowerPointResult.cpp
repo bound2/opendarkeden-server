@@ -33,9 +33,13 @@ void GCUsePowerPointResult::read(SocketInputStream& iStream)
 
     // Error code
     iStream.read(m_ErrorCode);
+    if (m_ErrorCode > kLastResultCode)
+        throw InvalidProtocolException("power point result code out of range");
 
     // Item Code
     iStream.read(m_ItemCode);
+    if (m_ItemCode > kLastItemCode)
+        throw InvalidProtocolException("power point item code out of range");
 
     // Power Point
     iStream.read(m_PowerPoint);

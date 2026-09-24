@@ -38,6 +38,11 @@ public:
         BLACK_RICE_CAKE_SOUP, // One black rice cake soup
     };
 
+    // The last code of each list. read() refuses a byte past it, since no
+    // branch of the receiver handles one.
+    static const BYTE kLastResultCode = NOT_ENOUGH_INVENTORY_SPACE;
+    static const BYTE kLastItemCode = BLACK_RICE_CAKE_SOUP;
+
 public:
     GCUsePowerPointResult();
     ~GCUsePowerPointResult();
