@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "ExchangeDecision.h"
+#include "ExchangePurchase.h"
 #include "Outcome.h"
 #include "repository/ExchangeRepository.h"
 
@@ -39,19 +40,6 @@ struct ExchangeClaim {
 // The listing row a create wrote.
 struct ExchangeListingCreated {
     int64_t listingID = 0;
-};
-
-// The order a buy wrote, and what it moved. The two balances are the ledger's
-// answers after each leg, so a caller can report them without a second read.
-struct ExchangePurchase {
-    int64_t orderID = 0;
-    int64_t listingID = 0;
-    int pricePoint = 0;
-    int taxAmount = 0;
-    int totalCost = 0;
-    int sellerIncome = 0;
-    int buyerBalanceAfter = 0;
-    int sellerBalanceAfter = 0;
 };
 
 // The ledger balance a point adjustment left behind.
@@ -121,8 +109,11 @@ public:
     // Buying operations
     ////////////////////////////////////////////////////////////////////
 
-    // Buy a listing: points move both ways, the order is written and the
-    // listing is marked sold, all inside one repository transaction.
+    // Buy a listing: the listing is marked sold, the order is written and
+    // points move both ways, all inside one transaction pair
+    // (completeExchangePurchase). A refusal or a failed write comes back as
+    // a rejection with the pair rolled back; the decision's reads, which run
+    // before the pair opens, still throw their DatabaseError.
     [[nodiscard]] static Outcome<ExchangePurchase, ExchangeRejection>
     buyListing(PlayerCreature* pBuyer, int64_t listingID, const string& idempotencyKey);
 

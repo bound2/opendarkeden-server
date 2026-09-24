@@ -21,20 +21,52 @@
 // are in initdb/USERINFO.sql -- so against the shipped schema every point
 // statement fails with ER_NO_SUCH_TABLE, is logged to DBError.log and
 // thrown as END_DB's DatabaseError. ExchangeService::buyListing reads the
-// buyer's balance before it begins, so a buy always throws out of
+// ledger (the replay check, then the buyer's balance) before the
+// transaction pair opens, so a buy always throws out of
 // CGExchangeBuyHandler, where GamePlayer::processCommand's catch (...)
 // disconnects the buyer.
 //
-// The transaction pair. beginTransaction, commit and rollback issue their
-// statement twice, once through each name, and both names resolve to the
-// one DARKEDEN connection: the second START TRANSACTION commits whatever
-// the first left pending (MySQL commits a pending transaction when a new
-// one begins), and the pair gives no cross-database atomicity. The
-// DARKEDEN half does behave: a listing created after beginTransaction is
-// discarded by rollback and kept by commit. A DatabaseError escaping from a
-// statement inside the pair leaves ExchangeService::buyListing without a
-// rollback (it catches only std::string), so the connection stays in the
-// transaction until the next START TRANSACTION.
+// The transaction pair. A purchase (completeExchangePurchase in
+// exchange/ExchangePurchase.h) runs its writes between beginTransaction and
+// commit under an ExchangeTransaction guard, which calls rollback on every
+// other way out, a thrown DatabaseError included. Each of the three issues
+// its statement on the market connection (the DARKEDEN name) and then on
+// the ledger connection (the USERINFO name) when that is a different
+// connection. Today it is the same one, so a purchase is one transaction
+// on one connection and its commit is atomic.
+//
+// The two-connection shape, which the pair keeps ready for a ledger on a
+// connection of its own: two databases cannot share a transaction, so the
+// order of the steps carries the argument.
+//  - The writes run market first and ledger second: the claim
+//    (markListingSold, whose UPDATE takes the listing's row lock and
+//    matches only an ACTIVE row), the order, then the buyer's debit and the
+//    seller's credit. A failure at any of them, refused or thrown, rolls
+//    both back, so no write survives a failed purchase.
+//  - The commits run market first too. A failure between the two leaves the
+//    listing SOLD with a PAID order and no ledger rows behind it: one order
+//    whose payment is missing, found by its ListingID having no PointLedger
+//    row with that RefListingID, and closed to every other buyer. The other
+//    order would leave the points moved and the listing ACTIVE, open to a
+//    second buyer who pays the seller again.
+//  - Every purchase takes its market locks before its ledger locks, so no
+//    lock wait cycles through both connections; a cycle within one of them
+//    is InnoDB's to detect, and its deadlock error is a thrown failure like
+//    any other.
+//  - rollback tries every connection and rethrows the first failure once
+//    both were tried. A ROLLBACK with nothing begun, or after its COMMIT
+//    went through, is a no-op.
+//
+// Collisions. Two buyers of one listing -- two zone threads of one server,
+// or two servers of one world -- meet at the claim: the second UPDATE waits
+// for the first purchase's row lock, then matches no ACTIVE row and is
+// refused as no longer available, before either reaches ExchangeOrder's
+// UNIQUE ListingID or the ledger's UNIQUE IdempotencyKey. A ledger key can
+// still collide when two listings' purchases carry one client key: the
+// count inside adjustPoints sees a committed one and answers false, and an
+// uncommitted one makes the INSERT wait and then fail with ER_DUP_ENTRY.
+// Either way the purchase rolls back, finds the key in the ledger and
+// refuses as a replay.
 //
 // Text arguments (accounts, players, item names, idempotency keys) are
 // escaped with mysql_real_escape_string on the DARKEDEN connection, or by
@@ -51,9 +83,10 @@
 // UNIQUE ListingID does the same to a second order on one listing.
 //
 // The methods keep the __BEGIN_TRY / __END_CATCH frames and the bool
-// results the Exchange service was written against: a false from a
-// listing or order write is unreachable (the SQL failure throws first),
-// and only adjustPoints answers false on its own.
+// results the Exchange service was written against: a false from the
+// other listing and order writes and from the transaction pair is
+// unreachable (the SQL failure throws first); only markListingSold and
+// adjustPoints answer false on their own.
 //
 // ExchangeListing is declared in GCExchangeList.h (a wire struct the
 // client mirrors); ExchangeOrder and the status and reason codes are
@@ -115,7 +148,10 @@ public:
     // Status = 3, UpdatedAt = now, for an ACTIVE row only. True either way.
     virtual bool expireListing(int64_t listingID) = 0;
     // Status = 1, the buyer columns, SoldAt and UpdatedAt = now, for an
-    // ACTIVE row only. True either way.
+    // ACTIVE row only. True when it marked the row, false when the listing
+    // was not ACTIVE (or has no row). Inside a transaction the row stays
+    // locked until the transaction ends, which is what makes this the
+    // purchase's claim.
     virtual bool markListingSold(int64_t listingID, const std::string& buyerAccount,
                                  const std::string& buyerPlayer) = 0;
     // One server's listings in one status, newest CreatedAt first, the
@@ -147,7 +183,9 @@ public:
     // Up to four statements on one connection, each on its own Statement:
     // when a key is given, a count of the PointLedger rows carrying it
     // (false, nothing written, when one exists); the account's
-    // AccountPoint.PointBalance (0 when it has no row); false, nothing
+    // AccountPoint.PointBalance, read FOR UPDATE so a concurrent adjustment
+    // of the account waits for this transaction instead of writing over
+    // its sum (0 when it has no row); false, nothing
     // written, when balance + delta is below 0; otherwise REPLACE INTO
     // AccountPoint with the new balance and UpdatedAt = now, then an
     // INSERT INTO PointLedger -- with the IdempotencyKey column when a key
@@ -162,13 +200,14 @@ public:
     virtual bool hasIdempotencyKey(const std::string& idempotencyKey) = 0;
 
     // --- the transaction pair (see the note above) ------------------------
-    // START TRANSACTION through the DARKEDEN name, then through the
-    // USERINFO name. True unless a statement fails, and then the const
-    // char* escapes and the false is never reached.
+    // START TRANSACTION on the market connection, then on the ledger
+    // connection when it is another one. True, or a thrown DatabaseError;
+    // a failure on the second leaves the first open for rollback().
     virtual bool beginTransaction() = 0;
-    // COMMIT, twice, the same way.
+    // COMMIT the same way, market first. True, or a thrown DatabaseError.
     virtual bool commit() = 0;
-    // ROLLBACK, twice, the same way.
+    // ROLLBACK on each distinct connection, every one attempted; the first
+    // failure is rethrown after the last. True otherwise.
     virtual bool rollback() = 0;
 };
 

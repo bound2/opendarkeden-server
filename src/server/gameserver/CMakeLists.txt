@@ -614,6 +614,7 @@ set(GAMESERVER_MAIN_SOURCES
 # ============================================================================
 set(EXCHANGE_SOURCES
     exchange/ExchangeDecision.cpp
+    exchange/ExchangePurchase.cpp
     exchange/ExchangeService.cpp
     repository/MySQLExchangeRepository.cpp
 )
