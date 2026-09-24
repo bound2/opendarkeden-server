@@ -108,7 +108,7 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
                 pPC->getName().c_str(), pStorePC->getName().c_str(), pPacket->getIndex(), pStorePC->getGold(), price);
         errorNotice.setCode(NOTICE_EVENT_TOO_MUCH_MONEY);
         pGamePlayer->sendPacket(&errorNotice);
-        errorMsg.setMessage("Too much gold on hand to trade.");
+        errorMsg.setMessage("The store owner holds too much gold to complete this sale.");
         pStorePC->getPlayer()->sendPacket(&errorMsg);
         pGamePlayer->sendPacket(&errorMsg);
         return;

@@ -435,13 +435,11 @@ rm -f "$r16_inc" "$r16_dead"
 # states: readable Korean; mojibake, where EUC-KR/CP949 bytes, or the Chinese
 # build's GBK bytes, were decoded as Latin-1 or CP949 and re-encoded as
 # UTF-8; and U+FFFD runs, where the text itself is gone and only the code
-# beside it still says what it meant. The comments were translated tree by
-# tree, and the string literals -- log lines, GM messages, player messages --
-# in a pass of their own, because changing one changes what the server says
-# rather than how the source reads. The count holds at zero: a literal that
-# must keep foreign bytes because data is matched against it (the reserved
-# staff titles a character name may not contain, the chief-monster prefix)
-# is written as escaped UTF-8 bytes with an English comment beside it.
+# beside it still says what it meant. The count holds at zero: a literal
+# that must keep foreign bytes because data is matched against it (the
+# reserved staff titles a character name may not contain, the chief-monster
+# prefix, the GM chat aliases the command ladder still tests) is written as
+# escaped UTF-8 bytes with an English comment beside it.
 #
 # Line-based, and the byte class is spelled the way R12 spells it: exclude
 # everything from \x01 to \x7f, so what is left is a byte with the high bit

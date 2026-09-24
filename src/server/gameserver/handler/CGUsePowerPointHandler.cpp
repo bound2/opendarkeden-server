@@ -31,8 +31,8 @@ struct POWER_POINT_ITEM_TEMPLATE {
 const POWER_POINT_ITEM_TEMPLATE PowerPointItemTemplate[7] = {
     {GCUsePowerPointResult::CANDY, Item::ITEM_CLASS_EVENT_ETC, 14, 20, "Elixir Pill"},
     {GCUsePowerPointResult::RESURRECTION_SCROLL, Item::ITEM_CLASS_RESURRECT_ITEM, 0, 20, "Resurrection Scroll"},
-    {GCUsePowerPointResult::ELIXIR_SCROLL, Item::ITEM_CLASS_RESURRECT_ITEM, 1, 20, "Alchemy Scroll"},
-    {GCUsePowerPointResult::MEGAPHONE, Item::ITEM_CLASS_EFFECT_ITEM, 0, 20, "Walkie-Talkie 1"},
+    {GCUsePowerPointResult::ELIXIR_SCROLL, Item::ITEM_CLASS_RESURRECT_ITEM, 1, 20, "Elixir Scroll"},
+    {GCUsePowerPointResult::MEGAPHONE, Item::ITEM_CLASS_EFFECT_ITEM, 0, 20, "Megaphone"},
     {GCUsePowerPointResult::NAMING_PEN, Item::ITEM_CLASS_EVENT_GIFT_BOX, 22, 14, "Nickname Signing Pen"},
     {GCUsePowerPointResult::SIGNPOST, Item::ITEM_CLASS_EVENT_STAR, 6, 1, "Sapphire (Football)"},
     {GCUsePowerPointResult::BLACK_RICE_CAKE_SOUP, Item::ITEM_CLASS_EVENT_STAR, 11, 5, "Black Blessing"}
