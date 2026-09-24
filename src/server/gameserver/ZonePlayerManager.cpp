@@ -56,7 +56,7 @@ bool checkZonePlayerManager(GamePlayer* pGamePlayer, ZonePlayerManager* pZPM, co
 //////////////////////////////////////////////////////////////////////////////
 ZonePlayerManager::ZonePlayerManager()
 
-    : m_MinFD(-1), m_MaxFD(-1) {
+    : m_PollSet((int)nMaxPlayers), m_TimeoutMilliseconds(0), m_MinFD(-1), m_MaxFD(-1) {
     __BEGIN_TRY
 
     m_Mutex.setName("ZonePlayerManager");
@@ -64,15 +64,9 @@ ZonePlayerManager::ZonePlayerManager()
     m_PlayerListQueue.clear();
     m_BroadcastQueue.clear();
 
-    // Clear the fd_sets.
-    FD_ZERO(&m_ReadFDs[0]);
-    FD_ZERO(&m_WriteFDs[0]);
-    FD_ZERO(&m_ExceptFDs[0]);
-
-    // Initialize m_Timeout.
-    // This interval should eventually become a configuration option.
-    m_Timeout[0].tv_sec = 0;
-    m_Timeout[0].tv_usec = 0;
+    // How long a poll waits. This interval should eventually become a
+    // configuration option.
+    m_TimeoutMilliseconds = 0;
     __END_CATCH
 }
 
@@ -204,33 +198,32 @@ void ZonePlayerManager::copyPlayers()
 
 
 //////////////////////////////////////////////////////////////////////////////
-// call select() system call
-// When the caller gets a TimeoutException there are no players to process.
+// Ask the kernel which descriptors are ready.
+// When none is, there are no players to process.
 //////////////////////////////////////////////////////////////////////////////
-void ZonePlayerManager::select() {
+void ZonePlayerManager::pollSockets() {
     __BEGIN_TRY
 
+    // The membership is read and the answers are stored under the mutex that
+    // guards it, while the wait itself runs without it: other threads add and
+    // remove players here.
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    // Copy m_Timeout[0] into m_Timeout[1].
-    m_Timeout[1].tv_sec = m_Timeout[0].tv_sec;
-    m_Timeout[1].tv_usec = m_Timeout[0].tv_usec;
-
-    // Copy m_XXXFDs[0] into m_XXXFDs[1].
-    m_ReadFDs[1] = m_ReadFDs[0];
-    m_WriteFDs[1] = m_WriteFDs[0];
-    m_ExceptFDs[1] = m_ExceptFDs[0];
+    m_PollSet.fill();
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    try {
-        // Now call select() with m_XXXFDs[1].
-        SocketAPI::select_ex(m_MaxFD + 1, &m_ReadFDs[1], &m_WriteFDs[1], &m_ExceptFDs[1], &m_Timeout[1]);
-    }
-    // do nothing
-    catch (InterruptedException&) {
-        // A signal is not expected here.
-    }
+    // A failed wait, which is what an arriving signal makes of it, leaves
+    // every descriptor unready, so this tick processes nothing and the next
+    // one asks again.
+    m_PollSet.wait(m_TimeoutMilliseconds);
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    // A player added or removed while the wait ran keeps no answer from it.
+    m_PollSet.collect();
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }
@@ -255,7 +248,7 @@ void ZonePlayerManager::processInputs() {
     const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
     for (int i = walk.first; i <= walk.last; i++) {
         // The ZPM holds only players, so there is nothing further to compare.
-        if (FD_ISSET(i, &m_ReadFDs[1])) {
+        if (m_PollSet.isReadable(i)) {
             if (m_pPlayers[i] != NULL && m_pPlayers[i] == m_pPlayers[i]) {
                 GamePlayer* pTempPlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
                 Assert(pTempPlayer != NULL);
@@ -481,7 +474,7 @@ void ZonePlayerManager::processOutputs() {
 
     const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
     for (int i = walk.first; i <= walk.last; i++) {
-        if (FD_ISSET(i, &m_WriteFDs[1])) {
+        if (m_PollSet.isWritable(i)) {
             if (m_pPlayers[i] != NULL) {
                 GamePlayer* pTempPlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
                 Assert(pTempPlayer);
@@ -556,7 +549,7 @@ void ZonePlayerManager::processExceptions() {
 
     const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
     for (int i = walk.first; i <= walk.last; i++) {
-        if (FD_ISSET(i, &m_ExceptFDs[1])) {
+        if (m_PollSet.isUrgent(i)) {
             if (m_pPlayers[i] != NULL && m_pPlayers[i] == m_pPlayers[i]) {
                 GamePlayer* pTempPlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
                 Assert(pTempPlayer != NULL);
@@ -603,11 +596,9 @@ void ZonePlayerManager::addPlayer(GamePlayer* pGamePlayer) {
         m_MaxFD = max(fd, m_MaxFD);
     }
 
-    // Turn the fd bit on in every fd_set.
-    // m_XXXFDs[1] can be handled on the next pass.
-    FD_SET(fd, &m_ReadFDs[0]);
-    FD_SET(fd, &m_WriteFDs[0]);
-    FD_SET(fd, &m_ExceptFDs[0]);
+    // Watch the new descriptor. It is reported ready no earlier than the next
+    // poll.
+    m_PollSet.watch(fd, de::DescriptorPollSet::kRead | de::DescriptorPollSet::kWrite | de::DescriptorPollSet::kUrgent);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -634,11 +625,9 @@ void ZonePlayerManager::addPlayer_NOBLOCKED(GamePlayer* pGamePlayer) {
         m_MaxFD = max(fd, m_MaxFD);
     }
 
-    // Turn the fd bit on in every fd_set.
-    // m_XXXFDs[1] can be handled on the next pass.
-    FD_SET(fd, &m_ReadFDs[0]);
-    FD_SET(fd, &m_WriteFDs[0]);
-    FD_SET(fd, &m_ExceptFDs[0]);
+    // Watch the new descriptor. It is reported ready no earlier than the next
+    // poll.
+    m_PollSet.watch(fd, de::DescriptorPollSet::kRead | de::DescriptorPollSet::kWrite | de::DescriptorPollSet::kUrgent);
 
     __END_CATCH
 }
@@ -693,15 +682,10 @@ void ZonePlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
         }
     }
 
-    // Turn the fd bit off in every fd_set.
-    // m_XXXFDs[1] must be cleared too, because later processing could otherwise still
-    // service an object that is already gone.
-    FD_CLR(fd, &m_ReadFDs[0]);
-    FD_CLR(fd, &m_ReadFDs[1]);
-    FD_CLR(fd, &m_WriteFDs[0]);
-    FD_CLR(fd, &m_WriteFDs[1]);
-    FD_CLR(fd, &m_ExceptFDs[0]);
-    FD_CLR(fd, &m_ExceptFDs[1]);
+    // Stop watching the descriptor. This also drops the readiness the last poll
+    // reported for it, because later processing could otherwise still service
+    // an object that is already gone.
+    m_PollSet.unwatch(fd);
 
 
     __END_CATCH
@@ -773,15 +757,10 @@ void ZonePlayerManager::deletePlayer(SOCKET fd) {
         }
     }
 
-    // Turn the fd bit off in every fd_set.
-    // m_XXXFDs[1] must be cleared too, because later processing could otherwise still
-    // service an object that is already gone.
-    FD_CLR(fd, &m_ReadFDs[0]);
-    FD_CLR(fd, &m_ReadFDs[1]);
-    FD_CLR(fd, &m_WriteFDs[0]);
-    FD_CLR(fd, &m_WriteFDs[1]);
-    FD_CLR(fd, &m_ExceptFDs[0]);
-    FD_CLR(fd, &m_ExceptFDs[1]);
+    // Stop watching the descriptor. This also drops the readiness the last poll
+    // reported for it, because later processing could otherwise still service
+    // an object that is already gone.
+    m_PollSet.unwatch(fd);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 

@@ -10,6 +10,7 @@
 #define __LOGIN_PLAYER_MANAGER_H__
 
 // include files
+#include "DescriptorPollSet.h"
 #include "Exception.h"
 #include "PlayerManager.h"
 #include "ServerSocket.h"
@@ -41,8 +42,8 @@ public:
     // accept new connection
     void acceptNewConnection();
 
-    // Uses the select() system call for I/O multiplexing.
-    void select();
+    // Ask the kernel which of this manager's descriptors are ready.
+    void pollSockets();
 
     // Copy the input of every connected user into the input buffer.
     void processInputs();
@@ -93,19 +94,16 @@ private:
     // Server socket descriptor ( for fast reference )
     SOCKET m_ServerFD;
 
-    // The set of socket descriptors of the players that belong here.
-    // m_XXXXFDs[0] is the stored copy; m_XXXFDs[1] is what select() actually gets.
-    // That is, [0] -> [1] must be copied before calling select().
-    fd_set m_ReadFDs[2];
-    fd_set m_WriteFDs[2];
-    fd_set m_ExceptFDs[2];
+    // The socket descriptors of the players that belong here, with what each
+    // one was last reported ready for. It has a slot per player table slot, so
+    // every descriptor the table can hold can be watched.
+    de::DescriptorPollSet m_PollSet;
 
-    // Time used by select
-    Timeval m_Timeout[2];
+    // How long each poll waits, in milliseconds.
+    int m_TimeoutMilliseconds;
 
     // min_fd , max_fd
-    // Used to speed the iteration after select() up.
-    // Also used to compute select()'s first parameter.
+    // Used to speed the iteration over the player table up.
     SOCKET m_MinFD;
     SOCKET m_MaxFD;
 

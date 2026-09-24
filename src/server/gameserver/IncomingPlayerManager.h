@@ -9,6 +9,7 @@
 
 #include "ConnectionInfoManager.h"
 #include "DatagramSocket.h"
+#include "DescriptorPollSet.h"
 #include "Exception.h"
 #include "GamePlayer.h"
 #include "Mutex.h"
@@ -42,8 +43,8 @@ public:
 
     // The following methods are called by the ZoneThread.
 
-    // select
-    void select();
+    // Ask the kernel which of this manager's descriptors are ready.
+    void pollSockets();
 
     // process all players' inputs
     void processInputs();
@@ -99,19 +100,16 @@ private:
     ServerSocket* m_pServerSocket;
     SOCKET m_SocketID;
 
-    // The set of socket descriptors of the players this manager owns.
-    // m_XXXXFDs[0] is the stored copy; m_XXXFDs[1] is what select() is actually given.
-    // So [0] must be copied to [1] before calling select().
-    fd_set m_ReadFDs[2];
-    fd_set m_WriteFDs[2];
-    fd_set m_ExceptFDs[2];
+    // The socket descriptors of the players this manager owns, with what each
+    // one was last reported ready for. It has a slot per player table slot,
+    // so every descriptor the table can hold can be watched.
+    de::DescriptorPollSet m_PollSet;
 
-    // Time used by select
-    Timeval m_Timeout[2];
+    // How long each poll waits, in milliseconds.
+    int m_TimeoutMilliseconds;
 
     // min_fd, max_fd
-    // Used to speed up iterating after select().
-    // Also used to compute the first parameter of select().
+    // Used to speed up iterating over the player table.
     SOCKET m_MinFD;
     SOCKET m_MaxFD;
 
