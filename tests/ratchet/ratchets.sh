@@ -610,8 +610,7 @@ fi
 # dissolves one when its last member leaves or when its last pending join
 # offer is denied or fails to become a member (unionIsAbandoned in
 # src/server/gameserver/guild/GuildUnionJoinOffer.h). A union with neither
-# a GuildUnionMember row nor a JOIN row in GuildUnionOffer is left over from
-# code that opened unions for offers it then refused; it keeps its master
+# a GuildUnionMember row nor a JOIN row in GuildUnionOffer keeps its master
 # guild "in a union", so that guild can join no other. A QUIT or ESCAPE
 # row does not count: the first is a member's, the second a former member's
 # penalty.

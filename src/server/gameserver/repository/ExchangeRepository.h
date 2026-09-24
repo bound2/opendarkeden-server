@@ -46,7 +46,8 @@
 //  - The commits run market first too. A failure between the two leaves the
 //    listing SOLD with a PAID order and no ledger rows behind it: one order
 //    whose payment is missing, found by its ListingID having no PointLedger
-//    row with that RefListingID, and closed to every other buyer. The other
+//    row with that RefListingID, and closed to every other buyer; the buyer
+//    is told a transaction error while holding that PAID order. The other
 //    order would leave the points moved and the listing ACTIVE, open to a
 //    second buyer who pays the seller again.
 //  - Every purchase takes its market locks before its ledger locks, so no

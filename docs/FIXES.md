@@ -13,6 +13,44 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A union dissolves under the join offers still pending to it (2026-09-24)
+
+- **`GuildUnion::removeGuild`, the expel and quit handlers' count-then-delete
+  and `removeGuildFromUnion`'s dissolve all dissolve a memberless union
+  even while JOIN offers to it are pending,** against the rule that an
+  offer keeps a union alive. The offers then name a union that no longer
+  exists; offers never expire, and the deny handler answers `NOT_IN_UNION`
+  to a master who leads no union, so the applicant is refused with
+  `ALREADY_OFFER_SOMETHING` for good. The seed holds one such offer
+  already, guild 4950's JOIN to a union 28 that is absent. The fix routes
+  every removal through the abandoned-union rule (`dissolveIfAbandoned`)
+  and clears or expires offers to a union that is gone; the seed check
+  should then also fail on a JOIN offer naming no union.
+  > **Status:** recorded, not fixed (fix/union-refresh)
+
+## Accepting or denying a union offer does not check which union it targets (2026-09-24)
+
+- **`CGAcceptUnionHandler` and `CGDenyUnionHandler` test only that the
+  caller masters some union, then accept or deny the offer of the guild the
+  packet names,** so any union master can accept or clear another union's
+  offer, and a deny that clears that union's last offer dissolves it. The
+  handlers must match the offer's union to the caller's.
+  > **Status:** recorded, not fixed (fix/union-refresh)
+
+## Showing a castle's war schedule from another thread closes a lock cycle (2026-09-24)
+
+- **`Zone::heartbeat` takes a castle scheduler's mutex under the zone's
+  own, and `WarScheduler::makeGCWarScheduleList` takes the war system's
+  mutex under the scheduler's (it adds the race war's line), while the war
+  heartbeat locks castle and holy-land zones under the war system's
+  mutex,** so a schedule shown from any thread but the castle's own group
+  thread can close the cycle zone → scheduler → war system → zone. Every
+  seed `ShowWarSchedule` NPC stands inside its own castle zone, so the
+  action runs on that thread today; the order in `WarSystem.h` says so.
+  Closing it means answering the race war's line without the war system's
+  mutex, or listing the schedule without the scheduler's.
+  > **Status:** recorded, not fixed (fix/war-threads)
+
 ## A castle war's end handles the castle's zones from the main thread (2026-09-24)
 
 - **Besides the owner change, `GuildWar::executeEnd` returns the castle's
@@ -116,7 +154,10 @@ repo and the client's. Entries below are newest first; the oldest is the
   process and shared by every thread without a lock, so running the ledger
   on it from the zone threads would interleave their transactions on one
   session. It needs either an account connection per thread, registered by
-  every thread that buys, or the point tables moved beside the listings.
+  every thread that buys, the point tables moved beside the listings, or,
+  where both schemas sit on one server, the statements naming the tables
+  by schema (`USERINFO.PointLedger`) on the game connection, which also
+  keeps a purchase in one transaction.
   The purchase is ready for the first: its transaction pair issues each
   statement once per distinct connection, and the order of its steps and
   commits is written for two (`ExchangeRepository.h`).
@@ -227,18 +268,26 @@ repo and the client's. Entries below are newest first; the oldest is the
   `tests/scheduler_test.cpp` pins both. The relays still go out from the
   main thread: the NetMarble `*world` relay and the siege's `GGCommand` to
   the castle-following servers both arrive as the GM `setCastleOwnerGuild`
-  command, which posts the change to the receiving server's castle group.
-  With every caller on the castle's thread, `modifyCastleOwner` asserts the
-  castle group's ownership (`ZoneGroup::assertOwned`, Debug builds).
+  command, which posts the change to the receiving server's castle group;
+  that relayed command applies no `castleWarWinnerOwner`, so a winner
+  deleted around the relay's flight leaves the remote castle with its old
+  owner, or hands it to a guild that is gone, a window only the NetMarble
+  relay and the castle-following servers have. Until the posted command
+  runs, at the top of the castle group's next tick, the castle keeps its
+  old owner, and a withdrawal or a fee credited in that tick is reset by
+  the change. With every caller on the castle's thread, `modifyCastleOwner`
+  asserts the castle group's ownership (`ZoneGroup::assertOwned`, Debug
+  builds).
   > **Status:** fixed (fix/war-threads)
 
 ## Retired unions accumulate on every reload (2026-09-24)
 
 - **`GuildUnionRegistry::replaceAll` retires every live union on every
   `load()`, and a reload follows every union change on any game server of
-  the world** (`sendRefreshCommand()` makes the others reload, and four CG
+  the world** (`sendRefreshCommand()` makes the others reload, and three CG
   handlers reload themselves), so each reload keeps one more copy of every
-  union -- with the seed's 116 unions, about 20 KB per reload per server --
+  union -- with the 116 unions the seed held then, about 20 KB per reload
+  per server --
   until the process exits. `replaceAll` now keeps every live union whose
   id and master the tables still hold -- the same object, so a pointer a
   reader took stays live -- and gives it the fresh member list in one step
@@ -492,11 +541,15 @@ repo and the client's. Entries below are newest first; the oldest is the
   filters always have: a filtered page is the matching part of that page.
   > **Status:** fixed (fix/exchange-residue)
 
-- **The client cannot send a seller filter**: its `ExchangeFilter`
-  (`client/VS_UI/src/header/UiRuntime.h`) has no seller field and
-  `RequestExchangeList` (`client/VS_UI/src/UiRuntime.cpp`) never calls
-  `setSellerFilter`.
-  > **Status:** recorded, not fixed (fix/exchange-residue)
+- **The client could not send a seller filter**: its `ExchangeFilter`
+  (`client/VS_UI/src/header/UiRuntime.h`) had no seller field and
+  `RequestExchangeList` (`client/VS_UI/src/UiRuntime.cpp`) never called
+  `setSellerFilter`. Both carry it now (client branch
+  `fix/server-round-48-reads`), empty meaning no filter, which is what the
+  Exchange window sends: it has no filter controls at all, and in the live
+  client it is not reachable (`RunPointExchange()` has no caller and the
+  list packet's handler is a no-op), so the control is the remaining piece.
+  > **Status:** fixed (client fix/server-round-48-reads)
 
 ## GCExchangeBuy's success message was the order id again (2026-09-24)
 
@@ -511,10 +564,12 @@ repo and the client's. Entries below are newest first; the oldest is the
   from the handler, so none changes.
   > **Status:** fixed (fix/exchange-residue)
 
-- **The client acts on no `GCExchangeBuy`**: its handler
-  (`client/Client/PacketHandler/GCExchangeBuyHandler.cpp`) is an empty
-  stub, so neither the result nor the message reaches the player.
-  > **Status:** recorded, not fixed (fix/exchange-residue)
+- **The client acted on no `GCExchangeBuy`**: its handler
+  (`client/Client/PacketHandler/GCExchangeBuyHandler.cpp`) was an empty
+  stub, so neither the result nor the message reached the player. It shows
+  the message in the free message dialog and refreshes the Exchange
+  window's listing on success (client branch `fix/server-round-48-reads`).
+  > **Status:** fixed (client fix/server-round-48-reads)
 
 ## A statement of exactly 2048 characters was truncated and executed (2026-09-24)
 
@@ -586,8 +641,8 @@ repo and the client's. Entries below are newest first; the oldest is the
 ## A union join offer creates the union on one game server only (2026-09-24)
 
 - **`GuildUnionOfferManager::offerJoin` creates a union for a master guild
-  that leads none (`GuildUnionManager::openUnion` now, which checks and
-  opens under the manager mutex, so two offers on one server open one
+  that leads none (`GuildUnionManager::recordJoinOffer` now, which checks
+  and opens under the manager mutex, so two offers on one server open one
   union) and tells no other game server,** where `addGuild` and both removal paths
   end in `sendRefreshCommand()`. Each game server keeps its own copy of the
   union tables, so until something else refreshes them, a second offer to
@@ -604,7 +659,11 @@ repo and the client's. Entries below are newest first; the oldest is the
   by `tests/guild_union_join_offer_test.cpp`: every refusal, in the order
   the client was always answered in, comes before a union is opened) and
   writes the union and the offer, all under the manager mutex, then
-  refreshes the other game servers when it opened a union. The last offer
+  refreshes the other game servers when it opened a union. Two windows
+  stay: two offers to one master made on two servers within the refresh's
+  flight still open two unions, and a union row is published only once
+  its offer is on record, a failed offer insert deleting the row it
+  opened. The last offer
   going takes an empty union with it: `denyJoin`, and `acceptJoin` when the
   join is refused after the offer is cleared, call `dissolveIfAbandoned`,
   which under the manager mutex dissolves a union with no member row and no
@@ -612,8 +671,10 @@ repo and the client's. Entries below are newest first; the oldest is the
   That replaces the deny handler's own count-then-delete of the
   `GuildUnionInfo` row, which dissolved a memberless union even with other
   offers pending and reloaded only its own server. The removal paths
-  already dissolve a union whose last member leaves. Offers do not time
-  out (see "A union offer never expires"), so that case does not arise.
+  dissolve a union whose last member leaves even while JOIN offers to it
+  are pending, which strands those applicants; that gap is older than this
+  rule and has its own entry. Offers do not time out (see "A union offer
+  never expires"), so that case does not arise.
   Of the seed's 116 unions, 73 had neither a member row nor a JOIN offer:
   their `GuildUnionInfo` rows are gone, leaving 43, of which the 19 without
   members each have a pending JOIN offer, and `tests/ratchet/ratchets.sh`
@@ -2621,8 +2682,9 @@ packet no server reads, not a field on the wire.
 - **`GCUsePowerPointResult::read` and `GCRequestPowerPointResult::read`
   took their code bytes without comparing them against the last
   enumerator of the `RESULT_CODE` and `ITEM_CODE` lists their own headers
-  declare**, so a peer could announce a result no branch of the client
-  handles. Both reads now refuse a code past the last enumerator
+  declare**, so a peer could announce a result the client's handlers only
+  met in their `default:` branch, a generic error popup. Both reads now
+  refuse a code past the last enumerator
   (`kLastResultCode`, `kLastItemCode`) with `InvalidProtocolException`,
   pinned by refusal tests in `tests/packet_skill_test.cpp`. The fixtures
   behind the two goldens carried out-of-range codes -- `0x9D` / `0x9E` and
@@ -2632,9 +2694,10 @@ packet no server reads, not a field on the wire.
   `GCRequestPowerPointResult.code0.hex` change in their code bytes only.
   That is fixture content, not layout: no size or inventory line moves,
   every sender already emits enumerators, and the client repo holds no
-  copy of these goldens. The client is the receiver of both packets and
-  its own copies of the two reads (`Client/Packet/Gpackets/`) carry no
-  range check; the identical check is owed there.
+  copy of these goldens. The client is the receiver of both packets, and
+  its own copies of the two reads (`Client/Packet/Gpackets/`) carry the
+  identical check now (client branch `fix/server-round-48-reads`), where
+  such a frame is a read failure and a disconnect rather than the popup.
   > **Status:** fixed (fix/exchange-residue)
 
 ## Hard-coded BBS credentials in the `*notice` operator command (2026-09-10)
