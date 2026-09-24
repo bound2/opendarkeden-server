@@ -719,6 +719,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   >   table lacks.
   > - GuildUnionOffer's PK is OwnerGuildID alone, so an ESCAPE insert
   >   over a standing JOIN/QUIT row throws out of CGQuitUnionHandler.
+  >   Fixed since: the penalty replaces the guild's row (`docs/FIXES.md`,
+  >   "A forced union quit fails on the guild's own offer row").
   > - ActionShowGuildDialog gates guild creation on a hardcoded seven
   >   days ahead of the handler's QUIT_GUILD_PENALTY_TERM.
   >

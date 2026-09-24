@@ -607,9 +607,11 @@ fi
 
 # --- Every seed union has a member or a pending join offer ------------------
 # The union manager opens a union only for a join offer it records, and
-# dissolves one when its last member leaves or when its last pending join
-# offer is denied or fails to become a member (unionIsAbandoned in
-# src/server/gameserver/guild/GuildUnionJoinOffer.h). A union with neither
+# dissolves one once it has neither a member nor a pending join offer: when
+# its last member leaves with no offer pending, or its last pending offer is
+# accepted without a join, denied, or expires (unionIsAbandoned in
+# src/server/gameserver/guild/GuildUnionJoinOffer.h, applied by every path
+# that takes a member or an offer away). A union with neither
 # a GuildUnionMember row nor a JOIN row in GuildUnionOffer keeps its master
 # guild "in a union", so that guild can join no other. A QUIT or ESCAPE
 # row does not count: the first is a member's, the second a former member's
@@ -642,6 +644,41 @@ elif [ -n "$union_abandoned" ]; then
     fail=1
 else
     echo "[OK]   every seed guild union has a member or a pending join offer"
+fi
+
+# --- Every seed join offer names a union ------------------------------------
+# A JOIN row in GuildUnionOffer asks to join a union that exists: the union
+# manager opens the union before it records the offer, and a union that goes
+# takes the JOIN and QUIT rows naming it with it. An offer naming no union
+# can be neither accepted nor denied, and the one row per guild it occupies
+# answers every later offer of that guild with ALREADY_OFFER_SOMETHING. The
+# server's offer purge (decideUnionOfferPurge in
+# src/server/gameserver/guild/GuildUnionJoinOffer.h) drops such a row on
+# load; the seed does not carry one. A seed without offer rows passes.
+union_orphan_offers=$(perl -ne '
+    if (/^INSERT INTO `GuildUnionInfo` VALUES (.*);/) {
+        my $v = $1;
+        while ($v =~ /\((\d+),(\d+)\)/g) { $unions++; $exists{$1} = 1; }
+    }
+    if (/^INSERT INTO `GuildUnionOffer` VALUES (.*);/) {
+        my $v = $1;
+        while ($v =~ /\((\d+),\x27JOIN\x27,(\d+),/g) { push @joins, [$1, $2]; }
+    }
+    END {
+        unless ($unions) { print "NO_UNIONS\n"; exit; }
+        for my $j (@joins) {
+            print "guild $j->[1] offers to join union $j->[0], which does not exist\n" unless $exists{$j->[0]};
+        }
+    }' initdb/DARKEDEN.sql)
+if [ "$union_orphan_offers" = "NO_UNIONS" ]; then
+    echo "[FAIL] no GuildUnionInfo rows found in initdb/DARKEDEN.sql (dump layout changed?)"
+    fail=1
+elif [ -n "$union_orphan_offers" ]; then
+    echo "$union_orphan_offers"
+    echo "[FAIL] a seed join offer names a guild union that does not exist (see above)"
+    fail=1
+else
+    echo "[OK]   every seed join offer names an existing guild union"
 fi
 
 # --- Generated factory list is fresh ---------------------------------------

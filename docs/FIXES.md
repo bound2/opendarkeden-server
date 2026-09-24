@@ -13,6 +13,38 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A forced union quit fails on the guild's own offer row (2026-09-24)
+
+- **`CGQuitUnionHandler`'s forced quit writes the ESCAPE penalty with a
+  plain `INSERT` into `GuildUnionOffer`, whose key is `OwnerGuildID`,**
+  after `removeGuild` has already taken the guild out of the union. A guild
+  with a pending QUIT offer, or with any older row -- an ESCAPE from an
+  earlier forced quit, which nothing ever deleted -- hits the duplicate key:
+  `END_DB` throws, and the handler dies with the guild out of the union but
+  no penalty written, no notice sent and nobody told. The tier's list of
+  pinned, unfixed bugs in `docs/RESTRUCTURING.md` named it. The penalty now
+  replaces whatever row the guild had (`deleteOffers` before
+  `insertEscapeOffer`), and `removeGuild` deletes the leaving guild's QUIT
+  row itself.
+  > **Status:** fixed (fix/union-offers)
+
+## A guild's offer rows outlive the standing they ask to change (2026-09-24)
+
+- **Only an answered offer was ever deleted.** A member guild expelled, or
+  taken out of its union with its guild deleted, kept its QUIT row, so the
+  former member was answered `ALREADY_OFFER_SOMETHING` on its next offer and
+  its master was still listed a quit request from a guild no longer in the
+  union; a union dissolved with its master's guild left the JOIN and QUIT
+  rows naming it; and a deleted guild's JOIN offer kept the union it
+  targeted alive and could still be accepted, adding a guild that no longer
+  exists. Now a guild leaving its union by any road takes its QUIT row
+  (`GuildUnionManager::removeGuild`, `removeGuildFromUnion`), a guild going
+  away takes all its rows and the abandoned-union rule is applied to the
+  union its JOIN offer named, and a dissolved union takes the JOIN and QUIT
+  rows naming it (`destroyUnion_LOCKED`; an ESCAPE row is the former
+  member's penalty and runs its time).
+  > **Status:** fixed (fix/union-offers)
+
 ## Worker threads register their database connections under no reader's lock (2026-09-24)
 
 - **`DatabaseManager::addConnection` and `addDistConnection` insert into
@@ -43,7 +75,22 @@ repo and the client's. Entries below are newest first; the oldest is the
   every removal through the abandoned-union rule (`dissolveIfAbandoned`)
   and clears or expires offers to a union that is gone; the seed check
   should then also fail on a JOIN offer naming no union.
-  > **Status:** recorded, not fixed (fix/union-refresh)
+  Every removal now applies the abandoned-union rule and nothing else:
+  `GuildUnionManager::removeGuild` (expel, accepted quit, forced quit) and
+  the member branch of `removeGuildFromUnion` call
+  `dissolveIfAbandoned_LOCKED` once the member row is gone, so a pending,
+  unexpired JOIN offer keeps the union (`decideUnionTeardown` no longer
+  dissolves on the last member; it dissolves only with the master guild,
+  and that dissolve clears the offers naming the union). The expel and quit
+  handlers' own count-then-delete of the `GuildUnionInfo` row and their
+  local reload are gone, with the two spelled statements that served them
+  (`countUnionMembersSpelled`, `deleteUnionInfoOnly`); the forced quit's
+  "union dissolved" notice follows what `removeGuild` reports. An offer to
+  a union that has gone is dropped, with a `GuildUnion.log` line, by the
+  offer purge every load and every offer action runs (`decideUnionOfferPurge`),
+  and `tests/ratchet/ratchets.sh` fails on a seed JOIN offer naming no
+  union; guild 4950's row went with the seed's other expired offers.
+  > **Status:** fixed (fix/union-offers)
 
 ## Accepting or denying a union offer does not check which union it targets (2026-09-24)
 
@@ -52,7 +99,20 @@ repo and the client's. Entries below are newest first; the oldest is the
   packet names,** so any union master can accept or clear another union's
   offer, and a deny that clears that union's last offer dissolves it. The
   handlers must match the offer's union to the caller's.
-  > **Status:** recorded, not fixed (fix/union-refresh)
+  `acceptJoin`, `denyJoin`, `acceptQuit` and `denyQuit` take the union the
+  answering master leads and apply `decideUnionOfferAnswer`
+  (`guild/GuildUnionJoinOffer.h`, pinned by
+  `tests/guild_union_join_offer_test.cpp`) before anything is cleared: an
+  offer naming another union is answered `NOT_YOUR_UNION` and left for its
+  own master, and a guild with no offer of that kind -- none made, already
+  answered, or expired -- is answered `NO_TARGET_UNION`. Both codes are
+  ones the client already knows. The quit pair had the same hole (the
+  quitting guild's union was checked, the answering master's was not), and
+  three of the four answered `OK` for a guild with no offer at all, after
+  which the handler wrote the "accepted" or "denied" notice to that guild's
+  master; the quit-deny handler wrote it even for a refusal and now writes
+  it only for an `OK`.
+  > **Status:** fixed (fix/union-offers)
 
 ## Showing a castle's war schedule from another thread closes a lock cycle (2026-09-24)
 
@@ -144,7 +204,27 @@ repo and the client's. Entries below are newest first; the oldest is the
   deciding whether the penalty should be answered before the pending-offer
   check; that is a decision about the offer's lifetime, not a mechanical
   move.
-  > **Status:** recorded, not fixed (fix/union-refresh)
+  An offer lives ten days, the age the old statements already used, stated
+  once in `GuildUnion.h` and spelled `kUnionOfferLifetimeDays` in every
+  statement that ages a row. `GuildUnionManager::purgeOffers` deletes every
+  expired row, of any type, under the manager mutex and applies the
+  abandoned-union rule to each union an expired JOIN offer named; it runs
+  before `recordJoinOffer` reads its facts, before the four answers and
+  `offerQuit` read an offer, before a union's offers are listed to its
+  master, and at every load, so a restart carries no expired offer. The
+  startup load owes the other game servers a refresh for a union it
+  dissolves and sends it once the login link is up
+  (`sendOwedRefresh`); a reload tells them at once. The pending-offer count
+  that keeps a union (`countPendingJoinOffers`) counts only unexpired rows,
+  so the rule holds between purges too. `decideUnionJoinOffer` answers the
+  penalty before the pending-offer check, so a guild inside its ten days
+  hears `YOU_HAVE_PENALTY`, and its ESCAPE row is purged after them. A QUIT
+  row is a member asking to leave; it lapses the same way, leaving the
+  guild a member free to ask again or quit by force. Every offer row in the
+  seed was from 2006-2007 and is gone, with the 19 unions only those
+  offers kept: the seed now holds what the server holds after its first
+  load, 24 unions, each with a member, and no offer rows.
+  > **Status:** fixed (fix/union-offers)
 
 ## The PC finder's removal tested the wrong iterator (2026-09-24)
 

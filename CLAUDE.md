@@ -26,6 +26,7 @@ number and the reason it exists, is in `docs/RESTRUCTURING.md`;
 | Every seed `Player` row ships a current argon2id hash | `tests/password_hash_test.cpp`, which reads `initdb/DARKEDEN.sql` | the seed account missing from the test's password map |
 | Every `initdb/` table is InnoDB in `utf8mb4` / `utf8mb4_unicode_ci` | `ratchets.sh` | the table, named |
 | No seed guild leads or joins two guild unions | `ratchets.sh` | the guild and its unions, named |
+| Every seed union has a member or a pending join offer, and every seed join offer names a union | `ratchets.sh` | the union or the offer, named |
 | Every `src/**/*.cpp` is compiled by some target, every header is included | ratchets R15/R16 | the dead file, listed |
 | Repository SQL behaves against a real MySQL | `make integration-test` (`tests/integration/`, needs docker) | the failing statement |
 
@@ -560,7 +561,11 @@ is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` are
   the member and the guild had. `GuildUnionManager` has the same shape: its
   tables are a `GuildUnionRegistry` locked on both sides, a union it takes
   away is retired and names no member guild, and the lock order is in
-  `GuildUnion.h`.
+  `GuildUnion.h`. A union exists for its member guilds and its pending join
+  offers, and an offer lives ten days: every path that takes a member or an
+  offer away applies that one rule (`dissolveIfAbandoned_LOCKED`), and the
+  expired offers are purged before an offer is read to be acted on and at
+  every load (`purgeOffers`, stated in `GuildUnion.h`).
 - **No creature is written to a `Tile` outside `ZoneSpawn.cpp` and
   `ZoneMove.cpp`.** PC swaps go through `Zone::replacePC`; the move-mode
   swaps, the knockback and NPC-warp moves, and the corpse paths that take a
