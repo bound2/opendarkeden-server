@@ -8,6 +8,8 @@
 
 #include "LoginPlayer.h"
 
+#include <memory>
+
 #include "Assert.h"
 #include "DatabaseError.h"
 #include "GameServerInfoManager.h"
@@ -159,7 +161,6 @@ void LoginPlayer::processCommand(bool Option) {
         char header[szPacketHeader];
         PacketID_t packetID;
         PacketSize_t packetSize;
-        Packet* pPacket;
 
         PacketFactoryManager& packetFactories = de::kernelContext().packetFactories();
 
@@ -219,25 +220,29 @@ void LoginPlayer::processCommand(bool Option) {
                 // Getting here means the input buffer holds at least one complete packet.
                 // The packet structure can be created from the packet factory manager with the packet id.
                 // A wrong packet id is handled by the packet factory manager.
-                pPacket = packetFactories.createPacket(packetID);
+                // The packet is owned here until the history takes it, so a
+                // read() or a handler that throws does not leak it.
+                std::unique_ptr<Packet> pPacket(packetFactories.createPacket(packetID));
 
                 // Now initialize this packet structure.
                 // The read() defined in the packet subclass is called through the virtual
                 // mechanism, so it is initialized automatically.
-                m_pInputStream->readPacket(pPacket);
+                m_pInputStream->readPacket(pPacket.get());
 
                 Timeval start, end;
                 getCurrentTime(start);
 
                 // Now the packet handler can be run with this packet structure.
                 // A wrong packet id is handled by the packet handler manager.
-                PacketDispatcher::dispatch(pPacket, this);
+                PacketDispatcher::dispatch(pPacket.get(), this);
 
                 getCurrentTime(end);
                 g_PacketProfileManager.addAccuTime(pPacket->getPacketName(), start, end);
 
-                // Put the current packet at the end of the packet history.
-                m_PacketHistory.push_back(pPacket);
+                // Put the current packet at the end of the packet history,
+                // which owns it from here on.
+                m_PacketHistory.push_back(pPacket.get());
+                (void)pPacket.release();
 
                 // Keep only nPacketHistory packets.
                 while (m_PacketHistory.size() > nPacketHistory) {

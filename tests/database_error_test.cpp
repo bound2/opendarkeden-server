@@ -266,4 +266,54 @@ TEST_F(DatabaseErrorTest, ABlockThatFinishesNormallyLeavesTheClausesUnrun) {
     EXPECT_EQ(1, g_statementsDestroyed);
 }
 
+//--------------------------------------------------------------------------------
+// The printf-style forms build at most Statement::kMaxStatementLength
+// characters. A longer statement is refused with an Error before anything is
+// stored or executed - never truncated to what fits and run - and one of
+// exactly that length is kept whole.
+//--------------------------------------------------------------------------------
+
+const std::string kFullLength(Statement::kMaxStatementLength, 'x');
+const std::string kOneTooLong(Statement::kMaxStatementLength + 1, 'x');
+
+// The name of the Throwable the call raised, or "" when it raised none.
+template <typename Call> std::string refusalOf(Call call) {
+    try {
+        call();
+    } catch (const Error& error) {
+        return error.getName();
+    }
+    return "";
+}
+
+TEST(StatementFormatTest, AStatementOfTheFullLengthIsKeptWhole) {
+    Statement statement;
+    statement.setStatement("%s", kFullLength.c_str());
+    EXPECT_EQ(kFullLength, statement.getStatement());
+
+    Statement formatted("%s", kFullLength.c_str());
+    EXPECT_EQ(kFullLength, formatted.getStatement());
+}
+
+TEST(StatementFormatTest, OneCharacterMoreIsRefusedAndLeavesTheStatementAlone) {
+    Statement statement;
+    statement.setStatement("SELECT 1");
+
+    EXPECT_EQ("Error", refusalOf([&] { statement.setStatement("%s", kOneTooLong.c_str()); }));
+    EXPECT_EQ("SELECT 1", statement.getStatement());
+
+    EXPECT_EQ("Error", refusalOf([&] { Statement formatted("%s", kOneTooLong.c_str()); }));
+}
+
+// The refusal comes before the connection is looked at, so a statement with
+// none refuses with the length Error rather than the missing-connection
+// assertion.
+TEST(StatementFormatTest, ExecutingAnOverlongStatementIsRefusedBeforeItRuns) {
+    Statement statement;
+    statement.setStatement("SELECT 1");
+
+    EXPECT_EQ("Error", refusalOf([&] { statement.executeQuery("%s", kOneTooLong.c_str()); }));
+    EXPECT_EQ("SELECT 1", statement.getStatement());
+}
+
 } // namespace

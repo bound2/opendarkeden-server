@@ -9,15 +9,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
-
-#include <algorithm>
 
 #include "GCExchangeList.h" // For ExchangeListing definition
 #include "Inventory.h"
 #include "Item.h"
 #include "ItemUtil.h"
+#include "KernelContext.h"
 #include "PlayerCreature.h"
+#include "Properties.h"
 
 using namespace std;
 
@@ -50,63 +49,21 @@ string _addHoursToNow(int hours) {
     return string(buf);
 }
 
-int16_t _getServerID() {
-    // TODO: Get actual server ID from configuration
-    // For now, return a default value
+// The server id listings, orders and buy requests are scoped by. Every game
+// server answers the same value, so they share one market, and
+// CGExchangeListHandler browses with it too. It is not the configured
+// ServerID (the shipped configurations set 0) and does not identify a game
+// server; the idempotency key reads the configured ids itself.
+int16_t _marketServerID() {
     return 1;
 }
 
-// Longest key PointLedger.IdempotencyKey can hold: it is VARCHAR(64) UNIQUE,
-// and this project mandates a non-strict sql_mode, so anything longer is
-// silently truncated on insert instead of being rejected.
-const size_t kMaxIdempotencyKeyLength = 64;
-
-// Generate a fallback idempotency key for a buy that arrived without one.
-//
-// Fixed width by construction: "EX_" plus 4 + 8 + 8 + 8 hex digits = 31
-// characters, which leaves room for the "_buy"/"_sale" suffix the buy path
-// appends and stays well inside kMaxIdempotencyKeyLength.
-//
-// The server id and the process id are part of the key because PointLedger
-// lives in the shared USERINFO database. Time plus a counter alone is not
-// unique across the deployment: two game servers - or one game server
-// restarted, since the counter starts over at zero - can mint the same key
-// within the same second, and whoever loses that collision has a legitimate
-// purchase rejected as an already-processed replay.
-//
-// This does NOT yet make the key unique across game servers. _getServerID()
-// above is a hardcoded 1 (its TODO), and under docker/docker-compose.yml every
-// containerised server is pid 1, so two such servers agree on both components
-// and their Nth key of the same second is identical. Restart-within-a-second
-// and the cross-thread race are covered; cross-server uniqueness needs that
-// TODO resolved.
-string _generateIdempotencyKey() {
-    static long counter = 0;
-
-    // The counter is bumped from every zone thread, so read-modify-write it
-    // atomically; two threads sharing a value would share the whole key.
-    const unsigned long sequence = (unsigned long)__sync_fetch_and_add(&counter, 1);
-    const time_t now = time(NULL);
-
-    char buf[64];
-    snprintf(buf, sizeof(buf), "EX_%04x%08lx%08lx%08lx", (unsigned int)(_getServerID() & 0xFFFF),
-             (unsigned long)(getpid() & 0xFFFFFFFF), (unsigned long)((unsigned long long)now & 0xFFFFFFFF),
-             (unsigned long)(sequence & 0xFFFFFFFF));
-    return string(buf);
-}
-
-// Build the per-leg ledger key ("<base>_buy", "<base>_sale").
-//
-// The base can be client-supplied, and CGExchangeBuy caps it on the wire at the
-// full column width, so appending the suffix would push it past that width. The
-// base is therefore trimmed to make room: without that, a maximum-length key
-// makes both legs truncate to the SAME stored value, they collide on
-// UNQ_Ledger_IdempotencyKey, and the whole purchase rolls back. Two bases that
-// only differ past the trim point still collide - that is inherent to a 64-byte
-// column carrying a suffix, and it fails closed (a replay is refused).
-string _makeLedgerKey(const string& base, const string& suffix) {
-    const size_t room = (suffix.length() < kMaxIdempotencyKeyLength) ? kMaxIdempotencyKeyLength - suffix.length() : 0;
-    return base.substr(0, min(base.length(), room)) + suffix;
+// The key a buy is recorded under, from the client's key and this game
+// server's configured WorldID and ServerID.
+string _idempotencyKeyFor(const string& clientKey, int64_t listingID) {
+    const Properties& config = de::kernelContext().config();
+    return resolveExchangeIdempotencyKey(clientKey, config.getPropertyInt("WorldID"), config.getPropertyInt("ServerID"),
+                                         listingID);
 }
 
 // Check if player has inventory space
@@ -128,45 +85,32 @@ bool _checkInventorySpace(PlayerCreature* pPlayer) {
 // Browse operations
 //////////////////////////////////////////////////////////////////////////////
 
-vector<ExchangeListing> ExchangeService::getListings(int16_t serverID, int page, int pageSize, uint8_t itemClass,
-                                                     uint16_t itemType, int minPrice, int maxPrice,
-                                                     const string& sellerFilter) {
-    // For now, use the basic DB function
-    // In production, we'd want to add filtering at DB level for performance
+vector<ExchangeListing> ExchangeService::getListings(int16_t serverID, int page, int pageSize,
+                                                     const ExchangeListingFilter& filter) {
+    // The page is read first and filtered in memory, so a filtered page holds
+    // the matching listings of that page, not a page of matching listings.
     vector<ExchangeListing> allListings =
         defaultExchangeRepository().getListings(serverID, LISTING_STATUS_ACTIVE, page, pageSize);
 
-    // Apply additional filters (in-memory for now)
     vector<ExchangeListing> filtered;
     for (const auto& listing : allListings) {
-        if (itemClass != 0xFF && listing.itemClass != itemClass)
-            continue;
-        if (itemType != 0xFFFF && listing.itemType != itemType)
-            continue;
-        if (minPrice > 0 && listing.pricePoint < minPrice)
-            continue;
-        if (maxPrice > 0 && listing.pricePoint > maxPrice)
-            continue;
-        if (!sellerFilter.empty() && listing.sellerPlayer.find(sellerFilter) == string::npos)
-            continue;
-
-        filtered.push_back(listing);
+        if (matchesExchangeListingFilter(listing, filter))
+            filtered.push_back(listing);
     }
 
     return filtered;
 }
 
-int ExchangeService::getListingsCount(int16_t serverID, uint8_t itemClass, uint16_t itemType, int minPrice,
-                                      int maxPrice, const string& sellerFilter) {
+int ExchangeService::getListingsCount(int16_t serverID, const ExchangeListingFilter& filter) {
     // For accurate count, we need a DB query
     // For now, return a placeholder
     vector<ExchangeListing> listings = getListings(serverID, 1, 1000, // Get max results
-                                                   itemClass, itemType, minPrice, maxPrice, sellerFilter);
+                                                   filter);
     return listings.size();
 }
 
-ExchangeListing* ExchangeService::getListing(int64_t listingID) {
-    return defaultExchangeRepository().getListing(listingID);
+unique_ptr<ExchangeListing> ExchangeService::getListing(int64_t listingID) {
+    return unique_ptr<ExchangeListing>(defaultExchangeRepository().getListing(listingID));
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -215,7 +159,7 @@ Outcome<ExchangeListingCreated, ExchangeRejection> ExchangeService::createListin
     // Create listing record
     ExchangeListing listing;
     listing.listingID = 0; // Will be set by DB auto-increment
-    listing.serverID = _getServerID();
+    listing.serverID = _marketServerID();
     listing.sellerAccount = account;
     listing.sellerPlayer = playerName;
     listing.sellerRace = race;
@@ -304,8 +248,8 @@ Outcome<ExchangePurchase, ExchangeRejection> ExchangeService::buyListing(PlayerC
     request.listingID = listingID;
     request.buyerAccount = pBuyer->getName();
     request.buyerPlayer = pBuyer->getName();
-    request.idempotencyKey = idempotencyKey;
-    request.serverID = _getServerID();
+    request.idempotencyKey = _idempotencyKeyFor(idempotencyKey, listingID);
+    request.serverID = _marketServerID();
     request.taxRate = m_TaxRate;
 
     // Check expiration
@@ -323,8 +267,6 @@ Outcome<ExchangePurchase, ExchangeRejection> ExchangeService::buyListing(PlayerC
         return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_TRANSACTION_ERROR));
     }
 
-    string autoKey = idempotencyKey.empty() ? _generateIdempotencyKey() : idempotencyKey;
-
     // Every step below is part of the one purchase: the first that fails
     // takes back the ones before it and names itself in the rejection.
     auto unwind = [](const char* detail) {
@@ -340,14 +282,16 @@ Outcome<ExchangePurchase, ExchangeRejection> ExchangeService::buyListing(PlayerC
     purchase.sellerIncome = terms.sellerIncome;
 
     // Deduct points from buyer
-    if (!defaultExchangeRepository().adjustPoints(request.buyerAccount, -terms.totalCost, purchase.buyerBalanceAfter,
-                                                  POINT_REASON_BUY, listingID, 0, _makeLedgerKey(autoKey, "_buy"))) {
+    if (!defaultExchangeRepository().adjustPoints(
+            request.buyerAccount, -terms.totalCost, purchase.buyerBalanceAfter, POINT_REASON_BUY, listingID, 0,
+            exchangeLedgerKey(request.idempotencyKey, kExchangeBuyLedgerSuffix))) {
         return unwind("Failed to deduct buyer points");
     }
 
     // Add points to seller (after tax)
-    if (!defaultExchangeRepository().adjustPoints(terms.sellerAccount, terms.sellerIncome, purchase.sellerBalanceAfter,
-                                                  POINT_REASON_SALE, listingID, 0, _makeLedgerKey(autoKey, "_sale"))) {
+    if (!defaultExchangeRepository().adjustPoints(
+            terms.sellerAccount, terms.sellerIncome, purchase.sellerBalanceAfter, POINT_REASON_SALE, listingID, 0,
+            exchangeLedgerKey(request.idempotencyKey, kExchangeSaleLedgerSuffix))) {
         return unwind("Failed to add seller points");
     }
 
@@ -355,7 +299,7 @@ Outcome<ExchangePurchase, ExchangeRejection> ExchangeService::buyListing(PlayerC
     ExchangeOrder order;
     order.orderID = 0;
     order.listingID = listingID;
-    order.serverID = getServerID();
+    order.serverID = _marketServerID();
     order.buyerAccount = request.buyerAccount;
     order.buyerPlayer = request.buyerPlayer;
     order.pricePoint = terms.pricePoint;
@@ -407,7 +351,7 @@ vector<ExchangeClaim> ExchangeService::prepareClaimList(PlayerCreature* pPlayer)
     // Get buyer's paid orders (ready to deliver)
     vector<ExchangeOrder> orders = getBuyerOrders(playerName, ORDER_STATUS_PAID);
     for (const auto& order : orders) {
-        ExchangeListing* pListing = getListing(order.listingID);
+        unique_ptr<ExchangeListing> pListing = getListing(order.listingID);
         if (pListing) {
             ExchangeClaim claim;
             claim.id = order.orderID;
@@ -601,12 +545,8 @@ void ExchangeService::createItemSnapshot(Item* pItem, ExchangeListing& listing) 
     }
 }
 
-string ExchangeService::generateIdempotencyKey() {
-    return _generateIdempotencyKey();
-}
-
-int16_t ExchangeService::getServerID() {
-    return _getServerID();
+int16_t ExchangeService::getMarketServerID() {
+    return _marketServerID();
 }
 
 bool ExchangeService::checkInventorySpace(PlayerCreature* pPlayer) {

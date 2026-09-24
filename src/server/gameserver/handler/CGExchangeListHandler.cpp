@@ -28,8 +28,7 @@ void CGExchangeListHandler::execute(CGExchangeList* pPacket, Player* pPlayer) {
     if (pPC == NULL)
         return;
 
-    // Get server ID (TODO: implement getServerID in PlayerCreature)
-    int16_t serverID = 1; // Default server ID
+    const int16_t serverID = ExchangeService::getMarketServerID();
 
     // Clamp the client-supplied paging before anything uses it.
     //
@@ -54,10 +53,9 @@ void CGExchangeListHandler::execute(CGExchangeList* pPacket, Player* pPlayer) {
     else if (page > INT_MAX / pageSize)
         page = INT_MAX / pageSize;
 
-    // Get listings from service
+    // Get listings from service, narrowed by every filter the packet carries
     vector<ExchangeListing> listings =
-        ExchangeService::getListings(serverID, page, pageSize, pPacket->getItemClass(), pPacket->getItemType(),
-                                     pPacket->getMinPrice(), pPacket->getMaxPrice());
+        ExchangeService::getListings(serverID, page, pageSize, exchangeListingFilterOf(*pPacket));
 
     // Send response. The reply echoes the values actually used, not the ones
     // the client asked for.

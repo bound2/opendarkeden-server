@@ -6,10 +6,19 @@
 
 #include "ExchangeDecision.h"
 
+#include <stdio.h>
+#include <string.h>
+
+#include <algorithm>
 #include <memory>
 #include <vector>
 
+#include "CGExchangeList.h"
 #include "GCExchangeList.h" // For ExchangeListing definition
+
+const char* const kExchangeBuyLedgerSuffix = "_buy";
+const char* const kExchangeSaleLedgerSuffix = "_sale";
+const char* const kExchangeServerKeyPrefix = "EX_";
 
 std::string formatExchangeError(ExchangeResult code, const std::string& detail) {
     std::string error;
@@ -86,13 +95,58 @@ Outcome<void, ExchangeRejection> validateListingPrice(int pricePoint) {
     return Outcome<void, ExchangeRejection>::Ok();
 }
 
+ExchangeListingFilter exchangeListingFilterOf(const CGExchangeList& packet) {
+    ExchangeListingFilter filter;
+    filter.itemClass = packet.getItemClass();
+    filter.itemType = packet.getItemType();
+    filter.minPrice = packet.getMinPrice();
+    filter.maxPrice = packet.getMaxPrice();
+    filter.sellerFilter = packet.getSellerFilter();
+    return filter;
+}
+
+bool matchesExchangeListingFilter(const ExchangeListing& listing, const ExchangeListingFilter& filter) {
+    if (filter.itemClass != 0xFF && listing.itemClass != filter.itemClass)
+        return false;
+    if (filter.itemType != 0xFFFF && listing.itemType != filter.itemType)
+        return false;
+    if (filter.minPrice > 0 && listing.pricePoint < filter.minPrice)
+        return false;
+    if (filter.maxPrice > 0 && listing.pricePoint > filter.maxPrice)
+        return false;
+    if (!filter.sellerFilter.empty() && listing.sellerPlayer.find(filter.sellerFilter) == std::string::npos)
+        return false;
+    return true;
+}
+
+std::string exchangeLedgerKey(const std::string& base, const std::string& suffix) {
+    const size_t room =
+        (suffix.length() < kMaxExchangeIdempotencyKeyLength) ? kMaxExchangeIdempotencyKeyLength - suffix.length() : 0;
+    return base.substr(0, std::min(base.length(), room)) + suffix;
+}
+
+std::string exchangeServerIdempotencyKey(int worldID, int serverID, int64_t listingID) {
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%s%02x%02x%016llx", kExchangeServerKeyPrefix, (unsigned int)(worldID & 0xFF),
+             (unsigned int)(serverID & 0xFF), (unsigned long long)listingID);
+    return std::string(buf);
+}
+
+std::string resolveExchangeIdempotencyKey(const std::string& clientKey, int worldID, int serverID, int64_t listingID) {
+    if (clientKey.empty() || clientKey.compare(0, strlen(kExchangeServerKeyPrefix), kExchangeServerKeyPrefix) == 0)
+        return exchangeServerIdempotencyKey(worldID, serverID, listingID);
+    return clientKey;
+}
+
 Outcome<ExchangePurchaseTerms, ExchangeRejection> decideBuyListing(ExchangeRepository& repository,
                                                                    const ExchangeBuyRequest& request) {
     typedef Outcome<ExchangePurchaseTerms, ExchangeRejection> Result;
 
-    // A client-supplied key that the ledger has already seen is a replay of
-    // a purchase that went through; refuse it before reading anything else.
-    if (!request.idempotencyKey.empty() && repository.hasIdempotencyKey(request.idempotencyKey))
+    // A key whose buyer row the ledger already holds is a replay of a
+    // purchase that went through; refuse it before reading anything else.
+    // The buyer row is looked up under the key buyListing writes it with.
+    if (!request.idempotencyKey.empty() &&
+        repository.hasIdempotencyKey(exchangeLedgerKey(request.idempotencyKey, kExchangeBuyLedgerSuffix)))
         return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT));
 
     // getListing hands out a listing the caller owns.

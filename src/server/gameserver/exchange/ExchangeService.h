@@ -7,6 +7,7 @@
 #ifndef __EXCHANGE_SERVICE_H__
 #define __EXCHANGE_SERVICE_H__
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -85,17 +86,19 @@ public:
     // Browse operations
     ////////////////////////////////////////////////////////////////////
 
-    // Get listings with pagination and filters
+    // The server id every game server lists into and browses: one market,
+    // whatever this game server's configured ServerID is.
+    static int16_t getMarketServerID();
+
+    // One page of active listings, narrowed by the filter
     static vector<ExchangeListing> getListings(int16_t serverID, int page = 1, int pageSize = 20,
-                                               uint8_t itemClass = 0xFF, uint16_t itemType = 0xFFFF, int minPrice = 0,
-                                               int maxPrice = 0, const string& sellerFilter = "");
+                                               const ExchangeListingFilter& filter = ExchangeListingFilter());
 
     // Get total count matching filters
-    static int getListingsCount(int16_t serverID, uint8_t itemClass = 0xFF, uint16_t itemType = 0xFFFF,
-                                int minPrice = 0, int maxPrice = 0, const string& sellerFilter = "");
+    static int getListingsCount(int16_t serverID, const ExchangeListingFilter& filter = ExchangeListingFilter());
 
-    // Get specific listing
-    static ExchangeListing* getListing(int64_t listingID);
+    // Get specific listing, or NULL when the id names none
+    static unique_ptr<ExchangeListing> getListing(int64_t listingID);
 
     ////////////////////////////////////////////////////////////////////
     // Listing operations
@@ -197,12 +200,6 @@ private:
 
     // Create item snapshot for UI display
     static void createItemSnapshot(Item* pItem, ExchangeListing& listing);
-
-    // Generate idempotency key
-    static string generateIdempotencyKey();
-
-    // Get server ID
-    static int16_t getServerID();
 
     // Check if inventory has space
     static bool checkInventorySpace(PlayerCreature* pPlayer);

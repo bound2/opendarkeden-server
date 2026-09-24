@@ -2,14 +2,17 @@
 // (src/server/gameserver/exchange/ExchangeDecision.cpp): every rejection with
 // the input that triggers it, the precedence between them, the terms an
 // accepted buy computes, and the English text each result code puts on the
-// wire in GCExchangeBuy. The repository is a fake, so no database is
-// involved; ExchangeService itself is not exercised here because it needs a
-// PlayerCreature and an Item.
+// wire in GCExchangeBuy; the ledger keys a buy is recorded under, and the
+// browse filter a CGExchangeList asks for. The repository is a fake, so no
+// database is involved; ExchangeService itself is not exercised here because
+// it needs a PlayerCreature and an Item.
 
+#include <cstdint>
 #include <string>
 
 #include <gtest/gtest.h>
 
+#include "CGExchangeList.h"
 #include "ExchangeDecision.h"
 #include "FakeExchangeRepository.h"
 
@@ -225,17 +228,61 @@ TEST(ExchangeBuyDecision, AKeyTheLedgerHasSeenIsAReplay) {
     repository.addListing(activeListing());
     repository.setPointBalance("Buyer", 500);
 
+    // The buyer's row, under the key buyListing writes it with.
     int balanceAfter = 0;
-    ASSERT_TRUE(repository.adjustPoints("Buyer", -1, balanceAfter, POINT_REASON_BUY, 10, 0, "key_buy"));
+    ASSERT_TRUE(repository.adjustPoints("Buyer", -1, balanceAfter, POINT_REASON_BUY, 10, 0,
+                                        exchangeLedgerKey("key", kExchangeBuyLedgerSuffix)));
 
     ExchangeBuyRequest request = buyRequest();
-    request.idempotencyKey = "key_buy";
+    request.idempotencyKey = "key";
 
     auto result = decideBuyListing(repository, request);
     ASSERT_TRUE(result.isRejected());
     EXPECT_EQ(EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT, result.rejection().code);
     // The replay is refused before the listing is even read.
     EXPECT_EQ(0, repository.listingLoads());
+}
+
+TEST(ExchangeBuyDecision, TheReplayCheckLooksUpTheBuyersRowNotTheBareKey) {
+    FakeExchangeRepository repository;
+    repository.addListing(activeListing());
+    repository.setPointBalance("Buyer", 500);
+
+    // No purchase writes a row under the bare key, so one there is not this
+    // purchase's.
+    int balanceAfter = 0;
+    ASSERT_TRUE(repository.adjustPoints("Buyer", 0, balanceAfter, POINT_REASON_ADJUST, 0, 0, "key"));
+
+    ExchangeBuyRequest request = buyRequest();
+    request.idempotencyKey = "key";
+
+    EXPECT_TRUE(decideBuyListing(repository, request).isOk());
+}
+
+// A double click sends the same buy twice with no key. Both requests derive
+// the same key, so once the first has written its ledger rows the second is
+// a replay.
+TEST(ExchangeBuyDecision, ADoubleClickWithoutAKeyIsAReplay) {
+    FakeExchangeRepository repository;
+    repository.addListing(activeListing());
+    repository.setPointBalance("Buyer", 500);
+    repository.setPointBalance("seller-account", 0);
+
+    ExchangeBuyRequest first = buyRequest();
+    first.idempotencyKey = resolveExchangeIdempotencyKey("", 1, 0, first.listingID);
+    ASSERT_TRUE(decideBuyListing(repository, first).isOk());
+
+    // What buyListing writes for the first click.
+    int balanceAfter = 0;
+    ASSERT_TRUE(repository.adjustPoints("Buyer", -108, balanceAfter, POINT_REASON_BUY, 10, 0,
+                                        exchangeLedgerKey(first.idempotencyKey, kExchangeBuyLedgerSuffix)));
+    ASSERT_TRUE(repository.adjustPoints("seller-account", 92, balanceAfter, POINT_REASON_SALE, 10, 0,
+                                        exchangeLedgerKey(first.idempotencyKey, kExchangeSaleLedgerSuffix)));
+
+    ExchangeBuyRequest second = buyRequest();
+    second.idempotencyKey = resolveExchangeIdempotencyKey("", 1, 0, second.listingID);
+    EXPECT_EQ(first.idempotencyKey, second.idempotencyKey);
+    EXPECT_EQ(EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT, decideBuyListing(repository, second).rejection().code);
 }
 
 TEST(ExchangeBuyDecision, AnUnusedKeyDoesNotStandInTheWay) {
@@ -256,7 +303,8 @@ TEST(ExchangeBuyDecision, TheReplayCheckComesBeforeEveryOtherRefusal) {
     repository.addListing(listing);
 
     int balanceAfter = 0;
-    ASSERT_TRUE(repository.adjustPoints("Buyer", 0, balanceAfter, POINT_REASON_BUY, 10, 0, "used"));
+    ASSERT_TRUE(repository.adjustPoints("Buyer", 0, balanceAfter, POINT_REASON_BUY, 10, 0,
+                                        exchangeLedgerKey("used", kExchangeBuyLedgerSuffix)));
 
     ExchangeBuyRequest request = buyRequest();
     request.idempotencyKey = "used";
@@ -273,6 +321,141 @@ TEST(ExchangeBuyDecision, ListingStateOutranksThePurse) {
     repository.setPointBalance("Buyer", 0);
 
     EXPECT_EQ(EXCHANGE_FAIL_LISTING_NOT_AVAILABLE, decideBuyListing(repository, buyRequest()).rejection().code);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Idempotency keys
+//////////////////////////////////////////////////////////////////////////////
+
+TEST(ExchangeIdempotencyKey, EachLegAppendsItsSuffix) {
+    EXPECT_EQ("key_buy", exchangeLedgerKey("key", kExchangeBuyLedgerSuffix));
+    EXPECT_EQ("key_sale", exchangeLedgerKey("key", kExchangeSaleLedgerSuffix));
+}
+
+TEST(ExchangeIdempotencyKey, AFullWidthBaseIsTrimmedSoTheLegsStayDistinct) {
+    const std::string base(kMaxExchangeIdempotencyKeyLength, 'k');
+
+    const std::string buy = exchangeLedgerKey(base, kExchangeBuyLedgerSuffix);
+    const std::string sale = exchangeLedgerKey(base, kExchangeSaleLedgerSuffix);
+
+    EXPECT_EQ(kMaxExchangeIdempotencyKeyLength, buy.size());
+    EXPECT_EQ(kMaxExchangeIdempotencyKeyLength, sale.size());
+    EXPECT_EQ(std::string(kMaxExchangeIdempotencyKeyLength - 4, 'k') + "_buy", buy);
+    EXPECT_EQ(std::string(kMaxExchangeIdempotencyKeyLength - 5, 'k') + "_sale", sale);
+    EXPECT_NE(buy, sale);
+}
+
+TEST(ExchangeIdempotencyKey, TheServerKeyNamesTheWorldTheServerAndTheListing) {
+    EXPECT_EQ("EX_0100000000000000000a", exchangeServerIdempotencyKey(1, 0, 10));
+    EXPECT_EQ("EX_0203000000000000000a", exchangeServerIdempotencyKey(2, 3, 10));
+    EXPECT_EQ("EX_ffff7fffffffffffffff", exchangeServerIdempotencyKey(0xFF, 0xFF, INT64_MAX));
+
+    // Fixed width, with room for either suffix inside the column.
+    EXPECT_EQ(23u, exchangeServerIdempotencyKey(1, 0, 10).size());
+    EXPECT_EQ(23u, exchangeServerIdempotencyKey(0xFF, 0xFF, INT64_MAX).size());
+
+    // Every component tells two purchases apart.
+    EXPECT_NE(exchangeServerIdempotencyKey(1, 0, 10), exchangeServerIdempotencyKey(2, 0, 10));
+    EXPECT_NE(exchangeServerIdempotencyKey(1, 0, 10), exchangeServerIdempotencyKey(1, 1, 10));
+    EXPECT_NE(exchangeServerIdempotencyKey(1, 0, 10), exchangeServerIdempotencyKey(1, 0, 11));
+}
+
+TEST(ExchangeIdempotencyKey, AClientKeyIsUsedAsSent) {
+    EXPECT_EQ("client-key", resolveExchangeIdempotencyKey("client-key", 1, 0, 10));
+}
+
+TEST(ExchangeIdempotencyKey, NoClientKeyMeansTheServerKey) {
+    EXPECT_EQ(exchangeServerIdempotencyKey(1, 0, 10), resolveExchangeIdempotencyKey("", 1, 0, 10));
+}
+
+// Otherwise a buyer could spend a purchase of one listing on planting the key
+// another listing's keyless buy derives, and that buy would be refused.
+TEST(ExchangeIdempotencyKey, AClientKeyInTheServersNamespaceIsReplaced) {
+    const std::string planted = exchangeServerIdempotencyKey(1, 0, 11);
+    EXPECT_EQ(exchangeServerIdempotencyKey(1, 0, 10), resolveExchangeIdempotencyKey(planted, 1, 0, 10));
+    EXPECT_EQ(exchangeServerIdempotencyKey(1, 0, 10), resolveExchangeIdempotencyKey("EX_", 1, 0, 10));
+    // Only the exact prefix is reserved.
+    EXPECT_EQ("ex_lower", resolveExchangeIdempotencyKey("ex_lower", 1, 0, 10));
+    EXPECT_EQ("EX", resolveExchangeIdempotencyKey("EX", 1, 0, 10));
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Browsing
+//////////////////////////////////////////////////////////////////////////////
+
+TEST(ExchangeListingFilterTest, TheDefaultFilterMatchesEveryListing) {
+    ExchangeListing listing = activeListing();
+    listing.itemClass = 7;
+    listing.itemType = 3;
+    EXPECT_TRUE(matchesExchangeListingFilter(listing, ExchangeListingFilter()));
+}
+
+TEST(ExchangeListingFilterTest, TheFilterCarriesEveryFieldOfTheRequest) {
+    CGExchangeList packet;
+    packet.setItemClass(7);
+    packet.setItemType(3);
+    packet.setMinPrice(50);
+    packet.setMaxPrice(150);
+    packet.setSellerFilter("Sell");
+
+    const ExchangeListingFilter filter = exchangeListingFilterOf(packet);
+    EXPECT_EQ(7, (int)filter.itemClass);
+    EXPECT_EQ(3, (int)filter.itemType);
+    EXPECT_EQ(50, filter.minPrice);
+    EXPECT_EQ(150, filter.maxPrice);
+    EXPECT_EQ("Sell", filter.sellerFilter);
+}
+
+// The client's browse sends no seller filter; that request narrows nothing.
+TEST(ExchangeListingFilterTest, ARequestWithoutASellerFilterMatchesEverySeller) {
+    ExchangeListing listing = activeListing();
+    listing.sellerPlayer = "Anybody";
+    EXPECT_TRUE(matchesExchangeListingFilter(listing, exchangeListingFilterOf(CGExchangeList())));
+}
+
+TEST(ExchangeListingFilterTest, TheSellerFilterIsACaseSensitiveSubstringOfTheSellersName) {
+    CGExchangeList packet;
+    packet.setSellerFilter("ell");
+    const ExchangeListingFilter filter = exchangeListingFilterOf(packet);
+
+    ExchangeListing listing = activeListing();
+    listing.sellerPlayer = "Seller";
+    EXPECT_TRUE(matchesExchangeListingFilter(listing, filter));
+    listing.sellerPlayer = "ell";
+    EXPECT_TRUE(matchesExchangeListingFilter(listing, filter));
+    listing.sellerPlayer = "Buyer";
+    EXPECT_FALSE(matchesExchangeListingFilter(listing, filter));
+    listing.sellerPlayer = "SELLER";
+    EXPECT_FALSE(matchesExchangeListingFilter(listing, filter));
+}
+
+TEST(ExchangeListingFilterTest, ItemAndPriceBounds) {
+    ExchangeListing listing = activeListing(); // priced at 100
+    listing.itemClass = 7;
+    listing.itemType = 3;
+
+    ExchangeListingFilter filter;
+    filter.itemClass = 7;
+    EXPECT_TRUE(matchesExchangeListingFilter(listing, filter));
+    filter.itemClass = 8;
+    EXPECT_FALSE(matchesExchangeListingFilter(listing, filter));
+
+    filter = ExchangeListingFilter();
+    filter.itemType = 3;
+    EXPECT_TRUE(matchesExchangeListingFilter(listing, filter));
+    filter.itemType = 4;
+    EXPECT_FALSE(matchesExchangeListingFilter(listing, filter));
+
+    // Both bounds are inclusive.
+    filter = ExchangeListingFilter();
+    filter.minPrice = 100;
+    filter.maxPrice = 100;
+    EXPECT_TRUE(matchesExchangeListingFilter(listing, filter));
+    filter.minPrice = 101;
+    EXPECT_FALSE(matchesExchangeListingFilter(listing, filter));
+    filter.minPrice = 0;
+    filter.maxPrice = 99;
+    EXPECT_FALSE(matchesExchangeListingFilter(listing, filter));
 }
 
 //////////////////////////////////////////////////////////////////////////////
