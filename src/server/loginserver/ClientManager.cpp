@@ -132,9 +132,9 @@ void ClientManager::run() {
 
         beginProfileEx("LS_MAIN");
 
-        beginProfileEx("LPM_SELECT");
-        m_pLoginPlayerManager->select();
-        endProfileEx("LPM_SELECT");
+        beginProfileEx("LPM_POLL");
+        m_pLoginPlayerManager->pollSockets();
+        endProfileEx("LPM_POLL");
 
         beginProfileEx("LPM_EXCEPTION");
         m_pLoginPlayerManager->processExceptions();

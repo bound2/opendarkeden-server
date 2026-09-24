@@ -71,6 +71,10 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
         return;
     }
 
+    // The quit may dissolve the union and free it, so its id is read first
+    // and pUnion is not used past this call.
+    const auto unionID = pUnion->getUnionID();
+
     uint result = GuildUnionOfferManager::Instance().acceptQuit(pPacket->getGuildID());
 
     gcGuildResponse.setCode(result);
@@ -92,8 +96,8 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
                                                      de::gameContext().strings().c_str(375));
 
         // What if I am the only one left after accepting the withdrawal?
-        if (guildRows.countUnionMembersSpelled(UNION_SQL_PLAIN, pUnion->getUnionID()) == 0) {
-            guildRows.deleteUnionInfoOnly(UNION_SQL_PLAIN, pUnion->getUnionID());
+        if (guildRows.countUnionMembersSpelled(UNION_SQL_PLAIN, unionID) == 0) {
+            guildRows.deleteUnionInfoOnly(UNION_SQL_PLAIN, unionID);
             GuildUnionManager::Instance().reload();
         }
 

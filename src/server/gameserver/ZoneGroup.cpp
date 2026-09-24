@@ -144,9 +144,9 @@ void ZoneGroup::processPlayers()
 
 
     try {
-        beginProfileEx("ZPM_SELECT");
-        m_pZonePlayerManager->select();
-        endProfileEx("ZPM_SELECT");
+        beginProfileEx("ZPM_POLL");
+        m_pZonePlayerManager->pollSockets();
+        endProfileEx("ZPM_POLL");
 
         beginProfileEx("ZPM_EXCEPTION");
         m_pZonePlayerManager->processExceptions();

@@ -133,7 +133,7 @@ void ClientManager::run()
             setCurrentTime();
 
             // vstime.start();
-            m_pIncomingPlayerManager->select();
+            m_pIncomingPlayerManager->pollSockets();
             // file << "IncomingPlayerManagerSelect:" << vstime.elapsed() << endl;
 
             // vstime.restart();
@@ -148,7 +148,7 @@ void ClientManager::run()
             m_pIncomingPlayerManager->processOutputs();
             // file << "IncomingPlayerManagerOutput:" << vstime.elapsed() << endl;
         } catch (TimeoutException&) {
-            // If select() times out, there is nothing to do.
+            // With nothing ready there is nothing to do.
             // Just continue to the next loop iteration.
         } catch (Error&) {
             throw;

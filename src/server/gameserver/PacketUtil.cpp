@@ -87,37 +87,43 @@
 #include "GuildUnion.h"
 #include "KernelContext.h"
 #include "PCFinder.h"
+#include "PlayerMailbox.h"
 #include "ServerContext.h"
 #include "Store.h"
 #include "repository/PlayRecordRepository.h"
 
+// Runs on the thread that owns pc, under its group mutex: the broadcast
+// walks pc's zone.
+static void broadcastGuildUnionChange(PlayerCreature& pc) {
+    Zone* pZone = pc.getZone();
+    if (pZone == NULL)
+        return;
+
+    GCOtherModifyInfo gcOtherModifyInfo;
+    makeGCOtherModifyInfoGuildUnion(&gcOtherModifyInfo, &pc);
+    pZone->broadcastPacket(pc.getX(), pc.getY(), &gcOtherModifyInfo, &pc);
+}
+
+// Callable from any thread: the members are named under the finder's lock
+// and each broadcast is posted to the thread that owns the member, so no
+// zone-group mutex is taken here.
 void sendGCOtherModifyInfoGuildUnionByGuildID(uint gID)
 
 {
     __BEGIN_TRY
 
-    // Send it to the members who joined.
-    list<Creature*> cList = de::gameContext().playerCreatures().getGuildCreatures(gID, 300);
-    for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
-        Creature* pOtherCreature = *itr;
-        Zone* pZone = pOtherCreature->getZone();
+    PCFinder& pcFinder = de::gameContext().playerCreatures();
+    list<string> names;
 
-        if (pZone != NULL) {
-            GCOtherModifyInfo gcOtherModifyInfo;
+    __ENTER_CRITICAL_SECTION(pcFinder)
 
-            ZoneCoord_t X = pOtherCreature->getX();
-            ZoneCoord_t Y = pOtherCreature->getY();
+    names = pcFinder.getGuildPlayerNames_LOCKED(gID);
 
-            makeGCOtherModifyInfoGuildUnion(&gcOtherModifyInfo, pOtherCreature);
+    __LEAVE_CRITICAL_SECTION(pcFinder)
 
-            __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
-
-            pZone->broadcastPacket(X, Y, &gcOtherModifyInfo, pOtherCreature);
-
-            __LEAVE_CRITICAL_SECTION((*(pZone->getZoneGroup())))
-        }
+    for (list<string>::const_iterator itr = names.begin(); itr != names.end(); itr++) {
+        de::postToPlayer(*itr, [](PlayerCreature& pc, Player& player) { broadcastGuildUnionChange(pc); });
     }
-
 
     __END_CATCH
 }
@@ -127,42 +133,10 @@ void sendGCOtherModifyInfoGuildUnion(Creature* pTargetCreature)
 {
     __BEGIN_TRY
 
-    GamePlayer* pTargetGamePlayer = dynamic_cast<GamePlayer*>(pTargetCreature->getPlayer());
-    Assert(pTargetGamePlayer != NULL);
-
-    PlayerCreature* pTargetPlayerCreature = dynamic_cast<PlayerCreature*>(pTargetGamePlayer->getCreature());
+    PlayerCreature* pTargetPlayerCreature = dynamic_cast<PlayerCreature*>(pTargetCreature);
     Assert(pTargetPlayerCreature != NULL);
 
-    // Send it to the members who joined.
-    list<Creature*> cList =
-        de::gameContext().playerCreatures().getGuildCreatures(pTargetPlayerCreature->getGuildID(), 300);
-    for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
-        Creature* pOtherCreature = *itr;
-        if (pOtherCreature != NULL) {
-            Zone* pZone = pOtherCreature->getZone();
-
-            if (pZone != NULL) {
-                GCOtherModifyInfo gcOtherModifyInfo;
-
-                ZoneCoord_t X = pOtherCreature->getX();
-                ZoneCoord_t Y = pOtherCreature->getY();
-
-                makeGCOtherModifyInfoGuildUnion(&gcOtherModifyInfo, pOtherCreature);
-
-                if (pTargetCreature->getZone()->getZoneGroup()->getZoneGroupID() ==
-                    pOtherCreature->getZone()->getZoneGroup()->getZoneGroupID()) {
-                    pZone->broadcastPacket(X, Y, &gcOtherModifyInfo, pOtherCreature);
-                } else {
-                    __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
-
-                    pZone->broadcastPacket(X, Y, &gcOtherModifyInfo, pOtherCreature);
-
-                    __LEAVE_CRITICAL_SECTION((*(pZone->getZoneGroup())))
-                }
-            }
-        }
-    }
-
+    sendGCOtherModifyInfoGuildUnionByGuildID(pTargetPlayerCreature->getGuildID());
 
     __END_CATCH
 }

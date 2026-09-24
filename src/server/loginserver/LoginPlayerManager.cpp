@@ -33,7 +33,9 @@
 // This is where the sub-manager objects are created. (There are none.)
 //
 //////////////////////////////////////////////////////////////////////
-LoginPlayerManager::LoginPlayerManager() : m_pServerSocket(NULL), m_ServerFD(INVALID_SOCKET), m_MinFD(-1), m_MaxFD(-1) {
+LoginPlayerManager::LoginPlayerManager()
+    : m_pServerSocket(NULL), m_ServerFD(INVALID_SOCKET), m_PollSet((int)nMaxPlayers), m_TimeoutMilliseconds(0),
+      m_MinFD(-1), m_MaxFD(-1) {
     __BEGIN_TRY
 
     m_Mutex.setName("LoginPlayerManager");
@@ -105,22 +107,16 @@ void LoginPlayerManager::init() {
     if (!de::fitsDescriptorTable((int)m_ServerFD, (int)nMaxPlayers))
         throw Error("listening socket descriptor does not fit the player table");
 
-    // Zero the fd_sets.
-    FD_ZERO(&m_ReadFDs[0]);
-    FD_ZERO(&m_WriteFDs[0]);
-    FD_ZERO(&m_ExceptFDs[0]);
-
-    // Turn the server socket on.
-    FD_SET(m_ServerFD, &m_ReadFDs[0]);
+    // Watch the server socket for an arriving connection. Nothing is ever
+    // written to it and its out-of-band data is not looked at.
+    m_PollSet.watch(m_ServerFD, de::DescriptorPollSet::kRead);
 
     // set min/max fd
     m_MaxFD = m_MinFD = m_ServerFD;
 
-    // Initialize m_Timeout.
-    // This period should become an option later as well.
-    // It may be longer than the one in ZonePlayerManager.
-    m_Timeout[0].tv_sec = 0;
-    m_Timeout[0].tv_usec = 0;
+    // How long a poll waits. This period should become an option later as
+    // well. It may be longer than the one in ZonePlayerManager.
+    m_TimeoutMilliseconds = 0;
 
     //--------------------------------------------------------------------------------
     // Tidy Player.LogOn up.
@@ -149,30 +145,17 @@ void LoginPlayerManager::init() {
 }
 
 //////////////////////////////////////////////////////////////////////
-// Use select() for I/O multiplexing.
+// Ask the kernel which descriptors are ready, for I/O multiplexing.
 //////////////////////////////////////////////////////////////////////
-void LoginPlayerManager::select() {
+void LoginPlayerManager::pollSockets() {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    // Copy m_Timeout[0] into m_Timeout[1].
-    m_Timeout[1].tv_sec = m_Timeout[0].tv_sec;
-    m_Timeout[1].tv_usec = m_Timeout[0].tv_usec;
-
-    // Copy m_XXXFDs[0] into m_XXXFDs[1].
-    m_ReadFDs[1] = m_ReadFDs[0];
-    m_WriteFDs[1] = m_WriteFDs[0];
-    m_ExceptFDs[1] = m_ExceptFDs[0];
-
-    try {
-        // Now call select() with m_XXXFDs[1].
-        SocketAPI::select_ex(m_MaxFD + 1, &m_ReadFDs[1], &m_WriteFDs[1], &m_ExceptFDs[1], &m_Timeout[1]);
-    } catch (TimeoutException) {
-        // do nothing
-    } catch (InterruptedException&) {
-        // No signal can arrive here.
-    }
+    // A failed wait, which is what an arriving signal makes of it, leaves
+    // every descriptor unready, so this tick processes nothing and the next
+    // one asks again.
+    m_PollSet.pollOnce(m_TimeoutMilliseconds);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -189,7 +172,7 @@ void LoginPlayerManager::processExceptions() {
 
     const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
     for (int i = walk.first; i <= walk.last; i++) {
-        if (FD_ISSET(i, &m_ExceptFDs[1]) && i != m_ServerFD) {
+        if (m_PollSet.isUrgent(i) && i != m_ServerFD) {
             Assert(m_pPlayers[i] != NULL);
 
             StringStream msg;
@@ -222,7 +205,7 @@ void LoginPlayerManager::processInputs() {
 
     const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
     for (int i = walk.first; i <= walk.last; i++) {
-        if (FD_ISSET(i, &m_ReadFDs[1])) {
+        if (m_PollSet.isReadable(i)) {
             if (i == m_ServerFD) {
                 // The server socket means a new connection came in.
                 acceptNewConnection();
@@ -333,7 +316,7 @@ void LoginPlayerManager::processOutputs() {
 
     const de::DescriptorRange walk = de::descriptorRange((int)m_MinFD, (int)m_MaxFD, (int)nMaxPlayers);
     for (int i = walk.first; i <= walk.last; i++) {
-        if (FD_ISSET(i, &m_WriteFDs[1]) && i != m_ServerFD) {
+        if (m_PollSet.isWritable(i) && i != m_ServerFD) {
             Assert(m_pPlayers[i] != NULL);
 
             try {
@@ -374,7 +357,7 @@ void LoginPlayerManager::processOutputs() {
 //
 // accept new connection
 //
-// A select-based design does not use nonblocking sockets.
+// The socket the poll reported ready is accepted here.
 //
 // The login server accepts every connection attempt by default.
 // Only connections from an IP registered in the BAN DB are refused.
@@ -454,11 +437,9 @@ void LoginPlayerManager::addPlayer_NOLOCKED(Player* pPlayer) {
     m_MinFD = min(fd, m_MinFD);
     m_MaxFD = max(fd, m_MaxFD);
 
-    // Turn the fd bit on in every fd_set.
-    // m_XXXFDs[1] can be dealt with on the next round.
-    FD_SET(fd, &m_ReadFDs[0]);
-    FD_SET(fd, &m_WriteFDs[0]);
-    FD_SET(fd, &m_ExceptFDs[0]);
+    // Watch the new descriptor. It is reported ready no earlier than the next
+    // poll.
+    m_PollSet.watch(fd, de::DescriptorPollSet::kRead | de::DescriptorPollSet::kWrite | de::DescriptorPollSet::kUrgent);
 
     __END_CATCH
 }
@@ -527,15 +508,10 @@ void LoginPlayerManager::deletePlayer_NOLOCKED(SOCKET fd) {
         }
     }
 
-    // Turn the fd bit off in every fd_set.
-    // m_XXXFDs[1] has to be fixed too, because otherwise an object that is gone
-    // could still be processed later.
-    FD_CLR(fd, &m_ReadFDs[0]);
-    FD_CLR(fd, &m_ReadFDs[1]);
-    FD_CLR(fd, &m_WriteFDs[0]);
-    FD_CLR(fd, &m_WriteFDs[1]);
-    FD_CLR(fd, &m_ExceptFDs[0]);
-    FD_CLR(fd, &m_ExceptFDs[1]);
+    // Stop watching the descriptor. This also drops the readiness the last poll
+    // reported for it, because otherwise an object that is gone could still be
+    // processed later.
+    m_PollSet.unwatch(fd);
 
     __END_CATCH
 }

@@ -425,6 +425,18 @@ add_dependencies(wire_tests descriptor_table_tests)
 add_test(NAME descriptor_table_tests COMMAND descriptor_table_tests)
 set_tests_properties(descriptor_table_tests PROPERTIES TIMEOUT 30)
 
+# The readiness set the connection managers multiplex those tables with.
+# DescriptorPollSet.h is header-only and needs nothing but poll(), so this
+# links nothing but gtest.
+add_executable(descriptor_poll_set_tests EXCLUDE_FROM_ALL descriptor_poll_set_test.cpp)
+target_include_directories(descriptor_poll_set_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/server
+)
+target_link_libraries(descriptor_poll_set_tests PRIVATE gtest_main Threads::Threads)
+add_dependencies(wire_tests descriptor_poll_set_tests)
+add_test(NAME descriptor_poll_set_tests COMMAND descriptor_poll_set_tests)
+set_tests_properties(descriptor_poll_set_tests PROPERTIES TIMEOUT 30)
+
 add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)
 target_include_directories(shutdown_probe PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
 target_link_libraries(shutdown_probe PRIVATE Threads::Threads)

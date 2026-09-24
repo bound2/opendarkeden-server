@@ -13,6 +13,66 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## The union broadcasts took zone-group mutexes on the thread that called them (2026-09-24)
+
+- **`sendGCOtherModifyInfoGuildUnionByGuildID` and its single-creature
+  form walked the player finder with no lock, then took each member's
+  zone-group mutex to broadcast in its zone, from whatever thread called
+  them,** so the union teardown, called from `SGDeleteGuildOKHandler`
+  under `SharedServerManager::m_Mutex`, took a group mutex that the zone
+  threads hold while they send to the sharedserver through that same
+  manager mutex -- the two orders the mailbox exists to keep apart. The
+  quick-quit handler also handed the union master's `Creature*` to the
+  broadcast after leaving the finder's critical section. Both helpers now
+  name the guild's players under the finder's lock
+  (`PCFinder::getGuildPlayerNames_LOCKED`) and post each broadcast to the
+  thread that owns the player (`de::postToPlayer`), which runs it under the
+  owner's group mutex; the quick-quit handler broadcasts by guild id. On
+  the way: a member row the union object had already lost was left in
+  `GuildUnionMember` when only that guild's membership was removed, and
+  goes now.
+  > **Status:** fixed (fix/union-teardown)
+
+## The player finder's guild walk is unlocked and hands out raw pointers (2026-09-24)
+
+- **`PCFinder::getGuildCreatures` iterates the finder's table with no
+  critical section, stops after examining its first `Num` players rather
+  than after `Num` matches, and returns `Creature*`s the caller uses after
+  the walk,** so a login or logout on another thread can invalidate the
+  iteration or a pointer. Its two remaining callers are the GM guild
+  console command and `SiegeManager`. The union broadcasts no longer use
+  it; the shape for the rest is the locked name walk they use now, posting
+  to each name.
+  > **Status:** recorded, not fixed (fix/union-teardown)
+
+## Accepting the last member's quit used the union after it was freed (2026-09-24)
+
+- **`CGQuitUnionAcceptHandler` kept `pUnion` across `acceptQuit`, which
+  dissolves and frees the union when the last member leaves, and then read
+  `pUnion->getUnionID()` twice,** on the zone thread, on exactly the path
+  that ends a union. The id is read before the call now and the pointer is
+  not used past it.
+  > **Status:** fixed (fix/union-teardown)
+
+## A signal in flight disconnected every connected player (2026-09-24)
+
+- **`select` leaves its descriptor sets untouched when it fails, and the
+  four connection managers read them anyway,** so an interrupted call made
+  every watched descriptor look ready in every set -- the sets were a copy
+  of the membership the managers had just written into them. The
+  out-of-band set is the one that hurts: each manager treats a descriptor
+  in it as having sent OOB data and cuts that connection, so one `EINTR`
+  disconnected every player the manager owned, `ZonePlayerManager` marking
+  each of them `PENALTY_TYPE_KICKED` on the way out. It was reachable:
+  `SIGTERM` and `SIGINT` are installed with `sa_flags` zero, and `select`
+  is interrupted by a handled signal whether or not `SA_RESTART` is set, so
+  a shutdown signal delivered to a zone thread inside the call kicked that
+  group before the loop read the shutdown request. Found while replacing
+  `select`. A failed wait now leaves every descriptor unready
+  (`de::DescriptorPollSet::collect`), so the tick processes nothing and the
+  next one asks again.
+  > **Status:** fixed (fix/poll-descriptor-tables)
+
 ## A union's guild lookup is dereferenced unchecked (2026-09-24)
 
 - **Four sites called `GuildManager::getGuild(id)->getMaster()` on an id
@@ -26,8 +86,9 @@ repo and the client's. Entries below are newest first; the oldest is the
   disbanded while it was in a union left `GuildUnionInfo` /
   `GuildUnionMember` rows naming it, and quitting that union dereferenced
   NULL on the zone thread. The shorter path needed no stale row:
-  `SGDeleteGuildOKHandler` called `deleteGuild` and then `removeMasterGuild`
-  for the same id, so a guild that mastered a union with members
+  `SGDeleteGuildOKHandler`'s waiting-guild branch called `deleteGuild` and
+  then `removeMasterGuild` for the same id (its active-guild branch did no
+  teardown at all), so a waiting guild that mastered a union with members
   dereferenced NULL on the sharedserver-link thread the moment it was
   deleted.
 
@@ -126,12 +187,25 @@ repo and the client's. Entries below are newest first; the oldest is the
   `nfds` the interface does not define. The accepted-descriptor bound at
   `IncomingPlayerManager::acceptNewConnection` and the one in
   `PlayerManager::addPlayer` both say 2000, so nothing refuses the
-  descriptors in between. The sharedserver is not affected: its table is
-  100 slots and it refuses anything above them. Closing it means either
-  capping the tables at `FD_SETSIZE` -- which caps the concurrent player
-  count with them -- or leaving `select` for an interface with no such
-  limit, so it is a decision rather than an edit.
-  > **Status:** recorded, not fixed (fix/config-and-listener)
+  descriptors in between. The sharedserver was not affected: its table is
+  100 slots and it refuses anything above them. The limit is gone rather
+  than the players: the four managers multiplex with `poll` now, through
+  `de::DescriptorPollSet` (`src/server/DescriptorPollSet.h`), which holds
+  one slot per table slot and so watches every descriptor the table admits.
+  Each tick it fills one `pollfd` per watched descriptor, waits once, and
+  answers the same three questions the `fd_set` walks asked, in the
+  directions the manager registered: readable, writable, and out-of-band
+  data. `POLLERR`, `POLLHUP` and `POLLNVAL` come back unasked and are
+  reported as ready to read, as `select` reported an errored or hung-up
+  descriptor, and as ready to write as well, so the manager's own read or write
+  runs and fails and its existing disconnect path takes the connection
+  down; none of them is reported as out-of-band data, which only `POLLPRI`
+  is. Dropping a descriptor drops what the last wait reported for it, which
+  is what `FD_CLR` on the result sets did for a connection removed part way
+  through a tick. `tests/descriptor_poll_set_test.cpp` covers the mapping,
+  the empty set, a descriptor past `FD_SETSIZE`, and a real round against a
+  connected pair.
+  > **Status:** fixed (fix/poll-descriptor-tables)
 
 ## The client heartbeat is verified twice for every heartbeat packet (2026-09-24)
 

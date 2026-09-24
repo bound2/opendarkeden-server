@@ -164,8 +164,9 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             //////////////////////////////
 
 
-            if (pTargetCreature != NULL)
-                sendGCOtherModifyInfoGuildUnion(pTargetCreature);
+            // The master guild's members are named under the finder lock
+            // inside the call; the pointer taken above is not used past it.
+            sendGCOtherModifyInfoGuildUnionByGuildID(unionMasterGuildID);
             sendGCOtherModifyInfoGuildUnion(pCreature);
 
             // Tell the ones on other servers about the change.

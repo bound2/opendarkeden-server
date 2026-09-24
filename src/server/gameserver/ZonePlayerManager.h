@@ -10,6 +10,7 @@
 #define __ZONE_PLAYER_MANAGER_H__
 
 // include files
+#include "DescriptorPollSet.h"
 #include "Effect.h"
 #include "Exception.h"
 #include "Mutex.h"
@@ -40,8 +41,8 @@ public:
     // destructor
     ~ZonePlayerManager() noexcept;
 
-    // select
-    void select();
+    // Ask the kernel which of this manager's descriptors are ready.
+    void pollSockets();
 
     // process all players' inputs
     void processInputs();
@@ -114,19 +115,16 @@ public:
     }
 
 private:
-    // Set of socket descriptors of the players in this group.
-    // m_XXXXFDs[0] is the stored copy; m_XXXFDs[1] is what select() is given,
-    // so [0] must be copied into [1] before every select().
-    fd_set m_ReadFDs[2];
-    fd_set m_WriteFDs[2];
-    fd_set m_ExceptFDs[2];
+    // The socket descriptors of the players in this group, with what each one
+    // was last reported ready for. It has a slot per player table slot, so
+    // every descriptor the table can hold can be watched.
+    de::DescriptorPollSet m_PollSet;
 
-    // Time used by select
-    Timeval m_Timeout[2];
+    // How long each poll waits, in milliseconds.
+    int m_TimeoutMilliseconds;
 
     // min_fd, max_fd
-    // Used to speed up iteration after select(),
-    // and to compute the first parameter of select().
+    // Used to speed up iteration over the player table.
     SOCKET m_MinFD;
     SOCKET m_MaxFD;
 

@@ -146,11 +146,6 @@ uint availablesocket_ex(SOCKET s);
 //
 void shutdown_ex(SOCKET s, uint how);
 
-//
-// exception version of select()
-//
-int select_ex(int maxfdp1, fd_set* readset, fd_set* writeset, fd_set* exceptset, struct timeval* timeout);
-
 }; // namespace SocketAPI
 
 #endif

@@ -61,6 +61,10 @@ public:
     IP_t getIP(const string& name) const;
 
     list<Creature*> getGuildCreatures(GuildID_t gID, uint Num);
+    // Names of the logged-in PCs of guild gID. The caller holds the finder's
+    // critical section and posts to the names afterwards: a Creature* taken
+    // out of the table is only good while the lock is held.
+    list<string> getGuildPlayerNames_LOCKED(GuildID_t gID) const;
 
     void lock() {
         m_Mutex.lock();
