@@ -15,8 +15,19 @@ namespace {
 // Names a player may not take. Substring matches, so "GMaster" is
 // refused as well.
 const int kInvalidIDCount = 10;
-const char* const kInvalidID[kInvalidIDCount] = {"NONE",   "관리자", "도우미", "담당자", "운영",
-                                                 "기획자", "개발자", "테스터", "직원",   "GM"};
+const char* const kInvalidID[kInvalidIDCount] = {
+    "NONE",
+    // Korean staff titles, spelled as their UTF-8 bytes so a name that
+    // contains one is refused byte for byte.
+    "\xea\xb4\x80\xeb\xa6\xac\xec\x9e\x90", // gwallija, "administrator"
+    "\xeb\x8f\x84\xec\x9a\xb0\xeb\xaf\xb8", // doumi, "helper"
+    "\xeb\x8b\xb4\xeb\x8b\xb9\xec\x9e\x90", // damdangja, "person in charge"
+    "\xec\x9a\xb4\xec\x98\x81",             // unyeong, "operations"
+    "\xea\xb8\xb0\xed\x9a\x8d\xec\x9e\x90", // gihoekja, "game designer"
+    "\xea\xb0\x9c\xeb\xb0\x9c\xec\x9e\x90", // gaebalja, "developer"
+    "\xed\x85\x8c\xec\x8a\xa4\xed\x84\xb0", // teseuteo, "tester"
+    "\xec\xa7\x81\xec\x9b\x90",             // jigwon, "staff member"
+    "GM"};
 
 } // namespace
 

@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     registerLoginServerPacketHandlers();
 
     if (argc < 3) {
-        cout << "Usage : loginserver -f È¯°æÆÄÀÏ [-p port]" << endl;
+        cout << "Usage : loginserver -f <config file> [-p port]" << endl;
         exit(1);
     }
 
