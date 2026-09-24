@@ -75,15 +75,30 @@ public:
     void reload();
     void load();
     void addGuildUnion(GuildUnion* pUnion);
-    GuildUnion* getGuildUnion(GuildID_t gID) {
-        return m_GuildUnionMap[gID];
+    // The union holding this guild, master or member, or NULL for a guild in
+    // none. A lookup only reads: an id the map does not hold leaves no entry
+    // behind.
+    GuildUnion* getGuildUnion(GuildID_t gID) const {
+        unordered_map<GuildID_t, GuildUnion*>::const_iterator itr = m_GuildUnionMap.find(gID);
+        return itr == m_GuildUnionMap.end() ? NULL : itr->second;
     }
-    GuildUnion* getGuildUnionByUnionID(uint uID) {
-        return m_UnionIDMap[uID];
+    GuildUnion* getGuildUnionByUnionID(uint uID) const {
+        unordered_map<uint, GuildUnion*>::const_iterator itr = m_UnionIDMap.find(uID);
+        return itr == m_UnionIDMap.end() ? NULL : itr->second;
     }
 
     bool addGuild(uint uID, GuildID_t gID);
-    bool removeMasterGuild(GuildID_t gID);
+
+    // Settle a guild's union standing because the guild is going away. A
+    // member guild leaves and the union carries on; a master guild takes the
+    // union with it, since mastery cannot be handed on. The rule is
+    // decideUnionTeardown's (guild/GuildUnionTeardown.h); this performs it
+    // over the union tables, the lookup maps and the guilds still online.
+    // Call it while the guild is still in the GuildManager: the guild
+    // masters it notifies are read from there, and a guild that has already
+    // gone is logged to GuildUnion.log and skipped.
+    bool removeGuildFromUnion(GuildID_t gID);
+
     bool removeGuild(uint uID, GuildID_t gID);
 
     void sendRefreshCommand();
@@ -95,6 +110,10 @@ public:
     }
 
 private:
+    // Destroy a union: its own row and its member rows go, every guild that
+    // looked it up stops finding it, and the object is freed.
+    void destroyUnion(uint uID);
+
     list<GuildUnion*> m_GuildUnionList;
     unordered_map<GuildID_t, GuildUnion*> m_GuildUnionMap;
     unordered_map<uint, GuildUnion*> m_UnionIDMap;

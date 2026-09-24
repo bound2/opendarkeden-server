@@ -23,6 +23,7 @@
 #include "PlayerCreature.h"
 #include "StringPool.h"
 #include "SystemAvailabilitiesManager.h"
+#include "Utility.h"
 #include "repository/GuildRepository.h"
 #include "repository/MessageRepository.h"
 #endif // __GAME_SERVER__
@@ -85,10 +86,23 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
     }
     // Withdraw by force
     else if (pPacket->getQuitMethod() == CGQuitUnion::QUIT_QUICK) {
-        // The guild master's master id..
-        string TargetGuildMaster = de::gameContext().guilds().getGuild(pUnion->getMasterGuildID())->getMaster();
+        // Both ids are read before the quit, because removing the last member
+        // destroys the union and frees pUnion with it.
+        const GuildID_t unionMasterGuildID = pUnion->getMasterGuildID();
+        const GuildID_t quittingGuildID = pPlayerCreature->getGuildID();
 
-        if (GuildUnionManager::Instance().removeGuild(pUnion->getUnionID(), pPlayerCreature->getGuildID())) {
+        // The union master guild's master character. A union row can name a
+        // guild that has been disbanded; there is then nobody to notify and
+        // nobody to send a notice to, and the quit goes through anyway.
+        string TargetGuildMaster;
+        Guild* pUnionMasterGuild = de::gameContext().guilds().getGuild(unionMasterGuildID);
+        if (pUnionMasterGuild != NULL) {
+            TargetGuildMaster = pUnionMasterGuild->getMaster();
+        } else {
+            filelog("GuildUnion.log", "[%u:%u] union master guild is gone.", tempUnionID, unionMasterGuildID);
+        }
+
+        if (GuildUnionManager::Instance().removeGuild(tempUnionID, quittingGuildID)) {
             gcGuildResponse.setCode(GuildUnionOfferManager::OK);
             pPlayer->sendPacket(&gcGuildResponse);
 
@@ -97,17 +111,23 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             MessageRepository& messages = defaultMessageRepository();
             GuildRepository& guildRows = defaultGuildRepository();
 
-            string escapeGuildName = de::gameContext().guilds().getGuildName(pPlayerCreature->getGuildID());
+            string escapeGuildName = de::gameContext().guilds().getGuildName(quittingGuildID);
             string escapeGuildNotice = "[" + escapeGuildName + "] " + de::gameContext().strings().c_str(378);
 
-            messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, escapeGuildNotice);
-            guildRows.insertEscapeOffer(tempUnionID, pPacket->getGuildID());
+            if (!TargetGuildMaster.empty())
+                messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, escapeGuildNotice);
+
+            // The penalty is the quitting guild's, so it is written for the
+            // guild the server took out of the union, not for the id the
+            // packet carries.
+            guildRows.insertEscapeOffer(tempUnionID, quittingGuildID);
 
             // See whether the union has members.. and if not?
             if (guildRows.countUnionMembersSpelled(UNION_SQL_PLAIN, tempUnionID) == 0) {
                 guildRows.deleteUnionInfoOnly(UNION_SQL_PLAIN, tempUnionID);
-                messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster,
-                                           de::gameContext().strings().c_str(379));
+                if (!TargetGuildMaster.empty())
+                    messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster,
+                                               de::gameContext().strings().c_str(379));
                 GuildUnionManager::Instance().reload();
             }
 
@@ -128,26 +148,29 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
 
             __ENTER_CRITICAL_SECTION(pcFinder)
 
-            pTargetCreature = pcFinder.getCreature_LOCKED(TargetGuildMaster);
-            if (pTargetCreature == NULL) {
-                return;
+            // A union master who is offline, or whose guild has gone, is
+            // simply not told; the rest of the quit still has to happen.
+            if (!TargetGuildMaster.empty())
+                pTargetCreature = pcFinder.getCreature_LOCKED(TargetGuildMaster);
+
+            if (pTargetCreature != NULL) {
+                GCModifyInformation gcModifyInformation2;
+                makeGCModifyInfoGuildUnion(&gcModifyInformation2, pTargetCreature);
+                pTargetCreature->getPlayer()->sendPacket(&gcModifyInformation2);
             }
-            GCModifyInformation gcModifyInformation2;
-            makeGCModifyInfoGuildUnion(&gcModifyInformation2, pTargetCreature);
-            pTargetCreature->getPlayer()->sendPacket(&gcModifyInformation2);
 
             __LEAVE_CRITICAL_SECTION(pcFinder)
 
             //////////////////////////////
 
 
-            sendGCOtherModifyInfoGuildUnion(pTargetCreature);
+            if (pTargetCreature != NULL)
+                sendGCOtherModifyInfoGuildUnion(pTargetCreature);
             sendGCOtherModifyInfoGuildUnion(pCreature);
 
             // Tell the ones on other servers about the change.
-            GuildUnionManager::Instance().sendModifyUnionInfo(
-                dynamic_cast<PlayerCreature*>(pTargetCreature)->getGuildID());
-            GuildUnionManager::Instance().sendModifyUnionInfo(dynamic_cast<PlayerCreature*>(pCreature)->getGuildID());
+            GuildUnionManager::Instance().sendModifyUnionInfo(unionMasterGuildID);
+            GuildUnionManager::Instance().sendModifyUnionInfo(quittingGuildID);
         } else {
             gcGuildResponse.setCode(GuildUnionOfferManager::NOT_YOUR_UNION);
             pPlayer->sendPacket(&gcGuildResponse);

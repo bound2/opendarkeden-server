@@ -13,7 +13,6 @@
 
 #ifdef __GAME_SERVER__
 #include "CastleInfoManager.h"
-#include "GuildUnion.h"
 #include "PlayerCreature.h"
 #include "Zone.h"
 #include "ZoneGroup.h"
@@ -231,7 +230,11 @@ void GuildManager::deleteGuild(GuildID_t id) {
         }
     }
 
-    // Clear the GuildUnion information
+    // The guild's union standing is not settled here. Clearing it reads
+    // guild masters back out of this manager (GuildUnionManager::
+    // removeGuildFromUnion), which would take m_Mutex a second time, so the
+    // caller runs the teardown before it calls this -- while the guild is
+    // still in the table.
 #endif
 
     // Retire, don't free (see m_RetiredGuilds): other threads may still
