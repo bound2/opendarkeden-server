@@ -96,10 +96,10 @@ void FlagManager::addPoleField(Zone* pZone, ZoneCoord_t left, ZoneCoord_t top, u
 
 void FlagManager::manualStart() {
     if (!isEmpty()) {
-        cout << "스케줄 땡기기.." << endl;
+        cout << "Pulling the schedule forward.." << endl;
         addSchedule(new Schedule(popRecentWork(), VSDateTime::currentDateTime()));
     } else {
-        cout << "스케줄 만들기.." << endl;
+        cout << "Creating a schedule.." << endl;
         addSchedule(new Schedule(new FlagWar(*this, m_Context), VSDateTime::currentDateTime()));
     }
 }
@@ -163,7 +163,7 @@ bool FlagManager::putFlag(PlayerCreature* pPC, MonsterCorpse* pFlagPole) {
     m_FlagCount[(RACEINDEX)(pPC->getRace())]++;
     m_StatusPacket.setFlagCount(pPC->getRace(), m_FlagCount[(RACEINDEX)(pPC->getRace())]);
     m_PutTime[pPC->getRace()] = VSDateTime::currentDateTime();
-    filelog("FlagWar.log", "%s 님이 깃발을 깃대에 꽂으셨습니당. S : %d, V : %d, O : %d", pPC->getName().c_str(),
+    filelog("FlagWar.log", "%s planted the flag on the pole. S : %d, V : %d, O : %d", pPC->getName().c_str(),
             m_FlagCount[SLAYER], m_FlagCount[VAMPIRE], m_FlagCount[OUSTERS]);
     unlock();
 
@@ -185,7 +185,7 @@ bool FlagManager::getFlag(PlayerCreature* pPC, MonsterCorpse* pFlagPole) {
     lock();
     m_FlagCount[(RACEINDEX)(m_FlagPoles[pFlagPole])]--;
     m_StatusPacket.setFlagCount(m_FlagPoles[pFlagPole], m_FlagCount[(RACEINDEX)(m_FlagPoles[pFlagPole])]);
-    filelog("FlagWar.log", "%s 님이 깃발을 뽑으셨습니당. S : %d, V : %d, O : %d", pPC->getName().c_str(),
+    filelog("FlagWar.log", "%s pulled out the flag. S : %d, V : %d, O : %d", pPC->getName().c_str(),
             m_FlagCount[SLAYER], m_FlagCount[VAMPIRE], m_FlagCount[OUSTERS]);
     unlock();
 

@@ -37,7 +37,7 @@ void FlagWar::execute() {
         setState(STATE_WAIT);
         break;
     default:
-        filelog("FlagWar.log", "이상한 FlagWar 상태..");
+        filelog("FlagWar.log", "Unexpected FlagWar state..");
         break;
     }
 
@@ -90,7 +90,7 @@ void FlagWar::addFlagsRandom(ZoneID_t zoneID, uint no) {
         TPOINT ptInZone = pZone->addItem(pItem, pt.x, pt.y, true, 36000);
         pItem->create("", STORAGE_ZONE, pZone->getZoneID(), ptInZone.x, ptInZone.y);
 
-        filelog("FlagWar.log", "%d : (%d,%d) 에 깃발이 만들어졌습니다.", pZone->getZoneID(), ptInZone.x, ptInZone.y);
+        filelog("FlagWar.log", "%d : a flag was created at (%d,%d).", pZone->getZoneID(), ptInZone.x, ptInZone.y);
 
         m_Flags.push_back(pItem->getItemID());
     }
@@ -164,7 +164,7 @@ void FlagWar::executeEnd() {
             pItem->destroy();
             SAFE_DELETE(pItem);
         } else {
-            filelog("FlagWar.log", "깃발 아이템 추적 실패... ㅜ.ㅠ");
+            filelog("FlagWar.log", "Failed to track the flag item...");
         }
     }
 
@@ -210,7 +210,7 @@ VSDateTime FlagWar::getNextFlagWarTime() {
         }
     }
 
-    filelog("FlagWar.log", "%s에 깃발 뺏기 이벤트 시작", nextWarDateTime.toString().c_str());
+    filelog("FlagWar.log", "Capture-the-flag event starts at %s", nextWarDateTime.toString().c_str());
 
     return nextWarDateTime;
 }
