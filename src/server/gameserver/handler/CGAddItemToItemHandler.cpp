@@ -343,7 +343,7 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
             } break;
             case PetEnchantItemInfo::MUTANT_FUNCTION: {
                 if (pPetInfo->getPetType() != 1) {
-                    cout << "¿ïÇÁµ¶ÀÌ ¾Æ´Ï¶ø´Ï´Ù." << endl;
+                    cout << "Not a wolfdog." << endl;
                     GCAddItemToItemVerify gcAddItemToItemVerify;
                     gcAddItemToItemVerify.setCode(ADD_ITEM_TO_ITEM_VERIFY_ERROR);
                     pGamePlayer->sendPacket(&gcAddItemToItemVerify);
@@ -575,7 +575,8 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
                 int downgradeRatio = 46;
                 dice = rand() % 100;
 
-                cout << "downgradeRatio" << pItemInfo->getName() << " ¿É¼Ç¶³¾îÁú È®·ü " << downgradeRatio << endl;
+                cout << "downgradeRatio" << pItemInfo->getName() << " option downgrade chance " << downgradeRatio
+                     << endl;
 
                 if (dice < noChangeRatio) {
                     // No change
@@ -613,7 +614,8 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
                 int downgradeRatio = 46;
                 dice = rand() % 100;
 
-                cout << "downgradeRatio" << pItemInfo->getName() << " ¿É¼Ç¶³¾îÁú È®·ü " << downgradeRatio << endl;
+                cout << "downgradeRatio" << pItemInfo->getName() << " option downgrade chance " << downgradeRatio
+                     << endl;
 
                 if (dice < noChangeRatio) {
                     // No change
@@ -647,7 +649,8 @@ void executeEnchantRareThreeOption(GamePlayer* pGamePlayer, Item* pMouseItem, It
                 int downgradeRatio = 46;
                 dice = rand() % 100;
 
-                cout << "downgradeRatio" << pItemInfo->getName() << " ¿É¼Ç¶³¾îÁú È®·ü " << downgradeRatio << endl;
+                cout << "downgradeRatio" << pItemInfo->getName() << " option downgrade chance " << downgradeRatio
+                     << endl;
 
                 if (dice < noChangeRatio) {
                     // No change

@@ -322,7 +322,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
         if (!pSlayer->load()) {
             filelog("connectDB_BUG.txt", "Failed to load SLAYER(%s) data from DB", pPacket->getPCName().c_str());
-            cout << " ¿©±â´Â µÇ³ª¿ä" << endl;
+            cout << " reached here" << endl;
             throw ProtocolException("Failed to load SLAYER data from DB");
         }
 
@@ -500,7 +500,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         }
     }
 
-    cout << " ¿©±â´Â µÇ³ª¿ä2" << endl;
+    cout << " reached here2" << endl;
 
     // Handling when already connected.
     // In order to handle the PCFinder's DuplicatedException unambiguously,
@@ -530,7 +530,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     EventHeadCount* pEventHeadCount = new EventHeadCount(pGamePlayer);
     pEventHeadCount->setDeadline(18000);
     pGamePlayer->addEvent(pEventHeadCount);
-    cout << " ¿©±â´Â µÇ³ª¿ä3" << endl;
+    cout << " reached here3" << endl;
     if (pCreature->isGOD()) {
         EffectGhost* pEffect = new EffectGhost(pCreature);
         pCreature->getEffectManager()->addEffect(pEffect);
@@ -545,7 +545,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         pCreature->addEffect(pEffect);
         pCreature->setFlag(pEffect->getEffectClass());
     }
-    cout << " ¿©±â´Â µÇ³ª¿ä4" << endl;
+    cout << " reached here4" << endl;
     // Logging in inside a castle or a castle dungeon is not allowed.
     ZoneID_t castleZoneID;
     ZoneInfo* pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(pCreature->getZoneID());
@@ -572,7 +572,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             }
         }
     }
-    cout << " ¿©±â´Â µÇ³ª¿ä5" << endl;
+    cout << " reached here5" << endl;
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
@@ -584,7 +584,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
     // Checked here because of items that apply only in a pay zone
     // 2002.8.26. by sigi
-    cout << " ¾ÆÀÌÅÛ ·Îµå ºÎºÐ ÀÌ ºÎºÐÀÌ ¾ÈµÇ¸é ÀÌºÎºÐÀÌ ¿À·ù´Ù." << endl;
+    cout << " Loading items: if this part fails, the error is here." << endl;
     if (pPacket->getPCType() == PC_SLAYER) {
         Assert(pSlayer != NULL);
         pSlayer->loadItem(true);
@@ -674,7 +674,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     // Build the PC info and the SkillInfo for GCUpdateInfo.
     //----------------------------------------------------------------------
 
-    cout << " ¿©±â´Â µÇ³ª¿ä7" << endl;
+    cout << " reached here7" << endl;
 
     GCUpdateInfo gcUpdateInfo;
 
@@ -732,21 +732,21 @@ bool isAdultByBirthdayDate(const string& birthday) {
     int day = atoi(birthday.substr(8, 2).c_str());
 
     if (Timec.tm_year - 18 + 1900 > year) {
-        cout << "¾î¸¥" << endl;
+        cout << "Adult" << endl;
         return true;
     } else if (Timec.tm_year - 18 + 1900 == year) {
         if (Timec.tm_mon + 1 > month) {
-            cout << "¾î¸¥" << endl;
+            cout << "Adult" << endl;
             return true;
         } else if (Timec.tm_mon + 1 == month) {
             if (Timec.tm_mday >= day) {
-                cout << "¾î¸¥" << endl;
+                cout << "Adult" << endl;
                 return true;
             }
         }
     }
 
-    cout << "¾Öµé" << endl;
+    cout << "Minor" << endl;
     return false;
 }
 

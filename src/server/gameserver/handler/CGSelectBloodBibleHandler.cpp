@@ -47,7 +47,7 @@ void CGSelectBloodBibleHandler::execute(CGSelectBloodBible* pPacket, Player* pPl
 
     if (pPC->getRace() != pBonus->getRace()) {
         GCSystemMessage gcSM;
-        gcSM.setMessage("轟랬賈痰돨加蝎.");
+        gcSM.setMessage("You cannot use this Blood Bible.");
         pGamePlayer->sendPacket(&gcSM);
         return;
     }
@@ -55,20 +55,20 @@ void CGSelectBloodBibleHandler::execute(CGSelectBloodBible* pPacket, Player* pPl
     BloodBibleSignInfo* pInfo = pPC->getBloodBibleSign();
     if (pInfo->getOpenNum() <= pInfo->getList().size()) {
         GCSystemMessage gcSM;
-        gcSM.setMessage("청唐왕岱꾼.");
+        gcSM.setMessage("No free slot.");
         pGamePlayer->sendPacket(&gcSM);
         return;
     }
 
     if (find(pInfo->getList().begin(), pInfo->getList().end(), pPacket->getBloodBibleID()) != pInfo->getList().end()) {
         GCSystemMessage gcSM;
-        gcSM.setMessage("綠陋구돨加蝎.");
+        gcSM.setMessage("This Blood Bible is already equipped.");
         pGamePlayer->sendPacket(&gcSM);
         return;
     }
 
     GCSystemMessage gcSM;
-    gcSM.setMessage("綠陋구沂裂加蝎.");
+    gcSM.setMessage("Blood Bible equipped.");
     pGamePlayer->sendPacket(&gcSM);
 
     pInfo->getList().push_back(pPacket->getBloodBibleID());

@@ -1160,7 +1160,7 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
 
         if (pt.x == -1) {
             StringStream msg;
-            msg << "¿ÀÅä¹ÙÀÌ¸¦ Á¸¿¡ ³ÖÀ» ¼ö ¾ø½À´Ï´Ù: " << "ZoneID=" << (int)pZone->getZoneID()
+            msg << "Cannot add the motorcycle to the zone: " << "ZoneID=" << (int)pZone->getZoneID()
                 << ", X=" << (int)pSlayer->getX() << ", Y=" << (int)pSlayer->getY();
 
             filelog("motorError.txt", "%s", msg.toString().c_str());
@@ -1767,7 +1767,7 @@ void CGUseItemFromInventoryHandler::executeResurrectItem(CGUseItemFromInventory*
         }
 
         if (GDRLairManager::Instance().isGDRLairZone(pPC->getZoneID())) {
-            filelog("GDRLair.log", "%s°¡ %dÁ¸¿¡¼­ ºÎÈ° ½ºÅ©·ÑÀ» »ç¿ëÇß½À´Ï´Ù.", pPC->getName().c_str(),
+            filelog("GDRLair.log", "%s used a resurrection scroll in zone %d.", pPC->getName().c_str(),
                     pPC->getZoneID());
         }
     } break;
@@ -1830,8 +1830,7 @@ void CGUseItemFromInventoryHandler::executeResurrectItem(CGUseItemFromInventory*
         }
 
         if (GDRLairManager::Instance().isGDRLairZone(pPC->getZoneID())) {
-            filelog("GDRLair.log", "%s°¡ %dÁ¸¿¡¼­ ¿¤¸¯¼­ ½ºÅ©·ÑÀ» »ç¿ëÇß½À´Ï´Ù.", pPC->getName().c_str(),
-                    pPC->getZoneID());
+            filelog("GDRLair.log", "%s used an elixir scroll in zone %d.", pPC->getName().c_str(), pPC->getZoneID());
         }
     } break;
 
@@ -2034,8 +2033,8 @@ void CGUseItemFromInventoryHandler::executePetItem(CGUseItemFromInventory* pPack
         }
 
         if (pTargetPetInfo->getPetType() >= PET_CENTAURO && pPC->getQuestLevel() < 40) {
-            filelog("Pet.log", "·¹º§ ¾ÈµÇ´Â ³ÑÀÌ 2Â÷Æê ºÎ¸¦¶ó°í ±×·±´Ù : [%s:%s]", pGamePlayer->getID().c_str(),
-                    pPC->getName().c_str());
+            filelog("Pet.log", "A player below the required level tried to summon a second-stage pet : [%s:%s]",
+                    pGamePlayer->getID().c_str(), pPC->getName().c_str());
             sendCannotUse(pPacket, pPlayer);
             return;
         }
@@ -2144,7 +2143,7 @@ void CGUseItemFromInventoryHandler::executeEventGiftBox(CGUseItemFromInventory* 
 
     // It cannot be used unless it is a black gift box
     if (pItem->getItemType() < 6 || (pItem->getItemType() >= 16 && pItem->getItemType() <= 18)) {
-        filelog("GiftBoxErrorLog.txt", "[Name] : %s , [ItemType] : %d : Àß¸øµÈ ¾ÆÀÌÅÛ Å¸ÀÔ\n",
+        filelog("GiftBoxErrorLog.txt", "[Name] : %s , [ItemType] : %d : Invalid item type\n",
                 pCreature->getName().c_str(), pItem->getItemType());
         return;
     }
@@ -2304,7 +2303,7 @@ void CGUseItemFromInventoryHandler::executeEventGiftBox(CGUseItemFromInventory* 
     }
 
     if (pResultItem == NULL) {
-        filelog("GiftBoxErrorLog.txt", "[Name] : %s : ÁÙ ¼ö ÀÖ´Â ¾ÆÀÌÅÛÀÌ ¾ø´Ù\n", pCreature->getName().c_str());
+        filelog("GiftBoxErrorLog.txt", "[Name] : %s : No item to give\n", pCreature->getName().c_str());
         return;
     }
 
@@ -2357,7 +2356,7 @@ void CGUseItemFromInventoryHandler::executeEventGiftBox(CGUseItemFromInventory* 
             remainTraceLog(pResultItem, "BLACK BOX", pCreature->getName(), ITEM_LOG_CREATE, DETAIL_EVENTNPC);
         }
     } else {
-        filelog("GiftBoxErrorLog.txt", "[Name] : %s : ÀÎº¥Åä¸®¿¡ ¾ÆÀÌÅÛÀ» ³ÖÀ» ¼ö ¾ø´Ù. Item : %s\n",
+        filelog("GiftBoxErrorLog.txt", "[Name] : %s : Cannot put the item in the inventory. Item : %s\n",
                 pCreature->getName().c_str(), pResultItem->toString().c_str());
         return;
     }

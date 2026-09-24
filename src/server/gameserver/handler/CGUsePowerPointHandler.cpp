@@ -29,13 +29,13 @@ struct POWER_POINT_ITEM_TEMPLATE {
 };
 // change the gambling system items
 const POWER_POINT_ITEM_TEMPLATE PowerPointItemTemplate[7] = {
-    {GCUsePowerPointResult::CANDY, Item::ITEM_CLASS_EVENT_ETC, 14, 20, "Áéµ¤"},
-    {GCUsePowerPointResult::RESURRECTION_SCROLL, Item::ITEM_CLASS_RESURRECT_ITEM, 0, 20, "¸´»î¾íÖá"},
-    {GCUsePowerPointResult::ELIXIR_SCROLL, Item::ITEM_CLASS_RESURRECT_ITEM, 1, 20, "Á¶½ð¾íÖá"},
-    {GCUsePowerPointResult::MEGAPHONE, Item::ITEM_CLASS_EFFECT_ITEM, 0, 20, "¶Ô½²»ú1"},
-    {GCUsePowerPointResult::NAMING_PEN, Item::ITEM_CLASS_EVENT_GIFT_BOX, 22, 14, "êÇ³ÆÇ©Ãû±Ê"},
-    {GCUsePowerPointResult::SIGNPOST, Item::ITEM_CLASS_EVENT_STAR, 6, 1, "À¶±¦Ê¯(×ãÇò)"},
-    {GCUsePowerPointResult::BLACK_RICE_CAKE_SOUP, Item::ITEM_CLASS_EVENT_STAR, 11, 5, "ºÚÉ«×£¸£"}
+    {GCUsePowerPointResult::CANDY, Item::ITEM_CLASS_EVENT_ETC, 14, 20, "Elixir Pill"},
+    {GCUsePowerPointResult::RESURRECTION_SCROLL, Item::ITEM_CLASS_RESURRECT_ITEM, 0, 20, "Resurrection Scroll"},
+    {GCUsePowerPointResult::ELIXIR_SCROLL, Item::ITEM_CLASS_RESURRECT_ITEM, 1, 20, "Alchemy Scroll"},
+    {GCUsePowerPointResult::MEGAPHONE, Item::ITEM_CLASS_EFFECT_ITEM, 0, 20, "Walkie-Talkie 1"},
+    {GCUsePowerPointResult::NAMING_PEN, Item::ITEM_CLASS_EVENT_GIFT_BOX, 22, 14, "Nickname Signing Pen"},
+    {GCUsePowerPointResult::SIGNPOST, Item::ITEM_CLASS_EVENT_STAR, 6, 1, "Sapphire (Football)"},
+    {GCUsePowerPointResult::BLACK_RICE_CAKE_SOUP, Item::ITEM_CLASS_EVENT_STAR, 11, 5, "Black Blessing"}
 
 };
 #endif
@@ -162,10 +162,10 @@ void CGUsePowerPointHandler::execute(CGUsePowerPoint* pPacket, Player* pPlayer)
             filelog(MOFUS_LOG_FILE, "CREATE ITEM (name:%s,usepowerpoint:%d,createditem:%s", pPC->getName().c_str(),
                     RequirePowerPoint, itemName.c_str());
         } else {
-            cout << "ÀÎº¥Åä¸®¿¡ ³Ö±â ½ÇÆÐ" << endl;
+            cout << "Failed to add to the inventory" << endl;
         }
     } else {
-        cout << "·£´ý ±¼¸®±â ½ÇÆÐ ratio : " << ratio << endl;
+        cout << "Random roll failed ratio : " << ratio << endl;
     }
 
 #endif

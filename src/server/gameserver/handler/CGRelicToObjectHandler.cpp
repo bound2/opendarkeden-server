@@ -82,21 +82,21 @@ void CGRelicToObjectHandler::execute(CGRelicToObject* pPacket, Player* pPlayer)
     if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_EVENT_ITEM && pItem->getItemType() == 31) {
         static map<string, string> scripts;
         if (scripts.empty()) {
-            scripts["존슨"] = "고맙소. 이 은혜 잊지않겠소";
-            scripts["빌리"] = "얼른 다른 동료들도 구해주세요. 부탁입니다.";
-            scripts["리"] = "우웃…. 겨우 살았군.";
-            scripts["에즈카탄"] = "난 먼저 가있도록 할게요.";
-            scripts["루이스"] = "흐흑. 너무 힘들었소. 너무 고맙소.";
-            scripts["젠지"] = "이제 살았군. 마을에서 봅시다";
-            scripts["케스이"] = "얼른 다른 동지들도….";
-            scripts["파이"] = "우웃…. 몸에 힘이 남아있지 않아.";
-            scripts["니나이루"] = "난 먼저 가있도록 할게요.";
-            scripts["료"] = "휴… 살았다.";
-            scripts["페이트"] = "고맙습니다. 먼저가서 기다리겠어요.";
-            scripts["솔"] = "얼른 다른 동료들도 구해주세요. 부탁입니다.";
-            scripts["이루이"] = "우웃…. 지독했어요. 겨우 살았군요.";
-            scripts["젼키"] = "난 먼저 가있도록 할게요.";
-            scripts["그누"] = "당신이 올 줄 알았습니다.";
+            scripts["\xEC\xA1\xB4\xEC\x8A\xA8"] = "Thank you. I will not forget this kindness";               // Johnson
+            scripts["\xEB\xB9\x8C\xEB\xA6\xAC"] = "Please hurry and rescue the others too. I beg you.";       // Billy
+            scripts["\xEB\xA6\xAC"] = "Ugh.... Barely made it.";                                              // Lee
+            scripts["\xEC\x97\x90\xEC\xA6\x88\xEC\xB9\xB4\xED\x83\x84"] = "I will go on ahead.";              // Ezkatan
+            scripts["\xEB\xA3\xA8\xEC\x9D\xB4\xEC\x8A\xA4"] = "Sob. That was so hard. Thank you so much.";    // Louis
+            scripts["\xEC\xA0\xA0\xEC\xA7\x80"] = "I am saved now. See you in the village";                   // Genji
+            scripts["\xEC\xBC\x80\xEC\x8A\xA4\xEC\x9D\xB4"] = "Hurry, the other comrades too....";            // Kesui
+            scripts["\xED\x8C\x8C\xEC\x9D\xB4"] = "Ugh.... There is no strength left in my body.";            // Pai
+            scripts["\xEB\x8B\x88\xEB\x82\x98\xEC\x9D\xB4\xEB\xA3\xA8"] = "I will go on ahead.";              // Ninairu
+            scripts["\xEB\xA3\x8C"] = "Phew... I am saved.";                                                  // Ryo
+            scripts["\xED\x8E\x98\xEC\x9D\xB4\xED\x8A\xB8"] = "Thank you. I will go ahead and wait for you."; // Fate
+            scripts["\xEC\x86\x94"] = "Please hurry and rescue the others too. I beg you.";                   // Sol
+            scripts["\xEC\x9D\xB4\xEB\xA3\xA8\xEC\x9D\xB4"] = "Ugh.... That was awful. I barely made it.";    // Irui
+            scripts["\xEC\xA0\xBC\xED\x82\xA4"] = "I will go on ahead.";                                      // Jyeonki
+            scripts["\xEA\xB7\xB8\xEB\x88\x84"] = "I knew you would come.";                                   // Gnu
         }
 
         Zone* pZone = pPlayerCreature->getZone();
