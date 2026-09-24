@@ -19,7 +19,7 @@ GQuestMission* GQuestKillMonsterElement::makeInitMission(PlayerCreature* pPC) co
     int TotalNum = m_TargetList.size();
     int TargetNum = min((int)m_TargetNum, TotalNum);
     int selected = 0;
-    cout << TotalNum << "중에 " << TargetNum << "개가 선택되어야 합니다." << endl;
+    cout << TotalNum << " candidates, " << TargetNum << " to select." << endl;
 
     for (int i = 0; i < TotalNum; ++i) {
         int toSelect = TargetNum - selected;
@@ -31,11 +31,11 @@ GQuestMission* GQuestKillMonsterElement::makeInitMission(PlayerCreature* pPC) co
         if ((rand() % last) < toSelect) {
             pMission->getTargetList().push_back(m_TargetList[i]);
             ++selected;
-            cout << (int)m_TargetList[i] << "가 선택되었습니다." << endl;
+            cout << (int)m_TargetList[i] << " selected." << endl;
         }
     }
 
-    cout << "선택끝~" << endl;
+    cout << "Selection done" << endl;
 
     return pMission;
 }

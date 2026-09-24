@@ -18,7 +18,7 @@ GQuestElement::ResultType GQuestGiveOustersExpElement::checkCondition(PlayerCrea
     pOusters->getPlayer()->sendPacket(&gcMI);
 
     GCSystemMessage gcSM;
-    gcSM.setMessage("삿돤쒔駱令.");
+    gcSM.setMessage("Received experience.");
     pOusters->getPlayer()->sendPacket(&gcSM);
 
     return OK;

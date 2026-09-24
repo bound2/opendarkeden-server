@@ -17,7 +17,7 @@ GQuestElement::ResultType GQuestGiveDomainExpElement::checkCondition(PlayerCreat
     pSlayer->getPlayer()->sendPacket(&gcMI);
 
     GCSystemMessage gcSM;
-    gcSM.setMessage("삿돤맡혐堵돨쒔駱令.");
+    gcSM.setMessage("Received domain experience.");
     pSlayer->getPlayer()->sendPacket(&gcSM);
 
     return OK;

@@ -25,7 +25,7 @@ void GQuestCheckPoint::load() {
         Assert(pChild->GetAttribute("y", y));
         Assert(pChild->GetAttribute("id", id));
 
-        MonsterCorpse* pMonsterCorpse = new MonsterCorpse(type, "暇竟", 2);
+        MonsterCorpse* pMonsterCorpse = new MonsterCorpse(type, "Corpse", 2);
         pMonsterCorpse->setTreasureCount(255);
         Zone* pZone = getZoneByZoneID(zoneid);
         Assert(pZone != NULL);
@@ -86,7 +86,7 @@ string GQuestCheckPoint::getTargetList(Race_t race, Level_t level, DWORD grade, 
     else
         pointnum += 2;
 
-    cout << (int)grade << "그레이드 " << (int)level << "레벨 " << pointnum << "개" << endl;
+    cout << (int)grade << " grade, " << (int)level << " level, " << pointnum << " waypoints" << endl;
 
     if (pointnum > waypoints.size())
         pointnum = waypoints.size();
@@ -104,7 +104,7 @@ string GQuestCheckPoint::getTargetList(Race_t race, Level_t level, DWORD grade, 
         }
     }
 
-    cout << "결과물 " << ret;
+    cout << "Result " << ret;
     return ret;
 }
 

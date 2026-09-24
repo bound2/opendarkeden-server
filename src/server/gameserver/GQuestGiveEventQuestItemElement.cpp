@@ -28,7 +28,7 @@ void giveMemberReward(PlayerCreature* pPC, uint type) {
     Exp_t exp = ExpRewardTable[pPC->getRace()][pPC->getLevel()];
     Gold_t gold = GoldRewardTable[pPC->getRace()][type];
 
-    cout << exp << " 경험치 , " << gold << " 돈" << endl;
+    cout << exp << " exp , " << gold << " gold" << endl;
 
     pPC->increaseGoldEx(gold);
     GCModifyInformation gcMI;

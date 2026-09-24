@@ -129,7 +129,7 @@ GQuestElement::ResultType GQuestStatus::checkElements(GQuestInfo::ElementType ty
     case GQuestInfo::OR:
         return checkElementsOR(type);
     default:
-        filelog("GQuestBug.log", "%u - GQuestStatus::checkElements(%u) : 잘못된 checkType : %d",
+        filelog("GQuestBug.log", "%u - GQuestStatus::checkElements(%u) : invalid checkType : %d",
                 m_pGQuestInfo->getQuestID(), type, m_pGQuestInfo->getCheckType(type));
         Assert(false);
     }
@@ -202,12 +202,12 @@ GQuestElement::ResultType GQuestStatus::checkElementsOR(GQuestInfo::ElementType 
         if (pMission != NULL) {
             cout << "Checking Mission : " << pMission->getMissionName() << endl;
             if (pMission->m_Status == MissionInfo::SUCCESS) {
-                cout << "이미 성공한 미션임" << endl;
+                cout << "Mission already succeeded" << endl;
                 return GQuestElement::OK;
             }
 
             if (pMission->m_Status == MissionInfo::FAIL) {
-                cout << "이미 실패한 미션임" << endl;
+                cout << "Mission already failed" << endl;
             } else {
                 GQuestElement::ResultType result = (*itr)->checkMission(pMission);
                 cout << "Result : " << result << endl;
@@ -232,7 +232,7 @@ GQuestElement::ResultType GQuestStatus::checkElementsOR(GQuestInfo::ElementType 
                 cout << "Creating new mission..." << endl;
                 GQuestMission* pNewMission = (*itr)->makeInitMission(m_pOwner);
                 if (pNewMission == NULL) {
-                    cout << "미션 생성 실패!!!!" << endl;
+                    cout << "Mission creation failed" << endl;
                     ++itr;
                     continue;
                 }
@@ -277,10 +277,10 @@ GQuestElement::ResultType GQuestStatus::checkElementsAND(GQuestInfo::ElementType
         if (pMission != NULL) {
             cout << "Checking Mission : " << pMission->getMissionName() << endl;
             if (pMission->m_Status == MissionInfo::FAIL) {
-                cout << "이미 실패한 미션임" << endl;
+                cout << "Mission already failed" << endl;
                 return GQuestElement::FAIL;
             } else if (pMission->m_Status == MissionInfo::SUCCESS) {
-                cout << "이미 성공한 미션임" << endl;
+                cout << "Mission already succeeded" << endl;
             } else {
                 GQuestElement::ResultType result = (*itr)->checkMission(pMission);
                 cout << "Result : " << result << endl;
@@ -307,7 +307,7 @@ GQuestElement::ResultType GQuestStatus::checkElementsAND(GQuestInfo::ElementType
                 cout << "Creating new mission..." << endl;
                 GQuestMission* pNewMission = (*itr)->makeInitMission(m_pOwner);
                 if (pNewMission == NULL) {
-                    cout << "미션 생성 실패!!!!" << endl;
+                    cout << "Mission creation failed" << endl;
                     ++itr;
                     continue;
                 }

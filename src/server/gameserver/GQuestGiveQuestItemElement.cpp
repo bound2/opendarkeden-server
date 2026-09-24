@@ -12,7 +12,7 @@ GQuestElement::ResultType GQuestGiveQuestItemElement::checkCondition(PlayerCreat
     pPC->getPlayer()->sendPacket(inventory.getInventoryPacket());
 
     GCSystemMessage gcSM;
-    gcSM.setMessage("삿돤훨蛟돛야.");
+    gcSM.setMessage("Received a quest item.");
     pPC->getPlayer()->sendPacket(&gcSM);
 
     if (m_bSave) {
