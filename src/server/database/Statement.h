@@ -27,6 +27,11 @@ class Result;
 
 class Statement {
 public:
+    // The longest statement the printf-style forms (the formatting
+    // constructor, executeQuery(fmt, ...) and setStatement) build. Longer
+    // text is refused with an Error before anything is stored or executed.
+    static constexpr size_t kMaxStatementLength = 2048;
+
     // constructor
     Statement();
 

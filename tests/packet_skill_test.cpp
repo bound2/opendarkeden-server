@@ -164,13 +164,14 @@
 //               GCBloodBibleStatus).
 //
 //               Fixture values are distinct per field and >= 128 in
-//               every byte the width allows. Four groups cannot follow
+//               every byte the width allows. Five groups cannot follow
 //               that rule and say so at the point of use: the cell
 //               number and the target and owner names, which are text;
 //               GCSkillInfo's pc type, which selects which record
 //               read() builds; the two learn flags and the per-skill
 //               enable flag, which are bool; and the ModifyType tags of
-//               the stat record, which must be enumerators.
+//               the stat record and the power point result and item
+//               codes, which must be enumerators.
 //
 //               What the set found, now pinned as the behaviour the
 //               packets produce:
@@ -212,16 +213,12 @@
 //                 of a slayer skill travel as a BYTE that read() holds
 //                 to 0 or 1 before it reaches a bool. The bytes on the
 //                 wire do not change: a sender writes a real bool.
-//
-//               One finding is recorded here rather than tested,
-//               because reaching it has no observable wire effect:
-//
 //               - GCUsePowerPointResult::read and
-//                 GCRequestPowerPointResult::read take their code bytes
-//                 without comparing them against the last enumerator of
-//                 the RESULT_CODE and ITEM_CODE lists their own headers
-//                 declare, so a peer can announce a result no branch of
-//                 the client handles.
+//                 GCRequestPowerPointResult::read refuse a code past the
+//                 last enumerator of the RESULT_CODE and ITEM_CODE lists
+//                 their headers declare, so a peer cannot announce a
+//                 result no branch of the receiver handles. The fixtures
+//                 carry those last enumerators, which pins the boundary.
 //
 //               All twenty-nine initialise every member they write, so
 //               a packet sent without every setter called puts no
@@ -800,12 +797,12 @@ void expectEqual(GCUseBonusPointFail& a, GCUseBonusPointFail& b) {
 
 SKILL_PACKET_TESTS(GCUseBonusPointFail)
 
-// The result and item bytes select no branch in read(), so they follow
-// the >= 128 rule; that they are never range-checked is a finding
-// recorded in the header.
+// The result and item bytes must be enumerators, which read() checks, so
+// they cannot follow the >= 128 rule. Each is its list's last enumerator,
+// the largest code read() accepts.
 void fill(GCUsePowerPointResult& packet) {
-    packet.setErrorCode(0x9D);
-    packet.setItemCode(0x9E);
+    packet.setErrorCode(GCUsePowerPointResult::NOT_ENOUGH_INVENTORY_SPACE);
+    packet.setItemCode(GCUsePowerPointResult::BLACK_RICE_CAKE_SOUP);
     packet.setPowerPoint((int)0x9FA0B1C2);
 }
 
@@ -817,8 +814,9 @@ void expectEqual(GCUsePowerPointResult& a, GCUsePowerPointResult& b) {
 
 SKILL_PACKET_TESTS(GCUsePowerPointResult)
 
+// The result byte is the last RESULT_CODE enumerator, for the same reason.
 void fill(GCRequestPowerPointResult& packet) {
-    packet.setErrorCode(0xA1);
+    packet.setErrorCode(GCRequestPowerPointResult::CONNECT_ERROR);
     packet.setSumPowerPoint((int)0xA2B3C4D5);
     packet.setRequestPowerPoint((int)0xA6B7C8D9);
 }
@@ -830,6 +828,44 @@ void expectEqual(GCRequestPowerPointResult& a, GCRequestPowerPointResult& b) {
 }
 
 SKILL_PACKET_TESTS(GCRequestPowerPointResult)
+
+// One past the last enumerator of either list is refused; the fixtures
+// above read back at the last one.
+TEST(GCUsePowerPointResultTest, aResultCodePastTheLastEnumeratorIsRefused) {
+    GCUsePowerPointResult dst;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)(GCUsePowerPointResult::NOT_ENOUGH_INVENTORY_SPACE + 1));
+                         out.write((BYTE)GCUsePowerPointResult::CANDY);
+                         out.write((int)0);
+                     },
+                     [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
+}
+
+TEST(GCUsePowerPointResultTest, anItemCodePastTheLastEnumeratorIsRefused) {
+    GCUsePowerPointResult dst;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)GCUsePowerPointResult::NO_ERROR);
+                         out.write((BYTE)(GCUsePowerPointResult::BLACK_RICE_CAKE_SOUP + 1));
+                         out.write((int)0);
+                     },
+                     [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
+}
+
+TEST(GCRequestPowerPointResultTest, aResultCodePastTheLastEnumeratorIsRefused) {
+    GCRequestPowerPointResult dst;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)(GCRequestPowerPointResult::CONNECT_ERROR + 1));
+                         out.write((int)0);
+                         out.write((int)0);
+                     },
+                     [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
+}
 
 //////////////////////////////////////////////////////////////////////
 // Rank bonuses, and the two standing bonus tables.

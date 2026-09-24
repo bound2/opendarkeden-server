@@ -38,9 +38,9 @@ void CGExchangeBuyHandler::execute(CGExchangeBuy* pPacket, Player* pPlayer) {
     if (result.isOk()) {
         const ExchangePurchase& purchase = result.events();
         gcPacket.setSuccess(true);
-        // The reply carries the new order id twice: in m_OrderID, and as the
-        // decimal string in m_Message, which is what the client reads.
-        gcPacket.setMessage(std::to_string(purchase.orderID));
+        // The order id travels in its own field; the message is the success
+        // text, as a refusal's is its reason's.
+        gcPacket.setMessage(formatExchangeError(EXCHANGE_SUCCESS));
         gcPacket.setOrderID(purchase.orderID);
     } else {
         // A refusal puts the reason's text in m_Message and leaves the id 0.

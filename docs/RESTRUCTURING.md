@@ -257,30 +257,12 @@ before anything else moves. Everything later shelters under this pin.
   >   10,000, since `"%f"` never uses exponent form — smashed the stack on
   >   the LP64 target. Widened, and `snprintf`.
   >
-  > Still open, each deliberately out of scope for a layout change:
-  > - `CGExchangeListHandler` never passes the `sellerFilter` the packet
-  >   carries to `ExchangeService::getListings`, which has taken the
-  >   parameter and filtered on it since the seam extraction.
-  > - The client UI sends `CGExchangeBuy` with an empty idempotency key, so
-  >   the server generates one per request and the double-click dedupe the
-  >   field exists for is not achieved. `decideBuyListing`'s
-  >   `hasIdempotencyKey(rawKey)` early-out is dead for the same reason —
-  >   only the suffixed `_buy`/`_sale` keys are inserted — so duplicate
-  >   protection rests on `adjustPoints`' own check inside the transaction.
-  > - `Statement::executeQuery`'s `vsnprintf` guard tests `> 2048` into a
-  >   2048-byte buffer, so a query of exactly 2048 characters is silently
-  >   truncated and executed.
-  > - `ExchangeService::prepareClaimList` leaks the `ExchangeListing` that
-  >   `getListing` returns on every order it walks, and `GamePlayer` leaks a
-  >   packet when `readPacket` throws.
-  > - The exchange fallback idempotency key is not unique across game
-  >   servers: `_getServerID()` answers a literal 1, and every containerised
-  >   server is pid 1 (the comment beside it says so).
-  > - `GCExchangeList`'s 37114 max is 4.5x the client's default 8 KB socket
-  >   ring, which only grows opportunistically — either pre-size that ring or
-  >   lower the page bound.
-  > - On success `GCExchangeBuy`'s message field carries the bare decimal
-  >   order id, redundant with `setOrderID()`.
+  > The behaviour defects the cross-check turned up beside the layouts
+  > (the seller filter, the buy idempotency key, the 2048-character
+  > statement bound, the claim-list and packet-reader leaks, the success
+  > message, the list maximum against the client's ring) are closed or
+  > recorded in `docs/FIXES.md`, 2026-09-24. Still open, each deliberately
+  > out of scope for a layout change:
   > - Neither repo clamps the listing count in `write()`:
   >   `(uint16_t)m_Listings.size()` narrows silently while the body loop
   >   iterates the full vector, so at 65536+ listings the count wraps to 0

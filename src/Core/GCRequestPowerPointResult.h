@@ -34,6 +34,10 @@ public:
         CONNECT_ERROR, // Game code check failure and packet error
     };
 
+    // The last result code. read() refuses a byte past it, since no branch
+    // of the receiver handles one.
+    static const BYTE kLastResultCode = CONNECT_ERROR;
+
 public:
     GCRequestPowerPointResult();
     ~GCRequestPowerPointResult();

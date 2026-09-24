@@ -9,12 +9,15 @@
 #ifndef __EXCHANGE_DECISION_H__
 #define __EXCHANGE_DECISION_H__
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <utility>
 
 #include "Outcome.h"
 #include "repository/ExchangeRepository.h"
+
+class CGExchangeList;
 
 //////////////////////////////////////////////////////////////////////////////
 // Exchange Result Codes
@@ -72,13 +75,90 @@ int calculateExchangeTax(int price, uint8_t taxRate);
 // A listing may only be created at a price of at least one point.
 [[nodiscard]] Outcome<void, ExchangeRejection> validateListingPrice(int pricePoint);
 
+//////////////////////////////////////////////////////////////////////////////
+// Browsing
+//////////////////////////////////////////////////////////////////////////////
+
+// What a browse narrows a page of active listings to. Every field left at its
+// default matches every listing.
+struct ExchangeListingFilter {
+    // 0xFF matches every item class.
+    uint8_t itemClass = 0xFF;
+    // 0xFFFF matches every item type.
+    uint16_t itemType = 0xFFFF;
+    // A bound of 0 or less is no bound; both are inclusive.
+    int minPrice = 0;
+    int maxPrice = 0;
+    // A substring of the seller's player name, compared case-sensitively.
+    // Empty matches every seller.
+    std::string sellerFilter;
+};
+
+// The filter a CGExchangeList asks for, every field of it.
+ExchangeListingFilter exchangeListingFilterOf(const CGExchangeList& packet);
+
+// Does this listing pass the filter?
+bool matchesExchangeListingFilter(const ExchangeListing& listing, const ExchangeListingFilter& filter);
+
+//////////////////////////////////////////////////////////////////////////////
+// Idempotency keys
+//
+// A buy writes two PointLedger rows, the buyer's and the seller's, each keyed
+// by the purchase's key plus a leg suffix. UNQ_Ledger_IdempotencyKey refuses a
+// second row with the same key, and adjustPoints refuses a key it already
+// holds, so a purchase whose key the ledger has seen cannot move points again.
+//////////////////////////////////////////////////////////////////////////////
+
+// The suffixes of the buyer's and the seller's ledger rows.
+extern const char* const kExchangeBuyLedgerSuffix;  // "_buy"
+extern const char* const kExchangeSaleLedgerSuffix; // "_sale"
+
+// The prefix of every key the server derives itself. A client-supplied key
+// that starts with it is not used (see resolveExchangeIdempotencyKey).
+extern const char* const kExchangeServerKeyPrefix; // "EX_"
+
+// The longest key PointLedger.IdempotencyKey can hold: it is VARCHAR(64)
+// UNIQUE, and this project mandates a non-strict sql_mode, so anything longer
+// is silently truncated on insert instead of being rejected.
+const size_t kMaxExchangeIdempotencyKeyLength = 64;
+
+// The ledger key of one leg of a purchase: the base, trimmed to leave room
+// for the suffix within kMaxExchangeIdempotencyKeyLength, then the suffix.
+// Without the trim a maximum-length base would make both legs truncate to the
+// same stored value, collide, and roll the purchase back. Two bases that
+// differ only past the trim point still collide; that is inherent to a 64-byte
+// column carrying a suffix, and it fails closed (a replay is refused).
+std::string exchangeLedgerKey(const std::string& base, const std::string& suffix);
+
+// The key the server derives for a buy of this listing: the prefix, the world
+// and server ids as two hex digits each, and the listing id as sixteen, 23
+// characters in all. A listing is sold at most once (ExchangeOrder.ListingID
+// is UNIQUE and no status write returns a listing to active), so the key names
+// exactly one purchase, and a repeat of the same buy - a double click, a
+// resend - derives the same key and is refused as a replay. The world and
+// server ids keep the key unique where listing ids are not shared: the listing
+// ids come from each world's own ExchangeListing table.
+std::string exchangeServerIdempotencyKey(int worldID, int serverID, int64_t listingID);
+
+// The key a buy is recorded under: the client's key when it sent one, and the
+// server-derived key when it sent none. A client key that starts with
+// kExchangeServerKeyPrefix is replaced by the server-derived key too, so that
+// no purchase can plant the key another listing's buy will derive and turn
+// that buy into a refused replay.
+std::string resolveExchangeIdempotencyKey(const std::string& clientKey, int worldID, int serverID, int64_t listingID);
+
+//////////////////////////////////////////////////////////////////////////////
+// Buying
+//////////////////////////////////////////////////////////////////////////////
+
 // What a buy asks for: the listing, who is buying, the key that makes the
 // purchase replay-proof, and the two values the terms are computed from.
 struct ExchangeBuyRequest {
     int64_t listingID = 0;
     std::string buyerAccount;
     std::string buyerPlayer;
-    // Empty when the client sent none; the caller mints one for the ledger.
+    // The key the purchase's ledger rows are built from (see
+    // resolveExchangeIdempotencyKey). Empty skips the replay check.
     std::string idempotencyKey;
     // The server the listing must belong to for this buyer to see it.
     int16_t serverID = 0;
@@ -103,7 +183,8 @@ struct ExchangePurchaseTerms {
 
 // May this buyer take this listing, and on what terms?
 //
-// Refused, in this order, when the key has already been used, when the id
+// Refused, in this order, when the ledger already holds the buyer's row of
+// this key (exchangeLedgerKey with kExchangeBuyLedgerSuffix), when the id
 // names no listing, when the listing is not active, when it belongs to
 // another server, when the buyer is its seller, and when the buyer cannot
 // afford price + tax.

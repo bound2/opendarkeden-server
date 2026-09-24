@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include <fstream>
+#include <memory>
 
 #include "Assert.h"
 #include "CGConnect.h"
@@ -381,15 +382,19 @@ void GamePlayer::processCommand(bool Option) {
                 // At this point the input buffer holds at least one complete packet.
                 // The packet factory manager builds the packet structure from the id.
                 // A bad packet id is handled inside the factory manager.
-                pPacket = packetFactories.createPacket(packetID);
+                // The packet is owned here until the history takes it, so a
+                // read() that throws on a malformed body does not leak it.
+                std::unique_ptr<Packet> pReading(packetFactories.createPacket(packetID));
 
                 // Initialise the packet structure.
                 // The read() defined in the packet subclass is called through the virtual
                 // mechanism, so this happens by itself.
-                m_pInputStream->readPacket(pPacket);
+                m_pInputStream->readPacket(pReading.get());
 
-                // Append the packet to the end of the packet history.
-                m_PacketHistory.push_back(pPacket);
+                // Append the packet to the end of the packet history, which
+                // owns it from here on.
+                m_PacketHistory.push_back(pReading.get());
+                pPacket = pReading.release();
 
                 // Write the packet file log.
                 if (m_bPacketLog) {

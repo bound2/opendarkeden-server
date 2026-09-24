@@ -13,6 +13,125 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A keyless Exchange buy was not replay-proof (2026-09-24)
+
+- **The key a buy is recorded under did not make a repeated buy a
+  replay.** The client sends `CGExchangeBuy` with an empty idempotency key,
+  so `ExchangeService::buyListing` minted a fresh key per request from the
+  time, a counter, the process id and `_getServerID()` -- a literal 1 -- and
+  the double click the field exists for never met its own key. The same
+  key was not unique across game servers either: every server answered
+  server 1, and every containerised one is pid 1. `decideBuyListing`'s
+  replay check looked the bare key up while only the suffixed `_buy` /
+  `_sale` rows are ever written, so it could not fire. A keyless buy is now
+  recorded under a key derived from what the repeat repeats:
+  `EX_` + the configured `WorldID` and `ServerID` (two hex digits each) +
+  the listing id (sixteen), 23 characters
+  (`exchangeServerIdempotencyKey`). A listing sells at most once
+  (`ExchangeOrder.ListingID` is `UNIQUE` and nothing returns a listing to
+  active), so the key names one purchase, and the existing
+  `UNQ_Ledger_IdempotencyKey` plus `adjustPoints`' own check refuse the
+  second click with no schema change. The replay check looks up the buyer's
+  row under the key `buyListing` writes (`exchangeLedgerKey(key, "_buy")`),
+  and a client key that starts with `EX_` is replaced by the server's key
+  so that no purchase can plant the key another listing's buy derives. The
+  key never travels: `GCExchangeBuy` carries no key and no golden holds
+  one. `_getServerID()` is `_marketServerID()` now, still 1 by design --
+  it scopes listings, orders and the browse, which every game server shares
+  -- and the list handler browses through it instead of its own literal.
+  Pinned in `tests/exchange_decision_test.cpp`.
+  > **Status:** fixed (fix/exchange-residue)
+
+- **The client sends no key** (`client/VS_UI/src/UiRuntime.cpp`,
+  `RequestExchangeBuy` never calls `setIdempotencyKey`). With the server
+  deriving a per-listing key that is no longer a defect: a client key
+  would only replace one the server already derives.
+  > **Status:** not a defect
+
+## The Exchange browse dropped the seller filter it was sent (2026-09-24)
+
+- **`CGExchangeListHandler` passed every field of `CGExchangeList` to
+  `ExchangeService::getListings` except the seller filter**, which the
+  service has filtered on since the seam extraction. The handler builds the
+  whole filter from the packet now (`exchangeListingFilterOf`), and the
+  match itself (`matchesExchangeListingFilter`) is in `ExchangeDecision`,
+  pinned in `tests/exchange_decision_test.cpp`. An empty filter matches
+  every seller, so what the client sends today browses exactly as before.
+  The filter still narrows the page after it is read, as the item and price
+  filters always have: a filtered page is the matching part of that page.
+  > **Status:** fixed (fix/exchange-residue)
+
+- **The client cannot send a seller filter**: its `ExchangeFilter`
+  (`client/VS_UI/src/header/UiRuntime.h`) has no seller field and
+  `RequestExchangeList` (`client/VS_UI/src/UiRuntime.cpp`) never calls
+  `setSellerFilter`.
+  > **Status:** recorded, not fixed (fix/exchange-residue)
+
+## GCExchangeBuy's success message was the order id again (2026-09-24)
+
+- **A successful buy put the order id in the message field as a decimal
+  string**, beside the same id in its own field, while every refusal puts
+  its `formatExchangeError` text there and `ExchangeDecision.h` names those
+  texts, `"Success"` included, as what the packet carries. The handler's
+  comment said the client reads the decimal; the client reads nothing:
+  `client/Client/PacketHandler/GCExchangeBuyHandler.cpp` has an empty body.
+  Success carries `"Success"` now. The layout is untouched (a BYTE-length
+  string either way) and the goldens are built from the test fixture, not
+  from the handler, so none changes.
+  > **Status:** fixed (fix/exchange-residue)
+
+- **The client acts on no `GCExchangeBuy`**: its handler
+  (`client/Client/PacketHandler/GCExchangeBuyHandler.cpp`) is an empty
+  stub, so neither the result nor the message reaches the player.
+  > **Status:** recorded, not fixed (fix/exchange-residue)
+
+## A statement of exactly 2048 characters was truncated and executed (2026-09-24)
+
+- **`Statement`'s three printf-style forms formatted into a 2048-byte
+  window and refused only a result longer than 2048**, so a statement of
+  exactly 2048 characters came back from `vsnprintf` cut to 2047 and was
+  stored and executed. One helper formats all three now, into a buffer
+  sized from `Statement::kMaxStatementLength` (2048) plus the terminator,
+  and refuses anything longer with an `Error` before it is stored or run;
+  a statement of the full length is kept whole. On the way: the refusal
+  threw with the `va_list` still open, and the formatting constructor left
+  the connection and result pointers uninitialised for the destructor to
+  delete (it has no caller). Pinned in `tests/database_error_test.cpp`.
+  > **Status:** fixed (fix/exchange-residue)
+
+## Owned objects leaked on their error paths (2026-09-24)
+
+- **`ExchangeService::prepareClaimList` never freed the listing
+  `getListing` handed it for each paid order.** The service's `getListing`
+  returns a `std::unique_ptr` now, its only callers being in the same file;
+  the repository's raw-pointer contract is unchanged.
+  > **Status:** fixed (fix/exchange-residue)
+
+- **A packet whose `read()` threw was leaked by every connection reader
+  that created it.** `GamePlayer::processCommand` leaked it when the read
+  threw; `LoginPlayer::processCommand` also when its handler threw, since
+  the history takes the packet only after dispatch;
+  `GameServerPlayer::processCommand` (sharedserver) on either; and
+  `SharedServerClient::processCommand` leaked every SG packet it read,
+  having no delete at all. Each holds the packet in a `std::unique_ptr`
+  until the history takes it or the handler has run. On the way:
+  `SharedServerClient`'s two `filelog` calls named `%d`s they passed no
+  argument for.
+  > **Status:** fixed (fix/exchange-residue)
+
+## GCExchangeList's maximum against the client's input ring (2026-09-24)
+
+- **`GCExchangeList`'s 37114-byte maximum is 4.5 times the client's
+  default 8 KB input ring** (`DefaultSocketInputBufferSize` in
+  `client/Client/Packet/SocketInputStream.h`; the game connection starts
+  at 32 KB, `Player::setSocket` at the default), which used to grow only
+  opportunistically. The client's `SocketInputStream::fill`
+  (`client/Client/Packet/SocketInputStream.cpp`) now grows a full ring by
+  the socket's backlog up to `MaxSocketInputBufferSize` (16 MiB), and its
+  wire-layout test checks that four maximum frames fit below that, so a
+  full page arrives whole. Nothing to change on the server.
+  > **Status:** fixed (client master, `2d04b713`)
+
 ## Two seed guilds each led two guild unions (2026-09-24)
 
 - **`initdb/DARKEDEN.sql` gave guild 9648 two unions, 119 and 166, each
@@ -2007,12 +2126,22 @@ packet no server reads, not a field on the wire.
   in the packet layer and are left alone.
   > **Status:** fixed (wire/skill-disagreements)
 
-- `GCUsePowerPointResult::read` and `GCRequestPowerPointResult::read`
-  take their code bytes without comparing them against the last
+- **`GCUsePowerPointResult::read` and `GCRequestPowerPointResult::read`
+  took their code bytes without comparing them against the last
   enumerator of the `RESULT_CODE` and `ITEM_CODE` lists their own headers
-  declare, so a peer can announce a result no branch of the client
-  handles.
-  > **Status:** open — recorded in `tests/packet_skill_test.cpp`
+  declare**, so a peer could announce a result no branch of the client
+  handles. Both reads now refuse a code past the last enumerator
+  (`kLastResultCode`, `kLastItemCode`) with `InvalidProtocolException`,
+  pinned by refusal tests in `tests/packet_skill_test.cpp`. The fixtures
+  behind the two goldens carried out-of-range codes -- `0x9D` / `0x9E` and
+  `0xA1`, chosen to follow the file's `>= 128` byte rule -- and were
+  re-recorded with each list's last enumerator, which pins the boundary:
+  `GCUsePowerPointResult.code0.hex` and
+  `GCRequestPowerPointResult.code0.hex` change in their code bytes only.
+  That is fixture content, not layout: no size or inventory line moves,
+  every sender already emits enumerators, and the client repo holds no
+  copy of these goldens.
+  > **Status:** fixed (fix/exchange-residue)
 
 ## Hard-coded BBS credentials in the `*notice` operator command (2026-09-10)
 

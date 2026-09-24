@@ -8,6 +8,8 @@
 // include files
 #include "GameServerPlayer.h"
 
+#include <memory>
+
 #include "Assert.h"
 #include "KernelContext.h"
 #include "Packet.h"
@@ -106,7 +108,6 @@ void GameServerPlayer::processCommand() noexcept(false) {
         char header[szPacketHeader];
         PacketID_t packetID;
         PacketSize_t packetSize;
-        Packet* pPacket;
 
         // Process every complete packet sitting in the input buffer.
         while (true) {
@@ -137,17 +138,15 @@ void GameServerPlayer::processCommand() noexcept(false) {
             // Getting here means the input buffer holds at least one complete packet.
             // The packet structure can be created from the packet factory manager with the packet id.
             // A wrong packet id is handled by the packet factory manager.
-            pPacket = de::kernelContext().packetFactories().createPacket(packetID);
+            // The packet lives until its handler returns or throws.
+            std::unique_ptr<Packet> pPacket(de::kernelContext().packetFactories().createPacket(packetID));
 
             // Now initialize this packet structure.
             // The read() defined in the packet subclass is called through the virtual mechanism,
             // mechanism, so it is initialized automatically.
-            m_pInputStream->readPacket(pPacket);
+            m_pInputStream->readPacket(pPacket.get());
 
-            PacketDispatcher::dispatch(pPacket, this);
-
-            // Delete the packet
-            delete pPacket;
+            PacketDispatcher::dispatch(pPacket.get(), this);
         }
     } catch (NoSuchElementException& nsee) {
         // PacketFactoryManager::createPacket(PacketID_t)

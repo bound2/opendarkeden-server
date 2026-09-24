@@ -7,6 +7,7 @@
 #include "SharedServerClient.h"
 
 #include <fstream>
+#include <memory>
 
 #include "Assert.h"
 #include "Guild.h"
@@ -65,7 +66,6 @@ void SharedServerClient::processCommand() {
     char header[szPacketHeader];
     PacketID_t packetID;
     PacketSize_t packetSize;
-    Packet* pPacket = NULL;
 
     PacketFactoryManager& packetFactories = de::kernelContext().packetFactories();
 
@@ -86,7 +86,8 @@ void SharedServerClient::processCommand() {
 
             // An out-of-range packet id is treated as a protocol error.
             if (packetID >= (int)Packet::PACKET_MAX) {
-                filelog("SharedServerClient.txt", "Packet ID exceed MAX, RECV [%d/%d]");
+                filelog("SharedServerClient.txt", "Packet ID exceed MAX, RECV [%d/%d]", (int)packetID,
+                        (int)Packet::PACKET_MAX);
 
                 throw InvalidProtocolException("too large packet id");
             }
@@ -94,7 +95,8 @@ void SharedServerClient::processCommand() {
             try {
                 // An oversized packet is treated as a protocol error.
                 if (packetSize > packetFactories.getPacketMaxSize(packetID)) {
-                    filelog("SharedServerClient.txt", "Too Larget Packet Size, RECV [%d],PacketSize[%d]");
+                    filelog("SharedServerClient.txt", "Too Larget Packet Size, RECV [%d],PacketSize[%d]", (int)packetID,
+                            (int)packetSize);
 
                     throw InvalidProtocolException("too large packet size");
                 }
@@ -106,23 +108,24 @@ void SharedServerClient::processCommand() {
                 // Reaching here means the input buffer holds at least one complete packet.
                 // The packet factory manager creates the packet structure from the packet id.
                 // A bad packet id is handled by the packet factory manager.
-                pPacket = packetFactories.createPacket(packetID);
+                // The packet lives until its handler returns or throws.
+                std::unique_ptr<Packet> pPacket(packetFactories.createPacket(packetID));
 
                 // Now initialize this packet structure.
                 // The read() defined by the packet subclass is called through the virtual
                 // mechanism and fills it in.
-                m_pInputStream->readPacket(pPacket);
+                m_pInputStream->readPacket(pPacket.get());
 
 // Now run the packet handler on this packet structure.
 // A bad packet id is handled by the packet handler manager.
 #ifdef __PROFILE_PACKETS__
 
                 beginProfileEx(pPacket->getPacketName().c_str());
-                PacketDispatcher::dispatch(pPacket, this);
+                PacketDispatcher::dispatch(pPacket.get(), this);
                 endProfileEx(pPacket->getPacketName().c_str());
 
 #else
-                PacketDispatcher::dispatch(pPacket, this);
+                PacketDispatcher::dispatch(pPacket.get(), this);
 #endif
             } catch (IgnorePacketException& igpe) {
                 // An oversized packet is treated as a protocol error.

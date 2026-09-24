@@ -6,6 +6,7 @@
 
 #include "Statement.h"
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #include <mysql/mysql.h>
@@ -25,6 +26,25 @@
 #define endProfileEx(name) ((void)0)
 #endif
 
+namespace {
+
+// Format a printf-style statement into out. Answers false, leaving out
+// untouched, when the formatted text is longer than
+// Statement::kMaxStatementLength characters or the format fails: a statement
+// that does not fit is refused whole, never truncated and executed.
+bool formatStatement(string& out, const char* fmt, va_list valist) {
+    char buffer[Statement::kMaxStatementLength + 1];
+
+    const int nchars = vsnprintf(buffer, sizeof(buffer), fmt, valist);
+    if (nchars < 0 || (size_t)nchars > Statement::kMaxStatementLength)
+        return false;
+
+    out.assign(buffer, (size_t)nchars);
+    return true;
+}
+
+} // namespace
+
 //////////////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////////////
@@ -38,29 +58,16 @@ Statement::Statement() {
     __END_CATCH
 }
 
-Statement::Statement(const char* fmt, ...)
-
-{
+Statement::Statement(const char* fmt, ...) : m_pConnection(NULL), m_pResult(NULL), m_nAffectedRows(0) {
     __BEGIN_TRY
 
-    // variable argument list
     va_list valist;
-
     va_start(valist, fmt);
-
-    char buffer[2048];
-
-    int nchars = vsnprintf(buffer, 2048, fmt, valist);
-
-    // If the buffer is not big enough, fail instead of truncating.
-    if (nchars == -1 || nchars > 2048)
-        throw Error("more buffer size needed for SQL statement buffer...");
-
+    const bool fits = formatStatement(m_Statement, fmt, valist);
     va_end(valist);
 
-    // m_Statement is a string, so assigning the buffer copies it.
-    // If it were a char*, pointing at a local variable would be dangerous.
-    m_Statement = buffer;
+    if (!fits)
+        throw Error("more buffer size needed for SQL statement buffer...");
 
     __END_CATCH
 }
@@ -168,20 +175,12 @@ Result* Statement::executeQuery(const char* fmt, ...) {
 
     // Build the SQL statement.
     va_list valist;
-
     va_start(valist, fmt);
-
-    char buffer[2048 + 1];
-
-    int nchars = vsnprintf(buffer, 2048, fmt, valist);
-
-    // If the buffer is not big enough, throw instead of truncating.
-    if (nchars == -1 || nchars > 2048)
-        throw Error("more buffer size needed for SQL statement buffer...");
-
+    const bool fits = formatStatement(m_Statement, fmt, valist);
     va_end(valist);
 
-    m_Statement = buffer;
+    if (!fits)
+        throw Error("more buffer size needed for SQL statement buffer...");
 
     return executeQuery();
 
@@ -201,23 +200,13 @@ void Statement::setStatement(const char* fmt, ...)
 {
     __BEGIN_TRY
 
-    // variable argument list
     va_list valist;
-
     va_start(valist, fmt);
-
-    // buffer size = 1kb..Too big??
-    char buffer[2048 + 1];
-
-    int nchars = vsnprintf(buffer, 2048, fmt, valist);
-
-    // If the buffer is not big enough, throw instead of truncating.
-    if (nchars == -1 || nchars > 2048)
-        throw Error("more buffer size needed for SQL statement buffer...");
-
+    const bool fits = formatStatement(m_Statement, fmt, valist);
     va_end(valist);
 
-    m_Statement = buffer;
+    if (!fits)
+        throw Error("more buffer size needed for SQL statement buffer...");
 
     __END_CATCH
 }
