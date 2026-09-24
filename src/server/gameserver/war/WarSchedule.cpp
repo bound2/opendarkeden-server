@@ -107,7 +107,7 @@ void WarSchedule::create()
             (int)pWar->getCastleZoneID(), pWar->getWarType2DBString(), (int)pWar->getAttackerGuildID(),
             (int)pWar->getRegistrationFee(), m_ScheduledTime.toDateTime(), pWar->getState2DBString(),
             pWar->getCastleWarKind2DBString())) {
-        filelog("WarError.log", "WarSchedule::create() : 이미 테이블에 War 정보가 있거나 테이블이 잘못되었습니다.");
+        filelog("WarError.log", "WarSchedule::create() : War info is already in the table, or the table is invalid.");
         return;
     }
 

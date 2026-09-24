@@ -53,7 +53,7 @@ void CGModifyNicknameHandler::execute(CGModifyNickname* pPacket, Player* pPlayer
         pItem = dynamic_cast<EventGiftBox*>(pInventory->getItemWithObjectID(itemOID));
 
         if (pItem == NULL) {
-            filelog("Nickname.log", "[%s:%s] 아이템이 없거나 EventGiftBox가 아닙니다.", pPlayer->getID().c_str(),
+            filelog("Nickname.log", "[%s:%s] No item, or it is not an EventGiftBox.", pPlayer->getID().c_str(),
                     pPC->getName().c_str());
 
             gcNV.setCode(NICKNAME_MODIFY_FAIL_NO_ITEM);

@@ -111,19 +111,19 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
                     NicknameBook* pNicknameBook = pPC->getNicknameBook();
                     Assert(pNicknameBook != NULL);
 
-                    pNicknameBook->addNewNickname("새해 복 많이 받으세요");
+                    pNicknameBook->addNewNickname("Happy New Year!");
                     pNicknamePacket = pNicknameBook->getNicknameBookListPacket();
                 } else if (sumAfterPersonal == 3 && sumBeforePersonal != sumAfterPersonal) {
                     NicknameBook* pNicknameBook = pPC->getNicknameBook();
                     Assert(pNicknameBook != NULL);
 
-                    pNicknameBook->addNewNickname("밝은세상을 위해 노력한");
+                    pNicknameBook->addNewNickname("For a Brighter World");
                     pNicknamePacket = pNicknameBook->getNicknameBookListPacket();
                 } else if (sumAfterPersonal == 5 && sumBeforePersonal != sumAfterPersonal) {
                     NicknameBook* pNicknameBook = pPC->getNicknameBook();
                     Assert(pNicknameBook != NULL);
 
-                    pNicknameBook->addNewNickname("진정한 사랑을 아는");
+                    pNicknameBook->addNewNickname("Knows True Love");
                     pNicknamePacket = pNicknameBook->getNicknameBookListPacket();
                 }
             }
@@ -137,19 +137,19 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
                     NicknameBook* pNicknameBook = pPC->getNicknameBook();
                     Assert(pNicknameBook != NULL);
 
-                    pNicknameBook->addNewNickname("따뜻한 세상을 만듭시다");
+                    pNicknameBook->addNewNickname("Let's Warm the World");
                     pNicknamePacket = pNicknameBook->getNicknameBookListPacket();
                 } else if (sumAfterGuild == 3 && sumBeforeGuild != sumAfterGuild) {
                     NicknameBook* pNicknameBook = pPC->getNicknameBook();
                     Assert(pNicknameBook != NULL);
 
-                    pNicknameBook->addNewNickname("밝은 세상을 만듭시다");
+                    pNicknameBook->addNewNickname("Let's Light the World");
                     pNicknamePacket = pNicknameBook->getNicknameBookListPacket();
                 } else if (sumAfterGuild == 5 && sumBeforeGuild != sumAfterGuild) {
                     NicknameBook* pNicknameBook = pPC->getNicknameBook();
                     Assert(pNicknameBook != NULL);
 
-                    pNicknameBook->addNewNickname("사랑을 실천한 사람들");
+                    pNicknameBook->addNewNickname("Those Who Lived Love");
                     pNicknamePacket = pNicknameBook->getNicknameBookListPacket();
                 }
             }

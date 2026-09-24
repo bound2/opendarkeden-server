@@ -46,33 +46,33 @@ void CGDisplayItemHandler::execute(CGDisplayItem* pPacket, Player* pPlayer) {
     GCNoticeEvent errorNotice;
 
     if (pPacket->getIndex() > MAX_ITEM_NUM) {
-        filelog("Store.log", "[%s:%s] (%u) 잘못된 인덱스입니다.", pGamePlayer->getID().c_str(), pPC->getName().c_str(),
+        filelog("Store.log", "[%s:%s] (%u) Invalid index.", pGamePlayer->getID().c_str(), pPC->getName().c_str(),
                 pPacket->getIndex());
         return;
     }
 
     if (pPacket->getX() >= pInventory->getWidth() || pPacket->getY() >= pInventory->getHeight()) {
-        filelog("Store.log", "[%s:%s] (%u,%u) 인벤토리 좌표를 잘못 보내줬습니다..", pGamePlayer->getID().c_str(),
+        filelog("Store.log", "[%s:%s] (%u,%u) Sent invalid inventory coordinates..", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pPacket->getX(), pPacket->getY());
         return;
     }
 
     Item* pItem = pInventory->getItem(pPacket->getX(), pPacket->getY());
     if (pItem == NULL || pItem->getObjectID() != pPacket->getItemObjectID()) {
-        filelog("Store.log", "[%s:%s] (%u, %u) : %u 아이템 좌표가 잘못되었거나 오브젝트 아이디가 잘못되었습니다.",
+        filelog("Store.log", "[%s:%s] (%u, %u) : %u Invalid item coordinates or object ID.",
                 pGamePlayer->getID().c_str(), pPC->getName().c_str(), pPacket->getX(), pPacket->getY(),
                 pPacket->getItemObjectID());
         return;
     }
 
     if (pPC->getZone()->getTradeManager()->getTradeInfo(pPC->getName()) != NULL) {
-        filelog("Store.log", "[%s:%s] : 거래중에는 물건을 올려놓을 수 없습니다.", pGamePlayer->getID().c_str(),
+        filelog("Store.log", "[%s:%s] : Cannot display items while trading.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str());
         return;
     }
 
     if (pStore->hasItem(pItem)) {
-        filelog("Store.log", "[%s:%s] (%u, %u) 이미 아이템이 상점에 있습니다.", pGamePlayer->getID().c_str(),
+        filelog("Store.log", "[%s:%s] (%u, %u) Item is already in the store.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pItem->getObjectID(), pPacket->getIndex());
         errorNotice.setCode(NOTICE_EVENT_ALREADY_DISPLAYED);
         pGamePlayer->sendPacket(&errorNotice);
@@ -80,8 +80,8 @@ void CGDisplayItemHandler::execute(CGDisplayItem* pPacket, Player* pPlayer) {
     }
 
     if (pItem->isTimeLimitItem() || !canSell(pItem) || !canTrade(pItem)) {
-        filelog("Store.log", "[%s:%s] (%s) 팔 수 없는 아이템입니다.", pGamePlayer->getID().c_str(),
-                pPC->getName().c_str(), pItem->toString().c_str());
+        filelog("Store.log", "[%s:%s] (%s) Item cannot be sold.", pGamePlayer->getID().c_str(), pPC->getName().c_str(),
+                pItem->toString().c_str());
         errorNotice.setCode(NOTICE_EVENT_CANNOT_SELL);
         pGamePlayer->sendPacket(&errorNotice);
         return;
@@ -89,7 +89,7 @@ void CGDisplayItemHandler::execute(CGDisplayItem* pPacket, Player* pPlayer) {
 
     BYTE result = pStore->setStoreItem(pPacket->getIndex(), pItem, pPacket->getPrice());
     if (result != 0) {
-        filelog("Store.log", "[%s:%s] (%u) 아이템을 놓을 수 없습니다.", pGamePlayer->getID().c_str(),
+        filelog("Store.log", "[%s:%s] (%u) Cannot place the item.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), result);
         return;
     }

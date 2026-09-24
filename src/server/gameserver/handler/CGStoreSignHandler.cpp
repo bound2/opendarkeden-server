@@ -37,8 +37,8 @@ void CGStoreSignHandler::execute(CGStoreSign* pPacket, Player* pPlayer)
     Assert(pStore != NULL);
 
     if (pPacket->getSign().size() > MAX_SIGN_SIZE) {
-        filelog("Store.log", "[%s:%s] (%s) 간판 길이가 너무 깁니다.", pGamePlayer->getID().c_str(),
-                pPC->getName().c_str(), pPacket->getSign().c_str());
+        filelog("Store.log", "[%s:%s] (%s) Sign is too long.", pGamePlayer->getID().c_str(), pPC->getName().c_str(),
+                pPacket->getSign().c_str());
         return;
     }
 

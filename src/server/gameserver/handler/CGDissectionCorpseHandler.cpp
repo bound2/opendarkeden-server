@@ -391,7 +391,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
 
                 {
                     if (BlackStarNumber >= 7)
-                        cout << "검은별이 10개 넘었습니다" << endl;
+                        cout << "Black star count reached the limit" << endl;
                     else {
                         (pZone->getObjectRegistry()).registerObject(pTreasure);
 

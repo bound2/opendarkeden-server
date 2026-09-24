@@ -48,7 +48,7 @@ void CGReadyHandler::execute(CGReady* pPacket, Player* pPlayer)
         de::gameContext().incomingPlayers().pushOutPlayer(pGamePlayer);
     } catch (NoSuchElementException& nsee) {
         StringStream msg;
-        msg << "Critical Error : IPM에 플레이어가 없네용. 무슨 일이지..  - -;\n" << nsee.toString();
+        msg << "Critical Error : the player is not in the IPM. What happened..  - -;\n" << nsee.toString();
         throw Error(msg.toString());
     }
 

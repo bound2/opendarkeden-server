@@ -99,7 +99,7 @@ void QuestManager::sendQuestInfo() {
 
     for (; itr != endItr; ++itr) {
         if (itr->second == NULL) {
-            filelog("Quest.log", "QuestManager::sendQuestInfo : QuestStatus에 NULL 이 들어가있습니다.");
+            filelog("Quest.log", "QuestManager::sendQuestInfo : QuestStatus holds a NULL.");
             continue;
         }
 

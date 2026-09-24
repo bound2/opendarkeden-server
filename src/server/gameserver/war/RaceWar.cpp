@@ -264,7 +264,7 @@ string RaceWar::getWarName() const
 {
     __BEGIN_TRY
 
-    return "蘆痢쇌濫轢";
+    return "Race War";
 
     __END_CATCH
 }

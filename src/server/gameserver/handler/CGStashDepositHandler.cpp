@@ -34,7 +34,7 @@ void CGStashDepositHandler::execute(CGStashDeposit* pPacket, Player* pPlayer) {
     Gold_t amount = pPacket->getAmount();
 
     if (!pPC->checkGoldIntegrity() || !pPC->checkStashGoldIntegrity()) {
-        filelog("GoldBug.log", "CGStashDeposit : 돈이 DB랑 안 맞는다! [%s:%s]", pGamePlayer->getID().c_str(),
+        filelog("GoldBug.log", "CGStashDeposit : gold does not match the DB! [%s:%s]", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str());
         throw DisconnectException("CGStashDeposit : money does not match the database!");
     }

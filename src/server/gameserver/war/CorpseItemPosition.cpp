@@ -45,7 +45,7 @@ Item* CorpseItemPosition::getItem_LOCKED(bool isDel)
     m_pZone = pZone;
 
     if (pZone == NULL) {
-        filelog("ItemError.log", "CorpseItemPosition:getItem() : ZoneID가 잘못되었습니다.");
+        filelog("ItemError.log", "CorpseItemPosition:getItem() : Invalid ZoneID.");
         return NULL;
     }
 
@@ -63,7 +63,7 @@ Item* CorpseItemPosition::getItem_UNLOCKED(bool isDel)
     m_pZone = pZone;
 
     if (pZone == NULL) {
-        filelog("ItemError.log", "CorpseItemPosition:getItem() : ZoneID가 잘못되었습니다.");
+        filelog("ItemError.log", "CorpseItemPosition:getItem() : Invalid ZoneID.");
         return NULL;
     }
 
@@ -89,7 +89,7 @@ Item* CorpseItemPosition::getItem_CORE(Zone* pZone, bool isDel)
     Item* pRet = NULL;
 
     if (pCorpse == NULL || pCorpse->getItemClass() != Item::ITEM_CLASS_CORPSE) {
-        filelog("ItemError.log", "CorpseItemPosition::getItem() : 해당하는 시체가 없습니다.");
+        filelog("ItemError.log", "CorpseItemPosition::getItem() : No matching corpse.");
 
         return NULL;
     }
@@ -105,7 +105,7 @@ Item* CorpseItemPosition::getItem_CORE(Zone* pZone, bool isDel)
         pRet = pCorpse->popTreasure(m_ObjectID);
 
         if (pRet == NULL) {
-            filelog("ItemError.log", "CorpseItemPosition::getItem() : 해당 아이템이 시체 안에 없습니다.");
+            filelog("ItemError.log", "CorpseItemPosition::getItem() : The item is not in the corpse.");
 
             return NULL;
         }
@@ -145,7 +145,7 @@ Item* CorpseItemPosition::getItem_CORE(Zone* pZone, bool isDel)
         pRet = pCorpse->getTreasure(m_ObjectID);
 
     if (pRet == NULL) {
-        filelog("ItemError.log", "CorpseItemPosition::getItem() : 해당 아이템이 시체 안에 없습니다.");
+        filelog("ItemError.log", "CorpseItemPosition::getItem() : The item is not in the corpse.");
 
         return NULL;
     }

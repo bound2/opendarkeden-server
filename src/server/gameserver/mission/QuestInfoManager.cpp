@@ -69,8 +69,7 @@ QuestMessage QuestInfoManager::canExecuteQuest(QuestID_t qID, PlayerCreature* pP
 
     QuestInfoHashMap::const_iterator itr = m_QuestInfos.find(qID);
     if (itr == m_QuestInfos.end()) {
-        filelog("EventBug.txt",
-                "QuestInfoManager::canExcuteQuest : 클라이언트가 보내준 qID가 이 NPC한테 없다 ㅜ.ㅠ %s:%d",
+        filelog("EventBug.txt", "QuestInfoManager::canExcuteQuest : the qID the client sent is not on this NPC %s:%d",
                 m_pOwnerNPC->getName().c_str(), qID);
         return FAIL_BUG;
     }
@@ -94,7 +93,7 @@ QuestMessage QuestInfoManager::startQuest(QuestID_t qID, PlayerCreature* pPC) {
     if (pQuestStatus->isEventQuest()) {
         if (!pPC->getQuestManager()->getEventQuestAdvanceManager()->start(pQuestStatus->getQuestLevel())) {
             filelog("EventBug.txt",
-                    "QuestInfoManager::startQuest : 퀘스트 시작해야 되는데 퀘스트 어드밴스 매니저가 INIT가 아니다. "
+                    "QuestInfoManager::startQuest : the quest should start, but the quest advance manager is not INIT. "
                     "%s:%d (Level %d)",
                     pPC->getName().c_str(), qID, pQuestStatus->getQuestLevel());
         }

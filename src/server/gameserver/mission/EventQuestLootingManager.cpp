@@ -50,7 +50,7 @@ bool EventQuestLootingInfo::isTargetMonster(PlayerCreature* pPC, Monster* pMonst
 
             qGrade = pOusters->getLevel();
         } else {
-            cout << "�͹���!" << endl;
+            cout << "Unknown race!" << endl;
             qGrade = 0;
         }
 

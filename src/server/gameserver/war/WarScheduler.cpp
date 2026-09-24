@@ -282,7 +282,7 @@ void WarScheduler::tinysave(WarID_t warID, const string& query)
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    filelog("WarError.log", "WarScheduler::tinySave() DB에 WarID:%d 인 WarSchedule이 없습니다.", warID);
+    filelog("WarError.log", "WarScheduler::tinySave() no WarSchedule with WarID:%d in the DB.", warID);
 
     __END_CATCH
 }
@@ -376,8 +376,8 @@ bool WarScheduler::addWar(War* pWar)
 
     addSchedule(pWarSchedule);
 
-    filelog("WarLog.txt", "[%d][WarID=%d] %s 전쟁을 신청했으므로 스케쥴에 추가합니다.", (int)m_pZone->getZoneID(),
-            (int)pWar->getWarID(), (pWar->getWarType() == WAR_GUILD ? "길드" : "종족"));
+    filelog("WarLog.txt", "[%d][WarID=%d] A %s war was requested; adding it to the schedule.",
+            (int)m_pZone->getZoneID(), (int)pWar->getWarID(), (pWar->getWarType() == WAR_GUILD ? "guild" : "race"));
 
     pWarSchedule->create();
 

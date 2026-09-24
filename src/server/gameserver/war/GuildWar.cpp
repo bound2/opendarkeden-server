@@ -214,9 +214,9 @@ string GuildWar::getWarName() const
         pZoneInfo = de::gameContext().zoneInfos().getZoneInfo(m_CastleZoneID);
 
         if (pGuild == NULL || pZoneInfo == NULL)
-            return "길드 전쟁";
+            return "Guild War";
     } catch (Throwable& t) {
-        return "길드 전쟁";
+        return "Guild War";
     }
 
     Assert(pZoneInfo != NULL);
@@ -224,8 +224,8 @@ string GuildWar::getWarName() const
 
     StringStream msg;
 
-    msg << pGuild->getName() << "길드가 ";
-    msg << pZoneInfo->getFullName() << "을 공격하는 길드 전쟁";
+    msg << pGuild->getName() << " guild attacks ";
+    msg << pZoneInfo->getFullName() << " (guild war)";
 
     return msg.toString();
 
@@ -369,7 +369,7 @@ void GuildWar::makeWarInfo(WarInfo* pWarInfo) const
     //---------------------------------------------------
     CastleInfo* pCastleInfo = de::gameContext().castleInfos().getCastleInfo(getCastleZoneID());
     if (pCastleInfo == NULL) {
-        filelog("WarError.log", "CastleInfo가 없다(%d)", getCastleZoneID());
+        filelog("WarError.log", "No CastleInfo(%d)", getCastleZoneID());
         return;
     }
 
@@ -381,8 +381,8 @@ void GuildWar::makeWarInfo(WarInfo* pWarInfo) const
     pGuildWarInfo->setCastleID(getCastleZoneID());
 
     // The attacking guild's name
-    static const string commonSlayerGuild("없음");
-    static const string commonVampireGuild("없음");
+    static const string commonSlayerGuild("None");
+    static const string commonVampireGuild("None");
 
     string attackGuildName;
     string defenseGuildName;

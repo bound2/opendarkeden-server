@@ -23,9 +23,9 @@
 #endif
 
 const string DiffClanSpeech[] = {
-    "경비병! 경비병! 여기 바토리의 종복들이 침입해왔다.",
-    "으흠? 이것은.. 바토리의 혈족들의 피냄새! 드디어 네놈들이 블라드님의 안식처까지 더럽히려 왔구나!!",
-    "네 놈은 누구야? 감히 여기가 어디라고.. Abscede Hinc!!"};
+    "Guards! Guards! Bathory's servants have broken in here.",
+    "Hmm? This is.. the blood scent of Bathory's kin! So you have come to defile even Lord Vlad's resting place!!",
+    "Who are you? How dare you come here.. Abscede Hinc!!"};
 
 //////////////////////////////////////////////////////////////////////////////
 // When a player clicks an NPC the client sends the CGNPCTalk packet to the

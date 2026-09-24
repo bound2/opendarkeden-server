@@ -13,6 +13,33 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## An Altar of Blood offering never answers a relic (2026-09-25)
+
+- **`CGRelicToObjectHandler` accepts a relic brought to an offering
+  (monster types 793..795) only when the offering's name is a key of its
+  line table, and the keys are the offerings' Korean names while
+  `DynamicZoneAlterOfBlood::addOffering` names them from
+  `OfferingTemplate`, which holds the names the Chinese build gave the same
+  fifteen captives (GBK bytes decoded as Latin-1),** so no name ever matches and
+  every relic is refused with `GCCannotAdd`. The two tables list the
+  captives in the same order: the handler's fifteen keys, top to bottom, are
+  the template's three rows of five. Closing it means keying the handler's
+  table by the names `OfferingTemplate` gives, or by the offering's slot
+  instead of its name.
+  > **Status:** recorded, not fixed (r17/handlers-war-misc)
+
+## The donation nicknames did not fit the nickname field (2026-09-25)
+
+- **`CGDonationMoneyHandler` grants six custom nicknames, and in UTF-8 each
+  of the Korean ones was 26 to 32 bytes, past the 22 `MAX_NICKNAME_SIZE`
+  allows on the wire** (they fitted in CP949). `NicknameInfo::write` throws
+  `InvalidProtocolException` on such a name after the list's earlier fields
+  are already in the output stream, and `GamePlayer::sendPacket` swallows
+  it, so every `GCNicknameList` sent to a player holding one left a
+  half-written packet in that player's stream. The English nicknames are 15
+  to 21 bytes. A book that already stores one of the Korean names keeps it.
+  > **Status:** fixed (r17/handlers-war-misc)
+
 ## A war's whole-zone broadcasts walk the zones' player lists with no lock (2026-09-25)
 
 - **`HolyLandManager::broadcast` and `CastleInfo::broadcast` send a packet

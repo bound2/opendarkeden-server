@@ -52,14 +52,14 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
     GCNoticeEvent errorNotice;
 
     if (pPacket->getIndex() > MAX_ITEM_NUM) {
-        filelog("Store.log", "[%s:%s] (%u) Àß¸øµÈ ÀÎµ¦½ºÀÔ´Ï´Ù.", pGamePlayer->getID().c_str(), pPC->getName().c_str(),
+        filelog("Store.log", "[%s:%s] (%u) Invalid index.", pGamePlayer->getID().c_str(), pPC->getName().c_str(),
                 pPacket->getIndex());
         return;
     }
 
     PlayerCreature* pStorePC = dynamic_cast<PlayerCreature*>(pPC->getZone()->getCreature(pPacket->getOwnerObjectID()));
     if (pStorePC == NULL) {
-        filelog("Store.log", "[%s:%s] (%u) ±×·± À¯Àú°¡ ¾ø½À´Ï´Ù.", pGamePlayer->getID().c_str(), pPC->getName().c_str(),
+        filelog("Store.log", "[%s:%s] (%u) No such user.", pGamePlayer->getID().c_str(), pPC->getName().c_str(),
                 pPacket->getOwnerObjectID());
         errorNotice.setCode(NOTICE_EVENT_CANNOT_FIND_STORE);
         pGamePlayer->sendPacket(&errorNotice);
@@ -67,15 +67,15 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
     }
 
     if (pStorePC->getRace() != pPC->getRace()) {
-        filelog("Store.log", "[%s:%s] (%s) ´Ù¸¥ Á¾Á·ÀÇ »óÁ¡À» ¿­·Á°í ½ÃµµÇß½À´Ï´Ù.", pGamePlayer->getID().c_str(),
+        filelog("Store.log", "[%s:%s] (%s) Tried to open another race's store.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pStorePC->getName().c_str());
         return;
     }
 
     Store* pStore = pStorePC->getStore();
     if (pStore == NULL || !pStore->isOpen()) {
-        filelog("Store.log", "[%s:%s] (%s) »óÁ¡ÀÌ ¿­·ÁÀÖÁö ¾Ê½À´Ï´Ù..", pGamePlayer->getID().c_str(),
-                pPC->getName().c_str(), pStorePC->getName().c_str());
+        filelog("Store.log", "[%s:%s] (%s) Store is not open..", pGamePlayer->getID().c_str(), pPC->getName().c_str(),
+                pStorePC->getName().c_str());
         errorNotice.setCode(NOTICE_EVENT_STORE_CLOSED);
         pGamePlayer->sendPacket(&errorNotice);
         return;
@@ -83,7 +83,7 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
 
     StoreItem& storeItem = pStore->getStoreItem(pPacket->getIndex());
     if (!storeItem.isExists()) {
-        filelog("Store.log", "[%s:%s] (%s:%u) ÇØ´ç À§Ä¡¿¡ ¾ÆÀÌÅÛÀÌ ¾ø½À´Ï´Ù..", pGamePlayer->getID().c_str(),
+        filelog("Store.log", "[%s:%s] (%s:%u) No item at that position..", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pStorePC->getName().c_str(), pPacket->getIndex());
         errorNotice.setCode(NOTICE_EVENT_ITEM_NOT_FOUND);
         pGamePlayer->sendPacket(&errorNotice);
@@ -96,7 +96,7 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
     Assert(pItem != NULL);
 
     if (pPC->getGold() < price) {
-        filelog("Store.log", "[%s:%s] (%s:%u) (%u<%u) µ·ÀÌ ¸ðÀÚ¶ø´Ï´Ù.", pGamePlayer->getID().c_str(),
+        filelog("Store.log", "[%s:%s] (%s:%u) (%u<%u) Not enough money.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pStorePC->getName().c_str(), pPacket->getIndex(), pPC->getGold(), price);
         errorNotice.setCode(NOTICE_EVENT_NOT_ENOUGH_MONEY);
         pGamePlayer->sendPacket(&errorNotice);
@@ -104,18 +104,18 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
     }
 
     if (pStorePC->getGold() > MAX_MONEY - price) {
-        filelog("Store.log", "[%s:%s] (%s:%u) (%u,%u) µ·ÀÌ ³ÑÄ¨´Ï´Ù.", pGamePlayer->getID().c_str(),
+        filelog("Store.log", "[%s:%s] (%s:%u) (%u,%u) Money would overflow.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pStorePC->getName().c_str(), pPacket->getIndex(), pStorePC->getGold(), price);
         errorNotice.setCode(NOTICE_EVENT_TOO_MUCH_MONEY);
         pGamePlayer->sendPacket(&errorNotice);
-        errorMsg.setMessage("ÉíÉÏ½ð±ÒÌ«¶à,ÎÞ·¨½øÐÐ½»Ò×.");
+        errorMsg.setMessage("Too much gold on hand to trade.");
         pStorePC->getPlayer()->sendPacket(&errorMsg);
         pGamePlayer->sendPacket(&errorMsg);
         return;
     }
 
     if (pItem->isTimeLimitItem() || !canSell(pItem)) {
-        filelog("Store.log", "[%s:%s] (%s:%u) (%s) ÆÈ ¼ö ¾ø´Â ¾ÆÀÌÅÛÀÔ´Ï´Ù.", pGamePlayer->getID().c_str(),
+        filelog("Store.log", "[%s:%s] (%s:%u) (%s) Item cannot be sold.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pStorePC->getName().c_str(), pPacket->getIndex(), pItem->toString().c_str());
         return;
     }
@@ -125,10 +125,10 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
 
     Item* pStoreItem = pStoreInventory->findItemOID(pItem->getObjectID(), storeX, storeY);
     if (pStoreItem != pItem) {
-        filelog("Store.log", "[%s:%s] (%s:%u) (%p!=%p) ÆÇ¸ÅÀÚ°¡ ¾ÆÀÌÅÛÀ» ¾È°®°í ÀÖ°Å³ª ÀÌ»óÇÑ ¾ÆÀÌÅÛÀÔ´Ï´Ù.",
+        filelog("Store.log", "[%s:%s] (%s:%u) (%p!=%p) Seller does not hold the item, or the item is invalid.",
                 pGamePlayer->getID().c_str(), pPC->getName().c_str(), pStorePC->getName().c_str(), pPacket->getIndex(),
                 pStoreItem, pItem);
-        errorMsg.setMessage("µÀ¾ßÀ¸ÄÚÃ»ÓÐ¿É³öÊÛµÄµÀ¾ß.");
+        errorMsg.setMessage("No sellable item in the inventory.");
         pStorePC->getPlayer()->sendPacket(&errorMsg);
         return;
     }
@@ -137,7 +137,7 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
     _TPOINT emptyPos;
 
     if (!pInventory->getEmptySlot(pItem, emptyPos)) {
-        filelog("Store.log", "[%s:%s] (%s:%u) »ì »ç¶÷ ÀÎº¥Åä¸®¿¡ ÀÚ¸®°¡ ¾ø½À´Ï´Ù.", pGamePlayer->getID().c_str(),
+        filelog("Store.log", "[%s:%s] (%s:%u) Buyer's inventory has no room.", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str(), pStorePC->getName().c_str(), pPacket->getIndex());
         errorNotice.setCode(NOTICE_EVENT_NO_INVENTORY_SPACE);
         pGamePlayer->sendPacket(&errorNotice);
@@ -149,8 +149,8 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
     pStoreInventory->deleteItem(storeX, storeY);
     pStorePC->increaseGoldEx(price);
 
-    filelog("StoreBought.log", "[%s:%u/%u] ¾ÆÀÌÅÛÀÌ Á¦°ÅµÇ¾ú½À´Ï´Ù.", pStorePC->getName().c_str(),
-            pItem->getItemClass(), pItem->getItemID());
+    filelog("StoreBought.log", "[%s:%u/%u] Item removed.", pStorePC->getName().c_str(), pItem->getItemClass(),
+            pItem->getItemID());
 
     GCShopSellOK gcSellOK;
     gcSellOK.setObjectID(pPC->getObjectID());
@@ -167,7 +167,7 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
             emptyPos.y);
     pItem->tinysave(pField);
 
-    filelog("StoreBought.log", "[%s:%u/%u] ¾ÆÀÌÅÛÀÌ ÁÖ¾îÁ³½À´Ï´Ù.", pPC->getName().c_str(), pItem->getItemClass(),
+    filelog("StoreBought.log", "[%s:%u/%u] Item given.", pPC->getName().c_str(), pItem->getItemClass(),
             pItem->getItemID());
 
     if (pItem->isTraceItem()) {

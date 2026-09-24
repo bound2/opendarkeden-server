@@ -280,7 +280,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
 
                 if (parking.hasMotorcycleBox(targetID)) {
-                    cout << "기존에 불려진 오토바이가 있습니다" << endl;
+                    cout << "A motorcycle is already summoned" << endl;
 
                     MotorcycleBox* pMotorcycleBox = parking.getMotorcycleBox(targetID);
 
@@ -352,12 +352,12 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
 
                     // Add the motorcycle to the zone.
-                    cout << "오토바이를 존에 추가합니다" << pSlayer->getX() << " " << pSlayer->getY() << endl;
+                    cout << "Adding the motorcycle to the zone" << pSlayer->getX() << " " << pSlayer->getY() << endl;
                     TPOINT pt = pZone->addItem(pMotorcycle, pSlayer->getX(), pSlayer->getY(), false);
 
                     if (pt.x == -1) {
                         StringStream msg;
-                        msg << "오토바이를 존에 넣을 수 없습니다: " << "ZoneID=" << (int)pZone->getZoneID()
+                        msg << "Cannot add the motorcycle to the zone: " << "ZoneID=" << (int)pZone->getZoneID()
                             << ", X=" << (int)pSlayer->getX() << ", Y=" << (int)pSlayer->getY();
 
                         filelog("motorError.txt", "%s", msg.toString().c_str());

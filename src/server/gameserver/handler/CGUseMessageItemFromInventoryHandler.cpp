@@ -168,7 +168,7 @@ void CGUseMessageItemFromInventoryHandler::executeEventTree(CGUseMessageItemFrom
         time = 86400;
         break;
     default: {
-        filelog("EventTree.log", "ÀÌ»óÇÑ ¾ÆÅÛÀ» ½è´Ù. : %s °¡ %d", pPC->getName().c_str(), pItem->getItemType());
+        filelog("EventTree.log", "Used an unexpected item. : %s used %d", pPC->getName().c_str(), pItem->getItemType());
         GCCannotUse _GCCannotUse;
         _GCCannotUse.setObjectID(pPacket->getObjectID());
         pGamePlayer->sendPacket(&_GCCannotUse);
@@ -267,7 +267,8 @@ void CGUseMessageItemFromInventoryHandler::executeEventFromMessage(CGUseMessageI
         color = "2";
         break;
     default: {
-        filelog("EventTree.log", "Ê¹ÓÃ¸æÊ¾ÅÆ³ö´í ½ÇÉ«Ãû: %s  ÎïÆ·ÀàÐÍ%d", pPC->getName().c_str(), pItem->getItemType());
+        filelog("EventTree.log", "Failed to use the notice board. Character: %s  item type %d", pPC->getName().c_str(),
+                pItem->getItemType());
         GCCannotUse _GCCannotUse;
         _GCCannotUse.setObjectID(pPacket->getObjectID());
         pGamePlayer->sendPacket(&_GCCannotUse);
