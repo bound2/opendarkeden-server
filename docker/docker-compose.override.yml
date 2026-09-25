@@ -1,20 +1,11 @@
-# Local browser setup. Compose loads this alongside docker-compose.yml, which
-# already runs the WebSocket gateway (odk-websocket) and publishes it on
-# 127.0.0.1:8080; this file only adds the Debug build and the static client.
+# Local development override. Compose loads this alongside docker-compose.yml,
+# which already runs the WebSocket gateway (odk-websocket) and publishes it
+# on 127.0.0.1:8080. The browser client is served by the client repository's
+# own compose file (opendarkeden-client/docker/docker-compose.yml), which
+# joins this stack's network as odk-web.
 services:
   odk-server:
     build:
       args:
         BUILD_TYPE: Debug
         BUILD_JOBS: "8"
-
-  odk-web:
-    image: python:3.11-slim
-    container_name: odk-web
-    command: ["python", "-m", "http.server", "8000", "--bind", "0.0.0.0", "--directory", "/srv"]
-    ports:
-      - "127.0.0.1:18739:8000"
-    volumes:
-      - ../../client/build/web:/srv:ro
-      - ./web-client-config.json:/srv/client-config.json:ro
-    restart: unless-stopped
