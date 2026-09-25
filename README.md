@@ -27,7 +27,11 @@ That command:
    `DARKEDEN.GameServerInfo` at this stack (the dumps ship with the original
    developers' LAN addresses);
 4. starts the three servers in order once the database is ready
-   (see `docker/start.sh`).
+   (see `docker/start.sh`);
+5. builds `src/server/websocketproxyserver` and starts the WebSocket gateway
+   (`odk-websocket`) in the game servers' network namespace, published on
+   `127.0.0.1:8080` for browser and native WebSocket clients
+   (`docker/websocket.json`, see `docs/websocket.md`).
 
 Follow the logs:
 

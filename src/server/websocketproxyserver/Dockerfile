@@ -1,4 +1,4 @@
-# Build context: tools/websocket. Mount the configuration at /config/config.json.
+# Build context: src/server/websocketproxyserver. Mount the configuration at /config/config.json.
 FROM rust:1-bookworm AS build
 WORKDIR /src
 COPY Cargo.toml Cargo.lock ./

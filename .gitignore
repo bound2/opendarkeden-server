@@ -37,5 +37,5 @@ Makefile.bak
 *.so
 *.dylib
 *.exe
-tools/websocket/target/
-tools/websocket/config.json
+src/server/websocketproxyserver/target/
+src/server/websocketproxyserver/config.json

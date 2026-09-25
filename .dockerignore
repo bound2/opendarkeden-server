@@ -14,6 +14,8 @@ lib/
 *.o
 *.a
 *.so
+# The Rust gateway builds in its own image (docker/docker-compose.yml)
+src/server/websocketproxyserver/target/
 
 # Not needed inside the image
 initdb/

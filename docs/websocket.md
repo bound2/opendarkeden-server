@@ -6,7 +6,7 @@ are unchanged. Native TCP remains available. Clients select a gateway URL and
 send the original advertised host and port as routing parameters; the gateway
 only accepts routes configured by the operator.
 
-The gateway is a small Rust program in `tools/websocket` (tokio and
+The gateway is a small Rust program in `src/server/websocketproxyserver` (tokio and
 tungstenite, no C or TLS dependencies).
 
 ## Local setup
@@ -31,7 +31,7 @@ Other local processes share this trust boundary.
 Install a stable Rust toolchain (for example with `rustup`), then:
 
 ```sh
-cd tools/websocket
+cd src/server/websocketproxyserver
 cp config.example.json config.json
 cargo run --release -- config.json
 ```
@@ -128,12 +128,12 @@ multiple accounts behind one NAT remain.
 
 ## Docker
 
-Build `tools/websocket/Dockerfile` using `tools/websocket` as its context and
+Build `src/server/websocketproxyserver/Dockerfile` using `src/server/websocketproxyserver` as its context and
 mount the configuration at `/config/config.json`:
 
 ```sh
-docker build -t darkeden-gateway tools/websocket
-docker run --rm -v "$PWD/tools/websocket/config.json:/config/config.json:ro" darkeden-gateway
+docker build -t darkeden-gateway src/server/websocketproxyserver
+docker run --rm -v "$PWD/src/server/websocketproxyserver/config.json:/config/config.json:ro" darkeden-gateway
 ```
 
 The image is a two-stage build (`rust:1-bookworm`, then `debian:bookworm-slim`)
@@ -143,6 +143,14 @@ share the C++ server's namespace. A reverse proxy in that namespace can keep
 the gateway bound to loopback; otherwise bind the gateway to the container's
 private interface and restrict access to the reverse proxy. Do not publish the
 `GatewayProxyPort` ports.
+
+`docker/docker-compose.yml` does all of this: the `odk-websocket` service
+builds this directory, runs in `odk-server`'s namespace with
+`docker/websocket.json` as its configuration, and `odk-server` publishes it on
+`127.0.0.1:8080`. `docker/conf/` already carries the two `GatewayProxyPort`
+settings. Serve the browser client on `http://127.0.0.1:18739` (or
+`localhost:18739`), the origins that configuration admits, with
+`websocketUrl` set to `ws://127.0.0.1:8080/game`.
 
 ## Limits
 
@@ -176,7 +184,7 @@ seconds without blocking the player loop.
 
 `make dev-test` includes real-socket tests for split headers, byte preservation,
 distinct client identities, malformed headers, premature close and timeout.
-`cd tools/websocket && cargo test` exercises binary fragmentation, handoff
+`cd src/server/websocketproxyserver && cargo test` exercises binary fragmentation, handoff
 routing, origin and destination rejection, forwarding trust, oversized frames,
 text rejection, the subprotocol requirement, the connection cap, handshake and
 ping timeouts, shutdown and configuration validation. CI also runs

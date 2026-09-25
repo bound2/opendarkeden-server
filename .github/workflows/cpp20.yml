@@ -28,7 +28,7 @@ jobs:
     timeout-minutes: 15
     defaults:
       run:
-        working-directory: tools/websocket
+        working-directory: src/server/websocketproxyserver
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -36,7 +36,7 @@ jobs:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: tools/websocket
+          workspaces: src/server/websocketproxyserver
       - name: Format
         run: cargo fmt --check
       - name: Clippy

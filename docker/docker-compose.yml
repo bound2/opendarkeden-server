@@ -58,6 +58,10 @@ services:
       - "9998:9998"
       - "9997:9997"
       - "9997:9997/udp"
+      # The WebSocket gateway below shares this container's network namespace,
+      # so its port is published here. Loopback only: browsers reach it through
+      # a TLS-terminating reverse proxy in production (docs/websocket.md).
+      - "127.0.0.1:8080:8080"
     # Start loginserver, sharedserver and gameserver in order. Override with
     # `command: ["sleep","infinity"]` to start them by hand inside the container.
     command: ["./start.sh"]
@@ -67,6 +71,25 @@ services:
     #   - ../data/:/home/darkeden/vs/data/
     networks:
       - odk-network
+
+  odk-websocket:
+    # The Rust WebSocket gateway for browser and native WebSocket clients. It
+    # must run in the game servers' network namespace: it forwards each
+    # connection, with the client's address in a PROXY line, to the loopback
+    # GatewayProxyPort listeners that conf/loginserver.conf (19099) and
+    # conf/gameserver.conf (19098) open. websocket.json maps the advertised
+    # 127.0.0.1:9999 and 127.0.0.1:9998 endpoints to those listeners and
+    # admits pages served from http://127.0.0.1:18739 or localhost:18739.
+    build:
+      context: ../src/server/websocketproxyserver
+    image: darkeden-websocket:local
+    container_name: odk-websocket
+    network_mode: "service:odk-server"
+    depends_on:
+      - odk-server
+    volumes:
+      - ./websocket.json:/config/config.json:ro
+    restart: unless-stopped
 
 volumes:
   odk-mysql-data:
