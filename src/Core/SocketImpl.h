@@ -155,6 +155,10 @@ protected:
     // socket descriptor
     SOCKET m_SocketID;
 
+    // Set by close(); the descriptor number stays readable afterwards because
+    // the player managers index their tables by it.
+    bool m_Closed = false;
+
     // socket address structure
     SOCKADDR_IN m_SockAddr;
 

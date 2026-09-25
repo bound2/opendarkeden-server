@@ -63,7 +63,7 @@ SocketImpl::SocketImpl(const string& host, uint port) : m_SocketID(INVALID_SOCKE
 //
 ////////////////////////////////////////////////////////////////////////
 SocketImpl::SocketImpl(const SocketImpl& impl)
-    : m_SocketID(impl.m_SocketID), m_Host(impl.m_Host), m_Port(impl.m_Port) {}
+    : m_SocketID(impl.m_SocketID), m_Closed(impl.m_Closed), m_Host(impl.m_Host), m_Port(impl.m_Port) {}
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -90,6 +90,7 @@ void SocketImpl::create() {
 
     // create socket
     m_SocketID = SocketAPI::socket_ex(AF_INET, SOCK_STREAM, 0);
+    m_Closed = false;
 
     // clear socket address structure
     memset(&m_SockAddr, 0, sizeof(m_SockAddr));
@@ -107,15 +108,17 @@ void SocketImpl::close() {
     __BEGIN_TRY
 
     // Closing is idempotent. Player closes its socket and then deletes it,
-    // and the destructor closes again; the number is forgotten before the
-    // call because a close that fails with EINTR or EIO has still released
-    // the descriptor, and another thread may already own that number.
-    if (m_SocketID == INVALID_SOCKET)
+    // and the destructor closes again; a second close must not release the
+    // number again, because another thread may already own it. The number
+    // itself stays readable: the player managers index their tables by it
+    // and delete a player by getSOCKET() after disconnect() closed it. The
+    // flag is set before the call because a close that fails with EINTR or
+    // EIO has still released the descriptor.
+    if (m_Closed || m_SocketID == INVALID_SOCKET)
         return;
-    const SOCKET socket = m_SocketID;
-    m_SocketID = INVALID_SOCKET;
+    m_Closed = true;
     try {
-        SocketAPI::closesocket_ex(socket);
+        SocketAPI::closesocket_ex(m_SocketID);
     } catch (FileNotOpenedException&) {
         // if already closed, ignore...
     }

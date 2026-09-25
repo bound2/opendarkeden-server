@@ -1,7 +1,9 @@
 // SocketImpl::close() runs twice on every player socket: Player's destructor
 // closes the socket and then deletes it, and ~SocketImpl closes again. The
 // second close must not release the descriptor number a second time, because
-// by then another thread may already own that number.
+// by then another thread may already own that number. The number itself must
+// stay readable after close(): the player managers index their tables by it
+// and delete a player by getSOCKET() after disconnect() has closed the socket.
 #include <unistd.h>
 
 #include <gtest/gtest.h>
@@ -18,13 +20,16 @@ bool isOpen(int fd) {
 }
 } // namespace
 
-TEST(SocketImpl, CloseInvalidatesTheDescriptorAndIsIdempotent) {
+TEST(SocketImpl, CloseReleasesTheDescriptorOnceAndKeepsItsNumber) {
     SocketImpl socket("127.0.0.1", 9);
     socket.create();
+    const int fd = socket.getSOCKET();
     ASSERT_TRUE(socket.isValid());
+    ASSERT_TRUE(isOpen(fd));
     socket.close();
-    EXPECT_FALSE(socket.isValid());
-    EXPECT_EQ(INVALID_SOCKET, socket.getSOCKET());
+    EXPECT_FALSE(isOpen(fd));
+    // The managers still need the number to find the player's slot.
+    EXPECT_EQ(fd, socket.getSOCKET());
     EXPECT_NO_THROW(socket.close());
 }
 
@@ -42,4 +47,14 @@ TEST(SocketImpl, SecondCloseLeavesAReusedDescriptorOpen) {
     first.close();
     EXPECT_TRUE(isOpen(reused));
     ::close(reused);
+}
+
+TEST(SocketImpl, CreateAfterCloseReopens) {
+    SocketImpl socket("127.0.0.1", 9);
+    socket.create();
+    socket.close();
+    socket.create();
+    ASSERT_TRUE(isOpen(socket.getSOCKET()));
+    socket.close();
+    EXPECT_FALSE(isOpen(socket.getSOCKET()));
 }

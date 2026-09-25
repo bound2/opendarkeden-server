@@ -33,9 +33,15 @@ repo and the client's. Entries below are newest first; the oldest is the
   destructor closes its socket and then deletes it, and `~SocketImpl`
   closes again with the old number, which another thread may have been
   given in between (the gameserver's zone and DB threads open descriptors
-  concurrently). Closing now forgets the number before the call and a
-  second close is a no-op; `tests/socket_close_test.cpp` covers it.
-  > **Status:** fixed (feat/rust-websocket-proxy)
+  concurrently). Closing now marks the socket closed before the call and a
+  second close is a no-op; `tests/socket_close_test.cpp` covers it. The
+  first version of this fix wiped the descriptor number instead, which
+  ended the loginserver on every character selection: the player managers
+  index their tables by that number and delete a player by `getSOCKET()`
+  after `disconnect()` has closed the socket, so `deletePlayer_NOLOCKED`
+  threw `OutOfBoundException` and the retried `disconnect()` asserted. The
+  number now stays readable after close.
+  > **Status:** fixed (master)
 - **`GatewayProxyPort` was parsed with `atoi`.** `19099abc` bound 19099,
   `4294986395` bound 19099 and `1e3` bound port 1. The value is now parsed
   strictly (surrounding blanks and a CRLF file's `\r` allowed) and anything
