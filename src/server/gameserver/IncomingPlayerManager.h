@@ -87,7 +87,8 @@ public:
     // process all players' commands
     void processCommands();
 
-    // accept new connection
+    // Accept a connection from the public listener, or admit `forwarded`, a
+    // gateway connection. Either socket ends up owned by a player or closed.
     bool acceptNewConnection(Socket* forwarded = nullptr);
 
     void copyPlayers();

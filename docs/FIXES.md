@@ -13,6 +13,28 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## Connection admission: gateway header and socket ownership (2026-09-25)
+
+- **`ProxyAcceptor` accepted a PROXY header whose client address held a
+  NUL byte.** `inet_pton` reads a C string, so `203.0.113.21\0junk` was
+  admitted as `203.0.113.21`. A header containing a NUL is now refused;
+  `tests/proxy_acceptor_test.cpp` covers it.
+  > **Status:** fixed (feat/rust-websocket-proxy)
+- **The loginserver ended on a connection whose descriptor its player
+  table cannot hold.** `LoginPlayerManager::acceptNewConnection` had no
+  bound check, so `PlayerManager::addPlayer`'s `Assert` threw out of
+  `processInputs()` and out of the client loop. It now refuses such a
+  connection as the gameserver's `IncomingPlayerManager` does, and holds
+  the socket in a `unique_ptr` until the `LoginPlayer` takes it, so a
+  refusal or an exception closes it instead of leaking it.
+  > **Status:** fixed (feat/rust-websocket-proxy)
+- **`IncomingPlayerManager::acceptNewConnection` deleted the socket twice
+  when the descriptor slot was already taken.** The `DuplicatedException`
+  branch deleted the socket and then the `GamePlayer` that owned it. It
+  now deletes only the player, marked `GPS_END_SESSION` so its destructor
+  does not assert.
+  > **Status:** fixed (feat/rust-websocket-proxy)
+
 ## Character gear flags are read before initialization (2026-09-25)
 
 - **The Slayer, Vampire and Ousters constructors initialized gear pointers but left the matching
