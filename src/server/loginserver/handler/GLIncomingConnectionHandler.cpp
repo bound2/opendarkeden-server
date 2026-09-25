@@ -7,6 +7,8 @@
 //----------------------------------------------------------------------
 
 // include files
+#include <random>
+
 #include "GLIncomingConnection.h"
 #include "Properties.h"
 
@@ -63,7 +65,8 @@ void GLIncomingConnectionHandler::execute(GLIncomingConnection* pPacket)
         //
         //--------------------------------------------------------------------------------
 
-        DWORD authKey = rand() << (time(0) % 10) + rand() >> (time(0) % 10);
+        std::random_device entropy;
+    const DWORD authKey = std::uniform_int_distribution<DWORD>{}(entropy);
 
     // Create the CI object.
     ReconnectLoginInfo* pReconnectLoginInfo = new ReconnectLoginInfo();

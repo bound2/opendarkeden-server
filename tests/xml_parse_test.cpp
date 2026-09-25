@@ -38,6 +38,51 @@
 
 using wiretest::isRecording;
 
+TEST(XmlParseTest, narrowAttributesPreserveAdjacentFields) {
+    XMLTree tree;
+    tree.LoadFromMem("<Waypoint zone='1001' dir='7' maxword='65535' maxbyte='255'/>");
+    struct {
+        WORD before = 0xabcd;
+        WORD value = 0;
+        WORD after = 0xbeef;
+    } word;
+    struct {
+        BYTE before = 0xab;
+        BYTE value = 0;
+        BYTE after = 0xef;
+    } byte;
+
+    ASSERT_TRUE(tree.GetAttribute("zone", word.value));
+    EXPECT_EQ(word.value, 1001);
+    EXPECT_EQ(word.before, 0xabcd);
+    EXPECT_EQ(word.after, 0xbeef);
+    ASSERT_TRUE(tree.GetAttribute("dir", byte.value));
+    EXPECT_EQ(byte.value, 7);
+    EXPECT_EQ(byte.before, 0xab);
+    EXPECT_EQ(byte.after, 0xef);
+    ASSERT_TRUE(tree.GetAttribute("maxword", word.value));
+    EXPECT_EQ(word.value, 65535);
+    ASSERT_TRUE(tree.GetAttribute("maxbyte", byte.value));
+    EXPECT_EQ(byte.value, 255);
+}
+
+TEST(XmlParseTest, invalidNarrowAttributesLeaveTheDestinationUnchanged) {
+    XMLTree tree;
+    tree.LoadFromMem("<Waypoint word='65536' byte='256' negative='-1' malformed='12x' huge='4294967296'/>");
+    WORD word = 42;
+    BYTE byte = 17;
+    EXPECT_FALSE(tree.GetAttribute("word", word));
+    EXPECT_EQ(word, 42);
+    EXPECT_FALSE(tree.GetAttribute("byte", byte));
+    EXPECT_EQ(byte, 17);
+    for (const char* name : {"negative", "malformed", "huge", "missing"}) {
+        EXPECT_FALSE(tree.GetAttribute(name, word));
+        EXPECT_FALSE(tree.GetAttribute(name, byte));
+        EXPECT_EQ(word, 42);
+        EXPECT_EQ(byte, 17);
+    }
+}
+
 namespace {
 
 // The files GQuestInfoManager::load() and GQuestCheckPoint read at startup.

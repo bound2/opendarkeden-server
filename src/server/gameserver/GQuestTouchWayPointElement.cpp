@@ -24,11 +24,11 @@ GQuestMission* GQuestTouchWayPointElement::makeInitMission(PlayerCreature* pPC) 
 GQuestTouchWayPointElement* GQuestTouchWayPointElement::makeElement(XMLTree* pTree) {
     GQuestTouchWayPointElement* pRet = new GQuestTouchWayPointElement;
 
-    Assert(pTree->GetAttribute("zoneid", (DWORD&)pRet->m_ZoneID));
-    Assert(pTree->GetAttribute("x", (DWORD&)pRet->m_X));
-    Assert(pTree->GetAttribute("y", (DWORD&)pRet->m_Y));
-    Assert(pTree->GetAttribute("type", (DWORD&)pRet->m_Type));
-    Assert(pTree->GetAttribute("dir", (DWORD&)pRet->m_Dir));
+    Assert(pTree->GetAttribute("zoneid", pRet->m_ZoneID));
+    Assert(pTree->GetAttribute("x", pRet->m_X));
+    Assert(pTree->GetAttribute("y", pRet->m_Y));
+    Assert(pTree->GetAttribute("type", pRet->m_Type));
+    Assert(pTree->GetAttribute("dir", pRet->m_Dir));
 
     DWORD index;
     if (pTree->GetAttribute("index", index))
