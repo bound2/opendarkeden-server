@@ -88,7 +88,9 @@ public:
     void processCommands();
 
     // Accept a connection from the public listener, or admit `forwarded`, a
-    // gateway connection. Either socket ends up owned by a player or closed.
+    // gateway connection. On every Throwable path either socket ends up
+    // owned by a player or closed; only a std::exception from the player
+    // allocation itself would leak it.
     bool acceptNewConnection(Socket* forwarded = nullptr);
 
     void copyPlayers();

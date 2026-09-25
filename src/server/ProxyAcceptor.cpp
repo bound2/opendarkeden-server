@@ -84,10 +84,18 @@ public:
 std::unique_ptr<ProxyAcceptor> ProxyAcceptor::fromConfig(const Properties& config) {
     if (!config.hasKey("GatewayProxyPort"))
         return nullptr;
-    const int port = config.getPropertyInt("GatewayProxyPort");
-    if (port < 1 || port > 65535)
-        throw Error("GatewayProxyPort must be between 1 and 65535");
-    return std::make_unique<ProxyAcceptor>(static_cast<unsigned short>(port));
+    // Parsed strictly rather than with getPropertyInt's atoi, which would
+    // turn "19099abc" or an overflowing value into some other port.
+    const std::string value = config.getProperty("GatewayProxyPort");
+    std::string_view text(value);
+    while (!text.empty() && (text.back() == ' ' || text.back() == '\t' || text.back() == '\r'))
+        text.remove_suffix(1);
+    while (!text.empty() && (text.front() == ' ' || text.front() == '\t'))
+        text.remove_prefix(1);
+    unsigned short port = 0;
+    if (!parsePort(text, port))
+        throw Error("GatewayProxyPort must be a port number between 1 and 65535, not '" + value + "'");
+    return std::make_unique<ProxyAcceptor>(port);
 }
 
 ProxyAcceptor::ProxyAcceptor(unsigned short port) {

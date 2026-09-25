@@ -26,7 +26,20 @@ repo and the client's. Entries below are newest first; the oldest is the
   `processInputs()` and out of the client loop. It now refuses such a
   connection as the gameserver's `IncomingPlayerManager` does, and holds
   the socket in a `unique_ptr` until the `LoginPlayer` takes it, so a
-  refusal or an exception closes it instead of leaking it.
+  refusal, or an exception before the player takes it, closes it instead
+  of leaking it.
+  > **Status:** fixed (feat/rust-websocket-proxy)
+- **`SocketImpl::close()` released the descriptor twice.** `Player`'s
+  destructor closes its socket and then deletes it, and `~SocketImpl`
+  closes again with the old number, which another thread may have been
+  given in between (the gameserver's zone and DB threads open descriptors
+  concurrently). Closing now forgets the number before the call and a
+  second close is a no-op; `tests/socket_close_test.cpp` covers it.
+  > **Status:** fixed (feat/rust-websocket-proxy)
+- **`GatewayProxyPort` was parsed with `atoi`.** `19099abc` bound 19099,
+  `4294986395` bound 19099 and `1e3` bound port 1. The value is now parsed
+  strictly (surrounding blanks and a CRLF file's `\r` allowed) and anything
+  else refuses to start.
   > **Status:** fixed (feat/rust-websocket-proxy)
 - **`IncomingPlayerManager::acceptNewConnection` deleted the socket twice
   when the descriptor slot was already taken.** The `DuplicatedException`

@@ -95,6 +95,7 @@ target_link_libraries(wire_tests PRIVATE
 add_test(NAME wire_tests COMMAND wire_tests)
 add_executable(proxy_acceptor_tests EXCLUDE_FROM_ALL
     proxy_acceptor_test.cpp
+    socket_close_test.cpp
     ${CMAKE_SOURCE_DIR}/src/server/ProxyAcceptor.cpp)
 target_include_directories(proxy_acceptor_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
 target_link_libraries(proxy_acceptor_tests PRIVATE de-kernel gtest_main Threads::Threads)

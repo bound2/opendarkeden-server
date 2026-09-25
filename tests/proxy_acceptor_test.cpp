@@ -29,6 +29,20 @@ public:
     void send(const std::string& bytes) {
         ASSERT_EQ(bytes.size(), static_cast<size_t>(::send(fd, bytes.data(), bytes.size(), MSG_NOSIGNAL)));
     }
+    // True once the acceptor has closed this connection; false after a
+    // second of waiting, or if any byte arrives instead.
+    bool sawEof() {
+        for (int attempt = 0; attempt < 200; ++attempt) {
+            char byte;
+            const auto received = ::recv(fd, &byte, 1, MSG_DONTWAIT);
+            if (received == 0)
+                return true;
+            if (received > 0 || (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR))
+                return false;
+            ::usleep(5000);
+        }
+        return false;
+    }
     int fd;
 };
 
@@ -98,6 +112,10 @@ TEST(ProxyAcceptor, RejectsInvalidAndOverlongHeaders) {
         peer.send(line);
         EXPECT_TRUE(acceptor.poll().empty());
         EXPECT_EQ(0u, acceptor.pendingCount());
+        // The refusal must be visible to the peer as a closed connection;
+        // an empty poll alone would also be true of a connection not yet
+        // accepted.
+        EXPECT_TRUE(peer.sawEof());
     }
     Peer valid(acceptor.port());
     valid.send("PROXY TCP4 1.2.3.4 127.0.0.1 1 " + port + "\r\n");
@@ -132,7 +150,8 @@ TEST(ProxyAcceptor, ConfigurationNamesThePortOrLeavesTheGatewayOff) {
     Properties config;
     EXPECT_EQ(nullptr, de::ProxyAcceptor::fromConfig(config));
 
-    for (const char* port : {"0", "-1", "65536", "none"}) {
+    // atoi would have read the last four as 19099, 1, 19099 and 1.
+    for (const char* port : {"0", "-1", "65536", "none", "", "19099abc", "1e3", "4294986395", "4294967297"}) {
         SCOPED_TRACE(port);
         config.setProperty("GatewayProxyPort", port);
         EXPECT_THROW(de::ProxyAcceptor::fromConfig(config), Error);
@@ -143,8 +162,12 @@ TEST(ProxyAcceptor, ConfigurationNamesThePortOrLeavesTheGatewayOff) {
         de::ProxyAcceptor probe(0);
         freePort = probe.port();
     }
-    config.setProperty("GatewayProxyPort", std::to_string(freePort));
-    const auto acceptor = de::ProxyAcceptor::fromConfig(config);
-    ASSERT_NE(nullptr, acceptor);
-    EXPECT_EQ(freePort, acceptor->port());
+    // Surrounding blanks and a CRLF file's trailing \r are not part of the number.
+    for (const std::string& spelling : {std::to_string(freePort), " " + std::to_string(freePort) + "\t\r"}) {
+        SCOPED_TRACE(spelling);
+        config.setProperty("GatewayProxyPort", spelling);
+        const auto acceptor = de::ProxyAcceptor::fromConfig(config);
+        ASSERT_NE(nullptr, acceptor);
+        EXPECT_EQ(freePort, acceptor->port());
+    }
 }
