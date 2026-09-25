@@ -13,6 +13,53 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A war relic's row outlives the run that made it (2026-09-25)
+
+- **No loader reads a castle symbol's, blood bible's or dragon eye's row at
+  startup: the shrine managers and `DragonEyeManager` make every war relic
+  anew, with a new ItemID, at each boot, and `ItemLoaderManager::load(Zone*)`
+  and `WarItemLoader` are empty,** so the rows an earlier run left -- a
+  shrine's, the ground's, and a holder's after a crash -- are never read
+  again and pile up (the shipped `initdb/DARKEDEN.sql` carries such
+  `BloodBibleObject` rows). A slayer's or vampire's login deletes the war
+  item rows naming him (`deleteWarItemsOfOwner` in the loaders'
+  `load(Creature*)`); `ItemLoaderManager::load(Ousters*)` runs none of those
+  loaders, so an ousters' rows stay. They are garbage, not relics: no
+  return reads an id of an earlier run. Deleting them at boot needs to know
+  which rows another game server using the same database made for its own
+  live relics.
+  > **Status:** recorded, not fixed (fix/flag-relic-returns)
+
+## A dragon eye held with a relic dropped only the eye (2026-09-25)
+
+- **`dropRelicToZone(Creature*)` sent a dragon eye home and returned at
+  once, before it looked for the relics the holder carried,** and holding a
+  plain relic does not stop a dragon eye's pickup (`isAbleToPickupItem`
+  refuses a relic to a holder of a bible, a symbol or an eye), so a
+  player carrying both who died, was transported or logged out kept the
+  relic, or lost it with the player object. The eye goes home and the
+  relics drop after it.
+  > **Status:** fixed (fix/flag-relic-returns)
+
+## `DragonEyeManager` wrote its tables past their size (2026-09-25)
+
+- **The constructor only `reserve()`d `m_DragonEyes` and
+  `m_DefaultPositions` and then wrote nine entries of each through
+  `operator[]`,** past the vectors' size of zero: undefined behaviour that
+  worked because the storage was there. Both are sized now.
+  > **Status:** fixed (fix/flag-relic-returns)
+
+## A dragon eye has no place in the relic handlers (2026-09-25)
+
+- **`CGRelicToObjectHandler` lets any relic class past its first check and
+  then has no branch for `ITEM_CLASS_WAR_ITEM`,** so a player who offers a
+  dragon eye to an object is disconnected (`DisconnectException`), and
+  `deleteRelicEffect(Corpse*, Item*)` falls from its `WAR_ITEM` case into
+  `default: return false` for want of a `break`. No path puts a dragon eye
+  in a corpse, so the second is unreachable; the first costs only the
+  sender's own session, which drops the eye home as it ends.
+  > **Status:** recorded, not fixed (fix/flag-relic-returns)
+
 ## `*CTF` edits the flag war's schedule from a zone thread (2026-09-25)
 
 - **`opCTF` (`gm/ConsoleCommands.cpp`) runs on the GM's zone thread and
@@ -200,7 +247,21 @@ repo and the client's. Entries below are newest first; the oldest is the
   nothing keeps current: a relic somewhere the game should not let it go.
   Closing it means proving those places unreachable for a relic, asserted
   where an item moves, or returning from them too.
-  > **Status:** recorded, not fixed (fix/war-end-zones)
+  Every gateway into another storage refuses a relic or has no writer, as
+  `de::war::relicMayLieIn` (`war/WarZoneRouting.h`) lists them, and a
+  relic's `create`/`save` logs a row naming any other storage to
+  `WarError.log` (`logRelicStorage`). A row naming a player who is not
+  logged in is read again, like a missed step: a holder drops his relics
+  and saves where they fell before the player-creature finder forgets him,
+  and a dragon eye sent home to another group now names its default tile
+  until that group adds it. No row names a zone of another server: the
+  relics are made in this server's zones, `transportCreature` moves a
+  player only between them, and a logout drops the relics before the
+  player moves to another server. No boot-time sweep: no loader reads a
+  relic's row (the entry above). What still stops a return is an item that
+  keeps moving for three attempts, or a logout whose drop throws for want
+  of a free tile, each logged.
+  > **Status:** fixed (fix/flag-relic-returns)
 
 ## The regen zone status packet is written by every tower's zone thread (2026-09-24)
 

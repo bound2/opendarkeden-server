@@ -373,6 +373,7 @@ using de::war::corpseZoneIDOf;
 using de::war::ItemHolder;
 using de::war::itemHolderOf;
 using de::war::kItemReturnAttempts;
+using de::war::relicMayLieIn;
 using de::war::retryItemReturn;
 using de::war::zonesByOwner;
 
@@ -422,6 +423,25 @@ TEST(ItemHolder, ARowNamingNoZoneOrNoPlayerIsHeldNowhere) {
     EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_CORPSE, 7340, ""));
     EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_CORPSE, 7340, "12O2"));
     EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_INVENTORY, 0, ""));
+}
+
+// The storages a relic may lie in are exactly those a return reaches, so a
+// relic whose row names one is always held by a zone or a player.
+TEST(RelicStorage, ARelicLiesOnlyWhereAReturnReachesIt) {
+    for (int storage : {(int)STORAGE_ZONE, (int)STORAGE_CORPSE, (int)STORAGE_INVENTORY, (int)STORAGE_EXTRASLOT}) {
+        EXPECT_TRUE(relicMayLieIn(storage)) << storage;
+        EXPECT_NE(Nowhere, itemHolderOf(storage, 1201, "1201")) << storage;
+    }
+}
+
+// Every other storage has a gateway that refuses a relic, or no writer.
+TEST(RelicStorage, NoGatewayLetsARelicIntoAnyOtherStorage) {
+    for (int storage : {(int)STORAGE_GEAR, (int)STORAGE_BELT, (int)STORAGE_MOTORCYCLE, (int)STORAGE_STORE,
+                        (int)STORAGE_BOX, (int)STORAGE_STASH, (int)STORAGE_GARBAGE, (int)STORAGE_TIMEOVER,
+                        (int)STORAGE_GOODSINVENTORY, (int)STORAGE_PET_STASH, (int)STORAGE_EXCHANGE}) {
+        EXPECT_FALSE(relicMayLieIn(storage)) << storage;
+        EXPECT_EQ(Nowhere, itemHolderOf(storage, 1201, "Bearer")) << storage;
+    }
 }
 
 TEST(ItemHolder, ACorpsesZoneIsItsOwnerIdReadAsADecimalZoneId) {

@@ -62,9 +62,15 @@ using ItemTaken = std::function<void(Zone& from, Item* pItem)>;
 // (WarZoneRouting.h, kItemReturnAttempts); a player who logs out first drops
 // what he carried (a dragon eye goes back to its default tile instead), and
 // the zone's add saves the row as it does for any relic, so the return
-// follows it from there. False when the
-// first step could not be posted: no row, or a holder no position loader
-// reaches, or a player who is not logged in (each logged to WarError.log).
+// follows it from there. A row naming a player who is no longer logged in
+// is read again the same way: he dropped the item before he was gone.
+// False when no step could be posted: no row, a holder no position loader
+// reaches, or a row that still names a player who is not logged in after
+// the last attempt (each logged to WarError.log). No relic can lie where no
+// position reaches (relicMayLieIn), and a relic's row names a zone of this
+// server: the war relics are made in this server's shrines and default
+// tiles, a player carries them only between this server's zones, and he
+// drops them before his logout hands him to another server.
 bool postItemReturn(Item::ItemClass itemClass, ItemID_t itemID, ItemTaken taken, int attemptsMade = 0);
 
 } // namespace de::war

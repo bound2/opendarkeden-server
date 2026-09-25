@@ -14,6 +14,7 @@
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
+#include "RelicUtil.h"
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
@@ -70,6 +71,8 @@ void CastleSymbol::create(const string& ownerID, Storage storage, StorageID_t st
         m_ItemID = itemID;
     }
 
+    logRelicStorage(this, storage, ownerID);
+
     const string sql =
         defaultItemObjectRepository().insertWarItem(GEAR_CASTLE_SYMBOL, m_ItemID, m_ObjectID, m_ItemType, ownerID,
                                                     (int)storage, storageID, (int)x, (int)y, m_Durability);
@@ -103,6 +106,8 @@ void CastleSymbol::save(const string& ownerID, Storage storage, StorageID_t stor
 
 {
     __BEGIN_TRY
+
+    logRelicStorage(this, storage, ownerID);
 
     defaultItemObjectRepository().updateWarItem(GEAR_CASTLE_SYMBOL, m_ObjectID, m_ItemType, ownerID, (int)storage,
                                                 storageID, (int)x, (int)y, m_Durability, (int)m_EnchantLevel, m_ItemID);

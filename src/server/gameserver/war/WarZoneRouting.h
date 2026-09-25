@@ -87,6 +87,24 @@ inline ItemHolder itemHolderOf(int storage, unsigned long storageID, const std::
     return holder;
 }
 
+// The storages a relic may lie in: the ground, a corpse (a shrine or a
+// relic table), a player's inventory and his mouse -- exactly the places
+// itemHolderOf answers for. Every gateway into another storage refuses a
+// relic: equipping takes only the classes each gear slot names, the belt
+// and the Ousters armsband take potions, magazines and their like, the
+// stash refuses through canPutInStash, trading and exchange listings
+// through canTrade, selling and personal stores through canSell, the pet
+// stash takes pets only, and nothing writes a motorcycle, store or box row.
+// The garbage takes only what an item loader cannot place, and no loader
+// places a relic on a player; the time-over storage takes only a
+// time-limited item, which a war's relic never is; a mall delivery mints a
+// new item rather than moving one. A relic's row naming another storage is
+// logged where it is written (logRelicStorage, RelicUtil.h).
+inline bool relicMayLieIn(int storage) {
+    return storage == STORAGE_ZONE || storage == STORAGE_CORPSE || storage == STORAGE_INVENTORY ||
+           storage == STORAGE_EXTRASLOT;
+}
+
 // How many times a return looks for an item. The row is read before the
 // holder's step runs, and in between the item may move: a player carrying it
 // is transported or logs out and drops it on the ground, saving the new
