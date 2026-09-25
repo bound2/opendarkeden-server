@@ -13,6 +13,50 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A logout whose relic drop threw left the player's name in the finder (2026-09-25)
+
+- **`~GamePlayer` dropped a departing holder's relics before the
+  player-creature finder forgot him, and `dropRelicToZone` throws when no
+  free tile is found, which the destructor's catch rethrew into a
+  `__END_CATCH_NO_RETHROW` that only recorded the stack,** so the finder
+  removal, the mailbox's `ifGone` drain and the creature's deletion were
+  skipped: the finder kept a name whose `GamePlayer` was gone, and a later
+  `de::postToPlayer` for it queued a command on a destroyed object. The
+  drop's failure is caught where it happens and logged to `WarError.log`,
+  and the session ends as it does for every other player; the relic goes
+  with the creature.
+  > **Status:** fixed (fix/war-broadcasts)
+
+## A dragon eye sent home across groups can outrun its return's three attempts (2026-09-25)
+
+- **`DragonEyeManager::warpToDefaultPosition` saves the eye's default tile
+  to its row the moment it hands the eye to another group's zone through
+  the delayed add, while the add itself lands a tick later and, when that
+  tile is taken, on a neighbouring one, saving the real tile then,** so a
+  return (`de::war::postItemReturn`) already in flight can spend its three
+  attempts on the row's stale answers: the first misses at the holder, the
+  second at the default tile before the add has run, and the third at the
+  default tile the second re-read, one tick before the add saved the real
+  one. The eye then stays in the world after `removeAllDragonEyes`. It
+  needs the war's end to fall within the two ticks of a holder's death or
+  transport and an occupied default tile. Closing it means the retry
+  reading the row when it runs rather than when it is posted, or the
+  delayed add carrying the row's save with it.
+  > **Status:** recorded, not fixed (fix/flag-relic-returns)
+
+## `*command LevelWar` pushes a schedule into a level war zone's queue from another thread (2026-09-25)
+
+- **`opLevelWar` (`gm/ConsoleCommands.cpp`) calls
+  `LevelWarManager::manualStart` on the level war zone it names, from
+  whichever thread runs the command -- a GM's zone thread or the login
+  server link's for a relayed `*command` -- while that zone's own thread
+  runs the manager's heartbeat.** `manualStart` pops the queued work and
+  adds a new `Schedule`, and replaces `m_pLevelWarSchedule`, on a
+  `Scheduler` that has no lock of its own, so the two threads can both
+  change the queue at once. Closing it means posting the start to the zone's
+  group (`de::war::postToZone`), as the war's other zone work is.
+  > **Status:** recorded, not fixed (fix/war-broadcasts)
+
 ## A war relic's row outlives the run that made it (2026-09-25)
 
 - **No loader reads a castle symbol's, blood bible's or dragon eye's row at
@@ -25,9 +69,10 @@ repo and the client's. Entries below are newest first; the oldest is the
   item rows naming him (`deleteWarItemsOfOwner` in the loaders'
   `load(Creature*)`); `ItemLoaderManager::load(Ousters*)` runs none of those
   loaders, so an ousters' rows stay. They are garbage, not relics: no
-  return reads an id of an earlier run. Deleting them at boot needs to know
-  which rows another game server using the same database made for its own
-  live relics.
+  return reads an id of an earlier run. Item ids are partitioned per server
+  (every id is the server's number modulo the server count, from
+  `initItemIDRegistryFromTable`), so a boot sweep could tell this server's
+  rows from another's; it is left undone because nothing reads them.
   > **Status:** recorded, not fixed (fix/flag-relic-returns)
 
 ## A dragon eye held with a relic dropped only the eye (2026-09-25)
@@ -62,7 +107,8 @@ repo and the client's. Entries below are newest first; the oldest is the
 
 ## `*CTF` edits the flag war's schedule from a zone thread (2026-09-25)
 
-- **`opCTF` (`gm/ConsoleCommands.cpp`) runs on the GM's zone thread and
+- **`opCTF` (`gm/ConsoleCommands.cpp`) runs on the GM's zone thread, or on
+  the login link's thread when relayed (`Relay::Allowed`), and
   calls `FlagManager::manualStart`, which pops and pushes the manager's
   schedule queue while the main thread's `ClientManager` loop runs
   `FlagManager::heartbeat` over the same priority queue with no lock,** and
@@ -230,7 +276,19 @@ repo and the client's. Entries below are newest first; the oldest is the
   zone's group too (`de::war::postToZones` with the packet's bytes), which
   the routing already supports, or a published copy of the player list a
   reader may walk.
-  > **Status:** recorded, not fixed (fix/war-end-zones)
+  Each of the two broadcasts, and
+  `LevelWarZoneInfoManager::broadcast` (whose send also marks each player
+  it reaches) and the GM `*set` premium notice to zones 61, 64 and 1007,
+  posts through `de::war::postBroadcast`: the packet's body is captured
+  once on the calling thread (`war/CapturedPacket.h`), bytes shared by
+  every group's command, and each player's stream frames it with its own
+  id, size, sequence byte and encryption; a copy of the packet was not an
+  option, since the bonus-info packets own and delete their entries. The
+  whole-server broadcasts (`ZoneGroupManager::broadcast`) stay direct: they
+  walk each group's players under its `ZonePlayerManager` mutex and only
+  send, as does `IncomingPlayerManager::broadcast` on the main thread's own
+  players.
+  > **Status:** fixed (fix/war-broadcasts)
 
 ## A relic held where no item position reaches stays put when its war ends (2026-09-24)
 
@@ -260,7 +318,8 @@ repo and the client's. Entries below are newest first; the oldest is the
   player moves to another server. No boot-time sweep: no loader reads a
   relic's row (the entry above). What still stops a return is an item that
   keeps moving for three attempts, or a logout whose drop throws for want
-  of a free tile, each logged.
+  of a free tile, each logged; the relic of such a logout goes with the
+  creature, and its row names a player nobody finds.
   > **Status:** fixed (fix/flag-relic-returns)
 
 ## The regen zone status packet is written by every tower's zone thread (2026-09-24)
@@ -276,7 +335,16 @@ repo and the client's. Entries below are newest first; the oldest is the
   threads used it, and now keeps the one packet. A leaf mutex over the
   packet and the owners, held for a set and for the copy a broadcast sends,
   would close it.
-  > **Status:** recorded, not fixed (fix/war-end-zones)
+  The status is a value under
+  `RegenZoneManager::m_StatusMutex`, a leaf held while a tower's owner and
+  its entry change together and while a copy is taken; the owners are
+  atomics, which `canRegen` and `canTryRegenZone` read without it. The copy
+  a broadcast sends is taken by the command `broadcastStatus` posts to each
+  holy land group, when it runs rather than when it is posted, so a group
+  that receives two towers' broadcasts in the opposite order to their
+  changes still ends on the status carrying both; a player entering the
+  holy land is sent a copy too.
+  > **Status:** fixed (fix/war-broadcasts)
 
 ## A flag war's end takes its flags out of the zones from the main thread (2026-09-24)
 

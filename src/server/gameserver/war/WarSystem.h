@@ -55,8 +55,12 @@ public:
 //   whichever group or player holds each one, the shrine shields, the siege
 //   zone's reset, the castles' safe zones and transports, and the holy
 //   land's time, monsters, players, regen zone towers and join flags. The
-//   whole-zone broadcasts it still sends walk each zone's PC list under no
-//   lock at all: a race of their own, not a lock order.
+//   broadcasts to the players of the holy land, of a castle or of a level
+//   war's bonus zones are posted the same way (de::war::postBroadcast):
+//   the packet's body is captured on the calling thread and each zone's own
+//   thread sends it, so they add only the mailboxes' mutexes above. The
+//   broadcasts to every player of the server walk each group's players
+//   under that group's ZonePlayerManager mutex, also above.
 // - So a thread may take m_Mutex holding its zone group's mutex -- a CG
 //   handler or a quest action answering a player: endWar, isModifyCastleOwner,
 //   getSiegeGuildSide, mayModifyShrineOwner, addRaceWarScheduleInfo.

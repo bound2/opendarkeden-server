@@ -14,6 +14,18 @@
 //               The command looks the zone up again when it runs, on the
 //               owner's thread under the group mutex. The routing decisions
 //               are in WarZoneRouting.h.
+//
+//               A broadcast to a zone's players reads the zone's player list,
+//               which its group's thread adds to and removes from, so it is
+//               posted too (postBroadcast). The packet crosses as its written
+//               body (CapturedPacket.h): the caller's packet is a stack object
+//               the command would outlive, and some packets own heap objects
+//               a copy would share and free twice, while the body is a plain
+//               byte string written once, on the calling thread. Resending
+//               bytes already framed by one stream would be wrong -- the
+//               sequence byte and the encryption belong to each player's own
+//               stream -- so the capture holds the body alone, and each
+//               player's stream frames it as it frames any packet.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __WAR_ZONE_WORK_H__
@@ -25,6 +37,7 @@
 #include "Item.h"
 #include "Types.h"
 
+class Packet;
 class Zone;
 class ZoneGroup;
 
@@ -45,6 +58,22 @@ void postToZones(const std::vector<ZoneID_t>& zoneIDs, const ZoneWork& work);
 
 // Posts work to every zone group, for work on the players a group owns.
 void postToEveryZoneGroup(const std::function<void(ZoneGroup& zoneGroup)>& work);
+
+// How a posted broadcast hands its packet to one zone's players, on the
+// zone's thread.
+using ZoneSend = void (*)(Zone& zone, Packet& packet);
+
+// Zone::broadcastPacket: every player in the zone.
+void sendToEveryPlayer(Zone& zone, Packet& packet);
+
+// Sends packet to the players in each of zoneIDs, from the zones' own
+// threads: the body is captured now and one command goes to each owning
+// group, as postToZones sends them, where send hands it to each zone, so a
+// player sees it at the top of his group's next tick. A packet whose write
+// refuses a field (InvalidProtocolException, which a player's send drops) is
+// logged and sent to nobody. Callable from any thread; it takes the zone
+// groups' mailbox mutexes, which are leaves.
+void postBroadcast(const std::vector<ZoneID_t>& zoneIDs, const Packet& packet, ZoneSend send = sendToEveryPlayer);
 
 // What a return does with the item it took, on the holder's thread: from is
 // the zone the item was taken from -- the zone it lay in, or the zone of the

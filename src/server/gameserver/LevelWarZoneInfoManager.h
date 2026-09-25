@@ -148,6 +148,10 @@ public:
     void setLevelWarZoneID(ZoneID_t zoneID, ZoneID_t levelWarZoneID);
 
     //	void refreshSweeperBonusZonePlayer() ;
+
+    // Sends the packet to the players of zoneID's level war bonus zones who
+    // are of its level (Zone::broadcastLevelWarBonusPacket), from each zone's
+    // own thread (de::war::postBroadcast). Callable from any thread.
     void broadcast(ZoneID_t zoneID, Packet* pPacket) const;
 
     string toString() const;

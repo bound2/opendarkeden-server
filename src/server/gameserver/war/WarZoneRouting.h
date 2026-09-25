@@ -98,8 +98,9 @@ inline ItemHolder itemHolderOf(int storage, unsigned long storageID, const std::
 // The garbage takes only what an item loader cannot place, and no loader
 // places a relic on a player; the time-over storage takes only a
 // time-limited item, which a war's relic never is; a mall delivery mints a
-// new item rather than moving one. A relic's row naming another storage is
-// logged where it is written (logRelicStorage, RelicUtil.h).
+// new item rather than moving one. A relic's row written whole with another
+// storage is logged (logRelicStorage, RelicUtil.h); the piecewise saves a
+// move makes (tinysave) are the gateways' own, and those refuse the storage.
 inline bool relicMayLieIn(int storage) {
     return storage == STORAGE_ZONE || storage == STORAGE_CORPSE || storage == STORAGE_INVENTORY ||
            storage == STORAGE_EXTRASLOT;

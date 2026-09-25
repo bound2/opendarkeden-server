@@ -85,21 +85,10 @@ void CastleInfo::getResurrectPosition(ResurrectPriority resurrectPriority, ZONE_
                   m_ResurrectPosition[resurrectPriority].y);
 }
 
-void CastleInfo::broadcast(Packet* pPacket) const
-
-{
-    __BEGIN_TRY
-
+void CastleInfo::broadcast(Packet* pPacket) const {
     Assert(pPacket != NULL);
 
-    list<ZoneID_t>::const_iterator itr = m_CastleZoneIDList.begin();
-
-    for (; itr != m_CastleZoneIDList.end(); itr++) {
-        Zone* pCastleZone = getZoneByZoneID(*itr);
-        pCastleZone->broadcastPacket(pPacket);
-    }
-
-    __END_CATCH
+    de::war::postBroadcast(vector<ZoneID_t>(m_CastleZoneIDList.begin(), m_CastleZoneIDList.end()), *pPacket);
 }
 
 bool CastleInfo::isCastleZone(ZoneID_t targetZoneID) const

@@ -478,7 +478,8 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
                 PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
                 de::gameContext().shrines().sendBloodBibleStatus(pPC);
 
-                pPC->getPlayer()->sendPacket(RegenZoneManager::getInstance()->getStatusPacket());
+                GCRegenZoneStatus regenZoneStatus = RegenZoneManager::getInstance()->getStatus();
+                pPC->getPlayer()->sendPacket(&regenZoneStatus);
             } else {
                 GCHolyLandBonusInfo gcHolyLandBonusInfo;
                 de::gameContext().bloodBibleBonuses().makeHolyLandBonusInfo(gcHolyLandBonusInfo);

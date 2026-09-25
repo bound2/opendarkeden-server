@@ -146,9 +146,16 @@ GamePlayer::~GamePlayer() noexcept {
     try {
         // Delete creature
         if (m_pCreature != NULL) {
-            // Drop the relic
+            // Drop the relic. A drop that fails (no free tile) is logged and
+            // the relic goes with the creature: the session still ends, the
+            // finder removal below included, so no name outlives its player.
             if (m_pCreature->hasRelicItem()) {
-                dropRelicToZone(m_pCreature, false);
+                try {
+                    dropRelicToZone(m_pCreature, false);
+                } catch (Throwable& t) {
+                    filelog("WarError.log", "%s logged out holding a relic that could not be dropped: %s",
+                            m_pCreature->getName().c_str(), t.toString().c_str());
+                }
             }
 
             dropFlagToZone(m_pCreature, false);

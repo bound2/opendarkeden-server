@@ -9,6 +9,7 @@
 #include <string>
 #include <utility>
 
+#include "CapturedPacket.h"
 #include "GameContext.h"
 #include "GlobalItemPosition.h"
 #include "GlobalItemPositionLoader.h"
@@ -135,6 +136,27 @@ void postToEveryZoneGroup(const std::function<void(ZoneGroup& zoneGroup)>& work)
             work(*pZoneGroup);
         });
     }
+}
+
+void sendToEveryPlayer(Zone& zone, Packet& packet) {
+    zone.broadcastPacket(&packet);
+}
+
+void postBroadcast(const std::vector<ZoneID_t>& zoneIDs, const Packet& packet, ZoneSend send) {
+    std::shared_ptr<const CapturedPacket> pCaptured;
+    try {
+        pCaptured = std::make_shared<const CapturedPacket>(packet);
+    } catch (InvalidProtocolException& e) {
+        filelog("WarError.log", "broadcast of %s refused: %s", packet.getPacketName().c_str(), e.toString().c_str());
+        return;
+    }
+
+    // Each zone sends its own copy: the senders take a mutable packet, and a
+    // copy shares the captured body, which nothing changes.
+    postToZones(zoneIDs, [pCaptured, send](Zone& zone) {
+        CapturedPacket captured(*pCaptured);
+        send(zone, captured);
+    });
 }
 
 bool postItemReturn(Item::ItemClass itemClass, ItemID_t itemID, ItemTaken taken, int attemptsMade) {

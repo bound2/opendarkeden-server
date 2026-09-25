@@ -51,6 +51,9 @@ public:
         m_Mutex.unlock();
     }
 
+    // Sends the packet to every player in the holy land, from each zone's own
+    // thread (de::war::postBroadcast): the body is captured now, so the
+    // caller keeps its packet. Callable from any thread.
     void broadcast(Packet* pPacket) const;
 
     //	void sendBloodBibleStatus() const ;

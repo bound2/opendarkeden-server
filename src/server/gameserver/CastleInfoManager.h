@@ -102,6 +102,9 @@ public:
         return isCommonGuildID(m_GuildID);
     }
 
+    // Sends the packet to every player in the castle's zones, from each
+    // zone's own thread (de::war::postBroadcast): the body is captured now,
+    // so the caller keeps its packet. Callable from any thread.
     void broadcast(Packet* pPacket) const;
 
     string toString() const;
@@ -257,6 +260,7 @@ public:
     void transportAllOtherRace();
 
     ZoneID_t getCastleZoneID(ShrineID_t shrineID) const;
+    // The castle the shrine guards broadcasts the packet (CastleInfo::broadcast).
     void broadcastShrinePacket(ShrineID_t shrineID, Packet* pPacket) const;
 
     SkillType_t getCastleSkillType(ZoneID_t zoneID, GuildID_t guildID) const;

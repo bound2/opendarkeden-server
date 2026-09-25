@@ -603,7 +603,16 @@ is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` are
   `postToZone`/`postToZones` commands, its values in `ctf/FlagWarPlan.h`. The castle owner change goes
   through `CastleInfoManager::postCastleWarEnd`. A posted war command asserts
   its group, and `Zone::killAllMonsters`, the shrine shields and the siege
-  set-up and reset assert it too.
+  set-up and reset assert it too. Reading a zone's player list is zone-group
+  state as well, so a broadcast to another group's zones is posted:
+  `postBroadcast` captures the packet's body on the calling thread
+  (`war/CapturedPacket.h`; each player's stream frames it with its own
+  sequence and encryption) and each group's command sends it. The holy
+  land's, a castle's and a level war's bonus-zone broadcasts
+  (`HolyLandManager::broadcast`, `CastleInfo::broadcast`,
+  `LevelWarZoneInfoManager::broadcast`) go this way from any thread;
+  `ZoneGroupManager::broadcast` stays direct, walking each group's players
+  under its `ZonePlayerManager` mutex and only sending.
 - **Packets pipelined behind `CGReady` are drained by the zone thread.**
   `GamePlayer::processCommand` stops the main-thread
   (`IncomingPlayerManager`) drain once the status flips to `GPS_NORMAL`, so
