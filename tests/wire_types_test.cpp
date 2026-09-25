@@ -608,6 +608,141 @@ TEST(PacketFrameSize, AStraddledSizeFieldCarriesTheMeasuredBodyLength) {
 
 //////////////////////////////////////////////////////////////////////
 //
+// A packet the body refuses
+//
+// A write() may throw part-way through the body -- a string past its
+// bound is refused with InvalidProtocolException, which the game
+// server's sendPacket drops. writePacket() takes back the header and
+// the fields already written and returns the sequence counter to where
+// it was, so the stream is exactly as if the refused packet had never
+// been sent.
+//
+//////////////////////////////////////////////////////////////////////
+namespace {
+
+// Writes `fieldsBeforeRefusal` bytes of body, then refuses the rest.
+class RefusingPacket : public Packet {
+public:
+    explicit RefusingPacket(uint fieldsBeforeRefusal) : m_FieldsBeforeRefusal(fieldsBeforeRefusal) {}
+
+    void read(SocketInputStream& iStream) {
+        throw UnsupportedError();
+    }
+
+    void write(SocketOutputStream& oStream) const {
+        for (uint i = 0; i < m_FieldsBeforeRefusal; i++)
+            oStream.write((BYTE)(0xE0 + i));
+        throw InvalidProtocolException("RefusingPacket: field refused");
+    }
+
+    PacketID_t getPacketID() const {
+        return 0x6655;
+    }
+    PacketSize_t getPacketSize() const {
+        return (PacketSize_t)(m_FieldsBeforeRefusal + 1);
+    }
+    string getPacketName() const {
+        return "RefusingPacket";
+    }
+    string toString() const {
+        return "RefusingPacket";
+    }
+
+private:
+    uint m_FieldsBeforeRefusal;
+};
+
+std::vector<unsigned char> contents(const SocketOutputStream& oStream) {
+    // No flush has run, so the head is at the front of the buffer.
+    const char* pBuffer = oStream.getBuffer();
+    return std::vector<unsigned char>(pBuffer, pBuffer + oStream.length());
+}
+
+// Two honest packets around a refused one, against the same two packets
+// written alone. The refused body is `refusedFields` bytes long before it
+// throws, on a buffer of `capacity` bytes.
+void expectRefusedPacketLeavesNothing(uint capacity, uint refusedFields) {
+    DriftingPacket first(4, 0);
+    DriftingPacket second(3, 0);
+    RefusingPacket refused(refusedFields);
+
+    SocketOutputStream expected(NULL, capacity);
+    expected.writePacket(&first);
+    expected.writePacket(&second);
+
+    SocketOutputStream oStream(NULL, capacity);
+    oStream.writePacket(&first);
+    const uint lengthBefore = oStream.length();
+
+    EXPECT_THROW(oStream.writePacket(&refused), InvalidProtocolException) << "refused after " << refusedFields;
+    EXPECT_EQ(lengthBefore, oStream.length()) << "refused after " << refusedFields;
+
+    // The second packet takes the sequence byte the refused one was given.
+    oStream.writePacket(&second);
+    EXPECT_EQ(contents(expected), contents(oStream)) << "refused after " << refusedFields;
+}
+
+} // namespace
+
+TEST(PacketFrameRollback, ARefusedPacketLeavesNothingInTheStream) {
+    for (uint refusedFields : {0u, 1u, 5u})
+        expectRefusedPacketLeavesNothing(128, refusedFields);
+}
+
+// A body that grows the buffer before it is refused: the rollback is a
+// distance from the head, which the growth keeps.
+TEST(PacketFrameRollback, ARefusedPacketThatGrewTheBufferLeavesNothingInTheStream) {
+    expectRefusedPacketLeavesNothing(32, 100);
+}
+
+// The refused frame straddles the ring buffer's wrap point, using the same
+// blocked-connection fixture as the straddled size field above: the next
+// packet must start where the refused one did.
+TEST(PacketFrameRollback, ARefusedPacketAcrossTheWrapLeavesNothingInTheStream) {
+    const uint kCapacity = 1u << 21;
+    const uint kBlockingWrite = 1u << 20;
+    const uint kBodySize = 6;
+
+    SmallLoopback loopback(kCapacity);
+    loopback.sender().setNonBlocking(true);
+    loopback.sender().setSendBufferSize(4096);
+    loopback.receiver().setReceiveBufferSize(4096);
+
+    std::vector<char> filler(kBlockingWrite, 0x5A);
+    ASSERT_EQ(kBlockingWrite, loopback.out().write(filler.data(), (uint)filler.size()));
+    loopback.out().flush();
+
+    ASSERT_GT(loopback.out().length(), 0u) << "the whole write left the buffer; the ring cannot wrap";
+    const uint head = kBlockingWrite - loopback.out().length();
+    ASSERT_GT(head, 1024u) << "the flush sent nothing; the ring cannot wrap";
+
+    // Three bytes before the end: the id fits, the size field wraps.
+    const uint frameStart = kCapacity - 3;
+    std::vector<char> spacer(frameStart - kBlockingWrite, 0x33);
+    ASSERT_EQ(spacer.size(), loopback.out().write(spacer.data(), (uint)spacer.size()));
+    const uint lengthBefore = loopback.out().length();
+
+    RefusingPacket refused(5);
+    EXPECT_THROW(loopback.out().writePacket(&refused), InvalidProtocolException);
+    EXPECT_EQ(lengthBefore, loopback.out().length());
+    ASSERT_EQ(kCapacity, (uint)loopback.out().capacity()) << "the buffer grew; the frame is no longer where it was put";
+
+    DriftingPacket packet(kBodySize, 0);
+    loopback.out().writePacket(&packet);
+    EXPECT_EQ(lengthBefore + szPacketHeader + kBodySize, loopback.out().length());
+
+    const unsigned char* pBuffer = (const unsigned char*)loopback.out().getBuffer();
+    EXPECT_EQ(0x21, pBuffer[frameStart]);
+    EXPECT_EQ(0x43, pBuffer[frameStart + 1]);
+    EXPECT_EQ(kBodySize, sizeFieldAt(loopback.out(), frameStart + szPacketID));
+    // The first packet this stream frames, so its sequence byte is 0.
+    EXPECT_EQ(0x00, pBuffer[(frameStart + szPacketID + szPacketSize) % kCapacity]);
+    for (uint i = 0; i < kBodySize; i++)
+        EXPECT_EQ(0xA0 + i, pBuffer[(frameStart + szPacketHeader + i) % kCapacity]) << "body byte " << i;
+}
+
+//////////////////////////////////////////////////////////////////////
+//
 // A flush the socket cut short
 //
 // flush() encrypts the buffered bytes before it sends them, and a

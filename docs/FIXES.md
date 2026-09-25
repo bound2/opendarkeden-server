@@ -13,6 +13,17 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A broadcast packet whose write() throws leaks the stream it was to be queued in (2026-09-25)
+
+- **`ZonePlayerManager::pushBroadcastPacket` allocates the
+  `SocketOutputStream` it queues before `writeHeaderNBody` fills it, and a
+  write that throws leaves the function with the stream neither queued nor
+  freed.** No player receives anything of the refused packet, since the
+  stream is the packet's own; the cost is one buffer, sized from the
+  packet, leaked per refusal. Closing it means holding the stream in a
+  `std::unique_ptr` until it is queued.
+  > **Status:** recorded, not fixed (fix/db-lookups-stream)
+
 ## A packet whose write() throws leaves its first bytes in the player's stream (2026-09-25)
 
 - **`SocketOutputStream::writePacket` puts the packet id, a zero size
@@ -25,11 +36,18 @@ repo and the client's. Entries below are newest first; the oldest is the
   output buffer, framed by a size of 0 that `patchField` never
   overwrote. The client reads the next packet from the middle of that
   debris. Every server-side write that can refuse a field is exposed; the
-  one found is the Gilles de Rais echo below. Closing it means
-  `writePacket` rolling the stream back to where the packet began when
-  the body throws (the tail is in hand before the id is written), or
-  writing the body to a scratch stream first.
-  > **Status:** recorded, not fixed (r17/gameserver-core)
+  one found is the Gilles de Rais echo below. `writePacket` now records
+  the packet's start, as a distance from the head (which no write moves
+  and a buffer growth keeps), and the sequence counter before it writes
+  the id; when anything in the framing throws it moves the
+  tail back to that start and restores the counter, then rethrows, so a
+  refused packet leaves nothing in the stream and the next one takes its
+  sequence byte. `PacketFrameRollback` in `wire_types_test.cpp` pins it
+  on a contiguous buffer, across a buffer growth and across the wrap
+  point. The other framing paths, `Packet::writeHeaderNBody` and
+  `Datagram::write`, fill a stream or a datagram of their own that the
+  throw abandons, so they carry no debris into a player's stream.
+  > **Status:** fixed (fix/db-lookups-stream)
 
 ## The Gilles de Rais lair's global-chat echo overflows its 128-byte message (2026-09-25)
 

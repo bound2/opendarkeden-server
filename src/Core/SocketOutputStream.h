@@ -66,6 +66,11 @@ public:
     uint write(const string& buf) {
         return write(buf.c_str(), buf.size());
     }
+
+    // Write one packet framed as the peer reads it: id, size, sequence
+    // byte, body. All or nothing: if the body (or anything else) throws,
+    // the stream and the sequence counter are rolled back to where they
+    // stood before the call, and the exception propagates.
     void writePacket(const Packet* pPacket);
 
     // Reserve `len` bytes at the end of the buffer and return a handle
@@ -184,6 +189,13 @@ private:
     // that the whole buffer is ready for the socket. Called by flush()
     // before it sends.
     void encryptPending();
+
+    // writePacket()'s header and body, without the rollback.
+    void writeFrame(const Packet* pPacket);
+
+    // Discard every buffered byte past the first `len`, counted from the
+    // head. Only bytes not yet encrypted may be discarded.
+    void truncate(uint len);
 
     // add by viva 2008-12-31
 public:
