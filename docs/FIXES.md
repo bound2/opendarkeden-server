@@ -80,9 +80,12 @@ repo and the client's. Entries below are newest first; the oldest is the
   `str`, then for a period or time account calls `sprintf(str, "%s...", str,
   ...)`,** passing the destination as a source. Overlapping `sprintf`
   arguments are undefined behaviour; it works only as long as the C library
-  copies the leading `%s` onto itself. Closing it means formatting into a
-  second buffer, or appending at `str + strlen(str)`.
-  > **Status:** recorded, not fixed (r17/quest-gm)
+  copies the leading `%s` onto itself. Both branches now append at
+  `str + strlen(str)` with an `snprintf` bounded by the space left in the
+  80-byte buffer, so the prefix is only read where it stands and a long
+  date or count is cut rather than written past the end; the message text
+  is unchanged.
+  > **Status:** fixed (fix/db-lookups-stream)
 
 ## An Altar of Blood offering never answers a relic (2026-09-25)
 
