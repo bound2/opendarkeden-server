@@ -6,17 +6,22 @@
 #include <array>
 #include <cerrno>
 #include <charconv>
+#include <cstring>
 
 #include <arpa/inet.h>
 #include <string_view>
 #include <sys/socket.h>
 
+#include "Properties.h"
+
 namespace de {
 namespace {
+// Connections still waiting for their header; later ones are refused.
 constexpr size_t MaxPending = 128;
+// A PROXY v1 line is at most 107 bytes, so a longer one is never valid.
 constexpr size_t MaxHeader = 108;
 
-bool nonblocking(int fd) {
+bool setNonBlockingCloseOnExec(int fd) {
     const int flags = ::fcntl(fd, F_GETFL, 0);
     return flags >= 0 && ::fcntl(fd, F_SETFL, flags | O_NONBLOCK) == 0 && ::fcntl(fd, F_SETFD, FD_CLOEXEC) == 0;
 }
@@ -31,7 +36,9 @@ bool parsePort(std::string_view text, unsigned short& port) {
 }
 
 bool parseHeader(const std::string& header, unsigned short localPort, sockaddr_in& peer) {
-    if (!header.ends_with("\r\n"))
+    // inet_pton reads a C string, so an embedded NUL would end an address
+    // early and let trailing bytes through unchecked.
+    if (!header.ends_with("\r\n") || header.find('\0') != std::string::npos)
         return false;
     std::string_view rest(header.data(), header.size() - 2);
     std::array<std::string_view, 6> fields;
@@ -74,6 +81,23 @@ public:
 };
 } // namespace
 
+std::unique_ptr<ProxyAcceptor> ProxyAcceptor::fromConfig(const Properties& config) {
+    if (!config.hasKey("GatewayProxyPort"))
+        return nullptr;
+    // Parsed strictly rather than with getPropertyInt's atoi, which would
+    // turn "19099abc" or an overflowing value into some other port.
+    const std::string value = config.getProperty("GatewayProxyPort");
+    std::string_view text(value);
+    while (!text.empty() && (text.back() == ' ' || text.back() == '\t' || text.back() == '\r'))
+        text.remove_suffix(1);
+    while (!text.empty() && (text.front() == ' ' || text.front() == '\t'))
+        text.remove_prefix(1);
+    unsigned short port = 0;
+    if (!parsePort(text, port))
+        throw Error("GatewayProxyPort must be a port number between 1 and 65535, not '" + value + "'");
+    return std::make_unique<ProxyAcceptor>(port);
+}
+
 ProxyAcceptor::ProxyAcceptor(unsigned short port) {
     m_Pending.reserve(MaxPending);
     m_Listener = ::socket(AF_INET, SOCK_STREAM, 0);
@@ -85,13 +109,15 @@ ProxyAcceptor::ProxyAcceptor(unsigned short port) {
     address.sin_port = htons(port);
     const int reuse = 1;
     socklen_t length = sizeof(address);
-    if (!nonblocking(m_Listener) || ::setsockopt(m_Listener, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0 ||
+    if (!setNonBlockingCloseOnExec(m_Listener) ||
+        ::setsockopt(m_Listener, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0 ||
         ::bind(m_Listener, reinterpret_cast<sockaddr*>(&address), sizeof(address)) != 0 ||
         ::listen(m_Listener, 64) != 0 ||
         ::getsockname(m_Listener, reinterpret_cast<sockaddr*>(&address), &length) != 0) {
+        const std::string reason = std::strerror(errno);
         ::close(m_Listener);
         m_Listener = -1;
-        throw Error("cannot bind loopback gateway listener");
+        throw Error("cannot listen on 127.0.0.1:" + std::to_string(port) + " for the gateway: " + reason);
     }
     m_Port = ntohs(address.sin_port);
 }
@@ -104,15 +130,16 @@ ProxyAcceptor::~ProxyAcceptor() {
 }
 
 std::vector<std::unique_ptr<Socket>> ProxyAcceptor::poll(Clock::time_point now) {
+    // Called every tick and nearly always empty, so nothing is reserved.
     std::vector<std::unique_ptr<Socket>> ready;
-    ready.reserve(MaxPending);
     for (int count = 0; count < 32; ++count) {
         sockaddr_in address{};
         socklen_t length = sizeof(address);
         const int fd = ::accept(m_Listener, reinterpret_cast<sockaddr*>(&address), &length);
         if (fd < 0)
             break;
-        if (address.sin_addr.s_addr != htonl(INADDR_LOOPBACK) || m_Pending.size() == MaxPending || !nonblocking(fd)) {
+        if (address.sin_addr.s_addr != htonl(INADDR_LOOPBACK) || m_Pending.size() == MaxPending ||
+            !setNonBlockingCloseOnExec(fd)) {
             ::close(fd);
             continue;
         }
@@ -121,6 +148,8 @@ std::vector<std::unique_ptr<Socket>> ProxyAcceptor::poll(Clock::time_point now) 
 
     for (auto it = m_Pending.begin(); it != m_Pending.end();) {
         bool discard = now >= it->deadline;
+        // One byte at a time, so the client's first packet bytes after the
+        // header stay in the socket for the player's own input stream.
         while (!discard && it->header.size() < MaxHeader) {
             char byte;
             const auto received = ::recv(it->fd, &byte, 1, MSG_DONTWAIT);

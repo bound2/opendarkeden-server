@@ -1,8 +1,0 @@
-{
-  "name": "darkeden-websocket-gateway",
-  "private": true,
-  "type": "module",
-  "engines": { "node": ">=22" },
-  "scripts": { "start": "node gateway.mjs config.json", "test": "node --test gateway.test.mjs" },
-  "dependencies": { "ws": "8.21.3" }
-}

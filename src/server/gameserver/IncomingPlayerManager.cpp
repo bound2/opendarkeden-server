@@ -114,12 +114,7 @@ void IncomingPlayerManager::init()
 
     Properties& config = de::kernelContext().config();
 
-    if (config.hasKey("GatewayProxyPort")) {
-        const int port = config.getPropertyInt("GatewayProxyPort");
-        if (port < 1 || port > 65535)
-            throw Error("GatewayProxyPort must be between 1 and 65535");
-        m_ProxyAcceptor = std::make_unique<de::ProxyAcceptor>(static_cast<unsigned short>(port));
-    }
+    m_ProxyAcceptor = de::ProxyAcceptor::fromConfig(config);
 
     // The player table is indexed by descriptor and every walk over it is
     // clamped to it, so a listener the table cannot hold would be skipped by
@@ -252,6 +247,8 @@ void IncomingPlayerManager::pollSockets() {
 void IncomingPlayerManager::processInputs() {
     __BEGIN_TRY
 
+    // Gateway connections whose header arrived; acceptNewConnection() owns
+    // each socket it is handed.
     if (m_ProxyAcceptor) {
         for (auto& client : m_ProxyAcceptor->poll())
             acceptNewConnection(client.release());
@@ -772,14 +769,12 @@ bool IncomingPlayerManager::acceptNewConnection(Socket* forwarded)
             FILELOG_INCOMING_CONNECTION("ancDupExcept.log", "[Output] %s, FD : %d ( MinFD : %d , MaxFD : %d ) %s",
                                         de.toString().c_str(), fd, MinFD, MaxFD, client->getHost().c_str());
 
-            m_CheckValue += 1000;
-            client->close();
-            m_CheckValue += 1000;
-            SAFE_DELETE(client);
-            m_CheckValue += 1000;
+            // The player owns the socket now, and deleting it closes and
+            // deletes the socket; the session never began.
+            m_CheckValue += 3000;
+            pGamePlayer->setPlayerStatus(GPS_END_SESSION);
             SAFE_DELETE(pGamePlayer);
             m_CheckValue += 1000;
-            // return true;
         }
     } catch (NoSuchElementException&) {
         FILELOG_INCOMING_CONNECTION("ancNoSuch.log", "FD : %d ( MinFD : %d , MaxFD : %d ) %s", fd, MinFD, MaxFD,

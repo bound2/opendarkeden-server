@@ -83,13 +83,7 @@ LoginPlayerManager::~LoginPlayerManager() noexcept {
 void LoginPlayerManager::init() {
     __BEGIN_TRY
 
-    const auto& config = de::kernelContext().config();
-    if (config.hasKey("GatewayProxyPort")) {
-        const int port = config.getPropertyInt("GatewayProxyPort");
-        if (port < 1 || port > 65535)
-            throw Error("GatewayProxyPort must be between 1 and 65535");
-        m_ProxyAcceptor = std::make_unique<de::ProxyAcceptor>(static_cast<unsigned short>(port));
-    }
+    m_ProxyAcceptor = de::ProxyAcceptor::fromConfig(de::kernelContext().config());
 
     // Retry until the bind succeeds
     while (1) {
@@ -211,6 +205,8 @@ void LoginPlayerManager::processInputs() {
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
+    // Gateway connections whose header arrived; acceptNewConnection() owns
+    // each socket it is handed.
     if (m_ProxyAcceptor) {
         for (auto& client : m_ProxyAcceptor->poll())
             acceptNewConnection(client.release());
@@ -372,55 +368,55 @@ void LoginPlayerManager::processOutputs() {
 //
 // The socket the poll reported ready is accepted here.
 //
-// The login server accepts every connection attempt by default.
-// Only connections from an IP registered in the BAN DB are refused.
+// The login server accepts every connection attempt. A banned IP is
+// refused later, when the client logs in (CLLoginHandler checks the
+// address getHost() reports, which for a gateway connection is the
+// client's own).
 //
 //////////////////////////////////////////////////////////////////////
 void LoginPlayerManager::acceptNewConnection(Socket* forwarded) {
     __BEGIN_TRY
 
-    // When waiting for a connection in blocking mode
-    // the returned value can never be NULL.
-    // NonBlockingIOException cannot be thrown either.
-    Socket* client = forwarded;
+    Socket* accepted = forwarded;
 
     try {
-        if (!client)
-            client = m_pServerSocket->accept();
+        if (!accepted)
+            accepted = m_pServerSocket->accept();
     } catch (Throwable& t) {
     }
 
     // A ConnectException can occur. (It actually did.)
     // Since NULL is returned when a CE occurs inside,
     // check for NULL and ignore it.
-    if (client == NULL)
+    if (accepted == NULL)
         return;
 
+    // Owned here until the player takes it, so a refusal below or an
+    // exception closes it.
+    std::unique_ptr<Socket> client(accepted);
 
-    if (client->getSockError()) {
-        delete client;
+    // The player table is indexed by descriptor, and PlayerManager::addPlayer
+    // asserts on one it cannot hold, which would end the server.
+    if (!de::fitsDescriptorTable((int)client->getSOCKET(), (int)nMaxPlayers))
         return;
-    }
+
+    if (client->getSockError())
+        return;
 
     client->setNonBlocking(true);
 
-    if (client->getSockError()) {
-        delete client;
+    if (client->getSockError())
         return;
-    }
 
     cout << "NEW CONNECTION FROM " << client->getHost() << ":" << client->getPort() << endl;
     cerr << "NEW CONNECTION FROM " << client->getHost() << ":" << client->getPort() << endl;
 
-    //--------------------------------------------------
-    // Query the BAN DB to check whether the current IP is allowed.
-    //--------------------------------------------------
-
-    // set socket option ( !NonBlocking, NoLinger )
+    // set socket option ( NoLinger )
     client->setLinger(0);
 
-    // Create the player object with the client socket as parameter.
-    LoginPlayer* pPlayer = new LoginPlayer(client);
+    // Create the player object, which takes the socket. The release runs
+    // only once the allocation has succeeded.
+    LoginPlayer* pPlayer = new LoginPlayer(client.release());
 
     // set player status to PLAYER_LOGON
     Assert(pPlayer->getPlayerStatus() == LPS_NONE);

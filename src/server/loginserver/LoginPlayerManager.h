@@ -40,7 +40,8 @@ public:
     // Initialize the client manager.
     void init();
 
-    // accept new connection
+    // Accept a connection from the public listener, or admit `forwarded`, a
+    // gateway connection. Either socket ends up owned by a player or closed.
     void acceptNewConnection(Socket* forwarded = nullptr);
 
     // Ask the kernel which of this manager's descriptors are ready.

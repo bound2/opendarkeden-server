@@ -106,12 +106,18 @@ void SocketImpl::create() {
 void SocketImpl::close() {
     __BEGIN_TRY
 
-    if (!isSockError()) {
-        try {
-            SocketAPI::closesocket_ex(m_SocketID);
-        } catch (FileNotOpenedException&) {
-            // if already closed, ignore...
-        }
+    // Closing is idempotent. Player closes its socket and then deletes it,
+    // and the destructor closes again; the number is forgotten before the
+    // call because a close that fails with EINTR or EIO has still released
+    // the descriptor, and another thread may already own that number.
+    if (m_SocketID == INVALID_SOCKET)
+        return;
+    const SOCKET socket = m_SocketID;
+    m_SocketID = INVALID_SOCKET;
+    try {
+        SocketAPI::closesocket_ex(socket);
+    } catch (FileNotOpenedException&) {
+        // if already closed, ignore...
     }
     __END_CATCH
 }
