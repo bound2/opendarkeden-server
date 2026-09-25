@@ -300,7 +300,15 @@ repo and the client's. Entries below are newest first; the oldest is the
   threads used it, and now keeps the one packet. A leaf mutex over the
   packet and the owners, held for a set and for the copy a broadcast sends,
   would close it.
-  > **Status:** recorded, not fixed (fix/war-end-zones)
+  > **Status:** fixed (fix/war-broadcasts). The status is a value under
+  > `RegenZoneManager::m_StatusMutex`, a leaf held while a tower's owner and
+  > its entry change together and while a copy is taken; the owners are
+  > atomics, which `canRegen` and `canTryRegenZone` read without it. The copy
+  > a broadcast sends is taken by the command `broadcastStatus` posts to each
+  > holy land group, when it runs rather than when it is posted, so a group
+  > that receives two towers' broadcasts in the opposite order to their
+  > changes still ends on the status carrying both; a player entering the
+  > holy land is sent a copy too.
 
 ## A flag war's end takes its flags out of the zones from the main thread (2026-09-24)
 

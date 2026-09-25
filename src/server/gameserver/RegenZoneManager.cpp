@@ -125,17 +125,22 @@ void RegenZoneManager::reloadOwner(Zone& zone, uint ID, ZoneCoord_t ZoneX, ZoneC
         return;
     }
 
-    pInfo->setOwner((RegenZoneInfo::RegenZoneIndex)Owner);
-
     EffectRegenZone* pEffect =
         dynamic_cast<EffectRegenZone*>(pTower->getEffectManager().findEffect(Effect::EFFECT_CLASS_SLAYER_REGEN_ZONE));
+
+    {
+        std::lock_guard<std::mutex> lock(m_StatusMutex);
+        pInfo->setOwner((RegenZoneInfo::RegenZoneIndex)Owner);
+        if (pEffect != NULL)
+            m_Status.setStatus(ID, Owner);
+    }
+
     if (pEffect == NULL) {
         filelog("RaceWar.log", "Reload : regen zone %d lost its effect", ID);
         return;
     }
 
-    pEffect->setOwner(pInfo->getOwner());
-    m_pStatusPacket->setStatus(ID, Owner);
+    pEffect->setOwner((RegenZoneInfo::RegenZoneIndex)Owner);
 
     __LEAVE_CRITICAL_SECTION(zone)
 
@@ -151,8 +156,6 @@ void RegenZoneManager::load() {
     __BEGIN_TRY
 
     vector<RegenZoneRow> rows = defaultRegenZoneRepository().loadPositions();
-
-    m_pStatusPacket = new GCRegenZoneStatus();
 
     for (size_t r = 0; r < rows.size(); r++) {
         uint ID = rows[r].id;
@@ -183,7 +186,8 @@ void RegenZoneManager::load() {
 
         pTower->getEffectManager().addEffect(pEffect);
 
-        m_pStatusPacket->setStatus(ID, Owner);
+        std::lock_guard<std::mutex> lock(m_StatusMutex);
+        m_Status.setStatus(ID, Owner);
     }
 
     __END_CATCH
@@ -228,9 +232,16 @@ void RegenZoneManager::changeRegenZoneOwner(MonsterCorpse* pTower, Race_t race) 
                     race = (Race_t)RegenZoneInfo::REGEN_ZONE_DEFAULT;
             }
 
-            itr->second->setOwner((RegenZoneInfo::RegenZoneIndex)race);
             EffectRegenZone* pEffect = dynamic_cast<EffectRegenZone*>(
                 pTower->getEffectManager().findEffect(Effect::EFFECT_CLASS_SLAYER_REGEN_ZONE));
+
+            {
+                std::lock_guard<std::mutex> lock(m_StatusMutex);
+                itr->second->setOwner((RegenZoneInfo::RegenZoneIndex)race);
+                if (pEffect != NULL)
+                    m_Status.setStatus(itr->second->getID(), race);
+            }
+
             if (pEffect != NULL) {
                 GCRemoveEffect gcRemoveEffect;
                 gcRemoveEffect.addEffectList(pEffect->getSendEffectClass());
@@ -238,7 +249,6 @@ void RegenZoneManager::changeRegenZoneOwner(MonsterCorpse* pTower, Race_t race) 
 
                 pEffect->setOwner((RegenZoneInfo::RegenZoneIndex)race);
 
-                m_pStatusPacket->setStatus(itr->second->getID(), race);
                 broadcastStatus();
 
                 GCAddEffect gcAddEffect;
@@ -412,6 +422,14 @@ void RegenZoneManager::regeneratePC(PlayerCreature* pPC, uint ID) {
     transportCreature(pPC, targetPos.id, targetPos.x, targetPos.y, false);
 }
 
-void RegenZoneManager::broadcastStatus() {
-    de::gameContext().holyLands().broadcast(m_pStatusPacket);
+void RegenZoneManager::broadcastStatus() const {
+    de::war::postToZones(de::gameContext().holyLands().getHolyLandZoneIDs(), [](Zone& zone) {
+        GCRegenZoneStatus status = RegenZoneManager::getInstance()->getStatus();
+        zone.broadcastPacket(&status);
+    });
+}
+
+GCRegenZoneStatus RegenZoneManager::getStatus() const {
+    std::lock_guard<std::mutex> lock(m_StatusMutex);
+    return m_Status;
 }
