@@ -11,11 +11,14 @@
 // #include "SFCPCH.h"
 #include "SXml.h"
 
+#include <charconv>
 #include <cstdarg>
 #include <cstdio>
+#include <cstring>
 #include <ctime>
 #include <iosfwd>
 #include <iostream>
+#include <limits>
 
 #include "Exception.h"
 
@@ -376,6 +379,32 @@ const bool XMLTree::GetAttribute(const string& name, int& value) {
     value = pAttr->ToInt();
 
     return true;
+}
+
+namespace {
+template <typename T> bool readNarrowAttribute(XMLTree& tree, const string& name, T& value) {
+    const XMLAttribute* attribute = tree.GetAttribute(name);
+    if (attribute == nullptr) {
+        return false;
+    }
+    const char* begin = attribute->ToString();
+    const char* end = begin + std::strlen(begin);
+    unsigned int parsed = 0;
+    const auto result = std::from_chars(begin, end, parsed);
+    if (result.ec != std::errc{} || result.ptr != end || parsed > std::numeric_limits<T>::max()) {
+        return false;
+    }
+    value = static_cast<T>(parsed);
+    return true;
+}
+} // namespace
+
+bool XMLTree::GetAttribute(const string& name, WORD& value) {
+    return readNarrowAttribute(*this, name, value);
+}
+
+bool XMLTree::GetAttribute(const string& name, BYTE& value) {
+    return readNarrowAttribute(*this, name, value);
 }
 
 const bool XMLTree::GetAttribute(const string& name, unsigned int& value, const bool bHex) {

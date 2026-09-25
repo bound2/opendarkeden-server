@@ -84,7 +84,7 @@ const Level_t MAX_VAMPIRE_LEVEL_OLD = 100;
 
 Vampire::Vampire()
 
-    : PlayerCreature(0, NULL) {
+    : PlayerCreature(0, NULL), m_pRealWearingCheck{} {
     __BEGIN_TRY
 
     m_CClass = CREATURE_CLASS_VAMPIRE;

@@ -109,7 +109,7 @@ const Attr_t MAX_SLAYER_SUM_OLD = 300;
 
 Slayer::Slayer()
 
-    : PlayerCreature(0, NULL) {
+    : PlayerCreature(0, NULL), m_pRealWearingCheck{} {
     __BEGIN_TRY
 
     m_CClass = CREATURE_CLASS_SLAYER;

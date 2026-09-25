@@ -7,6 +7,8 @@
 //----------------------------------------------------------------------
 
 // include files
+#include <random>
+
 #include "LGIncomingConnection.h"
 #include "Properties.h"
 
@@ -64,7 +66,8 @@ void LGIncomingConnectionHandler::execute(LGIncomingConnection* pPacket)
         //
         //--------------------------------------------------------------------------------
 
-        DWORD authKey = rand() << ((time(0) % 10) + rand()) >> (time(0) % 10);
+        std::random_device entropy;
+    const DWORD authKey = std::uniform_int_distribution<DWORD>{}(entropy);
 
     // Create the CI object.
     ConnectionInfo* pConnectionInfo = new ConnectionInfo();

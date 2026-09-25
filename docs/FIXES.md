@@ -13,6 +13,45 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## Character gear flags are read before initialization (2026-09-25)
+
+- **The Slayer, Vampire and Ousters constructors initialized gear pointers but left the matching
+  `m_pRealWearingCheck` flags uninitialized.** The first stat recalculation
+  copied invalid boolean values and aborted the Debug server during login.
+  Value-initialize the flag array in all three constructors' initializer lists.
+  > **Status:** fixed (fix/browser-startup-crashes)
+
+## Slayer stat loading reads past its skill-domain array (2026-09-25)
+
+- **`Slayer::initAllStat` and `computeStatOffset` copied all races' skill
+  domains from an array containing only the six Slayer domains.** The
+  first Slayer login aborted the Debug server on index 6. Both copies now
+  stop at `SKILL_DOMAIN_VAMPIRE`, the source array's declared bound, and
+  value-initialize the calculation inputs so the other races' slots stay zero.
+  > **Status:** fixed (fix/browser-startup-crashes)
+
+## Character handoff generates a key with an invalid shift (2026-09-25)
+
+- **The incoming-connection handlers used a random integer as a shift
+  count.** Selecting a character aborted the Debug game server before it
+  could return the reconnect address. Both the game-server handoff and
+  the reverse login-server handoff now draw a full-width `DWORD` from
+  `std::random_device` through `std::uniform_int_distribution`, matching
+  the entropy source already used for password salts. Packet layouts and
+  key checks are unchanged.
+  > **Status:** fixed (fix/browser-startup-crashes)
+
+## Waypoint quest loading overwrites narrow fields (2026-09-25)
+
+- **`GQuestTouchWayPointElement::makeElement` bound `DWORD&` to four
+  16-bit fields and an 8-bit direction.** Loading `TouchWayPoint` from the
+  shipped quest XML aborted the Debug server on a misaligned reference;
+  the 32-bit writes also overwrote adjacent fields. Read through checked
+  `WORD`/`BYTE` XML attribute overloads with the actual destination types.
+  Invalid, missing and out-of-range values leave the destination unchanged.
+  Regression tests cover adjacent-field preservation and numeric boundaries.
+  > **Status:** fixed (fix/browser-startup-crashes)
+
 ## A logout whose relic drop threw left the player's name in the finder (2026-09-25)
 
 - **`~GamePlayer` dropped a departing holder's relics before the

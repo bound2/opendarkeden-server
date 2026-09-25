@@ -79,7 +79,7 @@ const Level_t MAX_OUSTERS_LEVEL = 150;
 
 Ousters::Ousters()
 
-    : PlayerCreature(0, NULL) {
+    : PlayerCreature(0, NULL), m_pRealWearingCheck{} {
     __BEGIN_TRY
 
     m_CClass = CREATURE_CLASS_OUSTERS;

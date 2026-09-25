@@ -127,7 +127,7 @@ void Slayer::initCastleSkill() {
 void Slayer::initAllStat(int numPartyMember) {
     __BEGIN_TRY
 
-    BASIC_ATTR attr;
+    BASIC_ATTR attr{};
     Creature::CreatureClass CClass = getCreatureClass();
 
     m_Resist[MAGIC_DOMAIN_NO_DOMAIN] = 0;
@@ -203,8 +203,9 @@ void Slayer::initAllStat(int numPartyMember) {
     m_MPRegen = 0;
     m_Luck = m_BaseLuck;
 
-    for (int i = 0; i < SKILL_DOMAIN_MAX; i++)
+    for (int i = 0; i < SKILL_DOMAIN_VAMPIRE; i++) {
         attr.pDomainLevel[i] = m_SkillDomainLevels[i];
+    }
 
     //////////////////////////////////////////////////////////////////////////////
     // Compute the derived attributes.
@@ -1127,15 +1128,16 @@ void Slayer::computeStatOffset(void) {
     __BEGIN_TRY
 
     Creature::CreatureClass CClass = getCreatureClass();
-    BASIC_ATTR cur_attr;
+    BASIC_ATTR cur_attr{};
 
     cur_attr.nSTR = m_STR[ATTR_CURRENT];
     cur_attr.nDEX = m_DEX[ATTR_CURRENT];
     cur_attr.nINT = m_INT[ATTR_CURRENT];
     cur_attr.pWeapon = m_pWearItem[WEAR_RIGHTHAND];
 
-    for (int i = 0; i < SKILL_DOMAIN_MAX; i++)
+    for (int i = 0; i < SKILL_DOMAIN_VAMPIRE; i++) {
         cur_attr.pDomainLevel[i] = m_SkillDomainLevels[i];
+    }
 
     // Recompute from the updated STR, DEX and INT, then add the
     // item and magic values.

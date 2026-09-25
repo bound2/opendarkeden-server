@@ -99,6 +99,8 @@ public:
 
     const bool GetAttribute(const string& name, string& value);
     const bool GetAttribute(const string& name, int& value);
+    bool GetAttribute(const string& name, WORD& value);
+    bool GetAttribute(const string& name, BYTE& value);
     const bool GetAttribute(const string& name, unsigned int& value, const bool bHex = false);
     const bool GetAttribute(const string& name, unsigned long& value, const bool bHex = false);
     const bool GetAttribute(const string& name, float& value);
