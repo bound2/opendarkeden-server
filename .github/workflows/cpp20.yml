@@ -23,13 +23,23 @@ jobs:
 
   websocket-gateway:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    # A cold build (no cache hit) compiles the dependency tree twice: once
+    # for clippy, once for the tests.
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tools/websocket
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: tools/websocket/package-lock.json
-      - run: npm ci --ignore-scripts && npm test
-        working-directory: tools/websocket
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tools/websocket
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy --locked --all-targets -- -D warnings
+      - name: Tests
+        run: cargo test --locked

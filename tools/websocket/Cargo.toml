@@ -1,0 +1,32 @@
+[package]
+name = "darkeden-gateway"
+version = "0.1.0"
+edition = "2021"
+description = "WebSocket to PROXY-v1 TCP gateway for the DarkEden login and game servers"
+publish = false
+default-run = "gateway"
+
+[lib]
+name = "darkeden_gateway"
+path = "src/lib.rs"
+
+[[bin]]
+name = "gateway"
+path = "src/main.rs"
+
+[[bin]]
+name = "client-fixture"
+path = "src/bin/client-fixture.rs"
+
+[dependencies]
+futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
+httparse = "1.10"
+serde_json = "1"
+tokio = { version = "1.47", features = ["rt-multi-thread", "net", "io-util", "macros", "time", "signal", "sync"] }
+tokio-tungstenite = { version = "0.30", default-features = false, features = ["handshake"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "fmt", "std"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
