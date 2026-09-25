@@ -262,8 +262,10 @@ async fn text_fixture_connection(
     let echo = port.as_deref() != Some(TEXT_ROUTE_PORT);
     if !echo {
         socket.send(Message::text(TEXT_PAYLOAD)).await?;
-        println!("Adversarial text frame sent");
-        let _ = io::stdout().flush();
+        // A closed stdout (EPIPE) must not end the fixture.
+        let mut stdout = io::stdout().lock();
+        let _ = writeln!(stdout, "Adversarial text frame sent");
+        let _ = stdout.flush();
     }
     while let Some(message) = socket.next().await {
         match message? {

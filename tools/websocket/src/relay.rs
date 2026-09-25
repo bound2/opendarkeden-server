@@ -5,12 +5,13 @@
 //! most one WebSocket message (at most 1 MiB) or one TCP chunk is in flight
 //! per direction.
 
+use std::io;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::{SinkExt, StreamExt};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use tokio::sync::watch;
@@ -112,27 +113,49 @@ async fn backend_to_client(
     let mut heartbeat = interval_at(Instant::now() + ping_interval, ping_interval);
     heartbeat.set_missed_tick_behavior(MissedTickBehavior::Delay);
     loop {
-        let mut chunk = Vec::with_capacity(CHUNK_BYTES);
         tokio::select! {
-            read = backend.read_buf(&mut chunk) => match read {
-                Ok(0) => return Ending::BackendClosed,
-                Ok(_) => {
-                    if sink.send(Message::Binary(Bytes::from(chunk))).await.is_err() {
-                        return Ending::Failed;
-                    }
+            // Wait for readiness first so an idle connection holds no chunk.
+            ready = backend.readable() => {
+                if ready.is_err() {
+                    return Ending::Failed;
                 }
-                Err(_) => return Ending::Failed,
-            },
+                let mut chunk = Vec::with_capacity(CHUNK_BYTES);
+                match backend.try_read_buf(&mut chunk) {
+                    Ok(0) => return Ending::BackendClosed,
+                    Ok(_) => {
+                        if let Some(ending) = deliver(sink, Message::Binary(Bytes::from(chunk)), ping_interval).await {
+                            return ending;
+                        }
+                    }
+                    Err(error) if error.kind() == io::ErrorKind::WouldBlock => {}
+                    Err(_) => return Ending::Failed,
+                }
+            }
             _ = heartbeat.tick() => {
                 // The client must have answered the previous ping by now.
                 if !alive.swap(false, Ordering::Relaxed) {
                     return Ending::Unresponsive;
                 }
-                if sink.send(Message::Ping(Bytes::new())).await.is_err() {
-                    return Ending::Failed;
+                if let Some(ending) = deliver(sink, Message::Ping(Bytes::new()), ping_interval).await {
+                    return ending;
                 }
             }
         }
+    }
+}
+
+/// Sends one message, giving the client a ping interval to accept it. The
+/// heartbeat cannot run while a send is pending, so a client that stops
+/// reading is disconnected here instead of holding the connection open.
+async fn deliver(
+    sink: &mut SplitSink<Socket, Message>,
+    message: Message,
+    limit: Duration,
+) -> Option<Ending> {
+    match timeout(limit, sink.send(message)).await {
+        Ok(Ok(())) => None,
+        Ok(Err(_)) => Some(Ending::Failed),
+        Err(_) => Some(Ending::Unresponsive),
     }
 }
 

@@ -222,9 +222,12 @@ pub async fn shutdown_signal() {
 }
 
 /// The WebSocket limits: 1 MiB messages and frames, no extensions (tungstenite
-/// negotiates none, so permessage-deflate is never enabled).
+/// negotiates none, so permessage-deflate is never enabled). The read buffer
+/// is kept small because it is allocated per connection and mostly idle; a
+/// large frame grows it on demand.
 fn websocket_config() -> WebSocketConfig {
     WebSocketConfig::default()
+        .read_buffer_size(16 * 1024)
         .max_message_size(Some(MAX_MESSAGE_BYTES))
         .max_frame_size(Some(MAX_MESSAGE_BYTES))
 }

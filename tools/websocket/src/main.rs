@@ -63,8 +63,10 @@ fn main() -> ExitCode {
         };
         match gateway.local_addr() {
             Ok(address) => {
-                println!("DarkEden gateway listening on {address}");
-                let _ = std::io::stdout().flush();
+                // A closed stdout (EPIPE) must not end the gateway.
+                let mut stdout = std::io::stdout().lock();
+                let _ = writeln!(stdout, "DarkEden gateway listening on {address}");
+                let _ = stdout.flush();
             }
             Err(error) => tracing::warn!("cannot read the bound address: {error}"),
         }

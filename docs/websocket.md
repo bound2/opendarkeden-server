@@ -153,11 +153,18 @@ private interface and restrict access to the reverse proxy. Do not publish the
   finish before reading more, so a slow client or backend applies
   backpressure to the other side instead of growing a queue.
 - At most `maxConnections` TCP connections are open at once, counting those
-  still in the handshake; excess connections are closed unanswered.
+  still in the handshake; excess connections are closed unanswered. Each
+  admitted client also costs a backend descriptor, so the process needs a
+  descriptor limit above twice `maxConnections` (the Docker image has one;
+  a bare host may default to 1024). An idle connection holds about 40 KiB;
+  a client that announces a 1 MiB frame reserves 1 MiB until the frame
+  arrives or the ping deadline drops it, so budget `maxConnections` MiB for
+  the worst case.
 - The HTTP request head is limited to 16 KiB and 64 headers, and the whole
   handshake, backend connection included, must finish within 10 seconds.
 - The gateway pings every 30 seconds and disconnects a client that has not
-  answered the previous ping.
+  answered the previous ping, or that has not accepted a message within one
+  ping interval (a client that stops reading cannot hold a session open).
 - When the backend closes, the client gets close code 1000; when the client
   closes, the backend connection is dropped. On shutdown clients get 1001 and
   have five seconds to finish closing.

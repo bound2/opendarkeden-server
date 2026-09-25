@@ -540,6 +540,51 @@ async fn clients_that_miss_a_pong_are_disconnected() {
 }
 
 #[tokio::test]
+async fn clients_that_stop_reading_are_disconnected() {
+    let timeouts = Timeouts {
+        ping_interval: Duration::from_millis(200),
+        ..quick()
+    };
+    let mut fixture = Fixture::start_with(json!({}), timeouts).await;
+    let (client, _) = connect(&fixture.login(), &[BINARY]).await.unwrap();
+    let (mut sink, mut stream) = client.split();
+    // Have the backend echo far more than the socket buffers hold while this
+    // client reads nothing, so the gateway's send to it stalls. The sends
+    // themselves block once the pipeline is full, hence the task.
+    let flood = tokio::spawn(async move {
+        for _ in 0..128 {
+            if sink
+                .send(Message::binary(vec![7u8; 256 * 1024]))
+                .await
+                .is_err()
+            {
+                break;
+            }
+        }
+    });
+    tokio::time::sleep(Duration::from_millis(1500)).await;
+    // Reading now drains what was queued and then finds the connection gone,
+    // without a close frame: a stalled send counts as an unanswered ping.
+    let ended = timeout(LIMIT, async {
+        while let Some(message) = stream.next().await {
+            match message {
+                Ok(Message::Binary(_) | Message::Ping(_) | Message::Pong(_)) => {}
+                Ok(Message::Close(frame)) => panic!("expected a dropped connection, got {frame:?}"),
+                Ok(other) => panic!("unexpected {other:?}"),
+                Err(_) => break,
+            }
+        }
+    })
+    .await;
+    assert!(
+        ended.is_ok(),
+        "a client that stopped reading is still connected"
+    );
+    flood.abort();
+    fixture.shutdown().await;
+}
+
+#[tokio::test]
 async fn shutdown_closes_connections_as_going_away() {
     let mut fixture = Fixture::start(json!({})).await;
     let (mut client, _) = connect(&fixture.login(), &[BINARY]).await.unwrap();
