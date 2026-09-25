@@ -14,6 +14,7 @@
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
+#include "RelicUtil.h"
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
@@ -69,6 +70,8 @@ void BloodBible::create(const string& ownerID, Storage storage, StorageID_t stor
         m_ItemID = itemID;
     }
 
+    logRelicStorage(this, storage, ownerID);
+
     const string sql =
         defaultItemObjectRepository().insertWarItem(GEAR_BLOOD_BIBLE, m_ItemID, m_ObjectID, m_ItemType, ownerID,
                                                     (int)storage, storageID, (int)x, (int)y, m_Durability);
@@ -102,6 +105,8 @@ void BloodBible::save(const string& ownerID, Storage storage, StorageID_t storag
 
 {
     __BEGIN_TRY
+
+    logRelicStorage(this, storage, ownerID);
 
     defaultItemObjectRepository().updateWarItem(GEAR_BLOOD_BIBLE, m_ObjectID, m_ItemType, ownerID, (int)storage,
                                                 storageID, (int)x, (int)y, m_Durability, (int)getEnchantLevel(),

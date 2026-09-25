@@ -51,14 +51,14 @@ std::string describe(const ItemPositionRow& row) {
 }
 
 // A step found nothing where the row said: follow the row again, or stop.
-void retryOrStop(Item::ItemClass itemClass, ItemID_t itemID, const ItemTaken& taken, int attemptsMade) {
-    if (retryItemReturn(attemptsMade)) {
-        postItemReturn(itemClass, itemID, taken, attemptsMade);
-        return;
-    }
+// True when the next attempt's step was posted.
+bool retryOrStop(Item::ItemClass itemClass, ItemID_t itemID, const ItemTaken& taken, int attemptsMade) {
+    if (retryItemReturn(attemptsMade))
+        return postItemReturn(itemClass, itemID, taken, attemptsMade);
 
     filelog("WarError.log", "item return: gave up on item %u of class %u after %d attempts", (unsigned)itemID,
             (unsigned)itemClass, attemptsMade);
+    return false;
 }
 
 // The holder's step: take the item out of the place the row names, if it is
@@ -164,10 +164,15 @@ bool postItemReturn(Item::ItemClass itemClass, ItemID_t itemID, ItemTaken taken,
             },
             [itemClass, itemID, taken, attempt] { retryOrStop(itemClass, itemID, taken, attempt); });
 
-        if (!bPosted)
-            filelog("WarError.log", "item return: item %u of class %u is held by %s, who is not logged in",
-                    (unsigned)itemID, (unsigned)itemClass, holder.playerName.c_str());
-        return bPosted;
+        if (bPosted)
+            return true;
+
+        // A holder who logs out drops his relics, saving where they fell,
+        // before the player-creature finder forgets him; a row read before
+        // the drop names him still, and read again it names the ground.
+        filelog("WarError.log", "item return: item %u of class %u is held by %s, who is not logged in",
+                (unsigned)itemID, (unsigned)itemClass, holder.playerName.c_str());
+        return retryOrStop(itemClass, itemID, taken, attempt);
     }
 
     case ItemHolder::Kind::Nowhere:

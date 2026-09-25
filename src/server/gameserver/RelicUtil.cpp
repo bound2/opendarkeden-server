@@ -31,6 +31,7 @@
 #include "ZoneGroupManager.h"
 #include "ZoneInfoManager.h"
 #include "war/DragonEyeManager.h"
+#include "war/WarZoneRouting.h"
 
 void sendBloodBibleEffect(Object* pObject, Effect::EffectClass EClass)
 
@@ -311,6 +312,14 @@ bool isRelicItem(const Item* pItem) {
     return false;
 }
 
+void logRelicStorage(const Item* pItem, Storage storage, const string& ownerID) {
+    if (de::war::relicMayLieIn((int)storage))
+        return;
+
+    filelog("WarError.log", "relic %u of class %u written to storage %d (owner '%s'), where no relic may lie",
+            (unsigned)pItem->getItemID(), (unsigned)pItem->getItemClass(), (int)storage, ownerID.c_str());
+}
+
 bool isRelicItem(Item::ItemClass IClass) {
     if (IClass == Item::ITEM_CLASS_RELIC || IClass == Item::ITEM_CLASS_BLOOD_BIBLE ||
         IClass == Item::ITEM_CLASS_CASTLE_SYMBOL || IClass == Item::ITEM_CLASS_WAR_ITEM) {
@@ -549,7 +558,10 @@ bool dropRelicToZone(Creature* pCreature, bool bSendPacket)
     bool bDrop = false;
 
     ///////////////////////////////////////////////////////////////////
-    // If the creature holds a DragonEye when it dies, it goes back to its original position.
+    // If the creature holds a DragonEye when it dies, it goes back to its
+    // original position. A relic carried beside it -- a plain relic may be,
+    // since holding one does not stop a dragon eye's pickup -- still drops
+    // below.
     ///////////////////////////////////////////////////////////////////
     if (pCreature->isFlag(Effect::EFFECT_CLASS_DRAGON_EYE)) {
         de::gameContext().dragonEyes().warpToDefaultPosition(pCreature);
@@ -560,7 +572,7 @@ bool dropRelicToZone(Creature* pCreature, bool bSendPacket)
             pEffect->unaffect();
             pCreature->deleteEffect(Effect::EFFECT_CLASS_DRAGON_EYE);
         }
-        return true;
+        bDrop = true;
     }
 
     ///////////////////////////////////////////////////////////////////

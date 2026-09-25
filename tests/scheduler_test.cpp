@@ -9,16 +9,20 @@
 // relative to "now" instead of stepping a fake clock.
 //
 // Links only de-kernel plus the two war/ sources under test. The siege
-// registration decision, the castle owner decisions and the routing of a
-// war's zone work at the bottom are headers of plain values, so they join
-// them without pulling the scheduler, the zone or the guild table in.
+// registration decision, the castle owner decisions, the routing of a
+// war's zone work and the flag war's plan at the bottom are headers of plain
+// values, so they join them without pulling the scheduler, the zone or the
+// guild table in.
 
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
 
 #include "VSDateTime.h"
+#include "ctf/FlagWarPlan.h"
 #include "war/CastleOwnerDecision.h"
 #include "war/Schedule.h"
 #include "war/Scheduler.h"
@@ -369,6 +373,7 @@ using de::war::corpseZoneIDOf;
 using de::war::ItemHolder;
 using de::war::itemHolderOf;
 using de::war::kItemReturnAttempts;
+using de::war::relicMayLieIn;
 using de::war::retryItemReturn;
 using de::war::zonesByOwner;
 
@@ -418,6 +423,25 @@ TEST(ItemHolder, ARowNamingNoZoneOrNoPlayerIsHeldNowhere) {
     EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_CORPSE, 7340, ""));
     EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_CORPSE, 7340, "12O2"));
     EXPECT_EQ(Nowhere, itemHolderOf(STORAGE_INVENTORY, 0, ""));
+}
+
+// The storages a relic may lie in are exactly those a return reaches, so a
+// relic whose row names one is always held by a zone or a player.
+TEST(RelicStorage, ARelicLiesOnlyWhereAReturnReachesIt) {
+    for (int storage : {(int)STORAGE_ZONE, (int)STORAGE_CORPSE, (int)STORAGE_INVENTORY, (int)STORAGE_EXTRASLOT}) {
+        EXPECT_TRUE(relicMayLieIn(storage)) << storage;
+        EXPECT_NE(Nowhere, itemHolderOf(storage, 1201, "1201")) << storage;
+    }
+}
+
+// Every other storage has a gateway that refuses a relic, or no writer.
+TEST(RelicStorage, NoGatewayLetsARelicIntoAnyOtherStorage) {
+    for (int storage : {(int)STORAGE_GEAR, (int)STORAGE_BELT, (int)STORAGE_MOTORCYCLE, (int)STORAGE_STORE,
+                        (int)STORAGE_BOX, (int)STORAGE_STASH, (int)STORAGE_GARBAGE, (int)STORAGE_TIMEOVER,
+                        (int)STORAGE_GOODSINVENTORY, (int)STORAGE_PET_STASH, (int)STORAGE_EXCHANGE}) {
+        EXPECT_FALSE(relicMayLieIn(storage)) << storage;
+        EXPECT_EQ(Nowhere, itemHolderOf(storage, 1201, "Bearer")) << storage;
+    }
 }
 
 TEST(ItemHolder, ACorpsesZoneIsItsOwnerIdReadAsADecimalZoneId) {
@@ -479,6 +503,86 @@ TEST(ZonesByOwner, GroupsZonesByTheirOwnerInTheOrderFirstSeen) {
 
 TEST(ZonesByOwner, NoZonesMakeNoCommands) {
     EXPECT_TRUE(zonesByOwner<int>({}, [](ZoneID_t) { return 0; }).empty());
+}
+
+// A flag war's start and end (ctf/FlagWarPlan.h): the values the posted
+// drops, returns and pole sweeps carry, and the order the end posts them in.
+using de::ctf::FlagDrop;
+using de::ctf::FlagLedger;
+using de::ctf::FlagWarEndStep;
+using de::ctf::PoleField;
+
+PoleField poleField(ZoneID_t zoneID, ZoneCoord_t left, ZoneCoord_t top, ZoneCoord_t width, ZoneCoord_t height) {
+    PoleField field;
+    field.zoneID = zoneID;
+    field.left = left;
+    field.top = top;
+    field.width = width;
+    field.height = height;
+    return field;
+}
+
+FlagWarEndStep returnFlag(ItemID_t flagID) {
+    FlagWarEndStep step;
+    step.kind = FlagWarEndStep::Kind::ReturnFlag;
+    step.flagID = flagID;
+    return step;
+}
+
+FlagWarEndStep sweepPoles(ZoneID_t zoneID) {
+    FlagWarEndStep step;
+    step.kind = FlagWarEndStep::Kind::SweepPoles;
+    step.zoneID = zoneID;
+    return step;
+}
+
+TEST(FlagWarPlan, AllowsFlagsInEveryZoneADropNames) {
+    auto allowed = de::ctf::flagAllowMapOf({{21, 6}, {24, 7}, {1122, 20}});
+
+    EXPECT_EQ((std::map<ZoneID_t, uint>{{21, 6}, {24, 7}, {1122, 20}}), allowed);
+    EXPECT_TRUE(de::ctf::flagAllowMapOf({}).empty());
+}
+
+// A field of 2 by 1 poles laid out from (10, 20) is recorded as 4 by 2
+// tiles; the sweep looks at every second tile as far as twice that.
+TEST(FlagWarPlan, SweepsEverySecondTileOfAFieldAsFarAsTwiceItsExtent) {
+    auto tiles = de::ctf::poleSweepTiles(poleField(61, 10, 20, 4, 2));
+
+    ASSERT_EQ(15u, tiles.size());
+    EXPECT_EQ(std::make_pair((ZoneCoord_t)10, (ZoneCoord_t)20), tiles.front());
+    EXPECT_EQ(std::make_pair((ZoneCoord_t)10, (ZoneCoord_t)22), tiles[1]);
+    EXPECT_EQ(std::make_pair((ZoneCoord_t)18, (ZoneCoord_t)24), tiles.back());
+}
+
+TEST(FlagWarPlan, SweepsEachPoleZoneOnceInTheOrderTheFieldsNameThem) {
+    auto zones = de::ctf::poleZonesOf(
+        {poleField(62, 0, 0, 2, 2), poleField(61, 0, 0, 2, 2), poleField(62, 8, 8, 2, 2), poleField(1122, 0, 0, 2, 2)});
+
+    EXPECT_EQ((std::vector<ZoneID_t>{62, 61, 1122}), zones);
+}
+
+// A flag planted on a pole lies in the pole's zone, so its return and that
+// zone's sweep go to one group's mailbox: the return, which pays the
+// winner's gem stone, has to be there first.
+TEST(FlagWarEnd, PostsEveryFlagsReturnBeforeAnyPoleSweep) {
+    auto steps = de::ctf::flagWarEndSteps({501, 502, 503}, {poleField(61, 0, 0, 2, 2), poleField(62, 0, 0, 2, 2)});
+
+    EXPECT_EQ((std::vector<FlagWarEndStep>{returnFlag(501), returnFlag(502), returnFlag(503), sweepPoles(61),
+                                           sweepPoles(62)}),
+              steps);
+}
+
+TEST(FlagWarEnd, AnEndWithNoFlagsStillSweepsThePoles) {
+    EXPECT_EQ((std::vector<FlagWarEndStep>{sweepPoles(61)}), de::ctf::flagWarEndSteps({}, {poleField(61, 0, 0, 2, 2)}));
+}
+
+TEST(FlagLedger, TakeHandsOverEveryFlagAddedAndLeavesItEmpty) {
+    FlagLedger ledger;
+    ledger.add(501);
+    ledger.add(502);
+
+    EXPECT_EQ((std::vector<ItemID_t>{501, 502}), ledger.take());
+    EXPECT_TRUE(ledger.take().empty());
 }
 
 } // namespace

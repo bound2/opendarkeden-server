@@ -12,6 +12,7 @@
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
+#include "RelicUtil.h"
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
@@ -71,6 +72,8 @@ void Relic::create(const string& ownerID, Storage storage, StorageID_t storageID
         m_ItemID = itemID;
     }
 
+    logRelicStorage(this, storage, ownerID);
+
     defaultItemObjectRepository().insertWarItem(GEAR_RELIC, m_ItemID, m_ObjectID, m_ItemType, ownerID, (int)storage,
                                                 storageID, (int)x, (int)y, m_Durability);
 
@@ -98,6 +101,8 @@ void Relic::save(const string& ownerID, Storage storage, StorageID_t storageID, 
 
 {
     __BEGIN_TRY
+
+    logRelicStorage(this, storage, ownerID);
 
     defaultItemObjectRepository().updateWarItem(GEAR_RELIC, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID,
                                                 (int)x, (int)y, m_Durability, (int)m_EnchantLevel, m_ItemID);

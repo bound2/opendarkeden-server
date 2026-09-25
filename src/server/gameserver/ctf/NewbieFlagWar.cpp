@@ -5,7 +5,10 @@
 #include "Zone.h"
 #include "ZoneInfoManager.h"
 #include "ZoneUtil.h"
+#include "war/WarZoneWork.h"
 
+// The winning race's reward, a monster summoned at its end of the newbie
+// zone, is posted to the zone's own thread like the rest of the end.
 void NewbieFlagWar::executeEnd() {
     FlagWar::executeEnd();
     ZoneCoord_t ZoneX, ZoneY;
@@ -30,11 +33,13 @@ void NewbieFlagWar::executeEnd() {
         return;
     }
 
-    SUMMON_INFO summonInfo;
-    summonInfo.canScanEnemy = false;
-    summonInfo.clanType = SUMMON_INFO::CLAN_TYPE_DEFAULT;
+    de::war::postToZone(1122, [ZoneX, ZoneY](Zone& zone) {
+        SUMMON_INFO summonInfo;
+        summonInfo.canScanEnemy = false;
+        summonInfo.clanType = SUMMON_INFO::CLAN_TYPE_DEFAULT;
 
-    addMonstersToZone(getZoneByZoneID(1122), ZoneX, ZoneY, 0, 599, 1, summonInfo);
+        addMonstersToZone(&zone, ZoneX, ZoneY, 0, 599, 1, summonInfo);
+    });
 }
 
 VSDateTime NewbieFlagWar::getNextFlagWarTime() {
@@ -56,6 +61,6 @@ VSDateTime NewbieFlagWar::getNextFlagWarTime() {
     return nextWarDateTime;
 }
 
-void NewbieFlagWar::addFlags() {
-    addFlagsRandom(1122, 20);
+std::vector<de::ctf::FlagDrop> NewbieFlagWar::flagDrops() const {
+    return {{1122, 20}};
 }

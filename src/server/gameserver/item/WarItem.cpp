@@ -11,6 +11,7 @@
 #include "DB.h"
 #include "GameContext.h"
 #include "ItemInfoManager.h"
+#include "RelicUtil.h"
 #include "repository/ItemObjectRepository.h"
 
 ItemID_t WarItem::m_ItemIDRegistry = 0;
@@ -57,6 +58,8 @@ void WarItem::create(const string& ownerID, Storage storage, StorageID_t storage
         m_ItemID = itemID;
     }
 
+    logRelicStorage(this, storage, ownerID);
+
     const string sql = defaultItemObjectRepository().insertPlainItemLogged(
         GEAR_WAR_ITEM, m_ItemID, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID, (int)x, (int)y);
     filelog("WarLog.txt", "%s", sql.c_str());
@@ -89,6 +92,8 @@ void WarItem::save(const string& ownerID, Storage storage, StorageID_t storageID
 
 {
     __BEGIN_TRY
+
+    logRelicStorage(this, storage, ownerID);
 
     defaultItemObjectRepository().updatePlainItem(GEAR_WAR_ITEM, m_ObjectID, m_ItemType, ownerID, (int)storage,
                                                   storageID, (int)x, (int)y, m_ItemID);

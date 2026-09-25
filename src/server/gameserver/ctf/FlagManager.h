@@ -1,25 +1,33 @@
 ///////////////////////////////////////////////////////////////////
 // FlagManager.h
 //
-// Only one may run globally.
+// Only one may run globally. Its schedule runs on the main thread
+// (ClientManager), and the flag war it runs changes zones only through
+// commands posted to the zones' groups (war/WarZoneWork.h): the flags it
+// drops and takes back, the pole sweeps and the status broadcasts. The
+// counts, the put times and the status packet are also written by the zone
+// threads that plant and pull flags, so they are read and written under
+// m_Mutex; the zones a war allows flags in are a published snapshot.
 ///////////////////////////////////////////////////////////////////
 
 #ifndef __FLAG_MANAGER_H__
 #define __FLAG_MANAGER_H__
 
-#include "Assert.h"
-#include "Exception.h"
-#include "GameContext.h"
-#include "Mutex.h"
-#include "Types.h"
-#include "war/Scheduler.h"
-#include "war/Work.h"
-// #include "ZoneGroupManager.h"
+#include <atomic>
 #include <map>
 #include <vector>
 
+#include "Assert.h"
+#include "Exception.h"
 #include "GCFlagWarStatus.h"
+#include "GameContext.h"
+#include "Mutex.h"
+#include "Snapshot.h"
+#include "Types.h"
 #include "VSDateTime.h"
+#include "ctf/FlagWarPlan.h"
+#include "war/Scheduler.h"
+#include "war/Work.h"
 
 class PlayerCreature;
 class MonsterCorpse;
@@ -65,10 +73,8 @@ public:
     bool hasFlagWar() const {
         return m_bHasFlagWar;
     }
-    Race_t getWinnerRace();
-    uint getFlagCount(Race_t race) {
-        return m_FlagCount[(RACEINDEX)race];
-    }
+    Race_t getWinnerRace() const;
+    uint getFlagCount(Race_t race) const;
 
     bool startFlagWar();
     bool endFlagWar();
@@ -77,21 +83,19 @@ public:
         return m_FlagPoles.find(pFlagPole) != m_FlagPoles.end();
     }
     bool isFlagAllowedZone(ZoneID_t ZoneID) const {
-        return m_FlagAllowMap.find(ZoneID) != m_FlagAllowMap.end();
+        auto pAllowed = m_FlagAllowMap.load();
+        return pAllowed->find(ZoneID) != pAllowed->end();
     }
 
-    map<ZoneID_t, uint>& getAllowMap() {
-        return m_FlagAllowMap;
-    }
+    // Publishes the zones the war starting now lets flags into.
+    void setAllowedZones(std::map<ZoneID_t, uint> allowed);
 
-    Packet* getStatusPacket() {
-        m_StatusPacket.setTimeRemain(remainWarTimeSecs());
-        return &m_StatusPacket;
-    }
-    void broadcastStatus() {
-        if (hasFlagWar())
-            broadcastPacket(getStatusPacket());
-    } // g_pZoneGroupManager->broadcast(getStatusPacket());
+    // The war's status as it stands, a copy the caller may send.
+    GCFlagWarStatus statusPacket() const;
+
+    // Sends the status to the players of every zone the war allows flags in,
+    // posted to each zone's group.
+    void broadcastStatus() const;
     const map<MonsterCorpse*, Race_t>& getFlagPoleRaceMap() const {
         return m_FlagPoles;
     }
@@ -101,19 +105,29 @@ public:
     }
 
     bool putFlag(PlayerCreature* pPC, Item* pItem, MonsterCorpse* pFlagPole);
-    int remainWarTimeSecs() {
+    // Off the main thread, the caller holds m_Mutex: the war's start writes
+    // m_EndTime under it.
+    int remainWarTimeSecs() const {
         return VSDateTime::currentDateTime().secsTo(m_EndTime);
     }
 
     //	VSDateTime getNextFlagWarTime();
 
+    // Zeroes the counts and deletes the round's flag statistics.
     void resetFlagCounts();
+    void deleteFlagWarStats();
+
+    // Posts to the pole zone zoneID the sweep that takes out the flags still
+    // planted on its poles and destroys them.
+    void postPoleSweep(ZoneID_t zoneID) const;
+
+    // The pole fields init() laid out; they do not change afterwards.
+    std::vector<de::ctf::PoleField> getPoleFields() const;
+
     bool isInPoleField(ZONE_COORD zc);
 
     void recordPutFlag(PlayerCreature* pPC, Item* pItem);
     void recordFlagWarHistory();
-
-    void broadcastPacket(Packet* pPacket) const;
 
 public:
     void lock() {
@@ -137,14 +151,14 @@ private:
     map<MonsterCorpse*, Race_t> m_FlagPoles;
     GCFlagWarStatus m_StatusPacket;
 
-    map<ZoneID_t, uint> m_FlagAllowMap;
+    de::Snapshot<std::map<ZoneID_t, uint>> m_FlagAllowMap;
 
     VSDateTime m_EndTime;
     map<Race_t, VSDateTime> m_PutTime;
 
     list<PoleFieldInfo> m_PoleFields;
 
-    bool m_bHasFlagWar = false;
+    std::atomic<bool> m_bHasFlagWar{false};
 };
 
 #endif

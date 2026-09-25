@@ -14,6 +14,13 @@ class PlayerCreature;
 bool isRelicItem(const Item* pItem);
 bool isRelicItem(Item::ItemClass IClass);
 
+// A relic's row is about to name storage. Every gateway into a storage
+// other than the ground, a corpse, the inventory or the mouse refuses a
+// relic (de::war::relicMayLieIn), and a war returns a relic only from those;
+// a row naming another one is logged to WarError.log. The row is written
+// all the same.
+void logRelicStorage(const Item* pItem, Storage storage, const string& ownerID);
+
 void saveItemInCorpse(Item* pItem, Corpse* pCorpse);
 
 bool addRelicEffect(Creature* pCreature, Item* pItem);

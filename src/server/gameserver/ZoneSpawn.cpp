@@ -453,8 +453,10 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
         if (de::gameContext().flags().hasFlagWar() && de::gameContext().flags().isFlagAllowedZone(getZoneID())) {
             Player* pPlayer = pCreature->getPlayer();
-            if (pPlayer != NULL)
-                pPlayer->sendPacket(de::gameContext().flags().getStatusPacket());
+            if (pPlayer != NULL) {
+                GCFlagWarStatus status = de::gameContext().flags().statusPacket();
+                pPlayer->sendPacket(&status);
+            }
         }
 
         if (m_pLevelWarManager != NULL && m_pLevelWarManager->hasWar()) {

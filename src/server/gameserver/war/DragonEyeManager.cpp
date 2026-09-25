@@ -23,8 +23,8 @@ const int nDragonEyes = 9;
 DragonEyeManager::DragonEyeManager() {
     __BEGIN_TRY
 
-    m_DragonEyes.reserve(nDragonEyes);
-    m_DefaultPositions.reserve(nDragonEyes);
+    m_DragonEyes.resize(nDragonEyes, NULL);
+    m_DefaultPositions.resize(nDragonEyes);
 
     initDefaultPositions();
 
@@ -166,10 +166,21 @@ void DragonEyeManager::warpToDefaultPosition(Creature* pCreature)
         Zone* pTargetZone = getZoneByZoneID(m_DefaultPositions[index].id);
         Assert(pTargetZone != NULL);
 
-        if (pZone->getZoneGroup() == pTargetZone->getZoneGroup())
+        if (pZone->getZoneGroup() == pTargetZone->getZoneGroup()) {
             pTargetZone->addItem(pItem, m_DefaultPositions[index].x, m_DefaultPositions[index].y);
-        else
+        } else {
+            // The other group adds the eye on its own tick and saves where it
+            // lands. Until then the row names the default tile rather than
+            // the holder, who may be logging out, so a war's return that
+            // reads it goes to the group the eye is going to.
+            char pField[80];
+            sprintf(pField, "OwnerID='', Storage=%d, StorageID=%u, X=%d, Y=%d", STORAGE_ZONE,
+                    (unsigned)pTargetZone->getZoneID(), (int)m_DefaultPositions[index].x,
+                    (int)m_DefaultPositions[index].y);
+            pWarItem->tinysave(pField);
+
             pTargetZone->addItemDelayed(pItem, m_DefaultPositions[index].x, m_DefaultPositions[index].y);
+        }
     }
 
     __END_CATCH

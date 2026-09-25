@@ -13,6 +13,107 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A war relic's row outlives the run that made it (2026-09-25)
+
+- **No loader reads a castle symbol's, blood bible's or dragon eye's row at
+  startup: the shrine managers and `DragonEyeManager` make every war relic
+  anew, with a new ItemID, at each boot, and `ItemLoaderManager::load(Zone*)`
+  and `WarItemLoader` are empty,** so the rows an earlier run left -- a
+  shrine's, the ground's, and a holder's after a crash -- are never read
+  again and pile up (the shipped `initdb/DARKEDEN.sql` carries such
+  `BloodBibleObject` rows). A slayer's or vampire's login deletes the war
+  item rows naming him (`deleteWarItemsOfOwner` in the loaders'
+  `load(Creature*)`); `ItemLoaderManager::load(Ousters*)` runs none of those
+  loaders, so an ousters' rows stay. They are garbage, not relics: no
+  return reads an id of an earlier run. Deleting them at boot needs to know
+  which rows another game server using the same database made for its own
+  live relics.
+  > **Status:** recorded, not fixed (fix/flag-relic-returns)
+
+## A dragon eye held with a relic dropped only the eye (2026-09-25)
+
+- **`dropRelicToZone(Creature*)` sent a dragon eye home and returned at
+  once, before it looked for the relics the holder carried,** and holding a
+  plain relic does not stop a dragon eye's pickup (`isAbleToPickupItem`
+  refuses a relic to a holder of a bible, a symbol or an eye), so a
+  player carrying both who died, was transported or logged out kept the
+  relic, or lost it with the player object. The eye goes home and the
+  relics drop after it.
+  > **Status:** fixed (fix/flag-relic-returns)
+
+## `DragonEyeManager` wrote its tables past their size (2026-09-25)
+
+- **The constructor only `reserve()`d `m_DragonEyes` and
+  `m_DefaultPositions` and then wrote nine entries of each through
+  `operator[]`,** past the vectors' size of zero: undefined behaviour that
+  worked because the storage was there. Both are sized now.
+  > **Status:** fixed (fix/flag-relic-returns)
+
+## A dragon eye has no place in the relic handlers (2026-09-25)
+
+- **`CGRelicToObjectHandler` lets any relic class past its first check and
+  then has no branch for `ITEM_CLASS_WAR_ITEM`,** so a player who offers a
+  dragon eye to an object is disconnected (`DisconnectException`), and
+  `deleteRelicEffect(Corpse*, Item*)` falls from its `WAR_ITEM` case into
+  `default: return false` for want of a `break`. No path puts a dragon eye
+  in a corpse, so the second is unreachable; the first costs only the
+  sender's own session, which drops the eye home as it ends.
+  > **Status:** recorded, not fixed (fix/flag-relic-returns)
+
+## `*CTF` edits the flag war's schedule from a zone thread (2026-09-25)
+
+- **`opCTF` (`gm/ConsoleCommands.cpp`) runs on the GM's zone thread and
+  calls `FlagManager::manualStart`, which pops and pushes the manager's
+  schedule queue while the main thread's `ClientManager` loop runs
+  `FlagManager::heartbeat` over the same priority queue with no lock,** and
+  `startFlagWar` reads the queue's top from the main thread too. A GM
+  pulling the flag war forward while the heartbeat looks at the queue can
+  corrupt the heap. `WarScheduler` has the shape that closes it: a mutex
+  over the queue, the due schedule popped under it and run after it is
+  released, and every `addSchedule` from the war taken under it.
+  > **Status:** recorded, not fixed (fix/flag-relic-returns)
+
+## A newbie flag war's end rewarded the race that planted last (2026-09-25)
+
+- **`NewbieFlagWar::executeEnd` summons its reward monster at the winning
+  race's end of zone 1122 by `getWinnerRace()`, but it ran after
+  `FlagWar::executeEnd`, which had zeroed the counts,** so every race tied at
+  zero and the tie-break -- the race whose flag was planted last -- chose the
+  reward. The end no longer zeroes the counts; the next start does, as it
+  always did, so the end, and the returns it posts, which pay a pole of the
+  winning race its gem stone as they take its flag, read the round's own
+  result.
+  > **Status:** fixed (fix/flag-relic-returns)
+
+## A flag war's pole sweep took the pole off its tile (2026-09-25)
+
+- **`FlagManager::resetFlagCounts` swept the pole fields for flags whose
+  return had missed them: it took the pole's treasure out with
+  `getTreasure()` and then called `Zone::deleteItem(flag, x, y)`, which
+  deletes whatever item lies on the tile -- the pole corpse, not the flag,**
+  with no broadcast: the pole stayed on every client's screen and in the
+  pole table, gone from the tile. It also took the first treasure of any
+  monster corpse lying within twice a field's extent and, when that was
+  not a flag, lost it: the item left the corpse for nowhere. The sweep now
+  looks only at flag poles, destroys a flag it takes and puts anything else
+  back, and leaves the tile alone.
+  > **Status:** fixed (fix/flag-relic-returns)
+
+## A flag war's counts, status and allowed zones were shared with no lock (2026-09-25)
+
+- **`FlagManager`'s flag counts and status packet are written by the zone
+  threads that plant and pull flags, under `m_Mutex`, but were read and
+  zeroed with no lock by the main thread and by any zone thread sending the
+  status;** `getFlag` tested a count before taking the lock it decremented
+  it under, so two poles pulled at once in different groups could take the
+  same last flag and wrap the count; the zones a war allows flags in were a
+  `std::map` the main thread cleared and refilled at every start while zone
+  threads looked zones up in it; and `m_bHasFlagWar` was a plain `bool`. The
+  counts, put times, end time and status packet are read and written under
+  `m_Mutex`, the zone threads send a copy of the status, the allowed zones
+  are a `de::Snapshot` and the flag an atomic.
+  > **Status:** fixed (fix/flag-relic-returns)
+
 ## A broadcast packet whose write() throws leaks the stream it was to be queued in (2026-09-25)
 
 - **`ZonePlayerManager::pushBroadcastPacket` allocates the
@@ -146,7 +247,21 @@ repo and the client's. Entries below are newest first; the oldest is the
   nothing keeps current: a relic somewhere the game should not let it go.
   Closing it means proving those places unreachable for a relic, asserted
   where an item moves, or returning from them too.
-  > **Status:** recorded, not fixed (fix/war-end-zones)
+  Every gateway into another storage refuses a relic or has no writer, as
+  `de::war::relicMayLieIn` (`war/WarZoneRouting.h`) lists them, and a
+  relic's `create`/`save` logs a row naming any other storage to
+  `WarError.log` (`logRelicStorage`). A row naming a player who is not
+  logged in is read again, like a missed step: a holder drops his relics
+  and saves where they fell before the player-creature finder forgets him,
+  and a dragon eye sent home to another group now names its default tile
+  until that group adds it. No row names a zone of another server: the
+  relics are made in this server's zones, `transportCreature` moves a
+  player only between them, and a logout drops the relics before the
+  player moves to another server. No boot-time sweep: no loader reads a
+  relic's row (the entry above). What still stops a return is an item that
+  keeps moving for three attempts, or a logout whose drop throws for want
+  of a free tile, each logged.
+  > **Status:** fixed (fix/flag-relic-returns)
 
 ## The regen zone status packet is written by every tower's zone thread (2026-09-24)
 
@@ -172,7 +287,17 @@ repo and the client's. Entries below are newest first; the oldest is the
   excluded, and a flag a player carries is taken from a player another
   thread owns. `de::war::postItemReturn` with a step that destroys the flag
   is the fix; its start side needs the same reading.
-  > **Status:** recorded, not fixed (fix/war-end-zones)
+  The end returns each flag through `de::war::postItemReturn`, whose step
+  destroys it on the holder's thread, and posts each pole zone's sweep after
+  the returns (`ctf/FlagWarPlan.h`), so a flag planted on a pole is taken by
+  its return, which pays the winner's gem stone, before the sweep looks.
+  The start posts each zone's flag drop to its group (`postToZone`), the
+  drops writing the flags' ids into a ledger the end takes; the start's
+  pole sweep, every status broadcast (from the main thread or a zone
+  thread planting a flag) and a newbie war's reward summon are posted the
+  same way, and the notices go through `ZoneGroupManager::broadcast`, which
+  takes each group's player-manager lock, as before.
+  > **Status:** fixed (fix/flag-relic-returns)
 
 ## A castle war's start kills the monsters of dungeons in another group (2026-09-24)
 
