@@ -13,6 +13,17 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A broadcast packet whose write() throws leaks the stream it was to be queued in (2026-09-25)
+
+- **`ZonePlayerManager::pushBroadcastPacket` allocates the
+  `SocketOutputStream` it queues before `writeHeaderNBody` fills it, and a
+  write that throws leaves the function with the stream neither queued nor
+  freed.** No player receives anything of the refused packet, since the
+  stream is the packet's own; the cost is one buffer, sized from the
+  packet, leaked per refusal. Closing it means holding the stream in a
+  `std::unique_ptr` until it is queued.
+  > **Status:** recorded, not fixed (fix/db-lookups-stream)
+
 ## A packet whose write() throws leaves its first bytes in the player's stream (2026-09-25)
 
 - **`SocketOutputStream::writePacket` puts the packet id, a zero size
@@ -25,11 +36,18 @@ repo and the client's. Entries below are newest first; the oldest is the
   output buffer, framed by a size of 0 that `patchField` never
   overwrote. The client reads the next packet from the middle of that
   debris. Every server-side write that can refuse a field is exposed; the
-  one found is the Gilles de Rais echo below. Closing it means
-  `writePacket` rolling the stream back to where the packet began when
-  the body throws (the tail is in hand before the id is written), or
-  writing the body to a scratch stream first.
-  > **Status:** recorded, not fixed (r17/gameserver-core)
+  one found is the Gilles de Rais echo below. `writePacket` now records
+  the packet's start, as a distance from the head (which no write moves
+  and a buffer growth keeps), and the sequence counter before it writes
+  the id; when anything in the framing throws it moves the
+  tail back to that start and restores the counter, then rethrows, so a
+  refused packet leaves nothing in the stream and the next one takes its
+  sequence byte. `PacketFrameRollback` in `wire_types_test.cpp` pins it
+  on a contiguous buffer, across a buffer growth and across the wrap
+  point. The other framing paths, `Packet::writeHeaderNBody` and
+  `Datagram::write`, fill a stream or a datagram of their own that the
+  throw abandons, so they carry no debris into a player's stream.
+  > **Status:** fixed (fix/db-lookups-stream)
 
 ## The Gilles de Rais lair's global-chat echo overflows its 128-byte message (2026-09-25)
 
@@ -62,9 +80,12 @@ repo and the client's. Entries below are newest first; the oldest is the
   `str`, then for a period or time account calls `sprintf(str, "%s...", str,
   ...)`,** passing the destination as a source. Overlapping `sprintf`
   arguments are undefined behaviour; it works only as long as the C library
-  copies the leading `%s` onto itself. Closing it means formatting into a
-  second buffer, or appending at `str + strlen(str)`.
-  > **Status:** recorded, not fixed (r17/quest-gm)
+  copies the leading `%s` onto itself. Both branches now append at
+  `str + strlen(str)` with an `snprintf` bounded by the space left in the
+  80-byte buffer, so the prefix is only read where it stands and a long
+  date or count is cut rather than written past the end; the message text
+  is unchanged.
+  > **Status:** fixed (fix/db-lookups-stream)
 
 ## An Altar of Blood offering never answers a relic (2026-09-25)
 
@@ -227,11 +248,13 @@ repo and the client's. Entries below are newest first; the oldest is the
   stale answer. The window is startup, while the workers come up one by one
   and the first zone threads already tick; the loginserver has the same
   shape, its `GameServerManager` worker registering while `ClientManager`
-  looks up. Closing it means taking the
-  mutex in the lookups (every statement pays for it), or registering every
-  worker's connection before any worker starts, or a lookup structure a
-  reader can traverse during an insert.
-  > **Status:** recorded, not fixed (fix/exchange-account-db)
+  looks up. The three tables (`getConnection(int)`'s per-world one
+  included) are guarded by a `std::shared_mutex` of their own, a leaf held
+  for the map access alone: every lookup takes it shared, so lookups never
+  wait on one another, and a registration takes it exclusive; the
+  sharedserver registers nothing and only looks up. `database_manager_tests`
+  registers and looks up from sixteen threads at once.
+  > **Status:** fixed (fix/db-lookups-stream)
 
 ## A union dissolves under the join offers still pending to it (2026-09-24)
 

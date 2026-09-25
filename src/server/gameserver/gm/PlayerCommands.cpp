@@ -518,10 +518,13 @@ void oppay(GamePlayer* pGamePlayer, string msg, int i) {
         if (pGamePlayer->getPayType() == PAY_TYPE_FREE) {
             strcat(str, "Free account.");
         } else if (pGamePlayer->getPayType() == PAY_TYPE_PERIOD) {
-            sprintf(str, "%sAvailable until %s.", str, pGamePlayer->getPayPlayAvailableDateTime().toString().c_str());
+            const size_t used = strlen(str);
+            snprintf(str + used, sizeof(str) - used, "Available until %s.",
+                     pGamePlayer->getPayPlayAvailableDateTime().toString().c_str());
         } else {
-            sprintf(str, "%sRemaining time : %d / %d min", str, (int)(payTime.tv_sec / 60),
-                    (int)pGamePlayer->getPayPlayAvailableHours());
+            const size_t used = strlen(str);
+            snprintf(str + used, sizeof(str) - used, "Remaining time : %d / %d min", (int)(payTime.tv_sec / 60),
+                     (int)pGamePlayer->getPayPlayAvailableHours());
         }
     } else {
         strcpy(str, "[Metrotech] Free play.");

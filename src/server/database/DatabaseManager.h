@@ -7,15 +7,24 @@
 #ifndef __DATABASE_MANAGER_H__
 #define __DATABASE_MANAGER_H__
 
+#include <shared_mutex>
 #include <unordered_map>
 
 #include "Connection.h"
 #include "Exception.h"
-#include "Mutex.h"
 #include "Types.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class DatabaseManager;
+//
+// Each worker registers its own connections, keyed by its thread id, when
+// it starts, while the threads already running look theirs up for every
+// statement. The per-thread and per-world tables are guarded by
+// m_TablesMutex: a lookup takes it shared, a registration exclusive, and it
+// is held for the map access alone, so nothing is ever locked under it and
+// any thread may look its connection up at any moment. It guards the
+// tables, not the connections they point to: a connection is still used
+// only by the thread that registered it.
 //////////////////////////////////////////////////////////////////////////////
 
 class DatabaseManager {
@@ -25,6 +34,10 @@ public:
 
 public:
     void init();
+    // Register the connection the thread `TID` reaches through
+    // getConnection(const string&) / getDistConnection(). A second
+    // registration under the same id throws DuplicatedException and
+    // leaves the first in place.
     void addConnection(int TID, Connection* pConnection);
     void addDistConnection(int TID, Connection* pConnection);
 
@@ -98,8 +111,10 @@ private:
 
     Connection* m_pDistConnection;
 
-
-    mutable Mutex m_Mutex;
+    // Guards m_Connections, m_DistConnections and m_WorldConnections (see
+    // the class comment). A leaf: held for one map access, never while
+    // another lock is taken or a statement runs.
+    mutable std::shared_mutex m_TablesMutex;
 };
 
 #endif

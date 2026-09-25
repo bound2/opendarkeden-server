@@ -104,10 +104,39 @@ void SocketOutputStream::patchField(uint slot, std::span<const std::byte> src) {
 // getPacketSize() that has drifted from write() cannot desynchronise the
 // stream. getPacketSize() is still what the buffers around this call are
 // sized from, so a disagreement is reported.
+//
+// A packet is written whole or not at all. When the body refuses a field
+// (a string past its bound throws InvalidProtocolException) or anything
+// else throws on the way, the header and the fields already written are
+// taken back out of the stream and the sequence counter returns to its
+// value before the call, so the stream holds exactly what it held before
+// and the next packet goes out as if the refused one had never been sent.
 //////////////////////////////////////////////////////////////////////
 void SocketOutputStream::writePacket(const Packet* pPacket) {
     __BEGIN_TRY
 
+    // Where this packet begins, as a distance from the head, which no
+    // write moves and resize() keeps.
+    const uint packetStart = length();
+    const BYTE packetSequence = m_Sequence;
+
+    try {
+        writeFrame(pPacket);
+    } catch (...) {
+        truncate(packetStart);
+        m_Sequence = packetSequence;
+        throw;
+    }
+
+    __END_CATCH
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// write one packet's header and body -- writePacket()'s work, which it
+// takes back out of the stream if this throws
+//////////////////////////////////////////////////////////////////////
+void SocketOutputStream::writeFrame(const Packet* pPacket) {
     PacketID_t packetID = pPacket->getPacketID();
     Assert(packetID != 0);
 
@@ -139,8 +168,19 @@ void SocketOutputStream::writePacket(const Packet* pPacket) {
 
     cout << "Send:" << packetID << "[" << bodySize << "," << (m_Sequence - 1) << "]" << " " << pPacket->toString()
          << endl;
+}
 
-    __END_CATCH
+
+//////////////////////////////////////////////////////////////////////
+// discard every byte past the first `len`
+//////////////////////////////////////////////////////////////////////
+void SocketOutputStream::truncate(uint len) {
+    Assert(len <= length());
+
+    // Encrypted bytes are already committed to the key chain.
+    Assert(len >= m_Encrypted);
+
+    m_Tail = (m_Head + len) % m_BufferLen;
 }
 
 
