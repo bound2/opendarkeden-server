@@ -3,6 +3,8 @@
 #include "Ousters.h"
 #include "Slayer.h"
 #include "Vampire.h"
+#include "WarZoneWork.h"
+#include "Zone.h"
 #include "ZoneUtil.h"
 #include "repository/ZoneInfoRepository.h"
 
@@ -248,32 +250,27 @@ LevelWarZoneInfo* LevelWarZoneInfoManager::getLevelWarZoneInfo(ZoneID_t zoneID) 
     __END_CATCH
 }
 
-void LevelWarZoneInfoManager::broadcast(ZoneID_t zoneID, Packet* pPacket) const
+void LevelWarZoneInfoManager::broadcast(ZoneID_t zoneID, Packet* pPacket) const {
+    Assert(pPacket != NULL);
 
-{
-    __BEGIN_TRY
+    vector<ZoneID_t> zoneIDs;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     unordered_map<ZoneID_t, LevelWarZoneInfo*>::const_iterator itr = m_LevelWarZoneInfos.find(zoneID);
 
-    //	cout << VSDateTime::currentDateTime().toString() << endl;
     if (itr != m_LevelWarZoneInfos.end()) {
-        LevelWarZoneInfo* pLevelWarZoneInfo = itr->second;
-        list<ZoneID_t>::const_iterator zitr = pLevelWarZoneInfo->getZoneIDList().begin();
-        list<ZoneID_t>::const_iterator zendItr = pLevelWarZoneInfo->getZoneIDList().end();
-
-        for (; zitr != zendItr; zitr++) {
-            //			cout << *zitr << endl;
-            Zone* pZone = getZoneByZoneID(*zitr);
-            pZone->broadcastLevelWarBonusPacket(pPacket);
-        }
+        const list<ZoneID_t>& bonusZoneIDs = itr->second->getZoneIDList();
+        zoneIDs.assign(bonusZoneIDs.begin(), bonusZoneIDs.end());
     }
-    //	cout << VSDateTime::currentDateTime().toString() << endl;
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    __END_CATCH
+    // The bonus zones may belong to other groups than the level war's zone,
+    // and the send marks each player it reaches, so it runs on each zone's
+    // own thread.
+    de::war::postBroadcast(zoneIDs, *pPacket,
+                           [](Zone& zone, Packet& packet) { zone.broadcastLevelWarBonusPacket(&packet); });
 }
 
 void LevelWarZoneInfoManager::clearLevelWarZoneIDs()

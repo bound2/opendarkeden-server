@@ -38,25 +38,10 @@ void HolyLandManager::addHolyLand(Zone* pZone) {
     __END_CATCH
 }
 
-void HolyLandManager::broadcast(Packet* pPacket) const
+void HolyLandManager::broadcast(Packet* pPacket) const {
+    Assert(pPacket != NULL);
 
-{
-    __BEGIN_TRY
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    HashMapZoneConstItor itr = m_HolyLands.begin();
-
-    for (; itr != m_HolyLands.end(); itr++) {
-        Zone* pZone = itr->second;
-        Assert(pZone != NULL);
-
-        pZone->broadcastPacket(pPacket);
-    }
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    __END_CATCH
+    de::war::postBroadcast(getHolyLandZoneIDs(), *pPacket);
 }
 
 vector<ZoneID_t> HolyLandManager::getHolyLandZoneIDs() const {

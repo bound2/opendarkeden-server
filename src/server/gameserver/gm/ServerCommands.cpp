@@ -43,6 +43,7 @@
 #include "VSDateTime.h"
 #include "Vampire.h"
 #include "VariableManager.h"
+#include "WarZoneWork.h"
 #include "Zone.h"
 #include "ZoneGroupManager.h"
 #include "ZoneInfoManager.h"
@@ -707,10 +708,10 @@ void opset(GamePlayer* pGamePlayer, string msg, int i) {
                     gcNoticeEvent.setCode(NOTICE_EVENT_PREMIUM_HALF_END);
                 }
 
-                // Broadcast it.
-                getZoneByZoneID(61)->broadcastPacket(&gcNoticeEvent);   // zone 61
-                getZoneByZoneID(64)->broadcastPacket(&gcNoticeEvent);   // zone 64
-                getZoneByZoneID(1007)->broadcastPacket(&gcNoticeEvent); // zone 1007
+                // Tell the three zones the premium half-price event runs in. The
+                // command runs on the GM's zone thread or on the login server
+                // link's, so each zone sends it from its own thread.
+                de::war::postBroadcast({61, 64, 1007}, gcNoticeEvent);
             } else if (vt == TODAY_IS_HOLYDAY) {
                 GCNoticeEvent gcNoticeEvent;
                 gcNoticeEvent.setCode(NOTICE_EVENT_HOLYDAY);

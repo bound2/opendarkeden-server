@@ -13,6 +13,19 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## `*command LevelWar` pushes a schedule into a level war zone's queue from another thread (2026-09-25)
+
+- **`opLevelWar` (`gm/ConsoleCommands.cpp`) calls
+  `LevelWarManager::manualStart` on the level war zone it names, from
+  whichever thread runs the command -- a GM's zone thread or the login
+  server link's for a relayed `*command` -- while that zone's own thread
+  runs the manager's heartbeat.** `manualStart` pops the queued work and
+  adds a new `Schedule`, and replaces `m_pLevelWarSchedule`, on a
+  `Scheduler` that has no lock of its own, so the two threads can both
+  change the queue at once. Closing it means posting the start to the zone's
+  group (`de::war::postToZone`), as the war's other zone work is.
+  > **Status:** recorded, not fixed (fix/war-broadcasts)
+
 ## A war relic's row outlives the run that made it (2026-09-25)
 
 - **No loader reads a castle symbol's, blood bible's or dragon eye's row at
@@ -230,7 +243,18 @@ repo and the client's. Entries below are newest first; the oldest is the
   zone's group too (`de::war::postToZones` with the packet's bytes), which
   the routing already supports, or a published copy of the player list a
   reader may walk.
-  > **Status:** recorded, not fixed (fix/war-end-zones)
+  > **Status:** fixed (fix/war-broadcasts). Each of the two broadcasts, and
+  > `LevelWarZoneInfoManager::broadcast` (whose send also marks each player
+  > it reaches) and the GM `*set` premium notice to zones 61, 64 and 1007,
+  > posts through `de::war::postBroadcast`: the packet's body is captured
+  > once on the calling thread (`war/CapturedPacket.h`), bytes shared by
+  > every group's command, and each player's stream frames it with its own
+  > id, size, sequence byte and encryption; a copy of the packet was not an
+  > option, since the bonus-info packets own and delete their entries. The
+  > whole-server broadcasts (`ZoneGroupManager::broadcast`) stay direct: they
+  > walk each group's players under its `ZonePlayerManager` mutex and only
+  > send, as does `IncomingPlayerManager::broadcast` on the main thread's own
+  > players.
 
 ## A relic held where no item position reaches stays put when its war ends (2026-09-24)
 

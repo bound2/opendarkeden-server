@@ -12,17 +12,30 @@
 // registration decision, the castle owner decisions, the routing of a
 // war's zone work and the flag war's plan at the bottom are headers of plain
 // values, so they join them without pulling the scheduler, the zone or the
-// guild table in.
+// guild table in; the captured packet a posted broadcast carries is a header
+// over the kernel's packets and streams.
 
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
 
+#include "BloodBibleBonusInfo.h"
+#include "GCBloodBibleStatus.h"
+#include "GCHolyLandBonusInfo.h"
+#include "GCMoveOK.h"
+#include "GCNoticeEvent.h"
+#include "GCRegenZoneStatus.h"
+#include "GCSweeperBonusInfo.h"
+#include "GCSystemMessage.h"
+#include "SocketEncryptOutputStream.h"
+#include "SweeperBonusInfo.h"
 #include "VSDateTime.h"
 #include "ctf/FlagWarPlan.h"
+#include "war/CapturedPacket.h"
 #include "war/CastleOwnerDecision.h"
 #include "war/Schedule.h"
 #include "war/Scheduler.h"
@@ -504,6 +517,130 @@ TEST(ZonesByOwner, GroupsZonesByTheirOwnerInTheOrderFirstSeen) {
 TEST(ZonesByOwner, NoZonesMakeNoCommands) {
     EXPECT_TRUE(zonesByOwner<int>({}, [](ZoneID_t) { return 0; }).empty());
 }
+
+// A broadcast to a list of zones (postBroadcast) is routed the same way: the
+// group holding all of a holy land's zones gets one command that sends to
+// each of them, and a notice to three zones in three groups makes three.
+TEST(ZoneBroadcast, AGroupHoldingEveryZoneGetsOneCommandForThemAll) {
+    auto batches = zonesByOwner<int>({1201, 1202, 1203, 1204}, [](ZoneID_t) { return 7; });
+
+    ASSERT_EQ(1u, batches.size());
+    EXPECT_EQ(7, batches[0].first);
+    EXPECT_EQ((std::vector<ZoneID_t>{1201, 1202, 1203, 1204}), batches[0].second);
+}
+
+TEST(ZoneBroadcast, EachGroupHoldingAZoneGetsItsOwnCommand) {
+    auto groupOf = [](ZoneID_t zoneID) -> int { return zoneID == 61 ? 1 : zoneID == 64 ? 2 : 3; };
+
+    auto batches = zonesByOwner<int>({61, 64, 1007}, groupOf);
+
+    ASSERT_EQ(3u, batches.size());
+    EXPECT_EQ((std::vector<ZoneID_t>{61}), batches[0].second);
+    EXPECT_EQ((std::vector<ZoneID_t>{64}), batches[1].second);
+    EXPECT_EQ((std::vector<ZoneID_t>{1007}), batches[2].second);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// The packet a posted broadcast carries (war/CapturedPacket.h): the body
+// written once on the calling thread, framed again by each player's stream.
+//////////////////////////////////////////////////////////////////////////
+
+using de::war::CapturedPacket;
+
+// The bytes a player's stream holds after sending packet: the id, the size,
+// that stream's sequence byte and the body, as SocketOutputStream::writePacket
+// puts them there for a session with the given encrypt code.
+std::vector<unsigned char> sent(const Packet& packet, uchar code, int times = 1) {
+    SocketEncryptOutputStream oStream(NULL);
+    oStream.setEncryptCode(code);
+    for (int i = 0; i < times; i++)
+        oStream.writePacket(&packet);
+    const char* pBuffer = oStream.getBuffer();
+    return std::vector<unsigned char>(pBuffer, pBuffer + oStream.length());
+}
+
+// Every encrypt code a session may use, the unencrypted one included.
+void expectSentAlike(const Packet& original, const CapturedPacket& captured) {
+    for (uchar code = 0; code <= 5; code++) {
+        EXPECT_EQ(sent(original, code), sent(captured, code)) << "encrypt code " << (int)code;
+        EXPECT_EQ(sent(original, code, 3), sent(captured, code, 3)) << "encrypt code " << (int)code;
+    }
+    EXPECT_EQ(original.getPacketID(), captured.getPacketID());
+    EXPECT_EQ(original.getPacketSize(), captured.getPacketSize());
+    EXPECT_EQ(original.getPacketName(), captured.getPacketName());
+    EXPECT_EQ(original.toString(), captured.toString());
+}
+
+// The messages a war, a relic's return and a GM send to a castle, the holy
+// land or a list of zones.
+TEST(CapturedPacket, ASystemMessageIsSentAsTheOriginalWouldBe) {
+    GCSystemMessage message;
+    message.setMessage("The castle symbol returned to its guard shrine.");
+    message.setColor(0x81A2B3C4);
+    message.setType(SYSTEM_MESSAGE_HOLY_LAND);
+
+    expectSentAlike(message, CapturedPacket(message));
+}
+
+TEST(CapturedPacket, ANoticeEventIsSentAsTheOriginalWouldBe) {
+    GCNoticeEvent notice;
+    notice.setCode(NOTICE_EVENT_PREMIUM_HALF_START);
+    notice.setParameter(0x86A7B8C9);
+
+    expectSentAlike(notice, CapturedPacket(notice));
+}
+
+TEST(CapturedPacket, TheRegenZoneAndBloodBibleStatusesAreSentAsTheOriginalsWouldBe) {
+    GCRegenZoneStatus regenZones;
+    for (uint i = 0; i < GCRegenZoneStatus::kZoneCount; i++)
+        regenZones.setStatus(i, (BYTE)(i % 4));
+    expectSentAlike(regenZones, CapturedPacket(regenZones));
+
+    GCBloodBibleStatus bloodBible;
+    bloodBible.setItemType(3);
+    bloodBible.setZoneID(1201);
+    bloodBible.setStorage(STORAGE_CORPSE);
+    bloodBible.setRace(1);
+    bloodBible.setShrineRace(1);
+    bloodBible.setX(70);
+    bloodBible.setY(81);
+    expectSentAlike(bloodBible, CapturedPacket(bloodBible));
+}
+
+// These two own their entries and delete them with the packet, so a copy of
+// the packet would free them twice; the capture holds bytes and outlives it.
+TEST(CapturedPacket, ABonusListIsSentAsTheOriginalWouldBeAfterTheOriginalIsGone) {
+    std::vector<unsigned char> expected;
+    std::unique_ptr<CapturedPacket> pCaptured;
+    {
+        GCHolyLandBonusInfo bonuses;
+        for (BYTE race = 0; race < 3; race++) {
+            BloodBibleBonusInfo* pInfo = new BloodBibleBonusInfo();
+            pInfo->setRace(race);
+            bonuses.addBloodBibleBonusInfo(pInfo);
+        }
+        pCaptured = std::make_unique<CapturedPacket>(bonuses);
+        expectSentAlike(bonuses, *pCaptured);
+        expected = sent(bonuses, 3);
+    }
+    EXPECT_EQ(expected, sent(*pCaptured, 3));
+
+    GCSweeperBonusInfo sweepers;
+    for (BYTE race = 0; race < 3; race++) {
+        SweeperBonusInfo* pInfo = new SweeperBonusInfo();
+        pInfo->setRace(race);
+        sweepers.addSweeperBonusInfo(pInfo);
+    }
+    expectSentAlike(sweepers, CapturedPacket(sweepers));
+}
+
+// A packet that encrypts its own fields writes them by the session's code, so
+// no one capture fits every player: the capture refuses it.
+TEST(CapturedPacket, APacketWrittenByTheSessionsCodeCannotBeCaptured) {
+    GCMoveOK moveOK;
+    moveOK.setXYDir(10, 20, 3);
+
+    EXPECT_THROW(CapturedPacket{moveOK}, Throwable);
 
 // A flag war's start and end (ctf/FlagWarPlan.h): the values the posted
 // drops, returns and pole sweeps carry, and the order the end posts them in.
