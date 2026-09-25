@@ -148,8 +148,9 @@ void FlagWar::executeFinish() {
     GCNoticeEvent gcNE;
     gcNE.setCode(NOTICE_EVENT_FLAG_WAR_FINISH);
 
-    Race_t winnerRace = m_FlagManager.getWinnerRace();
-    gcNE.setParameter(((DWORD)((DWORD)winnerRace << 16)) | (DWORD)m_FlagManager.getFlagCount(winnerRace));
+    uint winnerCount = 0;
+    Race_t winnerRace = m_FlagManager.getWinnerRace(winnerCount);
+    gcNE.setParameter(((DWORD)((DWORD)winnerRace << 16)) | (DWORD)winnerCount);
 
     m_Context.zoneGroups().broadcast(&gcNE);
 

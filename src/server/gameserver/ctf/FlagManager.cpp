@@ -138,13 +138,30 @@ bool FlagManager::endFlagWar() {
     if (m_bHasFlagWar) {
         recordFlagWarHistory();
 
+        // The winner and the counts are read together: zone threads may still
+        // plant or pull until the war flag drops below.
+        Race_t winner = (Race_t)SLAYER;
+        uint slayers = 0, vampires = 0, ousters = 0;
+
+        __ENTER_CRITICAL_SECTION(m_Mutex)
+
+        winner = (Race_t)winnerRace_LOCKED();
+        auto countOf = [this](RACEINDEX race) {
+            auto found = m_FlagCount.find(race);
+            return (found != m_FlagCount.end()) ? found->second : 0u;
+        };
+        slayers = countOf(SLAYER);
+        vampires = countOf(VAMPIRE);
+        ousters = countOf(OUSTERS);
+
+        __LEAVE_CRITICAL_SECTION(m_Mutex)
+
         // running a script -- who would have thought the system function would be used
         char cmd[100];
         sprintf(cmd, "/home/darkeden/vs/bin/script/recordFlagWarHistory.py %s %d %d %d %d %d %d %d ",
-                m_EndTime.toStringforWeb().c_str(), (int)getWinnerRace(),
-                m_Context.config().getPropertyInt("Dimension"), m_Context.config().getPropertyInt("WorldID"),
-                m_Context.config().getPropertyInt("ServerID"), m_FlagCount[SLAYER], m_FlagCount[VAMPIRE],
-                m_FlagCount[OUSTERS]);
+                m_EndTime.toStringforWeb().c_str(), (int)winner, m_Context.config().getPropertyInt("Dimension"),
+                m_Context.config().getPropertyInt("WorldID"), m_Context.config().getPropertyInt("ServerID"), slayers,
+                vampires, ousters);
 
         filelog("script.log", cmd);
         system(cmd);
@@ -256,11 +273,9 @@ uint FlagManager::getFlagCount(Race_t race) const {
     return count;
 }
 
-Race_t FlagManager::getWinnerRace() const {
+FlagManager::RACEINDEX FlagManager::winnerRace_LOCKED() const {
     uint max = 0;
     RACEINDEX maxRace = SLAYER;
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
 
     auto putTime = [this](RACEINDEX race) {
         auto found = m_PutTime.find((Race_t)race);
@@ -283,9 +298,35 @@ Race_t FlagManager::getWinnerRace() const {
         }
     }
 
+    return maxRace;
+}
+
+Race_t FlagManager::getWinnerRace() const {
+    RACEINDEX race = SLAYER;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    race = winnerRace_LOCKED();
+
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-    return (Race_t)maxRace;
+    return (Race_t)race;
+}
+
+Race_t FlagManager::getWinnerRace(uint& count) const {
+    RACEINDEX race = SLAYER;
+    count = 0;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    race = winnerRace_LOCKED();
+    auto itr = m_FlagCount.find(race);
+    if (itr != m_FlagCount.end())
+        count = itr->second;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return (Race_t)race;
 }
 
 

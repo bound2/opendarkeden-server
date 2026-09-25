@@ -23,8 +23,9 @@
 //               captured. The packets that encrypt their own fields read the
 //               stream's encrypt code and assert that the stream is a
 //               SocketEncryptOutputStream; the capture writes into a plain
-//               SocketOutputStream, so such a packet fails its assertion here
-//               rather than carrying one player's bytes to every player.
+//               SocketOutputStream, so such a packet's assertion throws here
+//               (an AssertionError, to the caller) rather than carrying one
+//               player's bytes to every player.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __CAPTURED_PACKET_H__

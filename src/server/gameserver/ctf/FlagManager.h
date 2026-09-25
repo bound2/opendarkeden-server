@@ -74,6 +74,9 @@ public:
         return m_bHasFlagWar;
     }
     Race_t getWinnerRace() const;
+    // The winner and its count read together, so the pair a notice carries
+    // agrees.
+    Race_t getWinnerRace(uint& count) const;
     uint getFlagCount(Race_t race) const;
 
     bool startFlagWar();
@@ -145,6 +148,10 @@ private:
     de::GameContext& m_Context;
 
     map<RACEINDEX, uint> m_FlagCount;
+    // The winner by count, the latest planter winning a tie; the caller holds
+    // m_Mutex.
+    RACEINDEX winnerRace_LOCKED() const;
+
     mutable Mutex m_Mutex;
 
     // No more races will be added, surely?

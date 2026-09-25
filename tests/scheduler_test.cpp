@@ -641,6 +641,7 @@ TEST(CapturedPacket, APacketWrittenByTheSessionsCodeCannotBeCaptured) {
     moveOK.setXYDir(10, 20, 3);
 
     EXPECT_THROW(CapturedPacket{moveOK}, Throwable);
+}
 
 // A flag war's start and end (ctf/FlagWarPlan.h): the values the posted
 // drops, returns and pole sweeps carry, and the order the end posts them in.

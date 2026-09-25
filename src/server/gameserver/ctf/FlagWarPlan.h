@@ -76,7 +76,7 @@ inline std::vector<ZoneID_t> poleZonesOf(const std::vector<PoleField>& fields) {
 // order they were posted. The return takes the flag out through the
 // corpse's position, which drops the winner's gem stone at a pole of the
 // winning race; the sweep then clears the flags whose return missed, with
-// no reward, as the end did when it ran both itself.
+// no reward.
 struct FlagWarEndStep {
     enum class Kind { ReturnFlag, SweepPoles };
 
