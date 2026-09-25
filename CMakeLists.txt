@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(DarkEden VERSION 1.0 LANGUAGES C CXX)
 
 # ============================================================================
-# 全局设置
+# Global settings
 # ============================================================================
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ language standard (20)")
 set_property(CACHE CMAKE_CXX_STANDARD PROPERTY STRINGS 20)
@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# 输出目录. Development lanes override the root so different compiler,
+# Output directories. Development lanes override the root so different compiler,
 # target and build-type combinations cannot share artifacts.
 set(DARKEDEN_OUTPUT_ROOT "${CMAKE_SOURCE_DIR}" CACHE PATH "Root directory for DarkEden build artifacts")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DARKEDEN_OUTPUT_ROOT}/lib")
@@ -21,17 +21,17 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DARKEDEN_OUTPUT_ROOT}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DARKEDEN_OUTPUT_ROOT}/bin")
 
 # ============================================================================
-# 全局编译选项
+# Global compile options
 # ============================================================================
-# 基础宏定义 - 所有目标都需要
+# Base macro definitions - every target needs them
 if(APPLE)
     add_compile_definitions(__APPLE__ _REENTRANT)
 elseif(UNIX)
     add_compile_definitions(__LINUX__ _REENTRANT)
 endif()
 
-# 警告设置
-set(WARNING_FLAGS 
+# Warning settings
+set(WARNING_FLAGS
     -Wall
     -Wformat # kept on since the 2026-09-06 width fix; Statement::executeQuery carries the printf attribute
     -Wno-format-security
@@ -65,7 +65,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os")
 
 # ============================================================================
-# 查找依赖
+# Dependencies
 # ============================================================================
 find_package(Threads REQUIRED)
 
@@ -180,7 +180,7 @@ target_link_libraries(argon2 PUBLIC Threads::Threads)
 set_target_properties(argon2 PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # ============================================================================
-# 包含目录（全局）
+# Include directories (global)
 # ============================================================================
 set(DARKEDEN_PROJECT_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/src/Core
@@ -201,7 +201,7 @@ include_directories(${DARKEDEN_PROJECT_INCLUDE_DIRS})
 include_directories(third_party/tinyxml2)
 
 # ============================================================================
-# 子目录
+# Subdirectories
 # ============================================================================
 option(DARKEDEN_BUILD_TESTS "Build the wire-contract test suite (tests/)" OFF)
 
@@ -215,7 +215,7 @@ if(DARKEDEN_BUILD_TESTS)
 endif()
 
 # ============================================================================
-# 安装规则
+# Install rules
 # ============================================================================
 install(TARGETS gameserver loginserver sharedserver
     RUNTIME DESTINATION bin

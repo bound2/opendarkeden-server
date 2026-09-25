@@ -9,9 +9,10 @@
 //     ./xml_dump data/TravelWay.xml > after.txt    # built against tinyxml2
 //     diff before.txt after.txt
 //
-// Escaping is deliberate: the data files declare iso-8859-1 but hold EUC-KR
-// bytes, so the interesting differences are invisible in a terminal. Any byte
-// outside printable ASCII is emitted as \xNN.
+// Escaping is deliberate: the data files declared iso-8859-1 but held EUC-KR
+// bytes (the quest lists are English and UTF-8 since tools/i18n; TravelWay.xml
+// is as it was), so the interesting differences are invisible in a terminal.
+// Any byte outside printable ASCII is emitted as \xNN.
 //////////////////////////////////////////////////////////////////////////////
 
 #include <cstdio>

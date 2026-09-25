@@ -3,7 +3,7 @@
 -- xmasEventSlayer.lua
 --
 --------------------------------------------------------------------------------
--- 이거 사용하기 전에 xmasEventCommon.lua를 load해야 한다.
+-- Load xmasEventCommon.lua before using this.
 -- Input  : SUM
 -- Output : ItemClass, ItemType, OptionType
 --------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ OptionType 	= 0
 if SUM <= 80 then
 	ItemClass 	= selectOne( ItemClassSlayerSet80 )
 
-	-- 오토바이이면.. 
+	-- If on a motorcycle...
 	if ItemClass==ItemClassInfo["ITEM_CLASS_KEY"] then
 		ItemType = 2
 	else

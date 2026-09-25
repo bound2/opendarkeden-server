@@ -229,9 +229,12 @@ TEST(XmlParseTest, nonAsciiBytesArePreservedVerbatim) {
     XMLAttribute* pSender = pScript->GetAttribute("sender");
     ASSERT_TRUE(pSender != NULL) << "Script has no sender attribute";
 
-    // The EUC-KR bytes for the first quest-giver's name, exactly as they sit
-    // in the file. Double-encoded to UTF-8 (the old xerces behaviour) this
-    // would be 18 bytes beginning \xc2\xba, not 12 beginning \xba\xea.
-    const std::string expected = "\xba\xea\xb8\xae\xc4\xdd\xb6\xf3\xc4\xab\xbd\xba";
+    // The first quest-giver's name, exactly as it sits in the file. The
+    // quest lists are English (tools/i18n) and declare UTF-8, so the
+    // attribute is the ten ASCII bytes and nothing is transcoded on the
+    // way; when the file was EUC-KR this checked that the twelve bytes of
+    // the Korean name came through untouched rather than double-encoded to
+    // eighteen, the old xerces behaviour.
+    const std::string expected = "Vrykolakas";
     EXPECT_EQ(expected, std::string(pSender->ToString()));
 }

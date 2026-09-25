@@ -144,6 +144,22 @@ row as a hash on that account's next successful login, so nobody is locked
 out. `bin/hashpw --verify '<stored value>'` checks a password against a
 stored value.
 
+### English content
+
+The content tables of `initdb/DARKEDEN.sql` (NPC names and dialogue, zone,
+monster and item names, system messages, nicknames and the rest) and the
+quest lists in `data/` are English; the translations and the scripts that
+write them are in `tools/i18n/` (its README explains the tables). A fresh
+install gets the English rows from the seed; a database created before them
+takes them once, without touching accounts, characters or items:
+
+```sh
+docker exec -i odk-mysql mysql -u elcastle -pelca110 DARKEDEN < initdb/migrations/004-english-content.sql
+```
+
+The client repository ships the matching English for the client-side data
+(`tools/i18n` there); the NPC and place spellings are shared between the two.
+
 ### Pack pre-built binaries into an image
 
 `Dockerfile.pub` packages an already-compiled `bin/` directory instead of

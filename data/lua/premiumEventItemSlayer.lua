@@ -3,7 +3,7 @@
 -- premiumEventItemSlayer.lua
 --
 --------------------------------------------------------------------------------
--- 이거 사용하기 전에 premiumEventItemSlayer.lua를 load해야 한다.
+-- Load premiumEventItemSlayer.lua before using this.
 -- Input  : SUM
 -- Output : ItemClass, ItemType, OptionType
 --------------------------------------------------------------------------------

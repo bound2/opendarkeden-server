@@ -3,7 +3,7 @@
 -- xmasEventSlayer.lua
 --
 --------------------------------------------------------------------------------
--- 이거 사용하기 전에 xmasEventCommon.lua를 load해야 한다.
+-- Load xmasEventCommon.lua before using this.
 -- Input  : SUM
 -- Output : ItemClass, ItemType, OptionType
 --------------------------------------------------------------------------------

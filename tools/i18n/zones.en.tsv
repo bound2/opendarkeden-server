@@ -1,0 +1,148 @@
+11	Eslania Northeast	Eslania NE
+12	Eslania Northwest	Eslania NW
+13	Eslania Southeast	Eslania SE
+14	Eslania Southwest	Eslania SW
+21	Limbo Castle Northeast	Limbo NE
+22	Limbo Castle Northwest	Limbo NW
+23	Limbo Castle Southeast	Limbo SE
+24	Limbo Castle Southwest	Limbo SW
+31	Drobeta Northeast	Drobeta NE
+32	Drobeta Northwest	Drobeta NW
+33	Drobeta Southeast	Drobeta SE
+34	Drobeta Southwest	Drobeta SW
+41	Mount Rodin Northeast	Rodin NE
+42	Mount Rodin Northwest	Rodin NW
+43	Mount Rodin Southeast	Rodin SE
+44	Mount Rodin Southwest	Rodin SW
+51	Timore Northeast	Timore NE
+52	Timore Northwest	Timore NW
+53	Timore Southeast	Timore SE
+54	Timore Southwest	Timore SW
+61	Perona Highway Northeast	Perona NE
+62	Perona Highway Northwest	Perona NW
+63	Perona Highway Southeast	Perona SE
+64	Perona Highway Southwest	Perona SW
+71	Adam's Holy Land East	Adam E
+72	Adam's Holy Land	Adam
+73	Adam's Holy Land West	Adam W
+74	Adam's Holy Land North	Adam N
+75	Adam's Holy Land South	Adam S
+81	Castalo Northeast	Castalo NE
+91	Vranco Northeast	Vranco NE
+92	Vranco Northwest	Vranco NW
+93	Vranco Southeast	Vranco SE
+94	Vranco Southwest	Vranco SW
+1001	Underground Waterway	Waterway
+1002	Eslania Dungeon	Eslania Dungeon
+1003	Inside Limbo Castle	Bathory Village
+1004	Limbo Castle Dungeon	Limbo Dungeon
+1005	Event OX	OX
+1006	Event Arena	Arena
+1007	Inside Rasen Castle	Tepes Village
+1008	Kali Cave	Kali Cave
+1009	Rasen Training Ground	Rasen Training
+1010	Peiac Tunnel	Peiac Tunnel
+1011	Lost Taiyan B1F	Taiyan B1F
+1012	Lost Taiyan B2F	Taiyan B2F
+1013	Asylion Dungeon	Asylion
+1020	Event Arena 2	Arena 2
+1100	Bathory Dungeon B1F	Bathory B1F
+1101	Bathory Dungeon B2F	Bathory B2F
+1102	Bathory Dungeon B3F	Bathory B3F
+1103	Bathory Dungeon B4F	Bathory B4F
+1104	Bathory's Lair	Bathory's Lair
+1105	Ghorgova Tunnel	Ghorgova
+1106	Clone Bathory's Lair	Clone Bathory Lair
+1111	Rasen Outer Castle 1F	Rasen Outer 1F
+1112	Rasen Inner Castle 1F	Rasen Inner 1F
+1113	Rasen Inner Castle 2F	Rasen Inner 2F
+1114	Tepes' Lair	Tepes' Lair
+1115	Clone Tepes' Lair	Clone Tepes Lair
+1121	Laom Dungeon 2F	Laom 2F
+1122	Temerie Holy Land	Temerie
+1123	Hilanom Holy Land	Hilanom
+1124	Icen Dungeon 2F	Icen 2F
+1125	Laom Dungeon 1F	Laom 1F
+1126	Icen Dungeon 1F	Icen 1F
+1127	Icen Dungeon 3F	Icen 3F
+1128	Laom Dungeon 3F	Laom 3F
+1129	Laom Dungeon 4F	Laom 4F
+1130	Laom Dungeon 5F	Laom 5F
+1131	Caligo Dungeon 1F	Caligo 1F
+1132	Caligo Dungeon 2F	Caligo 2F
+1133	Caligo Dungeon 3F	Caligo 3F
+1134	Caligo Dungeon 4F	Caligo 4F
+1201	Octavus Castle	Octavus
+1202	Tertius Castle	Tertius
+1203	Septimus Castle	Septimus
+1204	Quartus Castle	Quartus
+1205	Pentanus Castle	Pentanus
+1206	Hexserius Castle	Hexserius
+1211	Octavus Dungeon B1F	Octavus B1F
+1212	Octavus Dungeon B2F	Octavus B2F
+1221	Tertius Dungeon B1F	Tertius B1F
+1222	Tertius Dungeon B2F	Tertius B2F
+1231	Septimus Dungeon B1F	Septimus B1F
+1232	Septimus Dungeon B2F	Septimus B2F
+1241	Quartus Dungeon B1F	Quartus B1F
+1242	Quartus Dungeon B2F	Quartus B2F
+1251	Pentanus Dungeon B1F	Pentanus B1F
+1252	Pentanus Dungeon B2F	Pentanus B2F
+1261	Hexserius Dungeon B1F	Hexserius B1F
+1262	Hexserius Dungeon B2F	Hexserius B2F
+1301	Olt	Slayer PK
+1302	Oltenia	Vampire PK
+1303	Banatul	Free PK
+1311	Ousters Village	Ousters Village
+1321	Hanial Dungeon B1F	Hanial B1F
+1322	Hanial Dungeon B2F	Hanial B2F
+1323	Hanial Dungeon B3F	Hanial B3F
+1324	Hanial Dungeon B4F	Hanial B4F
+1401	Lust Tower 1F	Lust Tower 1F
+1402	Lust Tower 2F	Lust Tower 2F
+1410	Illusions Way 1	Illusions Way 1
+1411	Illusions Way 2	Illusions Way 2
+1412	Gilles de Rais' Lair	Gilles' Lair
+1413	Gilles de Rais' Lair Core	Gilles' Lair Core
+1500	Castle Siege Test	Siege Test
+1501	Octavus Siege Area	Octavus Siege
+1502	Tertius Siege Area	Tertius Siege
+1503	Septimus Siege Area	Septimus Siege
+1504	Quartus Siege Area	Quartus Siege
+1505	Pentanus Siege Area	Pentanus Siege
+1506	Hexserius Siege Area	Hexserius Siege
+1600	Path to Fears	Path to Fears
+1601	IK Office	IKO
+1602	IK Lab	IKL
+1603	IK Lab B1F	IK1
+1604	IK Lab B2F	IK2
+1611	Junjeo Tunnel 1F	Junjeo 1F
+1612	Junjeo Tunnel 2F	Junjeo 2F
+1621	New Map	New Map
+2000	Soldier Guild B1F	Soldier B1F
+2001	Soldier Guild 1F	Soldier 1F
+2002	Soldier Guild 2F	Soldier 2F
+2003	Soldier Guild 3F	Soldier 3F
+2004	Soldier Guild Rooftop	Soldier Roof
+2010	Cleric Guild B1F	Cleric B1F
+2011	Cleric Guild 1F	Cleric 1F
+2012	Cleric Guild 2F	Cleric 2F
+2013	Cleric Guild 3F	Cleric 3F
+2014	Cleric Guild 4F	Cleric 4F
+2020	Warrior Guild B1F	Warrior B1F
+2021	Warrior Guild 1F	Warrior 1F
+2022	Warrior Guild 2F	Warrior 2F
+2023	Warrior Guild 3F	Warrior 3F
+2024	Warrior Guild Rooftop	Warrior Roof
+2101	Field Headquarters	Field HQ
+2102	City Outskirts	Outskirts
+3001	Refinium Mine	Refinium Mine
+3002	Trap Zone	Trap Zone
+3003	Refinium Storeroom	Refinium Store
+4001	Gate of the Altar	GOA
+4002	Altar of Blood	AOB
+4003	Slayer Mirror of the Abyss	SMOA
+4004	Vampire Mirror of the Abyss	VMOA
+4005	Ousters Mirror of the Abyss	OMOA
+8000	Developer Training Camp	Training Camp
+8001	Survival	Survival

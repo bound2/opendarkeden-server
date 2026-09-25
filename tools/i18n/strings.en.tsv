@@ -1,0 +1,2102 @@
+# table.column <TAB> source text <TAB> English. Applied by translate_dump.pl.
+AttrInfo.comm	이벤트시작여부	Event start flag
+AttrInfo.comm	이벤트 몬스터 생성확률	Event monster spawn rate
+AttrInfo.comm	아이템 생성확률	Item drop rate
+AttrInfo.comm	경험치 획득 확률	Experience gain rate
+AttrInfo.comm	전쟁 승리시 보너스 유지시간	Bonus duration after a war victory
+AttrInfo.comm	슬레이어 HP Bonus	Slayer HP bonus
+AttrInfo.comm	뱀파이어 HP Bonus	Vampire HP bonus
+AttrInfo.comm	프리미엄 사용자 경험치 비율	Premium user experience rate
+AttrInfo.comm	프리미엄 존 아이템 루팅 확률	Premium zone item loot rate
+AttrInfo.comm	존 그룹 로드 밸런싱 주기(분)	Zone group load-balancing interval (min)
+AttrInfo.comm	갬블 ItemType 확률	Gamble ItemType rate
+AttrInfo.comm	갬블 ItemOption 확률	Gamble ItemOption rate
+AttrInfo.comm	모터사이클 소환	Motorcycle summoning
+AttrInfo.comm	유효 적 인식 시간(초)	Enemy recognition time (sec)
+AttrInfo.comm	슬레이어 damage bonus	Slayer damage bonus
+AttrInfo.comm	뱀파이어 damage bonus	Vampire damage bonus
+AttrInfo.comm	레어 아이템 루팅 확률	Rare item loot rate
+AttrInfo.comm	유니크 아이템 루팅 확률	Unique item loot rate
+AttrInfo.comm	마스터 레어 작동 여부	Master lair enabled
+AttrInfo.comm	마스터 레어에서 죽었을때 다시 들어갈 수 있나?	Can players re-enter a master lair after dying there?
+AttrInfo.comm	추석보너스 아이템 루팅 확률	Chuseok bonus item loot rate
+AttrInfo.comm	마스터 흡혈 시작 HP %	Master Blood Drain start HP %
+AttrInfo.comm	마스터 흡혈 시작 BloodDrain확률 %	Master Blood Drain start BloodDrain chance %
+AttrInfo.comm	마스터 흡혈 끝 HP %	Master Blood Drain end HP %
+AttrInfo.comm	마스터 흡혈 끝 BloodDrain확률 %	Master Blood Drain end BloodDrain chance %
+AttrInfo.comm	치프 몬스터 등장 여부	Chief monsters appear
+AttrInfo.comm	치프 몬스터 레어 아이템 루팅 확률	Chief monster rare item loot rate
+AttrInfo.comm	능력치 40되면 길드로 이동하기	Move to the guild when stats reach 40
+AttrInfo.comm	슬레이어 무료 사용 도메인합 제한	Slayer free-play domain total limit
+AttrInfo.comm	뱀파이어 무료 사용 레벨 제한	Vampire free-play level limit
+AttrInfo.comm	IncomingConnection과 관련된 로그 on/off	IncomingConnection logging on/off
+AttrInfo.comm	크리스마스 폭죽 루팅 확률	Christmas firecracker loot rate
+AttrInfo.comm	크리스마스 트리 조각 루팅 확률	Christmas tree piece loot rate
+AttrInfo.comm	선물 상자 루팅 확률	Gift box loot rate
+AttrInfo.comm	크리스마스 트리 지속 시간	Christmas tree duration
+AttrInfo.comm	마스터 레어 출입 가능 인원수	Master lair player capacity
+AttrInfo.comm	계급 경험치 얻는 %	Rank experience gain %
+AttrInfo.comm	아이템 Luck 적용 %	Item Luck applied %
+AttrInfo.comm	대박 아이템 확률 / 10000	Jackpot item chance / 10000
+AttrInfo.comm	대박 아이템 추가 아이템 개수	Jackpot item: number of extra items
+AttrInfo.comm	대박 해골 확률 / 10000	Jackpot skull chance / 10000
+AttrInfo.comm	유료 사용자 앰플, 혈청 반값 이벤트 on/off	Half-price ampoule and Serum event for paying users on/off
+AttrInfo.comm	공용성 입장료	Common castle entrance fee
+AttrInfo.comm	길드성 입장료	Guild castle entrance fee
+AttrInfo.comm	공용성 아이템 세율	Common castle item tax rate
+AttrInfo.comm	길드성 아이템 세율	Guild castle item tax rate
+AttrInfo.comm	전쟁신청금	War application fee
+AttrInfo.comm	길드 전쟁 시간(초)	Guild war duration (sec)
+AttrInfo.comm	圣战(种族间战争时间)	Holy war (Race War duration)
+AttrInfo.comm	아담의 성지 전쟁 주기는 주(week) 단위인가? 아니면 일(day) 단위이다	Is the Adam's Holy Land war cycle weekly? Otherwise it is daily
+AttrInfo.comm	아담의 성지 전쟁 기능이 작동하는가?	Is the Adam's Holy Land war enabled?
+AttrInfo.comm	종족 전쟁 시 적용 timeband	Timeband applied during the Race War
+AttrInfo.comm	종족 전쟁 자동 시작 기능. 이 값은 실제로 안 쓰인다(-_-;). conf화일의 ActiveRaceWar참고	Race War auto-start. This value is not actually used (-_-;). See ActiveRaceWar in the conf file
+AttrInfo.comm	종족 전쟁 인원 제한 기능	Race War player limit
+AttrInfo.comm	치프 몬스터 추가 아이템 개수	Chief monster: number of extra items
+AttrInfo.comm	NPC가 선물 주는 이벤트 On/Off	NPC gift event on/off
+AttrInfo.comm	뱀파이어 능력치 재분배 비용	Vampire stat redistribution cost
+AttrInfo.comm	커플 기능 On/Off	Couple system on/off
+AttrInfo.comm	커플이 깨진 캐릭터가 다시 커플을 맺을 수 있나? on/off	Can a character whose couple broke up form a new couple? on/off
+AttrInfo.comm	길드전쟁을 하는가?. 이 값은 실제로 안 쓰인다(-_-;). conf화일의 ActiveGuildWar참고	Is guild war enabled? This value is not actually used (-_-;). See ActiveGuildWar in the conf file
+AttrInfo.comm	아우스터스 무료 사용 레벨 제한	Ousters free-play level limit
+AttrInfo.comm	퀘스트를 신청할 수 있는가	Can players apply for quests?
+AttrInfo.comm	퀘스트 정보를 보내줘야 하는가	Should quest info be sent?
+AttrInfo.comm	구입한 아이템을 찾을 수 있는가	Can purchased items be collected?
+AttrInfo.comm	PC 방 경험치 보너스	PC room experience bonus
+AttrInfo.comm	PC 방 아이템 획득률 보너스	PC room item drop bonus
+AttrInfo.comm	돈 로그 남기는 최소 금액	Minimum amount for money logging
+AttrInfo.comm	피씨방 복권 이벤트	PC room lottery event
+AttrInfo.comm	Capture The Flag 이벤트 가능	Capture The Flag event enabled
+AttrInfo.comm	Daemonctl 도 죽이는지 여부	Whether Daemonctl is killed too
+AttrInfo.comm	Moon Card 이벤트 여부	Moon Card event flag
+AttrInfo.comm	보름달 카드 나올 확률	Full moon card drop rate
+AttrInfo.comm	반달 카드 나올 확률	Half moon card drop rate
+AttrInfo.comm	초승달 카드 나올 확률	Crescent moon card drop rate
+AttrInfo.comm	그믐달(없는) 카드 나올 확률	New moon (blank) card drop rate
+AttrInfo.comm	레벨별 전쟁 진행 여부	Level war enabled
+AttrInfo.comm	종족전시 HP 보너스	Race War HP bonus
+AttrInfo.comm	레벨전쟁 존에 무료 사용자가 들어갈 수 있는가?	Can free users enter the level war zone?
+AttrInfo.comm	펫 경험치 비율	Pet experience rate
+AttrInfo.comm	복주머니 이벤트 여부	Lucky pouch event flag
+AttrInfo.comm	초록색 복주머니 나올 확률	Green lucky pouch drop rate
+AttrInfo.comm	파란색 복주머니 나올 확률	Blue lucky pouch drop rate
+AttrInfo.comm	금색 복주머니 나올 확률	Gold lucky pouch drop rate
+AttrInfo.comm	빨간색 복주머니 나올 확률	Red lucky pouch drop rate
+AttrInfo.comm	선물 상자 이벤트 여부	Gift box event flag
+AttrInfo.comm	빨간색 선물 상자 나올 확률	Red gift box drop rate
+AttrInfo.comm	파란색 선물 상자 나올 확률	Blue gift box drop rate
+AttrInfo.comm	초록색 선물 상자 나올 확률	Green gift box drop rate
+AttrInfo.comm	노란색 선물 상자 나올 확률	Yellow gift box drop rate
+AttrInfo.comm	넷마블 카드 나올 확률	Netmarble card drop rate
+AttrInfo.comm	넷마블 카드 이벤트 여부	Netmarble card event flag
+AttrInfo.comm	프리미엄 체험권 이벤트 여부	Premium trial ticket event flag
+AttrInfo.comm	펫 먹이 이벤트 여부	Pet food event flag
+AttrInfo.comm	고급 펫 먹이 나올 확률	Premium pet food drop rate
+AttrInfo.comm	펫 먹이 나올 확률	Pet food drop rate
+AttrInfo.comm	종족별 펫 먹이 나올 확률	Race-specific pet food drop rate
+AttrInfo.comm	리바이벌 셋 나올 확률	Revival set drop rate
+AttrInfo.comm	오늘은 공휴일인가?	Is today a public holiday?
+AttrInfo.comm	몬스터 HP비율 %	Monster HP rate %
+AttrInfo.comm	몬스터 EXP비율 %	Monster EXP rate %
+AttrInfo.comm	클로버 이벤트 여부	Clover event flag
+AttrInfo.comm	클로버 나올 확률 (1/100000)	Clover drop rate (1/100000)
+AttrInfo.comm	몬스터 데미지 비율 %	Monster damage rate %
+AttrInfo.comm	2차 펫 퀘스트	Second pet quest
+AttrInfo.comm	네이밍펜 이벤트	Naming Pen event
+AttrInfo.comm	네이밍펜 확률 (1/100000)	Naming Pen chance (1/100000)
+AttrInfo.comm	금메달 확률 (1/100000)	Gold medal chance (1/100000)
+AttrInfo.comm	복날 이벤트	Dog days event
+AttrInfo.comm	월계관 확률	Laurel wreath chance
+AttrInfo.comm	다덴 올림픽 이벤트	Darden Olympics event
+AttrInfo.comm	월계관 가격	Laurel wreath price
+AttrInfo.comm	초보 이벤트	Beginner event
+AttrInfo.comm	송편 이벤트	Songpyeon event
+AttrInfo.comm	송편 확률	Songpyeon chance
+AttrInfo.comm	길드 탈퇴시 페널티 기간	Penalty period after leaving a guild
+AttrInfo.comm	연합 하위길드 갯수 제한	Maximum number of sub-guilds in a union
+AttrInfo.comm	수능 대박 아이템 확률	Exam-season jackpot item chance
+AttrInfo.comm	질드레 레어 인원 제한	Gilles de Rais lair player limit
+AttrInfo.comm	불우이웃돕기이벤트	Charity event
+AttrInfo.comm	상급 모래시계 확률	Superior hourglass chance
+AttrInfo.comm	중급 모래시계 확률	Intermediate hourglass chance
+AttrInfo.comm	하급 모래시계 확률	Basic hourglass chance
+AttrInfo.comm	새해 맞이 이벤트 2005	New Year event 2005
+AttrInfo.comm	복조리 아이템 확률 (1/n)	Lucky strainer item chance (1/n)
+AttrInfo.comm	이벤트 빨간 떡국 아이템 확률 (1/n)	Event red rice cake soup item chance (1/n)
+AttrInfo.comm	이벤트 녹색 떡국 아이템 확률 (1/n)	Event green rice cake soup item chance (1/n)
+AttrInfo.comm	이벤트 파란 떡국 아이템 확률 (1/n)	Event blue rice cake soup item chance (1/n)
+AttrInfo.comm	이벤트 검은 떡국 아이템 확률 (1/n)	Event black rice cake soup item chance (1/n)
+AttrInfo.comm	이벤트 쑥색 떡국 아이템 확률 (1/n)	Event mugwort rice cake soup item chance (1/n)
+AttrInfo.comm	시간대별 경험치 2배 이벤트	Time-slot double experience event
+AttrInfo.comm	몬스터 죽인 숫자 세기	Count monster kills
+AttrInfo.comm	결혼 축의금 이벤트	Wedding gift money event
+AttrInfo.comm	패밀리 코인 이벤트	Family coin event
+AttrInfo.comm	패밀리 코인 아이템 확률	Family coin item chance
+AttrInfo.comm	풍선 머리띠 이벤트	Balloon headband event
+AttrInfo.comm	풍선 머리띠 아이템 확률	Balloon headband item chance
+AttrInfo.comm	풀 파티 경험치 이벤트	Full party experience event
+MasterLairInfo.MasterSummonSay	"목욕중인 숙녀를 훔쳐보려 하다니, 냉큼 꺼지지 못할까…",\n"여기가 감히 어딘 줄이나 알고 들어온 거냐?",\n"가거라, 나의 귀여운 아이들아. 가서 놈들을 영원한 어둠 속으로 인도하거라.",\n"조금만 기다리거라. 나의 마력이 거의 다 차 올랐으니…",\n"나의 충성스런 아이들아, 가서 목욕통에 담을 피를 보충해 오거라.",\n"너희들의 충성심을 내게 보여주거라.",\n"쯧쯧쯧… 무모하다고나 할까, 어리석다고나 할까…",\n"크크?, 그래도 살아보겠다고 발버둥을 치는구나.",\n"좀 더 힘을 내보라구. 이제 시작일 뿐인데 그렇게까지 숨을 몰아 쉬어서야…",\n"내가 브리콜라카스님께 배운 건 마법만이 아니란 걸 알게 될 거야."\n	"Peeping at a lady in her bath? Get out this instant...",\n"Do you even know where you have dared to set foot?",\n"Go, my lovely children. Go and lead them into eternal darkness.",\n"Wait just a little longer. My magic is almost at its peak...",\n"My loyal children, go and bring more blood to fill my bath.",\n"Show me your loyalty.",\n"Tsk, tsk, tsk... Is it recklessness, or simple stupidity...",\n"Heh heh, still thrashing about trying to stay alive.",\n"Try a little harder. This is only the beginning, and already you gasp for breath...",\n"You will learn that magic is not all Lord Vrykolakas taught me."\n
+MasterLairInfo.MasterSummonSay	"대체 어느 놈이냐… 바깥이 무척 소란스럽구나.",\n"아직 두려움이란 걸 경험치 못한 생쥐들이 숨어들었나 보군.",\n"나의 숙면을 방해한 죄의 댓가는 죽음보다 크다는 걸 알아라.",\n"조금만 참고 견디거라. 너희들을 이내 피의 축제 속으로 초대할 테니.",\n"하하하하… 고작 이 정도에 얼굴색이 변하는 거냐?",\n"끌끌끌… 이따금은 이런 멍청이들이라도 생겨야 사는데 재미가 있을 테지.",\n"혹시 지금 사전이 있거들랑 '만용'이란 단어 뜻을 찾아 보라구.",\n"에슬라니아에 숨겨진 일족의 힘은 곧 나의 것이 되리라.",\n"벌써부터 그렇게 나가떨어져서야 내 모습은 구경도 못해볼 거 아닌가.",\n"나를 좀더 흥겹게 해주지 못하면 곤란한데 말이야…"\n	"Who goes there... There is quite a commotion outside.",\n"It seems some mice who have yet to learn fear have crept in.",\n"Know that the price for disturbing my slumber is greater than death.",\n"Be patient a little longer. I shall soon invite you to a feast of blood.",\n"Hahahaha... Is this enough to make you turn pale?",\n"Heh heh heh... Now and then it takes fools like these to keep life amusing.",\n"If you have a dictionary on you, look up the word 'recklessness'.",\n"The power of the clan hidden in Eslania shall soon be mine.",\n"If you fall so soon, you will never even get to see my face.",\n"It would be a pity if you could not entertain me a little better..."\n
+MasterLairInfo.MasterDeadSlayerSay	"피 속에 흐르는 불멸의 힘이 언젠가 너희를 죽음으로 인도할 것이다.",\n"들리느냐? 나의 수하들이 울부짖는 소리가… 일족의 저주가 늘 그림자에 붙어 다닐 것이다.",\n"이번에는 물러서겠다만, 언젠가 네놈의 살은 비누로 만들고 피는 목욕통에 담아주겠다."\n	"The immortal power flowing in my blood will one day lead you to your deaths.",\n"Do you hear it? The wailing of my servants... The curse of my clan will cling to your shadow forever.",\n"I will withdraw this time, but one day I will make soap of your flesh and fill my bath with your blood."\n
+MasterLairInfo.MasterDeadSlayerSay	"크윽… 내가 하필 부상 중일 때 덤비다니… 운 좋은 줄 알아라, 꼬마.",\n"앞으론 명당자리로만 골라다녀라. 다음에 마주쳤을 땐 그 자리가 곧 네 무덤이 될 테니…",\n"낯짝을 똑똑히 기억해두마. 언젠가 네놈 엉덩이에 꼬챙이를 꿰어 매달아 주어야 할 테니…"\n	"Ugh... To strike at me just when I am wounded... Count yourself lucky, boy.",\n"From now on, keep to the safest ground you can find. The next place we meet will be your grave...",\n"I will remember your face well. One day I must hang you up with a skewer through your backside..."\n
+MasterLairInfo.MasterDeadVampireSay	"누가 보낸 것이냐? 네 놈들도 테페즈의 개란 말이냐? 빌어먹을 자식… 언젠간 내 손으로…",\n"뱀파이어의 긍지를 잃은 어리석은 것들아, 일족의 저주가 늘 그림자에 붙어 다닐 것이다.",\n"네 놈의 피에 흐르는 생명은 누구의 것이란 말이냐? 은혜도 모르는 어리석은 녀석들…"\n	"Who sent you? Are you Tepes's dogs too? Curse you... One day, with my own hands...",\n"Fools who have lost the pride of Vampires, the curse of the clan will cling to your shadow forever.",\n"Whose life is it that flows in your blood? Ungrateful fools..."\n
+MasterLairInfo.MasterDeadVampireSay	"조무래기 배신자들에게 당할 줄이야. 두고 봐라. 다음 번엔 그리 쉽지 않을 것이다.",\n"내게 바쳤던 충성의 서약은 거짓이었단 말이냐? 불멸의 육신이 언젠가 너희들을 반드시 멸하리라.",\n"바토리를 해치우기는커녕 되려 내게 칼날을 들이대다니… 배신의 대가는 죽음보다 클 것이다."\n	"To be brought down by petty traitors. Mark my words. Next time it will not be so easy.",\n"Was the oath of loyalty you swore to me a lie? My immortal flesh will destroy you all one day.",\n"Instead of finishing off Bathory, you turn your blades on me... The price of betrayal will be greater than death."\n
+MasterLairInfo.MasterNotDeadSay	"어리석은 녀석들. 지옥에서나 너희들의 나약함에 눈물을 흘리거라.",\n"깔깔깔깔... 고작 그 정도의 힘으로 이 안에 발을 들여놓았단 말이냐?",\n"이제 와서 발바닥을 핥으며 빌어봐야 소용없지 않겠어? 크크큭"	"Fools. Go and weep over your weakness in hell.",\n"Ahahahaha... You dared set foot in here with so little power?",\n"What good will it do now to lick my feet and beg? Heh heh heh"
+MasterLairInfo.MasterNotDeadSay	"네 녀석들의 기막힌 용기에 경의를 표한다. 가급적 고통 없이 보내주도록 하지.",\n"하하하하. 꼬챙이에 꿸 장식품들이 많이도 늘었구나.",\n"귀여운 녀석들. 네놈들에게도 생각이란 게 있다면 다신 이곳에 올 엄두를 못 내겠지?"\n	"I salute your remarkable courage. I shall try to send you off without pain.",\n"Hahahaha. My collection of skewered ornaments has grown nicely.",\n"Adorable creatures. If you have any sense at all, you will never dare come here again."\n
+SSStringPool.String	요청한 팀의 등록이 허가됨.	Your team registration request has been approved.
+SSStringPool.String	요청한 팀의 등록이 허가됨. 이 시간 이후부터 리더의 지휘를 받을 것	Your team registration has been approved. From now on you are under your leader's command
+SSStringPool.String	요청한 클랜의 등록이 허가됨.	Your clan registration request has been approved.
+SSStringPool.String	요청한 클랜의 등록이 허가됨. 이 시간 이후부터 리더의 지휘를 받을 것	Your clan registration has been approved. From now on you are under your leader's command
+SSStringPool.String	팀 가입이 승인되었습니다.	Your team membership has been approved.
+SSStringPool.String	클랜 가입이 승인되었습니다.	Your clan membership has been approved.
+SSStringPool.String	팀이 해체되었습니다.	The team has been disbanded.
+SSStringPool.String	클랜이 해체되었습니다.	The clan has been disbanded.
+SSStringPool.String	팀이 취소되었습니다. 등록비를 환불 받았습니다.	The team has been canceled. Your registration fee has been refunded.
+SSStringPool.String	클랜이 취소되었습니다. 등록비를 환불 받았습니다.	The clan has been canceled. Your registration fee has been refunded.
+OptionClassInfo.HName	HP흡수	HP Absorb
+OptionClassInfo.HName	MP흡수	MP Absorb
+OptionClassInfo.HName	HP재생력	HP Regeneration
+OptionClassInfo.HName	MP재생력	MP Regeneration
+OptionClassInfo.HName	명중률	To Hit
+OptionClassInfo.HName	회피율	Defense
+OptionClassInfo.HName	데미지	Damage
+OptionClassInfo.HName	방어율	Protection
+OptionClassInfo.HName	내구성	Durability
+OptionClassInfo.HName	독 마법저항력	Poison Resistance
+OptionClassInfo.HName	산 마법저항력	Acid Resistance
+OptionClassInfo.HName	저주 마법저항력	Curse Resistance
+OptionClassInfo.HName	블러드 마법저항력	Blood Resistance
+OptionClassInfo.HName	시야	Vision
+OptionClassInfo.HName	공격속도	Attack Speed
+OptionClassInfo.HName	크리티컬 히트	Critical Hit
+OptionClassInfo.HName	행운	Luck
+OptionClassInfo.HName	모든 저항력	All Resistances
+OptionClassInfo.HName	모든 능력치	All Stats
+OptionClassInfo.HName	MP 소모량	MP Consumption
+OptionClassInfo.HName	통역	Translation
+OptionClassInfo.HName	마법 데미지	Magic Damage
+OptionClassInfo.HName	물리 데미지	Physical Damage
+OptionClassInfo.HName	겜블 가격	Gamble Price
+OptionClassInfo.HName	포션(혈청) 가격	Potion (Serum) Price
+OptionClassInfo.HName	마법 방어력	Magic Defense
+OptionClassInfo.HName	물리 방어력	Physical Defense
+EventQuestRewardInfo.Name	아사달쇼핑 상품권(1만원)	Asadal Shopping gift certificate (10,000 won)
+EventQuestRewardInfo.Name	다크에덴 펜던트	DarkEden Pendant
+EventQuestRewardInfo.Name	다크에덴 티셔츠	DarkEden T-shirt
+EventQuestRewardInfo.Name	다크에덴 1개월 이용권	DarkEden 1-month pass
+EventQuestRewardInfo.Name	인라인 스케이트	Inline skates
+EventQuestRewardInfo.Name	힐리스 Accel 7021	Heelys Accel 7021
+EventQuestRewardInfo.Name	DVD 플레이어 MDVD-9006	DVD player MDVD-9006
+EventQuestRewardInfo.Name	5.1채널 스피커	5.1-channel speakers
+EventQuestRewardInfo.Name	아사달쇼핑 상품권(10만원)	Asadal Shopping gift certificate (100,000 won)
+EventQuestRewardInfo.Name	명품시계	Luxury watch
+EventQuestRewardInfo.Name	캠코더	Camcorder
+EventQuestRewardInfo.Name	디지털 카메라	Digital camera
+EventQuestRewardInfo.Name	아사달 쇼핑 상품권(50만원)	Asadal Shopping gift certificate (500,000 won)
+EventQuestRewardInfo.Name	홈시어터일체형	All-in-one home theater
+EventQuestRewardInfo.Name	냉장고	Refrigerator
+EventQuestRewardInfo.Name	완전평면 TV	Flat-screen TV
+EventQuestRewardInfo.Name	TFT-LCD 모니터	TFT-LCD monitor
+EventQuestRewardInfo.Name	컴퓨터	Computer
+EventQuestRewardInfo.Name	디지털 TV	Digital TV
+EventQuestRewardInfo.Name	다크에덴1/2 이용권(평생)	DarkEden 1/2 lifetime pass
+WorldInfo.Name	鬼魅炼狱	Phantom Purgatory
+CastleInfo.Name	奥塔乌斯	Octavus
+CastleInfo.Name	特瑞斯	Tertius
+CastleInfo.Name	塞普蒂默斯	Septimus
+CastleInfo.Name	括塔斯	Quartus
+CastleInfo.Name	彭塔努斯	Pentanus
+CastleInfo.Name	海克西里乌斯	Hexserius
+ShrineInfo.Name	亚麦加	Armega
+ShrineInfo.Name	쵠샅랑	Mihole
+ShrineInfo.Name	基罗	Kiro
+ShrineInfo.Name	阿伊尼	Ini
+ShrineInfo.Name	목적멕쟁	Gregori
+ShrineInfo.Name	孔切里亚	Concilia
+ShrineInfo.Name	雷吉斯	Legios
+ShrineInfo.Name	希而里	Hillel
+ShrineInfo.Name	속른	Jave
+ShrineInfo.Name	코쯔	Nema
+ShrineInfo.Name	각쭈힉	Arosa
+ShrineInfo.Name	察斯法	Chaspa
+SweeperSetInfo.Name	保管台	Storage Table
+GSStringPool.String	人类	Slayer
+GSStringPool.String	吸血鬼	Vampire
+GSStringPool.String	人类战斗奖励已经开启	The Slayer combat bonus is now active.
+GSStringPool.String	吸血鬼战斗奖励已经开启	The Vampire combat bonus is now active.
+GSStringPool.String	战斗奖励已经结束	The combat bonus has ended.
+GSStringPool.String	人类战斗奖励已经结束	The Slayer combat bonus has ended.
+GSStringPool.String	吸血鬼战斗奖励已经结束	The Vampire combat bonus has ended.
+GSStringPool.String	玩家%s(%s)在%s(%d,%d)里拥有人类圣物	%s (%s) holds the Slayer Relic at %s (%d, %d).
+GSStringPool.String	玩家%s(%s)在%s(%d,%d)里拥有吸血鬼圣物	%s (%s) holds the Vampire Relic at %s (%d, %d).
+GSStringPool.String	圣物(%s)掉在%s(%d,%d)里	Relic (%s) was dropped at %s (%d, %d).
+GSStringPool.String	%d秒后服务器暂停服务 稍后请重新连接	Server shutting down in %d seconds. Please reconnect later.
+GSStringPool.String	服务器将暂停服务	The server is shutting down.
+GSStringPool.String	玩家%s拿到了人类圣物	%s has taken the Slayer Relic.
+GSStringPool.String	玩家%s拿到了吸血鬼圣物	%s has taken the Vampire Relic.
+GSStringPool.String	%d취빈盧땡돕%s	In %d seconds you will be moved to %s.
+GSStringPool.String	%d취빈젯쌈쉥뙤역	Disconnecting in %d seconds.
+GSStringPool.String	任务地图(%s)已打开	Quest map (%s) is now open.
+GSStringPool.String	任务地图(%s)已关闭	Quest map (%s) is now closed.
+GSStringPool.String	可进出休息地(%s)的时间还剩%d分钟	Lair (%s) can be entered for %d more minutes.
+GSStringPool.String	圣诞老人	Santa Claus
+GSStringPool.String	狼	Wolf
+GSStringPool.String	人类圣物保管台	Slayer Relic Shrine
+GSStringPool.String	吸血鬼圣物保管台	Vampire Relic Shrine
+GSStringPool.String	现在无法进入	You cannot enter right now.
+GSStringPool.String	收费区，不能进	This is a pay zone. You cannot enter.
+GSStringPool.String	[网吧]使用时间还剩%d分钟	[PC Room] %d minutes of play time left.
+GSStringPool.String	[个人]使用时间还剩%d分钟	[Personal] %d minutes of play time left.
+GSStringPool.String	纯能力值和达到40才能练这个技能	You can train this skill once your base stats total 40.
+GSStringPool.String	圣使者技能	Cleric Guild
+GSStringPool.String	엊훙세콘	Soldier Guild
+GSStringPool.String	武士技能	Warrior Guild
+GSStringPool.String	现在无法得到圣物	You cannot take the Relic right now.
+GSStringPool.String	圣物保管台里出来了圣物(%s)	Relic (%s) has appeared at the Relic Shrine.
+GSStringPool.String	啊...是吸血鬼!	Ah... a Vampire!
+GSStringPool.String	咦...?吃的东西吗?	Huh...? Is that food?
+GSStringPool.String	玩家%s把圣物(%s)放进了圣物保管台	%s placed the Relic (%s) in the Relic Shrine.
+GSStringPool.String	战争，人类胜利了	The Slayers have won the war.
+GSStringPool.String	吸血鬼赢得了战争。	The Vampires have won the war.
+GSStringPool.String	正在战争中	A war is already in progress.
+GSStringPool.String	战争开始了	The war has begun.
+GSStringPool.String	结束战争	The war has ended.
+GSStringPool.String	不是战争中或不能结束	No war in progress, or it cannot be ended.
+GSStringPool.String	又打错命令啦，去仔细看看再来吧，你的变量名字错啦。	Wrong command again: bad variable name. Check it and try again.
+GSStringPool.String	正在下载休息地信息	Loading lair info...
+GSStringPool.String	正在下载怪物信息(%s)	Loading monster info (%s)...
+GSStringPool.String	下载所有怪物的信息	Loading all monster info...
+GSStringPool.String	怪物(%s)指定错了	Invalid monster specified (%s).
+GSStringPool.String	下载怪物AI的信息(DirectiveSet)	Loading monster AI info (DirectiveSet)...
+GSStringPool.String	下载地区信息	Loading zone info...
+GSStringPool.String	下载地区	Loading zones...
+GSStringPool.String	下载用户信息	Loading user info...
+GSStringPool.String	下载物品%s信息	Loading item info for %s...
+GSStringPool.String	下载选择权信息	Loading option info...
+GSStringPool.String	下载阶级奖金信息	Loading rank bonus info...
+GSStringPool.String	星出现比率改成1/%s	Star drop rate set to 1/%s.
+GSStringPool.String	事件开始了	The event has started.
+GSStringPool.String	事件结束了	The event has ended.
+GSStringPool.String	事件中怪物出现比率改成1/%s	Event monster spawn rate set to 1/%s.
+GSStringPool.String	经验值获得率改成%s%	Experience gain rate set to %s%
+GSStringPool.String	物品获得率改成%s%	Item drop rate set to %s%
+GSStringPool.String	维持战争胜利时间改成%s分钟	War victory bonus duration set to %s minutes.
+GSStringPool.String	人类战争HP奖赏改成%s%	Slayer war HP bonus set to %s%
+GSStringPool.String	吸血鬼战争HP奖赏改成%s%	Vampire war HP bonus set to %s%
+GSStringPool.String	人类战争损伤奖赏改成%s%	Slayer war damage bonus set to %s%
+GSStringPool.String	吸血鬼战争损伤奖赏改成%s%	Vampire war damage bonus set to %s%
+GSStringPool.String	奖金使用者的经验值奖金改成%s%	Premium user EXP bonus set to %s%
+GSStringPool.String	收费地区的物品比率改成%s%	Pay zone item drop rate set to %s%
+GSStringPool.String	地区团体平衡周期改成%s分钟	Zone group balancing interval set to %s minutes.
+GSStringPool.String	GambleItemType比率改成%s%	GambleItemType rate set to %s%
+GSStringPool.String	GambleItemOption比率改成%s%	GambleItemOption rate set to %s%
+GSStringPool.String	摩托车召唤技能是%s	Motorcycle summoning: %s
+GSStringPool.String	怪物识别敌人时间改成%s秒	Monster enemy memory set to %s seconds.
+GSStringPool.String	值钱的改成%s%	Rare item rate set to %s%
+GSStringPool.String	独特物品比率改成%s/10000	Unique item rate set to %s/10000
+GSStringPool.String	BOSS战激活:%s	Boss battle active: %s
+GSStringPool.String	死后重新进入休息地%s	Re-enter lair after death: %s
+GSStringPool.String	中秋饼物品比率1 / %s	Mooncake item rate: 1 / %s
+GSStringPool.String	怪物开始吸血 HP达到 %s%	Master starts Blood Drain at HP %s%
+GSStringPool.String	怪物开始吸血时吸血比率%s%	Master Blood Drain rate at start: %s%
+GSStringPool.String	怪物吸血完毕HP达到 %s	Master stops Blood Drain at HP %s
+GSStringPool.String	怪物吸血完毕状态下吸血比率%s%	Master Blood Drain rate at end: %s%
+GSStringPool.String	怪物头子技能%s	Chief monsters: %s
+GSStringPool.String	怪物头子稀有物品比率%s%	Chief monster rare item rate: %s%
+GSStringPool.String	往能力值和40以上的技能建筑物移动技能%s	Move to skill guild at 40+ total stats: %s
+GSStringPool.String	系统正在保存您的信息 请少等	Saving your data. Please wait a moment.
+GSStringPool.String	玩家%s正在连接 %s服务器	%s is connected to server %s.
+GSStringPool.String	玩家%s不在服务器上	%s is not on the server.
+GSStringPool.String	在线玩家: %d 名	Players online: %d
+GSStringPool.String	你不行滴，命令记错啦，去看看再来吧。	Nope, wrong command. Look it up and try again.
+GSStringPool.String	无法创造	Cannot create it.
+GSStringPool.String	均衡地区团体	Balancing zone groups...
+GSStringPool.String	任务开始	The quest has begun.
+GSStringPool.String	这里不是BOSS任务地带	This is not a boss quest zone.
+GSStringPool.String	我最猛状态%s	Invincible mode: %s
+GSStringPool.String	幽灵状态 %s	Ghost mode: %s
+GSStringPool.String	空中被封锁	The air is blocked.
+GSStringPool.String	完蛋了，又没有办法隐身了。	Blast, there is no way to hide here either.
+GSStringPool.String	除去了装备栏里的物品	Inventory cleared.
+GSStringPool.String	因加入等待人员太多无法申请	Too many applicants are waiting. You cannot apply.
+GSStringPool.String	加入了组队	Joined the party.
+GSStringPool.String	속흙죄무삔	Joined the guild.
+GSStringPool.String	申请了加入组队	Applied to join the party.
+GSStringPool.String	申请了加入公会	Applied to join the guild.
+GSStringPool.String	玩家%s加入了组队	%s joined the party.
+GSStringPool.String	玩家%s加入了公会	%s joined the guild.
+GSStringPool.String	玩家%s申请了加入组队	%s applied to join the party.
+GSStringPool.String	玩家%s申请了加入公会	%s applied to join the guild.
+GSStringPool.String	组队已登陆	Party registered.
+GSStringPool.String	무삔綠되쩍	Guild registered.
+GSStringPool.String	玩家%s取消了加入组队	%s's party application was denied.
+GSStringPool.String	玩家%s取消了加入公会	%s's guild application was denied.
+GSStringPool.String	取消玩家%s加入组队	You denied %s's party application.
+GSStringPool.String	取消了玩家%s的加入公会	You denied %s's guild application.
+GSStringPool.String	赶出了组队	You were expelled from the party.
+GSStringPool.String	먀놔죄무삔	You were expelled from the guild.
+GSStringPool.String	玩家%s从组队里赶出了	%s was expelled from the party.
+GSStringPool.String	玩家%s从公会里赶出了	%s was expelled from the guild.
+GSStringPool.String	允许玩家%s加入组队	Accepted %s into the party.
+GSStringPool.String	接受了玩家%s的加入公会	Accepted %s into the guild.
+GSStringPool.String	组队的权利变更了	Party permissions changed.
+GSStringPool.String	뚤무삔돨홈적긴뫘죄	Guild permissions changed.
+GSStringPool.String	玩家%s对组队的权利变更了	%s's party permissions changed.
+GSStringPool.String	玩家%s对公会的权利变更了	%s's guild permissions changed.
+GSStringPool.String	退出了组队	Left the party.
+GSStringPool.String	退出了公会	Left the guild.
+GSStringPool.String	玩家%s退出了组队	%s left the party.
+GSStringPool.String	玩家%s退出了公会	%s left the guild.
+GSStringPool.String	%s金钱不足	%s: not enough money.
+GSStringPool.String	物品清单里交换空间不足。确认物品清单后再试试。	Not enough inventory space for the exchange. Check your inventory and try again.
+GSStringPool.String	临时保管箱里道具不存在。	There is no item in temporary storage.
+GSStringPool.String	像等级一样转换为奖励分。	Converted to bonus points according to your level.
+GSStringPool.String	STR不能降低到20以下。	STR cannot be lowered below 20.
+GSStringPool.String	DEX不能降低到20以下。	DEX cannot be lowered below 20.
+GSStringPool.String	INT不能降低到20以下。	INT cannot be lowered below 20.
+GSStringPool.String	复活位置已经指定了。	Resurrection point set.
+GSStringPool.String	NPC有故障。请咨询客户服务中心。	NPC error. Please contact customer support.
+GSStringPool.String	您手里没有任务的道具。	You do not have the quest item.
+GSStringPool.String	服务器有问题所以道具不能创建。	Server error: the item could not be created.
+GSStringPool.String	슥뻣냥묘죄。	Exchange complete.
+GSStringPool.String	若没申请，则无法进入种族战争。	You cannot enter the Race War without applying.
+GSStringPool.String	若不是城主人公会的会员，则无法进入。	Only members of the guild that owns the castle may enter.
+GSStringPool.String	目前不支持已有战争技能	The old war system is not supported.
+GSStringPool.String	导入战争时间表情报。	Loading war schedule info.
+GSStringPool.String	:现在的战争技能是关闭状态。	:The war system is currently off.
+GSStringPool.String	导入血的圣书主人情报。	Loading Blood Bible owner info.
+GSStringPool.String	导入种族战争玩家数量上限情报。	Loading Race War player limit info.
+GSStringPool.String	税率输入错误。	Invalid tax rate.
+GSStringPool.String	不是协会的所属角色。	The character does not belong to a guild.
+GSStringPool.String	没有这种角色。	No such character.
+GSStringPool.String	现在地区不是城。	This zone is not a castle.
+GSStringPool.String	现在的战争技能是关闭状态。请先把战争状态改为开。	The war system is off. Turn war status on first.
+GSStringPool.String	开始种族间战争。	The Race War begins.
+GSStringPool.String	已经处于战争中或服务器错误。	A war is already under way, or a server error occurred.
+GSStringPool.String	[%d]的战争已经消除。	War [%d] has been removed.
+GSStringPool.String	[%d]里没有正在进行中的战争。	No war is in progress in [%d].
+GSStringPool.String	已经消除种族战争。	The Race War has been removed.
+GSStringPool.String	没有进行中的种族战争。	No Race War is in progress.
+GSStringPool.String	已经把血的圣书主人情报储存于数据库中。	Blood Bible owner info saved to the database.
+GSStringPool.String	大家都死了。	Everything here is dead.
+GSStringPool.String	%s的协会领袖从%s变更为%s	Guild master of %s changed from %s to %s.
+GSStringPool.String	%s城变成人类共用城	%s Castle is now a Slayer common castle.
+GSStringPool.String	%s城变成吸血鬼共用城	%s Castle is now a Vampire common castle.
+GSStringPool.String	%s公会占领了%s城。	Guild %s has taken %s Castle.
+GSStringPool.String	%s公会占领了%s城。	Guild %s has taken %s Castle.
+GSStringPool.String	城的象征雕塑(%s)返回到守护圣坛(%s)。	Castle symbol (%s) returned to its Guard Shrine (%s).
+GSStringPool.String	%s(%s)在%s(%d,%d)拥有城的象征标志(%s)	%s (%s) at %s (%d, %d) holds the castle symbol (%s).
+GSStringPool.String	%s(%d,%d)的圣坛中有城的标志--%s	The shrine at %s (%d, %d) holds castle symbol %s.
+GSStringPool.String	城的标志掉在%s(%d,%d)。	The castle symbol dropped at %s (%d, %d).
+GSStringPool.String	[%d]城里有%d个战争正在准备当中。	Castle [%d]: %d wars being prepared.
+GSStringPool.String	指定的地区不是城。	The specified zone is not a castle.
+GSStringPool.String	没有那种地区。	No such zone.
+GSStringPool.String	血的圣书(%s)产生。	Blood Bible (%s) has appeared.
+GSStringPool.String	城的标志(%s)产生。	Castle symbol (%s) has appeared.
+GSStringPool.String	血的圣书雕塑(%s)返回到%s的守护圣坛(%s)。	Blood Bible (%s) returned to %s's Guard Shrine (%s).
+GSStringPool.String	服务费的使用期限以终了。	Your premium service has expired.
+GSStringPool.String	入场费用金额不足。:需要%d金钱。	Not enough for the entrance fee: %d required.
+GSStringPool.String	%s已经开始	%s has begun.
+GSStringPool.String	%s已经结束	%s has ended.
+GSStringPool.String	现在没有正在进行的战争。	No war is in progress.
+GSStringPool.String	%s将进行到%s	%s will continue until %s.
+GSStringPool.String	战争过程中无法驱逐。	You cannot expel members during a war.
+GSStringPool.String	不再允许加入。	No more members can join.
+GSStringPool.String	战争过程中不允许加入。	No one can join during a war.
+GSStringPool.String	%s没有参加圣物战活动	%s did not take part in the Relic War event.
+GSStringPool.String	%s已经得到圣物战相关工具	%s has already received the Relic War item.
+GSStringPool.String	足球数量不够。再多搜集一点。	Not enough soccer balls. Collect a few more.
+GSStringPool.String	已给予您STR+4 夹克和 STR+4 休闲裤。中国队加油!	You received an STR+4 Jacket and STR+4 Slacks. Go team!
+GSStringPool.String	已给予您STR+5 best和 STR+5 裤子。中国队加油!	You received an STR+5 Vest and STR+5 Pants. Go team!
+GSStringPool.String	已给予您STR+1 战袍和 STR+1 regins.中国队加油!	You received an STR+1 Coat and STR+1 Leggings. Go team!
+GSStringPool.String	已给予您STR+2 战袍和 STR+2 regins.中国队加油!	You received an STR+2 Coat and STR+2 Leggings. Go team!
+GSStringPool.String	已给予您STR+3 战袍和 STR+3 regins.中国队加油!	You received an STR+3 Coat and STR+3 Leggings. Go team!
+GSStringPool.String	已给予您STR+4 夹克和 STR+4 休闲裤。中国队加油!	You received an STR+4 Jacket and STR+4 Slacks. Go team!
+GSStringPool.String	已给予您STR+5 best和 STR+5 裤子。中国队加油!	You received an STR+5 Vest and STR+5 Pants. Go team!
+GSStringPool.String	已给予您STR+1 战袍和 STR+1 regins.中国队加油!	You received an STR+1 Coat and STR+1 Leggings. Go team!
+GSStringPool.String	已给予您STR+2 战袍和 STR+2 regins.中国队加油!	You received an STR+2 Coat and STR+2 Leggings. Go team!
+GSStringPool.String	已给予您STR+3 战袍和 STR+3 regins.中国队加油!	You received an STR+3 Coat and STR+3 Leggings. Go team!
+GSStringPool.String	已给予您STR+4 body suit和 STR+4 柯西菲德项链。中国队加油!	You received an STR+4 Body Suit and STR+4 Cuspid Necklace. Go team!
+GSStringPool.String	已给予您STR+4 jump suit和 STR+4 杰特项链。中国队加油!	You received an STR+4 Jump Suit and STR+4 Jet Necklace. Go team!
+GSStringPool.String	已给予您STR+5 jump suit和 STR+4 idol项坠。中国队加油!	You received an STR+5 Jump Suit and STR+4 Idol Pendant. Go team!
+GSStringPool.String	已给予您STR+5 jump suit和 STR+4 逆十字架(Anti-Cross)项坠。中国队加油!	You received an STR+5 Jump Suit and STR+4 Anti-Cross. Go team!
+GSStringPool.String	已给予您STR+5 jump suit和 STR+4 死亡星(Death-Star)项坠。中国队加油!	You received an STR+5 Jump Suit and STR+4 Death Star. Go team!
+GSStringPool.String	已给予您STR+4 swing coat和 STR+4 克西菲德项坠。中国队加油!	You received an STR+4 Swing Coat and STR+4 Cuspid Pendant. Go team!
+GSStringPool.String	已给予您STR+4 flock coat和 STR+4 杰特项链。中国队加油!	You received an STR+4 Flock Coat and STR+4 Jet Necklace. Go team!
+GSStringPool.String	已给予您STR+5 flock coat和 STR+4 idol项坠。中国队加油!	You received an STR+5 Flock Coat and STR+4 Idol Pendant. Go team!
+GSStringPool.String	已给予您STR+5 flock coat和 STR+4 逆十字架(Anti-Cross)项坠。中国队加油!	You received an STR+5 Flock Coat and STR+4 Anti-Cross. Go team!
+GSStringPool.String	已给予您STR+5 flock coat和 STR+4 死亡星(Death-Star)项坠。中国队加油!	You received an STR+5 Flock Coat and STR+4 Death Star. Go team!
+GSStringPool.String	新的结算情报已适用。	New billing info applied.
+GSStringPool.String	%s发出了分手申请	%s has asked for a divorce.
+GSStringPool.String	%s发出了结婚申请	%s has proposed marriage.
+GSStringPool.String	目前在地区的使用人数是%u 人。	Players in this zone: %u
+GSStringPool.String	PK地区使用人数已超过限制数目，无法进入。	The PK zone is full. You cannot enter.
+GSStringPool.String	照顾刚加盟人类的空间。非刚加盟的人类不得进入。	This area is reserved for new Slayers. Veterans may not enter.
+GSStringPool.String	载入活动情报。	Loading event info.
+GSStringPool.String	付费使用时间已到。	Your paid play time has run out.
+GSStringPool.String	竟敢擅自闯入，马上给我消失!	How dare you barge in here! Get out of my sight!
+GSStringPool.String	不想跟人类说话。请走开。	I have no wish to talk to humans. Go away.
+GSStringPool.String	比起来和你们，我对吸血鬼更有感情。乌合之众！	I feel more for the Vampires than for your lot. Rabble!
+GSStringPool.String	军人就可以为所欲为? 不要挑起事端。	Soldiers think they can do as they please? Don't start trouble.
+GSStringPool.String	导入物品清单情报。	Loading goods list info.
+GSStringPool.String	半个吸血鬼...微卑的东西们	Half-vampires... lowly things.
+GSStringPool.String	你们的祖先也是人类吧	Your ancestors were human too, were they not?
+GSStringPool.String	不要忘记自然永远是你的老朋友	Never forget that nature is your oldest friend.
+GSStringPool.String	应该到了从贪婪中醒悟的时候了	It is time to wake up from your greed.
+GSStringPool.String	收费时间已经结束	Your paid time has ended.
+GSStringPool.String	已经学会的技能	You have already learned this skill.
+GSStringPool.String	发放彩票了(%d张).请到网站上去确认	You received %d lottery tickets. Check them on the website.
+GSStringPool.String	彩票发放已经结束，请到网站上进行确认	The lottery giveaway has ended. Please check the website.
+GSStringPool.String	旗杆	Flagpole
+GSStringPool.String	不是出入的级别（出入限制：能力值总和150以下）	Your level does not qualify (limit: total stats 150 or less).
+GSStringPool.String	不是出入的级别了（级别限制：30级以下）	Your level does not qualify (limit: level 30 or lower).
+GSStringPool.String	魔灵族	Ousters
+GSStringPool.String		The Level War is held only on the first server.
+GSStringPool.String	目前您的级别已经超过了进入的等级限制，无法进入。	Your level is above the entry limit. You cannot enter.
+GSStringPool.String	你目前是未付费玩家，无法移动。	You are a free player and cannot move there.
+GSStringPool.String	%sAAAAAAAAA(%s)AA %sA(%s)AAAAAAA	%s (%s) pulled the Sweeper out at %s (%s).
+GSStringPool.String	震荡扫描器(%s)玩家%s的(%s)得到了。	Sweeper (%s) was picked up by %s (%s).
+GSStringPool.String	AAA(%s)A %sA(%s)AAAAAAAA	Sweeper (%s) was dropped by %s (%s).
+GSStringPool.String	%sA(%s)AAAA(%s)AAAAAA	%s (%s) placed the Sweeper (%s).
+GSStringPool.String	中圣水	Center
+GSStringPool.String	卡里高地牢%d层从%d点%d点不收费	Caligo Dungeon %dF is free to enter from %d:00 to %d:00.
+GSStringPool.String	卡里高地牢不收费使用时间已结束	Free entry to Caligo Dungeon has ended.
+GSStringPool.String	一分钟后没有付费的玩家会被送到%s。谢谢	Players who have not paid will be sent to %s in one minute. Thank you.
+GSStringPool.String	目前还不能申请战争	War applications are not open yet.
+GSStringPool.String	只有在进行任务中的人类才能进入。	Only Slayers on the quest may enter.
+GSStringPool.String	只有在进行任务中的吸血鬼才能进入。	Only Vampires on the quest may enter.
+GSStringPool.String	只有在进行任务中的魔灵才能进入。	Only Ousters on the quest may enter.
+GSStringPool.String	矿物结晶	Ore Crystal
+GSStringPool.String	您的伴侣的名字是%s 	Your partner's name is %s
+GSStringPool.String	你没有结婚	You are not married.
+GSStringPool.String	免费的	Free
+GSStringPool.String	铜币	Rei
+GSStringPool.String	银币	Geld
+GSStringPool.String	 Zard	 Zard
+GSStringPool.String	不能进入	No entry
+GSStringPool.String	人类共用	Slayer Common
+GSStringPool.String	吸血鬼共用	Vampire Common
+GSStringPool.String	魔灵共用	Ousters Common
+GSStringPool.String	没有被占领的城	Unoccupied castle
+GSStringPool.String	公会	Team
+GSStringPool.String	公会	Clan
+GSStringPool.String	衣服	Castle
+GSStringPool.String	重生之塔	Regen Zone Tower
+GSStringPool.String	你好，您现在是包月用户，包月的使用期限为%d年%d月%d日为止，今天是%d年%d月%d日。	Hello! Your monthly plan is valid until %d-%d-%d. Today is %d-%d-%d.
+GSStringPool.String	您好，您现在是计点用户，现在的剩余点数%d点。	Hello! You are on a points plan with %d points remaining.
+GSStringPool.String	你好，您的包月时间已经结束，现在您的账号已经转为普通账号，现在的剩余点数为%d点。	Hello! Your monthly plan has ended; your account is now a standard account with %d points left.
+GSStringPool.String	你好，你已经从普通用户转换成包月用户	Hello! Your account has been switched to a monthly plan.
+GSStringPool.String	你好，您的剩余点数%d点。	Hello! You have %d points remaining.
+GSStringPool.String	下水道	Underground Waterway
+GSStringPool.String	埃斯洛尼安西北	Eslania Northwest
+GSStringPool.String	埃斯洛尼安东北	Eslania Northeast
+GSStringPool.String	埃斯洛尼安西南	Eslania Southwest
+GSStringPool.String	埃斯洛尼安地牢	Eslania Dungeon
+GSStringPool.String	德罗比特西南	Drobeta Southwest
+GSStringPool.String	德罗比特东南	Drobeta Southeast
+GSStringPool.String	提摩尔湖西南	Timore Southwest
+GSStringPool.String	提摩尔湖东南	Timore Southeast
+GSStringPool.String	쭈캠뒈인2꿔	Laom Dungeon 2F
+GSStringPool.String	巴托里地牢2层	Bathory Dungeon B2F
+GSStringPool.String	주괜냘땜켓	Limbo Castle Southeast
+GSStringPool.String	주괜냘땜굇	Limbo Castle Northeast
+GSStringPool.String	林宝城西北	Limbo Castle Northwest
+GSStringPool.String	提摩尔湖东北	Timore Northeast
+GSStringPool.String	洛丁山西南	Mount Rodin Southwest
+GSStringPool.String	洛丁山东南	Mount Rodin Southeast
+GSStringPool.String	艾森地牢1层	Icen Dungeon 1F
+GSStringPool.String	艾森地牢2层	Icen Dungeon 2F
+GSStringPool.String	亚当圣地东	Adam's Holy Land East
+GSStringPool.String	베콩랑뒈인1꿔	Hanial Dungeon B1F
+GSStringPool.String	베콩랑뒈인2꿔	Hanial Dungeon B2F
+GSStringPool.String	卡斯特罗东北	Castalo Northeast
+GSStringPool.String	古尔古巴隧道	Ghorgova Tunnel
+GSStringPool.String	德罗比特东北	Drobeta Northeast
+GSStringPool.String	德罗比特西北	Drobeta Northwest
+GSStringPool.String	洛丁山东北	Mount Rodin Northeast
+GSStringPool.String	洛丁山西北	Mount Rodin Northwest
+GSStringPool.String	拉森地牢2层	Rasen Dungeon 2F
+GSStringPool.String	쭈캠뒈인2꿔	Laom Dungeon 2F
+GSStringPool.String	埃斯洛尼安西南	Eslania Southwest
+GSStringPool.String	주괜냘땜굇	Limbo Castle Northeast
+GSStringPool.String	卡斯特罗东北	Castalo Northeast
+GSStringPool.String	埃斯洛尼安西北	Eslania Northwest
+GSStringPool.String	埃斯洛尼安地牢	Eslania Dungeon
+GSStringPool.String	德罗比特东南	Drobeta Southeast
+GSStringPool.String	提摩尔湖东南	Timore Southeast
+GSStringPool.String	쭈캠뒈인2꿔	Laom Dungeon 2F
+GSStringPool.String	주괜냘땜켓	Limbo Castle Southeast
+GSStringPool.String	林宝城西北	Limbo Castle Northwest
+GSStringPool.String	德罗比特西南	Drobeta Southwest
+GSStringPool.String	艾森地牢1层	Icen Dungeon 1F
+GSStringPool.String	艾森地牢2层	Icen Dungeon 2F
+GSStringPool.String	卡斯特罗东北	Castalo Northeast
+GSStringPool.String	德罗比特西北	Drobeta Northwest
+GSStringPool.String	洛丁山西南	Mount Rodin Southwest
+GSStringPool.String	提摩尔湖东南	Timore Southeast
+GSStringPool.String	쭈캠뒈인1꿔	Laom Dungeon 1F
+GSStringPool.String	黄色Zimott	Yellow Zimott
+GSStringPool.String	绿色 Zimott	Green Zimott
+GSStringPool.String	蓝色 Zimott	Blue Zimott
+GSStringPool.String	红色 Zimott	Red Zimott
+GSStringPool.String	黑色 Zimott	Black Zimott
+GSStringPool.String	黄色锆石	Yellow Zircon
+GSStringPool.String	绿色锆石	Green Zircon
+GSStringPool.String	蓝色锆石	Blue Zircon
+GSStringPool.String	红色锆石	Red Zircon
+GSStringPool.String	黑色锆石	Black Zircon
+GSStringPool.String	高级感染者/高级奥坎	Elite Infected / Elite Alcan
+GSStringPool.String	食人兽/xx怪物/傀儡	Man-Eater / xx Monster / Golemer
+GSStringPool.String	高级地狱巫师/高级夜啸鬼/高级混乱守护者	Elite Hell Wizard / Elite Dark Screamer / Elite Chaos Guardian
+GSStringPool.String	混乱领主/高级食尸石怪/高级黑暗之雾	Lord Chaos / Elite Ghoul Crag / Elite Dark Haze
+GSStringPool.String	高级利蒙/高级追讨者/高级黑暗百瑞兹/高级亡灵巫师	Elite Mum Rimmon / Elite Reaper / Elite Dark Berith / Elite Necromancer
+GSStringPool.String	This feature is not supported yet.	This feature is not supported yet.
+GSStringPool.String	No wonder it's so noisy outside?? Did you get through those horrible traps to arrive here?	No wonder it is so noisy outside... Did you really get past those horrible traps?
+GSStringPool.String	Please don't be mistaken. Although I have settled here, I'm not clear the origin of those traps.	Do not misunderstand. I may have settled here, but I do not know where those traps came from.
+GSStringPool.String	I'm also obssessed by the traps?? it's a mystery who created them.	The traps trouble me too... Who built them is a mystery.
+GSStringPool.String	Wait, there must be something to appear. Is it you guys who do this? Do you guys want to hurt me?	Wait, something is about to appear. Is this your doing? Do you mean to harm me?
+GSStringPool.String	Don't you do that? Anyway, you are all strong warriors.	No? Well, you are all strong warriors, in any case.
+GSStringPool.String	You guys make me think about a girl named Jendaluke	You remind me of a girl named Jendaluke.
+GSStringPool.String	Her power is the greatest. I was getting to respect her when she visited me for saving her nation.	Her power was the greatest. I came to respect her when she visited me, seeking to save her nation.
+GSStringPool.String	She is so young to be here for saving the nation.	She was so young to come all this way to save her nation.
+GSStringPool.String	Why are you guys visiting me? You should know that it's very dangerous here.	Why have you come to me? You should know it is very dangerous here.
+GSStringPool.String	Now I'm so headache that I cannot help you for the moment.	My head aches so badly that I cannot help you just now.
+GSStringPool.String	Well, you should not have ejected these guests who were asking for help. It's so rude.	Well, it was rude of me to turn away guests who came asking for help.
+GSStringPool.String	Please don't blame me. The old make such mistakes sometimes. After a while, watch the ballon go up,hahaha!	Do not blame me. The old make such mistakes now and then. Now watch the balloon go up, hahaha!
+GSStringPool.String	Great, wonderful! Let me see.	Splendid, wonderful! Let me see.
+GSStringPool.String	I really cannot stand the fragrance from your guys.	I really cannot stand the smell of you.
+GSStringPool.String	It's a humiliation that I'm defeated by you guys.	What a humiliation, to be beaten by the likes of you.
+GSStringPool.String	It's dangerous here. Get out of here?? Oh, I can't hold on.	It is dangerous here. Get out... Oh, I cannot hold on.
+GSStringPool.String	Well! I felt so bad?? You guys' expressions are so ridiculous. I'd like to play more tricks on you more.	Well! How awful I feel... The looks on your faces are priceless. I would love to play more tricks on you.
+GSStringPool.String	Stop! Stop attack! I didn't mean to. Well?? I thought everything was well, but evilness still exists, cannot get rid of.	Stop! Stop attacking! I did not mean it. Well... I thought all was well, but the evil still lingers. I cannot be rid of it.
+GSStringPool.String	Things which have happened cannot be redeemed. Do you want to make a compromise with me now ?	What is done cannot be undone. Will you come to terms with me now?
+GSStringPool.String	The power which Jendaluke wanted to have?? Don't you want to know? 	The power Jendaluke wanted... Do you not want to know?
+GSStringPool.String	Then, Jendaluke refused my request. However, I believe you will not absolutely.	Jendaluke refused my request. But I am sure you will not.
+GSStringPool.String	Then, I gave her the power she wanted at the expense of her flesh and blood. I don't think the requirement is high.	So I gave her the power she wanted, at the price of her flesh and blood. I hardly think that was asking much.
+GSStringPool.String	I was hurt badly so I decided to cut off all connections with outside. That's why I designed all of these traps.	I was badly hurt, so I cut myself off from the outside world. That is why I built all these traps.
+GSStringPool.String	I abandoned all my own glories!	I cast aside all my own glory!
+GSStringPool.String	Look! I created lives with my power. You all can get renascence.	Look! I have created life with my power. You can all be reborn.
+GSStringPool.String	Ah? What's wrong? Is it not enough? If no human child's blood, perfect life cannot be created!	Ah? What is wrong? Is it not enough? Without a human child's blood, perfect life cannot be made!
+GSStringPool.String	Once we had Jendaluke's blood?? By the way, try some of your blood, although it's not that pure.	Once we had Jendaluke's blood... Still, let me taste yours, though it is not so pure.
+GSStringPool.String	I will creat perfect life. Your blood is flowing in my body, you guys should be feel proud.	I will create perfect life. Your blood flows in my body; you should be proud.
+GSStringPool.String	The blood of like you guys??. You don't need to feel sorry. I'll take care of everything. 	Blood like yours... Do not be sorry. I will take care of everything.
+GSStringPool.String	I really don't understand, why are you feeling so hopeful for life? Anyway, everybody will die, turning to dust	I truly do not understand why you cling to life so hopefully. Everyone dies and turns to dust in the end.
+GSStringPool.String	Ask her who she is.	Ask her who she is.
+GSStringPool.String	You'd better go back. It's good for you.	You had better go back. It is for your own good.
+GSStringPool.String	I warned you, it's a dangerous place. Now, I'm?? Ah??	I warned you this was a dangerous place. Now I am... Ah...
+GSStringPool.String	Ahaha, the shell is finally removed.	Ahaha, the shell is finally off.
+GSStringPool.String	Magic was used for bringing you memorable things. But now, it seems no useful.	Magic was once used to bring you things worth remembering. Now it seems to be of no use.
+GSStringPool.String	Have you guys ever seen that? This is a real masterwork. Look at yourselves who are fighting with illusions, so poor.	Have you ever seen the like? This is a true masterpiece. Look at you, fighting illusions. How pitiful.
+GSStringPool.String	How's your feeling? Is it great to be tricked?	How does it feel? Is it fun being tricked?
+GSStringPool.String	No, please, please let me go!	No, please, please let me go!
+GSStringPool.String	From now on, nothing is illusion.	From now on, nothing is an illusion.
+GSStringPool.String	OK, follow me!	All right, follow me!
+GSStringPool.String	I'm tired of people who play double characters or things like just waiting for food.	I am tired of two-faced people, and of those who just sit and wait to be fed.
+GSStringPool.String	只有防守方的联盟才可以使用。	Only the defending side's alliance can use this.
+GSStringPool.String	同意退出联盟	Agreed to leave the alliance.
+GSStringPool.String	拒绝退出联盟	Refused to leave the alliance.
+GSStringPool.String	同意退出联盟	Agreed to leave the alliance.
+GSStringPool.String	拒绝退出联盟	Refused to leave the alliance.
+GSStringPool.String	굳젬촉직렴。	Expelled from the alliance.
+GSStringPool.String	行会被联盟。	The guild has joined the alliance.
+GSStringPool.String	联盟已解散。	The alliance has been disbanded.
+NicknameIndex.Nickname	昵称删除	Remove Title
+NicknameIndex.Nickname	软玉类	Nephrite class
+NicknameIndex.Nickname	紫水晶类	Amethyst class
+NicknameIndex.Nickname	祖母绿类	Emerald class
+NicknameIndex.Nickname	翡翠类	Jade class
+NicknameIndex.Nickname	琥珀类	Amber class
+NicknameIndex.Nickname	蓝宝石类	Sapphire class
+NicknameIndex.Nickname	红宝石类	Ruby class
+NicknameIndex.Nickname	黄水晶类	Citrine class
+NicknameIndex.Nickname	石榴石类	Garnet class
+NicknameIndex.Nickname	绿松石类	Turquoise class
+NicknameIndex.Nickname	蛋白石类	Opal class
+NicknameIndex.Nickname	碧玺类	Tourmaline class
+NicknameIndex.Nickname	锆石类	Zircon class
+NicknameIndex.Nickname	钻石类	Diamond class
+NicknameIndex.Nickname	丹尼尔级	Daniel rank
+NicknameIndex.Nickname	卡劳迪娅级	Claudia rank
+NicknameIndex.Nickname	路易斯级	Louis rank
+NicknameIndex.Nickname	속꼈쟁간랑섬	Gabrielle rank
+NicknameIndex.Nickname	雷斯塔特级	Lestat rank
+NicknameIndex.Nickname	찝옹잉섬	Mekare rank
+NicknameIndex.Nickname	각랑쯔섬	Armand rank
+NicknameIndex.Nickname	탸뜩윗섬	Pandora rank
+NicknameIndex.Nickname	马格努斯级	Magnus rank
+NicknameIndex.Nickname	圣提诺级	Santino rank
+NicknameIndex.Nickname	찢랑섬	Mael rank
+NicknameIndex.Nickname	马留斯级	Marius rank
+NicknameIndex.Nickname	열참섬	Khayman rank
+NicknameIndex.Nickname	奥西里斯级	Osiris rank
+NicknameIndex.Nickname	阿卡西亚级	Akasha rank
+NicknameIndex.Nickname	갔걔쌓섬	Eoh rank
+NicknameIndex.Nickname	温阶级	Wynn rank
+NicknameIndex.Nickname	斯盖尔阶级	Sigel rank
+NicknameIndex.Nickname	提尔阶级	Tyr rank
+NicknameIndex.Nickname	윗돠쌓섬	Rad rank
+NicknameIndex.Nickname	费奥斯阶级	Feoh rank
+NicknameIndex.Nickname	걔힘랑쌓섬	Othel rank
+NicknameIndex.Nickname	里伊德阶级	Ried rank
+NicknameIndex.Nickname	윗뮴쌓섬	Lagu rank
+NicknameIndex.Nickname	伊斯阶级	Is rank
+NicknameIndex.Nickname	벗목랑쌓섬	Hagal rank
+NicknameIndex.Nickname	톡걔쌓섬	Peorth rank
+NicknameIndex.Nickname	덖목쌓섬	Daeg rank
+NicknameIndex.Nickname	굔걔랑옹쌓섬	Beorc rank
+NicknameIndex.Nickname	因瑟尔阶级	Inguz rank
+NicknameIndex.Nickname	1st PrideOfGuild 优胜	1st Pride of Guild Winner
+NicknameIndex.Nickname	무삔삔낀	Guild Master
+GoodsListInfo.Name	幸运祝福	Blessing of Luck
+GoodsListInfo.Name	黑色祝福	Black Blessing
+GoodsListInfo.Name	总能祝福	All-Stat Blessing
+GoodsListInfo.Name	红色祝福	Red Blessing
+GoodsListInfo.Name	蓝色祝福	Blue Blessing
+GoodsListInfo.Name	绿色祝福	Green Blessing
+GoodsListInfo.Name	蓝鸟	Blue Bird
+GoodsListInfo.Name	变异注射液	Mutant Injection
+GoodsListInfo.Name	낚섬선안관	Super First Aid Kit
+GoodsListInfo.Name	双倍经验沙漏 10分	2x EXP Hourglass (10 min)
+GoodsListInfo.Name	双倍经验沙漏 30分	2x EXP Hourglass (30 min)
+GoodsListInfo.Name	双倍经验沙漏 60分	2x EXP Hourglass (60 min)
+GoodsListInfo.Name	复活卷轴X9	Resurrection Scroll x9
+GoodsListInfo.Name	炼金卷轴X9	Elixir Scroll x9
+GoodsListInfo.Name	樱桃蜜果X50	Honeyed Cherry x50
+GoodsListInfo.Name	薄荷蜜果X50	Honeyed Mint x50
+GoodsListInfo.Name	荔枝蜜果X50	Honeyed Lychee x50
+GoodsListInfo.Name	Trans工具箱	Trans Item Kit
+GoodsListInfo.Name	加强饲料7天	Enhanced Pet Food (7 days)
+GoodsListInfo.Name	加强饲料15天	Enhanced Pet Food (15 days)
+GoodsListInfo.Name	仙丹 9个	Elixir Pill x9
+GoodsListInfo.Name	绿色哈雷机车钥匙	Green Rubiate Key
+GoodsListInfo.Name	蓝色哈雷机车钥匙	Blue Rubiate Key
+GoodsListInfo.Name	红色哈雷机车钥匙	Red Rubiate Key
+GoodsListInfo.Name	黄色哈雷机车钥匙	Yellow Rubiate Key
+GoodsListInfo.Name	橙色哈雷机车钥匙	Orange Rubiate Key
+GoodsListInfo.Name	天蓝色哈雷机车钥匙	Sky Rubiate Key
+GoodsListInfo.Name	淡紫色哈雷机车钥匙	Lilac Rubiate Key
+GoodsListInfo.Name	黑色哈雷机车钥匙	Black Rubiate Key
+GoodsListInfo.Name	B2-野兽钥匙	B2-Beast Key
+GoodsListInfo.Name	D-战斧钥匙	D-Tomahawk Key
+GoodsListInfo.Name	绿色变色药水	Green Wing Dye
+GoodsListInfo.Name	蓝色变色药水	Blue Wing Dye
+GoodsListInfo.Name	红色变色药水	Red Wing Dye
+GoodsListInfo.Name	黄色变色药水	Yellow Wing Dye
+GoodsListInfo.Name	白色变色药水	White Wing Dye
+GoodsListInfo.Name	天青色变色药水	Azure Wing Dye
+GoodsListInfo.Name	紫色变色药水	Purple Wing Dye
+GoodsListInfo.Name	黑色变色药水	Black Wing Dye
+GoodsListInfo.Name	自然变色药水	Natural Wing Dye
+GoodsListInfo.Name	绿色精灵石	Green Spirit Stone
+GoodsListInfo.Name	橙色精灵石	Orange Spirit Stone
+GoodsListInfo.Name	红色精灵石	Red Spirit Stone
+GoodsListInfo.Name	黄色精灵石	Yellow Spirit Stone
+GoodsListInfo.Name	白色精灵石	White Spirit Stone
+GoodsListInfo.Name	褐色精灵石	Brown Spirit Stone
+GoodsListInfo.Name	紫色精灵石	Purple Spirit Stone
+GoodsListInfo.Name	黑色精灵石	Black Spirit Stone
+GoodsListInfo.Name	签名笔	Naming Pen
+GoodsListInfo.Name	宠物签名笔	Pet Naming Pen
+GoodsListInfo.Name	7天加强饲料	Enhanced Pet Food (7 days)
+GoodsListInfo.Name	15天加强饲料	Enhanced Pet Food (15 days)
+GoodsListInfo.Name	超级坦克力量包	Super Tank Power Pack
+GoodsListInfo.Name	超浓缩血包	Super Enriched Blood Pack
+GoodsListInfo.Name	大露水	Large Dew
+GoodsListInfo.Name	网眼外皮M VIII	Mesh Skin M VIII
+GoodsListInfo.Name	网眼外皮W VIII	Mesh Skin W VIII
+GoodsListInfo.Name	紧身防弹裤 M VIII	Cling Slack M VIII
+GoodsListInfo.Name	紧身防弹裤 W VIII	Cling Slack W VIII
+GoodsListInfo.Name	针刃   VIII	Niddle Edger VIII
+GoodsListInfo.Name	双手卡博 VIII	Duocarpo VIII
+GoodsListInfo.Name	显赫阿赛 VIII	Salience Asser VIII
+GoodsListInfo.Name	马刺盾 VIII	Spur Buckler VIII
+GoodsListInfo.Name	军营  VIII	Battalion VIII
+GoodsListInfo.Name	信仰者十字架 VIII	Reliant Crucis VIII
+GoodsListInfo.Name	战术狙击枪 VIII	Tactical Scout VIII
+GoodsListInfo.Name	护目镜 VIII	Mount Goggle VIII
+GoodsListInfo.Name	重披风 VIII	Defiance Cloak VIII
+GoodsListInfo.Name	薄皮外套 VIII	Allure Apparel VIII
+GoodsListInfo.Name	棱爪  VIII	Acies Nail VIII
+GoodsListInfo.Name	紫焉背心 VIII	Praelium Vestio VIII
+GoodsListInfo.Name	紫焉之靴 VIII	Praelium Boots VIII
+GoodsListInfo.Name	梅利斯之环 VIII	Melis Chakram VIII
+GoodsListInfo.Name	堕落精灵之臂 VIII (火)	Nepirim Wristlet VIII (Fire)
+GoodsListInfo.Name	堕落精灵之臂 VIII (水)	Nepirim Wristlet VIII (Water)
+GoodsListInfo.Name	堕落精灵之臂 VIII (土)	Nepirim Wristlet VIII (Earth)
+GoodsListInfo.Name	蛤蟆背 VIII(抗9能3)限时15天	Toad Back VIII R9/S3 15d
+GoodsListInfo.Name	怨灵面具 VIII(抗9能3)限时15天	Crafty Veil VIII R9/S3 15d
+GoodsListInfo.Name	紫焉手套 VIII(抗9能3)限时15天	Praelium Glove VIII R9/S3 15d
+GoodsListInfo.Name	蛤蟆背 VIII(抗9能3)限时30天	Toad Back VIII R9/S3 30d
+GoodsListInfo.Name	怨灵面具 VIII(抗9能3)限时30天	Crafty Veil VIII R9/S3 30d
+GoodsListInfo.Name	紫焉手套 VIII(抗9能3)限时30天	Praelium Glove VIII R9/S3 30d
+GoodsListInfo.Name	门票 10张	Ticket x10
+GoodsListInfo.Name	门票 20张	Ticket x20
+GoodsListInfo.Name	门票 30张	Ticket x30
+GoodsListInfo.Name	门票 7天	Ticket (7 days)
+GoodsListInfo.Name	门票 15天	Ticket (15 days)
+GoodsListInfo.Name	恐惧光环石	Fear Aura Stone
+GoodsListInfo.Name	残酷光环石	Cruel Aura Stone
+GoodsListInfo.Name	希望光环石	Hope Aura Stone
+GoodsListInfo.Name	自然光环石	Natural Aura Stone
+GoodsListInfo.Name	蓝宝石(1个)	Sapphire (x1)
+GoodsListInfo.Name	2倍经验值	Double EXP
+GoodsListInfo.Name	门票 1 张	Ticket x1
+GoodsListInfo.Name	蓝宝石	Sapphire
+GoodsListInfo.Name	龙神甲裤(男)	Dragon Scale Guard M
+GoodsListInfo.Name	龙神甲裤(女)	Dragon Scale Guard W
+GoodsListInfo.Name	龙神甲(男)	Dragon Cor Armor M
+GoodsListInfo.Name	龙神甲(女)	Dragon Cor Armor W
+GoodsListInfo.Name	寧뿐바륩(켕)	Commander Coat M
+GoodsListInfo.Name	寧뿐바륩(큽)	Commander Coat W
+GoodsListInfo.Name	天使刺(男女通用)	Angel Thorn (Unisex)
+GoodsListInfo.Name	凄惶之靴(魔灵)	Dread Boots (Ousters)
+GoodsListInfo.Name	悲鸣之风(魔灵)	Wailing Wind (Ousters)
+GoodsListInfo.Name	凄惶之铠(魔灵)	Dread Armor (Ousters)
+GoodsListInfo.Name	裁决之炎 火	Flame of Judgment (Fire)
+GoodsListInfo.Name	裁决之炎 水	Flame of Judgment (Water)
+GoodsListInfo.Name	裁决之炎 土	Flame of Judgment (Earth)
+GoodsListInfo.Name	末日之刃	Doomsday Blade
+GoodsListInfo.Name	百战刀	Veteran's Blade
+GoodsListInfo.Name	约旦十字架	Jordanian Cross
+GoodsListInfo.Name	NS-32 水兵	NS-32 Navy
+GoodsListInfo.Name	风神杖	Wind God Staff
+GoodsListInfo.Description	召唤绿色哈雷时所用的工具。	A key that summons the green Rubiate motorcycle.
+GoodsListInfo.Description	召唤蓝色哈雷时所用的工具。	A key that summons the blue Rubiate motorcycle.
+GoodsListInfo.Description	召唤红色哈雷时所用的工具。	A key that summons the red Rubiate motorcycle.
+GoodsListInfo.Description	召唤黄色哈雷时所用的工具。	A key that summons the yellow Rubiate motorcycle.
+GoodsListInfo.Description	召唤橙色哈雷时所用的工具。	A key that summons the orange Rubiate motorcycle.
+GoodsListInfo.Description	召唤天蓝色哈雷时所用的工具。	A key that summons the sky-blue Rubiate motorcycle.
+GoodsListInfo.Description	召唤淡紫色哈雷时所用的工具。	A key that summons the lilac Rubiate motorcycle.
+GoodsListInfo.Description	召唤黑色哈雷时所用的工具。	A key that summons the black Rubiate motorcycle.
+GoodsListInfo.Description	召唤B2-野兽跑车时所用的工具 完成转职后高级人类专用拉风跑车	A key that summons the B2-Beast sports bike, a flashy ride reserved for Slayers who have completed their Advancement.
+GoodsListInfo.Description	召唤D-战斧超级跑车时所用的工具 高级人类技师所研发出的最巨形最拉风的超级跑车	A key that summons the D-Tomahawk superbike, the biggest and flashiest machine ever built by the Slayers' finest engineers.
+GoodsListInfo.Description	高贵的鬼族升级之后,拥有了使用变色翅膀的能力。通过变色药水的催化，他们可以随时召唤出绿色的翅膀。仅需要一次催化，就可以永久拥有了这个能力。	Advanced noble Vampires gain the power to change the color of their wings. Catalyzed by this dye, they can summon green wings at any time. One use grants the power for good.
+GoodsListInfo.Description	高贵的鬼族升级之后,拥有了使用变色翅膀的能力。通过变色药水的催化，他们可以随时召唤出蓝色的翅膀。仅需要一次催化，就可以永久拥有了这个能力。	Advanced noble Vampires gain the power to change the color of their wings. Catalyzed by this dye, they can summon blue wings at any time. One use grants the power for good.
+GoodsListInfo.Description	高贵的鬼族升级之后,拥有了使用变色翅膀的能力。通过变色药水的催化，他们可以随时召唤出红色的翅膀。仅需要一次催化，就可以永久拥有了这个能力。	Advanced noble Vampires gain the power to change the color of their wings. Catalyzed by this dye, they can summon red wings at any time. One use grants the power for good.
+GoodsListInfo.Description	高贵的鬼族升级之后,拥有了使用变色翅膀的能力。通过变色药水的催化，他们可以随时召唤出黄色的翅膀。仅需要一次催化，就可以永久拥有了这个能力。	Advanced noble Vampires gain the power to change the color of their wings. Catalyzed by this dye, they can summon yellow wings at any time. One use grants the power for good.
+GoodsListInfo.Description	高贵的鬼族升级之后,拥有了使用变色翅膀的能力。通过变色药水的催化，他们可以随时召唤出白色的翅膀。仅需要一次催化，就可以永久拥有了这个能力。	Advanced noble Vampires gain the power to change the color of their wings. Catalyzed by this dye, they can summon white wings at any time. One use grants the power for good.
+GoodsListInfo.Description	高贵的鬼族升级之后,拥有了使用变色翅膀的能力。通过变色药水的催化，他们可以随时召唤出天青色的翅膀。仅需要一次催化，就可以永久拥有了这个能力。	Advanced noble Vampires gain the power to change the color of their wings. Catalyzed by this dye, they can summon azure wings at any time. One use grants the power for good.
+GoodsListInfo.Description	高贵的鬼族升级之后,拥有了使用变色翅膀的能力。通过变色药水的催化，他们可以随时召唤出紫色的翅膀。仅需要一次催化，就可以永久拥有了这个能力。	Advanced noble Vampires gain the power to change the color of their wings. Catalyzed by this dye, they can summon purple wings at any time. One use grants the power for good.
+GoodsListInfo.Description	高贵的鬼族升级之后,拥有了使用变色翅膀的能力。通过变色药水的催化，他们可以随时召唤出黑色的翅膀。仅需要一次催化，就可以永久拥有了这个能力。	Advanced noble Vampires gain the power to change the color of their wings. Catalyzed by this dye, they can summon black wings at any time. One use grants the power for good.
+GoodsListInfo.Description	高贵的鬼族升级之后,拥有了使用变色翅膀的能力。通过变色药水的催化，他们可以随时召唤出自然色的翅膀。仅需要一次催化，就可以永久拥有了这个能力。	Advanced noble Vampires gain the power to change the color of their wings. Catalyzed by this dye, they can summon natural-colored wings at any time. One use grants the power for good.
+GoodsListInfo.Description	精灵宝石是可以召换风之精灵的宝贵工具，它从数百年前就开始保护精灵一族，帮助精灵像风一样的快递移动。	A precious gem that summons the spirit of the wind. For centuries it has protected the Ousters, carrying them swiftly as the wind.
+GoodsListInfo.Description	可在人物头顶书写一段个性化称号的工具	Lets you write a custom title above your character's head.
+GoodsListInfo.Description	可在任何宠物头顶书写一段个性化称号的工具	Lets you write a custom title above any pet's head.
+GoodsListInfo.Description	可供各种犬类宠物食用7天的加强饲料包	An enhanced food pack that feeds any dog-type pet for 7 days.
+GoodsListInfo.Description	可供各种犬类宠物食用15天的加强饲料包	An enhanced food pack that feeds any dog-type pet for 15 days.
+GoodsListInfo.Description	可供坦克运行7天的超级力量包	A super power pack that keeps a tank running for 7 days.
+GoodsListInfo.Description	可供恶魔蝙蝠食用7天的超浓缩血包	A super-concentrated blood pack that feeds a demon bat for 7 days.
+GoodsListInfo.Description	可供滋润小妖7天的新鲜露水	Fresh dew that nourishes a little sprite for 7 days.
+GoodsListInfo.Description	8级的男人类衣服重量很轻，弹性很强。无属性 150专用	Grade VIII men's Slayer coat, very light and highly elastic. No attribute. Level 150 only.
+GoodsListInfo.Description	8级的女人类衣服重量很轻，弹性很强。无属性 150专用	Grade VIII women's Slayer coat, very light and highly elastic. No attribute. Level 150 only.
+GoodsListInfo.Description	8级的男人类裤子重量很轻，弹性很强 无属性 150专用	Grade VIII men's Slayer trousers, very light and highly elastic. No attribute. Level 150 only.
+GoodsListInfo.Description	8级的女人类裤子重量很轻，弹性很强 无属性 150专用	Grade VIII women's Slayer trousers, very light and highly elastic. No attribute. Level 150 only.
+GoodsListInfo.Description	以前说起宝刀的话一般都是指由少数技艺精湛的匠人制造而成的，不过大量增加的需求使许多军工业体选择了刀剑制造这一行。其中以S&W师的试作品作为标准，规格化成为SWMS 3000，统称为“针刃”。无属性 150专用	Fine blades were once made only by a handful of master smiths, but rising demand drew many arms makers into swordmaking. A prototype by S&W became the standard, the SWMS 3000, known to all as the "Niddle Edger". No attribute. Level 150 only.
+GoodsListInfo.Description	尺寸跟人的个子差不多，所以需要两只手一起使用，所以叫它双手卡博。它的刀刃很宽很厚，所以重量很高，单纯地挥动它，破坏力也是很高的。因为能使用的人并不多，所以它的数量是很有限的。无属性 150专用	Nearly as tall as a man, it can only be wielded with both hands, hence the name Duocarpo. Its broad, thick blade makes it very heavy, so even a simple swing is devastating. Few can wield it, so very few exist. No attribute. Level 150 only.
+GoodsListInfo.Description	在Grant手中的显赫阿赛也是强调威压感的形态，它并不使用于直接的价格。不过由于它是用无属性物质金属构成的，所以把Grant们的魔法力能有效地传达，因此它们的作用是可以充分地得到认可。无属性 150专用	In the hands of the Granters, the Salience Asser takes an imposing form, yet it is not meant for direct blows. Made of attribute-free metal, it channels the Granters' magic well, and its worth is fully recognized. No attribute. Level 150 only.
+GoodsListInfo.Description	针对吸血鬼和魔灵的物理攻击,一般多为割和刺这一点制作而成的盾牌。它的边缘用很厚实的钛合金制作，可以很好的防御从侧面过来的袭击。另外为了弥补相对薄弱的中央部分，还钉上了金属突起。无属性 150专用	A shield designed around the fact that Vampire and Ousters physical attacks are mostly cuts and thrusts. Its rim of thick titanium alloy fends off blows from the side, and metal studs reinforce the thinner center. No attribute. Level 150 only.
+GoodsListInfo.Description	装备了全套 TA/FCS系统，在夜间或恶劣天气下也可以发现炮塔，还可以计算出瞄准时必要的数字给使用者的终端机上做标记。无属性 150专用	Fitted with an integrated TA/FCS system, it can spot targets at night or in foul weather and marks the figures needed for aiming on the user's terminal. No attribute. Level 150 only.
+GoodsListInfo.Description	用一般的十字架或者不同形态的十字架来表示自己的身份，按照信念因为是他们独立使用的十字架所以名称叫信仰者。无属性 150专用	Named for the believers who show who they are with a cross of their own faith, whether a plain cross or one of another shape. No attribute. Level 150 only.
+GoodsListInfo.Description	毛瑟类的闩锁式连发来复枪。由于毛瑟枪种类特有的无旋转的膛线，因为跟装进部分较长，比较容易迅速而正确的射中。所以在战场上的可造性很高。无属性 150专用	A Mauser-type bolt-action repeating rifle. Its long action and the rifling typical of Mauser guns make fast, accurate shots easy, so it is highly prized on the battlefield. No attribute. Level 150 only.
+GoodsListInfo.Description	以防弹为基本设计的这款产品,对敌人特殊生命体吸血鬼来说没有效果,从这一点来着眼开的,确保视野,主力放在通讯技能的产品,不过构造自身的强度很高,所以对侧颈部也可以提供一定程度的保护.它的重量相对较轻,所以总体评价很好.无属性 150专用	Earlier headgear was built to stop bullets, which is useless against Vampires. This model focuses on clear vision and communications instead, yet its sturdy frame also shields the side of the neck. Being fairly light, it is well regarded overall. No attribute. Level 150 only.
+GoodsListInfo.Description	年轻的吸血鬼们穿着跟大师比起来风度略逊，但加强敏捷性的服装，表现出想要摆脱大师们的阴影的意图。无属性 150男鬼专用	Less stately than a master's coat but made for agility, it is worn by young Vampires who mean to step out of their masters' shadow. No attribute. Level 150, male Vampires only.
+GoodsListInfo.Description	吸血鬼特有的迷人的魅力已经被他们强有力的武器认可了。特别是女性吸血鬼的魅力，即使是连他们对手的警戒性都不放过。刚生下来的小吸血鬼则需要能够有效地活用这些优点的衣裳。用薄皮质裁剪后层层缝纫的衣裳可以有效地防御银子弹和剑的攻击。无属性 150女鬼专用	A Vampire's bewitching charm is a proven weapon, and a female Vampire's can disarm even a wary foe. Newborn Vampires need clothing that makes the most of it. Cut from thin leather and sewn in layers, it guards well against silver bullets and blades. No attribute. Level 150, female Vampires only.
+GoodsListInfo.Description	棱爪又细又长的刀刃可以穿过对方的厚厚的手套深入对方身体内。并且大弧度的设计使遭到攻击的对方无法轻易逃脱，即使逃脱了，身体也会留下很大的伤口，痛苦不堪。不过一部分人因为这个武器导致猎物的出血过多，而实际上能自己吃到的血很少而感到不满。无属性 150鬼专用	Its long, slender blades pierce even thick gloves to reach deep into the body, and their wide curve keeps the prey from slipping free; any who escape carry gaping wounds. Some complain the prey bleeds so much that little blood is left to drink. No attribute. Level 150, Vampires only.
+GoodsListInfo.Description	被选拔为战士的魔灵们抛弃了明亮而清澈的气氛，不得不自己去寻求黑暗。他们的衣裳颜色是统一的象征死亡的紫色。无属性 150专用	The Ousters chosen as warriors cast aside their bright, clear nature and had to seek out darkness. They all dress in purple, the color of death. No attribute. Level 150 only.
+GoodsListInfo.Description	被选拔为战士的魔灵们抛弃了明亮而清澈的气氛，不得不自己去寻求黑暗。他们的衣裳颜色是统一的象征死亡的紫色。紫色既可以表示死亡又可以表示高贵的灵魂，也是可以对死神表示把自己完全交付给他的意思。无属性 150专用	The Ousters chosen as warriors cast aside their bright, clear nature and had to seek out darkness. They all dress in purple, the color of death. Purple stands for both death and a noble soul, and for giving oneself wholly to the god of death. No attribute. Level 150 only.
+GoodsListInfo.Description	悲哀的精灵梅利斯是装着力量的轮，它可以吸收牺牲者的痛苦和悲哀，从而变得更厉害。有着4根角度不同的刺，所以哪怕只受到一次攻击的人也够受的。无属性 150专用	A ring holding the power of Melis, spirit of sorrow, that grows deadlier as it absorbs its victims' pain and grief. Its four spikes, set at different angles, make even a single hit hard to bear. No attribute. Level 150 only.
+GoodsListInfo.Description	用古代巨人的骨头加工制成。人们认为古代的世界是用巨人来构成的。他们叫做堕落精灵。他们的力量相当于一般精灵的两倍。不过由于他们邪恶的气息，为了防止对使用者产生副作用，所以在表面雕刻了些纹章。无属性 150专用	Crafted from the bones of ancient giants, the Nephilim, who were believed to make up the ancient world and were twice as strong as ordinary spirits. Crests are carved on its surface to shield the wearer from their evil aura. No attribute. Level 150 only.
+GoodsListInfo.Description	原定在 E.V.E.的计划中要开发的装备。体积很大，不过是用多层的纤维制成的，所以重量很轻。参照突击敌人时离敌人最近的身体部分――肩膀为保护对象来制作的，表面的突起利用了可以用来进行攻击。不过对比人类动作灵敏的吸血鬼和魔灵是并不是那么简单的。样子像蛤蟆的背部，所以被称为“蛤蟆背”。	Gear originally planned for EVE's heavy infantry. Bulky but light thanks to its multilayered fiber, it protects the shoulders, the part closest to the enemy in a charge, and its studs can be used to strike. Against agile Vampires and Ousters, though, that is easier said than done. It looks like a toad's back, hence the name "Toad Back".
+GoodsListInfo.Description	过去阿拉伯的死刑执行者使用过这个面具，用来挡住受死刑者的怨恨。一直以来这个面具包含着无数受死刑的人们的怨恨和恐惧。在面具里喷发出来的恐惧感使那些看到面具的人们丧失战意。	A mask once worn by Arab executioners to ward off the grudges of the condemned. It holds the resentment and terror of countless executed souls, and the fear pouring from it robs all who see it of the will to fight.
+GoodsListInfo.Description	叫vt的天主教直属组织的神父们使用的保护装备。用皮革做手套，外面加板金，提高防御力和活动性。装饰着神父专用的豪华装饰，这个装饰做的相当不错，很华丽，但手腕部位用白布做成，防御力会降低。手腕部位白布上用红血写着圣书的字句。“我赐予你智慧和权能让你打败恶魔，你们要勇敢的抵抗，我会永远跟你们在一起。”虽然防御力不怎么样，但是具有圣力的手套。	Protective gloves of the priests of the Vatican Knights, a Slayer order under the Catholic Church. Leather plated with metal for defense and mobility, with lavish priestly ornaments. The wrists are white cloth, which weakens them, and on it scripture is written in red blood: "I give you wisdom and power to defeat the devil. Resist bravely, and I will be with you always." Weak in defense, but blessed with holy power.
+GoodsListInfo.Description	进入阿斯里打宝地图门票10张. 在阿斯里地牢可掉红色PK装.	10 tickets to the Asylion treasure map. Red PK gear drops in the Asylion Dungeon.
+GoodsListInfo.Description	进入阿斯里打宝地图门票20张. 在阿斯里地牢可掉红色PK装.	20 tickets to the Asylion treasure map. Red PK gear drops in the Asylion Dungeon.
+GoodsListInfo.Description	进入阿斯里打宝地图门票30张. 在阿斯里地牢可掉红色PK装.	30 tickets to the Asylion treasure map. Red PK gear drops in the Asylion Dungeon.
+GoodsListInfo.Description	进入阿斯里打宝地图VIP门票,时限15天可无限次进出. 在阿斯里地牢可掉红色PK装.	VIP ticket to the Asylion treasure map: unlimited entry for 15 days. Red PK gear drops in the Asylion Dungeon.
+GoodsListInfo.Description	进入阿斯里打宝地图VIP门票,时限30天可无限次进出. 在阿斯里地牢可掉红色PK装.	VIP ticket to the Asylion treasure map: unlimited entry for 30 days. Red PK gear drops in the Asylion Dungeon.
+GoodsListInfo.Description	随机	Random
+GoodsListInfo.Description	2倍经验值道具	Double experience item
+GoodsListInfo.Description	充值赠送用	Bonus gift for account top-ups
+LastNameInfo.Name	格兰尼特	Granite
+LastNameInfo.Name	高尔斯坦德	Golstand
+LastNameInfo.Name	高尔斯特恩	Golstern
+LastNameInfo.Name	멕랑펜	Golch
+LastNameInfo.Name	古德斯丁	Goodstein
+LastNameInfo.Name	古拉斯	Gulas
+LastNameInfo.Name	목윗학	Grache
+LastNameInfo.Name	格哈尔特	Gerhardt
+LastNameInfo.Name	哥德斯	Godes
+LastNameInfo.Name	속완것랑	Gackenbar
+LastNameInfo.Name	뮴랑	Gul
+LastNameInfo.Name	加斯克尔	Gaskell
+LastNameInfo.Name	加瑟尔	Gasser
+LastNameInfo.Name	加瑞特松	Garretson
+LastNameInfo.Name	加瓦尼	Gavani
+LastNameInfo.Name	加纽斯	Ganius
+LastNameInfo.Name	高尔	Gorr
+LastNameInfo.Name	加吉德斯特	Gagidest
+LastNameInfo.Name	古拉尔	Gular
+LastNameInfo.Name	加普	Gapp
+LastNameInfo.Name	米而坎	Milkan
+LastNameInfo.Name	米切克	Michek
+LastNameInfo.Name	米瑟斯	Mises
+LastNameInfo.Name	罗赫	Roch
+LastNameInfo.Name	쵠코	Minne
+LastNameInfo.Name	莫斯	Moss
+LastNameInfo.Name	莫里斯	Morris
+LastNameInfo.Name	莫格斯特恩	Mogstern
+LastNameInfo.Name	쯔흩	Marais
+LastNameInfo.Name	玛斯瑞	Masri
+LastNameInfo.Name	麦克宾	McBean
+LastNameInfo.Name	麦克迪亚	McDear
+LastNameInfo.Name	쯔펜	March
+LastNameInfo.Name	쵠잇랑	Miller
+LastNameInfo.Name	梅耶尔	Meyer
+LastNameInfo.Name	罗利亚	Rolia
+LastNameInfo.Name	雷瓦	Reva
+LastNameInfo.Name	쭈펜	Roche
+LastNameInfo.Name	雷提夫	Retief
+LastNameInfo.Name	雷明顿	Remington
+LastNameInfo.Name	잉돠것목	Redberg
+LastNameInfo.Name	德雷亚	Dreya
+LastNameInfo.Name	拉莫斯	Ramos
+LastNameInfo.Name	迪安	Dean
+LastNameInfo.Name	都威尔	Dowell
+LastNameInfo.Name	赫罗多斯	Herodos
+LastNameInfo.Name	赫尼斯	Hennis
+LastNameInfo.Name	돠쳄흩옹	Demerick
+LastNameInfo.Name	多宁	Doning
+LastNameInfo.Name	뜩람	Dorn
+LastNameInfo.Name	尼克逊	Nixon
+LastNameInfo.Name	吉特兹	Gitz
+LastNameInfo.Name	목윗힉뜩	Grasado
+LastNameInfo.Name	목쟁뤼	Griff
+LastNameInfo.Name	목흩	Grey
+LastNameInfo.Name	高斯曼	Gossmann
+LastNameInfo.Name	高尔敦	Gordon
+LastNameInfo.Name	멕랑것목	Golberg
+LastNameInfo.Name	高特列布	Gottlieb
+LastNameInfo.Name	加斯哈尔	Gashar
+LastNameInfo.Name	속뛔	Gadden
+LastNameInfo.Name	加特达尔	Gattdal
+LastNameInfo.Name	加特林格	Gattlinger
+LastNameInfo.Name	加森内尔	Gassner
+LastNameInfo.Name	加瑞森	Garrison
+LastNameInfo.Name	加里森	Garisen
+LastNameInfo.Name	속뤼코랑	Gaffner
+LastNameInfo.Name	加沃	Gavo
+LastNameInfo.Name	加勒尔斯	Gallers
+LastNameInfo.Name	古克金	Gookin
+LastNameInfo.Name	加那特	Ganat
+LastNameInfo.Name	瓦特逊	Watson
+LastNameInfo.Name	쭈람	Rohn
+LastNameInfo.Name	纽兰德	Newland
+LastNameInfo.Name	怀特拉姆	Whitlam
+LastNameInfo.Name	怀特	White
+LastNameInfo.Name	봉옹	Hauck
+LastNameInfo.Name	벗팹참	Hauptmann
+LastNameInfo.Name	皮里奇特	Pirricht
+LastNameInfo.Name	特尔斯	Tels
+LastNameInfo.Name	安德森	Anderson
+LastNameInfo.Name	斯拉瑟	Slasser
+LastNameInfo.Name	斯克特	Skett
+LastNameInfo.Name	巴内特	Barnett
+LastNameInfo.Name	첨랑것	Melba
+LastNameInfo.Name	瑞伍德	Rywood
+LastNameInfo.Name	拉瓦逊	Lavasson
+LastNameInfo.Name	达特	Dart
+LastNameInfo.Name	간랑힉잇	Elsaler
+LastNameInfo.Name	각펜	Arch
+LastNameInfo.Name	斯尔菲尔德	Silfield
+LastNameInfo.Name	斯比特兹	Spitz
+LastNameInfo.Name	斯提夫特	Stift
+LastNameInfo.Name	斯多赫尔	Stocher
+LastNameInfo.Name	斯特切尔	Stecher
+LastNameInfo.Name	斯特巴格	Sterberg
+LastNameInfo.Name	斯提德	Steed
+LastNameInfo.Name	斯特纳奇	Sternach
+LastNameInfo.Name	斯楚尼格	Strunig
+LastNameInfo.Name	斯奇维德	Schwede
+LastNameInfo.Name	斯考特	Scott
+LastNameInfo.Name	斯切尔	Schell
+LastNameInfo.Name	维特多夫	Wittdorf
+LastNameInfo.Name	维特尼兹	Wittnitz
+LastNameInfo.Name	维瑟尔	Visser
+LastNameInfo.Name	沃拉奇	Wolach
+LastNameInfo.Name	꼈윗케랑	Branner
+LastNameInfo.Name	布罗切	Broche
+LastNameInfo.Name	沃尔夫	Wolf
+LastNameInfo.Name	沃肯特恩	Wolkentern
+LastNameInfo.Name	波兹曼	Bozeman
+LastNameInfo.Name	别斯特	Bester
+LastNameInfo.Name	沃尔巴奇	Wolbach
+LastNameInfo.Name	沃勒斯	Wollers
+LastNameInfo.Name	沃勒尔	Woller
+LastNameInfo.Name	贝切克	Bechek
+LastNameInfo.Name	瓦本恩	Wabern
+LastNameInfo.Name	것흩	Barrie
+LastNameInfo.Name	것랑목	Barg
+LastNameInfo.Name	瓦尔德黑姆	Waldheim
+LastNameInfo.Name	것학참	Bachmann
+LastNameInfo.Name	维尼赫伯	Weinheber
+LastNameInfo.Name	维纳格那尔	Wennagner
+LastNameInfo.Name	维切布拉姆	Wiechbram
+LastNameInfo.Name	巴亚尔	Bayard
+LastNameInfo.Name	维尼格	Wenig
+LastNameInfo.Name	것벗	Bach
+LastNameInfo.Name	속휑목	Garrig
+LastNameInfo.Name	米克拉斯	Miklas
+LastNameInfo.Name	蒙克	Monk
+LastNameInfo.Name	姆斯里	Mussley
+LastNameInfo.Name	칭쟁콩	Morini
+LastNameInfo.Name	첨목랑	Meggel
+LastNameInfo.Name	첨랑	Mehl
+LastNameInfo.Name	帕皮斯	Papis
+LastNameInfo.Name	马赫特尔	Machtel
+LastNameInfo.Name	马赫尔	Macher
+LastNameInfo.Name	참쟁학랑	Mannricher
+LastNameInfo.Name	첨킵	Meno
+LastNameInfo.Name	玛格拉斯	Magras
+LastNameInfo.Name	门德纳	Mendner
+LastNameInfo.Name	쟁목랑	Riegel
+LastNameInfo.Name	罗切	Rocher
+LastNameInfo.Name	罗吉卡斯	Rogikas
+LastNameInfo.Name	罗萨吉	Rozsagy
+LastNameInfo.Name	罗斯	Ross
+LastNameInfo.Name	罗卡特	Rockart
+LastNameInfo.Name	흩돠랑	Riedel
+LastNameInfo.Name	읊킵	Lanno
+LastNameInfo.Name	읠목	Lang
+LastNameInfo.Name	拉德斯丁	Radstein
+LastNameInfo.Name	拉泽哈夫	Rasehaff
+LastNameInfo.Name	兰斯德夫	Lansdeff
+LastNameInfo.Name	瑞姆德	Riemde
+LastNameInfo.Name	읊케랑	Lanner
+LastNameInfo.Name	둑돠뜩르	Diddorf
+LastNameInfo.Name	达德利	Dudley
+LastNameInfo.Name	多福斯	Doffes
+LastNameInfo.Name	多特	Dott
+LastNameInfo.Name	多普尔	Doppel
+LastNameInfo.Name	多德尔	Dodel
+LastNameInfo.Name	뜩케랑	Donner
+LastNameInfo.Name	德凡特	Devant
+LastNameInfo.Name	德努斯	Denus
+LastNameInfo.Name	丹尼佛	Danniver
+LastNameInfo.Name	킵땀	Nording
+LastNameInfo.Name	缪拉姆	Muram
+LastNameInfo.Name	内哈斯	Nehaas
+LastNameInfo.Name	内特拉那	Netrana
+LastNameInfo.Name	纳德	Nard
+LastNameInfo.Name	케뜩랑	Nador
+LastNameInfo.Name	金德尔	Kindel
+LastNameInfo.Name	格拉瑟尔	Grasser
+LastNameInfo.Name	格里斯帕奇	Grisbach
+LastNameInfo.Name	格里帕兹	Griepatz
+LastNameInfo.Name	며벗참	Gohmann
+LastNameInfo.Name	库拉夫	Kuhlaff
+LastNameInfo.Name	묽속랑	Gungar
+LastNameInfo.Name	古姆普拉斯	Gumplass
+LastNameInfo.Name	목랑것	Gerba
+LastNameInfo.Name	高姆特斯	Gomptes
+LastNameInfo.Name	멕캠흩펜	Gomrich
+LastNameInfo.Name	멕돠학돠	Gottsched
+LastNameInfo.Name	肯特兹	Kentz
+LastNameInfo.Name	加拉斯	Gallas
+LastNameInfo.Name	목주목랑	Gringel
+LastNameInfo.Name	속쨌붐르	Galuhof
+LastNameInfo.Name	加斯曼	Gassmann
+LastNameInfo.Name	속흩랑	Garrel
+LastNameInfo.Name	胡萨克	Husak
+LastNameInfo.Name	胡斯	Huss
+LastNameInfo.Name	胡萨	Husa
+LastNameInfo.Name	르쟁칭랑	Frimor
+LastNameInfo.Name	福斯特尔	Forster
+LastNameInfo.Name	꺼꺼뤼	Popov
+LastNameInfo.Name	르참	Forman
+LastNameInfo.Name	特塔斯	Tetas
+LastNameInfo.Name	库宾	Kubin
+LastNameInfo.Name	克里缪斯	Cremius
+LastNameInfo.Name	卡利	Kally
+LastNameInfo.Name	多泽尔	Dozier
+LastNameInfo.Name	斯兰卡	Slanka
+LastNameInfo.Name	沙曼	Schaman
+LastNameInfo.Name	山姆	Samm
+LastNameInfo.Name	阿奇兹	Achitz
+LastNameInfo.Name	각굔랑	Abel
+LastNameInfo.Name	斯勒扎克	Slezak
+LastNameInfo.Name	斯坦米兹	Steinmetz
+LastNameInfo.Name	苏克	Suk
+LastNameInfo.Name	것꺼랑	Babor
+LastNameInfo.Name	관킵	Bauno
+LastNameInfo.Name	扎库尔	Zakur
+LastNameInfo.Name	扎尔坎	Zarkan
+LastNameInfo.Name	占努斯	Janus
+LastNameInfo.Name	힉캠벗뤼	Samhaff
+LastNameInfo.Name	谢纳奇兹	Shenachitz
+LastNameInfo.Name	维哈持	Wihatch
+LastNameInfo.Name	维尼维奇	Vinivich
+LastNameInfo.Name	维贝格	Wiberg
+LastNameInfo.Name	维贝尔	Weber
+LastNameInfo.Name	瓦克尔	Wacker
+LastNameInfo.Name	瓦杰多	Vajdo
+LastNameInfo.Name	瓦索斯	Vasos
+LastNameInfo.Name	瓦勒多米斯	Valdomis
+LastNameInfo.Name	瓦特多	Vatdo
+LastNameInfo.Name	瓦特福	Watford
+LastNameInfo.Name	瓦勒克	Wallek
+LastNameInfo.Name	瓦迪斯	Vadis
+LastNameInfo.Name	特彼斯	Tepis
+LastNameInfo.Name	特密坎诺	Temikano
+LastNameInfo.Name	斯泽克特	Szeckt
+LastNameInfo.Name	斯泽米尔	Szemir
+LastNameInfo.Name	斯泽尔	Szell
+LastNameInfo.Name	斯卡波	Scarpo
+LastNameInfo.Name	斯瓦维奇	Svavich
+LastNameInfo.Name	斯多敦克	Stodunk
+LastNameInfo.Name	斯特曼	Stermann
+LastNameInfo.Name	斯特切	Stetch
+LastNameInfo.Name	斯塔巴格	Starberg
+LastNameInfo.Name	斯丁巴格	Steinberg
+LastNameInfo.Name	斯坦芬	Steffen
+LastNameInfo.Name	斯坦芬巴格	Steffenberg
+LastNameInfo.Name	斯坦楚	Stanchu
+LastNameInfo.Name	斯达夫	Stauff
+LastNameInfo.Name	斯宾切奇	Spinchek
+LastNameInfo.Name	斯莫克维奇	Smokovich
+LastNameInfo.Name	斯库内尔	Skuner
+LastNameInfo.Name	西蒙	Simon
+LastNameInfo.Name	斯维特里	Svetry
+LastNameInfo.Name	斯恩克维奇	Senkovich
+LastNameInfo.Name	舒尔特	Schulte
+LastNameInfo.Name	森纳特	Sennett
+LastNameInfo.Name	萨密维斯	Samivis
+LastNameInfo.Name	瑟克特	Secket
+LastNameInfo.Name	힉쭈랑	Saroll
+LastNameInfo.Name	힉펜롬	Sachfin
+LastNameInfo.Name	힉학펜	Sachek
+LastNameInfo.Name	힉학랑	Sacher
+LastNameInfo.Name	萨卡夫	Sakaff
+LastNameInfo.Name	萨卡特	Sackett
+LastNameInfo.Name	萨多伊恩	Sadoyen
+LastNameInfo.Name	鲁普	Rupp
+LastNameInfo.Name	鲁斯特德	Rusted
+LastNameInfo.Name	윗돠콩옵	Radnico
+LastNameInfo.Name	罗宾斯特恩	Robinstern
+LastNameInfo.Name	罗森托克	Rosentock
+LastNameInfo.Name	쭈것목	Roberg
+LastNameInfo.Name	罗姆	Rohm
+LastNameInfo.Name	흩참	Riemann
+LastNameInfo.Name	瑞夫斯坎	Reifskan
+LastNameInfo.Name	흩펜샅뤼	Reichhof
+LastNameInfo.Name	里奇特	Richter
+LastNameInfo.Name	瑞本托普	Ribentop
+LastNameInfo.Name	흩람	Ryan
+LastNameInfo.Name	흩쯔펜	Rimache
+LastNameInfo.Name	瑞玛克	Rimack
+LastNameInfo.Name	雷兹	Retz
+LastNameInfo.Name	쟁케랑	Rinner
+LastNameInfo.Name	흩꿴케랑	Reichner
+LastNameInfo.Name	흩꿴	Recha
+LastNameInfo.Name	瑞德尔斯	Riedels
+LastNameInfo.Name	흩것랑	Ribar
+LastNameInfo.Name	윗탕펜	Rapach
+LastNameInfo.Name	웠돠	Quaid
+LastNameInfo.Name	帕平	Papin
+LastNameInfo.Name	괴꺽	Bobb
+LastNameInfo.Name	保兰伊	Polanyi
+LastNameInfo.Name	皮里维瓦	Pirviva
+LastNameInfo.Name	튄랑학옹	Pilcek
+LastNameInfo.Name	佩克	Peck
+LastNameInfo.Name	保拉斯	Paulus
+LastNameInfo.Name	괜적	Pauly
+LastNameInfo.Name	帕朋	Papon
+LastNameInfo.Name	奥托	Otto
+LastNameInfo.Name	奥兹库瓦	Ozkova
+LastNameInfo.Name	킹참둑	Ormandy
+LastNameInfo.Name	奥奇兹	Ochitz
+LastNameInfo.Name	奥奇克斯	Ochiks
+LastNameInfo.Name	诺斯克	Noske
+LastNameInfo.Name	诺维德	Norwid
+LastNameInfo.Name	콩꿴펜	Nichach
+LastNameInfo.Name	尼尔克维奇	Nilkovich
+LastNameInfo.Name	内拉斯	Neras
+LastNameInfo.Name	코쭈댐	Neroda
+LastNameInfo.Name	킵돠관랑	Nordbauer
+LastNameInfo.Name	纳罗特兹	Narrotz
+LastNameInfo.Name	킵돠참	Nordmann
+LastNameInfo.Name	莫斯维奇	Mosvich
+LastNameInfo.Name	칭흩킵	Moreno
+LastNameInfo.Name	蒙特莫瑞	Montmorey
+LastNameInfo.Name	莫尔特克	Moltke
+LastNameInfo.Name	칭뜩랑	Modore
+LastNameInfo.Name	明迪斯特	Mindest
+LastNameInfo.Name	米克维奇	Mickevich
+LastNameInfo.Name	曼萨米特	Mansamitt
+LastNameInfo.Name	참뜩랑	Mandor
+LastNameInfo.Name	참붐주	Manherlin
+LastNameInfo.Name	玛佐维奇	Mazovich
+LastNameInfo.Name	玛特寇	Matko
+LastNameInfo.Name	玛萨	Massa
+LastNameInfo.Name	玛萨亚克	Masajak
+LastNameInfo.Name	曼托非	Mantoffe
+LastNameInfo.Name	曼斯滕	Mansten
+LastNameInfo.Name	曼那斯楚	Manastru
+LastNameInfo.Name	马尔克斯	Marks
+LastNameInfo.Name	马库斯拉奇	Markuslach
+LastNameInfo.Name	쯔꿴	Macha
+LastNameInfo.Name	鲁托斯拉维奇	Lutoslavich
+LastNameInfo.Name	鲁瑟	Ruther
+LastNameInfo.Name	쨀되뜩뤼	Ludendorff
+LastNameInfo.Name	里斯特兹	Listetz
+LastNameInfo.Name	제탕펜	Lipac
+LastNameInfo.Name	列贝涅奇	Lebenich
+LastNameInfo.Name	里查斯	Ritchas
+LastNameInfo.Name	雷	Ray
+LastNameInfo.Name	雷波维奇	Lebovich
+LastNameInfo.Name	勒萨提斯	Lesatis
+LastNameInfo.Name	읊완	Ranken
+LastNameInfo.Name	읊목	Lange
+LastNameInfo.Name	兰杜斯卡	Landuska
+LastNameInfo.Name	拉达	Rada
+LastNameInfo.Name	拉班	Laban
+LastNameInfo.Name	卡瓦尼维奇	Kavanivich
+LastNameInfo.Name	克鲁兹维奇	Kruzevich
+LastNameInfo.Name	엥익콩옵	Karonik
+LastNameInfo.Name	卡劳思	Karaus
+LastNameInfo.Name	卡斯奇	Kaszki
+LastNameInfo.Name	库斯玛	Kuzma
+LastNameInfo.Name	库达	Kuda
+LastNameInfo.Name	卡斯卡	Kaska
+LastNameInfo.Name	엥킵콩엥	Kanonika
+LastNameInfo.Name	욋껍붐콩랑	Kuberhenner
+LastNameInfo.Name	库斯特拉	Kustra
+LastNameInfo.Name	库查维奇	Kuchavich
+LastNameInfo.Name	库鲁克	Kuruck
+LastNameInfo.Name	克鲁克	Kruk
+LastNameInfo.Name	克里斯丁	Kristen
+LastNameInfo.Name	克特兹	Ketts
+LastNameInfo.Name	엥탕윗랑	Kaparal
+LastNameInfo.Name	옹주	Kling
+LastNameInfo.Name	엥힉주	Kasarin
+LastNameInfo.Name	克迫斯	Kepps
+LastNameInfo.Name	凯特尔	Kettel
+LastNameInfo.Name	卡瓦勒罗奇	Kavaleroch
+LastNameInfo.Name	卡尔	Karl
+LastNameInfo.Name	엥잇펜	Kalech
+LastNameInfo.Name	卡赫	Kach
+LastNameInfo.Name	琼克斯	Jonkers
+LastNameInfo.Name	裘格尔	Jugel
+LastNameInfo.Name	裘亨	Juhen
+LastNameInfo.Name	裘德	Jude
+LastNameInfo.Name	加帕斯	Gappas
+LastNameInfo.Name	加罗斯维奇	Jarosvich
+LastNameInfo.Name	加罗特维兹	Jarotvitz
+LastNameInfo.Name	伊斯特?冯	Istervon
+LastNameInfo.Name	列斯库	Lescu
+LastNameInfo.Name	胡波特	Hubbert
+LastNameInfo.Name	胡廷帕格	Hutenberg
+LastNameInfo.Name	붐돠주	Hedlin
+LastNameInfo.Name	샅팹케랑	Hoppner
+LastNameInfo.Name	希登布拉	Hidenbrau
+LastNameInfo.Name	海斯	Hayes
+LastNameInfo.Name	哈兹	Hatz
+LastNameInfo.Name	哈特林	Hartling
+LastNameInfo.Name	汉森	Hansen
+LastNameInfo.Name	베凜옹랑	Heinkel
+LastNameInfo.Name	벗목랑	Hagel
+LastNameInfo.Name	哈斯克尔	Haskell
+LastNameInfo.Name	哈德尔	Harder
+LastNameInfo.Name	盖罗维兹	Gerowitz
+LastNameInfo.Name	뮴돠쟁갛	Guderian
+LastNameInfo.Name	古罗特维兹	Gurotvitz
+LastNameInfo.Name	뮴읊케랑	Gulanner
+LastNameInfo.Name	뮴쭈돠펜	Gurodek
+LastNameInfo.Name	格兰斯	Grans
+LastNameInfo.Name	목읊케랑	Granner
+LastNameInfo.Name	高托维德	Gottowid
+LastNameInfo.Name	古波罗维兹	Guborowitz
+LastNameInfo.Name	古特兹	Gutz
+LastNameInfo.Name	古兹赫	Guzach
+LastNameInfo.Name	뮴돠랑속	Gudelga
+LastNameInfo.Name	古加	Guga
+LastNameInfo.Name	며랑돠랑	Gordel
+LastNameInfo.Name	古杜斯奇	Gudusch
+LastNameInfo.Name	格拉瑟	Glaser
+LastNameInfo.Name	펜흩옹	Chirek
+LastNameInfo.Name	목것랑	Gebar
+LastNameInfo.Name	加兰德	Garland
+LastNameInfo.Name	加拉克新	Galaksin
+LastNameInfo.Name	르캠	Fomm
+LastNameInfo.Name	福里斯	Fries
+LastNameInfo.Name	福里克斯	Frix
+LastNameInfo.Name	르쟁옹	Frick
+LastNameInfo.Name	福得斯	Fordes
+LastNameInfo.Name	福奇瓦格	Fuchswag
+LastNameInfo.Name	르돠	Ford
+LastNameInfo.Name	르완벗람	Falkenhayn
+LastNameInfo.Name	安斯廷	Anstine
+LastNameInfo.Name	安尼斯库	Anescu
+LastNameInfo.Name	安德	Ander
+LastNameInfo.Name	安克	Anke
+LastNameInfo.Name	埃密斯楚	Emistru
+LastNameInfo.Name	埃里亚德	Eliade
+LastNameInfo.Name	埃波特	Ebert
+LastNameInfo.Name	杜斯克	Duske
+LastNameInfo.Name	多尼尔	Dornier
+LastNameInfo.Name	德拉提	Dratti
+LastNameInfo.Name	多尼兹	Donitz
+LastNameInfo.Name	迪莫斯克	Dimoske
+LastNameInfo.Name	迪瑞奇尔特	Dirichert
+LastNameInfo.Name	迪亚瑞奇	Diarich
+LastNameInfo.Name	德德奇	Dedek
+LastNameInfo.Name	덖칭잇	Daimler
+LastNameInfo.Name	卡吐巴斯	Katubas
+LastNameInfo.Name	科密斯诺亚	Komisnoya
+LastNameInfo.Name	崔库维	Chekuvy
+LastNameInfo.Name	彻里皮德	Cheripid
+LastNameInfo.Name	卡罗萨	Carossa
+LastNameInfo.Name	卡拉奇亚	Karachia
+LastNameInfo.Name	卡帕	Kapa
+LastNameInfo.Name	坎特瑞	Kantry
+LastNameInfo.Name	꼈징	Blum
+LastNameInfo.Name	巴兹瓦	Bazva
+LastNameInfo.Name	布鲁克	Brook
+LastNameInfo.Name	布郎维奇	Branvich
+LastNameInfo.Name	것흩랑	Barrell
+LastNameInfo.Name	布瑞古维奇	Brigovich
+LastNameInfo.Name	布拉特兹	Bratz
+LastNameInfo.Name	布兰迪斯	Brandis
+LastNameInfo.Name	꼈윗돠잉	Bradley
+LastNameInfo.Name	波罗维斯克	Borowisk
+LastNameInfo.Name	꺼참	Bomann
+LastNameInfo.Name	꺼랑	Bohl
+LastNameInfo.Name	波德	Bode
+LastNameInfo.Name	꺼옹	Bock
+LastNameInfo.Name	布拉克	Brack
+LastNameInfo.Name	班兹	Banz
+LastNameInfo.Name	것칭랑	Balmore
+LastNameInfo.Name	贝克	Beck
+LastNameInfo.Name	것벗펜	Bachach
+LastNameInfo.Name	간랑	Erl
+LastNameInfo.Name	阿特蒙	Artmon
+LastNameInfo.Name	阿斯奇	Aschke
+LastNameInfo.Name	阿赫兹	Ahrz
+LastNameInfo.Name	阿普诺伊	Apnoi
+LastNameInfo.Name	安德瑞兹维克	Andrzewick
+LastNameInfo.Name	爱德克维兹	Edkowitz
+LastNameInfo.Name	갖돠랑	Edel
+LastNameInfo.Name	위건웨이	Yu
+LastNameInfo.Name	하오하이둥	Hao
+LastNameInfo.Name	마밍위	Ma
+LastNameInfo.Name	리톄	Li Tie
+LastNameInfo.Name	순지하이	Sun
+LastNameInfo.Name	샤오자이	Shao
+LastNameInfo.Name	판 즈이	Fan
+LastNameInfo.Name	우청잉	Wu
+LastNameInfo.Name	양푸	Yang Pu
+LastNameInfo.Name	장언화	Zhang
+LastNameInfo.Name	안치	An
+LastNameInfo.Name	다니엘 은공 코메	Ngom Kome
+LastNameInfo.Name	아드리스 카메니	Kameni
+LastNameInfo.Name	조제프-데지레 좁	Job
+LastNameInfo.Name	살로몽 올렘베 올렘베	Olembe
+LastNameInfo.Name	에릭 잠바 잠바	Djemba-Djemba
+LastNameInfo.Name	파트릭 수포	Suffo
+LastNameInfo.Name	마르크-비비앙 포에	Foe
+LastNameInfo.Name	자크 송고	Songo'o
+LastNameInfo.Name	니콜라 알누지	Alnoudji
+LastNameInfo.Name	조엘 에팔	Epalle
+LastNameInfo.Name	루시엔 메토모	Mettomo
+LastNameInfo.Name	로랭 에타메	Etame
+LastNameInfo.Name	피우스 은디피	N'Diefi
+LastNameInfo.Name	음보바 파트릭	Mboma
+LastNameInfo.Name	사무엘 에투	Eto'o
+LastNameInfo.Name	제레미 은지탑	Njitap
+LastNameInfo.Name	조셉 은도	Ndo
+LastNameInfo.Name	피에르 은장카	Njanka
+LastNameInfo.Name	레이몽 칼라	Kalla
+LastNameInfo.Name	리고베르트 송	Song
+LastNameInfo.Name	乔俊福 窥	Wome
+LastNameInfo.Name	필 차토	Tchato
+LastNameInfo.Name	부카르 알리움	Alioum
+LastNameInfo.Name	카카	Kaka
+LastNameInfo.Name	호제리우 세니	Ceni
+LastNameInfo.Name	루이장	Luizao
+LastNameInfo.Name	에디우손	Edilson
+LastNameInfo.Name	주닝요 파울리스타	Juninho
+LastNameInfo.Name	밤페타	Vampeta
+LastNameInfo.Name	데닐손	Denilson
+LastNameInfo.Name	주니오르	Junior
+LastNameInfo.Name	클레베르손	Kleberson
+LastNameInfo.Name	아티르손	Polga
+LastNameInfo.Name	벨레티	Belletti
+LastNameInfo.Name	디다	Dida
+LastNameInfo.Name	호나우딩요	Ronaldinho
+LastNameInfo.Name	히바우도	Rivaldo
+LastNameInfo.Name	호나우두	Ronaldo
+LastNameInfo.Name	질베르투 실바	Gilberto Silva
+LastNameInfo.Name	에메르손	Emerson
+LastNameInfo.Name	호베르투 카를로스	Carlos
+LastNameInfo.Name	에드미우손	Edmilson
+LastNameInfo.Name	호케 주니오르	Roque
+LastNameInfo.Name	루시우	Lucio
+LastNameInfo.Name	카푸	Cafu
+LastNameInfo.Name	마르쿠스	Marcos
+LastNameInfo.Name	프레드릭 헤르포엘	Herpoel
+LastNameInfo.Name	음보 음펜자	Mpenza
+LastNameInfo.Name	대니 보팽	Boffin
+LastNameInfo.Name	브랑코 스트루파	Strupar
+LastNameInfo.Name	베른트 티스	Thijs
+LastNameInfo.Name	이페스 반데르헤게	Vanderhaeghe
+LastNameInfo.Name	게탕 엥글베르트	Englebert
+LastNameInfo.Name	다니엘 반 부이텡	Van Buyten
+LastNameInfo.Name	재키 페터스	Peeters
+LastNameInfo.Name	스벤 베르망트	Vermant
+LastNameInfo.Name	프랭키 반덴드리셰	Vandendriessche
+LastNameInfo.Name	페테르 반데르헤이든	Vanderheyden
+LastNameInfo.Name	게르트 베르헤엔	Verheyen
+LastNameInfo.Name	요한 발렘	Walem
+LastNameInfo.Name	웨슬리 송크	Sonck
+LastNameInfo.Name	바트 고어	Goor
+LastNameInfo.Name	마크 빌모츠	Wilmots
+LastNameInfo.Name	토미 시몽스	Simons
+LastNameInfo.Name	니코 반 케르크호벤	Van Kerckhoven
+LastNameInfo.Name	에릭 반 메이어	Van Meir
+LastNameInfo.Name	글렌 드 부크	De Boeck
+LastNameInfo.Name	에릭 데프랑드레	Deflandre
+LastNameInfo.Name	게르트 드 플리거	De Vlieger
+LastNameInfo.Name	로베르토 보나노	Bonano
+LastNameInfo.Name	호세 차모트	Chamot
+LastNameInfo.Name	클라우디오 카니자	Caniggia
+LastNameInfo.Name	마스셀로 가야르도	Gallardo
+LastNameInfo.Name	에르난 크레스뽀	Crespo
+LastNameInfo.Name	킬리 곤살레스	Gonzalez
+LastNameInfo.Name	구스타보 로페스	Gustavo Lopez
+LastNameInfo.Name	파블로 아이마르	Aimar
+LastNameInfo.Name	클라우디오 우사인	Husain
+LastNameInfo.Name	디에고 시메오네	Simeone
+LastNameInfo.Name	디에고 플라센테	Placente
+LastNameInfo.Name	파블로 까바예로	Cavallero
+LastNameInfo.Name	후안 베론	Veron
+LastNameInfo.Name	아리엘 오르테가	Ortega
+LastNameInfo.Name	가브리엘 바티스투타	Batistuta
+LastNameInfo.Name	하비에르 사네티	Javier Zanetti
+LastNameInfo.Name	클라우디오 로페스	Claudio Lopez
+LastNameInfo.Name	월터 사무엘	Samuel
+LastNameInfo.Name	마띠아스 알메이다	Almeyda
+LastNameInfo.Name	마우리시오 포체티노	Pochettino
+LastNameInfo.Name	후안 소린	Sorin
+LastNameInfo.Name	로베르토 아얄라	Roberto Ayala
+LastNameInfo.Name	헤르만 부르고스	Burgos
+LastNameInfo.Name	수마오전	Su
+LastNameInfo.Name	가오야오	Gao
+LastNameInfo.Name	府傀捞沏	Li Weifeng
+LastNameInfo.Name	자오준지	Zhao
+LastNameInfo.Name	취보	Qu
+LastNameInfo.Name	두웨이	Du
+LastNameInfo.Name	府箕坷沏	Li Xiaopeng
+LastNameInfo.Name	치훙	Qi
+LastNameInfo.Name	양천	Yang Chen
+LastNameInfo.Name	수얀롱	Xu
+LastNameInfo.Name	장 진	Jiang
+LastNameInfo.Name	어우추량	Ou
+LastNameInfo.Name	에릭 론니스	Lonnis
+LastNameInfo.Name	헤르비스 드룸몬드	Drummond
+LastNameInfo.Name	루이스 마린	Marin
+LastNameInfo.Name	마우리시오 라이트	Wright
+LastNameInfo.Name	힐베르토 마르티네스	Martinez
+LastNameInfo.Name	윌메르 로페스	Wilmer Lopez
+LastNameInfo.Name	롤란도 폰세카	Fonseca
+LastNameInfo.Name	마우리시오 솔리스	Solis
+LastNameInfo.Name	파울로 완초페	Wanchope
+LastNameInfo.Name	왈테르 센테노	Centeno
+LastNameInfo.Name	로날드 고메스	Ronald Gomez
+LastNameInfo.Name	윈스톤 파르크스	Parks
+LastNameInfo.Name	루이스 다니엘 바예호	Vallejo
+LastNameInfo.Name	후안 호세 로드리게스	Juan Jose Rodriguez
+LastNameInfo.Name	아롤드 왈라세	Wallace
+LastNameInfo.Name	스테벤 브리세	Bryce
+LastNameInfo.Name	에르난 메드포르드	Medford
+LastNameInfo.Name	알바로 메센	Mesen
+LastNameInfo.Name	로드리고 코르데로	Cordero
+LastNameInfo.Name	윌리암 순싱	Sunsing
+LastNameInfo.Name	파블로 친치야	Chinchilla
+LastNameInfo.Name	카를로스 카스트로	Castro
+LastNameInfo.Name	레스터 모르간	Morgan
+LastNameInfo.Name	스티페 플레티코사	Pletikosa
+LastNameInfo.Name	안토니 세리치	Seric
+LastNameInfo.Name	조십 시뮤니치	Simunic
+LastNameInfo.Name	스테판 토마스	Tomas
+LastNameInfo.Name	밀란 라파이치	Rapaic
+LastNameInfo.Name	보리스 지브코비치	Zivkovic
+LastNameInfo.Name	다보르 부그리네치	Vugrinec
+LastNameInfo.Name	로베르트 프로시네츠	Prosinecki
+LastNameInfo.Name	다보르 수케르	Suker
+LastNameInfo.Name	니코 코바치	Niko Kovac
+LastNameInfo.Name	알렌 복시치	Boksic
+LastNameInfo.Name	토미슬라프 부티나	Butina
+LastNameInfo.Name	마리오 스타니치	Stanic
+LastNameInfo.Name	즈보니미르 솔도	Soldo
+LastNameInfo.Name	다니엘 사리치	Saric
+LastNameInfo.Name	유리카 브라네스	Vranjes
+LastNameInfo.Name	로버트 야르니	Jarni
+LastNameInfo.Name	이비카 올리치	Olic
+LastNameInfo.Name	고란 블라오비치	Vlaovic
+LastNameInfo.Name	다리오 시미치	Simic
+LastNameInfo.Name	로베르트 코바치	Robert Kovac
+LastNameInfo.Name	보스코 발라반	Balaban
+LastNameInfo.Name	블라디미르 바실리	Vasilj
+LastNameInfo.Name	토마스 소렌슨	Sorensen
+LastNameInfo.Name	스티히 퇴프팅	Tofting
+LastNameInfo.Name	르네 헨릭슨	Henriksen
+LastNameInfo.Name	마르틴 라우르센	Laursen
+LastNameInfo.Name	얀 하인츠	Heintze
+LastNameInfo.Name	토마스 헬베그	Helveg
+LastNameInfo.Name	토마스 그라베센	Gravesen
+LastNameInfo.Name	예스퍼 그론키아에르	Gronkjaer
+LastNameInfo.Name	욘 토마손	Tomasson
+LastNameInfo.Name	마르틴 요르겐센	Jorgensen
+LastNameInfo.Name	에베 산트	Sand
+LastNameInfo.Name	니클라스 얀센	Niclas Jensen
+LastNameInfo.Name	스테벤 루스튀	Lustu
+LastNameInfo.Name	클라우스 얀센	Claus Jensen
+LastNameInfo.Name	얀 미하엘슨	Michaelsen
+LastNameInfo.Name	페테르 캬르	Kjaer
+LastNameInfo.Name	크리스티안 폴센	Poulsen
+LastNameInfo.Name	피터 로벤크란드스	Lovenkrands
+LastNameInfo.Name	데니스 룸메달	Rommedahl
+LastNameInfo.Name	카스페르 보겔룬드	Bogelund
+LastNameInfo.Name	피터 마드센	Madsen
+LastNameInfo.Name	예스페르 크리스티안	Christiansen
+LastNameInfo.Name	브리안 닐슨	Nielsen
+LastNameInfo.Name	호세 세바요스	Cevallos
+LastNameInfo.Name	포로소 아구스투	Porozo
+LastNameInfo.Name	이반 우르타도	Hurtado
+LastNameInfo.Name	울리세스 데라크루스	De la Cruz
+LastNameInfo.Name	알폰소 오브레곤	Obregon
+LastNameInfo.Name	라울 게론	Guerron
+LastNameInfo.Name	니꼴라스 아센시오	Asencio
+LastNameInfo.Name	루이스 고메스	Luis Gomez
+LastNameInfo.Name	이반 카비에데스	Kaviedes
+LastNameInfo.Name	알렉스 아기나가	Aguinaga
+LastNameInfo.Name	아구스틴 델가도	Delgado
+LastNameInfo.Name	오스왈도 이바라	Ibarra
+LastNameInfo.Name	앙헬 페르난데스	Fernandez
+LastNameInfo.Name	후안 카를로스 부르바	Burbano
+LastNameInfo.Name	마를론 아요비	Marlon Ayovi
+LastNameInfo.Name	찰라 클레버	Chala
+LastNameInfo.Name	에스피노자 지아바니	Espinoza
+LastNameInfo.Name	까를로스 테노리오	Carlos Tenorio
+LastNameInfo.Name	에디손 멘데스	Edison Mendez
+LastNameInfo.Name	에드빈 테노리오	Edwin Tenorio
+LastNameInfo.Name	웰링턴 산체스	Wellington Sanchez
+LastNameInfo.Name	다니엘 비테리	Viteri
+LastNameInfo.Name	월터 아요비	Walter Ayovi
+LastNameInfo.Name	데이빗 시맨	Seaman
+LastNameInfo.Name	데니 밀스	Mills
+LastNameInfo.Name	애쉴리 콜	Ashley Cole
+LastNameInfo.Name	상클레어 트레버	Sinclair
+LastNameInfo.Name	리오 퍼디난드	Ferdinand
+LastNameInfo.Name	솔 캠벨	Campbell
+LastNameInfo.Name	데이비드 베컴	Beckham
+LastNameInfo.Name	풀 스콜스	Scholes
+LastNameInfo.Name	로버트 파울러	Fowler
+LastNameInfo.Name	마이클 오웬	Owen
+LastNameInfo.Name	에밀 헤스키	Heskey
+LastNameInfo.Name	웨스 브라운	Wes Brown
+LastNameInfo.Name	나이젤 마틴	Martyn
+LastNameInfo.Name	웨인 브릿지	Bridge
+LastNameInfo.Name	마틴 쿠언	Keown
+LastNameInfo.Name	가레스 사우스게이트	Southgate
+LastNameInfo.Name	테디 셰링엄	Sheringham
+LastNameInfo.Name	오웬 하그리브스	Hargreaves
+LastNameInfo.Name	조 콜	Joe Cole
+LastNameInfo.Name	다리우스 바셀	Vassell
+LastNameInfo.Name	니키 버트	Nicky Butt
+LastNameInfo.Name	데이빗 제임스	James
+LastNameInfo.Name	키에런 다이어	Dyer
+LastNameInfo.Name	울릭 람	Rame
+LastNameInfo.Name	캉델라	Candela
+LastNameInfo.Name	비셍테 리자라쥐	Lizarazu
+LastNameInfo.Name	패트릭 비에이라	Vieira
+LastNameInfo.Name	필립 크리스탕발	Christanval
+LastNameInfo.Name	유리 조르카에프	Djorkaeff
+LastNameInfo.Name	끌로드 마켈레레	Makelele
+LastNameInfo.Name	드자이	Desailly
+LastNameInfo.Name	지브릴 씨스	Djibril Cisse
+LastNameInfo.Name	지네딘 지단	Zidane
+LastNameInfo.Name	실방 윌토르	Wiltord
+LastNameInfo.Name	티에리 앙리	Henry
+LastNameInfo.Name	미카엘 실베스트르	Silvestre
+LastNameInfo.Name	알랑 보고시앙	Boghossian
+LastNameInfo.Name	릴리앙 튀랑	Thuram
+LastNameInfo.Name	바르테즈	Barthez
+LastNameInfo.Name	에마누엘 프띠	Emmanuel Petit
+LastNameInfo.Name	프랑크 르뵈프	Leboeuf
+LastNameInfo.Name	廓府 荤触	Sagnol
+LastNameInfo.Name	다비드 트레제게	Trezeguet
+LastNameInfo.Name	크리스토프 뒤가리	Dugarry
+LastNameInfo.Name	요한 미쿠	Micoud
+LastNameInfo.Name	그레고리 쿠페	Coupet
+LastNameInfo.Name	올리버 칸	Kahn
+LastNameInfo.Name	토마스 링케	Linke
+LastNameInfo.Name	마르코 레머	Rehmer
+LastNameInfo.Name	프랑크 바우만	Baumann
+LastNameInfo.Name	카스텐 라멜로우	Ramelow
+LastNameInfo.Name	크리스티안 지게	Ziege
+LastNameInfo.Name	올리버 노이빌	Neuville
+LastNameInfo.Name	디테마르 하만	Hamann
+LastNameInfo.Name	카르스텐 얀커	Jancker
+LastNameInfo.Name	라스 리켄	Ricken
+LastNameInfo.Name	미로슬라프 클로세	Klose
+LastNameInfo.Name	옌스 레흐만	Lehmann
+LastNameInfo.Name	미하엘 발락	Ballack
+LastNameInfo.Name	게랄드 아사모아	Asamoah
+LastNameInfo.Name	세바스티안 케흘	Kehl
+LastNameInfo.Name	옌스 예레미스	Jeremies
+LastNameInfo.Name	마르코 보데	Marco Bode
+LastNameInfo.Name	요르그 뵈메	Bohme
+LastNameInfo.Name	베른트 슈나이더	Schneider
+LastNameInfo.Name	올리버 비어호프	Bierhoff
+LastNameInfo.Name	크리스토프 메첼더	Metzelder
+LastNameInfo.Name	토르스텐 프링스	Frings
+LastNameInfo.Name	한스 요르그 버트	Hans-Jorg Butt
+LastNameInfo.Name	셰이 기븐	Given
+LastNameInfo.Name	스티브 피넌	Finnan
+LastNameInfo.Name	이언 하트	Harte
+LastNameInfo.Name	케네스 커닝엄	Cunningham
+LastNameInfo.Name	스티브 스톤튼	Staunton
+LastNameInfo.Name	로이 킨	Roy Keane
+LastNameInfo.Name	제이슨 매캐티어	McAteer
+LastNameInfo.Name	매트 홀랜드	Holland
+LastNameInfo.Name	대미언 더프	Duff
+LastNameInfo.Name	로비 킨	Robbie Keane
+LastNameInfo.Name	케빈 킬반	Kilbane
+LastNameInfo.Name	마크 킨셀라	Kinsella
+LastNameInfo.Name	데이비드 코놀리	Connolly
+LastNameInfo.Name	개리 브린	Breen
+LastNameInfo.Name	리처드 던	Dunne
+LastNameInfo.Name	딘 카일리	Kiely
+LastNameInfo.Name	나이얼 퀸	Quinn
+LastNameInfo.Name	개리 켈리	Gary Kelly
+LastNameInfo.Name	클린턴 모리슨	Morrison
+LastNameInfo.Name	앤디 오브라이언	Andy O'Brien
+LastNameInfo.Name	스티븐 리드	Reid
+LastNameInfo.Name	리 카슬리	Carsley
+LastNameInfo.Name	앨런 켈리	Alan Kelly
+LastNameInfo.Name	지안루이지 부폰	Buffon
+LastNameInfo.Name	크리스티안 파누치	Panucci
+LastNameInfo.Name	파울로 말디니	Maldini
+LastNameInfo.Name	프란체스코 코코	Coco
+LastNameInfo.Name	파비오 칸나바로	Cannavaro
+LastNameInfo.Name	크리스티아노 자네티	Cristiano Zanetti
+LastNameInfo.Name	알렉산드로 델 피에로	Del Piero
+LastNameInfo.Name	젠나로 가투소	Gattuso
+LastNameInfo.Name	필리포 인자기	Inzaghi
+LastNameInfo.Name	프란체스코 토티	Totti
+LastNameInfo.Name	크리스티아노 도니	Doni
+LastNameInfo.Name	크리스티안 압비아티	Abbiati
+LastNameInfo.Name	알레산드로 네스타	Nesta
+LastNameInfo.Name	루이지 디 비아지오	Di Biagio
+LastNameInfo.Name	마르크 율리아노	Iuliano
+LastNameInfo.Name	안젤로 디 리비오	Di Livio
+LastNameInfo.Name	다미아노 톰마시	Tommasi
+LastNameInfo.Name	마르코 델베키오	Delvecchio
+LastNameInfo.Name	지안루카 잠브로타	Zambrotta
+LastNameInfo.Name	빈첸초 몬텔라	Montella
+LastNameInfo.Name	크리스티안 비에리	Vieri
+LastNameInfo.Name	프란체스코 톨도	Toldo
+LastNameInfo.Name	마르코 마테라치	Materazzi
+LastNameInfo.Name	가와구치 요시카쓰	Kawaguchi
+LastNameInfo.Name	아키타 유타카	Akita
+LastNameInfo.Name	마쓰다 나오기	Matsuda
+LastNameInfo.Name	모리오카 류조	Morioka
+LastNameInfo.Name	이나모토 준이치	Inamoto
+LastNameInfo.Name	핫토리 도시히로	Hattori
+LastNameInfo.Name	나카타 히데토시	Hidetoshi Nakata
+LastNameInfo.Name	모리시마 히로아키	Morishima
+LastNameInfo.Name	니시자와 아키노리	Nishizawa
+LastNameInfo.Name	나카야마 마사시	Nakayama
+LastNameInfo.Name	스즈키 다카유키	Suzuki
+LastNameInfo.Name	나라자키 세이고	Narazaki
+LastNameInfo.Name	야나기사와 아쓰시	Yanagisawa
+LastNameInfo.Name	산토스 알레산드로	Santos
+LastNameInfo.Name	후쿠니시 다카시	Fukunishi
+LastNameInfo.Name	나카타 고지	Koji Nakata
+LastNameInfo.Name	미야모토 쓰네야스	Miyamoto
+LastNameInfo.Name	오노 신지	Ono
+LastNameInfo.Name	오가사와라 미츠오	Ogasawara
+LastNameInfo.Name	묘진 토모가즈	Myojin
+LastNameInfo.Name	토다 카즈유키	Toda
+LastNameInfo.Name	이치카와 다이스케	Ichikawa
+LastNameInfo.Name	소가하타 히토시	Sogahata
+LastNameInfo.Name	오스카르 페레스	Perez
+LastNameInfo.Name	프란시스코 가브리엘	De Anda
+LastNameInfo.Name	라파엘 가르시아	Rafael Garcia
+LastNameInfo.Name	라파엘 마르케스	Marquez
+LastNameInfo.Name	마누엘 비드리오	Vidrio
+LastNameInfo.Name	헤라르도 토라도	Torrado
+LastNameInfo.Name	라몬 C.모랄레스	Ramon Morales
+LastNameInfo.Name	알베르토 가르시아 아	Garcia Aspe
+LastNameInfo.Name	하레드 보르게티	Borgetti
+LastNameInfo.Name	콰우테모크 블랑코	Blanco
+LastNameInfo.Name	브라울리오 루나	Luna
+LastNameInfo.Name	오스왈도 산체스	Oswaldo Sanchez
+LastNameInfo.Name	시히프레도 메르카도	Mercado
+LastNameInfo.Name	헤르만 비야	Villa
+LastNameInfo.Name	루이스 에르난데스	Hernandez
+LastNameInfo.Name	살바도르 카르모나	Carmona
+LastNameInfo.Name	푸란시스코 팔렌시아	Palencia
+LastNameInfo.Name	알베르토 로드리게스	Alberto Rodriguez
+LastNameInfo.Name	가브리엘 카바예로	Caballero
+LastNameInfo.Name	멜빈 부라운	Melvin Brown
+LastNameInfo.Name	헤수스 아레야노	Arellano
+LastNameInfo.Name	후안 로드리게스	Juan Rodriguez
+LastNameInfo.Name	호르헤 캄포스	Campos
+LastNameInfo.Name	이케 쇼룬무	Shorunmu
+LastNameInfo.Name	조지프 요보	Yobo
+LastNameInfo.Name	셀레스틴 바바야로	Babayaro
+LastNameInfo.Name	은완코 카누	Kanu
+LastNameInfo.Name	아이작 오코롱코	Okoronkwo
+LastNameInfo.Name	타리보 웨스트	West
+LastNameInfo.Name	피우스 이케디아	Ikedia
+LastNameInfo.Name	무티우 아데포주	Adepoju
+LastNameInfo.Name	바르톨로뮤 오그베체	Ogbeche
+LastNameInfo.Name	제이제이 오코차	Okocha
+LastNameInfo.Name	가르바 라왈	Lawal
+LastNameInfo.Name	오스틴 에지데	Ejide
+LastNameInfo.Name	라비우 아폴라비	Afolabi
+LastNameInfo.Name	이페아니 우데제	Udeze
+LastNameInfo.Name	저스티스 크리스토퍼	Christopher
+LastNameInfo.Name	에페토보레 소제	Sodje
+LastNameInfo.Name	줄리어스 아가호와	Aghahowa
+LastNameInfo.Name	베네틱트 아크에그부	Akwuegbu
+LastNameInfo.Name	에릭 에지오포르	Ejiofor
+LastNameInfo.Name	제임스 오비오라	Obiora
+LastNameInfo.Name	존 우타카	Utaka
+LastNameInfo.Name	빈센트 온예아마	Enyeama
+LastNameInfo.Name	페미 오파분미	Opabunmi
+LastNameInfo.Name	호세 루이스 칠라베르	Chilavert
+LastNameInfo.Name	프란시스코 아르세	Arce
+LastNameInfo.Name	페드로 사라비아	Sarabia
+LastNameInfo.Name	카를로스 가마라	Gamarra
+LastNameInfo.Name	셀소 아얄라	Celso Ayala
+LastNameInfo.Name	에스타니슬라오 스트	Struway
+LastNameInfo.Name	리차드 바에스	Baez
+LastNameInfo.Name	기도 알바렝가	Alvarenga
+LastNameInfo.Name	로케 산타크루스	Santa Cruz
+LastNameInfo.Name	로베르토 아쿠냐	Acuna
+LastNameInfo.Name	후스토 비야르	Villar
+LastNameInfo.Name	카를로스 파레데스	Paredes
+LastNameInfo.Name	디에고 가빌란	Gavilan
+LastNameInfo.Name	카를로스 보네트	Bonet
+LastNameInfo.Name	구스타보 모리니고	Morinigo
+LastNameInfo.Name	후안카를로스 프랑코	Franco
+LastNameInfo.Name	훌리오 세사르 카세레	Caceres
+LastNameInfo.Name	다니엘 사나브리아	Sanabria
+LastNameInfo.Name	호세 카르도소	Cardozo
+LastNameInfo.Name	데니스 카니사	Caniza
+LastNameInfo.Name	리카르도 타바렐리	Tavarelli
+LastNameInfo.Name	넬손 쿠에바스	Cuevas
+LastNameInfo.Name	예지 두덱	Dudek
+LastNameInfo.Name	토마시 크워스	Klos
+LastNameInfo.Name	야첵 지엘린스키	Zielinski
+LastNameInfo.Name	미하우 제프와코프	Michal Zewlakow
+LastNameInfo.Name	토마시 자사	Rzasa
+LastNameInfo.Name	토마스 하이토	Hajto
+LastNameInfo.Name	피오트르 스비에르체	Swierczewski
+LastNameInfo.Name	체자리 쿠하르스키	Kucharski
+LastNameInfo.Name	파베우 크리샤워비츠	Kryszalowicz
+LastNameInfo.Name	라도스와프 카우주니	Kaluzny
+LastNameInfo.Name	엠마누엘 올리사데베	Olisadebe
+LastNameInfo.Name	라도슬라프 마이단	Majdan
+LastNameInfo.Name	아르카디우즈 글로바	Glowacki
+LastNameInfo.Name	마르친 제프와코프	Marcin Zewlakow
+LastNameInfo.Name	토마시 바우도흐	Waldoch
+LastNameInfo.Name	마치에이 무라프스키	Murawski
+LastNameInfo.Name	아르카디우즈 바크	Arkadiusz Bak
+LastNameInfo.Name	야체크 크지노벡	Krzynowek
+LastNameInfo.Name	마시에 주라브스키	Zurawski
+LastNameInfo.Name	야체크 바크	Jacek Bak
+LastNameInfo.Name	마렉 코즈민스키	Kozminski
+LastNameInfo.Name	아담 마티섹	Matysek
+LastNameInfo.Name	파베우 시비크	Sibik
+LastNameInfo.Name	비토르 바이아	Baia
+LastNameInfo.Name	조르제 코스타	Jorge Costa
+LastNameInfo.Name	아벨 샤비에르	Xavier
+LastNameInfo.Name	카네이라	Caneira
+LastNameInfo.Name	페르난두 코투	Couto
+LastNameInfo.Name	파울루 소사	Sousa
+LastNameInfo.Name	루이스 피구	Figo
+LastNameInfo.Name	주앙 핀투	Pinto
+LastNameInfo.Name	파을레타	Pauleta
+LastNameInfo.Name	루이 코스타	Rui Costa
+LastNameInfo.Name	세르지우 콘세이상	Conceicao
+LastNameInfo.Name	후고 비아나	Viana
+LastNameInfo.Name	조르제 안드라데	Andrade
+LastNameInfo.Name	페드루 바르보사	Barbosa
+LastNameInfo.Name	넬손	Nelson
+LastNameInfo.Name	리카르도	Ricardo
+LastNameInfo.Name	파울루 벤투	Bento
+LastNameInfo.Name	프레샤우트	Frechaut
+LastNameInfo.Name	카푸슈	Capucho
+LastNameInfo.Name	페티트	Petit
+LastNameInfo.Name	누누 고메스	Gomes
+LastNameInfo.Name	베투	Beto
+LastNameInfo.Name	루이 조르제	Jorge
+LastNameInfo.Name	루슬란 니그마툴린	Nigmatullin
+LastNameInfo.Name	유리 코브툰	Kovtun
+LastNameInfo.Name	유리 니키포로프	Nikiforov
+LastNameInfo.Name	알렉세이 스메르틴	Smertin
+LastNameInfo.Name	안드레이 솔로마틴	Solomatin
+LastNameInfo.Name	이고르 ??쇼프	Semshov
+LastNameInfo.Name	빅토르 오노프코	Onopko
+LastNameInfo.Name	발레리 카르핀	Karpin
+LastNameInfo.Name	에고르 티토프	Titov
+LastNameInfo.Name	알렉산드르 모스토보	Mostovoi
+LastNameInfo.Name	블라디미르 베샤스트	Beschastnykh
+LastNameInfo.Name	스타니슬라프 체르체	Cherchesov
+LastNameInfo.Name	비아체슬라프 다에프	Daev
+LastNameInfo.Name	이고르 추가이노프	Chugainov
+LastNameInfo.Name	드미트리 알레니체프	Alenichev
+LastNameInfo.Name	알렉산더 케르자코프	Kerzhakov
+LastNameInfo.Name	세르게이 세마크	Semak
+LastNameInfo.Name	드미트리 세니코프	Sennikov
+LastNameInfo.Name	루슬란 피메노프	Pimenov
+LastNameInfo.Name	마라트 이즈마일로프	Izmailov
+LastNameInfo.Name	드미트리 코클로프	Khokhlov
+LastNameInfo.Name	드미트리 시초프	Sychev
+LastNameInfo.Name	알렉산드르 필리모노	Filimonov
+LastNameInfo.Name	모하메드 알다예야	Al-Deayea
+LastNameInfo.Name	모하메드 알자하니	Al-Jahani
+LastNameInfo.Name	레다 투카르	Tukar
+LastNameInfo.Name	압둘라 주브로마위	Zubromawi
+LastNameInfo.Name	모신 하르티	Al-Harthi
+LastNameInfo.Name	푸지 알셰리	Al-Shehri
+LastNameInfo.Name	이브라함 알샤라니	Ibrahim Al-Shahrani
+LastNameInfo.Name	모하메드 누르	Noor
+LastNameInfo.Name	사미 알자베르	Al-Jaber
+LastNameInfo.Name	모하마드 알슬로브	Al-Shlhoub
+LastNameInfo.Name	알 도사리 오바이드	Obeid Al-Dosari
+LastNameInfo.Name	알 도사리 아메드 두	Ahmed Al-Dosari
+LastNameInfo.Name	후세인 술리마니	Sulimani
+LastNameInfo.Name	카탄 압둘라지즈	Khathran
+LastNameInfo.Name	알 도사리 압둘라 가	Abdullah Al-Dosari
+LastNameInfo.Name	알 도사리 카미스 알	Khamis Al-Dosari
+LastNameInfo.Name	압둘라 알샤라니	Abdullah Al-Shahrani
+LastNameInfo.Name	나와프 알테미아트	Al-Temyat
+LastNameInfo.Name	오마르 알감디	Al-Ghamdi
+LastNameInfo.Name	알 야미 알 한센	Al-Yami
+LastNameInfo.Name	마브룩 자이드	Zaid
+LastNameInfo.Name	모하메드 코 밥크르	Babkr
+LastNameInfo.Name	만수르 알타가피	Al-Thaqafi
+LastNameInfo.Name	토니 실바	Tony Silva
+LastNameInfo.Name	오마르 다프	Daf
+LastNameInfo.Name	사 파파	Sarr
+LastNameInfo.Name	디오프 파파 말릭	Pape Malick Diop
+LastNameInfo.Name	알라산느 은두르	N'Dour
+LastNameInfo.Name	알리우 시스	Aliou Cisse
+LastNameInfo.Name	앙리 카마라	Henri Camara
+LastNameInfo.Name	아마라 트라오레	Traore
+LastNameInfo.Name	술리만 카마라	Souleymane Camara
+LastNameInfo.Name	칼릴루 파디가	Fadiga
+LastNameInfo.Name	엘 하지 디오프	Diouf
+LastNameInfo.Name	암디 파예	Faye
+LastNameInfo.Name	라민 디아타	Diatta
+LastNameInfo.Name	무사 은디아예	Moussa N'Diaye
+LastNameInfo.Name	살리프 디아오	Diao
+LastNameInfo.Name	오마르 디알로	Diallo
+LastNameInfo.Name	페르디난드 콜리	Coly
+LastNameInfo.Name	파프 티아우	Thiaw
+LastNameInfo.Name	디오프 파파 부바	Pape Bouba Diop
+LastNameInfo.Name	실뱅 은디아예	Sylvain N'Diaye
+LastNameInfo.Name	하비브 베예	Beye
+LastNameInfo.Name	칼리두 시소코	Cissokho
+LastNameInfo.Name	마크타르 은디아예	Makhtar N'Diaye
+LastNameInfo.Name	마르코 시메우노비치	Simeunovic
+LastNameInfo.Name	고란 산코비치	Sankovic
+LastNameInfo.Name	젤리코 밀리노비치	Milinovic
+LastNameInfo.Name	무아메르 부그달리치	Vugdalic
+LastNameInfo.Name	마린코 갈리치	Galic
+LastNameInfo.Name	알렉산더 크나브스	Knavs
+LastNameInfo.Name	도니 노바크	Novak
+LastNameInfo.Name	알레시 체	Ales Ceh
+LastNameInfo.Name	밀란 오스테르츠	Osterc
+LastNameInfo.Name	즐라트코 자오비치	Zahovic
+LastNameInfo.Name	미란 파블린	Pavlin
+LastNameInfo.Name	믈라덴 다바노비치	Dabanovic
+LastNameInfo.Name	믈라덴 루도냐	Rudonja
+LastNameInfo.Name	사샤 가이세르	Gajser
+LastNameInfo.Name	라이코 타브차르	Tavcar
+LastNameInfo.Name	세나드 티가냐	Tiganj
+LastNameInfo.Name	조란 파블로비치	Pavlovic
+LastNameInfo.Name	밀렌코 아치모비치	Acimovic
+LastNameInfo.Name	아미르 카리치	Karic
+LastNameInfo.Name	나스탸 체	Nastja Ceh
+LastNameInfo.Name	세바스티안 치미로티	Cimirotic
+LastNameInfo.Name	데얀 네메츠	Nemec
+LastNameInfo.Name	스파소예 불라이치	Bulajic
+LastNameInfo.Name	한스 봉크	Vonk
+LastNameInfo.Name	시릴 은자마	Nzama
+LastNameInfo.Name	브레들리 카넬	Carnell
+LastNameInfo.Name	아론 모쿠나	Aaron Mokoena
+LastNameInfo.Name	야콥 레케토	Lekgetho
+LastNameInfo.Name	맥베드 시바야	Sibaya
+LastNameInfo.Name	킨톤 포춘	Fortune
+LastNameInfo.Name	타보 음고메니	Mngomeni
+LastNameInfo.Name	무칸시 맥도날드	Mukansi
+LastNameInfo.Name	베네트 음구니	Mnguni
+LastNameInfo.Name	자부 플레	Pule
+LastNameInfo.Name	테보호 모쿠나	Teboho Mokoena
+LastNameInfo.Name	피에르 이사	Issa
+LastNameInfo.Name	시야봉가 놈베트	Nomvethe
+LastNameInfo.Name	시부시소 주마	Zuma
+LastNameInfo.Name	안드레 아렌드세	Arendse
+LastNameInfo.Name	베네딕트 백카시	McCarthy
+LastNameInfo.Name	델론 버클리	Buckley
+LastNameInfo.Name	루카스 라데베	Radebe
+LastNameInfo.Name	칼빈 마를린	Marlin
+LastNameInfo.Name	스티븐 피에나르	Pienaar
+LastNameInfo.Name	타방 모레페	Molefe
+LastNameInfo.Name	조지 쿠만타라키스	Koumantarakis
+LastNameInfo.Name	아케르 까시야스	Casillas
+LastNameInfo.Name	쿠르로 토레스	Torres
+LastNameInfo.Name	후안프란	Juanfran
+LastNameInfo.Name	엘게라	Helguera
+LastNameInfo.Name	푸욜	Puyol
+LastNameInfo.Name	이에로	Hierro
+LastNameInfo.Name	라울	Raul
+LastNameInfo.Name	바라하	Baraja
+LastNameInfo.Name	모리엔테스	Morientes
+LastNameInfo.Name	트리스탄	Tristan
+LastNameInfo.Name	데페드로	De Pedro
+LastNameInfo.Name	알베르트 루케	Luque
+LastNameInfo.Name	알베다	Albelda
+LastNameInfo.Name	로메로	Romero
+LastNameInfo.Name	멘디에타	Mendieta
+LastNameInfo.Name	발레론	Valeron
+LastNameInfo.Name	세르히오	Sergio
+LastNameInfo.Name	하비	Xavi
+LastNameInfo.Name	나달	Nadal
+LastNameInfo.Name	루이스 엔리케	Enrique
+LastNameInfo.Name	호아킨	Joaquin
+LastNameInfo.Name	페드로 콘트레라스	Contreras
+LastNameInfo.Name	마그누스 헤드만	Hedman
+LastNameInfo.Name	올로프 멜베르그	Mellberg
+LastNameInfo.Name	파트릭 안데르손	Patrik Andersson
+LastNameInfo.Name	요한 미얄비	Mjallby
+LastNameInfo.Name	미샤엘 스벤손	Michael Svensson
+LastNameInfo.Name	토비이스 린데로트	Linderoth
+LastNameInfo.Name	니클라스 알렉산데르	Alexandersson
+LastNameInfo.Name	안데르스 스벤손	Anders Svensson
+LastNameInfo.Name	프레드릭 융베르그	Ljungberg
+LastNameInfo.Name	마르쿠스 알바크	Allback
+LastNameInfo.Name	엔리크 라르손	Larsson
+LastNameInfo.Name	마그누스 킬스테드	Kihlstedt
+LastNameInfo.Name	토마스 안토넬리우스	Antonelius
+LastNameInfo.Name	에릭 에드만	Edman
+LastNameInfo.Name	안드레아스 야콥손	Jakobsson
+LastNameInfo.Name	테디 루치치	Lucic
+LastNameInfo.Name	마그누스 스벤손	Magnus Svensson
+LastNameInfo.Name	마티아스 욘손	Jonson
+LastNameInfo.Name	폰투스 파르네루드	Farnerud
+LastNameInfo.Name	다니엘 안데르손	Daniel Andersson
+LastNameInfo.Name	즐라탄 이브라히모비	Ibrahimovic
+LastNameInfo.Name	안드레아스 안데르손	Andreas Andersson
+LastNameInfo.Name	안드레아스 이삭손	Isaksson
+LastNameInfo.Name	알리 붐니젤	Boumnijel
+LastNameInfo.Name	칼레드 바드라	Badra
+LastNameInfo.Name	주베이르 바야	Baya
+LastNameInfo.Name	모하메드 음카세르	Mkacher
+LastNameInfo.Name	지에드 자지리	Jaziri
+LastNameInfo.Name	하템 트라벨시	Trabelsi
+LastNameInfo.Name	이메드 마드비	Mhadhebi
+LastNameInfo.Name	하센 가브시	Gabsi
+LastNameInfo.Name	리아드 젤라시	Jelassi
+LastNameInfo.Name	카이스 고드반	Ghodhbane
+LastNameInfo.Name	아델 셀리미	Sellimi
+LastNameInfo.Name	라우프 부자이엔	Bouzaiene
+LastNameInfo.Name	리아드 부아지지	Bouazizi
+LastNameInfo.Name	암디 마르주키	Marzouki
+LastNameInfo.Name	라디 자이디	Jaidi
+LastNameInfo.Name	하센 베자위	Bejaoui
+LastNameInfo.Name	타렉 타베트	Thabet
+LastNameInfo.Name	셀림 베나추르	Benachour
+LastNameInfo.Name	에미르 음카데미	Mkademi
+LastNameInfo.Name	알리 지투니	Zitouni
+LastNameInfo.Name	멜키 무라드	Mourad
+LastNameInfo.Name	아흐메드 자우아치	Jaouachi
+LastNameInfo.Name	클레이톤	Clayton
+LastNameInfo.Name	루스투 렉베르	Recber
+LastNameInfo.Name	엠레 아시크	Asik
+LastNameInfo.Name	뷜렌트 코르크마즈	Korkmaz
+LastNameInfo.Name	파티 아키엘	Akyel
+LastNameInfo.Name	알파이 오잘란	Ozalan
+LastNameInfo.Name	아리프 에르뎀	Erdem
+LastNameInfo.Name	오칸 부루크	Buruk
+LastNameInfo.Name	투가이 케리모글루	Kerimoglu
+LastNameInfo.Name	하칸 수쿠르	Sukur
+LastNameInfo.Name	일디라이 바스튀르크	Basturk
+LastNameInfo.Name	하산 사스	Sas
+LastNameInfo.Name	오메르 칵키치	Catkic
+LastNameInfo.Name	무스타파 이제트	Izzet
+LastNameInfo.Name	타이푸르 하부추	Havutcu
+LastNameInfo.Name	니아트 카베시	Kahveci
+LastNameInfo.Name	우미트 오자트	Ozat
+LastNameInfo.Name	일한 만시즈	Mansiz
+LastNameInfo.Name	에르군 펜베	Penbe
+LastNameInfo.Name	압둘라 에르칸	Ercan
+LastNameInfo.Name	하칸 운살	Unsal
+LastNameInfo.Name	엠레 벨로조글루	Belozoglu
+LastNameInfo.Name	우미트 다발라	Davala
+LastNameInfo.Name	자페르 오즈굴테킨	Ozgultekin
+LastNameInfo.Name	파비안 카리니	Carini
+LastNameInfo.Name	구스타보 멘데스	Gustavo Mendez
+LastNameInfo.Name	알레한드로 렘보	Lembo
+LastNameInfo.Name	파올로 몬테로	Montero
+LastNameInfo.Name	파블로 가르시아	Pablo Garcia
+LastNameInfo.Name	다리오 로드리게스	Dario Rodriguez
+LastNameInfo.Name	히안니 기고우	Guigou
+LastNameInfo.Name	구스타보 바렐라	Varela
+LastNameInfo.Name	다리오 실바	Dario Silva
+LastNameInfo.Name	파비안 오닐	O'Neill
+LastNameInfo.Name	페데리코 마가야네스	Magallanes
+LastNameInfo.Name	구스타보 무누아	Munua
+LastNameInfo.Name	세바스티안 아브레우	Abreu
+LastNameInfo.Name	곤잘레스 소론도	Sorondo
+LastNameInfo.Name	니콜라스 올리베라	Olivera
+LastNameInfo.Name	마르셀로 로메로	Marcelo Romero
+LastNameInfo.Name	마리오 레게이로	Regueiro
+LastNameInfo.Name	리차드 모랄레스	Richard Morales
+LastNameInfo.Name	조 비세라	Bizera
+LastNameInfo.Name	알바로 레코바	Recoba
+LastNameInfo.Name	디에고 포를란	Forlan
+LastNameInfo.Name	곤살로 데 로스 산토	De los Santos
+LastNameInfo.Name	페데리코 엘두아옌	Elduayen
+LastNameInfo.Name	브래드 프리델	Friedel
+LastNameInfo.Name	프랭키 헤즈덕	Hejduk
+LastNameInfo.Name	그렉 버홀터	Berhalter
+LastNameInfo.Name	파블로 마스트로에니	Mastroeni
+LastNameInfo.Name	존 오브라이언	John O'Brien
+LastNameInfo.Name	데이비드 레지스	Regis
+LastNameInfo.Name	에디 루이스	Lewis
+LastNameInfo.Name	어니 스튜어트	Stewart
+LastNameInfo.Name	조 맥스 무어	Moore
+LastNameInfo.Name	클라우디오 레이나	Reyna
+LastNameInfo.Name	클린트 매시스	Mathis
+LastNameInfo.Name	제프 아구스	Agoos
+LastNameInfo.Name	코비 존스	Jones
+LastNameInfo.Name	스티브 체룬돌로	Cherundolo
+LastNameInfo.Name	조시 울프	Wolff
+LastNameInfo.Name	카롤로스 야모사	Llamosa
+LastNameInfo.Name	다마르커스 비즐리	Beasley
+LastNameInfo.Name	캐이시 켈러	Keller
+LastNameInfo.Name	토니 메올라	Meola
+LastNameInfo.Name	브라이언 맥브라이드	McBride
+LastNameInfo.Name	랜던 도노번	Donovan
+LastNameInfo.Name	앤서니 사네	Sanneh
+LastNameInfo.Name	에디 포프	Pope
+LastNameInfo.Name	格拉米斯特	Gramister
+LastNameInfo.Name	목윗뤼	Graf
+LastNameInfo.Name	목윗볶캠	Graham
+LastNameInfo.Name	목읊렵랑	Grenfell
+LastNameInfo.Name	古罗萨	Gurosa
+LastNameInfo.Name	뮴흩랑	Gurel
+LastNameInfo.Name	古勒赫	Gulech
+LastNameInfo.Name	古比	Gubby
+LastNameInfo.Name	목주속돠	Gringard
+LastNameInfo.Name	古里罗廷	Gurillotin
+LastNameInfo.Name	섈랑참	Gilman
+LastNameInfo.Name	吉尔贝特	Gilbert
+LastNameInfo.Name	内瑟尔	Nesser
+LastNameInfo.Name	内查特尔	Nechatel
+LastNameInfo.Name	那赫尔	Naher
+LastNameInfo.Name	诺卡德	Nockard
+LastNameInfo.Name	诺斯那格	Nosnagg
+LastNameInfo.Name	尼斯尔	Nissel
+LastNameInfo.Name	콩옹윗흩랑	Niklarel
+LastNameInfo.Name	达克特	Dackett
+LastNameInfo.Name	达拉尔	Dallar
+LastNameInfo.Name	댐랑렵	Dalfy
+LastNameInfo.Name	多马克	Domagk
+LastNameInfo.Name	吉恩达斯特	Gindast
+LastNameInfo.Name	多赫特里	Dochtery
+NPC.Description	AR, SG 판매	Sells ARs and SGs
+NPC.Description	SMG 판매	Sells SMGs
+NPC.Description	검 기술 교육, 검 판매	Sword skill training, sells swords
+NPC.Description	공성 공격측 지원	Castle Siege attacker support
+NPC.Description	공성 수비측 지원	Castle Siege defender support
+NPC.Description	던전 이동 도우미	Dungeon travel guide
+NPC.Description	던전 입장 석상  	Dungeon entrance statue
+NPC.Description	도 기술 교육, 도 판매	Blade skill training, sells blades
+NPC.Description	도서관 담당	Librarian
+NPC.Description	라옴 던전 최하층 입장	Entry to the lowest level of Laom Dungeon
+NPC.Description	레어퀘스트, 부활위치 지정, 이벤트퀘스트 담당	Rare quests, respawn point, event quests
+NPC.Description	리스토어	Restore
+NPC.Description	모터사이클 및 탄창 판매, 모터사이클 관리	Sells motorcycles and magazines, motorcycle care
+NPC.Description	목걸이, 팔찌, 반지 판매	Sells necklaces, bracelets and rings
+NPC.Description	무기 및 비드 판매, 뱀파이어 기술 교육	Sells weapons and Beads, Vampire skill training
+NPC.Description	무기 지급 담당	Issues weapons
+NPC.Description	무기 판매 및 성향 조정	Sells weapons, adjusts Alignment
+NPC.Description	무기 판매 및 전쟁참가	Sells weapons, war enlistment
+NPC.Description	방패 판매, 은도금	Sells shields, silver plating
+NPC.Description	뱀파이어 기술 교육	Vampire skill training
+NPC.Description	뱀파이어 무기, 비드 판매, 이벤트퀘스트 담당	Sells Vampire weapons and Beads, event quests
+NPC.Description	뱀파이어 코트 판매	Sells Vampire Coats
+NPC.Description	변신 아이템 및 씰 판매, 보관함 판매 및 관리, 퀘스트 담당	Sells transformation items and Seals, Storage sales and management, quests
+NPC.Description	변신아이템, 혈청 및 씰 판매, 보관 및 수리	Sells transformation items, Serums and Seals, storage and repairs
+NPC.Description	보관함 판매 및 관리	Storage sales and management
+NPC.Description	보관함 판매 및 관리, 퀘스트 담당	Storage sales and management, quests
+NPC.Description	브리핑 및 미션 담당, 이벤트퀘스트 담당	Briefings and missions, event quests
+NPC.Description	상의, 하의, 벨트, 모자 판매	Sells tops, bottoms, belts and hats
+NPC.Description	상하의, 벨트, 헬멧 판매	Sells body armor, leg armor, belts and helmets
+NPC.Description	성향 회복	Restores Alignment
+NPC.Description	셉티무스성 석상	Septimus Castle statue
+NPC.Description	수리	Repairs
+NPC.Description	수리 및 방어구 판매, 계급 스킬 초기화	Repairs, sells armor, resets Rank skills
+NPC.Description	수리 및 보관	Repairs and storage
+NPC.Description	수리, 부활위치 지정, 수익금 관리 및 보관함 관리	Repairs, respawn point, revenue and Storage management
+NPC.Description	수리, 악세사리 및 변신아이템 판매	Repairs, sells accessories and transformation items
+NPC.Description	수리, 은도금	Repairs, silver plating
+NPC.Description	승직 무기 교환	Advancement weapon exchange
+NPC.Description	신발, 장갑 판매	Sells boots and gloves
+NPC.Description	신발, 장갑, 방패 판매	Sells boots, gloves and shields
+NPC.Description	아이템 매매	Buys and sells items
+NPC.Description	아이템 매매, 전쟁참가	Buys and sells items, war enlistment
+NPC.Description	아이템 매매, 정보검색	Buys and sells items, information search
+NPC.Description	아이템 수리, 길드 관련, PK존 이동	Item repairs, Guild matters, PK zone travel
+NPC.Description	아이템 판매 및 치료, 계급 스킬 초기화	Sells items, healing, resets Rank skills
+NPC.Description	아이템 판매 및 후송위치 지정	Sells items, sets evacuation point
+NPC.Description	아이템 판매, 계급 스킬 초기화	Sells items, resets Rank skills
+NPC.Description	아이템 판매, 보관함 판매 및 관리	Sells items, Storage sales and management
+NPC.Description	악세사리 판매	Sells accessories
+NPC.Description	악세사리 판매 및 전쟁참가	Sells accessories, war enlistment
+NPC.Description	악세사리 판매 및 커플 신청	Sells accessories, couple registration
+NPC.Description	악세사리 판매, 수리 및 보관	Sells accessories, repairs and storage
+NPC.Description	야전사령부 경비	Field Headquarters guard
+NPC.Description	옥타부스성 석상	Octavus Castle statue
+NPC.Description	의상 판매	Sells clothing
+NPC.Description	인챈트 기술 교육, 메이스 판매	Enchant skill training, sells maces
+NPC.Description	정보, 전쟁참가, 수익금 관리 및 보관함 관리	Information, war enlistment, revenue and Storage management
+NPC.Description	정찰 임무 수행원	Reconnaissance agent
+NPC.Description	총 기술 교육, SR 판매	Gun skill training, sells SRs
+NPC.Description	치료 및 아이템 매매	Healing, buys and sells items
+NPC.Description	치료 및 아이템 판매	Healing, sells items
+NPC.Description	치료, 포션 및 탄창 판매	Healing, sells potions and magazines
+NPC.Description	컴퓨터 담당	Computer operator
+NPC.Description	코트 판매	Sells Coats
+NPC.Description	코트판매 및 전쟁참가	Sells Coats, war enlistment
+NPC.Description	쿠아르투스성 석상	Quartus Castle statue
+NPC.Description	테르티우스성 석상	Tertius Castle statue
+NPC.Description	펜타누스 성 입장 허가	Grants entry to Pentanus Castle
+NPC.Description	헥시리우스 성 입장 허가	Grants entry to Hexserius Castle
+NPC.Description	헬기 이동	Helicopter travel
+NPC.Description	혈청, 변신아이템 및 씰 판매, 수리 및 보관	Sells Serums, transformation items and Seals, repairs and storage
+NPC.Description	훈련소입장도우미	Training Camp entry guide
+NPC.Description	힐링 기술 교육, 십자가 판매	Healing skill training, sells crosses
+MonsterName	오베르슈츠Melee형	Oberschutz Melee type
+MonsterName	오베르슈츠Range형	Oberschutz Range type
+MonsterName	위도우스	Widows
+MonsterName	치프위도우스	Chief Widows
+GoodsListInfo.OptionType	豆	

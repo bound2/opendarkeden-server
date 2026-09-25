@@ -1,19 +1,19 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <QuestList>
 	<Quest id="101">
-		<Title>¾îµÒ¿¡ ´«À» ¶ß¶ó.</Title>
-		<Script sender="ºê¸®ÄÝ¶óÄ«½º">ÀÚ, »õ·Ó°Ô ¾òÀº ÈûÀ» ´À²¸º¸°í ½ÍÀº°¡? ÈÄÈÄ¡¦ ÇÏÁö¸¸ ¾ÆÁ÷ ³× ÈûÀº ¹Ì¾àÇÏ±â Â¦ÀÌ ¾ø´Ù. ±× »óÅÂ·Î ¼º ¹ÛÀ» ³ª¼­ºÁ¾ß ¹öÅß³¾ ¼ö ¾øÀ» ÅÍ. ÇÏÁö¸¸ Áö±Ý °°Àº Àü½Ã¿¡ ³× ³à¼®À» ÀÏÀÏÀÌ °¡¸£Ä¥ ¿©À¯´Â ¾ø±¸³ª. ÇÏÁö¸¸ ³× ½º½º·Î °¡´É¼ºÀ» º¸¿©ÁØ´Ù¸é °¡¸£Ä§À» ÁÖ°Ú´Ù. ÀÌ°÷ ÁöÇÏ 1Ãþ Á¤µµ¶ó¸é Áö±ÝÀÇ ³Ê¶óµµ °¨´çÀÌ °¡´ÉÇÏ°ÚÁö. ±×°÷ÀÇ ¾²·¹±âµéÀ» Ã³¸®ÇÏµµ·Ï ÇØ¶ó. ¶§°¡ µÇ¸é ³Ê¸¦ ºÎ¸¦ °ÍÀÌ´Ù.</Script>
+		<Title>Open Your Eyes to the Darkness.</Title>
+		<Script sender="Vrykolakas">So, you wish to feel your newfound power? Heh... But your power is still pitifully feeble. Step outside the castle as you are and you will not last. Yet in wartime such as this I have no leisure to teach a whelp like you everything myself. Show me your potential on your own, however, and I shall teach you. The first basement level here should be within even your present means. Go and dispose of the rubbish there. When the time comes, I shall summon you.</Script>
 		<Happen replay="false">
 			<Race race="VAMPIRE" />
 			<Level max="3" />
 		</Happen>
-		<CompleteMessage sender="ºê¸®ÄÝ¶óÄ«½º" target="92">À½¡¦ ÁÁ´Ù. ³Ê¿¡°Ô¼­ Ç³±â´Â ÇÇ ³¿»õ°¡ Á¦¹ý ¾µ¸¸ÇÏ±¸³ª. ³»°¡ ³Ê¿¡°Ô ´É·ÂÀ» Àü¼öÇØ ÁÖ¸¶.</CompleteMessage>
+		<CompleteMessage sender="Vrykolakas" target="92">Hmm... Good. The scent of blood about you is quite promising. I shall pass my power on to you.</CompleteMessage>
 		<Complete>
-			<Level min="6" index="1">·¹º§ 6 ÀÌ»ó ´Þ¼º</Level>
+			<Level min="6" index="1">Reach level 6</Level>
 		</Complete>
-		<FailMessage sender="ºê¸®ÄÝ¶óÄ«½º" target="92">µµ´ëÃ¼ ¹» ÇÏ°í ÀÖ´Â °Ç°¡? ±×·± ½ÄÀ¸·Î´Â ¹ö·¯Áö °°Àº ÀÎ°£ ³à¼®µéÀÇ »ç³É°¨ÀÌ µÇ±â µüÀÌ°Ú±º¡¦</FailMessage>
+		<FailMessage sender="Vrykolakas" target="92">What on earth are you doing? At this rate you will make fine prey for those worms of humans...</FailMessage>
 		<Fail>
-			<Time limit="30" index="1">%s³²Àº ½Ã°£ : %dºÐ</Time>
+			<Time limit="30" index="1">%sTime left: %d min</Time>
 		</Fail>
 		<Reward>
 			<GiveVampireExp amount="100" />
@@ -21,20 +21,20 @@
 		</Reward>
 	</Quest>
 	<Quest id="102">
-		<Title>¹ìÆÄÀÌ¾î·ÎÀÇ ÀÚ°¢</Title>
-		<Script sender="·¹º£Ä«">¾î¸° ¹ìÆÄÀÌ¾î¿©! ¾îÂ°¼­ ¾ÆÁ÷±îÁö ÇÇÀÇ À¯È¤À» °ÅºÎÇÏ´Â °ÅÁÒ? 
-¸Ó¸® ¼Ó¿¡ Æ²¾î¹ÚÈù ÇÏÂúÀº ÀÎ°£µéÀÇ À±¸®¶õ °ÍÀÌ ½Å°æ ¾²ÀÌ´Â °ÍÀÎ°¡¿ä? ½º½º·Î°¡ ¿øÇØ¼­ ÀÎ°£ ÀÌ±æ Æ÷±âÇÑ ÁÖÁ¦¿¡ ¾ÆÁ÷±îÁö ±×·± °Í¿¡ ½Å°æÀ» ¾²°í ÀÖ´Ù´Ï ¿ì½º¿î ÀÏÀÌ±º¿ä. ÇÏÂúÀº ÀÎ°£¼¼»óÀÇ ±â¾ïÀº ¾µ¸ð¾ø´Â °ÍÀÌÁÒ. ¿ì¸® ÀÏÁ·ÀÇ °­´ëÇÑ ÈûÀº ±×³É »ý°Ü³ª´Â °ÍÀÌ ¾Æ´Õ´Ï´Ù. »ý¸íÀÇ ±Ù¿øÀÎ ÇÇ¸¦ ÅëÇØ ¿ì¸®ÀÇ ÈûÀº ´õ¿í °­ÇØÁö´Â °ÍÀÔ´Ï´Ù. °­ÇØÁö±â À§ÇØ¼­¶ó¸é ÇÇ¸¦ ¸¶¼Å¾ß ÇÕ´Ï´Ù.</Script>
+		<Title>Awakening as a Vampire</Title>
+		<Script sender="Rebecca">Young vampire! Why do you still resist the temptation of blood?
+Do the trifling ethics of humans lodged in your head still trouble you? How amusing that you still care about such things when you gave up being human of your own will. Memories of the petty human world are worthless. The mighty power of our kind does not simply come into being. Our power grows ever stronger through blood, the source of life. If you wish to grow strong, you must drink blood.</Script>
 		<Happen replay="false">
 			<Race race="VAMPIRE" />
 			<Level min="3" max="5" />
 		</Happen>
-		<CompleteMessage sender="·¹º£Ä«" target="255">ÀÌÁ¦ Á¦¹ý ÈíÇ÷¿¡ ÀÍ¼÷ÇØÁ³³ª¿ä? ÀÌÈÄ¿¡µµ ÀüÅõ Áß¿£ Ç×»ó ÈíÇ÷À» ¿°µÎ¿¡ µÎ¾î¾ß ÇÒ °ÍÀÔ´Ï´Ù. ÀÌÁ¦ ¸¶À»ÀÇ Ä«ÄÜ¿¡°Ô ¸Ã°ÜµÐ ¹°°ÇÀ» ¹Þµµ·Ï ÇÏ½Ê½Ã¿À.</CompleteMessage>
+		<CompleteMessage sender="Rebecca" target="255">Have you grown used to Blood Drain now? From now on you must always keep Blood Drain in mind in battle. Now go and collect the item I left with Kakon in the village.</CompleteMessage>
 		<Complete>
-			<BloodDrain num="20" index="1">%sÈíÇ÷ È¸¼ö : %d / 20È¸</BloodDrain>
+			<BloodDrain num="20" index="1">%sBlood Drains: %d / 20</BloodDrain>
 		</Complete>
-		<FailMessage sender="·¹º£Ä«" target="255">¼÷¸íÀ» °ÅºÎÇÏ°Ú´Ù´Â °Ç°¡¿ä? ¹¹, ÁÁ°ÚÁÒ¡¦ Àí´õ¹Ì·Î º¯ÇÑ ÈÄ¿¡ ÈÄÈ¸ÇØµµ ¼Ò¿ë¾øÀ» °Ì´Ï´Ù. ÈåÈì~</FailMessage>
+		<FailMessage sender="Rebecca" target="255">So you refuse your destiny? Well, fine... Regret will do you no good once you have turned to ash. Hmph.</FailMessage>
 		<Fail>
-			<Time limit="15" index="1">%s³²Àº ½Ã°£ : %dºÐ</Time>
+			<Time limit="15" index="1">%sTime left: %d min</Time>
 		</Fail>
 		<Reward>
 			<GiveItem class="SERUM" type="0" num="9" />
@@ -42,29 +42,29 @@
 		</Reward>
 	</Quest>
 	<Quest id="103">
-		<Title>¶ó¸£¹Ù¸¦ ¼³µæÇÏ¶ó.</Title>
-		<Script sender="ºê¸®ÄÝ¶óÄ«½º">Á¡Á¡ ÀÏÁ·À¸·Î¼­ ¼ºÀåÇØ ³ª°¡´Â ÀÚ³×¸¦ ¸¶½ºÅÍ²²¼­´Â ¾ÆÁÖ ÈíÁ·ÇÏ°Ô »ý°¢ÇÏ°í °è½Å´Ù³×. ¹°·Ð ¾ÕÀ¸·Îµµ ±â´ë¸¦ Àú¹ö¸®´Â ¸ð½ÀÀ» º¸¿©ÁÖÁø ¾ÊÀ»°Å¶ó ¹Ï°í °è½ÃÁö. ÇÏÁö¸¸ °¡²û ¾î¸®¼®Àº ³à¼®µéÀÌ ¹ß°ßµÇ±âµµ ÇÏ³×. ÀÏÁ·ÀÇ ¿ì¼öÇÑ ÈûÀ» ¾ò°íµµ ÀÎ°£ÀÌ¾úÀ» ¶§¸¦ ÀØÁö ¸øÇÏ´Â ³à¼®µéÀÌÁö. ¶ó¸£¹Ù¶ó´Â ³à¼®ÀÌ ±×·± ³à¼®µéÀ» µµ¿ÍÁÖ°í ÀÖ±â ¶§¹®¿¡ ÀÌ·± ÀÏÀÌ »ý±â´Â °Ô¾ß. ¸¶½ºÅÍ²²¼­´Â ¹«½¼ »ý°¢À¸·Î ±× ³à¼®À» ³»Ä¡Áö ¾ÊÀ¸½Ã´ÂÁö ¸ð¸£°Ú¾î. ¹°·Ð ¶ó¸£¹ÙÀÇ ¸¶·ÂÀº ¹«½ÃÇÒ ¼ö ¾ø´Â °ÍÀÌ±ä ÇØ. ±× ÀÚ°¡ ÈûÀ» º¸ÅÂÁØ´Ù¸é ÀÏÁ·ÀÇ Èûµµ ´õ¿í Ä¿Áú ÅÙµ¥ ¸»ÀÌ¾ß. ¾î¶²°¡? ÀÚ³×°¡ ¶ó¸£¹Ù¸¦ ÇÑ¹ø ¼³µæÇØº¸Áö ¾Ê°Ú³ª? ³» ÆíÁö¸¦ ÁÙ Å×´Ï ±×¿Í ¾ê±â¸¦ ÇÑ¹ø ÇØº¸°Ô.</Script>
+		<Title>Persuade Larva.</Title>
+		<Script sender="Vrykolakas">The Master is most pleased to see you growing as one of our kin. Naturally, the Master trusts you will not disappoint in the future either. But every so often we find a few fools. Fools who gain the superior power of our kin, yet cannot forget the days when they were human. This happens because a fellow named Larva helps them. I do not know what the Master is thinking, keeping him around. Granted, Larva's magic power is not to be taken lightly. If he lent us his strength, our kin would grow mightier still. What do you say? Will you try to persuade Larva? I will give you a letter; go and have a word with him.</Script>
 		<Happen replay="false">
 			<Race race="VAMPIRE" />
 			<Level min="10" max="14" />
 		</Happen>
 		<Complete>
-			<SayNPC name="ºê¸®ÄÝ¶óÄ«½º" target="92" index="1">ºê¸®ÄÝ¶óÄ«½º¿¡°Ô¼­ ÆíÁö¸¦ ¹Þ´Â´Ù</SayNPC>
+			<SayNPC name="Vrykolakas" target="92" index="1">Receive a letter from Vrykolakas</SayNPC>
 			<GiveQuestItem id="0" />
-			<SayNPC name="¶ó¸£¹Ù" target="368" index="2">¶ó¸£¹Ù¿¡°Ô ÆíÁö¸¦ ÀüÇÑ´Ù.</SayNPC>
-			<Message index="3">ºê¸®ÄÝ¶óÄ«½ºÀÇ ÆíÁö¸¦ ÀüÇÏ°í ¼³µæÀ» ÇØº¸¾ÒÁö¸¸ ¾îÂ°¼­ÀÎÁö ¶ó¸£¹Ù´Â ¸»¾øÀÌ °í°³¸¦ ÀúÀ» »ÓÀÌ´Ù. ¶ó¸£¹Ù´Â Ç° ¼Ó¿¡¼­ ÀÚ½ÅÀÇ ÆíÁö¸¦ ²¨³»ÁÖ¸ç ºê¸®ÄÝ¶óÄ«½º¿¡°Ô ÀüÇØ ÁÖ¶ó°í ÇÒ »ÓÀÌ´Ù.</Message>
+			<SayNPC name="Larva" target="368" index="2">Deliver the letter to Larva.</SayNPC>
+			<Message index="3">You delivered Vrykolakas' letter and tried to persuade him, but for some reason Larva only shakes his head in silence. He simply takes a letter of his own from inside his coat and asks you to give it to Vrykolakas.</Message>
 			<LoseQuestItem id="0" />
 			<GiveQuestItem id="1" />
 			<GiveVampireExp amount="200" />
 
-			<SayNPC name="ºê¸®ÄÝ¶óÄ«½º" target="92" index="4">ºê¸®ÄÝ¶óÄ«½º¿¡°Ô ÆíÁö¸¦ ÀüÇÑ´Ù.</SayNPC>
-			<Script sender="ºê¸®ÄÝ¶óÄ«½º" target="92" index="5">ÀÌ°Å Âü, ¹«½¼ ¹èÂ¯À¸·Î ÀÌ·± °áÁ¤À» ³»¸®´Â Áö ¾Ë ¼ö°¡ ¾ø±º. ÀÌ·± ½ÄÀÌ¶ó¸é ¾ðÁ¨°¡´Â ¸¶½ºÅÍ´ÔÀÇ ºÐ³ë¸¦ »ì ÅÍÀÎµ¥¡¦ À½, ¾Æ¹«Æ° ¼ö°íÇß³×. ¾ÕÀ¸·Îµµ °è¼Ó ¸¶½ºÅÍ¿¡°Ô Ãæ½ÇÈ÷ ºÀ»çÇÒ ¼ö ÀÖµµ·Ï ÇÏ°Ô.</Script>
+			<SayNPC name="Vrykolakas" target="92" index="4">Deliver the letter to Vrykolakas.</SayNPC>
+			<Script sender="Vrykolakas" target="92" index="5">Well, well. I cannot fathom what nerve it takes to make such a decision. At this rate he will draw the Master's wrath one day... Hmm, in any case, well done. See that you keep serving the Master faithfully.</Script>
 			<LoseQuestItem id="1" />
 			<GiveVampireExp amount="200" />
 		</Complete>
-		<FailMessage sender="ºê¸®ÄÝ¶óÄ«½º" target="92">³Ê¹« ¹«¸®ÇÒ ÇÊ¿ä´Â ¾ø³×. ³»°¡ ÀÚ³×¸¦ ³Ê¹« °ú´ë Æò°¡ÇÑ ¸ð¾çÀÌ±º.</FailMessage>
+		<FailMessage sender="Vrykolakas" target="92">There is no need to push yourself. It seems I overestimated you.</FailMessage>
 		<Fail>
-			<Killed num="1" index="1">Àü´ÞÇÏ´Â °úÁ¤¿¡¼­ Á×Áö ¾Ê¾Æ¾ß ÇÑ´Ù.</Killed>
+			<Killed num="1" index="1">Do not die while delivering the letter.</Killed>
 		</Fail>
 		<Reward>
 			<GiveItem class="VAMPIRE_WEAPON" type="1" option="STR+3" />
@@ -72,19 +72,19 @@
 		</Reward>
 	</Quest>
 	<Quest id="104">
-		<Title>¼øÁ¾Àû µ¿¹°</Title>
-		<Script sender="Ä«ÄÜ" target="220">ÇÏµîÇÑ Á¸ÀçÀÎ ÁÖÁ¦¿¡ ¹ÝÇ×¸¸ ÇÏ´Â ÀÎ°£µé¿¡ ºñÇØ ´Ù¸¥ µ¿¹°µéÀº ¼øÁ¾ÀûÀÌÁö. ¹°·Ð ±×·¸´Ù°í ÇØ¼­ ´Ùµé ¾µ¸ð°¡ ÀÖ´Â °Ç ¾Æ´Ï¾ß. ÀÌ °÷ ¿¡½½¶ó´Ï¾Æ Áö¹æ¿¡´Â ¿¹ÀüºÎÅÍ µé°³µéÀÌ ¹ø½ÄÇÏ°í ÀÖ¾ú´Âµ¥ ÀÌ°ÍµéÀ» Àß¸¸ ±æµéÀÌ¸é ²Ï³ª Æí¸®ÇÏÁö. ÀÎ°£µéµµ ÀÌ ³à¼®µéÀ» ÀÌ¿ëÇÑ´Ù°í ÇÏ´õ±º. Ã³À½¿£ ±æµéÀÌ±â ¹ø°Å·ÓÁö¸¸ ¾µ ¸¸ ÇÒ°Å¾ß. ÀÌ ³à¼®µéÀº °í±âµ¢¾î¸®¸¦ ÁÁ¾ÆÇÑ´Ù´Ï±î ÁØºñÇÏ´Â °É ÀØÁö ¸»°Ô³ª.</Script>
+		<Title>Obedient Beasts</Title>
+		<Script sender="Kakon" target="220">Unlike humans, who are lowly creatures yet do nothing but rebel, other animals are obedient. Not that every one of them is useful, of course. Wild dogs have been breeding here in Eslania since long ago, and if you tame them well they are rather handy. I hear even the humans make use of them. Taming them is a chore at first, but they will be worth it. They say these beasts love chunks of meat, so do not forget to bring some.</Script>
 		<Happen replay="false">
 			<Race race="VAMPIRE" />
 			<Level min="20" max="20" />
 		</Happen>
-		<CompleteMessage sender="Ä«ÄÜ" target="220">Áö±Ý ´çÀåÀº ½â ¾µ¸ðÀÖ¾î º¸ÀÌÁø ¾Ê°ÚÁö¸¸ ²ÙÁØÈ÷ Å°¿ì¸é ²Ï º¼Ç°ÀÌ ÀÖÁö. Àß¸¸ÇÏ¸é ÀÚ³×ÀÇ ´É·Â¿¡µµ ¿µÇâÀ» ÁÖ±âµµ ÇÏÁö¸¸ ¾îµð±îÁö³ª ¿îÀÌ ²Ï ÁÁ¾Æ¾ß ÇÏ³×. ÇÏÁö¸¸ È¤½Ã¶óµµ °í¾àÇÑ º´¿¡ °É¸° ³à¼®ÀÏÁöµµ ¸ð¸£Áö. ¸²º¸¼ºÀÇ Ä«ÆÄÆ¼´Ï¿¡°Ô º¸¿©ÁÖ¸é Àß »ìÆìºÁÁÙ°Å¾ß.</CompleteMessage>
+		<CompleteMessage sender="Kakon" target="220">It may not look like much use right now, but raise it steadily and it becomes quite a sight. With a bit of luck it can even boost your own abilities, though you will need to be rather lucky indeed. Then again, it might be carrying some nasty disease. Show it to Carpatini at Limbo Castle and he will take a good look at it.</CompleteMessage>
 		<Complete>
-			<TamePet num="1" index="1">ÁÖ´Ï¾î¿ïÇÁ¾ÆÅ©¸¦ ±æµé¿© ¿ïÇÁµ¶À» ±¸ÇÑ´Ù.</TamePet>
+			<TamePet num="1" index="1">Tame a Junior WolfArch to get a Wolfdog.</TamePet>
 		</Complete>
-		<FailMessage sender="Ä«ÄÜ" target="220">Å©Å©Å©, ÇÏÂúÀº µ¿¹° ÇÏ³ª ±æµéÀÌÁö ¸øÇÏ´Ù´Ï Á¤¸» µüÇÏ±º¡¦ ¾îµð ±×·¡°¡Áö°í ¿©±â¼­ »ì¾Æ³²±â³ª ÇÏ°Ú³ª?</FailMessage>
+		<FailMessage sender="Kakon" target="220">Heh heh heh, you cannot even tame one measly animal? How pathetic... How do you expect to survive out here like that?</FailMessage>
 		<Fail>
-			<Time limit="20" index="1">%s³²Àº ½Ã°£ : %dºÐ</Time>
+			<Time limit="20" index="1">%sTime left: %d min</Time>
 		</Fail>
 		<Reward>
 			<GiveItem class="PET_FOOD" type="3" num="5" />
@@ -93,19 +93,19 @@
 	</Quest>
 
 	<Quest id="201">
-		<Title>»ì¾Æ ³²±â À§ÇÑ ÈÆ·ÃÀÌ´Ù.</Title>
-		<Script sender="Ä«ÀÌÀú">ÀÚ³×°¡ ÀÌ¹ø¿¡ ÆíÀÔµÈ ½Åº´ÀÎ°¡? ÀÌ·±, ¾Æ¹«¸® ÀüÈ²ÀÌ ±ÞÇÏ´Ù ÇÏ´õ¶óµµ ÈÆ·ÃÁ¶Â÷ ½ÃÅ°Áö ¾ÊÀº º´»ç¸¦ º¸³»´Ù´Ï º»ºÎµµ ±ÞÇÑ ¸ð¾çÀÌ±º. Áö±Ý ±× »óÅÂ·Î »ç·ÉºÎ ¹ÛÀ¸·Î º¸³»ºÁ¾ß ¹ìÆÄÀÌ¾î¿¡°Ô ½Ä»ç °Å¸®¸¦ ÁÖ´Â °Í ¹Û¿¡´Â ¾ÈµÉ Å×Áö. ÁÁ´Ù, Æ¯º°È÷ ºÎ´ë³»ÀÇ Æ¯¼³ ÈÆ·ÃÀå¿¡¼­ ÇÏµå Æ®·¹ÀÌ´×À» ½ÃÄÑÁÖÁö. Áö±Ý ¹Ù·Î Å¸³Ä¿¡°Ô ÈÆ·ÃÀå ¾È³»¸¦ ¹Þµµ·Ï ÇÏ¶ó. ÁÖÆ¯±â ±³À°Àº ±× ÀÌÈÄ¿¡ ÁøÇàµÉ °ÍÀÌ´Ù.</Script>
+		<Title>Training to Survive</Title>
+		<Script sender="Kaiser">So you are the new recruit just assigned to us? Good grief, HQ must be desperate, sending out soldiers without so much as basic training, however urgent the situation. Send you outside the Field Headquarters as you are and you would be nothing but a meal for the vampires. Very well, I will put you through hard training at the special training grounds on base. Report to Tanya right now for a tour of the training grounds. Your specialty training will follow after that.</Script>
 		<Happen replay="false">
 			<Race race="SLAYER" />
 			<Level max="3" />
 		</Happen>
-		<CompleteMessage sender="Ä«ÀÌÀú" target="17">²Ï³ª ¿­½ÉÈ÷ ÇÏ°í ÀÖ±º. ÁÁ¾Æ, Çö½Ã°£ºÎ·Î ±Í°üÀÇ ÁÖÆ¯±â ±³À°À» ½Ç½ÃÇÏ°Ú´Ù. Áö±Ý ¹Ù·Î ÁýÇÕÇÑ´Ù.</CompleteMessage>
+		<CompleteMessage sender="Kaiser" target="17">You are working quite hard. Good. As of now, your specialty training begins. Fall in immediately.</CompleteMessage>
 		<Complete>
-			<Level min="5" index="1">·¹º§ 5 ÀÌ»ó ´Þ¼º</Level>
+			<Level min="5" index="1">Reach level 5 or higher</Level>
 		</Complete>
-		<FailMessage sender="Å×¸®" target="302">ÀÌ°Å, ¶Ç ÇÑ ¸íÀÇ °í¹®°üÀÌ Åº»ýÇÏ¼Ì±º. ±×·¸°Ô ¾î¸®¹ö¸® ÇÏ´Ù°¡´Â ¾ÕÀ¸·Î ÀÚÅ© ±³°ü¿¡°Ô ²Ï³ª ±«·ÓÈû ´çÇÒ°Ô »·ÇÏ´Ù±¸¿ä. Á¤ Èûµé¸é ³ªÇÑÅ× º¸±ÞÇ°¸¦ »ç´Â °Íµµ ÁÁ±¸¿ä. ÇÏÇÏÇÏ.</FailMessage>
+		<FailMessage sender="Terry" target="302">Well, look at that, another sad sack is born. Keep fumbling around like that and Instructor Jacques is sure to give you a hard time. If it gets too tough, you could always buy some supplies from me. Hahaha.</FailMessage>
 		<Fail>
-			<Time limit="50" index="1">%s³²Àº ½Ã°£ : %dºÐ</Time>
+			<Time limit="50" index="1">%sTime left: %d min</Time>
 		</Fail>
 		<Reward>
 			<GiveDomainExp amount="100" />
@@ -113,24 +113,24 @@
 		</Reward>
 	</Quest>
 	<Quest id="202">
-		<Title>ÈÆ·Ã¿¡ ³¡Àº Á¸ÀçÇÏÁö ¾Ê´Â´Ù.</Title>
-		<Script sender="ÀÚÅ©">ÀÌºÁ ½Åº´! ÀÌÁ¦¾ß °Ü¿ì ½ºÅ³À» ÇÏ³ª ¹è¿ï ¼ö ÀÖ´Â ¼öÁØÀÌ µÇ¾ú±º. ½ºÅ³Àº Àß¸¸ »ç¿ëÇÏ¸é ÀüÅõ¸¦ ½±°Ô ÀÌ²ø ¼ö ÀÖÁö. ´õ±¸³ª ½ºÅ³À» ÀÚÁÖ »ç¿ëÇÔÀ¸·Î¼­ ºü¸£°Ô ¼ºÀåÇÏ´Â °ÍÀÌ °¡´ÉÇÏ³×. ÇÑ¹ø ÀÚ³×ÀÇ ½Ç·ÂÀ» º¸°í ½Í±º. ¹«½¼ ½ºÅ³ÀÌµç ÁÁÀ¸´Ï XX·¹º§±îÁö ¿Ã·Áº¸µµ·Ï ÇØ.</Script>
+		<Title>Training Never Ends</Title>
+		<Script sender="Jacques">Hey, recruit! So you have finally reached the point where you can learn a skill. Used well, skills can make a battle go your way with ease. What is more, using skills often lets you grow quickly. I want to see what you can do. Pick any skill you like and raise it to level XX.</Script>
 		<Happen replay="false">
 			<Race race="SLAYER" />
 			<Level min="5" max="5" />
 		</Happen>
-		<CompleteMessage sender="ÀÚÅ©" target="16">Èì, »ý°¢º¸´Ù´Â ±¦ÂúÀº ½Ç·ÂÀÌ±º. ¾ÕÀ¸·Îµµ ÃæºÐÈ÷ Á¦ ±¸½ÇÀ» ÇØ³¾ °¡´É¼ºÀÌ ÀÖ¾î º¸ÀÌ³×. Áö±Þ¹ÞÀº º¸±ÞÇ¥¸¦ °¡Áö°í ³½½Ã¿¡°Ô °¡¸é º¸±ÞÇ°À» ¹ÞÀ» ¼ö ÀÖÀ»°Å¾ß.</CompleteMessage>
+		<CompleteMessage sender="Jacques" target="16">Hmm, you are better than I expected. Looks like you might pull your own weight after all. Take the Supply Ticket you were issued to Nancy and she will give you your supplies.</CompleteMessage>
 		<Complete>
-			<SkillLevel min="3" index="1">½ºÅ³·¹º§ 3 ÀÌ»ó ´Þ¼º</SkillLevel>
+			<SkillLevel min="3" index="1">Raise a skill to level 3 or higher</SkillLevel>
 		</Complete>
-		<FailMessage sender="ÀÚÅ©" target="16">ÀÌºÁ ÀÚ³×¡¦ µµ´ëÃ¼ ¹» ÇÏ°í ÀÖ´Â °Ç°¡, ¿ì¸®°¡ »ó´ëÇÏ´Â °ÍÀÌ °¡¸¸È÷ ¼­ÀÖ´Â Çã¼ö¾ÆºñÀÎ ÁÙ ¾Æ³ª? ¿©±â´Â ³îÀÌ°ø¿øÀÌ ¾Æ´Ï¶õ ¸»ÀÌ¾ß. Á¤½Å ¶È¹Ù·Î Â÷¸®´Â °Ô ÁÁ¾Æ!</FailMessage>
+		<FailMessage sender="Jacques" target="16">Hey, you... What on earth are you doing? Do you think the things we fight are scarecrows standing still? This is no amusement park. You had better get your head straight!</FailMessage>
 		<Fail>
-			<Time limit="20" index="1">%s³²Àº ½Ã°£ : %dºÐ</Time>
+			<Time limit="20" index="1">%sTime left: %d min</Time>
 		</Fail>
 		<Reward>
 			<GiveQuestItem id="2" />
-			<SayNPC name="³½½Ã" target="303" index="1">º¸±ÞÇ¥¸¦ °¡Áö°í ³½½Ã¿¡°Ô °¡¼­ º¸±ÞÇ°À» ¹Þ´Â´Ù</SayNPC>
-			<Message index="2">º¸±ÞÇ°À» ¹Þ¾Ò½À´Ï´Ù.</Message>
+			<SayNPC name="Nancy" target="303" index="1">Take the Supply Ticket to Nancy and receive your supplies</SayNPC>
+			<Message index="2">You received your supplies.</Message>
 			<GiveDomainExp amount="100" />
 			<GiveItem class="POTION" type="1" num="9" />
 			<GiveItem class="POTION" type="1" num="9" />
@@ -145,45 +145,45 @@
 		</Reward>
 	</Quest>
 	<Quest id="203">
-		<Title>Ã¸º¸ ÀÚ·áÀÇ È¸¼ö</Title>
-		<Script sender="Ä«ÀÌÀú">¾Æ±ºÀÇ ¼ö»öºÎ´ë´Â Áö¼ÓÀûÀ¸·Î ¹ìÆÄÀÌ¾îÀÇ º»°ÅÁö¿¡ ´ëÇÑ Ã¸º¸¸¦ ÁøÇàÇØ ¿Ô´Ù. ±×·±µ¥ ÃÖ±Ù Æä·Î³ª ±¹µµ ºÏ¼­¿¡ À§Ä¡ÇÑ ¹ìÆÄÀÌ¾îµéÀÇ °ÅÁ¡À» Á¶»çÇÏ´ø ´ë¿øÀ¸·ÎºÎÅÍ Åë½ÅÀÌ µÎÀýµÇ´Â »ç°ÇÀÌ ¹ß»ýÇß´Ù. ¾Æ¸¶µµ »ç»ìµÈ °ÍÀÌ È®½ÇÇÏÁö¸¸ ±×°¡ ¼öÁýÇÑ ÀÚ·á´Â È¸¼öµÇ¾î¾ß ÇÑ´Ù. ÀûÀÇ °ÅÁ¡°ú °¡±õ±â ¶§¹®¿¡ °¢º°ÇÑ ÁÖÀ§°¡ ÇÊ¿äÇÒ °ÍÀÌ´Ù. È®ÀÎµÈ ±×ÀÇ ¸¶Áö¸· ¹ß½ÅÁö´Â ¿¡½½¶ó´Ï¾Æ ºÏ¼­ ÁÂÇ¥ 67, 58 ÁöÁ¡ÀÌ´Ù. ¾Æ! ¿ÀÅä¹ÙÀÌÀÇ ¼ÒÀ½Àº ¹ìÆÄÀÌ¾îµéÀÇ ÁÖÀÇ¸¦ ²ø ¼ö ÀÖÀ¸´Ï ÀÌ¹ø ÀÓ¹«¿¡¼­ ¿ÀÅä¹ÙÀÌÀÇ »ç¿ëÀº ±ÝÇÏµµ·Ï ÇÏ°Ú´Ù.</Script>
+		<Title>Recovering the Intel</Title>
+		<Script sender="Kaiser">Our reconnaissance units have been gathering intelligence on the vampires' strongholds for some time. Recently, however, we lost contact with an agent who was investigating a vampire base northwest of the Perona Highway. He was almost certainly killed, but the data he gathered must be recovered. It is close to an enemy base, so exercise extreme caution. His last confirmed transmission came from Eslania Northwest, coordinates 67, 58. Ah! Motorcycle noise can draw the vampires' attention, so the use of motorcycles is forbidden on this mission.</Script>
 		<Happen>
 			<Race race="SLAYER" />
 			<Level min="15" max="19" />
 		</Happen>
 		<Complete>
-			<TouchWayPoint zoneid="12" x="67" y="58" type="636" dir="1" index="1">µ¥ÀÌÅÍ µð½ºÅ© È¸¼ö</TouchWayPoint>
-			<Message sender="Ä«ÀÌÀú" target="17" index="2">¿ª½Ã »ç»ìµÈ °ÍÀÎ°¡? ±×³ª¸¶ ¹ìÆÄÀÌ¾î°¡ µÇÁö ¾ÊÀº °ÍÀÌ ´ÙÇàÀÌ·Î±º¡¦ µ¥ÀÌÅÍ¸¦ ¾ò¾ú´Ù¸é ¹Ù·Î Ã¶¼öÇØ Å¸³Ä¿¡°Ô Àü´ÞÇÏµµ·Ï ÇÑ´Ù.</Message>
+			<TouchWayPoint zoneid="12" x="67" y="58" type="636" dir="1" index="1">Recover the Data Disk</TouchWayPoint>
+			<Message sender="Kaiser" target="17" index="2">So he was killed after all? At least he did not become a vampire... If you have the data, withdraw at once and deliver it to Tanya.</Message>
 			<GiveQuestItem id="3" />
-			<SayNPC name="Å¸³Ä" target="26" index="3">Å¸³Ä¿¡°Ô µð½ºÅ© Àü´Þ</SayNPC>
-			<Message sender="Ä«ÀÌÀú" target="17" index="2">ÁÁ¾Æ, ¹«»çÈ÷ ±ÍÈ¯Çß±º. ¼ö°íÇß³×. ±×·³ ´ÙÀ½ ÀÓ¹«±îÁö °³ÀÎÁ¤ºñ¸¦ ½Ç½ÃÇÏ°Ô. </Message>
+			<GiveDomainExp amount="200" />
+			<SayNPC name="Tanya" target="26" index="3">Deliver the disk to Tanya</SayNPC>
+			<Message sender="Kaiser" target="17" index="2">Good, you made it back safely. Well done. Take some personal time until your next mission.</Message>
 			<LoseQuestItem id="3" />
 			<GiveDomainExp amount="200" />
-			<GiveDomainExp amount="200" />
 		</Complete>
-		<FailMessage sender="Ä«ÀÌÀú" target="17">Á¤º¸ÀÇ È¸¼ö °°Àº Áß¿äÇÑ ÀÓ¹«¸¦ ÀÚ³× °°Àº ½ÅÃâ³»±â¿¡°Ô ¸Â±ä °Ô Àß¸øÀÌ±º. ÀÓ¹« ½ÇÆÐ¿¡ µû¸¥ ¹®Ã¥Àº ÇÏÁö ¾Ê°Ú´Ù. À½¡¦ »óºÎ·ÎºÎÅÍ ³»°¡ ¹®Ã¥À» ¹Þ°Ô »ý°å±º.</FailMessage>
+		<FailMessage sender="Kaiser" target="17">It was a mistake to trust a greenhorn like you with a mission as important as recovering intel. You will not be disciplined for failing the mission. Hmm... Looks like I am the one who will be disciplined by the top brass.</FailMessage>
 		<Fail>
-			<Killed num="1" index="1">¼öÇà Áß »ç¸ÁÇÏÁö ¾Ê¾Æ¾ß ÇÑ´Ù.</Killed>
-			<RideMotorcycle index="2">¿ÀÅä¹ÙÀÌ »ç¿ë ±ÝÁö.</RideMotorcycle>
+			<Killed num="1" index="1">Do not die during the mission</Killed>
+			<RideMotorcycle index="2">Motorcycles are forbidden.</RideMotorcycle>
 		</Fail>
 		<Reward>
 			<GiveItem class="RING" type="2" option="STR+2" />
 		</Reward>
 	</Quest>
 	<Quest id="204">
-		<Title>±º°ß ÈÆ·Ã ÁöÄ§</Title>
-		<Script sender="½º¹Ì½º">¿¡½½¶ó´Ï¾Æ¿¡ ¼­½ÄÇÏ´Â ¾ß»ý µé°³µéÀº ÈÆ·ÃÀ» ÅëÇØ¼­ ±º°ßÀ¸·Î¼­ È°¿ëÇÒ ¼ö ÀÖ´Â °ÍÀ¸·Î º¸°íµÇ°í ÀÖ´Ù. ºÐ¸í ±º°ßÀÌ ÀÖ´Ù¸é ÀÛÀü ¼öÇà¿¡ µµ¿òÀÌ µÉ °ÍÀÌ´Ù. ±Í°üÀº Áö±ÝºÎÅÍ ±º°ß ¾ç¼º ÀÓ¹«¸¦ ¼öÇàÇÏµµ·Ï ÇÑ´Ù. ¿ì¼±Àº µé°³¸¦ Æ÷È¹ÇÏ´Â °ÍÀÌ ¿ì¼±ÀÏ Å×Áö. µé°³µéÀº °í±â¸¦ ²Ï ÁÁ¾ÆÇÒ Å×´Ï ÁØºñ¸¦ ÀØÁö ¸»µµ·Ï. ÀÌ»ó.</Script>
+		<Title>War Dog Training Orders</Title>
+		<Script sender="Smith">It has been reported that the wild dogs living in Eslania can be trained for use as war dogs. War dogs would surely be a help in carrying out operations. As of now, you are assigned to raise war dogs. Your first task, naturally, is to capture a wild dog. They should be quite fond of meat, so do not forget to bring some. That is all.</Script>
 		<Happen replay="false">
 			<Race race="SLAYER" />
 			<Level min="20" max="20" />
 		</Happen>
-		<CompleteMessage sender="½º¹Ì½º" target="103">µé°³ÀÇ Æ÷È¹¿¡ ¼º°øÇß±º. ¿ì¼±Àº ±º°ß ÀûÇÕ¼º °Ë»ç¸¦ ÇØ¾ß ÇÏ´Ï ºÎ´ë·Î ±ÍÈ¯ÇÏµµ·Ï. ºÎ´ëÀÇ Å×¸®°¡ °Ë»ç¸¦ ½ÃÇàÇÒ °ÍÀÌ´Ù.</CompleteMessage>
+		<CompleteMessage sender="Smith" target="103">So you captured a wild dog. First it needs a war dog aptitude test, so return to base. Terry will conduct the test.</CompleteMessage>
 		<Complete>
-			<TamePet num="1" index="1">°³ÀÇ Á¶·Ã.</TamePet>
+			<TamePet num="1" index="1">Tame a dog.</TamePet>
 		</Complete>
-		<FailMessage sender="½º¹Ì½º" target="103">±×±îÁþ µé°³ÇÏ³ª Æ÷È¹À» ¸øÇØ¼­¾ß ¾îµð ¹ìÆÄÀÌ¾î¸¦ Àâ±â³ª ÇÏ°Ú³ª. ÀÌ·± ½¬¿î ÀÓ¹«µµ ¼öÇà ¸øÇÏ¸é¼­ ¾î¶»°Ô EVE ´ë¿øÀÌ µÇ¾ú´ÂÁö ±Ã±ÝÇÏ±º.</FailMessage>
+		<FailMessage sender="Smith" target="103">If you cannot even capture one lousy wild dog, how will you ever catch a vampire? I wonder how you became an EVE agent when you cannot carry out a mission this easy.</FailMessage>
 		<Fail>
-			<Time limit="20" index="1">%s³²Àº ½Ã°£ : %dºÐ</Time>
+			<Time limit="20" index="1">%sTime left: %d min</Time>
 		</Fail>
 		<Reward>
 			<GiveItem class="PET_FOOD" type="3" num="5" />
@@ -192,19 +192,19 @@
 	</Quest>
 
 	<Quest id="301">
-		<Title>´ç½ÅÀÇ ÈûÀ» µÇÃ£À¸½Ê½Ã¿À.</Title>
-		<Script sender="¸¶³×½ºÄí">°Å·èÇÑ ÀÚ¿¬ÀÇ ¿µ±¤ÀÌ ´Ã ÇÔ²² ÇÏ½Ã±æ. ¹Ý°©½À´Ï´Ù, µ¿Áö¿©. ¹ìÆÄÀÌ¾îÀÇ ³­¸³À¸·Î ´ç½ÅÀÇ ´ÞÄÞÇÑ ÀáÀÌ ±ú¾îÁ³±º¿ä. ÇÏÁö¸¸ ¾ÆÁ÷ ´ç½ÅÀÇ ÈûÀÌ ¹Ì¾àÇÔÀÌ ´À²¸Áý´Ï´Ù. ¸¶À» ¹ÛÀÇ ÆÄ±«ÀÚµéÀ» »ó´ëÇÏ·Á¸é ¿À·£ ¼ö¸é°ú ÇÔ²² Àáµé¾î¹ö¸° ´ç½ÅÀÇ ÈûÀ» ÀÏ±ú¿ï ½Ã°£ÀÌ ÇÊ¿äÇÒ °Í °°±º¿ä. ´ÙÇà½º·´°Ôµµ Ä«¸®»ç½º´ÔÀÇ °á°è·ÂÀÌ ¸¶À» ¾ÈÀ¸·Î ¿¬°áµÈ ÇÏ´Ï¾Ë ´øÀü 1Ãþ±îÁö À¯È¿ÇÑ »óÅÂÀÔ´Ï´Ù. ÇÏÁö¸¸ °¡²û ¹Ì¾àÇÑ Á¸ÀçµéÀÌ ÀÌ°÷¿¡ ³ªÅ¸³ª°ï ÇÑ´ä´Ï´Ù. ÀÌµéÀ» »ó´ë·Î ´ç½ÅÀÇ ÈûÀ» Á¶±Ý¾¿ °³¹æ½ÃÅ³ ¼ö ÀÖÀ» °Ì´Ï´Ù. ÀÚ, ½Ã°£ÀÌ ¾ø½À´Ï´Ù. ÇÑ½Ã¶óµµ »¡¸® ÈûÀ» µÇÃ£¾Æ¾ß ÇÕ´Ï´Ù.</Script>
+		<Title>Reclaim Your Power</Title>
+		<Script sender="Manescu">May the glory of holy nature be with you always. Welcome, comrade. The rampant vampires have broken your sweet slumber. Yet I sense that your power is still weak. To face the destroyers outside the village, you will need time to reawaken the power that fell asleep with you during your long slumber. Fortunately, Lady Carissas' barrier still holds as far as the first floor of the Hanial Dungeon, which connects to the village. Even so, weak creatures appear there from time to time. By fighting them you can release your power little by little. Now, there is no time to lose. You must reclaim your power as quickly as you can.</Script>
 		<Happen replay="false">
 			<Race race="OUSTERS" />
 			<Level max="3" />
 		</Happen>
-		<CompleteMessage sender="¸¶³×½ºÄí" target="655">´ç½ÅÀÇ ÈûÀÌ ÀÏºÎ °³¹æµÈ °ÍÀÌ ´À²¸Áý´Ï´Ù. ÀÌ·Î¼­ ¿ì¸®ÀÇ ÈûÀº Á» ´õ Ä¿Áú °ÍÀÔ´Ï´Ù. ¸¶À»ÀÇ ¶óºñ´Ï¾Æ´Ô²² µµ¿òÀ» ¹ÞÀ» ¼ö ÀÖÀ» °ÍÀÔ´Ï´Ù.</CompleteMessage>
+		<CompleteMessage sender="Manescu" target="655">I can feel that part of your power has been released. With this, our strength will grow a little more. Lady Lavinia in the village will be able to help you.</CompleteMessage>
 		<Complete>
-			<Level min="6" index="1">·¹º§ 6 ´Þ¼º</Level>
+			<Level min="6" index="1">Reach level 6</Level>
 		</Complete>
-		<FailMessage sender="¶óºñ´Ï¾Æ" target="653">ÀÚ¿¬Àº °áÄÚ ÅÂ¸¸ÇÏÁö ¾Ê½À´Ï´Ù. ÀÚ¿¬ÀÇ ÀÏºÎÀÎ ´ç½Å ¿ª½Ã ÀÚ¿¬ÀÇ ¹ýÄ¢À» µû¶ó¾ß ÇÒ °ÍÀÔ´Ï´Ù. Á»´õ ºÐ¹ßÇØ ÁÖ½Ã±æ¡¦ </FailMessage>
+		<FailMessage sender="Lavinia" target="653">Nature is never idle. You, too, are a part of nature and must follow its laws. Please try a little harder... </FailMessage>
 		<Fail>
-			<Time limit="20" index="1">%s³²Àº ½Ã°£ : %dºÐ</Time>
+			<Time limit="20" index="1">%sTime left: %d min</Time>
 		</Fail>
 		<Reward>
 			<GiveMoney amount="10000" />
@@ -212,19 +212,19 @@
 		</Reward>
 	</Quest>
 	<Quest id="302">
-		<Title>ÈûÀÇ ¿øÃµÀÎ ¿µÈ¥</Title>
-		<Script sender="¶óºñ´Ï¾Æ">¿ì¸®¿¡°Ô ÀÎÀ§ÀûÀÎ °¡¸£Ä§Àº ÀÇ¹Ì°¡ ¾ø´Â °ÍÀÔ´Ï´Ù. ÀÚ¿¬ÀÌ ³»·ÁÁØ ´É·ÂÀ» ¾î¶»°Ô ¹ßÀü½ÃÅ³ °ÍÀÎ°¡´Â ¸ðµÎ ½º½º·ÎÀÇ ÀÇÁö·Î °áÁ¤ÇØ¾ß ÇÕ´Ï´Ù. ÇÏÁö¸¸ ÀÌ ´É·ÂÀ» »ç¿ëÇÏ±â À§ÇØ ¿µÈ¥ÀÇ ÈûÀÌ ÇÊ¿äÇÔÀ» ÀØÁö ¸¶½Ê½Ã¿À. ¿µÈ¥ÀÇ ÈûÀÌ °í°¥µÇÁö ¾Êµµ·Ï À¯ÁöÇÏ´Â °ÍÀÌ ±âº»ÀÓÀ» ÀØÁö ¸¶½Ê½Ã¿À.</Script>
+		<Title>The Soul, Source of Power</Title>
+		<Script sender="Lavinia">Artificial teaching means nothing to us. How to develop the abilities nature has granted you is something each of us must decide by our own will. But do not forget that using these abilities requires the power of the soul. Never forget that the basics are to keep the power of your soul from running dry.</Script>
 		<Happen replay="false">
 			<Race race="OUSTERS" />
 			<Level min="3" max="5" />
 		</Happen>
-		<CompleteMessage sender="¶óºñ´Ï¾Æ" target="653">ÈûÀÇ °³¹æÀ» À§ÇØ ¿µÀÇ Èí¼ö´Â Àý´ë ÀØ¾î¼­´Â ¾È µÇ´Â °ÍÀÔ´Ï´Ù. ¸®ÆÄÆ¼¿¡°Ô ºÎÅ¹ÇØ ¾ÕÀ¸·ÎÀÇ ¿©Á¤¿¡ Á¶±ÝÀÌ³ª¸¶ µµ¿òÀÌ µÉ °ÍÀ» ÁØºñÇØµÎ¾ú½À´Ï´Ù.</CompleteMessage>
+		<CompleteMessage sender="Lavinia" target="653">To release your power, you must never forget to absorb souls. I have asked Ripati to prepare something that should be of some help on your journey ahead.</CompleteMessage>
 		<Complete>
-			<BloodDrain num="20" index="1">%sÈí¿µ È¸¼ö : %d / 20È¸</BloodDrain>
+			<BloodDrain num="20" index="1">%sAbsorb Soul: %d / 20 times</BloodDrain>
 		</Complete>
-		<FailMessage sender="¶óºñ´Ï¾Æ" target="653">Èí¿µÀ» ±ÍÂú°Å³ª ÀÜÀÎÇÑ ÀÏÀÌ¶ó »ý°¢ÇÏÁö ¸¶½Ê½Ã¿À. ¹ìÆÄÀÌ¾îµéÀÇ Á¤È­¸¦ À§ÇØ ¾îÂ¿ ¼ö ¾ø´Â ÀÏÀÔ´Ï´Ù. ÇÏÁö¸¸ ½º½º·Î ¿øÄ¡ ¾Ê´Â´Ù¸é °­¿äÇÒ ¼ö´Â ¾ø°ÚÁö¿ä.</FailMessage>
+		<FailMessage sender="Lavinia" target="653">Do not think of Absorb Soul as a chore or a cruel act. It is unavoidable if the vampires are to be purified. Still, if you do not wish it yourself, I cannot force you.</FailMessage>
 		<Fail>
-			<Time limit="30" index="1">%s³²Àº ½Ã°£ : %dºÐ</Time>
+			<Time limit="30" index="1">%sTime left: %d min</Time>
 		</Fail>
 		<Reward>
 			<GiveOustersExp amount="100" />
@@ -232,20 +232,20 @@
 		</Reward>
 	</Quest>
 	<Quest id="303">
-		<Title>´ëÁö ¿À¿°ÀÇ À§Çù</Title>
-		<Script sender="½Ã¿À¶÷">¹èÃ´ ¹Þ¾Æ¿Ô´ø ¿ì¸® ÀÏÁ·Àº Áö±Ý²¯ ÀÚ¾Ö·Î¿î ÀÚ¿¬¿¡ ±â´ë¾î »ì¾Æ¿Ô´Ù³×. ÇÏÁö¸¸ ÀÎ°£°ú ¹ìÆÄÀÌ¾î´Â ²÷ÀÓ¾øÀÌ ¾î¸Ó´ÏÀÇ ´ëÁö¸¦ ¿À¿°½ÃÄÑ¿Ô°í Áö±Ýµµ °è¼ÓµÇ°í ÀÖÁö. ´õ¿íÀÌ ¿ì¸® Àº°ÅÁö¿Í ÀÎÁ¢ÇÑ °÷¿¡ À§Ä¡ÇÑ ÀÎ°£µéÀÇ °ø¾÷½Ã¼³ÀÌ ¾ðÁ¦ ¹ìÆÄÀÌ¾îµé¿¡ ÀÇÇØ ÆÄ±«µÇ¾î À§ÇùÀÌ µÉÁö ¾Ë ¼ö ¾ø³×. ´ç½ÅÀÌ¶ó¸é ±×°÷ÀÇ »óÈ²À» »ìÆìºÁ ÁÖ½Ç ¼ö ÀÖÀ¸¸®¶ó »ý°¢ÇÏ³×¸¸. ½ÇÇÁÀÇ ºÒ¾ÈÁ¤ÇÑ ÈûÀÌ ¾È ÁÁÀº ¿µÇâÀ» ÁÙ ¼ö ÀÖÀ¸´Ï ½ÇÇÁÀÇ ÈûÀº Àá½Ã ºÀÀÎÇÏ´Â °ÍÀÌ ÁÁÀ» °É¼¼.</Script>
+		<Title>The Threat of a Poisoned Land</Title>
+		<Script sender="Sioram">Our shunned people have lived until now by leaning on the kindness of nature. But humans and vampires have never stopped poisoning our mother earth, and they still do. What is more, there is no telling when the humans' industrial facility near our hidden home might be destroyed by the vampires and become a threat. I believe you could look into the situation there for us. The Sylph's unstable power could have a bad effect, so it would be best to seal away the Sylph's power for a while.</Script>
 		<Happen replay="false">
 			<Race race="OUSTERS" />
 			<Level min="10" max="14" />
 		</Happen>
-		<CompleteMessage sender="½Ã¿À¶÷" target="656">¾ÆÁ÷±îÁö´Â Å« À§Çù¿ä¼Ò°¡ ¾ø´Ù´Â °ÍÀº ´ÙÇà½º·¯¿î ÀÏÀÌ±º. ÇÏÁö¸¸ ÆÄ±«ÀûÀÎ ¹ìÆÄÀÌ¾îµéÀÌ ±×°÷¿¡ °è¼Ó Ãâ¸ôÇÑ´Ù´Â ¼Ò½ÄÀº Ä¿´Ù¶õ ±Ù½ÉÀÌ ¾Æ´Ò ¼ö ¾øÁö. Á»´õ ÁÖÀÇ¸¦ ±â¿ï¿©¾ß ÇÒ°ÍÀÌ³×.</CompleteMessage>
+		<CompleteMessage sender="Sioram" target="656">It is a relief that there is no great threat as yet. But news that destructive vampires keep appearing there cannot help but trouble me deeply. We must watch it more closely.</CompleteMessage>
 		<Complete>
-			<TouchWayPoint zoneid="32" x="15" y="185" type="673" dir="2" index="1">µå·Îº£Å¸NW(15,185) Á¤Âû</TouchWayPoint>
+			<TouchWayPoint zoneid="32" x="15" y="185" type="673" dir="2" index="1">Scout Drobeta NW (15,185)</TouchWayPoint>
 		</Complete>
-		<FailMessage sender="½Ã¿À¶÷" target="656">¾Æ¡¦ ´ç½ÅÀÇ Á¤½Å¿¡¼­ ÈåÆ®·¯ÁüÀÌ ´À²¸Áö´Â±º. ±× »óÅÂ¶ó¸é ÀÌ¹ø ÀÏÀº Ã³¸®°¡ °ï¶õÇÒ °Í °°³×. ÀÚ½ÅÀ» ´õ ´Ù½º¸± ÁÙ ¾Æ´Â °ÍÀÌ ÇÊ¿äÇÏ´Ù´Â °É ¾ÕÀ¸·Î´Â ÀØÁö ¸»µµ·Ï ÇÏ°Ô. ÀÚ½ÅÀ» ´Ù½º¸®·Á¸é ÀÚ½ÅÀ» ¾Ë¾Æ¾ß ÇÏ°ÚÁö¡¦ </FailMessage>
+		<FailMessage sender="Sioram" target="656">Ah... I sense disorder in your spirit. In that state, this task will be difficult to handle. From now on, do not forget that you must learn to master yourself. And to master yourself, you must first know yourself... </FailMessage>
 		<Fail>
-			<Killed num="1" index="1">¼öÇà Áß »ç¸ÁÇØ¼­´Â ¾È µÈ´Ù.</Killed>
-			<RideMotorcycle index="2">½ÇÇÁ »ç¿ë ±ÝÁö</RideMotorcycle>
+			<Killed num="1" index="1">Do not die during the task.</Killed>
+			<RideMotorcycle index="2">The Sylph is forbidden</RideMotorcycle>
 		</Fail>
 		<Reward>
 			<GiveOustersExp amount="350" />
@@ -253,19 +253,19 @@
 		</Reward>
 	</Quest>
 	<Quest id="304">
-		<Title>¶Ç ´Ù¸¥ µ¿·á</Title>
-		<Script sender="¸¶³×½ºÄí">´õ·´ÇôÁø ¿µÈ¥À» °¡Áø ¿ÜºÎÀÇ Ä§ÀÔÀÚµé°ú´Â ´Þ¸® ÀÚ¿¬¿¡ ¼øÀÀÇÏ´Â »ý¸íµéÀº ¿ì¸®¿¡°Ô ÈûÀ» ºô·ÁÁÙ °ÍÀÔ´Ï´Ù. ºÒÇàÈ÷µµ Ä§ÀÔÀÚµé¿¡ ÀÇÇØ ±× ¼ö°¡ ÁÙ±ä ÇßÁö¸¸ ¾ÆÁ÷±îÁöµµ »ì¾Æ³²Àº ¾ß»ýÀÇ µé°³µéÀÌ Á¶·ÂÀÚµéÀ» ±â´Ù¸®°í ÀÖ½À´Ï´Ù. ±×µéÀÌ ¸ÔÀÌ°¨À» Ã£´Â ½Ã°£À» ÁÙ¿©ÁØ´Ù¸é ±× ½Ã°£µ¿¾È Ãæ½ÇÈ÷ ´ç½ÅÀ» µµ¿ï °ÍÀÔ´Ï´Ù.</Script>
+		<Title>Another Companion</Title>
+		<Script sender="Manescu">Unlike the outside invaders with their tainted souls, the living things that live in harmony with nature will lend us their strength. Sadly, the invaders have thinned their numbers, but the wild dogs that survive are still waiting for helpers. If you spare them the time they spend hunting for food, they will faithfully help you in that time.</Script>
 		<Happen replay="false">
 			<Race race="OUSTERS" />
 			<Level min="20" max="20" />
 		</Happen>
-		<CompleteMessage sender="¸¶³×½ºÄí" target="655">±×µé ¿ª½Ã ÀÚ¿¬¿¡ ¼øÀÀÇÏ´Â »ý¸íÀÔ´Ï´Ù. ´ç½ÅÀº Á¶·ÂÀÚ·Î¼­ ±×µéÀÇ ´É·ÂÀ» Å°¿öÁÖ¸ç °øÁ¸ÇØ¾ß ÇÒ °ÍÀÔ´Ï´Ù. ´ç½ÅÀ» µû¸£´Â Á¸Àç¶ó¸é ±× ¿ª½Ã Ä«¸®»ç½º´ÔÀÇ °¡È£¸¦ ¹ÞÀ» °ÍÀÔ´Ï´Ù.</CompleteMessage>
+		<CompleteMessage sender="Manescu" target="655">They too are living things in harmony with nature. As their helper, you must nurture their abilities and live alongside them. Whatever follows you will also receive Lady Carissas' protection.</CompleteMessage>
 		<Complete>
-			<TamePet num="1" index="1">°³ÀÇ Á¶·Ã.</TamePet>
+			<TamePet num="1" index="1">Tame a dog.</TamePet>
 		</Complete>
-		<FailMessage sender="¸¶³×½ºÄí" target="655">ÀÚ¿¬Àº ¾ïÁö·Î ´Ù½º·ÁÁö´Â °ÍÀÌ ¾Æ´Õ´Ï´Ù. ÈûÀ¸·Î ¸ðµç °ÍÀ» ¾ò°íÀÚ ÇÑ´Ù¸é ¹ìÆÄÀÌ¾î¿Í ´Ù¸¦ °ÍÀÌ ¾ø°ÚÁÒ. ¿ì¸®¿¡°Ô ÀÖ¾î¼­ ÀÚ¿¬°ú Ä£ÇØÁö´Â °ÍÀº ¹«¾ùº¸´Ù Áß¿äÇÑ ÀÏÀÔ´Ï´Ù. ÀÌ¹ø¿¡´Â ½ÇÆÐÇßÁö¸¸ ¼­¼­È÷ ³ª¾ÆÁö´Â ¸ð½ÀÀ» º¸¿©ÁÖ½Ã±â ¹Ù¶ø´Ï´Ù.</FailMessage>
+		<FailMessage sender="Manescu" target="655">Nature is not something to be ruled by force. If you seek to take everything by strength, you are no different from the vampires. For us, growing close to nature matters more than anything. You failed this time, but I hope to see you improve little by little.</FailMessage>
 		<Fail>
-			<Time limit="30" index="1">%s³²Àº ½Ã°£ : %dºÐ</Time>
+			<Time limit="30" index="1">%sTime left: %d min</Time>
 		</Fail>
 		<Reward>
 			<GiveItem class="PET_FOOD" type="3" num="5" />

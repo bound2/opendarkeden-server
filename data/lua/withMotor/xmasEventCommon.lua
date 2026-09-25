@@ -3,8 +3,8 @@
 -- xmasEventCommon.lua
 --
 --------------------------------------------------------------------------------
--- Input  : 이거는 처음에 초기화를 위한거다.
--- Output : 없당
+-- Input  : this one is for initialization at the start.
+-- Output : none
 --------------------------------------------------------------------------------
 
 function selectOne (t)

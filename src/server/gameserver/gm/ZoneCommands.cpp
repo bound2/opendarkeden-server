@@ -252,10 +252,11 @@ void opsummon(GamePlayer* pGamePlayer, string msg, int i) {
     // When a MonsterType is given instead of a SpriteType
     if (o != string::npos && p != string::npos) {
         MonsterType = atoi(msg.substr(o + 1, p - o - 1).c_str());
-    } else if (strstr(MonsterName.c_str(), "\xec\xb9\x98\xed\x94\x84") != NULL) {
-        // Summoning a chief monster
-        // The bytes are the UTF-8 of the Korean word for "chief", which
-        // starts every chief monster's HName in MonsterInfo.
+    } else if (MonsterName.rfind("Chief", 0) == 0 ||
+               strstr(MonsterName.c_str(), "\xec\xb9\x98\xed\x94\x84") != NULL) {
+        // Summoning a chief monster: every chief monster's HName in
+        // MonsterInfo starts with "Chief" (the English seed) or with the
+        // Korean word for it, whose UTF-8 bytes the second test spells.
         MonsterType = monsterInfos.getChiefMonsterTypeByName(MonsterName);
     } else {
         SpriteType = monsterInfos.getSpriteTypeByName(MonsterName);

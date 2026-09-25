@@ -3,7 +3,7 @@
 -- premiumEventItemVampire.lua
 --
 --------------------------------------------------------------------------------
--- 이거 사용하기 전에 premiumEventItemVampire.lua를 실행해야 한다.
+-- Run premiumEventItemVampire.lua before using this.
 -- Input  : Level
 -- Output : ItemClass, ItemType, OptionType
 --------------------------------------------------------------------------------
