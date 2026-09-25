@@ -14,7 +14,7 @@ public:
 protected:
     virtual void executeEnd();
     virtual VSDateTime getNextFlagWarTime();
-    virtual void addFlags();
+    virtual std::vector<de::ctf::FlagDrop> flagDrops() const;
 };
 
 #endif

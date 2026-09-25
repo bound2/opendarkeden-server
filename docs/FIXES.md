@@ -13,6 +13,60 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## `*CTF` edits the flag war's schedule from a zone thread (2026-09-25)
+
+- **`opCTF` (`gm/ConsoleCommands.cpp`) runs on the GM's zone thread and
+  calls `FlagManager::manualStart`, which pops and pushes the manager's
+  schedule queue while the main thread's `ClientManager` loop runs
+  `FlagManager::heartbeat` over the same priority queue with no lock,** and
+  `startFlagWar` reads the queue's top from the main thread too. A GM
+  pulling the flag war forward while the heartbeat looks at the queue can
+  corrupt the heap. `WarScheduler` has the shape that closes it: a mutex
+  over the queue, the due schedule popped under it and run after it is
+  released, and every `addSchedule` from the war taken under it.
+  > **Status:** recorded, not fixed (fix/flag-relic-returns)
+
+## A newbie flag war's end rewarded the race that planted last (2026-09-25)
+
+- **`NewbieFlagWar::executeEnd` summons its reward monster at the winning
+  race's end of zone 1122 by `getWinnerRace()`, but it ran after
+  `FlagWar::executeEnd`, which had zeroed the counts,** so every race tied at
+  zero and the tie-break -- the race whose flag was planted last -- chose the
+  reward. The end no longer zeroes the counts; the next start does, as it
+  always did, so the end, and the returns it posts, which pay a pole of the
+  winning race its gem stone as they take its flag, read the round's own
+  result.
+  > **Status:** fixed (fix/flag-relic-returns)
+
+## A flag war's pole sweep took the pole off its tile (2026-09-25)
+
+- **`FlagManager::resetFlagCounts` swept the pole fields for flags whose
+  return had missed them: it took the pole's treasure out with
+  `getTreasure()` and then called `Zone::deleteItem(flag, x, y)`, which
+  deletes whatever item lies on the tile -- the pole corpse, not the flag,**
+  with no broadcast: the pole stayed on every client's screen and in the
+  pole table, gone from the tile. It also took the first treasure of any
+  monster corpse lying within twice a field's extent and, when that was
+  not a flag, lost it: the item left the corpse for nowhere. The sweep now
+  looks only at flag poles, destroys a flag it takes and puts anything else
+  back, and leaves the tile alone.
+  > **Status:** fixed (fix/flag-relic-returns)
+
+## A flag war's counts, status and allowed zones were shared with no lock (2026-09-25)
+
+- **`FlagManager`'s flag counts and status packet are written by the zone
+  threads that plant and pull flags, under `m_Mutex`, but were read and
+  zeroed with no lock by the main thread and by any zone thread sending the
+  status;** `getFlag` tested a count before taking the lock it decremented
+  it under, so two poles pulled at once in different groups could take the
+  same last flag and wrap the count; the zones a war allows flags in were a
+  `std::map` the main thread cleared and refilled at every start while zone
+  threads looked zones up in it; and `m_bHasFlagWar` was a plain `bool`. The
+  counts, put times, end time and status packet are read and written under
+  `m_Mutex`, the zone threads send a copy of the status, the allowed zones
+  are a `de::Snapshot` and the flag an atomic.
+  > **Status:** fixed (fix/flag-relic-returns)
+
 ## A broadcast packet whose write() throws leaks the stream it was to be queued in (2026-09-25)
 
 - **`ZonePlayerManager::pushBroadcastPacket` allocates the
@@ -172,7 +226,17 @@ repo and the client's. Entries below are newest first; the oldest is the
   excluded, and a flag a player carries is taken from a player another
   thread owns. `de::war::postItemReturn` with a step that destroys the flag
   is the fix; its start side needs the same reading.
-  > **Status:** recorded, not fixed (fix/war-end-zones)
+  The end returns each flag through `de::war::postItemReturn`, whose step
+  destroys it on the holder's thread, and posts each pole zone's sweep after
+  the returns (`ctf/FlagWarPlan.h`), so a flag planted on a pole is taken by
+  its return, which pays the winner's gem stone, before the sweep looks.
+  The start posts each zone's flag drop to its group (`postToZone`), the
+  drops writing the flags' ids into a ledger the end takes; the start's
+  pole sweep, every status broadcast (from the main thread or a zone
+  thread planting a flag) and a newbie war's reward summon are posted the
+  same way, and the notices go through `ZoneGroupManager::broadcast`, which
+  takes each group's player-manager lock, as before.
+  > **Status:** fixed (fix/flag-relic-returns)
 
 ## A castle war's start kills the monsters of dungeons in another group (2026-09-24)
 

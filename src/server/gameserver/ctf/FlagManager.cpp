@@ -20,6 +20,7 @@
 #include "Zone.h"
 #include "ZoneUtil.h"
 #include "repository/FlagWarRepository.h"
+#include "war/WarZoneWork.h"
 
 FlagManager::FlagManager(de::GameContext& context) : m_Context(context) {
     m_Mutex.setName("FlagManager");
@@ -112,17 +113,21 @@ bool FlagManager::startFlagWar() {
     Work* pWork = m_RecentSchedules.top()->getWork();
     FlagWar* pFlagWar = dynamic_cast<FlagWar*>(pWork);
 
-    if (pFlagWar != NULL)
-        m_EndTime = VSDateTime::currentDateTime().addSecs(pFlagWar->getWarTime());
-    else
-        m_EndTime = VSDateTime::currentDateTime().addSecs(3600);
+    VSDateTime endTime = VSDateTime::currentDateTime().addSecs((pFlagWar != NULL) ? pFlagWar->getWarTime() : 3600);
 
     resetFlagCounts();
+    for (ZoneID_t zoneID : de::ctf::poleZonesOf(getPoleFields()))
+        postPoleSweep(zoneID);
 
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    m_EndTime = endTime;
     m_StatusPacket.setTimeRemain(remainWarTimeSecs());
     m_StatusPacket.setFlagCount(RACE_SLAYER, 0);
     m_StatusPacket.setFlagCount(RACE_VAMPIRE, 0);
     m_StatusPacket.setFlagCount(RACE_OUSTERS, 0);
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     broadcastStatus();
 
@@ -179,10 +184,14 @@ bool FlagManager::getFlag(PlayerCreature* pPC, MonsterCorpse* pFlagPole) {
         return false;
     if (pPC->isFlag(Effect::EFFECT_CLASS_HAS_FLAG))
         return false;
-    if (m_FlagCount[(RACEINDEX)(m_FlagPoles[pFlagPole])] == 0)
-        return false;
 
+    // Poles in different groups are pulled from on different threads, so
+    // the count is checked under the lock it is taken under.
     lock();
+    if (m_FlagCount[(RACEINDEX)(m_FlagPoles[pFlagPole])] == 0) {
+        unlock();
+        return false;
+    }
     m_FlagCount[(RACEINDEX)(m_FlagPoles[pFlagPole])]--;
     m_StatusPacket.setFlagCount(m_FlagPoles[pFlagPole], m_FlagCount[(RACEINDEX)(m_FlagPoles[pFlagPole])]);
     filelog("FlagWar.log", "%s pulled out the flag. S : %d, V : %d, O : %d", pPC->getName().c_str(),
@@ -233,9 +242,30 @@ bool FlagManager::putFlag(PlayerCreature* pPC, Item* pItem, MonsterCorpse* pFlag
     return true;
 }
 
-Race_t FlagManager::getWinnerRace() {
+uint FlagManager::getFlagCount(Race_t race) const {
+    uint count = 0;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    auto itr = m_FlagCount.find((RACEINDEX)race);
+    if (itr != m_FlagCount.end())
+        count = itr->second;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return count;
+}
+
+Race_t FlagManager::getWinnerRace() const {
     uint max = 0;
     RACEINDEX maxRace = SLAYER;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    auto putTime = [this](RACEINDEX race) {
+        auto found = m_PutTime.find((Race_t)race);
+        return (found != m_PutTime.end()) ? found->second : VSDateTime();
+    };
 
     map<RACEINDEX, uint>::const_iterator itr = m_FlagCount.begin();
     map<RACEINDEX, uint>::const_iterator endItr = m_FlagCount.end();
@@ -246,55 +276,94 @@ Race_t FlagManager::getWinnerRace() {
             max = itr->second;
         }
         if (itr->second == max) {
-            if (m_PutTime[(Race_t)itr->first] > m_PutTime[(Race_t)maxRace]) {
+            if (putTime(itr->first) > putTime(maxRace)) {
                 maxRace = itr->first;
                 max = itr->second;
             }
         }
     }
 
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
     return (Race_t)maxRace;
 }
 
 
 void FlagManager::resetFlagCounts() {
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
     m_FlagCount[SLAYER] = 0;
     m_FlagCount[VAMPIRE] = 0;
     m_FlagCount[OUSTERS] = 0;
 
-    // Flags whose tracking failed seem to need erasing
-    // Flags in the field are no trouble, but a flag planted on a pole has to be erased
-    list<PoleFieldInfo>::iterator itr = m_PoleFields.begin();
-    list<PoleFieldInfo>::iterator endItr = m_PoleFields.end();
-    for (; itr != endItr; ++itr) {
-        Zone* pZone = getZoneByZoneID(itr->zoneID);
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-        ZoneCoord_t ix, iy;
-        for (ix = itr->l; ix <= (itr->l + itr->w * 2); ix += 2)
-            for (iy = itr->t; iy <= (itr->t + itr->h * 2); iy += 2) {
-                if (!isValidZoneCoord(pZone, ix, iy))
+    deleteFlagWarStats();
+}
+
+// Clears out the FlagWarStat table, the round's per-player planting record.
+void FlagManager::deleteFlagWarStats() {
+    defaultFlagWarRepository().deleteAllFlagWarStats();
+}
+
+std::vector<de::ctf::PoleField> FlagManager::getPoleFields() const {
+    std::vector<de::ctf::PoleField> fields;
+    for (const PoleFieldInfo& info : m_PoleFields) {
+        de::ctf::PoleField field;
+        field.zoneID = info.zoneID;
+        field.left = info.l;
+        field.top = info.t;
+        field.width = info.w;
+        field.height = info.h;
+        fields.push_back(field);
+    }
+    return fields;
+}
+
+// A flag the returns missed may still stand on a pole. Flags lying in the
+// field are the returns' business; a flag planted on a pole is taken out
+// of the pole here, with no reward, on the pole zone's own thread.
+void FlagManager::postPoleSweep(ZoneID_t zoneID) const {
+    std::vector<de::ctf::PoleField> fields;
+    for (const de::ctf::PoleField& field : getPoleFields()) {
+        if (field.zoneID == zoneID)
+            fields.push_back(field);
+    }
+
+    de::war::postToZone(zoneID, [fields](Zone& zone) {
+        for (const de::ctf::PoleField& field : fields) {
+            for (const auto& tile : de::ctf::poleSweepTiles(field)) {
+                ZoneCoord_t ix = tile.first;
+                ZoneCoord_t iy = tile.second;
+
+                if (!isValidZoneCoord(&zone, ix, iy))
                     continue;
-                Tile& tile = pZone->getTile(ix, iy);
-                Item* pCorpse = tile.getItem();
+                Item* pCorpse = zone.getTile(ix, iy).getItem();
                 if (pCorpse == NULL || pCorpse->getItemClass() != Item::ITEM_CLASS_CORPSE ||
                     pCorpse->getItemType() != MONSTER_CORPSE) {
                     continue;
                 }
 
-                MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pCorpse);
-                Item* pItem = pMonsterCorpse->getTreasure();
+                MonsterCorpse* pFlagPole = dynamic_cast<MonsterCorpse*>(pCorpse);
+                if (pFlagPole == NULL || !de::gameContext().flags().isFlagPole(pFlagPole))
+                    continue;
 
-                if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_EVENT_ITEM &&
-                    pItem->getItemType() == 27) {
-                    pZone->deleteItem(pItem, ix, iy);
-                    pItem->destroy();
-                    SAFE_DELETE(pItem);
+                // getTreasure() takes the pole's treasure out and turns its
+                // flag effect off; the pole itself stays on its tile.
+                Item* pItem = pFlagPole->getTreasure();
+                if (pItem == NULL)
+                    continue;
+
+                if (!pItem->isFlagItem()) {
+                    pFlagPole->addTreasure(pItem);
+                    continue;
                 }
-            }
-    }
 
-    // Clear out the FlagWarStat table on Reset
-    defaultFlagWarRepository().deleteAllFlagWarStats();
+                pItem->destroy();
+                SAFE_DELETE(pItem);
+            }
+        }
+    });
 }
 
 bool FlagManager::isInPoleField(ZONE_COORD zc) {
@@ -345,12 +414,38 @@ void FlagManager::recordFlagWarHistory()
     }
 }
 
-void FlagManager::broadcastPacket(Packet* pPacket) const {
-    map<ZoneID_t, uint>::const_iterator itr = m_FlagAllowMap.begin();
-    map<ZoneID_t, uint>::const_iterator endItr = m_FlagAllowMap.end();
+void FlagManager::setAllowedZones(std::map<ZoneID_t, uint> allowed) {
+    m_FlagAllowMap.update([&allowed](std::map<ZoneID_t, uint>& current) { current.swap(allowed); });
+}
 
-    for (; itr != endItr; ++itr) {
-        Zone* pZone = getZoneByZoneID(itr->first);
-        pZone->broadcastPacket(pPacket);
-    }
+GCFlagWarStatus FlagManager::statusPacket() const {
+    GCFlagWarStatus status;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    status = m_StatusPacket;
+    status.setTimeRemain(remainWarTimeSecs());
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return status;
+}
+
+// Called by the main thread as the war starts and by the zone threads that
+// plant and pull flags; either way the allowed zones may belong to other
+// groups, so each zone's players are walked on its own group's thread.
+void FlagManager::broadcastStatus() const {
+    if (!hasFlagWar())
+        return;
+
+    GCFlagWarStatus status = statusPacket();
+
+    std::vector<ZoneID_t> zoneIDs;
+    for (const auto& allowed : *m_FlagAllowMap.load())
+        zoneIDs.push_back(allowed.first);
+
+    de::war::postToZones(zoneIDs, [status](Zone& zone) {
+        GCFlagWarStatus packet = status;
+        zone.broadcastPacket(&packet);
+    });
 }

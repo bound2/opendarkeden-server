@@ -590,14 +590,17 @@ is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` are
   walks its PCManager, sweeps effects or writes inventory and registries.
   None of those sites hits a gated gateway.
 - **A war changes no zone from the thread that starts or ends it.** The war
-  heartbeat (main thread), a castle's scheduler (the castle zone's thread)
-  and a GM starting the race war post every zone change to the owning group
+  heartbeat (main thread), a castle's scheduler (the castle zone's thread),
+  a GM starting the race war and the flag war (`FlagManager`'s schedule, on
+  the main thread) post every zone change to the owning group
   through `war/WarZoneWork.h`: `postToZone`/`postToZones` (one command per
   group, the zone looked up by id when it runs), `postToEveryZoneGroup`, and
-  `postItemReturn` for a castle symbol, blood bible or dragon eye, which
+  `postItemReturn` for a castle symbol, blood bible, dragon eye or flag, which
   reads the item's row and posts the step that takes it out to the zone or
   player (`de::postToPlayer`) holding it; that step hands the item on
-  through `Zone::transportItemToCorpse`. The castle owner change goes
+  through `Zone::transportItemToCorpse`, or destroys a flag. The flag war's
+  drops, pole sweeps, status broadcasts and newbie-war summons are
+  `postToZone`/`postToZones` commands, its values in `ctf/FlagWarPlan.h`. The castle owner change goes
   through `CastleInfoManager::postCastleWarEnd`. A posted war command asserts
   its group, and `Zone::killAllMonsters`, the shrine shields and the siege
   set-up and reset assert it too.

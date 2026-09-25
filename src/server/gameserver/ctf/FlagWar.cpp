@@ -2,15 +2,59 @@
 
 #include "FlagManager.h"
 #include "GCNoticeEvent.h"
-#include "GlobalItemPositionLoader.h"
 #include "ItemFactoryManager.h"
 #include "MonsterSummonInfo.h"
 #include "Zone.h"
 #include "ZoneGroupManager.h"
 #include "ZoneInfoManager.h"
 #include "ZoneUtil.h"
+#include "war/WarZoneWork.h"
 
-list<FlagWar::FlagGenZone> FlagWar::m_FlagGenInfo;
+namespace {
+
+// Drops count flags on random free tiles of zone, on the zone's own thread,
+// and writes each one's id into the round's ledger. Zone::addItem keeps a
+// flag out of the safe zones. The zone's own mutex is taken as well, as the
+// item positions take it, so the main thread's zone lockers stay excluded.
+void dropFlags(Zone& zone, uint count, de::ctf::FlagLedger& ledger) {
+    VSRect rect(0, 0, zone.getWidth() - 1, zone.getHeight() - 1);
+    BPOINT pt;
+
+    __ENTER_CRITICAL_SECTION(zone)
+
+    for (uint i = 0; i < count; ++i) {
+        pt.x = rand() % zone.getWidth();
+        pt.y = rand() % zone.getHeight();
+
+        while (!rect.ptInRect(pt.x, pt.y) || zone.getTile(pt.x, pt.y).hasItem() ||
+               zone.getTile(pt.x, pt.y).isBlocked(Creature::MOVE_MODE_WALKING)) {
+            pt.x = rand() % zone.getWidth();
+            pt.y = rand() % zone.getHeight();
+        }
+
+        Item* pItem =
+            de::gameContext().itemFactories().createItem(Item::ITEM_CLASS_EVENT_ITEM, 27, list<OptionType_t>());
+        Assert(pItem != NULL);
+
+        zone.registerObject(pItem);
+        TPOINT ptInZone = zone.addItem(pItem, pt.x, pt.y, true, 36000);
+        pItem->create("", STORAGE_ZONE, zone.getZoneID(), ptInZone.x, ptInZone.y);
+
+        filelog("FlagWar.log", "%d : a flag was created at (%d,%d).", zone.getZoneID(), ptInZone.x, ptInZone.y);
+
+        ledger.add(pItem->getItemID());
+    }
+
+    __LEAVE_CRITICAL_SECTION(zone)
+}
+
+// What an end's return does with a flag it took: the flag is gone for good.
+void destroyFlag(Zone&, Item* pFlag) {
+    pFlag->destroy();
+    SAFE_DELETE(pFlag);
+}
+
+} // namespace
 
 void FlagWar::execute() {
     __BEGIN_TRY
@@ -64,42 +108,6 @@ void FlagWar::executeReady() {
     __END_CATCH
 }
 
-void FlagWar::addFlagsRandom(ZoneID_t zoneID, uint no) {
-    Zone* pZone = getZoneByZoneID(zoneID);
-    Assert(pZone != NULL);
-    VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);
-    BPOINT pt;
-
-    pZone->lock();
-
-    for (uint i = 0; i < no; ++i) {
-        pt.x = rand() % pZone->getWidth();
-        pt.y = rand() % pZone->getHeight();
-
-        while (!rect.ptInRect(pt.x, pt.y) || pZone->getTile(pt.x, pt.y).hasItem() ||
-               pZone->getTile(pt.x, pt.y).isBlocked(Creature::MOVE_MODE_WALKING) ||
-               ((pZone->getZoneLevel(pt.x, pt.y)) & SAFE_ZONE == 0)) {
-            pt.x = rand() % pZone->getWidth();
-            pt.y = rand() % pZone->getHeight();
-        }
-
-        Item* pItem = m_Context.itemFactories().createItem(Item::ITEM_CLASS_EVENT_ITEM, 27, list<OptionType_t>());
-        Assert(pItem != NULL);
-
-        pZone->registerObject(pItem);
-        TPOINT ptInZone = pZone->addItem(pItem, pt.x, pt.y, true, 36000);
-        pItem->create("", STORAGE_ZONE, pZone->getZoneID(), ptInZone.x, ptInZone.y);
-
-        filelog("FlagWar.log", "%d : a flag was created at (%d,%d).", pZone->getZoneID(), ptInZone.x, ptInZone.y);
-
-        m_Flags.push_back(pItem->getItemID());
-    }
-
-    pZone->unlock();
-
-    m_FlagManager.getAllowMap()[zoneID] = no;
-}
-
 void FlagWar::executeStart() {
     __BEGIN_TRY
 
@@ -113,12 +121,20 @@ void FlagWar::executeStart() {
 
     m_Context.zoneGroups().broadcast(&gcNE);
 
-    m_Flags.clear();
-    m_FlagManager.getAllowMap().clear();
+    // Each drop runs on its zone's own thread and adds its flags to this
+    // round's ledger, which the drop holds for as long as it needs it.
+    m_pFlags = std::make_shared<de::ctf::FlagLedger>();
 
-    addFlags();
+    std::vector<de::ctf::FlagDrop> drops = flagDrops();
+    m_FlagManager.setAllowedZones(de::ctf::flagAllowMapOf(drops));
 
-    // Pick a zone at random and create 100 flags.
+    for (const de::ctf::FlagDrop& drop : drops) {
+        uint count = drop.count;
+        std::shared_ptr<de::ctf::FlagLedger> pFlags = m_pFlags;
+
+        de::war::postToZone(drop.zoneID, [count, pFlags](Zone& zone) { dropFlags(zone, count, *pFlags); });
+    }
+
     // Let it run for 2 hours
     m_FlagManager.addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(getWarTime())));
     m_FlagManager.startFlagWar();
@@ -147,29 +163,27 @@ void FlagWar::executeFinish() {
 void FlagWar::executeEnd() {
     __BEGIN_TRY
 
-    // Chase down every flag that was created and erase it.
-    vector<ItemID_t>::iterator itr = m_Flags.begin();
-    vector<ItemID_t>::iterator endItr = m_Flags.end();
+    // Chase down every flag that was created and destroy it, on the thread
+    // of whoever holds it: the zone it lies in, a pole's zone, or the player
+    // carrying it. The pole sweeps follow the returns (FlagWarPlan.h). The
+    // counts stay as the round left them until the next start zeroes them,
+    // so the returns, which pay a pole of the winning race its gem stone as
+    // they take its flag, and a newbie war's end name the round's winner.
+    std::vector<ItemID_t> flagIDs = m_pFlags->take();
 
-    for (; itr != endItr; ++itr) {
-        GlobalItemPosition* pItemPosition =
-            GlobalItemPositionLoader::getInstance()->load(Item::ITEM_CLASS_EVENT_ITEM, *itr);
-        if (pItemPosition == NULL)
-            continue;
-
-        // popItem takes the item out of its position, so it may be deleted.
-        // This is called from the thread FlagManager runs on, so the lock has to be taken inside.
-        Item* pItem = pItemPosition->popItem(true);
-        if (pItem != NULL) {
-            pItem->destroy();
-            SAFE_DELETE(pItem);
-        } else {
-            filelog("FlagWar.log", "Failed to track the flag item...");
+    for (const de::ctf::FlagWarEndStep& step : de::ctf::flagWarEndSteps(flagIDs, m_FlagManager.getPoleFields())) {
+        switch (step.kind) {
+        case de::ctf::FlagWarEndStep::Kind::ReturnFlag:
+            if (!de::war::postItemReturn(Item::ITEM_CLASS_EVENT_ITEM, step.flagID, destroyFlag))
+                filelog("FlagWar.log", "Failed to track the flag item %u...", (unsigned)step.flagID);
+            break;
+        case de::ctf::FlagWarEndStep::Kind::SweepPoles:
+            m_FlagManager.postPoleSweep(step.zoneID);
+            break;
         }
     }
 
-    m_FlagManager.resetFlagCounts();
-    m_Flags.clear();
+    m_FlagManager.deleteFlagWarStats();
 
     // Until next time
     m_FlagManager.addSchedule(new Schedule(this, getNextFlagWarTime()));
@@ -215,26 +229,11 @@ VSDateTime FlagWar::getNextFlagWarTime() {
     return nextWarDateTime;
 }
 
-void FlagWar::addFlags() {
-    addFlagsRandom(21, 6);
-    addFlagsRandom(22, 6);
-    addFlagsRandom(23, 6);
-    addFlagsRandom(24, 7);
-
-    addFlagsRandom(11, 7);
-    addFlagsRandom(12, 6);
-    addFlagsRandom(13, 6);
-    addFlagsRandom(14, 6);
-
-    addFlagsRandom(31, 6);
-    addFlagsRandom(32, 6);
-    addFlagsRandom(33, 7);
-    addFlagsRandom(34, 6);
-
-    addFlagsRandom(61, 11);
-    addFlagsRandom(62, 11);
-    addFlagsRandom(63, 12);
-    addFlagsRandom(64, 11);
+std::vector<de::ctf::FlagDrop> FlagWar::flagDrops() const {
+    return {
+        {21, 6}, {22, 6}, {23, 6}, {24, 7}, {11, 7},  {12, 6},  {13, 6},  {14, 6},
+        {31, 6}, {32, 6}, {33, 7}, {34, 6}, {61, 11}, {62, 11}, {63, 12}, {64, 11},
+    };
 }
 
 int FlagWar::getWarTime() const {
