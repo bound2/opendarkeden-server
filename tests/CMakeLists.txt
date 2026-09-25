@@ -510,6 +510,16 @@ add_dependencies(wire_tests database_timeout_tests)
 add_test(NAME database_timeout_tests COMMAND database_timeout_tests)
 set_tests_properties(database_timeout_tests PROPERTIES TIMEOUT 20)
 
+# The database manager's per-thread connection tables, registered and looked
+# up from many threads at once. Unconnected Connection handles stand in for
+# real ones, so no database is needed; the Database library brings the MySQL
+# client in for them.
+add_executable(database_manager_tests EXCLUDE_FROM_ALL database_manager_test.cpp)
+target_link_libraries(database_manager_tests PRIVATE Database ServerCore de-kernel ${MYSQL_LIBRARY} gtest_main Threads::Threads)
+add_dependencies(wire_tests database_manager_tests)
+add_test(NAME database_manager_tests COMMAND database_manager_tests)
+set_tests_properties(database_manager_tests PROPERTIES TIMEOUT 30)
+
 # Account password hashing (src/server/loginserver/PasswordHash.cpp) over the
 # vendored argon2 (third_party/argon2). Upstream's own known-answer vectors
 # pin the vendored library; the seed-account case reads initdb/DARKEDEN.sql

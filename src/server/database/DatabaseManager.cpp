@@ -8,6 +8,8 @@
 
 #include <stdio.h>
 
+#include <mutex>
+
 #include "Assert.h"
 #include "ConnectionSettings.h"
 #include "DB.h"
@@ -21,8 +23,6 @@
 
 DatabaseManager::DatabaseManager() {
     __BEGIN_TRY
-
-    m_Mutex.setName("DatabaseManager");
 
     m_pDefaultConnection = NULL;
     m_pDistConnection = NULL;
@@ -130,7 +130,10 @@ void DatabaseManager::init() {
             Assert(pConnection != NULL);
 
 #ifdef __LOGIN_SERVER__
-            m_WorldConnections[WorldID] = pConnection;
+            {
+                std::unique_lock lock(m_TablesMutex);
+                m_WorldConnections[WorldID] = pConnection;
+            }
 
             addConnection(WorldID, pConnection);
 
@@ -154,18 +157,16 @@ void DatabaseManager::addConnection(int TID, Connection* pConnection) {
 
     cout << "Adding TID connection BEGIN" << endl;
 
-    __ENTER_CRITICAL_SECTION(m_Mutex)
+    bool inserted = false;
+    {
+        std::unique_lock lock(m_TablesMutex);
+        inserted = m_Connections.try_emplace(TID, pConnection).second;
+    }
 
-    unordered_map<int, Connection*>::iterator itr = m_Connections.find(TID);
-
-    if (itr != m_Connections.end()) {
+    if (!inserted) {
         cout << "duplicated connection info id" << endl;
         throw DuplicatedException("duplicated connection info id");
     }
-
-    m_Connections[TID] = pConnection;
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     cout << "Adding TID connection END" << endl;
 
@@ -180,18 +181,16 @@ void DatabaseManager::addDistConnection(int TID, Connection* pConnection) {
 
     cout << "Adding TID connection BEGIN" << endl;
 
-    __ENTER_CRITICAL_SECTION(m_Mutex)
+    bool inserted = false;
+    {
+        std::unique_lock lock(m_TablesMutex);
+        inserted = m_DistConnections.try_emplace(TID, pConnection).second;
+    }
 
-    unordered_map<int, Connection*>::iterator itr = m_DistConnections.find(TID);
-
-    if (itr != m_DistConnections.end()) {
+    if (!inserted) {
         cout << "duplicated connection info id" << endl;
         throw DuplicatedException("duplicated connection info id");
     }
-
-    m_DistConnections[TID] = pConnection;
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     cout << "Adding TID connection END" << endl;
 
@@ -204,21 +203,20 @@ Connection* DatabaseManager::getDistConnection(const string& connName)
 {
     __BEGIN_TRY
 
-    Connection* pTempConnection = NULL;
+    const int tid = (int)(long)Thread::self();
 
-    unordered_map<int, Connection*>::iterator itr = m_DistConnections.find((int)(long)Thread::self());
-
-    if (itr == m_DistConnections.end()) {
-#ifdef __LOGIN_SERVER__
-        pTempConnection = m_pDefaultConnection;
-#else
-        pTempConnection = m_pWorldDefaultConnection;
-#endif
-    } else {
-        pTempConnection = itr->second;
+    {
+        std::shared_lock lock(m_TablesMutex);
+        unordered_map<int, Connection*>::const_iterator itr = m_DistConnections.find(tid);
+        if (itr != m_DistConnections.end())
+            return itr->second;
     }
 
-    return pTempConnection;
+#ifdef __LOGIN_SERVER__
+    return m_pDefaultConnection;
+#else
+    return m_pWorldDefaultConnection;
+#endif
 
     __END_CATCH
 }
@@ -229,19 +227,16 @@ Connection* DatabaseManager::getConnection(const string& connName)
 {
     __BEGIN_TRY
 
-    Connection* pTempConnection = NULL;
+    const int tid = (int)(long)Thread::self();
 
-    unordered_map<int, Connection*>::iterator itr;
+    {
+        std::shared_lock lock(m_TablesMutex);
+        unordered_map<int, Connection*>::const_iterator itr = m_Connections.find(tid);
+        if (itr != m_Connections.end())
+            return itr->second;
+    }
 
-
-    itr = m_Connections.find((int)(long)Thread::self());
-
-    if (itr == m_Connections.end())
-        pTempConnection = m_pDefaultConnection;
-    else
-        pTempConnection = itr->second;
-
-    return pTempConnection;
+    return m_pDefaultConnection;
 
     __END_CATCH
 }
@@ -252,24 +247,21 @@ Connection* DatabaseManager::getConnection(int TID)
 {
     __BEGIN_TRY
 
-    if (m_WorldConnections.empty()) // by sigi. 2002.10.23
+    bool noWorldConnections = false;
     {
-        Assert(m_pWorldDefaultConnection);
-        return m_pWorldDefaultConnection;
-    } else // by sigi. 2002.10.23
-    {
-        Connection* pTempConnection = NULL;
-
-        unordered_map<int, Connection*>::iterator itr = m_WorldConnections.find(TID);
-
-        if (itr == m_WorldConnections.end()) {
-            pTempConnection = m_pWorldDefaultConnection;
-        } else {
-            pTempConnection = itr->second;
+        std::shared_lock lock(m_TablesMutex);
+        if (m_WorldConnections.empty())
+            noWorldConnections = true;
+        else {
+            unordered_map<int, Connection*>::const_iterator itr = m_WorldConnections.find(TID);
+            if (itr != m_WorldConnections.end())
+                return itr->second;
         }
-
-        return pTempConnection;
     }
+
+    Assert(!noWorldConnections || m_pWorldDefaultConnection != NULL);
+
+    return m_pWorldDefaultConnection;
 
     __END_CATCH
 }

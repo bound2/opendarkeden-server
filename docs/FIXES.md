@@ -227,11 +227,13 @@ repo and the client's. Entries below are newest first; the oldest is the
   stale answer. The window is startup, while the workers come up one by one
   and the first zone threads already tick; the loginserver has the same
   shape, its `GameServerManager` worker registering while `ClientManager`
-  looks up. Closing it means taking the
-  mutex in the lookups (every statement pays for it), or registering every
-  worker's connection before any worker starts, or a lookup structure a
-  reader can traverse during an insert.
-  > **Status:** recorded, not fixed (fix/exchange-account-db)
+  looks up. The three tables (`getConnection(int)`'s per-world one
+  included) are guarded by a `std::shared_mutex` of their own, a leaf held
+  for the map access alone: every lookup takes it shared, so lookups never
+  wait on one another, and a registration takes it exclusive; the
+  sharedserver registers nothing and only looks up. `database_manager_tests`
+  registers and looks up from sixteen threads at once.
+  > **Status:** fixed (fix/db-lookups-stream)
 
 ## A union dissolves under the join offers still pending to it (2026-09-24)
 

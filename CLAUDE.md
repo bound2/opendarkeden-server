@@ -405,7 +405,10 @@ The gameserver's threading contract, as the code actually implements it.
   unlock. So all CG handler code runs on the zone thread **with the group
   mutex held**. Each zone thread registers its own DB `Connection` keyed
   by thread id (`de::serverContext().database().addConnection(Thread::self(), …)`) — DB
-  connections are thread-local by convention, never shared.
+  connections are thread-local by convention, never shared. The
+  manager's tables of them are not: a worker registers while others look
+  theirs up, so lookups take the tables' `std::shared_mutex` shared and
+  registrations exclusive, a leaf held for the map access alone.
 - **`LoginServerManager` thread** — UDP datagram link to the loginserver;
   dispatches **LG** and **GG** packets on its own thread under its own
   `m_Mutex`.
