@@ -857,7 +857,8 @@ PCSlayerInfo* makeSlayerInfo() {
     pInfo->setHelmetType(HELMET3);
     pInfo->setJacketType(JACKET4);
     pInfo->setPantsType(PANTS4);
-    pInfo->setWeaponType(WEAPON_MACE);
+    // The character list has four weapon bits; a mace (17) does not fit them.
+    pInfo->setWeaponType(WEAPON_CROSS);
     pInfo->setShieldType(SHIELD2);
     pInfo->setHairColor(0x8A11);
     pInfo->setSkinColor(0x8B22);

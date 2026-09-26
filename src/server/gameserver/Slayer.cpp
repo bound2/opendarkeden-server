@@ -1163,31 +1163,31 @@ void Slayer::wearItem(WearPart Part, Item* pItem)
     switch (IClass) {
     case Item::ITEM_CLASS_MACE:
         // m_SlayerInfo.setWeaponType(WEAPON_MACE);
-        m_SlayerInfo.setWeaponType(WEAPON_MACE);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_MACE, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_CROSS:
-        m_SlayerInfo.setWeaponType(WEAPON_CROSS);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_CROSS, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_BLADE:
-        m_SlayerInfo.setWeaponType(WEAPON_BLADE);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_BLADE, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_AR:
-        m_SlayerInfo.setWeaponType(WEAPON_AR);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_AR, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_SR:
-        m_SlayerInfo.setWeaponType(WEAPON_SR);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_SR, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_SMG:
-        m_SlayerInfo.setWeaponType(WEAPON_SMG);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_SMG, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_SG:
-        m_SlayerInfo.setWeaponType(WEAPON_SG);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_SG, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_HELM:
@@ -1199,7 +1199,7 @@ void Slayer::wearItem(WearPart Part, Item* pItem)
         m_SlayerInfo.setShieldColor(color);
         break;
     case Item::ITEM_CLASS_SWORD:
-        m_SlayerInfo.setWeaponType(WEAPON_SWORD);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_SWORD, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_COAT:
@@ -2570,21 +2570,21 @@ void Slayer::getShapeInfo(DWORD& flag, Color_t colors[PCSlayerInfo::SLAYER_COLOR
         DWORD weaponType = 0;
 
         if (pItem->getItemClass() == Item::ITEM_CLASS_SWORD)
-            weaponType = WEAPON_SWORD;
+            weaponType = slayerWeaponListShape(slayerWeaponShape(WEAPON_SWORD, pItem->getItemType()));
         else if (pItem->getItemClass() == Item::ITEM_CLASS_BLADE)
-            weaponType = WEAPON_BLADE;
+            weaponType = slayerWeaponListShape(slayerWeaponShape(WEAPON_BLADE, pItem->getItemType()));
         else if (pItem->getItemClass() == Item::ITEM_CLASS_SR)
-            weaponType = WEAPON_SR;
+            weaponType = slayerWeaponListShape(slayerWeaponShape(WEAPON_SR, pItem->getItemType()));
         else if (pItem->getItemClass() == Item::ITEM_CLASS_AR)
-            weaponType = WEAPON_AR;
+            weaponType = slayerWeaponListShape(slayerWeaponShape(WEAPON_AR, pItem->getItemType()));
         else if (pItem->getItemClass() == Item::ITEM_CLASS_SG)
-            weaponType = WEAPON_SG;
+            weaponType = slayerWeaponListShape(slayerWeaponShape(WEAPON_SG, pItem->getItemType()));
         else if (pItem->getItemClass() == Item::ITEM_CLASS_SMG)
-            weaponType = WEAPON_SMG;
+            weaponType = slayerWeaponListShape(slayerWeaponShape(WEAPON_SMG, pItem->getItemType()));
         else if (pItem->getItemClass() == Item::ITEM_CLASS_CROSS)
-            weaponType = WEAPON_CROSS;
+            weaponType = slayerWeaponListShape(slayerWeaponShape(WEAPON_CROSS, pItem->getItemType()));
         else if (pItem->getItemClass() == Item::ITEM_CLASS_MACE)
-            weaponType = WEAPON_MACE; // MACE;
+            weaponType = slayerWeaponListShape(slayerWeaponShape(WEAPON_MACE, pItem->getItemType()));
 
         // colors[slayerColor] = (pItem->isUnique()? UNIQUE_OPTION : pItem->getFirstOptionType());
 
@@ -2664,49 +2664,49 @@ bool Slayer::addShape(Item::ItemClass IClass, ItemType_t IType, Color_t color) {
         bisChange = true;
         // m_SlayerInfo.setWeaponType(WEAPON_MACE);
 
-        m_SlayerInfo.setWeaponType(WEAPON_MACE);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_MACE, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_CROSS:
         bisWeapon = true;
         bisChange = true;
 
-        m_SlayerInfo.setWeaponType(WEAPON_CROSS);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_CROSS, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_BLADE:
         bisWeapon = true;
         bisChange = true;
 
-        m_SlayerInfo.setWeaponType(WEAPON_BLADE);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_BLADE, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_AR:
         bisWeapon = true;
         bisChange = true;
 
-        m_SlayerInfo.setWeaponType(WEAPON_AR);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_AR, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_SR:
         bisWeapon = true;
         bisChange = true;
 
-        m_SlayerInfo.setWeaponType(WEAPON_SR);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_SR, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_SMG:
         bisWeapon = true;
         bisChange = true;
 
-        m_SlayerInfo.setWeaponType(WEAPON_SMG);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_SMG, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_SG:
         bisWeapon = true;
         bisChange = true;
 
-        m_SlayerInfo.setWeaponType(WEAPON_SG);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_SG, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_HELM:
@@ -2725,7 +2725,7 @@ bool Slayer::addShape(Item::ItemClass IClass, ItemType_t IType, Color_t color) {
         bisWeapon = true;
         bisChange = true;
 
-        m_SlayerInfo.setWeaponType(WEAPON_SWORD);
+        m_SlayerInfo.setWeaponType(slayerWeaponShape(WEAPON_SWORD, IType));
         m_SlayerInfo.setWeaponColor(color);
         break;
     case Item::ITEM_CLASS_COAT:

@@ -26,6 +26,7 @@
 #include "RideMotorcycleInfo.h"
 #include "SlayerSkillInfo.h"
 #include "Zone.h"
+#include "types/SlayerWeaponShape.h"
 // #include "RankExpTable.h"
 #include "GCModifyInformation.h"
 #include "SlayerAttrExpTable.h"

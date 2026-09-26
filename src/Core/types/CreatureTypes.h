@@ -55,34 +55,39 @@ enum PantsType { PANTS_BASIC, PANTS1, PANTS2, PANTS3, PANTS4, PANTS_MAX };
 
 const string PantsType2String[] = {"PANTS_BASIC", "PANTS1", "PANTS2", "PANTS3", "PANTS4"};
 
+// One value per client weapon template (Client/Packet/Types/PacketItemDef.h
+// and Client/PacketFunction.cpp there): the retail client split each family
+// into the base model and the high-tier models, which have their own addon
+// frames, and the five outlook bits carry this numbering. Keep the order:
+// the client indexes a table with it. SlayerWeaponShape.h picks the value
+// for an item.
 enum WeaponType {
     WEAPON_NONE,
     WEAPON_SWORD,
+    WEAPON_SWORD1,
     WEAPON_BLADE,
+    WEAPON_BLADE1,
     WEAPON_SR,
+    WEAPON_SR1,
+    WEAPON_SR2,
+    WEAPON_SR3,
     WEAPON_AR,
+    WEAPON_AR1,
+    WEAPON_AR2,
+    WEAPON_AR3,
     WEAPON_SG,
     WEAPON_SMG,
     WEAPON_CROSS,
+    WEAPON_CROSS1,
     WEAPON_MACE,
+    WEAPON_MACE1,
     WEAPON_MAX
-    //	WEAPON_SHIELD ,
-    //	WEAPON_SWORD_SHIELD ,
 };
 
-const string WeaponType2String[] = {
-    "WEAPON_NONE",
-    "WEAPON_SWORD",
-    "WEAPON_BLADE",
-    "WEAPON_SR",
-    "WEAPON_AR",
-    "WEAPON_SG",
-    "WEAPON_SMG",
-    "WEAPON_CROSS"
-    "WEAPON_MACE"
-    //	"WEAPON_SHIELD",
-    //	"WEAPON_SWORD_SHIELD",
-};
+const string WeaponType2String[] = {"WEAPON_NONE",  "WEAPON_SWORD",  "WEAPON_SWORD1", "WEAPON_BLADE", "WEAPON_BLADE1",
+                                    "WEAPON_SR",    "WEAPON_SR1",    "WEAPON_SR2",    "WEAPON_SR3",   "WEAPON_AR",
+                                    "WEAPON_AR1",   "WEAPON_AR2",    "WEAPON_AR3",    "WEAPON_SG",    "WEAPON_SMG",
+                                    "WEAPON_CROSS", "WEAPON_CROSS1", "WEAPON_MACE",   "WEAPON_MACE1"};
 
 enum ShieldType { SHIELD_NONE, SHIELD1, SHIELD2, SHIELD_MAX };
 

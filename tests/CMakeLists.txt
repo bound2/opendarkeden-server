@@ -54,6 +54,7 @@ add_executable(wire_tests EXCLUDE_FROM_ALL
     packet_store_test.cpp
     packet_trade_test.cpp
     packet_zone_scan_test.cpp
+    slayer_weapon_shape_test.cpp
     wire_layout_test.cpp
     wire_string_test.cpp
     wire_types_test.cpp
