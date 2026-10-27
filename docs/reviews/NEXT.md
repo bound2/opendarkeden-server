@@ -256,5 +256,5 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 
 - **4. Wolf form rejects every skill** (PR #PRNUM, `fix/wolf-form-skills`): the four
   `isAbleToUse*Skill` guards have their `&&` allow-lists again, and the object, tile and inventory
-  skill handlers pass the skill being used, so a wolf howls and bites and casts nothing else;
+  skill handlers pass the skill being used, so a wolf howls and attacks and casts nothing else;
   `tests/game_wolf_form_skill_test.cpp` pins each guard per skill.

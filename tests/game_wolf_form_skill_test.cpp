@@ -3,7 +3,8 @@
 // Description : The skills a creature in wolf form may use, by the four
 //               isAbleToUse*Skill guards: Howl and Eat Corpse everywhere,
 //               Untransform on itself and the melee attack on an object,
-//               and nothing else.
+//               and nothing else; and the werwolf's inventory skills, held
+//               to its four like its object and tile skills.
 //////////////////////////////////////////////////////////////////////////////
 
 #include <gtest/gtest.h>
@@ -17,10 +18,10 @@ namespace {
 
 // A creature of no race in no zone: the guards read only its flags and
 // whether it is dead, a slayer or a player.
-class WolfFormCreature : public Creature {
+class FormCreature : public Creature {
 public:
-    WolfFormCreature() {
-        setFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF);
+    explicit FormCreature(Effect::EffectClass form) {
+        setFlag(form);
     }
     string toString() const override {
         return name;
@@ -36,7 +37,7 @@ public:
         return CREATURE_CLASS_NPC;
     }
     string getCreatureClassString() const override {
-        return "wolf";
+        return "form";
     }
     Race_t getRace() const override {
         return Race_t{};
@@ -54,7 +55,7 @@ public:
     }
 
 private:
-    string name = "wolf";
+    string name = "form";
 };
 
 struct Allowed {
@@ -70,7 +71,7 @@ TEST(GameWolfFormSkill, OnlyHowlEatCorpseUntransformAndMeleeAreAllowed) {
         {SKILL_ATTACK_MELEE, false, true, false, false},
         {SKILL_BLOOD_DRAIN, false, false, false, false},
     };
-    WolfFormCreature wolf;
+    FormCreature wolf(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF);
     for (const Allowed& row : table) {
         SCOPED_TRACE(row.skill);
         EXPECT_EQ(isAbleToUseSelfSkill(&wolf, row.skill), row.self);
@@ -78,6 +79,13 @@ TEST(GameWolfFormSkill, OnlyHowlEatCorpseUntransformAndMeleeAreAllowed) {
         EXPECT_EQ(isAbleToUseTileSkill(&wolf, row.skill), row.tile);
         EXPECT_EQ(isAbleToUseInventorySkill(&wolf, 0, 0, 0, 0, row.skill), row.inventory);
     }
+}
+
+TEST(GameWolfFormSkill, AWerwolfsInventorySkillsAreItsFour) {
+    FormCreature werwolf(Effect::EFFECT_CLASS_TRANSFORM_TO_WERWOLF);
+    EXPECT_TRUE(isAbleToUseInventorySkill(&werwolf, 0, 0, 0, 0, SKILL_UN_TRANSFORM));
+    EXPECT_FALSE(isAbleToUseInventorySkill(&werwolf, 0, 0, 0, 0, SKILL_BLOODY_TUNNEL));
+    EXPECT_FALSE(isAbleToUseInventorySkill(&werwolf, 0, 0, 0, 0, SKILL_TRANSFORM_TO_BAT));
 }
 
 } // namespace

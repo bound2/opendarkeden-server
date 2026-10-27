@@ -2892,20 +2892,28 @@ do.
   hotfix over the original `&&` lists (`edit by coffee 2006-12-29`, "fix the
   super-wolf disconnect problem", in GBK in the recovered source `3fccc6c6`):
   Howl, Eat Corpse and Un-transform (self), Howl, Eat Corpse and the melee
-  attack (object), and Howl and Eat Corpse (tile, inventory). The `&&` lists
-  alone let a wolf cast at a target any skill it had learned: the object,
+  attack (object), and Howl and Eat Corpse (tile, inventory). The object,
   tile and inventory skill handlers asked their guards without the skill
-  type, and the default, 0, is the melee attack. The guards have the `&&`
-  lists again and those nine calls pass the skill being used, so a wolf
-  howls and bites (`CGAttackHandler` passes the melee attack) and casts
-  nothing else. Untransform and Eat Corpse on a tile were dispatched before
-  the guards all along. A werwolf's inventory skill outside its four is now
-  refused, as its guard says; its object and tile skills were already held
-  to the four by the handlers' own switches. The item-use checks
-  (`CGUseItemFromInventoryHandler`, `CGUseMessageItemFromInventoryHandler`,
-  the GM's firecracker) still pass no type, which gives them master's answers.
-  `tests/game_wolf_form_skill_test.cpp` asks each guard about each skill.
-  Whether the disconnect the 2006 edit fixed had another cause is not known.
+  type, and the default, 0, is the melee attack: under the `&&` lists a wolf
+  could cast any object skill it had learned, and a werwolf, whose lists
+  hold the melee attack, any inventory skill, Transform To Wolf among them.
+  The same author's same-day edit to `TransformToWolf.cpp` ("fix the
+  becoming-super-small-wolf bug") refuses a werwolf, so the "super wolf" was
+  most likely a vampire in both forms. The guards have the `&&` lists again,
+  the nine handler calls pass the skill being used, and the guards' skill
+  type has no default, so the compiler holds every caller to naming one; the
+  item-use checks (`CGUseItemFromInventoryHandler`,
+  `CGUseMessageItemFromInventoryHandler`, the GM's firecracker) name the
+  melee attack, which gives them master's answers. A wolf now howls
+  (`CGSkillToSelf`) and attacks (`CGAttackHandler` passes the melee attack)
+  and casts nothing else; Untransform is dispatched before the self guard
+  and Eat Corpse before the tile guard, as they always were. A werwolf's
+  inventory skills are held to its four, as the recovered source's inventory
+  handler held them with a switch the current one lacks: it can no longer
+  open a Bloody Tunnel, place a Bloody Marker or turn into a bat from the
+  inventory, the last of which stacked bat form on werwolf form.
+  `tests/game_wolf_form_skill_test.cpp` asks each guard about five skills in
+  wolf form and the inventory guard about a werwolf's.
   > **Status:** fixed (fix/wolf-form-skills)
 - **Checks that could never fire were removed with their tautologies**, each
   of which evidently meant something else: `CGLearnSkillHandler` rejected a
