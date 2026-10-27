@@ -2130,10 +2130,13 @@ in `tests/packet_read_bounds_test.cpp` (`wire_tests`).
   the loops themselves are unchanged. The fuzz harness aborts on that
   exception by name, so a read that throws anything else is still a
   recorded crash, not a refusal (`tests/fuzz/StreamFuzz.h`). Checked by
-  `FrameBoundTest` in `tests/packet_frame_test.cpp`. A loginserver
-  handler that throws a non-protocol exception still leaves
-  `LoginPlayer::processCommand` (its dispatch is not wrapped as
-  `GamePlayer`'s is); that is the handlers' route, not the reads'.
+  `FrameBoundTest` in `tests/packet_frame_test.cpp`. The handlers' route,
+  not the reads', stayed open on the loginserver, whose dispatch was not
+  wrapped as `GamePlayer`'s is: `LoginPlayer::processCommand` now passes
+  a handler's `ProtocolException` and `ConnectException` on as before and
+  turns anything else into a logged `DisconnectException`, checked by
+  `LoginHandlerFailure` in `tests/login_handler_failure_test.cpp`
+  (fix/login-dispatch-wrap).
   > **Status:** fixed (fix/read-errors-are-refusals)
 - **Packets cast wire bytes to their enum types.** Reads store a byte
   straight into an enum (`m_PCType = PCType(pcType)`) and getters build

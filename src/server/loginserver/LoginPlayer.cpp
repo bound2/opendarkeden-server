@@ -22,6 +22,7 @@
 #include "LoginKickDispatch.h"
 #include "LoginKickPreparation.h"
 #include "Packet.h"
+#include "PacketDiagnostics.h"
 #include "PacketDispatcher.h"
 #include "PacketFactoryManager.h"
 #include "PacketProfile.h"
@@ -209,7 +210,21 @@ void LoginPlayer::processCommand(bool Option) {
 
                 // Now the packet handler can be run with this packet structure.
                 // A wrong packet id is handled by the packet handler manager.
-                PacketDispatcher::dispatch(pPacket.get(), this);
+                // A handler ends the session with a ProtocolException (a logout's
+                // DisconnectException among them) and a send loses the connection
+                // with a ConnectException, each retired by LoginPlayerManager;
+                // anything else a handler throws is logged and ends the session
+                // the same way, so it never reaches the main loop.
+                try {
+                    PacketDispatcher::dispatch(pPacket.get(), this);
+                } catch (ProtocolException&) {
+                    throw;
+                } catch (ConnectException&) {
+                    throw;
+                } catch (...) {
+                    de::logPacketMetadata("errorLogin.txt", "handler failed", *pPacket, diagnosticFilelog);
+                    throw DisconnectException("login handler failed");
+                }
 
                 getCurrentTime(end);
                 g_PacketProfileManager.addAccuTime(pPacket->getPacketName(), start, end);

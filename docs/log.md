@@ -1,5 +1,11 @@
 # Knowledge Bundle Update Log
 
+## 2026-10-27
+
+* **Update**: [account ownership and kicks](login/account-ownership-and-kicks.md) has a row for
+  what a login handler's throw does: a protocol or connect exception is retired as before, and
+  anything else is logged and retired as a disconnect instead of reaching the main loop.
+
 ## 2026-10-26
 
 * **Creation**: [next work plan](reviews/NEXT.md), the ranked tasks left in the server after the
