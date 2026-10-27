@@ -4,7 +4,7 @@
 
 * **Update**: [account ownership and kicks](login/account-ownership-and-kicks.md) has a row for
   what a login handler's throw does: a protocol or connect exception is retired as before, and
-  anything else is logged and retired as a disconnect instead of reaching the main loop.
+  anything else is logged by type and retired like a logout instead of reaching the main loop.
 
 ## 2026-10-26
 

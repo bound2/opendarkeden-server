@@ -20,6 +20,19 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A database failure while a login waits on a kick escapes to the main loop (2026-10-27)
+
+- **`LoginPlayer::processCommand`'s kick-wait branch runs before the
+  dispatch and outside its wrap:** once the kick retries run out,
+  `sendLCLoginOK` calls `completeLoginKick`, whose `setLoggedOn`,
+  `setLoginIP` and login record throw a `DatabaseError` on a failed query,
+  which is no `Throwable`, or an `SQLConnectException` it rethrows, which
+  is no `ConnectException`. `LoginPlayerManager::processCommands` catches
+  neither, so a database failure on that path reaches
+  `ClientManager::run`, which catches nothing, and ends the loginserver,
+  possibly after LOGON was written.
+  > **Status:** recorded, not fixed (fix/login-dispatch-wrap)
+
 ## A long GM console error report is never sent (2026-10-23)
 
 The `*command clearInventory` body (`gm/ConsoleCommands.cpp`) answers a
@@ -2134,10 +2147,10 @@ in `tests/packet_read_bounds_test.cpp` (`wire_tests`).
   not the reads', stayed open on the loginserver, whose dispatch was not
   wrapped as `GamePlayer`'s is: `LoginPlayer::processCommand` now passes
   a handler's `ProtocolException` and `ConnectException` on as before and
-  turns anything else into a logged `DisconnectException`, checked by
-  `LoginHandlerFailure` in `tests/login_handler_failure_test.cpp`
-  (fix/login-dispatch-wrap).
-  > **Status:** fixed (fix/read-errors-are-refusals)
+  turns anything else into a `DisconnectException`, logged by type to
+  `LoginPlayerError.txt`, checked by `LoginHandlerFailure` in
+  `tests/login_handler_failure_test.cpp`.
+  > **Status:** fixed (fix/read-errors-are-refusals, fix/login-dispatch-wrap)
 - **Packets cast wire bytes to their enum types.** Reads store a byte
   straight into an enum (`m_PCType = PCType(pcType)`) and getters build
   one from bits (`ShieldType((m_Outlook >> n) & mask)`) without checking

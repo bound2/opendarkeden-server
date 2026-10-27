@@ -1,7 +1,7 @@
 ---
 type: Record
 title: "Next work plan"
-description: "The ranked, self-contained tasks left in the server after the 2026-10-25 merges, each written so an agent with no other context can take it: the recorded-not-fixed entries of the fix log, the loginserver's unwrapped dispatch, the fuzzers' two unread paths, and what stays blocked or with the owner."
+description: "The ranked, self-contained tasks left in the server after the 2026-10-25 merges, each written so an agent with no other context can take it: the recorded-not-fixed entries of the fix log, the fuzzers' two unread paths, and what stays blocked or with the owner."
 tags: [review, plan]
 ---
 

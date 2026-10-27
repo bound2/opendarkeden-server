@@ -9,15 +9,20 @@
 //
 //               The packet arrives over a real loopback connection, through a
 //               factory, validator and handler registered in the child only.
+//               The handler queues a reply before it throws, so the peer
+//               shows how the session was retired: a session that ends
+//               flushes the reply, and one whose connection is lost does not.
 //////////////////////////////////////////////////////////////////////////////
 
 #include <poll.h>
 #include <unistd.h>
 
+#include <chrono>
 #include <cstdlib>
 #include <exception>
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 #include <gtest/gtest.h>
 #include <sys/socket.h>
@@ -29,6 +34,7 @@
 #include "PacketDispatcher.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
+#include "Player.h"
 #include "Socket.h"
 #include "SocketOutputStream.h"
 #include "support/LoopbackListener.h"
@@ -36,8 +42,11 @@
 namespace {
 
 std::exception_ptr g_failure;
+unsigned g_calls = 0;
 
-void throwFailure(Packet*, Player*) {
+void replyAndThrow(Packet* pPacket, Player* pPlayer) {
+    ++g_calls;
+    pPlayer->sendPacket(pPacket);
     std::rethrow_exception(g_failure);
 }
 
@@ -46,9 +55,28 @@ bool readable(int descriptor) {
     return ::poll(&ready, 1, 2000) == 1 && (ready.revents & POLLIN) != 0;
 }
 
-// Delivers one packet whose handler throws failure, and exits 0 when the
-// player is retired and the manager's loop runs on.
-void checkHandlerFailureRetiresThePlayer(std::exception_ptr failure) {
+// Everything the peer receives until the connection closes, or what came
+// within two seconds.
+std::string receiveUntilClosed(int peer) {
+    std::string received;
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    char buffer[256];
+    while (std::chrono::steady_clock::now() < deadline) {
+        pollfd ready{peer, POLLIN, 0};
+        if (::poll(&ready, 1, 10) != 1)
+            continue;
+        const auto count = ::recv(peer, buffer, sizeof(buffer), 0);
+        if (count <= 0)
+            break;
+        received.append(buffer, count);
+    }
+    return received;
+}
+
+// Delivers one packet whose handler queues a reply and throws failure, and
+// exits 0 when the handler ran once, processCommands returned with the
+// player retired, and the peer received the reply exactly when flushed.
+void checkHandlerFailureRetiresThePlayer(std::exception_ptr failure, bool flushed) {
     g_failure = failure;
     PacketFactoryManager factories;
     factories.addFactory(new LCVersionCheckOKFactory());
@@ -58,7 +86,7 @@ void checkHandlerFailureRetiresThePlayer(std::exception_ptr failure) {
     validator.addPacketIDSet(LPS_BEGIN_SESSION, allowed.release());
     de::kernelContext().setPacketFactoryManager(&factories);
     de::kernelContext().setPacketValidator(&validator);
-    PacketDispatcher::registerHandler(Packet::PACKET_LC_VERSION_CHECK_OK, throwFailure);
+    PacketDispatcher::registerHandler(Packet::PACKET_LC_VERSION_CHECK_OK, replyAndThrow);
 
     LoopbackListener listener;
     LoginPlayerManager manager;
@@ -80,26 +108,30 @@ void checkHandlerFailureRetiresThePlayer(std::exception_ptr failure) {
     } catch (...) {
         std::_Exit(2);
     }
-    if (manager.size() != 0)
+    if (g_calls != 1 || manager.size() != 0)
         std::_Exit(3);
-    try {
-        manager.processCommands();
-    } catch (...) {
+    const std::string expected = flushed ? std::string(wire.getBuffer(), wire.length()) : std::string();
+    if (receiveUntilClosed(peer) != expected)
         std::_Exit(4);
-    }
     ::close(peer);
     std::_Exit(0);
 }
 
-TEST(LoginHandlerFailure, AnyThrowFromAHandlerRetiresThePlayerAndTheLoopRunsOn) {
-    const std::exception_ptr failures[] = {
-        std::make_exception_ptr(RuntimeException("handler failed")),
-        std::make_exception_ptr(std::runtime_error("handler failed")),
-        std::make_exception_ptr(DisconnectException("logout")),
-        std::make_exception_ptr(ConnectException("send failed")),
+TEST(LoginHandlerFailure, AnyThrowFromAHandlerRetiresOnlyItsPlayer) {
+    const struct {
+        const char* name;
+        std::exception_ptr failure;
+        bool flushed;
+    } cases[] = {
+        {"RuntimeException", std::make_exception_ptr(RuntimeException("handler failed")), true},
+        {"std::runtime_error", std::make_exception_ptr(std::runtime_error("handler failed")), true},
+        {"DisconnectException", std::make_exception_ptr(DisconnectException("logout")), true},
+        {"ConnectException", std::make_exception_ptr(ConnectException("send failed")), false},
     };
-    for (const std::exception_ptr& failure : failures)
-        EXPECT_EXIT(checkHandlerFailureRetiresThePlayer(failure), ::testing::ExitedWithCode(0), "");
+    for (const auto& c : cases) {
+        SCOPED_TRACE(c.name);
+        EXPECT_EXIT(checkHandlerFailureRetiresThePlayer(c.failure, c.flushed), ::testing::ExitedWithCode(0), "");
+    }
 }
 
 } // namespace
