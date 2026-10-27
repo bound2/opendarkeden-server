@@ -2886,13 +2886,26 @@ do.
   game server's 50-byte message buffers were not sized to their data and
   cut three seed messages short; see *Review follow-ups*.
   > **Status:** fixed (fix/compiler-warnings)
-- **Wolf form rejects every skill.** The four `isAbleToUse*Skill` guards test
-  `SkillType != A || SkillType != B ...`, true for any skill, so the early
-  return is now unconditional. The commented-out `&&` versions, removed with
-  the dead test, allowed Howl, Eat Corpse and Un-transform (self), Howl, Eat
-  Corpse and melee attack (object), and Howl and Eat Corpse (tile, inventory).
-  The guards allow those skills again; `tests/game_wolf_form_skill_test.cpp`
-  asks each guard about each of them and about a skill none allows.
+- **Wolf form rejects every skill.** The four `isAbleToUse*Skill` guards
+  tested `SkillType != A || SkillType != B ...`, true for any skill, so this
+  cleanup made the early return unconditional. The `||` was an operator's
+  hotfix over the original `&&` lists (`edit by coffee 2006-12-29`, "fix the
+  super-wolf disconnect problem", in GBK in the recovered source `3fccc6c6`):
+  Howl, Eat Corpse and Un-transform (self), Howl, Eat Corpse and the melee
+  attack (object), and Howl and Eat Corpse (tile, inventory). The `&&` lists
+  alone let a wolf cast at a target any skill it had learned: the object,
+  tile and inventory skill handlers asked their guards without the skill
+  type, and the default, 0, is the melee attack. The guards have the `&&`
+  lists again and those nine calls pass the skill being used, so a wolf
+  howls and bites (`CGAttackHandler` passes the melee attack) and casts
+  nothing else. Untransform and Eat Corpse on a tile were dispatched before
+  the guards all along. A werwolf's inventory skill outside its four is now
+  refused, as its guard says; its object and tile skills were already held
+  to the four by the handlers' own switches. The item-use checks
+  (`CGUseItemFromInventoryHandler`, `CGUseMessageItemFromInventoryHandler`,
+  the GM's firecracker) still pass no type, which gives them master's answers.
+  `tests/game_wolf_form_skill_test.cpp` asks each guard about each skill.
+  Whether the disconnect the 2006 edit fixed had another cause is not known.
   > **Status:** fixed (fix/wolf-form-skills)
 - **Checks that could never fire were removed with their tautologies**, each
   of which evidently meant something else: `CGLearnSkillHandler` rejected a

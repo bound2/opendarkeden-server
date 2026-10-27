@@ -130,10 +130,11 @@ live defects, kept because the cleanup removed only tautologies:
 - the smaller findings bullet: `MotorcycleLoader::load` and `~PlayerCreature` leak, and
   `EffectSatelliteBombAim` uses a skill slot with no null check.
 
-**How:** one PR per bullet, each a one-line fix with a test that pins the intended behaviour
-(`tests/game_wolf_form_skill_test.cpp` builds a creature with no zone or race for guards that
-read only its flags). The 999999 durations
-and the `ExpireDate` in the same bullet are balance and data questions; leave them recorded.
+**How:** one PR per bullet, each a one-line fix with a test that pins the intended behaviour.
+Read the line's history first (`git log -p`, and the recovered source `3fccc6c6`, whose GBK
+comments mark operator edits): the wolf-form `||` looked like a typo and was a 2006 hotfix. The
+999999 durations and the `ExpireDate` in the same bullet are balance and data questions; leave
+them recorded.
 
 ### 5. A slayer's shoulder armour leaving its shape is broadcast as the trousers
 
@@ -254,5 +255,6 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 ## Done
 
 - **4. Wolf form rejects every skill** (PR #PRNUM, `fix/wolf-form-skills`): the four
-  `isAbleToUse*Skill` guards allow Howl and Eat Corpse again, Untransform on the wolf itself and
-  the melee attack on an object; `tests/game_wolf_form_skill_test.cpp` pins each guard per skill.
+  `isAbleToUse*Skill` guards have their `&&` allow-lists again, and the object, tile and inventory
+  skill handlers pass the skill being used, so a wolf howls and bites and casts nothing else;
+  `tests/game_wolf_form_skill_test.cpp` pins each guard per skill.
