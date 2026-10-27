@@ -224,7 +224,7 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 
 ## Done
 
-- **3. The loginserver's handler dispatch is not wrapped** (PR #PRNUM, `fix/login-dispatch-wrap`):
+- **3. The loginserver's handler dispatch is not wrapped** (PR #387, `fix/login-dispatch-wrap`):
   `LoginPlayer::processCommand` passes a handler's `ProtocolException` and `ConnectException` on
   and turns anything else into a logged `DisconnectException`; `tests/login_handler_failure_test.cpp`
   throws each kind from a handler over a loopback connection.
