@@ -3173,7 +3173,11 @@ do.
   corrupt the heap. `WarScheduler` has the shape that closes it: a mutex
   over the queue, the due schedule popped under it and run after it is
   released, and every `addSchedule` from the war taken under it.
-  > **Status:** recorded, not fixed (fix/flag-relic-returns)
+  `FlagManager` now has that shape, its own schedule mutex a leaf, and
+  `startFlagWar` is handed the war's length instead of reading the queue;
+  `tests/game_flag_schedule_test.cpp` heartbeats and pulls the schedule
+  forward on two threads and keeps the queue's count.
+  > **Status:** fixed (fix/flag-schedule-lock)
 
 ## A newbie flag war's end rewarded the race that planted last (2026-09-25)
 

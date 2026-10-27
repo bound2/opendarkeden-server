@@ -68,22 +68,6 @@ body, so it can only keep the table row; `tests/scheduler_test.cpp` links only
 and asserts the schedule lands through the post. Add a bullet to
 [closed violations](../threading/closed-violations.md) (a list, not a table).
 
-### 2. `*CTF` races the main thread's flag-war heartbeat
-
-**What:** fix-log entry of 2026-09-25, `recorded, not fixed`: *`*CTF` edits the flag war's
-schedule from a zone thread*. `opCTF` calls `FlagManager::manualStart`, which pops and pushes
-the manager's priority queue, while the main thread's `ClientManager` loop runs
-`FlagManager::heartbeat` over the same queue with no lock, and `startFlagWar` reads its top from
-the main thread. Not a zone-group object, so not the mutation rule, but a data race that can
-corrupt the heap.
-
-**How:** give `FlagManager` the shape `WarScheduler` has (a per-castle-zone scheduler, so not a
-home for the flag war itself): a mutex over the queue, the due schedule popped under it and run
-after it is released, every `addSchedule` taken under it.
-
-**Test:** the same runtime target as task 1, or its own: two threads, one calling `manualStart`
-while the other heartbeats, under TSan or with a counted queue, asserting the schedule count.
-
 ### 3. The loginserver's handler dispatch is not wrapped
 
 **What:** the fix-log entry *Non-protocol exceptions from a read escape the receive loops*
@@ -255,4 +239,7 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 
 ## Done
 
-Nothing yet; tasks move here with their PR number.
+- **2. `*CTF` races the main thread's flag-war heartbeat** (PR #PRNUM, `fix/flag-schedule-lock`):
+  `FlagManager` pops the due schedule under a leaf schedule mutex and runs it after releasing it,
+  every add and `manualStart` takes the mutex, and `startFlagWar` is handed the war's length;
+  `tests/game_flag_schedule_test.cpp` heartbeats and pulls forward on two threads.

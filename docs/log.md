@@ -1,5 +1,11 @@
 # Knowledge Bundle Update Log
 
+## 2026-10-27
+
+* **Update**: [closed violations](threading/closed-violations.md) says how `FlagManager` shares its
+  schedule queue between the main thread's heartbeat and a GM's `*command CTF`, and
+  [test coverage](testing/test-coverage.md) the runtime test that runs both at once.
+
 ## 2026-10-26
 
 * **Creation**: [next work plan](reviews/NEXT.md), the ranked tasks left in the server after the

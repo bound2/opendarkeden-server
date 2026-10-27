@@ -233,6 +233,9 @@ messages. Literal broadcast framing stays unchanged.
 `EffectAddItem` destroyed without a target, pinning what a destructor does where
 it cannot throw; `GameCatch` drives a disconnect whose socket cannot send, which
 logs both failed flushes and still ends the session.
+`GameFlagSchedule` runs `FlagManager`'s heartbeat on one thread while another
+pulls the schedule forward, as `*command CTF` does, and checks the queue keeps
+its count.
 
 # The startup and library tests
 
