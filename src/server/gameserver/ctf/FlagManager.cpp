@@ -130,17 +130,19 @@ void FlagManager::addSchedule(Schedule* pSchedule) {
 }
 
 void FlagManager::manualStart() {
+    bool pulled = false;
+
     __ENTER_CRITICAL_SECTION(m_ScheduleMutex)
 
-    if (!isEmpty()) {
-        cout << "Pulling the schedule forward.." << endl;
+    pulled = !isEmpty();
+    if (pulled)
         Scheduler::addSchedule(new Schedule(popRecentWork(), VSDateTime::currentDateTime()));
-    } else {
-        cout << "Creating a schedule.." << endl;
+    else
         Scheduler::addSchedule(new Schedule(new FlagWar(*this, m_Context), VSDateTime::currentDateTime()));
-    }
 
     __LEAVE_CRITICAL_SECTION(m_ScheduleMutex)
+
+    cout << (pulled ? "Pulled the schedule forward.." : "Created a schedule..") << endl;
 }
 
 bool FlagManager::startFlagWar(int warSecs) {

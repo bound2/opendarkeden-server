@@ -6,9 +6,10 @@
 //               takes the due schedule out of the queue before running it and
 //               takes the queue's mutex for every pop and add, so whatever
 //               the interleaving, each run and each pull keeps the number of
-//               queued schedules.
+//               queued schedules, and each work stays in exactly one.
 //////////////////////////////////////////////////////////////////////////////
 
+#include <set>
 #include <thread>
 
 #include <gtest/gtest.h>
@@ -38,11 +39,24 @@ private:
     FlagManager& m_Manager;
 };
 
+// Reads which works the queue holds.
+class InspectedFlagManager : public FlagManager {
+public:
+    using FlagManager::FlagManager;
+
+    std::set<const Work*> queuedWorks() const {
+        std::set<const Work*> works;
+        for (const Schedule* pSchedule : m_RecentSchedules.getSchedules())
+            works.insert(pSchedule->getWork());
+        return works;
+    }
+};
+
 TEST(GameFlagSchedule, HeartbeatAndManualStartOnTwoThreadsKeepTheQueue) {
     constexpr int kRounds = 2000;
 
     de::GameContext context;
-    FlagManager manager(context);
+    InspectedFlagManager manager(context);
     // Two schedules, so a pull always finds one while the other runs and
     // never makes a flag war of its own.
     manager.clear();
@@ -58,6 +72,9 @@ TEST(GameFlagSchedule, HeartbeatAndManualStartOnTwoThreadsKeepTheQueue) {
     gm.join();
 
     EXPECT_EQ(manager.getSize(), 2);
+    std::set<const Work*> works = manager.queuedWorks();
+    EXPECT_EQ(works.size(), 2u);
+    EXPECT_EQ(works.count(nullptr), 0u);
 }
 
 } // namespace

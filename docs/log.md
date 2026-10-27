@@ -2,9 +2,9 @@
 
 ## 2026-10-27
 
-* **Update**: [closed violations](threading/closed-violations.md) says how `FlagManager` shares its
-  schedule queue between the main thread's heartbeat and a GM's `*command CTF`, and
-  [test coverage](testing/test-coverage.md) the runtime test that runs both at once.
+* **Update**: [threads and what they own](threading/overview.md) says how the main thread's flag
+  war schedule is shared with a GM's `*command CTF`, and [test coverage](testing/test-coverage.md)
+  the runtime test that runs both at once.
 
 ## 2026-10-26
 

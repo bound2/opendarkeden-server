@@ -20,6 +20,22 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## A flag war step that throws after queuing its next step is queued twice (2026-10-27)
+
+- **`FlagManager::heartbeat` puts a schedule whose run throws back in the
+  queue, but a flag war step queues its own next schedule before the
+  work that can throw:** `FlagWar::executeStart` adds `Schedule(this, ...)`
+  and then calls `startFlagWar`, whose `deleteFlagWarStats` reads the
+  database, and `executeFinish` adds its next step before `endFlagWar`,
+  whose roll-up the required `sql_mode` refuses
+  ([database setup](../database/overview.md)). A throw there leaves two
+  schedules holding one `FlagWar`: each later step would run twice, and
+  `Scheduler::clear` at teardown deletes the work twice. Master did the
+  same by leaving the running schedule queued. Today the throw is a
+  `DatabaseError`, which no `catch (Throwable&)` stops, so it ends the
+  main loop first.
+  > **Status:** recorded, not fixed (fix/flag-schedule-lock)
+
 ## A long GM console error report is never sent (2026-10-23)
 
 The `*command clearInventory` body (`gm/ConsoleCommands.cpp`) answers a

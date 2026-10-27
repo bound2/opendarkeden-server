@@ -3,8 +3,8 @@
 //
 // Only one may run globally. Its schedule runs on the main thread
 // (ClientManager), while a GM's *command CTF pulls it forward from a zone
-// thread or the login link's, so the schedule queue is read and written only
-// under m_ScheduleMutex. The flag war it runs changes zones only through
+// thread or the login link's, so every pop and add those threads make takes
+// m_ScheduleMutex. The flag war it runs changes zones only through
 // commands posted to the zones' groups (war/WarZoneWork.h): the flags it
 // drops and takes back, the pole sweeps and the status broadcasts. The
 // counts, the put times and the status packet are also written by the zone

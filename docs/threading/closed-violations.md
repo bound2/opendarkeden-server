@@ -66,10 +66,7 @@ left behind is stated here because the code alone does not say why it is shaped 
   bonus-zone broadcasts (`HolyLandManager::broadcast`, `CastleInfo::broadcast`,
   `LevelWarZoneInfoManager::broadcast`) go this way from any thread;
   `ZoneGroupManager::broadcast` stays direct, walking each group's players under its
-  `ZonePlayerManager` mutex and only sending. The flag war's schedule queue is no zone's state,
-  but the main thread's heartbeat and a GM's `*command CTF` both change it: `FlagManager` takes the
-  due schedule out under its schedule mutex and runs it after releasing it, as `WarScheduler`
-  does, and every add and pull takes that mutex (`tests/game_flag_schedule_test.cpp`).
+  `ZonePlayerManager` mutex and only sending.
 - **Packets pipelined behind `CGReady` are drained by the zone thread.** `GamePlayer::processCommand`
   stops the main-thread (`IncomingPlayerManager`) drain once the status flips to `GPS_NORMAL`, so
   nothing reaches a gateway without the group mutex.
