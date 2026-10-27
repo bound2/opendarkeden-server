@@ -2904,14 +2904,14 @@ do.
   FEMALE`**, a constant that is always true, so female vampires get item type
   1 for every item class; `itemClass ==` was evidently meant. Kept.
   > **Status:** recorded, not fixed (fix/compiler-warnings)
-- **`Tile::deleteCreature(MoveMode)` calls the `ObjectID_t` overload of
+- **`Tile::deleteCreature(MoveMode)` called the `ObjectID_t` overload of
   `deleteObject`** (the sum `OBJECT_PRIORITY_WALKING_CREATURE + mode` is an
-  `int`), which looks for an object with ID 1..3 and asserts when none
+  `int`), which looks for an object with ID 0..2 and asserts when none
   matches; `getCreature(MoveMode)` wraps the same sum in `ObjectPriority`,
-  which was evidently meant. Nothing called it: every tile write goes through
-  the `ObjectID_t` overload, from `ZoneSpawn.cpp` and `ZoneMove.cpp`. The
-  overload is deleted, so no caller can reach the assert, and the build is
-  what shows none did.
+  which was evidently meant. Nothing called it: every `Tile::deleteCreature`
+  call, in `ZoneSpawn.cpp` and `ZoneMove.cpp`, passes the creature's object
+  id. The overload is now declared deleted, so a call by move mode, which
+  would otherwise convert to an id and remove nothing, fails to compile.
   > **Status:** fixed (fix/tile-delete-by-mode)
 - **Overrides that do not override.** `DummyQuestStatus::isSuccess()` lacks the
   base's `const` (the class is never instantiated). `SharedServerClient`,
