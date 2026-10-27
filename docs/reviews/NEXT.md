@@ -115,7 +115,7 @@ row to the table in [account ownership and kicks](../login/account-ownership-and
 which holds the retirement rows ([login lifecycle](../login/overview.md) is prose), and change
 the fix-log entry's last sentence.
 
-### 4. Six gameplay defects kept by the compiler-warning cleanup
+### 4. Five gameplay defects kept by the compiler-warning cleanup
 
 **What:** the *Compiler-warning cleanup (2026-09-27)* entry's `recorded, not fixed` bullets are
 live defects, kept because the cleanup removed only tautologies:
@@ -125,8 +125,6 @@ live defects, kept because the cleanup removed only tautologies:
   Eat Corpse, Un-transform and melee;
 - `CGLearnSkillHandler`'s range check can never fire (`>= SKILL_MAX && < SKILL_DOUBLE_IMPACT`);
   `CGAddItemToItemHandler` reaches `makeGCCreateItem` with X = 255 when the pet item is missing;
-- `getRandomMysteriousItem` tests a constant that is always true, so female vampires get item
-  type 1 for every class (`itemClass ==` was meant);
 - `Tile::deleteCreature(MoveMode)` calls the `ObjectID_t` overload of `deleteObject` and
   asserts; `getCreature(MoveMode)` shows the intended `ObjectPriority` wrap;
 - the overrides that do not override (`processCommand()` without the base's `bool`);
@@ -255,4 +253,7 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 
 ## Done
 
-Nothing yet; tasks move here with their PR number.
+- **4. `getRandomMysteriousItem` gives female vampires item type 1 for every class** (PR #PRNUM,
+  `fix/mysterious-item-class`): the slayer and vampire fallbacks share
+  `mysteriousFallbackItemType`, type 1 only for a woman's coat or trousers and a vampire woman's
+  coat; `tests/game_mysterious_item_test.cpp` pins it.

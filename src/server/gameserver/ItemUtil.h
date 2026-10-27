@@ -253,6 +253,11 @@ void processItemBugEx(Creature* pCreature, Item* pItem);
 //////////////////////////////////////////////////////////////////////////////
 Item* getRandomMysteriousItem(Creature* pCreature, Item::ItemClass itemClass, int maxLevel = 0);
 
+// The item type a slayer's or vampire's mysterious item falls back on when no
+// random draw fits: 1 for a woman's coat or trousers and for a vampire
+// woman's coat, 0 for everything else.
+ItemType_t mysteriousFallbackItemType(Item::ItemClass itemClass, Sex sex);
+
 //////////////////////////////////////////////////////////////////////////////
 // Functions related to options.
 //////////////////////////////////////////////////////////////////////////////

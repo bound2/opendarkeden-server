@@ -2902,8 +2902,13 @@ do.
   > **Status:** recorded, not fixed (fix/compiler-warnings)
 - **`getRandomMysteriousItem` tests `Item::ITEM_CLASS_VAMPIRE_COAT && sex ==
   FEMALE`**, a constant that is always true, so female vampires get item type
-  1 for every item class; `itemClass ==` was evidently meant. Kept.
-  > **Status:** recorded, not fixed (fix/compiler-warnings)
+  1 for every item class; `itemClass ==` was evidently meant. The recovered
+  source has the same test with no operator's edit around it. The slayer and
+  vampire fallbacks, taken when none of ten random draws fits the buyer, now
+  share `mysteriousFallbackItemType`, which gives type 1 only for a woman's
+  coat or trousers and a vampire woman's coat;
+  `tests/game_mysterious_item_test.cpp` pins it.
+  > **Status:** fixed (fix/mysterious-item-class)
 - **`Tile::deleteCreature(MoveMode)` calls the `ObjectID_t` overload of
   `deleteObject`** (the sum `OBJECT_PRIORITY_WALKING_CREATURE + mode` is an
   `int`), which looks for an object with ID 1..3 and asserts when none
