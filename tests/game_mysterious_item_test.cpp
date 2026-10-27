@@ -1,9 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : game_mysterious_item_test.cpp
-// Description : The item type a slayer's or vampire's mysterious item falls
-//               back on when none of its random draws fits the buyer: type
-//               1 only for a woman's coat or trousers and a vampire woman's
-//               coat, type 0 for every other class and for men.
+// Description : The item type a vampire's mysterious item falls back on when
+//               none of its random draws fits the buyer: type 1, the women's
+//               coat, only for a woman buying a vampire coat, and type 0 for
+//               every other class and for men. getRandomMysteriousItem takes
+//               its vampire fallback from this one function.
 //////////////////////////////////////////////////////////////////////////////
 
 #include <gtest/gtest.h>
@@ -14,20 +15,17 @@
 
 namespace {
 
-TEST(GameMysteriousItem, OnlyAWomansCoatOrTrousersFallBackOnTypeOne) {
-    const Item::ItemClass cut[] = {Item::ITEM_CLASS_COAT, Item::ITEM_CLASS_TROUSER, Item::ITEM_CLASS_VAMPIRE_COAT};
-    for (Item::ItemClass itemClass : cut) {
-        SCOPED_TRACE(itemClass);
-        EXPECT_EQ(mysteriousFallbackItemType(itemClass, FEMALE), 1);
-        EXPECT_EQ(mysteriousFallbackItemType(itemClass, MALE), 0);
-    }
+TEST(GameMysteriousItem, OnlyAWomansVampireCoatFallsBackOnTypeOne) {
+    EXPECT_EQ(vampireMysteriousFallbackItemType(Item::ITEM_CLASS_VAMPIRE_COAT, FEMALE), 1);
+    EXPECT_EQ(vampireMysteriousFallbackItemType(Item::ITEM_CLASS_VAMPIRE_COAT, MALE), 0);
 
-    const Item::ItemClass uncut[] = {Item::ITEM_CLASS_VAMPIRE_WEAPON, Item::ITEM_CLASS_VAMPIRE_RING,
-                                     Item::ITEM_CLASS_SWORD, Item::ITEM_CLASS_HELM};
-    for (Item::ItemClass itemClass : uncut) {
+    const Item::ItemClass others[] = {Item::ITEM_CLASS_VAMPIRE_WEAPON,   Item::ITEM_CLASS_VAMPIRE_RING,
+                                      Item::ITEM_CLASS_VAMPIRE_BRACELET, Item::ITEM_CLASS_VAMPIRE_NECKLACE,
+                                      Item::ITEM_CLASS_VAMPIRE_EARRING,  Item::ITEM_CLASS_VAMPIRE_AMULET};
+    for (Item::ItemClass itemClass : others) {
         SCOPED_TRACE(itemClass);
-        EXPECT_EQ(mysteriousFallbackItemType(itemClass, FEMALE), 0);
-        EXPECT_EQ(mysteriousFallbackItemType(itemClass, MALE), 0);
+        EXPECT_EQ(vampireMysteriousFallbackItemType(itemClass, FEMALE), 0);
+        EXPECT_EQ(vampireMysteriousFallbackItemType(itemClass, MALE), 0);
     }
 }
 
