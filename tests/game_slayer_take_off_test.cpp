@@ -1,9 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : game_slayer_take_off_test.cpp
 // Description : The addon slot the zone is told when a slayer's worn item
-//               comes off or leaves its shape: Slayer::takeOffItem and
-//               Slayer::removeShape both name the slot slayerTakeOffSlot
-//               gives, one per item class with a shape.
+//               comes off or leaves its shape, one per item class with a
+//               shape. Slayer::takeOffItem and Slayer::removeShape both take
+//               it from slayerTakeOffSlot, whose table this pins.
 //////////////////////////////////////////////////////////////////////////////
 
 #include <gtest/gtest.h>
