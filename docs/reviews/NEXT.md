@@ -253,5 +253,5 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 
 ## Done
 
-- **4, one bullet: `Tile::deleteCreature(MoveMode)` picks the wrong `deleteObject`** (PR #PRNUM,
+- **4, one bullet: `Tile::deleteCreature(MoveMode)` picks the wrong `deleteObject`** (PR #391,
   `fix/tile-delete-by-mode`): nothing called it, so the overload is declared deleted.
