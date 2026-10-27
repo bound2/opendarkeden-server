@@ -244,7 +244,7 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 
 ## Done
 
-- **5. A slayer's shoulder armour leaving its shape is broadcast as the trousers** (PR #PRNUM,
+- **5. A slayer's shoulder armour leaving its shape is broadcast as the trousers** (PR #389,
   `fix/shoulder-takeoff-slot`): `Slayer::takeOffItem` and `Slayer::removeShape` take the
   `GCTakeOff` slot from one lookup, `slayerTakeOffSlot`, which names `ADDON_SHOULDER` for the
   shoulder armour; `tests/game_slayer_take_off_test.cpp` pins its slot per item class.
