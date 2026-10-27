@@ -239,7 +239,7 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 
 ## Done
 
-- **2. `*CTF` races the main thread's flag-war heartbeat** (PR #PRNUM, `fix/flag-schedule-lock`):
+- **2. `*CTF` races the main thread's flag-war heartbeat** (PR #386, `fix/flag-schedule-lock`):
   `FlagManager` pops the due schedule under a leaf schedule mutex and runs it after releasing it,
   every add and `manualStart` takes the mutex, and `startFlagWar` is handed the war's length;
   `tests/game_flag_schedule_test.cpp` heartbeats and pulls forward on two threads.
