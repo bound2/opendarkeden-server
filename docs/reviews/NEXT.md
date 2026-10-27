@@ -254,6 +254,6 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 ## Done
 
 - **4, one bullet: `getRandomMysteriousItem` gives female vampires item type 1 for every class**
-  (PR #PRNUM, `fix/mysterious-item-class`): the vampire fallback is
+  (PR #390, `fix/mysterious-item-class`): the vampire fallback is
   `vampireMysteriousFallbackItemType`, type 1 only for a woman's vampire coat;
   `tests/game_mysterious_item_test.cpp` pins it.
