@@ -115,14 +115,11 @@ row to the table in [account ownership and kicks](../login/account-ownership-and
 which holds the retirement rows ([login lifecycle](../login/overview.md) is prose), and change
 the fix-log entry's last sentence.
 
-### 4. Six gameplay defects kept by the compiler-warning cleanup
+### 4. Five gameplay defects kept by the compiler-warning cleanup
 
 **What:** the *Compiler-warning cleanup (2026-09-27)* entry's `recorded, not fixed` bullets are
 live defects, kept because the cleanup removed only tautologies:
 
-- wolf form rejects every skill: the four `isAbleToUse*Skill` guards in `CreatureUtil.cpp` test
-  `SkillType != A || SkillType != B`, true for any skill; the removed `&&` versions allowed Howl,
-  Eat Corpse, Un-transform and melee;
 - `CGLearnSkillHandler`'s range check can never fire (`>= SKILL_MAX && < SKILL_DOUBLE_IMPACT`);
   `CGAddItemToItemHandler` reaches `makeGCCreateItem` with X = 255 when the pet item is missing;
 - `getRandomMysteriousItem` tests a constant that is always true, so female vampires get item
@@ -134,7 +131,8 @@ live defects, kept because the cleanup removed only tautologies:
   `EffectSatelliteBombAim` uses a skill slot with no null check.
 
 **How:** one PR per bullet, each a one-line fix with a test that pins the intended behaviour
-(the wolf-form guards first: a test per skill the `&&` version allowed). The 999999 durations
+(`tests/game_wolf_form_skill_test.cpp` builds a creature with no zone or race for guards that
+read only its flags). The 999999 durations
 and the `ExpireDate` in the same bullet are balance and data questions; leave them recorded.
 
 ### 5. A slayer's shoulder armour leaving its shape is broadcast as the trousers
@@ -255,4 +253,6 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 
 ## Done
 
-Nothing yet; tasks move here with their PR number.
+- **4. Wolf form rejects every skill** (PR #PRNUM, `fix/wolf-form-skills`): the four
+  `isAbleToUse*Skill` guards allow Howl and Eat Corpse again, Untransform on the wolf itself and
+  the melee attack on an object; `tests/game_wolf_form_skill_test.cpp` pins each guard per skill.

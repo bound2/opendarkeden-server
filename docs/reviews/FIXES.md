@@ -2891,7 +2891,9 @@ do.
   return is now unconditional. The commented-out `&&` versions, removed with
   the dead test, allowed Howl, Eat Corpse and Un-transform (self), Howl, Eat
   Corpse and melee attack (object), and Howl and Eat Corpse (tile, inventory).
-  > **Status:** recorded, not fixed (fix/compiler-warnings)
+  The guards allow those skills again; `tests/game_wolf_form_skill_test.cpp`
+  asks each guard about each of them and about a skill none allows.
+  > **Status:** fixed (fix/wolf-form-skills)
 - **Checks that could never fire were removed with their tautologies**, each
   of which evidently meant something else: `CGLearnSkillHandler` rejected a
   skill type `>= SKILL_MAX && < SKILL_DOUBLE_IMPACT` (never true; `||` would
