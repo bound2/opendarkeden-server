@@ -2908,8 +2908,11 @@ do.
   `deleteObject`** (the sum `OBJECT_PRIORITY_WALKING_CREATURE + mode` is an
   `int`), which looks for an object with ID 1..3 and asserts when none
   matches; `getCreature(MoveMode)` wraps the same sum in `ObjectPriority`,
-  which was evidently meant.
-  > **Status:** recorded, not fixed (fix/compiler-warnings)
+  which was evidently meant. Nothing called it: every tile write goes through
+  the `ObjectID_t` overload, from `ZoneSpawn.cpp` and `ZoneMove.cpp`. The
+  overload is deleted, so no caller can reach the assert, and the build is
+  what shows none did.
+  > **Status:** fixed (fix/tile-delete-by-mode)
 - **Overrides that do not override.** `DummyQuestStatus::isSuccess()` lacks the
   base's `const` (the class is never instantiated). `SharedServerClient`,
   `GameServerPlayer` and mofus `MPlayer` declare `processCommand()` without the

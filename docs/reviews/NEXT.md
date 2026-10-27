@@ -115,7 +115,7 @@ row to the table in [account ownership and kicks](../login/account-ownership-and
 which holds the retirement rows ([login lifecycle](../login/overview.md) is prose), and change
 the fix-log entry's last sentence.
 
-### 4. Six gameplay defects kept by the compiler-warning cleanup
+### 4. Five gameplay defects kept by the compiler-warning cleanup
 
 **What:** the *Compiler-warning cleanup (2026-09-27)* entry's `recorded, not fixed` bullets are
 live defects, kept because the cleanup removed only tautologies:
@@ -127,8 +127,6 @@ live defects, kept because the cleanup removed only tautologies:
   `CGAddItemToItemHandler` reaches `makeGCCreateItem` with X = 255 when the pet item is missing;
 - `getRandomMysteriousItem` tests a constant that is always true, so female vampires get item
   type 1 for every class (`itemClass ==` was meant);
-- `Tile::deleteCreature(MoveMode)` calls the `ObjectID_t` overload of `deleteObject` and
-  asserts; `getCreature(MoveMode)` shows the intended `ObjectPriority` wrap;
 - the overrides that do not override (`processCommand()` without the base's `bool`);
 - the smaller findings bullet: `MotorcycleLoader::load` and `~PlayerCreature` leak, and
   `EffectSatelliteBombAim` uses a skill slot with no null check.
@@ -255,4 +253,5 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 
 ## Done
 
-Nothing yet; tasks move here with their PR number.
+- **4. `Tile::deleteCreature(MoveMode)` asserts on every call** (PR #PRNUM,
+  `fix/tile-delete-by-mode`): nothing called it, so the overload is deleted.

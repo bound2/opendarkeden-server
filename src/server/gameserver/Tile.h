@@ -59,7 +59,6 @@ public:
 public:
     bool addCreature(Creature* pCreature, bool bCheckEffect = true, bool bCheckPortal = true);
     void deleteCreature(ObjectID_t creatureID);
-    void deleteCreature(Creature::MoveMode mode);
     Creature* getCreature(ObjectID_t creatureID);
     Creature* getCreature(Creature::MoveMode mode);
 
