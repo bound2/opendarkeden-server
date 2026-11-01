@@ -94,4 +94,4 @@ allocation faults; what each one exercises is in [test coverage](docs/testing/te
 
 - [The restructuring plan](docs/reviews/RESTRUCTURING.md): every task with its Status line and the R1-R19 ratchet table.
 - [The fix log](docs/reviews/FIXES.md): every bug found, newest first, each with its Status.
-- [The next work plan](docs/reviews/NEXT.md): the ranked tasks left after the 2026-10-25 merges and what stays with the owner; take one per PR.
+- [The next work plan](docs/reviews/NEXT.md): the tasks ranked on 2026-11-01 (the published datagram socket that takes relayed GM commands from any sender, a database error that ends a process, a sanitized run of the suite, the handler layer, the login persistence design, the entries recorded on 2026-10-27, housekeeping) and what stays with the owner; take one per PR.

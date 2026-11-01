@@ -1,5 +1,16 @@
 # Knowledge Bundle Update Log
 
+## 2026-11-01
+
+* **Update**: the [next work plan](reviews/NEXT.md) is ranked again after PRs #385-#395 closed
+  its tasks 1 to 7: four new tasks come first (the gameserver's published datagram socket, which
+  dispatches relayed GM commands from any sender; a `DatabaseError` that no thread-top catch
+  stops; a sanitized run of the suite; the handler layer's asserts and indices on wire values),
+  task 8 stays, task 14 ranks the five entries recorded on 2026-10-27 that neither task 9 nor
+  task 10 holds, task 15 is housekeeping (the inventory diff against the client among it), and
+  the owner section gains a recommendation on transport encryption and the missing world save;
+  `CLAUDE.md` and the [reviews index](reviews/index.md) say so.
+
 ## 2026-10-27
 
 * **Update**: [packet-read fuzzing](protocol/fuzzing.md) describes the third target, the
