@@ -682,6 +682,7 @@ target_link_libraries(GameServerRuntime PUBLIC
     Mofus
     GameServerDatabase
     ServerCore
+    DatagramAdmission
     ServerWorkerShutdown
     ServerStartSequence
     ListenerStartup

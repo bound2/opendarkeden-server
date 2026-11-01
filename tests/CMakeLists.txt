@@ -246,6 +246,15 @@ add_test(NAME listener_startup_tests COMMAND listener_startup_tests
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(listener_startup_tests PROPERTIES TIMEOUT 30)
 
+# The gate each datagram loop runs a received datagram through: admission by
+# the packet's link and the sender, over the catalogue and the configuration.
+add_executable(datagram_admission_tests EXCLUDE_FROM_ALL datagram_admission_test.cpp)
+target_link_libraries(datagram_admission_tests PRIVATE DatagramAdmission Database ${MYSQL_LIBRARY} gtest_main)
+add_dependencies(wire_tests datagram_admission_tests)
+add_test(NAME datagram_admission_tests COMMAND datagram_admission_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(datagram_admission_tests PROPERTIES TIMEOUT 30)
+
 add_executable(server_port_settings_tests EXCLUDE_FROM_ALL server_port_settings_test.cpp)
 target_link_libraries(server_port_settings_tests PRIVATE ServerPortSettings gtest_main)
 add_dependencies(wire_tests server_port_settings_tests)

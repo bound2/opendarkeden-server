@@ -275,6 +275,11 @@ game signal policy in subprocesses that cannot alter the runner's environment.
 `listener_startup_tests` exercises bind retries, diagnostics and shutdown during
 retry waits, including real TCP/UDP bind failures on occupied ports without
 leaked descriptors and descriptor reuse after a failed construction.
+`datagram_admission_tests` covers the gate both datagram loops run before
+reading a datagram: the link of every datagram id, admission by the sender
+per link, the peers built from the configuration and the catalogue, and a
+refused datagram counted and reported with its id and sender
+([datagram sources](../protocol/datagram-sources.md)).
 `server_port_settings_tests` covers required listener ports without opening
 sockets. Startup validates complete decimal ports in 1..65535 before publishing
 configuration: `TCPPort`/`GameServerUDPPort` for game, `LoginServerPort`/

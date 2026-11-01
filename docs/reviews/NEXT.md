@@ -54,51 +54,8 @@ be taken cold. One task per PR.
 ## Tasks
 
 Ranked 2026-11-01. The order is the rank and the numbers are identities, so a *Done* entry
-keeps its name: 10 to 13 are new, 8 stays, 14 ranks the entries recorded on 2026-10-27 that no
-task held, 9 stays, 15 is housekeeping.
-
-### 11. Unauthenticated datagrams on a published port
-
-**What:** `docker/docker-compose.yml` publishes `9997/udp`, the `GameServerUDPPort` of
-`conf/gameserver.conf`, and runs the three servers in the one `odk-server` container.
-`LoginServerManager::run` (`src/server/gameserver/LoginServerManager.cpp`) reads every datagram
-its socket receives, which `DatagramSocket` binds on every address, and dispatches it by id
-(`PacketDispatcher::dispatch`); nothing compares the datagram's source with the `LoginServerIP`
-the conf names or with any other peer. `Datagram::isDatagram` (`src/Core/Datagram.cpp`) admits
-the `LG*` and `GL*` connection and kick packets, `CGPortCheck`, `GGCommand`, `GGGuildChat`,
-`GGServerChat` and `GMServerInfo`, and the gameserver binds handlers for its share of them on
-that one socket (`GamePacketDispatch.cpp`). `GGCommandHandler` runs the relayed message through
-`de::gm::relayCommands()` at `Permission::God`, whose table (`gm/RelayCommandRegistration.cpp`)
-holds `save`, `wall`, `shutdown`, `kick`, `mute`, `freezing`, `set`, `load`, `combat`,
-`command`, `modifyunioninfo` and `refreshguildunion`; `LGIncomingConnectionOKHandler` takes the
-datagram's source host as the login server address it hands the client for its reconnect. So
-anyone who can reach the host's UDP 9997 can stop the gameserver, set what a God-level operator
-can set, kick players, and send a reconnecting client to a login server of their choosing. The
-loginserver's loop (`GameServerManager::run`, `LoginServerUDPPort` 9996, not published) has the
-same shape with the `GL*` packets and `GMServerInfo`. The fix log states the premise under *Any
-sender can grow `datagram.txt` one line per datagram*: nothing authenticates a datagram.
-
-**How:** the code first, since the port has a client use. (b) Each datagram loop admits a
-datagram by its link and its source: the `LG*`, `GL*`, `GG*` and `GM*` packets only from the
-configured peers (the `LoginServerIP` for what the loginserver sends the gameserver; the
-gameservers the server catalogue lists
-([world and server catalogues](../game/world-and-server-catalogues.md)) for what they send each
-other and the loginserver, `GMServerInfo` among it, which `ConnectionInfoManager` sends the
-loginserver's UDP ports), and `CGPortCheck` from any source, since a native client sends it by UDP on
-reconnect (the client's `LCReconnectHandler`; [client link](../protocol/client-link.md)) and its
-handler is player-less. A datagram refused by source is dropped without dispatch behind a
-rate-limited diagnostic (`de::RepeatedErrorReport`, which the loginserver's loop has and the
-gameserver's, which logs through `cerr` and `diagnosticFilelog`, gets), and the socket binds a
-configured address, every address only by explicit choice. Tests: a runtime test per loop that
-configures the peer as an address the test cannot send from, sends a `GGCommand` and an
-`LGKickCharacter` from loopback and expects no dispatch and one diagnostic, then configures
-loopback and expects the dispatch, and sends a `CGPortCheck` from loopback either way and expects
-its reply. (a) The deployment: with (b) in, whether `9997/udp` stays published is the owner's
-call, since unpublishing it ends the native port check for clients outside the host (the client
-repository holds no default for its `LoginServerCheckPort`). (c) The `datagram.txt` line stays
-the owner's call (task 9). Rule kept: a listener starts as
-[sockets and connections](../startup/sockets-and-connections.md) say, and the datagram read
-bound of the [frame gate](../protocol/frame-gate.md) is untouched.
+keeps its name: 10 to 13 were new (11 is under *Done*), 8 stays, 14 ranks the entries recorded
+on 2026-10-27 that no task held, 9 stays, 15 is housekeeping.
 
 ### 10. A database failure ends a process
 
@@ -230,11 +187,6 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 - *A dragon eye sent home across groups can outrun its return's three attempts*: the return
   captures the row when it is posted (`war/WarZoneWork.cpp`). Fix: have the retry read the row
   when it runs, or have the delayed add carry the row's save.
-- *Any sender can grow `datagram.txt` one line per datagram*: `Datagram::read`
-  (`src/Core/DatagramFactoryRead.cpp`) appends an unrotated line for every datagram naming a
-  registered id outside the datagram set. Rate-limiting the line, moving it behind
-  `DARKEDEN_TRACE` or dropping it is the owner's call; ask before changing what operators see
-  (task 11 (c)).
 - *The three races' guild zone counters share one word with no partition*: a race reaches the
   next one's range after 10000 guilds. Lowest, with the relic rows below.
 - *A war relic's row outlives the run that made it*: a boot sweep of this server's relic rows
@@ -286,7 +238,9 @@ Each is one PR, with a fix-log entry naming the branch that found it:
   not introduce a full world-save operation
   ([running the servers](../operations/running-the-servers.md)); whether one is wanted before a
   deployment that matters is the owner's call.
-- **Task 11 (a) and (c)**: what the deployment publishes and what operators see.
+- **Task 11 (a)**: whether `9997/udp` stays published (a native client's port check arrives
+  there), and whether the datagram sockets keep binding every address; the gate admits by
+  sender either way ([datagram sources](../protocol/datagram-sources.md)).
 
 ## Done
 
@@ -357,3 +311,14 @@ PRs #386-#391 were closed unmerged: their commits reached master as the stack PR
 - **9, one item: the first guild founded after a restart reuses a guild zone id**
   (PR #395, `next-plan/batch-4`): `prepareZoneMaximum` starts each race's counter one past its stored
   maximum (`SharedGuildStartup` in `tests/shared_guild_startup_test.cpp`).
+- **11. Unauthenticated datagrams on a published port** (`fix/datagram-sources`): both datagram
+  loops run each received datagram through `de::DatagramGate` (`src/server/DatagramAdmission.h`)
+  before reading it: a client's port check from anywhere, the `LG` packets only from the
+  configured `LoginServerIP`, the `GL`, `GM` and `GG` packets only from the gameservers the
+  catalogue lists, and nothing else from anyone; a refused datagram is counted, reported once per
+  30 seconds and dropped unread ([datagram sources](../protocol/datagram-sources.md), owned by
+  `datagram_admission_tests`). The loops themselves have no test, since each opens a database
+  connection before it reads, so the gate is the owner and the wiring, a few lines in each loop,
+  is read in review. The sockets' bind address and the published port stay as they were (task
+  11 (a), under *Blocked or with the owner*), and the gate closes the fix log's `datagram.txt`
+  entry, since no sender outside the peers reaches the line.

@@ -2,6 +2,13 @@
 
 ## 2026-11-01
 
+* **Creation**: [datagram sources](protocol/datagram-sources.md), the rule that a datagram is
+  read only from a sender its packet's link admits, owned by `datagram_admission_tests`;
+  [packet-read fuzzing](protocol/fuzzing.md) says the datagram target does not model the gate,
+  [test coverage](testing/test-coverage.md) describes the test, the [fix log](reviews/FIXES.md)
+  records the relayed GM commands and reconnect redirection any sender could reach and closes
+  the `datagram.txt` entry, and `CLAUDE.md` and the [protocol index](protocol/index.md) link
+  the rule.
 * **Update**: the [next work plan](reviews/NEXT.md) is ranked again after PRs #385-#395 closed
   its tasks 1 to 7: four new tasks come first (the gameserver's published datagram socket, which
   dispatches relayed GM commands from any sender; a `DatabaseError` that no thread-top catch

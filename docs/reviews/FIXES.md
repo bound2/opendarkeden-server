@@ -20,6 +20,31 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## Any sender could run relayed GM commands and redirect reconnects through the datagram sockets (2026-11-01)
+
+- **The gameserver's datagram loop (`LoginServerManager::run`) and the
+  loginserver's (`GameServerManager::run`) read and dispatched every
+  datagram their socket received, from any sender,** and the sockets bind
+  every address while the compose file publishes the gameserver's
+  (`9997/udp`). What `Datagram::isDatagram` admits is more than the login
+  handoff: `GGCommandHandler` runs a relayed message through the God-level
+  relay commands (`shutdown`, `set`, `kick` among them,
+  `gm/RelayCommandRegistration.cpp`), and `LGIncomingConnectionOKHandler`
+  takes the datagram's source as the login address it hands a reconnecting
+  client, so anyone who could reach UDP 9997 could stop the gameserver, set
+  what a God-level operator sets, kick players, or send a reconnecting
+  client to a login server of their choosing. Found while ranking the next
+  work plan (its task 11). Both loops now run each datagram through
+  `de::DatagramGate` (`src/server/DatagramAdmission.h`) before reading it:
+  a client's port check from anywhere, the `LG` packets only from the
+  configured `LoginServerIP`, the `GL`, `GM` and `GG` packets only from
+  the gameservers the catalogue lists, and nothing else from anyone; a
+  refused datagram is counted, reported once per 30 seconds and dropped
+  unread. `datagram_admission_tests` owns the rule
+  ([datagram sources](../protocol/datagram-sources.md)). The socket's bind
+  address and the published port stay as they were, the owner's call.
+  > **Status:** fixed (fix/datagram-sources)
+
 ## Any sender can grow `datagram.txt` one line per datagram (2026-10-27)
 
 - **`Datagram::read` (`src/Core/DatagramFactoryRead.cpp`) appends a line to
@@ -32,8 +57,12 @@ repo and the client's. Entries below are newest first; the oldest is the
   libFuzzer run of `fuzz_login_datagram` wrote 79,271 lines. The same
   class as the assertion log below; the line is an operator's record of a
   misdirected datagram, so whether to rate-limit it, move it behind the
-  diagnostics switch or drop it is the owner's call.
-  > **Status:** recorded, not fixed (next-plan/batch-4)
+  diagnostics switch or drop it is the owner's call. Since
+  fix/datagram-sources the loops read only what the datagram gate admits
+  ([datagram sources](../protocol/datagram-sources.md)), and an id outside
+  the datagram set is refused unread from everyone, so no sender reaches
+  the line any more; it stays as the operator's record it was meant to be.
+  > **Status:** fixed (fix/datagram-sources)
 
 ## A short datagram body asserted instead of being refused (2026-10-27)
 

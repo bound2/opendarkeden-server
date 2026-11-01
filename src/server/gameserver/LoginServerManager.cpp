@@ -33,7 +33,18 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-LoginServerManager::LoginServerManager() : m_pDatagramSocket(NULL) {
+LoginServerManager::LoginServerManager()
+    : m_pDatagramSocket(NULL),
+      m_Gate(
+          [] { return de::gameServerDatagramPeers(de::kernelContext().config(), de::serverContext().serverInfos()); },
+          [this](PacketID_t packetID, const string& host) {
+              if (const auto suppressed = m_RefusalReport.failure(de::RepeatedErrorReport::Clock::now())) {
+                  diagnosticFilelog("LOGINSERVERMANAGER.log",
+                                    "LoginServerManager::run() refused datagram id %u from %s, %llu more suppressed",
+                                    static_cast<unsigned>(packetID), host.c_str(),
+                                    static_cast<unsigned long long>(*suppressed));
+              }
+          }) {
     Properties& config = de::kernelContext().config();
 
     m_Mutex.setName("LoginServerManager");
@@ -108,20 +119,22 @@ void LoginServerManager::run() {
 
                 if (pDatagram != NULL) // Avoids some exceptions.
                 {
-                    // cout << "[Datagram] " << pDatagram->getHost() << ":" << pDatagram->getPort() << endl;
-                    pDatagram->read(pDatagramPacket);
+                    // A datagram from a sender its link does not admit is
+                    // dropped unread (DatagramAdmission.h).
+                    if (m_Gate.admits(*pDatagram)) {
+                        pDatagram->read(pDatagramPacket);
 
-                    if (pDatagramPacket != NULL) {
-                        // cout << "[DatagramPacket] " << pDatagram->getHost() << ":" << pDatagram->getPort() << endl;
-                        //  Execute the datagram packet object that was pulled out.
-                        __ENTER_CRITICAL_SECTION(m_Mutex)
+                        if (pDatagramPacket != NULL) {
+                            //  Execute the datagram packet object that was pulled out.
+                            __ENTER_CRITICAL_SECTION(m_Mutex)
 
-                        PacketDispatcher::dispatch(pDatagramPacket, NULL);
+                            PacketDispatcher::dispatch(pDatagramPacket, NULL);
 
-                        __LEAVE_CRITICAL_SECTION(m_Mutex)
+                            __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-                        // Delete the datagram packet object.
-                        SAFE_DELETE(pDatagramPacket);
+                            // Delete the datagram packet object.
+                            SAFE_DELETE(pDatagramPacket);
+                        }
                     }
 
                     // Delete the datagram object.
