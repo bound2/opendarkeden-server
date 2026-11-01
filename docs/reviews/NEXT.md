@@ -80,10 +80,11 @@ sender can grow `datagram.txt` one line per datagram*: nothing authenticates a d
 
 **How:** the code first, since the port has a client use. (b) Each datagram loop admits a
 datagram by its link and its source: the `LG*`, `GL*`, `GG*` and `GM*` packets only from the
-configured peers (the `LoginServerIP`, the gameservers the server catalogue lists
-([world and server catalogues](../game/world-and-server-catalogues.md)), and for `GMServerInfo`
-the sender the deployment configures for it, which the task must find; the conf's `MonitorClient*`
-keys are the lead), and `CGPortCheck` from any source, since a native client sends it by UDP on
+configured peers (the `LoginServerIP` for what the loginserver sends the gameserver; the
+gameservers the server catalogue lists
+([world and server catalogues](../game/world-and-server-catalogues.md)) for what they send each
+other and the loginserver, `GMServerInfo` among it, which `ConnectionInfoManager` sends the
+loginserver's UDP ports), and `CGPortCheck` from any source, since a native client sends it by UDP on
 reconnect (the client's `LCReconnectHandler`; [client link](../protocol/client-link.md)) and its
 handler is player-less. A datagram refused by source is dropped without dispatch behind a
 rate-limited diagnostic (`de::RepeatedErrorReport`, which the loginserver's loop has and the
