@@ -212,7 +212,10 @@ Rules: [connections and players](../game/connections-and-players.md).
 The game runtime tests exercise owned game admission with an injected listener
 and context, without database initialization. Sockets stay owned through
 authorization; `GameConnection` retains players through registration and ends
-their local session on cleanup.
+their local session on cleanup. The port check's name rule, its record and the
+handler's wiring are covered beside the datagram gate under *Startup,
+configuration and lifecycle* (`port_check_tests`, `port_check_wiring_audit`,
+`sql_literal_tests`).
 Allocation faults, refusal diagnostics, descriptor limits, real socket I/O and
 retry cover admission; scoped teardown restores the connection-info binding and
 releases the listener, player table and both queues. Explicit `clearPlayers`
@@ -284,9 +287,12 @@ reported with its id and sender, and an admitted one reading as before;
 opens a database connection before it reads
 ([datagram sources](../protocol/datagram-sources.md)).
 `port_check_tests` covers the port check's name rule and the record behind it
-over a fake session repository: a name no character could have (empty, past 20
-bytes, a control byte, a reserved token) throws before the repository is asked,
-and an accepted one is recorded as sent; `sql_literal_tests` covers
+over a fake session repository: a name character creation would refuse (empty,
+past 20 bytes, a reserved token) or that no statement may carry (a control
+byte, bytes that are not UTF-8) throws before the repository is asked, and an
+accepted one is recorded as sent; `port_check_wiring_audit` holds the handler's
+wiring in the source, since nothing replaces `defaultSessionRepository()` in a
+test; `sql_literal_tests` covers
 `de::escapeSqlLiteral` without a live connection (NUL bytes dropped, the quote
 and the backslash escaped), and `make integration-test`'s `SessionMySQL` cases
 store a quoted or a literal-ending `UserIPInfo` name as sent and reach no

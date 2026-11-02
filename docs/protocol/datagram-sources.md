@@ -73,11 +73,13 @@ ingress filtering, or a shared secret on the server links, a wire change shipped
 client. The [fix log](../reviews/FIXES.md) records it as *A forged source address passes the
 datagram gate*.
 
-**Left open.** The port check is admitted from anywhere by design; its handler refuses a name no
-character could have and the repository escapes the one it records (`gameserver/PortCheck.h`,
-task 16 of the next work plan, done), so what any sender can still do there is add one
-`UserIPInfo` row per distinct name, ten characters each (the fix log's *The port check writes
-the database for any sender, with an unescaped name*). The sockets still bind
+**Left open.** The port check is admitted from anywhere by design; its handler refuses a name
+character creation would refuse or that no statement may carry, and the repository escapes the
+one it records (`gameserver/PortCheck.h`, task 16 of the next work plan, done), so what any
+sender can still do there is name a recorded character and overwrite the address and port its
+`UserIPInfo` row holds, which nothing reads back today, or add a row per distinct name, ten
+characters each (the fix log's *Any sender can set the address and port recorded for any
+character*; task 16 (a) under *Blocked or with the owner*). The sockets still bind
 every address, and whether the compose file keeps `9997/udp` published is the owner's call: a
 native client sends its port check there, and with a routable catalogue address the handoff
 hairpins through it. The per-datagram lines a listed peer can still grow, `ggCommand.txt`

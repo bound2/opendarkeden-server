@@ -282,6 +282,14 @@ add_test(NAME port_check_tests COMMAND port_check_tests
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(port_check_tests PROPERTIES TIMEOUT 30)
 
+# The port check handler records a name only through de::recordPortCheck:
+# it has no test of its own, since defaultSessionRepository() is the
+# process-wide MySQL instance, so the wiring is audited in the source.
+add_test(NAME port_check_wiring_audit
+    COMMAND bash ${CMAKE_SOURCE_DIR}/tests/tools/check_port_check_wiring.sh ${CMAKE_SOURCE_DIR}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_tests_properties(port_check_wiring_audit PROPERTIES TIMEOUT 30)
+
 # The SQL literal escape without a live connection, the pass the
 # repositories fall back on; with a connection the client library escapes,
 # which make integration-test covers through the UserIPInfo statements.

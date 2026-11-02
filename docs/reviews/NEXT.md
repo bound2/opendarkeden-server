@@ -254,6 +254,11 @@ Each is one PR, with a fix-log entry naming the branch that found it:
   the loginserver's socket, which no client uses, to a peer-facing or loopback address, ingress
   filtering, or a shared secret on the server links, a wire change shipped with the client
   ([datagram sources](../protocol/datagram-sources.md)).
+- **Task 16 (a)**: whether a port check may set the address and port recorded for the character
+  it names, from any sender (the fix log's *Any sender can set the address and port recorded for
+  any character*): record it only for a character in play whose connection's address the
+  datagram's source carries, or drop the table's address and port, which nothing reads back
+  today; either changes what a reconnecting native client gets.
 
 ## Done
 
@@ -341,12 +346,15 @@ PRs #386-#391 were closed unmerged: their commits reached master as the stack PR
   log's `datagram.txt` entry, and its review found task 16.
 - **16. The port check writes the database for any sender, with an unescaped name** (PR #398,
   `fix/port-check-name`): `de::recordPortCheck` (`gameserver/PortCheck.h`) refuses, before any
-  statement, a name no character could have (empty, past 20 bytes, a control byte, a token
-  character creation refuses: `src/server/CharacterName.h`, the rule both servers share now) with
-  `InvalidProtocolException`, and `MySQLSessionRepository` escapes the name of every `UserIPInfo`
-  statement through `de::escapeSqlLiteral` (`database/SqlLiteral.h`), the escape the Exchange
-  repository used alone and now delegates to; owned by `port_check_tests` over a fake session
-  repository, `sql_literal_tests` for the pass without a connection, and `SessionMySQL`'s two
-  UserIPInfo cases under `make integration-test`. Left, in the fix log's entry: `UserIPInfo.Name`
-  is `varchar(10)`, so a longer name is stored truncated, and one row per distinct name is still
-  any sender's to add.
+  statement, a name character creation would refuse (empty, past 20 bytes, a reserved token:
+  `src/server/CharacterName.h`, the rule both servers share now) or one no statement may carry
+  (a control byte, bytes that are not UTF-8) with `InvalidProtocolException`, and
+  `MySQLSessionRepository` escapes the name of every `UserIPInfo` statement through
+  `de::escapeSqlLiteral` (`database/SqlLiteral.h`), the escape the Exchange repository used
+  alone and now delegates to; owned by `port_check_tests` over a fake session repository,
+  `port_check_wiring_audit` for the handler's wiring, `sql_literal_tests` for the pass without a
+  connection, and `SessionMySQL`'s two UserIPInfo cases under `make integration-test`. Left, as
+  the fix log's *Any sender can set the address and port recorded for any character* records
+  (task 16 (a), under *Blocked or with the owner*): a port check naming a recorded character
+  still overwrites its row, and one row per distinct name (`varchar(10)`, so a longer name is
+  stored truncated) is still any sender's to add.

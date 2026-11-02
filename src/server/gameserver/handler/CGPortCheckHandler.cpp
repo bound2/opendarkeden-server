@@ -41,9 +41,10 @@ void CGPortCheckHandler::execute(CGPortCheck* pPacket)
 
 
     try {
-        // A name no character could have is refused before any statement
-        // sees it (PortCheck.h); the repository escapes the one it records:
-        // INSERT IGNORE and, when that changed no row, the UPDATE.
+        // A name character creation would refuse, or one no statement may
+        // carry, is refused before any statement sees it (PortCheck.h); the
+        // repository escapes the one it records: INSERT IGNORE and, when
+        // that changed no row, the UPDATE.
         de::recordPortCheck(defaultSessionRepository(), pPacket->getPCName(), IP, port,
                             de::kernelContext().config().getPropertyInt("ServerID"));
     } catch (const DatabaseError&) {

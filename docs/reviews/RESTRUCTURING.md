@@ -259,7 +259,8 @@ before anything else moves. Everything later shelters under this pin.
   > - **Doubling a quote is not escaping.** The Exchange access class doubled
   >   the single quote and nothing else, so a backslash before a quote broke
   >   out of the literal — reachable by any logged-in player. Its
-  >   `escapeSQL()` lives in `repository/MySQLExchangeRepository.cpp` now and
+  >   `escapeSQL()` lives in `repository/MySQLExchangeRepository.cpp` now (a
+  >   wrapper over `de::escapeSqlLiteral` since the port check fix) and
   >   goes through `mysql_real_escape_string`; new repository SQL uses the
   >   parameterized `executeQuery` form instead (3.2).
   > - **A `sprintf` buffer sized for one type is not sized for another.**

@@ -20,6 +20,26 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## Any sender can set the address and port recorded for any character (2026-11-02)
+
+- **`CGPortCheckHandler::execute` records the datagram's source address
+  and port under the name the datagram carries, and nothing ties the name
+  to the sender:** the port check is admitted from anywhere, since a
+  native client sends it on reconnect, and a port check naming a recorded
+  character takes the UPDATE path of `recordUserIP` and overwrites that
+  character's `UserIPInfo` row (`Name` is the primary key under
+  `utf8mb4_unicode_ci`, so `rowan` and `ROWAN` are one row). Since
+  fix/port-check-name the name is one character creation would accept and
+  a statement can carry, and it is escaped; what is left is this design.
+  Nothing reads the address and port back today: the client's
+  `GCRequestedIPHandler` does nothing, and the GM `opfind` reads
+  `ServerID`, which the UPDATE leaves alone. What closes it is the owner's
+  call ([next work plan](NEXT.md), task 16 (a) under *Blocked or with the
+  owner*): record a port check only for a character in play whose
+  connection's address the datagram's source carries, or drop the table's
+  address and port. Found by the review of fix/port-check-name.
+  > **Status:** recorded, not fixed (fix/port-check-name)
+
 ## The port check writes the database for any sender, with an unescaped name (2026-11-02)
 
 - **`CGPortCheckHandler::execute` (`handler/CGPortCheckHandler.cpp`) passes
@@ -37,16 +57,20 @@ repo and the client's. Entries below are newest first; the oldest is the
   change the statement with a quote in the name. Found by the review of
   fix/datagram-sources; task 16 of the next work plan. Fixed in
   fix/port-check-name: `de::recordPortCheck` (`gameserver/PortCheck.h`)
-  refuses, before any statement, a name no character could have (empty,
-  past 20 bytes, a control byte, a token character creation refuses:
-  `src/server/CharacterName.h`, the rule both servers share now) with
+  refuses, before any statement, a name character creation would refuse
+  (empty, past 20 bytes, a reserved token: `src/server/CharacterName.h`,
+  the rule both servers share now) or one no statement may carry (a control
+  byte, NUL included, or bytes that are not UTF-8) with
   `InvalidProtocolException`, and `MySQLSessionRepository` escapes the name
   of every `UserIPInfo` statement through `de::escapeSqlLiteral`
   (`database/SqlLiteral.h`), the escape the Exchange repository used alone.
-  Owners: `port_check_tests`, `sql_literal_tests`, and `SessionMySQL`'s two
-  UserIPInfo cases under `make integration-test`. Left: `UserIPInfo.Name`
-  is `varchar(10)`, so a longer name is stored truncated under the relaxed
-  `sql_mode`, and one row per distinct name is still any sender's to add.
+  Owners: `port_check_tests`, `port_check_wiring_audit` for the handler's
+  wiring, `sql_literal_tests`, and `SessionMySQL`'s two UserIPInfo cases
+  under `make integration-test`. Left, as *Any sender can set the address
+  and port recorded for any character* records: a port check naming a
+  recorded character still overwrites its row, and one row per distinct
+  name (`varchar(10)`, so a longer name is stored truncated under the
+  relaxed `sql_mode`) is still any sender's to add.
   > **Status:** fixed (fix/port-check-name)
 
 ## A forged source address passes the datagram gate (2026-11-02)

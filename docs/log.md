@@ -8,9 +8,11 @@
   says what the port check can still do, [database setup](database/overview.md) names the
   helper, the [testing overview](testing/overview.md) and
   [test coverage](testing/test-coverage.md) describe `port_check_tests` and `sql_literal_tests`,
-  the [fix log](reviews/FIXES.md) marks the port check's entry fixed, and the
-  [next work plan](reviews/NEXT.md) moves task 16 to *Done*; `CLAUDE.md` and the
-  [reviews index](reviews/index.md) say so.
+  the [fix log](reviews/FIXES.md) marks the port check's entry fixed and records that any sender
+  can still set a recorded character's address and port, and the
+  [next work plan](reviews/NEXT.md) moves task 16 to *Done* and gives the owner task 16 (a);
+  `CLAUDE.md` and the [reviews index](reviews/index.md) say so. The handler's wiring is owned by
+  `port_check_wiring_audit`, named in the seams row.
 
 ## 2026-11-01
 

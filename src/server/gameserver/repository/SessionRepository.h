@@ -87,7 +87,8 @@ public:
                                    const std::string& name, Race_t race) = 0;
 
     // --- per-character IP records (DARKEDEN) -------------------------------
-    // The name is escaped for its literal in every statement below
+    // deleteUserIP, recordUserIP, loadUserIP and loadUserServerID (under the
+    // GM commands below) escape the name for its literal
     // (database/SqlLiteral.h): a port check from any sender and CGRequestIP
     // supply it.
     virtual void deleteUserIP(const std::string& name) = 0;
@@ -118,7 +119,8 @@ public:
     virtual bool loadLastLogoutDate(const std::string& playerID, std::string& lastLogoutDate) = 0;
 
     // --- the GM commands (CGSayHandler) ---------------------------------------
-    // UserIPInfo.ServerID for one character; false when no row.
+    // UserIPInfo.ServerID for one character; false when no row. The name is
+    // escaped as the per-character IP records' names are.
     virtual bool loadUserServerID(const std::string& name, int& serverID) = 0;
     // Count of Player rows with LogOn 'GAME' or 'LOGON', on the dist
     // connection.

@@ -3,7 +3,7 @@ type: Rule
 title: "Repository seams"
 description: "Every SQL statement lives behind a *Repository interface with a MySQL implementation under a repository/ directory, reached through a default accessor, and the header is the authority on its tables."
 tags: [architecture, database]
-enforced_by: [ratchets, "make integration-test", sql_literal_tests, port_check_tests]
+enforced_by: [ratchets, "make integration-test", sql_literal_tests, port_check_tests, port_check_wiring_audit]
 generated: { by: claude-code/claude-fable-5-1, at: 2026-10-21T13:00:00Z }
 ---
 
@@ -13,7 +13,7 @@ generated: { by: claude-code/claude-fable-5-1, at: 2026-10-21T13:00:00Z }
 |------|-------|------------------------------|
 | No `executeQuery` outside `src/server/database/` and the `repository/` directories | ratchets R2/R3 | R2/R3 above 0 |
 | Repository SQL behaves against a real MySQL | `make integration-test` (`tests/integration/`, needs docker) | the failing statement |
-| The `UserIPInfo` names, which a port check from any sender and `CGRequestIP` supply, enter their statements only escaped, after the port check's name rule | `sql_literal_tests`, `port_check_tests`, `SessionMySQL`'s UserIPInfo cases under `make integration-test` | a quote or a backslash in a name changing the statement; a NUL truncating it; a control byte or a reserved token recorded |
+| The `UserIPInfo` names, which a port check from any sender and `CGRequestIP` supply, enter their statements only escaped, after the port check's name rule | `sql_literal_tests`, `port_check_tests`, `port_check_wiring_audit` (`tests/tools/check_port_check_wiring.sh`) for the handler's wiring, `SessionMySQL`'s UserIPInfo cases under `make integration-test` | a quote or a backslash in a name changing the statement; a NUL truncating it; a control byte, bytes that are no UTF-8 or a reserved token recorded; the handler recording a name past the rule |
 
 **All SQL lives behind repository seams.** A seam is an interface `*Repository.h` with a
 `MySQL*Repository.cpp` implementation under a `repository/` directory, reached through a
@@ -43,12 +43,15 @@ links every implementation.
 (`src/server/database/SqlLiteral.h`) drops NUL bytes, escapes through `mysql_real_escape_string`
 on the statement's connection while it is up, and doubles the backslash and the quote otherwise;
 its result is safe only inside `'...'`, never in an identifier, a numeric slot or a `LIKE`
-pattern. The Exchange repositories' texts and the `UserIPInfo` names go through it, and the port
-check refuses a name no character could have before the repository is asked
-(`src/server/gameserver/PortCheck.h`). The other names and texts the seams interpolate are raw,
+pattern. The Exchange repository's texts and the `UserIPInfo` names go through it, and the port
+check refuses a name character creation would refuse, or one no statement may carry (a control
+byte, bytes that are not UTF-8), before the repository is asked (`src/server/gameserver/PortCheck.h`;
+`tests/tools/check_port_check_wiring.sh` holds the handler's wiring, since nothing replaces
+`defaultSessionRepository()` in a test). The other names and texts the seams interpolate are raw,
 as each header says (`CharacterPurgeRepository.h` and `SessionRepository.h`'s crash and bug
 reports among them); the login refuses an id holding a quote or a backslash before any statement
-(`LoginDecision.cpp`), and a new statement that takes a text from the wire escapes it.
+(`LoginDecision.cpp`), and a new statement that takes a text from the wire escapes it, a rule
+only review protects: no ratchet counts the raw `'%s'` slots.
 
 `make integration-test` runs the repository implementations against a real MySQL
 ([testing overview](../testing/overview.md)).
