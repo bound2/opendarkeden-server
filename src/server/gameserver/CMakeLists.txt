@@ -446,6 +446,7 @@ set(GAMESERVER_RUNTIME_SOURCES
     SpeedHackDecision.cpp
     GameServer.cpp
     IncomingPlayerManager.cpp
+    PortCheck.cpp
     SharedServerClient.cpp
     InfoClassManager.cpp
     Inventory.cpp

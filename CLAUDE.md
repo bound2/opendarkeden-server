@@ -69,7 +69,7 @@ perl tests/tools/check_knowledge_bundle.pl .   # the bundle check alone, before 
 
 ## Database and repositories
 
-- All SQL lives behind a `*Repository.h` seam with a `MySQL*Repository.cpp` impl; read the header's `Not enclosed` list first, move statements byte-for-byte, and use the parameterized `executeQuery` (`%u`, `%d`, `%ld`) - [repository seams](docs/architecture/repository-seams.md).
+- All SQL lives behind a `*Repository.h` seam with a `MySQL*Repository.cpp` impl; read the header's `Not enclosed` list first, move statements byte-for-byte, and use the parameterized `executeQuery` (`%u`, `%d`, `%ld`) and `de::escapeSqlLiteral` for a text the wire supplies - [repository seams](docs/architecture/repository-seams.md).
 - MySQL 5.7 or 8 with the relaxed `sql_mode` (no `NO_ZERO_DATE`, `STRICT_TRANS_TABLES` or `NO_BACKSLASH_ESCAPES`; `ONLY_FULL_GROUP_BY` stays), utf8mb4 end to end with a session pin; migrations are one-time and nothing checks them - [database setup](docs/database/overview.md).
 - Every `initdb/` table is InnoDB utf8mb4, every seed `Player` row an argon2id hash; every seed union has a member or a pending join offer, every join offer names a union, and no guild leads or joins two unions - [seed-data rules](docs/database/seed-data-rules.md).
 
@@ -95,4 +95,4 @@ allocation faults; what each one exercises is in [test coverage](docs/testing/te
 
 - [The restructuring plan](docs/reviews/RESTRUCTURING.md): every task with its Status line and the R1-R19 ratchet table.
 - [The fix log](docs/reviews/FIXES.md): every bug found, newest first, each with its Status.
-- [The next work plan](docs/reviews/NEXT.md): the tasks ranked on 2026-11-02 (the port check's unescaped database write, a database error that ends a process, a sanitized run of the suite, the handler layer, the login persistence design, the entries recorded on 2026-10-27, housekeeping; the published datagram socket is done) and what stays with the owner; take one per PR.
+- [The next work plan](docs/reviews/NEXT.md): the tasks ranked on 2026-11-02 (a database error that ends a process, a sanitized run of the suite, the handler layer, the login persistence design, the entries recorded on 2026-10-27, housekeeping; the published datagram socket and the port check's unescaped write are done) and what stays with the owner; take one per PR.

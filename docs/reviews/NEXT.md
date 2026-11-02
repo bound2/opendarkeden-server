@@ -1,7 +1,7 @@
 ---
 type: Record
 title: "Next work plan"
-description: "The ranked, self-contained tasks in the server as of 2026-11-02, each written so an agent with no other context can take it: the port check's unescaped database write, a database error that ends a process, a sanitized run of the suite, the handler layer, the persistence design the login flows need, the entries recorded on 2026-10-27, housekeeping, and what stays blocked or with the owner; the published datagram socket is done."
+description: "The ranked, self-contained tasks in the server as of 2026-11-02, each written so an agent with no other context can take it: a database error that ends a process, a sanitized run of the suite, the handler layer, the persistence design the login flows need, the entries recorded on 2026-10-27, housekeeping, and what stays blocked or with the owner; the published datagram socket and the port check's unescaped write are done."
 tags: [review, plan]
 ---
 
@@ -15,9 +15,9 @@ lines and 34 `recorded` ones (counted 2026-11-01). The `recorded` entries are th
 was found while restructuring and left as it was, by the rule that a move does not change
 behaviour. Four new tasks came from reading the code on 2026-11-01: the gameserver's datagram
 socket, which the compose file publishes, dispatched relayed GM commands from any sender (task
-11, done on 2026-11-02, whose review found task 16: the port check writes the database for any
-sender, with an unescaped name); a database error ends a process; nothing runs the suite
-sanitized; and the handler layer has no instrument.
+11, done on 2026-11-02, whose review found task 16, the port check's unescaped database write,
+done the same day); a database error ends a process; nothing runs the suite sanitized; and the
+handler layer has no instrument.
 What is left is below, ranked by the harm it closes, with a cheap fix ahead of a dearer one of
 the same harm. Each task names the code, the test it wants and the rule it must keep, so it can
 be taken cold. One task per PR.
@@ -55,33 +55,8 @@ be taken cold. One task per PR.
 ## Tasks
 
 Ranked 2026-11-01. The order is the rank and the numbers are identities, so a *Done* entry
-keeps its name: 16 came from task 11's review, 10 to 13 were new (11 is under *Done*), 8 stays,
-14 ranks the entries recorded on 2026-10-27 that no task held, 9 stays, 15 is housekeeping.
-
-### 16. The port check writes the database for any sender, with an unescaped name
-
-**What:** `CGPortCheck` is the one datagram the gameserver's socket admits from anywhere
-([datagram sources](../protocol/datagram-sources.md)), since a native client sends it on
-reconnect. Its handler (`handler/CGPortCheckHandler.cpp`) hands the datagram's name, 1 to 20
-raw bytes, with the sender's address and port and this server's id to `recordUserIP`
-(`repository/MySQLSessionRepository.cpp`): `INSERT IGNORE INTO UserIPInfo ... VALUES ('%s', ...)`
-and, when no row changed, `UPDATE UserIPInfo ... WHERE Name='%s'`, the name formatted into the
-statement text by `vsnprintf` with no escaping (`database/Statement.cpp`). The rows are read
-back by `CGRequestIPHandler`, which sends them to a requesting player as `GCRequestedIP`, and by
-`loadUserServerID`. So anyone who can reach UDP 9997 can add one row per distinct name without
-bound, overwrite the address and port recorded for any character, and change the statement with
-a quote in the name. The fix log's entry of 2026-11-02 records it.
-
-**How:** refuse, before any statement sees it, a name that could not be a character's (the
-rule character creation applies to a new name is the one to reuse; find it on the
-loginserver's `CLCreatePC` path), and escape the name in `recordUserIP` as the Exchange
-repositories escape theirs (`repository/ExchangeRepository.h` names
-`mysql_real_escape_string`), or bind it. Tests: a handler-level test that a name with a quote,
-a control byte or a byte outside the name's character set is refused before the repository is
-called, and a repository test under `make integration-test` that the stored name is the one
-sent. Rule kept: all SQL behind a `*Repository.h` seam and the parameterized `executeQuery`
-for numbers ([repository seams](../architecture/repository-seams.md)); a refusal is a
-`ProtocolException`, not an `Assert` ([frame gate](../protocol/frame-gate.md)).
+keeps its name: 16 came from task 11's review (both are under *Done*), 10 to 13 were new, 8
+stays, 14 ranks the entries recorded on 2026-10-27 that no task held, 9 stays, 15 is housekeeping.
 
 ### 10. A database failure ends a process
 
@@ -364,3 +339,14 @@ PRs #386-#391 were closed unmerged: their commits reached master as the stack PR
   authentication: the forged-source residual, the sockets' bind address and the published port
   are the owner's (task 11 (a), under *Blocked or with the owner*). The gate closes the fix
   log's `datagram.txt` entry, and its review found task 16.
+- **16. The port check writes the database for any sender, with an unescaped name** (PR #__S16__,
+  `fix/port-check-name`): `de::recordPortCheck` (`gameserver/PortCheck.h`) refuses, before any
+  statement, a name no character could have (empty, past 20 bytes, a control byte, a token
+  character creation refuses: `src/server/CharacterName.h`, the rule both servers share now) with
+  `InvalidProtocolException`, and `MySQLSessionRepository` escapes the name of every `UserIPInfo`
+  statement through `de::escapeSqlLiteral` (`database/SqlLiteral.h`), the escape the Exchange
+  repository used alone and now delegates to; owned by `port_check_tests` over a fake session
+  repository, `sql_literal_tests` for the pass without a connection, and `SessionMySQL`'s two
+  UserIPInfo cases under `make integration-test`. Left, in the fix log's entry: `UserIPInfo.Name`
+  is `varchar(10)`, so a longer name is stored truncated, and one row per distinct name is still
+  any sender's to add.

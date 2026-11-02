@@ -1,5 +1,6 @@
 #include "DB.h"
 #include "ServerContext.h"
+#include "SqlLiteral.h"
 #include "repository/SessionRepository.h"
 
 namespace {
@@ -19,7 +20,9 @@ namespace {
 //    (getAffectedRowCount() == 0).
 //  - The uint SpecialEventCount and the uint user count stream through
 //    "%d"; SpecialEventCount comes back through getDWORD.
-//  - Names and ids are interpolated raw.
+//  - Names and ids are interpolated raw, except the UserIPInfo names,
+//    which the wire supplies (a port check from any sender, CGRequestIP)
+//    and de::escapeSqlLiteral escapes on the DARKEDEN connection.
 class MySQLSessionRepository : public SessionRepository {
 public:
     void markGuildMemberLoggedOff(const string& name) {
@@ -273,8 +276,10 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("DELETE FROM UserIPInfo WHERE Name = '%s'", name.c_str());
+            Connection* pConnection = de::serverContext().database().getConnection("DARKEDEN");
+            pStmt = pConnection->createStatement();
+            pStmt->executeQuery("DELETE FROM UserIPInfo WHERE Name = '%s'",
+                                de::escapeSqlLiteral(pConnection, name).c_str());
 
             SAFE_DELETE(pStmt);
         }
@@ -297,13 +302,15 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
+            Connection* pConnection = de::serverContext().database().getConnection("DARKEDEN");
+            pStmt = pConnection->createStatement();
 
+            const string literal = de::escapeSqlLiteral(pConnection, name);
             pStmt->executeQuery("INSERT IGNORE INTO UserIPInfo (Name, IP, Port, ServerID) VALUES ( '%s', %u, %u, %d )",
-                                name.c_str(), ip, port, serverID);
+                                literal.c_str(), ip, port, serverID);
 
             if (pStmt->getAffectedRowCount() == 0) {
-                pStmt->executeQuery("UPDATE UserIPInfo Set IP=%u, Port=%u WHERE Name='%s'", ip, port, name.c_str());
+                pStmt->executeQuery("UPDATE UserIPInfo Set IP=%u, Port=%u WHERE Name='%s'", ip, port, literal.c_str());
             }
 
             SAFE_DELETE(pStmt);
@@ -316,8 +323,10 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery("SELECT IP, Port FROM UserIPInfo WHERE Name='%s'", name.c_str());
+            Connection* pConnection = de::serverContext().database().getConnection("DARKEDEN");
+            pStmt = pConnection->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT IP, Port FROM UserIPInfo WHERE Name='%s'",
+                                                  de::escapeSqlLiteral(pConnection, name).c_str());
 
             if (pResult->next()) {
                 ip = pResult->getDWORD(1);
@@ -375,8 +384,10 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            pStmt = de::serverContext().database().getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery("SELECT ServerID FROM UserIPInfo where Name='%s'", name.c_str());
+            Connection* pConnection = de::serverContext().database().getConnection("DARKEDEN");
+            pStmt = pConnection->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT ServerID FROM UserIPInfo where Name='%s'",
+                                                  de::escapeSqlLiteral(pConnection, name).c_str());
 
             if (pResult->next()) {
                 serverID = pResult->getInt(1);

@@ -1,5 +1,17 @@
 # Knowledge Bundle Update Log
 
+## 2026-11-02
+
+* **Update**: [repository seams](architecture/repository-seams.md) has a row and a paragraph for
+  the escape a text the wire supplies goes through (`de::escapeSqlLiteral`, the Exchange's escape
+  shared now) and the port check's name rule; [datagram sources](protocol/datagram-sources.md)
+  says what the port check can still do, [database setup](database/overview.md) names the
+  helper, the [testing overview](testing/overview.md) and
+  [test coverage](testing/test-coverage.md) describe `port_check_tests` and `sql_literal_tests`,
+  the [fix log](reviews/FIXES.md) marks the port check's entry fixed, and the
+  [next work plan](reviews/NEXT.md) moves task 16 to *Done*; `CLAUDE.md` and the
+  [reviews index](reviews/index.md) say so.
+
 ## 2026-11-01
 
 * **Creation**: [datagram sources](protocol/datagram-sources.md), the rule that a datagram is

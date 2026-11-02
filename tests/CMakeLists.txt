@@ -263,6 +263,36 @@ add_test(NAME datagram_gate_audit
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 set_tests_properties(datagram_gate_audit PROPERTIES TIMEOUT 30)
 
+# The port check's name rule and the record behind it, against a fake
+# session repository: a refused name throws before the repository is
+# asked. de-kernel carries InvalidProtocolException.
+add_executable(port_check_tests EXCLUDE_FROM_ALL
+    port_check_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/PortCheck.cpp
+)
+target_include_directories(port_check_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+)
+target_link_libraries(port_check_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests port_check_tests)
+add_test(NAME port_check_tests COMMAND port_check_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(port_check_tests PROPERTIES TIMEOUT 30)
+
+# The SQL literal escape without a live connection, the pass the
+# repositories fall back on; with a connection the client library escapes,
+# which make integration-test covers through the UserIPInfo statements.
+add_executable(sql_literal_tests EXCLUDE_FROM_ALL sql_literal_test.cpp)
+target_include_directories(sql_literal_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/Core)
+target_link_libraries(sql_literal_tests PRIVATE Database ServerCore ${MYSQL_LIBRARY} gtest_main Threads::Threads)
+add_dependencies(wire_tests sql_literal_tests)
+add_test(NAME sql_literal_tests COMMAND sql_literal_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(sql_literal_tests PROPERTIES TIMEOUT 30)
+
 add_executable(server_port_settings_tests EXCLUDE_FROM_ALL server_port_settings_test.cpp)
 target_link_libraries(server_port_settings_tests PRIVATE ServerPortSettings gtest_main)
 add_dependencies(wire_tests server_port_settings_tests)
@@ -827,6 +857,7 @@ add_executable(character_creation_tests EXCLUDE_FROM_ALL
 target_include_directories(character_creation_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/support
     ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server
     ${CMAKE_SOURCE_DIR}/src/server/loginserver
 )
 target_link_libraries(character_creation_tests PRIVATE de-kernel gtest_main Threads::Threads)

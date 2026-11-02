@@ -11,6 +11,7 @@
 #include <functional>
 #include <string>
 
+#include "CharacterName.h"
 #include "Outcome.h"
 #include "Types.h"
 #include "repository/LoginCharacterRepository.h"
@@ -141,8 +142,8 @@ private:
                                                                           CreatePCBalanceCache& balance,
                                                                           const CreatePCActions& actions);
 
-// Is the name free of the reserved tokens (NONE, GM, the Korean staff
-// words)? Shared with CLQueryCharacterNameHandler.
-bool isAvailableID(const char* pID);
+// isAvailableID, the reserved-token rule shared with
+// CLQueryCharacterNameHandler and the gameserver's port check, is
+// CharacterName.h's.
 
 #endif

@@ -283,6 +283,14 @@ reported with its id and sender, and an admitted one reading as before;
 `datagram_gate_audit` holds the loops' wiring in the source, since each loop
 opens a database connection before it reads
 ([datagram sources](../protocol/datagram-sources.md)).
+`port_check_tests` covers the port check's name rule and the record behind it
+over a fake session repository: a name no character could have (empty, past 20
+bytes, a control byte, a reserved token) throws before the repository is asked,
+and an accepted one is recorded as sent; `sql_literal_tests` covers
+`de::escapeSqlLiteral` without a live connection (NUL bytes dropped, the quote
+and the backslash escaped), and `make integration-test`'s `SessionMySQL` cases
+store a quoted or a literal-ending `UserIPInfo` name as sent and reach no
+other row through it ([repository seams](../architecture/repository-seams.md)).
 `server_port_settings_tests` covers required listener ports without opening
 sockets. Startup validates complete decimal ports in 1..65535 before publishing
 configuration: `TCPPort`/`GameServerUDPPort` for game, `LoginServerPort`/

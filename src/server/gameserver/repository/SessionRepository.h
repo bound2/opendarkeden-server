@@ -87,6 +87,9 @@ public:
                                    const std::string& name, Race_t race) = 0;
 
     // --- per-character IP records (DARKEDEN) -------------------------------
+    // The name is escaped for its literal in every statement below
+    // (database/SqlLiteral.h): a port check from any sender and CGRequestIP
+    // supply it.
     virtual void deleteUserIP(const std::string& name) = 0;
     virtual void deleteUserIPsOfServer(int serverID) = 0;
     // INSERT IGNORE of (Name, IP, Port, ServerID); when that changed no row,

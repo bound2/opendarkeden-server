@@ -8,6 +8,7 @@ set(DATABASE_SOURCES
     Statement.cpp
     Result.cpp
     DatabaseManager.cpp
+    SqlLiteral.cpp
 )
 
 # ============================================================================

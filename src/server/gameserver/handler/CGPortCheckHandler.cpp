@@ -15,6 +15,7 @@
 
 #ifdef __GAME_SERVER__
 #include "KernelContext.h"
+#include "PortCheck.h"
 #include "repository/SessionRepository.h"
 
 #endif
@@ -40,9 +41,11 @@ void CGPortCheckHandler::execute(CGPortCheck* pPacket)
 
 
     try {
+        // A name no character could have is refused before any statement
+        // sees it (PortCheck.h); the repository escapes the one it records:
         // INSERT IGNORE and, when that changed no row, the UPDATE.
-        defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port,
-                                                de::kernelContext().config().getPropertyInt("ServerID"));
+        de::recordPortCheck(defaultSessionRepository(), pPacket->getPCName(), IP, port,
+                            de::kernelContext().config().getPropertyInt("ServerID"));
     } catch (const DatabaseError&) {
         // A SQL failure arrives as END_DB's DatabaseError, already logged
         // to DBError.log; swallowed.
