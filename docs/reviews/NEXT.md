@@ -339,7 +339,7 @@ PRs #386-#391 were closed unmerged: their commits reached master as the stack PR
   authentication: the forged-source residual, the sockets' bind address and the published port
   are the owner's (task 11 (a), under *Blocked or with the owner*). The gate closes the fix
   log's `datagram.txt` entry, and its review found task 16.
-- **16. The port check writes the database for any sender, with an unescaped name** (PR #__S16__,
+- **16. The port check writes the database for any sender, with an unescaped name** (PR #398,
   `fix/port-check-name`): `de::recordPortCheck` (`gameserver/PortCheck.h`) refuses, before any
   statement, a name no character could have (empty, past 20 bytes, a control byte, a token
   character creation refuses: `src/server/CharacterName.h`, the rule both servers share now) with
