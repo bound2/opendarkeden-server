@@ -7,9 +7,13 @@
 
 #include <algorithm>
 #include <cstring>
+#include <exception>
 #include <utility>
 
+#include <arpa/inet.h>
+
 #include "Datagram.h"
+#include "Exception.h"
 #include "GameServerInfo.h"
 #include "GameServerInfoManager.h"
 #include "Properties.h"
@@ -50,6 +54,11 @@ bool listed(const std::vector<std::string>& hosts, const std::string& host) noex
     return false;
 }
 
+void sortUnique(std::vector<std::string>& addresses) {
+    std::sort(addresses.begin(), addresses.end());
+    addresses.erase(std::unique(addresses.begin(), addresses.end()), addresses.end());
+}
+
 // Every distinct address the catalogue lists, ascending; none before a load.
 std::vector<std::string> catalogueAddresses(const GameServerInfoManager& servers) {
     std::vector<std::string> addresses;
@@ -70,9 +79,18 @@ std::vector<std::string> catalogueAddresses(const GameServerInfoManager& servers
             }
         }
     }
-    std::sort(addresses.begin(), addresses.end());
-    addresses.erase(std::unique(addresses.begin(), addresses.end()), addresses.end());
+    sortUnique(addresses);
     return addresses;
+}
+
+bool isDottedQuad(const std::string& address) noexcept {
+    in_addr parsed;
+    return inet_pton(AF_INET, address.c_str(), &parsed) == 1;
+}
+
+void join(std::vector<std::string>& into, const std::vector<std::string>& addresses) {
+    into.insert(into.end(), addresses.begin(), addresses.end());
+    sortUnique(into);
 }
 
 } // namespace
@@ -80,36 +98,18 @@ std::vector<std::string> catalogueAddresses(const GameServerInfoManager& servers
 bool admitsDatagram(PacketID_t packetID, const std::string& host, const DatagramPeers& peers) noexcept {
     switch (datagramLinkOf(packetID)) {
     case DatagramLink::Client:
-        return true;
+        return peers.client;
     case DatagramLink::LoginToGame:
-        return listed(peers.loginServers, host);
+        return peers.loginToGame && listed(peers.loginServers, host);
     case DatagramLink::GameToLogin:
+        return peers.gameToLogin && listed(peers.gameServers, host);
     case DatagramLink::GameToGame:
-        return listed(peers.gameServers, host);
+        return peers.gameToGame && listed(peers.gameServers, host);
     case DatagramLink::None:
         break;
     }
     return false;
 }
-
-namespace {
-
-void sortUnique(std::vector<std::string>& addresses) {
-    std::sort(addresses.begin(), addresses.end());
-    addresses.erase(std::unique(addresses.begin(), addresses.end()), addresses.end());
-}
-
-// Every address the configuration names for both server links, added to the
-// peers found elsewhere.
-void addConfiguredPeers(DatagramPeers& peers, const Properties& config) {
-    const std::vector<std::string> configured = configuredDatagramPeers(config);
-    peers.loginServers.insert(peers.loginServers.end(), configured.begin(), configured.end());
-    peers.gameServers.insert(peers.gameServers.end(), configured.begin(), configured.end());
-    sortUnique(peers.loginServers);
-    sortUnique(peers.gameServers);
-}
-
-} // namespace
 
 std::vector<std::string> configuredDatagramPeers(const Properties& config) {
     std::vector<std::string> addresses;
@@ -128,8 +128,12 @@ std::vector<std::string> configuredDatagramPeers(const Properties& config) {
             ++first;
         while (last > first && (list[last - 1] == ' ' || list[last - 1] == '\t'))
             --last;
-        if (first < last)
-            addresses.push_back(list.substr(first, last - first));
+        if (first < last) {
+            const std::string address = list.substr(first, last - first);
+            if (!isDottedQuad(address))
+                throw Error("DatagramPeerIPs: not an IPv4 address: " + address);
+            addresses.push_back(address);
+        }
         start = end + 1;
     }
     sortUnique(addresses);
@@ -138,28 +142,47 @@ std::vector<std::string> configuredDatagramPeers(const Properties& config) {
 
 DatagramPeers gameServerDatagramPeers(const Properties& config, const GameServerInfoManager& servers) {
     DatagramPeers peers;
+    peers.client = true;
+    peers.loginToGame = true;
+    peers.gameToGame = true;
     if (config.hasKey("LoginServerIP"))
         peers.loginServers.push_back(config.getProperty("LoginServerIP"));
     peers.gameServers = catalogueAddresses(servers);
-    addConfiguredPeers(peers, config);
+    const std::vector<std::string> configured = configuredDatagramPeers(config);
+    join(peers.loginServers, configured);
+    join(peers.gameServers, configured);
     return peers;
 }
 
 DatagramPeers loginServerDatagramPeers(const Properties& config, const GameServerInfoManager& servers) {
     DatagramPeers peers;
+    peers.gameToLogin = true;
     peers.gameServers = catalogueAddresses(servers);
-    addConfiguredPeers(peers, config);
+    join(peers.gameServers, configuredDatagramPeers(config));
     return peers;
 }
 
 DatagramGate::DatagramGate(Peers peers, Report report) : m_Peers(std::move(peers)), m_Report(std::move(report)) {}
 
-bool DatagramGate::admits(Datagram& datagram) {
+const DatagramPeers& DatagramGate::peers() {
+    std::lock_guard<std::mutex> lock(m_PeersMutex);
+    if (!m_Cached.has_value())
+        m_Cached = m_Peers();
+    return *m_Cached;
+}
+
+bool DatagramGate::admits(Datagram& datagram) noexcept {
     PacketID_t packetID = Packet::PACKET_MAX;
     bool admitted = false;
-    if (datagram.getLength() >= szPacketID) {
-        std::memcpy(&packetID, datagram.getData(), szPacketID);
-        admitted = admitsDatagram(packetID, datagram.getHost(), m_Peers());
+    try {
+        if (datagram.getLength() >= szPacketID) {
+            std::memcpy(&packetID, datagram.getData(), szPacketID);
+            if (datagramLinkOf(packetID) != DatagramLink::None)
+                admitted = admitsDatagram(packetID, datagram.getHost(), peers());
+        }
+    } catch (...) {
+        // The peers could not be built or the sender not named: refused.
+        admitted = false;
     }
 
     if (admitted) {
@@ -167,8 +190,13 @@ bool DatagramGate::admits(Datagram& datagram) {
         return true;
     }
     ++m_Refused;
-    if (m_Report)
-        m_Report(packetID, datagram.getHost());
+    if (m_Report) {
+        try {
+            m_Report(packetID, datagram.getHost());
+        } catch (...) {
+            // The datagram is dropped whether or not the line is written.
+        }
+    }
     return false;
 }
 

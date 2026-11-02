@@ -49,6 +49,9 @@ GameServerManager::GameServerManager()
           }) {
     __BEGIN_TRY
 
+    // A bad DatagramPeerIPs entry stops the server here, not a peer later.
+    de::configuredDatagramPeers(de::kernelContext().config());
+
     const auto port = de::readServerPort(de::kernelContext().config(), "LoginServerUDPPort");
     de::retryListenerStartup(
         [&] {

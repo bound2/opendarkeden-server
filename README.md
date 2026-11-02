@@ -203,9 +203,12 @@ checks them at startup. Text is utf8mb4 end to end, and each server pins its ses
 
 The `WorldDBInfo` table (the database the servers reach) and the `GameServerInfo` table (the
 address and ports the client is told) must agree with these files: `docker/initdb-docker.sql`
-sets both for the container, so copy its two `UPDATE`s with your values. For Exchange
-purchases both connection blocks must name one MySQL server, and `DB_USER` must be able to read
-and write the `AccountPoint` and `PointLedger` tables. Every key that matters, and what
+sets both for the container, so copy its two `UPDATE`s with your values. A datagram is read
+only from a sender its link admits, so a deployment whose servers reach each other through a
+NAT or a published port names those addresses under `DatagramPeerIPs`, as `docker/conf/*.conf`
+does for the compose network's gateway ([datagram sources](docs/protocol/datagram-sources.md)).
+For Exchange purchases both connection blocks must name one MySQL server, and `DB_USER` must be
+able to read and write the `AccountPoint` and `PointLedger` tables. Every key that matters, and what
 diagnostics may contain, is in [configuration](docs/database/configuration.md).
 
 ## Running the servers

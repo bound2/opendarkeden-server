@@ -7,8 +7,10 @@
 //               GameServerManager.cpp) reads it, up to the packet
 //               dispatch.
 //
-//               Nothing authenticates a datagram: any sender that can
-//               reach the port chooses every byte. The input is the
+//               The loop reads a datagram only from a sender its link
+//               admits (DatagramAdmission.h), and that peer chooses every
+//               byte; the target has no sender, so it reads every input as
+//               one from an admitted peer. The input is the
 //               datagram as recvfrom() returned it: a header of id (u16)
 //               and body size (u32), little-endian, the body, and the
 //               one zero byte both peers count in the length

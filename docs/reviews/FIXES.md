@@ -20,6 +20,45 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## The port check writes the database for any sender, with an unescaped name (2026-11-02)
+
+- **`CGPortCheckHandler::execute` (`handler/CGPortCheckHandler.cpp`) passes
+  the datagram's name, 1 to 20 raw bytes, with the sender's address and port
+  and this server's id to `recordUserIP`
+  (`repository/MySQLSessionRepository.cpp`): `INSERT IGNORE INTO UserIPInfo
+  ... VALUES ('%s', ...)` and, when no row changed, `UPDATE UserIPInfo ...
+  WHERE Name='%s'`, the name formatted into the statement text by
+  `vsnprintf` with no escaping (`database/Statement.cpp`).** `CGPortCheck`
+  is the one datagram the gameserver's socket admits from anywhere, since a
+  native client sends it on reconnect, so anyone who can reach UDP 9997 can
+  add one `UserIPInfo` row per distinct name without bound, overwrite the
+  address and port recorded for any character (read back by
+  `CGRequestIPHandler` as `GCRequestedIP` and by `loadUserServerID`), and
+  change the statement with a quote in the name. Found by the review of
+  fix/datagram-sources; task 16 of the next work plan.
+  > **Status:** recorded, not fixed (fix/datagram-sources)
+
+## A forged source address passes the datagram gate (2026-11-02)
+
+- **The gate of fix/datagram-sources admits a datagram by the source
+  address `recvfrom` reported, which UDP does not authenticate,** so a
+  sender on the network path who writes a listed peer's address into the
+  source field is admitted, and the packets that do damage need no reply:
+  `GGCommand` runs at `Permission::God`, `LGKickCharacter` sets the kick
+  flags, `LGIncomingConnectionOK` marks the named account kicked and
+  `LGIncomingConnectionError` retires it, `GGGuildChat` and `GGServerChat`
+  deliver text under any name, `GLKickVerify` lets a waiting login through,
+  and `GMServerInfo` sets a group's displayed population. The compose
+  deployment's peers are loopback and the pinned network's gateway, which a
+  sender outside the host cannot carry, so there the gate holds against the
+  outside; with LAN peers, as in the default `conf/gameserver.conf`, a sender
+  on the segment or the path is not stopped, and every process on a listed
+  host is a peer. What closes it is the owner's call (next work plan,
+  *Blocked or with the owner*): binding the loginserver's socket, which no
+  client uses, to a peer-facing or loopback address, ingress filtering, or a
+  shared secret on the server links, a wire change shipped with the client.
+  > **Status:** recorded, not fixed (fix/datagram-sources)
+
 ## Any sender could run relayed GM commands and redirect reconnects through the datagram sockets (2026-11-01)
 
 - **The gameserver's datagram loop (`LoginServerManager::run`) and the
@@ -36,13 +75,19 @@ repo and the client's. Entries below are newest first; the oldest is the
   client to a login server of their choosing. Found while ranking the next
   work plan (its task 11). Both loops now run each datagram through
   `de::DatagramGate` (`src/server/DatagramAdmission.h`) before reading it:
-  a client's port check from anywhere, the `LG` packets only from the
-  configured `LoginServerIP`, the `GL`, `GM` and `GG` packets only from
-  the gameservers the catalogue lists, and nothing else from anyone; a
-  refused datagram is counted, reported once per 30 seconds and dropped
-  unread. `datagram_admission_tests` owns the rule
-  ([datagram sources](../protocol/datagram-sources.md)). The socket's bind
-  address and the published port stay as they were, the owner's call.
+  on the gameserver a client's port check from anywhere, the `LG` packets
+  only from the configured `LoginServerIP` and the `GG` packets only from
+  the gameservers the catalogue lists; on the loginserver the `GL` packets
+  and `GMServerInfo` only from those gameservers; `DatagramPeerIPs` adds the
+  addresses a NAT or a published port makes datagrams carry; nothing else
+  from anyone. A refused datagram is counted, reported once per 30 seconds
+  and dropped unread. `datagram_admission_tests` owns the rule and
+  `datagram_gate_audit` the loops' wiring
+  ([datagram sources](../protocol/datagram-sources.md)). What is fixed is
+  the open port: the gate is an address check, which a sender on the
+  network path can pass with a forged source, recorded above as *A forged
+  source address passes the datagram gate*. The sockets' bind address and
+  the published port stay as they were, the owner's call.
   > **Status:** fixed (fix/datagram-sources)
 
 ## Any sender can grow `datagram.txt` one line per datagram (2026-10-27)
@@ -60,8 +105,9 @@ repo and the client's. Entries below are newest first; the oldest is the
   diagnostics switch or drop it is the owner's call. Since
   fix/datagram-sources the loops read only what the datagram gate admits
   ([datagram sources](../protocol/datagram-sources.md)), and an id outside
-  the datagram set is refused unread from everyone, so no sender reaches
-  the line any more; it stays as the operator's record it was meant to be.
+  the datagram set is refused unread from everyone, so the line is
+  unreachable from either loop; only the datagram fuzz target, which has
+  no sender, still writes it.
   > **Status:** fixed (fix/datagram-sources)
 
 ## A short datagram body asserted instead of being refused (2026-10-27)

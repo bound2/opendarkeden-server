@@ -39,6 +39,9 @@ LoginServerManager::LoginServerManager()
           [] { return de::gameServerDatagramPeers(de::kernelContext().config(), de::serverContext().serverInfos()); },
           [this](PacketID_t packetID, const string& host) {
               if (const auto suppressed = m_RefusalReport.failure(de::RepeatedErrorReport::Clock::now())) {
+                  // The console line is what a container's log stream shows.
+                  cerr << "LoginServerManager UDP refused datagram id " << packetID << " from " << host
+                       << ": suppressed_refusals=" << *suppressed << endl;
                   diagnosticFilelog("LOGINSERVERMANAGER.log",
                                     "LoginServerManager::run() refused datagram id %u from %s, %llu more suppressed",
                                     static_cast<unsigned>(packetID), host.c_str(),
@@ -48,6 +51,9 @@ LoginServerManager::LoginServerManager()
     Properties& config = de::kernelContext().config();
 
     m_Mutex.setName("LoginServerManager");
+
+    // A bad DatagramPeerIPs entry stops the server here, not a peer later.
+    de::configuredDatagramPeers(config);
 
     const auto port = de::readServerPort(config, "GameServerUDPPort");
     de::retryListenerStartup(

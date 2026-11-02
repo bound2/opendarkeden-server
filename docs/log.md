@@ -3,12 +3,17 @@
 ## 2026-11-01
 
 * **Creation**: [datagram sources](protocol/datagram-sources.md), the rule that a datagram is
-  read only from a sender its packet's link admits, owned by `datagram_admission_tests`;
-  [packet-read fuzzing](protocol/fuzzing.md) says the datagram target does not model the gate,
-  [test coverage](testing/test-coverage.md) describes the test, the [fix log](reviews/FIXES.md)
-  records the relayed GM commands and reconnect redirection any sender could reach and closes
-  the `datagram.txt` entry, and `CLAUDE.md` and the [protocol index](protocol/index.md) link
-  the rule.
+  read only from a sender its packet's link admits, owned by `datagram_admission_tests` and,
+  for the loops' wiring, `datagram_gate_audit`; the page says what an address check does not
+  close and names `DatagramPeerIPs`, which the compose deployment needs with a routable
+  catalogue address. [Packet-read fuzzing](protocol/fuzzing.md) says the datagram target does
+  not model the gate, the [testing overview](testing/overview.md) and
+  [test coverage](testing/test-coverage.md) describe the tests, the [fix log](reviews/FIXES.md)
+  records the relayed GM commands and reconnect redirection any sender could reach (fixed),
+  the forged-source residual and the port check's unescaped database write (both recorded),
+  and closes the `datagram.txt` entry, the [next work plan](reviews/NEXT.md) moves task 11 to
+  *Done* and adds task 16 for the port check, and `CLAUDE.md` and the
+  [protocol index](protocol/index.md) link the rule.
 * **Update**: the [next work plan](reviews/NEXT.md) is ranked again after PRs #385-#395 closed
   its tasks 1 to 7: four new tasks come first (the gameserver's published datagram socket, which
   dispatches relayed GM commands from any sender; a `DatabaseError` that no thread-top catch

@@ -249,11 +249,19 @@ set_tests_properties(listener_startup_tests PROPERTIES TIMEOUT 30)
 # The gate each datagram loop runs a received datagram through: admission by
 # the packet's link and the sender, over the catalogue and the configuration.
 add_executable(datagram_admission_tests EXCLUDE_FROM_ALL datagram_admission_test.cpp)
-target_link_libraries(datagram_admission_tests PRIVATE DatagramAdmission Database ${MYSQL_LIBRARY} gtest_main)
+target_link_libraries(datagram_admission_tests PRIVATE DatagramAdmission Core TestPackets Database ${MYSQL_LIBRARY} gtest_main)
 add_dependencies(wire_tests datagram_admission_tests)
 add_test(NAME datagram_admission_tests COMMAND datagram_admission_tests
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(datagram_admission_tests PROPERTIES TIMEOUT 30)
+
+# The two datagram loops consult the gate before reading: neither loop has
+# a test of its own (each opens a database connection before it reads), so
+# the wiring is audited in the source.
+add_test(NAME datagram_gate_audit
+    COMMAND bash ${CMAKE_SOURCE_DIR}/tests/tools/check_datagram_gate.sh ${CMAKE_SOURCE_DIR}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_tests_properties(datagram_gate_audit PROPERTIES TIMEOUT 30)
 
 add_executable(server_port_settings_tests EXCLUDE_FROM_ALL server_port_settings_test.cpp)
 target_link_libraries(server_port_settings_tests PRIVATE ServerPortSettings gtest_main)

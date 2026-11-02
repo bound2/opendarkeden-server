@@ -1,7 +1,7 @@
 ---
 type: Record
 title: "Next work plan"
-description: "The ranked, self-contained tasks in the server as of 2026-11-01, each written so an agent with no other context can take it: the published datagram socket that takes relayed GM commands from any sender, a database error that ends a process, a sanitized run of the suite, the handler layer, the persistence design the login flows need, the entries recorded on 2026-10-27, housekeeping, and what stays blocked or with the owner."
+description: "The ranked, self-contained tasks in the server as of 2026-11-02, each written so an agent with no other context can take it: the port check's unescaped database write, a database error that ends a process, a sanitized run of the suite, the handler layer, the persistence design the login flows need, the entries recorded on 2026-10-27, housekeeping, and what stays blocked or with the owner; the published datagram socket is done."
 tags: [review, plan]
 ---
 
@@ -13,10 +13,11 @@ tasks (5.5 in progress, 6.2 blocked); ratchets R1-R5 and R7-R19 are at 0 and R6a
 baselines (line counts that can still shrink); the [fix log](FIXES.md) holds 432 `fixed` Status
 lines and 34 `recorded` ones (counted 2026-11-01). The `recorded` entries are the backlog: each
 was found while restructuring and left as it was, by the rule that a move does not change
-behaviour. Four new tasks came from reading the code on 2026-11-01 and rank first: the
-gameserver's datagram socket, which the compose file publishes, dispatches relayed GM commands
-from any sender; a database error ends a process; nothing runs the suite sanitized; and the
-handler layer has no instrument.
+behaviour. Four new tasks came from reading the code on 2026-11-01: the gameserver's datagram
+socket, which the compose file publishes, dispatched relayed GM commands from any sender (task
+11, done on 2026-11-02, whose review found task 16: the port check writes the database for any
+sender, with an unescaped name); a database error ends a process; nothing runs the suite
+sanitized; and the handler layer has no instrument.
 What is left is below, ranked by the harm it closes, with a cheap fix ahead of a dearer one of
 the same harm. Each task names the code, the test it wants and the rule it must keep, so it can
 be taken cold. One task per PR.
@@ -54,8 +55,33 @@ be taken cold. One task per PR.
 ## Tasks
 
 Ranked 2026-11-01. The order is the rank and the numbers are identities, so a *Done* entry
-keeps its name: 10 to 13 were new (11 is under *Done*), 8 stays, 14 ranks the entries recorded
-on 2026-10-27 that no task held, 9 stays, 15 is housekeeping.
+keeps its name: 16 came from task 11's review, 10 to 13 were new (11 is under *Done*), 8 stays,
+14 ranks the entries recorded on 2026-10-27 that no task held, 9 stays, 15 is housekeeping.
+
+### 16. The port check writes the database for any sender, with an unescaped name
+
+**What:** `CGPortCheck` is the one datagram the gameserver's socket admits from anywhere
+([datagram sources](../protocol/datagram-sources.md)), since a native client sends it on
+reconnect. Its handler (`handler/CGPortCheckHandler.cpp`) hands the datagram's name, 1 to 20
+raw bytes, with the sender's address and port and this server's id to `recordUserIP`
+(`repository/MySQLSessionRepository.cpp`): `INSERT IGNORE INTO UserIPInfo ... VALUES ('%s', ...)`
+and, when no row changed, `UPDATE UserIPInfo ... WHERE Name='%s'`, the name formatted into the
+statement text by `vsnprintf` with no escaping (`database/Statement.cpp`). The rows are read
+back by `CGRequestIPHandler`, which sends them to a requesting player as `GCRequestedIP`, and by
+`loadUserServerID`. So anyone who can reach UDP 9997 can add one row per distinct name without
+bound, overwrite the address and port recorded for any character, and change the statement with
+a quote in the name. The fix log's entry of 2026-11-02 records it.
+
+**How:** refuse, before any statement sees it, a name that could not be a character's (the
+rule character creation applies to a new name is the one to reuse; find it on the
+loginserver's `CLCreatePC` path), and escape the name in `recordUserIP` as the Exchange
+repositories escape theirs (`repository/ExchangeRepository.h` names
+`mysql_real_escape_string`), or bind it. Tests: a handler-level test that a name with a quote,
+a control byte or a byte outside the name's character set is refused before the repository is
+called, and a repository test under `make integration-test` that the stored name is the one
+sent. Rule kept: all SQL behind a `*Repository.h` seam and the parameterized `executeQuery`
+for numbers ([repository seams](../architecture/repository-seams.md)); a refusal is a
+`ProtocolException`, not an `Assert` ([frame gate](../protocol/frame-gate.md)).
 
 ### 10. A database failure ends a process
 
@@ -99,7 +125,15 @@ every target it configures, so with `DARKEDEN_BUILD_TESTS=ON` beside it the whol
 sanitized today (`CMakeLists.txt`); no job and no make target runs that pair
 ([fuzzing](../protocol/fuzzing.md)). `wire_tests`, the runtime tests and the decision tests
 have never run under a sanitizer. The client runs its suite under ASan on three platforms and
-UBSan on two, and those runs found what its plain suite could not.
+UBSan on two, and those runs found what its plain suite could not. A first run on 2026-11-02
+(clang 18 with `-fsanitize=address,undefined`, lld, outside the fuzz image) built the whole
+suite and failed 14 of 93 tests, none of them the datagram tests or the fuzz replays: the eleven
+test binaries that link `tests/support/AllocationProbe.cpp` abort on an alloc-dealloc mismatch
+before their first suite runs, since the probe's `operator delete` frees with `free()` what
+GoogleTest's `std::stable_sort` took from the library's `operator new(size_t, nothrow_t)`, which
+the probe does not replace; `wire_tests` leaks 5896 bytes in 499 allocations (the first report's
+site is `packet_store_test.cpp`'s own `newPetStashItem`), `database_timeout_tests` 656 bytes in
+4 and `database_manager_tests` 22960 bytes in 140.
 
 **How:** first run the existing pair from the fuzz image (a clang-18 configure with
 `DARKEDEN_BUILD_FUZZERS=ON` and `DARKEDEN_BUILD_TESTS=ON`, then ctest) and record what it finds;
@@ -239,8 +273,12 @@ Each is one PR, with a fix-log entry naming the branch that found it:
   ([running the servers](../operations/running-the-servers.md)); whether one is wanted before a
   deployment that matters is the owner's call.
 - **Task 11 (a)**: whether `9997/udp` stays published (a native client's port check arrives
-  there), and whether the datagram sockets keep binding every address; the gate admits by
-  sender either way ([datagram sources](../protocol/datagram-sources.md)).
+  there, and with a routable catalogue address the loginserver's datagrams to the gameserver
+  hairpin through it), what the datagram sockets bind, and what closes the forged-source
+  residual the fix log records as *A forged source address passes the datagram gate*: binding
+  the loginserver's socket, which no client uses, to a peer-facing or loopback address, ingress
+  filtering, or a shared secret on the server links, a wire change shipped with the client
+  ([datagram sources](../protocol/datagram-sources.md)).
 
 ## Done
 
@@ -311,14 +349,18 @@ PRs #386-#391 were closed unmerged: their commits reached master as the stack PR
 - **9, one item: the first guild founded after a restart reuses a guild zone id**
   (PR #395, `next-plan/batch-4`): `prepareZoneMaximum` starts each race's counter one past its stored
   maximum (`SharedGuildStartup` in `tests/shared_guild_startup_test.cpp`).
-- **11. Unauthenticated datagrams on a published port** (`fix/datagram-sources`): both datagram
+- **11. Unauthenticated datagrams on a published port** (PR #397, `fix/datagram-sources`): both datagram
   loops run each received datagram through `de::DatagramGate` (`src/server/DatagramAdmission.h`)
-  before reading it: a client's port check from anywhere, the `LG` packets only from the
-  configured `LoginServerIP`, the `GL`, `GM` and `GG` packets only from the gameservers the
-  catalogue lists, and nothing else from anyone; a refused datagram is counted, reported once per
-  30 seconds and dropped unread ([datagram sources](../protocol/datagram-sources.md), owned by
-  `datagram_admission_tests`). The loops themselves have no test, since each opens a database
-  connection before it reads, so the gate is the owner and the wiring, a few lines in each loop,
-  is read in review. The sockets' bind address and the published port stay as they were (task
-  11 (a), under *Blocked or with the owner*), and the gate closes the fix log's `datagram.txt`
-  entry, since no sender outside the peers reaches the line.
+  before reading it: on the gameserver a client's port check from anywhere, the `LG` packets
+  only from the configured `LoginServerIP` and the `GG` packets only from the gameservers the
+  catalogue lists; on the loginserver the `GL` packets and `GMServerInfo` only from those
+  gameservers; `DatagramPeerIPs` adds the addresses a NAT or a published port makes datagrams
+  carry, validated at startup; nothing else from anyone. A refused datagram is counted, reported
+  once per 30 seconds and dropped unread ([datagram sources](../protocol/datagram-sources.md),
+  owned by `datagram_admission_tests`, the loops' wiring by `datagram_gate_audit`, since each
+  loop opens a database connection before it reads and has no test of its own). The compose
+  deployment with a routable catalogue address needs the pinned network and the
+  `DatagramPeerIPs` its `docker/conf/*.conf` carry. The gate is an address check, not
+  authentication: the forged-source residual, the sockets' bind address and the published port
+  are the owner's (task 11 (a), under *Blocked or with the owner*). The gate closes the fix
+  log's `datagram.txt` entry, and its review found task 16.

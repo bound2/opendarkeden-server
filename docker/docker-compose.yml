@@ -107,3 +107,12 @@ volumes:
 
 networks:
   odk-network:
+    # A pinned subnet. With a routable GameServerInfo.IP the loginserver's
+    # datagrams to the gameserver's published UDP port are hairpinned back
+    # into the container by Docker and arrive from this network's gateway,
+    # which DatagramPeerIPs in conf/gameserver.conf names
+    # (docs/protocol/datagram-sources.md). Change both together.
+    ipam:
+      config:
+        - subnet: 10.147.22.0/24
+          gateway: 10.147.22.1

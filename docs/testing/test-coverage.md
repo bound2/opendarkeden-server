@@ -276,9 +276,12 @@ game signal policy in subprocesses that cannot alter the runner's environment.
 retry waits, including real TCP/UDP bind failures on occupied ports without
 leaked descriptors and descriptor reuse after a failed construction.
 `datagram_admission_tests` covers the gate both datagram loops run before
-reading a datagram: the link of every datagram id, admission by the sender
-per link, the peers built from the configuration and the catalogue, and a
-refused datagram counted and reported with its id and sender
+reading a datagram: the link of every wire id, admission by the sender per
+link and per socket, the peers built from the configuration and the
+catalogue with `DatagramPeerIPs` validated, a refused datagram counted and
+reported with its id and sender, and an admitted one reading as before;
+`datagram_gate_audit` holds the loops' wiring in the source, since each loop
+opens a database connection before it reads
 ([datagram sources](../protocol/datagram-sources.md)).
 `server_port_settings_tests` covers required listener ports without opening
 sockets. Startup validates complete decimal ports in 1..65535 before publishing

@@ -14,7 +14,10 @@ UPDATE DARKEDEN.WorldDBInfo
        Password = 'elca110';
 
 -- Address and ports the client is told to connect to. Change the IP when the
--- client runs on a different machine than the server (and restart the server).
+-- client runs on a different machine than the server (and restart the server);
+-- the servers' own datagrams then reach the gameserver through the published
+-- port, from the compose network's gateway, which DatagramPeerIPs in
+-- conf/gameserver.conf names (docs/protocol/datagram-sources.md).
 UPDATE DARKEDEN.GameServerInfo
    SET IP      = '127.0.0.1',
        TCPPort = 9998,
