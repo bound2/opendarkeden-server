@@ -219,7 +219,7 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 - The R6 god files can keep shrinking (`Zone.cpp` 1,172 lines, `ConsoleCommands.cpp` 1,574;
   [the plan](RESTRUCTURING.md)'s ratchet table).
 - `bash tests/tools/wire_inventory_diff.sh <client-root>` ran clean on 2026-11-04 against the
-  client's task 23 branch, after failing on 42 read budgets on 2026-11-01: `CGSMSSend` (the
+  client's task 23 branch (its `007c0ff`), after failing on 42 read budgets on 2026-11-01: `CGSMSSend` (the
   client's task 17 raised its read) and 41 GC packets the client now reads up to what this
   server's `write()` can emit, which `kMaxSize` stated exactly for all but `GCNPCAskDynamic`
   ([fix log](FIXES.md), fixed), and `GearInfo`'s term, 13 slots where a creature wears 22, is
