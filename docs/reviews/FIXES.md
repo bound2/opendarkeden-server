@@ -256,8 +256,14 @@ repo and the client's. Entries below are newest first; the oldest is the
   `Scheduler::clear` at teardown deletes the work twice. Master did the
   same by leaving the running schedule queued. Today the throw is a
   `DatabaseError`, which no `catch (Throwable&)` stops, so it ends the
-  main loop first.
-  > **Status:** recorded, not fixed (fix/flag-schedule-lock)
+  main loop first. Fixed in fix/database-error-sites: `executeStart` and
+  `executeFinish` clear or record the round's statistics first
+  (`startFlagWar` deletes the stats before it marks the war on) and queue
+  their next step last, and `FlagManager::heartbeat` stops a
+  `DatabaseError`: the step is logged and queued again a minute later, the
+  one schedule it has, so the main loop goes on. Owner: `GameFlagStepFailure`
+  in `game_server_runtime_tests`.
+  > **Status:** fixed (fix/database-error-sites)
 
 ## A database failure while a login waits on a kick escapes to the main loop (2026-10-27)
 
@@ -269,8 +275,13 @@ repo and the client's. Entries below are newest first; the oldest is the
   is no `ConnectException`. `LoginPlayerManager::processCommands` catches
   neither, so a database failure on that path reaches
   `ClientManager::run`, which catches nothing, and ends the loginserver,
-  possibly after LOGON was written.
-  > **Status:** recorded, not fixed (fix/login-dispatch-wrap)
+  possibly after LOGON was written. Fixed in fix/database-error-sites:
+  `runLoginKickWait` (`LoginKickRetry.h`) wraps the kick-wait step as the
+  dispatch wrap does: a database failure is logged by its kind and becomes
+  a `DisconnectException`, which `LoginPlayerManager::processCommands`
+  retires the player on, logging the account off through `disconnect`.
+  Owner: `LoginKickWait` in `login_server_runtime_tests`.
+  > **Status:** fixed (fix/database-error-sites)
 
 ## A mysterious item's fallback is checked against the last failed draw (2026-10-27)
 

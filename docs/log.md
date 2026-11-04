@@ -1,5 +1,16 @@
 # Knowledge Bundle Update Log
 
+## 2026-11-04
+
+* **Update**: [exceptions and outcomes](architecture/exceptions-and-outcomes.md) says where a
+  `DatabaseError` is stopped and what each site does (the login's kick wait, the flag war's
+  steps, the zone-group tick and a player's disconnect), owned by `LoginKickWait`,
+  `GameFlagStepFailure`, `GameZoneDatabaseFailure` and `database_error_sites_audit`;
+  [test coverage](testing/test-coverage.md) and the [testing overview](testing/overview.md)
+  describe them, the [fix log](reviews/FIXES.md) marks the kick-wait and the flag-war entries
+  fixed, and the [next work plan](reviews/NEXT.md) moves task 10 to *Done*; `CLAUDE.md` and the
+  [reviews index](reviews/index.md) say so.
+
 ## 2026-11-02
 
 * **Update**: [repository seams](architecture/repository-seams.md) has a row and a paragraph for

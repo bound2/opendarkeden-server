@@ -14,6 +14,7 @@
 #include "Assert.h"
 #include "CGConnect.h"
 #include "Creature.h"
+#include "DatabaseError.h"
 #include "Deployment.h"
 #include "EventKick.h"
 #include "GCKickMessage.h"
@@ -540,6 +541,10 @@ void GamePlayer::disconnect(bool bDisconnected) {
         } catch (Throwable& t) {
             filelog("GamePlayer.txt", "disconnect could not take %s out of its zone and save it: %s",
                     CreatureName.c_str(), t.toString().c_str());
+        } catch (const DatabaseError& error) {
+            // The save's statement failed; the creature is out of its zone
+            // and the session ends as for any other disconnect.
+            filelog("GamePlayer.txt", "disconnect could not save %s: %s", CreatureName.c_str(), error.what());
         }
     }
 
@@ -549,11 +554,17 @@ void GamePlayer::disconnect(bool bDisconnected) {
     // A set id means the login happened.
     //--------------------------------------------------------------------------------
     if (m_ID != "") {
-        // Only a session still in GAME flips to LOGOFF. by sigi. 2002.5.15
-        defaultSessionRepository().markPlayerLoggedOff(m_ID);
+        try {
+            // Only a session still in GAME flips to LOGOFF. by sigi. 2002.5.15
+            defaultSessionRepository().markPlayerLoggedOff(m_ID);
 
-        // Delete the IP record.
-        defaultSessionRepository().deleteUserIP(CreatureName);
+            // Delete the IP record.
+            defaultSessionRepository().deleteUserIP(CreatureName);
+        } catch (const DatabaseError& error) {
+            // The account row keeps GAME until the loginserver's kick path
+            // reclaims it; the local session still ends.
+            filelog("GamePlayer.txt", "disconnect could not log %s off: %s", m_ID.c_str(), error.what());
+        }
     }
 
     // Tell the client to go to the login server.

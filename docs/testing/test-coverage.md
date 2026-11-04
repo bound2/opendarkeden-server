@@ -141,6 +141,10 @@ explicit transport actions and persistence, attempts every cleanup step, and
 retains failed logouts for retry. Tests cover all phases, first-error preservation,
 registration, completion retry, production socket closure and allocation faults.
 Login-player retirement removes table membership and polling before cleanup.
+`LoginKickWait` drives the kick-wait step with a resend and a completion that
+throw: a `ProtocolException` or a `ConnectException` passes on, and anything
+else (a `DatabaseError` among them) is reported by its kind and becomes a
+`DisconnectException`, with the retry's count kept.
 An allocation-free owner keeps failed account logouts for retries at five-second
 monotonic deadlines; completed cleanup releases the player immediately. Runtime
 tests cover broken cleanup/reporting, deadline boundaries, descriptor reuse,
@@ -244,7 +248,16 @@ logs both failed flushes and still ends the session.
 is pulled forward only when the group drains its mailbox.
 `GameFlagSchedule` runs `FlagManager`'s heartbeat on one thread while another
 pulls the schedule forward, as `*command CTF` does, and checks the queue keeps
-its count.
+its count. `GameFlagStepFailure` runs a step whose statement fails through the
+heartbeat, which stops the `DatabaseError` and queues the step once more a
+minute later, and refuses the start's and the finish's database work to see
+that neither queues its next step. `GameZoneDatabaseFailure` registers a player
+whose command processing fails on a statement in a `ZonePlayerManager` over a
+loopback connection: the tick goes on, the player is out of the table and the
+incoming manager's cleanup disconnects it. `database_error_sites_audit` holds
+the catches in `ZoneGroup` and `GamePlayer::disconnect`, which no test drives
+without a loaded zone and a database
+([exceptions and outcomes](../architecture/exceptions-and-outcomes.md)).
 
 # The startup and library tests
 

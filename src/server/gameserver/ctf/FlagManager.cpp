@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 
+#include "DatabaseError.h"
 #include "EffectFlagInsert.h"
 #include "EffectManager.h"
 #include "FlagWar.h"
@@ -17,6 +18,7 @@
 #include "PlayerCreature.h"
 #include "Properties.h"
 #include "SystemAvailabilitiesManager.h"
+#include "Utility.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
 #include "repository/FlagWarRepository.h"
@@ -96,6 +98,9 @@ void FlagManager::addPoleField(Zone* pZone, ZoneCoord_t left, ZoneCoord_t top, u
     m_PoleFields.push_back(PoleFieldInfo(pZone->getZoneID(), left, top, width * 2, height * 2));
 }
 
+// How long after a failed statement a step runs again.
+static const int kFailedStepRetrySecs = 60;
+
 Work* FlagManager::heartbeat() {
     Schedule* pDue = NULL;
 
@@ -110,6 +115,19 @@ Work* FlagManager::heartbeat() {
 
     try {
         pDue->run();
+    } catch (const DatabaseError& error) {
+        // The step's statement failed: the step stays the one schedule it
+        // is, a minute away, so the war waits for the database instead of
+        // ending the main loop; each step queues its next one only after
+        // the work that can throw, so nothing is queued twice. The message
+        // names the function and the driver's error, no SQL.
+        Work* pWork = pDue->popWork();
+        SAFE_DELETE(pDue);
+        diagnosticFilelog("FlagWar.log",
+                          "FlagManager::heartbeat: %s failed on a statement (%s); it runs again in a minute",
+                          pWork->toString().c_str(), error.what());
+        addSchedule(new Schedule(pWork, VSDateTime::currentDateTime().addSecs(kFailedStepRetrySecs)));
+        return NULL;
     } catch (...) {
         addSchedule(pDue);
         throw;
@@ -148,6 +166,11 @@ void FlagManager::manualStart() {
 bool FlagManager::startFlagWar(int warSecs) {
     if (m_bHasFlagWar)
         return false;
+
+    // The round's planting record is cleared before anything the war keeps
+    // changes: a statement that fails leaves the war unstarted, so the step
+    // that called can run again.
+    deleteFlagWarStats();
     m_bHasFlagWar = true;
 
     VSDateTime endTime = VSDateTime::currentDateTime().addSecs(warSecs);
@@ -375,8 +398,6 @@ void FlagManager::resetFlagCounts() {
     m_FlagCount[OUSTERS] = 0;
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    deleteFlagWarStats();
 }
 
 // Clears out the FlagWarStat table, the round's per-player planting record.

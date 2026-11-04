@@ -72,8 +72,10 @@ public:
     // Runs the earliest schedule once it is due. It is taken out of the queue
     // under m_ScheduleMutex and run after the mutex is released, so a war's
     // step adds its next schedule, and a GM's manualStart pulls one forward,
-    // without meeting the schedule that is running. A run that throws puts
-    // the schedule back for the next heartbeat.
+    // without meeting the schedule that is running. A run whose statement
+    // fails (a DatabaseError) is logged and queued again a minute later, the
+    // one schedule its step has; any other throw puts the schedule back for
+    // the next heartbeat and goes on up.
     virtual Work* heartbeat();
     // Takes m_ScheduleMutex; it hides Scheduler's unlocked add.
     void addSchedule(Schedule* pSchedule);
@@ -90,9 +92,12 @@ public:
     Race_t getWinnerRace(uint& count) const;
     uint getFlagCount(Race_t race) const;
 
-    // warSecs is how long the war starting now runs.
-    bool startFlagWar(int warSecs);
-    bool endFlagWar();
+    // warSecs is how long the war starting now runs. Each clears or records
+    // the round's statistics before anything else changes, so a statement
+    // that fails leaves the war as it was; virtual so a test can refuse that
+    // work.
+    virtual bool startFlagWar(int warSecs);
+    virtual bool endFlagWar();
 
     bool isFlagPole(MonsterCorpse* pFlagPole) {
         return m_FlagPoles.find(pFlagPole) != m_FlagPoles.end();
@@ -128,7 +133,8 @@ public:
 
     //	VSDateTime getNextFlagWarTime();
 
-    // Zeroes the counts and deletes the round's flag statistics.
+    // Zeroes the counts; startFlagWar deletes the round's flag statistics
+    // before it.
     void resetFlagCounts();
     void deleteFlagWarStats();
 

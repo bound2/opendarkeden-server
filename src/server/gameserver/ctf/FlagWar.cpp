@@ -100,6 +100,11 @@ void FlagWar::executeReady() {
 }
 
 void FlagWar::executeStart() {
+    // The round's record is cleared first, in startFlagWar: a statement that
+    // fails there leaves the war unstarted, nothing dropped and nothing
+    // queued, so the heartbeat can run this step again.
+    m_FlagManager.startFlagWar(getWarTime());
+
     GCNoticeEvent gcNE;
     gcNE.setCode(NOTICE_EVENT_FLAG_WAR_START);
 
@@ -126,10 +131,14 @@ void FlagWar::executeStart() {
 
     // Let it run for 2 hours
     m_FlagManager.addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(getWarTime())));
-    m_FlagManager.startFlagWar(getWarTime());
 }
 
 void FlagWar::executeFinish() {
+    // The history is recorded first, in endFlagWar: a statement that fails
+    // there leaves the war running and nothing queued, so the heartbeat can
+    // run this step again.
+    m_FlagManager.endFlagWar();
+
     GCNoticeEvent gcNE;
     gcNE.setCode(NOTICE_EVENT_FLAG_WAR_FINISH);
 
@@ -141,7 +150,6 @@ void FlagWar::executeFinish() {
 
     // The items burst in 3 minutes.
     m_FlagManager.addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(180)));
-    m_FlagManager.endFlagWar();
 }
 
 void FlagWar::executeEnd() {

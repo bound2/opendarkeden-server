@@ -1,7 +1,7 @@
 ---
 type: Record
 title: "Next work plan"
-description: "The ranked, self-contained tasks in the server as of 2026-11-02, each written so an agent with no other context can take it: a database error that ends a process, a sanitized run of the suite, the handler layer, the persistence design the login flows need, the entries recorded on 2026-10-27, housekeeping, and what stays blocked or with the owner; the published datagram socket and the port check's unescaped write are done."
+description: "The ranked, self-contained tasks in the server as of 2026-11-04, each written so an agent with no other context can take it: a sanitized run of the suite, the handler layer, the persistence design the login flows need, the entries recorded on 2026-10-27, housekeeping, and what stays blocked or with the owner; the published datagram socket, the port check's unescaped write and the database error that ended a process are done."
 tags: [review, plan]
 ---
 
@@ -16,8 +16,8 @@ was found while restructuring and left as it was, by the rule that a move does n
 behaviour. Four new tasks came from reading the code on 2026-11-01: the gameserver's datagram
 socket, which the compose file publishes, dispatched relayed GM commands from any sender (task
 11, done on 2026-11-02, whose review found task 16, the port check's unescaped database write,
-done the same day); a database error ends a process; nothing runs the suite sanitized; and the
-handler layer has no instrument.
+done the same day); a database error ended a process (task 10, done on 2026-11-04); nothing
+runs the suite sanitized; and the handler layer has no instrument.
 What is left is below, ranked by the harm it closes, with a cheap fix ahead of a dearer one of
 the same harm. Each task names the code, the test it wants and the rule it must keep, so it can
 be taken cold. One task per PR.
@@ -55,40 +55,9 @@ be taken cold. One task per PR.
 ## Tasks
 
 Ranked 2026-11-01. The order is the rank and the numbers are identities, so a *Done* entry
-keeps its name: 16 came from task 11's review (both are under *Done*), 10 to 13 were new, 8
-stays, 14 ranks the entries recorded on 2026-10-27 that no task held, 9 stays, 15 is housekeeping.
-
-### 10. A database failure ends a process
-
-**What:** `DatabaseError` (`src/server/database/DatabaseError.h`) is deliberately unrelated to
-`Throwable` and to `std::exception`, as its header says: the `__END_CATCH_NO_RETHROW` sites
-(`grep -rn '__END_CATCH_NO_RETHROW' src | wc -l`, 193 on 2026-11-01) swallow a `Throwable`, and
-a database failure was not to be swallowed by them. The other side of that choice is that
-nothing stops it on the way up either: `ZoneGroupThread::run`'s catches take `Throwable&` and
-rethrow, `__END_DEBUG` rethrows, and `ManagedThread::start` turns anything that escapes a worker
-into `ServerShutdown::fail()`. The fix log has two paths that end a process this way: *A flag
-war step that throws after queuing its next step is queued twice* (`FlagWar::executeStart` and
-`executeFinish`, whose database work throws a `DatabaseError` that "no `catch (Throwable&)`
-stops, so it ends the main loop first") and *A database failure while a login waits on a kick
-escapes to the main loop* (`LoginPlayer::processCommand`'s kick-wait branch, before the dispatch
-task 3 wrapped, reaching `ClientManager::run`, "possibly after LOGON was written"). Any other
-query that fails inside a zone-group tick or a heartbeat does the same.
-
-**How:** the decision is per site, not per type: where a database error is stopped and what a
-failed query means there. Keep the type as it is (its header records why) and catch it by name
-at the three sites: `LoginPlayerManager::processCommands`, where the kick-wait path then retires
-the login as task 3's wrap does; the flag war's steps, where a step whose database work throws
-leaves one schedule, not two (queue the next step after the work that can throw, and stop the
-error at the heartbeat); and the zone-group tick, where a failed query is logged and the tick
-goes on with the player disconnected or the step skipped. Record the decision as a design note
-in [exceptions and outcomes](../architecture/exceptions-and-outcomes.md). Tests: the runtime
-tests link the production objects with supplied repositories
-([test coverage](../testing/test-coverage.md)), so each path gets a test whose repository throws
-a `DatabaseError` and expects the loop to continue, in the shape of
-`tests/login_handler_failure_test.cpp` and `tests/game_flag_schedule_test.cpp`. Both entries'
-Status lines become `fixed`. Rule kept: `throw Error("text")`, never a string
-([exceptions and outcomes](../architecture/exceptions-and-outcomes.md)), and a process ends only
-as [lifecycle rules](../startup/lifecycle-rules.md) say.
+keeps its name: 16 came from task 11's review, 10 to 13 were new (10, 11 and 16 are under
+*Done*), 8 stays, 14 ranks the entries recorded on 2026-10-27 that no task held, 9 stays, 15 is
+housekeeping.
 
 ### 12. A sanitized run of the suite
 
@@ -358,3 +327,14 @@ PRs #386-#391 were closed unmerged: their commits reached master as the stack PR
   (task 16 (a), under *Blocked or with the owner*): a port check naming a recorded character
   still overwrites its row, and one row per distinct name (`varchar(10)`, so a longer name is
   stored truncated) is still any sender's to add.
+- **10. A database failure ends a process** (PR #__S10__, `fix/database-error-sites`): a
+  `DatabaseError` is stopped where its failed statement has a meaning
+  ([exceptions and outcomes](../architecture/exceptions-and-outcomes.md)): the login's kick wait
+  retires the login through `runLoginKickWait`, as the dispatch wrap does for a handler; the flag
+  war's steps clear or record the round's statistics before they change or queue anything, and
+  `FlagManager::heartbeat` queues a failed step again a minute later, the one schedule it has; the
+  zone-group tick moves a player whose statement failed out of the group, skips the rest of a
+  zone's or a step's tick, and a disconnecting player's local session ends past a failed save or
+  log-off. Owners: `LoginKickWait`, `GameFlagStepFailure`, `GameZoneDatabaseFailure` and
+  `database_error_sites_audit`; both fix-log entries are fixed. Left as they were: the main
+  thread's war and event heartbeats in `ClientManager::run`.
