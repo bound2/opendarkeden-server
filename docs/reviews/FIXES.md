@@ -23,35 +23,43 @@ repo and the client's. Entries below are newest first; the oldest is the
 ## `GCNPCAskDynamic` can write past its own budget (2026-11-04)
 
 - **`GCNPCAskDynamic::kMaxSize` budgets 1,024 bytes for the subject and
-  for each of 15 choices, and nothing enforced it:** `write()` put each
-  string behind a WORD length as long as the string was (`setSubject`
-  and `addContent` took any `std::string`), so a script whose question
-  or answer ran past 1,024 bytes wrote a body the client's receive gate
-  refuses at the factory's maximum, and a string past 65,535 bytes
-  wrote a length word that wrapped under every byte of the string. Found
-  by the client's task 23 (its read budgets against this repo's
-  writers), where this was the one GC budget of 41 that was not what
-  `write()` can emit. Fixed in fix/npc-ask-dynamic-bound:
-  `kMaxStringSize` (1,024) is the budget's term, and the setters and
-  `write()` refuse a longer string with an `InvalidProtocolException`,
-  as they refuse a sixteenth choice. Owner: `GCNPCAskDynamicBounds` in
-  `wire_tests`.
+  for each of 15 choices, and nothing enforced the budget:** `write()`
+  put each string behind a WORD length as long as the string was
+  (`setSubject` and `addContent` took any `std::string`), so a script
+  whose question and answers ran past 16,425 bytes together wrote a body
+  the client's receive gate refuses at the factory's maximum, and a
+  string longer than a WORD holds (from 65,537 bytes) a length word that
+  wrapped under the string. Found by the client's task 23 (its read
+  budgets against this repo's writers), where this was the one GC budget
+  of 41 that was not what `write()` can emit. Fixed in
+  fix/npc-ask-dynamic-bound: `write()` refuses a body past `kMaxSize` as
+  a whole with an `InvalidProtocolException`, which is what the client's
+  gate admits (a subject past the 1,024-byte term still fits when the
+  choices leave room), as it refuses a sixteenth choice. A script that
+  does not fit is refused at the talk, where `CGNPCTalkHandler`'s catch
+  drops the question unsent; nothing checks the `Script` table at load,
+  and the longest shipped subject is 958 bytes. Owner:
+  `GCNPCAskDynamicBounds` in `wire_tests`.
   > **Status:** fixed (fix/npc-ask-dynamic-bound)
 
 ## `GearInfo` budgets 13 gear slots where a creature wears up to 22 (2026-11-04)
 
-- **`GearInfo::getMaxSize()` is `szBYTE + GearSlotInfo::getMaxSize() * 13`
+- **`GearInfo::getMaxSize()` was `szBYTE + GearSlotInfo::getMaxSize() * 13`
   in this repo and the client's, while `Slayer::WEAR_MAX` is 21 and the
-  vampire's and ousters' 22, and `GearInfo::write` emits one slot per
-  worn item with no cap:** a player wearing more than 13 items writes a
-  `GCUpdateInfo` body past the gear term. The packet's own budget still
-  covers it, since `RideMotorcycleInfo`'s slot list, budgeted at 60
-  slots, is never filled (`Slayer::getRideMotorcycleInfo` adds none),
-  so the true maximum of `GCUpdateInfo` (near 40,890 bytes) stays under
-  the 59,146 both repos budget. Found by the client's task 23. Raising
-  the term moves `GCUpdateInfo`'s inventory line in both repos, a
-  protocol change to ship identically; not done here.
-  > **Status:** open
+  vampire's and ousters' 22, and `GearInfo::write` emits one record per
+  worn item with no cap:** the term is in two budgets. `GCMorph1`
+  (26,209) has nothing else to spare, so a morph of a player wearing
+  more than 13 items (up to 29,368 bytes) is refused by the client's
+  gate, which drops the connection; `GCUpdateInfo` (59,146) overflowed
+  its gear term into the slack its never-filled motorcycle slot list
+  leaves (`RideMotorcycleInfo` budgets 60 slots and
+  `Slayer::getRideMotorcycleInfo` adds none). Found by the client's task
+  23 and the review of this fix. Fixed in fix/npc-ask-dynamic-bound, with
+  the client's task 23 branch: the term counts `GearInfo::kMaxSlots`
+  (22) in both repos, so `GCMorph1`'s inventory line is 29,368 and
+  `GCUpdateInfo`'s 62,305 in both; no byte on the wire moves. Owner: the
+  wire-layout inventory in both repos and the cross-repo diff.
+  > **Status:** fixed (fix/npc-ask-dynamic-bound)
 
 ## Any sender can set the address and port recorded for any character (2026-11-02)
 

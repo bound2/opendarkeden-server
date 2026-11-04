@@ -30,9 +30,11 @@ public:
     // SCRIPT_MAX_CONTENTS choices, and the factory max budgets this many.
     static constexpr uint kMaxCount = 15;
 
-    // The most bytes the subject and each choice carry: the factory max
-    // budgets this many per string, and the setters and write() refuse
-    // more, so the budget is what write() can emit.
+    // The bytes the factory max budgets for the subject and for each
+    // choice: the budget's term, not a bound on one string. write() refuses
+    // a body past the budget as a whole, which is what the client's gate
+    // admits, so a subject past this term still fits when the choices leave
+    // room, and the budget is what write() can emit.
     static constexpr uint kMaxStringSize = 1024;
 
     PacketSize_t getPacketSize() const {
@@ -73,8 +75,6 @@ public:
         return m_Subject;
     }
     void setSubject(string subject) {
-        if (subject.size() > kMaxStringSize)
-            throw InvalidProtocolException("subject too long");
         m_Subject = subject;
     }
 

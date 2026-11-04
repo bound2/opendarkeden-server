@@ -3,8 +3,8 @@
 ## 2026-11-04
 
 * **Update**: the [fix log](reviews/FIXES.md) records `GCNPCAskDynamic` writing past its own
-  budget (fixed) and `GearInfo`'s 13 slots against `WEAR_MAX` (open), both found by the client's
-  read-budget task; the [wire contract](protocol/wire-contract.md) and the
+  budget and `GearInfo`'s 13 slots against `WEAR_MAX`, both found by the client's read-budget
+  task and fixed in both repos at once; the [wire contract](protocol/wire-contract.md) and the
   [next work plan](reviews/NEXT.md) say the cross-repo inventory diff ran clean on 2026-11-04.
 
 ## 2026-11-02

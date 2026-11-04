@@ -74,13 +74,16 @@ void GCNPCAskDynamic::write(SocketOutputStream& oStream) const
     if (m_Contents.size() > kMaxCount)
         throw InvalidProtocolException("too many contents");
 
+    // The budget is what this can emit: a body past it would be refused by
+    // the client's gate, and a string longer than a WORD holds cannot fit.
+    if (getPacketSize() > GCNPCAskDynamicFactory::kMaxSize)
+        throw InvalidProtocolException("body past the budget");
+
     oStream.write(m_ObjectID);
     oStream.write(m_ScriptID);
 
     if (m_Subject.size() == 0)
         throw InvalidProtocolException("subject size == 0");
-    if (m_Subject.size() > kMaxStringSize)
-        throw InvalidProtocolException("subject too long");
     size = m_Subject.size();
     oStream.write(size);
     oStream.write(m_Subject);
@@ -92,8 +95,6 @@ void GCNPCAskDynamic::write(SocketOutputStream& oStream) const
     for (; itr != m_Contents.end(); itr++) {
         // The string length, then the string itself. An empty choice is its
         // length word alone.
-        if ((*itr).size() > kMaxStringSize)
-            throw InvalidProtocolException("content too long");
         size = (*itr).size();
         oStream.write(size);
 
@@ -138,8 +139,6 @@ void GCNPCAskDynamic::addContent(string content)
 
     if (m_Contents.size() >= kMaxCount)
         throw InvalidProtocolException("too many contents");
-    if (content.size() > kMaxStringSize)
-        throw InvalidProtocolException("content too long");
 
     m_Contents.push_back(content);
 

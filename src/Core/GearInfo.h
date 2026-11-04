@@ -29,8 +29,13 @@ public:
 
     PacketSize_t getSize();
 
+    // The most slots a creature wears, the vampire's and the ousters'
+    // WEAR_MAX (the slayer's is 21): write() emits one record per worn item,
+    // so the budget counts this many.
+    static constexpr uint kMaxSlots = 22;
+
     static constexpr uint getMaxSize() {
-        return szBYTE + (GearSlotInfo::getMaxSize() * 13);
+        return szBYTE + (GearSlotInfo::getMaxSize() * kMaxSlots);
     }
 
     string toString() const;

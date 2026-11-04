@@ -222,9 +222,10 @@ Each is one PR, with a fix-log entry naming the branch that found it:
   client's task 23 branch, after failing on 42 read budgets on 2026-11-01: `CGSMSSend` (the
   client's task 17 raised its read) and 41 GC packets the client now reads up to what this
   server's `write()` can emit, which `kMaxSize` stated exactly for all but `GCNPCAskDynamic`
-  ([fix log](FIXES.md), fixed). Still in view there: `GearInfo`'s 13 slots against `WEAR_MAX`
-  in both repos (the fix log's open entry) and the dead `szWORD` and `255` terms in the eleven
-  skill, bomb and mine budgets, which the client copied so the lines agree.
+  ([fix log](FIXES.md), fixed), and `GearInfo`'s term, 13 slots where a creature wears 22, is
+  raised in both repos at once (the fix log; `GCMorph1` and `GCUpdateInfo` move). Slack, not a
+  refusal risk, left for a cleanup in both repos at once: the dead `szWORD` and `255` terms in
+  the eleven skill, bomb and mine budgets, which the client copied so the lines agree.
 
 ## Blocked or with the owner
 
