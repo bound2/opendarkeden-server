@@ -48,6 +48,12 @@ add_library(ServerPortSettings STATIC ServerPortSettings.cpp)
 target_include_directories(ServerPortSettings PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ServerPortSettings PUBLIC de-kernel)
 
+# Which sender a datagram is admitted from, by its packet's link; the gate the
+# datagram loops run before reading, without sockets or managers.
+add_library(DatagramAdmission STATIC DatagramAdmission.cpp)
+target_include_directories(DatagramAdmission PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(DatagramAdmission PUBLIC ServerCore)
+
 # Shared lifecycle control without a concrete server, listeners or database.
 add_library(ServerLifecycle STATIC ServerLifecycle.cpp)
 target_include_directories(ServerLifecycle PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

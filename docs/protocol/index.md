@@ -9,6 +9,7 @@
 # Rules
 
 * [Client link](client-link.md) - A client's connection admits only the packets a client sends; the gameserver's in-game set is folded from its factory lists, and a handler for a packet the link refuses does not compile.
+* [Datagram sources](datagram-sources.md) - A datagram is read only from a sender its packet's link admits: a client's port check from anywhere, the loginserver's packets only from the configured loginserver, a gameserver's only from the gameservers the catalogue lists; a refused datagram is counted and dropped unread.
 * [De-core parity](decore-parity.md) - A change to src/domain is done only when the client's byte-identical copy is resynced and the diff is clean; a changed vector row is a balance change.
 * [Factory registrations](factory-registrations.md) - Each server registers exactly the factories it registered before, and the generated factory list matches the kernel membership.
 * [Frame gate](frame-gate.md) - A packet's read() sees exactly the body its header declares, and the gameserver checks the sequence byte only where the frame is consumed.

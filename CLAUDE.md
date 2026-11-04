@@ -63,12 +63,13 @@ perl tests/tools/check_knowledge_bundle.pl .   # the bundle check alone, before 
 - Factories carry `kPacketID`/`kName`/`kMaxSize`; edit the `constexpr` factory lists, never an `addFactory` sequence - [packet system](docs/protocol/overview.md).
 - Each server registers exactly the factories it registered before, on an add or a drop - [factory registrations](docs/protocol/factory-registrations.md).
 - A client connection admits only what a client sends; a new client-sent GC packet needs its id in `src/Core/GameClientLink.h` - [client link](docs/protocol/client-link.md).
+- A datagram is read only from a sender its link admits (`src/server/DatagramAdmission.h`): the port check from anywhere on the gameserver, the loginserver's packets from `LoginServerIP`, a gameserver's from the catalogue's gameservers and `DatagramPeerIPs`; an address check, not authentication - [datagram sources](docs/protocol/datagram-sources.md).
 - A `read()` sees exactly its declared body and refuses a malformed one only with a `ProtocolException` - [frame gate](docs/protocol/frame-gate.md).
 - Every input that ever crashed a fuzz target goes in `tests/fuzz/regressions/` with its fix - [packet-read fuzzing](docs/protocol/fuzzing.md).
 
 ## Database and repositories
 
-- All SQL lives behind a `*Repository.h` seam with a `MySQL*Repository.cpp` impl; read the header's `Not enclosed` list first, move statements byte-for-byte, and use the parameterized `executeQuery` (`%u`, `%d`, `%ld`) - [repository seams](docs/architecture/repository-seams.md).
+- All SQL lives behind a `*Repository.h` seam with a `MySQL*Repository.cpp` impl; read the header's `Not enclosed` list first, move statements byte-for-byte, and use the parameterized `executeQuery` (`%u`, `%d`, `%ld`) and `de::escapeSqlLiteral` for a text the wire supplies - [repository seams](docs/architecture/repository-seams.md).
 - MySQL 5.7 or 8 with the relaxed `sql_mode` (no `NO_ZERO_DATE`, `STRICT_TRANS_TABLES` or `NO_BACKSLASH_ESCAPES`; `ONLY_FULL_GROUP_BY` stays), utf8mb4 end to end with a session pin; migrations are one-time and nothing checks them - [database setup](docs/database/overview.md).
 - Every `initdb/` table is InnoDB utf8mb4, every seed `Player` row an argon2id hash; every seed union has a member or a pending join offer, every join offer names a union, and no guild leads or joins two unions - [seed-data rules](docs/database/seed-data-rules.md).
 
@@ -94,4 +95,4 @@ allocation faults; what each one exercises is in [test coverage](docs/testing/te
 
 - [The restructuring plan](docs/reviews/RESTRUCTURING.md): every task with its Status line and the R1-R19 ratchet table.
 - [The fix log](docs/reviews/FIXES.md): every bug found, newest first, each with its Status.
-- [The next work plan](docs/reviews/NEXT.md): the ranked tasks left after the 2026-10-25 merges and what stays with the owner; take one per PR.
+- [The next work plan](docs/reviews/NEXT.md): the tasks ranked on 2026-11-02 (a database error that ends a process, a sanitized run of the suite, the handler layer, the login persistence design, the entries recorded on 2026-10-27, housekeeping; the published datagram socket and the port check's unescaped write are done) and what stays with the owner; take one per PR.

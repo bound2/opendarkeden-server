@@ -246,6 +246,61 @@ add_test(NAME listener_startup_tests COMMAND listener_startup_tests
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(listener_startup_tests PROPERTIES TIMEOUT 30)
 
+# The gate each datagram loop runs a received datagram through: admission by
+# the packet's link and the sender, over the catalogue and the configuration.
+add_executable(datagram_admission_tests EXCLUDE_FROM_ALL datagram_admission_test.cpp)
+target_link_libraries(datagram_admission_tests PRIVATE DatagramAdmission Core TestPackets Database ${MYSQL_LIBRARY} gtest_main)
+add_dependencies(wire_tests datagram_admission_tests)
+add_test(NAME datagram_admission_tests COMMAND datagram_admission_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(datagram_admission_tests PROPERTIES TIMEOUT 30)
+
+# The two datagram loops consult the gate before reading: neither loop has
+# a test of its own (each opens a database connection before it reads), so
+# the wiring is audited in the source.
+add_test(NAME datagram_gate_audit
+    COMMAND bash ${CMAKE_SOURCE_DIR}/tests/tools/check_datagram_gate.sh ${CMAKE_SOURCE_DIR}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_tests_properties(datagram_gate_audit PROPERTIES TIMEOUT 30)
+
+# The port check's name rule and the record behind it, against a fake
+# session repository: a refused name throws before the repository is
+# asked. de-kernel carries InvalidProtocolException.
+add_executable(port_check_tests EXCLUDE_FROM_ALL
+    port_check_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/PortCheck.cpp
+)
+target_include_directories(port_check_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+)
+target_link_libraries(port_check_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests port_check_tests)
+add_test(NAME port_check_tests COMMAND port_check_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(port_check_tests PROPERTIES TIMEOUT 30)
+
+# The port check handler records a name only through de::recordPortCheck:
+# it has no test of its own, since defaultSessionRepository() is the
+# process-wide MySQL instance, so the wiring is audited in the source.
+add_test(NAME port_check_wiring_audit
+    COMMAND bash ${CMAKE_SOURCE_DIR}/tests/tools/check_port_check_wiring.sh ${CMAKE_SOURCE_DIR}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_tests_properties(port_check_wiring_audit PROPERTIES TIMEOUT 30)
+
+# The SQL literal escape without a live connection, the pass the
+# repositories fall back on; with a connection the client library escapes,
+# which make integration-test covers through the UserIPInfo statements.
+add_executable(sql_literal_tests EXCLUDE_FROM_ALL sql_literal_test.cpp)
+target_include_directories(sql_literal_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/Core)
+target_link_libraries(sql_literal_tests PRIVATE Database ServerCore ${MYSQL_LIBRARY} gtest_main Threads::Threads)
+add_dependencies(wire_tests sql_literal_tests)
+add_test(NAME sql_literal_tests COMMAND sql_literal_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(sql_literal_tests PROPERTIES TIMEOUT 30)
+
 add_executable(server_port_settings_tests EXCLUDE_FROM_ALL server_port_settings_test.cpp)
 target_link_libraries(server_port_settings_tests PRIVATE ServerPortSettings gtest_main)
 add_dependencies(wire_tests server_port_settings_tests)
@@ -810,6 +865,7 @@ add_executable(character_creation_tests EXCLUDE_FROM_ALL
 target_include_directories(character_creation_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/support
     ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server
     ${CMAKE_SOURCE_DIR}/src/server/loginserver
 )
 target_link_libraries(character_creation_tests PRIVATE de-kernel gtest_main Threads::Threads)

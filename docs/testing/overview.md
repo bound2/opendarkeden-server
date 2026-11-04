@@ -29,11 +29,11 @@ Windows host `make dev-test` is the one to use ([container builds](../build/cont
 |---|---|---|
 | Wire | `wire_tests` | golden byte fixtures and loopback round-trips for the registered packet factories (the inventory covers all 465, the goldens 451), the frame bounds and the read-bounds pins ([wire contract](../protocol/wire-contract.md), [frame gate](../protocol/frame-gate.md)) |
 | Runtime | `game_server_runtime_tests`, `login_server_runtime_tests`, `shared_server_runtime_tests` | the production `*Runtime` objects linked without `main.cpp`, with supplied repositories, real sockets and allocation faults; their test groups own the rule tables under [game](../game/index.md), [login](../login/index.md) and [shared](../shared/index.md) |
-| Startup libraries | `server_*_tests`, `listener_startup_tests`, `socket_*_tests`, `managed_thread_tests` and the rest | the entry-point composition, each library alone ([startup](../startup/index.md)) |
-| Decisions | `login_decision_tests`, `character_*_tests`, `*_decision_tests`, `formula_tests` | `Outcome` values and pure formulas against fakes, no database ([exceptions and outcomes](../architecture/exceptions-and-outcomes.md)) |
-| Links | `game_client_link_tests`, `login_client_link_tests`, `game_frame_gate_tests` | what a client connection admits and how a frame is consumed |
+| Startup libraries | `server_*_tests`, `listener_startup_tests`, `socket_*_tests`, `managed_thread_tests`, `sql_literal_tests` and the rest | the entry-point composition, each library alone ([startup](../startup/index.md)) |
+| Decisions | `login_decision_tests`, `character_*_tests`, `*_decision_tests`, `port_check_tests`, `formula_tests` | `Outcome` values and pure formulas against fakes, no database ([exceptions and outcomes](../architecture/exceptions-and-outcomes.md)) |
+| Links | `game_client_link_tests`, `login_client_link_tests`, `game_frame_gate_tests`, `datagram_admission_tests`, `datagram_gate_audit` | what a client connection admits, how a frame is consumed, and which sender a datagram is read from ([datagram sources](../protocol/datagram-sources.md)) |
 | Fuzz replays | `fuzz_replay_game`, `fuzz_replay_login`, `fuzz_replay_login_datagram`, `fuzz_replay_game_any_id` | every golden seed and every recorded crash through the mirrored receive loops ([fuzzing](../protocol/fuzzing.md)) |
-| Audits | `ratchets`, `arch_includes`, `critical_section_audit`, `knowledge_bundle`, `r5_retire_try_selftest` | the shrink-only counts, the include graph, hand-written unlocks, this bundle, the try-macro retirement tool (`tools/r5_retire_try.pl`) |
+| Audits | `ratchets`, `arch_includes`, `critical_section_audit`, `port_check_wiring_audit`, `knowledge_bundle`, `r5_retire_try_selftest` | the shrink-only counts, the include graph, hand-written unlocks, the port check handler's wiring, this bundle, the try-macro retirement tool (`tools/r5_retire_try.pl`) |
 | Integration | `make integration-test` (`tests/integration/`) | every `MySQL*Repository` implementation against a real MySQL with the `initdb/` schema |
 
 The whole packet set is compiled once, macro-free, in `de-kernel`, the archive the deployed

@@ -212,7 +212,10 @@ Rules: [connections and players](../game/connections-and-players.md).
 The game runtime tests exercise owned game admission with an injected listener
 and context, without database initialization. Sockets stay owned through
 authorization; `GameConnection` retains players through registration and ends
-their local session on cleanup.
+their local session on cleanup. The port check's name rule, its record and the
+handler's wiring are covered beside the datagram gate under *Startup,
+configuration and lifecycle* (`port_check_tests`, `port_check_wiring_audit`,
+`sql_literal_tests`).
 Allocation faults, refusal diagnostics, descriptor limits, real socket I/O and
 retry cover admission; scoped teardown restores the connection-info binding and
 releases the listener, player table and both queues. Explicit `clearPlayers`
@@ -275,6 +278,25 @@ game signal policy in subprocesses that cannot alter the runner's environment.
 `listener_startup_tests` exercises bind retries, diagnostics and shutdown during
 retry waits, including real TCP/UDP bind failures on occupied ports without
 leaked descriptors and descriptor reuse after a failed construction.
+`datagram_admission_tests` covers the gate both datagram loops run before
+reading a datagram: the link of every wire id, admission by the sender per
+link and per socket, the peers built from the configuration and the
+catalogue with `DatagramPeerIPs` validated, a refused datagram counted and
+reported with its id and sender, and an admitted one reading as before;
+`datagram_gate_audit` holds the loops' wiring in the source, since each loop
+opens a database connection before it reads
+([datagram sources](../protocol/datagram-sources.md)).
+`port_check_tests` covers the port check's name rule and the record behind it
+over a fake session repository: a name character creation would refuse (empty,
+past 20 bytes, a reserved token) or that no statement may carry (a control
+byte, bytes that are not UTF-8) throws before the repository is asked, and an
+accepted one is recorded as sent; `port_check_wiring_audit` holds the handler's
+wiring in the source, since nothing replaces `defaultSessionRepository()` in a
+test; `sql_literal_tests` covers
+`de::escapeSqlLiteral` without a live connection (NUL bytes dropped, the quote
+and the backslash escaped), and `make integration-test`'s `SessionMySQL` cases
+store a quoted or a literal-ending `UserIPInfo` name as sent and reach no
+other row through it ([repository seams](../architecture/repository-seams.md)).
 `server_port_settings_tests` covers required listener ports without opening
 sockets. Startup validates complete decimal ports in 1..65535 before publishing
 configuration: `TCPPort`/`GameServerUDPPort` for game, `LoginServerPort`/

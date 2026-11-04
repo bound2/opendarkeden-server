@@ -1,18 +1,23 @@
 ---
 type: Record
 title: "Next work plan"
-description: "The ranked, self-contained tasks left in the server after the 2026-10-25 merges, each written so an agent with no other context can take it: the recorded-not-fixed entries of the fix log, the persistence design the login flows need, and what stays blocked or with the owner."
+description: "The ranked, self-contained tasks in the server as of 2026-11-02, each written so an agent with no other context can take it: a database error that ends a process, a sanitized run of the suite, the handler layer, the persistence design the login flows need, the entries recorded on 2026-10-27, housekeeping, and what stays blocked or with the owner; the published datagram socket and the port check's unescaped write are done."
 tags: [review, plan]
 ---
 
 # Next work plan
 
-Written 2026-10-26, after the merges of PRs #374-#383. The [restructuring plan](RESTRUCTURING.md)
-has two unticked tasks (5.5 in progress, 6.2 blocked); ratchets R1-R5 and R7-R19 are at 0 and
-R6a-j at their baselines (line counts that can still shrink); the [fix log](FIXES.md) holds 432
-`fixed` Status lines and 34 `recorded` ones (counted 2026-10-27). The `recorded` entries are
-the backlog: each was found while restructuring and left as it was, by the rule that a move
-does not change behaviour.
+Written 2026-10-26, after the merges of PRs #374-#383, and ranked again on 2026-11-01 after
+PRs #385-#395 closed tasks 1 to 7. The [restructuring plan](RESTRUCTURING.md) has two unticked
+tasks (5.5 in progress, 6.2 blocked); ratchets R1-R5 and R7-R19 are at 0 and R6a-j at their
+baselines (line counts that can still shrink); the [fix log](FIXES.md) holds 432 `fixed` Status
+lines and 34 `recorded` ones (counted 2026-11-01). The `recorded` entries are the backlog: each
+was found while restructuring and left as it was, by the rule that a move does not change
+behaviour. Four new tasks came from reading the code on 2026-11-01: the gameserver's datagram
+socket, which the compose file publishes, dispatched relayed GM commands from any sender (task
+11, done on 2026-11-02, whose review found task 16, the port check's unescaped database write,
+done the same day); a database error ends a process; nothing runs the suite sanitized; and the
+handler layer has no instrument.
 What is left is below, ranked by the harm it closes, with a cheap fix ahead of a dearer one of
 the same harm. Each task names the code, the test it wants and the rule it must keep, so it can
 be taken cold. One task per PR.
@@ -49,6 +54,98 @@ be taken cold. One task per PR.
 
 ## Tasks
 
+Ranked 2026-11-01. The order is the rank and the numbers are identities, so a *Done* entry
+keeps its name: 16 came from task 11's review (both are under *Done*), 10 to 13 were new, 8
+stays, 14 ranks the entries recorded on 2026-10-27 that no task held, 9 stays, 15 is housekeeping.
+
+### 10. A database failure ends a process
+
+**What:** `DatabaseError` (`src/server/database/DatabaseError.h`) is deliberately unrelated to
+`Throwable` and to `std::exception`, as its header says: the `__END_CATCH_NO_RETHROW` sites
+(`grep -rn '__END_CATCH_NO_RETHROW' src | wc -l`, 193 on 2026-11-01) swallow a `Throwable`, and
+a database failure was not to be swallowed by them. The other side of that choice is that
+nothing stops it on the way up either: `ZoneGroupThread::run`'s catches take `Throwable&` and
+rethrow, `__END_DEBUG` rethrows, and `ManagedThread::start` turns anything that escapes a worker
+into `ServerShutdown::fail()`. The fix log has two paths that end a process this way: *A flag
+war step that throws after queuing its next step is queued twice* (`FlagWar::executeStart` and
+`executeFinish`, whose database work throws a `DatabaseError` that "no `catch (Throwable&)`
+stops, so it ends the main loop first") and *A database failure while a login waits on a kick
+escapes to the main loop* (`LoginPlayer::processCommand`'s kick-wait branch, before the dispatch
+task 3 wrapped, reaching `ClientManager::run`, "possibly after LOGON was written"). Any other
+query that fails inside a zone-group tick or a heartbeat does the same.
+
+**How:** the decision is per site, not per type: where a database error is stopped and what a
+failed query means there. Keep the type as it is (its header records why) and catch it by name
+at the three sites: `LoginPlayerManager::processCommands`, where the kick-wait path then retires
+the login as task 3's wrap does; the flag war's steps, where a step whose database work throws
+leaves one schedule, not two (queue the next step after the work that can throw, and stop the
+error at the heartbeat); and the zone-group tick, where a failed query is logged and the tick
+goes on with the player disconnected or the step skipped. Record the decision as a design note
+in [exceptions and outcomes](../architecture/exceptions-and-outcomes.md). Tests: the runtime
+tests link the production objects with supplied repositories
+([test coverage](../testing/test-coverage.md)), so each path gets a test whose repository throws
+a `DatabaseError` and expects the loop to continue, in the shape of
+`tests/login_handler_failure_test.cpp` and `tests/game_flag_schedule_test.cpp`. Both entries'
+Status lines become `fixed`. Rule kept: `throw Error("text")`, never a string
+([exceptions and outcomes](../architecture/exceptions-and-outcomes.md)), and a process ends only
+as [lifecycle rules](../startup/lifecycle-rules.md) say.
+
+### 12. A sanitized run of the suite
+
+**What:** `.github/workflows/cpp20.yml` runs `tools/devbuild.sh test` and `build`, Debug builds
+in the Zig container, and the gateway's `cargo` checks; nothing in it is sanitized. The only
+sanitized configure is the fuzz build (`DARKEDEN_BUILD_FUZZERS=ON`: ASan, UBSan and
+`_GLIBCXX_ASSERTIONS` with clang-18 in `tools/fuzz/Dockerfile.fuzz`), which adds its flags to
+every target it configures, so with `DARKEDEN_BUILD_TESTS=ON` beside it the whole suite builds
+sanitized today (`CMakeLists.txt`); no job and no make target runs that pair
+([fuzzing](../protocol/fuzzing.md)). `wire_tests`, the runtime tests and the decision tests
+have never run under a sanitizer. The client runs its suite under ASan on three platforms and
+UBSan on two, and those runs found what its plain suite could not. A first run on 2026-11-02
+(clang 18 with `-fsanitize=address,undefined`, lld, outside the fuzz image) built the whole
+suite and failed 14 of 93 tests, none of them the datagram tests or the fuzz replays: the eleven
+test binaries that link `tests/support/AllocationProbe.cpp` abort on an alloc-dealloc mismatch
+before their first suite runs, since the probe's `operator delete` frees with `free()` what
+GoogleTest's `std::stable_sort` took from the library's `operator new(size_t, nothrow_t)`, which
+the probe does not replace; `wire_tests` leaks 5896 bytes in 499 allocations (the first report's
+site is `packet_store_test.cpp`'s own `newPetStashItem`), `database_timeout_tests` 656 bytes in
+4 and `database_manager_tests` 22960 bytes in 140.
+
+**How:** first run the existing pair from the fuzz image (a clang-18 configure with
+`DARKEDEN_BUILD_FUZZERS=ON` and `DARKEDEN_BUILD_TESTS=ON`, then ctest) and record what it finds;
+then a `make dev-test-asan` that wraps it, documented in
+[build commands](../build/build-commands.md) and [testing overview](../testing/overview.md), and
+a `workflow_dispatch`-only job, so master pushes do not double their minutes
+([CI](../build/ci.md)). Leak detection on where the suite is leak-clean, otherwise off with the
+reason recorded. Expect findings: each goes in the fix log with its test and is fixed in a PR
+of its own. Rule kept: `NDEBUG` is never defined, and `DE_OWNERSHIP_CHECKS` is armed only in
+Debug ([build commands](../build/build-commands.md)).
+
+### 13. The handler layer: asserts and indices on wire values
+
+**What:** measured 2026-11-01 with
+`grep -rn 'Assert(' src/server/gameserver/handler --include=*.cpp | wc -l`: 879 `Assert`
+lines in 152 of the 164 handler files, and no `ProtocolAssert`. Seven name a packet getter in
+the assert and no subscript does; the rest take the value through a local, which a spelling
+count cannot see. `GamePlayer::processCommand` (`src/server/gameserver/GamePlayer.cpp`) wraps
+the dispatch in `catch (...)` and throws `DisconnectException`, so a failed `Assert` on a value
+a client chose disconnects that client, appends to `assertion_failed.log` (never rotated, like
+`datagram.txt`), and leaves what the handler changed before the assert, under the group mutex,
+half applied. The fuzz targets stop at `read()` ([fuzzing](../protocol/fuzzing.md)); nothing
+instruments the handlers.
+
+**How, in order, each its own PR series:** (1) an audit script in `tests/tools/` over
+`src/server/gameserver/handler/`: every subscript and table lookup whose index is a packet
+value, followed by value through locals, failing closed on a container it does not know, with
+an allowlist for the tables that range-check themselves; its first count is ratchet R20's
+baseline ([ratchets](../testing/ratchets.md)). (2) The asserts a wire value can reach become
+refusals: `ProtocolAssert` where the value is a protocol violation, or the refusal reply the
+handler already sends for its other failures, each with a handler test in the runtime suite.
+(3) A gameserver handler fuzz target over the runtime tests' world with supplied repositories,
+seeded from the goldens, with a regression input and a test for every crash. Rule kept: a
+`read()` refuses a malformed body only with a `ProtocolException`
+([frame gate](../protocol/frame-gate.md)), and zone-group state is touched only under the
+group's mutex ([the mutation rule](../threading/mutation-rule.md)).
+
 ### 8. Three login flows that cannot be resumed after a partial write
 
 **What:** `recorded` entries of 2026-10-02: *Character creation can leave partial rows after a
@@ -67,6 +164,31 @@ Write the design as a short section in
 reviewed before the code; `make integration-test` (MySQL 5.7 in docker) is where a rollback is
 proven. Keep the phase rules those pages state: a reply is sent before session state is published.
 
+### 14. The entries recorded on 2026-10-27 that no task held, one PR each
+
+Found while tasks 1 to 7 were done, each with a Status line naming its branch; the two that end
+a process are task 10's, and the dragon eye's return stays task 9's. Cheapest first:
+
+- *`GCShowUnionInfo::read` takes any guild count*: gate the count at the factory's budget (the
+  master guild and three others) before the first row, as its siblings do, with a
+  `ListCountTest` row in `tests/packet_read_bounds_test.cpp`; the client's copy
+  (`Client/Packet/Gpackets/GCShowUnionInfo.cpp`) gets the same cap in a linked commit. No byte
+  moves ([wire contract](../protocol/wire-contract.md)).
+- *A guild record's adder and writer take any roster count*: `GuildInfo2::addGuildMemberInfo`
+  refuses a member past `kMaxMemberCount`, pinned in the wire tests.
+- *A flag or sweeper offered outside its war gets no answer*: `CGRelicToObjectHandler`'s
+  `executeFlag` and `executeSweeper` send `GCCannotAdd`, as the handler's other refusals do; a
+  test in `tests/game_dragon_eye_test.cpp`'s shape.
+- *A mysterious item's fallback is checked against the last failed draw*:
+  `getRandomMysteriousItem` checks the fallback against the buyer, not the tenth draw;
+  `tests/game_mysterious_item_test.cpp` extends.
+- *A level war's schedule pointer outlives the schedule it names*, both bullets: the pointer is
+  cleared when the queue takes the schedule and `~LevelWarManager` deletes only what it owns;
+  the `hasWar()` and `hasToDayWar()` flags other zones' threads read become atomics, or the
+  question is posted to the owning group
+  ([cross-thread communication](../threading/cross-thread-communication.md));
+  `tests/game_level_war_command_test.cpp` is the place.
+
 ### 9. Smaller recorded items
 
 Each is one PR, with a fix-log entry naming the branch that found it:
@@ -74,10 +196,6 @@ Each is one PR, with a fix-log entry naming the branch that found it:
 - *A dragon eye sent home across groups can outrun its return's three attempts*: the return
   captures the row when it is posted (`war/WarZoneWork.cpp`). Fix: have the retry read the row
   when it runs, or have the delayed add carry the row's save.
-- *Any sender can grow `datagram.txt` one line per datagram*: `Datagram::read`
-  (`src/Core/DatagramFactoryRead.cpp`) appends an unrotated line for every datagram naming a
-  registered id outside the datagram set. Rate-limiting the line, moving it behind
-  `DARKEDEN_TRACE` or dropping it is the owner's call; ask before changing what operators see.
 - *The three races' guild zone counters share one word with no partition*: a race reaches the
   next one's range after 10000 guilds. Lowest, with the relic rows below.
 - *A war relic's row outlives the run that made it*: a boot sweep of this server's relic rows
@@ -86,6 +204,25 @@ Each is one PR, with a fix-log entry naming the branch that found it:
   registration is not the defect), the native-macOS entries (platform quirks with workarounds),
   and the shared-rules entries, which keep the server's own balance rules; two of them are
   listed under the owner below.
+
+### 15. Housekeeping, low
+
+- `tests/integration/mysql_test.sh` tests against `mysql/mysql-server:5.7` (`MYSQL_IMAGE`), end
+  of life since 2023; add an 8.4 LTS leg while [database setup](../database/overview.md) says
+  5.7 or 8.
+- [Native macOS builds](../build/native-macos.md): the `assert.h` case clash that forces the
+  system header in, and the three tests that fail only there (`ratchets`,
+  `proxy_acceptor_tests`, `shutdown_supervisor`).
+- 14 of the 465 registered factories have no golden
+  ([wire contract](../protocol/wire-contract.md)): record which and why, and add one where the
+  packet is client-facing (with the client's copy).
+- The R6 god files can keep shrinking (`Zone.cpp` 1,172 lines, `ConsoleCommands.cpp` 1,574;
+  [the plan](RESTRUCTURING.md)'s ratchet table).
+- `bash tests/tools/wire_inventory_diff.sh <client-root>` fails on 42 read budgets on
+  2026-11-01, `CGSMSSend` (114 here, 108 in the client) and GC packets this server budgets
+  larger than the client reads. A CG budget the client's `write` can exceed is this
+  repository's to raise; the GC ones are the client's plan's to read, since what matters there
+  is whether this server can write more than the client admits.
 
 ## Blocked or with the owner
 
@@ -102,7 +239,26 @@ Each is one PR, with a fix-log entry naming the branch that found it:
   bonus that is never granted, a balance decision.
 - **Transport encryption**: the native TCP link is unencrypted, login credentials included (the
   WebSocket gateway serves `wss://` with TLS in front). A design decision for the owner, taken
-  with the client.
+  with the client. Recommendation (2026-11-01): make the TLS
+  [WebSocket gateway](../operations/websocket-gateway.md) the only public endpoint and stop
+  publishing the raw TCP ports; native clients can use the gateway already, so no wire change
+  is needed.
+- **A world save on shutdown.** `docker compose down` drains the gameserver's workers and does
+  not introduce a full world-save operation
+  ([running the servers](../operations/running-the-servers.md)); whether one is wanted before a
+  deployment that matters is the owner's call.
+- **Task 11 (a)**: whether `9997/udp` stays published (a native client's port check arrives
+  there, and with a routable catalogue address the loginserver's datagrams to the gameserver
+  hairpin through it), what the datagram sockets bind, and what closes the forged-source
+  residual the fix log records as *A forged source address passes the datagram gate*: binding
+  the loginserver's socket, which no client uses, to a peer-facing or loopback address, ingress
+  filtering, or a shared secret on the server links, a wire change shipped with the client
+  ([datagram sources](../protocol/datagram-sources.md)).
+- **Task 16 (a)**: whether a port check may set the address and port recorded for the character
+  it names, from any sender (the fix log's *Any sender can set the address and port recorded for
+  any character*): record it only for a character in play whose connection's address the
+  datagram's source carries, or drop the table's address and port, which nothing reads back
+  today; either changes what a reconnecting native client gets.
 
 ## Done
 
@@ -173,3 +329,32 @@ PRs #386-#391 were closed unmerged: their commits reached master as the stack PR
 - **9, one item: the first guild founded after a restart reuses a guild zone id**
   (PR #395, `next-plan/batch-4`): `prepareZoneMaximum` starts each race's counter one past its stored
   maximum (`SharedGuildStartup` in `tests/shared_guild_startup_test.cpp`).
+- **11. Unauthenticated datagrams on a published port** (PR #397, `fix/datagram-sources`): both datagram
+  loops run each received datagram through `de::DatagramGate` (`src/server/DatagramAdmission.h`)
+  before reading it: on the gameserver a client's port check from anywhere, the `LG` packets
+  only from the configured `LoginServerIP` and the `GG` packets only from the gameservers the
+  catalogue lists; on the loginserver the `GL` packets and `GMServerInfo` only from those
+  gameservers; `DatagramPeerIPs` adds the addresses a NAT or a published port makes datagrams
+  carry, validated at startup; nothing else from anyone. A refused datagram is counted, reported
+  once per 30 seconds and dropped unread ([datagram sources](../protocol/datagram-sources.md),
+  owned by `datagram_admission_tests`, the loops' wiring by `datagram_gate_audit`, since each
+  loop opens a database connection before it reads and has no test of its own). The compose
+  deployment with a routable catalogue address needs the pinned network and the
+  `DatagramPeerIPs` its `docker/conf/*.conf` carry. The gate is an address check, not
+  authentication: the forged-source residual, the sockets' bind address and the published port
+  are the owner's (task 11 (a), under *Blocked or with the owner*). The gate closes the fix
+  log's `datagram.txt` entry, and its review found task 16.
+- **16. The port check writes the database for any sender, with an unescaped name** (PR #398,
+  `fix/port-check-name`): `de::recordPortCheck` (`gameserver/PortCheck.h`) refuses, before any
+  statement, a name character creation would refuse (empty, past 20 bytes, a reserved token:
+  `src/server/CharacterName.h`, the rule both servers share now) or one no statement may carry
+  (a control byte, bytes that are not UTF-8) with `InvalidProtocolException`, and
+  `MySQLSessionRepository` escapes the name of every `UserIPInfo` statement through
+  `de::escapeSqlLiteral` (`database/SqlLiteral.h`), the escape the Exchange repository used
+  alone and now delegates to; owned by `port_check_tests` over a fake session repository,
+  `port_check_wiring_audit` for the handler's wiring, `sql_literal_tests` for the pass without a
+  connection, and `SessionMySQL`'s two UserIPInfo cases under `make integration-test`. Left, as
+  the fix log's *Any sender can set the address and port recorded for any character* records
+  (task 16 (a), under *Blocked or with the owner*): a port check naming a recorded character
+  still overwrites its row, and one row per distinct name (`varchar(10)`, so a longer name is
+  stored truncated) is still any sender's to add.

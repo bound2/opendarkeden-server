@@ -7197,6 +7197,69 @@ TEST_F(SessionMySQL, UserIPIsInsertedThenUpdatedAndReadBack) {
     EXPECT_EQ(9859u, port);
 }
 
+// CGPortCheckHandler: the name is escaped for its literal, so a quote or a
+// backslash is stored as sent, the UPDATE and the reads find the row by the
+// same literal, and no other row is touched. Name is varchar(10), so every
+// name here fits in ten characters.
+TEST_F(SessionMySQL, UserIPNamesWithQuotesAndBackslashesAreStoredAsSent) {
+    SessionRepository& repository = defaultSessionRepository();
+    const std::string quoted = "it-o'b\\c";
+    repository.recordUserIP("it-plain", 0x0100007fu, 9858, 31000);
+    repository.recordUserIP(quoted, 0x0200007fu, 9859, 31000);
+    EXPECT_EQ("2", queryScalar("SELECT COUNT(*) FROM UserIPInfo WHERE Name LIKE 'it-%'"));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM UserIPInfo WHERE Name = 'it-o''b\\\\c'"));
+
+    DWORD ip = 0;
+    DWORD port = 0;
+    ASSERT_TRUE(repository.loadUserIP(quoted, ip, port));
+    EXPECT_EQ(0x0200007fu, ip);
+    EXPECT_EQ(9859u, port);
+
+    // The UPDATE path finds the quoted row and only it.
+    repository.recordUserIP(quoted, 0x0300007fu, 9860, 31001);
+    EXPECT_EQ("2", queryScalar("SELECT COUNT(*) FROM UserIPInfo WHERE Name LIKE 'it-%'"));
+    ASSERT_TRUE(repository.loadUserIP(quoted, ip, port));
+    EXPECT_EQ(0x0300007fu, ip);
+    EXPECT_EQ(9860u, port);
+    ASSERT_TRUE(repository.loadUserIP("it-plain", ip, port));
+    EXPECT_EQ(0x0100007fu, ip);
+    EXPECT_EQ(9858u, port);
+
+    int serverID = 0;
+    ASSERT_TRUE(repository.loadUserServerID(quoted, serverID));
+    EXPECT_EQ(31000, serverID);
+
+    repository.deleteUserIP(quoted);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM UserIPInfo WHERE Name LIKE 'it-%'"));
+    EXPECT_FALSE(repository.loadUserIP(quoted, ip, port));
+    ASSERT_TRUE(repository.loadUserIP("it-plain", ip, port));
+}
+
+// A name shaped to end its literal stays one literal: unescaped, the
+// DELETE below would read WHERE Name = 'it-x' OR '1' and take every row.
+TEST_F(SessionMySQL, AUserIPNameCannotEndItsLiteral) {
+    SessionRepository& repository = defaultSessionRepository();
+    const std::string hostile = "it-x'OR'1";
+    repository.recordUserIP("it-victim", 0x0100007fu, 9858, 31000);
+    repository.recordUserIP(hostile, 0x0200007fu, 9859, 31000);
+    repository.recordUserIP(hostile, 0x0300007fu, 9860, 31000); // the UPDATE path
+    EXPECT_EQ("2", queryScalar("SELECT COUNT(*) FROM UserIPInfo WHERE Name LIKE 'it-%'"));
+
+    DWORD ip = 0;
+    DWORD port = 0;
+    ASSERT_TRUE(repository.loadUserIP("it-victim", ip, port));
+    EXPECT_EQ(0x0100007fu, ip);
+    EXPECT_EQ(9858u, port);
+    ASSERT_TRUE(repository.loadUserIP(hostile, ip, port));
+    EXPECT_EQ(0x0300007fu, ip);
+    EXPECT_EQ(9860u, port);
+
+    repository.deleteUserIP(hostile);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM UserIPInfo WHERE Name LIKE 'it-%'"));
+    ASSERT_TRUE(repository.loadUserIP("it-victim", ip, port));
+    EXPECT_FALSE(repository.loadUserIP(hostile, ip, port));
+}
+
 // CGVerifyTimeHandler: the first sighting of an account takes the INSERT
 // IGNORE (the UPDATE changed no row) with Count 1; the next takes the
 // UPDATE, moving IP/NAME/WorldID/ServerGroupID and counting up; another

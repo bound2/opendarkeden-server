@@ -32,8 +32,25 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-GameServerManager::GameServerManager() : m_pDatagramSocket(NULL) {
+GameServerManager::GameServerManager()
+    : m_pDatagramSocket(NULL),
+      m_Gate(
+          [] { return de::loginServerDatagramPeers(de::kernelContext().config(), de::serverContext().serverInfos()); },
+          [this](PacketID_t packetID, const string& host) noexcept {
+              try {
+                  if (const auto suppressed = m_RefusalReport.failure(de::RepeatedErrorReport::Clock::now())) {
+                      std::ostream diagnostics(cout.rdbuf());
+                      diagnostics << "GameServerManager UDP refused datagram id " << packetID << " from " << host
+                                  << ": suppressed_refusals=" << *suppressed << endl;
+                  }
+              } catch (...) {
+                  // The datagram is dropped whether or not the line is written.
+              }
+          }) {
     __BEGIN_TRY
+
+    // A bad DatagramPeerIPs entry stops the server here, not a peer later.
+    de::configuredDatagramPeers(de::kernelContext().config());
 
     const auto port = de::readServerPort(de::kernelContext().config(), "LoginServerUDPPort");
     de::retryListenerStartup(
@@ -119,16 +136,20 @@ void GameServerManager::run() {
 
                 if (pDatagram != NULL) // guards against some exceptions
                 {
-                    // Pull the datagram packet object out.
-                    pDatagram->read(pDatagramPacket);
+                    // A datagram from a sender its link does not admit is
+                    // dropped unread (DatagramAdmission.h).
+                    if (m_Gate.admits(*pDatagram)) {
+                        // Pull the datagram packet object out.
+                        pDatagram->read(pDatagramPacket);
 
-                    if (pDatagramPacket != NULL) {
-                        // Process the datagram packet object that arrived.
-                        PacketDispatcher::dispatch(pDatagramPacket, NULL);
+                        if (pDatagramPacket != NULL) {
+                            // Process the datagram packet object that arrived.
+                            PacketDispatcher::dispatch(pDatagramPacket, NULL);
 
-                        // Delete the datagram packet object.
-                        delete pDatagramPacket;
-                        pDatagramPacket = NULL;
+                            // Delete the datagram packet object.
+                            delete pDatagramPacket;
+                            pDatagramPacket = NULL;
+                        }
                     }
 
                     // Delete the datagram object.

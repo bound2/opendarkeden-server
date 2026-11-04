@@ -116,6 +116,7 @@ target_link_libraries(LoginServerRuntime PUBLIC
     LoginServerDatabase
     LoginServerPackets
     ServerCore
+    DatagramAdmission
     ServerWorkerShutdown
     ServerStartSequence
     ListenerStartup

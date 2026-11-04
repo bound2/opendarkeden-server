@@ -1,5 +1,42 @@
 # Knowledge Bundle Update Log
 
+## 2026-11-02
+
+* **Update**: [repository seams](architecture/repository-seams.md) has a row and a paragraph for
+  the escape a text the wire supplies goes through (`de::escapeSqlLiteral`, the Exchange's escape
+  shared now) and the port check's name rule; [datagram sources](protocol/datagram-sources.md)
+  says what the port check can still do, [database setup](database/overview.md) names the
+  helper, the [testing overview](testing/overview.md) and
+  [test coverage](testing/test-coverage.md) describe `port_check_tests` and `sql_literal_tests`,
+  the [fix log](reviews/FIXES.md) marks the port check's entry fixed and records that any sender
+  can still set a recorded character's address and port, and the
+  [next work plan](reviews/NEXT.md) moves task 16 to *Done* and gives the owner task 16 (a);
+  `CLAUDE.md` and the [reviews index](reviews/index.md) say so. The handler's wiring is owned by
+  `port_check_wiring_audit`, named in the seams row.
+
+## 2026-11-01
+
+* **Creation**: [datagram sources](protocol/datagram-sources.md), the rule that a datagram is
+  read only from a sender its packet's link admits, owned by `datagram_admission_tests` and,
+  for the loops' wiring, `datagram_gate_audit`; the page says what an address check does not
+  close and names `DatagramPeerIPs`, which the compose deployment needs with a routable
+  catalogue address. [Packet-read fuzzing](protocol/fuzzing.md) says the datagram target does
+  not model the gate, the [testing overview](testing/overview.md) and
+  [test coverage](testing/test-coverage.md) describe the tests, the [fix log](reviews/FIXES.md)
+  records the relayed GM commands and reconnect redirection any sender could reach (fixed),
+  the forged-source residual and the port check's unescaped database write (both recorded),
+  and closes the `datagram.txt` entry, the [next work plan](reviews/NEXT.md) moves task 11 to
+  *Done* and adds task 16 for the port check, and `CLAUDE.md` and the
+  [protocol index](protocol/index.md) link the rule.
+* **Update**: the [next work plan](reviews/NEXT.md) is ranked again after PRs #385-#395 closed
+  its tasks 1 to 7: four new tasks come first (the gameserver's published datagram socket, which
+  dispatches relayed GM commands from any sender; a `DatabaseError` that no thread-top catch
+  stops; a sanitized run of the suite; the handler layer's asserts and indices on wire values),
+  task 8 stays, task 14 ranks the five entries recorded on 2026-10-27 that neither task 9 nor
+  task 10 holds, task 15 is housekeeping (the inventory diff against the client among it), and
+  the owner section gains a recommendation on transport encryption and the missing world save;
+  `CLAUDE.md` and the [reviews index](reviews/index.md) say so.
+
 ## 2026-10-27
 
 * **Update**: [packet-read fuzzing](protocol/fuzzing.md) describes the third target, the

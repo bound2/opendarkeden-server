@@ -14,8 +14,11 @@ to. Each mirrors its receive loop (the gameserver's per-frame gate, `GameFrameGa
 `read()`, stops short of the handler, and prints the packet with `toString()` as the loop does.
 An input is `[code byte][status byte][raw stream]`; `StreamFuzz.h` describes it and the
 switches. The third, `fuzz_login_datagram.cpp`, reads one datagram at the loginserver's UDP
-socket through `Datagram::read`, as `GameServerManager::run` does, which anyone who can reach the
-port may send; its input is the raw datagram, `[id u16][size u32][body][zero byte]`.
+socket through `Datagram::read`, as `GameServerManager::run` does; its input is the raw datagram,
+`[id u16][size u32][body][zero byte]`. The input has no sender, so the gate the loop runs first,
+which admits a datagram only from the peers its link names
+([datagram sources](datagram-sources.md)), is not modelled: the target reads every input as one
+from an admitted peer.
 
 - **Four deliveries, one result.** Each stream input is delivered four times (the game target once
   more, through the production gate), to a fresh session: whole, one byte per receive, in

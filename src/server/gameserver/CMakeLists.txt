@@ -446,6 +446,7 @@ set(GAMESERVER_RUNTIME_SOURCES
     SpeedHackDecision.cpp
     GameServer.cpp
     IncomingPlayerManager.cpp
+    PortCheck.cpp
     SharedServerClient.cpp
     InfoClassManager.cpp
     Inventory.cpp
@@ -682,6 +683,7 @@ target_link_libraries(GameServerRuntime PUBLIC
     Mofus
     GameServerDatabase
     ServerCore
+    DatagramAdmission
     ServerWorkerShutdown
     ServerStartSequence
     ListenerStartup
