@@ -271,7 +271,7 @@
 276	GCModifyMoney	4
 277	GCModifyNickname	30
 278	GCMonsterKillQuestInfo	3061
-279	GCMorph1	26209
+279	GCMorph1	29368
 280	GCMorphSlayer2	69
 281	GCMorphVampire2	58
 282	GCMove	7
@@ -402,7 +402,7 @@
 407	GCUnionOfferList	1181
 408	GCUntransformFail	0
 409	GCUntransformOK	3
-410	GCUpdateInfo	59146
+410	GCUpdateInfo	62305
 411	GCUseBonusPointFail	0
 412	GCUseBonusPointOK	2042
 413	GCUseOK	2042

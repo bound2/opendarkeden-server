@@ -30,6 +30,13 @@ public:
     // SCRIPT_MAX_CONTENTS choices, and the factory max budgets this many.
     static constexpr uint kMaxCount = 15;
 
+    // The bytes the factory max budgets for the subject and for each
+    // choice: the budget's term, not a bound on one string. write() refuses
+    // a body past the budget as a whole, which is what the client's gate
+    // admits, so a subject past this term still fits when the choices leave
+    // room, and the budget is what write() can emit.
+    static constexpr uint kMaxStringSize = 1024;
+
     PacketSize_t getPacketSize() const {
         PacketSize_t size = 0;
 
@@ -96,11 +103,12 @@ public:
     static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t size = 0;
 
-        size += szObjectID;                                   // npc object id
-        size += szScriptID;                                   // script id size
-        size += szWORD + 1024;                                // subject length & actual string
-        size += szBYTE;                                       // contents count
-        size += (szWORD + 1024) * GCNPCAskDynamic::kMaxCount; // contents length & actual strings
+        size += szObjectID;                               // npc object id
+        size += szScriptID;                               // script id size
+        size += szWORD + GCNPCAskDynamic::kMaxStringSize; // subject length & actual string
+        size += szBYTE;                                   // contents count
+        size +=
+            (szWORD + GCNPCAskDynamic::kMaxStringSize) * GCNPCAskDynamic::kMaxCount; // contents length & actual strings
 
         return size;
     }()};
