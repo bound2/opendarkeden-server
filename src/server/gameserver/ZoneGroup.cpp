@@ -10,6 +10,7 @@
 #include <exception>
 
 #include "Assert.h"
+#include "DatabaseError.h"
 #include "Profile.h"
 #include "VSDateTime.h"
 #include "ZonePlayerManager.h"
@@ -147,6 +148,10 @@ void ZoneGroup::processPlayers()
     } catch (IOException& ioe) {
     } catch (Error& er) {
         diagnosticFilelog("errorLog.txt", "%s", er.toString().c_str());
+    } catch (const DatabaseError& error) {
+        // A statement failed while the sockets were served: the tick goes on.
+        diagnosticFilelog("errorLog.txt", "ZoneGroup %u sockets: %s; the tick goes on", (unsigned)m_ZoneGroupID,
+                          error.what());
     }
 
     try {
@@ -157,6 +162,11 @@ void ZoneGroup::processPlayers()
 
     } catch (Throwable& t) {
         diagnosticFilelog("errorLog.txt", "%s", t.toString().c_str());
+    } catch (const DatabaseError& error) {
+        // A statement failed outside a player's own processing: the rest of
+        // this tick's commands are skipped and the tick goes on.
+        diagnosticFilelog("errorLog.txt", "ZoneGroup %u commands: %s; the tick goes on", (unsigned)m_ZoneGroupID,
+                          error.what());
     }
 
     try {
@@ -165,6 +175,10 @@ void ZoneGroup::processPlayers()
         endProfileEx("ZPM_HEARTBEAT");
     } catch (Throwable& t) {
         diagnosticFilelog("errorLog.txt", "%s", t.toString().c_str());
+    } catch (const DatabaseError& error) {
+        // A statement failed in the players' heartbeat: the tick goes on.
+        diagnosticFilelog("errorLog.txt", "ZoneGroup %u players' heartbeat: %s; the tick goes on",
+                          (unsigned)m_ZoneGroupID, error.what());
     }
 
 
@@ -221,7 +235,14 @@ void ZoneGroup::heartbeat()
     const std::shared_ptr<const ZoneMap> zones = m_Zones.load();
     for (ZoneMap::const_iterator itr = zones->begin(); itr != zones->end(); itr++) {
         Zone* pZone = itr->second;
-        pZone->heartbeat();
+        try {
+            pZone->heartbeat();
+        } catch (const DatabaseError& error) {
+            // A statement in one of the zone's steps failed: the rest of that
+            // zone's tick is skipped and the group's tick goes on.
+            diagnosticFilelog("errorLog.txt", "Zone %u heartbeat: %s; the rest of its tick is skipped",
+                              (unsigned)pZone->getZoneID(), error.what());
+        }
     }
 
 

@@ -121,6 +121,7 @@ target_sources(game_server_runtime_tests PRIVATE
     game_player_handoff_test.cpp game_player_transfer_test.cpp game_broadcast_queue_test.cpp
     game_broadcast_delivery_test.cpp game_destructor_test.cpp game_catch_test.cpp
     game_level_war_command_test.cpp game_flag_schedule_test.cpp game_wolf_form_skill_test.cpp
+    game_flag_step_failure_test.cpp game_zone_database_failure_test.cpp
     game_slayer_take_off_test.cpp game_mysterious_item_test.cpp game_dragon_eye_test.cpp
     support/AllocationProbe.cpp)
 add_server_runtime_test(login_server_runtime_tests login_server_runtime_test.cpp LoginServerRuntime)
@@ -140,6 +141,7 @@ target_sources(login_server_runtime_tests PRIVATE
     login_account_session_test.cpp
     login_player_retirement_test.cpp
     login_handler_failure_test.cpp
+    login_kick_wait_test.cpp
     login_incoming_reply_test.cpp
     login_incoming_request_test.cpp
     login_character_selection_test.cpp
@@ -289,6 +291,14 @@ add_test(NAME port_check_wiring_audit
     COMMAND bash ${CMAKE_SOURCE_DIR}/tests/tools/check_port_check_wiring.sh ${CMAKE_SOURCE_DIR}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 set_tests_properties(port_check_wiring_audit PROPERTIES TIMEOUT 30)
+
+# The zone-group tick's and a disconnect's catches of a DatabaseError, whose
+# sites no test drives without a loaded zone and a database
+# (docs/architecture/exceptions-and-outcomes.md).
+add_test(NAME database_error_sites_audit
+    COMMAND bash ${CMAKE_SOURCE_DIR}/tests/tools/check_database_error_sites.sh ${CMAKE_SOURCE_DIR}
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_tests_properties(database_error_sites_audit PROPERTIES TIMEOUT 30)
 
 # The SQL literal escape without a live connection, the pass the
 # repositories fall back on; with a connection the client library escapes,

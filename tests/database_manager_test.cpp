@@ -3,12 +3,15 @@
 // Filename    : database_manager_test.cpp
 // Description : The database manager's per-thread connection tables
 //               (src/server/database/DatabaseManager.h), registered and
-//               looked up from many threads at once.
+//               looked up from many threads at once, and its keep-alive,
+//               which stops its own database error.
 //
 // Every worker registers its own connection when it starts, while the
 // workers already running look theirs up for every statement. Nothing
 // here connects: a default-constructed Connection is an initialised,
-// unconnected MySQL handle, which is all the tables hold.
+// unconnected MySQL handle, which is all the tables hold, and which the
+// keep-alive's SELECT 1 fails on, as the driver refuses a statement on a
+// connection it never opened.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -97,4 +100,13 @@ TEST(DatabaseManagerTables, ASecondRegistrationUnderOneIdIsRefused) {
     manager.addDistConnection(tid, firstDist.get());
     EXPECT_THROW(manager.addDistConnection(tid, second.get()), DuplicatedException);
     EXPECT_EQ(firstDist.get(), manager.getDistConnection("PLAYER_DB"));
+}
+
+TEST(DatabaseManagerKeepAlive, AKeepAliveThatFailsIsStoppedInsideTheManager) {
+    // Nothing listens for the connection, so SELECT 1 fails as the driver
+    // refuses a statement on a connection it never opened; the keep-alive
+    // stops the DatabaseError that makes, which decides nothing.
+    DatabaseManager manager;
+    Connection connection;
+    EXPECT_NO_THROW(manager.executeDummyQuery(&connection));
 }

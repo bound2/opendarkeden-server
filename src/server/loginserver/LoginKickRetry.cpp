@@ -1,5 +1,7 @@
 #include "LoginKickRetry.h"
 
+#include "Exception.h"
+#include "LoginFailureKind.h"
 #include "LoginPlayer.h"
 
 namespace de {
@@ -42,6 +44,25 @@ bool retryLoginKick(LoginPlayer& player, const Timeval& now, const LoginKickRequ
     if (player.m_KickCharacterCount == maxRetries)
         complete(player);
     return true;
+}
+
+bool runLoginKickWait(LoginPlayer& player, const Timeval& now, const LoginKickRequest& send,
+                      const std::function<void(LoginPlayer&)>& complete, const LoginKickFailureReport& failed) {
+    try {
+        return retryLoginKick(player, now, send, complete);
+    } catch (ProtocolException&) {
+        throw;
+    } catch (ConnectException&) {
+        throw;
+    } catch (...) {
+        const std::string kind = currentFailureKind();
+        try {
+            if (failed)
+                failed(kind);
+        } catch (...) {
+        }
+        throw DisconnectException("login kick wait failed");
+    }
 }
 
 } // namespace de

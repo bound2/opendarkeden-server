@@ -13,6 +13,7 @@
 
 #include "Assert.h"
 #include "CGLogout.h"
+#include "DatabaseError.h"
 #include "DescriptorTable.h"
 #include "GameContext.h"
 #include "GamePlayer.h"
@@ -358,6 +359,25 @@ void ZonePlayerManager::processCommands() {
                     // by sigi. 2002.12.30
                     if (IsPayPlayEnd) {
                     } else {
+                    }
+                } catch (const DatabaseError& error) {
+                    // A statement of the player's own failed: the tick goes on
+                    // without the player. The logout takes its creature out of
+                    // the zone on this thread, past a save that fails on the
+                    // same database, and moves the player out; one with no
+                    // creature yet moves out at once. The message names the
+                    // function and the driver's error, no SQL.
+                    diagnosticFilelog("errorLog.txt", "ZonePlayerManager::processCommands: %s; the player leaves",
+                                      error.what());
+                    pTempPlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
+                    if (pTempPlayer->getCreature() == NULL) {
+                        moveToOutgoing(pTempPlayer);
+                    } else {
+                        try {
+                            CGLogoutHandler::execute(NULL, pTempPlayer);
+                        } catch (DisconnectException& de) {
+                            moveToOutgoing(pTempPlayer);
+                        }
                     }
                 }
             }

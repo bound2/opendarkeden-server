@@ -1,5 +1,6 @@
 #include "FlagWar.h"
 
+#include "DatabaseError.h"
 #include "FlagManager.h"
 #include "GCNoticeEvent.h"
 #include "ItemFactoryManager.h"
@@ -100,6 +101,15 @@ void FlagWar::executeReady() {
 }
 
 void FlagWar::executeStart() {
+    // The zones the war lets flags into are published before it is on, as
+    // the zone threads read them once it is; then the round's record is
+    // cleared, in startFlagWar: a statement that fails there leaves the war
+    // unstarted, nothing dropped and nothing queued, so the heartbeat can
+    // run this step again.
+    std::vector<de::ctf::FlagDrop> drops = flagDrops();
+    m_FlagManager.setAllowedZones(de::ctf::flagAllowMapOf(drops));
+    m_FlagManager.startFlagWar(getWarTime());
+
     GCNoticeEvent gcNE;
     gcNE.setCode(NOTICE_EVENT_FLAG_WAR_START);
 
@@ -114,9 +124,6 @@ void FlagWar::executeStart() {
     // round's ledger, which the drop holds for as long as it needs it.
     m_pFlags = std::make_shared<de::ctf::FlagLedger>();
 
-    std::vector<de::ctf::FlagDrop> drops = flagDrops();
-    m_FlagManager.setAllowedZones(de::ctf::flagAllowMapOf(drops));
-
     for (const de::ctf::FlagDrop& drop : drops) {
         uint count = drop.count;
         std::shared_ptr<de::ctf::FlagLedger> pFlags = m_pFlags;
@@ -126,10 +133,14 @@ void FlagWar::executeStart() {
 
     // Let it run for 2 hours
     m_FlagManager.addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(getWarTime())));
-    m_FlagManager.startFlagWar(getWarTime());
 }
 
 void FlagWar::executeFinish() {
+    // The history is recorded first, in endFlagWar, which ends the war
+    // whether or not the record could be written, so the finish never waits
+    // on a statement the required sql_mode refuses.
+    m_FlagManager.endFlagWar();
+
     GCNoticeEvent gcNE;
     gcNE.setCode(NOTICE_EVENT_FLAG_WAR_FINISH);
 
@@ -141,7 +152,6 @@ void FlagWar::executeFinish() {
 
     // The items burst in 3 minutes.
     m_FlagManager.addSchedule(new Schedule(this, VSDateTime::currentDateTime().addSecs(180)));
-    m_FlagManager.endFlagWar();
 }
 
 void FlagWar::executeEnd() {
@@ -156,8 +166,14 @@ void FlagWar::executeEnd() {
     for (const de::ctf::FlagWarEndStep& step : de::ctf::flagWarEndSteps(flagIDs, m_FlagManager.getPoleFields())) {
         switch (step.kind) {
         case de::ctf::FlagWarEndStep::Kind::ReturnFlag:
-            if (!de::war::postItemReturn(Item::ITEM_CLASS_EVENT_ITEM, step.flagID, destroyFlag))
-                filelog("FlagWar.log", "Failed to track the flag item %u...", (unsigned)step.flagID);
+            // The return reads the flag's row first; a flag it cannot find
+            // or read stays where it is, and the rest are still chased.
+            try {
+                if (!de::war::postItemReturn(Item::ITEM_CLASS_EVENT_ITEM, step.flagID, destroyFlag))
+                    filelog("FlagWar.log", "Failed to track the flag item %u...", (unsigned)step.flagID);
+            } catch (const DatabaseError& error) {
+                filelog("FlagWar.log", "Failed to track the flag item %u: %s", (unsigned)step.flagID, error.what());
+            }
             break;
         case de::ctf::FlagWarEndStep::Kind::SweepPoles:
             m_FlagManager.postPoleSweep(step.zoneID);
@@ -165,7 +181,15 @@ void FlagWar::executeEnd() {
         }
     }
 
-    m_FlagManager.deleteFlagWarStats();
+    // The round's statistics are cleared here and again by the next start,
+    // which clears them before it begins; a statement that fails here
+    // leaves them for it.
+    try {
+        m_FlagManager.deleteFlagWarStats();
+    } catch (const DatabaseError& error) {
+        filelog("FlagWar.log", "the round's statistics could not be cleared (%s); the next start clears them",
+                error.what());
+    }
 
     // Until next time
     m_FlagManager.addSchedule(new Schedule(this, getNextFlagWarTime()));

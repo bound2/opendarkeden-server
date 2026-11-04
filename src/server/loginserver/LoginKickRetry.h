@@ -2,6 +2,7 @@
 #define DARKEDEN_LOGIN_KICK_RETRY_H
 
 #include <functional>
+#include <string>
 
 #include "Timeval.h"
 
@@ -28,6 +29,22 @@ bool beginLoginKick(LoginPlayer& player, const LoginKickRequest& send);
 // counted and any required completion returned normally.
 bool retryLoginKick(LoginPlayer& player, const Timeval& now, const LoginKickRequest& send,
                     const std::function<void(LoginPlayer&)>& complete);
+
+// What a kick-wait failure is reported as: the exception's kind alone, never
+// its message, which can carry account data.
+using LoginKickFailureReport = std::function<void(const std::string& kind)>;
+
+// The kick-wait step of LoginPlayer::processCommand: retryLoginKick, with the
+// resend's and the completion's failures decided as the dispatch wrap decides
+// a handler's. A ProtocolException and a ConnectException pass on as they
+// are, for the manager to retire the player; anything else they throw, a
+// DatabaseError from the completion's account statements among them, is
+// reported through `failed` by its kind and becomes a DisconnectException,
+// so the manager retires the player as for a logout instead of the throw
+// reaching the main loop. The actions' effects stand as retryLoginKick
+// leaves them; a report that throws changes nothing.
+bool runLoginKickWait(LoginPlayer& player, const Timeval& now, const LoginKickRequest& send,
+                      const std::function<void(LoginPlayer&)>& complete, const LoginKickFailureReport& failed);
 
 } // namespace de
 

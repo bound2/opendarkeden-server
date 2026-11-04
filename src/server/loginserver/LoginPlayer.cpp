@@ -20,8 +20,10 @@
 #include "LoginAccountSession.h"
 #include "LoginCompletion.h"
 #include "LoginContext.h"
+#include "LoginFailureKind.h"
 #include "LoginKickDispatch.h"
 #include "LoginKickPreparation.h"
+#include "LoginKickRetry.h"
 #include "Packet.h"
 #include "PacketDiagnostics.h"
 #include "PacketDispatcher.h"
@@ -49,18 +51,7 @@ namespace {
 // size, never by its message, which can carry SQL or account data.
 void logHandlerFailure(const Packet& packet) noexcept {
     try {
-        std::string event = "handler failed: ";
-        try {
-            throw;
-        } catch (const Throwable& t) {
-            event += t.getName();
-        } catch (const DatabaseError&) {
-            event += "DatabaseError";
-        } catch (const std::exception&) {
-            event += "std::exception";
-        } catch (...) {
-            event += "unknown";
-        }
+        const std::string event = "handler failed: " + de::currentFailureKind();
         de::logPacketMetadata("LoginPlayerError.txt", event.c_str(), packet, diagnosticFilelog);
     } catch (...) {
     }
@@ -153,9 +144,15 @@ void LoginPlayer::processCommand(bool Option) {
         Timeval currentTime;
         getCurrentTime(currentTime);
 
-        de::retryLoginKick(
+        // The resend's and the completion's failures are decided as the
+        // dispatch's below (LoginKickRetry.h): a database failure retires
+        // the login instead of reaching the main loop.
+        de::runLoginKickWait(
             *this, currentTime, [](LoginPlayer& player) { return player.resendLGKickCharacter(); },
-            [](LoginPlayer& player) { player.sendLCLoginOK(); });
+            [](LoginPlayer& player) { player.sendLCLoginOK(); },
+            [](const std::string& kind) {
+                diagnosticFilelog("LoginPlayerError.txt", "kick wait failed: %s", kind.c_str());
+            });
 
         return;
     }

@@ -72,8 +72,10 @@ public:
     // Runs the earliest schedule once it is due. It is taken out of the queue
     // under m_ScheduleMutex and run after the mutex is released, so a war's
     // step adds its next schedule, and a GM's manualStart pulls one forward,
-    // without meeting the schedule that is running. A run that throws puts
-    // the schedule back for the next heartbeat.
+    // without meeting the schedule that is running. A run whose statement
+    // fails (a DatabaseError) is logged and queued again a minute later, the
+    // one schedule its step has; any other throw puts the schedule back for
+    // the next heartbeat and goes on up.
     virtual Work* heartbeat();
     // Takes m_ScheduleMutex; it hides Scheduler's unlocked add.
     void addSchedule(Schedule* pSchedule);
@@ -90,9 +92,14 @@ public:
     Race_t getWinnerRace(uint& count) const;
     uint getFlagCount(Race_t race) const;
 
-    // warSecs is how long the war starting now runs.
-    bool startFlagWar(int warSecs);
-    bool endFlagWar();
+    // warSecs is how long the war starting now runs. startFlagWar clears the
+    // round's statistics before anything else changes, so a statement that
+    // fails leaves the war unstarted, for the step to run again; endFlagWar
+    // records the round's history first and ends the war whether or not it
+    // could be written, as the required sql_mode refuses the roll-up it
+    // reads (FlagWarRepository.h). Virtual so a test can refuse that work.
+    virtual bool startFlagWar(int warSecs);
+    virtual bool endFlagWar();
 
     bool isFlagPole(MonsterCorpse* pFlagPole) {
         return m_FlagPoles.find(pFlagPole) != m_FlagPoles.end();
@@ -128,9 +135,10 @@ public:
 
     //	VSDateTime getNextFlagWarTime();
 
-    // Zeroes the counts and deletes the round's flag statistics.
+    // Zeroes the counts; startFlagWar deletes the round's flag statistics
+    // before it. The statements are virtual so a test can refuse them.
     void resetFlagCounts();
-    void deleteFlagWarStats();
+    virtual void deleteFlagWarStats();
 
     // Posts to the pole zone zoneID the sweep that takes out the flags still
     // planted on its poles and destroys them.
@@ -142,7 +150,11 @@ public:
     bool isInPoleField(ZONE_COORD zc);
 
     void recordPutFlag(PlayerCreature* pPC, Item* pItem);
-    void recordFlagWarHistory();
+    virtual void recordFlagWarHistory();
+
+    // Runs the round's history script with the command endFlagWar built;
+    // virtual so a test can keep it from running.
+    virtual void runHistoryScript(const char* cmd);
 
 public:
     void lock() {
