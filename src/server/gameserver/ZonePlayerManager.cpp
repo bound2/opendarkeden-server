@@ -362,11 +362,11 @@ void ZonePlayerManager::processCommands() {
                     }
                 } catch (const DatabaseError& error) {
                     // A statement of the player's own failed: the tick goes on
-                    // without the player. The logout runs its cleanup first
-                    // where there is a creature; its save may fail on the
-                    // same database, and the player leaves either way, for
-                    // its disconnect to take it out of its zone. The message
-                    // names the function and the driver's error, no SQL.
+                    // without the player. The logout takes its creature out of
+                    // the zone on this thread, past a save that fails on the
+                    // same database, and moves the player out; one with no
+                    // creature yet moves out at once. The message names the
+                    // function and the driver's error, no SQL.
                     diagnosticFilelog("errorLog.txt", "ZonePlayerManager::processCommands: %s; the player leaves",
                                       error.what());
                     pTempPlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
@@ -376,8 +376,6 @@ void ZonePlayerManager::processCommands() {
                         try {
                             CGLogoutHandler::execute(NULL, pTempPlayer);
                         } catch (DisconnectException& de) {
-                            moveToOutgoing(pTempPlayer);
-                        } catch (const DatabaseError&) {
                             moveToOutgoing(pTempPlayer);
                         }
                     }

@@ -135,8 +135,9 @@ proven. Keep the phase rules those pages state: a reply is sent before session s
 
 ### 14. The entries recorded on 2026-10-27 that no task held, one PR each
 
-Found while tasks 1 to 7 were done, each with a Status line naming its branch; the two that end
-a process are task 10's, and the dragon eye's return stays task 9's. Cheapest first:
+Found while tasks 1 to 7 were done, each with a Status line naming its branch; the two that ended
+a process were task 10's, done in PR #400, and the dragon eye's return stays task 9's. Cheapest
+first:
 
 - *`GCShowUnionInfo::read` takes any guild count*: gate the count at the factory's budget (the
   master guild and three others) before the first row, as its siblings do, with a
@@ -331,10 +332,13 @@ PRs #386-#391 were closed unmerged: their commits reached master as the stack PR
   `DatabaseError` is stopped where its failed statement has a meaning
   ([exceptions and outcomes](../architecture/exceptions-and-outcomes.md)): the login's kick wait
   retires the login through `runLoginKickWait`, as the dispatch wrap does for a handler; the flag
-  war's steps clear or record the round's statistics before they change or queue anything, and
-  `FlagManager::heartbeat` queues a failed step again a minute later, the one schedule it has; the
-  zone-group tick moves a player whose statement failed out of the group, skips the rest of a
-  zone's or a step's tick, and a disconnecting player's local session ends past a failed save or
-  log-off. Owners: `LoginKickWait`, `GameFlagStepFailure`, `GameZoneDatabaseFailure` and
-  `database_error_sites_audit`; both fix-log entries are fixed. Left as they were: the main
-  thread's war and event heartbeats in `ClientManager::run`.
+  war ends past a history the required `sql_mode` refuses to record, its end chases the next flag
+  past one it could not read, and `FlagManager::heartbeat` queues a start that could not clear
+  the round's record again a minute later, the one schedule it has; the zone-group tick moves a
+  player whose statement failed out of the group, through a logout that takes its creature out of
+  the zone past a failed save, skips the rest of a zone's or a step's tick, and a disconnecting
+  player's local session ends past a failed save or log-off; the keep-alive stops its own
+  failure. Owners: `LoginKickWait`, `GameFlagStepFailure`, `GameZoneDatabaseFailure`,
+  `DatabaseManagerKeepAlive` and `database_error_sites_audit`; both fix-log entries are fixed.
+  Left as they were: the main thread's war and event heartbeats in `ClientManager::run`, and a
+  zone's own step (`Zone::heartbeat`), skipped for the tick.

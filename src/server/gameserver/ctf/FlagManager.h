@@ -92,10 +92,12 @@ public:
     Race_t getWinnerRace(uint& count) const;
     uint getFlagCount(Race_t race) const;
 
-    // warSecs is how long the war starting now runs. Each clears or records
-    // the round's statistics before anything else changes, so a statement
-    // that fails leaves the war as it was; virtual so a test can refuse that
-    // work.
+    // warSecs is how long the war starting now runs. startFlagWar clears the
+    // round's statistics before anything else changes, so a statement that
+    // fails leaves the war unstarted, for the step to run again; endFlagWar
+    // records the round's history first and ends the war whether or not it
+    // could be written, as the required sql_mode refuses the roll-up it
+    // reads (FlagWarRepository.h). Virtual so a test can refuse that work.
     virtual bool startFlagWar(int warSecs);
     virtual bool endFlagWar();
 
@@ -134,9 +136,9 @@ public:
     //	VSDateTime getNextFlagWarTime();
 
     // Zeroes the counts; startFlagWar deletes the round's flag statistics
-    // before it.
+    // before it. The statements are virtual so a test can refuse them.
     void resetFlagCounts();
-    void deleteFlagWarStats();
+    virtual void deleteFlagWarStats();
 
     // Posts to the pole zone zoneID the sweep that takes out the flags still
     // planted on its poles and destroys them.
@@ -148,7 +150,7 @@ public:
     bool isInPoleField(ZONE_COORD zc);
 
     void recordPutFlag(PlayerCreature* pPC, Item* pItem);
-    void recordFlagWarHistory();
+    virtual void recordFlagWarHistory();
 
 public:
     void lock() {

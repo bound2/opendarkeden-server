@@ -64,6 +64,10 @@ public:
     // the setter above, but the destructor does not free this member, so
     // the last one set is never deleted.
     void setWorldDefaultConnection(Connection* pConnection);
+
+    // Runs SELECT 1 on pConnection to keep it open. A failure is logged by
+    // END_DB and stopped here: the keep-alive has nothing to decide, and the
+    // next statement on the connection fails where its meaning is known.
     void executeDummyQuery(Connection* pConnection);
 
     //--------------------------------------------------------------------

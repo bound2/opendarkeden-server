@@ -258,11 +258,16 @@ repo and the client's. Entries below are newest first; the oldest is the
   `DatabaseError`, which no `catch (Throwable&)` stops, so it ends the
   main loop first. Fixed in fix/database-error-sites: `executeStart` and
   `executeFinish` clear or record the round's statistics first
-  (`startFlagWar` deletes the stats before it marks the war on) and queue
-  their next step last, and `FlagManager::heartbeat` stops a
-  `DatabaseError`: the step is logged and queued again a minute later, the
-  one schedule it has, so the main loop goes on. Owner: `GameFlagStepFailure`
-  in `game_server_runtime_tests`.
+  (`startFlagWar` deletes the stats before it marks the war on, and
+  `endFlagWar` ends the war past a history it could not record, since the
+  roll-up is refused for good under the required `sql_mode` and a retry
+  would wait for ever) and queue their next step last, `executeEnd` chases
+  the next flag past one whose row it could not read and leaves statistics
+  it could not clear to the next start, and `FlagManager::heartbeat` stops
+  a `DatabaseError` from a step that still fails: the step is logged and
+  queued again a minute later, the one schedule it has, so the main loop
+  goes on. Owner: `GameFlagStepFailure` in `game_server_runtime_tests`,
+  with `database_error_sites_audit` for `executeEnd`'s catches.
   > **Status:** fixed (fix/database-error-sites)
 
 ## A database failure while a login waits on a kick escapes to the main loop (2026-10-27)

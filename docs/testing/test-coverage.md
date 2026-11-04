@@ -250,13 +250,16 @@ is pulled forward only when the group drains its mailbox.
 pulls the schedule forward, as `*command CTF` does, and checks the queue keeps
 its count. `GameFlagStepFailure` runs a step whose statement fails through the
 heartbeat, which stops the `DatabaseError` and queues the step once more a
-minute later, and refuses the start's and the finish's database work to see
-that neither queues its next step. `GameZoneDatabaseFailure` registers a player
-whose command processing fails on a statement in a `ZonePlayerManager` over a
-loopback connection: the tick goes on, the player is out of the table and the
-incoming manager's cleanup disconnects it. `database_error_sites_audit` holds
-the catches in `ZoneGroup` and `GamePlayer::disconnect`, which no test drives
-without a loaded zone and a database
+minute later, refuses the start's and the finish's database work to see that
+neither queues its next step, and refuses the round's clearing and its history
+to see that the start stays off and the finish ends the war regardless.
+`GameZoneDatabaseFailure` registers a player whose command processing fails on
+a statement in a `ZonePlayerManager` over a loopback connection: the tick goes
+on, the player is out of the table and the incoming manager's cleanup
+disconnects it. `database_error_sites_audit` holds the catches in `ZoneGroup`,
+`GamePlayer::disconnect`, `CGLogoutHandler::execute` and `FlagWar::executeEnd`,
+which no test drives without a loaded zone and a database, and the kick wait's
+wiring into `LoginPlayer::processCommand`
 ([exceptions and outcomes](../architecture/exceptions-and-outcomes.md)).
 
 # The startup and library tests

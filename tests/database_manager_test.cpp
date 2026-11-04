@@ -98,3 +98,12 @@ TEST(DatabaseManagerTables, ASecondRegistrationUnderOneIdIsRefused) {
     EXPECT_THROW(manager.addDistConnection(tid, second.get()), DuplicatedException);
     EXPECT_EQ(firstDist.get(), manager.getDistConnection("PLAYER_DB"));
 }
+
+TEST(DatabaseManagerKeepAlive, AKeepAliveThatFailsIsStoppedInsideTheManager) {
+    // Nothing listens for the connection, so SELECT 1 fails as the driver
+    // refuses a statement on a connection it never opened; the keep-alive
+    // stops the DatabaseError that makes, which decides nothing.
+    DatabaseManager manager;
+    Connection connection;
+    EXPECT_NO_THROW(manager.executeDummyQuery(&connection));
+}

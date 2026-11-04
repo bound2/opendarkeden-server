@@ -116,16 +116,16 @@ Work* FlagManager::heartbeat() {
     try {
         pDue->run();
     } catch (const DatabaseError& error) {
-        // The step's statement failed: the step stays the one schedule it
+        // The step's statement failed (the start, which begins no round on
+        // a record it could not clear): the step stays the one schedule it
         // is, a minute away, so the war waits for the database instead of
         // ending the main loop; each step queues its next one only after
         // the work that can throw, so nothing is queued twice. The message
         // names the function and the driver's error, no SQL.
         Work* pWork = pDue->popWork();
         SAFE_DELETE(pDue);
-        diagnosticFilelog("FlagWar.log",
-                          "FlagManager::heartbeat: %s failed on a statement (%s); it runs again in a minute",
-                          pWork->toString().c_str(), error.what());
+        filelog("FlagWar.log", "FlagManager::heartbeat: %s failed on a statement (%s); it runs again in a minute",
+                pWork->toString().c_str(), error.what());
         addSchedule(new Schedule(pWork, VSDateTime::currentDateTime().addSecs(kFailedStepRetrySecs)));
         return NULL;
     } catch (...) {
@@ -196,7 +196,16 @@ bool FlagManager::startFlagWar(int warSecs) {
 
 bool FlagManager::endFlagWar() {
     if (m_bHasFlagWar) {
-        recordFlagWarHistory();
+        // The roll-up this reads is refused under the required sql_mode
+        // (FlagWarRepository.h), and a round whose history was not written
+        // is still over: the war ends either way, and FlagWar.log says what
+        // the record lacks.
+        try {
+            recordFlagWarHistory();
+        } catch (const DatabaseError& error) {
+            filelog("FlagWar.log", "the round's history could not be recorded (%s); the war ends regardless",
+                    error.what());
+        }
 
         // The winner and the counts are read together: zone threads may still
         // plant or pull until the war flag drops below.

@@ -13,6 +13,7 @@
 #include "Assert.h"
 #include "ConnectionSettings.h"
 #include "DB.h"
+#include "DatabaseError.h"
 #include "KernelContext.h"
 #include "Properties.h"
 #include "Result.h"
@@ -272,14 +273,19 @@ void DatabaseManager::executeDummyQuery(Connection* pConnection)
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
-    BEGIN_DB {
-        pStmt = pConnection->createStatement();
-        pStmt->executeQueryString("SELECT 1");
+    try {
+        BEGIN_DB {
+            pStmt = pConnection->createStatement();
+            pStmt->executeQueryString("SELECT 1");
 
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt) {
-        SAFE_DELETE(pStmt);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    } catch (const DatabaseError&) {
+        // A keep-alive that fails has nothing to decide: END_DB logged the
+        // failure to DBError.log, and the next statement on the connection
+        // fails where its meaning is known, instead of this ending the
+        // worker that keeps the connection alive.
     }
 
     __END_CATCH

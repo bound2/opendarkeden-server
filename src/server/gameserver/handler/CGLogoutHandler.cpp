@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 #include "Creature.h"
+#include "DatabaseError.h"
 #include "GCSystemMessage.h"
 #include "GLIncomingConnection.h"
 #include "GameContext.h"
@@ -26,6 +27,7 @@
 #include "RelicUtil.h"
 #include "ResurrectLocationManager.h"
 #include "Slayer.h"
+#include "Utility.h"
 #include "Vampire.h"
 #include "Zone.h"
 #include "ZoneGroupManager.h"
@@ -62,8 +64,15 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
     Assert(pZone != NULL);
 
 
-    // Log that I am leaving.
-    pGamePlayer->logLoginoutDateTime();
+    // Log that I am leaving. A statement that fails here or in the save
+    // below does not keep the player: it leaves its zone and the group
+    // regardless, as a disconnect does, and GamePlayer.txt says what was
+    // not written.
+    try {
+        pGamePlayer->logLoginoutDateTime();
+    } catch (const DatabaseError& error) {
+        filelog("GamePlayer.txt", "logout could not record %s leaving: %s", pCreature->getName().c_str(), error.what());
+    }
 
     try {
         // On logout, drop the relic and the blood bible fragments.
@@ -72,63 +81,68 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
             de::gameContext().pkZoneInfos().leavePKZone(pCreature->getZoneID());
         }
 
-        if (de::kernelContext().config().hasKey("Hardcore") &&
-            de::kernelContext().config().getPropertyInt("Hardcore") != 0 && pPacket == NULL) {
-        } else {
-            // Save the creature's information.
-            pCreature->save();
+        try {
+            if (de::kernelContext().config().hasKey("Hardcore") &&
+                de::kernelContext().config().getPropertyInt("Hardcore") != 0 && pPacket == NULL) {
+            } else {
+                // Save the creature's information.
+                pCreature->save();
 
-            if (pCreature->isSlayer()) {
-                Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-                pSlayer->tinysave("LastPlayDate=now()");
-            } else if (pCreature->isVampire()) {
-                Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-                pVampire->tinysave("LastPlayDate=now()");
-            } else if (pCreature->isOusters()) {
-                Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
-                pOusters->tinysave("LastPlayDate=now()");
-            }
+                if (pCreature->isSlayer()) {
+                    Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
+                    pSlayer->tinysave("LastPlayDate=now()");
+                } else if (pCreature->isVampire()) {
+                    Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
+                    pVampire->tinysave("LastPlayDate=now()");
+                } else if (pCreature->isOusters()) {
+                    Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
+                    pOusters->tinysave("LastPlayDate=now()");
+                }
 
-            //////////////////////////////////////////////////////////////
-            // A player in the COMA state (currently dead) is moved automatically
-            // to the revival position on logout.
-            // This keeps repeated Login/Logout from replacing the revival skill
-            //
-            // The Creature's information is updated to the DB first, then updated again.
-            //////////////////////////////////////////////////////////////
+                //////////////////////////////////////////////////////////////
+                // A player in the COMA state (currently dead) is moved automatically
+                // to the revival position on logout.
+                // This keeps repeated Login/Logout from replacing the revival skill
+                //
+                // The Creature's information is updated to the DB first, then updated again.
+                //////////////////////////////////////////////////////////////
 
-            // Logging out after using Eternity once sends one to the revival position.
-            if (pCreature->isFlag(Effect::EFFECT_CLASS_COMA) || pCreature->isFlag(Effect::EFFECT_CLASS_ETERNITY)) {
-                ZoneID_t ZoneID = 0;
-                ZoneCoord_t ZoneX = 0;
-                ZoneCoord_t ZoneY = 0;
-                ZONE_COORD ResurrectCoord;
+                // Logging out after using Eternity once sends one to the revival position.
+                if (pCreature->isFlag(Effect::EFFECT_CLASS_COMA) || pCreature->isFlag(Effect::EFFECT_CLASS_ETERNITY)) {
+                    ZoneID_t ZoneID = 0;
+                    ZoneCoord_t ZoneX = 0;
+                    ZoneCoord_t ZoneY = 0;
+                    ZONE_COORD ResurrectCoord;
 
-                if (pCreature->isPC()) {
-                    PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
+                    if (pCreature->isPC()) {
+                        PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
 
-                    de::gameContext().resurrectLocations().getPosition(pPC, ResurrectCoord);
+                        de::gameContext().resurrectLocations().getPosition(pPC, ResurrectCoord);
 
-                    ZoneID = ResurrectCoord.id;
-                    ZoneX = ResurrectCoord.x;
-                    ZoneY = ResurrectCoord.y;
+                        ZoneID = ResurrectCoord.id;
+                        ZoneX = ResurrectCoord.x;
+                        ZoneY = ResurrectCoord.y;
 
-                    char pField[80];
-                    snprintf(pField, sizeof(pField), "ZoneID=%d, XCoord=%d, YCoord=%d, CurrentHP=HP", ZoneID, ZoneX,
-                             ZoneY);
+                        char pField[80];
+                        snprintf(pField, sizeof(pField), "ZoneID=%d, XCoord=%d, YCoord=%d, CurrentHP=HP", ZoneID, ZoneX,
+                                 ZoneY);
 
-                    if (pPC->isSlayer()) {
-                        Slayer* pSlayer = dynamic_cast<Slayer*>(pPC);
-                        pSlayer->tinysave(pField);
-                    } else if (pPC->isVampire()) {
-                        Vampire* pVampire = dynamic_cast<Vampire*>(pPC);
-                        pVampire->tinysave(pField);
-                    } else if (pPC->isOusters()) {
-                        Ousters* pOusters = dynamic_cast<Ousters*>(pPC);
-                        pOusters->tinysave(pField);
+                        if (pPC->isSlayer()) {
+                            Slayer* pSlayer = dynamic_cast<Slayer*>(pPC);
+                            pSlayer->tinysave(pField);
+                        } else if (pPC->isVampire()) {
+                            Vampire* pVampire = dynamic_cast<Vampire*>(pPC);
+                            pVampire->tinysave(pField);
+                        } else if (pPC->isOusters()) {
+                            Ousters* pOusters = dynamic_cast<Ousters*>(pPC);
+                            pOusters->tinysave(pField);
+                        }
                     }
                 }
             }
+        } catch (const DatabaseError& error) {
+            filelog("GamePlayer.txt", "logout could not save %s: %s; it leaves its zone regardless",
+                    pCreature->getName().c_str(), error.what());
         }
 
 

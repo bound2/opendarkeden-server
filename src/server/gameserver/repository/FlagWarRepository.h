@@ -44,10 +44,9 @@ struct FlagPoleRow {
 // unreachable by configuration, and refused by the server if an
 // operator or a GM turns the flag war on.
 //
-// And when it IS reached, the throw does not stop at the caller. The
-// DatabaseError END_DB throws is not a Throwable, so nothing between
-// endFlagWar and main.cpp's catch (...) catches it: the first flag war
-// that ends takes the gameserver process down. See
+// When it is reached, the DatabaseError END_DB throws stops in
+// FlagManager::endFlagWar: the round's history goes unrecorded,
+// FlagWar.log says so, and the war ends regardless. See
 // MySQLFlagWarRepository.cpp.
 struct FlagWarStatTotalRow {
     std::string playerID;

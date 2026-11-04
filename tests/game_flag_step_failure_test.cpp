@@ -5,13 +5,17 @@
 //               FlagManager::heartbeat stops the DatabaseError, logs it and
 //               queues the step again a minute later, and the start and the
 //               finish queue their next step only after the work that can
-//               throw, so a failed step queues nothing.
+//               throw, so a failed step queues nothing. A start whose
+//               clearing fails leaves the war off; a finish whose history
+//               fails, as it does under the required sql_mode, ends the
+//               war regardless.
 //////////////////////////////////////////////////////////////////////////////
 
 #include <gtest/gtest.h>
 
 #include "DatabaseError.h"
 #include "GameContext.h"
+#include "Properties.h"
 #include "VSDateTime.h"
 #include "ZoneGroupManager.h"
 #include "ctf/FlagManager.h"
@@ -59,6 +63,30 @@ public:
     unsigned ends = 0;
 };
 
+// The round's clearing refused, so the start cannot begin a round.
+class RefusingClear : public FlagManager {
+public:
+    explicit RefusingClear(de::GameContext& context) : FlagManager(context) {}
+    void deleteFlagWarStats() override {
+        ++clears;
+        throw DatabaseError("DELETE FROM FlagWarStat failed");
+    }
+    unsigned clears = 0;
+};
+
+// The round's history refused, as the required sql_mode refuses it, with
+// nothing else of the round's in a database.
+class RefusingHistory : public FlagManager {
+public:
+    explicit RefusingHistory(de::GameContext& context) : FlagManager(context) {}
+    void deleteFlagWarStats() override {}
+    void recordFlagWarHistory() override {
+        ++records;
+        throw DatabaseError("SELECT FROM FlagWarStat failed");
+    }
+    unsigned records = 0;
+};
+
 } // namespace
 
 TEST(GameFlagStepFailure, AStepWhoseStatementFailsIsQueuedOnceAMinuteLater) {
@@ -103,4 +131,40 @@ TEST(GameFlagStepFailure, AStartOrAFinishWhoseStatementFailsQueuesNothing) {
     EXPECT_THROW(war.executeFinish(), DatabaseError);
     EXPECT_EQ(manager.ends, 1u);
     EXPECT_EQ(manager.getSize(), 0);
+}
+
+TEST(GameFlagStepFailure, AStartWhoseClearingFailsLeavesTheWarOff) {
+    de::GameContext context;
+    ZoneGroupManager zoneGroups;
+    context.setZoneGroupManager(&zoneGroups);
+    RefusingClear manager(context);
+    manager.clear();
+
+    EXPECT_THROW(manager.startFlagWar(60), DatabaseError);
+    EXPECT_EQ(manager.clears, 1u);
+    EXPECT_FALSE(manager.hasFlagWar());
+}
+
+TEST(GameFlagStepFailure, AFinishWhoseHistoryFailsEndsTheWarRegardless) {
+    de::GameContext context;
+    ZoneGroupManager zoneGroups;
+    context.setZoneGroupManager(&zoneGroups);
+    Properties config;
+    config.setProperty("Dimension", "0");
+    config.setProperty("WorldID", "0");
+    config.setProperty("ServerID", "0");
+    context.setConfig(&config);
+    RefusingHistory manager(context);
+    manager.clear();
+
+    ASSERT_TRUE(manager.startFlagWar(60));
+    ASSERT_TRUE(manager.hasFlagWar());
+
+    // The end also runs the round's script, which this tree has not: the
+    // shell's complaint on stderr is all that leaves.
+    bool ended = false;
+    EXPECT_NO_THROW(ended = manager.endFlagWar());
+    EXPECT_TRUE(ended);
+    EXPECT_EQ(manager.records, 1u);
+    EXPECT_FALSE(manager.hasFlagWar());
 }
