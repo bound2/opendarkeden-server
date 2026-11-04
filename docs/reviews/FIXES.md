@@ -20,6 +20,39 @@ themselves are in the `restructuring/exchange-reconcile` branches of this
 repo and the client's. Entries below are newest first; the oldest is the
 1.4 max-size reconcile that followed it.
 
+## `GCNPCAskDynamic` can write past its own budget (2026-11-04)
+
+- **`GCNPCAskDynamic::kMaxSize` budgets 1,024 bytes for the subject and
+  for each of 15 choices, and nothing enforced it:** `write()` put each
+  string behind a WORD length as long as the string was (`setSubject`
+  and `addContent` took any `std::string`), so a script whose question
+  or answer ran past 1,024 bytes wrote a body the client's receive gate
+  refuses at the factory's maximum, and a string past 65,535 bytes
+  wrote a length word that wrapped under every byte of the string. Found
+  by the client's task 23 (its read budgets against this repo's
+  writers), where this was the one GC budget of 41 that was not what
+  `write()` can emit. Fixed in fix/npc-ask-dynamic-bound:
+  `kMaxStringSize` (1,024) is the budget's term, and the setters and
+  `write()` refuse a longer string with an `InvalidProtocolException`,
+  as they refuse a sixteenth choice. Owner: `GCNPCAskDynamicBounds` in
+  `wire_tests`.
+  > **Status:** fixed (fix/npc-ask-dynamic-bound)
+
+## `GearInfo` budgets 13 gear slots where a creature wears up to 22 (2026-11-04)
+
+- **`GearInfo::getMaxSize()` is `szBYTE + GearSlotInfo::getMaxSize() * 13`
+  in this repo and the client's, while `Slayer::WEAR_MAX` is 21 and the
+  vampire's and ousters' 22, and `GearInfo::write` emits one slot per
+  worn item with no cap:** a player wearing more than 13 items writes a
+  `GCUpdateInfo` body past the gear term. The packet's own budget still
+  covers it, since `RideMotorcycleInfo`'s slot list, budgeted at 60
+  slots, is never filled (`Slayer::getRideMotorcycleInfo` adds none),
+  so the true maximum of `GCUpdateInfo` (near 40,890 bytes) stays under
+  the 59,146 both repos budget. Found by the client's task 23. Raising
+  the term moves `GCUpdateInfo`'s inventory line in both repos, a
+  protocol change to ship identically; not done here.
+  > **Status:** open
+
 ## Any sender can set the address and port recorded for any character (2026-11-02)
 
 - **`CGPortCheckHandler::execute` records the datagram's source address

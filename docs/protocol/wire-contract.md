@@ -24,5 +24,7 @@ de-core's parity vectors.
 The wire-layout inventory covers all 465 registered factories and the goldens 451 of them. The
 client commits the same inventory from its own packet classes; a diff between the two is a
 protocol bug in one repo or the other, and the restructuring plan's task 1.4 records the findings
-([the plan](../reviews/RESTRUCTURING.md)). Which factories each server registers is pinned
+([the plan](../reviews/RESTRUCTURING.md)); the diff ran clean on 2026-11-04 against the client's
+task 23 branch, which read every GC packet up to what this repo's `write()` can emit
+([the next work plan](../reviews/NEXT.md)). Which factories each server registers is pinned
 separately ([factory registrations](factory-registrations.md)).

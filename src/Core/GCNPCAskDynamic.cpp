@@ -77,9 +77,11 @@ void GCNPCAskDynamic::write(SocketOutputStream& oStream) const
     oStream.write(m_ObjectID);
     oStream.write(m_ScriptID);
 
-    size = m_Subject.size();
-    if (size == 0)
+    if (m_Subject.size() == 0)
         throw InvalidProtocolException("subject size == 0");
+    if (m_Subject.size() > kMaxStringSize)
+        throw InvalidProtocolException("subject too long");
+    size = m_Subject.size();
     oStream.write(size);
     oStream.write(m_Subject);
 
@@ -90,6 +92,8 @@ void GCNPCAskDynamic::write(SocketOutputStream& oStream) const
     for (; itr != m_Contents.end(); itr++) {
         // The string length, then the string itself. An empty choice is its
         // length word alone.
+        if ((*itr).size() > kMaxStringSize)
+            throw InvalidProtocolException("content too long");
         size = (*itr).size();
         oStream.write(size);
 
@@ -134,6 +138,8 @@ void GCNPCAskDynamic::addContent(string content)
 
     if (m_Contents.size() >= kMaxCount)
         throw InvalidProtocolException("too many contents");
+    if (content.size() > kMaxStringSize)
+        throw InvalidProtocolException("content too long");
 
     m_Contents.push_back(content);
 

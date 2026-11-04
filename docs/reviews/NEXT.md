@@ -218,11 +218,13 @@ Each is one PR, with a fix-log entry naming the branch that found it:
   packet is client-facing (with the client's copy).
 - The R6 god files can keep shrinking (`Zone.cpp` 1,172 lines, `ConsoleCommands.cpp` 1,574;
   [the plan](RESTRUCTURING.md)'s ratchet table).
-- `bash tests/tools/wire_inventory_diff.sh <client-root>` fails on 42 read budgets on
-  2026-11-01, `CGSMSSend` (114 here, 108 in the client) and GC packets this server budgets
-  larger than the client reads. A CG budget the client's `write` can exceed is this
-  repository's to raise; the GC ones are the client's plan's to read, since what matters there
-  is whether this server can write more than the client admits.
+- `bash tests/tools/wire_inventory_diff.sh <client-root>` ran clean on 2026-11-04 against the
+  client's task 23 branch, after failing on 42 read budgets on 2026-11-01: `CGSMSSend` (the
+  client's task 17 raised its read) and 41 GC packets the client now reads up to what this
+  server's `write()` can emit, which `kMaxSize` stated exactly for all but `GCNPCAskDynamic`
+  ([fix log](FIXES.md), fixed). Still in view there: `GearInfo`'s 13 slots against `WEAR_MAX`
+  in both repos (the fix log's open entry) and the dead `szWORD` and `255` terms in the eleven
+  skill, bomb and mine budgets, which the client copied so the lines agree.
 
 ## Blocked or with the owner
 

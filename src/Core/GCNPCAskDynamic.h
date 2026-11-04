@@ -30,6 +30,11 @@ public:
     // SCRIPT_MAX_CONTENTS choices, and the factory max budgets this many.
     static constexpr uint kMaxCount = 15;
 
+    // The most bytes the subject and each choice carry: the factory max
+    // budgets this many per string, and the setters and write() refuse
+    // more, so the budget is what write() can emit.
+    static constexpr uint kMaxStringSize = 1024;
+
     PacketSize_t getPacketSize() const {
         PacketSize_t size = 0;
 
@@ -68,6 +73,8 @@ public:
         return m_Subject;
     }
     void setSubject(string subject) {
+        if (subject.size() > kMaxStringSize)
+            throw InvalidProtocolException("subject too long");
         m_Subject = subject;
     }
 
@@ -96,11 +103,12 @@ public:
     static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t size = 0;
 
-        size += szObjectID;                                   // npc object id
-        size += szScriptID;                                   // script id size
-        size += szWORD + 1024;                                // subject length & actual string
-        size += szBYTE;                                       // contents count
-        size += (szWORD + 1024) * GCNPCAskDynamic::kMaxCount; // contents length & actual strings
+        size += szObjectID;                               // npc object id
+        size += szScriptID;                               // script id size
+        size += szWORD + GCNPCAskDynamic::kMaxStringSize; // subject length & actual string
+        size += szBYTE;                                   // contents count
+        size +=
+            (szWORD + GCNPCAskDynamic::kMaxStringSize) * GCNPCAskDynamic::kMaxCount; // contents length & actual strings
 
         return size;
     }()};
