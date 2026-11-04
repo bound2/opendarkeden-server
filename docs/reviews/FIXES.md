@@ -267,7 +267,8 @@ repo and the client's. Entries below are newest first; the oldest is the
   a `DatabaseError` from a step that still fails: the step is logged and
   queued again a minute later, the one schedule it has, so the main loop
   goes on. Owner: `GameFlagStepFailure` in `game_server_runtime_tests`,
-  with `database_error_sites_audit` for `executeEnd`'s catches.
+  with `database_error_sites_audit` for the flag return's catch in
+  `executeEnd`.
   > **Status:** fixed (fix/database-error-sites)
 
 ## A database failure while a login waits on a kick escapes to the main loop (2026-10-27)

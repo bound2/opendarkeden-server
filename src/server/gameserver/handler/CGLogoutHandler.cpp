@@ -64,15 +64,8 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
     Assert(pZone != NULL);
 
 
-    // Log that I am leaving. A statement that fails here or in the save
-    // below does not keep the player: it leaves its zone and the group
-    // regardless, as a disconnect does, and GamePlayer.txt says what was
-    // not written.
-    try {
-        pGamePlayer->logLoginoutDateTime();
-    } catch (const DatabaseError& error) {
-        filelog("GamePlayer.txt", "logout could not record %s leaving: %s", pCreature->getName().c_str(), error.what());
-    }
+    // Log that I am leaving: a line in the day's file, not a statement.
+    pGamePlayer->logLoginoutDateTime();
 
     try {
         // On logout, drop the relic and the blood bible fragments.
@@ -81,6 +74,9 @@ void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)
             de::gameContext().pkZoneInfos().leavePKZone(pCreature->getZoneID());
         }
 
+        // A statement that fails in the save does not keep the player: it
+        // leaves its zone and the group regardless, as it does on a
+        // disconnect, and GamePlayer.txt says what was not written.
         try {
             if (de::kernelContext().config().hasKey("Hardcore") &&
                 de::kernelContext().config().getPropertyInt("Hardcore") != 0 && pPacket == NULL) {

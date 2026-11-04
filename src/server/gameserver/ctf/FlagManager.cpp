@@ -232,14 +232,18 @@ bool FlagManager::endFlagWar() {
                  m_Context.config().getPropertyInt("WorldID"), m_Context.config().getPropertyInt("ServerID"), slayers,
                  vampires, ousters);
 
-        filelog("script.log", cmd);
-        system(cmd);
+        runHistoryScript(cmd);
 
         m_bHasFlagWar = false;
         return true;
     }
 
     return false;
+}
+
+void FlagManager::runHistoryScript(const char* cmd) {
+    filelog("script.log", "%s", cmd);
+    system(cmd);
 }
 
 bool FlagManager::putFlag(PlayerCreature* pPC, MonsterCorpse* pFlagPole) {

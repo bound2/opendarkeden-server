@@ -63,19 +63,21 @@ clear) and queues it again a minute later, the one schedule it has, since the st
 next one only after the work that can throw; the zone-group tick, where
 `ZonePlayerManager::processCommands` moves a player whose statement failed out of the group (a
 logout first, where there is a creature: `CGLogoutHandler::execute` takes the creature out of its
-zone past a leaving record or a save that fails on the same database, so none is handed on still
-on its tile), `ZoneGroup::processPlayers` and `ZoneGroup::heartbeat` log a failure in a tick's
-step and go on with the next zone or the next tick, and `GamePlayer::disconnect` ends the local
-session past a failed save or log-off, the account row then keeping `GAME` until the
-loginserver's kick path reclaims it; and the keep-alive, where
+zone past a save that fails on the same database, so none is handed on still on its tile),
+`ZoneGroup::processPlayers` and `ZoneGroup::heartbeat` log a failure in a tick's step and go on
+with the next zone or the next tick, and `GamePlayer::disconnect` ends the local session past a
+failed save or log-off, the account row then keeping `GAME` until the loginserver's kick path
+reclaims it; and the keep-alive, where
 `DatabaseManager::executeDummyQuery` stops its own failure, which `END_DB` has logged and which
 decides nothing, as the next statement on the connection fails where its meaning is known.
-Owners: `LoginKickWait` in `login_server_runtime_tests` for the retirement and
-`LoginHandlerFailure` for the wrap it shares, `GameFlagStepFailure` and `GameZoneDatabaseFailure`
-in `game_server_runtime_tests`, `DatabaseManagerKeepAlive` in `database_manager_tests`, and
+Owners: `LoginKickWait` in `login_server_runtime_tests` for the wrap and `LoginHandlerFailure`
+for the retirement its `DisconnectException` gets in `processCommands`, `GameFlagStepFailure`
+(the start, the finish and the end's clearing) and `GameZoneDatabaseFailure` in
+`game_server_runtime_tests`, `DatabaseManagerKeepAlive` in `database_manager_tests`, and
 `database_error_sites_audit` (`tests/tools/check_database_error_sites.sh`) for the catches no
-test drives without a loaded zone and a database (the tick's, the disconnect's, the logout's and
-the flag war's end) and for the kick wait's wiring into `LoginPlayer::processCommand`. Left as
-they were: the main thread's `warSystem().heartbeat()` and event heartbeat in
+test drives without a loaded zone and a database (the tick's, the disconnect's, the logout's save
+and a flag's return at the war's end) and for the kick wait's wiring into
+`LoginPlayer::processCommand`. Left as they were: the main thread's `warSystem().heartbeat()`
+and event heartbeat in
 `ClientManager::run`, and a statement that fails inside a zone's own step (`Zone::heartbeat`),
 which the group's catch skips for that tick, the step running again on the next.

@@ -252,14 +252,16 @@ its count. `GameFlagStepFailure` runs a step whose statement fails through the
 heartbeat, which stops the `DatabaseError` and queues the step once more a
 minute later, refuses the start's and the finish's database work to see that
 neither queues its next step, and refuses the round's clearing and its history
-to see that the start stays off and the finish ends the war regardless.
+to see that the start stays off, the finish ends the war regardless and the end
+queues the next war.
 `GameZoneDatabaseFailure` registers a player whose command processing fails on
 a statement in a `ZonePlayerManager` over a loopback connection: the tick goes
 on, the player is out of the table and the incoming manager's cleanup
-disconnects it. `database_error_sites_audit` holds the catches in `ZoneGroup`,
-`GamePlayer::disconnect`, `CGLogoutHandler::execute` and `FlagWar::executeEnd`,
-which no test drives without a loaded zone and a database, and the kick wait's
-wiring into `LoginPlayer::processCommand`
+disconnects it. `database_error_sites_audit` holds the catches in `ZoneGroup`
+and `GamePlayer::disconnect`, the logout's save in `CGLogoutHandler::execute`
+and a flag's return in `FlagWar::executeEnd`, which no test drives without a
+loaded zone and a database, and the kick wait's wiring into
+`LoginPlayer::processCommand`
 ([exceptions and outcomes](../architecture/exceptions-and-outcomes.md)).
 
 # The startup and library tests
@@ -313,6 +315,11 @@ test; `sql_literal_tests` covers
 and the backslash escaped), and `make integration-test`'s `SessionMySQL` cases
 store a quoted or a literal-ending `UserIPInfo` name as sent and reach no
 other row through it ([repository seams](../architecture/repository-seams.md)).
+`database_manager_tests` covers the manager's per-thread connection tables,
+registered and looked up from many threads at once over initialised,
+unconnected handles, and its keep-alive, whose `SELECT 1` the driver refuses on
+such a handle and whose `DatabaseError` the manager stops
+([exceptions and outcomes](../architecture/exceptions-and-outcomes.md)).
 `server_port_settings_tests` covers required listener ports without opening
 sockets. Startup validates complete decimal ports in 1..65535 before publishing
 configuration: `TCPPort`/`GameServerUDPPort` for game, `LoginServerPort`/

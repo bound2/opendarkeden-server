@@ -15,10 +15,10 @@ namespace {
 //    raises error 1055 every time the statement is called. It is called
 //    only when the flag war is switched on, which ActiveFlagWar : 0 in
 //    both shipped configs prevents; and when it is called, the
-//    DatabaseError END_DB throws escapes every Throwable-only catch up to
-//    main.cpp's catch (...), so the process exits. The integration tier
-//    pins the throw. Fixing it means adding PlayerID and Race to the GROUP
-//    BY, or wrapping them in ANY_VALUE.
+//    DatabaseError END_DB throws stops in FlagManager::endFlagWar, which
+//    ends the war with its history unrecorded. The integration tier pins
+//    the throw. Fixing it means adding PlayerID and Race to the GROUP BY,
+//    or wrapping them in ANY_VALUE.
 //  - ItemID reaches its two statements through "%d" although the column
 //    is bigint(20) unsigned and ItemID_t is a DWORD. An id above INT_MAX
 //    formats negative: the SELECT then matches nothing, and the INSERT

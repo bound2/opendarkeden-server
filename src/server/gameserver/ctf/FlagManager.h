@@ -152,6 +152,10 @@ public:
     void recordPutFlag(PlayerCreature* pPC, Item* pItem);
     virtual void recordFlagWarHistory();
 
+    // Runs the round's history script with the command endFlagWar built;
+    // virtual so a test can keep it from running.
+    virtual void runHistoryScript(const char* cmd);
+
 public:
     void lock() {
         m_Mutex.lock();

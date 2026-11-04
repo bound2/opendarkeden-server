@@ -12,10 +12,10 @@
 #   players' heartbeat step;
 #   GamePlayer::disconnect ends the local session past a failed save or
 #   log-off;
-#   CGLogoutHandler::execute takes the creature out of its zone past a
-#   leaving record or a save that fails;
-#   FlagWar::executeEnd chases the next flag past one it could not read and
-#   leaves statistics it could not clear to the next start;
+#   CGLogoutHandler::execute takes the creature out of its zone past a save
+#   that fails;
+#   FlagWar::executeEnd chases the next flag past one it could not read (its
+#   other catch, the round's clearing, is GameFlagStepFailure's too);
 #   LoginPlayer::processCommand runs its kick wait through runLoginKickWait.
 #
 # A count proves a catch is present, not that it is placed right: the
@@ -29,13 +29,14 @@ set -u
 root=${1:-.}
 status=0
 
-# The lines matching pattern in one function body: from its definition line
-# to the first line that is a closing brace in column one.
+# The lines matching pattern in one function body, comment lines left out:
+# from its definition line to the first line that is a closing brace in
+# column one.
 count_in() {
 	local file=$1 definition=$2 pattern=$3
 	awk -v def="$definition" -v pat="$pattern" '
 		index($0, def) == 1 { inside = 1 }
-		inside && index($0, pat) > 0 { n++ }
+		inside && $0 !~ /^[ \t]*\/\// && index($0, pat) > 0 { n++ }
 		inside && /^}/ { inside = 0 }
 		END { print n + 0 }' "$file"
 }
@@ -66,8 +67,8 @@ require "$root/src/server/gameserver/ZoneGroup.cpp" "void ZoneGroup::processPlay
 require "$root/src/server/gameserver/GamePlayer.cpp" "void GamePlayer::disconnect(bool bDisconnected)" "$catches" 2 \
 	"the save and the log-off each let the local session end"
 require "$root/src/server/gameserver/handler/CGLogoutHandler.cpp" \
-	"void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)" "$catches" 2 \
-	"the leaving record and the save each let the creature leave its zone"
+	"void CGLogoutHandler::execute(CGLogout* pPacket, Player* pPlayer)" "$catches" 1 \
+	"the save lets the creature leave its zone"
 require "$root/src/server/gameserver/ctf/FlagWar.cpp" "void FlagWar::executeEnd()" "$catches" 2 \
 	"a flag's return and the round's clearing each let the end go on"
 require "$root/src/server/loginserver/LoginPlayer.cpp" "void LoginPlayer::processCommand(bool Option)" \

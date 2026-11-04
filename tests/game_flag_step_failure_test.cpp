@@ -8,8 +8,11 @@
 //               throw, so a failed step queues nothing. A start whose
 //               clearing fails leaves the war off; a finish whose history
 //               fails, as it does under the required sql_mode, ends the
-//               war regardless.
+//               war regardless; an end whose clearing fails queues the
+//               next war.
 //////////////////////////////////////////////////////////////////////////////
+
+#include <string>
 
 #include <gtest/gtest.h>
 
@@ -41,6 +44,7 @@ public:
 // The steps are protected: a war a test drives exposes them.
 class DrivenFlagWar : public FlagWar {
 public:
+    using FlagWar::executeEnd;
     using FlagWar::executeFinish;
     using FlagWar::executeStart;
     using FlagWar::FlagWar;
@@ -75,7 +79,8 @@ public:
 };
 
 // The round's history refused, as the required sql_mode refuses it, with
-// nothing else of the round's in a database.
+// nothing else of the round's in a database; the history script is kept,
+// not run.
 class RefusingHistory : public FlagManager {
 public:
     explicit RefusingHistory(de::GameContext& context) : FlagManager(context) {}
@@ -84,7 +89,11 @@ public:
         ++records;
         throw DatabaseError("SELECT FROM FlagWarStat failed");
     }
+    void runHistoryScript(const char* cmd) override {
+        script = cmd;
+    }
     unsigned records = 0;
+    std::string script;
 };
 
 } // namespace
@@ -160,11 +169,25 @@ TEST(GameFlagStepFailure, AFinishWhoseHistoryFailsEndsTheWarRegardless) {
     ASSERT_TRUE(manager.startFlagWar(60));
     ASSERT_TRUE(manager.hasFlagWar());
 
-    // The end also runs the round's script, which this tree has not: the
-    // shell's complaint on stderr is all that leaves.
     bool ended = false;
     EXPECT_NO_THROW(ended = manager.endFlagWar());
     EXPECT_TRUE(ended);
     EXPECT_EQ(manager.records, 1u);
+    EXPECT_NE(manager.script.find("recordFlagWarHistory.py"), std::string::npos);
     EXPECT_FALSE(manager.hasFlagWar());
+}
+
+TEST(GameFlagStepFailure, AnEndWhoseClearingFailsQueuesTheNextWar) {
+    de::GameContext context;
+    ZoneGroupManager zoneGroups;
+    context.setZoneGroupManager(&zoneGroups);
+    RefusingClear manager(context);
+    manager.clear();
+    // The end queues the war for its next round, so the manager owns it.
+    DrivenFlagWar* war = new DrivenFlagWar(manager, context);
+
+    EXPECT_NO_THROW(war->executeEnd());
+    EXPECT_EQ(manager.clears, 1u);
+    ASSERT_EQ(manager.getSize(), 1);
+    EXPECT_EQ(manager.getRecentSchedule()->getWork(), war);
 }
