@@ -327,7 +327,7 @@ PRs #386-#391 were closed unmerged: their commits reached master as the stack PR
   (task 16 (a), under *Blocked or with the owner*): a port check naming a recorded character
   still overwrites its row, and one row per distinct name (`varchar(10)`, so a longer name is
   stored truncated) is still any sender's to add.
-- **10. A database failure ends a process** (PR #__S10__, `fix/database-error-sites`): a
+- **10. A database failure ends a process** (PR #400, `fix/database-error-sites`): a
   `DatabaseError` is stopped where its failed statement has a meaning
   ([exceptions and outcomes](../architecture/exceptions-and-outcomes.md)): the login's kick wait
   retires the login through `runLoginKickWait`, as the dispatch wrap does for a handler; the flag
